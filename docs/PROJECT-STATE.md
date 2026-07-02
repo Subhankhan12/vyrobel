@@ -5,10 +5,11 @@
 ## Status
 
 - **Phase 1 CERTIFIED complete** (Steps 0–9): core guarantee stack certified at Step 8 (true-parallel concurrency, PHPStan L5, Pint); Step 9 added unstyled stub views + `SetTenantForWebRequest` tenant middleware.
-- **Phase 2 IN PROGRESS — Steps 0–8 done and committed.** Per-gate commits (`git log --oneline`, oldest→newest):
-  `97416c7` bootstrap → `5f89bfd` Phase 1 certified → `f30e849` Step 1 (sync backbone) → `586e279` Step 2 (channel mapping) → `ba65858` Step 3 (ARI push out) → `de2ea27` Step 4 (booking import in) → `d496b18` Step 5 (cross-system concurrency suite) → `0d5e4e0` Step 6 (Stripe) → `03ef12f` Step 7 (public booking engine) → **`7f91443` Step 8 (staff action layer, HEAD)**.
-- **NEXT ACTION: Phase 2 Step 9** (full integrity suite & consolidation) per `docs/prompts/phase-2.md` — the final Phase 2 gate.
-- **Current suite: 82 tests / 498 assertions**, all green on MySQL `vyrobel_test`. Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`; `database` documented as fallback).
+- **Phase 2 CERTIFIED complete — Steps 0–9 done and committed.** Per-gate commits (`git log --oneline`, oldest→newest):
+  `97416c7` bootstrap → `5f89bfd` Phase 1 certified → `f30e849` Step 1 (sync backbone) → `586e279` Step 2 (channel mapping) → `ba65858` Step 3 (ARI push out) → `de2ea27` Step 4 (booking import in) → `d496b18` Step 5 (cross-system concurrency suite) → `0d5e4e0` Step 6 (Stripe) → `03ef12f` Step 7 (public booking engine) → `7f91443` Step 8 (staff action layer) → **Step 9 (full integrity suite & consolidation — Phase 2 CERTIFIED, HEAD)**.
+- **NEXT ACTION: choose the post-Phase-2 track** — EITHER the **design pass** (styled UI for the unstyled booking-engine + staff/housekeeping contract stubs) OR **Phase 3** (website builder, unified inbox, owner accounting, first AI agents). Neither starts without a written, gated prompt.
+- **Current suite: 84 tests / 509 assertions**, all green on MySQL `vyrobel_test`. Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`; `database` documented as fallback), Horizon re-proven processing the `sync` queue end-to-end at the Step 9 gate.
+- **⚠️ Two live-integration checkpoints remain OUTSTANDING (proven-against-fakes only, never network):** (a) Channex staging — real ARI/webhook shape + HMAC scheme are documented guesses; (b) Stripe test-mode with real keys — real `StripeClient` + SDK webhook path unexercised by CI. See DECISIONS.md Step 9 close-out.
 
 ## What Phase 1 delivered (one line per domain)
 
@@ -30,6 +31,7 @@
 - **Step 6 — Stripe**: `App\Payments\Gateways\StripeGateway implements PaymentGateway` behind `App\Payments\Stripe\StripeClientInterface` (+`FakeStripeClient`/`StripeClient`), SCA/3DS → `pending` + webhook confirm, refunds as new offsetting ledger entries.
 - **Step 7 — public booking engine**: `App\Services\BookingEngineService` (search/quote/book/expire), `booking_quotes` (advisory hold — never in `sold`), `ResolvePublicProperty` middleware, `/book/{property}/*` routes (rate-limited).
 - **Step 8 — staff action layer**: `App\Actions\Reservations\CheckInReservation` (new) + `App\Services\FrontDeskService` (thin delegation to existing services — no new inventory/payment/HK logic), `FrontDesk` Livewire contract stub.
+- **Step 9 — full integrity suite & consolidation (Phase 2 CERTIFIED)**: audited every Step 1–8 obligation to an explicit named test; added the only two missing-as-named ARI-push tests (event-keyed idempotency: redelivered same event dedupes / different event doesn't collapse; reads current state at execution, not an enqueue-time snapshot) to `tests/Feature/AriPushTest.php`. No new features/tables. Honest gate re-run (tests/PHPStan/Pint/`migrate:fresh --seed`/Horizon-on-Redis/5× concurrency).
 
 ## INVARIANTS THAT MUST NEVER BREAK (the guarantee stack)
 
@@ -72,7 +74,7 @@
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**82 tests / 498 assertions, all green.** "Green here = the whole cross-system guarantee holds" — Phase 1's core double-booking/tenant/ledger/GDPR/event-discipline guarantees AND Phase 2's cross-channel contention, sync reliability, and payment guarantees, together.
+**84 tests / 509 assertions, all green.** "Green here = the whole cross-system guarantee holds" — Phase 1's core double-booking/tenant/ledger/GDPR/event-discipline guarantees AND Phase 2's cross-channel contention, sync reliability, and payment guarantees, together. (Step 9 added the two ARI-push nuance tests noted above; total went 82→84.)
 
 - **True OS-level parallelism** (separate PHP processes, separate MySQL connections, shared future-timestamp barrier — never RefreshDatabase): `ConcurrentBookingTest`, `DeadlockAvoidanceTest` (Phase 1); `CrossSystemConcurrencyTest` (Phase 2 Step 5 — direct-vs-OTA race, OTA-vs-OTA race, concurrent webhook redelivery).
 - **Real Redis transport + time-travel** (no real sleeps): retry/backoff/dead-letter in `SyncReliabilityTest`, `AriPushTest`, and `CrossSystemConcurrencyTest`.
@@ -83,7 +85,7 @@
 
 - **Vision / phases / buy-vs-build** → `docs/master-plan.md`
 - **Data contract (column-level source of truth)** → `docs/schema/phase-1.md` (core) + `docs/schema/phase-2.md` (channels/sync/booking engine)
-- **Build steps / gated prompts** → `docs/prompts/phase-1.md` (done) · `docs/prompts/phase-2.md` (**Step 9 is the next action**)
+- **Build steps / gated prompts** → `docs/prompts/phase-1.md` (done) · `docs/prompts/phase-2.md` (**done — Steps 0–9 all certified**)
 - **The "why" behind every decision, dated, per-gate** → `docs/DECISIONS.md`
 - **Code style / testing patterns** → `docs/CODING-STANDARDS.md`
 - **Conventions + commands** → `CLAUDE.md`
@@ -91,6 +93,8 @@
 
 ## Next up
 
-**Immediate: Phase 2 Step 9** (full integrity suite & consolidation) per `docs/prompts/phase-2.md` — consolidate every Phase 2 obligation into the permanent named suite, re-assert Phase 1 green, honest final gate (tests/PHPStan/Pint/Horizon + explicit statement of parallelism and the two live-integration checkpoints still outstanding).
+**Phase 2 is certified (Step 9 done).** The next move, per `docs/master-plan.md`, is a decision between two tracks — write the chosen one as a gated prompt the same way (`docs/prompts/`):
+- **Design pass** — styled UI for the booking engine + staff/housekeeping surfaces (currently unstyled contract stubs, deliberately). Backends + JSON contracts are final; only the presentation layer is a placeholder.
+- **Phase 3** — white-label website builder, unified inbox, owner accounting + payouts, the first AI agents.
 
-**After Phase 2 is certified**, per `docs/master-plan.md`: EITHER the **design pass** (styled UI for the booking engine + staff/housekeeping surfaces — currently unstyled contract stubs, deliberately) OR **Phase 3** (white-label website builder, unified inbox, owner accounting, first AI agents). Decide and write that prompt the same gated way.
+**Before either, the two live-integration checkpoints are the biggest open risk** (see the deferred register + DECISIONS.md Step 9): a credentialed pass against real Channex staging and Stripe test-mode keys — the only things Phase 2 proves against fakes rather than the network.

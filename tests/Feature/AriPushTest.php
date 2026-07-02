@@ -1,5 +1,7 @@
 <?php
 
+use App\Events\DomainEventRecorded;
+use App\Listeners\EnqueueAriPushOnInventoryChange;
 use App\Models\Channel;
 use App\Models\ChannelMapping;
 use App\Models\DomainEvent;
@@ -155,9 +157,45 @@ it('does not enqueue any push for a disconnected channel', function () {
     expect(SyncJob::query()->where('channel_id', $channel->id)->count())->toBe(0);
 });
 
-// The next two tests need genuine multi-attempt retry timing, so — like SyncReliabilityTest —
-// they force the `database` queue connection and drive it with real queue:work + time-travel
-// instead of the `sync` connection tests default to (which runs a job inline, single-attempt).
+it('keys idempotency on the triggering domain event: a redelivered SAME event dedupes to one push, a DIFFERENT event does not collapse', function () {
+    ['scenario' => $s, 'channel' => $channel] = channelScenario();
+    ChannelMapping::factory()->roomType($s['roomType'])->create(['channel_id' => $channel->id, 'external_id' => 'chx-rt-1']);
+
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    /** @var FakeChannexClient $fake */
+    $fake = app(ChannelManagerClient::class);
+    expect($fake->pushCount())->toBe(1)
+        ->and(SyncJob::query()->where('channel_id', $channel->id)->count())->toBe(1);
+
+    // Redeliver the SAME reservation.confirmed domain event (in-process events are at-least-once
+    // too). The listener recomputes the SAME key — ari_push:{channel}:{room_type}:{event_id} — so
+    // SyncJobDispatcher's firstOrCreate returns the existing row and nothing new dispatches.
+    $confirmed = DomainEvent::query()
+        ->where('event_type', 'reservation.confirmed')
+        ->where('subject_id', $reservation->id)
+        ->latest('id')->firstOrFail();
+
+    app(EnqueueAriPushOnInventoryChange::class)->handle(new DomainEventRecorded($confirmed));
+    app(EnqueueAriPushOnInventoryChange::class)->handle(new DomainEventRecorded($confirmed));
+
+    expect($fake->pushCount())->toBe(1) // still ONE push — a redelivered event never double-applies
+        ->and(SyncJob::query()->where('channel_id', $channel->id)->count())->toBe(1);
+
+    // A genuinely DIFFERENT event for the same room_type+range (the cancellation) carries a new
+    // domain_event_id ⇒ a new key ⇒ its own push — it must NOT collapse into the booking's row.
+    // This is exactly why the key is event-scoped, not range-scoped: a range key would have
+    // swallowed this cancel and lost the outbound update.
+    app(AssignmentService::class)->cancelReservation($reservation);
+
+    expect($fake->pushCount())->toBe(2)
+        ->and(SyncJob::query()->where('channel_id', $channel->id)->count())->toBe(2);
+});
+
+// The next tests need genuine deferred execution (retry timing, or state that changes between
+// enqueue and run), so — like SyncReliabilityTest — they force the `database` queue connection and
+// drive it with real queue:work (+ time-travel for backoff) instead of the `sync` connection tests
+// default to (which runs a job inline, single-attempt, with no gap between enqueue and execution).
 
 it('retries a failing ARI push with backoff and eventually succeeds, sending exactly one real push', function () {
     config(['queue.default' => 'database']);
@@ -213,4 +251,36 @@ it('dead-letters a permanently failing ARI push after max attempts and never exc
         ->and($syncJob->attempts)->toBe(5)
         ->and($fake->callCount())->toBe(5)  // exactly 5 attempts — never retried beyond max
         ->and($fake->pushCount())->toBe(0); // never actually delivered
+});
+
+it('pushes CURRENT availability read at execution time, not a snapshot captured at enqueue time', function () {
+    config(['queue.default' => 'database']); // defer the job so the world can change before it runs
+
+    $s = seedScenario(2); // two physical units of the type
+    $channel = Channel::factory()->create(['property_id' => $s['property']->id, 'external_property_id' => 'chx-prop-1']);
+    ChannelMapping::factory()->roomType($s['roomType'])->create(['channel_id' => $channel->id, 'external_id' => 'chx-rt-1']);
+
+    /** @var FakeChannexClient $fake */
+    $fake = app(ChannelManagerClient::class);
+
+    // Enqueue push J1 while availability is still 1 (one of two units sold). The sync_jobs row
+    // carries only the room_type + date RANGE — never an availability figure.
+    book($s, ['unit_id' => $s['units'][0]->id]);
+    expect(soldOn($s['roomType']->id, '2026-09-01'))->toBe(1);
+
+    // Change the world BEFORE J1 runs: sell the second unit → availability is now 0. (This enqueues
+    // a J2 as well, but we deliberately run only ONE job below.)
+    book($s, ['unit_id' => $s['units'][1]->id]);
+    expect(soldOn($s['roomType']->id, '2026-09-01'))->toBe(2) // both units now sold ⇒ availability 0
+        ->and($fake->pushCount())->toBe(0); // nothing delivered yet — both jobs are still queued
+
+    // Run exactly one queued job. Whichever it is, process() reads availability NOW.
+    Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true]);
+
+    // A snapshot frozen at J1's enqueue time would report available = 1. Because process() reads
+    // CURRENT state, it reports 0 — the true post-second-booking availability. This is what makes
+    // event-keyed idempotency safe under re-ordering: the last job to execute always pushes truth.
+    expect($fake->pushCount())->toBe(1);
+    $day1 = collect($fake->lastPush()['snapshot']->dates)->firstWhere('date', '2026-09-01');
+    expect($day1->available)->toBe(0);
 });
