@@ -131,6 +131,17 @@ abstract class RetryableSyncJob implements ShouldQueue
     abstract protected function process(SyncJob $syncJob): void;
 
     /**
+     * An extra informational log line a subclass can write from inside process() without
+     * affecting status/attempts — e.g. "skipped, unmapped" (a handled condition, not a failure).
+     *
+     * @param  array<string, mixed>  $context
+     */
+    protected function note(SyncJob $syncJob, string $level, string $message, array $context = []): void
+    {
+        $this->log($syncJob, $syncJob->attempts + 1, $level, $message, $context);
+    }
+
+    /**
      * @param  array<string, mixed>  $context
      */
     private function log(SyncJob $syncJob, int $attempt, string $level, string $message, array $context = []): void

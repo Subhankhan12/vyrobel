@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Events\DomainEventRecorded;
+use App\Listeners\EnqueueAriPushOnInventoryChange;
 use App\Listeners\GenerateDepartureCleanTask;
 use App\Listeners\RecomputeAvailabilityOnInventoryChange;
 use App\Models\AddOn;
@@ -24,6 +25,7 @@ use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\PaymentAuthorization;
 use App\Models\Property;
+use App\Models\RatePlan;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\RoomType;
@@ -33,6 +35,9 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Payments\Contracts\PaymentGateway;
 use App\Payments\Gateways\ManualPaymentGateway;
+use App\Services\Channex\ChannelManagerClient;
+use App\Services\Channex\ChannexClient;
+use App\Services\Channex\FakeChannexClient;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
@@ -52,6 +57,20 @@ class AppServiceProvider extends ServiceProvider
 
         // Phase 1 ships only the manual/offline gateway; real gateways bind here in Phase 2.
         $this->app->bind(PaymentGateway::class, ManualPaymentGateway::class);
+
+        // Config-gated (services.channex.fake, default true): FakeChannexClient everywhere
+        // until real staging credentials are deliberately configured. Singleton so a fake
+        // bound in a test stays inspectable after a queued AriPushJob runs against it.
+        $this->app->singleton(ChannelManagerClient::class, function ($app) {
+            if (config('services.channex.fake', true)) {
+                return new FakeChannexClient;
+            }
+
+            return new ChannexClient(
+                (string) config('services.channex.base_url'),
+                (string) config('services.channex.api_key'),
+            );
+        });
     }
 
     /**
@@ -90,11 +109,16 @@ class AppServiceProvider extends ServiceProvider
             'housekeeping_task' => HousekeepingTask::class,
             'channel' => Channel::class,
             'channel_mapping' => ChannelMapping::class,
+            'rate_plan' => RatePlan::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a
         // strict one-directional consumer: it never emits inventory events or touches sold.
+        // EnqueueAriPushOnInventoryChange is registered LAST so it reads availability AFTER
+        // RecomputeAvailabilityOnInventoryChange has already applied any recompute for the
+        // same event (both react to inventory_block.created, etc.).
         Event::listen(DomainEventRecorded::class, RecomputeAvailabilityOnInventoryChange::class);
         Event::listen(DomainEventRecorded::class, GenerateDepartureCleanTask::class);
+        Event::listen(DomainEventRecorded::class, EnqueueAriPushOnInventoryChange::class);
     }
 }

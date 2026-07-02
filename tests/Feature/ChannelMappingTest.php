@@ -16,20 +16,7 @@ uses(RefreshDatabase::class);
 // Phase 2 Step 2 — channels (OTA credential vault) + channel_mappings + the mapping guard.
 // The guard is the crux: no ARI push (Step 3) / booking import (Step 4) may proceed for an
 // unmapped room_type/rate_plan — it must fail LOUDLY (throw + log), never a silent no-op.
-
-/**
- * @return array{scenario: array<string, mixed>, channel: Channel}
- */
-function channelScenario(): array
-{
-    $s = seedScenario(1);
-    $channel = Channel::factory()->create([
-        'property_id' => $s['property']->id,
-        'name' => 'Channex Main',
-    ]);
-
-    return ['scenario' => $s, 'channel' => $channel];
-}
+// channelScenario() lives in tests/Support/channel_helpers.php (shared with AriPushTest).
 
 describe('mapping guard', function () {
     it('blocks an unmapped room_type with a clear, actionable error (never a silent no-op)', function () {

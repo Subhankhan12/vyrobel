@@ -45,3 +45,4 @@ expect()->extend('toBeOne', function () {
 */
 
 require_once __DIR__.'/Support/booking_helpers.php';
+require_once __DIR__.'/Support/channel_helpers.php';

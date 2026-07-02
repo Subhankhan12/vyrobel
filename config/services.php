@@ -35,4 +35,22 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Channex (channel manager)
+    |--------------------------------------------------------------------------
+    |
+    | `fake` gates which ChannelManagerClient implementation is bound (see
+    | AppServiceProvider::register()): true -> FakeChannexClient (in-memory, no network,
+    | what every test uses), false -> the real ChannexClient (REST, requires api_key).
+    | Defaults to true so this is never accidentally live without an explicit opt-out AND
+    | real credentials — "config-gated" per docs/DECISIONS.md.
+    |
+    */
+    'channex' => [
+        'base_url' => env('CHANNEX_BASE_URL', 'https://staging.channex.io/api/v1'),
+        'api_key' => env('CHANNEX_API_KEY'),
+        'fake' => env('CHANNEX_FAKE', true),
+    ],
+
 ];
