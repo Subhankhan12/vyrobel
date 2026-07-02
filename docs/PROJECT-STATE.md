@@ -6,8 +6,8 @@
 
 - **Phase 1 CERTIFIED complete** (Steps 0–9): core guarantee stack certified at Step 8 (true-parallel concurrency, PHPStan L5, Pint); Step 9 added unstyled stub views + `SetTenantForWebRequest` tenant middleware.
 - **Phase 2 CERTIFIED complete — Steps 0–9 done and committed.** Per-gate commits (`git log --oneline`, oldest→newest):
-  `97416c7` bootstrap → `5f89bfd` Phase 1 certified → `f30e849` Step 1 (sync backbone) → `586e279` Step 2 (channel mapping) → `ba65858` Step 3 (ARI push out) → `de2ea27` Step 4 (booking import in) → `d496b18` Step 5 (cross-system concurrency suite) → `0d5e4e0` Step 6 (Stripe) → `03ef12f` Step 7 (public booking engine) → `7f91443` Step 8 (staff action layer) → **Step 9 (full integrity suite & consolidation — Phase 2 CERTIFIED, HEAD)**.
-- **NEXT ACTION: choose the post-Phase-2 track** — EITHER the **design pass** (styled UI for the unstyled booking-engine + staff/housekeeping contract stubs) OR **Phase 3** (website builder, unified inbox, owner accounting, first AI agents). Neither starts without a written, gated prompt.
+  `97416c7` bootstrap → `5f89bfd` Phase 1 certified → `f30e849` Step 1 (sync backbone) → `586e279` Step 2 (channel mapping) → `ba65858` Step 3 (ARI push out) → `de2ea27` Step 4 (booking import in) → `d496b18` Step 5 (cross-system concurrency suite) → `0d5e4e0` Step 6 (Stripe) → `03ef12f` Step 7 (public booking engine) → `7f91443` Step 8 (staff action layer) → `409a89c` **Step 9 (full integrity suite & consolidation — Phase 2 CERTIFIED)** → docs-finalize (session handoff, HEAD).
+- **NEXT ACTION: close the two live-integration checkpoints** per `docs/prompts/live-integration-checkpoint.md` — validates the real `ChannexClient` (Channex staging) + real `StripeClient` (Stripe test-mode) against actual accounts and reconciles any contract diffs back into the fakes. **Needs Channex staging + Stripe test-mode credentials** to run (Stripe leg can run independently if Channex isn't provisioned). **OR, if deferring those**, start the **design pass** (styled UI over the unstyled contract stubs) — **then Phase 3** (website builder, unified inbox, owner accounting, first AI agents). Neither the design pass nor Phase 3 starts without a written, gated prompt.
 - **Current suite: 84 tests / 509 assertions**, all green on MySQL `vyrobel_test`. Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`; `database` documented as fallback), Horizon re-proven processing the `sync` queue end-to-end at the Step 9 gate.
 - **⚠️ Two live-integration checkpoints remain OUTSTANDING (proven-against-fakes only, never network):** (a) Channex staging — real ARI/webhook shape + HMAC scheme are documented guesses; (b) Stripe test-mode with real keys — real `StripeClient` + SDK webhook path unexercised by CI. See DECISIONS.md Step 9 close-out.
 
@@ -85,7 +85,7 @@
 
 - **Vision / phases / buy-vs-build** → `docs/master-plan.md`
 - **Data contract (column-level source of truth)** → `docs/schema/phase-1.md` (core) + `docs/schema/phase-2.md` (channels/sync/booking engine)
-- **Build steps / gated prompts** → `docs/prompts/phase-1.md` (done) · `docs/prompts/phase-2.md` (**done — Steps 0–9 all certified**)
+- **Build steps / gated prompts** → `docs/prompts/phase-1.md` (done) · `docs/prompts/phase-2.md` (**done — Steps 0–9 all certified**) · `docs/prompts/live-integration-checkpoint.md` (**the NEXT ACTION** — credentialed validation of the real Channex/Stripe clients + reconciliation back into the fakes)
 - **The "why" behind every decision, dated, per-gate** → `docs/DECISIONS.md`
 - **Code style / testing patterns** → `docs/CODING-STANDARDS.md`
 - **Conventions + commands** → `CLAUDE.md`
@@ -93,8 +93,10 @@
 
 ## Next up
 
-**Phase 2 is certified (Step 9 done).** The next move, per `docs/master-plan.md`, is a decision between two tracks — write the chosen one as a gated prompt the same way (`docs/prompts/`):
-- **Design pass** — styled UI for the booking engine + staff/housekeeping surfaces (currently unstyled contract stubs, deliberately). Backends + JSON contracts are final; only the presentation layer is a placeholder.
-- **Phase 3** — white-label website builder, unified inbox, owner accounting + payouts, the first AI agents.
+**Phase 2 is certified against fakes (Step 9 done).** The clear NEXT ACTION is to close the biggest open risk before anything new is built:
 
-**Before either, the two live-integration checkpoints are the biggest open risk** (see the deferred register + DECISIONS.md Step 9): a credentialed pass against real Channex staging and Stripe test-mode keys — the only things Phase 2 proves against fakes rather than the network.
+1. **Live-integration checkpoint (do this next)** — run `docs/prompts/live-integration-checkpoint.md`: switch the config-gated real `ChannexClient`/`StripeClient` on, exercise them against **Channex staging** + **Stripe test-mode** real accounts, and reconcile every contract difference back into the fakes so CI reflects reality. It's a gated, credentialed session (needs the keys in `.env`); the Stripe leg can run independently if Channex staging isn't provisioned yet. Until this runs, the two checkpoints stay OUTSTANDING — "certified against fakes," not "against reality."
+2. **If deferring the checkpoint**, the alternative is the **design pass** — styled UI for the booking engine + staff/housekeeping surfaces (currently deliberately-unstyled contract stubs; backends + JSON contracts are final, only presentation is a placeholder).
+3. **Then Phase 3** — white-label website builder, unified inbox, owner accounting + payouts, the first AI agents.
+
+Write whichever track you pick as a gated prompt the same way (`docs/prompts/`); the checkpoint prompt is already written.

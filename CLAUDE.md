@@ -48,5 +48,6 @@ Keep this file lean and high-signal — it loads into context every session. Det
 (These are referenced, not auto-imported, to keep session context lean. Use `@path` import syntax only for short, always-needed snippets.)
 
 ## Current status
-- **Phase 1 COMPLETE & certified** (Steps 0–9). **Phase 2 IN PROGRESS — Steps 0–8 done** (sync backbone, channel mapping, ARI push out, booking import in, cross-system concurrency suite, Stripe, public booking engine, staff action layer). **Next: Phase 2 Step 9** (final integrity suite & consolidation) per `docs/prompts/phase-2.md`. Queue is **Redis/Horizon**, live.
+- **Phase 1 & Phase 2 both COMPLETE & certified** (Steps 0–9 each): multi-tenant core + the channel manager (Channex), Stripe payments, public booking engine, and staff layer — backend + unstyled contract stubs, all proven against **in-memory fakes** (no network). Suite: **84 tests / 509 assertions** green on MySQL; queue is **Redis/Horizon**, live.
+- **⚠️ Two live-integration checkpoints remain OUTSTANDING** (never network-verified): Channex staging (real ARI/webhook shape + HMAC) and Stripe test-mode with real keys (real `StripeClient` + SDK webhook path). **NEXT ACTION: close them via `docs/prompts/live-integration-checkpoint.md`** (needs credentials) — else the design pass — then Phase 3.
 - **On a new session, read `docs/PROJECT-STATE.md` first, then `docs/DECISIONS.md`** — they hold the resume snapshot, the invariants, and the deferred-items register.
