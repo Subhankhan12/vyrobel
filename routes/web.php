@@ -4,6 +4,7 @@ use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\ResolvePublicProperty;
+use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
@@ -57,4 +58,6 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     Route::get('/units', UnitsList::class)->name('units');
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
+    // Phase 2 Step 8 — front-desk staff surface (arrivals/departures/in-house + action contracts).
+    Route::get('/front-desk', FrontDesk::class)->name('front-desk');
 });
