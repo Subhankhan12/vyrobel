@@ -27,6 +27,7 @@ Keep this file lean and high-signal — it loads into context every session. Det
 - **Gated phases:** STOP at every ⛔ gate and wait for approval. Never collapse steps.
 - **No faked data, ever:** demo seed data must be clearly flagged as demo. If something isn't actually built, or a test isn't actually passing, say so plainly — never stub-and-pretend to look finished.
 - **Tests are real gates:** the double-booking concurrency test and the tenant-isolation test MUST actually pass. Report pass/fail honestly, with file citations.
+- **Commit per gate:** commit once at each passing gate with a clear message; never batch multiple gates into one commit.
 - **Ask before installing** packages beyond those listed above.
 
 ## Commands
