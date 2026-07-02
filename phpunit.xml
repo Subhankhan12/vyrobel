@@ -36,6 +36,8 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <!-- Never hit the real Channex network in tests — always the in-memory fake. -->
         <env name="CHANNEX_FAKE" value="true"/>
+        <!-- Deterministic secret so webhook-signature tests can sign simulated payloads. -->
+        <env name="CHANNEX_WEBHOOK_SECRET" value="test-webhook-secret"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>

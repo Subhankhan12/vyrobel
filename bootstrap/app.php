@@ -18,6 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetTenantForWebRequest::class,
         ]);
+
+        // Inbound provider webhooks are stateless and signature-authenticated, not session/form
+        // posts — exempt them from CSRF (there is no token to send).
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

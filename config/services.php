@@ -51,6 +51,10 @@ return [
         'base_url' => env('CHANNEX_BASE_URL', 'https://staging.channex.io/api/v1'),
         'api_key' => env('CHANNEX_API_KEY'),
         'fake' => env('CHANNEX_FAKE', true),
+        // Shared secret for validating INBOUND Channex webhook signatures (HMAC-SHA256 over the
+        // raw request body). Documented guess at Channex's scheme — validated only against
+        // simulated payloads, not live Channex (the deferred integration checkpoint).
+        'webhook_secret' => env('CHANNEX_WEBHOOK_SECRET'),
     ],
 
 ];

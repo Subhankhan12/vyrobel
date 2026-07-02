@@ -43,4 +43,24 @@ class UnmappedChannelEntityException extends RuntimeException
                 .'the push/import was blocked to avoid silently dropping inventory or bookings.',
         );
     }
+
+    /**
+     * INBOUND variant: an OTA booking referenced an EXTERNAL id we have no active mapping for.
+     * `entityId` holds the external id (the thing we couldn't resolve to an internal entity).
+     */
+    public static function forInbound(Channel $channel, string $kind, string $externalId, ?string $reason = null): self
+    {
+        $detail = $reason !== null ? " ({$reason})" : '';
+
+        return new self(
+            channelId: (string) $channel->getKey(),
+            kind: $kind,
+            entityId: $externalId,
+            reason: $reason,
+            message: "No active channel_mapping for inbound {$kind} external id [{$externalId}] on channel "
+                ."[{$channel->name} / {$channel->getKey()}]{$detail}. "
+                ."Map this external {$kind} before importing its bookings — the import was blocked "
+                .'and the booking left unprocessed (never silently dropped) for manual resolution.',
+        );
+    }
 }

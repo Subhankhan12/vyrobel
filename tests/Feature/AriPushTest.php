@@ -17,6 +17,14 @@ use Illuminate\Support\Facades\Artisan;
 // concurrency tests). All Channex interaction here is against the FakeChannexClient bound by
 // AppServiceProvider (services.channex.fake=true, pinned in phpunit.xml) — no network.
 
+// Start each test with an empty queue: the jobs table is shared and not rolled back, so a job
+// left by another test (or a prior run, before the suite's first migrate:fresh) must not bleed in.
+beforeEach(fn () => flushQueue());
+
+// COMMIT real rows (no RefreshDatabase) → clean up after each test so committed data can't leak
+// into later tests' global counts regardless of suite ordering.
+afterEach(fn () => cleanupCommittedTenantData());
+
 it('enqueues and processes exactly one correct current-state ARI push for a confirmed booking', function () {
     ['scenario' => $s, 'channel' => $channel] = channelScenario();
     ChannelMapping::factory()->roomType($s['roomType'])->create(['channel_id' => $channel->id, 'external_id' => 'chx-rt-1']);

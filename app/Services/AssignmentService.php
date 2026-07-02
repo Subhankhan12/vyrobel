@@ -8,6 +8,7 @@ use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\UnitUnavailableException;
 use App\Models\Availability;
 use App\Models\InventoryBlock;
+use App\Models\OverbookingConflict;
 use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
 use App\Models\ReservationUnit;
@@ -85,6 +86,106 @@ class AssignmentService
         $this->audit->record('reservation.created', $reservation, null, [
             'reference' => $reservation->reference,
             'status' => $reservation->status,
+        ]);
+
+        return $reservation->refresh();
+    }
+
+    /**
+     * IMPORT path for OTA bookings (source=ota) — the asymmetric counterpart to createBooking.
+     * Runs through the SAME locking core (single write path), but is accept-and-flag instead of
+     * reject: for each line, inside the lock, if capacity is available it occupies normally
+     * (status=active, sold++, identical to a direct booking); if inventory is genuinely
+     * unavailable (sync lag oversold it) it STILL records the line — as status=overbooked, WITHOUT
+     * incrementing sold (so sold never exceeds total) — and raises an `overbooking_conflict` for
+     * manual resolution. An OTA booking is never rejected or silently dropped: you cannot un-book
+     * it on the OTA side by refusing it here.
+     *
+     * @param  array<string, mixed>  $reservationAttributes
+     * @param  list<array<string, mixed>>  $lines
+     */
+    public function importBooking(array $reservationAttributes, array $lines): Reservation
+    {
+        $conflictCount = 0;
+
+        $reservation = DB::transaction(function () use ($reservationAttributes, $lines, &$conflictCount): Reservation {
+            $reservation = Reservation::create(array_merge([
+                'status' => 'confirmed',
+                'source' => 'ota',
+                'booked_at' => now(),
+            ], $reservationAttributes, [
+                'reference' => $reservationAttributes['reference'] ?? $this->generateReference(),
+            ]));
+
+            // Same deterministic lock ordering as createBooking → deadlock-free under contention.
+            usort($lines, fn (array $a, array $b): int => [(string) $a['room_type_id'], (string) $a['check_in']]
+                <=> [(string) $b['room_type_id'], (string) $b['check_in']]);
+
+            foreach ($lines as $line) {
+                if ($this->occupyOrFlag($reservation, $line) !== null) {
+                    $conflictCount++;
+                }
+            }
+
+            $this->recordStatusHistory($reservation, null, (string) $reservation->status);
+
+            return $reservation;
+        });
+
+        $this->domainEvents->record('reservation.imported', $reservation, [
+            'reference' => $reservation->reference,
+            'source' => $reservation->source,
+            'ota_reservation_id' => $reservation->ota_reservation_id,
+            'overbooking_conflicts' => $conflictCount,
+        ]);
+        $this->audit->record('reservation.imported', $reservation, null, [
+            'reference' => $reservation->reference,
+            'ota_reservation_id' => $reservation->ota_reservation_id,
+            'overbooking_conflicts' => $conflictCount,
+        ]);
+
+        return $reservation->refresh();
+    }
+
+    /**
+     * Re-sync an already-imported reservation to a modified set of lines (OTA modification).
+     * Releases every current occupying line (frees sold for active, closes conflicts for
+     * overbooked), updates the header, then occupies-or-flags the new lines — all in one
+     * transaction. The reservation stays confirmed (unlike cancel). Idempotency for a redelivered
+     * modification is guaranteed upstream by `webhook_events` (exactly-once per external event).
+     *
+     * @param  array<string, mixed>  $reservationAttributes
+     * @param  list<array<string, mixed>>  $lines
+     */
+    public function reimportBooking(Reservation $reservation, array $reservationAttributes, array $lines): Reservation
+    {
+        $conflictCount = DB::transaction(function () use ($reservation, $reservationAttributes, $lines): int {
+            foreach ($reservation->reservationUnits()->whereIn('status', ['active', 'overbooked'])->get() as $existing) {
+                $this->releaseLine($existing);
+            }
+
+            $reservation->update($reservationAttributes);
+
+            usort($lines, fn (array $a, array $b): int => [(string) $a['room_type_id'], (string) $a['check_in']]
+                <=> [(string) $b['room_type_id'], (string) $b['check_in']]);
+
+            $conflicts = 0;
+            foreach ($lines as $line) {
+                if ($this->occupyOrFlag($reservation, $line) !== null) {
+                    $conflicts++;
+                }
+            }
+
+            return $conflicts;
+        });
+
+        $this->domainEvents->record('reservation.modified', $reservation, [
+            'ota_reservation_id' => $reservation->ota_reservation_id,
+            'overbooking_conflicts' => $conflictCount,
+        ]);
+        $this->audit->record('reservation.modified', $reservation, null, [
+            'ota_reservation_id' => $reservation->ota_reservation_id,
+            'overbooking_conflicts' => $conflictCount,
         ]);
 
         return $reservation->refresh();
@@ -292,6 +393,85 @@ class AssignmentService
     }
 
     /**
+     * OTA-import occupy: inside the caller's transaction, lock the nights, then EITHER seat the
+     * line (every night has capacity → status=active, sold++) OR flag it (some night is full →
+     * status=overbooked, NO sold change, raise an overbooking_conflict). Returns the conflict
+     * when one was raised, else null. Level A only — OTA imports are type-assigned (unit_id null),
+     * so there is no physical-unit (Level B) check; a specific unit is assigned later during
+     * manual resolution / check-in.
+     *
+     * @param  array<string, mixed>  $line
+     */
+    private function occupyOrFlag(Reservation $reservation, array $line): ?OverbookingConflict
+    {
+        $roomTypeId = (string) $line['room_type_id'];
+        $nights = $this->nights($line['check_in'], $line['check_out']);
+        $rows = $this->lockAvailability($roomTypeId, $nights);
+
+        $seatable = $this->everyNightAvailable($rows, $nights);
+
+        $reservationUnit = ReservationUnit::create([
+            'reservation_id' => $reservation->getKey(),
+            'room_type_id' => $roomTypeId,
+            'unit_id' => null,
+            'rate_plan_id' => $line['rate_plan_id'] ?? null,
+            'check_in' => $line['check_in'],
+            'check_out' => $line['check_out'],
+            'adults' => $line['adults'] ?? 1,
+            'children' => $line['children'] ?? 0,
+            'price_minor' => $line['price_minor'] ?? 0,
+            'currency' => $line['currency'] ?? $reservation->currency,
+            'status' => $seatable ? 'active' : 'overbooked',
+        ]);
+
+        if ($seatable) {
+            $this->adjustSold($rows, $nights, +1);
+
+            return null;
+        }
+
+        // Over capacity: recorded, not dropped, not counted in sold. Flag for manual resolution.
+        return OverbookingConflict::create([
+            'property_id' => $reservation->property_id,
+            'reservation_id' => $reservation->getKey(),
+            'reservation_unit_id' => $reservationUnit->getKey(),
+            'room_type_id' => $roomTypeId,
+            'channel_id' => $reservation->channel_id,
+            'check_in' => $line['check_in'],
+            'check_out' => $line['check_out'],
+            'detected_at' => now(),
+            'status' => OverbookingConflict::STATUS_OPEN,
+        ]);
+    }
+
+    /**
+     * Release one occupying line inside the caller's transaction. An `active` line frees its sold;
+     * an `overbooked` line frees nothing (it never consumed sold) but resolves its open conflict.
+     * Either way the line ends `cancelled`.
+     */
+    private function releaseLine(ReservationUnit $reservationUnit): void
+    {
+        if ($reservationUnit->status === 'active') {
+            $nights = $this->nights($reservationUnit->check_in, $reservationUnit->check_out);
+            $rows = $this->lockAvailability((string) $reservationUnit->room_type_id, $nights);
+            $this->adjustSold($rows, $nights, -1);
+        }
+
+        if ($reservationUnit->status === 'overbooked') {
+            OverbookingConflict::query()
+                ->where('reservation_unit_id', $reservationUnit->getKey())
+                ->where('status', OverbookingConflict::STATUS_OPEN)
+                ->update([
+                    'status' => OverbookingConflict::STATUS_RESOLVED,
+                    'resolution' => 'cancelled_external',
+                    'resolved_at' => now(),
+                ]);
+        }
+
+        $reservationUnit->update(['status' => 'cancelled']);
+    }
+
+    /**
      * SELECT … FOR UPDATE the availability rows for these nights (ordered for deadlock safety).
      * Throws if any night has no published availability row. This lock covers both the `sold`
      * update AND any recompute run inside the same transaction.
@@ -333,6 +513,26 @@ class AssignmentService
                 throw InsufficientAvailabilityException::forNight($roomTypeId, $night);
             }
         }
+    }
+
+    /**
+     * Non-throwing Level A for the whole stay: true only if EVERY night can seat one more unit.
+     * A stay occupies all its nights, so a single full night makes the line unseatable (→ flagged
+     * as overbooked by the import path, rather than partially seated).
+     *
+     * @param  Collection<string, Availability>  $rows
+     * @param  list<string>  $nights
+     */
+    private function everyNightAvailable(Collection $rows, array $nights): bool
+    {
+        foreach ($nights as $night) {
+            $row = $rows->get($night);
+            if ($row === null || $row->available() < 1) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -388,13 +588,11 @@ class AssignmentService
         $fromStatus = (string) $reservation->status;
 
         DB::transaction(function () use ($reservation, $status, $reason, $fromStatus): void {
-            $activeUnits = $reservation->reservationUnits()->where('status', 'active')->get();
-
-            foreach ($activeUnits as $reservationUnit) {
-                $nights = $this->nights($reservationUnit->check_in, $reservationUnit->check_out);
-                $rows = $this->lockAvailability((string) $reservationUnit->room_type_id, $nights);
-                $this->adjustSold($rows, $nights, -1);
-                $reservationUnit->update(['status' => 'cancelled']);
+            // releaseLine handles both cases: active → free sold; overbooked → close its conflict
+            // (no sold change). Direct reservations only ever have active lines, so this is a
+            // no-op superset for them — the OTA path is where overbooked lines appear.
+            foreach ($reservation->reservationUnits()->whereIn('status', ['active', 'overbooked'])->get() as $reservationUnit) {
+                $this->releaseLine($reservationUnit);
             }
 
             $reservation->update([

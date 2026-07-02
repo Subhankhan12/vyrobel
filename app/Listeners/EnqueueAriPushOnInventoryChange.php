@@ -52,6 +52,8 @@ class EnqueueAriPushOnInventoryChange
         'reservation.confirmed',
         'reservation.cancelled',
         'reservation.no_show',
+        'reservation.imported',  // Step 4 OTA import — closes the loop: an OTA booking pushes ARI
+        'reservation.modified',  // Step 4 OTA modification (re-synced lines)
     ];
 
     /** Single-line events — affected room_type+range derived from the reservation_unit itself. */
@@ -110,7 +112,11 @@ class EnqueueAriPushOnInventoryChange
 
     /**
      * A reservation may span multiple room_types (multi-room booking) — one range per distinct
-     * room_type, merged across that reservation's just-affected lines.
+     * room_type. We use ALL of the reservation's lines regardless of status: the push only needs
+     * the affected room_type + date span, and each AriPushJob reads CURRENT availability at
+     * execution time anyway. Using every line correctly covers confirm (active), cancel
+     * (now-cancelled lines still tell us the freed dates), import (active + overbooked), and
+     * modify (old cancelled dates ∪ new dates) — one robust path, no per-event status guessing.
      *
      * @return list<array{room_type_id: string, start_date: string, end_date: string}>
      */
@@ -121,11 +127,7 @@ class EnqueueAriPushOnInventoryChange
             return [];
         }
 
-        // confirmed -> the lines it just created are active; cancelled/no_show -> the lines
-        // AssignmentService::terminate() just marked cancelled.
-        $status = $domainEvent->event_type === 'reservation.confirmed' ? 'active' : 'cancelled';
-
-        return $this->mergeByRoomType($reservation->reservationUnits()->where('status', $status)->get());
+        return $this->mergeByRoomType($reservation->reservationUnits()->get());
     }
 
     /**

@@ -120,4 +120,12 @@ class Reservation extends Model
     {
         return $this->hasMany(ReservationStatusHistory::class);
     }
+
+    /**
+     * @return HasMany<OverbookingConflict, $this>
+     */
+    public function overbookingConflicts(): HasMany
+    {
+        return $this->hasMany(OverbookingConflict::class);
+    }
 }

@@ -22,6 +22,7 @@ use App\Models\InventoryBlock;
 use App\Models\Invoice;
 use App\Models\Media;
 use App\Models\Organization;
+use App\Models\OverbookingConflict;
 use App\Models\Payment;
 use App\Models\PaymentAuthorization;
 use App\Models\Property;
@@ -33,6 +34,7 @@ use App\Models\Tag;
 use App\Models\Tax;
 use App\Models\Unit;
 use App\Models\User;
+use App\Models\WebhookEvent;
 use App\Payments\Contracts\PaymentGateway;
 use App\Payments\Gateways\ManualPaymentGateway;
 use App\Services\Channex\ChannelManagerClient;
@@ -110,6 +112,8 @@ class AppServiceProvider extends ServiceProvider
             'channel' => Channel::class,
             'channel_mapping' => ChannelMapping::class,
             'rate_plan' => RatePlan::class,
+            'overbooking_conflict' => OverbookingConflict::class,
+            'webhook_event' => WebhookEvent::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a

@@ -49,6 +49,49 @@ class ChannelMappingGuard
         return $this->activeMapping($channel, ChannelMapping::KIND_RATE_PLAN, 'rate_plan_id', $ratePlanId) !== null;
     }
 
+    /**
+     * INBOUND direction (Step 4 booking import): resolve an ACTIVE mapping by the provider's
+     * external room_type id, or fail loudly — an OTA booking for an unmapped external room type
+     * must not be silently dropped.
+     */
+    public function resolveInboundRoomTypeMapping(Channel $channel, string $externalRoomTypeId): ChannelMapping
+    {
+        return $this->resolveInbound($channel, ChannelMapping::KIND_ROOM_TYPE, $externalRoomTypeId);
+    }
+
+    /**
+     * INBOUND rate_plan resolution: required-if-present. A payload that names an external rate
+     * plan we don't have mapped is a clear error (fail loudly); a payload that omits it returns
+     * null (the reservation line simply carries no rate plan).
+     */
+    public function resolveInboundRatePlanMapping(Channel $channel, ?string $externalRatePlanId): ?ChannelMapping
+    {
+        if ($externalRatePlanId === null || $externalRatePlanId === '') {
+            return null;
+        }
+
+        return $this->resolveInbound($channel, ChannelMapping::KIND_RATE_PLAN, $externalRatePlanId);
+    }
+
+    private function resolveInbound(Channel $channel, string $kind, string $externalId): ChannelMapping
+    {
+        $mapping = ChannelMapping::query()
+            ->where('channel_id', $channel->getKey())
+            ->where('kind', $kind)
+            ->where('external_id', $externalId)
+            ->first();
+
+        if ($mapping === null) {
+            $this->blockedInbound($channel, $kind, $externalId, 'no internal entity mapped to this external id');
+        }
+
+        if (! $mapping->isActive()) {
+            $this->blockedInbound($channel, $kind, $externalId, "mapping status is '{$mapping->status}', not active");
+        }
+
+        return $mapping;
+    }
+
     private function resolve(Channel $channel, string $kind, string $column, string $entityId): ChannelMapping
     {
         $mapping = $this->anyMapping($channel, $kind, $column, $entityId);
@@ -92,6 +135,21 @@ class ChannelMappingGuard
             'organization_id' => $channel->organization_id,
             'kind' => $kind,
             'entity_id' => $entityId,
+            'reason' => $reason,
+        ]);
+
+        throw $exception;
+    }
+
+    private function blockedInbound(Channel $channel, string $kind, string $externalId, string $reason): never
+    {
+        $exception = UnmappedChannelEntityException::forInbound($channel, $kind, $externalId, $reason);
+
+        Log::warning('channel.mapping_guard.blocked_inbound', [
+            'channel_id' => (string) $channel->getKey(),
+            'organization_id' => $channel->organization_id,
+            'kind' => $kind,
+            'external_id' => $externalId,
             'reason' => $reason,
         ]);
 

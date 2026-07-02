@@ -14,6 +14,13 @@ use Tests\Support\Jobs\FlakySyncJob;
 // idempotent enqueue, enqueue -> process -> succeed, retry with backoff, dead-letter after max
 // attempts (never applied twice), and idempotent execution on redelivery.
 
+// Empty the shared jobs table before each test — the database-queue tests below must not inherit
+// a job left by another test or a prior run (see flushQueue()).
+beforeEach(fn () => flushQueue());
+
+// The non-RefreshDatabase tests here COMMIT sync_jobs/orgs — clean up so nothing leaks forward.
+afterEach(fn () => cleanupCommittedTenantData());
+
 describe('idempotent enqueue', function () {
     uses(RefreshDatabase::class);
 

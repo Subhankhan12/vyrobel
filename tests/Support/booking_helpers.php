@@ -12,6 +12,7 @@ use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 if (! function_exists('newDemoOrg')) {
@@ -100,5 +101,38 @@ if (! function_exists('moneyEur')) {
     function moneyEur(int $minor): Money
     {
         return Money::of($minor, 'EUR');
+    }
+}
+
+if (! function_exists('cleanupCommittedTenantData')) {
+    /**
+     * Force-delete every organization (cascades via FK to properties/reservations/channels/…),
+     * then clear the append-only event logs (plain columns, no cascade). Non-RefreshDatabase
+     * tests COMMIT real rows, so without this their data leaks into later tests — in particular
+     * global super-admin counts (see TenantIsolationTest). Same self-clean discipline as
+     * ConcurrentBookingTest, generalized. Safe: each of these tests builds its own fresh orgs.
+     */
+    function cleanupCommittedTenantData(): void
+    {
+        app(TenantContext::class)->runAsSuperAdmin(function (): void {
+            Organization::withTrashed()->get()->each(fn (Organization $org) => $org->forceDelete());
+        });
+
+        DB::table('domain_events')->delete();
+        DB::table('audit_events')->delete();
+    }
+}
+
+if (! function_exists('flushQueue')) {
+    /**
+     * Clear the shared `jobs`/`failed_jobs` tables. Tests that drive the database queue with
+     * queue:work rely on these being empty — they are NOT tenant-scoped and NOT rolled back by
+     * non-RefreshDatabase tests, so a job left delayed/failed by one test (or a prior run, before
+     * the suite's first migrate:fresh) would otherwise be picked up by another test's worker.
+     */
+    function flushQueue(): void
+    {
+        DB::table('jobs')->delete();
+        DB::table('failed_jobs')->delete();
     }
 }

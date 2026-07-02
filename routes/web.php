@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChannexWebhookController;
 use App\Livewire\HousekeepingBoard;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
@@ -9,6 +10,14 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+/*
+ * Public, unauthenticated INBOUND Channex webhook (Step 4). Signature-authenticated, CSRF-exempt
+ * (see bootstrap/app.php). {channel} is our channel ULID; the controller resolves it under a
+ * super-admin context then sets the tenant context — no route-model binding (that would trip the
+ * tenant scope before context is set).
+ */
+Route::post('/webhooks/channex/{channel}', ChannexWebhookController::class)->name('webhooks.channex');
 
 /*
  * Phase 1 CONTRACT-STUB pages (unstyled). Read-only Livewire components that expose the data

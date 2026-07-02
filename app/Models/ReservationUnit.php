@@ -11,9 +11,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Per-unit inventory-occupying line item. Lifecycle via `status` (active | cancelled | moved),
- * never soft delete. ALL inserts/mutations of this table go through AssignmentService — no
- * other code touches it (convention #9).
+ * Per-unit inventory-occupying line item. Lifecycle via `status`, never soft delete. ALL
+ * inserts/mutations of this table go through AssignmentService — no other code touches it
+ * (convention #9).
+ *
+ * `status`: active | cancelled | moved | overbooked. `overbooked` (Step 4) is an OTA line that
+ * could not occupy real capacity — recorded, flagged via `overbooking_conflicts`, and NOT counted
+ * in `availability.sold`. Declared explicitly because it was added by a raw ALTER migration that
+ * static analysis can't read back from the original enum definition.
+ *
+ * @property string $status
  */
 class ReservationUnit extends Model
 {
