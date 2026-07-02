@@ -7,9 +7,9 @@
 - **Phase 1 CERTIFIED complete** (Steps 0–9): core guarantee stack certified at Step 8 (true-parallel concurrency, PHPStan L5, Pint); Step 9 added unstyled stub views + `SetTenantForWebRequest` tenant middleware.
 - **Phase 2 CERTIFIED complete — Steps 0–9 done and committed.** Per-gate commits (`git log --oneline`, oldest→newest):
   `97416c7` bootstrap → `5f89bfd` Phase 1 certified → `f30e849` Step 1 (sync backbone) → `586e279` Step 2 (channel mapping) → `ba65858` Step 3 (ARI push out) → `de2ea27` Step 4 (booking import in) → `d496b18` Step 5 (cross-system concurrency suite) → `0d5e4e0` Step 6 (Stripe) → `03ef12f` Step 7 (public booking engine) → `7f91443` Step 8 (staff action layer) → `409a89c` **Step 9 (full integrity suite & consolidation — Phase 2 CERTIFIED)** → docs-finalize (session handoff, HEAD).
-- **NEXT ACTION: close the two live-integration checkpoints** per `docs/prompts/live-integration-checkpoint.md` — validates the real `ChannexClient` (Channex staging) + real `StripeClient` (Stripe test-mode) against actual accounts and reconciles any contract diffs back into the fakes. **Needs Channex staging + Stripe test-mode credentials** to run (Stripe leg can run independently if Channex isn't provisioned). **OR, if deferring those**, start the **design pass** (styled UI over the unstyled contract stubs) — **then Phase 3** (website builder, unified inbox, owner accounting, first AI agents). Neither the design pass nor Phase 3 starts without a written, gated prompt.
+- **STRIPE live checkpoint CLOSED (2026-07-03)** — the real `StripeClient` + SDK webhook path were validated against Stripe test-mode and the fake reconciled to the real contract (see DECISIONS.md 2026-07-03; a deposit-hold null-token bug was found + fixed). **NEXT ACTION: the Channex live checkpoint is now the single outstanding one** (`docs/prompts/live-integration-checkpoint.md` Steps 1–2) — **blocked: no Channex staging account yet**. **OR** start the **design pass** (styled UI over the unstyled contract stubs) — **then Phase 3** (website builder, unified inbox, owner accounting, first AI agents). Neither the design pass nor Phase 3 starts without a written, gated prompt.
 - **Current suite: 84 tests / 509 assertions**, all green on MySQL `vyrobel_test`. Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`; `database` documented as fallback), Horizon re-proven processing the `sync` queue end-to-end at the Step 9 gate.
-- **⚠️ Two live-integration checkpoints remain OUTSTANDING (proven-against-fakes only, never network):** (a) Channex staging — real ARI/webhook shape + HMAC scheme are documented guesses; (b) Stripe test-mode with real keys — real `StripeClient` + SDK webhook path unexercised by CI. See DECISIONS.md Step 9 close-out.
+- **⚠️ ONE live-integration checkpoint remains OUTSTANDING (proven-against-fakes only, never network):** Channex staging — real ARI/webhook shape + HMAC scheme are documented guesses (blocked on a staging account). **The Stripe checkpoint is CLOSED** — validated against real Stripe test-mode on 2026-07-03 (real `StripeClient` + SDK webhook path exercised; fake reconciled). See DECISIONS.md 2026-07-03.
 
 ## What Phase 1 delivered (one line per domain)
 
@@ -57,9 +57,10 @@
 
 ## Deferred-items register (do NOT build ad hoc; see DECISIONS.md)
 
-**Two live-integration checkpoints (the biggest open item):**
-- **Channex staging** — the ARI push request shape, the inbound webhook payload shape, and the HMAC signature scheme are all **documented guesses**, validated only against `FakeChannexClient` + simulated signed payloads. Never exercised against a real Channex account.
-- **Stripe test-mode with real keys** — the real `StripeClient` (SDK-backed) and its webhook path are unexercised by CI; all tests run against `FakeStripeClient`. The webhook signature scheme IS Stripe's real documented HMAC scheme (not a guess), just never validated against a live-sent webhook.
+**One live-integration checkpoint remains (the biggest open item):**
+- **Channex staging** — the ARI push request shape, the inbound webhook payload shape, and the HMAC signature scheme are all **documented guesses**, validated only against `FakeChannexClient` + simulated signed payloads. Never exercised against a real Channex account (blocked: no staging account yet; inbound also needs a public tunnel).
+
+**Closed 2026-07-03 — Stripe test-mode (validated live):** the real `StripeClient` (SDK-backed) + its `Stripe-Signature` webhook path were exercised against real Stripe test-mode and the contract reconciled into `FakeStripeClient` (see DECISIONS.md 2026-07-03). A deposit-hold null-token bug was found + fixed (`authorizeDeposit` now requires a card token; fake made faithful; `phpunit.xml` pins `PAYMENTS_GATEWAY=manual`). No longer outstanding.
 
 **Phase 3+ deferrals:**
 - Promo codes + deposits on the booking engine — `booking_quotes.promo_code`/`discount_minor` and `payment_authorizations` exist in schema; no engine logic wired (not exercised by search/quote/book).
@@ -85,7 +86,7 @@
 
 - **Vision / phases / buy-vs-build** → `docs/master-plan.md`
 - **Data contract (column-level source of truth)** → `docs/schema/phase-1.md` (core) + `docs/schema/phase-2.md` (channels/sync/booking engine)
-- **Build steps / gated prompts** → `docs/prompts/phase-1.md` (done) · `docs/prompts/phase-2.md` (**done — Steps 0–9 all certified**) · `docs/prompts/live-integration-checkpoint.md` (**the NEXT ACTION** — credentialed validation of the real Channex/Stripe clients + reconciliation back into the fakes)
+- **Build steps / gated prompts** → `docs/prompts/phase-1.md` (done) · `docs/prompts/phase-2.md` (**done — Steps 0–9 all certified**) · `docs/prompts/live-integration-checkpoint.md` (**Stripe leg done 2026-07-03; Channex Steps 1–2 still outstanding** — credentialed validation + reconciliation back into the fakes)
 - **The "why" behind every decision, dated, per-gate** → `docs/DECISIONS.md`
 - **Code style / testing patterns** → `docs/CODING-STANDARDS.md`
 - **Conventions + commands** → `CLAUDE.md`
@@ -93,10 +94,10 @@
 
 ## Next up
 
-**Phase 2 is certified against fakes (Step 9 done).** The clear NEXT ACTION is to close the biggest open risk before anything new is built:
+**Phase 2 is certified against fakes; the STRIPE live checkpoint is now CLOSED (2026-07-03, validated against real test-mode).** Remaining options:
 
-1. **Live-integration checkpoint (do this next)** — run `docs/prompts/live-integration-checkpoint.md`: switch the config-gated real `ChannexClient`/`StripeClient` on, exercise them against **Channex staging** + **Stripe test-mode** real accounts, and reconcile every contract difference back into the fakes so CI reflects reality. It's a gated, credentialed session (needs the keys in `.env`); the Stripe leg can run independently if Channex staging isn't provisioned yet. Until this runs, the two checkpoints stay OUTSTANDING — "certified against fakes," not "against reality."
-2. **If deferring the checkpoint**, the alternative is the **design pass** — styled UI for the booking engine + staff/housekeeping surfaces (currently deliberately-unstyled contract stubs; backends + JSON contracts are final, only presentation is a placeholder).
+1. **Channex live checkpoint (the single outstanding live item)** — run `docs/prompts/live-integration-checkpoint.md` Steps 1–2 against **Channex staging**: exercise the real `ChannexClient` (outbound ARI) + inbound webhook, and reconcile the real ARI/webhook shape + HMAC scheme back into `FakeChannexClient`. **Blocked: needs a Channex staging account + a public tunnel** (not provisioned yet). Until then it stays OUTSTANDING — "certified against fakes," not "against reality."
+2. **Design pass** — styled UI for the booking engine + staff/housekeeping surfaces (currently deliberately-unstyled contract stubs; backends + JSON contracts are final, only presentation is a placeholder).
 3. **Then Phase 3** — white-label website builder, unified inbox, owner accounting + payouts, the first AI agents.
 
-Write whichever track you pick as a gated prompt the same way (`docs/prompts/`); the checkpoint prompt is already written.
+Write whichever track you pick as a gated prompt the same way (`docs/prompts/`); the Stripe half of the checkpoint prompt is done, the Channex half remains.

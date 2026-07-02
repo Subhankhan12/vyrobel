@@ -89,7 +89,7 @@ it('selects StripeGateway from config and charges through FolioService, updating
 it('places a deposit hold (authorize) that is NOT counted as paid until captured', function () {
     ['folio' => $folio, 'folios' => $folios, 'fake' => $fake] = stripeFolioScenario(30000);
 
-    $auth = $folios->authorizeDeposit($folio, moneyEur(10000));
+    $auth = $folios->authorizeDeposit($folio, moneyEur(10000), 'pm_card_visa');
 
     expect($auth->status)->toBe('authorized')
         ->and($folio->refresh()->paid_minor)->toBe(0);          // hold ≠ paid

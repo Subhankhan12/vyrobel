@@ -43,7 +43,12 @@ class FakeStripeClient implements StripeClientInterface
     public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = []): StripeIntent
     {
         $id = 'pi_fake_'.Str::lower(Str::random(20));
-        $status = $this->nextIntentStatus ?? ($capture ? 'succeeded' : 'requires_capture');
+        // Mirror live Stripe: with no payment method an intent is `requires_payment_method` (it can
+        // neither be confirmed nor held); with a method, capture:true settles now and capture:false
+        // is a holdable `requires_capture`. (Reconciled against live Stripe test-mode 2026-07-03.)
+        $status = $this->nextIntentStatus ?? ($paymentMethod === null
+            ? 'requires_payment_method'
+            : ($capture ? 'succeeded' : 'requires_capture'));
         $this->nextIntentStatus = null;
 
         $clientSecret = $status === 'requires_action' ? $id.'_secret_'.Str::lower(Str::random(10)) : null;
@@ -63,6 +68,11 @@ class FakeStripeClient implements StripeClientInterface
     public function capturePaymentIntent(string $intentId, ?int $amountMinor = null): StripeIntent
     {
         $intent = $this->intents[$intentId] ?? throw new RuntimeException("FakeStripeClient: unknown intent {$intentId}.");
+        // Mirror live Stripe: only a `requires_capture` intent may be captured (a hold created with
+        // no payment method is `requires_payment_method` and errors here). (Reconciled 2026-07-03.)
+        if (($intent['status'] ?? null) !== 'requires_capture') {
+            throw new RuntimeException("FakeStripeClient: intent {$intentId} is {$intent['status']}, only requires_capture may be captured.");
+        }
         $this->intents[$intentId]['status'] = 'succeeded';
         $this->captures[] = ['intent_id' => $intentId, 'amount_minor' => $amountMinor ?? (int) $intent['amount_minor']];
 

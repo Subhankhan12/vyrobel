@@ -258,11 +258,14 @@ class FolioService
     /**
      * Place a deposit/incidental hold (authorize). Not counted as paid until captured.
      */
-    public function authorizeDeposit(Folio $folio, Money $amount, ?DateTimeInterface $expiresAt = null): PaymentAuthorization
+    public function authorizeDeposit(Folio $folio, Money $amount, ?string $cardToken = null, ?DateTimeInterface $expiresAt = null): PaymentAuthorization
     {
-        $result = $this->gateway->authorize($amount, null, []);
+        // A hold needs a real payment method: live Stripe returns `requires_payment_method` (and the
+        // later capture then fails) if you authorize with no card. Token-only — $cardToken is a
+        // Stripe payment_method id, never a PAN. (Reconciled against live Stripe test-mode 2026-07-03.)
+        $result = $this->gateway->authorize($amount, $cardToken, []);
 
-        $authorization = DB::transaction(function () use ($folio, $amount, $result, $expiresAt): PaymentAuthorization {
+        $authorization = DB::transaction(function () use ($folio, $amount, $cardToken, $result, $expiresAt): PaymentAuthorization {
             $payment = Payment::create([
                 'folio_id' => $folio->getKey(),
                 'reservation_id' => $folio->reservation_id,
@@ -272,6 +275,7 @@ class FolioService
                 'amount' => $amount,
                 'currency' => $amount->currency(),
                 'status' => 'authorized',
+                'card_token' => $cardToken,
                 'processed_at' => now(),
             ]);
 
