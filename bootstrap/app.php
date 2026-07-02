@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SetTenantForWebRequest;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,7 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Resolve the active organization from the authenticated user on every web request,
+        // syncing TenantContext + spatie team id. CLI/queue/tests use programmatic context.
+        $middleware->web(append: [
+            SetTenantForWebRequest::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

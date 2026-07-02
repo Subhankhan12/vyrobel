@@ -17,6 +17,81 @@ A running record of locked decisions — what was decided and why — so the pro
 
 ## New decisions
 
-<!-- Add entries below, most recent first, each with a date. Example:
-### YYYY-MM-DD
+### 2026-07-02 — Phase 1 Step 0 resolutions
+
+1. **Queue driver = `database` for Phase 1** (Horizon+Redis deferred to Phase 2). — **Why:** CLAUDE.md/DECISIONS.md govern over the prompt's general stack line; "Horizon on Redis" describes the end-state, not a Phase-1 requirement, and Phase 1's async needs are trivial. **Corollary (critical):** the authoritative availability mutation (`sold++`/`sold--`) happens **inline and synchronously inside the `AssignmentService` transaction**; the `domain_events` recompute listener is **defense-in-depth only**. Integrity tests must run that listener **synchronously** (not via a queued job) so the double-booking test never depends on a running `queue:work`.
+2. **`users.id` converted to ULID now** (skeleton-only data, right moment). — **Why:** Rewrite the skeleton migration to ULID + spec columns (`two_factor_secret`, `two_factor_enabled`, `locale`, `status`, `last_login_at`); switch `sessions.user_id` to `foreignUlid`; `password_reset_tokens` is email-keyed so no PK change. This makes **every** user-referencing FK uniform ULID (`created_by`, `assigned_to`, `posted_by`, `changed_by`, `verified_by`, `audit_events.actor_id`) — no mixed-type FKs anywhere.
+3. **ULID on all first-party tenant business tables; third-party package tables keep their native PKs.** — **Why:** spatie `roles`/`permissions` stay integer-keyed; converting their internal keys buys nothing and breaks upgrade paths. This is the governing principle for PK type across the schema.
+4. **Soft deletes follow the schema.** SoftDeletes on operational tables; `guests` uses `anonymize()` (never soft-delete-and-retain PII); `audit_events`/`domain_events` are immutable (no soft delete). — **Addition:** posted financial records (`payments`, `invoices`, and **posted** `folio_items`) are **correct-by-reversal** — services never delete them, only void/reverse via new entries, even if a `SoftDeletes` trait sits there as a safety net. Financial integrity comes from an append-only ledger, not deletions.
+5. **Spec-gap resolutions:** use the `payments.gateway` superset enum (`stripe,paypal,square,manual,bank_transfer,ota_collect`); `subscription_items` = `subscription_id`, `plan_feature_id`/feature key, `quantity`, nullable `stripe_item_id` (null until Phase 2 Stripe); separate `property_policies` table per the prompt; align `.env.example` to MySQL.
+
+**spatie teams + ULID catch:** with `team_foreign_key => 'organization_id'` and `organizations.id` as ULID, the published spatie migration defaults the `organization_id` column on `roles`, `model_has_roles`, and `model_has_permissions` to `unsignedBigInteger`. These must be **`char(26)`/ULID** to match `organizations.id` (the `model_id` morph is handled via `ulidMorphs`) — otherwise a runtime type-mismatch occurs.
+
+**Step 1 close-out addenda:**
+
+- **Static-analysis bar:** PHPStan (Larastan) **level 5** is the standing minimum (`phpstan.neon`). Ratchet up 1–2 levels as the codebase grows.
+- **Tenancy opt-outs (intentional, do not "fix"):** `Membership` (`organization_user`) and `PropertyAssignment` (`property_user`) deliberately do **not** use the tenant global scope — a user must read their memberships across **all** orgs they belong to; these link tables are queried explicitly by `user_id`/`organization_id`.
+- **Deferred FKs / forward hooks:**
+  - Closed in **Step 2**: `property_user.property_id` foreign key + `PropertyAssignment::property()` relation (properties now exist).
+  - Stays a nullable column with **NO FK target** until the owners module (**Phase 3**): `units.owner_id` — forward hook, not a stub.
+- **Deferred to Phase 2 / Step 9:** request-scoped middleware that syncs `TenantContext` ↔ spatie team id (`setPermissionsTeamId`) for real HTTP requests. In Phase 1, context is set programmatically (seeders/services/tests).
+- **Step 8 watch-item:** the per-org role provisioner must run inside the target org's team context (correct `setPermissionsTeamId`) so the 13 tenant roles attach to the right `organization_id`.
+
+**Step 2 close-out addenda:**
+
+- **`amenities` is a global/standard catalog for Phase 1.** Non-breaking future extension for tenant-custom amenities: add a nullable `organization_id` (null = global, set = tenant-custom); the catalog query becomes `where organization_id is null or organization_id = <current>`. The `amenitiables` join is unaffected.
+- **Enforced morph map (standing rule):** `Relation::enforceMorphMap` is on (AppServiceProvider). Every polymorphic-capable model added later (guests→documents, reservations→notes, folios, event subjects, spatie `model_has_roles.model_type`, …) **MUST** be registered in the map or Laravel throws. Treat "add to morph map" as a per-step checklist item.
+- **Deferred-FK register:** `room_types.default_rate_plan_id` → close FK in **Step 3** (once `rate_plans` exists). `units.owner_id` stays open until **Phase 3** (owners). `AvailabilityService.sold` term → wired in **Step 5** (reservation_units + AssignmentService); AvailabilityService is a *collaborator* of AssignmentService, not a second write path.
+
+**Step 3 close-out addenda:**
+
+- **Availability event direction (standing rule):** `domain_events` are emitted **only** by the write side (AssignmentService, inventory-block creation, rate/price actions). `AvailabilityService::recompute` is a **pure consumer and MUST NEVER emit events** — prevents feedback loops when Step 5 wires the recompute listener onto `domain_events`.
+- **Known P1 limitations + non-breaking extensions (do not build now):** (a) `out_of_order` is date-independent in P1 (from current `condition_status`); dated OOO ranges are a later enhancement. (b) room-type-level `inventory_blocks` count as **1** unit; add nullable `inventory_blocks.quantity` later (null = 1) for "block N units."
+- **Step 8 test obligation:** assert the overlap case — a unit both `out_of_order` **and** under a block is subtracted **once**, and `available()` never goes negative.
+- **Step 5 design constraint (carry-forward):** AssignmentService must hold the `SELECT … FOR UPDATE` lock covering **both** its own `sold` update **and** any `recompute` run inside the booking transaction, so a concurrent recompute cannot stomp the availability row mid-booking. `sold` is written only by AssignmentService; `total`/`out_of_order`/`blocked` only by recompute.
+
+**Step 4 close-out addenda:**
+
+- **`guest_documents.document_id → documents`** (not a raw `media_id`): reconciles schema Module 4 (`media_id`) with Module 8 ("guest IDs live in `documents`") + the reuse directive. The `Document` carries `signed_url_required`/`media_id`; `guest_documents` wraps it with `type` + `verification_status`.
+- **Step 8 test obligation:** `anonymize()` must purge the actual stored file **bytes** (the `Media` storage object on disk), not only the DB rows — a real GDPR erase removes the stored file. (Phase 1 stores no real bytes yet; wire the storage delete when uploads land.)
+- **Blind-index for encrypted guest email/phone remains deferred;** likely resurfaces in Phase 2 OTA import (matching incoming bookings to existing guests).
+
+**Step 5 close-out addenda:**
+
+- **`reservation_units.currency` added** alongside `price_minor` (schema lists `price_minor` only): money is always minor units + ISO currency (convention #3) — the price snapshot carries its own currency rather than silently inheriting the reservation header.
+- **Deadlock avoidance:** `AssignmentService` acquires availability locks in **deterministic order** (sort by `room_type_id` + `check_in`) before occupying multi-line bookings — prevents a circular-wait between two multi-room bookings under `SELECT … FOR UPDATE`.
+- **Booking tests run on genuine MySQL** (`vyrobel_test`, per `phpunit.xml`); the concurrency test uses **true OS-level parallelism** (two PHP processes, separate connections, shared-timestamp barrier), NOT an injected in-process barrier.
+- **Step 8 test-obligation register (accumulated — lock these into the Step 8 suite):**
+  1. concurrency double-book under true parallelism (proven in Step 5 — re-assert in the Step 8 suite);
+  2. deadlock avoidance — two multi-room bookings acquiring overlapping locks in opposite order serialize cleanly, no deadlock;
+  3. availability overlap — a unit both `out_of_order` AND blocked is subtracted once, `available()` never negative;
+  4. `anonymize()` purges the actual stored file bytes, not just DB rows.
+
+**Step 6 close-out addenda:**
+
+- **`taxes`/`fees` carry both `rate` (percentage modes) and `amount_minor`+`currency` (fixed modes)** — schema lists only `rate`; fixed-amount taxes/fees are money and need Money columns (convention #3). The service switches on `mode`.
+- **Folio ledger sum rule:** `folio.total_minor = SUM(folio_items.amount_minor)`. Tax/fee/add-on are each posted as their own `folio_items` lines; the per-line `tax_minor` is breakdown metadata only and is **NOT** summed (avoids double-counting tax).
+- **Invoices numbered per property:** `unique(property_id, number)`. When invoicing goes live (P2/P3), replace `max+1` with a **gap-free sequence/counter** — tax authorities require gap-free numbering and `max+1` races under concurrency. Deferred, not built now.
+
+**Step 7 close-out addenda:**
+
+- **Departure-task idempotency keys on `unit + date + type`** (`housekeeping_tasks` has no `reservation_id`): replay-safe for at-least-once queued delivery later. Known P1 edge — two different reservations turning over the **same unit on the same day** dedupe to one departure task; a deliberate P1 choice, revisit if same-day-turnover tracking is needed.
+- **Demo data is flagged by obvious demo naming, NOT an `is_demo` column** (Step 8 forbids new schema): the `DemoSeeder` org/property/guests/reservations use unmistakable "Demo" names + a fixed `vyrobel-demo` slug.
+- **`Guest::anonymize()` now deletes the stored file bytes** (`Storage::disk()->delete()`) of ID-document media, not just the DB rows — completes the GDPR obligation for a real erase.
+
+**Step 8 close-out — Phase 1 core certified:**
+
+- **Phase 1 guarantee stack certified at Step 8** (permanent regression net = the full named suite, 19 tests / 103 assertions on genuine MySQL): no-double-booking proven under **true OS-level parallelism** (5×5 stress runs, no flakiness); deadlock-free multi-room locking (deterministic lock order); tenant isolation + guard + super-admin bypass; float-free integer-minor money; append-only correct-by-reversal ledger (refund = new row, hold ≠ paid until capture); GDPR erase incl. **file-byte** purge; one-directional event→listener discipline (checkout→task, no recompute loop).
+- **Enforced morph map earned its keep:** the suite surfaced an unregistered `InventoryBlock` used as an event subject (first exercised by the availability-overlap test); registered `inventory_block`. Confirms the enforced map is doing its job rather than silently storing FQCNs.
+
+**Step 9 close-out — stub views + tenant middleware (BUILT, not skipped):**
+
+- **Request-scoped tenant middleware wired** (`SetTenantForWebRequest`, appended to the `web` group in `bootstrap/app.php`): resolves the active org from the authenticated user (session override if a member, else first active membership) and sets **both** `TenantContext` and spatie's team id. **Closes the Step-1 deferred item.** CLI/queue/tests keep programmatic context.
+- **Livewire 4.3 installed** (deferred since Step 1). Four UNSTYLED, read-only contract-stub pages (`app/Livewire/`: ReservationRack, ReservationDetail, UnitsList, HousekeepingBoard) that expose/document the data shapes for the later design pass, pulling real data through the services. **Not the design** — no CSS/design system; the design pass replaces these views.
+- **Suite grew to 21 tests / 116 assertions** (added `StubViewsTest`: pages render real data through the services; web-layer tenant isolation holds — another org's reservation 404s).
+- **Livewire-4 gotchas recorded:** (a) default `component_layout` is the namespaced `layouts::app` (unregistered → 500) — pinned each component with `#[Layout('components.layouts.app')]`; (b) a typed `public Model` prop makes Livewire resolve route-model binding during `SubstituteBindings`, **before** the tenant middleware — so hold the id as a string and resolve via tenant-scoped `findOrFail` in `render()`.
+- **No login UI** — stub routes are `auth`-protected and verified via `actingAs`; a login screen belongs to the design/auth pass (Phase 2).
+
+<!-- Add further entries below, most recent first, each with a date. -->
+<!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->

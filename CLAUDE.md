@@ -47,4 +47,5 @@ Keep this file lean and high-signal — it loads into context every session. Det
 (These are referenced, not auto-imported, to keep session context lean. Use `@path` import syntax only for short, always-needed snippets.)
 
 ## Current status
-- **Phase 1 (foundation) in progress.** Do not build ahead of the current phase — Phases 2–5 are scoped in the master plan and gated.
+- **Phase 1 COMPLETE & certified.** Core certified at Step 8 (guarantee stack proven by the suite — true-parallel concurrency, PHPStan L5, Pint); Step 9 unstyled stub views + tenant middleware also built (design pass replaces the views). **Next: Phase 2** (channel manager + Stripe + booking engine + staff PWA), gated the same way.
+- **On a new session, read `docs/PROJECT-STATE.md` first, then `docs/DECISIONS.md`** — they hold the resume snapshot, the invariants, and the deferred-items register.

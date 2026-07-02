@@ -1,0 +1,86 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\BelongsToOrganization;
+use App\Models\Concerns\HasAmenities;
+use App\Models\Concerns\HasMedia;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+/**
+ * Sellable category. `default_rate_plan_id` is a forward hook to rate_plans (Step 3) — a
+ * plain nullable ULID column with no relation/FK yet.
+ */
+class RoomType extends Model
+{
+    use BelongsToOrganization, HasAmenities, HasFactory, HasMedia, HasUlids, SoftDeletes;
+
+    protected $fillable = [
+        'organization_id',
+        'property_id',
+        'name',
+        'code',
+        'kind',
+        'std_occupancy',
+        'max_adults',
+        'max_children',
+        'bedrooms',
+        'is_virtual',
+        'parent_room_type_id',
+        'default_rate_plan_id',
+    ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'std_occupancy' => 'integer',
+            'max_adults' => 'integer',
+            'max_children' => 'integer',
+            'bedrooms' => 'integer',
+            'is_virtual' => 'boolean',
+        ];
+    }
+
+    public function property(): BelongsTo
+    {
+        return $this->belongsTo(Property::class);
+    }
+
+    public function units(): HasMany
+    {
+        return $this->hasMany(Unit::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_room_type_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_room_type_id');
+    }
+
+    public function ratePlans(): HasMany
+    {
+        return $this->hasMany(RatePlan::class);
+    }
+
+    public function availability(): HasMany
+    {
+        return $this->hasMany(Availability::class);
+    }
+
+    public function defaultRatePlan(): BelongsTo
+    {
+        return $this->belongsTo(RatePlan::class, 'default_rate_plan_id');
+    }
+}

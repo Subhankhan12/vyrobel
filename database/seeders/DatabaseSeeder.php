@@ -3,20 +3,24 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
+     *
+     * NOTE: WithoutModelEvents is intentionally NOT used here — ULID primary keys are
+     * generated via the model `creating` event (HasUlids), which that trait would suppress.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call([
+            RoleCatalogSeeder::class,
+            DemoSeeder::class,
+        ]);
 
+        // Dev convenience only: a global platform user (not tenant data).
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
