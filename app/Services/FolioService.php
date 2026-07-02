@@ -13,6 +13,7 @@ use App\Models\PaymentAuthorization;
 use App\Models\Reservation;
 use App\Models\Tax;
 use App\Payments\Contracts\PaymentGateway;
+use App\Payments\GatewayResult;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Money\Money;
@@ -139,7 +140,14 @@ class FolioService
     {
         $result = $this->gateway->charge($amount, $cardToken, $metadata);
 
-        $payment = DB::transaction(function () use ($folio, $amount, $cardToken, $metadata, $result): Payment {
+        $status = $this->mapResultStatus($result);
+        // Carry the SCA/3DS next-step secret so the frontend can complete authentication. Never
+        // any card data — only Stripe's client_secret for the pending intent.
+        $storedMetadata = $result->clientSecret !== null
+            ? array_merge($metadata, ['client_secret' => $result->clientSecret])
+            : $metadata;
+
+        $payment = DB::transaction(function () use ($folio, $amount, $cardToken, $storedMetadata, $result, $status): Payment {
             $payment = Payment::create([
                 'folio_id' => $folio->getKey(),
                 'reservation_id' => $folio->reservation_id,
@@ -148,13 +156,13 @@ class FolioService
                 'type' => 'payment',
                 'amount' => $amount,
                 'currency' => $amount->currency(),
-                'status' => $result->successful ? 'succeeded' : 'failed',
+                'status' => $status,
                 'card_token' => $cardToken,
-                'metadata' => $metadata,
+                'metadata' => $storedMetadata,
                 'processed_at' => now(),
             ]);
 
-            $this->recompute($folio);
+            $this->recompute($folio); // a pending (3DS) payment is NOT counted as paid yet
 
             return $payment;
         });
@@ -164,6 +172,39 @@ class FolioService
             'status' => $payment->status,
         ]);
         $this->audit->record('payment.recorded', $payment, null, ['amount_minor' => $amount->amountMinor()]);
+
+        return $payment->refresh();
+    }
+
+    /**
+     * Settle a PENDING payment once Stripe confirms it asynchronously (SCA/3DS or `processing`).
+     * Idempotent: only a `pending` row transitions — a redelivered webhook (or one racing another)
+     * is a no-op. This is NOT mutating a settled ledger entry; it completes the lifecycle of an
+     * unsettled one (mirrors the authorize→capture lifecycle), then recomputes so a now-succeeded
+     * payment counts as paid.
+     */
+    public function settlePayment(Payment $payment, string $toStatus): Payment
+    {
+        if (! in_array($toStatus, ['succeeded', 'failed'], true)) {
+            throw new InvalidArgumentException("settlePayment expects succeeded|failed, got [{$toStatus}].");
+        }
+
+        if ($payment->status !== 'pending') {
+            return $payment; // already settled (or never pending) — idempotent no-op
+        }
+
+        $folio = $payment->folio;
+
+        DB::transaction(function () use ($payment, $toStatus, $folio): void {
+            $payment->update(['status' => $toStatus, 'processed_at' => now()]);
+
+            if ($folio !== null) {
+                $this->recompute($folio);
+            }
+        });
+
+        $this->domainEvents->record('payment.settled', $payment, ['status' => $toStatus]);
+        $this->audit->record('payment.settled', $payment, null, ['status' => $toStatus]);
 
         return $payment->refresh();
     }
@@ -334,6 +375,21 @@ class FolioService
             $total > 0 && $balance <= 0 => 'paid',
             $paid > 0 => 'partial',
             default => 'unpaid',
+        };
+    }
+
+    /**
+     * Map a gateway result to a `payments.status`. A successful result settles immediately;
+     * `requires_action` (SCA/3DS) / `pending` / `processing` become a PENDING payment (not counted
+     * as paid until a webhook confirms it); anything else is a failure. Manual/synchronous gateways
+     * always return successful → `succeeded`, so Phase 1 behavior is unchanged.
+     */
+    private function mapResultStatus(GatewayResult $result): string
+    {
+        return match (true) {
+            $result->successful => 'succeeded',
+            in_array($result->status, ['requires_action', 'pending', 'processing'], true) => 'pending',
+            default => 'failed',
         };
     }
 }

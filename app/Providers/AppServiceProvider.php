@@ -37,6 +37,10 @@ use App\Models\User;
 use App\Models\WebhookEvent;
 use App\Payments\Contracts\PaymentGateway;
 use App\Payments\Gateways\ManualPaymentGateway;
+use App\Payments\Gateways\StripeGateway;
+use App\Payments\Stripe\FakeStripeClient;
+use App\Payments\Stripe\StripeClient;
+use App\Payments\Stripe\StripeClientInterface;
 use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
@@ -57,8 +61,26 @@ class AppServiceProvider extends ServiceProvider
         // all resolve app(TenantContext::class) and must see the same instance.
         $this->app->singleton(TenantContext::class);
 
-        // Phase 1 ships only the manual/offline gateway; real gateways bind here in Phase 2.
-        $this->app->bind(PaymentGateway::class, ManualPaymentGateway::class);
+        // Payment gateway selection is config-driven (services.payments.gateway; per-tenant
+        // override is a Phase 3 hook). `manual` = offline (Phase 1); `stripe` = Step 6. FolioService
+        // resolves this each use, so a per-context switch just re-reads the config.
+        $this->app->bind(PaymentGateway::class, fn ($app): PaymentGateway => config('services.payments.gateway') === 'stripe'
+            ? $app->make(StripeGateway::class)
+            : $app->make(ManualPaymentGateway::class));
+
+        // Config-gated Stripe SDK seam (services.stripe.fake, default true): FakeStripeClient
+        // everywhere until real keys are deliberately configured. Singleton so a fake stays
+        // inspectable across a request/test.
+        $this->app->singleton(StripeClientInterface::class, function (): StripeClientInterface {
+            if (config('services.stripe.fake', true)) {
+                return new FakeStripeClient(config('services.stripe.webhook_secret'));
+            }
+
+            return new StripeClient(
+                (string) config('services.stripe.secret'),
+                config('services.stripe.webhook_secret'),
+            );
+        });
 
         // Config-gated (services.channex.fake, default true): FakeChannexClient everywhere
         // until real staging credentials are deliberately configured. Singleton so a fake

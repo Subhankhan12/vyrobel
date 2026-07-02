@@ -57,4 +57,37 @@ return [
         'webhook_secret' => env('CHANNEX_WEBHOOK_SECRET'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Payments — gateway selection
+    |--------------------------------------------------------------------------
+    |
+    | Which PaymentGateway FolioService uses. `manual` = offline/pay-at-property (Phase 1);
+    | `stripe` = the real gateway (Step 6). Per-tenant override is a Phase 3 hook — for now a
+    | single config default drives the container binding (AppServiceProvider).
+    |
+    */
+    'payments' => [
+        'gateway' => env('PAYMENTS_GATEWAY', 'manual'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stripe
+    |--------------------------------------------------------------------------
+    |
+    | `fake` gates the StripeClient seam (AppServiceProvider): true -> FakeStripeClient
+    | (in-memory, no network — every test), false -> the real SDK-backed StripeClient (requires
+    | `secret`). Defaults true so it is never accidentally live without an explicit opt-out AND
+    | real keys. `webhook_secret` validates inbound Stripe webhook signatures (Stripe's real,
+    | documented `Stripe-Signature` HMAC scheme).
+    |
+    */
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'fake' => env('STRIPE_FAKE', true),
+    ],
+
 ];

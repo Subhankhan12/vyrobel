@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ChannexWebhookController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\HousekeepingBoard;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
@@ -18,6 +19,13 @@ Route::get('/', function () {
  * tenant scope before context is set).
  */
 Route::post('/webhooks/channex/{channel}', ChannexWebhookController::class)->name('webhooks.channex');
+
+/*
+ * Public, unauthenticated INBOUND Stripe webhook (Step 6). Signature-authenticated (Stripe's real
+ * scheme), CSRF-exempt. Resolves the payment (hence org) under super-admin then sets context —
+ * no route params, the event body carries the payment_intent id.
+ */
+Route::post('/webhooks/stripe', StripeWebhookController::class)->name('webhooks.stripe');
 
 /*
  * Phase 1 CONTRACT-STUB pages (unstyled). Read-only Livewire components that expose the data

@@ -38,6 +38,9 @@
         <env name="CHANNEX_FAKE" value="true"/>
         <!-- Deterministic secret so webhook-signature tests can sign simulated payloads. -->
         <env name="CHANNEX_WEBHOOK_SECRET" value="test-webhook-secret"/>
+        <!-- Never hit the real Stripe network in tests — always the in-memory fake. -->
+        <env name="STRIPE_FAKE" value="true"/>
+        <env name="STRIPE_WEBHOOK_SECRET" value="whsec_test_stripe_secret"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
