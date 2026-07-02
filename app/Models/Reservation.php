@@ -76,6 +76,16 @@ class Reservation extends Model
     }
 
     /**
+     * The OTA channel this booking came in through (null for direct/walk-in). FK closed in Step 2.
+     *
+     * @return BelongsTo<Channel, $this>
+     */
+    public function channel(): BelongsTo
+    {
+        return $this->belongsTo(Channel::class);
+    }
+
+    /**
      * @return BelongsTo<Guest, $this>
      */
     public function leadGuest(): BelongsTo

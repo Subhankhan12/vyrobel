@@ -8,6 +8,8 @@ use App\Listeners\RecomputeAvailabilityOnInventoryChange;
 use App\Models\AddOn;
 use App\Models\Amenity;
 use App\Models\Building;
+use App\Models\Channel;
+use App\Models\ChannelMapping;
 use App\Models\Fee;
 use App\Models\Floor;
 use App\Models\Folio;
@@ -86,6 +88,8 @@ class AppServiceProvider extends ServiceProvider
             'fee' => Fee::class,
             'add_on' => AddOn::class,
             'housekeeping_task' => HousekeepingTask::class,
+            'channel' => Channel::class,
+            'channel_mapping' => ChannelMapping::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a
