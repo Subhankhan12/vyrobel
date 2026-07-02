@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Middleware\ResolvePublicProperty;
 use App\Livewire\HousekeepingBoard;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
@@ -26,6 +28,24 @@ Route::post('/webhooks/channex/{channel}', ChannexWebhookController::class)->nam
  * no route params, the event body carries the payment_intent id.
  */
 Route::post('/webhooks/stripe', StripeWebhookController::class)->name('webhooks.stripe');
+
+/*
+ * Public, unauthenticated BOOKING ENGINE (Step 7) — backend + unstyled contract stub. Tenant/
+ * property context is set by ResolvePublicProperty (real context, never a guard bypass) from the
+ * {property} slug; every action re-loads it tenant-scoped. Rate-limited (throttle:booking) against
+ * scraping/abuse. POST endpoints are CSRF-exempt (JSON API; see bootstrap/app.php). Styled UI is
+ * the deferred design pass.
+ */
+Route::prefix('book/{property}')
+    ->middleware([ResolvePublicProperty::class, 'throttle:booking'])
+    ->name('booking.')
+    ->group(function () {
+        Route::get('/', [BookingEngineController::class, 'stub'])->name('stub');
+        Route::get('/search', [BookingEngineController::class, 'search'])->name('search');
+        Route::post('/quote', [BookingEngineController::class, 'quote'])->name('quote');
+        Route::post('/book', [BookingEngineController::class, 'book'])->name('book');
+        Route::get('/confirmation/{quote}', [BookingEngineController::class, 'confirmation'])->name('confirmation');
+    });
 
 /*
  * Phase 1 CONTRACT-STUB pages (unstyled). Read-only Livewire components that expose the data

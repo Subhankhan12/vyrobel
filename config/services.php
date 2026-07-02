@@ -73,6 +73,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public booking engine
+    |--------------------------------------------------------------------------
+    |
+    | Per-IP-per-minute request cap for the public search/quote/book endpoints
+    | (throttle:booking). Config-driven so it can be tightened per environment / lowered in tests.
+    |
+    */
+    'booking' => [
+        'rate_limit' => env('BOOKING_RATE_LIMIT', 60),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Stripe
     |--------------------------------------------------------------------------
     |

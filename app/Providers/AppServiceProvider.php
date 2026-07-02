@@ -8,6 +8,7 @@ use App\Listeners\GenerateDepartureCleanTask;
 use App\Listeners\RecomputeAvailabilityOnInventoryChange;
 use App\Models\AddOn;
 use App\Models\Amenity;
+use App\Models\BookingQuote;
 use App\Models\Building;
 use App\Models\Channel;
 use App\Models\ChannelMapping;
@@ -45,8 +46,11 @@ use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -136,6 +140,7 @@ class AppServiceProvider extends ServiceProvider
             'rate_plan' => RatePlan::class,
             'overbooking_conflict' => OverbookingConflict::class,
             'webhook_event' => WebhookEvent::class,
+            'booking_quote' => BookingQuote::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a
@@ -146,5 +151,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(DomainEventRecorded::class, RecomputeAvailabilityOnInventoryChange::class);
         Event::listen(DomainEventRecorded::class, GenerateDepartureCleanTask::class);
         Event::listen(DomainEventRecorded::class, EnqueueAriPushOnInventoryChange::class);
+
+        // Rate limiter for the public booking engine (Step 7) — per-IP, protects search/quote/book
+        // from scraping/abuse. Limit is config-driven so it can be tightened per environment.
+        RateLimiter::for('booking', fn (Request $request): Limit => Limit::perMinute(
+            (int) config('services.booking.rate_limit', 60)
+        )->by($request->ip() ?? 'unknown'));
     }
 }

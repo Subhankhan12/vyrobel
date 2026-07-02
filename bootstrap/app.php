@@ -20,9 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Inbound provider webhooks are stateless and signature-authenticated, not session/form
-        // posts — exempt them from CSRF (there is no token to send).
+        // posts — exempt them from CSRF (there is no token to send). The public booking engine is
+        // a JSON API (unstyled stub in Phase 2) — also CSRF-exempt; the styled design pass adds
+        // token handling.
         $middleware->validateCsrfTokens(except: [
             'webhooks/*',
+            'book/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
