@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Channel;
 use App\Models\Guest;
 use App\Models\Reservation;
+use Illuminate\Database\UniqueConstraintViolationException;
 use InvalidArgumentException;
 
 /**
@@ -47,7 +48,15 @@ class BookingImportService
 
         [$attributes, $lines] = $this->build($channel, $booking);
 
-        return $this->assignment->importBooking($attributes, $lines);
+        try {
+            return $this->assignment->importBooking($attributes, $lines);
+        } catch (UniqueConstraintViolationException) {
+            // Two concurrent deliveries of the same booking both passed findExisting() and raced
+            // the insert; the DB unique(channel_id, ota_reservation_id) caught the loser. Resolve
+            // to the winner's row — still exactly one reservation, no error surfaced.
+            return $this->findExisting($channel, $otaReservationId)
+                ?? throw new InvalidArgumentException("Import race left no reservation for {$otaReservationId}.");
+        }
     }
 
     /**

@@ -59,7 +59,10 @@ class ChannexWebhookController extends Controller
             $externalEventId,
             $eventType,
         ): JsonResponse {
-            $webhookEvent = WebhookEvent::firstOrCreate(
+            // createOrFirst (not firstOrCreate) so two CONCURRENT deliveries of the same event
+            // resolve to one row: the unique(source, external_event_id) index turns the losing
+            // INSERT into a fetch instead of a 500 (proven by the Step 5 concurrency suite).
+            $webhookEvent = WebhookEvent::createOrFirst(
                 ['source' => 'channex', 'external_event_id' => $externalEventId],
                 [
                     'channel_id' => $channelModel->getKey(),
