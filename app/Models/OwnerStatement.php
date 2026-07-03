@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\Models\Concerns\BelongsToOwner;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ use Illuminate\Support\Carbon;
  */
 class OwnerStatement extends Model
 {
-    use BelongsToOrganization, HasFactory, HasUlids;
+    use BelongsToOrganization, BelongsToOwner, HasFactory, HasUlids;
 
     protected $fillable = [
         'organization_id',

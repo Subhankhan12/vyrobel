@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\MoneyCast;
 use App\Models\Concerns\BelongsToOrganization;
+use App\Models\Concerns\BelongsToOwner;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class OwnerExpense extends Model
 {
-    use BelongsToOrganization, HasFactory, HasUlids, SoftDeletes;
+    use BelongsToOrganization, BelongsToOwner, HasFactory, HasUlids, SoftDeletes;
 
     protected $fillable = [
         'organization_id',

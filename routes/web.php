@@ -4,8 +4,11 @@ use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\ResolvePublicProperty;
+use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
+use App\Livewire\Owner\OwnerDashboard;
+use App\Livewire\Owner\OwnerStatementView;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
 use App\Livewire\UnitsList;
@@ -60,4 +63,16 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
     // Phase 2 Step 8 — front-desk staff surface (arrivals/departures/in-house + action contracts).
     Route::get('/front-desk', FrontDesk::class)->name('front-desk');
+});
+
+/*
+ * Phase 3 · Module 1 Step 6 — OWNER PORTAL (unstyled contract stubs). `auth` + SetTenantForWebRequest
+ * (web group) set the user + org; SetOwnerScopeForPortal then activates the owner scope (row-level,
+ * within the tenant) so an owner sees ONLY their own units/statements/payouts and a non-linked user
+ * fails closed. Typed models are resolved owner+tenant-scoped in render() (never RMB props). Styled
+ * owner PWA is the design pass.
+ */
+Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->name('owner.')->group(function () {
+    Route::get('/', OwnerDashboard::class)->name('dashboard');
+    Route::get('/statements/{statement}', OwnerStatementView::class)->name('statements.show');
 });

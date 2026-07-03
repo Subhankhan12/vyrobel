@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\Models\Concerns\BelongsToOwner;
 use App\Models\Concerns\HasAmenities;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasNotes;
@@ -19,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Unit extends Model
 {
-    use BelongsToOrganization, HasAmenities, HasFactory, HasMedia, HasNotes, HasUlids, SoftDeletes;
+    use BelongsToOrganization, BelongsToOwner, HasAmenities, HasFactory, HasMedia, HasNotes, HasUlids, SoftDeletes;
 
     protected $fillable = [
         'organization_id',

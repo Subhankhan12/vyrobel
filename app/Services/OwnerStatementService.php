@@ -246,6 +246,7 @@ class OwnerStatementService
             OwnerStatementLine::create([
                 'organization_id' => $statement->organization_id,
                 'owner_statement_id' => $statement->getKey(),
+                'owner_id' => $statement->owner_id,
                 'line_type' => self::LINE_TYPE[$bucket],
                 'description' => self::LABEL[$bucket],
                 'amount_minor' => $buckets[$bucket],
@@ -258,6 +259,7 @@ class OwnerStatementService
         OwnerStatementLine::create([
             'organization_id' => $statement->organization_id,
             'owner_statement_id' => $statement->getKey(),
+            'owner_id' => $statement->owner_id,
             'line_type' => 'net',
             'description' => 'Net payable',
             'amount_minor' => $statement->net_source_minor,
