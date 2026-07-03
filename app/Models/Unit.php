@@ -54,6 +54,17 @@ class Unit extends Model
     }
 
     /**
+     * The external owner of this unit, if any (Phase 3 · Module 1). Null for operator-owned
+     * inventory such as hotel rooms.
+     *
+     * @return BelongsTo<Owner, $this>
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(Owner::class);
+    }
+
+    /**
      * @return BelongsTo<RoomType, $this>
      */
     public function roomType(): BelongsTo

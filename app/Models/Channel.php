@@ -27,6 +27,7 @@ class Channel extends Model
         'external_property_id',
         'credentials',
         'settings',
+        'commission_pct',
         'status',
         'last_synced_at',
         'last_error',
@@ -40,6 +41,7 @@ class Channel extends Model
         return [
             'credentials' => 'encrypted',
             'settings' => 'array',
+            'commission_pct' => 'decimal:2',
             'last_synced_at' => 'datetime',
         ];
     }

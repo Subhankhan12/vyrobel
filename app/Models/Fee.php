@@ -21,6 +21,7 @@ class Fee extends Model
         'organization_id',
         'property_id',
         'name',
+        'kind',
         'mode',
         'rate',
         'amount',

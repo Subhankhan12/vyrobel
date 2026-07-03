@@ -21,9 +21,11 @@ use App\Models\Guest;
 use App\Models\HousekeepingTask;
 use App\Models\InventoryBlock;
 use App\Models\Invoice;
+use App\Models\ManagementAgreement;
 use App\Models\Media;
 use App\Models\Organization;
 use App\Models\OverbookingConflict;
+use App\Models\Owner;
 use App\Models\Payment;
 use App\Models\PaymentAuthorization;
 use App\Models\Property;
@@ -141,6 +143,8 @@ class AppServiceProvider extends ServiceProvider
             'overbooking_conflict' => OverbookingConflict::class,
             'webhook_event' => WebhookEvent::class,
             'booking_quote' => BookingQuote::class,
+            'owner' => Owner::class,
+            'management_agreement' => ManagementAgreement::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a
