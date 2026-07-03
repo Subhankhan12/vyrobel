@@ -32,6 +32,7 @@ use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
 use App\Models\Payment;
 use App\Models\PaymentAuthorization;
+use App\Models\Payout;
 use App\Models\Property;
 use App\Models\RatePlan;
 use App\Models\Reservation;
@@ -48,6 +49,9 @@ use App\Payments\Gateways\StripeGateway;
 use App\Payments\Stripe\FakeStripeClient;
 use App\Payments\Stripe\StripeClient;
 use App\Payments\Stripe\StripeClientInterface;
+use App\Payouts\Contracts\PayoutRail;
+use App\Payouts\Rails\ManualPayoutRail;
+use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
@@ -77,6 +81,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PaymentGateway::class, fn ($app): PaymentGateway => config('services.payments.gateway') === 'stripe'
             ? $app->make(StripeGateway::class)
             : $app->make(ManualPaymentGateway::class));
+
+        // Owner payout rail (Step 5): manual (offline) by default; Stripe Connect is a config-gated,
+        // deferred skeleton that throws if selected — never the active rail in tests.
+        $this->app->bind(PayoutRail::class, fn ($app): PayoutRail => config('services.payouts.rail') === 'stripe_connect'
+            ? $app->make(StripeConnectPayoutRail::class)
+            : $app->make(ManualPayoutRail::class));
 
         // Config-gated Stripe SDK seam (services.stripe.fake, default true): FakeStripeClient
         // everywhere until real keys are deliberately configured. Singleton so a fake stays
@@ -153,6 +163,7 @@ class AppServiceProvider extends ServiceProvider
             'owner_expense' => OwnerExpense::class,
             'owner_statement' => OwnerStatement::class,
             'owner_statement_line' => OwnerStatementLine::class,
+            'payout' => Payout::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a

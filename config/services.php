@@ -73,6 +73,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Owner payouts — rail selection (Phase 3 · Module 1 Step 5)
+    |--------------------------------------------------------------------------
+    |
+    | Which PayoutRail disburses owner payouts. `manual` = recorded as paid offline (bank transfer
+    | done outside the system) — the only working rail. `stripe_connect` is a config-gated SKELETON
+    | only, explicitly UNVERIFIED (real connected-account onboarding + KYC is a separate deferred live
+    | checkpoint) — never bound in tests. Defaults to `manual`.
+    |
+    */
+    'payouts' => [
+        'rail' => env('PAYOUTS_RAIL', 'manual'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Public booking engine
     |--------------------------------------------------------------------------
     |
