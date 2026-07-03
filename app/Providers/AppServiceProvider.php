@@ -28,6 +28,8 @@ use App\Models\OverbookingConflict;
 use App\Models\Owner;
 use App\Models\OwnerExpense;
 use App\Models\OwnerLedgerEntry;
+use App\Models\OwnerStatement;
+use App\Models\OwnerStatementLine;
 use App\Models\Payment;
 use App\Models\PaymentAuthorization;
 use App\Models\Property;
@@ -149,6 +151,8 @@ class AppServiceProvider extends ServiceProvider
             'management_agreement' => ManagementAgreement::class,
             'owner_ledger' => OwnerLedgerEntry::class,
             'owner_expense' => OwnerExpense::class,
+            'owner_statement' => OwnerStatement::class,
+            'owner_statement_line' => OwnerStatementLine::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a

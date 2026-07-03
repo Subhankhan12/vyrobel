@@ -52,6 +52,7 @@ class OwnerAttributionService
 
     public function __construct(
         private DomainEventRecorder $domainEvents,
+        private PeriodLockGuard $lockGuard,
     ) {}
 
     /**
@@ -311,6 +312,7 @@ class OwnerAttributionService
                         'attribution_version' => $version,
                         'reverses_id' => $original->getKey(),
                         'unverified' => $original->unverified,
+                        'prior_period_adjustment' => $this->lockGuard->isSealed((string) $original->owner_id, $original->service_date),
                         'note' => 'reversal',
                         'posted_at' => now(),
                     ],
@@ -494,6 +496,7 @@ class OwnerAttributionService
                 'service_date' => $attrs['service_date'],
                 'attribution_version' => $version,
                 'unverified' => $attrs['unverified'] ?? false,
+                'prior_period_adjustment' => $this->lockGuard->isSealed($ownerId, $attrs['service_date']),
                 'note' => $attrs['note'] ?? null,
                 'meta' => $attrs['meta'] ?? null,
                 'posted_at' => now(),

@@ -26,6 +26,7 @@ class OwnerExpenseService
 {
     public function __construct(
         private DomainEventRecorder $domainEvents,
+        private PeriodLockGuard $lockGuard,
     ) {}
 
     /**
@@ -111,6 +112,7 @@ class OwnerExpenseService
                 'description' => 'Expense — '.$expense->category.': '.$expense->description,
                 'service_date' => $expense->expense_date,
                 'attribution_version' => 1,
+                'prior_period_adjustment' => $this->lockGuard->isSealed((string) $expense->owner_id, $expense->expense_date),
                 'source_type' => $expense->getMorphClass(),
                 'source_id' => $expense->getKey(),
                 'posted_at' => now(),
@@ -154,6 +156,7 @@ class OwnerExpenseService
                         'service_date' => $original->service_date,
                         'attribution_version' => $original->attribution_version,
                         'reverses_id' => $original->getKey(),
+                        'prior_period_adjustment' => $this->lockGuard->isSealed((string) $original->owner_id, $original->service_date),
                         'note' => 'reversal',
                         'posted_at' => now(),
                     ],

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * One immutable line in the append-only `owner_ledger` (Phase 3 · Module 1). Correct-by-reversal:
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * is always positive; `direction` carries the sign for netting. No SoftDeletes by design.
  *
  * @property array<string, mixed>|null $meta
+ * @property Carbon $service_date
  */
 class OwnerLedgerEntry extends Model
 {
@@ -37,6 +39,7 @@ class OwnerLedgerEntry extends Model
         'reverses_id',
         'statement_id',
         'unverified',
+        'prior_period_adjustment',
         'note',
         'meta',
         'idempotency_key',
@@ -55,6 +58,7 @@ class OwnerLedgerEntry extends Model
             'service_date' => 'date',
             'attribution_version' => 'integer',
             'unverified' => 'boolean',
+            'prior_period_adjustment' => 'boolean',
             'meta' => 'array',
             'posted_at' => 'datetime',
         ];
