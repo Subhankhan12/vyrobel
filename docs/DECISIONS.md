@@ -236,6 +236,17 @@ A running record of locked decisions — what was decided and why — so the pro
 - **Honest gate (all run this session):** full suite **84 tests / 509 assertions green** on MySQL `vyrobel_test` (fakes, no network — same count, now reflecting the corrected contract); Pint clean; PHPStan L5, 0 errors. Dev DB restored to clean demo-seed state (the 5 throwaway live-run orgs + their stamped logs removed; only `vyrobel-demo` remains). No secrets committed (`.env` gitignored; only 4 code/config files + docs changed).
 - **CHANNEX checkpoint REMAINS OUTSTANDING** — the real ARI push shape, inbound webhook payload shape, and HMAC scheme are still documented guesses, never network-verified. **Blocker: no Channex staging account provisioned yet** (inbound also needs a public tunnel). It is now the **single** outstanding live checkpoint; run `live-integration-checkpoint.md` Steps 1–2 when a staging account exists.
 
+### 2026-07-03 — Phase 3 · Module 1 (Owner Accounting) Step 0 gate resolutions — APPROVED
+
+Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any build. Schema drafted at `docs/schema/phase-3-owner-accounting.md` (proposal). The four flagged conflicts were approved as proposed, with these locks:
+
+- **OTA commission source (the biggest gap — there was NO source column):** add **`channels.commission_pct`** (per-connection default, nullable decimal) **+ `reservations.ota_commission_minor`** (nullable per-reservation override, populated later from the real Channex booking payload). **When BOTH are absent → attribute OTA cost = 0 AND flag it "unverified / pending channel reconciliation" VISIBLY on the owner statement** (a line/note the owner sees) — never silently guessed. **Tied to the Channex live checkpoint:** real commissions backfill and the flag clears when Channex goes live. Both columns added now (Step 1) so later steps read real columns.
+- **`fees.kind`** (nullable enum `cleaning`/`other`) added so **cleaning-fee attribution is deterministic**, not string-name-matched. Added now (Step 1).
+- **`Money` gains `percentage()` + `allocate()`** (largest-remainder / banker's rounding) in **Step 2** — pure additions. **INVARIANT: allocated parts ALWAYS sum back to the original — no cent created or lost** (gets an explicit test in Step 2/7).
+- **Cross-currency:** statements record an **operator-supplied `fx_rate` + `fx_source`** explicitly — no silent float, no auto-FX provider (an FX provider is deferred to the register).
+- **Attribution reversal is WHOLE-TRANSACTION (new invariant):** a cancel/refund/modify reverses **EVERY** attributed component of that booking together (room, commission, mgmt fee, OTA cost) under the same `attribution_version` — never partial. Half-reversed owner ledgers are forbidden.
+- **Attribution rule set of record (as proposed):** room revenue → owner gross; management commission (`commission_pct`) → operator; fixed mgmt fee → owner (pro-rated per interval); OTA commission → **owner by default (overridable to operator)**; city/tourism tax → pass-through (excluded from both); cleaning fee → **owner by default (overridable)**; add-ons → operator; damage/security deposit → excluded (not revenue). `management_agreements.attribution_rules` json stores **overrides only**; a missing key = the documented default. Only OTA-cost-bearer and cleaning-fee-owner are overridable — the rest are fixed/definitional.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
