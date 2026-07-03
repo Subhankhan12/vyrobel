@@ -26,6 +26,7 @@ use App\Models\Media;
 use App\Models\Organization;
 use App\Models\OverbookingConflict;
 use App\Models\Owner;
+use App\Models\OwnerLedgerEntry;
 use App\Models\Payment;
 use App\Models\PaymentAuthorization;
 use App\Models\Property;
@@ -145,6 +146,7 @@ class AppServiceProvider extends ServiceProvider
             'booking_quote' => BookingQuote::class,
             'owner' => Owner::class,
             'management_agreement' => ManagementAgreement::class,
+            'owner_ledger' => OwnerLedgerEntry::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a

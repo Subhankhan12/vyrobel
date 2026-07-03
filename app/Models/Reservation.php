@@ -41,6 +41,7 @@ class Reservation extends Model
         'balance_minor',
         'deposit',
         'deposit_minor',
+        'ota_commission_minor',
         'payment_status',
         'lead_guest_id',
         'group_id',
