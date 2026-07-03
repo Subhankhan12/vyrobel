@@ -19,44 +19,7 @@ uses(RefreshDatabase::class);
 
 // Phase 3 · Module 1 Step 2 — the revenue attribution engine (the crux). Every figure on an owner
 // statement must trace to a specific rule, and owner + operator shares reconcile to the folio room
-// revenue to the cent.
-
-/** Assign a unit to an owner and give that owner a governing agreement covering the stay. */
-function ownUnit(Unit $unit, array $agreement = []): Owner
-{
-    $owner = Owner::factory()->create(['payout_currency' => 'EUR']);
-    $unit->update(['owner_id' => $owner->id]);
-
-    ManagementAgreement::factory()->create(array_merge([
-        'owner_id' => $owner->id,
-        'unit_id' => null,
-        'commission_pct' => 15.00,
-        'effective_from' => '2026-01-01',
-        'effective_to' => null,
-    ], $agreement));
-
-    return $owner;
-}
-
-/** Open a folio and post the lump room charge (how BookingEngineService posts room revenue). */
-function postRoom(Reservation $reservation, int $minor): void
-{
-    $folio = app(FolioService::class)->openFolio($reservation);
-    app(FolioService::class)->postCharge($folio, 'room', 'Room', Money::of($minor, 'EUR'));
-}
-
-/** Sum signed minor across every ledger line for an owner (credits +, debits −, reversals included). */
-function ownerNet(string $ownerId): int
-{
-    return OwnerLedgerEntry::where('owner_id', $ownerId)->get()
-        ->reduce(fn (int $c, OwnerLedgerEntry $e): int => $c + $e->signedMinor(), 0);
-}
-
-function lineFor(string $ownerId, string $entryType): ?OwnerLedgerEntry
-{
-    return OwnerLedgerEntry::where('owner_id', $ownerId)
-        ->where('entry_type', $entryType)->whereNull('reverses_id')->first();
-}
+// revenue to the cent. (ownUnit/postRoom/ownerNet/lineFor live in tests/Support/owner_helpers.php.)
 
 // ── 1. Room + commission correct; owner_share + operator_share == room revenue exactly ──────────
 it('attributes room revenue and commission with exact owner/operator complementarity', function () {
