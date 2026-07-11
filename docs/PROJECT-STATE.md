@@ -6,13 +6,24 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `fee06e7`** on `main`, working tree clean. Suite: **`php artisan test` → 180 tests / 3014
-  assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
+- **HEAD `232f8ac`** on `main`, working tree clean (only the untracked design-source exports under
+  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 180 tests
+  / 3014 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
-  `REDIS_CLIENT=predis`; `database` documented as fallback).
-- **DESIGN PASS — the STYLED SURFACE for the built product is COMPLETE**: owner portal (4 screens) +
-  operator core (5) + operator Units + public booking storefront (3, incl. the real checkout WRITE) are
-  all styled + live on the certified backends, honesty rule enforced per-screen. Remaining stubs: none.
+  `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
+  of writing; a subsequent docs-only commit may advance it by one with no state change.)
+- **DESIGN PASS — COMPLETE. The whole styled surface over the certified backend is done — 13 screens:**
+  **owner portal (4)** · **operator core (5) + Units (1)** · **public booking storefront (3, incl. the
+  real checkout WRITE)**. All on the certified backends, honesty rule enforced per-screen by a render/
+  isolation test; **backends/schema/guarantees UNCHANGED** (presentation only). **No unstyled stubs
+  remain.** Three role design systems: `components/layouts/owner`+`<x-owner.shell>`+`FormatsOwnerData` ·
+  `components/layouts/operator`+`<x-operator.shell>`+`FormatsOperatorData` · `components/public/shell`
+  (server-rendered, no Livewire). Operator writes use **POST→controller→service-action→PRG**; the public
+  checkout write is session-CSRF-protected and goes through `AssignmentService`/`FolioService`.
+- **THE CORE PRODUCT IS COMPLETE & DEMOABLE end-to-end** — a real hybrid operator could run day-to-day
+  operations (calendar/front-desk/housekeeping/folio/dashboard/units), an owner could read their
+  statements/payouts/units, and a guest could book direct (browse→room→checkout→confirmation, a real
+  guarded write). See "NEXT ACTION" for the validation/next-module fork.
 - **Phase 1 CERTIFIED** (multi-tenant core) · **Phase 2 CERTIFIED** (channel manager + payments +
   booking engine + staff layer; **Stripe validated against real test-mode 2026-07-03**) · **Phase 3 ·
   Module 1 — Owner Accounting & Payouts CERTIFIED** (2026-07-03).
@@ -132,6 +143,26 @@ conflicts with the repo, **trust the repo** and fix this file.
     by `SetOwnerScopeForPortal`, **deactivated on `terminate`** (no leak into operator requests);
     **composes with tenant scope** (both boundaries hold; cross-org 404 both directions).
 
+**Design pass (presentation-only — these govern every styled screen, and hold across all 13):**
+19. **Design-pass honesty rule** — every styled element is exactly one of: **REAL** (wired to a certified
+    read/service), **DERIVED** (computed from real figures only), **DEFERRED** (visually stubbed + "not
+    yet available"), or **NO-BACKEND** (disabled "Soon"). NEVER a fabricated figure/status/action/photo/
+    IBAN/date. Money reconciles to the cent against its source; statuses/labels are keyed to the **real
+    enums only**; warm colours (no green/red). **Backends/schema/guarantees are UNCHANGED by any screen —
+    presentation only.** Enforced per-screen by a render/isolation test. (Locked `docs/DECISIONS.md`
+    2026-07-11; extended to operator + public.)
+20. **Scoped-render + guarded-mutation discipline (isolation holds on every screen)** — a scoped model is
+    resolved in `render()` (or the controller) via a tenant/owner/property-scoped `findOrFail` from a
+    **string** id, NEVER a route-model-bound prop (RMB resolves during `SubstituteBindings`, before the
+    scope middleware → leak/guard-throw). Scope-dependent **mutations** never ride a Livewire wire-action
+    (it re-renders via `/livewire/update`, bypassing the route middleware → scope leak); they use
+    **POST→controller→existing-service-action→PRG** (operator; tenant-scoped, cross-org id 404) or a
+    **session-CSRF POST** (public checkout). The public checkout write still goes through the SINGLE
+    guarded path (`AssignmentService`, source=direct — rejects when full, never overbooks), never a
+    parallel one; its POST is CSRF-protected (the machine JSON API stays exempt by path
+    `book/*/quote`,`book/*/book`). Guest PII (encrypted email/phone) is never rendered; guest NAMES are
+    shown only on staff surfaces.
+
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
 **TWO live-integration checkpoints (money/network rails — the only unproven-against-reality items):**
@@ -141,6 +172,25 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **Stripe Connect payout rail** — real owner money movement (connected-account onboarding + KYC).
   `StripeConnectPayoutRail.send()` **throws** (config-gated skeleton); **`ManualPayoutRail` is the real,
   tested disbursement path.** Blocked: needs Connect credentials.
+
+**Design-pass deferrals (flagged in-product, backend-gated — NOT fake; presentation only):**
+- **Stripe card entry at checkout** (Stripe Elements + 3DS) — the public checkout wires **manual /
+  pay-on-arrival** through `FolioService` (real, append-only); real card capture is tied to the deferred
+  Stripe live checkpoint. No fake card field.
+- **Room photos / gallery + descriptions + reviews** — no media bytes and no description/review schema;
+  the storefront shows a decorative gradient banner only, honestly flagged ("Photos soon"). Not
+  fabricated.
+- **The remaining design-only screens** — **~89** of the ~119-file Claude Design library (`docs/design/
+  CATALOGUE.md`) map to FUTURE modules with **no backend today** and were deliberately NOT built: the full
+  **guest portal** (~32), **unified inbox** (Operator/Owner/Guest Messages), the **maintenance** module,
+  **reviews**, **subscription billing / paywall**, **transactional emails** (~9), and **analytics**
+  (Reports/Insights, ADR/RevPAR trends). Do NOT build backend for these ad hoc — each is a gated module.
+  *(The "~89" is an estimate; `docs/design/CATALOGUE.md` is the authoritative per-file inventory and
+  backend-status legend — read it before starting any new screen.)*
+- **Per-screen deferred affordances** are logged in each screen's DECISIONS entry — e.g. rack
+  drag-to-reschedule; housekeeping drag + assign-housekeeper (no assign method); reservation-detail
+  add-charge / void / partial refund / move-room / cancel; dashboard revenue-trend / ADR / RevPAR;
+  owner-portal PDF/CSV export, IBAN/payout-method, approvals/action-center.
 
 **Other deferrals:** promo codes + deposits on the booking engine (schema only); `guests.stripe_customer_id`
 / saved cards (blind-index story); **auto-FX provider** (statements take an operator-supplied rate — no
@@ -194,7 +244,7 @@ wire live · DERIVED → from real figures only · DEFERRED → stubbed "not yet
 disabled "Soon" (never a fake action/IBAN/date/download); reconcile money to the cent; owner isolation
 holds; guest PII never exposed — is locked in `docs/DECISIONS.md` (2026-07-11).
 
-## Operator screens — STYLED & LIVE (design pass in progress)
+## Operator screens — STYLED & LIVE (COMPLETE — 5 core + Units)
 
 Shared foundation: `resources/views/components/layouts/operator.blade.php` (dedicated operator layout —
 same Vyrobel tokens as the owner one, copied not shared) · `resources/views/components/operator/shell.blade.php`
@@ -215,13 +265,14 @@ Per-screen tests: `OperatorRackViewTest`, `OperatorFrontDeskViewTest`, `Operator
 re-runs the web middleware (tenant context set), `{id}` is a **string** param resolved via tenant-scoped
 `findOrFail` (never RMB) → cross-org 404. Never a Livewire wire-action for a scoped mutation.
 
-## Public booking storefront — STYLED & LIVE (design pass in progress)
+## Public booking storefront — STYLED & LIVE (COMPLETE — 3 screens, incl. the real WRITE)
 
 A dedicated **PUBLIC** design system (unauthenticated; context via `ResolvePublicProperty` — the slug sets
 real tenant/property scope, NOT the operator `app` group / `SetTenantForWebRequest`, no logged-in user).
 Foundation: `resources/views/components/public/shell.blade.php` (`<x-public.shell>` — full-page storefront
 chrome: property header + centered content + footer, NO operator sidebar; same Vyrobel tokens, copied). **No
-Livewire** (server-rendered, rate-limit-friendly). **READ-ONLY** — these screens write NO inventory.
+Livewire** (server-rendered, rate-limit-friendly). Browse + Room Detail are READ-ONLY; **Checkout is the one
+public WRITE** — a session-CSRF POST that books through the single guarded `AssignmentService` path.
 
 | Route | Controller / view | Styled |
 |---|---|---|
@@ -263,35 +314,31 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`) · `app/Models/` · `app/Models/Scopes/` ·
   `database/migrations/` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — design pass DONE; pick a new track
+## NEXT ACTION — core product COMPLETE & demoable; choose the next track
 
-**The design pass is COMPLETE** — every styled surface over the certified backend is done: owner portal
-(4) + operator core (5) + operator Units + public booking storefront (3, incl. the real checkout WRITE).
-No unstyled stubs remain. The three role design systems are `components/layouts/owner` + `<x-owner.shell>`
-+ `FormatsOwnerData`; `components/layouts/operator` + `<x-operator.shell>` + `FormatsOperatorData`;
-`components/public/shell` (no Livewire). Operator writes use the **POST → controller → service action →
-PRG** pattern; the public checkout write is CSRF-protected + goes through AssignmentService/FolioService.
+**The buildable core is DONE and demoable end-to-end.** The certified backends (multi-tenant PMS +
+channel manager + Stripe payments + owner accounting/payouts) now have their **entire styled surface**
+live: the owner portal, the operator back office (calendar · front desk · housekeeping · reservation+folio
+· dashboard · units), and the public booking loop (browse → room → checkout → confirmation, a real guarded
+write). **A real hybrid operator could run day-to-day operations and take a direct booking today, and an
+owner could read their statements/payouts.** No unstyled stubs remain.
 
-**Candidate next tracks (need a written, gated decision — none started):**
-- **Deferred in-product polish** (flagged, backend-gated): real **Stripe card entry** at checkout
-  (Elements + 3DS — the deferred Stripe live checkpoint) · room **photos/gallery + descriptions/reviews**.
-- **Next Phase 3 module — Unified Inbox** (WhatsApp/email/OTA/SMS) — new backend + screens.
-- **Close a live-integration checkpoint** — **Channex staging** (ARI/webhook/HMAC vs a real account) or
-  **Stripe Connect payout rail** (owner disbursement KYC).
-- Operator/owner design breadth: the many ⬜ design-only screens in `docs/design/CATALOGUE.md` that map to
-  future modules (analytics/reports, maintenance, reviews, messaging, billing) — build backend first.
+**Pick ONE — each needs a written, gated decision; NONE is started:**
+- **(a) Customer validation — RECOMMENDED.** Demo the working owner portal + booking loop to a real
+  hybrid operator **before building more**. The wedge (genuine owner accounting for a mixed hotel/
+  apartment/villa portfolio) is now demoable; let real feedback drive the roadmap over speculative breadth.
+  No code — a demo + discovery.
+- **(b) Next Phase 3 module — Unified Inbox** (WhatsApp/email/OTA/SMS): the largest remaining
+  differentiator; new backend + screens (gated, phased like Owner Accounting).
+- **(c) Close a live-integration checkpoint** when accounts exist — **Channex staging** (ARI/webhook/HMAC
+  vs a real account) or the **Stripe Connect payout rail** (owner disbursement KYC). The only two money/
+  network rails unproven against reality; run `docs/prompts/live-integration-checkpoint.md`.
+- **(d) Deferred in-product polish** — real **Stripe card entry** at checkout (Elements + 3DS, tied to the
+  Stripe checkpoint) · room **photos/descriptions/reviews**.
 
-**Same discipline** (the reference implementations are the owner portal + operator Screens 1–2): **inherit
-the operator design system** (`components/layouts/operator`, `<x-operator.shell>`, `FormatsOperatorData`) —
-do NOT redefine it; wire live data through the existing services (call, never modify); honor the **Livewire
-RMB rule**; apply the **design-pass honesty rule** (DECISIONS.md 2026-07-11 — REAL / DERIVED / DEFERRED /
-NO-BACKEND; no fake data; reconcile money; tenant isolation holds; statuses keyed to the real enum only;
-guest names OK on operator surfaces but never encrypted email/phone). **Status-change mutations use the
-operator-mutation pattern** proven on Front Desk (POST → controller → existing service action → PRG
-redirect; tenant-scoped; `{id}` string → `findOrFail` → cross-org 404); if an action or the kanban drag
-isn't cheaply/safely wireable, DEFER it with a flag rather than fake a status move. **Per-gate commit +
-per-screen render/isolation (+ action-persistence) test.** Approved design source:
-`docs/design/raw/Operator *.html` + `docs/design/CATALOGUE.md`.
-
-Other tracks remain available but are NOT the chosen next step: next Phase 3 module (Unified Inbox), the
-Channex staging checkpoint, the Stripe Connect checkpoint.
+**If resuming design/build work:** inherit the relevant role design system (owner / operator / public — do
+NOT redefine it); wire live data through the existing services (call, never modify); honour the **design-
+pass honesty rule + the scoped-render/guarded-mutation discipline** (invariants #19–20 above); **per-gate
+commit + per-screen render/isolation (+ action-persistence) test**; wire the certified services, never a
+parallel write path. Read `docs/design/CATALOGUE.md` first (per-file backend-status legend); approved
+design source is `docs/design/raw/*`.
