@@ -1,0 +1,98 @@
+<?php
+
+use App\Models\ManagementAgreement;
+use App\Models\Membership;
+use App\Models\Owner;
+use App\Models\OwnerStatementLine;
+use App\Models\User;
+use App\Services\OwnerAttributionService;
+use App\Services\OwnerPayoutService;
+use App\Services\OwnerStatementService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+// Design pass · Screen 1 (Owner Statement). These lock the PRESENTATION guarantees of the styled
+// OwnerStatementView: it renders LIVE, owner-scoped data; the breakdown is the real owner_statement_lines
+// and reconciles to the cent; there is NO invented "payment / card-processing fee" line; deferred and
+// no-backend regions are honestly stubbed (never faked); and owner isolation still holds (cross-owner 404,
+// no figure leak). The backend projection itself is proven by OwnerStatementTest — this is the view.
+
+/** A linked owner (user + membership + owner + agreement + booking + attribution + finalized statement). */
+function statementOwner(array $s, int $unitIndex, int $roomMinor): array
+{
+    $user = User::factory()->create();
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+    $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
+
+    $unit = $s['units'][$unitIndex];
+    $unit->update(['owner_id' => $owner->id]);
+    ManagementAgreement::factory()->create([
+        'owner_id' => $owner->id, 'commission_pct' => 15.00, 'effective_from' => '2026-01-01',
+    ]);
+
+    $reservation = book($s, ['unit_id' => $unit->id]);
+    postRoom($reservation, $roomMinor);
+    app(OwnerAttributionService::class)->attributeReservation($reservation);
+
+    $svc = app(OwnerStatementService::class);
+    $statement = $svc->finalize($svc->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
+    $payout = app(OwnerPayoutService::class)->createFromStatement($statement);
+
+    return compact('user', 'owner', 'unit', 'statement', 'payout');
+}
+
+// ── 1. Renders real data + a to-the-cent breakdown + NO invented fee line ────────────────────────
+it('renders the real statement with a to-the-cent breakdown and never an invented fee line', function () {
+    $s = seedScenario(1);
+    // room €200.00, 15% commission → −€30.00, net €170.00 (direct booking → no OTA cost).
+    $a = statementOwner($s, 0, 20000);
+
+    $response = $this->actingAs($a['user'])->get("/owner/statements/{$a['statement']->id}");
+
+    $response->assertOk()
+        // Real hero + real breakdown descriptions (labels come from OwnerStatementService).
+        ->assertSee('Net payable')
+        ->assertSee('€170.00')                       // net payable (hero + net line + payout card)
+        ->assertSee('Gross room revenue')
+        ->assertSee('+€200.00')                      // gross, signed
+        ->assertSee('Management commission')
+        ->assertSee('15% of gross room revenue')     // derived from the statement's OWN real figures
+        ->assertSee('is-neg')                        // the commission amount rendered as a deduction
+        // The count-up animates the REAL value, not a decorative one.
+        ->assertSee('data-countup="17000"', false)
+        // ⚠️ The design's invented card-processing line must NOT appear — the engine computes no such thing.
+        ->assertDontSee('Payment & ops fees')
+        ->assertDontSee('Card processing')
+        ->assertDontSee('card-processing')
+        // Deferred + no-backend regions are honestly stubbed, never faked.
+        ->assertSee('Not yet available')             // by-unit / occupancy deferred
+        ->assertSee('Export CSV')
+        ->assertSee('Soon');                         // disabled export/download affordance
+
+    // Reconciliation to the cent, at the presentation boundary: Σ component lines == net line == source net.
+    $lines = OwnerStatementLine::query()->where('owner_statement_id', $a['statement']->id)->get();
+    $components = (int) $lines->where('line_type', '!=', 'net')->sum('amount_minor');
+    $net = (int) $lines->firstWhere('line_type', 'net')->amount_minor;
+
+    expect($components)->toBe(17000)
+        ->and($net)->toBe(17000)
+        ->and((int) $a['statement']->net_source_minor)->toBe(17000);
+});
+
+// ── 2. Owner isolation holds — cross-owner 404 and no figure leak into the styled page ───────────
+it('404s a cross-owner statement and never leaks another owner’s figures', function () {
+    $s = seedScenario(2);
+    $a = statementOwner($s, 0, 20000);   // A → net €170.00
+    $b = statementOwner($s, 1, 50000);   // B → net €425.00 (distinctive)
+
+    // A opens A's statement → 200; B's distinctive figure never appears (history/rail are owner-scoped).
+    $this->actingAs($a['user'])->get("/owner/statements/{$a['statement']->id}")
+        ->assertOk()
+        ->assertSee('€170.00')
+        ->assertDontSee('€425.00');
+
+    // A opening B's statement → 404 (owner boundary, like a cross-tenant id).
+    $this->actingAs($a['user'])->get("/owner/statements/{$b['statement']->id}")
+        ->assertNotFound();
+});
