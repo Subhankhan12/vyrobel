@@ -346,6 +346,70 @@ Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any
   - **Guest PII is never exposed** on owner surfaces (encrypted `guests.email`/`phone`; e.g. no guest names on owner "upcoming stays").
   - Established + proven by Screen 1 (the invented "card-processing fee" line was OMITTED — a real expense/`ota_cost` line fills that slot when present, labelled truthfully). Enforced per-screen by a render/isolation test.
 
+### 2026-07-11 — DESIGN PASS · owner portal COMPLETE (4 screens styled + live)
+
+- **All 4 owner-portal screens are styled + wired to real owner-scoped data** (presentation only — no
+  backend/schema/guarantee change): Owner Statement (`970b0e7`), Dashboard (`8f76dbd`), Payouts
+  (`a8f7b77`), My Units (`bff8e05`). Shared foundation: `components/layouts/owner` (design system),
+  `<x-owner.shell>` (sidebar + topbar, extracted at the 2nd screen), and the
+  `App\Livewire\Owner\Concerns\FormatsOwnerData` trait. Each screen carries a per-screen render/isolation
+  test enforcing the honesty rule; owner isolation (fail-closed) holds; guest PII never exposed; money
+  reconciles to the cent. My Units additionally proves **owner-scoped occupancy** (excludes non-owner
+  units in the same room type — the room-type-wide `availabilityRange` trap is avoided).
+
+### 2026-07-12 — DESIGN PASS · operator screens 1–2 styled + live (operator design system extracted)
+
+- **Operator design pass begun; a dedicated operator design system was extracted** (presentation only —
+  NO change to AssignmentService / AvailabilityService / FolioService / CheckIn·CheckOut actions /
+  HousekeepingService / schema / any guarantee). Mirrors the owner-portal foundation so the two role
+  surfaces stay visually one system while staying independent:
+  - `resources/views/components/layouts/operator.blade.php` — a **dedicated, self-contained** operator
+    layout carrying the SAME formalized Vyrobel tokens as the owner layout (frosted glass blur(22px)/
+    saturate(1.15), terracotta `#C2410C`, Sora/Inter, real `vyFadeUp`/`vyShimmer`/`vyDrift` keyframes) +
+    screen-specific CSS (rack timeline grid; front-desk rows/tags/summary). Tokens are **copied, not
+    shared**, so the certified owner layout is never edited by an operator change — the same
+    "dedicated layout per surface" decision the owner layout already records.
+  - `resources/views/components/operator/shell.blade.php` — `<x-operator.shell>` (grouped sidebar +
+    topbar), extracted on the FIRST operator screen exactly as `<x-owner.shell>` was, so every later
+    operator screen inherits ONE chrome. Nav honesty: only real, built routes link; the rest are
+    non-interactive "Soon" placeholders.
+  - `App\Livewire\Operator\Concerns\FormatsOperatorData` — the operator mirror of `FormatsOwnerData`
+    (viewer chip + `money()` + **warm-only** status/source labels whose keys are EXACTLY the real
+    reservation `status` enum — nothing invented).
+- **Operator screens are TENANT-scoped** (`BelongsToOrganization`), NOT owner-scoped — the operator
+  legitimately sees all of the org's data, and guest NAMES are shown (as a front desk does); encrypted
+  `guests.email`/`phone` are still never rendered.
+- **Screen 1 — Operator Calendar → `ReservationRack` (`/app/rack`)** (`0e1ccaa`): REAL date window
+  (GET-link nav, RMB-safe), per-night availability (`AvailabilityService`), and booking bars from active
+  `reservation_unit` lines (real guest/status/source/dates) packed into non-overlapping lanes. Warm
+  status tones only. DEFERRED: drag-to-reschedule (mutates inventory via AssignmentService) — labelled,
+  never a broken interaction; **overbooked lines excluded** (they hold no inventory). NO-BACKEND: new/
+  filter/export "Soon". `ReservationUnit::reservation()` gained the generic relation annotation its
+  sibling relations already carried (docblock only).
+- **Screen 2 — Operator Front Desk → `FrontDesk` (`/app/front-desk`)** (`39724e6`): REAL arrivals/
+  departures/in-house (`FrontDeskService`) with real guest/status/unit-or-"Unassigned"/source/nights/
+  guests and the **real folio balance** (`balance_minor`, FolioService-maintained), outstanding balances
+  terracotta-flagged. **Check-in / check-out are WIRED and persist** via a NEW pattern reused for every
+  operator mutation from here: **POST → controller → existing service action → PRG redirect** (
+  `App\Http\Controllers\FrontDeskActionController` → `FrontDeskService` → the Phase 2 Step 8 actions).
+  Deliberately NOT a Livewire wire-action — a POST to a normal route re-runs the web middleware so the
+  mutation is tenant-scoped; `{reservation}` is a **string** param resolved via tenant-scoped
+  `findOrFail` (never RMB) → cross-org 404, mutates nothing. Guarded to sane transitions. DEFERRED:
+  "Collect payment" (needs amount + card-token + gateway flow) shown real-looking but flagged — never
+  fakes a payment; "Assign unit" links to the rack (the real assignment surface). NO-BACKEND: walk-in/
+  filters/print "Soon".
+- **Honesty rule (2026-07-11) now enforced across owner + operator** by a per-screen render/isolation
+  test. **Verification (all actually run):** full suite **155 tests / 2860 assertions green** on MySQL
+  `vyrobel_test` (owner 141 baseline + rack 4 + front-desk 4 vs the 139 pre-design-pass); PHPStan L5 0
+  errors; Pint clean. New tests: `OperatorRackViewTest` (render + real window filtering + no-invented-
+  status + isolation + PII) and `OperatorFrontDeskViewTest` (render + real balance flag + no-invented-
+  status + isolation + **check-in persists through the real action** + cross-org check-in 404s + PII).
+- **NEXT: continue the operator screens** — `Operator Housekeeping` (`/app/housekeeping`), then
+  `Operator Reservation Detail` (`/app/reservations/{id}`), then `Operator Dashboard`; then the public
+  booking engine. Same discipline (inherit the operator system; honesty rule; RMB/PRG for mutations;
+  per-gate commit + per-screen test). Other tracks (Unified Inbox module, Channex/Stripe-Connect live
+  checkpoints) remain available but are NOT the chosen next step.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->

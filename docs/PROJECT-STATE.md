@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `bff8e05`** on `main`, working tree clean. Suite: **`php artisan test` → 147 tests / 2821
+- **HEAD `39724e6`** on `main`, working tree clean. Suite: **`php artisan test` → 155 tests / 2860
   assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback).
@@ -24,6 +24,18 @@ conflicts with the repo, **trust the repo** and fix this file.
   Statement) → `8f76dbd` (Screen 2 Dashboard) → `a8f7b77` (Screen 3 Payouts) → `bff8e05` (Screen 4 My
   Units). The **design-pass honesty rule is locked in `docs/DECISIONS.md`** (2026-07-11) and enforced by
   per-screen render/isolation tests. See "Owner portal — STYLED & LIVE" below.
+- **OPERATOR DESIGN PASS — IN PROGRESS (Screens 1–2 styled + live).** Presentation only, **no backend/
+  schema/guarantee change.** A dedicated operator design system was extracted (mirrors the owner one):
+  `components/layouts/operator` (same tokens; copied, not shared — owner layout untouched),
+  `<x-operator.shell>` (grouped sidebar + topbar, extracted on Screen 1), and
+  `App\Livewire\Operator\Concerns\FormatsOperatorData` (viewer + `money()` + **warm-only** status/source
+  labels keyed to the real reservation enum). Operator screens are **TENANT-scoped** (not owner-scoped);
+  guest NAMES shown (front-desk surface), encrypted email/phone never. DONE: **Screen 1 Operator Calendar
+  → `ReservationRack` (`/app/rack`)** `0e1ccaa` and **Screen 2 Operator Front Desk → `FrontDesk`
+  (`/app/front-desk`)** `39724e6`. Front Desk **wires the check-in/out mutations** via the reusable
+  operator-mutation pattern **POST → controller → existing service action → PRG redirect** (tenant-scoped
+  by re-run middleware; `{id}` string param → `findOrFail` → cross-org 404). See "Operator screens —
+  STYLED & LIVE" below.
 - **⚠️ TWO live-integration checkpoints OUTSTANDING** (deferred money/network rails — everything else
   is real + tested): **Channex staging** and **Stripe Connect payout rail** (see Deferred register).
 
@@ -135,10 +147,12 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**147 tests / 2821 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**155 tests / 2860 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
-and the owner-portal design pass (per-screen render/isolation + occupancy-correctness), together.
+the owner-portal design pass (per-screen render/isolation + occupancy-correctness), and the operator
+design pass (`OperatorRackViewTest` + `OperatorFrontDeskViewTest` — render/isolation/no-invented-status/
+PII, and a real check-in that persists through the action + cross-org 404s), together.
 - **TRUE OS-level parallelism** (separate PHP processes + MySQL connections, shared future-timestamp
   barrier, committed data, no RefreshDatabase): `ConcurrentBookingTest`, `DeadlockAvoidanceTest`,
   `CrossSystemConcurrencyTest` (repeat-runs zero-flake).
@@ -171,6 +185,23 @@ wire live · DERIVED → from real figures only · DEFERRED → stubbed "not yet
 disabled "Soon" (never a fake action/IBAN/date/download); reconcile money to the cent; owner isolation
 holds; guest PII never exposed — is locked in `docs/DECISIONS.md` (2026-07-11).
 
+## Operator screens — STYLED & LIVE (design pass in progress)
+
+Shared foundation: `resources/views/components/layouts/operator.blade.php` (dedicated operator layout —
+same Vyrobel tokens as the owner one, copied not shared) · `resources/views/components/operator/shell.blade.php`
+(`<x-operator.shell>` — grouped sidebar + topbar) · `App\Livewire\Operator\Concerns\FormatsOperatorData`
+(viewer + `money()` + warm-only status/source labels, real enum only). **TENANT-scoped, presentation only.**
+
+| Route | Component / view | Styled |
+|---|---|---|
+| `/app/rack` | `App\Livewire\ReservationRack` → `livewire/reservation-rack` | ✅ styled + live (availability + booking bars; warm status tones; drag DEFERRED; overbooked excluded) |
+| `/app/front-desk` | `App\Livewire\FrontDesk` → `livewire/front-desk` | ✅ styled + live (arrivals/departures/in-house + real folio balance; **check-in/out WIRED + persist** via POST→`FrontDeskActionController`→`FrontDeskService`→PRG; payment collection DEFERRED) |
+
+Per-screen tests: `OperatorRackViewTest`, `OperatorFrontDeskViewTest`. The **operator-mutation pattern**
+(reuse for every operator write): **POST → controller → existing service action → PRG redirect**; the POST
+re-runs the web middleware (tenant context set), `{id}` is a **string** param resolved via tenant-scoped
+`findOrFail` (never RMB) → cross-org 404. Never a Livewire wire-action for a scoped mutation.
+
 ## Remaining UNSTYLED contract stubs (the design pass styles these NEXT — operator + booking)
 
 Deliberately unstyled (no CSS/design system), render REAL data through the services, document their data
@@ -179,11 +210,9 @@ contract in the component docblock. **Backends + data contracts are FINAL.**
 | Route | Component / view | Contract (data shape) |
 |---|---|---|
 | `/book/{property}` (+ `/search` `/quote` `/book` `/confirmation/{quote}`) | `BookingEngineController` → `resources/views/booking/stub.blade.php` | public search/quote/book JSON contract (the JSON API is the real final backend) |
-| `/app/rack` | `App\Livewire\ReservationRack` → `livewire/reservation-rack` | reservation rack rows |
 | `/app/units` | `App\Livewire\UnitsList` → `livewire/units-list` | units list |
 | `/app/reservations/{reservation}` | `App\Livewire\ReservationDetail` → `livewire/reservation-detail` | reservation + units + folio (RMB-safe: string id → tenant-scoped `findOrFail` in `render()`) |
 | `/app/housekeeping` | `App\Livewire\HousekeepingBoard` → `livewire/housekeeping-board` | housekeeping tasks board |
-| `/app/front-desk` | `App\Livewire\FrontDesk` → `livewire/front-desk` | arrivals / departures / in-house + staff-action contracts |
 
 **Livewire RMB rule (must hold in the design pass):** never type-hint a scoped model as a public
 Livewire prop (route-model binding resolves during `SubstituteBindings`, BEFORE the tenant/owner
@@ -207,24 +236,25 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`) · `app/Models/` · `app/Models/Scopes/` ·
   `database/migrations/` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — style the OPERATOR screens (design pass continues)
+## NEXT ACTION — continue the OPERATOR screens (design pass)
 
-The **owner portal is DONE** (above). **Next = style the OPERATOR screens onto their existing unstyled
-stubs, starting with `Operator Calendar` → `App\Livewire\ReservationRack` (`/app/rack`).** Backends,
-schema, JSON contracts, and the guarantee stack are FINAL — presentation only, **zero architectural
-change.**
+The **owner portal is DONE** and **operator Screens 1–2 (Calendar/Rack, Front Desk) are styled + live**
+(above). **Next = `Operator Housekeeping` → `App\Livewire\HousekeepingBoard` (`/app/housekeeping`)**, then
+`Operator Reservation Detail` → `/app/reservations/{id}`, then `Operator Dashboard`; then the public
+booking engine (`/book/{property}`). Backends, schema, JSON contracts, and the guarantee stack are FINAL —
+presentation only, **zero architectural change.**
 
-**Same discipline as the owner portal** (the reference implementation): wire live data through the
-existing services (call, never modify); honor the **Livewire RMB rule** above; apply the **design-pass
-honesty rule** (DECISIONS.md 2026-07-11 — REAL wire / DERIVED from real / DEFERRED stub / NO-BACKEND
-disabled; no fake data; reconcile money; tenant isolation holds; no guest PII); **per-gate commit +
-per-screen render test**. **Reuse the owner design system where it fits** (`components/layouts/owner`
-tokens, `FormatsOwnerData`), or extract a shared operator shell/layout as the operator screens accrete
-(same way `<x-owner.shell>` was extracted at the 2nd owner screen). Approved design source:
+**Same discipline** (the reference implementations are the owner portal + operator Screens 1–2): **inherit
+the operator design system** (`components/layouts/operator`, `<x-operator.shell>`, `FormatsOperatorData`) —
+do NOT redefine it; wire live data through the existing services (call, never modify); honor the **Livewire
+RMB rule**; apply the **design-pass honesty rule** (DECISIONS.md 2026-07-11 — REAL / DERIVED / DEFERRED /
+NO-BACKEND; no fake data; reconcile money; tenant isolation holds; statuses keyed to the real enum only;
+guest names OK on operator surfaces but never encrypted email/phone). **Status-change mutations use the
+operator-mutation pattern** proven on Front Desk (POST → controller → existing service action → PRG
+redirect; tenant-scoped; `{id}` string → `findOrFail` → cross-org 404); if an action or the kanban drag
+isn't cheaply/safely wireable, DEFER it with a flag rather than fake a status move. **Per-gate commit +
+per-screen render/isolation (+ action-persistence) test.** Approved design source:
 `docs/design/raw/Operator *.html` + `docs/design/CATALOGUE.md`.
 
-**Operator stubs to style (by readiness — existing stubs first):** `Operator Calendar` (✅ `/app/rack`,
-**first**) · `Operator Front Desk` (✅ `/app/front-desk`) · `Operator Housekeeping` (✅ `/app/housekeeping`)
-· `Operator Reservation Detail` (✅ `/app/reservations/{id}`) · `Operator Dashboard`; then the public
-booking engine (`/book/{property}`). Other tracks remain available but are NOT the chosen next step: next
-Phase 3 module (Unified Inbox), the Channex staging checkpoint, the Stripe Connect checkpoint.
+Other tracks remain available but are NOT the chosen next step: next Phase 3 module (Unified Inbox), the
+Channex staging checkpoint, the Stripe Connect checkpoint.
