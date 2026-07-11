@@ -23,7 +23,9 @@ it('renders demo data through the stub pages for an authenticated member', funct
     // query would trip the guard and 500). The demo unit code '101' is unique to the demo data.
     $this->actingAs($owner)->get('/app/units')->assertOk()->assertSee('101');
     $this->actingAs($owner)->get('/app/rack')->assertOk()->assertSee('Double Room');
-    $this->actingAs($owner)->get('/app/housekeeping')->assertOk()->assertSee('departure');
+    // The housekeeping board is styled (design pass · Operator Screen 3): the real departure task the
+    // demo checkout generates now renders with the humanized type label rather than the raw enum.
+    $this->actingAs($owner)->get('/app/housekeeping')->assertOk()->assertSee('Departure clean');
 
     app(TenantContext::class)->set($org->id);
     $reservation = Reservation::query()->firstOrFail();

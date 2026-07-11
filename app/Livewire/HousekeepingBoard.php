@@ -4,42 +4,124 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Http\Controllers\HousekeepingActionController;
+use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\HousekeepingTask;
+use App\Models\User;
+use App\Services\HousekeepingService;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * CONTRACT STUB — Housekeeping board (unstyled). Read-only.
+ * Operator Housekeeping — the cleaning KANBAN board (design pass · Operator Screen 3). Styled from the
+ * catalogued "Operator Housekeeping" design onto the SAME operator design system as Screens 1–2 (the
+ * operator layout, <x-operator.shell>, FormatsOperatorData — reused, never redefined). Presentation +
+ * a thin read: the board only READS; the status-advance MUTATION runs through the real
+ * {@see HousekeepingService} via a POST route ({@see HousekeepingActionController}),
+ * NOT from here — so no schema/guarantee is touched by this component.
  *
- * The view receives `columns`: array<string, list<array{
- *   id: string, unit: string, type: string, status: string, priority: string, date: string,
- * }>> keyed by task status (pending | in_progress | clean | inspected).
+ * TENANT-scoped (BelongsToOrganization) — one org never sees another's tasks.
+ *
+ * Honesty triage (rule locked in DECISIONS.md 2026-07-11):
+ *   • REAL       — every task grouped by its real `status` (the 4 kanban columns are the real enum
+ *                  pending/in_progress/clean/inspected — no invented columns); per card the real unit,
+ *                  turnover `type`, `priority`, `date`, and assigned housekeeper (or "Unassigned").
+ *                  Status advance (Start / Mark clean / Mark inspected) is REAL and persists.
+ *   • DERIVED    — the per-column + high-priority summary counts, from the real rows only.
+ *   • DEFERRED   — drag-to-move: the mutation is offered via a safe POST status button instead (a drag
+ *                  that persisted would need a wire-action/JS fetch this pass doesn't ship); flagged.
+ *                  Assign-housekeeper: there is NO existing HousekeepingService method for it, so the
+ *                  assignee is DISPLAYED (real) but the "Assign" affordance is a flagged "Soon" — never
+ *                  a faked assignment.
+ *   • NO BACKEND — filters / export: disabled "Soon".
+ *   • PII        — the board shows the staff housekeeper's name (not a guest); no guest data is exposed.
+ *
+ * The view receives:
+ *   viewer: array{name: string, initials: string}
+ *   columns: list<array{key: string, label: string, tone: string, tasks: list<array<string, mixed>>}>
+ *   summary: array{pending: int, in_progress: int, clean: int, inspected: int, high: int, total: int}
  */
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.operator')]
 class HousekeepingBoard extends Component
 {
+    use FormatsOperatorData;
+
+    /** The kanban columns, in workflow order — exactly the real status enum. */
+    private const STATUSES = ['pending', 'in_progress', 'clean', 'inspected'];
+
+    /** Forward status moves offered per column (label + target), all through the real enum. */
+    private const NEXT_ACTIONS = [
+        'pending' => [['label' => 'Start', 'to' => 'in_progress'], ['label' => 'Mark clean', 'to' => 'clean']],
+        'in_progress' => [['label' => 'Mark clean', 'to' => 'clean']],
+        'clean' => [['label' => 'Mark inspected', 'to' => 'inspected']],
+        'inspected' => [],
+    ];
+
     public function render(): View
     {
-        /** @var array<string, list<array<string, string>>> $columns */
-        $columns = ['pending' => [], 'in_progress' => [], 'clean' => [], 'inspected' => []];
+        /** @var array<string, list<array<string, mixed>>> $grouped */
+        $grouped = array_fill_keys(self::STATUSES, []);
+        $summary = array_fill_keys(self::STATUSES, 0);
+        $high = 0;
+        $total = 0;
 
-        HousekeepingTask::query()
-            ->with('unit')
+        $tasks = HousekeepingTask::query()
+            ->with(['unit', 'assignedTo'])
+            ->orderByRaw("FIELD(priority, 'high', 'normal', 'low')")
             ->orderBy('date')
-            ->get()
-            ->each(function (HousekeepingTask $task) use (&$columns): void {
-                $columns[$task->status][] = [
-                    'id' => $task->id,
-                    'unit' => $task->unit->code,
-                    'type' => $task->type,
-                    'status' => $task->status,
-                    'priority' => $task->priority,
-                    'date' => CarbonImmutable::parse($task->date)->toDateString(),
-                ];
-            });
+            ->get();
 
-        return view('livewire.housekeeping-board', ['columns' => $columns]);
+        foreach ($tasks as $task) {
+            $status = (string) $task->status;
+            if (! array_key_exists($status, $grouped)) {
+                continue;   // ignore any out-of-enum row rather than invent a column
+            }
+
+            $grouped[$status][] = $this->card($task);
+            $summary[$status]++;
+            $total++;
+            if ($task->priority === 'high') {
+                $high++;
+            }
+        }
+
+        $columns = [];
+        foreach (self::STATUSES as $status) {
+            $meta = $this->housekeepingStatusMeta($status);
+            $columns[] = [
+                'key' => $status,
+                'label' => $meta['label'],
+                'tone' => $meta['tone'],
+                'tasks' => $grouped[$status],
+            ];
+        }
+
+        return view('livewire.housekeeping-board', [
+            'viewer' => $this->viewer(),
+            'columns' => $columns,
+            'summary' => $summary + ['high' => $high, 'total' => $total],
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function card(HousekeepingTask $task): array
+    {
+        $assignee = $task->assignedTo;
+        $priority = $this->priorityMeta((string) $task->priority);
+
+        return [
+            'id' => $task->id,
+            'unit' => (string) ($task->unit->name ?? $task->unit->code),
+            'type' => $this->housekeepingTypeLabel((string) $task->type),
+            'priority_label' => $priority['label'],
+            'priority_tone' => $priority['tone'],
+            'date' => CarbonImmutable::parse($task->date)->format('j M'),
+            'assignee' => $assignee instanceof User ? (string) $assignee->name : null,
+            'next' => self::NEXT_ACTIONS[$task->status],
+        ];
     }
 }

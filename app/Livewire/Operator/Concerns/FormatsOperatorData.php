@@ -100,4 +100,47 @@ trait FormatsOperatorData
             default => ucwords(str_replace('_', ' ', $source)),
         };
     }
+
+    /**
+     * Housekeeping task status → label + WARM tone. Keys are EXACTLY the real `housekeeping_tasks.status`
+     * enum (pending/in_progress/clean/inspected) — no invented columns or states.
+     *
+     * @return array{label: string, tone: string}
+     */
+    protected function housekeepingStatusMeta(string $status): array
+    {
+        return match ($status) {
+            'pending' => ['label' => 'Pending', 'tone' => 'pending'],
+            'in_progress' => ['label' => 'In progress', 'tone' => 'in-progress'],
+            'clean' => ['label' => 'Clean', 'tone' => 'clean'],
+            'inspected' => ['label' => 'Inspected', 'tone' => 'inspected'],
+            default => ['label' => ucfirst(str_replace('_', ' ', $status)), 'tone' => 'pending'],
+        };
+    }
+
+    /** Housekeeping task type → human label (real `type` enum: departure/stayover/deep/arrival_prep). */
+    protected function housekeepingTypeLabel(string $type): string
+    {
+        return match ($type) {
+            'departure' => 'Departure clean',
+            'stayover' => 'Stayover',
+            'deep' => 'Deep clean',
+            'arrival_prep' => 'Arrival prep',
+            default => ucwords(str_replace('_', ' ', $type)),
+        };
+    }
+
+    /**
+     * Task priority → label + tone (real `priority` enum: low/normal/high). Warm only.
+     *
+     * @return array{label: string, tone: string}
+     */
+    protected function priorityMeta(string $priority): array
+    {
+        return match ($priority) {
+            'high' => ['label' => 'High', 'tone' => 'high'],
+            'low' => ['label' => 'Low', 'tone' => 'low'],
+            default => ['label' => 'Normal', 'tone' => 'normal'],
+        };
+    }
 }

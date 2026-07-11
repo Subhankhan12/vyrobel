@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
+use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetOwnerScopeForPortal;
@@ -64,6 +65,9 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     Route::get('/units', UnitsList::class)->name('units');
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
+    // Design pass · Operator Screen 3 — REAL housekeeping status advance via POST → action → redirect
+    // (PRG). {task} is a string param resolved tenant-scoped in the controller (never RMB) → cross-org 404.
+    Route::post('/housekeeping/{task}/status', [HousekeepingActionController::class, 'updateStatus'])->name('housekeeping.status');
     // Phase 2 Step 8 — front-desk staff surface (arrivals/departures/in-house + action contracts).
     Route::get('/front-desk', FrontDesk::class)->name('front-desk');
     // Design pass · Operator Screen 2 — REAL check-in/out via POST → action → redirect (PRG). The

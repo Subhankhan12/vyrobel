@@ -347,7 +347,57 @@
         .vy-act--ghost:hover { background: rgba(255, 255, 255, 0.9); }
         .vy-act.is-soon { opacity: .5; cursor: not-allowed; background: rgba(255, 255, 255, 0.5); color: var(--vy-muted); border-color: var(--vy-glass-border); }
 
+        /* ---- Housekeeping kanban --------------------------------------------------------------- */
+        .vy-kanban { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start; }
+        .vy-col {
+            background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
+            -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg);
+            box-shadow: var(--vy-shadow-sm); overflow: hidden;
+        }
+        .vy-col-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 13px 15px; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-col-head .vy-col-title { display: flex; align-items: center; gap: 8px; font-family: var(--vy-display); font-size: 13px; font-weight: 600; }
+        .vy-col-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+        .vy-col-count { font-size: 11px; font-weight: 700; color: var(--vy-muted); background: rgba(120, 70, 40, 0.08); border-radius: var(--vy-r-pill); padding: 2px 9px; }
+        /* Warm column accents (no green/red), keyed to the real status enum */
+        .vy-col.tone-pending .vy-col-dot { background: var(--vy-amber-2); }
+        .vy-col.tone-pending { border-top: 2px solid var(--vy-amber-2); }
+        .vy-col.tone-in-progress .vy-col-dot { background: var(--vy-accent-3); }
+        .vy-col.tone-in-progress { border-top: 2px solid var(--vy-accent-3); }
+        .vy-col.tone-clean .vy-col-dot { background: var(--vy-accent); }
+        .vy-col.tone-clean { border-top: 2px solid var(--vy-accent); }
+        .vy-col.tone-inspected .vy-col-dot { background: var(--vy-dark); }
+        .vy-col.tone-inspected { border-top: 2px solid var(--vy-dark); }
+
+        .vy-col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 60px; }
+        .vy-hk-card {
+            background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border);
+            border-radius: var(--vy-r-md); box-shadow: var(--vy-shadow-sm); padding: 12px 13px;
+            display: flex; flex-direction: column; gap: 9px;
+        }
+        .vy-hk-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+        .vy-hk-unit { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; }
+        .vy-hk-date { font-size: 11px; color: var(--vy-muted); font-variant-numeric: tabular-nums; flex: none; }
+        .vy-hk-type { font-size: 11.5px; color: var(--vy-muted); }
+        .vy-hk-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+        .vy-prio { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; border-radius: var(--vy-r-pill); padding: 2px 8px; }
+        .vy-prio.tone-high { color: var(--vy-accent); background: rgba(194, 65, 12, 0.12); }
+        .vy-prio.tone-normal { color: var(--vy-muted); background: rgba(120, 70, 40, 0.08); }
+        .vy-prio.tone-low { color: var(--vy-faint); background: rgba(120, 70, 40, 0.05); }
+
+        .vy-hk-assignee { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--vy-ink); }
+        .vy-hk-assignee .vy-mini-avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 9px; font-weight: 600; display: grid; place-items: center; }
+        .vy-hk-unassigned { font-size: 11px; color: var(--vy-amber); }
+
+        .vy-hk-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-top: 3px; border-top: 1px solid var(--vy-hairline); margin-top: 1px; }
+        .vy-hk-actions form { margin: 0; }
+        .vy-hk-col-empty { text-align: center; color: var(--vy-faint); font-size: 12px; padding: 18px 8px; }
+
         /* ---- Responsive ------------------------------------------------------------------------ */
+        @media (max-width: 1100px) {
+            .vy-kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
         @media (max-width: 860px) {
             .vy-shell { grid-template-columns: 1fr; }
             .vy-side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; overflow-x: auto; }
