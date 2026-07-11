@@ -410,6 +410,42 @@ Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any
   per-gate commit + per-screen test). Other tracks (Unified Inbox module, Channex/Stripe-Connect live
   checkpoints) remain available but are NOT the chosen next step.
 
+### 2026-07-12 — DESIGN PASS · operator Screens 3–4 styled + live (housekeeping, reservation detail)
+
+- **Two more operator screens styled + live** (presentation only — no change to HousekeepingService /
+  FolioService / AssignmentService / the append-only ledger / schema / any guarantee), both inheriting
+  the operator design system + the operator-mutation pattern from Screens 1–2:
+  - **Screen 3 — Operator Housekeeping → `HousekeepingBoard` (`/app/housekeeping`)** (`d715496`): a
+    cleaning **kanban** whose **4 columns ARE the real `housekeeping_tasks.status` enum**
+    (pending/in_progress/clean/inspected — no invented columns). Per card: real unit, turnover `type`,
+    `priority`, `date`, assigned housekeeper (or "Unassigned"). Warm tones only. **Status advance
+    (Start / Mark clean / Mark inspected) is WIRED + persists** via POST → `HousekeepingActionController`
+    → `HousekeepingService::updateTaskStatus` → PRG — including the unit-cleanliness sync on clean/
+    inspected; only real-enum targets accepted (422 otherwise). **DEFERRED (not faked):** drag-to-move
+    (offered as the safe POST status button instead — no drag that doesn't persist); **assign-housekeeper
+    — there is NO `HousekeepingService` method for it, so the assignee is DISPLAYED but "Assign" is a
+    flagged "Soon"** (never a faked assignment).
+  - **Screen 4 — Operator Reservation Detail → `ReservationDetail` (`/app/reservations/{id}`)**
+    (`b49676d`): RMB-safe (string id → tenant-scoped `findOrFail` in `render()`). **The folio is rendered
+    as the real APPEND-ONLY LEDGER** — every `folio_item` + `payment` its own chronological line (charges
+    +, payments −, refunds their OWN offsetting line; a prior line is never edited/struck). **Totals are
+    derived from the same rows and RECONCILE to the folio's cached figures to the cent.** **No line the
+    ledger doesn't contain is rendered** (the owner-statement fake-fee precedent — proven by an absent-
+    fabricated-fee assertion). A deposit/pre-auth line shows ONLY when a real `deposit_hold` exists.
+    **Money actions — WIRED + persist APPEND-ONLY** via POST → `ReservationFolioActionController` →
+    `FolioService` → PRG: **Record payment** (through the configured gateway; manual = offline) and
+    **full Refund** per settled payment (a NEW offsetting `refund` row; the original is never touched —
+    proven). The refund's target payment is scoped to the reservation (cross-org 404). **DEFERRED (not
+    faked):** add charge, partial/custom refund, void, capture-hold, move room (guarded AssignmentService),
+    modify/cancel, export/print.
+- **Operator design pass now = 4 screens** (Calendar/Rack, Front Desk, Housekeeping, Reservation Detail),
+  all on the shared operator system, honesty rule enforced per-screen. **Verification (all actually run):**
+  full suite **163 tests / 2910 assertions green** on MySQL `vyrobel_test` (+4 `OperatorHousekeepingViewTest`,
+  +4 `OperatorReservationDetailViewTest` vs the 155 after Screens 1–2); PHPStan L5 0 errors; Pint clean.
+  `StubViewsTest` (housekeeping) updated to the styled type label; `StaffActionsTest` unchanged + green.
+- **NEXT: `Operator Dashboard`** (new page over certified data), then the public booking engine
+  (`/book/{property}`), then `/app/units`.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
