@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `434e1a9`** on `main`, working tree clean. Suite: **`php artisan test` → 166 tests / 2926
+- **HEAD `c933973`** on `main`, working tree clean. Suite: **`php artisan test` → 172 tests / 2970
   assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback).
@@ -150,14 +150,14 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**166 tests / 2926 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**172 tests / 2970 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
-the owner-portal design pass (per-screen render/isolation + occupancy-correctness), and the operator
-design pass — `OperatorRackViewTest` · `OperatorFrontDeskViewTest` · `OperatorHousekeepingViewTest` ·
-`OperatorReservationDetailViewTest` · `OperatorDashboardViewTest` (render/isolation/no-invented-status/PII,
-real mutations that persist through the action + cross-org 404s, folio-ledger reconciliation + append-only
-refund, and dashboard KPI-correctness — occupancy is the true org figure, not a cross-org sum), together.
+the owner-portal design pass (per-screen render/isolation + occupancy-correctness), the operator design
+pass (5 screens — render/isolation/no-invented-status/PII, real mutations that persist + cross-org 404s,
+folio-ledger reconciliation + append-only refund, dashboard KPI-correctness), and the public booking
+storefront (`PublicBookingBrowseTest` · `PublicBookingRoomTest` — real sellable rooms/prices with NO auth,
+public property isolation, nothing fabricated), together.
 - **TRUE OS-level parallelism** (separate PHP processes + MySQL connections, shared future-timestamp
   barrier, committed data, no RefreshDatabase): `ConcurrentBookingTest`, `DeadlockAvoidanceTest`,
   `CrossSystemConcurrencyTest` (repeat-runs zero-flake).
@@ -211,17 +211,33 @@ Per-screen tests: `OperatorRackViewTest`, `OperatorFrontDeskViewTest`, `Operator
 re-runs the web middleware (tenant context set), `{id}` is a **string** param resolved via tenant-scoped
 `findOrFail` (never RMB) → cross-org 404. Never a Livewire wire-action for a scoped mutation.
 
-## Remaining UNSTYLED contract stubs (the design pass styles these NEXT — operator + booking)
+## Public booking storefront — STYLED & LIVE (design pass in progress)
+
+A dedicated **PUBLIC** design system (unauthenticated; context via `ResolvePublicProperty` — the slug sets
+real tenant/property scope, NOT the operator `app` group / `SetTenantForWebRequest`, no logged-in user).
+Foundation: `resources/views/components/public/shell.blade.php` (`<x-public.shell>` — full-page storefront
+chrome: property header + centered content + footer, NO operator sidebar; same Vyrobel tokens, copied). **No
+Livewire** (server-rendered, rate-limit-friendly). **READ-ONLY** — these screens write NO inventory.
+
+| Route | Controller / view | Styled |
+|---|---|---|
+| `/book/{property}` | `BookingEngineController@browse` → `booking/browse` | ✅ styled + live (search + real sellable rooms via `BookingEngineService::search`; per-night derived from real total; names-only teaser before a search; Select → room detail) |
+| `/book/{property}/rooms/{roomType}` | `BookingEngineController@room` → `booking/room` | ✅ styled + live (property-scoped → cross-property 404; real specs + real amenities/availability/price; photos/description/reviews DEFERRED; "Book this room" flagged — no write) |
+
+Per-screen tests: `PublicBookingBrowseTest`, `PublicBookingRoomTest` (real rooms/prices with no auth;
+public isolation — X's storefront never shows Y's rooms / a Y room 404s on X; no fabricated
+rooms/prices/availability). The JSON API (`/search` `/quote` `/book` `/confirmation`) is the real final
+backend, unchanged (`PublicBookingEngineTest`). **NEXT booking screen = checkout (the WRITE flow).**
+
+## Remaining UNSTYLED contract stubs (the design pass styles these NEXT)
 
 Deliberately unstyled (no CSS/design system), render REAL data through the services, document their data
 contract in the component docblock. **Backends + data contracts are FINAL.**
 
 | Route | Component / view | Contract (data shape) |
 |---|---|---|
-| `/book/{property}` (+ `/search` `/quote` `/book` `/confirmation/{quote}`) | `BookingEngineController` → `resources/views/booking/stub.blade.php` | public search/quote/book JSON contract (the JSON API is the real final backend) |
+| `/book/{property}/{search,quote,book,confirmation}` | `BookingEngineController` (JSON) | public search/quote/book JSON contract — the real final backend; the **checkout WRITE-flow UI** is the next booking screen |
 | `/app/units` | `App\Livewire\UnitsList` → `livewire/units-list` | units list |
-
-(Also NOT yet styled: an **Operator Dashboard** — no stub/route yet, a new page over certified data.)
 
 **Livewire RMB rule (must hold in the design pass):** never type-hint a scoped model as a public
 Livewire prop (route-model binding resolves during `SubstituteBindings`, BEFORE the tenant/owner
@@ -245,16 +261,18 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`) · `app/Models/` · `app/Models/Scopes/` ·
   `database/migrations/` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — public booking engine (design pass; operator core is DONE)
+## NEXT ACTION — public booking CHECKOUT (the WRITE flow)
 
-The **owner portal is DONE** and the **OPERATOR CORE is COMPLETE** — operator Screens 1–5 (Calendar/Rack,
-Front Desk, Housekeeping, Reservation Detail, Dashboard) are all styled + live (above). **Next = the
-public booking engine** (`/book/{property}` — currently the unstyled JSON/HTML stub; the JSON API is the
-real final backend), then `/app/units`. Backends, schema, JSON contracts, and the guarantee stack are
-FINAL — presentation only, **zero architectural change.** The booking engine differs from the operator
-screens: it's PUBLIC (no auth; tenant/property context via `ResolvePublicProperty`, not
-`SetTenantForWebRequest`), so mirror the booking-engine stub's existing context handling rather than the
-operator `app` group.
+Owner portal DONE · operator core COMPLETE (5) · public booking storefront **Screens 1–2 (Browse, Room
+Detail) styled + live** — all READ-ONLY (above). **Next = the public booking CHECKOUT screen — the WRITE
+flow** (quote → book): this is where inventory is actually written. Unlike the read-only browse/room
+screens, checkout must honor the full backend discipline — `BookingEngineService::book` routes THROUGH
+`AssignmentService` (source=direct, re-checks availability under lock, rejects when full — never
+overbooks) and payment THROUGH `FolioService`/the configured gateway (append-only). The advisory
+`booking_quotes` hold reserves NO inventory; occupancy happens only at `book()`. It's PUBLIC (context via
+`ResolvePublicProperty`; POST endpoints are CSRF-exempt JSON today — the styled form needs its own
+CSRF/token handling). After checkout: `/app/units`. Presentation-wise **zero architectural change** — wire
+the existing JSON contract, never a parallel write path.
 
 **Same discipline** (the reference implementations are the owner portal + operator Screens 1–2): **inherit
 the operator design system** (`components/layouts/operator`, `<x-operator.shell>`, `FormatsOperatorData`) —

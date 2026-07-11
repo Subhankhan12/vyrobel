@@ -477,6 +477,47 @@ Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any
   the real final backend), then `/app/units`. NB it is PUBLIC (context via `ResolvePublicProperty`, not the
   operator `app` group / `SetTenantForWebRequest`).
 
+### 2026-07-12 — DESIGN PASS · public booking storefront Screens 1–2 (Browse, Room Detail) — read-only
+
+- **The public booking storefront design pass began — a NEW PUBLIC design system** (presentation only —
+  no change to AvailabilityService / BookingEngineService / AssignmentService / schema / any guarantee).
+  Both screens are **READ-ONLY and write NO inventory** (the booking WRITE / checkout is the next screen).
+  - **PUBLIC context (no bypass):** unauthenticated; `ResolvePublicProperty` resolves the `{property}` slug
+    under an explicit super-admin lookup, sets **real** `TenantContext` + spatie team id to the property's
+    org, and stashes the property id — every downstream read runs tenant+property-scoped. A visitor for
+    property X can only ever see X's inventory; another property/org's data 404s. This is NOT the operator
+    `app` group and NOT `SetTenantForWebRequest`; there is no logged-in user.
+  - **`<x-public.shell>`** (`components/public/shell.blade.php`) — a full-page storefront chrome (property
+    header + centered content + footer, **NO operator sidebar/nav**), reusing the SAME Vyrobel tokens
+    (frosted glass, terracotta, Sora/Inter, keyframes) — copied, self-contained, same "dedicated shell per
+    surface" decision. **No Livewire** (server-rendered, rate-limit-friendly for a public page).
+- **Screen 1 — Browse / Search → `BookingEngineController@browse` (`/book/{property}`)** (`44ae311`):
+  restyled the landing (renamed `stub()`→`browse()`, removed `booking/stub.blade.php`). REAL search
+  (GET → re-runs `ResolvePublicProperty`) + the **sellable rooms** for the dates via the certified
+  `BookingEngineService::search` (availability via `AvailabilityService`, real prices; only `available≥1`
+  + a real full-stay price). Per-night **derived** from the real total. Before a date search → a
+  **names-only room teaser** (no availability/price claim); a no-availability search → an honest empty
+  state. The Select CTA links forward to Screen 2 (never books).
+- **Screen 2 — Room Detail → `BookingEngineController@room` (`/book/{property}/rooms/{roomType}`)**
+  (`c933973`): the room-type is resolved **PROPERTY-scoped** (`RoomType where property_id = X` →
+  cross-property/org 404). REAL specs from the schema (name/kind/sleeps/adults/children, + bedrooms/
+  standard-occupancy shown only when the nullable column is set), REAL amenities via the polymorphic
+  amenities catalog (only when catalogued), and REAL availability/price for the searched dates.
+  **DEFERRED (flagged, not faked):** photos/gallery (decorative banner, "Photos soon"), amenities when
+  none exist ("not yet listed"), description/reviews/map ("coming soon"). "Book this room" is flagged
+  "Soon" and performs **no write**. Read the `{roomType}` route param via `$request->route()` (a two-param
+  binding quirk fed the method arg the property slug); `RoomType` gained `@property int|null` for
+  `bedrooms`/`std_occupancy` (nullable columns whose `integer` cast made Larastan infer non-null — docblock
+  only).
+- **Verification (all actually run):** full suite **172 tests / 2970 assertions green** on MySQL
+  `vyrobel_test` (+3 `PublicBookingBrowseTest`, +3 `PublicBookingRoomTest`); PHPStan L5 0 errors; Pint
+  clean. Tests prove: real sellable rooms/prices render with **no auth**; **public isolation** (X's
+  storefront never shows Y's rooms; a Y room 404s on X; unknown slug/room 404); nothing fabricated (teaser
+  + empty-dates honest). The JSON API contract (`PublicBookingEngineTest`) is unchanged + green.
+- **NEXT: the public booking CHECKOUT (the WRITE flow)** — quote → book, routing THROUGH `AssignmentService`
+  (never overbooks) + `FolioService` (append-only); the advisory `booking_quotes` hold reserves no
+  inventory. Then `/app/units`.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
