@@ -446,6 +446,37 @@ Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any
 - **NEXT: `Operator Dashboard`** (new page over certified data), then the public booking engine
   (`/book/{property}`), then `/app/units`.
 
+### 2026-07-12 — DESIGN PASS · Operator Dashboard styled + live — OPERATOR CORE COMPLETE
+
+- **Screen 5 — Operator Dashboard → `App\Livewire\Operator\OperatorDashboard` (`/app/dashboard`)**
+  (`434e1a9`): a **NEW tenant-scoped page** (no prior stub/route — like the owner Payouts/Units screens),
+  on the shared operator design system. Read-only; presentation + thin page only — no service/schema/
+  guarantee change. This **completes the operator core** (Screens 1–5).
+- **Every KPI is a TRUE org figure** — the metrics-screen risk is a plausible-but-wrong number (the owner
+  room-type-wide occupancy trap). Handling per the honesty rule:
+  - **REAL:** occupancy tonight % + rooms sold/available — **summed ORG-WIDE from the real `Availability`
+    spine** (Σ `total`/`sold`/`available()` across the property's tenant-scoped room types), never a
+    mislabeled per-room-type figure; arrivals/departures/in-house counts (`FrontDeskService`);
+    housekeeping status counts (real `housekeeping_tasks.status` enum) + "to clean" (pending+in_progress);
+    **payments received on the date** (settled payment/capture − succeeded refund, tenant-scoped `Payment`
+    ledger); today's arrivals as a **names-only** list.
+  - **DERIVED:** occupancy % (sold/total), to-clean — from real figures only.
+  - **DEFERRED (flagged, not faked):** revenue / ADR / RevPAR trend — a series aggregation this pass
+    doesn't build → a "Not yet available" stub, never a fabricated chart or number.
+  - **NO-BACKEND:** custom range / export disabled "Soon".
+  - **Guest PII:** arrivals names only; encrypted email/phone never rendered. As-of day via `?date=` GET
+    links (RMB-safe); scoped reads resolve in `render()`.
+- **The "Dashboard" nav item in `<x-operator.shell>` now points to the real route** (`route('app.dashboard')`).
+- **OPERATOR CORE COMPLETE — 5 screens** (Calendar/Rack, Front Desk, Housekeeping, Reservation Detail,
+  Dashboard) all on the shared operator system, honesty rule enforced per-screen. **Verification (all
+  actually run):** full suite **166 tests / 2926 assertions green** on MySQL `vyrobel_test` (+3
+  `OperatorDashboardViewTest`); PHPStan L5 0 errors; Pint clean. The dashboard test proves occupancy is
+  the true org figure ("2 of 3 rooms sold", 67%), tenant isolation (org B's 3-of-3 never enters org A's
+  2-of-3, no combined 5-of-6), the payments KPI is real + tenant-scoped, no fabricated series, no PII.
+- **NEXT: the public booking engine** (`/book/{property}` — styled onto the unstyled stub; the JSON API is
+  the real final backend), then `/app/units`. NB it is PUBLIC (context via `ResolvePublicProperty`, not the
+  operator `app` group / `SetTenantForWebRequest`).
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
