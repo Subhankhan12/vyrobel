@@ -4,6 +4,7 @@ use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
+use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetOwnerScopeForPortal;
@@ -64,6 +65,11 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
+    // Design pass · Operator Screen 4 — REAL append-only folio actions via POST → controller →
+    // FolioService → redirect (PRG). {reservation} is a string param resolved tenant-scoped in the
+    // controller (never RMB) → cross-org 404. A refund is a NEW offsetting entry (never an edit).
+    Route::post('/reservations/{reservation}/payments', [ReservationFolioActionController::class, 'recordPayment'])->name('reservations.payment');
+    Route::post('/reservations/{reservation}/refunds', [ReservationFolioActionController::class, 'refund'])->name('reservations.refund');
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
     // Design pass · Operator Screen 3 — REAL housekeeping status advance via POST → action → redirect
     // (PRG). {task} is a string param resolved tenant-scoped in the controller (never RMB) → cross-org 404.

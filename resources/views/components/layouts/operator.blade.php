@@ -394,9 +394,63 @@
         .vy-hk-actions form { margin: 0; }
         .vy-hk-col-empty { text-align: center; color: var(--vy-faint); font-size: 12px; padding: 18px 8px; }
 
+        /* ---- Reservation detail (folio ledger) ------------------------------------------------- */
+        .vy-detail-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
+        .vy-stack { display: flex; flex-direction: column; gap: 22px; }
+
+        .vy-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
+        .vy-fact-label { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-faint); }
+        .vy-fact-val { font-size: 13.5px; font-weight: 500; margin-top: 3px; }
+        .vy-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+        .vy-detail-ref { font-family: var(--vy-display); font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+
+        .vy-unit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
+        .vy-unit-row:last-child { border-bottom: none; }
+        .vy-unit-row .vy-um-name { font-weight: 600; }
+        .vy-unit-row .vy-um-sub { font-size: 11px; color: var(--vy-muted); margin-top: 2px; }
+
+        /* Folio ledger */
+        .vy-ledger { display: flex; flex-direction: column; }
+        .vy-ledger-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-ledger-row:last-child { border-bottom: none; }
+        .vy-ledger-main { flex: 1; min-width: 0; }
+        .vy-ledger-label { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .vy-ledger-sub { font-size: 11px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-ledger-date { font-size: 11px; color: var(--vy-faint); flex: none; font-variant-numeric: tabular-nums; }
+        .vy-ledger-amt { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; min-width: 92px; text-align: right; }
+        .vy-ledger-amt.tone-charge { color: var(--vy-ink); }
+        .vy-ledger-amt.tone-paid { color: var(--vy-accent); }
+        .vy-ledger-amt.tone-refund { color: var(--vy-amber); }
+        .vy-ledger-amt.tone-hold, .vy-ledger-amt.tone-muted { color: var(--vy-muted); }
+        .vy-ledger-flag { font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-muted); background: rgba(120, 70, 40, 0.08); border-radius: 5px; padding: 1px 6px; }
+        .vy-refund-btn { margin-left: 10px; }
+
+        /* Totals */
+        .vy-totals { margin-top: 16px; border-top: 1.5px solid rgba(120, 70, 40, 0.16); padding-top: 14px; display: flex; flex-direction: column; gap: 9px; }
+        .vy-total-row { display: flex; align-items: baseline; justify-content: space-between; font-size: 13px; }
+        .vy-total-row .vy-t-label { color: var(--vy-muted); }
+        .vy-total-row .vy-t-val { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
+        .vy-total-row.is-balance { margin-top: 4px; padding-top: 11px; border-top: 1px solid var(--vy-hairline); font-size: 15px; }
+        .vy-total-row.is-balance .vy-t-label { color: var(--vy-ink); font-weight: 600; font-family: var(--vy-display); }
+        .vy-total-row.is-balance .vy-t-val { font-size: 20px; color: var(--vy-accent); }
+        .vy-total-row.is-balance.is-settled .vy-t-val { color: var(--vy-muted); }
+
+        /* Payment form + inputs */
+        .vy-field-label { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-muted); display: block; margin-bottom: 6px; }
+        .vy-input-group { display: flex; gap: 8px; align-items: stretch; }
+        .vy-input { flex: 1; min-width: 0; padding: 9px 12px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.75); font-family: var(--vy-sans); font-size: 13.5px; color: var(--vy-ink); }
+        .vy-input:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
+        .vy-action-list { display: flex; flex-direction: column; gap: 8px; }
+        .vy-action-list .vy-defer-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--vy-muted); padding: 8px 0; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-action-list .vy-defer-item:last-child { border-bottom: none; }
+
+        .vy-recon { font-size: 11px; color: var(--vy-muted); display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; }
+        .vy-recon svg { color: var(--vy-accent); }
+
         /* ---- Responsive ------------------------------------------------------------------------ */
         @media (max-width: 1100px) {
             .vy-kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .vy-detail-cols { grid-template-columns: minmax(0, 1fr); }
         }
         @media (max-width: 860px) {
             .vy-shell { grid-template-columns: 1fr; }

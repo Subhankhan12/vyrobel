@@ -143,4 +143,19 @@ trait FormatsOperatorData
             default => ['label' => 'Normal', 'tone' => 'normal'],
         };
     }
+
+    /** Folio line type → human label (real `folio_items.type` enum). */
+    protected function folioItemLabel(string $type): string
+    {
+        return match ($type) {
+            'room' => 'Room',
+            'tax' => 'Tax',
+            'fee' => 'Fee',
+            'add_on' => 'Add-on',
+            'product' => 'Product',
+            'discount' => 'Discount',
+            'manual' => 'Charge',
+            default => ucwords(str_replace('_', ' ', $type)),
+        };
+    }
 }
