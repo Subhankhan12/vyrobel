@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire\Owner;
 
+use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
 use App\Models\Payout;
-use App\Models\User;
 use App\Services\OwnerPortalService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -36,6 +36,8 @@ use Livewire\Component;
 #[Layout('components.layouts.owner')]
 class OwnerStatementView extends Component
 {
+    use FormatsOwnerData;
+
     public string $statementId;
 
     public function mount(string $statement): void
@@ -249,80 +251,5 @@ class OwnerStatementView extends Component
             'rail' => null,
             'paid_at' => null,
         ];
-    }
-
-    /**
-     * @return array{name: string, initials: string}
-     */
-    private function viewer(): array
-    {
-        $user = auth()->user();
-        $name = $user instanceof User ? (string) $user->name : 'Owner';
-
-        return ['name' => $name, 'initials' => $this->initials($name)];
-    }
-
-    // -- presentation helpers (formatting only) ---------------------------------------------------
-
-    /**
-     * @return array{label: string, tone: string}
-     */
-    private function statusMeta(string $status): array
-    {
-        return match ($status) {
-            'paid' => ['label' => 'Paid', 'tone' => 'paid'],
-            'finalized' => ['label' => 'Payout pending', 'tone' => 'pending'],
-            default => ['label' => 'Draft', 'tone' => 'draft'],
-        };
-    }
-
-    /**
-     * @return array{label: string, tone: string}
-     */
-    private function payoutStatusMeta(string $status): array
-    {
-        return match ($status) {
-            'paid' => ['label' => 'Paid', 'tone' => 'paid'],
-            'failed' => ['label' => 'Payout failed', 'tone' => 'pending'],
-            'reversed' => ['label' => 'Reversed', 'tone' => 'draft'],
-            default => ['label' => 'Payout pending', 'tone' => 'pending'],
-        };
-    }
-
-    private function money(int $minor, string $currency, bool $signed = false): string
-    {
-        $symbol = $this->currencySymbol($currency);
-        $abs = number_format(abs($minor) / 100, 2, '.', ',');
-
-        if ($minor < 0) {
-            return "−{$symbol}{$abs}";           // U+2212 minus, matches the design
-        }
-
-        return ($signed ? '+' : '')."{$symbol}{$abs}";
-    }
-
-    private function currencySymbol(string $currency): string
-    {
-        return match (strtoupper($currency)) {
-            'EUR' => '€',
-            'GBP' => '£',
-            'USD' => '$',
-            default => strtoupper($currency).' ',
-        };
-    }
-
-    private function initials(string $name): string
-    {
-        $parts = preg_split('/\s+/', trim($name)) ?: [];
-        $parts = array_values(array_filter($parts));
-
-        if ($parts === []) {
-            return 'O';
-        }
-
-        $first = mb_substr($parts[0], 0, 1);
-        $last = count($parts) > 1 ? mb_substr($parts[count($parts) - 1], 0, 1) : '';
-
-        return mb_strtoupper($first.$last);
     }
 }

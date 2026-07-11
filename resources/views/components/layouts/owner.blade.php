@@ -266,6 +266,34 @@
         .vy-muted { color: var(--vy-muted); }
         .vy-empty { text-align: center; color: var(--vy-muted); padding: 40px 20px; font-size: 13.5px; }
 
+        /* ---- Dashboard components (shared) --------------------------------------------------- */
+        .vy-kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .vy-kpi {
+            background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
+            -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md);
+            box-shadow: var(--vy-shadow-sm); padding: 16px 18px;
+        }
+        .vy-kpi-label { font-size: 9.5px; font-weight: 600; letter-spacing: .11em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-kpi-val { font-family: var(--vy-display); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-top: 8px; }
+        .vy-kpi-val.is-deferred { color: var(--vy-faint); }
+        .vy-kpi-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 4px; }
+
+        .vy-delta { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: var(--vy-r-pill); font-size: 12px; font-weight: 600; }
+        .vy-delta--up { background: rgba(31, 122, 90, .12); color: var(--vy-green); }
+        .vy-delta--down { background: rgba(224, 146, 30, .14); color: var(--vy-amber); }
+
+        .vy-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 8px; }
+        .vy-chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; height: 100%; }
+        .vy-bar { width: 100%; max-width: 44px; border-radius: 8px 8px 4px 4px; background: var(--vy-grad-peach); transition: height .3s ease; }
+        .vy-bar.is-last { background: var(--vy-grad); }
+        .vy-bar-label { font-size: 10.5px; color: var(--vy-muted); }
+
+        .vy-list-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-list-row:last-child { border-bottom: none; }
+        .vy-list-row:hover .vy-row-month { color: var(--vy-accent); }
+        .vy-quick { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
         /* ---- Responsive ---------------------------------------------------------------------- */
         @media (max-width: 1100px) {
             .vy-cols { grid-template-columns: minmax(0, 1fr); }

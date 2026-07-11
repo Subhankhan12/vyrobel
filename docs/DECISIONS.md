@@ -327,6 +327,25 @@ Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any
   - Plus all standing Phase 1/2 deferrals (Channex staging live checkpoint; blind-index guest matching; gap-free invoice numbering; dated out-of-order ranges; `inventory_blocks.quantity`; tenant-custom amenities; same-day-turnover housekeeping dedupe; promo codes/deposits on the booking engine; `guests.stripe_customer_id`/saved cards).
 - **NEXT (do NOT start without a written, gated prompt):** the next **Phase 3 module — Unified Inbox** (WhatsApp/email/OTA/SMS); OR close the **Channex staging live checkpoint**; OR a **thin design slice** to demo the wedge (styled owner statement/portal over the certified backend). Decide and write that prompt the same gated way.
 
+### 2026-07-11 — DESIGN PASS · honesty rule locked (Owner Statement / Screen 1 shipped)
+
+- **Design pass underway (presentation only — NO backend/schema/guarantee changes).** Screen 1, the
+  styled **Owner Statement** (`OwnerStatementView` `/owner/statements/{id}`), is live on real owner-scoped
+  data (commit `970b0e7`): the approved Claude Design ported onto the stub via a new reusable owner-portal
+  layout (`components/layouts/owner` — formalized tokens: frosted glass blur(22px)/saturate(1.15), warm
+  layered shadow, terracotta `#C2410C`, Sora/Inter, real vyFadeUp/vyShimmer/vyDrift/vySwap keyframes).
+  Suite 139→141 tests / 2769 assertions green, PHPStan L5 + Pint clean; the stub layout
+  (`components/layouts/app`) is untouched → other role stubs unaffected.
+- **DESIGN-PASS HONESTY RULE (locked — all owner/operator/guest screens):** never render a financial line
+  or figure the backend does not compute. Triage every design element into one bucket and handle it so:
+  - **REAL** → wire live through the owner-scoped read services (`OwnerPortalService` etc. — called, never modified).
+  - **DERIVED** → compute from REAL figures only (e.g. a "% of gross" sublabel from the statement's own numbers); never invent or persist a derived value.
+  - **DEFERRED** → visually stubbed + flagged **"not yet available"** (e.g. by-unit split, occupancy — aggregations not built); never fabricated.
+  - **NO-BACKEND** → a disabled **"Soon"** affordance; never a fake action / IBAN / date / download.
+  - **Money reconciles to the cent** against the source ledger/statement; **owner isolation must hold** (RMB rule: string id → owner+tenant scoped `findOrFail` in `render()`; cross-owner → 404).
+  - **Guest PII is never exposed** on owner surfaces (encrypted `guests.email`/`phone`; e.g. no guest names on owner "upcoming stays").
+  - Established + proven by Screen 1 (the invented "card-processing fee" line was OMITTED — a real expense/`ota_cost` line fills that slot when present, labelled truthfully). Enforced per-screen by a render/isolation test.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
