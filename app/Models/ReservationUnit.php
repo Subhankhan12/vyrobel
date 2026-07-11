@@ -64,6 +64,9 @@ class ReservationUnit extends Model
         $query->where('status', 'active');
     }
 
+    /**
+     * @return BelongsTo<Reservation, $this>
+     */
     public function reservation(): BelongsTo
     {
         return $this->belongsTo(Reservation::class);
