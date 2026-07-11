@@ -8,8 +8,10 @@ use App\Models\Amenity;
 use App\Models\Building;
 use App\Models\Floor;
 use App\Models\Guest;
+use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Organization;
+use App\Models\Owner;
 use App\Models\Property;
 use App\Models\PropertyPolicy;
 use App\Models\RateCalendar;
@@ -22,10 +24,14 @@ use App\Models\User;
 use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\FolioService;
+use App\Services\OwnerAttributionService;
+use App\Services\OwnerPayoutService;
+use App\Services\OwnerStatementService;
 use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -149,6 +155,69 @@ class DemoSeeder extends Seeder
 
         // Check the walk-in out → real departure-clean task via the checkout event → listener.
         app(CheckOutReservation::class)->handle($walkIn);
+
+        // --- Owner accounting (the wedge) — the demo user IS a property owner of the apartments ---
+        // Real + coherent: attribution reads the folios, the statement is a pure ledger projection,
+        // the payout is created from the finalized statement. Nothing fabricated.
+        $this->seedOwnerAccounting($owner, $property, $apartment, $aptRate, $aptUnits, $vat, $walkIn);
+    }
+
+    /**
+     * Make the demo login a real property OWNER (of the apartments) with a governing agreement, then
+     * run the certified owner-accounting chain over the apartment bookings so the owner portal shows
+     * real earnings/statement/payout — not a fail-closed empty portal.
+     *
+     * @param  Collection<int, Unit>  $aptUnits
+     */
+    private function seedOwnerAccounting(
+        User $user,
+        Property $property,
+        RoomType $apartment,
+        RatePlan $aptRate,
+        Collection $aptUnits,
+        Tax $vat,
+        Reservation $walkIn,
+    ): void {
+        // The owner PARTY, linked to the login (owners.user_id) so SetOwnerScopeForPortal resolves it.
+        $ownerParty = Owner::create([
+            'type' => 'individual',
+            'name' => 'Demo Owner',
+            'email' => 'demo-owner@vyrobel-demo.test',
+            'payout_currency' => 'EUR',
+            'user_id' => $user->id,
+            'status' => 'active',
+        ]);
+
+        // The owner owns the two apartments; the hotel rooms stay operator-owned.
+        $aptUnits->each(fn (Unit $u) => $u->update(['owner_id' => $ownerParty->id]));
+
+        // A real, open-ended management agreement (18% commission, owner-wide).
+        ManagementAgreement::create([
+            'owner_id' => $ownerParty->id,
+            'unit_id' => null,
+            'commission_pct' => 18.00,
+            'payout_currency' => 'EUR',
+            'payout_schedule' => 'monthly',
+            'effective_from' => '2026-01-01',
+            'effective_to' => null,
+            'status' => 'active',
+        ]);
+
+        // A second apartment stay so the statement aggregates more than one booking (real, via services).
+        $aptGuest = Guest::create(['first_name' => 'Demo', 'last_name' => 'Resident', 'email' => 'demo.resident@vyrobel-demo.test', 'phone' => '+351910000004', 'nationality' => 'IE']);
+        $aptStay = $this->createDemoStay('direct', $property, $apartment, $aptRate, $aptUnits[1], $aptGuest, '2026-09-14', '2026-09-17', $vat, fullyPaid: true);
+
+        // Attribute the owner's bookings → immutable owner_ledger (derived, read-only over folios).
+        $attribution = app(OwnerAttributionService::class);
+        $attribution->attributeReservation($walkIn);
+        $attribution->attributeReservation($aptStay);
+
+        // September statement = pure projection of the ledger; finalize (locks), then create the payout,
+        // left PENDING — the common "statement finalized, payout not yet sent" state the portal showcases.
+        $statements = app(OwnerStatementService::class);
+        $draft = $statements->generateDraft($ownerParty->id, '2026-09-01', '2026-09-30');
+        $finalized = $statements->finalize($draft);
+        app(OwnerPayoutService::class)->createFromStatement($finalized);
     }
 
     private function seedCalendar(RatePlan $ratePlan, int $priceMinor): void

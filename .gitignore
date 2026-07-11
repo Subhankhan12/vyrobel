@@ -26,3 +26,8 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 CLAUDE.local.md
+
+# Browser test-pass scratch (Playwright artifacts + snapshots) — not part of the app
+/.playwright-mcp/
+/flow*.png
+/flow*.md
