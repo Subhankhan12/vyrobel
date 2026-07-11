@@ -50,7 +50,7 @@ Route::prefix('book/{property}')
     ->middleware([ResolvePublicProperty::class, 'throttle:booking'])
     ->name('booking.')
     ->group(function () {
-        Route::get('/', [BookingEngineController::class, 'stub'])->name('stub');
+        Route::get('/', [BookingEngineController::class, 'browse'])->name('browse');
         Route::get('/search', [BookingEngineController::class, 'search'])->name('search');
         Route::post('/quote', [BookingEngineController::class, 'quote'])->name('quote');
         Route::post('/book', [BookingEngineController::class, 'book'])->name('book');
