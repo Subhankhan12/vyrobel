@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
+use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetOwnerScopeForPortal;
@@ -65,6 +66,11 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
     // Phase 2 Step 8 — front-desk staff surface (arrivals/departures/in-house + action contracts).
     Route::get('/front-desk', FrontDesk::class)->name('front-desk');
+    // Design pass · Operator Screen 2 — REAL check-in/out via POST → action → redirect (PRG). The
+    // {reservation} is a string param resolved tenant-scoped in the controller (never RMB), so the
+    // mutation re-runs the tenant middleware and cross-org ids 404.
+    Route::post('/front-desk/{reservation}/check-in', [FrontDeskActionController::class, 'checkIn'])->name('front-desk.check-in');
+    Route::post('/front-desk/{reservation}/check-out', [FrontDeskActionController::class, 'checkOut'])->name('front-desk.check-out');
 });
 
 /*

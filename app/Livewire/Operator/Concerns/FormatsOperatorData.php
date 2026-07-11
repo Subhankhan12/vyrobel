@@ -43,6 +43,25 @@ trait FormatsOperatorData
         return mb_strtoupper($first.$last);
     }
 
+    /** Format integer minor units for display, e.g. 1037000 EUR → "€10,370.00". */
+    protected function money(int $minor, string $currency): string
+    {
+        $symbol = $this->currencySymbol($currency);
+        $abs = number_format(abs($minor) / 100, 2, '.', ',');
+
+        return ($minor < 0 ? '−' : '')."{$symbol}{$abs}";   // U+2212 minus, matches the design
+    }
+
+    protected function currencySymbol(string $currency): string
+    {
+        return match (strtoupper($currency)) {
+            'EUR' => '€',
+            'GBP' => '£',
+            'USD' => '$',
+            default => strtoupper($currency).' ',
+        };
+    }
+
     /**
      * Reservation status → a rack booking-bar label + tone. Tones are WARM only (terracotta/amber
      * tints — no green/red), matching the design. The keys are exactly the real reservation `status`

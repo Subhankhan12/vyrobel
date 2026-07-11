@@ -276,6 +276,77 @@
         .vy-legend-swatch.tone-pending { background: linear-gradient(140deg, #E0921E, #B26A08); }
         .vy-legend-swatch.tone-no-show { background: repeating-linear-gradient(135deg, #B26A08, #B26A08 5px, #9a5c07 5px, #9a5c07 10px); }
 
+        /* ---- Front desk (arrivals / departures / in-house) ------------------------------------- */
+        .vy-toast {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px 16px;
+            border-radius: var(--vy-r-md); background: rgba(232, 112, 58, 0.10);
+            border: 1px solid var(--vy-accent-border); border-left: 3px solid var(--vy-accent);
+            font-size: 13px; font-weight: 500; color: var(--vy-ink); box-shadow: var(--vy-shadow-sm);
+        }
+        .vy-toast svg { color: var(--vy-accent); flex: none; }
+
+        .vy-summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        .vy-summary-chip {
+            display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: var(--vy-r-md);
+            background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
+            -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm);
+        }
+        .vy-summary-chip .vy-sc-num { font-family: var(--vy-display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+        .vy-summary-chip .vy-sc-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-summary-chip.is-due { border-color: var(--vy-accent-border); }
+        .vy-summary-chip.is-due .vy-sc-num { color: var(--vy-accent); }
+
+        .vy-fd-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; align-items: start; }
+        .vy-fd-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-fd-head .vy-fd-title { font-family: var(--vy-display); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .vy-fd-count { font-size: 11px; font-weight: 700; color: var(--vy-accent); background: rgba(232, 112, 58, 0.12); border-radius: var(--vy-r-pill); padding: 2px 9px; }
+
+        .vy-fd-row { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--vy-hairline); transition: background .15s ease; }
+        .vy-fd-row:last-child { border-bottom: none; }
+        .vy-fd-row:hover { background: rgba(255, 255, 255, 0.45); }
+        .vy-fd-main { flex: 1; min-width: 0; }
+        .vy-fd-guest { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-fd-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--vy-muted); margin-top: 4px; }
+        .vy-fd-meta .vy-sep { opacity: .5; }
+        .vy-fd-right { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; flex: none; }
+        .vy-fd-actions { display: flex; align-items: center; gap: 7px; }
+        .vy-fd-actions form { margin: 0; }
+
+        .vy-balance { font-family: var(--vy-display); font-weight: 600; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+        .vy-balance.is-due { color: var(--vy-accent); }
+        .vy-balance.is-settled { color: var(--vy-muted); font-weight: 500; }
+
+        /* Warm status tags (no green/red) — keyed to the real reservation enum */
+        .vy-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: var(--vy-r-pill); font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .vy-tag .vy-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+        .vy-tag.tone-confirmed { background: rgba(232, 112, 58, 0.14); color: var(--vy-accent); }
+        .vy-tag.tone-confirmed .vy-dot { background: var(--vy-accent); }
+        .vy-tag.tone-in-house { background: rgba(194, 65, 12, 0.14); color: #8f2f08; }
+        .vy-tag.tone-in-house .vy-dot { background: #8f2f08; }
+        .vy-tag.tone-departed { background: rgba(138, 128, 121, 0.16); color: var(--vy-muted); }
+        .vy-tag.tone-departed .vy-dot { background: var(--vy-muted); }
+        .vy-tag.tone-pending { background: rgba(224, 146, 30, 0.15); color: var(--vy-amber); }
+        .vy-tag.tone-pending .vy-dot { background: var(--vy-amber-2); }
+        .vy-tag.tone-no-show { background: rgba(178, 106, 8, 0.15); color: var(--vy-amber); }
+        .vy-tag.tone-no-show .vy-dot { background: var(--vy-amber); }
+        .vy-tag.tone-cancelled { background: rgba(166, 154, 146, 0.18); color: var(--vy-faint); }
+        .vy-tag.tone-cancelled .vy-dot { background: var(--vy-faint); }
+
+        /* Unit assignment chip / unassigned + assign link */
+        .vy-unit-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--vy-ink); background: rgba(120, 70, 40, 0.07); border-radius: 6px; padding: 2px 7px; }
+        .vy-unassigned { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--vy-amber); background: rgba(224, 146, 30, 0.12); border: 1px dashed rgba(224, 146, 30, 0.4); border-radius: 6px; padding: 1px 7px; }
+        .vy-assign-link { font-size: 11px; font-weight: 600; color: var(--vy-accent); }
+        .vy-assign-link:hover { text-decoration: underline; }
+
+        /* Small row action buttons */
+        .vy-act { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--vy-r-pill); font-size: 12px; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: transform .15s ease, background .15s ease; }
+        .vy-act--accent { background: var(--vy-grad); color: #fff; box-shadow: var(--vy-shadow-accent); }
+        .vy-act--accent:hover { transform: translateY(-1px); }
+        .vy-act--ghost { background: rgba(255, 255, 255, 0.65); color: var(--vy-ink); border-color: var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
+        .vy-act--ghost:hover { background: rgba(255, 255, 255, 0.9); }
+        .vy-act.is-soon { opacity: .5; cursor: not-allowed; background: rgba(255, 255, 255, 0.5); color: var(--vy-muted); border-color: var(--vy-glass-border); }
+
         /* ---- Responsive ------------------------------------------------------------------------ */
         @media (max-width: 860px) {
             .vy-shell { grid-template-columns: 1fr; }
