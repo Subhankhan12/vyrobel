@@ -481,6 +481,34 @@
         .vy-hk-line .vy-hk-v { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
         .vy-hk-swatch { width: 9px; height: 9px; border-radius: 50%; }
 
+        /* ---- Units table ----------------------------------------------------------------------- */
+        .vy-utable-wrap { overflow-x: auto; }
+        .vy-utable { width: 100%; border-collapse: collapse; min-width: 720px; }
+        .vy-utable thead th { text-align: left; font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--vy-faint); padding: 0 14px 12px; white-space: nowrap; }
+        .vy-utable tbody tr { transition: background .15s ease; }
+        .vy-utable tbody tr:hover { background: rgba(255, 255, 255, 0.5); }
+        .vy-utable td { padding: 13px 14px; border-top: 1px solid var(--vy-hairline); font-size: 13px; vertical-align: middle; }
+        .vy-utable .vy-u-code { font-family: var(--vy-display); font-weight: 600; }
+        .vy-utable .vy-u-sub { font-size: 11px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-u-owner { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+        .vy-u-owner .vy-mini-avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 9px; font-weight: 600; display: grid; place-items: center; }
+        .vy-u-operator { font-size: 11.5px; color: var(--vy-faint); }
+        .vy-u-inactive { font-size: 11px; font-weight: 600; color: var(--vy-muted); background: rgba(120, 70, 40, .08); border-radius: var(--vy-r-pill); padding: 2px 9px; }
+
+        /* Warm unit status tags (real enums; no green/red) */
+        .vy-tag.tone-clean { background: rgba(232, 112, 58, 0.14); color: var(--vy-accent); }
+        .vy-tag.tone-clean .vy-dot { background: var(--vy-accent); }
+        .vy-tag.tone-dirty { background: rgba(224, 146, 30, 0.15); color: var(--vy-amber); }
+        .vy-tag.tone-dirty .vy-dot { background: var(--vy-amber-2); }
+        .vy-tag.tone-inspected { background: rgba(66, 52, 44, 0.12); color: var(--vy-dark); }
+        .vy-tag.tone-inspected .vy-dot { background: var(--vy-dark); }
+        .vy-tag.tone-in-service { background: rgba(138, 128, 121, 0.14); color: var(--vy-muted); }
+        .vy-tag.tone-in-service .vy-dot { background: var(--vy-muted); }
+        .vy-tag.tone-ooo { background: rgba(194, 65, 12, 0.14); color: var(--vy-accent); }
+        .vy-tag.tone-ooo .vy-dot { background: var(--vy-accent); }
+        .vy-tag.tone-oos { background: rgba(66, 52, 44, 0.12); color: var(--vy-dark); }
+        .vy-tag.tone-oos .vy-dot { background: var(--vy-dark); }
+
         /* ---- Responsive ------------------------------------------------------------------------ */
         @media (max-width: 1100px) {
             .vy-kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); }

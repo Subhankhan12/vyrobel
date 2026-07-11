@@ -144,6 +144,50 @@ trait FormatsOperatorData
         };
     }
 
+    /** Unit kind → human label (real `units.unit_kind` enum: room/apartment/villa/dorm_bed). */
+    protected function unitKindLabel(string $kind): string
+    {
+        return match ($kind) {
+            'room' => 'Room',
+            'apartment' => 'Apartment',
+            'villa' => 'Villa',
+            'dorm_bed' => 'Dorm bed',
+            default => ucwords(str_replace('_', ' ', $kind)),
+        };
+    }
+
+    /**
+     * Unit cleanliness → label + WARM tone. Keys are exactly the real `units.housekeeping_status`
+     * enum (clean/dirty/inspected) — nothing invented.
+     *
+     * @return array{label: string, tone: string}
+     */
+    protected function unitHousekeepingMeta(string $status): array
+    {
+        return match ($status) {
+            'clean' => ['label' => 'Clean', 'tone' => 'clean'],
+            'dirty' => ['label' => 'Dirty', 'tone' => 'dirty'],
+            'inspected' => ['label' => 'Inspected', 'tone' => 'inspected'],
+            default => ['label' => ucfirst($status), 'tone' => 'dirty'],
+        };
+    }
+
+    /**
+     * Unit condition → label + WARM tone. Real `units.condition_status` enum
+     * (in_service/out_of_order/out_of_service).
+     *
+     * @return array{label: string, tone: string}
+     */
+    protected function unitConditionMeta(string $status): array
+    {
+        return match ($status) {
+            'in_service' => ['label' => 'In service', 'tone' => 'in-service'],
+            'out_of_order' => ['label' => 'Out of order', 'tone' => 'ooo'],
+            'out_of_service' => ['label' => 'Out of service', 'tone' => 'oos'],
+            default => ['label' => ucwords(str_replace('_', ' ', $status)), 'tone' => 'oos'],
+        };
+    }
+
     /** Folio line type → human label (real `folio_items.type` enum). */
     protected function folioItemLabel(string $type): string
     {
