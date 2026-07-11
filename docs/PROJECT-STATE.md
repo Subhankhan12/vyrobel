@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `c933973`** on `main`, working tree clean. Suite: **`php artisan test` → 172 tests / 2970
+- **HEAD `b11c8bf`** on `main`, working tree clean. Suite: **`php artisan test` → 178 tests / 2997
   assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback).
@@ -150,14 +150,15 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**172 tests / 2970 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**178 tests / 2997 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 the owner-portal design pass (per-screen render/isolation + occupancy-correctness), the operator design
-pass (5 screens — render/isolation/no-invented-status/PII, real mutations that persist + cross-org 404s,
-folio-ledger reconciliation + append-only refund, dashboard KPI-correctness), and the public booking
-storefront (`PublicBookingBrowseTest` · `PublicBookingRoomTest` — real sellable rooms/prices with NO auth,
-public property isolation, nothing fabricated), together.
+pass (5 screens), and the public booking storefront (`PublicBookingBrowseTest` · `PublicBookingRoomTest` ·
+`PublicBookingCheckoutTest` — real sellable rooms/prices with NO auth, public property isolation, and the
+**public checkout WRITE: real book via AssignmentService, advisory hold never changes `sold`, two-holds-
+one-books with no overbooking**), together. The true-parallel no-double-booking suite (`ConcurrentBooking`
+/`Deadlock`/`CrossSystemConcurrency`, 9 tests/114 assertions) re-run green after the checkout screen.
 - **TRUE OS-level parallelism** (separate PHP processes + MySQL connections, shared future-timestamp
   barrier, committed data, no RefreshDatabase): `ConcurrentBookingTest`, `DeadlockAvoidanceTest`,
   `CrossSystemConcurrencyTest` (repeat-runs zero-flake).
@@ -222,12 +223,15 @@ Livewire** (server-rendered, rate-limit-friendly). **READ-ONLY** — these scree
 | Route | Controller / view | Styled |
 |---|---|---|
 | `/book/{property}` | `BookingEngineController@browse` → `booking/browse` | ✅ styled + live (search + real sellable rooms via `BookingEngineService::search`; per-night derived from real total; names-only teaser before a search; Select → room detail) |
-| `/book/{property}/rooms/{roomType}` | `BookingEngineController@room` → `booking/room` | ✅ styled + live (property-scoped → cross-property 404; real specs + real amenities/availability/price; photos/description/reviews DEFERRED; "Book this room" flagged — no write) |
+| `/book/{property}/rooms/{roomType}` | `BookingEngineController@room` → `booking/room` | ✅ styled + live (property-scoped → cross-property 404; real specs + real amenities/availability/price; photos/description/reviews DEFERRED; Book → checkout) |
+| `/book/{property}/checkout` (GET review · **POST write**) + `/reservation/{quote}` | `BookingEngineController@checkout`/`reserve`/`reservation` → `booking/checkout`,`booking/reservation` | ✅ styled + live — **the WRITE flow.** Quote→hold→**book THROUGH AssignmentService** (source=direct, rejects when full, never overbooks)→pay THROUGH FolioService (append-only)→confirmation with the real reference. Manual/pay-on-arrival wired; Stripe card entry DEFERRED. **POST is session-CSRF-protected** (not exempt) + `throttle:booking`. |
 
-Per-screen tests: `PublicBookingBrowseTest`, `PublicBookingRoomTest` (real rooms/prices with no auth;
-public isolation — X's storefront never shows Y's rooms / a Y room 404s on X; no fabricated
-rooms/prices/availability). The JSON API (`/search` `/quote` `/book` `/confirmation`) is the real final
-backend, unchanged (`PublicBookingEngineTest`). **NEXT booking screen = checkout (the WRITE flow).**
+Per-screen tests: `PublicBookingBrowseTest`, `PublicBookingRoomTest`, `PublicBookingCheckoutTest` (real
+book via AssignmentService; advisory hold never changes `sold`; **CRITICAL — two holds on the last unit,
+only one books, `sold` never exceeds capacity**; cross-property checkout 404; CSRF token on the write
+form; no auth). The JSON API (`/search` `/quote` `/book` `/confirmation`) is the real final backend,
+unchanged (`PublicBookingEngineTest`); its POST endpoints stay CSRF-exempt by path (`book/*/quote`,
+`book/*/book`).
 
 ## Remaining UNSTYLED contract stubs (the design pass styles these NEXT)
 
@@ -236,7 +240,6 @@ contract in the component docblock. **Backends + data contracts are FINAL.**
 
 | Route | Component / view | Contract (data shape) |
 |---|---|---|
-| `/book/{property}/{search,quote,book,confirmation}` | `BookingEngineController` (JSON) | public search/quote/book JSON contract — the real final backend; the **checkout WRITE-flow UI** is the next booking screen |
 | `/app/units` | `App\Livewire\UnitsList` → `livewire/units-list` | units list |
 
 **Livewire RMB rule (must hold in the design pass):** never type-hint a scoped model as a public
@@ -261,18 +264,17 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`) · `app/Models/` · `app/Models/Scopes/` ·
   `database/migrations/` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — public booking CHECKOUT (the WRITE flow)
+## NEXT ACTION — `/app/units`, then optional booking polish
 
-Owner portal DONE · operator core COMPLETE (5) · public booking storefront **Screens 1–2 (Browse, Room
-Detail) styled + live** — all READ-ONLY (above). **Next = the public booking CHECKOUT screen — the WRITE
-flow** (quote → book): this is where inventory is actually written. Unlike the read-only browse/room
-screens, checkout must honor the full backend discipline — `BookingEngineService::book` routes THROUGH
-`AssignmentService` (source=direct, re-checks availability under lock, rejects when full — never
-overbooks) and payment THROUGH `FolioService`/the configured gateway (append-only). The advisory
-`booking_quotes` hold reserves NO inventory; occupancy happens only at `book()`. It's PUBLIC (context via
-`ResolvePublicProperty`; POST endpoints are CSRF-exempt JSON today — the styled form needs its own
-CSRF/token handling). After checkout: `/app/units`. Presentation-wise **zero architectural change** — wire
-the existing JSON contract, never a parallel write path.
+Owner portal DONE · operator core COMPLETE (5) · **public booking storefront Screens 1–3 (Browse, Room
+Detail, Checkout+confirmation) styled + live** — checkout is the real WRITE flow through AssignmentService
++ FolioService (above). The main styled surfaces over the certified backend are now done. **Next = the
+last unstyled stub `/app/units`** (`App\Livewire\UnitsList` — operator units list; inherit
+`<x-operator.shell>`). Optional booking polish that remains DEFERRED (flagged in-product, backend-gated):
+real Stripe card entry at checkout (Elements + 3DS — the deferred Stripe live checkpoint), room
+photos/gallery + descriptions/reviews. Other tracks: the next Phase 3 module (Unified Inbox), the Channex
+staging + Stripe Connect live checkpoints. All presentation work is **zero architectural change** — wire
+the certified services, never a parallel path.
 
 **Same discipline** (the reference implementations are the owner portal + operator Screens 1–2): **inherit
 the operator design system** (`components/layouts/operator`, `<x-operator.shell>`, `FormatsOperatorData`) —

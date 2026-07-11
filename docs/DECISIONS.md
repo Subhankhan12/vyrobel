@@ -518,6 +518,46 @@ Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any
   (never overbooks) + `FolioService` (append-only); the advisory `booking_quotes` hold reserves no
   inventory. Then `/app/units`.
 
+### 2026-07-12 — DESIGN PASS · public booking CHECKOUT (Screen 3) — the first public WRITE, on the real path
+
+- **The public checkout is styled + live — the FIRST public screen that WRITES inventory (anonymous
+  visitor), given more care than any prior screen.** Presentation + a thin page: the controller only
+  CALLS the certified services — **no change to `AssignmentService`/`FolioService`/the append-only ledger/
+  schema/any guarantee, and NO parallel write path.**
+  - **GET `/book/{property}/checkout`** — review + guest form (READ-ONLY; real price via the certified
+    search path; writes nothing).
+  - **POST `/book/{property}/checkout`** — the WRITE: creates the advisory `booking_quotes` HOLD (reserves
+    NO inventory, has expiry), then books **THROUGH `BookingEngineService::book`** → `AssignmentService`
+    (source=direct, re-checks availability **under its lock** and **REJECTS when full — never overbooks**;
+    only OTA imports accept-and-flag) → room charge + payment **THROUGH `FolioService`** (append-only). On
+    a lost race → an honest "just booked by someone else" redirect, **never a faked confirmation**. PRG →
+    styled confirmation with the **real reservation reference**.
+  - **Payment:** the wired method is **manual / pay-on-arrival**, recorded for real through `FolioService`.
+    Real card entry (**Stripe Elements + 3DS**) is the **DEFERRED** rail (the deferred Stripe live
+    checkpoint) — no fake card field, no fabricated payment.
+- **CSRF — deliberate, not disabled (a public write is an attack surface):** the JSON API (`/quote`,
+  `/book` — machine clients, token-authenticated by contract) stays CSRF-exempt, but the blanket `book/*`
+  exemption was **NARROWED to `book/*/quote` + `book/*/book`** so the styled session form
+  (`book/{property}/checkout`) is **session-CSRF-validated** (`@csrf`) on top of the group's
+  `throttle:booking` rate limit. (`bootstrap/app.php`.)
+- **Public isolation:** `quote()` resolves the room-type **property-scoped** (`RoomType where
+  property_id = X`) → a checkout on property X **cannot** book property Y's room (404, nothing written).
+  No PII beyond what the guest enters. The room "Book this room" CTA now links forward to checkout.
+- **Two route fixes:** read the `{quote}` route param via `$request->route()` (the same two-param binding
+  quirk that fed `room()` the slug); the checkout DRYs its offer lookup via a shared `offerFor()` helper.
+- **THE CRITICAL GUARANTEE — verified, no regression:** `PublicBookingCheckoutTest` proves a full flow
+  creates a **real direct reservation via `AssignmentService`**, reserves inventory **at book, not at
+  hold**, takes a **real append-only payment**, and shows the real reference; the advisory hold (and an
+  expired hold) **never change `sold`**; and **two holds on the last unit both succeed but only ONE
+  `book()` converts — the second is cleanly rejected, `sold` never exceeds 1** (asserted at the service
+  level AND through the styled screen). Public isolation (cross-property checkout 404) and the CSRF token
+  on the write form are asserted. **Full suite 178 tests / 2997 assertions green; the true-parallel
+  no-double-booking suite (`ConcurrentBooking`/`Deadlock`/`CrossSystemConcurrency`, 9/114) re-run green**
+  after the checkout screen; PHPStan L5 0 errors; Pint clean. The JSON API contract
+  (`PublicBookingEngineTest`) is unchanged + green.
+- **NEXT: the last unstyled stub `/app/units`** (operator units list). Deferred booking polish (flagged
+  in-product): Stripe card checkout, room photos/descriptions/reviews.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
