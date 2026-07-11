@@ -6,7 +6,7 @@
     {{-- Hero + REAL search (GET to this same public URL → re-runs ResolvePublicProperty) --}}
     <section class="vy-hero vy-fade">
         <h1 class="vy-hero-title">Stay at {{ $property['name'] }}</h1>
-        <p class="vy-hero-sub">Search live availability and book direct — best rates, no middteman fees.</p>
+        <p class="vy-hero-sub">Search live availability and book direct — best rates, no middleman fees.</p>
 
         <form method="GET" action="" class="vy-card vy-search" style="margin-top:18px;">
             <div>
@@ -93,9 +93,9 @@
             </div>
 
             <div class="vy-deferred-note">
-                <span class="vy-soon-tag">Not yet available</span>
-                Room detail, photos, amenities &amp; secure checkout are the next screens — prices and
-                availability above are live for this property.
+                <span class="vy-soon-tag">Coming soon</span>
+                Room photos, amenities &amp; guest reviews are on the way — prices and availability above
+                are live, and you can book direct now.
             </div>
         @endif
     @endif

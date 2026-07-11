@@ -81,6 +81,9 @@ class DemoSeeder extends Seeder
         // --- Mixed property ---
         $property = Property::create([
             'name' => 'Demo Seaside Property', 'brand' => 'Vyrobel Demo', 'type' => 'mixed',
+            // Public booking-engine identifier: the `/book/{slug}` storefront resolves the property by
+            // this slug. Without it the public booking loop is unreachable for the demo data.
+            'slug' => 'seaside-demo',
             'currency' => 'EUR', 'timezone' => 'Europe/Lisbon',
             'check_in_time' => '15:00:00', 'check_out_time' => '11:00:00', 'status' => 'active',
         ]);
