@@ -43,11 +43,12 @@ it('renders real dashboard data with no guest PII and disabled no-backend afford
     // Give the booking guest a distinctive name so a PII leak on "upcoming stays" would be visible.
     $s['guest']->update(['first_name' => 'Zephyrina', 'last_name' => 'Quibblewick']);
     $a = dashboardOwner($s, 0, 20000);   // room €200.00, 15% commission → net €170.00
+    $a['unit']->update(['code' => 'ALPHAUNIT']);   // distinctive code (a 2-char code can collide with a Livewire id)
 
     $this->actingAs($a['user'])->get('/owner')
         ->assertOk()
         ->assertSee('Overview')
-        ->assertSee($a['unit']->code)                          // real unit (owner-scoped)
+        ->assertSee('ALPHAUNIT')                               // real unit (owner-scoped)
         ->assertSee('€170.00')                                 // this-month net (hero + KPI + recent row)
         ->assertSee('Total units')
         ->assertSee('Earned YTD')
@@ -66,11 +67,15 @@ it('scopes the dashboard to the authenticated owner and never shows another owne
     $s = seedScenario(2);
     $a = dashboardOwner($s, 0, 20000);   // net €170.00
     $b = dashboardOwner($s, 1, 50000);   // net €425.00 (distinctive)
+    // Distinctive codes: a 2-char seed code ("U2") can collide with a substring of Livewire's random
+    // component id, false-failing assertDontSee. The €-amount assertions are the real isolation check.
+    $a['unit']->update(['code' => 'ALPHAUNIT']);
+    $b['unit']->update(['code' => 'BRAVOUNIT']);
 
     $this->actingAs($a['user'])->get('/owner')
         ->assertOk()
-        ->assertSee($a['unit']->code)
+        ->assertSee('ALPHAUNIT')
         ->assertSee('€170.00')
-        ->assertDontSee($b['unit']->code)
+        ->assertDontSee('BRAVOUNIT')
         ->assertDontSee('€425.00');
 });

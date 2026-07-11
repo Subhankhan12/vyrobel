@@ -31,7 +31,9 @@ function linkedOwner(array $s, int $unitIndex, int $roomMinor): array
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
     $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
     $unit = $s['units'][$unitIndex];
-    $unit->update(['owner_id' => $owner->id]);
+    // Distinctive code: a 2-char seed code ("U1"/"U2") can collide with a substring of Livewire's random
+    // component id and false-fail assertDontSee($code). Robustness only — the isolation coverage is unchanged.
+    $unit->update(['owner_id' => $owner->id, 'code' => 'PORTALUNIT'.$unitIndex]);
     ManagementAgreement::factory()->create(['owner_id' => $owner->id, 'commission_pct' => 15.00, 'effective_from' => '2026-01-01']);
 
     $reservation = book($s, ['unit_id' => $unit->id]);

@@ -17,7 +17,7 @@
     $navGroups = [
         ['OWNER PORTAL', [
             ['overview', 'Overview', 'M3 10.5 12 3l9 7.5M5 9.5V21h5v-6h4v6h5V9.5', route('owner.dashboard')],
-            ['units', 'My units', 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', null],
+            ['units', 'My units', 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', route('owner.units')],
             ['calendar', 'Calendar', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', null],
         ]],
         ['EARNINGS', [

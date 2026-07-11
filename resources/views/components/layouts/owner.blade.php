@@ -311,6 +311,28 @@
         .vy-step.is-failed .vy-step-label { color: var(--vy-amber-2); }
         .vy-step.is-reversed .vy-step-dot { background: var(--vy-faint); border-color: var(--vy-faint); }
 
+        /* Unit cards (My Units) */
+        .vy-unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+        .vy-unit-card {
+            border-radius: var(--vy-r-lg); overflow: hidden; background: var(--vy-glass);
+            backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow);
+        }
+        .vy-unit-head { background: var(--vy-grad); color: #fff; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .vy-unit-head .vy-unit-name { font-family: var(--vy-display); font-weight: 600; font-size: 15px; }
+        .vy-unit-badge { font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, .22); }
+        .vy-unit-body { padding: 16px 18px; }
+        .vy-unit-stat { display: flex; justify-content: space-between; font-size: 12.5px; padding: 5px 0; }
+        .vy-unit-stat .vy-muted { color: var(--vy-muted); }
+
+        /* Occupancy calendar heatmap (owner-scoped) */
+        .vy-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .vy-cal-head { font-size: 9.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); text-align: center; padding-bottom: 2px; }
+        .vy-cal-cell { aspect-ratio: 1; border-radius: var(--vy-r-sm); display: flex; align-items: flex-start; justify-content: flex-end; padding: 5px 7px; font-size: 11.5px; font-weight: 500; border: 1px solid rgba(120, 70, 40, .06); }
+        .vy-cal-empty { aspect-ratio: 1; }
+        .vy-cal-legend { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--vy-muted); margin-top: 14px; flex-wrap: wrap; }
+        .vy-cal-swatch { width: 15px; height: 15px; border-radius: 4px; border: 1px solid rgba(120, 70, 40, .1); }
+
         /* ---- Responsive ---------------------------------------------------------------------- */
         @media (max-width: 1100px) {
             .vy-cols { grid-template-columns: minmax(0, 1fr); }
