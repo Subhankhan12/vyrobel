@@ -10,6 +10,7 @@ use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
+use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Owner\OwnerDashboard;
 use App\Livewire\Owner\OwnerMyUnits;
 use App\Livewire\Owner\OwnerPayouts;
@@ -62,6 +63,8 @@ Route::prefix('book/{property}')
  * resolve the active organization from the authenticated user (tenant isolation intact).
  */
 Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
+    // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
+    Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');

@@ -447,10 +447,46 @@
         .vy-recon { font-size: 11px; color: var(--vy-muted); display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; }
         .vy-recon svg { color: var(--vy-accent); }
 
+        /* ---- Operator dashboard ---------------------------------------------------------------- */
+        .vy-dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .vy-dash-kpi {
+            background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
+            -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md);
+            box-shadow: var(--vy-shadow-sm); padding: 16px 18px;
+        }
+        .vy-dash-kpi.is-feature { background: var(--vy-grad-dark); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: var(--vy-shadow-dark); color: rgba(255, 255, 255, 0.92); }
+        .vy-dash-kpi.is-feature .vy-dk-label { color: rgba(255, 255, 255, 0.55); }
+        .vy-dash-kpi.is-feature .vy-dk-sub { color: rgba(255, 255, 255, 0.6); }
+        .vy-dk-label { font-size: 9.5px; font-weight: 600; letter-spacing: .11em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-dk-val { font-family: var(--vy-display); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-top: 8px; }
+        .vy-dk-val .vy-dk-unit { font-size: 16px; font-weight: 600; color: var(--vy-muted); margin-left: 2px; }
+        .vy-dash-kpi.is-feature .vy-dk-val .vy-dk-unit { color: rgba(255,255,255,.6); }
+        .vy-dk-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 5px; }
+        .vy-dk-track { height: 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.18); overflow: hidden; margin-top: 10px; }
+        .vy-dk-track > span { display: block; height: 100%; border-radius: 6px; background: var(--vy-grad-peach); }
+
+        .vy-dash-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; margin-top: 20px; }
+
+        .vy-arr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--vy-hairline); transition: background .15s ease; }
+        .vy-arr-row:last-child { border-bottom: none; }
+        .vy-arr-row:hover { background: rgba(255, 255, 255, 0.4); }
+        .vy-arr-name { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; }
+        .vy-arr-ref { font-size: 11px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-arr-link { font-size: 11.5px; font-weight: 600; color: var(--vy-accent); }
+
+        .vy-hk-snapshot { display: flex; flex-direction: column; gap: 10px; }
+        .vy-hk-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
+        .vy-hk-line .vy-hk-k { display: inline-flex; align-items: center; gap: 8px; color: var(--vy-muted); }
+        .vy-hk-line .vy-hk-v { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
+        .vy-hk-swatch { width: 9px; height: 9px; border-radius: 50%; }
+
         /* ---- Responsive ------------------------------------------------------------------------ */
         @media (max-width: 1100px) {
             .vy-kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .vy-detail-cols { grid-template-columns: minmax(0, 1fr); }
+            .vy-dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .vy-dash-cols { grid-template-columns: minmax(0, 1fr); }
         }
         @media (max-width: 860px) {
             .vy-shell { grid-template-columns: 1fr; }
