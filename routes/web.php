@@ -53,6 +53,13 @@ Route::prefix('book/{property}')
         Route::get('/', [BookingEngineController::class, 'browse'])->name('browse');
         // Design pass · Booking Screen 2 — public room detail (read-only; property-scoped → cross-property 404).
         Route::get('/rooms/{roomType}', [BookingEngineController::class, 'room'])->name('room');
+        // Design pass · Booking Screen 3 — styled checkout. GET review (read-only) + CSRF-protected POST
+        // WRITE that books THROUGH AssignmentService + FolioService (never a parallel path); PRG to the
+        // styled confirmation. `book/{property}/checkout` is NOT in the CSRF-except list (see bootstrap).
+        Route::get('/checkout', [BookingEngineController::class, 'checkout'])->name('checkout');
+        Route::post('/checkout', [BookingEngineController::class, 'reserve'])->name('reserve');
+        Route::get('/reservation/{quote}', [BookingEngineController::class, 'reservation'])->name('reservation');
+        // JSON API (machine clients) — the real final backend contract, CSRF-exempt by path (bootstrap).
         Route::get('/search', [BookingEngineController::class, 'search'])->name('search');
         Route::post('/quote', [BookingEngineController::class, 'quote'])->name('quote');
         Route::post('/book', [BookingEngineController::class, 'book'])->name('book');

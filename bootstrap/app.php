@@ -20,12 +20,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Inbound provider webhooks are stateless and signature-authenticated, not session/form
-        // posts — exempt them from CSRF (there is no token to send). The public booking engine is
-        // a JSON API (unstyled stub in Phase 2) — also CSRF-exempt; the styled design pass adds
-        // token handling.
+        // posts — exempt them from CSRF (there is no token to send). The public booking-engine JSON
+        // API (machine clients: `/quote`, `/book`) is likewise token-authenticated by contract and
+        // stays exempt. The STYLED public checkout form (design pass · Booking Screen 3) is a
+        // session, browser-rendered POST — it is deliberately NOT exempt, so it is session-CSRF-
+        // protected (it carries @csrf) on top of the group's `throttle:booking` rate limit.
         $middleware->validateCsrfTokens(except: [
             'webhooks/*',
-            'book/*',
+            'book/*/quote',
+            'book/*/book',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

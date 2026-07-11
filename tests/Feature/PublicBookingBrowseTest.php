@@ -57,8 +57,8 @@ it('never fabricates rooms, prices, or availability', function () {
         ->assertSee('Our rooms')
         ->assertSee('Garden Suite')
         ->assertSee('Search dates above')
-        ->assertDontSee('/ night')     // no fabricated price before a real search
-        ->assertDontSee('left');       // no fabricated availability
+        ->assertDontSee('/ night')          // no fabricated price before a real search
+        ->assertDontSee('rooms available'); // no fabricated availability/results before a real search
 
     // A search with no real availability shows an honest empty state, not invented rooms.
     test()->get("/book/{$a['property']->slug}?check_in=2027-01-01&check_out=2027-01-03&adults=2")

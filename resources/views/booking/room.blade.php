@@ -71,11 +71,10 @@
                     <div class="vy-book-avail">
                         <span class="vy-avail-chip @if ($offer['available'] <= 2) is-tight @endif">{{ $offer['available'] }} left for your dates</span>
                     </div>
-                    {{-- Booking WRITE (checkout) is the NEXT screen — this CTA never books/writes here. --}}
-                    <button type="button" class="vy-btn vy-btn--accent vy-book-cta is-soon" aria-disabled="true" title="Secure checkout is the next step">
-                        Book this room <span class="vy-soon-tag">Soon</span>
-                    </button>
-                    <div class="vy-deferred-note" style="margin-top:12px;">Secure checkout is the next step — nothing is reserved yet.</div>
+                    {{-- Forward to the real checkout (review → confirm). No inventory is written until book(). --}}
+                    @php $bq = http_build_query(['room_type_id' => $room['id'], 'rate_plan_id' => $offer['rate_plan_id'], 'check_in' => $search['check_in'], 'check_out' => $search['check_out'], 'adults' => $search['adults'], 'children' => $search['children']]); @endphp
+                    <a href="{{ route('booking.checkout', $property['slug']) }}?{{ $bq }}" class="vy-btn vy-btn--accent vy-book-cta">Book this room</a>
+                    <div class="vy-deferred-note" style="margin-top:12px;">Nothing is reserved until you confirm at checkout.</div>
                 @elseif ($search['searched'])
                     <div class="vy-eyebrow">Your dates</div>
                     <div class="vy-book-total" style="margin-top:8px;">Not available for these dates — try different dates.</div>

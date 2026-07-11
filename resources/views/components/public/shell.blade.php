@@ -179,11 +179,36 @@
         .vy-mini-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
         .vy-mini-form .vy-full { grid-column: 1 / -1; }
 
+        /* Checkout */
+        .vy-checkout-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
+        .vy-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .vy-form-grid .vy-full { grid-column: 1 / -1; }
+        .vy-summary-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
+        .vy-summary-line:last-of-type { border-bottom: none; }
+        .vy-summary-line .vy-sl-label { color: var(--vy-muted); }
+        .vy-summary-line .vy-sl-val { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
+        .vy-summary-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 14px; border-top: 1.5px solid rgba(120, 70, 40, 0.16); }
+        .vy-summary-total .vy-st-label { font-family: var(--vy-display); font-weight: 600; font-size: 15px; }
+        .vy-summary-total .vy-st-val { font-family: var(--vy-display); font-weight: 700; font-size: 24px; color: var(--vy-accent); letter-spacing: -0.01em; }
+        .vy-pay-note { display: flex; align-items: flex-start; gap: 8px; margin-top: 14px; font-size: 11.5px; color: var(--vy-muted); background: rgba(255, 255, 255, 0.5); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md); padding: 11px 13px; }
+
+        .vy-error { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px 16px; border-radius: var(--vy-r-md); background: rgba(224, 146, 30, 0.12); border: 1px solid rgba(224, 146, 30, 0.4); border-left: 3px solid var(--vy-amber-2); font-size: 13px; font-weight: 500; color: var(--vy-ink); }
+        .vy-error svg { color: var(--vy-amber); flex: none; }
+
+        /* Confirmation */
+        .vy-confirm { max-width: 560px; margin: 20px auto; text-align: center; }
+        .vy-confirm-check { width: 66px; height: 66px; border-radius: 50%; background: var(--vy-grad); color: #fff; display: grid; place-items: center; margin: 0 auto 18px; box-shadow: var(--vy-shadow-accent); }
+        .vy-confirm-title { font-family: var(--vy-display); font-weight: 700; font-size: 28px; letter-spacing: -0.02em; }
+        .vy-confirm-sub { color: var(--vy-muted); font-size: 14px; margin-top: 6px; }
+        .vy-ref { font-family: var(--vy-display); font-weight: 700; font-size: 22px; letter-spacing: 0.02em; margin-top: 4px; }
+        .vy-confirm-rows { text-align: left; margin-top: 18px; }
+
         .vy-store-footer { text-align: center; color: var(--vy-faint); font-size: 11.5px; padding: 26px 20px 34px; position: relative; z-index: 1; }
 
         @media (max-width: 820px) {
             .vy-detail-grid { grid-template-columns: minmax(0, 1fr); }
             .vy-book-panel { position: static; }
+            .vy-checkout-grid { grid-template-columns: minmax(0, 1fr); }
         }
 
         @media (max-width: 780px) {

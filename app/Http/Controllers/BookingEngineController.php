@@ -12,6 +12,7 @@ use App\Services\BookingEngineService;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -95,15 +96,9 @@ class BookingEngineController extends Controller
 
         // REAL offer for THIS room on the searched dates (via the certified search path) — null if the
         // room isn't sellable for those dates (shown as an honest "not available", never faked).
-        $offer = null;
-        if ($searched) {
-            foreach ($this->engine->search($property, $checkIn, $checkOut, $adults, $children) as $o) {
-                if ((string) $o['room_type_id'] === (string) $rt->getKey()) {
-                    $offer = $this->roomOffer($o);
-                    break;
-                }
-            }
-        }
+        $offer = $searched
+            ? $this->offerFor($property, (string) $rt->getKey(), $checkIn, $checkOut, $adults, $children)
+            : null;
 
         return view('booking.room', [
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
@@ -127,6 +122,133 @@ class BookingEngineController extends Controller
                 'searched' => $searched,
             ],
             'offer' => $offer,
+        ]);
+    }
+
+    /**
+     * PUBLIC checkout — review + guest details (design pass · Booking Screen 3, step 1). READ-ONLY:
+     * shows the REAL price for the chosen room/dates via the certified search path; writes NOTHING
+     * here (the advisory hold + booking happen on the CSRF-protected POST). Property-scoped.
+     */
+    public function checkout(Request $request): View
+    {
+        $property = $this->property($request);
+
+        $roomTypeId = (string) $request->query('room_type_id', '');
+        $adults = max(1, (int) $request->query('adults', '2'));
+        $children = max(0, (int) $request->query('children', '0'));
+        $checkIn = $this->validDate($request->query('check_in'));
+        $checkOut = $this->validDate($request->query('check_out'));
+
+        $offer = ($checkIn !== null && $checkOut !== null && $checkOut > $checkIn && $roomTypeId !== '')
+            ? $this->offerFor($property, $roomTypeId, $checkIn, $checkOut, $adults, $children)
+            : null;
+
+        return view('booking.checkout', [
+            'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
+            'offer' => $offer,
+            'search' => [
+                'room_type_id' => $roomTypeId,
+                'check_in' => $checkIn,
+                'check_out' => $checkOut,
+                'adults' => $adults,
+                'children' => $children,
+            ],
+        ]);
+    }
+
+    /**
+     * PUBLIC reserve (design pass · Booking Screen 3, step 2) — the WRITE. CSRF-protected (session
+     * form) + `throttle:booking`. Creates the advisory hold, then books THROUGH the certified
+     * {@see BookingEngineService::book} — which routes through AssignmentService (source=direct,
+     * re-checks availability under its lock and REJECTS when full — never overbooks) and takes
+     * payment through FolioService (append-only). This controller writes NO inventory itself; it
+     * only calls the service. On a lost race it returns an honest "no longer available" — never a
+     * faked confirmation.
+     */
+    public function reserve(Request $request): RedirectResponse
+    {
+        $property = $this->property($request);
+
+        $validated = $request->validate([
+            'room_type_id' => ['required', 'string'],
+            'rate_plan_id' => ['required', 'string'],
+            'check_in' => ['required', 'date'],
+            'check_out' => ['required', 'date', 'after:check_in'],
+            'adults' => ['sometimes', 'integer', 'min:1'],
+            'children' => ['sometimes', 'integer', 'min:0'],
+            'first_name' => ['required', 'string', 'max:120'],
+            'last_name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email'],
+        ]);
+
+        $adults = (int) ($validated['adults'] ?? 2);
+        $children = (int) ($validated['children'] ?? 0);
+
+        // Advisory hold (reserves NO inventory, has an expiry) — a price/availability snapshot only.
+        $quote = $this->engine->quote(
+            $property,
+            $validated['room_type_id'],
+            $validated['rate_plan_id'],
+            $validated['check_in'],
+            $validated['check_out'],
+            $adults,
+            $children,
+            $validated['email'],
+        );
+
+        // The booking: THROUGH AssignmentService (re-checks under lock; rejects if now full). Payment
+        // via the configured gateway through FolioService. Card entry (Stripe Elements/3DS) is the
+        // deferred rail — the styled form uses the manual "pay on arrival" method, recorded for real.
+        $result = $this->engine->book($quote, (string) $request->input('payment_token', 'offline'), [
+            'email' => $validated['email'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+        ]);
+
+        if ($result['status'] === 'confirmed' || $result['status'] === 'already_converted') {
+            return redirect()->to(route('booking.reservation', [$property->slug, $quote->getKey()]));
+        }
+
+        // Lost the last unit between hold and book — honest, never overbooked, never faked.
+        return redirect()
+            ->to(route('booking.checkout', $property->slug).'?'.http_build_query([
+                'room_type_id' => $validated['room_type_id'],
+                'check_in' => $validated['check_in'],
+                'check_out' => $validated['check_out'],
+                'adults' => $adults,
+                'children' => $children,
+            ]))
+            ->with('booking_error', 'That room was just booked by someone else — please pick another room or dates.');
+    }
+
+    /**
+     * PUBLIC styled confirmation (design pass · Booking Screen 3, step 3). Shows the REAL reservation
+     * reference for a converted, property-scoped quote. Read-only.
+     */
+    public function reservation(Request $request): View
+    {
+        $property = $this->property($request);
+        $quoteId = (string) $request->route('quote');
+
+        $bookingQuote = BookingQuote::query()
+            ->where('property_id', $property->getKey())
+            ->with('convertedReservation')
+            ->findOrFail($quoteId);
+
+        $reservation = $bookingQuote->convertedReservation;
+        abort_if($reservation === null, 404);
+
+        return view('booking.reservation', [
+            'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
+            'reservation' => [
+                'reference' => (string) $reservation->reference,
+                'check_in' => CarbonImmutable::parse($reservation->check_in)->format('l, j M Y'),
+                'check_out' => CarbonImmutable::parse($reservation->check_out)->format('l, j M Y'),
+                'nights' => (int) CarbonImmutable::parse($reservation->check_in)->diffInDays(CarbonImmutable::parse($reservation->check_out)),
+                'total' => $this->money((int) $reservation->total_minor, (string) $reservation->currency),
+                'email' => (string) $bookingQuote->email,
+            ],
         ]);
     }
 
@@ -250,6 +372,23 @@ class BookingEngineController extends Controller
             'per_night' => $this->money((int) round($totalMinor / $nights), $currency),
             'total' => $this->money($totalMinor, $currency),
         ];
+    }
+
+    /**
+     * The REAL sellable offer for one room-type on the given dates (via the certified search path),
+     * or null if it isn't sellable then. Reused by the room detail + checkout review.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function offerFor(Property $property, string $roomTypeId, string $checkIn, string $checkOut, int $adults, int $children): ?array
+    {
+        foreach ($this->engine->search($property, $checkIn, $checkOut, $adults, $children) as $offer) {
+            if ((string) $offer['room_type_id'] === $roomTypeId) {
+                return $this->roomOffer($offer);
+            }
+        }
+
+        return null;
     }
 
     /**
