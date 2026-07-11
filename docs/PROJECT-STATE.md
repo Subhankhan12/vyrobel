@@ -6,10 +6,13 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `b11c8bf`** on `main`, working tree clean. Suite: **`php artisan test` → 178 tests / 2997
+- **HEAD `fee06e7`** on `main`, working tree clean. Suite: **`php artisan test` → 180 tests / 3014
   assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback).
+- **DESIGN PASS — the STYLED SURFACE for the built product is COMPLETE**: owner portal (4 screens) +
+  operator core (5) + operator Units + public booking storefront (3, incl. the real checkout WRITE) are
+  all styled + live on the certified backends, honesty rule enforced per-screen. Remaining stubs: none.
 - **Phase 1 CERTIFIED** (multi-tenant core) · **Phase 2 CERTIFIED** (channel manager + payments +
   booking engine + staff layer; **Stripe validated against real test-mode 2026-07-03**) · **Phase 3 ·
   Module 1 — Owner Accounting & Payouts CERTIFIED** (2026-07-03).
@@ -150,7 +153,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**178 tests / 2997 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**180 tests / 3014 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 the owner-portal design pass (per-screen render/isolation + occupancy-correctness), the operator design
@@ -233,14 +236,10 @@ form; no auth). The JSON API (`/search` `/quote` `/book` `/confirmation`) is the
 unchanged (`PublicBookingEngineTest`); its POST endpoints stay CSRF-exempt by path (`book/*/quote`,
 `book/*/book`).
 
-## Remaining UNSTYLED contract stubs (the design pass styles these NEXT)
-
-Deliberately unstyled (no CSS/design system), render REAL data through the services, document their data
-contract in the component docblock. **Backends + data contracts are FINAL.**
-
-| Route | Component / view | Contract (data shape) |
-|---|---|---|
-| `/app/units` | `App\Livewire\UnitsList` → `livewire/units-list` | units list |
+Operator Units (the last stub) is now styled too: `/app/units` → `App\Livewire\UnitsList` →
+`livewire/units-list` — ✅ styled + live (real unit fields + real cleanliness/condition enums + owner
+link where set; `OperatorUnitsViewTest`: render + tenant isolation). **No unstyled contract stubs
+remain** — every styled surface over the certified backend is done.
 
 **Livewire RMB rule (must hold in the design pass):** never type-hint a scoped model as a public
 Livewire prop (route-model binding resolves during `SubstituteBindings`, BEFORE the tenant/owner
@@ -264,17 +263,23 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`) · `app/Models/` · `app/Models/Scopes/` ·
   `database/migrations/` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — `/app/units`, then optional booking polish
+## NEXT ACTION — design pass DONE; pick a new track
 
-Owner portal DONE · operator core COMPLETE (5) · **public booking storefront Screens 1–3 (Browse, Room
-Detail, Checkout+confirmation) styled + live** — checkout is the real WRITE flow through AssignmentService
-+ FolioService (above). The main styled surfaces over the certified backend are now done. **Next = the
-last unstyled stub `/app/units`** (`App\Livewire\UnitsList` — operator units list; inherit
-`<x-operator.shell>`). Optional booking polish that remains DEFERRED (flagged in-product, backend-gated):
-real Stripe card entry at checkout (Elements + 3DS — the deferred Stripe live checkpoint), room
-photos/gallery + descriptions/reviews. Other tracks: the next Phase 3 module (Unified Inbox), the Channex
-staging + Stripe Connect live checkpoints. All presentation work is **zero architectural change** — wire
-the certified services, never a parallel path.
+**The design pass is COMPLETE** — every styled surface over the certified backend is done: owner portal
+(4) + operator core (5) + operator Units + public booking storefront (3, incl. the real checkout WRITE).
+No unstyled stubs remain. The three role design systems are `components/layouts/owner` + `<x-owner.shell>`
++ `FormatsOwnerData`; `components/layouts/operator` + `<x-operator.shell>` + `FormatsOperatorData`;
+`components/public/shell` (no Livewire). Operator writes use the **POST → controller → service action →
+PRG** pattern; the public checkout write is CSRF-protected + goes through AssignmentService/FolioService.
+
+**Candidate next tracks (need a written, gated decision — none started):**
+- **Deferred in-product polish** (flagged, backend-gated): real **Stripe card entry** at checkout
+  (Elements + 3DS — the deferred Stripe live checkpoint) · room **photos/gallery + descriptions/reviews**.
+- **Next Phase 3 module — Unified Inbox** (WhatsApp/email/OTA/SMS) — new backend + screens.
+- **Close a live-integration checkpoint** — **Channex staging** (ARI/webhook/HMAC vs a real account) or
+  **Stripe Connect payout rail** (owner disbursement KYC).
+- Operator/owner design breadth: the many ⬜ design-only screens in `docs/design/CATALOGUE.md` that map to
+  future modules (analytics/reports, maintenance, reviews, messaging, billing) — build backend first.
 
 **Same discipline** (the reference implementations are the owner portal + operator Screens 1–2): **inherit
 the operator design system** (`components/layouts/operator`, `<x-operator.shell>`, `FormatsOperatorData`) —

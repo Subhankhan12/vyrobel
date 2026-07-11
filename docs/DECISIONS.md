@@ -558,6 +558,32 @@ Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any
 - **NEXT: the last unstyled stub `/app/units`** (operator units list). Deferred booking polish (flagged
   in-product): Stripe card checkout, room photos/descriptions/reviews.
 
+### 2026-07-12 — DESIGN PASS · operator Units styled — the STYLED SURFACE is COMPLETE
+
+- **`/app/units` → `App\Livewire\UnitsList`** styled onto the shared operator design system (reused, not
+  redefined). Presentation + a thin read: READS only; no service/schema/guarantee change; tenant-scoped
+  (`Unit` `BelongsToOrganization`). **REAL:** each unit's code/name/room-type/kind (`unit_kind`)/sleeps
+  (`max_occupancy`) + **cleanliness + condition keyed to the real enums** (`housekeeping_status`
+  clean/dirty/inspected, `condition_status` in_service/out_of_order/out_of_service — warm tags) + active
+  flag + the **owner LINK where `owner_id` is set** (owner NAME only; units without an owner show
+  "Operator-owned" — real, not blank-faked). **DERIVED:** summary counts. **DEFERRED:** per-unit photos
+  (no real bytes → not shown). **NO-BACKEND:** add/edit/filter/export "Soon". **PII:** owner name shown (a
+  business party, not a guest); no encrypted email/phone. Verified by `OperatorUnitsViewTest` (render +
+  real enums + owner link + no PII + tenant isolation).
+- **THE DESIGN PASS IS COMPLETE — the whole styled surface over the certified backend is done:** owner
+  portal (4 screens) · operator core (5: Calendar/Rack, Front Desk, Housekeeping, Reservation Detail,
+  Dashboard) · operator Units · public booking storefront (3: Browse, Room Detail, and the real checkout
+  WRITE through AssignmentService + FolioService). No unstyled contract stubs remain. Three role design
+  systems: `components/layouts/owner` + `<x-owner.shell>` + `FormatsOwnerData`; `components/layouts/operator`
+  + `<x-operator.shell>` + `FormatsOperatorData`; `components/public/shell` (server-rendered, no Livewire).
+  The honesty rule (2026-07-11) held across all ~13 screens, each with a render/isolation test; operator
+  writes use POST→controller→service-action→PRG; the public write is CSRF-protected (JSON API exempt by
+  path). **Suite 180 tests / 3014 assertions green; PHPStan L5 0 errors; Pint clean.** Backends/schema/
+  guarantees are UNCHANGED throughout — presentation only.
+- **NEXT (needs a written, gated decision — none started):** deferred in-product polish (Stripe card
+  entry at checkout, room photos/descriptions/reviews); OR the next Phase 3 module (Unified Inbox); OR a
+  live-integration checkpoint (Channex staging / Stripe Connect payout rail).
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
