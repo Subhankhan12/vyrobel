@@ -15,6 +15,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Sellable category. `default_rate_plan_id` is a forward hook to rate_plans (Step 3) — a
  * plain nullable ULID column with no relation/FK yet.
+ *
+ * `bedrooms`/`std_occupancy` are nullable columns; the `integer` cast makes Larastan infer a
+ * non-null int, so they carry explicit nullable @property types (same pattern as other cast edge
+ * cases in the codebase).
+ *
+ * @property int|null $bedrooms
+ * @property int|null $std_occupancy
  */
 class RoomType extends Model
 {

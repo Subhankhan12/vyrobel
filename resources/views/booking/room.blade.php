@@ -1,0 +1,103 @@
+{{-- Public room detail (design pass · Booking Screen 2). PUBLIC, server-rendered, READ-ONLY. Room
+     specs are REAL (RoomType schema); availability + price are REAL for the searched dates
+     (BookingEngineService → AvailabilityService), scoped to THIS property. Writes NOTHING. --}}
+@php
+    $q = http_build_query(array_filter([
+        'check_in' => $search['check_in'], 'check_out' => $search['check_out'],
+        'adults' => $search['adults'], 'children' => $search['children'],
+    ]));
+@endphp
+<x-public.shell :property="$property" :title="$room['name']">
+
+    <a class="vy-back vy-fade" href="{{ route('booking.browse', $property['slug']) }}?{{ $q }}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        All rooms
+    </a>
+
+    <div class="vy-detail-grid">
+        {{-- LEFT: banner + specs + amenities --}}
+        <div class="vy-fade">
+            <div class="vy-detail-banner">
+                <span class="vy-room-kind">{{ $room['kind'] }}</span>
+                {{-- DEFERRED: no real photo bytes — a decorative banner, honestly flagged (never a fake gallery). --}}
+                <span class="vy-photos-note"><span class="vy-soon-tag">Photos soon</span></span>
+            </div>
+
+            <h1 class="vy-detail-title">{{ $room['name'] }}</h1>
+            <div class="vy-detail-kind">{{ $room['kind'] }} · sleeps up to {{ $room['capacity'] }}</div>
+
+            {{-- REAL specs from the RoomType schema (only what genuinely exists) --}}
+            <div class="vy-specs">
+                <div class="vy-spec"><div class="vy-spec-label">Sleeps</div><div class="vy-spec-val">{{ $room['capacity'] }}</div></div>
+                <div class="vy-spec"><div class="vy-spec-label">Adults</div><div class="vy-spec-val">{{ $room['max_adults'] }}</div></div>
+                <div class="vy-spec"><div class="vy-spec-label">Children</div><div class="vy-spec-val">{{ $room['max_children'] }}</div></div>
+                @if ($room['bedrooms'] !== null)
+                    <div class="vy-spec"><div class="vy-spec-label">Bedrooms</div><div class="vy-spec-val">{{ $room['bedrooms'] }}</div></div>
+                @endif
+                @if ($room['std_occupancy'] !== null)
+                    <div class="vy-spec"><div class="vy-spec-label">Standard occupancy</div><div class="vy-spec-val">{{ $room['std_occupancy'] }}</div></div>
+                @endif
+            </div>
+
+            <h2 class="vy-section-title">Amenities</h2>
+            @if (count($amenities) > 0)
+                <div class="vy-amenities">
+                    @foreach ($amenities as $amenity)
+                        <span class="vy-amenity">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                            {{ $amenity }}
+                        </span>
+                    @endforeach
+                </div>
+            @else
+                {{-- DEFERRED: no amenities catalogued for this room — flagged, never fabricated. --}}
+                <div class="vy-deferred-note"><span class="vy-soon-tag">Not yet listed</span> Amenities for this room aren’t published yet.</div>
+            @endif
+
+            {{-- DEFERRED: descriptions, reviews & map are not in the schema — flagged, not faked. --}}
+            <div class="vy-deferred-note" style="margin-top:18px;">
+                <span class="vy-soon-tag">Coming soon</span>
+                Full description, guest reviews &amp; location map are on the way — the specs, availability
+                and price above are real.
+            </div>
+        </div>
+
+        {{-- RIGHT: booking panel — REAL price/availability for the searched dates --}}
+        <div class="vy-book-panel vy-fade">
+            <div class="vy-card">
+                @if ($offer !== null)
+                    <div class="vy-book-price">{{ $offer['per_night'] }} <span class="vy-price-unit">/ night</span></div>
+                    <div class="vy-book-total">{{ $offer['total'] }} total · {{ $offer['nights'] }} {{ \Illuminate\Support\Str::plural('night', $offer['nights']) }}</div>
+                    <div class="vy-book-avail">
+                        <span class="vy-avail-chip @if ($offer['available'] <= 2) is-tight @endif">{{ $offer['available'] }} left for your dates</span>
+                    </div>
+                    {{-- Booking WRITE (checkout) is the NEXT screen — this CTA never books/writes here. --}}
+                    <button type="button" class="vy-btn vy-btn--accent vy-book-cta is-soon" aria-disabled="true" title="Secure checkout is the next step">
+                        Book this room <span class="vy-soon-tag">Soon</span>
+                    </button>
+                    <div class="vy-deferred-note" style="margin-top:12px;">Secure checkout is the next step — nothing is reserved yet.</div>
+                @elseif ($search['searched'])
+                    <div class="vy-eyebrow">Your dates</div>
+                    <div class="vy-book-total" style="margin-top:8px;">Not available for these dates — try different dates.</div>
+                    <form method="GET" action="" class="vy-mini-form">
+                        <div class="vy-full"><label class="vy-field-label" for="ci">Check-in</label><input class="vy-input" type="date" id="ci" name="check_in" value="{{ $search['check_in'] }}"></div>
+                        <div class="vy-full"><label class="vy-field-label" for="co">Check-out</label><input class="vy-input" type="date" id="co" name="check_out" value="{{ $search['check_out'] }}"></div>
+                        <div><label class="vy-field-label" for="ad">Adults</label><input class="vy-input" type="number" id="ad" name="adults" min="1" value="{{ $search['adults'] }}"></div>
+                        <div><label class="vy-field-label" for="ch">Children</label><input class="vy-input" type="number" id="ch" name="children" min="0" value="{{ $search['children'] }}"></div>
+                        <button type="submit" class="vy-btn vy-btn--accent vy-full">Check dates</button>
+                    </form>
+                @else
+                    <div class="vy-eyebrow">Check availability &amp; price</div>
+                    <form method="GET" action="" class="vy-mini-form">
+                        <div class="vy-full"><label class="vy-field-label" for="ci">Check-in</label><input class="vy-input" type="date" id="ci" name="check_in" value="{{ $search['check_in'] }}"></div>
+                        <div class="vy-full"><label class="vy-field-label" for="co">Check-out</label><input class="vy-input" type="date" id="co" name="check_out" value="{{ $search['check_out'] }}"></div>
+                        <div><label class="vy-field-label" for="ad">Adults</label><input class="vy-input" type="number" id="ad" name="adults" min="1" value="{{ $search['adults'] }}"></div>
+                        <div><label class="vy-field-label" for="ch">Children</label><input class="vy-input" type="number" id="ch" name="children" min="0" value="{{ $search['children'] }}"></div>
+                        <button type="submit" class="vy-btn vy-btn--accent vy-full">See price</button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    </div>
+
+</x-public.shell>

@@ -83,10 +83,9 @@
                                     <div class="vy-price-night">{{ $room['per_night'] }} <span class="vy-price-unit">/ night</span></div>
                                     <div class="vy-price-total">{{ $room['total'] }} total for {{ $room['nights'] }} {{ \Illuminate\Support\Str::plural('night', $room['nights']) }}</div>
                                 </div>
-                                {{-- The booking WRITE (quote/checkout) is the NEXT screen — this CTA never books here. --}}
-                                <button type="button" class="vy-btn vy-btn--accent is-soon" aria-disabled="true" title="Checkout is the next step">
-                                    Select <span class="vy-soon-tag">Soon</span>
-                                </button>
+                                {{-- Forward to the room detail (read-only), carrying the searched dates. No write. --}}
+                                @php $q = http_build_query(['check_in' => $search['check_in'], 'check_out' => $search['check_out'], 'adults' => $search['adults'], 'children' => $search['children']]); @endphp
+                                <a href="{{ route('booking.room', [$property['slug'], $room['room_type_id']]) }}?{{ $q }}" class="vy-btn vy-btn--accent">View room</a>
                             </div>
                         </div>
                     </article>

@@ -56,7 +56,7 @@ class BookingEngineController extends Controller
         }
 
         return view('booking.browse', [
-            'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type)],
+            'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'search' => [
                 'check_in' => $checkIn,
                 'check_out' => $checkOut,
@@ -68,6 +68,65 @@ class BookingEngineController extends Controller
             'rooms' => $rooms,
             // Teaser (no valid search yet): real room-type names only — NO availability/price claim.
             'teaser' => $searched ? [] : $this->teaserRooms($property),
+        ]);
+    }
+
+    /**
+     * PUBLIC room-type detail (design pass · Booking Screen 2). Server-rendered, READ-ONLY, no auth.
+     * The room-type is resolved PROPERTY-SCOPED — a room of another property/org 404s on this
+     * storefront. Real room specs (+ real availability/price for the searched dates via the certified
+     * search path); no gallery/amenities are fabricated. Writes NOTHING (checkout is the next screen).
+     */
+    public function room(Request $request): View
+    {
+        $property = $this->property($request);
+        $roomTypeId = (string) $request->route('roomType');
+
+        // PROPERTY-scoped (and tenant-scoped) — cross-property / cross-org room 404s.
+        $rt = RoomType::query()
+            ->where('property_id', $property->getKey())
+            ->findOrFail($roomTypeId);
+
+        $adults = max(1, (int) $request->query('adults', '2'));
+        $children = max(0, (int) $request->query('children', '0'));
+        $checkIn = $this->validDate($request->query('check_in'));
+        $checkOut = $this->validDate($request->query('check_out'));
+        $searched = $checkIn !== null && $checkOut !== null && $checkOut > $checkIn;
+
+        // REAL offer for THIS room on the searched dates (via the certified search path) — null if the
+        // room isn't sellable for those dates (shown as an honest "not available", never faked).
+        $offer = null;
+        if ($searched) {
+            foreach ($this->engine->search($property, $checkIn, $checkOut, $adults, $children) as $o) {
+                if ((string) $o['room_type_id'] === (string) $rt->getKey()) {
+                    $offer = $this->roomOffer($o);
+                    break;
+                }
+            }
+        }
+
+        return view('booking.room', [
+            'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
+            'room' => [
+                'id' => (string) $rt->getKey(),
+                'name' => (string) $rt->name,
+                'kind' => $this->roomKind((string) $rt->kind),
+                'bedrooms' => $rt->bedrooms !== null ? (int) $rt->bedrooms : null,
+                'std_occupancy' => $rt->std_occupancy !== null ? (int) $rt->std_occupancy : null,
+                'max_adults' => (int) $rt->max_adults,
+                'max_children' => (int) $rt->max_children,
+                'capacity' => (int) $rt->max_adults + (int) $rt->max_children,
+            ],
+            // REAL amenities only (empty when none are catalogued — never fabricated).
+            'amenities' => $rt->amenities()->orderBy('name')->pluck('name')->all(),
+            'search' => [
+                'check_in' => $checkIn,
+                'check_out' => $checkOut,
+                'adults' => $adults,
+                'children' => $children,
+                'searched' => $searched,
+            ],
+            'offer' => $offer,
         ]);
     }
 

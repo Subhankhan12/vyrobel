@@ -51,6 +51,8 @@ Route::prefix('book/{property}')
     ->name('booking.')
     ->group(function () {
         Route::get('/', [BookingEngineController::class, 'browse'])->name('browse');
+        // Design pass · Booking Screen 2 — public room detail (read-only; property-scoped → cross-property 404).
+        Route::get('/rooms/{roomType}', [BookingEngineController::class, 'room'])->name('room');
         Route::get('/search', [BookingEngineController::class, 'search'])->name('search');
         Route::post('/quote', [BookingEngineController::class, 'quote'])->name('quote');
         Route::post('/book', [BookingEngineController::class, 'book'])->name('book');
