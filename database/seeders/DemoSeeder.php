@@ -84,6 +84,17 @@ class DemoSeeder extends Seeder
         app(PermissionRegistrar::class)->setPermissionsTeamId($org->id);
         $owner->assignRole('Property Owner');
 
+        // A staff/operator login so BOTH role journeys are demoable via the real login: this user is an
+        // org MEMBER with no owner link → routes to the operator app (/app); demo-owner → the owner portal.
+        $staff = User::firstOrCreate(
+            ['email' => 'demo-staff@vyrobel-demo.test'],
+            ['name' => 'Demo Staff', 'password' => Hash::make('password'), 'status' => 'active'],
+        );
+        Membership::firstOrCreate(
+            ['organization_id' => $org->id, 'user_id' => $staff->id],
+            ['status' => 'active', 'invited_at' => now()],
+        );
+
         // --- Mixed property ---
         $property = Property::create([
             'name' => 'Demo Seaside Property', 'brand' => 'Vyrobel Demo', 'type' => 'mixed',

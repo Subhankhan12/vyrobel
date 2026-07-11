@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             SetTenantForWebRequest::class,
         ]);
 
+        // Unauthenticated web requests to guarded routes (/app/*, /owner/*) redirect to the login form.
+        $middleware->redirectGuestsTo(fn () => route('login'));
+
         // Inbound provider webhooks are stateless and signature-authenticated, not session/form
         // posts — exempt them from CSRF (there is no token to send). The public booking-engine JSON
         // API (machine clients: `/quote`, `/book`) is likewise token-authenticated by contract and

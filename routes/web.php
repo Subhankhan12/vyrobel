@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
@@ -23,6 +24,16 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+/*
+ * Shared Vyrobel login (operator + owner) — real, session-based auth (Auth Phase A). The login POST is
+ * CSRF-protected (web group; NOT in the CSRF-except list) and rate-limited per (email, IP) in
+ * LoginRequest. Logout is a CSRF-protected POST behind `auth`. `/app/*` + `/owner/*` require `auth`
+ * (redirect here when unauthenticated); `/book/*` stays public.
+ */
+Route::get('/login', [LoginController::class, 'create'])->name('login');
+Route::post('/login', [LoginController::class, 'store']);
+Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 /*
  * Public, unauthenticated INBOUND Channex webhook (Step 4). Signature-authenticated, CSRF-exempt
