@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `af25e6b`** on `main`, working tree clean. Suite: **`php artisan test` → 139 tests / 2747
+- **HEAD `bff8e05`** on `main`, working tree clean. Suite: **`php artisan test` → 147 tests / 2821
   assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback).
@@ -17,6 +17,13 @@ conflicts with the repo, **trust the repo** and fix this file.
   (Step 1 owners+agreements) → `b3be74a` (Step 2 attribution engine) → `222cef0` (Step 3 expenses) →
   `863c514` (Step 4 statements) → `bf05b04` (Step 5 payouts) → `079ae0e` (Step 6 portal+isolation) →
   `af25e6b` (Step 7 CERTIFIED).
+- **OWNER PORTAL DESIGN PASS — COMPLETE (all 4 screens styled + live).** Presentation only, **no
+  backend/schema/guarantee change.** Owner Statement, Dashboard, Payouts, and My Units are now styled and
+  wired to real owner-scoped data behind the `components/layouts/owner` design system, `<x-owner.shell>`,
+  and the `App\Livewire\Owner\Concerns\FormatsOwnerData` trait. Commit chain: `970b0e7` (Screen 1
+  Statement) → `8f76dbd` (Screen 2 Dashboard) → `a8f7b77` (Screen 3 Payouts) → `bff8e05` (Screen 4 My
+  Units). The **design-pass honesty rule is locked in `docs/DECISIONS.md`** (2026-07-11) and enforced by
+  per-screen render/isolation tests. See "Owner portal — STYLED & LIVE" below.
 - **⚠️ TWO live-integration checkpoints OUTSTANDING** (deferred money/network rails — everything else
   is real + tested): **Channex staging** and **Stripe Connect payout rail** (see Deferred register).
 
@@ -128,10 +135,10 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**139 tests / 2747 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**147 tests / 2821 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
-payments), and Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
-together.
+payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
+and the owner-portal design pass (per-screen render/isolation + occupancy-correctness), together.
 - **TRUE OS-level parallelism** (separate PHP processes + MySQL connections, shared future-timestamp
   barrier, committed data, no RefreshDatabase): `ConcurrentBookingTest`, `DeadlockAvoidanceTest`,
   `CrossSystemConcurrencyTest` (repeat-runs zero-flake).
@@ -142,10 +149,32 @@ together.
   `OwnerAttributionTest`, `OwnerExpenseTest`, `OwnerStatementTest`, `OwnerPayoutTest`,
   `OwnerPortalIsolationTest` (+ shared `tests/Support/owner_helpers.php`).
 
-## Contract stubs inventory (UNSTYLED — this is what the design pass will style)
+## Owner portal — STYLED & LIVE (design pass complete)
 
-All are deliberately unstyled (no CSS/design system), render REAL data through the services, and
-document their data contract in the component docblock. **Backends + data contracts are FINAL.**
+The 4 owner-portal screens are **styled + wired to real owner-scoped data** (no longer unstyled stubs).
+Shared foundation: `resources/views/components/layouts/owner.blade.php` (the design system — frosted glass,
+terracotta `#C2410C`, Sora/Inter, the real `vyFadeUp/vyShimmer/vyDrift/vySwap` keyframes) ·
+`resources/views/components/owner/shell.blade.php` (`<x-owner.shell>` — sidebar + topbar) ·
+`App\Livewire\Owner\Concerns\FormatsOwnerData` (money/status/viewer formatting). **Presentation only —
+backends/schema/guarantees UNCHANGED.**
+
+| Route | Component / view | Styled |
+|---|---|---|
+| `/owner` | `App\Livewire\Owner\OwnerDashboard` → `livewire/owner/dashboard` | ✅ styled + live |
+| `/owner/statements/{statement}` | `App\Livewire\Owner\OwnerStatementView` → `livewire/owner/statement` | ✅ styled + live (RMB-safe, cross-owner 404) |
+| `/owner/payouts` | `App\Livewire\Owner\OwnerPayouts` → `livewire/owner/payouts` | ✅ styled + live (new page; lifecycle uses only the REAL pending/paid/failed/reversed states) |
+| `/owner/units` | `App\Livewire\Owner\OwnerMyUnits` → `livewire/owner/units` | ✅ styled + live (new page; **owner-scoped occupancy** — excludes non-owner units of the same room type) |
+
+Per-screen tests: `OwnerStatementViewTest`, `OwnerDashboardViewTest`, `OwnerPayoutsViewTest`,
+`OwnerMyUnitsViewTest` (+ existing `OwnerPortalIsolationTest`). The **design-pass honesty rule** — REAL →
+wire live · DERIVED → from real figures only · DEFERRED → stubbed "not yet available" · NO-BACKEND →
+disabled "Soon" (never a fake action/IBAN/date/download); reconcile money to the cent; owner isolation
+holds; guest PII never exposed — is locked in `docs/DECISIONS.md` (2026-07-11).
+
+## Remaining UNSTYLED contract stubs (the design pass styles these NEXT — operator + booking)
+
+Deliberately unstyled (no CSS/design system), render REAL data through the services, document their data
+contract in the component docblock. **Backends + data contracts are FINAL.**
 
 | Route | Component / view | Contract (data shape) |
 |---|---|---|
@@ -155,12 +184,13 @@ document their data contract in the component docblock. **Backends + data contra
 | `/app/reservations/{reservation}` | `App\Livewire\ReservationDetail` → `livewire/reservation-detail` | reservation + units + folio (RMB-safe: string id → tenant-scoped `findOrFail` in `render()`) |
 | `/app/housekeeping` | `App\Livewire\HousekeepingBoard` → `livewire/housekeeping-board` | housekeeping tasks board |
 | `/app/front-desk` | `App\Livewire\FrontDesk` → `livewire/front-desk` | arrivals / departures / in-house + staff-action contracts |
-| `/owner` | `App\Livewire\Owner\OwnerDashboard` → `livewire/owner/dashboard` | owner's units + occupancy + statements + payouts + net totals (owner-scoped) |
-| `/owner/statements/{statement}` | `App\Livewire\Owner\OwnerStatementView` → `livewire/owner/statement` | statement + line breakdown (RMB-safe, owner+tenant scoped → cross-owner 404) |
 
 **Livewire RMB rule (must hold in the design pass):** never type-hint a scoped model as a public
 Livewire prop (route-model binding resolves during `SubstituteBindings`, BEFORE the tenant/owner
-middleware). Hold the id as a string; resolve via scoped `findOrFail` in `render()`.
+middleware). Hold the id as a string; resolve via scoped `findOrFail` in `render()`. **Also (proven on
+the owner portal):** scoped-data-dependent interactivity must NOT use Livewire wire-actions — they
+re-render via `/livewire/update`, bypassing the route middleware → scope leak. Use Alpine/client-side or
+plain GET links (e.g. `?month=`).
 
 ## Pointer index (read on demand)
 
@@ -177,19 +207,24 @@ middleware). Hold the id as a string; resolve via scoped `findOrFail` in `render
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`) · `app/Models/` · `app/Models/Scopes/` ·
   `database/migrations/` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — the DESIGN PASS (a UI/presentation track, NOT a backend module)
+## NEXT ACTION — style the OPERATOR screens (design pass continues)
 
-**Next = style the admin panel / dashboard + role UIs over the existing unstyled Livewire contract
-stubs.** Backends, schema, JSON contracts, and the guarantee stack are FINAL — this is presentation only,
-**zero architectural change.**
+The **owner portal is DONE** (above). **Next = style the OPERATOR screens onto their existing unstyled
+stubs, starting with `Operator Calendar` → `App\Livewire\ReservationRack` (`/app/rack`).** Backends,
+schema, JSON contracts, and the guarantee stack are FINAL — presentation only, **zero architectural
+change.**
 
-**Workflow:** visual HTML/UI is produced in **Claude DESIGN** (a separate tool), then **Claude CODE**
-integrates it onto the existing unstyled stubs and wires live data — honoring the **Livewire RMB rule**
-above (resolve scoped models in `render()`, never as public props). During the design pass, **do NOT
-modify services, schema, migrations, guarantees, or tests' expectations** — if a stub's data contract
-feels wrong, surface it, don't silently change the backend.
+**Same discipline as the owner portal** (the reference implementation): wire live data through the
+existing services (call, never modify); honor the **Livewire RMB rule** above; apply the **design-pass
+honesty rule** (DECISIONS.md 2026-07-11 — REAL wire / DERIVED from real / DEFERRED stub / NO-BACKEND
+disabled; no fake data; reconcile money; tenant isolation holds; no guest PII); **per-gate commit +
+per-screen render test**. **Reuse the owner design system where it fits** (`components/layouts/owner`
+tokens, `FormatsOwnerData`), or extract a shared operator shell/layout as the operator screens accrete
+(same way `<x-owner.shell>` was extracted at the 2nd owner screen). Approved design source:
+`docs/design/raw/Operator *.html` + `docs/design/CATALOGUE.md`.
 
-**Open first-decisions (with the user):** the first panel target (e.g. owner statement/portal, or the
-staff dashboard) and the colour/brand direction. Other tracks remain available but are NOT the chosen
-next step: next Phase 3 module (Unified Inbox), the Channex staging checkpoint, the Stripe Connect
-checkpoint.
+**Operator stubs to style (by readiness — existing stubs first):** `Operator Calendar` (✅ `/app/rack`,
+**first**) · `Operator Front Desk` (✅ `/app/front-desk`) · `Operator Housekeeping` (✅ `/app/housekeeping`)
+· `Operator Reservation Detail` (✅ `/app/reservations/{id}`) · `Operator Dashboard`; then the public
+booking engine (`/book/{property}`). Other tracks remain available but are NOT the chosen next step: next
+Phase 3 module (Unified Inbox), the Channex staging checkpoint, the Stripe Connect checkpoint.
