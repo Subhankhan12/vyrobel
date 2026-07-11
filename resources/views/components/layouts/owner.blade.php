@@ -294,6 +294,23 @@
         .vy-list-row:hover .vy-row-month { color: var(--vy-accent); }
         .vy-quick { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
+        /* Rail pill (e.g. "Bank transfer") */
+        .vy-rail { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: var(--vy-r-pill); background: rgba(120, 70, 40, .07); font-size: 11.5px; font-weight: 500; color: var(--vy-muted); }
+
+        /* Payout lifecycle stepper (rendered on the dark next-payout card, REAL states only) */
+        .vy-steps { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+        .vy-step { display: flex; align-items: center; gap: 6px; }
+        .vy-step-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .28); flex: none; }
+        .vy-step-label { font-size: 11px; color: rgba(255, 255, 255, .6); white-space: nowrap; }
+        .vy-step-line { flex: 1; height: 2px; min-width: 14px; background: rgba(255, 255, 255, .15); border-radius: 2px; }
+        .vy-step.is-done .vy-step-dot { background: var(--vy-accent-3); border-color: var(--vy-accent-3); }
+        .vy-step.is-done + .vy-step-line { background: var(--vy-accent-3); }
+        .vy-step.is-active .vy-step-dot { background: #fff; border-color: #fff; box-shadow: 0 0 0 4px rgba(255, 255, 255, .14); }
+        .vy-step.is-active .vy-step-label { color: #fff; font-weight: 600; }
+        .vy-step.is-failed .vy-step-dot { background: var(--vy-amber-2); border-color: var(--vy-amber-2); }
+        .vy-step.is-failed .vy-step-label { color: var(--vy-amber-2); }
+        .vy-step.is-reversed .vy-step-dot { background: var(--vy-faint); border-color: var(--vy-faint); }
+
         /* ---- Responsive ---------------------------------------------------------------------- */
         @media (max-width: 1100px) {
             .vy-cols { grid-template-columns: minmax(0, 1fr); }

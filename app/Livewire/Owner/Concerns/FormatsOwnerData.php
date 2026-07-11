@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\Owner\Concerns;
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 /**
  * Shared presentation formatting for the owner-portal Livewire screens (design pass). Formatting ONLY —
@@ -12,6 +14,28 @@ use App\Models\User;
  */
 trait FormatsOwnerData
 {
+    /**
+     * The portfolio display currency — the first available row's currency (statements preferred, then
+     * payouts), else EUR. Reads only owner-scoped collections already fetched by the caller.
+     *
+     * @param  Collection<int, mixed>  $primary
+     * @param  Collection<int, mixed>  $fallback
+     */
+    protected function portfolioCurrency(Collection $primary, Collection $fallback): string
+    {
+        foreach ([$primary, $fallback] as $set) {
+            $first = $set->first();
+            if ($first instanceof Model) {
+                $currency = $first->getAttribute('currency');
+                if (is_string($currency)) {
+                    return $currency;
+                }
+            }
+        }
+
+        return 'EUR';
+    }
+
     /** Format integer minor units for display, e.g. 1037000 EUR → "€10,370.00" (or "+…" / "−…"). */
     protected function money(int $minor, string $currency, bool $signed = false): string
     {

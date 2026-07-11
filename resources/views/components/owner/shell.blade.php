@@ -22,7 +22,7 @@
         ]],
         ['EARNINGS', [
             ['statements', 'Statements', 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', null],
-            ['payouts', 'Payouts', 'M3 7h18v12H3zM3 11h18M15 15h3', null],
+            ['payouts', 'Payouts', 'M3 7h18v12H3zM3 11h18M15 15h3', route('owner.payouts')],
             ['balance', 'Balance', 'M12 3v18M6 21h12M5 8h14l-3 5H8z', null],
             ['expenses', 'Expenses', 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6', null],
             ['tax', 'Tax center', 'M6 6h.01M18 18h.01M6 18 18 6', null],

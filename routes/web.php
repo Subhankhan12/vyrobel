@@ -8,6 +8,7 @@ use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
 use App\Livewire\Owner\OwnerDashboard;
+use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerStatementView;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
@@ -75,4 +76,6 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
 Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/', OwnerDashboard::class)->name('dashboard');
     Route::get('/statements/{statement}', OwnerStatementView::class)->name('statements.show');
+    // Design pass · Screen 3 — owner payouts (owner-scoped; new page for the certified Payout backend).
+    Route::get('/payouts', OwnerPayouts::class)->name('payouts');
 });

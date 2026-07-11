@@ -63,22 +63,6 @@ class OwnerDashboard extends Component
     }
 
     /**
-     * @param  Collection<int, OwnerStatement>  $statements
-     * @param  Collection<int, Payout>  $payouts
-     */
-    private function portfolioCurrency(Collection $statements, Collection $payouts): string
-    {
-        $statement = $statements->first();
-        if ($statement instanceof OwnerStatement) {
-            return (string) $statement->currency;
-        }
-
-        $payout = $payouts->first();
-
-        return $payout instanceof Payout ? (string) $payout->currency : 'EUR';
-    }
-
-    /**
      * The owner's units (real). Occupancy is intentionally NOT included — see the class docblock.
      *
      * @param  Collection<int, Unit>  $units
