@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Auth\Concerns\RedirectsByRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Models\Owner;
 use App\Models\User;
-use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,6 +23,8 @@ use Illuminate\Validation\ValidationException;
  */
 class LoginController extends Controller
 {
+    use RedirectsByRole;
+
     /** Show the login form (or bounce an already-authenticated user to their home). */
     public function create(Request $request): View|RedirectResponse
     {
@@ -75,27 +76,5 @@ class LoginController extends Controller
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-    }
-
-    /**
-     * Role home: an Owner-linked user → the owner portal; else an active org member → the operator
-     * app; else null (no access). The Owner lookup runs super-admin (no tenant context at login time);
-     * memberships are queried directly (the link table is deliberately un-scoped).
-     */
-    private function homeFor(User $user): ?string
-    {
-        $isOwner = app(TenantContext::class)->runAsSuperAdmin(
-            fn (): bool => Owner::query()->where('user_id', $user->getKey())->exists(),
-        );
-
-        if ($isOwner) {
-            return route('owner.dashboard');
-        }
-
-        if ($user->memberships()->where('status', 'active')->exists()) {
-            return route('app.dashboard');
-        }
-
-        return null;
     }
 }

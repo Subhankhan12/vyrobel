@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Mail\PasswordResetMail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -37,6 +39,18 @@ class User extends Authenticatable
             'two_factor_enabled' => 'boolean',
             'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Deliver the password-reset link through our own brand-consistent, email-safe Mailable (lands in
+     * Mailpit in dev — prod needs a real provider), not the framework's default notification. Same
+     * visual language as the invite email; the broker still owns the tokened, single-use, expiring token.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        Mail::to($this->email)->send(new PasswordResetMail((string) $token, (string) $this->email, (string) $this->name));
     }
 
     public function organizations(): BelongsToMany

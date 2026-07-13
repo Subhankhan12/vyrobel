@@ -80,7 +80,8 @@
         .vy-btn:focus-visible, .vy-input:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
 
         .vy-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-        .vy-forgot { font-size: 11.5px; color: var(--vy-faint); cursor: not-allowed; }
+        .vy-forgot { font-size: 11.5px; color: var(--vy-accent); text-decoration: none; font-weight: 500; }
+        .vy-forgot:hover { text-decoration: underline; }
         .vy-soon-tag { font-size: 8.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); border: 1px dashed var(--vy-hairline); border-radius: 6px; padding: 1px 5px; margin-left: 4px; }
         .vy-foot { text-align: center; color: var(--vy-faint); font-size: 11.5px; margin-top: 20px; }
     </style>
@@ -111,8 +112,7 @@
             <div class="vy-field">
                 <div class="vy-row">
                     <label class="vy-label" for="password" style="margin-bottom:0;">Password</label>
-                    {{-- Password reset is a later auth screen — flagged, never a dead/fake link. --}}
-                    <span class="vy-forgot" title="Password reset is coming soon">Forgot password?<span class="vy-soon-tag">Soon</span></span>
+                    <a class="vy-forgot" href="{{ route('password.request') }}">Forgot password?</a>
                 </div>
                 <input class="vy-input" type="password" id="password" name="password" autocomplete="current-password" required style="margin-top:7px;">
             </div>

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
@@ -37,6 +38,19 @@ Route::get('/', function () {
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store']);
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+
+/*
+ * PUBLIC forgot / reset password (Auth Phase B · finishing sweep). Laravel Password broker — tokened,
+ * single-use, expiring tokens. NO enumeration (the request-link endpoint always responds generically;
+ * ACTIVE users only), rate-limited against abuse, CSRF-protected (web group). On reset: hashed password,
+ * remember-token rotated, session regenerated, signed in + routed by role.
+ */
+Route::middleware('throttle:6,1')->group(function () {
+    Route::get('/forgot-password', [PasswordResetController::class, 'showForgot'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+});
 
 /*
  * PUBLIC accept-invite / set-password (Auth Phase B · Step 2). No auth — the invitee has no usable
