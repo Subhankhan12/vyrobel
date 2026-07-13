@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Models\Organization;
 use App\Models\OwnerInvite;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -36,6 +37,9 @@ class OwnerInviteMail extends Mailable
             view: 'emails.owner-invite',
             with: [
                 'ownerName' => $this->ownerName,
+                // Organizations aren't tenant-scoped, so resolve by key (a typed value() query, not the
+                // generically-typed BelongsToOrganization relation).
+                'orgName' => (string) (Organization::query()->whereKey($this->invite->organization_id)->value('name') ?? 'Vyrobel'),
                 'acceptUrl' => url('/invite/'.$this->token),
                 'expiresAt' => $this->invite->expires_at,
             ],
