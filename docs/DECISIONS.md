@@ -772,6 +772,28 @@ and a dirty→clean cycle is a **real** transition.
   (from-dirty→clean log, not a no-op); idempotent double-checkout; an already-dirty unit isn't re-dirtied.
   **Suite 230 / 3339 green; PHPStan L5 0; Pint clean.**
 
+### 2026-07-13 — Tier 1 sweep · invite prune + UnitFactory test-infra debt
+
+**Expired-invite prune (Step 3):** `invites:prune-expired` (scheduled daily) → `OwnerInviteService::pruneExpired()`.
+CONSERVATIVE — over-cleanup is the only real risk, so every guard errs toward leaving things alone: only
+**pending + never-accepted + past-expiry** invites are marked `expired`; the pending owner is **soft-removed**
+only if still `inactive` and its login isn't active (`owners.status` is an enum → SoftDeletes, not a relabel);
+the invited login is marked `expired` only if still `invited` AND has **no remaining redeemable/accepted
+invite anywhere** (a login shared with a live invite in another org is left intact). Runs as an explicit
+super-admin platform pass (tenant-safe); idempotent. `PruneExpiredInvitesTest` (7) covers the pruned case
+AND every untouched case (accepted/active, still-valid, activated login, cross-org shared login) + idempotency.
+
+**UnitFactory test-infra debt RESOLVED (Step 4):** `UnitFactory` now sets
+`organization_id => app(TenantContext::class)->id() ?? Organization::factory()` — respecting the active tenant
+context, **consistent with `ChannelFactory`/`OwnerFactory`** — instead of always minting a fresh (mismatched)
+org. An explicitly passed `organization_id` still wins (backward compatible). **Blast radius was nil in
+practice** (`Unit::factory()` is used only inside `HousekeepingTaskFactory`, which no test exercises — tests
+build units via `Unit::create`), so **no test needed adjustment**; the fix is for correctness of any future
+in-context factory use. Test-infra only, no app code touched. `UnitFactoryContextTest` (2) proves both the
+context-aware default and the explicit-override. **Full suite unchanged at 237 pre-existing + 2 new =
+239 / 3372 green; PHPStan L5 0; Pint clean.** (`HousekeepingTaskFactory` carries the same latent pattern but
+is out of this scope and currently unused.)
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->

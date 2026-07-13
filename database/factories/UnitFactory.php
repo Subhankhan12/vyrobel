@@ -6,6 +6,7 @@ use App\Models\Organization;
 use App\Models\Property;
 use App\Models\RoomType;
 use App\Models\Unit;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +19,10 @@ class UnitFactory extends Factory
     public function definition(): array
     {
         return [
-            'organization_id' => Organization::factory(),
+            // Respect the active tenant context (fall back to a fresh org for standalone use) —
+            // same discipline as ChannelFactory/OwnerFactory, so a unit built in-context lands in the
+            // current org instead of a mismatched fresh one. An explicit `organization_id` still wins.
+            'organization_id' => app(TenantContext::class)->id() ?? Organization::factory(),
             'property_id' => Property::factory(),
             'room_type_id' => RoomType::factory(),
             'code' => (string) fake()->unique()->numberBetween(100, 999),
