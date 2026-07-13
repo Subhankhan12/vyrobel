@@ -6,12 +6,20 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `232f8ac`** on `main`, working tree clean (only the untracked design-source exports under
-  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 180 tests
-  / 3014 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
+- **HEAD `d8c6673`** on `main`, working tree clean (only the untracked design-source exports under
+  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 212 tests
+  / 3220 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
-  `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
-  of writing; a subsequent docs-only commit may advance it by one with no state change.)
+  `REDIS_CLIENT=predis`; `database` documented as fallback).
+- **AUTH — COMPLETE & SECURE (Phase A login/logout + Phase B owner invite flow).** Real session auth now
+  fronts the app; **the dev-login shim is gone.** Phase A: one shared login (operator+owner), active-only
+  `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors, session regeneration,
+  role-routing (`/app` vs `/owner`), `/book` public. Phase B: operator invites an owner → **sha256-hashed,
+  single-use, 7-day, revocable** tokened email link → owner sets a **hashed** password → login+owner
+  activate, units assigned, commission agreement created, token **spent** → auto-login → their portal.
+  Proven by `PhaseBEndToEndTest` (one continuous 39-assertion chain). **DEFERRED, flagged not faked:**
+  **Manager/Accountant invites** (UI-disabled + server-rejected — owner only), **email DELIVERY** (dev =
+  `log` mailer; needs Mailpit/SMTP for real send), password reset, 2FA. See `docs/DECISIONS.md` 2026-07-13.
 - **DESIGN PASS — COMPLETE. The whole styled surface over the certified backend is done — 13 screens:**
   **owner portal (4)** · **operator core (5) + Units (1)** · **public booking storefront (3, incl. the
   real checkout WRITE)**. All on the certified backends, honesty rule enforced per-screen by a render/
@@ -88,6 +96,14 @@ conflicts with the repo, **trust the repo** and fix this file.
   + `App\Payouts\` (`PayoutRail`/`ManualPayoutRail`/`StripeConnectPayoutRail` skeleton, `payouts`);
   **owner isolation** via `App\Support\Owner\OwnerContext` + `App\Models\Scopes\OwnerScope` +
   `App\Http\Middleware\SetOwnerScopeForPortal`; portal reads via `App\Services\OwnerPortalService`.
+- **Auth (Phase A + B)** — `App\Http\Controllers\Auth\LoginController` + `LoginRequest` (shared
+  operator/owner session login: active-only, rate-limited, non-enumerating, role-routing) + styled
+  `auth/login`; **owner invite flow** = `App\Services\OwnerInviteService` (sha256-hashed single-use
+  expiring tokens; `owner_invites` table + `App\Models\OwnerInvite`) → `App\Mail\OwnerInviteMail`
+  (email-safe) → `App\Http\Controllers\Auth\AcceptInviteController` (public `/invite/{token}` set-password
+  → activate → auto-login) ← operator side `App\Http\Controllers\Operator\InviteOwnerController` +
+  `App\Livewire\Operator\OperatorOwners` (`/app/owners` + invite modal). Owner-only wired
+  (Manager/Account deferred); email delivery = `log` in dev.
 
 ## INVARIANTS THAT MUST NEVER BREAK (the full guarantee stack)
 
@@ -192,6 +208,14 @@ conflicts with the repo, **trust the repo** and fix this file.
   add-charge / void / partial refund / move-room / cancel; dashboard revenue-trend / ADR / RevPAR;
   owner-portal PDF/CSV export, IBAN/payout-method, approvals/action-center.
 
+**Auth deferrals (Phase A + B complete; these are flagged, not faked — see DECISIONS.md 2026-07-13):**
+- **Manager / Accountant invites** — the invite modal renders them **DISABLED "Coming soon"** and the
+  server **rejects** any non-owner role (`Rule::in(['owner'])` + service throw). Only OWNER is wired.
+- **Email DELIVERY** — dev is `MAIL_MAILER=log` (the `OwnerInviteMail` is really rendered + logged, not
+  faked; nothing leaves the box). Real send needs a configured driver — **Mailpit/SMTP** locally, a
+  transactional provider in production. The flow is complete; only the transport is deferred.
+- **Password reset** ("Forgot password?" → "Soon") and **2FA** (schema columns exist, no flow) — not built.
+
 **Other deferrals:** promo codes + deposits on the booking engine (schema only); `guests.stripe_customer_id`
 / saved cards (blind-index story); **auto-FX provider** (statements take an operator-supplied rate — no
 silent float); **maintenance-ticket source** for maintenance expenses (no maintenance module yet — the
@@ -203,9 +227,12 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**180 tests / 3014 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**212 tests / 3220 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
+**Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
+`OwnerInviteEmailTest` · `OperatorInviteOwnerTest` · **`PhaseBEndToEndTest`** — one continuous
+invite→email→activate→portal→token-spent chain with the hashed/single-use/no-enumeration security recap),
 the owner-portal design pass (per-screen render/isolation + occupancy-correctness), the operator design
 pass (5 screens), and the public booking storefront (`PublicBookingBrowseTest` · `PublicBookingRoomTest` ·
 `PublicBookingCheckoutTest` — real sellable rooms/prices with NO auth, public property isolation, and the
@@ -319,9 +346,12 @@ plain GET links (e.g. `?month=`).
 **The buildable core is DONE and demoable end-to-end.** The certified backends (multi-tenant PMS +
 channel manager + Stripe payments + owner accounting/payouts) now have their **entire styled surface**
 live: the owner portal, the operator back office (calendar · front desk · housekeeping · reservation+folio
-· dashboard · units), and the public booking loop (browse → room → checkout → confirmation, a real guarded
-write). **A real hybrid operator could run day-to-day operations and take a direct booking today, and an
-owner could read their statements/payouts.** No unstyled stubs remain.
+· dashboard · units · owners), and the public booking loop (browse → room → checkout → confirmation, a real
+guarded write). **A real hybrid operator could run day-to-day operations and take a direct booking today,
+and an owner could read their statements/payouts.** No unstyled stubs remain. **Real auth now fronts all of
+it** (Phase A + B): an operator signs in, invites an owner, and that owner sets a password and reaches
+their portal — so a live demo no longer needs a dev-login shim. **Before a real external demo, stand up
+email delivery** (Mailpit/SMTP) so the invite email actually lands — see the auth deferrals above.
 
 **Pick ONE — each needs a written, gated decision; NONE is started:**
 - **(a) Customer validation — RECOMMENDED.** Demo the working owner portal + booking loop to a real

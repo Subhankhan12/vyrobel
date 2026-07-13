@@ -584,6 +584,71 @@ Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any
   entry at checkout, room photos/descriptions/reviews); OR the next Phase 3 module (Unified Inbox); OR a
   live-integration checkpoint (Channex staging / Stripe Connect payout rail).
 
+### 2026-07-13 — AUTH PHASE A (login/logout) + PHASE B (owner invite flow) — COMPLETE & secure
+
+Real, session-based authentication now fronts the whole app — **the temporary dev-login shim is gone**.
+Backends/schema/guarantees are UNCHANGED beyond additive invite plumbing; the flow **calls** the existing
+owner-accounting services, it does not reimplement them.
+
+**Phase A — the shared Vyrobel login (`ddbaf47`).** ONE session login for operator + owner
+(`LoginController` create/store/destroy, `LoginRequest`, styled `auth/login`):
+- **Active-only sign-in** — `Auth::attempt(['email','password','status'=>'active'])`, so an `invited`
+  (not-yet-activated) or `disabled` login **cannot** authenticate even with the right password.
+- **Rate-limited per (email, ip)** (Breeze pattern) + **generic errors** (no account enumeration) +
+  **session regenerated** on login and invalidated on logout. Logout is a **CSRF-protected POST** behind
+  `auth`.
+- **Role routing:** an authed user linked to an `Owner` (via `owners.user_id`) → `/owner`; otherwise the
+  operator app `/app`. `/app/*` + `/owner/*` require `auth` (redirect to `/login`); `/book/*` stays public.
+  The two context middleware (`SetTenantForWebRequest`, `SetOwnerScopeForPortal`) simply read
+  `$request->user()` — login just authenticates; context resolution was already real.
+
+**Phase B — the owner invite flow (`0bfc48b` · `4b2f196` · `ab78ac3` · `5ab7e96`).** Operator invites an
+owner → email → owner sets password → lands in their portal:
+- **Token design:** high-entropy `Str::random(64)`; **only its `sha256` hash is persisted**
+  (`owner_invites.token_hash`, indexed → O(1) lookup), **never the plaintext**; **single-use** (status
+  `pending → accepted`), **7-day expiry**, **revocable**, tied to (email, org). Re-inviting **refreshes**
+  the pending invite's token instead of duplicating (`OwnerInviteService`).
+- **Operator invite = the proven operator-mutation pattern** — CSRF-protected, `throttle:10,1` **POST →
+  `InviteOwnerController` → `OwnerInviteService::invite()` → PRG**. The POST re-runs the web middleware so
+  the invite + assigned units are created **org-scoped**; a foreign unit id is **silently dropped**
+  (`Unit::whereIn(...)` tenant filter) — never assigned across orgs. Creates an **inactive `invited`
+  login** (unusable random password) + a **pending `inactive` owner** + an active membership, then
+  dispatches the email.
+- **Owner-only, defense-in-depth:** the modal renders **Manager/Accountant DISABLED "Coming soon"**, the
+  controller re-validates `Rule::in(['owner'])`, AND the service throws on any non-owner role. The client
+  is never trusted.
+- **Accept = public, token-authenticated** (`AcceptInviteController`, `/invite/{token}`, `throttle:10,1`):
+  `findRedeemable()` matches by sha256 under `runAsSuperAdmin` and returns null for any **unknown / expired
+  / spent** token → the **SAME generic "invalid link" page** (no enumeration of which invites exist).
+  `accept()` runs `forOrganization(...)` in a DB transaction: sets the password (**`hashed` cast** — never
+  plaintext), **activates** the login + owner, **assigns the units**, **creates the `ManagementAgreement`**
+  at the invite's commission, and **SPENDS the token**. Then **auto-login + session regenerate** → `/owner`,
+  where owner-scope binds to the now-active owner and shows their real data.
+- **Email = `OwnerInviteMail`** rendered **email-safe** (table layout, all-inline CSS, no
+  backdrop-filter/flex, Arial fallback, bulletproof button, preheader) — brand *evoked*, not the frosted
+  app chrome faked.
+
+**DEFERRED (flagged, not faked):**
+- **Manager / Accountant invites** — UI-disabled **and** server-rejected; only OWNER is wired in Phase B.
+- **Email DELIVERY** — dev uses `MAIL_MAILER=log` (the Mailable is really rendered + logged, proven by the
+  end-to-end test, but nothing leaves the box). Real delivery needs a configured driver — **Mailpit/SMTP**
+  locally, a real transactional provider in production. The flow is complete; only the transport is
+  deferred. Also deferred: **password reset** ("Forgot password?" shows "Soon"), and **2FA** (schema
+  columns exist, no flow).
+
+**VERIFIED — one continuous end-to-end proof + the full net.** `PhaseBEndToEndTest` drives the WHOLE
+chain in one test (**39 assertions**): operator (logged in, tenant-scoped) invites via the modal action →
+`OwnerInviteMail` dispatched with the tokened link (captured from the Mailable) → guest opens `/invite/
+{token}` → sets a valid password → login+owner activate, unit assigned, 18% agreement created → auto-login
+→ `/owner` shows the owner's own unit → the token is **SPENT** (a reuse gives the **byte-identical** page as
+a garbage token → no enumeration). Security recap asserted in-chain: token **hashed** (`token_hash ===
+sha256(plain)`, not the plaintext), password **hashed** (`Hash::check` true, not stored raw), **single-use**
+(second activation impossible), **auto-login** establishes the session, **owner-scope binds**. Plus the
+per-step suites: `AuthLoginTest` (11), `OwnerInviteBackendTest` (5), `OwnerInviteAcceptTest` (7),
+`OwnerInviteEmailTest` (2), `OperatorInviteOwnerTest` (6, incl. tenant-scope / cross-org-drop /
+role-reject / active-email-graceful / auth-required). **Full suite 212 tests / 3220 assertions green;
+PHPStan L5 0 errors; Pint clean.**
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
