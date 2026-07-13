@@ -17,8 +17,10 @@ use Livewire\Component;
  * list; the invite itself is a CSRF-protected POST → InviteOwnerController → OwnerInviteService → PRG
  * (never a Livewire wire-action for a scoped mutation). TENANT-scoped throughout.
  *
- * Honesty: the modal offers Owner / Manager / Account role options, but only OWNER is enabled — Manager
- * and Account are disabled "Coming soon" (the service rejects them and the controller re-validates).
+ * The modal offers Owner + the two STAFF roles (Manager → "Hotel Manager", Accountant → "Accountant").
+ * Owner invites create an Owner + optional units/commission; staff invites create a Membership + the real
+ * spatie role and land in /app. The controller re-validates the role set and drops owner-only fields for
+ * staff; the service assigns only REAL, validated catalog roles.
  */
 #[Layout('components.layouts.operator')]
 class OperatorOwners extends Component

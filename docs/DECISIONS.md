@@ -688,6 +688,51 @@ works with no Mailpit installed) with the Mailpit switch documented inline and `
 - **HONESTY:** Mailpit is **dev/demo only**. **PRODUCTION still needs a real transactional provider**
   (Postmark/SES/etc.) — that remains the one deferred piece of the email story.
 
+### 2026-07-13 — Invite flow extended to STAFF roles (Hotel Manager + Accountant) — owner-only no longer
+
+The invite flow now covers **three** roles on ONE set of secure machinery (hashed/single-use/expiring
+tokens, no enumeration, rate-limit, session-regen, tenant isolation) — NOT a parallel system:
+- **OWNER** (unchanged): an external `Owner` party → owner link + `/owner` portal, optional assigned
+  units + management agreement. **No spatie role** (portal access comes from the owner link).
+- **STAFF — Hotel Manager / Accountant** (new): a `Membership` + a **real spatie catalog role** → the
+  operator app `/app`. **No owner record, no agreement, no units.**
+
+**Real RBAC keys (read from `config/authorization.php`, not invented):** the modal's "Manager" maps to
+the catalog role **`Hotel Manager`** (there is NO bare "Manager" role); "Accountant" maps to **`Accountant`**.
+Slug→role is a whitelist in `OwnerInviteService::STAFF_ROLE_MAP`; **`resolveStaffRole()` fail-safes** —
+the slug must map to a catalog role AND that role must be **provisioned for the org** (team-scoped;
+`OrganizationRoleProvisioner` installs it at org-creation / demo seed) before assignment. This is checked
+at **invite time** (operator gets a clean flash, never a phantom invite) AND again inside the accept
+transaction (defense-in-depth — a non-assignable role rolls the whole activation back, never a
+half-activated login with no role). The team foreign key is **`organization_id`** (spatie teams mode,
+per `config/permission.php`), not `team_id`.
+
+**Schema:** `owner_invites.owner_id` made **nullable** (additive migration) — staff invites carry no
+owner. The `OwnerInvite`/`OwnerInviteMail` names are kept (historical; they're the invite records/mail,
+now role-aware) rather than a churny rename.
+
+**The fork, handled explicitly:** the accept controller redirects **by the invite** — owner (`owner_id`
+set) → `/owner`; staff (`owner_id` null) → `/app` (Phase-A role-routing already sends a member with no
+owner link to `/app`). The set-password greeting resolves the name from the owner (owner path) or the
+invited login (staff path). The modal **enables** Manager/Accountant (was disabled "Coming soon"),
+**hides the owner-only fields** (assign units, commission) when a staff role is selected, and the
+title/subtitle/helper + the **email copy** are **role-aware** (a manager is never told about an "owner
+portal"). The set-password subtitle was de-ownered ("your Vyrobel account").
+
+- **Server-side (never trusts the client):** `InviteOwnerController` validates `Rule::in(['owner',
+  'manager','accountant'])` and drops owner-only fields for staff; the service assigns only REAL,
+  validated catalog roles. An unknown role 422s; an unprovisioned/​unmappable role → clean flash.
+- **Verified (browser + tests):** an operator invited a Manager → the email landed in **Mailpit** with
+  role-aware copy ("Your Hotel Manager access", no "owner portal") → the invitee set a password → activated
+  as **status=active, NOT an Owner, roles=[Hotel Manager]**, landing at `/app/dashboard`. New
+  `StaffInviteTest` (5) covers manager + accountant activation (role assigned, no owner artifacts, /app),
+  the owner path unchanged (owner + agreement + units, /owner, no staff role), role-key correctness (exact
+  catalog names; no bare "Manager"), and the fail-safe (unprovisioned role → clean error, nothing written).
+  The two old "manager/account rejected" assertions were updated to "unknown role rejected" (the feature
+  changed). **Full suite 217 tests / 3280 assertions green; PHPStan L5 0 errors; Pint clean.**
+- **DEFERRED still:** email DELIVERY in production (Mailpit is dev only); password reset; 2FA. Manager/
+  Account invites are **no longer deferred** — they are wired.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->

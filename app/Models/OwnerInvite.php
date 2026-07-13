@@ -15,7 +15,10 @@ use Illuminate\Support\Carbon;
  * expiring (`expires_at`), revocable, and tenant-scoped.
  *
  * Larastan doesn't infer the array/datetime casts on these columns, so they carry explicit @property types.
+ * `owner_id` is nullable — owner invites carry an owner link; STAFF invites (Hotel Manager / Accountant)
+ * have no owner and leave it null (see the make-owner_id-nullable migration).
  *
+ * @property string|null $owner_id
  * @property array<int, string>|null $assigned_unit_ids
  * @property Carbon|null $expires_at
  * @property Carbon|null $accepted_at

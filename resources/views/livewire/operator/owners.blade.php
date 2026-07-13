@@ -4,8 +4,11 @@
      → PRG (never a Livewire wire-action for a scoped write). Alpine (bundled with Livewire) drives ONLY
      the modal's presentation (show/hide + selection state); the server re-validates everything.
 
-     Honesty: Owner is the only wired role — Manager/Accountant render but are disabled "Coming soon".
-     Commission presets map to a real management-agreement %; "Set up later" sends no value. --}}
+     Roles: Owner (external party → portal, with units + commission) plus the two STAFF roles Manager
+     (→ "Hotel Manager") and Accountant (→ "Accountant") — real spatie catalog roles assigned on
+     activation. When a staff role is selected the owner-only fields (units, commission) hide; the server
+     re-validates the role set and drops owner-only fields for staff. Commission presets map to a real
+     management-agreement %; "Set up later" sends no value. --}}
 <div>
     <x-operator.shell active="owners" title="Owners"
         subtitle="Owners & management agreements" :viewer="$viewer">
@@ -110,8 +113,12 @@
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 20c0-3.3 2.7-5 6-5s6 1.7 6 5M18 14v6M21 17h-6"/></svg>
                         </span>
                         <div style="flex: 1;">
-                            <h3 class="vy-modal-title" id="vy-invite-title">Invite an owner</h3>
-                            <p class="vy-modal-sub">They’ll get an email to set their password and access their portal.</p>
+                            <h3 class="vy-modal-title" id="vy-invite-title"
+                                x-text="role === 'owner' ? 'Invite an owner' : 'Invite a team member'">Invite an owner</h3>
+                            <p class="vy-modal-sub"
+                               x-text="role === 'owner'
+                                   ? 'They’ll get an email to set their password and access their owner portal.'
+                                   : 'They’ll get an email to set their password and join the operator app.'">They’ll get an email to set their password and access their owner portal.</p>
                         </div>
                         <button type="button" class="vy-modal-x" @click="open = false" aria-label="Close">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -119,9 +126,9 @@
                     </div>
 
                     <div class="vy-modal-body">
-                        {{-- Owner name --}}
+                        {{-- Name --}}
                         <div class="vy-field">
-                            <label class="vy-field-label" for="vy-owner-name">Owner name</label>
+                            <label class="vy-field-label" for="vy-owner-name">Full name</label>
                             <div class="vy-inwrap">
                                 <span class="vy-in-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
                                 <input type="text" id="vy-owner-name" name="name" class="vy-input" placeholder="e.g. Marisol Vaz"
@@ -135,13 +142,15 @@
                             <label class="vy-field-label" for="vy-owner-email">Email</label>
                             <div class="vy-inwrap">
                                 <span class="vy-in-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg></span>
-                                <input type="email" id="vy-owner-email" name="email" class="vy-input" placeholder="owner@example.com"
+                                <input type="email" id="vy-owner-email" name="email" class="vy-input" placeholder="name@example.com"
                                        value="{{ old('email') }}" maxlength="190" required>
                             </div>
                             @error('email') <div class="vy-help" style="color: var(--vy-accent);">{{ $message }}</div> @enderror
                         </div>
 
-                        {{-- Role — only Owner is wired; Manager/Accountant are disabled "Coming soon" --}}
+                        {{-- Role — Owner (portal) + the two STAFF roles wired to real spatie catalog roles.
+                             "Manager" → Hotel Manager · "Accountant" → Accountant. Owner-only fields below
+                             hide when a staff role is chosen (server re-validates + drops them too). --}}
                         <div class="vy-field">
                             <label class="vy-field-label">Role</label>
                             <input type="hidden" name="role" :value="role">
@@ -150,21 +159,24 @@
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>
                                     Owner
                                 </label>
-                                <span class="vy-seg-opt is-disabled" aria-disabled="true" title="Coming soon">
+                                <label class="vy-seg-opt" :class="{ 'is-checked': role === 'manager' }" @click="role = 'manager'">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v13H4zM8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                     Manager
-                                </span>
-                                <span class="vy-seg-opt is-disabled" aria-disabled="true" title="Coming soon">
+                                </label>
+                                <label class="vy-seg-opt" :class="{ 'is-checked': role === 'accountant' }" @click="role = 'accountant'">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18H5zM9 8h6M9 12h6M9 16h4"/></svg>
                                     Accountant
-                                </span>
+                                </label>
                             </div>
                             <div class="vy-help" x-show="role === 'owner'">Owns units; sees statements, payouts and unit performance.</div>
+                            <div class="vy-help" x-show="role === 'manager'" x-cloak>Operator staff — <strong>Hotel Manager</strong> role: day-to-day operations (calendar, front desk, housekeeping, reservations, folios).</div>
+                            <div class="vy-help" x-show="role === 'accountant'" x-cloak>Operator staff — <strong>Accountant</strong> role: folios, payments, invoices, taxes and reports.</div>
                         </div>
 
+                        {{-- Owner-only fields — hidden when a STAFF role is selected (staff get no units/commission) --}}
                         {{-- Assign units — REAL, tenant-scoped inventory --}}
                         @if (count($units) > 0)
-                            <div class="vy-field">
+                            <div class="vy-field" x-show="role === 'owner'">
                                 <label class="vy-field-label">
                                     Assign units <span class="vy-fl-note">· optional</span>
                                     <span class="vy-fl-right" x-text="units.length + ' ' + (units.length === 1 ? 'unit' : 'units')"></span>
@@ -184,7 +196,7 @@
                         @endif
 
                         {{-- Management agreement — presets map to a real commission %; "Set up later" sends none --}}
-                        <div class="vy-field" style="margin-bottom: 4px;">
+                        <div class="vy-field" style="margin-bottom: 4px;" x-show="role === 'owner'">
                             <label class="vy-field-label">Management agreement</label>
                             <input type="hidden" name="commission_pct" :value="commission === 'later' ? '' : commission">
                             <div class="vy-seg">

@@ -99,12 +99,14 @@ conflicts with the repo, **trust the repo** and fix this file.
   `App\Http\Middleware\SetOwnerScopeForPortal`; portal reads via `App\Services\OwnerPortalService`.
 - **Auth (Phase A + B)** — `App\Http\Controllers\Auth\LoginController` + `LoginRequest` (shared
   operator/owner session login: active-only, rate-limited, non-enumerating, role-routing) + styled
-  `auth/login`; **owner invite flow** = `App\Services\OwnerInviteService` (sha256-hashed single-use
-  expiring tokens; `owner_invites` table + `App\Models\OwnerInvite`) → `App\Mail\OwnerInviteMail`
-  (email-safe) → `App\Http\Controllers\Auth\AcceptInviteController` (public `/invite/{token}` set-password
-  → activate → auto-login) ← operator side `App\Http\Controllers\Operator\InviteOwnerController` +
-  `App\Livewire\Operator\OperatorOwners` (`/app/owners` + invite modal). Owner-only wired
-  (Manager/Account deferred); email delivery = `log` in dev.
+  `auth/login`; **invite flow (owner + staff)** = `App\Services\OwnerInviteService` (sha256-hashed
+  single-use expiring tokens; `owner_invites` table + `App\Models\OwnerInvite`, `owner_id` nullable) →
+  `App\Mail\OwnerInviteMail` (email-safe, role-aware copy) → `App\Http\Controllers\Auth\AcceptInviteController`
+  (public `/invite/{token}` set-password → activate → auto-login, redirect by role) ← operator side
+  `App\Http\Controllers\Operator\InviteOwnerController` + `App\Livewire\Operator\OperatorOwners`
+  (`/app/owners` + role-aware invite modal). **Three roles:** owner (owner link + `/owner`) · Hotel Manager
+  · Accountant (Membership + real spatie role → `/app`); staff role-map + fail-safe live in the service.
+  Email delivery = Mailpit in dev (prod provider deferred).
 
 ## INVARIANTS THAT MUST NEVER BREAK (the full guarantee stack)
 
@@ -189,9 +191,13 @@ conflicts with the repo, **trust the repo** and fix this file.
     Invite tokens are **high-entropy, stored ONLY as `sha256(plain)` (never plaintext), single-use**
     (status `pending→accepted`), **7-day expiring**, and revocable. The operator invite write is
     **tenant-scoped** (POST→controller→`OwnerInviteService`→PRG; a foreign unit id is dropped, never
-    assigned cross-org) and **owner-only** (Manager/Account rejected by `Rule::in(['owner'])` + a service
-    throw — defense-in-depth with the disabled UI). On activation **owner-scope binds** to the now-active
-    owner (invariant #18 still fails closed for a non-linked user). (Locked `docs/DECISIONS.md` 2026-07-13.)
+    assigned cross-org). Three roles share the machinery: **owner** (owner link → `/owner`) + the two
+    **staff** roles **Hotel Manager / Accountant** (Membership + a **real, validated** spatie catalog role
+    → `/app`; no owner/agreement/units). Staff role assignment is **fail-safe** — the slug must map to a
+    catalog role AND be provisioned for the org (validated at invite AND accept; an unknown role 422s,
+    never a phantom/cross-org grant). On activation an owner's **owner-scope binds** (invariant #18 still
+    fails closed for a non-linked user); staff land in `/app` with their role's permissions. (Locked
+    `docs/DECISIONS.md` 2026-07-13.)
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
@@ -223,8 +229,10 @@ conflicts with the repo, **trust the repo** and fix this file.
   owner-portal PDF/CSV export, IBAN/payout-method, approvals/action-center.
 
 **Auth deferrals (Phase A + B complete; these are flagged, not faked — see DECISIONS.md 2026-07-13):**
-- **Manager / Accountant invites** — the invite modal renders them **DISABLED "Coming soon"** and the
-  server **rejects** any non-owner role (`Rule::in(['owner'])` + service throw). Only OWNER is wired.
+- **Manager / Accountant invites — WIRED** (no longer deferred). The invite flow now covers **owner +
+  Hotel Manager + Accountant** on the same secure machinery. Owner → owner link + `/owner`; STAFF →
+  Membership + a real spatie catalog role (`Hotel Manager` / `Accountant`) → `/app` (no owner/agreement/
+  units). Role assignment is fail-safe (mapped + provisioned-for-org, validated at invite AND accept).
 - **Email DELIVERY** — **DEV/DEMO is now wired to Mailpit** (`brew install mailpit`; run `mailpit` → SMTP
   `127.0.0.1:1025`, UI `http://127.0.0.1:8025`; `.env` `MAIL_MAILER=smtp`, `MAIL_PORT=1025`). A real
   `OwnerInviteMail` lands in the Mailpit inbox with the tokened `/invite/{token}` link clickable
@@ -253,12 +261,14 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**212 tests / 3220 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**217 tests / 3280 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
-`OwnerInviteEmailTest` · `OperatorInviteOwnerTest` · **`PhaseBEndToEndTest`** — one continuous
-invite→email→activate→portal→token-spent chain with the hashed/single-use/no-enumeration security recap),
+`OwnerInviteEmailTest` · `OperatorInviteOwnerTest` · **`StaffInviteTest`** — Hotel Manager / Accountant
+activation → `/app` + real spatie role, no owner artifacts, fail-safe on unprovisioned/unknown role · and
+**`PhaseBEndToEndTest`** — one continuous invite→email→activate→portal→token-spent chain with the
+hashed/single-use/no-enumeration security recap),
 the owner-portal design pass (per-screen render/isolation + occupancy-correctness), the operator design
 pass (5 screens), and the public booking storefront (`PublicBookingBrowseTest` · `PublicBookingRoomTest` ·
 `PublicBookingCheckoutTest` — real sellable rooms/prices with NO auth, public property isolation, and the
@@ -385,8 +395,9 @@ live: the owner portal, the operator back office (calendar · front desk · hous
 guarded write). **A real hybrid operator could run day-to-day operations and take a direct booking today,
 and an owner could read their statements/payouts.** No unstyled stubs remain. **Real auth now fronts all of
 it** (Phase A + B): an operator signs in, invites an owner, and that owner sets a password and reaches
-their portal — so a live demo no longer needs a dev-login shim. **Before a real external demo, stand up
-email delivery** (Mailpit/SMTP) so the invite email actually lands — see the auth deferrals above.
+their portal — so a live demo no longer needs a dev-login shim. **Dev email is wired to Mailpit** (invite
+emails land in a viewable inbox); the invite flow covers **owner + Hotel Manager + Accountant**. Before a
+real external demo, run Mailpit; production still needs a real mail provider (see the auth deferrals above).
 
 **Pick ONE — each needs a written, gated decision; NONE is started. The core product is complete —
 further building is lower-leverage than one real customer conversation:**
@@ -396,14 +407,12 @@ further building is lower-leverage than one real customer conversation:**
   owner sets a password → owner sees their statements/payouts with **money reconciling to the cent**. The
   wedge (genuine owner accounting for a mixed hotel/apartment/villa portfolio) is now demoable; let real
   feedback drive the roadmap over speculative breadth. No product code — config + a demo + discovery.
-- **(b) Demo polish** — Mailpit + any sharpening for a live showing (seed richness, copy, a scripted
-  walkthrough). Small, in service of (a).
-- **(c) Manager / Account team invites** — extend the existing invite flow to the two roles already
-  rendered-but-disabled (role plumbing + per-role scope; the UI + server-rejection already exist).
-- **(d) Close a live-integration checkpoint** when accounts exist — **Channex staging** (ARI/webhook/HMAC
+- **(b) Demo polish** — any sharpening for a live showing (seed richness, copy, a scripted walkthrough).
+  Small, in service of (a). (Mailpit + Manager/Accountant invites are now DONE — see 2026-07-13.)
+- **(c) Close a live-integration checkpoint** when accounts exist — **Channex staging** (ARI/webhook/HMAC
   vs a real account) or the **Stripe Connect payout rail** (owner disbursement KYC). The only two money/
   network rails unproven against reality; run `docs/prompts/live-integration-checkpoint.md`.
-- **(e) A new design-only module** — **Unified Inbox** (WhatsApp/email/OTA/SMS — the largest remaining
+- **(d) A new design-only module** — **Unified Inbox** (WhatsApp/email/OTA/SMS — the largest remaining
   differentiator), or in-product polish (Stripe card entry at checkout · room photos/descriptions/reviews).
   Each is a gated, phased build like Owner Accounting — no backend exists today.
 

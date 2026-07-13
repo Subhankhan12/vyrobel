@@ -62,7 +62,7 @@
     <main class="vy-card">
         <div class="vy-brand"><span class="vy-brand-mark">V</span><span class="vy-brand-name">Vyrobel</span></div>
         <h1 class="vy-title">Set your password</h1>
-        <p class="vy-sub">Welcome, {{ $name }} — choose a password to activate your owner account.</p>
+        <p class="vy-sub">Welcome, {{ $name }} — choose a password to activate your Vyrobel account.</p>
 
         @if ($errors->any())
             <div class="vy-error" role="alert">

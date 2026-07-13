@@ -18,9 +18,12 @@ use RuntimeException;
  * context is set — the invite (and the units it may assign) are created org-scoped. Rate-limited +
  * CSRF-protected via the route/web group.
  *
- * Only the `owner` role is accepted (Manager/Account are disabled in the UI AND rejected here — the
- * server never trusts the client). An email that already belongs to an active user surfaces as a clean
- * flash error, not a 500.
+ * Three roles are accepted — `owner` (an external Owner party → the portal) and the two STAFF roles
+ * `manager`/`accountant` (a Membership + real spatie role → the operator app). The service maps the
+ * staff slugs to the exact catalog roles (Hotel Manager / Accountant) and validates they exist. The
+ * server never trusts the client: an unknown role is rejected by validation, owner-only fields are
+ * dropped for staff, and an email that already belongs to an active user surfaces as a clean flash
+ * error (not a 500).
  */
 class InviteOwnerController extends Controller
 {
@@ -29,30 +32,26 @@ class InviteOwnerController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190'],
-            'role' => ['required', Rule::in(['owner'])],   // only owner is wired in Phase B
+            'role' => ['required', Rule::in(['owner', 'manager', 'accountant'])],
             'commission_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'unit_ids' => ['sometimes', 'array'],
             'unit_ids.*' => ['string'],
         ]);
 
-        // Tenant-scope the assigned units: only THIS org's units survive, so a foreign unit id (another
-        // org's inventory) is silently dropped — never assigned across orgs.
-        $unitIds = Unit::query()
-            ->whereIn('id', $validated['unit_ids'] ?? [])
-            ->pluck('id')
-            ->map(fn ($id): string => (string) $id)
-            ->all();
+        $isOwner = $validated['role'] === 'owner';
+
+        // Owner-only fields (assigned units + commission) apply ONLY to owner invites; a staff invite
+        // never carries them (the modal hides them, and we drop them here too — defense-in-depth).
+        // Tenant-scope the units: only THIS org's units survive, so a foreign unit id is silently dropped.
+        $unitIds = $isOwner
+            ? Unit::query()->whereIn('id', $validated['unit_ids'] ?? [])->pluck('id')->map(fn ($id): string => (string) $id)->all()
+            : [];
+        $commissionPct = $isOwner && isset($validated['commission_pct']) ? (float) $validated['commission_pct'] : null;
 
         try {
-            $invites->invite(
-                $validated['name'],
-                $validated['email'],
-                $unitIds,
-                isset($validated['commission_pct']) ? (float) $validated['commission_pct'] : null,
-                'owner',
-            );
+            $invites->invite($validated['name'], $validated['email'], $unitIds, $commissionPct, $validated['role']);
         } catch (RuntimeException) {
-            // e.g. the email already belongs to an active account — graceful, not a crash.
+            // e.g. the email already belongs to an active account, or an unmappable role — graceful, not a crash.
             return back()->withInput()->with('owners_error', 'That email can’t be invited — it may already have a Vyrobel account.');
         }
 

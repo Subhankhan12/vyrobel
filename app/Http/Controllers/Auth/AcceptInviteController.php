@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Owner;
+use App\Models\User;
 use App\Services\OwnerInviteService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
@@ -35,10 +36,13 @@ class AcceptInviteController extends Controller
             return view('auth.invite-invalid');
         }
 
-        // Greet by the owner's own name (loaded in the invite's org). Not a leak — it's their own link.
+        // Greet by the invitee's own name (loaded in the invite's org). Not a leak — it's their own link.
+        // Owner invites carry an owner→name; staff invites (no owner) greet by the invited login's name.
         $name = app(TenantContext::class)->forOrganization(
             (string) $invite->organization_id,
-            fn (): string => (string) (Owner::query()->findOrFail($invite->owner_id)->name ?? 'there'),
+            fn (): string => $invite->owner_id !== null
+                ? (string) (Owner::query()->findOrFail($invite->owner_id)->name ?? 'there')
+                : (string) (User::query()->where('email', $invite->email)->value('name') ?? 'there'),
         );
 
         return view('auth.set-password', ['token' => $token, 'name' => $name]);
@@ -56,11 +60,15 @@ class AcceptInviteController extends Controller
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
+        // Capture the role home BEFORE accept() (the invite is spent in the transaction): an owner invite
+        // → the owner portal; a staff invite (no owner) → the operator app.
+        $home = $invite->owner_id !== null ? route('owner.dashboard') : route('app.dashboard');
+
         $user = $this->invites->accept($invite, (string) $request->string('password'));
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();   // fixation protection on activation
 
-        return redirect()->to(route('owner.dashboard'));
+        return redirect()->to($home);
     }
 }

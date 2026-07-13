@@ -13,7 +13,7 @@
 <body style="margin:0; padding:0; background-color:#F6EBE2; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
     {{-- Preheader (hidden preview snippet) --}}
     <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#F6EBE2; font-size:1px; line-height:1px;">
-        Set your password to activate your Vyrobel owner account — this invitation expires in 7 days.
+        Set your password to activate your Vyrobel {{ $accountLabel }} — this invitation expires in 7 days.
     </div>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F6EBE2;">
@@ -36,9 +36,9 @@
                     <tr>
                         <td style="background-color:#FFFDFB; border:1px solid #EFE3D9; border-radius:18px; padding:34px 34px 30px;">
                             <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#C2410C;">You’re invited</p>
-                            <h1 style="margin:0 0 14px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">Your owner portal on {{ $orgName }}</h1>
+                            <h1 style="margin:0 0 14px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">{{ $headline }}</h1>
                             <p style="margin:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">Hi {{ $ownerName }},</p>
-                            <p style="margin:0 0 24px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">You’ve been invited to the Vyrobel owner portal, where you can see your units, earnings, statements and payouts. Set your password to activate your account and get started.</p>
+                            <p style="margin:0 0 24px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">{{ $intro }}</p>
 
                             {{-- Bulletproof button (solid terracotta; padded anchor works across clients incl. Outlook) --}}
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0">

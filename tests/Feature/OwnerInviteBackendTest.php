@@ -102,7 +102,8 @@ it('rejects inviting an email that already belongs to an active user', function 
     expect(fn () => invite('taken@example.test'))->toThrow(RuntimeException::class);
 });
 
-it('rejects manager/account role invites (only owner is wired in Phase B)', function () {
+it('rejects an unknown role that is not in the supported set (fail-safe)', function () {
     seedScenario(1);
-    expect(fn () => invite('mgr@example.test', ['role' => 'manager']))->toThrow(RuntimeException::class);
+    // owner/manager/accountant are the wired roles; anything else must throw (never invent a role).
+    expect(fn () => invite('wizard@example.test', ['role' => 'wizard']))->toThrow(RuntimeException::class);
 });

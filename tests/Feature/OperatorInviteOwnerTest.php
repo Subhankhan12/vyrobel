@@ -97,15 +97,15 @@ it('drops a unit id belonging to another org from the assignment', function () {
     });
 });
 
-// ── Only the OWNER role is wired — Manager/Accountant are rejected server-side ────────────────────
-it('rejects a manager/accountant role with a validation error and creates no invite', function () {
+// ── Owner + the two staff roles are the ONLY accepted roles — anything else 422s server-side ──────
+it('rejects an unknown role with a validation error and creates no invite', function () {
     $s = seedScenario(1);
     $op = operatorFor($s);
 
     $this->actingAs($op)->post('/app/owners/invite', [
         'name' => 'Nope',
         'email' => 'nope@example.test',
-        'role' => 'manager',
+        'role' => 'wizard',   // not owner|manager|accountant
     ])->assertSessionHasErrors('role');
 
     expect(OwnerInvite::query()->where('email', 'nope@example.test')->count())->toBe(0);
