@@ -46,13 +46,22 @@ class BookingEngineController extends Controller
 
         $searched = $checkIn !== null && $checkOut !== null && $checkOut > $checkIn;
 
+        // Cover photo per room-type (public disk) — a map so the cards avoid N+1; null → gradient fallback.
+        $covers = RoomType::query()
+            ->where('property_id', $property->getKey())
+            ->with('photos')
+            ->get()
+            ->mapWithKeys(fn (RoomType $rt): array => [(string) $rt->getKey() => $rt->coverPhoto()?->url]);
+
         // REAL sellable rooms for the searched dates (only when a valid range is given).
         $rooms = [];
         $nights = 0;
         if ($searched) {
             $nights = (int) CarbonImmutable::parse($checkIn)->diffInDays(CarbonImmutable::parse($checkOut));
             foreach ($this->engine->search($property, $checkIn, $checkOut, $adults, $children) as $offer) {
-                $rooms[] = $this->roomOffer($offer);
+                $card = $this->roomOffer($offer);
+                $card['cover'] = $covers[(string) $offer['room_type_id']] ?? null;
+                $rooms[] = $card;
             }
         }
 
@@ -68,7 +77,7 @@ class BookingEngineController extends Controller
             ],
             'rooms' => $rooms,
             // Teaser (no valid search yet): real room-type names only — NO availability/price claim.
-            'teaser' => $searched ? [] : $this->teaserRooms($property),
+            'teaser' => $searched ? [] : $this->teaserRooms($property, $covers->all()),
         ]);
     }
 
@@ -111,6 +120,9 @@ class BookingEngineController extends Controller
                 'max_adults' => (int) $rt->max_adults,
                 'max_children' => (int) $rt->max_children,
                 'capacity' => (int) $rt->max_adults + (int) $rt->max_children,
+                // REAL photos (public disk) — empty array → the view keeps its gradient fallback.
+                'cover' => $rt->coverPhoto()?->url,
+                'photos' => $rt->photos->map(fn ($p): array => ['url' => (string) $p->url, 'alt' => (string) $p->alt])->values()->all(),
             ],
             // REAL amenities only (empty when none are catalogued — never fabricated).
             'amenities' => $rt->amenities()->orderBy('name')->pluck('name')->all(),
@@ -392,12 +404,13 @@ class BookingEngineController extends Controller
     }
 
     /**
-     * Real room-type teaser (names/kind/capacity only) shown before a date search — no availability or
-     * price is claimed, so nothing is fabricated.
+     * Real room-type teaser (names/kind/capacity + cover photo only) shown before a date search — no
+     * availability or price is claimed, so nothing is fabricated.
      *
+     * @param  array<string, string|null>  $covers  room_type_id → cover URL
      * @return list<array<string, mixed>>
      */
-    private function teaserRooms(Property $property): array
+    private function teaserRooms(Property $property, array $covers = []): array
     {
         return RoomType::query()
             ->where('property_id', $property->getKey())
@@ -407,6 +420,7 @@ class BookingEngineController extends Controller
                 'name' => (string) $rt->name,
                 'kind' => $this->roomKind((string) $rt->kind),
                 'capacity' => (int) $rt->max_adults + (int) $rt->max_children,
+                'cover' => $covers[(string) $rt->getKey()] ?? null,
             ])->all();
     }
 

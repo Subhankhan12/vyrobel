@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\RoomType;
 use App\Models\Unit;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -42,7 +43,7 @@ class UnitsList extends Component
     public function render(): View
     {
         $models = Unit::query()
-            ->with(['roomType', 'owner'])
+            ->with(['roomType.photos', 'owner'])
             ->orderBy('code')
             ->get();
 
@@ -63,12 +64,31 @@ class UnitsList extends Component
                 'condition_tone' => $condition['tone'],
                 'active' => $unit->is_active !== false,
                 'owner' => $unit->owner?->name !== null ? (string) $unit->owner->name : null,
+                // Cover derives from the unit's room-type (the sellable entity); null → gradient fallback.
+                'cover' => $unit->roomType->coverPhoto()?->url,
             ];
         })->all();
+
+        // Room-types (with photos) for the operator photo manager — REAL, tenant-scoped inventory.
+        $roomTypes = RoomType::query()
+            ->with('photos')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (RoomType $rt): array => [
+                'id' => (string) $rt->getKey(),
+                'name' => (string) $rt->name,
+                'photos' => $rt->photos->map(fn ($p): array => [
+                    'id' => (string) $p->getKey(),
+                    'url' => (string) $p->url,
+                    'alt' => (string) $p->alt,
+                    'is_cover' => (bool) $p->is_cover,
+                ])->values()->all(),
+            ])->all();
 
         return view('livewire.units-list', [
             'viewer' => $this->viewer(),
             'units' => $units,
+            'roomTypes' => $roomTypes,
             'summary' => [
                 'total' => $models->count(),
                 'active' => $models->where('is_active', true)->count(),

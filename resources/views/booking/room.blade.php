@@ -17,11 +17,24 @@
     <div class="vy-detail-grid">
         {{-- LEFT: banner + specs + amenities --}}
         <div class="vy-fade">
-            <div class="vy-detail-banner">
-                <span class="vy-room-kind">{{ $room['kind'] }}</span>
-                {{-- DEFERRED: no real photo bytes — a decorative banner, honestly flagged (never a fake gallery). --}}
-                <span class="vy-photos-note"><span class="vy-soon-tag">Photos soon</span></span>
-            </div>
+            {{-- REAL photos when present; the decorative gradient banner is the honest fallback for none. --}}
+            @if ($room['cover'])
+                <div class="vy-detail-banner has-photo">
+                    <img src="{{ $room['cover'] }}" alt="{{ $room['photos'][0]['alt'] ?? $room['name'] }}" class="vy-banner-img">
+                    <span class="vy-room-kind">{{ $room['kind'] }}</span>
+                </div>
+                @if (count($room['photos']) > 1)
+                    <div class="vy-thumbs">
+                        @foreach ($room['photos'] as $photo)
+                            <img src="{{ $photo['url'] }}" alt="{{ $photo['alt'] }}" class="vy-thumb" loading="lazy">
+                        @endforeach
+                    </div>
+                @endif
+            @else
+                <div class="vy-detail-banner">
+                    <span class="vy-room-kind">{{ $room['kind'] }}</span>
+                </div>
+            @endif
 
             <h1 class="vy-detail-title">{{ $room['name'] }}</h1>
             <div class="vy-detail-kind">{{ $room['kind'] }} · sleeps up to {{ $room['capacity'] }}</div>

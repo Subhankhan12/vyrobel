@@ -318,6 +318,8 @@
             backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
             border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow);
         }
+        .vy-unit-cover { height: 108px; overflow: hidden; }
+        .vy-unit-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .vy-unit-head { background: var(--vy-grad); color: #fff; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .vy-unit-head .vy-unit-name { font-family: var(--vy-display); font-weight: 600; font-size: 15px; }
         .vy-unit-badge { font-size: 10.5px; font-weight: 600; padding: 3px 9px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, .22); }

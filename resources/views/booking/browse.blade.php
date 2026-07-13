@@ -38,9 +38,12 @@
             </div>
             @forelse ($teaser as $room)
                 <div class="vy-teaser-row">
-                    <div>
-                        <div class="vy-teaser-name">{{ $room['name'] }}</div>
-                        <div class="vy-teaser-sub">{{ $room['kind'] }} · sleeps up to {{ $room['capacity'] }}</div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        @if ($room['cover'])<img src="{{ $room['cover'] }}" alt="{{ $room['name'] }}" class="vy-thumb" loading="lazy">@endif
+                        <div>
+                            <div class="vy-teaser-name">{{ $room['name'] }}</div>
+                            <div class="vy-teaser-sub">{{ $room['kind'] }} · sleeps up to {{ $room['capacity'] }}</div>
+                        </div>
                     </div>
                     <span class="vy-soon-tag">Pick dates</span>
                 </div>
@@ -68,7 +71,10 @@
             <div class="vy-rooms vy-fade">
                 @foreach ($rooms as $room)
                     <article class="vy-room-card">
-                        <div class="vy-room-banner"><span class="vy-room-kind">{{ $room['kind'] }}</span></div>
+                        <div class="vy-room-banner">
+                            @if ($room['cover'])<img src="{{ $room['cover'] }}" alt="{{ $room['name'] }}" class="vy-card-cover" loading="lazy">@endif
+                            <span class="vy-room-kind">{{ $room['kind'] }}</span>
+                        </div>
                         <div class="vy-room-body">
                             <div class="vy-room-name">{{ $room['name'] }}</div>
                             <div class="vy-room-meta">

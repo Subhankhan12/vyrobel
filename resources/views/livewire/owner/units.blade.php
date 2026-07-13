@@ -63,6 +63,9 @@
         <div class="vy-unit-grid">
             @forelse ($units as $u)
                 <div class="vy-unit-card">
+                    @if ($u['cover'])
+                        <div class="vy-unit-cover"><img src="{{ $u['cover'] }}" alt="{{ $u['name'] }}" loading="lazy"></div>
+                    @endif
                     <div class="vy-unit-head">
                         <span style="display:flex;align-items:center;gap:9px">
                             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5"/></svg>

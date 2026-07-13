@@ -27,10 +27,13 @@ trait HasPhotos
             ->orderBy('created_at');
     }
 
-    /** The cover photo: the one flagged `is_cover`, else the first by order, else null. */
+    /**
+     * The cover photo: the one flagged `is_cover`, else the first by order, else null. Uses the
+     * eager-loaded `photos` relation when present (so card lists can avoid N+1).
+     */
     public function coverPhoto(): ?Media
     {
-        $photos = $this->photos()->get();
+        $photos = $this->relationLoaded('photos') ? $this->photos : $this->photos()->get();
 
         return $photos->firstWhere('is_cover', true) ?? $photos->first();
     }

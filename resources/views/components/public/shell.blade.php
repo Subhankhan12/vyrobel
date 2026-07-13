@@ -126,8 +126,9 @@
         .vy-results-title { font-family: var(--vy-display); font-weight: 600; font-size: 18px; }
         .vy-rooms { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
         .vy-room-card { border-radius: var(--vy-r-lg); overflow: hidden; background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow); display: flex; flex-direction: column; }
-        .vy-room-banner { height: 128px; background: var(--vy-grad); position: relative; display: flex; align-items: flex-end; padding: 12px 16px; }
-        .vy-room-banner .vy-room-kind { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,.9); background: rgba(0,0,0,.16); border-radius: var(--vy-r-pill); padding: 3px 10px; }
+        .vy-room-banner { height: 128px; background: var(--vy-grad); position: relative; display: flex; align-items: flex-end; padding: 12px 16px; overflow: hidden; }
+        .vy-room-banner .vy-room-kind { position: relative; z-index: 1; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,.9); background: rgba(0,0,0,.16); border-radius: var(--vy-r-pill); padding: 3px 10px; }
+        .vy-room-banner .vy-card-cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .vy-room-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
         .vy-room-name { font-family: var(--vy-display); font-weight: 600; font-size: 16px; }
         .vy-room-meta { font-size: 12px; color: var(--vy-muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -155,6 +156,10 @@
         .vy-detail-banner::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 78% 12%, rgba(255,255,255,.28), transparent 55%); }
         .vy-detail-banner .vy-room-kind { position: relative; z-index: 1; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #fff; background: rgba(0,0,0,.18); border-radius: var(--vy-r-pill); padding: 4px 12px; }
         .vy-photos-note { position: absolute; top: 14px; right: 16px; z-index: 1; }
+        .vy-detail-banner.has-photo { background: var(--vy-grad); }
+        .vy-detail-banner .vy-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+        .vy-thumbs { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .vy-thumb { width: 72px; height: 54px; object-fit: cover; border-radius: var(--vy-r-md); border: 1px solid var(--vy-glass-border); }
 
         .vy-detail-title { font-family: var(--vy-display); font-weight: 700; font-size: 28px; letter-spacing: -0.02em; margin: 18px 0 4px; }
         .vy-detail-kind { color: var(--vy-muted); font-size: 13.5px; }

@@ -162,6 +162,8 @@ class OwnerMyUnits extends Component
                 'active' => $u->is_active !== false,
                 'nights' => $nights,
                 'occupancy_pct' => $days > 0 ? (int) round($nights / $days * 100) : 0,
+                // Cover derives from the room-type (the sellable entity); null → gradient fallback.
+                'cover' => $u->roomType->coverPhoto()?->url,
             ];
         })->values()->all();
     }

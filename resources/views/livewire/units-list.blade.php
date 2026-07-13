@@ -4,6 +4,19 @@
 <div>
     <x-operator.shell active="units" title="Units" subtitle="Inventory" :viewer="$viewer">
 
+        @if (session('units_notice'))
+            <div class="vy-flash is-ok vy-fade" role="status">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                {{ session('units_notice') }}
+            </div>
+        @endif
+        @if ($errors->any())
+            <div class="vy-flash is-err vy-fade" role="alert">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         {{-- DERIVED summary + honest NO-BACKEND affordances --}}
         <div class="vy-rack-toolbar vy-fade">
             <div class="vy-left vy-summary" style="margin:0;">
@@ -43,10 +56,19 @@
                             @foreach ($units as $unit)
                                 <tr>
                                     <td>
-                                        <div class="vy-u-code">{{ $unit['code'] }}
-                                            @unless ($unit['active'])<span class="vy-u-inactive">Inactive</span>@endunless
+                                        <div class="vy-u-cell">
+                                            @if ($unit['cover'])
+                                                <img src="{{ $unit['cover'] }}" alt="" class="vy-u-thumb" loading="lazy">
+                                            @else
+                                                <span class="vy-u-thumb vy-u-thumb--empty" aria-hidden="true"></span>
+                                            @endif
+                                            <div>
+                                                <div class="vy-u-code">{{ $unit['code'] }}
+                                                    @unless ($unit['active'])<span class="vy-u-inactive">Inactive</span>@endunless
+                                                </div>
+                                                @if ($unit['name'])<div class="vy-u-sub">{{ $unit['name'] }}</div>@endif
+                                            </div>
                                         </div>
-                                        @if ($unit['name'])<div class="vy-u-sub">{{ $unit['name'] }}</div>@endif
                                     </td>
                                     <td>{{ $unit['room_type'] }}</td>
                                     <td>{{ $unit['kind'] }}</td>
@@ -68,10 +90,49 @@
                 </div>
             </div>
 
-            <div class="vy-deferred-note" style="margin-top:16px;">
-                <span class="vy-soon-tag">Not yet available</span>
-                Per-unit photos, editing &amp; bulk actions are planned — cleanliness and condition above are
-                the real unit status; housekeeping moves happen on the board.
+            {{-- ROOM-TYPE PHOTOS — real uploads (secure: images only, size-limited, generated filenames).
+                 Photos attach to the room-type (what the storefront sells); unit cards derive their cover. --}}
+            <div class="vy-card vy-fade" style="margin-top:16px;">
+                <div class="vy-detail-head" style="margin-bottom:6px;">
+                    <h2 class="vy-card-title">Room-type photos</h2>
+                    <span class="vy-eyebrow">Shown on the booking storefront + unit cards</span>
+                </div>
+                @foreach ($roomTypes as $rt)
+                    <div class="vy-pm-room">
+                        <div class="vy-pm-head">
+                            <span class="vy-pm-name">{{ $rt['name'] }}</span>
+                            <form method="POST" action="{{ route('app.room-types.photos.store', $rt['id']) }}" enctype="multipart/form-data">
+                                @csrf
+                                <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" required
+                                       id="pm-{{ $rt['id'] }}" class="vy-pm-file" onchange="this.form.submit()">
+                                <label for="pm-{{ $rt['id'] }}" class="vy-btn vy-btn--ghost vy-pm-add">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                                    Add photo
+                                </label>
+                            </form>
+                        </div>
+                        @if (count($rt['photos']) > 0)
+                            <div class="vy-pm-thumbs">
+                                @foreach ($rt['photos'] as $i => $photo)
+                                    <div class="vy-pm-thumb @if ($photo['is_cover']) is-cover @endif">
+                                        <img src="{{ $photo['url'] }}" alt="{{ $photo['alt'] }}" loading="lazy">
+                                        @if ($photo['is_cover'])<span class="vy-pm-cover-badge">Cover</span>@endif
+                                        <div class="vy-pm-ctrls">
+                                            @unless ($photo['is_cover'])
+                                                <form method="POST" action="{{ route('app.room-types.photos.cover', [$rt['id'], $photo['id']]) }}">@csrf<button class="vy-pm-btn" title="Set as cover" aria-label="Set as cover">★</button></form>
+                                            @endunless
+                                            <form method="POST" action="{{ route('app.room-types.photos.move', [$rt['id'], $photo['id']]) }}">@csrf<input type="hidden" name="direction" value="up"><button class="vy-pm-btn" title="Move earlier" aria-label="Move earlier" @if ($i === 0) disabled @endif>‹</button></form>
+                                            <form method="POST" action="{{ route('app.room-types.photos.move', [$rt['id'], $photo['id']]) }}">@csrf<input type="hidden" name="direction" value="down"><button class="vy-pm-btn" title="Move later" aria-label="Move later" @if ($i === count($rt['photos']) - 1) disabled @endif>›</button></form>
+                                            <form method="POST" action="{{ route('app.room-types.photos.destroy', [$rt['id'], $photo['id']]) }}" onsubmit="return confirm('Remove this photo?')">@csrf @method('DELETE')<button class="vy-pm-btn vy-pm-btn--danger" title="Remove" aria-label="Remove">✕</button></form>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="vy-pm-empty">No photos yet — the storefront shows a gradient placeholder until you add one.</div>
+                        @endif
+                    </div>
+                @endforeach
             </div>
         @endif
 

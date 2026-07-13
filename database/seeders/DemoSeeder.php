@@ -248,7 +248,7 @@ class DemoSeeder extends Seeder
     private function seedPhotos(RoomType $roomType, string $label, array $palette, int $count): void
     {
         for ($i = 0; $i < $count; $i++) {
-            $bytes = PlaceholderImage::jpeg($label, 'Vyrobel Demo · photo '.($i + 1), $palette[0], $palette[1]);
+            $bytes = PlaceholderImage::jpeg($label, 'Vyrobel Demo - photo '.($i + 1), $palette[0], $palette[1]);
             $path = 'demo-photos/'.$roomType->code.'-'.($i + 1).'.jpg';
             Storage::disk('public')->put($path, $bytes);
 
