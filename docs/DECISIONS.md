@@ -674,6 +674,20 @@ per-step suites: `AuthLoginTest` (11), `OwnerInviteBackendTest` (5), `OwnerInvit
 role-reject / active-email-graceful / auth-required). **Full suite 212 tests / 3220 assertions green;
 PHPStan L5 0 errors; Pint clean.**
 
+### 2026-07-13 — Mailpit wired for dev/demo email (config/docs only — no app logic)
+
+The invite email now **lands in a viewable inbox** for demos instead of only logging. **Mailpit** is the
+dev mail catcher: `brew install mailpit`, run `mailpit` (SMTP `127.0.0.1:1025`, UI `http://127.0.0.1:8025`),
+`.env` `MAIL_MAILER=smtp` + `MAIL_PORT=1025` (`.env` stays gitignored — no secrets committed; Mailpit needs
+no auth). `.env.example` keeps `MAIL_MAILER=log` as the **zero-dependency safe default** (a fresh clone
+works with no Mailpit installed) with the Mailpit switch documented inline and `MAIL_PORT` pre-set to 1025.
+- **Verified end-to-end (browser):** an operator sent an owner invite through the real modal → the real
+  `OwnerInviteMail` arrived in Mailpit (from *Vyrobel*, branded, personalized "Hi …", single-use expiry
+  note) → its tokened `/invite/{token}` link opened the **Set your password** screen. No app code changed;
+  full suite **212 / 3220** still green (tests use `Mail::fake`, unaffected).
+- **HONESTY:** Mailpit is **dev/demo only**. **PRODUCTION still needs a real transactional provider**
+  (Postmark/SES/etc.) — that remains the one deferred piece of the email story.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->

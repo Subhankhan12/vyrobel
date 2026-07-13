@@ -225,9 +225,13 @@ conflicts with the repo, **trust the repo** and fix this file.
 **Auth deferrals (Phase A + B complete; these are flagged, not faked — see DECISIONS.md 2026-07-13):**
 - **Manager / Accountant invites** — the invite modal renders them **DISABLED "Coming soon"** and the
   server **rejects** any non-owner role (`Rule::in(['owner'])` + service throw). Only OWNER is wired.
-- **Email DELIVERY** — dev is `MAIL_MAILER=log` (the `OwnerInviteMail` is really rendered + logged, not
-  faked; nothing leaves the box). Real send needs a configured driver — **Mailpit/SMTP** locally, a
-  transactional provider in production. The flow is complete; only the transport is deferred.
+- **Email DELIVERY** — **DEV/DEMO is now wired to Mailpit** (`brew install mailpit`; run `mailpit` → SMTP
+  `127.0.0.1:1025`, UI `http://127.0.0.1:8025`; `.env` `MAIL_MAILER=smtp`, `MAIL_PORT=1025`). A real
+  `OwnerInviteMail` lands in the Mailpit inbox with the tokened `/invite/{token}` link clickable
+  (browser-verified 2026-07-13). `.env.example` defaults to `MAIL_MAILER=log` (zero-dependency) with the
+  Mailpit switch documented inline. **PRODUCTION still needs a real transactional provider**
+  (Postmark/SES/etc.) — **Mailpit is dev/demo only.** The flow was always complete; only the prod
+  transport remains deferred.
 - **Password reset** ("Forgot password?" → "Soon") and **2FA** (schema columns exist, no flow) — not built.
 
 **Open product / ops questions (decide before the relevant module, not ad hoc):**
