@@ -21,6 +21,7 @@ use App\Models\Guest;
 use App\Models\HousekeepingTask;
 use App\Models\InventoryBlock;
 use App\Models\Invoice;
+use App\Models\MaintenanceTicket;
 use App\Models\ManagementAgreement;
 use App\Models\Media;
 use App\Models\Organization;
@@ -169,6 +170,7 @@ class AppServiceProvider extends ServiceProvider
             'owner_statement' => OwnerStatement::class,
             'owner_statement_line' => OwnerStatementLine::class,
             'payout' => Payout::class,
+            'maintenance_ticket' => MaintenanceTicket::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a
