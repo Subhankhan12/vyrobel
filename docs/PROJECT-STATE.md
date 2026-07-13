@@ -6,23 +6,25 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `2d28b32`** on `main`, working tree clean (only the untracked design-source exports under
-  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 217 tests
-  / 3280 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
+- **HEAD `b5bd52c`** on `main`, working tree clean (only the untracked design-source exports under
+  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 239 tests
+  / 3372 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
   of writing; the final docs-only commit advances it by one with no state change.)
-- **AUTH — COMPLETE & SECURE (Phase A login/logout + Phase B invite flow: owner + staff).** Real session
-  auth now fronts the app; **the dev-login shim is gone.** Phase A: one shared login (operator+owner),
-  active-only `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors, session
-  regeneration, role-routing (`/app` vs `/owner`), `/book` public. Phase B: an operator invites via a
+- **AUTH — COMPLETE & SECURE (chapter finished): login/logout + invites (owner + staff) + password reset.**
+  Real session auth fronts the app; **the dev-login shim is gone.** Phase A: one shared login
+  (operator+owner), active-only `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors,
+  session regeneration, role-routing (`/app` vs `/owner`), `/book` public. Phase B: an operator invites via a
   **sha256-hashed, single-use, 7-day, revocable** tokened email link → the invitee sets a **hashed**
   password → activates → auto-login. **Three roles on one secure path:** OWNER → owner link + units +
   agreement → `/owner`; **STAFF (Hotel Manager / Accountant)** → Membership + a **real, fail-safe-validated**
-  spatie catalog role → `/app` (no owner/agreement/units). Proven by `PhaseBEndToEndTest` (owner chain) +
-  `StaffInviteTest` (staff). **Dev email is wired to Mailpit** (invite emails land in a viewable inbox).
-  **DEFERRED, flagged not faked:** **email DELIVERY in production** (dev = Mailpit; needs a real provider),
-  password reset, 2FA. See `docs/DECISIONS.md` 2026-07-13.
+  spatie catalog role → `/app`. **Password reset** on Laravel's Password broker — same posture (no
+  enumeration, active-only, tokened single-use expiring, hashed, remember-token rotated, session regenerated,
+  rate-limited). Proven by `PhaseBEndToEndTest` + `StaffInviteTest` + `PasswordResetTest`. **Dev email wired
+  to Mailpit** (invite + reset emails land in a viewable inbox); expired invites are pruned daily
+  (`invites:prune-expired`). **DEFERRED, flagged not faked:** **email DELIVERY in production** (dev = Mailpit;
+  needs a real provider), 2FA. See `docs/DECISIONS.md` 2026-07-13.
 - **DESIGN PASS — COMPLETE. The whole styled surface over the certified backend is done — 13 screens:**
   **owner portal (4)** · **operator core (5) + Units (1)** · **public booking storefront (3, incl. the
   real checkout WRITE)**. All on the certified backends, honesty rule enforced per-screen by a render/
@@ -108,6 +110,10 @@ conflicts with the repo, **trust the repo** and fix this file.
   `App\Http\Controllers\Operator\InviteOwnerController` + `App\Livewire\Operator\OperatorOwners`
   (`/app/owners` + role-aware invite modal). **Three roles:** owner (owner link + `/owner`) · Hotel Manager
   · Accountant (Membership + real spatie role → `/app`); staff role-map + fail-safe live in the service.
+  **Password reset** = `App\Http\Controllers\Auth\PasswordResetController` + `App\Mail\PasswordResetMail`
+  (Laravel Password broker; `auth/forgot-password` + `auth/reset-password`; shared
+  `App\Http\Controllers\Auth\Concerns\RedirectsByRole`). **Expired-invite prune** =
+  `App\Console\Commands\PruneExpiredInvites` → `OwnerInviteService::pruneExpired()` (scheduled daily).
   Email delivery = Mailpit in dev (prod provider deferred).
 
 ## INVARIANTS THAT MUST NEVER BREAK (the full guarantee stack)
@@ -242,28 +248,19 @@ conflicts with the repo, **trust the repo** and fix this file.
   Mailpit switch documented inline. **PRODUCTION still needs a real transactional provider**
   (Postmark/SES/etc.) — **Mailpit is dev/demo only.** The flow was always complete; only the prod
   transport remains deferred.
-- **Password reset** ("Forgot password?" → "Soon") and **2FA** (schema columns exist, no flow) — not built.
-
-**Open product / ops questions (decide before the relevant module, not ad hoc):**
-- **Checkout doesn't mark the unit dirty** — a public booking reserves inventory but does not flip
-  housekeeping status; whether a future-dated booking should touch `housekeeping_status` (and when) is a
-  product decision, not a bug. Not wired.
-- **Expired / unaccepted invite cleanup** — `owner_invites` rows just sit `pending` past `expires_at`
-  (they're correctly non-redeemable; `findRedeemable` rejects them). No sweeper/scheduled prune or a
-  "resend/revoke" operator affordance yet — a small housekeeping job for the invite table.
+- **2FA** — schema columns (`two_factor_secret`/`two_factor_enabled`) exist, no flow — not built. (Password
+  reset is now DONE — see the auth chapter above / DECISIONS.md 2026-07-13.)
 
 **Other deferrals:** promo codes + deposits on the booking engine (schema only); `guests.stripe_customer_id`
 / saved cards (blind-index story); **auto-FX provider** (statements take an operator-supplied rate — no
 silent float); **maintenance-ticket source** for maintenance expenses (no maintenance module yet — the
-polymorphic `owner_expenses.source` hook is ready); **`UnitFactory` test-infra debt** (hard-codes its own
-org, unlike `ChannelFactory`/`OwnerFactory`; owner tests pass `organization_id`/`unit_id` explicitly) —
-fix in a dedicated pass, not mid-work; plus standing Phase 1 deferrals (blind-index guest matching,
+polymorphic `owner_expenses.source` hook is ready); plus standing Phase 1 deferrals (blind-index guest matching,
 gap-free invoice numbering, dated out-of-order ranges, `inventory_blocks.quantity`, tenant-custom
 amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**217 tests / 3280 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**239 tests / 3372 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -288,7 +285,12 @@ one-books with no overbooking**), together. The true-parallel no-double-booking 
   `OwnerPortalIsolationTest` (+ shared `tests/Support/owner_helpers.php`).
 - **Real auth security tests** — `AuthLoginTest` (active-only, rate limit, no enumeration, role-routing,
   session) + the invite suite; `PhaseBEndToEndTest` proves the whole invite chain as one continuous
-  browser-less flow (hashed/single-use token, no-enumeration, hashed password, auto-login, owner-scope).
+  browser-less flow (hashed/single-use token, no-enumeration, hashed password, auto-login, owner-scope);
+  `PasswordResetTest` (no-enum, active-only, single-use, expiring, rate-limited, hashed round-trip);
+  `PruneExpiredInvitesTest` (conservative prune + untouched/idempotent/tenant-safe cases).
+- **Tier 1 finishing-sweep tests** — `CheckoutDirtiesUnitTest` (checkout→unit dirty via the real
+  service/event chain, real dirty→clean cycle, idempotent) · `UnitFactoryContextTest` (factory respects
+  tenant context + explicit-override).
 - **THREE browser-verified user journeys** (Playwright, real demo data — beyond feature tests): **(1)
   public booking** (browse→room→checkout→real direct booking), **(2) operator ops**
   (calendar/front-desk/housekeeping/folio/dashboard), **(3) owner portal** (dashboard/statement/payouts/
