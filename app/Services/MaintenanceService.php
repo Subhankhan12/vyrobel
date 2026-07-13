@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Availability;
 use App\Models\MaintenanceTicket;
+use App\Models\Unit;
+use App\Models\UnitStatusLog;
+use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Money\Money;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -18,8 +23,16 @@ use RuntimeException;
  * Emits post-commit `maintenance_ticket.*` domain events; these are ONE-DIRECTIONAL and are NOT in the
  * availability-recompute trigger set, so a plain ticket never touches `sold`/availability.
  *
- * NOTE: the out-of-service ↔ availability wiring (Step 2) and the cost → owner-expense wiring (Step 3)
- * are layered on top of this service — this file is the ticket lifecycle ONLY.
+ * OUT OF SERVICE ↔ AVAILABILITY (Step 2): a `takes_out_of_service` ticket, when opened/started, transitions
+ * its unit to `out_of_service` via `setUnitCondition` (a real condition_status transition + `unit_status_logs`
+ * row), which emits `unit.condition_changed` over the room-type's published window. The EXISTING
+ * `RecomputeAvailabilityOnInventoryChange` listener consumes that and recomputes — `out_of_service` is
+ * already counted into `out_of_order`, so the unit is no longer offered. AvailabilityService and the
+ * AssignmentService locking core are NOT modified; `sold` is never touched. Resolving/cancelling returns
+ * the unit to service ONLY when no OTHER active `takes_out_of_service` ticket still holds it. An existing
+ * booking on a now-OOS unit is NEVER auto-cancelled (flagged for manual handling).
+ *
+ * NOTE: the cost → owner-expense wiring (Step 3) is layered on top — not in this file yet.
  */
 class MaintenanceService
 {
@@ -51,6 +64,8 @@ class MaintenanceService
 
         $this->domainEvents->record('maintenance_ticket.opened', $ticket, ['unit_id' => (string) $ticket->unit_id]);
         $this->audit->record('maintenance_ticket.opened', $ticket, null, ['status' => 'open']);
+
+        $this->takeUnitOutIfNeeded($ticket);   // OOS ticket → unit out_of_service (Step 2)
 
         return $ticket->refresh();
     }
@@ -86,6 +101,8 @@ class MaintenanceService
         $this->domainEvents->record('maintenance_ticket.started', $ticket, []);
         $this->audit->record('maintenance_ticket.started', $ticket, ['status' => 'open'], ['status' => 'in_progress']);
 
+        $this->takeUnitOutIfNeeded($ticket->refresh());   // idempotent — no-op if already out of service
+
         return $ticket->refresh();
     }
 
@@ -114,6 +131,8 @@ class MaintenanceService
         ]);
         $this->audit->record('maintenance_ticket.resolved', $ticket, ['status' => $from], ['status' => 'resolved']);
 
+        $this->releaseUnitIfClear($ticket->refresh());   // back in service iff no other active OOS ticket
+
         return $ticket->refresh();
     }
 
@@ -128,7 +147,113 @@ class MaintenanceService
         $this->domainEvents->record('maintenance_ticket.cancelled', $ticket, ['unit_id' => (string) $ticket->unit_id]);
         $this->audit->record('maintenance_ticket.cancelled', $ticket, ['status' => $from], ['status' => 'cancelled']);
 
+        $this->releaseUnitIfClear($ticket->refresh());   // back in service iff no other active OOS ticket
+
         return $ticket->refresh();
+    }
+
+    /**
+     * Transition a unit's condition_status and record it in `unit_status_logs` (type=condition). Emits
+     * `unit.condition_changed` (with the room-type's published window) — the EXISTING availability-recompute
+     * listener consumes it. Idempotent: a no-op when already at the target status. NEVER mutates `sold`.
+     */
+    public function setUnitCondition(Unit $unit, string $toStatus, ?User $by = null): ?UnitStatusLog
+    {
+        $fromStatus = (string) $unit->condition_status;
+        if ($fromStatus === $toStatus) {
+            return null;   // idempotent
+        }
+
+        $log = DB::transaction(function () use ($unit, $fromStatus, $toStatus, $by): UnitStatusLog {
+            $unit->update(['condition_status' => $toStatus]);
+
+            return UnitStatusLog::create([
+                'unit_id' => $unit->getKey(),
+                'from_status' => $fromStatus,
+                'to_status' => $toStatus,
+                'type' => 'condition',
+                'changed_by' => $by?->getKey() ?? Auth::id(),
+                'created_at' => now(),
+            ]);
+        });
+
+        // Inventory-STRUCTURE event the availability listener already consumes → recompute
+        // total/out_of_order/blocked (out_of_service is counted into out_of_order). This never touches sold.
+        [$start, $end] = $this->publishedWindow((string) $unit->room_type_id);
+        $this->domainEvents->record('unit.condition_changed', $unit, [
+            'room_type_id' => (string) $unit->room_type_id,
+            'start_date' => $start,
+            'end_date' => $end,
+            'from' => $fromStatus,
+            'to' => $toStatus,
+        ]);
+        $this->audit->record('unit.condition_changed', $unit, ['condition_status' => $fromStatus], ['condition_status' => $toStatus]);
+
+        return $log;
+    }
+
+    /** Take an IN-SERVICE unit out of service for an OOS ticket. Never clobbers an existing out_of_order state. */
+    private function takeUnitOutIfNeeded(MaintenanceTicket $ticket): void
+    {
+        if (! $ticket->takes_out_of_service) {
+            return;
+        }
+
+        $unit = Unit::query()->find($ticket->unit_id);
+        if ($unit !== null && (string) $unit->condition_status === 'in_service') {
+            $this->setUnitCondition($unit, 'out_of_service');
+        }
+    }
+
+    /**
+     * Return the unit to service ONLY if this closed ticket was an OOS ticket AND no OTHER active
+     * (open/in_progress) OOS ticket still holds the unit (the two-tickets case). Only ever clears an
+     * `out_of_service` set by maintenance — never an unrelated out_of_order.
+     */
+    private function releaseUnitIfClear(MaintenanceTicket $ticket): void
+    {
+        if (! $ticket->takes_out_of_service) {
+            return;
+        }
+
+        $stillHeld = MaintenanceTicket::query()
+            ->where('unit_id', $ticket->unit_id)
+            ->where('id', '!=', $ticket->getKey())
+            ->where('takes_out_of_service', true)
+            ->whereIn('status', ['open', 'in_progress'])
+            ->exists();
+
+        if ($stillHeld) {
+            return;   // another active OOS ticket still holds the unit
+        }
+
+        $unit = Unit::query()->find($ticket->unit_id);
+        if ($unit !== null && (string) $unit->condition_status === 'out_of_service') {
+            $this->setUnitCondition($unit, 'in_service');
+        }
+    }
+
+    /**
+     * The `[start, end)` window covering the room-type's currently-published availability (min..max of
+     * `availability.date`), so the recompute updates every offered night. A minimal window if none published.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function publishedWindow(string $roomTypeId): array
+    {
+        $min = Availability::query()->where('room_type_id', $roomTypeId)->min('date');
+        $max = Availability::query()->where('room_type_id', $roomTypeId)->max('date');
+
+        if (! is_string($min) || ! is_string($max)) {
+            $today = CarbonImmutable::now()->toDateString();
+
+            return [$today, CarbonImmutable::now()->addDay()->toDateString()];
+        }
+
+        return [
+            CarbonImmutable::parse($min)->toDateString(),
+            CarbonImmutable::parse($max)->addDay()->toDateString(),   // half-open, inclusive of the max night
+        ];
     }
 
     /** @param list<string> $allowedFrom */

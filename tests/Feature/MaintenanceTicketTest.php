@@ -102,16 +102,16 @@ it('uses the enforced morph alias', function () {
         ->and(DomainEvent::query()->where('event_type', 'maintenance_ticket.opened')->value('subject_type'))->toBe('maintenance_ticket');
 });
 
-// ── A plain ticket event does NOT touch availability/sold (no out-of-service wiring in Step 1) ───
-it('does not affect availability or sold when a ticket is opened', function () {
+// ── A PLAIN (non-OOS) ticket does NOT touch availability/sold — the lifecycle is inventory-inert ──
+it('does not affect availability or sold for a plain ticket', function () {
     $s = seedScenario(3);   // 3 units, availability published 2026-09-01..10
     $availability = app(AvailabilityService::class);
 
     $availableBefore = $availability->availableOn($s['roomType']->id, '2026-09-05');
     $soldBefore = soldOn($s['roomType']->id, '2026-09-05');
 
-    // Even a takes_out_of_service ticket does nothing yet — that wiring is Step 2.
-    app(MaintenanceService::class)->start(openTicket($s, ['takes_out_of_service' => true]));
+    // A ticket that does NOT take the unit out of service leaves inventory untouched (OOS is separate).
+    app(MaintenanceService::class)->start(openTicket($s, ['takes_out_of_service' => false]));
 
     expect($availability->availableOn($s['roomType']->id, '2026-09-05'))->toBe($availableBefore)
         ->and(soldOn($s['roomType']->id, '2026-09-05'))->toBe($soldBefore);
