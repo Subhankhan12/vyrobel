@@ -794,6 +794,46 @@ context-aware default and the explicit-override. **Full suite unchanged at 237 p
 239 / 3372 green; PHPStan L5 0; Pint clean.** (`HousekeepingTaskFactory` carries the same latent pattern but
 is out of this scope and currently unused.)
 
+### 2026-07-14 — Demo-readiness polish: room photos + PDF export
+
+Two additive pieces to make the validated core look/feel like a real product. No change to the certified
+booking/owner-accounting cores beyond additive wiring; honesty rule held throughout.
+
+**Room photos (Part A):** REUSE the shared polymorphic `media` table (convention #7 — never a parallel
+photo table): additive migration adds `collection`/`sort_order`/`is_cover`/`alt`; `HasPhotos` on RoomType
+(the sellable entity) gives `photos()` + `coverPhoto()`. Operator upload/reorder/cover/remove via
+`RoomTypePhotoController` (the operator-mutation POST→PRG pattern). **SECURITY** (the app's first file
+upload, treated as an attack surface): accepts only real images (`image` rule validates actual content +
+`mimes:jpeg,jpg,png,webp`, so a disguised `.jpg` is rejected), size-capped (5 MB), **generated ULID
+filenames** (user's filename never used → no path traversal), stored on the `public` disk deliberately;
+**tenant-scoped** (room-type + photo resolve via string ids → cross-org 404, nothing written). Rendered on
+the storefront (cover + gallery) + operator/owner unit cards, with the **decorative gradient kept as the
+honest fallback** for no-photo rooms ("Photos soon" removed). **Storage:** local `public` disk in dev
+(`storage:link`; generated files gitignored, regenerate on seed); **S3/cloud is the production path
+(flagged, not hardcoded).** Demo photos are REAL, locally-generated JPEGs (`Support\Media\PlaceholderImage`
+via GD) — never hotlinked or fabricated URLs.
+
+**PDF export (Part B):** `barryvdh/laravel-dompdf` (dompdf) ^3.1 + a thin `PdfService`. Branded, **PDF-safe**
+documents (table layout + inline CSS + DejaVu Sans for € / U+2212 — NOT the app's frosted glass). Two
+documents, both from REAL data (services called, never modified) with **NO invented lines**:
+- **Owner statement** (`OwnerStatementPdfController` + `Support\Pdf\OwnerStatementDocument`) — **owner-scoped**
+  (id → `findOrFail` under OwnerScope → cross-owner 404, fail-closed for non-linked); gross → commission →
+  fee → expenses → OTA → net, provisional lines flagged, FX only on a real conversion.
+- **Operator folio** (`FolioPdfController` + `Support\Pdf\FolioDocument`) — **tenant-scoped** (id → `findOrFail`
+  → cross-org 404); the append-only ledger (charges +, settled payments −, refunds their own + line).
+- Both **reconcile to the on-screen figures to the cent AND to the character** via a shared
+  `Support\Money\MoneyFormatter` (the owner/operator screens now delegate to it) + a shared
+  `Support\Folio\FolioTotals` (the folio reconciliation formula, now used by both the screen and the PDF —
+  removing the duplication). The fake "card-processing fee" never appears. Wired to the previously-"Soon"
+  download affordances; **CSV export + remittance/booking-summary PDFs + folio print stay honestly deferred.**
+
+**Verified:** browser — an operator uploaded a real JPEG (stored as a ULID filename, rendered on the
+storefront gallery + unit cards); an owner downloaded `vyrobel-statement-1-2026-09.pdf` showing
+€1,080.00 − €194.40 + €0.00 (PROVISIONAL) = €885.60 (matching the screen); an operator downloaded a folio
+PDF (Room +€300 / Tax +€69 / Payment −€369 → balance €0.00). Tests: `RoomPhotosTest` (7),
+`RoomTypePhotoUploadTest` (10), `OwnerStatementPdfTest` (5), `FolioPdfTest` (5). **Full suite 266 tests /
+3461 assertions green; PHPStan L5 0 errors; Pint clean.**
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->

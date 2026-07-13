@@ -6,9 +6,9 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `b5bd52c`** on `main`, working tree clean (only the untracked design-source exports under
-  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 239 tests
-  / 3372 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
+- **HEAD `f8f5e98`** on `main`, working tree clean (only the untracked design-source exports under
+  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 266 tests
+  / 3461 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
   of writing; the final docs-only commit advances it by one with no state change.)
@@ -33,10 +33,18 @@ conflicts with the repo, **trust the repo** and fix this file.
   `components/layouts/operator`+`<x-operator.shell>`+`FormatsOperatorData` · `components/public/shell`
   (server-rendered, no Livewire). Operator writes use **POST→controller→service-action→PRG**; the public
   checkout write is session-CSRF-protected and goes through `AssignmentService`/`FolioService`.
+- **DEMO-READINESS POLISH — DONE (2026-07-14).** **Room photos:** real operator uploads on the shared
+  `media` table (secure upload — content-validated images, ULID filenames, size cap, tenant-scoped),
+  rendered on the storefront (cover + gallery) + unit cards with the **gradient fallback kept**; storage =
+  local `public` disk in dev (**S3 for prod, flagged**). **PDF export:** the **owner statement**
+  (owner-scoped) and the **operator folio** (tenant-scoped) download as branded, PDF-safe documents
+  (`barryvdh/laravel-dompdf`) that **reconcile to the on-screen figures to the cent** (shared
+  `MoneyFormatter` + `FolioTotals`), no invented lines. Still deferred: descriptions/reviews, CSV export,
+  remittance/booking-summary PDFs. See `docs/DECISIONS.md` 2026-07-14.
 - **THE CORE PRODUCT IS COMPLETE & DEMOABLE end-to-end** — a real hybrid operator could run day-to-day
   operations (calendar/front-desk/housekeeping/folio/dashboard/units), an owner could read their
-  statements/payouts/units, and a guest could book direct (browse→room→checkout→confirmation, a real
-  guarded write). See "NEXT ACTION" for the validation/next-module fork.
+  statements/payouts/units + download a PDF, and a guest could book direct (browse→room→checkout→
+  confirmation, a real guarded write) — the storefront now shows real photos. See "NEXT ACTION".
 - **Phase 1 CERTIFIED** (multi-tenant core) · **Phase 2 CERTIFIED** (channel manager + payments +
   booking engine + staff layer; **Stripe validated against real test-mode 2026-07-03**) · **Phase 3 ·
   Module 1 — Owner Accounting & Payouts CERTIFIED** (2026-07-03).
@@ -115,6 +123,16 @@ conflicts with the repo, **trust the repo** and fix this file.
   `App\Http\Controllers\Auth\Concerns\RedirectsByRole`). **Expired-invite prune** =
   `App\Console\Commands\PruneExpiredInvites` → `OwnerInviteService::pruneExpired()` (scheduled daily).
   Email delivery = Mailpit in dev (prod provider deferred).
+- **Photos** — shared `media` table (collection `photos`) via `App\Models\Concerns\HasPhotos` on RoomType;
+  operator upload/reorder/cover/remove through `App\Http\Controllers\Operator\RoomTypePhotoController`
+  (secure: content-validated images, ULID filenames, size cap, tenant-scoped); `public` disk (S3 for prod).
+  Rendered on the storefront + unit/owner cards with a gradient fallback. `App\Support\Media\PlaceholderImage`
+  seeds real demo JPEGs.
+- **PDF export** — `App\Services\PdfService` (barryvdh/laravel-dompdf) renders branded, PDF-safe documents:
+  **owner statement** (`App\Http\Controllers\Owner\OwnerStatementPdfController` + `Support\Pdf\OwnerStatementDocument`,
+  owner-scoped) · **operator folio** (`App\Http\Controllers\Operator\FolioPdfController` + `Support\Pdf\FolioDocument`,
+  tenant-scoped). Both reconcile to the screen to the cent via the shared `Support\Money\MoneyFormatter` +
+  `Support\Folio\FolioTotals`.
 
 ## INVARIANTS THAT MUST NEVER BREAK (the full guarantee stack)
 
@@ -221,9 +239,12 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **Stripe card entry at checkout** (Stripe Elements + 3DS) — the public checkout wires **manual /
   pay-on-arrival** through `FolioService` (real, append-only); real card capture is tied to the deferred
   Stripe live checkpoint. No fake card field.
-- **Room photos / gallery + descriptions + reviews** — no media bytes and no description/review schema;
-  the storefront shows a decorative gradient banner only, honestly flagged ("Photos soon"). Not
-  fabricated.
+- **Room photos — DONE** (no longer deferred). Real operator uploads on the shared `media` table (collection
+  `photos`, `HasPhotos` on RoomType); secure upload (content-validated images, ULID filenames, size cap,
+  tenant-scoped) on the Operator Units screen; rendered on the storefront (cover + gallery) + unit cards,
+  with the **gradient fallback kept** for no-photo rooms. Storage = the local **`public` disk** in dev
+  (`storage:link`); **S3/cloud is the production path** (flagged, not hardcoded). **Descriptions + reviews
+  stay deferred** (no schema).
 - **The remaining design-only screens** — **~89** of the ~119-file Claude Design library (`docs/design/
   CATALOGUE.md`) map to FUTURE modules with **no backend today** and were deliberately NOT built: the full
   **guest portal** (~32), **unified inbox** (Operator/Owner/Guest Messages), the **maintenance** module,
@@ -231,10 +252,15 @@ conflicts with the repo, **trust the repo** and fix this file.
   (Reports/Insights, ADR/RevPAR trends). Do NOT build backend for these ad hoc — each is a gated module.
   *(The "~89" is an estimate; `docs/design/CATALOGUE.md` is the authoritative per-file inventory and
   backend-status legend — read it before starting any new screen.)*
+- **PDF export — DONE** (no longer deferred): the **owner statement** (owner-scoped) and the **operator
+  folio** (tenant-scoped) both download as branded, PDF-safe documents via `barryvdh/laravel-dompdf` +
+  `App\Services\PdfService`, reconciling to the on-screen figures **to the cent** (shared `MoneyFormatter`
+  + `FolioTotals`). **Still deferred:** **CSV** export, the **remittance-advice / booking-summary** PDFs,
+  and folio **print** — honestly flagged "Soon".
 - **Per-screen deferred affordances** are logged in each screen's DECISIONS entry — e.g. rack
   drag-to-reschedule; housekeeping drag + assign-housekeeper (no assign method); reservation-detail
   add-charge / void / partial refund / move-room / cancel; dashboard revenue-trend / ADR / RevPAR;
-  owner-portal PDF/CSV export, IBAN/payout-method, approvals/action-center.
+  owner-portal IBAN/payout-method, approvals/action-center.
 
 **Auth deferrals (Phase A + B complete; these are flagged, not faked — see DECISIONS.md 2026-07-13):**
 - **Manager / Accountant invites — WIRED** (no longer deferred). The invite flow now covers **owner +
@@ -260,7 +286,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**239 tests / 3372 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**266 tests / 3461 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -291,6 +317,10 @@ one-books with no overbooking**), together. The true-parallel no-double-booking 
 - **Tier 1 finishing-sweep tests** — `CheckoutDirtiesUnitTest` (checkout→unit dirty via the real
   service/event chain, real dirty→clean cycle, idempotent) · `UnitFactoryContextTest` (factory respects
   tenant context + explicit-override).
+- **Demo-readiness tests** — `RoomPhotosTest` + `RoomTypePhotoUploadTest` (photos on the media table;
+  secure upload — rejects non-image/disguised/oversized; cross-org 404; display + gradient fallback) ·
+  `OwnerStatementPdfTest` + `FolioPdfTest` (branded PDFs reconcile to the cent; owner/tenant-scoped
+  download → cross-owner/cross-org 404; no invented lines; PDF-safe).
 - **THREE browser-verified user journeys** (Playwright, real demo data — beyond feature tests): **(1)
   public booking** (browse→room→checkout→real direct booking), **(2) operator ops**
   (calendar/front-desk/housekeeping/folio/dashboard), **(3) owner portal** (dashboard/statement/payouts/

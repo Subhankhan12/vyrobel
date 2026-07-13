@@ -117,8 +117,13 @@
                         <div class="vy-defer-item"><span>Void</span><span class="vy-soon-tag">Soon</span></div>
                         <div class="vy-defer-item"><span>Move room</span><span class="vy-soon-tag">Soon</span></div>
                         <div class="vy-defer-item"><span>Modify · cancel</span><span class="vy-soon-tag">Soon</span></div>
-                        <div class="vy-defer-item"><span>Export · print</span><span class="vy-soon-tag">Soon</span></div>
                     </div>
+                    {{-- REAL folio PDF export (tenant-scoped, reconciles to the cent). CSV export stays deferred. --}}
+                    <a href="{{ route('app.reservations.folio-pdf', $reservation['id']) }}" class="vy-btn vy-btn--accent" style="margin-top:12px;width:100%;justify-content:center" title="Download the folio as a PDF">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
+                        Export folio (PDF)
+                    </a>
+                    <div class="vy-defer-item" style="margin-top:8px;"><span>Export CSV · print</span><span class="vy-soon-tag">Soon</span></div>
                     <div class="vy-recon" style="margin-top: 6px;">Move room routes through the guarded AssignmentService — deferred until it persists safely from here.</div>
                 </div>
             </div>

@@ -1,0 +1,111 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Support\Pdf;
+
+use App\Models\Folio;
+use App\Models\Organization;
+use App\Models\Reservation;
+use App\Support\Folio\FolioTotals;
+use App\Support\Money\MoneyFormatter;
+use Carbon\CarbonImmutable;
+
+/**
+ * Builds the operator FOLIO PDF view data from the REAL append-only ledger (folio_items + payments —
+ * read only, services never modified). Charges are positive, settled payments negative, refunds their
+ * OWN offsetting line (correct-by-reversal), holds/pending/failed shown with no balance effect. The
+ * reconciliation figures come from the SHARED {@see FolioTotals} (the same formula the on-screen folio
+ * uses), and money is formatted via the shared {@see MoneyFormatter} — so the PDF matches the screen's
+ * charges / paid / balance to the cent (and character). No invented line items.
+ */
+final class FolioDocument
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public static function data(Reservation $reservation): array
+    {
+        $currency = (string) ($reservation->currency ?? 'EUR');
+        $guest = $reservation->leadGuest;
+        $guestName = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
+
+        $folio = Folio::query()
+            ->where('reservation_id', $reservation->id)
+            ->with(['items', 'payments'])
+            ->first();
+
+        $lines = [];
+        $totals = ['charges_minor' => 0, 'paid_minor' => 0, 'balance_minor' => 0];
+
+        if ($folio !== null) {
+            $lines = self::ledger($folio, $currency);
+            $totals = FolioTotals::for($folio);
+        }
+
+        return [
+            'operator' => (string) (Organization::query()->whereKey($reservation->organization_id)->value('name') ?? 'Vyrobel'),
+            'property' => (string) ($reservation->property->name ?? ''),
+            'reference' => (string) $reservation->reference,
+            'guest' => $guestName !== '' ? $guestName : null,
+            'stay' => CarbonImmutable::parse($reservation->check_in)->format('j M Y').' – '.CarbonImmutable::parse($reservation->check_out)->format('j M Y'),
+            'currency' => $currency,
+            'has_folio' => $folio !== null,
+            'lines' => $lines,
+            'charges' => MoneyFormatter::display($totals['charges_minor'], $currency),
+            'paid' => MoneyFormatter::display($totals['paid_minor'], $currency),
+            'balance' => MoneyFormatter::display($totals['balance_minor'], $currency),
+            'balance_minor' => $totals['balance_minor'],
+        ];
+    }
+
+    /**
+     * The chronological ledger lines, mirroring the on-screen sign conventions (charges +, settled
+     * payments −, refunds their own + line, holds/pending flagged and uncounted).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function ledger(Folio $folio, string $currency): array
+    {
+        $entries = [];
+
+        foreach ($folio->items as $item) {
+            $amount = (int) $item->amount_minor;
+            $entries[] = [
+                'ts' => CarbonImmutable::parse($item->posted_at ?? $item->created_at)->getTimestamp(),
+                'line' => [
+                    'label' => ucfirst(str_replace('_', ' ', (string) $item->type)),
+                    'desc' => (string) $item->description,
+                    'date' => CarbonImmutable::parse($item->service_date ?? $item->posted_at ?? $item->created_at)->format('j M'),
+                    'amount' => ($amount < 0 ? '' : '+').MoneyFormatter::display($amount, $currency),
+                    'is_negative' => $amount < 0,
+                    'flag' => null,
+                ],
+            ];
+        }
+
+        foreach ($folio->payments as $payment) {
+            $amount = (int) $payment->amount_minor;
+            $type = (string) $payment->type;
+            $status = (string) $payment->status;
+            $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->format('j M');
+
+            if (in_array($type, ['payment', 'capture'], true) && in_array($status, ['succeeded', 'captured'], true)) {
+                $line = ['label' => $type === 'capture' ? 'Capture' : 'Payment', 'desc' => 'Received', 'date' => $date, 'amount' => '−'.MoneyFormatter::display($amount, $currency), 'is_negative' => true, 'flag' => null];
+            } elseif ($type === 'refund' && $status === 'succeeded') {
+                $line = ['label' => 'Refund', 'desc' => 'Reverses a payment', 'date' => $date, 'amount' => '+'.MoneyFormatter::display($amount, $currency), 'is_negative' => false, 'flag' => null];
+            } elseif ($type === 'deposit_hold' && $status === 'authorized') {
+                $line = ['label' => 'Deposit hold', 'desc' => 'Pre-authorized', 'date' => $date, 'amount' => MoneyFormatter::display($amount, $currency), 'is_negative' => false, 'flag' => 'Hold'];
+            } else {
+                $flag = $status === 'pending' ? 'Pending' : ucfirst($status);
+                $line = ['label' => ucfirst(str_replace('_', ' ', $type)), 'desc' => 'Not counted in the balance', 'date' => $date, 'amount' => MoneyFormatter::display($amount, $currency), 'is_negative' => false, 'flag' => $flag];
+            }
+
+            $entries[] = ['ts' => CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->getTimestamp(), 'line' => $line];
+        }
+
+        usort($entries, fn (array $a, array $b): int => $a['ts'] <=> $b['ts']);
+
+        return array_map(fn (array $e): array => $e['line'], $entries);
+    }
+}

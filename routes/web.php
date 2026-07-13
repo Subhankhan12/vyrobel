@@ -7,6 +7,7 @@ use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
+use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
@@ -126,6 +127,9 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     Route::post('/room-types/{roomType}/photos/{photo}/move', [RoomTypePhotoController::class, 'move'])->name('room-types.photos.move');
     Route::delete('/room-types/{roomType}/photos/{photo}', [RoomTypePhotoController::class, 'destroy'])->name('room-types.photos.destroy');
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
+    // Demo-readiness · Part B — operator folio PDF. TENANT-scoped (string id → findOrFail → cross-org 404).
+    // Real append-only ledger; reconciles to the cent; streams application/pdf.
+    Route::get('/reservations/{reservation}/folio.pdf', [FolioPdfController::class, 'download'])->name('reservations.folio-pdf');
     // Design pass · Operator Screen 4 — REAL append-only folio actions via POST → controller →
     // FolioService → redirect (PRG). {reservation} is a string param resolved tenant-scoped in the
     // controller (never RMB) → cross-org 404. A refund is a NEW offsetting entry (never an edit).

@@ -9,6 +9,7 @@ use App\Models\Folio;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
+use App\Support\Folio\FolioTotals;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -113,10 +114,8 @@ class ReservationDetail extends Component
         /** @var list<array{ts: int, entry: array<string, mixed>}> $entries */
         $entries = [];
 
-        $chargesMinor = 0;
         foreach ($folioModel->items as $item) {
             $amount = (int) $item->amount_minor;
-            $chargesMinor += $amount;
             $entries[] = [
                 'ts' => CarbonImmutable::parse($item->posted_at ?? $item->created_at)->getTimestamp(),
                 'entry' => [
@@ -132,30 +131,20 @@ class ReservationDetail extends Component
             ];
         }
 
-        $receivedMinor = 0;
-        $refundedMinor = 0;
         foreach ($folioModel->payments as $payment) {
             $entries[] = ['ts' => CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->getTimestamp(), 'entry' => $this->paymentEntry($payment, $currency)];
-
-            $amount = (int) $payment->amount_minor;
-            $type = (string) $payment->type;
-            $pstatus = (string) $payment->status;
-            if (in_array($type, ['payment', 'capture'], true) && in_array($pstatus, ['succeeded', 'captured'], true)) {
-                $receivedMinor += $amount;
-            } elseif ($type === 'refund' && $pstatus === 'succeeded') {
-                $refundedMinor += $amount;
-            }
         }
 
         usort($entries, fn (array $a, array $b): int => $a['ts'] <=> $b['ts']);
 
-        $paidMinor = $receivedMinor - $refundedMinor;
-        $balanceMinor = $chargesMinor - $paidMinor;
+        // Reconciliation figures come from the SHARED FolioTotals formula (same one the folio PDF uses).
+        $totals = FolioTotals::for($folioModel);
+        $balanceMinor = $totals['balance_minor'];
 
         return [
             'ledger' => array_map(fn (array $e): array => $e['entry'], $entries),
-            'charges' => $this->money($chargesMinor, $currency),
-            'paid' => $this->money($paidMinor, $currency),
+            'charges' => $this->money($totals['charges_minor'], $currency),
+            'paid' => $this->money($totals['paid_minor'], $currency),
             'balance' => $this->money($balanceMinor, $currency),
             'balance_minor' => $balanceMinor,
             'has_balance' => $balanceMinor > 0,
