@@ -584,6 +584,31 @@ Baseline audit green (`php artisan test` = 84 tests / 509 assertions) before any
   entry at checkout, room photos/descriptions/reviews); OR the next Phase 3 module (Unified Inbox); OR a
   live-integration checkpoint (Channex staging / Stripe Connect payout rail).
 
+### 2026-07-12 — BROWSER-VERIFICATION PASS (3 user journeys) — 2 demo-data gaps found + fixed
+
+The styled surface was exercised end-to-end in a real browser (Playwright), not just by feature tests —
+three user journeys against the demo data. **No app logic changed; both fixes were demo DATA** (the
+`DemoSeeder`), and each gap was a shipped, tested feature left *undemoable* by missing seed data — exactly
+what a browser pass (not a unit test) surfaces.
+- **Flow 1 — public booking (`6e3ceb6`):** the `DemoSeeder` created the demo property with a **NULL slug**,
+  but `/book/{property}` resolves by **property slug** → the whole public storefront was unreachable for the
+  demo. Fix: seed `slug = 'seaside-demo'`. Proven in-browser: search → room → checkout → **real** direct
+  booking (`source=direct` via `AssignmentService`, inventory reserved at book, real manual payment through
+  `FolioService`, real reference). (Plus two browse-copy fixes: `middteman`→`middleman`; stale
+  "next screens" footer reworded.)
+- **Flow 3 — owner portal, THE WEDGE (`c66e258`):** `demo-owner@vyrobel-demo.test` was **not linked to an
+  Owner** and no owner-accounting data was seeded → `/owner` **failed closed** (empty portal), making the
+  wedge undemoable despite the certified backend. Fix (demo data **through the certified services** —
+  nothing fabricated): the demo user is a real Owner of apartments A1/A2 with an **18% agreement**; bookings
+  attributed via `OwnerAttributionService` → `owner_ledger`; a September statement finalized via
+  `OwnerStatementService`; a pending payout via `OwnerPayoutService`. **Net €885.60 = gross €1,080 − 18%
+  €194.40, reconciles to the cent** (ledger signed-sum == statement net). Proven in-browser across
+  dashboard / statement (no invented fee line, no PII) / payouts (real enum states only) / units
+  (owner-scoped occupancy) with the scope staying active across GET-link month nav.
+- **Flow 2 — operator ops:** exercised (calendar/front-desk/housekeeping/folio/dashboard); no gaps found.
+- **Verified:** the demo now demos the full loop (public booking → operator manages → owner sees reconciling
+  money). Suite **180 / 3014 green; PHPStan L5 0; Pint clean** — no app logic touched.
+
 ### 2026-07-13 — AUTH PHASE A (login/logout) + PHASE B (owner invite flow) — COMPLETE & secure
 
 Real, session-based authentication now fronts the whole app — **the temporary dev-login shim is gone**.

@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `2af4adf`** on `main`, working tree clean (only the untracked design-source exports under
+- **HEAD `4e32b0f`** on `main`, working tree clean (only the untracked design-source exports under
   `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 212 tests
   / 3220 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
@@ -180,6 +180,19 @@ conflicts with the repo, **trust the repo** and fix this file.
     `book/*/quote`,`book/*/book`). Guest PII (encrypted email/phone) is never rendered; guest NAMES are
     shown only on staff surfaces.
 
+**Auth (Phase A + B — these govern login + the owner invite flow):**
+21. **Auth security stack** — sign-in is **active-only** (`Auth::attempt(['status'=>'active'])`, so an
+    `invited`/`disabled` login can't authenticate); auth endpoints (login + `/invite/*`) are
+    **rate-limited** and return **generic, non-enumerating** errors (no "which email/invite exists"
+    leak — a spent invite token yields the byte-identical page as a garbage one); **passwords are hashed**
+    (`hashed` cast, never plaintext); **sessions regenerate** on login and on invite-activation.
+    Invite tokens are **high-entropy, stored ONLY as `sha256(plain)` (never plaintext), single-use**
+    (status `pending→accepted`), **7-day expiring**, and revocable. The operator invite write is
+    **tenant-scoped** (POST→controller→`OwnerInviteService`→PRG; a foreign unit id is dropped, never
+    assigned cross-org) and **owner-only** (Manager/Account rejected by `Rule::in(['owner'])` + a service
+    throw — defense-in-depth with the disabled UI). On activation **owner-scope binds** to the now-active
+    owner (invariant #18 still fails closed for a non-linked user). (Locked `docs/DECISIONS.md` 2026-07-13.)
+
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
 **TWO live-integration checkpoints (money/network rails — the only unproven-against-reality items):**
@@ -217,6 +230,14 @@ conflicts with the repo, **trust the repo** and fix this file.
   transactional provider in production. The flow is complete; only the transport is deferred.
 - **Password reset** ("Forgot password?" → "Soon") and **2FA** (schema columns exist, no flow) — not built.
 
+**Open product / ops questions (decide before the relevant module, not ad hoc):**
+- **Checkout doesn't mark the unit dirty** — a public booking reserves inventory but does not flip
+  housekeeping status; whether a future-dated booking should touch `housekeeping_status` (and when) is a
+  product decision, not a bug. Not wired.
+- **Expired / unaccepted invite cleanup** — `owner_invites` rows just sit `pending` past `expires_at`
+  (they're correctly non-redeemable; `findRedeemable` rejects them). No sweeper/scheduled prune or a
+  "resend/revoke" operator affordance yet — a small housekeeping job for the invite table.
+
 **Other deferrals:** promo codes + deposits on the booking engine (schema only); `guests.stripe_customer_id`
 / saved cards (blind-index story); **auto-FX provider** (statements take an operator-supplied rate — no
 silent float); **maintenance-ticket source** for maintenance expenses (no maintenance module yet — the
@@ -249,6 +270,15 @@ one-books with no overbooking**), together. The true-parallel no-double-booking 
 - **Owner Accounting suite (45 named tests):** `tests/Unit/MoneyAllocateTest` + `tests/Feature/`
   `OwnerAttributionTest`, `OwnerExpenseTest`, `OwnerStatementTest`, `OwnerPayoutTest`,
   `OwnerPortalIsolationTest` (+ shared `tests/Support/owner_helpers.php`).
+- **Real auth security tests** — `AuthLoginTest` (active-only, rate limit, no enumeration, role-routing,
+  session) + the invite suite; `PhaseBEndToEndTest` proves the whole invite chain as one continuous
+  browser-less flow (hashed/single-use token, no-enumeration, hashed password, auto-login, owner-scope).
+- **THREE browser-verified user journeys** (Playwright, real demo data — beyond feature tests): **(1)
+  public booking** (browse→room→checkout→real direct booking), **(2) operator ops**
+  (calendar/front-desk/housekeeping/folio/dashboard), **(3) owner portal** (dashboard/statement/payouts/
+  units, money reconciles to the cent). This pass **found + fixed the two demo-data gaps** (public slug,
+  owner-accounting seeding) — see `docs/DECISIONS.md` 2026-07-12; the demo now demos the full loop
+  end-to-end. (The invite modal + full auth login were also browser-verified during Phase B.)
 
 ## Owner portal — STYLED & LIVE (design pass complete)
 
@@ -354,22 +384,30 @@ it** (Phase A + B): an operator signs in, invites an owner, and that owner sets 
 their portal — so a live demo no longer needs a dev-login shim. **Before a real external demo, stand up
 email delivery** (Mailpit/SMTP) so the invite email actually lands — see the auth deferrals above.
 
-**Pick ONE — each needs a written, gated decision; NONE is started:**
-- **(a) Customer validation — RECOMMENDED.** Demo the working owner portal + booking loop to a real
-  hybrid operator **before building more**. The wedge (genuine owner accounting for a mixed hotel/
-  apartment/villa portfolio) is now demoable; let real feedback drive the roadmap over speculative breadth.
-  No code — a demo + discovery.
-- **(b) Next Phase 3 module — Unified Inbox** (WhatsApp/email/OTA/SMS): the largest remaining
-  differentiator; new backend + screens (gated, phased like Owner Accounting).
-- **(c) Close a live-integration checkpoint** when accounts exist — **Channex staging** (ARI/webhook/HMAC
+**Pick ONE — each needs a written, gated decision; NONE is started. The core product is complete —
+further building is lower-leverage than one real customer conversation:**
+- **(a) CUSTOMER VALIDATION — RECOMMENDED.** The product is complete & demoable. Stand up **Mailpit**
+  (`MAIL_MAILER=smtp` → Mailpit) so the invite email actually lands, then demo the **full loop to a real
+  hybrid operator**: public booking → operator manages the reservation → operator invites the owner →
+  owner sets a password → owner sees their statements/payouts with **money reconciling to the cent**. The
+  wedge (genuine owner accounting for a mixed hotel/apartment/villa portfolio) is now demoable; let real
+  feedback drive the roadmap over speculative breadth. No product code — config + a demo + discovery.
+- **(b) Demo polish** — Mailpit + any sharpening for a live showing (seed richness, copy, a scripted
+  walkthrough). Small, in service of (a).
+- **(c) Manager / Account team invites** — extend the existing invite flow to the two roles already
+  rendered-but-disabled (role plumbing + per-role scope; the UI + server-rejection already exist).
+- **(d) Close a live-integration checkpoint** when accounts exist — **Channex staging** (ARI/webhook/HMAC
   vs a real account) or the **Stripe Connect payout rail** (owner disbursement KYC). The only two money/
   network rails unproven against reality; run `docs/prompts/live-integration-checkpoint.md`.
-- **(d) Deferred in-product polish** — real **Stripe card entry** at checkout (Elements + 3DS, tied to the
-  Stripe checkpoint) · room **photos/descriptions/reviews**.
+- **(e) A new design-only module** — **Unified Inbox** (WhatsApp/email/OTA/SMS — the largest remaining
+  differentiator), or in-product polish (Stripe card entry at checkout · room photos/descriptions/reviews).
+  Each is a gated, phased build like Owner Accounting — no backend exists today.
 
 **If resuming design/build work:** inherit the relevant role design system (owner / operator / public — do
 NOT redefine it); wire live data through the existing services (call, never modify); honour the **design-
 pass honesty rule + the scoped-render/guarded-mutation discipline** (invariants #19–20 above); **per-gate
 commit + per-screen render/isolation (+ action-persistence) test**; wire the certified services, never a
-parallel write path. Read `docs/design/CATALOGUE.md` first (per-file backend-status legend); approved
-design source is `docs/design/raw/*`.
+parallel write path. Read `docs/design/CATALOGUE.md` first (per-file backend-status legend). **The `.md`
+design specs (`CATALOGUE.md`, `design-system-brief.md`, `owner-portal-spec.md`) ARE versioned;** the raw
+Claude Design HTML (`docs/design/raw/*`, 104MB of self-unpacking bundles) is the approved design source but
+is **gitignored / local-only** (regeneratable) — not present in a fresh clone.

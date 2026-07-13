@@ -31,3 +31,9 @@ CLAUDE.local.md
 /.playwright-mcp/
 /flow*.png
 /flow*.md
+
+# Design source: version the .md specs (CATALOGUE + design-system + owner-portal) as the
+# source-of-truth; keep the bulky raw Claude Design HTML exports OUT (104MB of self-unpacking
+# bundles, regeneratable) — they are referenced by path, not committed.
+/docs/design/raw/
+/docs/design/*.html
