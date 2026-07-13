@@ -6,11 +6,12 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `d8c6673`** on `main`, working tree clean (only the untracked design-source exports under
+- **HEAD `2af4adf`** on `main`, working tree clean (only the untracked design-source exports under
   `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 212 tests
   / 3220 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
-  `REDIS_CLIENT=predis`; `database` documented as fallback).
+  `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
+  of writing; the final docs-only commit advances it by one with no state change.)
 - **AUTH — COMPLETE & SECURE (Phase A login/logout + Phase B owner invite flow).** Real session auth now
   fronts the app; **the dev-login shim is gone.** Phase A: one shared login (operator+owner), active-only
   `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors, session regeneration,
