@@ -204,6 +204,81 @@ class OwnerInviteService
         }
     }
 
+    /**
+     * Prune genuinely EXPIRED, NEVER-ACCEPTED invites and their never-activated artifacts. CONSERVATIVE
+     * by design — over-cleanup is the only real risk, so every guard errs toward LEAVING things alone:
+     *
+     *   - Only invites that are `pending` AND `accepted_at IS NULL` AND past `expires_at` are marked
+     *     `expired`. (Accepted / revoked / still-valid invites are never touched.)
+     *   - The pending OWNER tied to such an invite is soft-removed ONLY if it is still `inactive` (never
+     *     activated) and its linked login is not active. (`owners.status` is an enum, so it is soft-deleted
+     *     rather than re-labelled.)
+     *   - The invited LOGIN is marked `expired` ONLY if it is still `invited` (never activated) AND has NO
+     *     remaining redeemable invite anywhere AND no accepted invite (so a login shared with a live/
+     *     accepted invite in another org is left intact — fail-safe on shared state).
+     *
+     * Runs as an explicit platform (super-admin) maintenance pass — cross-tenant, the documented escape
+     * hatch. Idempotent: a second run finds nothing to change.
+     *
+     * @return array{invites: int, owners: int, logins: int}
+     */
+    public function pruneExpired(): array
+    {
+        return app(TenantContext::class)->runAsSuperAdmin(function (): array {
+            $expired = OwnerInvite::query()
+                ->where('status', 'pending')
+                ->whereNull('accepted_at')
+                ->whereNotNull('expires_at')
+                ->where('expires_at', '<', now())
+                ->get();
+
+            $ownersRemoved = 0;
+            foreach ($expired as $invite) {
+                $invite->update(['status' => 'expired']);
+
+                if ($invite->owner_id === null) {
+                    continue;   // staff invite — no owner artifact
+                }
+
+                $owner = Owner::query()->find($invite->owner_id);
+                if ($owner === null || $owner->status !== 'inactive') {
+                    continue;   // already activated / already gone → leave it
+                }
+
+                // Never soft-remove an owner whose login is somehow active (inconsistent → fail safe).
+                $linkedUser = $owner->user_id !== null ? User::query()->find($owner->user_id) : null;
+                if ($linkedUser !== null && $linkedUser->status === 'active') {
+                    continue;
+                }
+
+                $owner->delete();   // soft-remove (enum status can't carry an 'expired' marker)
+                $ownersRemoved++;
+            }
+
+            $loginsMarked = 0;
+            foreach ($expired->pluck('email')->unique()->all() as $email) {
+                $user = User::query()->where('email', $email)->first();
+                if ($user === null || $user->status !== 'invited') {
+                    continue;   // never touch an active / already-activated login
+                }
+
+                $hasLiveInvite = OwnerInvite::query()
+                    ->where('email', $email)->where('status', 'pending')
+                    ->whereNotNull('expires_at')->where('expires_at', '>=', now())->exists();
+                $hasAccepted = OwnerInvite::query()->where('email', $email)->where('status', 'accepted')->exists();
+
+                if ($hasLiveInvite || $hasAccepted) {
+                    continue;   // shared with a live/accepted invite → leave the login intact
+                }
+
+                $user->update(['status' => 'expired']);
+                $loginsMarked++;
+            }
+
+            return ['invites' => $expired->count(), 'owners' => $ownersRemoved, 'logins' => $loginsMarked];
+        });
+    }
+
     /** Resolve the invited login. Owner invites carry an owner→user link; staff invites go by email. */
     private function userForInvite(OwnerInvite $invite): User
     {
