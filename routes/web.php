@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
@@ -34,6 +35,16 @@ Route::get('/', function () {
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store']);
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+
+/*
+ * PUBLIC accept-invite / set-password (Auth Phase B · Step 2). No auth — the invitee has no usable
+ * password yet; the sha256-hashed single-use token in the URL is the credential. Rate-limited (per IP)
+ * against token guessing; CSRF-protected POST (web group). Invalid/expired/spent → a generic page.
+ */
+Route::middleware('throttle:10,1')->group(function () {
+    Route::get('/invite/{token}', [AcceptInviteController::class, 'show'])->name('invite.accept');
+    Route::post('/invite/{token}', [AcceptInviteController::class, 'store']);
+});
 
 /*
  * Public, unauthenticated INBOUND Channex webhook (Step 4). Signature-authenticated, CSRF-exempt

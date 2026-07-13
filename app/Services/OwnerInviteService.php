@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Mail\OwnerInviteMail;
+use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\OwnerInvite;
+use App\Models\Unit;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Auth;
@@ -107,6 +109,68 @@ class OwnerInviteService
         Mail::to($email)->send(new OwnerInviteMail($invite, $token, $name));
 
         return ['invite' => $invite, 'token' => $token];
+    }
+
+    /**
+     * Resolve a REDEEMABLE invite from a plaintext token, or null. The token is matched by its sha256
+     * hash (O(1), plaintext never stored); a non-pending / expired / unknown token returns null so the
+     * caller can respond generically (no enumeration). Runs super-admin — the accept flow is public
+     * (the invitee has no org context yet).
+     */
+    public function findRedeemable(string $token): ?OwnerInvite
+    {
+        $token = trim($token);
+        if ($token === '') {
+            return null;
+        }
+
+        $invite = app(TenantContext::class)->runAsSuperAdmin(
+            fn (): ?OwnerInvite => OwnerInvite::query()->where('token_hash', hash('sha256', $token))->first(),
+        );
+
+        return ($invite !== null && $invite->isRedeemable()) ? $invite : null;
+    }
+
+    /**
+     * Redeem a valid invite: set the owner's password + ACTIVATE the login and owner, apply the assigned
+     * units + commission agreement, and SPEND the token (status → accepted, single-use). Runs in the
+     * invite's org context so every write is correctly scoped. Returns the now-active user.
+     */
+    public function accept(OwnerInvite $invite, string $password): User
+    {
+        return app(TenantContext::class)->forOrganization((string) $invite->organization_id, function () use ($invite, $password): User {
+            return DB::transaction(function () use ($invite, $password): User {
+                $owner = Owner::query()->findOrFail($invite->owner_id);
+                $user = User::query()->findOrFail($owner->user_id);
+
+                // 'hashed' cast hashes the plaintext once. Activate the login + owner + verify the email.
+                $user->update(['password' => $password, 'status' => 'active', 'email_verified_at' => now()]);
+                $owner->update(['status' => 'active']);
+
+                // Apply the operator's choices from the invite: assign units + a management agreement.
+                $unitIds = $invite->assigned_unit_ids ?? [];
+                if ($unitIds !== []) {
+                    Unit::query()->whereIn('id', $unitIds)->update(['owner_id' => $owner->getKey()]);
+                }
+                if ($invite->commission_pct !== null && ! ManagementAgreement::query()->where('owner_id', $owner->getKey())->where('status', 'active')->exists()) {
+                    ManagementAgreement::create([
+                        'owner_id' => $owner->getKey(),
+                        'unit_id' => null,
+                        'commission_pct' => $invite->commission_pct,
+                        'payout_currency' => (string) ($owner->payout_currency ?? 'EUR'),
+                        'payout_schedule' => 'monthly',
+                        'effective_from' => now()->toDateString(),
+                        'effective_to' => null,
+                        'status' => 'active',
+                    ]);
+                }
+
+                // SPEND the token — single-use. A reused/expired token can never activate again.
+                $invite->update(['status' => 'accepted', 'accepted_at' => now()]);
+
+                return $user->refresh();
+            });
+        });
     }
 
     /** Revoke a pending invite (a spent token can never be redeemed). */
