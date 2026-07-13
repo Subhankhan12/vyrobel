@@ -733,6 +733,45 @@ portal"). The set-password subtitle was de-ownered ("your Vyrobel account").
 - **DEFERRED still:** email DELIVERY in production (Mailpit is dev only); password reset; 2FA. Manager/
   Account invites are **no longer deferred** — they are wired.
 
+### 2026-07-13 — Tier 1 sweep · password reset (auth chapter complete)
+
+Real forgot/reset password on Laravel's **Password broker**, styled from "Vyrobel Reset Password" onto the
+shared auth tokens (login + set-password language). Same security posture as the rest of auth: **no
+enumeration** (`/forgot-password` always returns the identical generic status; **ACTIVE users only** — an
+invited-but-not-activated user has no password to reset and uses their invite, a distinction never leaked),
+**tokened single-use expiring** links (broker-owned), on reset the **password is hashed**, the
+**remember-token rotated** (signs out other sessions), the **session regenerated**, and the user signed in
++ **routed by role** (shared `RedirectsByRole` trait, extracted from `LoginController`). **Rate-limited**
+request endpoint; **CSRF** on all forms. Custom email-safe `PasswordResetMail` via
+`User::sendPasswordResetNotification` (brand-consistent with the invite email) → lands in **Mailpit** in
+dev; **production still needs a real provider**. The login "forgot password?" link is now real (was "Soon").
+- **Verified (browser + tests):** request reset for an active user → email in Mailpit → link → new password
+  → signed in at `/app`. `PasswordResetTest` (8): emailed to active; no-enumeration (ghost + invited get the
+  same generic response, no email); full round-trip (hashed, old fails / new works); single-use; expiring;
+  rate-limited; login link enabled. **Suite 225 / 3321 green; PHPStan L5 0; Pint clean.**
+
+### 2026-07-13 — Tier 1 sweep · PRODUCT DECISION: check-out dirties the unit
+
+**Decision:** on **check-OUT**, the departed unit becomes **`dirty`** (it needs cleaning before the next
+guest). — **Why:** previously check-out generated the departure-clean *task* but left the unit's
+`housekeeping_status` untouched, so the Units screen misreported a just-vacated unit as clean, and a later
+"mark clean" was a **clean→clean no-op** (the loop the browser pass flagged). Now the state reflects reality
+and a dirty→clean cycle is a **real** transition.
+- **How (on the real service/event chain, not inline):** the existing `GenerateDepartureCleanTask` listener
+  (the one-directional consumer of `reservation.checked_out` that already creates the departure task) now
+  ALSO flips each unit dirty **through `HousekeepingService::markUnitHousekeepingStatus`** — never inline in
+  the checkout action. That emits `unit.housekeeping_changed` (a **housekeeping-only** event NO inventory
+  consumer reacts to → never re-triggers availability recompute; the consumer discipline holds). **Idempotent:**
+  the unit is only dirtied when not already dirty; a double check-out is a no-op (the CheckOut action returns
+  early → no second event), so nothing doubles.
+- **KPI note:** the dashboard "to clean" (= pending + in_progress **tasks**) and the housekeeping board were
+  already correct off the departure task; this fix is about the **unit** status (Units screen) and closing
+  the dirty→clean cycle.
+- **Verified:** `CheckoutDirtiesUnitTest` (5) — checkout → unit dirty + departure task pending + a
+  from-clean→dirty log; the board shows it + the dashboard renders the to-clean KPI; a real dirty→clean cycle
+  (from-dirty→clean log, not a no-op); idempotent double-checkout; an already-dirty unit isn't re-dirtied.
+  **Suite 230 / 3339 green; PHPStan L5 0; Pint clean.**
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
