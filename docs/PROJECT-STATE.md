@@ -6,21 +6,23 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `4e32b0f`** on `main`, working tree clean (only the untracked design-source exports under
-  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 212 tests
-  / 3220 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
+- **HEAD `2d28b32`** on `main`, working tree clean (only the untracked design-source exports under
+  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 217 tests
+  / 3280 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
   of writing; the final docs-only commit advances it by one with no state change.)
-- **AUTH — COMPLETE & SECURE (Phase A login/logout + Phase B owner invite flow).** Real session auth now
-  fronts the app; **the dev-login shim is gone.** Phase A: one shared login (operator+owner), active-only
-  `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors, session regeneration,
-  role-routing (`/app` vs `/owner`), `/book` public. Phase B: operator invites an owner → **sha256-hashed,
-  single-use, 7-day, revocable** tokened email link → owner sets a **hashed** password → login+owner
-  activate, units assigned, commission agreement created, token **spent** → auto-login → their portal.
-  Proven by `PhaseBEndToEndTest` (one continuous 39-assertion chain). **DEFERRED, flagged not faked:**
-  **Manager/Accountant invites** (UI-disabled + server-rejected — owner only), **email DELIVERY** (dev =
-  `log` mailer; needs Mailpit/SMTP for real send), password reset, 2FA. See `docs/DECISIONS.md` 2026-07-13.
+- **AUTH — COMPLETE & SECURE (Phase A login/logout + Phase B invite flow: owner + staff).** Real session
+  auth now fronts the app; **the dev-login shim is gone.** Phase A: one shared login (operator+owner),
+  active-only `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors, session
+  regeneration, role-routing (`/app` vs `/owner`), `/book` public. Phase B: an operator invites via a
+  **sha256-hashed, single-use, 7-day, revocable** tokened email link → the invitee sets a **hashed**
+  password → activates → auto-login. **Three roles on one secure path:** OWNER → owner link + units +
+  agreement → `/owner`; **STAFF (Hotel Manager / Accountant)** → Membership + a **real, fail-safe-validated**
+  spatie catalog role → `/app` (no owner/agreement/units). Proven by `PhaseBEndToEndTest` (owner chain) +
+  `StaffInviteTest` (staff). **Dev email is wired to Mailpit** (invite emails land in a viewable inbox).
+  **DEFERRED, flagged not faked:** **email DELIVERY in production** (dev = Mailpit; needs a real provider),
+  password reset, 2FA. See `docs/DECISIONS.md` 2026-07-13.
 - **DESIGN PASS — COMPLETE. The whole styled surface over the certified backend is done — 13 screens:**
   **owner portal (4)** · **operator core (5) + Units (1)** · **public booking storefront (3, incl. the
   real checkout WRITE)**. All on the certified backends, honesty rule enforced per-screen by a render/
