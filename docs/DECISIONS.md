@@ -834,6 +834,50 @@ PDF (Room +€300 / Tax +€69 / Payment −€369 → balance €0.00). Tests: 
 `RoomTypePhotoUploadTest` (10), `OwnerStatementPdfTest` (5), `FolioPdfTest` (5). **Full suite 266 tests /
 3461 assertions green; PHPStan L5 0 errors; Pint clean.**
 
+### 2026-07-14 — MAINTENANCE MODULE built & certified (tickets + 2 integrations)
+
+A self-contained backend module that slotted into infrastructure deliberately left ready. Design +
+audit: `docs/schema/maintenance.md`. Mostly REUSE — one new table (`maintenance_tickets`).
+
+**Tickets core (Step 1):** `maintenance_tickets` (ULID, `BelongsToOrganization`, SoftDeletes, morph
+`maintenance_ticket`) + `MaintenanceService` mirroring `HousekeepingService`: guarded lifecycle
+`open → in_progress → resolved`, `open|in_progress → cancelled` (illegal jumps throw; idempotent
+re-start/assign). Cost = integer minor units. Post-commit `maintenance_ticket.*` events are one-directional
+and NOT availability triggers — a plain ticket never touches sold/availability.
+
+**Integration 1 — out-of-service ↔ availability (Step 2):** a `takes_out_of_service` ticket, on open/start,
+flips its unit to `out_of_service` via `MaintenanceService::setUnitCondition` (a real `condition_status`
+transition + a `unit_status_logs` type=condition row) which emits **`unit.condition_changed`** over the
+room-type's published window. The **EXISTING** `RecomputeAvailabilityOnInventoryChange` listener consumes it
+— `out_of_service` is already counted into `out_of_order`, so the unit drops out of availability.
+**AvailabilityService and the AssignmentService locking core are NOT modified; `sold` is never touched** —
+out-of-service is a unit-level exclusion, exactly like OOO/blocks. Return-to-service on resolve/cancel only
+when no OTHER active OOS ticket holds the unit (two-tickets case). An existing booking is **NEVER
+auto-cancelled** (a physically-assigned reservation on a now-OOS unit is left intact + flagged for manual
+move). If the room-type is already fully sold, the row's raw `total−sold−ooo−blocked` reads **negative**
+(honest over-committed signal) while the clamped `available()` stays **0** so new bookings are cleanly
+rejected — **no oversell, no Phase-1 change**. The **concurrency suite was re-asserted green** (9/114).
+
+**Integration 2 — cost → owner deductible expense (Step 3):** resolving a costed ticket on an OWNED unit
+posts via the **certified** `OwnerExpenseService::recordExpense(category:'maintenance', source:$ticket)` →
+owner-from-unit + deductibility from the agreement + the `owner_ledger` deduction line → onto the statement.
+**NEVER a direct owner_ledger write.** An **operator-owned unit** (owner_id null) records the cost on the
+ticket only — **no owner_expense** (explicit, not dropped). `correctCost(ticket, ?Money)` handles corrections
++ voiding the charge **append-only** — reverses via `voidExpense` (a new reversing line; the original is
+never edited) then re-posts. **Period-lock respected** by the certified path — a cost dated in a sealed
+period lands as a `prior_period_adjustment` on the next statement. This gives the previously-deferred
+`owner_expenses.source` hook its real source (the maintenance ticket).
+
+**Stub (Step 4):** an UNSTYLED operator contract stub — `App\Livewire\MaintenanceList` (`/app/maintenance`) +
+`App\Livewire\MaintenanceTicketDetail` (`/app/maintenance/{ticket}`, RMB rule → cross-org 404). The styled
+maintenance UI is a later design pass; surfacing the manual-move flag to the operator is future work.
+
+**Invariant #22** locked in PROJECT-STATE. **DEFERRED:** styled maintenance UI + the manual-move flag
+surfacing. **Verified:** `MaintenanceTicketTest` (7) · `MaintenanceOutOfServiceTest` (6) ·
+`MaintenanceCostExpenseTest` (6) · `MaintenanceModuleTest` (3) + the re-run concurrency suite. **Full suite
+288 tests / 3552 assertions green; PHPStan L5 0 errors; Pint clean.** No regression to the booking or
+owner-accounting cores.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->

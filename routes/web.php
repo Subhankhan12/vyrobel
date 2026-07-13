@@ -17,6 +17,8 @@ use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
+use App\Livewire\MaintenanceList;
+use App\Livewire\MaintenanceTicketDetail;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Owner\OwnerDashboard;
@@ -120,6 +122,10 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     Route::post('/owners/invite', [InviteOwnerController::class, 'store'])->middleware('throttle:10,1')->name('owners.invite');
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
+    // Maintenance module — UNSTYLED contract stubs (list + detail; styled screen is a later design pass).
+    // Tenant-scoped; the detail resolves {ticket} via a scoped findOrFail in render() → cross-org 404.
+    Route::get('/maintenance', MaintenanceList::class)->name('maintenance');
+    Route::get('/maintenance/{ticket}', MaintenanceTicketDetail::class)->name('maintenance.show');
     // Demo-readiness · Part A — operator room-type PHOTO management (secure upload; the operator-mutation
     // pattern POST→controller→PRG). {roomType}/{photo} are string ids resolved tenant-scoped → cross-org 404.
     Route::post('/room-types/{roomType}/photos', [RoomTypePhotoController::class, 'store'])->name('room-types.photos.store');

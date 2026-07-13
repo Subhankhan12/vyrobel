@@ -6,9 +6,9 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `dc7b389`** on `main`, working tree clean (only the untracked design-source exports under
-  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 266 tests
-  / 3461 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
+- **HEAD `e51ef8f`** on `main`, working tree clean (only the untracked design-source exports under
+  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 288 tests
+  / 3552 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
   of writing; the final docs-only commit advances it by one with no state change.)
@@ -41,8 +41,18 @@ conflicts with the repo, **trust the repo** and fix this file.
   (`barryvdh/laravel-dompdf`) that **reconcile to the on-screen figures to the cent** (shared
   `MoneyFormatter` + `FolioTotals`), no invented lines. Still deferred: descriptions/reviews, CSV export,
   remittance/booking-summary PDFs. See `docs/DECISIONS.md` 2026-07-14.
+- **MAINTENANCE MODULE — BUILT & CERTIFIED (2026-07-14).** Maintenance tickets on units
+  (`MaintenanceService`, mirrors HousekeepingService — guarded lifecycle open→in_progress→resolved/cancelled)
+  with the TWO integrations that make it a real Vyrobel module: **(1) out-of-service ↔ availability** — an
+  OOS ticket flips the unit to `out_of_service` and emits the EXISTING `unit.condition_changed` event → the
+  existing recompute listener excludes it (AssignmentService/AvailabilityService UNTOUCHED; sold never
+  touched; two-tickets + never-auto-cancel + honest negative-over-committed signal handled); **(2) cost →
+  owner deductible expense** — a costed ticket on an owned unit posts via the CERTIFIED
+  `OwnerExpenseService::recordExpense(source:$ticket)` → owner_ledger → statement (operator-owned = no
+  expense; correction reverses append-only; period-lock respected). Unstyled operator stub only (styled UI
+  deferred). See `docs/schema/maintenance.md` + `docs/DECISIONS.md` 2026-07-14.
 - **THE CORE PRODUCT IS COMPLETE & DEMOABLE end-to-end** — a real hybrid operator could run day-to-day
-  operations (calendar/front-desk/housekeeping/folio/dashboard/units), an owner could read their
+  operations (calendar/front-desk/housekeeping/folio/dashboard/units/maintenance), an owner could read their
   statements/payouts/units + download a PDF, and a guest could book direct (browse→room→checkout→
   confirmation, a real guarded write) — the storefront now shows real photos. See "NEXT ACTION".
 - **Phase 1 CERTIFIED** (multi-tenant core) · **Phase 2 CERTIFIED** (channel manager + payments +
@@ -101,6 +111,11 @@ conflicts with the repo, **trust the repo** and fix this file.
   `booking_quotes` advisory holds, `ResolvePublicProperty` middleware, `/book/{property}/*` (rate-limited).
 - **Staff action layer** — `App\Services\FrontDeskService` (thin delegation) +
   `App\Actions\Reservations\CheckIn`/`CheckOut`.
+- **Maintenance module** — `maintenance_tickets` (`App\Models\MaintenanceTicket`, morph `maintenance_ticket`)
+  + **`App\Services\MaintenanceService`** (guarded lifecycle; `setUnitCondition` emits the existing
+  `unit.condition_changed` → recompute excludes an out-of-service unit; `resolve`/`correctCost` post/reverse
+  the cost via `OwnerExpenseService` on owned units). Unstyled operator stub: `App\Livewire\MaintenanceList`
+  + `App\Livewire\MaintenanceTicketDetail` (`/app/maintenance`). Design: `docs/schema/maintenance.md`.
 - **Owner Accounting (Phase 3 · Module 1)** — `owners` + `management_agreements` (effective-dated,
   `ManagementAgreement::resolveFor()`); **`App\Services\OwnerAttributionService`** (reads folio+
   reservation_units → immutable `owner_ledger`); **`App\Services\OwnerExpenseService`** (`owner_expenses`
@@ -225,6 +240,18 @@ conflicts with the repo, **trust the repo** and fix this file.
     fails closed for a non-linked user); staff land in `/app` with their role's permissions. (Locked
     `docs/DECISIONS.md` 2026-07-13.)
 
+**Maintenance module:**
+22. **Out-of-service is a unit-level exclusion, NOT a booking-core change** — a maintenance OOS ticket
+    transitions the unit's `condition_status` and emits `unit.condition_changed`; the EXISTING availability
+    recompute already counts `out_of_service` into `out_of_order` → the unit is not offered. `AvailabilityService`
+    and the `AssignmentService` locking core are **UNTOUCHED**; `sold` is never touched (no-double-booking +
+    single-write-path hold). A unit returns to service only when no other active OOS ticket holds it; an
+    existing booking is **NEVER auto-cancelled** (flagged for manual move); an over-committed room-type shows
+    a negative raw available (honest) while the clamped `available()` stays 0 (no oversell). **Maintenance
+    cost flows to the owner ONLY through the certified `OwnerExpenseService`** (source = the ticket) →
+    `owner_ledger` → statement — never a direct ledger write; operator-owned units create no expense;
+    corrections reverse append-only; period-lock respected. (Locked `docs/DECISIONS.md` 2026-07-14.)
+
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
 **TWO live-integration checkpoints (money/network rails — the only unproven-against-reality items):**
@@ -247,9 +274,10 @@ conflicts with the repo, **trust the repo** and fix this file.
   stay deferred** (no schema).
 - **The remaining design-only screens** — **~89** of the ~119-file Claude Design library (`docs/design/
   CATALOGUE.md`) map to FUTURE modules with **no backend today** and were deliberately NOT built: the full
-  **guest portal** (~32), **unified inbox** (Operator/Owner/Guest Messages), the **maintenance** module,
-  **reviews**, **subscription billing / paywall**, **transactional emails** (~9), and **analytics**
-  (Reports/Insights, ADR/RevPAR trends). Do NOT build backend for these ad hoc — each is a gated module.
+  **guest portal** (~32), **unified inbox** (Operator/Owner/Guest Messages), **reviews**, **subscription
+  billing / paywall**, **transactional emails** (~9), and **analytics** (Reports/Insights, ADR/RevPAR
+  trends). Do NOT build backend for these ad hoc — each is a gated module. *(The **maintenance** module's
+  BACKEND is now built — see 2026-07-14; only its STYLED UI is deferred, an unstyled contract stub renders.)*
   *(The "~89" is an estimate; `docs/design/CATALOGUE.md` is the authoritative per-file inventory and
   backend-status legend — read it before starting any new screen.)*
 - **PDF export — DONE** (no longer deferred): the **owner statement** (owner-scoped) and the **operator
@@ -277,16 +305,22 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **2FA** — schema columns (`two_factor_secret`/`two_factor_enabled`) exist, no flow — not built. (Password
   reset is now DONE — see the auth chapter above / DECISIONS.md 2026-07-13.)
 
+**Maintenance module deferrals (module BACKEND is built + certified — see DECISIONS.md 2026-07-14):**
+- **Styled maintenance UI** — the module ships an **unstyled** operator contract stub (`/app/maintenance`
+  list + `/app/maintenance/{ticket}` detail); the styled screen is a later design pass.
+- **Manual-move flag surfacing** — a physically-assigned reservation on a unit that goes out of service is
+  left intact and flagged for **manual move** (never auto-cancelled); a UI/affordance that surfaces this
+  flag to the operator is future work (the operator can already move it via the existing guarded move-room path).
+
 **Other deferrals:** promo codes + deposits on the booking engine (schema only); `guests.stripe_customer_id`
 / saved cards (blind-index story); **auto-FX provider** (statements take an operator-supplied rate — no
-silent float); **maintenance-ticket source** for maintenance expenses (no maintenance module yet — the
-polymorphic `owner_expenses.source` hook is ready); plus standing Phase 1 deferrals (blind-index guest matching,
+silent float); plus standing Phase 1 deferrals (blind-index guest matching,
 gap-free invoice numbering, dated out-of-order ranges, `inventory_blocks.quantity`, tenant-custom
 amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**266 tests / 3461 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**288 tests / 3552 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -321,6 +355,12 @@ one-books with no overbooking**), together. The true-parallel no-double-booking 
   secure upload — rejects non-image/disguised/oversized; cross-org 404; display + gradient fallback) ·
   `OwnerStatementPdfTest` + `FolioPdfTest` (branded PDFs reconcile to the cent; owner/tenant-scoped
   download → cross-owner/cross-org 404; no invented lines; PDF-safe).
+- **Maintenance module suite** — `MaintenanceTicketTest` (guarded lifecycle) · `MaintenanceOutOfServiceTest`
+  (OOS excludes from availability + returns; two-tickets; cross-unit isolation; negative over-committed with
+  no oversell; never auto-cancel) · `MaintenanceCostExpenseTest` (owned → owner_expense via the certified
+  path + reconciles; operator-owned → none; append-only reversal; period-lock) · `MaintenanceModuleTest`
+  (unstyled stub tenant-scoped + cross-org 404; end-to-end tie-together). The concurrency suite is re-run
+  green after the module (no-double-booking + single-write-path intact).
 - **THREE browser-verified user journeys** (Playwright, real demo data — beyond feature tests): **(1)
   public booking** (browse→room→checkout→real direct booking), **(2) operator ops**
   (calendar/front-desk/housekeeping/folio/dashboard), **(3) owner portal** (dashboard/statement/payouts/
