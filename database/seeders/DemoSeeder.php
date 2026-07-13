@@ -9,6 +9,7 @@ use App\Models\Building;
 use App\Models\Floor;
 use App\Models\Guest;
 use App\Models\ManagementAgreement;
+use App\Models\Media;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Owner;
@@ -27,12 +28,14 @@ use App\Services\FolioService;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
+use App\Support\Media\PlaceholderImage;
 use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
@@ -138,6 +141,11 @@ class DemoSeeder extends Seeder
         $property->amenities()->attach([$wifi->id, $pool->id]);
         $roomUnits->each(fn (Unit $u) => $u->amenities()->attach($wifi->id));
 
+        // DEMO photos — real, viewable JPEGs generated locally (never hotlinked/fabricated), so the
+        // storefront + unit cards look populated. Production photos are real operator uploads.
+        $this->seedPhotos($doubleRoom, 'Double Room', [[232, 112, 58], [194, 65, 12]], 3);
+        $this->seedPhotos($apartment, 'One-Bedroom Apartment', [[224, 146, 30], [178, 106, 8]], 3);
+
         // --- Rate plans + calendar (real prices) ---
         $roomRate = RatePlan::create(['property_id' => $property->id, 'room_type_id' => $doubleRoom->id, 'name' => 'Flexible', 'code' => 'FLEX-DBL', 'currency' => 'EUR']);
         $aptRate = RatePlan::create(['property_id' => $property->id, 'room_type_id' => $apartment->id, 'name' => 'Flexible', 'code' => 'FLEX-APT', 'currency' => 'EUR']);
@@ -229,6 +237,34 @@ class DemoSeeder extends Seeder
         $draft = $statements->generateDraft($ownerParty->id, '2026-09-01', '2026-09-30');
         $finalized = $statements->finalize($draft);
         app(OwnerPayoutService::class)->createFromStatement($finalized);
+    }
+
+    /**
+     * Attach N real demo photos to a room-type on the `public` disk (first = cover). Files are generated
+     * locally with GD — actual viewable bytes, never a hotlinked or fabricated URL.
+     *
+     * @param  array{0:array{0:int,1:int,2:int},1:array{0:int,1:int,2:int}}  $palette  [top RGB, bottom RGB]
+     */
+    private function seedPhotos(RoomType $roomType, string $label, array $palette, int $count): void
+    {
+        for ($i = 0; $i < $count; $i++) {
+            $bytes = PlaceholderImage::jpeg($label, 'Vyrobel Demo · photo '.($i + 1), $palette[0], $palette[1]);
+            $path = 'demo-photos/'.$roomType->code.'-'.($i + 1).'.jpg';
+            Storage::disk('public')->put($path, $bytes);
+
+            Media::create([
+                'mediable_type' => $roomType->getMorphClass(),
+                'mediable_id' => $roomType->getKey(),
+                'collection' => 'photos',
+                'disk' => 'public',
+                'path' => $path,
+                'mime' => 'image/jpeg',
+                'size' => strlen($bytes),
+                'sort_order' => $i,
+                'is_cover' => $i === 0,
+                'alt' => $label.' — demo photo '.($i + 1),
+            ]);
+        }
     }
 
     private function seedCalendar(RatePlan $ratePlan, int $priceMinor): void

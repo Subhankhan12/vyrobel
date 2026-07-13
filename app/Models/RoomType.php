@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\HasAmenities;
 use App\Models\Concerns\HasMedia;
+use App\Models\Concerns\HasPhotos;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class RoomType extends Model
 {
-    use BelongsToOrganization, HasAmenities, HasFactory, HasMedia, HasUlids, SoftDeletes;
+    use BelongsToOrganization, HasAmenities, HasFactory, HasMedia, HasPhotos, HasUlids, SoftDeletes;
 
     protected $fillable = [
         'organization_id',
