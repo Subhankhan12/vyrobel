@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Owner\Concerns;
 
 use App\Models\User;
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
@@ -39,24 +40,12 @@ trait FormatsOwnerData
     /** Format integer minor units for display, e.g. 1037000 EUR → "€10,370.00" (or "+…" / "−…"). */
     protected function money(int $minor, string $currency, bool $signed = false): string
     {
-        $symbol = $this->currencySymbol($currency);
-        $abs = number_format(abs($minor) / 100, 2, '.', ',');
-
-        if ($minor < 0) {
-            return "−{$symbol}{$abs}";           // U+2212 minus, matches the design
-        }
-
-        return ($signed ? '+' : '')."{$symbol}{$abs}";
+        return MoneyFormatter::display($minor, $currency, $signed);
     }
 
     protected function currencySymbol(string $currency): string
     {
-        return match (strtoupper($currency)) {
-            'EUR' => '€',
-            'GBP' => '£',
-            'USD' => '$',
-            default => strtoupper($currency).' ',
-        };
+        return MoneyFormatter::symbol($currency);
     }
 
     /**

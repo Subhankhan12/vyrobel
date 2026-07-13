@@ -9,6 +9,7 @@ use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
+use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\ResolvePublicProperty;
@@ -153,6 +154,10 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
 Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/', OwnerDashboard::class)->name('dashboard');
     Route::get('/statements/{statement}', OwnerStatementView::class)->name('statements.show');
+    // Demo-readiness · Part B — branded owner-statement PDF. OWNER-scoped (string id → findOrFail under
+    // OwnerScope → cross-owner 404, fail-closed for non-linked). Real owner_ledger figures; reconciles to
+    // the cent; no invented lines. Streams application/pdf.
+    Route::get('/statements/{statement}/pdf', [OwnerStatementPdfController::class, 'download'])->name('statements.pdf');
     // Design pass · Screen 3 — owner payouts (owner-scoped; new page for the certified Payout backend).
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');
     // Design pass · Screen 4 — owner units + owner-scoped occupancy calendar (new owner-scoped page).

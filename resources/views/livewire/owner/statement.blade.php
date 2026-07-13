@@ -8,7 +8,8 @@
                     to the cent), statement history + net total, period navigation, matched payout.
       • DERIVED   — the "% of gross" sublabel, computed from the statement's own real figures.
       • DEFERRED  — by-unit split + occupancy chart: visually stubbed, labelled "not yet available".
-      • NO BACKEND— CSV/PDF export, document downloads: disabled "Soon" affordances, never a fake action.
+      • REAL      — "Download statement" streams a branded PDF (owner-scoped) that reconciles to these
+                    figures to the cent (Part B). Remittance-advice / booking-summary PDFs stay "Soon".
     There is deliberately NO "payment / card-processing fee" line — the design's invented line has no
     backing attribution component, so the breakdown only ever shows real, engine-computed components.
 --}}
@@ -125,10 +126,11 @@
                         <span class="vy-soon-tag">Soon</span>
                     </div>
                 </div>
-                <button type="button" class="vy-btn vy-btn--ghost is-soon" style="margin-top:16px;width:100%;justify-content:center" disabled aria-disabled="true" title="Statement download — coming soon">
+                {{-- REAL PDF download — owner-scoped, reconciles to the on-screen figures to the cent. --}}
+                <a href="{{ route('owner.statements.pdf', $statement['id']) }}" class="vy-btn vy-btn--accent" style="margin-top:16px;width:100%;justify-content:center" title="Download this statement as a PDF">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
                     Download statement
-                </button>
+                </a>
             </section>
         </div>
     </div>
