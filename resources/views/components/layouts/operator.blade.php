@@ -509,6 +509,62 @@
         .vy-tag.tone-oos { background: rgba(66, 52, 44, 0.12); color: var(--vy-dark); }
         .vy-tag.tone-oos .vy-dot { background: var(--vy-dark); }
 
+        /* ---- Owners list + invite modal -------------------------------------------------------- */
+        [x-cloak] { display: none !important; }
+        .vy-flash { display: flex; align-items: center; gap: 9px; padding: 12px 16px; border-radius: var(--vy-r-md); font-size: 13px; font-weight: 500; margin-bottom: 16px; }
+        .vy-flash.is-ok { background: rgba(52, 140, 90, 0.12); color: rgb(34, 110, 68); border: 1px solid rgba(52, 140, 90, 0.24); }
+        .vy-flash.is-err { background: rgba(194, 65, 12, 0.10); color: var(--vy-accent); border: 1px solid var(--vy-accent-border); }
+
+        .vy-owner-row { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-owner-row:last-child { border-bottom: none; }
+        .vy-owner-main { flex: 1; min-width: 0; }
+        .vy-owner-name { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; }
+        .vy-owner-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-owner-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 13px; font-weight: 600; display: grid; place-items: center; flex: none; }
+        .vy-pending-badge { font-size: 11px; font-weight: 600; color: var(--vy-amber); background: rgba(224, 146, 30, 0.14); border-radius: var(--vy-r-pill); padding: 3px 11px; }
+
+        /* Modal */
+        .vy-modal-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(66, 40, 22, 0.34); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); display: grid; place-items: center; padding: 20px; }
+        .vy-modal { width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; background: var(--vy-glass); backdrop-filter: blur(30px) saturate(1.2); -webkit-backdrop-filter: blur(30px) saturate(1.2); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); }
+        .vy-modal-head { display: flex; align-items: flex-start; gap: 14px; padding: 22px 24px 14px; }
+        .vy-modal-ico { width: 42px; height: 42px; border-radius: var(--vy-r-md); background: var(--vy-grad); color: #fff; display: grid; place-items: center; flex: none; box-shadow: var(--vy-shadow-accent); }
+        .vy-modal-title { font-family: var(--vy-display); font-size: 19px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+        .vy-modal-sub { font-size: 12.5px; color: var(--vy-muted); margin-top: 3px; line-height: 1.4; }
+        .vy-modal-x { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); color: var(--vy-muted); cursor: pointer; flex: none; }
+        .vy-modal-body { padding: 6px 24px 22px; }
+        .vy-modal-foot { display: flex; gap: 10px; justify-content: flex-end; padding: 4px 24px 22px; }
+        .vy-modal-foot .vy-btn--accent { flex: 1; justify-content: center; padding: 12px 16px; }
+
+        .vy-field { margin-bottom: 15px; }
+        .vy-field-label { display: block; font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 7px; }
+        .vy-field-label .vy-fl-note { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--vy-faint); }
+        .vy-field-label .vy-fl-right { float: right; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--vy-muted); }
+
+        /* Text input with a leading icon */
+        .vy-inwrap { position: relative; }
+        .vy-inwrap .vy-in-ico { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--vy-faint); pointer-events: none; }
+        .vy-input { width: 100%; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.7); border: 1px solid var(--vy-glass-border); font-size: 14px; color: var(--vy-ink); font-family: inherit; transition: border-color .15s ease, box-shadow .15s ease; }
+        .vy-inwrap .vy-input { padding-left: 38px; }
+        .vy-input::placeholder { color: var(--vy-faint); }
+        .vy-input:focus { outline: none; border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.12); background: #fff; }
+
+        /* Segmented control (role + commission) */
+        .vy-seg { display: flex; gap: 4px; padding: 4px; background: rgba(255, 255, 255, 0.45); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md); }
+        .vy-seg-opt { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 8px; border-radius: var(--vy-r-sm); font-size: 12.5px; font-weight: 600; color: var(--vy-muted); cursor: pointer; text-align: center; transition: all .14s ease; white-space: nowrap; }
+        .vy-seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .vy-seg-opt:hover:not(.is-disabled) { color: var(--vy-ink); }
+        .vy-seg-opt.is-checked { background: #fff; color: var(--vy-accent); box-shadow: var(--vy-shadow-sm); }
+        .vy-seg-opt.is-disabled { opacity: .5; cursor: not-allowed; }
+        .vy-help { font-size: 11.5px; color: var(--vy-faint); margin-top: 8px; line-height: 1.45; }
+
+        /* Unit assignment — horizontal checkbox pills */
+        .vy-units { display: flex; flex-wrap: wrap; gap: 8px; }
+        .vy-unitpill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px 8px 10px; border-radius: var(--vy-r-pill); font-size: 13px; font-weight: 500; color: var(--vy-ink); background: rgba(255, 255, 255, 0.55); border: 1px solid var(--vy-glass-border); cursor: pointer; transition: all .14s ease; }
+        .vy-unitpill input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .vy-unitpill .vy-ubox { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--vy-faint); display: grid; place-items: center; flex: none; color: transparent; transition: all .14s ease; }
+        .vy-unitpill.is-checked { border-color: var(--vy-accent-border); color: var(--vy-accent); background: rgba(232, 112, 58, 0.08); font-weight: 600; }
+        .vy-unitpill.is-checked .vy-ubox { background: var(--vy-grad); border-color: transparent; color: #fff; }
+
         /* ---- Responsive ------------------------------------------------------------------------ */
         @media (max-width: 1100px) {
             .vy-kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); }

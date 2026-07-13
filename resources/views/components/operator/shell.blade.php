@@ -33,7 +33,7 @@
             ['rates', 'Rates', 'M4 4h9l7 7-9 9-7-7zM8 8h.01', null],
         ]],
         ['OWNERS', [
-            ['owners', 'Owners', 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', null],
+            ['owners', 'Owners', 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', route('app.owners')],
             ['payout-run', 'Payout run', 'M3 7h18v12H3zM3 11h18M15 15h3', null],
         ]],
         ['ACCOUNT', [

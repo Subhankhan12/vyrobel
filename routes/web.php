@@ -6,6 +6,7 @@ use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
+use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\ResolvePublicProperty;
@@ -13,6 +14,7 @@ use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
 use App\Livewire\Operator\OperatorDashboard;
+use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Owner\OwnerDashboard;
 use App\Livewire\Owner\OwnerMyUnits;
 use App\Livewire\Owner\OwnerPayouts;
@@ -96,6 +98,9 @@ Route::prefix('book/{property}')
 Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
+    // Auth Phase B · Step 4 — operator Owners screen + the invite-owner write (POST → controller → PRG).
+    Route::get('/owners', OperatorOwners::class)->name('owners');
+    Route::post('/owners/invite', [InviteOwnerController::class, 'store'])->middleware('throttle:10,1')->name('owners.invite');
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
