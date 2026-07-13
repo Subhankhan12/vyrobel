@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `e51ef8f`** on `main`, working tree clean (only the untracked design-source exports under
+- **HEAD `e8415c6`** on `main`, working tree clean (only the untracked design-source exports under
   `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 288 tests
   / 3552 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
