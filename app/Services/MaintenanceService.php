@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Availability;
 use App\Models\MaintenanceTicket;
+use App\Models\OwnerExpense;
 use App\Models\Unit;
 use App\Models\UnitStatusLog;
 use App\Models\User;
@@ -32,13 +33,19 @@ use RuntimeException;
  * the unit to service ONLY when no OTHER active `takes_out_of_service` ticket still holds it. An existing
  * booking on a now-OOS unit is NEVER auto-cancelled (flagged for manual handling).
  *
- * NOTE: the cost → owner-expense wiring (Step 3) is layered on top — not in this file yet.
+ * COST → OWNER EXPENSE (Step 3): resolving a costed ticket on an OWNER-owned unit posts a deductible
+ * `owner_expense` via `OwnerExpenseService::recordExpense(category:'maintenance', source:$ticket)` — the
+ * CERTIFIED path (owner-from-unit + deductibility from the agreement + the `owner_ledger` deduction line +
+ * period-lock). NEVER a direct owner_ledger write. An operator-owned unit's cost is recorded on the ticket
+ * ONLY (no owner_expense — explicit, not dropped). A cost correction reverses the expense append-only
+ * (`voidExpense`) and re-posts — never an in-place ledger edit.
  */
 class MaintenanceService
 {
     public function __construct(
         private DomainEventRecorder $domainEvents,
         private AuditEventRecorder $audit,
+        private OwnerExpenseService $expenses,
     ) {}
 
     /**
@@ -131,9 +138,69 @@ class MaintenanceService
         ]);
         $this->audit->record('maintenance_ticket.resolved', $ticket, ['status' => $from], ['status' => 'resolved']);
 
+        if ($cost !== null) {
+            $this->postExpenseIfOwned($ticket->refresh(), $cost);   // certified owner-expense path (owned units only)
+        }
         $this->releaseUnitIfClear($ticket->refresh());   // back in service iff no other active OOS ticket
 
         return $ticket->refresh();
+    }
+
+    /**
+     * Correct (or void, when `$newCost` is null) the cost of a RESOLVED ticket. Append-only: any existing
+     * owner_expense from this ticket is reversed via `OwnerExpenseService::voidExpense` (a new reversing
+     * ledger line — the original is never edited), then a fresh expense is posted for the new value on an
+     * owned unit. The ticket's recorded cost is updated; the money history lives in the append-only ledger.
+     */
+    public function correctCost(MaintenanceTicket $ticket, ?Money $newCost): MaintenanceTicket
+    {
+        $this->assertTransition($ticket, ['resolved'], 'correct the cost of');
+
+        // Reverse the prior expense from this ticket (append-only) before re-posting.
+        $existing = OwnerExpense::query()
+            ->where('source_type', $ticket->getMorphClass())
+            ->where('source_id', $ticket->getKey())
+            ->whereNull('voided_at')
+            ->first();
+        if ($existing !== null) {
+            $this->expenses->voidExpense($existing);
+        }
+
+        $ticket->update(['cost_minor' => $newCost?->amountMinor(), 'currency' => $newCost?->currency()]);
+
+        if ($newCost !== null) {
+            $this->postExpenseIfOwned($ticket->refresh(), $newCost);
+        }
+
+        $this->domainEvents->record('maintenance_ticket.cost_corrected', $ticket, ['cost_minor' => $newCost?->amountMinor()]);
+        $this->audit->record('maintenance_ticket.cost_corrected', $ticket, null, ['cost_minor' => $newCost?->amountMinor()]);
+
+        return $ticket->refresh();
+    }
+
+    /**
+     * Post the maintenance cost as an owner expense — ONLY when the unit is owner-owned. An operator-owned
+     * unit (`owner_id === null`) records the cost on the ticket alone; NO owner_expense is created (the
+     * operator's cost, explicit). Goes entirely through the certified OwnerExpenseService (owner-from-unit,
+     * deductibility from the agreement, the owner_ledger line, period-lock) — never a direct ledger write.
+     */
+    private function postExpenseIfOwned(MaintenanceTicket $ticket, Money $cost): void
+    {
+        $unit = Unit::query()->find($ticket->unit_id);
+        if ($unit === null || $unit->owner_id === null) {
+            return;
+        }
+
+        $this->expenses->recordExpense([
+            'unit_id' => (string) $ticket->unit_id,
+            'category' => 'maintenance',
+            'description' => (string) $ticket->title,
+            'amount_minor' => $cost->amountMinor(),
+            'currency' => $cost->currency(),
+            'expense_date' => ($ticket->resolved_at ?? CarbonImmutable::now())->toDateString(),
+            'source' => $ticket,
+            'created_by' => Auth::id(),
+        ]);
     }
 
     /** Cancel the ticket (open|in_progress → cancelled). Terminal; illegal from a terminal state. */
