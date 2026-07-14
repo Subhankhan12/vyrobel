@@ -440,6 +440,40 @@
         .vy-resolve-form { margin-top: 12px; }
         .vy-resolve-form .vy-input-group { margin-top: 7px; }
 
+        /* ---- Unified Inbox --------------------------------------------------------------------- */
+        /* Channel badge — WARM tints only (no brand green/blue), distinguished by a glyph letter. */
+        .vy-chan { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 3px; border-radius: var(--vy-r-pill); font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+        .vy-chan .vy-chan-glyph { width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center; font-size: 8.5px; font-weight: 700; color: #fff; flex: none; }
+        .vy-chan.tone-manual { background: rgba(232, 112, 58, 0.14); color: var(--vy-accent); } .vy-chan.tone-manual .vy-chan-glyph { background: var(--vy-grad); }
+        .vy-chan.tone-email { background: rgba(224, 146, 30, 0.16); color: var(--vy-amber); } .vy-chan.tone-email .vy-chan-glyph { background: linear-gradient(140deg, #E0921E, #B26A08); }
+        .vy-chan.tone-whatsapp { background: rgba(240, 165, 122, 0.24); color: #a8480f; } .vy-chan.tone-whatsapp .vy-chan-glyph { background: linear-gradient(140deg, #F0A57A, #D9662E); }
+        .vy-chan.tone-bookingcom { background: rgba(194, 65, 12, 0.13); color: #8f2f08; } .vy-chan.tone-bookingcom .vy-chan-glyph { background: linear-gradient(160deg, #C2410C, #8f2f08); }
+        .vy-chan.tone-airbnb { background: rgba(217, 102, 46, 0.15); color: var(--vy-accent-2); } .vy-chan.tone-airbnb .vy-chan-glyph { background: linear-gradient(140deg, #D9662E, #A8480F); }
+
+        /* Thread list */
+        .vy-inbox { display: flex; flex-direction: column; margin: 0 -8px; }
+        .vy-thread-row { display: flex; align-items: center; gap: 13px; padding: 13px 12px; border-radius: var(--vy-r-md); text-decoration: none; color: inherit; transition: background .15s ease, transform .15s ease; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-thread-row:last-child { border-bottom: none; }
+        .vy-thread-row:hover { background: rgba(255, 255, 255, 0.5); transform: translateX(2px); }
+        .vy-thread-row.is-unread { background: rgba(232, 112, 58, 0.05); }
+        .vy-thread-av { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); color: #fff; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
+        .vy-thread-av .vy-unread-dot { position: absolute; top: -1px; right: -1px; width: 11px; height: 11px; border-radius: 50%; background: var(--vy-accent); border: 2px solid rgba(255, 252, 248, 0.95); }
+        .vy-thread-main { flex: 1; min-width: 0; }
+        .vy-thread-top { display: flex; align-items: center; gap: 8px; }
+        .vy-thread-name { font-family: var(--vy-display); font-size: 14px; font-weight: 500; color: var(--vy-ink); }
+        .vy-thread-row.is-unread .vy-thread-name { font-weight: 600; }
+        .vy-thread-preview { font-size: 12.5px; color: var(--vy-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-thread-row.is-unread .vy-thread-preview { color: var(--vy-ink); font-weight: 500; }
+        .vy-thread-res { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--vy-faint); margin-top: 5px; }
+        .vy-thread-res svg { opacity: .7; }
+        .vy-thread-right { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; min-width: 66px; }
+        .vy-thread-time { font-size: 11px; color: var(--vy-faint); }
+        .vy-unread-count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--vy-grad); color: #fff; font-size: 10.5px; font-weight: 700; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
+        .vy-thread-assignee { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--vy-muted); }
+        .vy-thread-assignee .vy-mini-avatar { width: 17px; height: 17px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 8px; font-weight: 600; display: grid; place-items: center; }
+        .vy-assignee-none { font-size: 9.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--vy-faint); background: rgba(120, 70, 40, 0.06); padding: 2px 7px; border-radius: var(--vy-r-pill); }
+        .vy-thread-closed { opacity: .62; }
+
         /* ---- Reservation detail (folio ledger) ------------------------------------------------- */
         .vy-detail-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
         .vy-stack { display: flex; flex-direction: column; gap: 22px; }

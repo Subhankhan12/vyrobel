@@ -249,4 +249,36 @@ trait FormatsOperatorData
             default => ucwords(str_replace('_', ' ', $type)),
         };
     }
+
+    /**
+     * Inbox communication channel → label + a short glyph letter + a WARM tone. Keys are EXACTLY the real
+     * `message_threads.channel` enum (manual/email/whatsapp/booking_com/airbnb) — no invented channels. All
+     * tones are warm tints (terracotta/amber/muted) distinguished by the glyph — never a green/blue brand
+     * colour, per the design rule.
+     *
+     * @return array{label: string, short: string, tone: string}
+     */
+    protected function channelMeta(string $channel): array
+    {
+        return match ($channel) {
+            'manual' => ['label' => 'Direct', 'short' => 'D', 'tone' => 'manual'],
+            'email' => ['label' => 'Email', 'short' => 'E', 'tone' => 'email'],
+            'whatsapp' => ['label' => 'WhatsApp', 'short' => 'W', 'tone' => 'whatsapp'],
+            'booking_com' => ['label' => 'Booking.com', 'short' => 'B', 'tone' => 'bookingcom'],
+            'airbnb' => ['label' => 'Airbnb', 'short' => 'A', 'tone' => 'airbnb'],
+            default => ['label' => ucfirst($channel), 'short' => mb_strtoupper(mb_substr($channel, 0, 1)), 'tone' => 'manual'],
+        };
+    }
+
+    /**
+     * Whether a channel can actually SEND now: the internal `manual` channel always can; a real external
+     * channel only when its adapter is configured (`services.inbox.channels.{channel}.enabled`). Deferred
+     * skeletons are NOT connected — the reply box shows an honest disabled state (invariant #24), never a
+     * fake send.
+     */
+    protected function channelIsConnected(string $channel): bool
+    {
+        return $channel === 'manual'
+            || (bool) config('services.inbox.channels.'.$channel.'.enabled', false);
+    }
 }
