@@ -9,6 +9,7 @@ use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\InviteOwnerController;
+use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\ReservationFolioActionController;
@@ -122,10 +123,14 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     Route::post('/owners/invite', [InviteOwnerController::class, 'store'])->middleware('throttle:10,1')->name('owners.invite');
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
-    // Maintenance module — UNSTYLED contract stubs (list + detail; styled screen is a later design pass).
-    // Tenant-scoped; the detail resolves {ticket} via a scoped findOrFail in render() → cross-org 404.
+    // Maintenance module — styled work-order board + detail (design pass · Maintenance UI). Tenant-scoped;
+    // the detail resolves {ticket} via a scoped findOrFail in render() → cross-org 404.
     Route::get('/maintenance', MaintenanceList::class)->name('maintenance');
     Route::get('/maintenance/{ticket}', MaintenanceTicketDetail::class)->name('maintenance.show');
+    // Maintenance writes — REAL open + assign via POST → controller → MaintenanceService → redirect (PRG).
+    // A foreign unit_id / cross-org {ticket} 404s; a guarded illegal transition flashes cleanly (never 500).
+    Route::post('/maintenance', [MaintenanceActionController::class, 'store'])->name('maintenance.store');
+    Route::post('/maintenance/{ticket}/assign', [MaintenanceActionController::class, 'assign'])->name('maintenance.assign');
     // Demo-readiness · Part A — operator room-type PHOTO management (secure upload; the operator-mutation
     // pattern POST→controller→PRG). {roomType}/{photo} are string ids resolved tenant-scoped → cross-org 404.
     Route::post('/room-types/{roomType}/photos', [RoomTypePhotoController::class, 'store'])->name('room-types.photos.store');

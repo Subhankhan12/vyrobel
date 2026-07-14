@@ -188,6 +188,53 @@ trait FormatsOperatorData
         };
     }
 
+    /**
+     * Maintenance ticket status → label + WARM tone. Keys are EXACTLY the real `maintenance_tickets.status`
+     * enum (open/in_progress/resolved/cancelled) — no invented statuses.
+     *
+     * @return array{label: string, tone: string}
+     */
+    protected function maintenanceStatusMeta(string $status): array
+    {
+        return match ($status) {
+            'open' => ['label' => 'Open', 'tone' => 'pending'],
+            'in_progress' => ['label' => 'In progress', 'tone' => 'confirmed'],
+            'resolved' => ['label' => 'Resolved', 'tone' => 'departed'],
+            'cancelled' => ['label' => 'Cancelled', 'tone' => 'cancelled'],
+            default => ['label' => ucwords(str_replace('_', ' ', $status)), 'tone' => 'pending'],
+        };
+    }
+
+    /**
+     * Maintenance priority → label + WARM tone (real `priority` enum: low/normal/high/urgent). Urgent is a
+     * muted warm-amber; higher severity is terracotta.
+     *
+     * @return array{label: string, tone: string}
+     */
+    protected function maintenancePriorityMeta(string $priority): array
+    {
+        return match ($priority) {
+            'urgent' => ['label' => 'Urgent', 'tone' => 'urgent'],
+            'high' => ['label' => 'High', 'tone' => 'high'],
+            'normal' => ['label' => 'Normal', 'tone' => 'normal'],
+            'low' => ['label' => 'Low', 'tone' => 'low'],
+            default => ['label' => ucfirst($priority), 'tone' => 'normal'],
+        };
+    }
+
+    /** Maintenance category → human label (real `category` enum). */
+    protected function maintenanceCategoryLabel(string $category): string
+    {
+        return match ($category) {
+            'plumbing' => 'Plumbing',
+            'electrical' => 'Electrical',
+            'appliance' => 'Appliance',
+            'structural' => 'Structural',
+            'other' => 'Other',
+            default => ucfirst($category),
+        };
+    }
+
     /** Folio line type → human label (real `folio_items.type` enum). */
     protected function folioItemLabel(string $type): string
     {

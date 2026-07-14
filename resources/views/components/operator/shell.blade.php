@@ -25,6 +25,7 @@
             ['calendar', 'Calendar', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', route('app.rack')],
             ['front-desk', 'Front desk', 'M4 20v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', route('app.front-desk')],
             ['housekeeping', 'Housekeeping', 'M3 21h18M6 21V10l6-4 6 4v11M10 21v-5h4v5', route('app.housekeeping')],
+            ['maintenance', 'Maintenance', 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z', route('app.maintenance')],
             ['units', 'Units', 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', route('app.units')],
             ['reservations', 'Reservations', 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', null],
         ]],

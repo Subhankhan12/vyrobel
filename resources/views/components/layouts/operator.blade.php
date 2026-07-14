@@ -394,6 +394,32 @@
         .vy-hk-actions form { margin: 0; }
         .vy-hk-col-empty { text-align: center; color: var(--vy-faint); font-size: 12px; padding: 18px 8px; }
 
+        /* Maintenance board — reuses the housekeeping card/kanban; a few work-order-specific bits. */
+        .vy-prio.tone-urgent { color: var(--vy-amber); background: rgba(224, 146, 30, 0.16); }
+        .vy-mt-title { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; line-height: 1.3; color: var(--vy-ink); text-decoration: none; display: block; }
+        .vy-mt-title:hover { color: var(--vy-accent); }
+        .vy-mt-sub { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--vy-muted); flex-wrap: wrap; }
+        .vy-mt-cat { color: var(--vy-faint); }
+        .vy-mt-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; padding-top: 6px; border-top: 1px solid var(--vy-hairline); }
+        .vy-mt-cost { font-family: var(--vy-display); font-weight: 700; color: var(--vy-ink); }
+        .vy-mt-when { color: var(--vy-faint); }
+        /* Per-card assign disclosure (native <details> — no shared JS state across N cards). */
+        .vy-assign { position: relative; }
+        .vy-assign > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--vy-accent); padding: 3px 9px; border-radius: var(--vy-r-pill); border: 1px solid var(--vy-accent-border); background: rgba(232, 112, 58, 0.06); }
+        .vy-assign > summary::-webkit-details-marker { display: none; }
+        .vy-assign[open] > summary { background: rgba(232, 112, 58, 0.14); }
+        .vy-assign-pop { margin-top: 8px; padding: 10px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.85); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); display: flex; flex-direction: column; gap: 8px; }
+        .vy-assign-pop select { width: 100%; padding: 8px 10px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: #fff; font-family: inherit; font-size: 12.5px; color: var(--vy-ink); }
+        /* "Units out of service" rail — a real attention strip above the board. */
+        .vy-oos-rail { display: flex; align-items: flex-start; gap: 12px; padding: 14px 18px; border-radius: var(--vy-r-lg); background: rgba(66, 52, 44, 0.06); border: 1px solid rgba(66, 52, 44, 0.14); margin-bottom: 18px; }
+        .vy-oos-rail .vy-oos-ico { flex: none; width: 34px; height: 34px; border-radius: var(--vy-r-md); background: rgba(66, 52, 44, 0.12); color: var(--vy-dark); display: grid; place-items: center; }
+        .vy-oos-rail-body { flex: 1; }
+        .vy-oos-rail-title { font-family: var(--vy-display); font-size: 13px; font-weight: 600; color: var(--vy-dark); }
+        .vy-oos-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .vy-oos-item { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.7); border: 1px solid var(--vy-glass-border); font-size: 12px; color: var(--vy-ink); text-decoration: none; }
+        .vy-oos-item:hover { border-color: var(--vy-dark); }
+        .vy-oos-item .vy-oos-code { font-weight: 600; }
+
         /* ---- Reservation detail (folio ledger) ------------------------------------------------- */
         .vy-detail-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
         .vy-stack { display: flex; flex-direction: column; gap: 22px; }

@@ -38,7 +38,7 @@ it('renders real units with real status enums and the owner link', function () {
         ->assertSee('Marisol Estates')    // owner LINK (business party, operator surface)
         ->assertDontSee('owner-secret@example.test')   // encrypted owner PII never rendered
         ->assertDontSee('Occupied')       // no invented unit status
-        ->assertDontSee('Maintenance');
+        ->assertDontSee('Under repair');  // no invented unit status ("Maintenance" is now a real nav item)
 });
 
 // ── 2. Tenant isolation — org B's units never shown to org A ─────────────────────────────────────
