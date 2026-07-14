@@ -116,6 +116,17 @@ class Guest extends Model
                 'anonymized_at' => $anonymizedAt,
             ])->save();
 
+            // GDPR: scrub this guest's inbox conversations too — a guest's messages ARE their PII. Redact
+            // the content (message bodies + sender labels) and the thread's encrypted participant identity /
+            // subject, keeping the thread/message skeleton for audit. NEVER soft-delete-and-keep-PII.
+            // Tenant-scoped (this org) + guest-scoped; a cross-org thread can't be touched.
+            $threadIds = MessageThread::query()->where('guest_id', $this->getKey())->pluck('id');
+
+            if ($threadIds->isNotEmpty()) {
+                Message::query()->whereIn('thread_id', $threadIds)->update(['body' => '', 'sender_label' => null]);
+                MessageThread::query()->whereKey($threadIds)->update(['participant_identity' => null, 'subject' => null]);
+            }
+
             // NOTE: never put the erased PII into the audit before/after — that would re-retain it.
             app(AuditEventRecorder::class)->record(
                 action: 'guest.anonymized',

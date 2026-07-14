@@ -30,6 +30,7 @@ class BookingImportService
     public function __construct(
         private AssignmentService $assignment,
         private ChannelMappingGuard $guard,
+        private GuestMatcher $guests,
     ) {}
 
     /**
@@ -188,26 +189,15 @@ class BookingImportService
      */
     private function resolveGuest(Channel $channel, array $customer): Guest
     {
+        // The OTA guest id (opaque, non-PII) is the external ref key/value; the shared GuestMatcher
+        // does the match-or-create (the SAME matcher the inbox reuses — no parallel matcher).
         $otaGuestId = isset($customer['ota_guest_id']) ? (string) $customer['ota_guest_id'] : null;
 
-        if ($otaGuestId !== null && $otaGuestId !== '') {
-            $existing = Guest::query()
-                ->where('external_refs->'.$channel->getKey(), $otaGuestId)
-                ->first();
-
-            if ($existing !== null) {
-                return $existing;
-            }
-        }
-
-        return Guest::create([
+        return $this->guests->matchOrCreate($channel->getKey(), $otaGuestId, [
             'first_name' => is_string($customer['first_name'] ?? null) ? $customer['first_name'] : 'OTA',
             'last_name' => is_string($customer['last_name'] ?? null) ? $customer['last_name'] : 'Guest',
             'email' => is_string($customer['email'] ?? null) ? $customer['email'] : null,
             'phone' => is_string($customer['phone'] ?? null) ? $customer['phone'] : null,
-            'external_refs' => $otaGuestId !== null && $otaGuestId !== ''
-                ? [$channel->getKey() => $otaGuestId]
-                : [],
         ]);
     }
 

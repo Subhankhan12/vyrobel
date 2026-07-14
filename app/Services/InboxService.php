@@ -7,13 +7,14 @@ namespace App\Services;
 use App\Jobs\Sync\ProcessInboundMessageJob;
 use App\Messaging\Contracts\MessageChannel;
 use App\Messaging\MessageChannelResolver;
+use App\Models\Guest;
 use App\Models\Message;
 use App\Models\MessageThread;
+use App\Models\Reservation;
 use App\Models\SyncJob;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -39,6 +40,7 @@ class InboxService
         private AuditEventRecorder $audit,
         private MessageChannelResolver $channels,
         private SyncJobDispatcher $dispatcher,
+        private GuestMatcher $guests,
     ) {}
 
     /**
@@ -103,41 +105,57 @@ class InboxService
         $channel = $data['channel'];
         $externalMessageId = $data['external_message_id'] ?? null;
 
-        return DB::transaction(function () use ($data, $channel, $externalMessageId): Message {
-            $thread = $this->resolveInboundThread($data);
+        // NOT wrapped in an outer transaction: createOrFirst's catch-the-race depends on the losing
+        // INSERT's re-SELECT seeing the COMMITTED winner — which a long REPEATABLE-READ snapshot would
+        // hide. Running in autocommit (as the Channex webhook leg does) is what makes it race-safe. The
+        // unique indexes are the correctness guarantee; the counter bump is an atomic increment.
 
-            // Idempotency anchor: with an external id, createOrFirst collapses a duplicate delivery to
-            // one row (the losing INSERT becomes a fetch via the unique index). Without one (a manual
-            // note has no provider id), every inbound is a distinct message.
-            if ($externalMessageId !== null) {
-                $message = Message::createOrFirst(
-                    ['channel' => $channel, 'external_message_id' => $externalMessageId],
-                    $this->inboundAttributes($thread, $data),
-                );
+        // Resolve/link the guest by channel identity via the REUSED matcher (unless a guest_id was
+        // supplied). A returning address matches the existing guest; an unknown one creates + links.
+        $guest = $this->resolveInboundGuest($data);
+        if ($guest !== null) {
+            $data['guest_id'] = $guest->id;
+        }
 
-                if (! $message->wasRecentlyCreated) {
-                    return $message;   // duplicate delivery — idempotent no-op
-                }
-            } else {
-                $message = Message::create($this->inboundAttributes($thread, $data));
+        $thread = $this->resolveInboundThread($data);
+
+        // Backfill the guest link on a thread that started anonymous (identity resolved later).
+        if ($thread->guest_id === null && ($data['guest_id'] ?? null) !== null) {
+            $thread->forceFill(['guest_id' => $data['guest_id']])->save();
+        }
+
+        // Idempotency anchor: with an external id, createOrFirst collapses a duplicate delivery to one
+        // row (the losing INSERT becomes a fetch via the unique index). Without one (a manual note has no
+        // provider id), every inbound is a distinct message.
+        if ($externalMessageId !== null) {
+            $message = Message::createOrFirst(
+                ['channel' => $channel, 'external_message_id' => $externalMessageId],
+                $this->inboundAttributes($thread, $data),
+            );
+
+            if (! $message->wasRecentlyCreated) {
+                return $message;   // duplicate delivery — idempotent no-op (no counter bump)
             }
+        } else {
+            $message = Message::create($this->inboundAttributes($thread, $data));
+        }
 
-            // A genuinely new inbound message: bump the thread + reopen if it was closed.
-            $thread->forceFill([
-                'unread_count' => $thread->unread_count + 1,
-                'last_message_at' => $message->received_at,
-                'last_inbound_at' => $message->received_at,
-                'status' => $thread->status === 'closed' ? 'open' : $thread->status,
-            ])->save();
+        // A genuinely new inbound message: bump the thread ATOMICALLY (concurrent distinct inbounds must
+        // not lose an increment) + reopen if it was closed.
+        $thread->increment('unread_count');
+        $thread->forceFill([
+            'last_message_at' => $message->received_at,
+            'last_inbound_at' => $message->received_at,
+            'status' => $thread->status === 'closed' ? 'open' : $thread->status,
+        ])->save();
 
-            $this->domainEvents->record('inbox.message_received', $message, [
-                'thread_id' => (string) $thread->id,
-                'channel' => $channel,
-            ]);
-            $this->audit->record('inbox.message_received', $message, null, ['direction' => 'inbound']);
+        $this->domainEvents->record('inbox.message_received', $message, [
+            'thread_id' => (string) $thread->id,
+            'channel' => $channel,
+        ]);
+        $this->audit->record('inbox.message_received', $message, null, ['direction' => 'inbound']);
 
-            return $message;
-        });
+        return $message;
     }
 
     /**
@@ -279,19 +297,27 @@ class InboxService
     }
 
     /**
-     * Resolve the thread an inbound message belongs to: by its threading anchor (channel +
-     * external_thread_ref) when present — race-safe via createOrFirst on the unique index — else a new
-     * thread. Guest/reservation linking is layered on in Step 2.
+     * Resolve the thread an inbound message belongs to — messages GROUP, never a thread-per-message:
+     *   1. the provider thread ref (email/OTA conversation) when present;
+     *   2. else, for an identified participant, a NON-PII hash anchor `p:{hash(channel|identity)}` so a
+     *      stranger's messages still thread together (and a returning one rejoins) — race-safe via the
+     *      same unique(org, channel, external_thread_ref) index, no PII in the ref;
+     *   3. else a brand-new thread (truly anonymous, no identity).
      *
      * @param  array{channel: string, external_thread_ref?: string|null, subject?: string|null, participant_identity?: string|null, guest_id?: string|null, reservation_id?: string|null}  $data
      */
     private function resolveInboundThread(array $data): MessageThread
     {
         $ref = $data['external_thread_ref'] ?? null;
+        $identity = $data['participant_identity'] ?? null;
+
+        if ($ref === null && $identity !== null && trim($identity) !== '') {
+            $ref = 'p:'.$this->identityHash($data['channel'], $identity);
+        }
 
         $attributes = [
             'subject' => $data['subject'] ?? null,
-            'participant_identity' => $data['participant_identity'] ?? null,
+            'participant_identity' => $identity,
             'guest_id' => $data['guest_id'] ?? null,
             'reservation_id' => $data['reservation_id'] ?? null,
             'status' => 'open',
@@ -305,6 +331,87 @@ class InboxService
         }
 
         return MessageThread::create(['channel' => $data['channel'], 'external_thread_ref' => null] + $attributes);
+    }
+
+    /**
+     * Resolve/link the inbound guest by channel identity via the SHARED {@see GuestMatcher} (no parallel
+     * matcher). Returns null when the caller supplied an explicit guest_id (already linked) or there is no
+     * participant identity to match on. The external-ref VALUE is a HASH of the identity — never plaintext
+     * PII in `external_refs` — while the real address lands in the guest's ENCRYPTED email/phone.
+     *
+     * @param  array{channel: string, participant_identity?: string|null, sender_label?: string|null, guest_id?: string|null}  $data
+     */
+    private function resolveInboundGuest(array $data): ?Guest
+    {
+        if (isset($data['guest_id'])) {
+            return null;   // explicitly linked — matching not needed
+        }
+
+        $identity = $data['participant_identity'] ?? null;
+        if ($identity === null || trim($identity) === '') {
+            return null;   // anonymous (e.g. an internal note) — no guest to match
+        }
+
+        $channel = $data['channel'];
+        [$first, $last] = $this->splitName($data['sender_label'] ?? null);
+
+        $profile = ['first_name' => $first, 'last_name' => $last];
+        if ($channel === 'email') {
+            $profile['email'] = $identity;         // encrypted at rest on the guest
+        } elseif ($channel === 'whatsapp') {
+            $profile['phone'] = $identity;         // encrypted at rest on the guest
+        }
+
+        return $this->guests->matchOrCreate("inbox_{$channel}", $this->identityHash($channel, $identity), $profile);
+    }
+
+    /**
+     * Link (or unlink) a thread to a reservation so the operator sees booking context beside the
+     * conversation. The reservation is resolved TENANT-SCOPED — a cross-org id can't be linked.
+     */
+    public function linkReservation(MessageThread $thread, ?string $reservationId): MessageThread
+    {
+        if ($reservationId !== null) {
+            Reservation::query()->findOrFail($reservationId);   // tenant-scoped → cross-org 404, never linked
+        }
+
+        if ((string) $thread->reservation_id === (string) $reservationId) {
+            return $thread;
+        }
+
+        $from = $thread->reservation_id;
+        $thread->update(['reservation_id' => $reservationId]);
+
+        $this->domainEvents->record('inbox.thread_linked_reservation', $thread, ['reservation_id' => $reservationId]);
+        $this->audit->record('inbox.thread_linked_reservation', $thread, ['reservation_id' => $from], ['reservation_id' => $reservationId]);
+
+        return $thread;
+    }
+
+    /** A stable NON-PII hash of a channel identity, for matching/grouping without storing the address. */
+    private function identityHash(string $channel, string $identity): string
+    {
+        return hash('sha256', $channel.'|'.mb_strtolower(trim($identity)));
+    }
+
+    /**
+     * Split a display label into first/last name (best effort). Falls back to "Guest" so the required
+     * first_name is always set.
+     *
+     * @return array{0: string, 1: string|null}
+     */
+    private function splitName(?string $label): array
+    {
+        $label = trim((string) $label);
+        if ($label === '') {
+            return ['Guest', null];
+        }
+
+        $parts = array_values(array_filter(preg_split('/\s+/', $label) ?: []));
+        $first = $parts[0] ?? 'Guest';
+        $last = count($parts) > 1 ? implode(' ', array_slice($parts, 1)) : null;
+
+        return [$first, $last];
     }
 
     private function transition(MessageThread $thread, string $status, string $event): MessageThread
