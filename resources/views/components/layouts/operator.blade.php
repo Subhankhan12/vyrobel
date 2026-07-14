@@ -474,6 +474,43 @@
         .vy-assignee-none { font-size: 9.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--vy-faint); background: rgba(120, 70, 40, 0.06); padding: 2px 7px; border-radius: var(--vy-r-pill); }
         .vy-thread-closed { opacity: .62; }
 
+        /* Conversation (thread view) */
+        .vy-convo-head { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; flex-wrap: wrap; }
+        .vy-convo-back { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--vy-muted); text-decoration: none; }
+        .vy-convo-back:hover { color: var(--vy-accent); }
+        .vy-convo-who { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        .vy-convo-name { font-family: var(--vy-display); font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+        .vy-convo-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .vy-msgs { display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; }
+        .vy-day { text-align: center; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-faint); margin: 12px 0 4px; }
+        .vy-msg { display: flex; max-width: 76%; }
+        .vy-msg.is-out { align-self: flex-end; flex-direction: column; align-items: flex-end; }
+        .vy-msg.is-in { align-self: flex-start; flex-direction: column; align-items: flex-start; }
+        .vy-bubble { padding: 10px 14px; border-radius: 16px; font-size: 13.5px; line-height: 1.5; white-space: pre-line; }
+        .vy-msg.is-in .vy-bubble { background: rgba(255, 252, 248, 0.72); border: 1px solid var(--vy-glass-border); color: var(--vy-ink); border-bottom-left-radius: 5px; }
+        .vy-msg.is-out .vy-bubble { background: var(--vy-grad); color: #fff; box-shadow: var(--vy-shadow-accent); border-bottom-right-radius: 5px; }
+        .vy-msg-meta { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--vy-faint); margin-top: 4px; padding: 0 4px; }
+        .vy-deliv { display: inline-flex; align-items: center; gap: 3px; }
+        .vy-deliv.is-fail { color: #b23a0a; font-weight: 600; }
+        /* Composer */
+        .vy-composer { margin-top: 16px; border-top: 1px solid var(--vy-hairline); padding-top: 14px; }
+        .vy-composer textarea { width: 100%; padding: 12px 14px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.72); border: 1px solid var(--vy-glass-border); font-family: inherit; font-size: 13.5px; color: var(--vy-ink); resize: vertical; min-height: 74px; }
+        .vy-composer-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+        .vy-composer-via { font-size: 11.5px; color: var(--vy-muted); display: inline-flex; align-items: center; gap: 6px; }
+        .vy-composer.is-blocked { opacity: .96; }
+        .vy-composer-blocked { display: flex; align-items: center; gap: 9px; padding: 12px 15px; border-radius: var(--vy-r-md); background: rgba(66, 52, 44, 0.06); border: 1px solid rgba(66, 52, 44, 0.14); color: var(--vy-dark); font-size: 12.5px; }
+        /* Context sidebar cards */
+        .vy-ctx-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-faint); }
+        .vy-ctx-guest { display: flex; align-items: center; gap: 11px; margin-top: 10px; }
+        .vy-ctx-guest .vy-thread-av { width: 44px; height: 44px; font-size: 15px; }
+        .vy-ctx-name { font-family: var(--vy-display); font-size: 15px; font-weight: 600; }
+        .vy-ctx-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-ctx-line { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 5px 0; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-ctx-line:last-child { border-bottom: none; }
+        .vy-ctx-line .k { color: var(--vy-faint); }
+        .vy-ctx-line .v { color: var(--vy-ink); font-weight: 500; text-align: right; }
+        .vy-ctx-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--vy-accent); text-decoration: none; margin-top: 10px; font-weight: 600; }
+
         /* ---- Reservation detail (folio ledger) ------------------------------------------------- */
         .vy-detail-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
         .vy-stack { display: flex; flex-direction: column; gap: 22px; }

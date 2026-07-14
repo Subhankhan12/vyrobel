@@ -130,9 +130,14 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     // later design pass). Tenant-scoped; the view resolves {thread} via a scoped findOrFail → cross-org 404.
     Route::get('/inbox', InboxList::class)->name('inbox');
     Route::get('/inbox/{thread}', InboxThread::class)->name('inbox.show');
-    // Inbox reply — REAL outbound via POST → controller → InboxService::sendOutbound → redirect (PRG).
+    // Inbox writes — REAL reply + lifecycle via POST → controller → InboxService → redirect (PRG).
     // Cross-org {thread} 404s; a deferred channel leaves an honest failed record + clean flash (never 500).
     Route::post('/inbox/{thread}/reply', [InboxActionController::class, 'reply'])->name('inbox.reply');
+    Route::post('/inbox/{thread}/assign', [InboxActionController::class, 'assign'])->name('inbox.assign');
+    Route::post('/inbox/{thread}/close', [InboxActionController::class, 'close'])->name('inbox.close');
+    Route::post('/inbox/{thread}/reopen', [InboxActionController::class, 'reopen'])->name('inbox.reopen');
+    Route::post('/inbox/{thread}/snooze', [InboxActionController::class, 'snooze'])->name('inbox.snooze');
+    Route::post('/inbox/{thread}/link-reservation', [InboxActionController::class, 'linkReservation'])->name('inbox.link-reservation');
     // Maintenance module — styled work-order board + detail (design pass · Maintenance UI). Tenant-scoped;
     // the detail resolves {ticket} via a scoped findOrFail in render() → cross-org 404.
     Route::get('/maintenance', MaintenanceList::class)->name('maintenance');
