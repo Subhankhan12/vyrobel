@@ -6,9 +6,9 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `69fad05`** on `main`, working tree clean (only the untracked design-source exports under
-  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 302 tests
-  / 3639 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
+- **HEAD `813f05a`** on `main`, working tree clean (only the untracked design-source exports under
+  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 331 tests
+  / 3790 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
   of writing; the final docs-only commit advances it by one with no state change.)
@@ -57,6 +57,20 @@ conflicts with the repo, **trust the repo** and fix this file.
   read from the real `owner_expense` (charged-to-owner vs operator-cost)). `DemoSeeder` seeds a coherent
   maintenance spread through `MaintenanceService`. See `docs/schema/maintenance.md` + `docs/DECISIONS.md`
   2026-07-14 (two entries).
+- **UNIFIED INBOX — CORE BUILT (2026-07-14).** Guest-messaging inbox (threads/messages linked to real
+  guests/reservations), built with the **interface + fake + real** pattern: the **manual channel works
+  end-to-end now**; the **real email/WhatsApp/OTA adapters are config-gated skeletons that throw "not
+  configured"** (account-gated, never faked). `message_threads` + `messages` (tenant-scoped, morph-mapped);
+  **inbound idempotency** via `unique(org, channel, external_message_id)` + createOrFirst catch-the-race
+  (proven under TRUE OS-level concurrency); `InboxService` single write path; `App\Messaging` (MessageChannel
+  interface + ManualChannel + Deferred skeletons + resolver, mirrors `App\Payouts`); inbound rides the
+  reliability backbone (`ProcessInboundMessageJob`). Guest linking **REUSES `App\Services\GuestMatcher`** (the
+  same matcher OTA import uses — no parallel matcher; hashed non-PII ref, encrypted address); threading GROUPS
+  by ref or a participant-hash anchor (stranger case included); `Guest::anonymize()` **redacts the guest's
+  conversation** (GDPR). **Unstyled operator stub** (`/app/inbox` list + `/app/inbox/{thread}` view + a REAL
+  reply POST; deferred channel → honest failed, not faked; guest NAME shown, encrypted identity never
+  rendered). `DemoSeeder` seeds three real conversations. **Styled inbox UI DEFERRED to a design pass; NOT yet
+  in the operator nav** (added with the styled UI). See `docs/schema/inbox.md` + `docs/DECISIONS.md` 2026-07-14.
 - **THE CORE PRODUCT IS COMPLETE & DEMOABLE end-to-end** — a real hybrid operator could run day-to-day
   operations (calendar/front-desk/housekeeping/folio/dashboard/units/maintenance), an owner could read their
   statements/payouts/units + download a PDF, and a guest could book direct (browse→room→checkout→
@@ -123,6 +137,14 @@ conflicts with the repo, **trust the repo** and fix this file.
   the cost via `OwnerExpenseService` on owned units). **Styled** operator screens: `App\Livewire\MaintenanceList`
   (board) + `App\Livewire\MaintenanceTicketDetail` (work order) + `App\Http\Controllers\Operator\MaintenanceActionController`
   (POST store/assign/start/resolve/cancel → PRG). Design: `docs/schema/maintenance.md`.
+- **Unified Inbox module** — `message_threads` + `messages` (`App\Models\MessageThread`/`Message`, morph
+  `message_thread`/`message`; tenant-scoped) + **`App\Services\InboxService`** (single write path: startThread/
+  postInbound[idempotent]/sendOutbound/assign|close|snooze|reopen/receiveInbound). Channel seam **`App\Messaging`**
+  (`Contracts\MessageChannel` + `Channels\ManualChannel` [real] + `DeferredChannel` skeletons + `MessageChannelResolver`)
+  mirrors `App\Payouts`. Inbound on the backbone: `App\Jobs\Sync\ProcessInboundMessageJob`. Guest linking reuses
+  **`App\Services\GuestMatcher`** (shared with `BookingImportService`). Unstyled operator stub: `App\Livewire\InboxList`
+  + `App\Livewire\InboxThread` + `App\Http\Controllers\Operator\InboxActionController` (`/app/inbox`). Design:
+  `docs/schema/inbox.md`.
 - **Owner Accounting (Phase 3 · Module 1)** — `owners` + `management_agreements` (effective-dated,
   `ManagementAgreement::resolveFor()`); **`App\Services\OwnerAttributionService`** (reads folio+
   reservation_units → immutable `owner_ledger`); **`App\Services\OwnerExpenseService`** (`owner_expenses`
@@ -262,6 +284,23 @@ conflicts with the repo, **trust the repo** and fix this file.
     `owner_expense` — without changing any guarantee (presentation only). (Locked `docs/DECISIONS.md`
     2026-07-14, two entries.)
 
+**Unified Inbox module:**
+23. **Inbound is exactly-once + threads GROUP** — a duplicate provider delivery (same `external_message_id`)
+    collapses to one `messages` row via `createOrFirst` on `unique(org, channel, external_message_id)` (proven
+    under true OS-level concurrency); messages group into the right thread by the `unique(org, channel,
+    external_thread_ref)` anchor (or a non-PII participant hash for a stranger) — never a thread-per-message.
+    `postInbound` runs createOrFirst in **autocommit** (not a long transaction) so the losing INSERT's
+    re-SELECT sees the committed winner — the same discipline as the Channex webhook leg.
+24. **Real channels are honest-fail, never faked** — `ManualChannel` is the only working channel; the
+    email/WhatsApp/OTA adapters are config-gated `DeferredChannel` skeletons whose `send()`/`normalizeInbound()`
+    **throw "not configured"**, and a reply on a deferred channel leaves an **honest `failed` message** + a
+    clean flash (never a fake send). Guest linking reuses the SINGLE `GuestMatcher` (no parallel matcher); the
+    external-ref value is a **hash** (non-PII) while the address stays encrypted on the guest.
+25. **Inbox PII discipline** — `participant_identity` is the **encrypted routing anchor** (never rendered, never
+    a competing copy of a linked guest's PII); the operator surface shows the guest NAME + conversation only.
+    `Guest::anonymize()` **scrubs the guest's message bodies + sender labels + participant identity/subject**,
+    keeping the skeleton for audit (never soft-delete-and-keep-PII). (Locked `docs/DECISIONS.md` 2026-07-14.)
+
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
 **TWO live-integration checkpoints (money/network rails — the only unproven-against-reality items):**
@@ -321,6 +360,16 @@ DONE**: the styled board + work order ship the two integrations, and the work or
 flag as the real active-booking count on the blocked unit, linking to the existing move-room/rack path. The
 actual room move still routes through the existing guarded `AssignmentService` move path — never auto-cancelled.)
 
+**Unified Inbox module deferrals (CORE built + tested — see DECISIONS.md 2026-07-14):**
+- **Real external channels** — the `email`/`whatsapp`/`booking_com`/`airbnb` adapters are config-gated
+  `DeferredChannel` skeletons that **throw "not configured"** (never faked). What unblocks each: **email** —
+  an inbound-email provider (Postmark/Mailgun inbound parse) + a verified sending domain; **whatsapp** —
+  WhatsApp Business API approval + a BSP (Twilio/Meta) number; **booking_com / airbnb** — OTA messaging API
+  access (Channex messaging or the OTA partner API). The internal **manual** channel works today.
+- **Styled inbox UI** — the module ships an **unstyled** operator stub (`/app/inbox` list + `/app/inbox/{thread}`
+  view + a real reply POST); the styled screen is a later design pass. **The inbox is NOT yet in the operator
+  nav** — it joins the nav with the styled UI (consistent with the unstyled-stub convention).
+
 **Other deferrals:** promo codes + deposits on the booking engine (schema only); `guests.stripe_customer_id`
 / saved cards (blind-index story); **auto-FX provider** (statements take an operator-supplied rate — no
 silent float); plus standing Phase 1 deferrals (blind-index guest matching,
@@ -329,7 +378,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**302 tests / 3639 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**331 tests / 3790 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -375,6 +424,16 @@ one-books with no overbooking**), together. The true-parallel no-double-booking 
   illegal transition → clean error; owned → charged-to-owner + real owner_expense reconciles; operator →
   operator-cost + no owner_expense; OOS callout + real manual-move count; cross-org detail/action 404). The
   concurrency suite is re-run green after the module (no-double-booking + single-write-path intact).
+- **Unified Inbox suite** — `InboxCoreTest` (thread/message create; morph map; inbound idempotency;
+  outbound via manual; deferred adapters throw [asserted]; honest failed record; encrypted participant_identity;
+  guarded transitions; tenant isolation; backbone-job idempotency) · `InboxLinkingTest` (known-address → existing
+  guest [reused matcher, no dup]; unknown → created+linked+threaded; grouping by ref AND participant hash;
+  reservation link; reply via the thread channel; anonymize redacts the conversation; tenant isolation; cross-org
+  reservation-link rejected) · **`InboxConcurrencyTest`** (TRUE OS-parallel, 5× — two concurrent inbound of the
+  same external id → exactly one message + one thread, no 500) · `InboxModuleTest` (HTTP integrity: list/thread
+  render tenant-scoped; cross-org thread + reply → 404; real reply via manual [delivered, unread cleared];
+  deferred reply → honest failed + flash; guest NAME shown, encrypted identity not rendered; end-to-end
+  inbound→match→group→reply). `BookingImportTest` stays green after the shared-GuestMatcher refactor.
 - **THREE browser-verified user journeys** (Playwright, real demo data — beyond feature tests): **(1)
   public booking** (browse→room→checkout→real direct booking), **(2) operator ops**
   (calendar/front-desk/housekeeping/folio/dashboard), **(3) owner portal** (dashboard/statement/payouts/

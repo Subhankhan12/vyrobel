@@ -25,6 +25,7 @@ use App\Models\User;
 use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\FolioService;
+use App\Services\InboxService;
 use App\Services\MaintenanceService;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerPayoutService;
@@ -169,7 +170,7 @@ class DemoSeeder extends Seeder
         $vat = Tax::create(['property_id' => $property->id, 'name' => 'VAT', 'kind' => 'vat', 'mode' => 'percentage', 'rate' => 23.0]);
 
         // --- Reservations across multiple sources, all through AssignmentService ---
-        $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[0], $guest1, '2026-09-05', '2026-09-08', $vat, fullyPaid: true);
+        $stay1 = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[0], $guest1, '2026-09-05', '2026-09-08', $vat, fullyPaid: true);
         $walkIn = $this->createDemoStay('walk_in', $property, $apartment, $aptRate, $aptUnits[0], $guest2, '2026-09-06', '2026-09-09', $vat, fullyPaid: false);
         $this->createDemoStay('ota', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest3, '2026-09-10', '2026-09-12', $vat, fullyPaid: true, otaRef: 'OTA-DEMO-0001');
 
@@ -186,6 +187,63 @@ class DemoSeeder extends Seeder
         // out-of-service ↔ availability + cost → owner-expense hooks) — never a raw insert. Runs AFTER
         // owner accounting so the apartment owner_id is set (the owned-unit cost posts a real expense).
         $this->seedMaintenance($roomUnits, $aptUnits, $staff);
+
+        // --- Unified Inbox — coherent guest conversations through the REAL InboxService (no raw inserts):
+        // a linked pre-arrival question (+ operator reply), an unlinked stranger enquiry, a resolved thread.
+        $this->seedInbox($staff, $guest1, $stay1, $guest2);
+    }
+
+    /**
+     * Seed a few coherent inbox conversations on the MANUAL channel through {@see InboxService} only:
+     *   • a pre-arrival question from a real demo guest, LINKED to their real reservation, with an operator
+     *     reply (manual channel → delivered);
+     *   • an UNLINKED enquiry from a stranger (matcher creates the guest; threads on the participant anchor);
+     *   • a RESOLVED (closed) thread with a reply.
+     * Inbound via postInbound (real matching + threading), replies via sendOutbound — so the seeded data
+     * carries genuine guest/reservation links + delivery states.
+     */
+    private function seedInbox(User $staff, Guest $guest1, Reservation $stay1, Guest $guest2): void
+    {
+        $inbox = app(InboxService::class);
+
+        // 1. Pre-arrival question from a KNOWN demo guest, linked to their booking, then an operator reply.
+        $arrival = $inbox->postInbound([
+            'channel' => 'manual',
+            'external_thread_ref' => 'demo-thread-arrival',
+            'external_message_id' => 'demo-msg-arrival-1',
+            'subject' => 'Early check-in?',
+            'body' => 'Hi! We land around 2pm — is an early check-in possible for our stay?',
+            'participant_identity' => 'demo.traveller@vyrobel-demo.test',
+            'sender_label' => 'Demo Traveller',
+            'guest_id' => $guest1->id,          // explicit link to the real demo guest
+            'reservation_id' => $stay1->id,     // booking context beside the conversation
+        ]);
+        $inbox->sendOutbound($arrival->thread, 'Hello! Early check-in from 1pm is usually fine — we’ll have your room ready. Safe travels!', $staff);
+
+        // 2. Unlinked general enquiry from a stranger — the matcher creates the guest; threads on the
+        // participant anchor (no booking).
+        $inbox->postInbound([
+            'channel' => 'manual',
+            'external_message_id' => 'demo-msg-enquiry-1',
+            'subject' => 'Dogs & parking?',
+            'body' => 'Do you allow dogs, and is there parking near the property?',
+            'participant_identity' => 'curious.enquirer@example.test',
+            'sender_label' => 'Curious Enquirer',
+        ]);
+
+        // 3. A resolved conversation from another real demo guest — reply, then close.
+        $resolved = $inbox->postInbound([
+            'channel' => 'manual',
+            'external_thread_ref' => 'demo-thread-resolved',
+            'external_message_id' => 'demo-msg-resolved-1',
+            'subject' => 'Left a charger',
+            'body' => 'Thanks for a lovely stay — I think I left a phone charger in the room.',
+            'participant_identity' => 'demo.walker@vyrobel-demo.test',
+            'sender_label' => 'Demo Walker',
+            'guest_id' => $guest2->id,
+        ]);
+        $inbox->sendOutbound($resolved->thread, 'Found it! We’ll post it to the address on file today. Thanks for staying with us.', $staff);
+        $inbox->close($resolved->thread);
     }
 
     /**
