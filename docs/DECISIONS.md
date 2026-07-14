@@ -986,6 +986,44 @@ refactor. `migrate:fresh --seed` runs clean with the inbox seed. **Full suite 33
 green; PHPStan L5 0 errors; Pint clean.** No regression to any Phase 1/2, owner-accounting, maintenance, or
 reliability invariant.
 
+### 2026-07-14 — UNIFIED INBOX UI design pass — module now COMPLETE end-to-end (list + conversation + nav)
+
+The Unified Inbox's operator surface, styled onto the SAME operator design system as the other screens
+(operator layout, `<x-operator.shell>`, `FormatsOperatorData` — reused, never redefined). **Presentation +
+wiring of EXISTING actions only** — no change to `InboxService`, the schema, the channel interface, the
+reliability backbone, or the linking/threading/GDPR logic.
+
+**Thread list (`/app/inbox`, `InboxList`):** a scannable conversation list — each row shows the guest NAME,
+the real **channel badge** (keyed to the `message_threads.channel` enum, warm tints + a glyph letter — no
+brand green/blue), the real last-message preview (bold when unread), an unread dot + count, status, and the
+**linked-reservation tag ("{ref} · {unit}") only when genuinely linked**. Filters (All/Unread/Assigned-to-me/
+Closed) + a channel filter + search are **Alpine over the REAL rendered rows**; the summary chips are DERIVED
+counts aligned to the tab semantics. `FormatsOperatorData` gained `channelMeta()` (label/glyph/warm-tone per
+enum) + `channelIsConnected()`.
+
+**Conversation (`/app/inbox/{thread}`, `InboxThread`):** RMB rule kept (string id → tenant-scoped findOrFail
+→ cross-org 404; opening marks read). A real transcript — inbound cream / outbound terracotta bubbles by
+`direction`, day dividers, real timestamps + the real outbound **delivery status** (Delivered/Sent, and the
+honest **FAILED** for a deferred-channel send — invariant #24). The **reply box sends a real outbound over the
+thread's channel** (POST → `InboxActionController` → `sendOutbound` → PRG); the manual channel delivers, a
+**DEFERRED channel shows an honest "isn't connected yet" composer** (no Send; a forced POST records an honest
+`failed` message + a clean flash — never a fake send, never a 500). **Lifecycle actions** (Assign/Close/Snooze/
+Reopen) run through the guarded service, offered per the real state (new controller methods + routes). The
+**context sidebar** shows the Guest card (NAME + the CHANNEL only — never raw contact, invariant #25 — with a
+**derived "N stays · guest since {year}"** from the guest's real reservations, OMITTED when none — never
+hard-coded), the Reservation card (ref/unit/dates/status + a View link) or a real tenant-scoped **"Link to a
+reservation"** picker, and the Assigned-to card.
+
+**Nav:** "Inbox" is now a top-level operator nav item (near the top — a daily driver), added with the styled
+UI as planned.
+
+**Deferred register:** **REMOVED** "styled inbox UI" and the "not yet in the operator nav" note (both done).
+The **real external channels (email/whatsapp/booking_com/airbnb) remain deferred** behind the interface,
+account-gated (unchanged — the composer honestly reflects this per channel). **Verified:** `InboxListViewTest`
+(3) + `InboxThreadViewTest` (6); `migrate:fresh --seed` renders the demo inbox threads on the styled screens;
+browser-verified the reply round-trip (Delivered). **Full suite 340 tests / 3831 assertions green; PHPStan L5
+0 errors; Pint clean.** The Unified Inbox module is now **COMPLETE end-to-end (backend + styled UI)**.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->
