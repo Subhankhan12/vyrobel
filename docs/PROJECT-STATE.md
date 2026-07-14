@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `2c2979a`** on `main`, working tree clean (only the untracked design-source exports under
+- **HEAD `1e32599`** on `main`, working tree clean (only the untracked design-source exports under
   `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 340 tests
   / 3831 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
@@ -75,9 +75,11 @@ conflicts with the repo, **trust the repo** and fix this file.
   **Inbox is now in the operator nav.** Guest NAME + channel shown; encrypted identity never rendered.
   `DemoSeeder` seeds three real conversations. See `docs/schema/inbox.md` + `docs/DECISIONS.md` 2026-07-14 (three entries).
 - **THE CORE PRODUCT IS COMPLETE & DEMOABLE end-to-end** — a real hybrid operator could run day-to-day
-  operations (calendar/front-desk/housekeeping/folio/dashboard/units/maintenance), an owner could read their
-  statements/payouts/units + download a PDF, and a guest could book direct (browse→room→checkout→
-  confirmation, a real guarded write) — the storefront now shows real photos. See "NEXT ACTION".
+  operations (calendar/front-desk/housekeeping/maintenance/folio/dashboard/units/**inbox**), message a guest
+  and see delivery states, an owner could read their statements/payouts/units + download a PDF, and a guest
+  could book direct (browse→room→checkout→confirmation, a real guarded write) — the storefront shows real
+  photos. **The buildable-in-a-vacuum core is essentially complete; what remains is account-gated or net-new
+  speculative — see "NEXT ACTION".**
 - **Phase 1 CERTIFIED** (multi-tenant core) · **Phase 2 CERTIFIED** (channel manager + payments +
   booking engine + staff layer; **Stripe validated against real test-mode 2026-07-03**) · **Phase 3 ·
   Module 1 — Owner Accounting & Payouts CERTIFIED** (2026-07-03).
@@ -145,8 +147,10 @@ conflicts with the repo, **trust the repo** and fix this file.
   postInbound[idempotent]/sendOutbound/assign|close|snooze|reopen/receiveInbound). Channel seam **`App\Messaging`**
   (`Contracts\MessageChannel` + `Channels\ManualChannel` [real] + `DeferredChannel` skeletons + `MessageChannelResolver`)
   mirrors `App\Payouts`. Inbound on the backbone: `App\Jobs\Sync\ProcessInboundMessageJob`. Guest linking reuses
-  **`App\Services\GuestMatcher`** (shared with `BookingImportService`). Unstyled operator stub: `App\Livewire\InboxList`
-  + `App\Livewire\InboxThread` + `App\Http\Controllers\Operator\InboxActionController` (`/app/inbox`). Design:
+  **`App\Services\GuestMatcher`** (shared with `BookingImportService`). **STYLED** operator screens:
+  `App\Livewire\InboxList` (thread list) + `App\Livewire\InboxThread` (conversation) +
+  `App\Http\Controllers\Operator\InboxActionController` (POST reply/assign/close/reopen/snooze/link-reservation
+  → PRG); `channelMeta()`/`channelIsConnected()` on `FormatsOperatorData`. In the operator nav. Design:
   `docs/schema/inbox.md`.
 - **Owner Accounting (Phase 3 · Module 1)** — `owners` + `management_agreements` (effective-dated,
   `ManagementAgreement::resolveFor()`); **`App\Services\OwnerAttributionService`** (reads folio+
@@ -306,6 +310,29 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
+**AT A GLANCE — everything remaining is either ACCOUNT-GATED (needs an external account/credential) or a
+net-new BUILDABLE-NOW module (design exists, no backend). The buildable-in-a-vacuum core is essentially
+complete.** Detail follows below; this is the honest triage a fresh session needs.
+
+- **ACCOUNT-GATED (blocked on an external account — cannot finish in a vacuum):**
+  - **Real inbox channels** — email (inbound-email provider e.g. Postmark/Mailgun + verified sending domain) ·
+    whatsapp (Meta WhatsApp Business API approval + a BSP/Twilio number) · booking_com/airbnb (OTA messaging
+    API access). The `manual` channel + the whole interface work now; each adapter is an honest throwing skeleton.
+  - **Channex staging** — real ARI/webhook/HMAC vs a Channex sandbox account + a public tunnel (fake fully tested).
+  - **Stripe Connect payouts** — owner disbursement (connected-account onboarding + KYC). `ManualPayoutRail` is real+tested.
+  - **Stripe card checkout** — live card entry (Elements + 3DS) needs live/test keys; manual/pay-on-arrival is the real path now.
+  - **Production email delivery** — a real transactional provider (Postmark/SES). Dev/demo = Mailpit (wired).
+- **BUILDABLE-NOW (no external dependency — but each is net-new + speculative without customer signal):**
+  - Net-new **design-only modules** with NO backend today, each a gated phased build like Owner Accounting:
+    **Guest Portal** (~32 screens), **Reviews / reputation**, **Subscription / billing / paywall**,
+    **Analytics / reports** (ADR/RevPAR/insights), transactional **email templates** (~9).
+  - Smaller in-product items: **CSV / remittance-advice / booking-summary** exports; room **descriptions + reviews**;
+    per-screen deferred affordances (logged in each screen's DECISIONS entry).
+  - `docs/design/CATALOGUE.md` is the **authoritative per-file design inventory** (~120 screens, backend-status
+    legend) — read it before starting any new screen. Most catalogued screens map to the future modules above.
+
+---
+
 **TWO live-integration checkpoints (money/network rails — the only unproven-against-reality items):**
 - **Channex staging** — ARI push shape + inbound webhook payload + HMAC scheme are **documented
   guesses** (validated only vs `FakeChannexClient` + simulated signed payloads). Blocked: needs a
@@ -324,14 +351,13 @@ conflicts with the repo, **trust the repo** and fix this file.
   with the **gradient fallback kept** for no-photo rooms. Storage = the local **`public` disk** in dev
   (`storage:link`); **S3/cloud is the production path** (flagged, not hardcoded). **Descriptions + reviews
   stay deferred** (no schema).
-- **The remaining design-only screens** — **~89** of the ~119-file Claude Design library (`docs/design/
-  CATALOGUE.md`) map to FUTURE modules with **no backend today** and were deliberately NOT built: the full
-  **guest portal** (~32), **unified inbox** (Operator/Owner/Guest Messages), **reviews**, **subscription
-  billing / paywall**, **transactional emails** (~9), and **analytics** (Reports/Insights, ADR/RevPAR
-  trends). Do NOT build backend for these ad hoc — each is a gated module. *(The **maintenance** module's
-  BACKEND is now built — see 2026-07-14; only its STYLED UI is deferred, an unstyled contract stub renders.)*
-  *(The "~89" is an estimate; `docs/design/CATALOGUE.md` is the authoritative per-file inventory and
-  backend-status legend — read it before starting any new screen.)*
+- **The remaining design-only screens** — most of the ~120-file Claude Design library (`docs/design/
+  CATALOGUE.md`) maps to FUTURE modules with **no backend today** and were deliberately NOT built: the full
+  **guest portal** (~32), **reviews**, **subscription billing / paywall**, **transactional emails** (~9), and
+  **analytics** (Reports/Insights, ADR/RevPAR trends). Do NOT build backend for these ad hoc — each is a gated
+  module. *(The **Maintenance** and **Unified Inbox** modules are now COMPLETE end-to-end — backend + styled
+  UI — so they're no longer in this future list.)* *(`docs/design/CATALOGUE.md` is the authoritative per-file
+  inventory + backend-status legend — read it before starting any new screen.)*
 - **PDF export — DONE** (no longer deferred): the **owner statement** (owner-scoped) and the **operator
   folio** (tenant-scoped) both download as branded, PDF-safe documents via `barryvdh/laravel-dompdf` +
   `App\Services\PdfService`, reconciling to the on-screen figures **to the cent** (shared `MoneyFormatter`
@@ -528,54 +554,55 @@ plain GET links (e.g. `?month=`).
 
 ## Pointer index (read on demand)
 
+- **THIS FILE** (`docs/PROJECT-STATE.md`) → read FIRST · then **`docs/DECISIONS.md`** (the dated "why" behind every gate, append-only, full arc Phase 1 → Unified Inbox UI).
 - **Vision / phases / buy-vs-build** → `docs/master-plan.md`
 - **Data contracts (column-level source of truth)** → `docs/schema/phase-1.md` · `docs/schema/phase-2.md`
-  · `docs/schema/phase-3-owner-accounting.md`
+  · `docs/schema/phase-3-owner-accounting.md` · **`docs/schema/maintenance.md`** · **`docs/schema/inbox.md`**
 - **Gated build prompts** → `docs/prompts/phase-1.md` · `docs/prompts/phase-2.md` ·
   `docs/prompts/phase-3-owner-accounting.md` (all done/certified) · `docs/prompts/live-integration-checkpoint.md`
   (Stripe leg done; Channex Steps 1–2 outstanding)
-- **The dated "why" behind every gate** → `docs/DECISIONS.md`
+- **Design source of truth** → **`docs/design/CATALOGUE.md`** (per-file inventory + backend-status legend, ~120 screens) · `docs/design/design-system-brief.md` · `docs/design/owner-portal-spec.md`. The raw Claude Design HTML lives in **`docs/design/raw/*.html` — GITIGNORED / local-only (not in a fresh clone)**; the `.md` specs above ARE versioned.
+- **Product roadmap** → `docs/ROADMAP.md` *(to be created by the next-action roadmap audit — see NEXT ACTION)*.
 - **Code style / testing patterns** → `docs/CODING-STANDARDS.md` · **Conventions + commands** → `CLAUDE.md`
-- **Code** → `app/Services/` · `app/Payments/` · `app/Services/Channex/` · `app/Jobs/Sync/` ·
-  `app/Actions/Reservations/` · `app/Http/Middleware/` · `app/Livewire/` (+ `app/Livewire/Owner/`) ·
-  `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`) · `app/Models/` · `app/Models/Scopes/` ·
-  `database/migrations/` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
+- **Code** → `app/Services/` (incl. `InboxService`, `GuestMatcher`, `MaintenanceService`, owner-accounting services) ·
+  `app/Payments/` · **`app/Payouts/`** · **`app/Messaging/`** (channel interface + ManualChannel + Deferred skeletons + resolver) ·
+  `app/Services/Channex/` · `app/Jobs/Sync/` · `app/Actions/Reservations/` · **`app/Mail/`** · `app/Http/Controllers/` (+ `Auth/`, `Operator/`, `Owner/`) ·
+  `app/Http/Middleware/` · `app/Livewire/` (+ `app/Livewire/Owner/`, `app/Livewire/Operator/`) ·
+  `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
+  `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — core product COMPLETE & demoable; choose the next track
+## NEXT ACTION — the buildable-in-a-vacuum core is COMPLETE; audit the roadmap, then fork
 
-**The buildable core is DONE and demoable end-to-end.** The certified backends (multi-tenant PMS +
-channel manager + Stripe payments + owner accounting/payouts) now have their **entire styled surface**
-live: the owner portal, the operator back office (calendar · front desk · housekeeping · reservation+folio
-· dashboard · units · owners), and the public booking loop (browse → room → checkout → confirmation, a real
-guarded write). **A real hybrid operator could run day-to-day operations and take a direct booking today,
-and an owner could read their statements/payouts.** No unstyled stubs remain. **Real auth now fronts all of
-it** (Phase A + B): an operator signs in, invites an owner, and that owner sets a password and reaches
-their portal — so a live demo no longer needs a dev-login shim. **Dev email is wired to Mailpit** (invite
-emails land in a viewable inbox); the invite flow covers **owner + Hotel Manager + Accountant**. Before a
-real external demo, run Mailpit; production still needs a real mail provider (see the auth deferrals above).
+**Honest framing:** every piece that can be built without an external account is done and demoable
+end-to-end. Certified backends (multi-tenant PMS + channel manager + Stripe payments + owner accounting/
+payouts + maintenance + unified inbox) now carry their **entire styled surface** — owner portal, operator
+back office (calendar · front desk · housekeeping · maintenance · reservation+folio · dashboard · units ·
+owners · **inbox**), and the public booking loop (browse → room → checkout → confirmation, a real guarded
+write). **Real auth fronts all of it** (Phase A + B: sign-in → invite owner/staff → set password → portal;
+dev email via Mailpit). **A real hybrid operator could run day-to-day ops, take a direct booking, message a
+guest, and an owner could read statements/payouts reconciling to the cent — today.** No unstyled stubs
+remain. **What's left is either ACCOUNT-GATED or a net-new speculative module** (see the Deferred register).
 
-**Pick ONE — each needs a written, gated decision; NONE is started. The core product is complete —
-further building is lower-leverage than one real customer conversation:**
-- **(a) CUSTOMER VALIDATION — RECOMMENDED.** The product is complete & demoable. Stand up **Mailpit**
-  (`MAIL_MAILER=smtp` → Mailpit) so the invite email actually lands, then demo the **full loop to a real
-  hybrid operator**: public booking → operator manages the reservation → operator invites the owner →
-  owner sets a password → owner sees their statements/payouts with **money reconciling to the cent**. The
-  wedge (genuine owner accounting for a mixed hotel/apartment/villa portfolio) is now demoable; let real
-  feedback drive the roadmap over speculative breadth. No product code — config + a demo + discovery.
-- **(b) Demo polish** — any sharpening for a live showing (seed richness, copy, a scripted walkthrough).
-  Small, in service of (a). (Mailpit + Manager/Accountant invites are now DONE — see 2026-07-13.)
-- **(c) Close a live-integration checkpoint** when accounts exist — **Channex staging** (ARI/webhook/HMAC
-  vs a real account) or the **Stripe Connect payout rail** (owner disbursement KYC). The only two money/
-  network rails unproven against reality; run `docs/prompts/live-integration-checkpoint.md`.
-- **(d) A new design-only module** — **Unified Inbox** (WhatsApp/email/OTA/SMS — the largest remaining
-  differentiator), or in-product polish (Stripe card entry at checkout · room photos/descriptions/reviews).
-  Each is a gated, phased build like Owner Accounting — no backend exists today.
+**IMMEDIATE NEXT TASK — (a) a full product ROADMAP audit.** Produce `docs/ROADMAP.md`: reconcile the ~120-
+screen `docs/design/CATALOGUE.md` against what's actually built (this file + git log) → a clear
+**designed vs built vs remaining** map, each remaining item tagged BUILDABLE-NOW vs ACCOUNT-GATED with its
+unblock. This turns "what next" from a guess into a grounded decision. Then fork:
+
+- **(b) A BUILDABLE-NOW item from the roadmap** — a net-new design-only module (Guest Portal ~32 · Reviews ·
+  Subscription/billing · Analytics/reports) or a smaller in-product item (CSV/remittance exports · room
+  descriptions/reviews). Each is a gated, phased build like Owner Accounting — **no backend exists today**.
+- **(c) An ACCOUNT-GATED unblock** — once the external account exists: a real inbox channel (email/whatsapp/
+  OTA), Channex staging, Stripe Connect payouts, Stripe card checkout, or a production email provider. Run the
+  relevant checkpoint prompt (`docs/prompts/live-integration-checkpoint.md` for Channex/Stripe).
+- **(d) CUSTOMER VALIDATION — RECOMMENDED.** The remaining big modules are **speculative without customer
+  signal**. Stand up Mailpit and demo the **full loop to a real hybrid operator** (public booking → operator
+  manages it → invite owner → owner sees statements/payouts to the cent → message a guest in the inbox); let
+  real feedback pick (b)/(c) over building breadth blind. No product code — config + a demo + discovery.
 
 **If resuming design/build work:** inherit the relevant role design system (owner / operator / public — do
-NOT redefine it); wire live data through the existing services (call, never modify); honour the **design-
-pass honesty rule + the scoped-render/guarded-mutation discipline** (invariants #19–20 above); **per-gate
-commit + per-screen render/isolation (+ action-persistence) test**; wire the certified services, never a
-parallel write path. Read `docs/design/CATALOGUE.md` first (per-file backend-status legend). **The `.md`
-design specs (`CATALOGUE.md`, `design-system-brief.md`, `owner-portal-spec.md`) ARE versioned;** the raw
-Claude Design HTML (`docs/design/raw/*`, 104MB of self-unpacking bundles) is the approved design source but
-is **gitignored / local-only** (regeneratable) — not present in a fresh clone.
+NOT redefine it; the operator system already covers the new maintenance + inbox screens); wire live data
+through the existing services (call, never modify); honour the **design-pass honesty rule + scoped-render/
+guarded-mutation discipline** (invariants #19–20) + the module invariants (#22 maintenance, #23–25 inbox);
+**per-gate commit + per-screen render/isolation (+ action-persistence) test**; wire the certified services,
+never a parallel write path. Read `docs/design/CATALOGUE.md` first. **The `.md` design specs are versioned;**
+the raw Claude Design HTML (`docs/design/raw/*.html`) is **gitignored / local-only** — not in a fresh clone.
