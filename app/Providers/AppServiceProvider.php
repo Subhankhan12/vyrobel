@@ -24,6 +24,8 @@ use App\Models\Invoice;
 use App\Models\MaintenanceTicket;
 use App\Models\ManagementAgreement;
 use App\Models\Media;
+use App\Models\Message;
+use App\Models\MessageThread;
 use App\Models\Organization;
 use App\Models\OverbookingConflict;
 use App\Models\Owner;
@@ -171,6 +173,8 @@ class AppServiceProvider extends ServiceProvider
             'owner_statement_line' => OwnerStatementLine::class,
             'payout' => Payout::class,
             'maintenance_ticket' => MaintenanceTicket::class,
+            'message_thread' => MessageThread::class,
+            'message' => Message::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a

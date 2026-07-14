@@ -73,6 +73,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Unified Inbox — messaging channels
+    |--------------------------------------------------------------------------
+    |
+    | Per-channel config for the guest-messaging inbox. `manual` is the always-on internal channel
+    | (records outbound + accepts injected inbound — no external dependency). The real external
+    | adapters (email/whatsapp/booking_com/airbnb) are DEFERRED, account-gated skeletons that THROW
+    | "not configured" until deliberately implemented + credentialed (like StripeConnectPayoutRail).
+    | The `enabled` flags default false so a deferred channel is never accidentally treated as live.
+    |
+    */
+    'inbox' => [
+        'channels' => [
+            'email' => ['enabled' => env('INBOX_EMAIL_ENABLED', false)],
+            'whatsapp' => ['enabled' => env('INBOX_WHATSAPP_ENABLED', false)],
+            'booking_com' => ['enabled' => env('INBOX_BOOKING_COM_ENABLED', false)],
+            'airbnb' => ['enabled' => env('INBOX_AIRBNB_ENABLED', false)],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Owner payouts — rail selection (Phase 3 · Module 1 Step 5)
     |--------------------------------------------------------------------------
     |
