@@ -131,6 +131,11 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     // A foreign unit_id / cross-org {ticket} 404s; a guarded illegal transition flashes cleanly (never 500).
     Route::post('/maintenance', [MaintenanceActionController::class, 'store'])->name('maintenance.store');
     Route::post('/maintenance/{ticket}/assign', [MaintenanceActionController::class, 'assign'])->name('maintenance.assign');
+    // Lifecycle writes from the styled ticket detail — each offered only when the real state allows it;
+    // the service is still the authority (illegal transition → clean flash, never 500). Cross-org → 404.
+    Route::post('/maintenance/{ticket}/start', [MaintenanceActionController::class, 'start'])->name('maintenance.start');
+    Route::post('/maintenance/{ticket}/resolve', [MaintenanceActionController::class, 'resolve'])->name('maintenance.resolve');
+    Route::post('/maintenance/{ticket}/cancel', [MaintenanceActionController::class, 'cancel'])->name('maintenance.cancel');
     // Demo-readiness · Part A — operator room-type PHOTO management (secure upload; the operator-mutation
     // pattern POST→controller→PRG). {roomType}/{photo} are string ids resolved tenant-scoped → cross-org 404.
     Route::post('/room-types/{roomType}/photos', [RoomTypePhotoController::class, 'store'])->name('room-types.photos.store');

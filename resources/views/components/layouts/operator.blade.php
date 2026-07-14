@@ -419,6 +419,26 @@
         .vy-oos-item { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.7); border: 1px solid var(--vy-glass-border); font-size: 12px; color: var(--vy-ink); text-decoration: none; }
         .vy-oos-item:hover { border-color: var(--vy-dark); }
         .vy-oos-item .vy-oos-code { font-weight: 600; }
+        /* Work-order detail — activity timeline (real audit events only). */
+        .vy-timeline { display: flex; flex-direction: column; gap: 0; margin-top: 4px; }
+        .vy-tl-item { display: flex; gap: 12px; padding: 9px 0; position: relative; }
+        .vy-tl-rail { flex: none; display: flex; flex-direction: column; align-items: center; }
+        .vy-tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--vy-grad); margin-top: 3px; flex: none; box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.12); }
+        .vy-tl-item:not(:last-child) .vy-tl-line { width: 2px; flex: 1; background: var(--vy-hairline); margin-top: 3px; }
+        .vy-tl-body { flex: 1; min-width: 0; }
+        .vy-tl-label { font-size: 13px; font-weight: 600; color: var(--vy-ink); }
+        .vy-tl-label .vy-tl-who { font-weight: 500; color: var(--vy-accent); }
+        .vy-tl-meta { font-size: 11px; color: var(--vy-faint); margin-top: 2px; }
+        /* Work-order detail — an in-card callout (warm-dark for OOS impact, accent for the cost card). */
+        .vy-callout { border-radius: var(--vy-r-md); padding: 13px 15px; font-size: 12.5px; line-height: 1.5; }
+        .vy-callout.is-oos { background: rgba(66, 52, 44, 0.07); border: 1px solid rgba(66, 52, 44, 0.16); color: var(--vy-dark); }
+        .vy-callout.is-cost { background: rgba(232, 112, 58, 0.09); border: 1px solid var(--vy-accent-border); color: var(--vy-ink); }
+        .vy-callout-title { font-weight: 700; display: flex; align-items: center; gap: 7px; }
+        .vy-callout-move { display: inline-flex; align-items: center; gap: 6px; margin-top: 9px; font-weight: 600; color: var(--vy-dark); text-decoration: none; padding: 6px 11px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(66, 52, 44, 0.2); }
+        .vy-callout-move:hover { border-color: var(--vy-dark); }
+        .vy-cost-amt { font-family: var(--vy-display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--vy-ink); }
+        .vy-resolve-form { margin-top: 12px; }
+        .vy-resolve-form .vy-input-group { margin-top: 7px; }
 
         /* ---- Reservation detail (folio ledger) ------------------------------------------------- */
         .vy-detail-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }

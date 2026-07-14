@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * A physical site (can be mixed-type). Reuses the shared polymorphic media/documents/notes/
  * tags/amenities via concern traits — never per-module tables (convention #6).
+ *
+ * @property string $currency
+ * @property string $timezone
  */
 class Property extends Model
 {

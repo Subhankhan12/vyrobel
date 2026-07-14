@@ -9,6 +9,7 @@ use App\Models\MaintenanceTicket;
 use App\Models\Membership;
 use App\Models\Unit;
 use App\Services\MaintenanceService;
+use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,11 @@ use RuntimeException;
  *
  * Only the real `category`/`priority` enum values are accepted — an unknown value is rejected by
  * validation, never invented. A guarded illegal transition surfaces as a clean flash error, not a 500.
+ *
+ * The lifecycle writes (start/resolve/cancel) are driven from the styled ticket-detail screen and each
+ * is offered ONLY when the real current state allows it — but the service is still the authority: an
+ * illegal transition is caught and surfaced as a clean flash, never a 500. Assign is shared by the board
+ * and the detail; an `origin=detail` hint returns the operator to the detail after the write.
  */
 class MaintenanceActionController extends Controller
 {
@@ -87,11 +93,80 @@ class MaintenanceActionController extends Controller
             $maintenance->assign($model, $userId);
         } catch (RuntimeException) {
             // e.g. the ticket is already resolved/cancelled — guarded, surfaced cleanly, not a 500.
-            return redirect()->route('app.maintenance')
-                ->with('mt_error', 'That ticket can’t be reassigned — it’s already closed.');
+            return $this->backTo($request, $model)->with('mt_error', 'That ticket can’t be reassigned — it’s already closed.');
         }
 
-        return redirect()->route('app.maintenance')
-            ->with('mt_notice', 'Ticket assignment updated.');
+        return $this->backTo($request, $model)->with('mt_notice', 'Ticket assignment updated.');
+    }
+
+    /** Start work on an OPEN ticket (guarded: illegal from any other state → clean flash). */
+    public function start(MaintenanceService $maintenance, string $ticket): RedirectResponse
+    {
+        $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
+
+        try {
+            $maintenance->start($model);
+        } catch (RuntimeException) {
+            return redirect()->route('app.maintenance.show', $model->id)
+                ->with('mt_error', 'That ticket can’t be started — it’s no longer open.');
+        }
+
+        return redirect()->route('app.maintenance.show', $model->id)
+            ->with('mt_notice', 'Work started on this ticket.');
+    }
+
+    /**
+     * Resolve an IN-PROGRESS ticket with an optional cost. On an OWNED unit a cost posts a deductible
+     * owner expense through the certified path (the service decides — this controller only passes Money);
+     * on an operator-owned unit no owner expense is created. Cost is captured in the property currency.
+     */
+    public function resolve(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
+    {
+        $validated = $request->validate([
+            'cost' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+        ]);
+
+        $model = MaintenanceTicket::query()->with('unit.property')->findOrFail($ticket);   // tenant-scoped → 404
+
+        $cost = null;
+        $costInput = $validated['cost'] ?? null;
+        if ($costInput !== null && (float) $costInput > 0) {
+            $currency = (string) $model->unit->property->currency;
+            $cost = Money::of((int) round(((float) $costInput) * 100), $currency);
+        }
+
+        try {
+            $maintenance->resolve($model, $cost);
+        } catch (RuntimeException) {
+            return redirect()->route('app.maintenance.show', $model->id)
+                ->with('mt_error', 'That ticket can’t be resolved — it isn’t in progress.');
+        }
+
+        return redirect()->route('app.maintenance.show', $model->id)
+            ->with('mt_notice', 'Ticket resolved.');
+    }
+
+    /** Cancel an ACTIVE ticket (guarded: illegal from a terminal state → clean flash). */
+    public function cancel(MaintenanceService $maintenance, string $ticket): RedirectResponse
+    {
+        $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
+
+        try {
+            $maintenance->cancel($model);
+        } catch (RuntimeException) {
+            return redirect()->route('app.maintenance.show', $model->id)
+                ->with('mt_error', 'That ticket can’t be cancelled — it’s already closed.');
+        }
+
+        return redirect()->route('app.maintenance.show', $model->id)
+            ->with('mt_notice', 'Ticket cancelled.');
+    }
+
+    /** Where an assign returns to: the ticket detail when it came from there, else the board. */
+    private function backTo(Request $request, MaintenanceTicket $model): RedirectResponse
+    {
+        return $request->input('origin') === 'detail'
+            ? redirect()->route('app.maintenance.show', $model->id)
+            : redirect()->route('app.maintenance');
     }
 }
