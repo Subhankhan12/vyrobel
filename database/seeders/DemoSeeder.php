@@ -25,6 +25,7 @@ use App\Models\User;
 use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\FolioService;
+use App\Services\MaintenanceService;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
@@ -179,6 +180,73 @@ class DemoSeeder extends Seeder
         // Real + coherent: attribution reads the folios, the statement is a pure ledger projection,
         // the payout is created from the finalized statement. Nothing fabricated.
         $this->seedOwnerAccounting($owner, $property, $apartment, $aptRate, $aptUnits, $vat, $walkIn);
+
+        // --- Maintenance — a coherent spread so the styled board + work order demo the module. Every
+        // ticket is created through the real MaintenanceService (guarded lifecycle, real events, the real
+        // out-of-service ↔ availability + cost → owner-expense hooks) — never a raw insert. Runs AFTER
+        // owner accounting so the apartment owner_id is set (the owned-unit cost posts a real expense).
+        $this->seedMaintenance($roomUnits, $aptUnits, $staff);
+    }
+
+    /**
+     * Seed a realistic maintenance spread on the demo units, through {@see MaintenanceService} only:
+     *   • OPEN            — an unassigned ticket (room 103, no booking).
+     *   • IN PROGRESS     — assigned + started (room 102).
+     *   • OUT OF SERVICE  — an urgent ticket that takes room 101 out of service; 101 has an active stay,
+     *                       so the work order shows the REAL manual-move flag (1 booking to move).
+     *   • RESOLVED · owner cost   — a cost on an OWNER-owned apartment (A2) → a real deductible
+     *                               owner_expense via the certified path ("charged to the owner").
+     *   • RESOLVED · operator cost — a cost on an operator-owned room (103) → NO owner_expense.
+     *
+     * @param  Collection<int, Unit>  $roomUnits  operator-owned rooms [101, 102, 103]
+     * @param  Collection<int, Unit>  $aptUnits  owner-owned apartments [A1, A2]
+     */
+    private function seedMaintenance(Collection $roomUnits, Collection $aptUnits, User $staff): void
+    {
+        $maintenance = app(MaintenanceService::class);
+
+        // OPEN — a straightforward unassigned ticket on a room with no booking.
+        $maintenance->open([
+            'unit_id' => $roomUnits[2]->id, 'title' => 'Wardrobe door off its runner',
+            'description' => 'Sliding wardrobe door has come off the bottom runner — needs refitting.',
+            'category' => 'other', 'priority' => 'normal', 'reported_by' => $staff->id,
+        ]);
+
+        // IN PROGRESS — assigned to the demo technician and started.
+        $inProgress = $maintenance->open([
+            'unit_id' => $roomUnits[1]->id, 'title' => 'Air-con intermittently cutting out',
+            'description' => 'Guest reports the split unit stops after ~20 minutes. Suspect a faulty thermostat.',
+            'category' => 'appliance', 'priority' => 'high', 'reported_by' => $staff->id,
+        ]);
+        $maintenance->assign($inProgress->refresh(), $staff->id);
+        $maintenance->start($inProgress->refresh());
+
+        // OUT OF SERVICE — an urgent ticket that blocks room 101 (which has an active stay) from sale.
+        $oos = $maintenance->open([
+            'unit_id' => $roomUnits[0]->id, 'title' => 'Burst pipe under bathroom sink',
+            'description' => 'Water damage under the vanity; isolation valve shut. Room not lettable until fixed.',
+            'category' => 'plumbing', 'priority' => 'urgent', 'takes_out_of_service' => true, 'reported_by' => $staff->id,
+        ]);
+        $maintenance->assign($oos->refresh(), $staff->id);
+        $maintenance->start($oos->refresh());
+
+        // RESOLVED · owner cost — on an OWNER-owned apartment → a real deductible owner_expense.
+        $ownerCost = $maintenance->open([
+            'unit_id' => $aptUnits[1]->id, 'title' => 'Dishwasher pump replacement',
+            'description' => 'Integrated dishwasher not draining; drain pump replaced.',
+            'category' => 'appliance', 'priority' => 'normal', 'reported_by' => $staff->id,
+        ]);
+        $maintenance->start($ownerCost->refresh());
+        $maintenance->resolve($ownerCost->refresh(), Money::of(18000, 'EUR'));
+
+        // RESOLVED · operator cost — on an operator-owned room → NO owner_expense.
+        $operatorCost = $maintenance->open([
+            'unit_id' => $roomUnits[2]->id, 'title' => 'Repaint scuffed hallway wall',
+            'description' => 'Touch-up paint on the corridor wall outside the room.',
+            'category' => 'structural', 'priority' => 'low', 'reported_by' => $staff->id,
+        ]);
+        $maintenance->start($operatorCost->refresh());
+        $maintenance->resolve($operatorCost->refresh(), Money::of(4500, 'EUR'));
     }
 
     /**

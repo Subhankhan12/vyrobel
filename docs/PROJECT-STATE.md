@@ -6,9 +6,9 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `e8415c6`** on `main`, working tree clean (only the untracked design-source exports under
-  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 288 tests
-  / 3552 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
+- **HEAD `69fad05`** on `main`, working tree clean (only the untracked design-source exports under
+  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 302 tests
+  / 3639 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
   errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
   `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
   of writing; the final docs-only commit advances it by one with no state change.)
@@ -25,9 +25,9 @@ conflicts with the repo, **trust the repo** and fix this file.
   to Mailpit** (invite + reset emails land in a viewable inbox); expired invites are pruned daily
   (`invites:prune-expired`). **DEFERRED, flagged not faked:** **email DELIVERY in production** (dev = Mailpit;
   needs a real provider), 2FA. See `docs/DECISIONS.md` 2026-07-13.
-- **DESIGN PASS — COMPLETE. The whole styled surface over the certified backend is done — 13 screens:**
-  **owner portal (4)** · **operator core (5) + Units (1)** · **public booking storefront (3, incl. the
-  real checkout WRITE)**. All on the certified backends, honesty rule enforced per-screen by a render/
+- **DESIGN PASS — COMPLETE. The whole styled surface over the certified backend is done — 15 screens:**
+  **owner portal (4)** · **operator core (5) + Units (1) + Maintenance board & work order (2)** · **public
+  booking storefront (3, incl. the real checkout WRITE)**. All on the certified backends, honesty rule enforced per-screen by a render/
   isolation test; **backends/schema/guarantees UNCHANGED** (presentation only). **No unstyled stubs
   remain.** Three role design systems: `components/layouts/owner`+`<x-owner.shell>`+`FormatsOwnerData` ·
   `components/layouts/operator`+`<x-operator.shell>`+`FormatsOperatorData` · `components/public/shell`
@@ -49,8 +49,14 @@ conflicts with the repo, **trust the repo** and fix this file.
   touched; two-tickets + never-auto-cancel + honest negative-over-committed signal handled); **(2) cost →
   owner deductible expense** — a costed ticket on an owned unit posts via the CERTIFIED
   `OwnerExpenseService::recordExpense(source:$ticket)` → owner_ledger → statement (operator-owned = no
-  expense; correction reverses append-only; period-lock respected). Unstyled operator stub only (styled UI
-  deferred). See `docs/schema/maintenance.md` + `docs/DECISIONS.md` 2026-07-14.
+  expense; correction reverses append-only; period-lock respected). **STYLED UI COMPLETE (design pass
+  2026-07-14):** the **board** (`/app/maintenance` — kanban by real status; "Unit OOS" badge + OOS rail;
+  real New-ticket + Assign writes) and the **work order** (`/app/maintenance/{ticket}` — real facts +
+  audit-event timeline; state-gated guarded lifecycle writes; **both integrations surfaced** — the OOS
+  callout with the **manual-move flag** (real active-booking count on the blocked unit) and the cost card
+  read from the real `owner_expense` (charged-to-owner vs operator-cost)). `DemoSeeder` seeds a coherent
+  maintenance spread through `MaintenanceService`. See `docs/schema/maintenance.md` + `docs/DECISIONS.md`
+  2026-07-14 (two entries).
 - **THE CORE PRODUCT IS COMPLETE & DEMOABLE end-to-end** — a real hybrid operator could run day-to-day
   operations (calendar/front-desk/housekeeping/folio/dashboard/units/maintenance), an owner could read their
   statements/payouts/units + download a PDF, and a guest could book direct (browse→room→checkout→
@@ -114,8 +120,9 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **Maintenance module** — `maintenance_tickets` (`App\Models\MaintenanceTicket`, morph `maintenance_ticket`)
   + **`App\Services\MaintenanceService`** (guarded lifecycle; `setUnitCondition` emits the existing
   `unit.condition_changed` → recompute excludes an out-of-service unit; `resolve`/`correctCost` post/reverse
-  the cost via `OwnerExpenseService` on owned units). Unstyled operator stub: `App\Livewire\MaintenanceList`
-  + `App\Livewire\MaintenanceTicketDetail` (`/app/maintenance`). Design: `docs/schema/maintenance.md`.
+  the cost via `OwnerExpenseService` on owned units). **Styled** operator screens: `App\Livewire\MaintenanceList`
+  (board) + `App\Livewire\MaintenanceTicketDetail` (work order) + `App\Http\Controllers\Operator\MaintenanceActionController`
+  (POST store/assign/start/resolve/cancel → PRG). Design: `docs/schema/maintenance.md`.
 - **Owner Accounting (Phase 3 · Module 1)** — `owners` + `management_agreements` (effective-dated,
   `ManagementAgreement::resolveFor()`); **`App\Services\OwnerAttributionService`** (reads folio+
   reservation_units → immutable `owner_ledger`); **`App\Services\OwnerExpenseService`** (`owner_expenses`
@@ -250,7 +257,10 @@ conflicts with the repo, **trust the repo** and fix this file.
     a negative raw available (honest) while the clamped `available()` stays 0 (no oversell). **Maintenance
     cost flows to the owner ONLY through the certified `OwnerExpenseService`** (source = the ticket) →
     `owner_ledger` → statement — never a direct ledger write; operator-owned units create no expense;
-    corrections reverse append-only; period-lock respected. (Locked `docs/DECISIONS.md` 2026-07-14.)
+    corrections reverse append-only; period-lock respected. **The styled work order SURFACES both
+    integrations** — the OOS callout with the real manual-move count, and the cost card read from the real
+    `owner_expense` — without changing any guarantee (presentation only). (Locked `docs/DECISIONS.md`
+    2026-07-14, two entries.)
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
@@ -305,12 +315,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **2FA** — schema columns (`two_factor_secret`/`two_factor_enabled`) exist, no flow — not built. (Password
   reset is now DONE — see the auth chapter above / DECISIONS.md 2026-07-13.)
 
-**Maintenance module deferrals (module BACKEND is built + certified — see DECISIONS.md 2026-07-14):**
-- **Styled maintenance UI** — the module ships an **unstyled** operator contract stub (`/app/maintenance`
-  list + `/app/maintenance/{ticket}` detail); the styled screen is a later design pass.
-- **Manual-move flag surfacing** — a physically-assigned reservation on a unit that goes out of service is
-  left intact and flagged for **manual move** (never auto-cancelled); a UI/affordance that surfaces this
-  flag to the operator is future work (the operator can already move it via the existing guarded move-room path).
+**Maintenance module — COMPLETE end-to-end (backend certified + styled UI, design pass 2026-07-14).**
+Nothing deferred for this module. (Was: "styled maintenance UI" + "manual-move flag surfacing" — **both now
+DONE**: the styled board + work order ship the two integrations, and the work order surfaces the manual-move
+flag as the real active-booking count on the blocked unit, linking to the existing move-room/rack path. The
+actual room move still routes through the existing guarded `AssignmentService` move path — never auto-cancelled.)
 
 **Other deferrals:** promo codes + deposits on the booking engine (schema only); `guests.stripe_customer_id`
 / saved cards (blind-index story); **auto-FX provider** (statements take an operator-supplied rate — no
@@ -320,7 +329,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**288 tests / 3552 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**302 tests / 3639 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -359,8 +368,13 @@ one-books with no overbooking**), together. The true-parallel no-double-booking 
   (OOS excludes from availability + returns; two-tickets; cross-unit isolation; negative over-committed with
   no oversell; never auto-cancel) · `MaintenanceCostExpenseTest` (owned → owner_expense via the certified
   path + reconciles; operator-owned → none; append-only reversal; period-lock) · `MaintenanceModuleTest`
-  (unstyled stub tenant-scoped + cross-org 404; end-to-end tie-together). The concurrency suite is re-run
-  green after the module (no-double-booking + single-write-path intact).
+  (tenant-scoped render + cross-org 404; end-to-end tie-together). **Styled-UI design pass:**
+  `MaintenanceBoardViewTest` (real lanes/fields; OOS badge + rail; real create with the OOS side-effect;
+  foreign-unit 404; assign persist; non-member 422 + cross-org 404; tenant isolation + cancelled-off-board)
+  · `MaintenanceDetailViewTest` (real facts + audit-event timeline; state-gated lifecycle persist; guarded
+  illegal transition → clean error; owned → charged-to-owner + real owner_expense reconciles; operator →
+  operator-cost + no owner_expense; OOS callout + real manual-move count; cross-org detail/action 404). The
+  concurrency suite is re-run green after the module (no-double-booking + single-write-path intact).
 - **THREE browser-verified user journeys** (Playwright, real demo data — beyond feature tests): **(1)
   public booking** (browse→room→checkout→real direct booking), **(2) operator ops**
   (calendar/front-desk/housekeeping/folio/dashboard), **(3) owner portal** (dashboard/statement/payouts/

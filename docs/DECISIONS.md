@@ -871,12 +871,54 @@ period lands as a `prior_period_adjustment` on the next statement. This gives th
 **Stub (Step 4):** an UNSTYLED operator contract stub — `App\Livewire\MaintenanceList` (`/app/maintenance`) +
 `App\Livewire\MaintenanceTicketDetail` (`/app/maintenance/{ticket}`, RMB rule → cross-org 404). The styled
 maintenance UI is a later design pass; surfacing the manual-move flag to the operator is future work.
+**→ RESOLVED the same day by the MAINTENANCE UI design pass (next entry): both the styled UI and the
+manual-move flag surfacing are now DONE and removed from the deferred register.**
 
-**Invariant #22** locked in PROJECT-STATE. **DEFERRED:** styled maintenance UI + the manual-move flag
-surfacing. **Verified:** `MaintenanceTicketTest` (7) · `MaintenanceOutOfServiceTest` (6) ·
+**Invariant #22** locked in PROJECT-STATE. **DEFERRED (now resolved — see next entry):** styled maintenance
+UI + the manual-move flag surfacing. **Verified:** `MaintenanceTicketTest` (7) · `MaintenanceOutOfServiceTest` (6) ·
 `MaintenanceCostExpenseTest` (6) · `MaintenanceModuleTest` (3) + the re-run concurrency suite. **Full suite
 288 tests / 3552 assertions green; PHPStan L5 0 errors; Pint clean.** No regression to the booking or
 owner-accounting cores.
+
+### 2026-07-14 — MAINTENANCE UI design pass — module now COMPLETE end-to-end (board + work order)
+
+The maintenance module's operator surface, styled onto the SAME operator design system as the other
+screens (operator layout, `<x-operator.shell>`, `FormatsOperatorData` — reused, never redefined).
+**Presentation + wiring of EXISTING actions only** — no schema/service/availability/cost path changed.
+
+**Board (`/app/maintenance`, `MaintenanceList`):** a kanban whose 3 lanes ARE the real active-status enum
+(open/in_progress/resolved — no invented columns; cancelled is terminal → off the board). Cards show real
+unit/category/priority/assignee; resolved cards show real cost + date. The **"Unit OOS" badge** shows only
+when `takes_out_of_service` AND the unit is genuinely `condition_status = out_of_service`. Summary chips +
+the **"Units out of service" rail** are DERIVED from real rows. Two REAL writes via POST →
+`MaintenanceActionController` → `MaintenanceService` → PRG: **New ticket** (`open()`, own units only) and
+**Assign** (active org member). Foreign unit / cross-org ticket → 404; non-member assign → 422.
+
+**Work order (`/app/maintenance/{ticket}`, `MaintenanceTicketDetail`):** RMB rule kept (string id →
+tenant-scoped `findOrFail` → cross-org 404). Real facts + description + an **activity timeline built ONLY
+from the ticket's real `audit_events`** (opened/assigned/started/resolved/cancelled — actor + timestamp;
+nothing fabricated). **Lifecycle writes** (Start/Resolve-with-optional-cost/Assign/Cancel) each offered ONLY
+when the real state allows the transition; the service stays the authority — an illegal transition is caught
+and flashed cleanly (**never a 500**). **Both integrations made visible:** (1) an **OOS callout** + the
+**manual-move flag SURFACED** — the REAL count of active `reservation_unit` rows on the blocked unit (absent
+when zero), linking to the rack (surfaces the previously-deferred flag; the actual move still happens via the
+existing move-room/rack path — never auto-cancelled); (2) a **cost card** whose destination is read from the
+ACTUAL `owner_expense` (source = ticket): present → "charged to {owner} as a deductible expense"; absent →
+"operator cost". Never a fabricated charge.
+
+**Model typing (doc-only, PHPStan L5):** added an `@property` block to `AuditEvent`; `currency`/`timezone`
+to `Property`; a `BelongsTo<Property>` generic to `Unit::property()`.
+
+**Demo seed:** `DemoSeeder` now seeds a coherent maintenance spread through `MaintenanceService` (real path,
+not raw inserts): an OPEN ticket, an IN-PROGRESS ticket, an OOS ticket on room **101** (which has an active
+stay → the work order shows the real "1 booking to move" flag), a RESOLVED **owner-cost** ticket on apartment
+**A2** (→ a real deductible `owner_expense` for the demo owner) and a RESOLVED **operator-cost** ticket on
+room 103 (→ no owner_expense). All clearly demo, coherent with the existing demo org/units/owner.
+
+**Deferred register:** **REMOVED** "styled maintenance UI" and "the manual-move flag surfacing" (both now
+done). **Verified:** `MaintenanceBoardViewTest` (7) + `MaintenanceDetailViewTest` (7); `migrate:fresh --seed`
+runs clean with the new maintenance seed. **Full suite 302 tests / 3639 assertions green; PHPStan L5 0
+errors; Pint clean.** No regression to the booking, owner-accounting, or maintenance-backend cores.
 
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
