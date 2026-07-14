@@ -8,6 +8,7 @@ use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\Operator\FolioPdfController;
+use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
@@ -18,6 +19,8 @@ use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
+use App\Livewire\InboxList;
+use App\Livewire\InboxThread;
 use App\Livewire\MaintenanceList;
 use App\Livewire\MaintenanceTicketDetail;
 use App\Livewire\Operator\OperatorDashboard;
@@ -123,6 +126,13 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     Route::post('/owners/invite', [InviteOwnerController::class, 'store'])->middleware('throttle:10,1')->name('owners.invite');
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
+    // Unified Inbox — UNSTYLED operator contract stubs (thread list + thread view; styled screen is a
+    // later design pass). Tenant-scoped; the view resolves {thread} via a scoped findOrFail → cross-org 404.
+    Route::get('/inbox', InboxList::class)->name('inbox');
+    Route::get('/inbox/{thread}', InboxThread::class)->name('inbox.show');
+    // Inbox reply — REAL outbound via POST → controller → InboxService::sendOutbound → redirect (PRG).
+    // Cross-org {thread} 404s; a deferred channel leaves an honest failed record + clean flash (never 500).
+    Route::post('/inbox/{thread}/reply', [InboxActionController::class, 'reply'])->name('inbox.reply');
     // Maintenance module — styled work-order board + detail (design pass · Maintenance UI). Tenant-scoped;
     // the detail resolves {ticket} via a scoped findOrFail in render() → cross-org 404.
     Route::get('/maintenance', MaintenanceList::class)->name('maintenance');
