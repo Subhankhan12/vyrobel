@@ -11,6 +11,9 @@
       • NO BACKEND— Add unit, edit-pricing / message-guest, block-dates, export, "Needs attention":
                     disabled "Soon".
       • Guest PII — the calendar shows booking COUNTS only; no guest names anywhere.
+      • REAL LINK — the unit NAME opens the owner-scoped Unit Detail screen (Wave 1 · Sub-gate 3), which
+                    carries that unit's real facts, its own occupancy and its attributed ledger. It is a
+                    plain GET link, so the owner middleware re-runs and the id is re-scoped on arrival.
 --}}
 <x-owner.shell active="units" title="My units" :viewer="$viewer">
     <div style="display:flex;justify-content:flex-end;margin-bottom:18px">
@@ -67,10 +70,11 @@
                         <div class="vy-unit-cover"><img src="{{ $u['cover'] }}" alt="{{ $u['name'] }}" loading="lazy"></div>
                     @endif
                     <div class="vy-unit-head">
-                        <span style="display:flex;align-items:center;gap:9px">
+                        {{-- The unit NAME opens the owner-scoped Unit Detail screen (Wave 1 · Sub-gate 3) --}}
+                        <a href="{{ route('owner.units.show', $u['id']) }}" style="display:flex;align-items:center;gap:9px;text-decoration:none;color:inherit">
                             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5"/></svg>
                             <span class="vy-unit-name">{{ $u['name'] }}</span>
-                        </span>
+                        </a>
                         <span class="vy-unit-badge">{{ $u['active'] ? 'Active' : 'Inactive' }}</span>
                     </div>
                     <div class="vy-unit-body">

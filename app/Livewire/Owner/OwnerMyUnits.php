@@ -9,6 +9,7 @@ use App\Models\ReservationUnit;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\Owner\OwnerOccupancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -89,57 +90,17 @@ class OwnerMyUnits extends Component
     }
 
     /**
-     * OWNER-SCOPED occupancy for the month — active physical-unit bookings on the owner's OWN units
-     * only. Excludes non-owner units in the same room type by construction (they carry a different
-     * unit_id and are never in $unitIds). No double-count: the no-double-booking guarantee means a
-     * physical unit's lines never overlap.
+     * OWNER-SCOPED occupancy for the month — delegated to the SHARED {@see OwnerOccupancy} derivation so
+     * this screen and the Unit Detail screen can never disagree about the owner's occupancy. The rule it
+     * enforces is unchanged: active physical-unit bookings on the owner's OWN units only, so a non-owner
+     * unit in the same room type is excluded by construction (it carries a different unit_id).
      *
      * @param  Collection<int, Unit>  $units
      * @return array{days: int, unit_count: int, heat: array<int, int>, per_unit: array<string, int>, nights: int, pct: int}
      */
     private function occupancy(Collection $units, Carbon $month): array
     {
-        $unitIds = array_map('strval', $units->pluck('id')->all());
-        $monthStart = $month->copy()->startOfMonth();
-        $monthEnd = $monthStart->copy()->addMonth();   // exclusive upper bound
-        $days = (int) $monthStart->daysInMonth;
-
-        $heat = array_fill(1, $days, 0);
-        $perUnit = array_fill_keys($unitIds, 0);
-
-        if ($unitIds !== []) {
-            $lines = ReservationUnit::query()
-                ->whereIn('unit_id', $unitIds)
-                ->where('status', 'active')
-                ->whereDate('check_in', '<', $monthEnd->toDateString())
-                ->whereDate('check_out', '>', $monthStart->toDateString())
-                ->get(['unit_id', 'check_in', 'check_out']);
-
-            foreach ($lines as $line) {
-                $unitId = (string) $line->unit_id;
-                $checkIn = Carbon::parse($line->check_in);
-                $checkOut = Carbon::parse($line->check_out);
-                $start = $checkIn->greaterThan($monthStart) ? $checkIn : $monthStart->copy();
-                $end = $checkOut->lessThan($monthEnd) ? $checkOut : $monthEnd->copy();
-
-                for ($d = $start->copy(); $d->lessThan($end); $d->addDay()) {
-                    $heat[(int) $d->format('j')]++;
-                    $perUnit[$unitId] = ($perUnit[$unitId] ?? 0) + 1;
-                }
-            }
-        }
-
-        $unitCount = count($unitIds);
-        $nights = array_sum($perUnit);
-
-        return [
-            'days' => $days,
-            'unit_count' => $unitCount,
-            'heat' => $heat,
-            'per_unit' => $perUnit,
-            'nights' => $nights,
-            'pct' => $unitCount > 0 && $days > 0 ? (int) round($nights / ($unitCount * $days) * 100) : 0,
-        ];
+        return OwnerOccupancy::forMonth(array_map('strval', $units->pluck('id')->all()), $month);
     }
 
     /**

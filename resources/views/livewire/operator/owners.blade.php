@@ -4,6 +4,11 @@
      → PRG (never a Livewire wire-action for a scoped write). Alpine (bundled with Livewire) drives ONLY
      the modal's presentation (show/hide + selection state); the server re-validates everything.
 
+     Wave 1 · Sub-gate 3 — each owner row now navigates to the operator Owner Detail
+     (`app.owners.show`), a REAL built route: the operator's tenant-scoped lens on that one owner's
+     units / agreement / statements / payouts / balance. It is a plain GET link (never a wire-action),
+     so the scope middleware runs on the way in. Nothing else on this screen changed.
+
      Roles: Owner (external party → portal, with units + commission) plus the two STAFF roles Manager
      (→ "Hotel Manager") and Accountant (→ "Accountant") — real spatie catalog roles assigned on
      activation. When a staff role is selected the owner-only fields (units, commission) hide; the server
@@ -59,7 +64,9 @@
                             $parts = preg_split('/\s+/', trim($o['name'])) ?: [];
                             $initials = strtoupper(mb_substr($parts[0] ?? 'O', 0, 1) . (count($parts) > 1 ? mb_substr(end($parts), 0, 1) : ''));
                         @endphp
-                        <div class="vy-owner-row">
+                        {{-- Plain GET link to the REAL owner-detail route (tenant-scoped there too). --}}
+                        <a class="vy-owner-row" href="{{ route('app.owners.show', $o['id']) }}"
+                           style="color: inherit; text-decoration: none;">
                             <span class="vy-owner-avatar">{{ $initials }}</span>
                             <div class="vy-owner-main">
                                 <div class="vy-owner-name">{{ $o['name'] }}</div>
@@ -68,7 +75,8 @@
                             @unless ($o['active'])
                                 <span class="vy-pending-badge">Invited</span>
                             @endunless
-                        </div>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none; color: var(--vy-faint);"><path d="M9 6l6 6-6 6"/></svg>
+                        </a>
                     @empty
                         <div class="vy-empty" style="padding: 30px 20px;">No owners yet — invite your first owner to give them portal access.</div>
                     @endforelse

@@ -26,6 +26,7 @@ use App\Livewire\InboxThread;
 use App\Livewire\MaintenanceList;
 use App\Livewire\MaintenanceTicketDetail;
 use App\Livewire\Operator\OperatorDashboard;
+use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Owner\OwnerAgreement;
 use App\Livewire\Owner\OwnerArchive;
@@ -35,6 +36,7 @@ use App\Livewire\Owner\OwnerExpenses;
 use App\Livewire\Owner\OwnerMyUnits;
 use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerStatementView;
+use App\Livewire\Owner\OwnerUnitDetail;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
 use App\Livewire\UnitsList;
@@ -130,6 +132,11 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     // Auth Phase B · Step 4 — operator Owners screen + the invite-owner write (POST → controller → PRG).
     Route::get('/owners', OperatorOwners::class)->name('owners');
     Route::post('/owners/invite', [InviteOwnerController::class, 'store'])->middleware('throttle:10,1')->name('owners.invite');
+    // Wave 1 · Sub-gate 3 — the operator's TENANT-scoped lens on ONE owner (units/agreement/
+    // statements/payouts/balance). NOT owner-scoped: OwnerScope is inactive off-portal, so this
+    // deliberately reads the whole owner relationship the operator manages, within their own org
+    // (Owner is BelongsToOrganization → a cross-org id 404s).
+    Route::get('/owners/{owner}', OperatorOwnerDetail::class)->name('owners.show');
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
     // Unified Inbox — UNSTYLED operator contract stubs (thread list + thread view; styled screen is a
@@ -208,6 +215,9 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');
     // Design pass · Screen 4 — owner units + owner-scoped occupancy calendar (new owner-scoped page).
     Route::get('/units', OwnerMyUnits::class)->name('units');
+    // Wave 1 · Sub-gate 3 — ONE of the owner's units. Owner-scoped: a non-owned/cross-owner unit id
+    // 404s under OwnerScope. Occupancy is THIS-unit/THIS-owner (never room-type-wide).
+    Route::get('/units/{unit}', OwnerUnitDetail::class)->name('units.show');
     // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
     // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
     Route::get('/balance', OwnerBalance::class)->name('balance');
