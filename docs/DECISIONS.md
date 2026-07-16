@@ -1071,6 +1071,141 @@ tests / 3831 assertions green on MySQL, PHPStan L5 0 errors, Pint clean.** The t
 branch `docs/roadmap-audit` (7fea230 → ae1541b → 9785561) and **merged to `main`** in this consolidation so a
 fresh session on `main` sees them.
 
+### 2026-07-16 — 🔴 SECURITY FINDING: the `/app` operator back office has NO role gate (owners can reach it)
+
+**Found while browser-verifying Wave 1 · Sub-gate 3** (logged in as the demo OWNER, loaded the OPERATOR
+screen `/app/owners/{owner}` and it rendered every financial detail). **Not a demo-data artifact — this is
+production behaviour.** Two facts combine:
+
+1. **`routes/web.php` — the `/app` group is `Route::middleware('auth')` ONLY.** No role, no permission, no
+   policy. Tenant scope is enforced (you only see your OWN org), but *any authenticated member* of that org
+   reaches every operator screen.
+2. **`OwnerInviteService` grants an ACTIVE `Membership` on BOTH paths** — its own comment says so:
+   *"Membership (active so the tenant context resolves once the login is activated) — BOTH paths."* So a
+   **real, production-invited OWNER** gets an active operator Membership, `SetTenantForWebRequest` resolves
+   their org, and `/app/*` opens.
+
+**Impact:** an owner-role user can browse the entire operator back office of their org — rack, front desk,
+housekeeping, maintenance, reservations + folios, the unified inbox (guest conversations), the owners list,
+and now `/app/owners/{owner}`: **every other owner's balance, statements, payouts, commission and agreement.**
+This defeats owner isolation (invariant #18) at the ROUTE layer — `OwnerScope` is deliberately inactive
+off-portal, which is correct for a real operator and catastrophic for an owner who can reach `/app`.
+
+- **Pre-existing, NOT introduced by Wave 1** — `/app/owners` has listed every owner since the Auth Phase B
+  work (`2d28b32`), and every operator screen has always shared this group. Wave 1 **deepens what is exposed
+  there** (a list of owner names → one owner's complete financials), which is how it surfaced.
+- **Decision: NOT fixed inline.** — **Why:** Wave 1 is a gated *presentation* pass ("no guarantee change"),
+  and this is a cross-cutting **authorization** decision spanning every operator screen: which of the 14
+  catalog roles may reach `/app`; whether an owner should hold a Membership at all (it exists so the tenant
+  context resolves — removing it needs a different context path for owners); and how staff-vs-owner is
+  decided (spatie role vs `owners.user_id`). Bolting a guess onto one screen would be worse than the honest
+  finding: it would imply the surface is protected when it is not.
+- **This is the TOP post-Wave-1 priority — it must be closed before ANY real owner login.** Recorded as a
+  CRITICAL item in `docs/PROJECT-STATE.md`'s outstanding register. Sketch (needs a decision, not a default):
+  gate `/app` on a real staff capability (spatie role/permission from `config/authorization.php`), keep
+  `/owner` on `SetOwnerScopeForPortal`, and add a test that an owner-role user gets 403 on every `/app` route.
+  The demo seeder gives `demo-owner` a Membership too, so the fix must keep the demo coherent.
+
+---
+
+### 2026-07-16 — WAVE 1 COMPLETE — the owner-accounting styled long-tail (4 gated sub-gates, presentation only)
+
+Wave 1 of the ROADMAP audit's build order, executed as four gated sub-gates with a commit each. **9 new
+screens/documents over the CERTIFIED owner-accounting backend. Presentation + wiring of existing services
+ONLY — mechanically verified at every gate: ZERO files changed under `app/Services`, `app/Models`,
+`database/migrations`, `app/Payouts`, `app/Support/Owner` (services/), `app/Support/Money`.** No schema, no
+service, no guarantee touched. Suite **340/3831 → 4xx/4xxx**, PHPStan L5 0 errors, Pint clean at every gate.
+
+**What shipped** (all owner screens owner-scoped + fail-closed; operator screens tenant-scoped):
+- **Sub-gate 1** (`55c9219`) — **Owner Balance** (real ledger activity + per-row running balance; DERIVED
+  net position = Σ `signedMinor`; in-transit/paid from the real payout enum) · **Owner Expenses** (real
+  `owner_expenses` incl. maintenance-sourced via the polymorphic `source`; the `deductible` **TRI-STATE**
+  true/false/**null** never coerced; voided badge; the statement each hit via
+  `attributed_ledger_id → ledger.statement_id`) · **Owner Agreement** (real effective-dated terms,
+  display-only, honest nulls) · **Owner Archive** (finalized statements w/ the real gap-free `sequence_no`;
+  drafts excluded; DERIVED lifetime/counts/span).
+- **Sub-gate 2** (`5530f6b`) — **Owner Remittance Advice PDF** (per payout) + **Owner Booking Summary PDF**
+  (the bookings behind a statement's revenue), on the existing `PdfService` + shared `MoneyFormatter`.
+- **Sub-gate 3** (`9ff2ad9`) — **Owner Unit Detail** (unit facts, owner-scoped occupancy, attribution
+  breakdown, real stays) + **Operator Owner Detail** (`/app/owners/{owner}` — the tenant-scoped lens).
+- **Sub-gate 4** (this commit) — **Operator Payout Run** (finalized statements → REAL payouts via the
+  certified `OwnerPayoutService`) + **Owner Documents** (aggregation over the real generatable PDFs).
+
+**Three shared extractions (reuse-don't-duplicate; each prevents two surfaces from disagreeing):**
+- **`App\Support\Payouts\RailLabel`** — the ONE rail→label map (screen + PDF). An unknown rail **THROWS**
+  rather than prettifying a column into a fabricated payment method; PHPStan enforces exhaustiveness.
+- **`App\Support\Owner\OwnerOccupancy`** — the ONE owner-scoped occupancy derivation (My Units + Unit
+  Detail), extracted behaviour-preservingly from the certified `OwnerMyUnits::occupancy()`. **Keyed on
+  PHYSICAL UNIT ID, never room type.** `availabilityRange()`/`OwnerPortalService::occupancy()` are
+  room-type-wide, and a room type is shared with hotel rooms and OTHER owners' units — reading occupancy
+  that way shows an owner a number driven by units they do not own (a cross-owner leak dressed as a metric).
+  Proven live: two units in ONE room type, 3 nights each → the unit page shows 3 nights/10%, not 6/20%.
+- **`assertNoRawBlade()`** (tests/Support/owner_helpers.php) — see the Blade bug below.
+
+**Two real bugs found — both invisible to static analysis, both caught by actually running/opening things:**
+1. **Raw Blade shipped to the user.** Blade does NOT compile a directive whose `@` follows a word character
+   (the `\B` guard that lets an email address render literally), so
+   `Totals exclude voided expenses@if ($multiCurrency)…@endif` rendered its **raw source** on the owner
+   Expenses page. It renders as ordinary *text*, so the whole suite passed straight over it — only a browser
+   caught it. Fixed (ternary), and locked for every owner screen by `assertNoRawBlade()`, which was **proven
+   to fail on the reintroduced bug** before being trusted.
+2. **A Livewire prop/view-data collision 500'd two screens** (10 failing tests). Livewire injects public
+   props into the view scope, so `public string $unit` **shadows** the `'unit' => [...]` array from
+   `render()` and `$unit['name']` fatals on a string offset. The `$xxxId` suffix on
+   `OwnerStatementView`/`ReservationDetail`/`MaintenanceTicketDetail` is **load-bearing, not styling** —
+   documented on both new components.
+
+**Three corrections to the plan, found by building against the real code (recorded so the roadmap stops
+repeating them):**
+- **ADR/RevPAR are absent from all 10 Wave 1 designs** (verified by grep) — the plan's "stub ADR/RevPAR"
+  instruction is moot here; they live in Reports/Insights (Tier 2). CSV export and owner-editable rates
+  were real and were deferred.
+- **`statement_id + entry_type='room_revenue'` does NOT reconcile to `gross_minor`.**
+  `OwnerStatementService::buckets()` routes a room_revenue line into **adjustments**, not gross, when
+  `prior_period_adjustment` is true or `service_date < period_start`. The Booking Summary mirrors that real
+  partition and discloses prior-period rows as a real count rather than silently dropping them.
+- **`owners.user_id !== null` does NOT mean "portal access active".** `OwnerInviteService` links `user_id`
+  to an **inactive `'invited'` login at invite-creation time**, so that test would assert access nobody
+  accepted. The operator screen renders the truthful state (pending invite + real expiry / genuinely-active
+  login / the real `OwnerInvite` enum).
+
+**Honesty rule (invariant #19) — the designs demand a great deal of backend that does not exist.** The
+exports were **fully decoded** (they are not opaque — see `docs/design/CATALOGUE.md`), which made the gap
+explicit. Standing order for this wave: **omit aggressively** — where a control would imply state with no
+schema, it is NOT rendered even disabled (a greyed "Approve" asserts an awaiting-your-decision state that
+has no state machine).
+- **Disabled "Soon"** (a real thing that isn't wired): withdraw-early, CSV export, repair request, agreement
+  download, message-manager, archive ZIP, tax summary, Stripe-Connect disbursement.
+- **OMITTED** (would imply absent state): the Available/On-hold/In-transit *clearing* machine · the tax-ID
+  hold · the owner **approve/query** workflow · e-signature/amendments · owner-editable pricing (`units` has
+  **no rate/fee column at all** — the design's €140/€45 are literals) · day-blocking · Live/Snoozed toggle ·
+  calendar sync · reviews (no schema) · cleaning schedule/cleaner ratings · the guest-message composer ·
+  rank/"Best performer" · channel mix + per-unit payout timeline (payouts are per-statement/per-owner —
+  per-unit would be invented attribution) · the operator Edit-owner modal + its three no-column toggles ·
+  Remove owner (the design's own button is inert) · IBAN/bank details (no field exists anywhere) ·
+  estimated settlement dates · the "Workspace paused" billing banner (a fabricated system status).
+- **Design fiction refused:** fabricated prior-year occupancy (the Unit Detail design invents 2024/2023 as
+  ×0.9/×0.8 of this year plus a hard-coded jitter array — *never ship fabricated history*) · "3 years · 34
+  documents" (derived instead) · the `OS-/RA-/BS-2025-09` ref formats (the real reference is `sequence_no`) ·
+  "Booking.com"/"Airbnb" (**the OTA brand is NOT modelled** — `reservations.source` is a 7-value enum and
+  `channels.provider` only has `channex`) · "Direct bookings saved you €X" (`directRev × 0.15`) · the Payout
+  Run's non-reconciling constants (its 6 rows sum to 66,000 but it claims 89,990; "11 transfers" vs "12
+  statements") and its **zero** interactivity (0 onClick, 0 checkboxes — every button inert) · "Scheduled"/
+  "On hold"/"In review"/"Sent"/"Ready" (none are real enum values).
+- **Occupancy OMITTED from the Booking Summary PDF** — it is not an attributed value, and the only
+  occupancy read available there is room-type-wide (the trap above).
+- **PII:** no guest name/email/phone on ANY owner surface (tests assert a distinctive guest name is absent
+  from the unit page and the booking PDF); `owners.tax_id` + the raw address JSON are never read on the
+  operator screen. The owner's **email/phone ARE** rendered on the operator screen — a deliberate, narrower
+  call: that is the OPERATOR's own CRM record for a business counterparty they invited (they typed the
+  email), and the Owners list already renders the pending-invite email. The guest-PII rule is unchanged.
+
+**Everything reconciles to the cent, cross-surface** (browser-verified on real demo data): ledger net
+`70560` → Balance "€705.60" → the operator's owner-detail balance; statement `gross_minor 108000` →
+"€1,080.00" on the Booking Summary PDF and the operator statement row; `net_payable_minor 88560` → "€885.60"
+on the Remittance PDF, the pending payout and Balance's in-transit; unit A1 `44280` → "€442.80" = 540.00 −
+97.20. Money is per-currency throughout — **never a cross-currency sum** (no silent FX, invariant #17).
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->

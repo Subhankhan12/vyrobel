@@ -6,9 +6,15 @@ mapping to the existing certified backend / unstyled stubs for the design pass.
 
 ## Ground truth (read this first)
 
-- **120 files total** = **119 screens + `index.html`** (a "Vyrobel · Screen Library" manifest that groups
-  them: **32 Guest · 40 Operator · 31 Owner · 5 platform-auth · 9 Emails · 2 System/shared**). The count
-  and grouping were read from `index.html`.
+- **125 files total** = **124 screens + `index.html`** (a "Vyrobel · Screen Library" manifest that groups
+  them: **32 Guest · 40 Operator · 31 Owner · 5 platform-auth · 9 Emails · 2 System/shared**). The grouping
+  was read from `index.html`; **the count is `ls docs/design/raw/`, which is the authority.**
+  **RECONCILED 2026-07-16** (was "120 files = 119 screens", the figure `index.html` still reports): the
+  manifest predates five exports added with the Inbox + auth/invite work and never counted them —
+  `Operator Inbox.html`, `Operator Conversation.html`, `Owner Invite Email.html`, `Vyrobel Invite Owner.html`,
+  `Vyrobel Set Password.html` (all five now BUILT). Cross-checked in `docs/DESIGN-COVERAGE.md`; the
+  per-group split above still reflects `index.html` and is therefore also five light — trust the filesystem
+  over the manifest.
 - **The filenames are NOT messy/auto-generated — they are clean and descriptive, and content CONFIRMS every
   one** (e.g. `Owner Statement.html` really contains "Net payable"/"Gross"/"commission"; `Operator Front
   Desk.html` really contains "Arrivals"/"Departures"; `Operator Dashboard.html` really contains "ADR"/KPIs).
@@ -18,9 +24,19 @@ mapping to the existing certified backend / unstyled stubs for the design pass.
   content is rendered by inlined JavaScript, not present as static DOM). I fingerprinted by grepping the
   **content strings inside the bundle**, which reliably identifies the SCREEN but only *approximates* its
   components. Shared sidebar/nav strings (ADR, Tax, Villa, Message, Insights, Filter…) appear in every
-  operator/owner file and are **noise**; I classified by the *dominant/elevated* terms. **For pixel-exact
-  component lists (which charts, which modals, dark-mode, animations), a browser render pass is needed** —
-  I can do that next if you want it.
+  operator/owner file and are **noise**; I classified by the *dominant/elevated* terms. **Treat every
+  per-file "extras" count below as approximate — two were proven WRONG in the Wave 1 audit** (this file
+  credited `Owner Balance` with "Net payable", which occurs zero times in it, and `Operator Payout Run`
+  with "select statements", which has no selection UI at all). Identification of the SCREEN is reliable;
+  the component lists are not.
+- **The "a browser render pass is needed" caveat above is OBSOLETE (2026-07-16).** The exports are NOT
+  opaque: each embeds its own template + logic (a `<script type="text/x-dc">` component class and a
+  deflate+base64 template blob), so the **full source is statically recoverable** — the Wave 1 audit
+  decoded all ten Wave 1 designs to exact panels, labels, props, enums and demo constants without a
+  browser. Decode rather than squint at a screenshot; then verify the built screen in a browser.
+  ⚠️ **Decoding reveals what the design SAYS, not what is true** — the Wave 1 designs carry fabricated
+  figures, fabricated prior-year history, non-reconciling arithmetic, inert buttons and authoring bugs.
+  The backend, not the export, is the source of truth (honesty rule, invariant #19).
 - **Nothing was renamed, moved, or modified.**
 
 **Backend-status legend** (how ready the real data is for this screen):

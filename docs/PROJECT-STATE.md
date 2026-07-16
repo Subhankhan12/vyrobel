@@ -14,9 +14,12 @@ conflicts with the repo, **trust the repo** and fix this file.
   fallback). The three planning docs (`docs/ROADMAP.md`, `docs/TIER1-SPEC.md`, `docs/DESIGN-COVERAGE.md`) were
   authored on branch `docs/roadmap-audit` and **merged into `main`** in this consolidation — a fresh session on
   `main` sees them.
-- **CURRENT PHASE: planning complete → Wave 1 build next.** The buildable-in-a-vacuum core is done and
-  demoable; a full ROADMAP audit (2026-07-16) produced the three planning docs above and set the next target to
-  **Wave 1 — the owner-accounting styled long-tail** (see "NEXT ACTION" at the bottom). No Wave 1 code started.
+- **CURRENT PHASE: WAVE 1 COMPLETE (2026-07-16) → next = the 🔴 CRITICAL `/app` authorization gate, then
+  Wave 2.** The ROADMAP audit's Wave 1 shipped as four gated sub-gates (`55c9219` → `5530f6b` → `9ff2ad9` →
+  this commit): **9 new screens/documents over the CERTIFIED owner-accounting backend, presentation only**
+  (mechanically verified at every gate: **ZERO** files changed under `app/Services`, `app/Models`,
+  `database/migrations`, `app/Payouts`). Suite **340/3831 → 402 tests / 4652 assertions**. Wave 1 also
+  surfaced a **critical pre-existing authorization gap** — see the register below; it is the top priority.
 - **AUTH — COMPLETE & SECURE (chapter finished): login/logout + invites (owner + staff) + password reset.**
   Real session auth fronts the app; **the dev-login shim is gone.** Phase A: one shared login
   (operator+owner), active-only `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors,
@@ -184,6 +187,16 @@ conflicts with the repo, **trust the repo** and fix this file.
   (secure: content-validated images, ULID filenames, size cap, tenant-scoped); `public` disk (S3 for prod).
   Rendered on the storefront + unit/owner cards with a gradient fallback. `App\Support\Media\PlaceholderImage`
   seeds real demo JPEGs.
+- **Shared presentation helpers (Wave 1) — "a document and the screen it mirrors must never disagree".**
+  Each exists because the same concept was about to live in two places and drift:
+  **`App\Support\Payouts\RailLabel`** — the ONE rail→label map (owner Payouts screen + Remittance PDF +
+  Payout Run). An unknown rail **THROWS** rather than prettifying the column into a fabricated payment
+  method; PHPStan enforces exhaustiveness. **`App\Support\Owner\OwnerOccupancy`** — the ONE owner-scoped
+  occupancy derivation (My Units + Unit Detail), extracted behaviour-preservingly from the certified
+  `OwnerMyUnits::occupancy()`. **Keyed on PHYSICAL UNIT ID, never room type** — `availabilityRange()` /
+  `OwnerPortalService::occupancy()` are room-type-wide and a room type is shared with hotel rooms and OTHER
+  owners' units, so reading occupancy that way shows an owner a number driven by units they do not own.
+  Same family as `Support\Money\MoneyFormatter` + `Support\Folio\FolioTotals`.
 - **PDF export** — `App\Services\PdfService` (barryvdh/laravel-dompdf) renders branded, PDF-safe documents:
   **owner statement** (`App\Http\Controllers\Owner\OwnerStatementPdfController` + `Support\Pdf\OwnerStatementDocument`,
   owner-scoped) · **operator folio** (`App\Http\Controllers\Operator\FolioPdfController` + `Support\Pdf\FolioDocument`,
@@ -315,7 +328,36 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
-**AT A GLANCE — everything remaining is either ACCOUNT-GATED (needs an external account/credential) or a
+### 🔴 CRITICAL — FIX FIRST, BEFORE ANY REAL OWNER LOGIN: the `/app` back office has no role gate
+
+**An owner-role user can access the ENTIRE operator back office, including every other owner's financials.**
+Found by browser-verifying Wave 1 · Sub-gate 3 (signed in as the demo OWNER → `/app/owners/{owner}` rendered
+in full). **Not a demo artifact — production behaviour.** Two facts combine:
+1. **`routes/web.php`: the `/app` group is `Route::middleware('auth')` ONLY** — no role/permission/policy.
+   Tenant scope holds (own org only), but *any authenticated member of that org* reaches every operator screen.
+2. **`OwnerInviteService` creates an ACTIVE `Membership` on BOTH paths** (its own comment: *"— BOTH paths"*),
+   so a **real invited OWNER** has one, `SetTenantForWebRequest` resolves their org, and `/app/*` opens.
+
+**Exposed to any owner:** rack · front desk · housekeeping · maintenance · reservations + folios · the
+**unified inbox (guest conversations)** · the owners list · and **`/app/owners/{owner}` — every other owner's
+balance, statements, payouts, commission, agreement**. This defeats **owner isolation (invariant #18) at the
+ROUTE layer**: `OwnerScope` is deliberately inactive off-portal (correct for a real operator, catastrophic
+for an owner who can reach `/app`).
+
+**PRE-EXISTING — not introduced by Wave 1** (`/app/owners` has listed every owner since Auth Phase B,
+`2d28b32`; every operator screen shares the group). Wave 1 deepened what is exposed there, which is how it
+surfaced. **Deliberately NOT fixed inline** — Wave 1 was a gated presentation pass, and this is a
+cross-cutting authorization decision (which of the 14 catalog roles may reach `/app`; whether an owner should
+hold a Membership at all — it exists so the tenant context resolves; how staff-vs-owner is decided). A guess
+bolted onto one screen would imply the surface is protected when it is not.
+**Sketch (needs a decision, not a default):** gate `/app` on a real staff capability (spatie role/permission
+from `config/authorization.php`), keep `/owner` on `SetOwnerScopeForPortal`, add a test that an owner-role
+user gets 403 on EVERY `/app` route, and keep `DemoSeeder` coherent (it gives `demo-owner` a Membership too).
+See `docs/DECISIONS.md` 2026-07-16.
+
+---
+
+**AT A GLANCE — everything else remaining is either ACCOUNT-GATED (needs an external account/credential) or a
 net-new BUILDABLE-NOW module (design exists, no backend). The buildable-in-a-vacuum core is essentially
 complete.** Detail follows below; this is the honest triage a fresh session needs.
 
@@ -496,6 +538,19 @@ backends/schema/guarantees UNCHANGED.**
 | `/owner/payouts` | `App\Livewire\Owner\OwnerPayouts` → `livewire/owner/payouts` | ✅ styled + live (new page; lifecycle uses only the REAL pending/paid/failed/reversed states) |
 | `/owner/units` | `App\Livewire\Owner\OwnerMyUnits` → `livewire/owner/units` | ✅ styled + live (new page; **owner-scoped occupancy** — excludes non-owner units of the same room type) |
 
+**WAVE 1 (2026-07-16) — the owner-accounting long-tail. All owner-scoped + fail-closed; presentation only.**
+
+| Route | Component / view | Styled |
+|---|---|---|
+| `/owner/balance` | `App\Livewire\Owner\OwnerBalance` → `livewire/owner/balance` | ✅ REAL ledger activity + per-row running balance; DERIVED net position (Σ `signedMinor`); in-transit/paid from the real payout enum. Withdraw/CSV disabled "Soon"; the design's clearing-state machine + tax hold OMITTED (no schema). |
+| `/owner/expenses` | `App\Livewire\Owner\OwnerExpenses` → `livewire/owner/expenses` | ✅ REAL `owner_expenses` incl. maintenance-sourced (polymorphic `source`); the `deductible` **TRI-STATE** (true/false/**null** — never coerced); voided badge; the statement each hit (`attributed_ledger_id → ledger.statement_id`). The owner approve/query workflow OMITTED (no state machine). |
+| `/owner/agreement` | `App\Livewire\Owner\OwnerAgreement` → `livewire/owner/agreement` | ✅ REAL effective-dated terms, **display-only**, honest nulls ("Not set", never "0%"). ⚠️ `ManagementAgreement` + `Owner` are **NOT** owner-scoped → scoped explicitly via `OwnerContext`, fail-closed (leak test locks it). e-signature/amendments OMITTED. |
+| `/owner/archive` | `App\Livewire\Owner\OwnerArchive` → `livewire/owner/archive` | ✅ REAL finalized statements w/ the real gap-free `sequence_no`; **drafts excluded**; DERIVED lifetime/counts/span (the design's "3 years · 34 documents" refused). Nav key `statements`. |
+| `/owner/units/{unit}` | `App\Livewire\Owner\OwnerUnitDetail` → `livewire/owner/unit-detail` | ✅ REAL unit facts + **owner-scoped occupancy (this unit only)** + attribution breakdown + real stays (no guest PII). Cross-owner/operator-owned unit → 404. Most of the design OMITTED (see DECISIONS 2026-07-16). |
+| `/owner/documents` | `App\Livewire\Owner\OwnerDocuments` → `livewire/owner/documents` | ✅ Aggregation over the **real generatable PDFs** only (statement · booking summary · remittance) — every listed row downloads (test follows the links). ZIP/tax-summary "Soon", never linked. |
+| `/owner/statements/{s}/bookings` | `Owner\OwnerBookingSummaryPdfController` + `Support\Pdf\OwnerBookingSummaryDocument` | ✅ PDF — the bookings behind a statement's gross. Occupancy + the guest column OMITTED (see below). |
+| `/owner/payouts/{payout}/remittance` | `Owner\OwnerRemittancePdfController` + `Support\Pdf\OwnerRemittanceDocument` | ✅ PDF — remittance advice per payout; the amount label is derived from the REAL status ("Net payable" while pending, never "Net paid"). |
+
 Per-screen tests: `OwnerStatementViewTest`, `OwnerDashboardViewTest`, `OwnerPayoutsViewTest`,
 `OwnerMyUnitsViewTest` (+ existing `OwnerPortalIsolationTest`). The **design-pass honesty rule** — REAL →
 wire live · DERIVED → from real figures only · DEFERRED → stubbed "not yet available" · NO-BACKEND →
@@ -517,8 +572,17 @@ same Vyrobel tokens as the owner one, copied not shared) · `resources/views/com
 | `/app/reservations/{reservation}` | `App\Livewire\ReservationDetail` → `livewire/reservation-detail` | ✅ styled + live (RMB-safe; folio as the real **append-only ledger**, reconciled to the cent, no invented lines; **record-payment + full refund WIRED + persist append-only** via POST→`ReservationFolioActionController`→`FolioService`→PRG; add-charge/void/partial-refund/move/cancel DEFERRED) |
 | `/app/dashboard` | `App\Livewire\Operator\OperatorDashboard` → `livewire/operator/dashboard` | ✅ styled + live (NEW page; read-only; every KPI a TRUE org figure — occupancy summed org-wide from the Availability spine, arrivals/HK counts, payments-today from the ledger; revenue/ADR/RevPAR trend DEFERRED) |
 
+**WAVE 1 (2026-07-16) — the operator side of the owner-accounting long-tail. TENANT-scoped (NOT owner-scoped).**
+
+| Route | Component / view | Styled |
+|---|---|---|
+| `/app/owners/{owner}` | `App\Livewire\Operator\OperatorOwnerDetail` → `livewire/operator/owner-detail` | ✅ the operator's lens on ONE owner (units/agreement/statements/payouts/balance). `Owner` is `BelongsToOrganization` → cross-org 404 free. ⚠️ **OwnerScope is INACTIVE on `/app`**, so every other read is filtered EXPLICITLY by `owner_id` (the test asserts symmetrically both ways that two owners in ONE org never bleed). Portal-access state is the REAL invite state (`user_id` alone does NOT mean access — it is linked at invite time to an inactive login). Owner email/phone rendered (the operator's own CRM record); **tax_id + raw address never read**. Edit/Remove modal + its no-column toggles OMITTED. |
+| `/app/payouts/run` (+ POST `payouts.create` / `payouts.pay`) | `App\Livewire\Operator\PayoutRun` + `Operator\PayoutRunActionController` → `livewire/operator/payout-run` | ✅ **REAL money writes** through the certified `OwnerPayoutService` (`createFromStatement` / `pay`) via POST→controller→service→PRG. Ready-set mirrors the service's own rule exactly (finalized+locked, net>0, no pending/paid payout). Idempotent + guarded (an illegal transition → clean flash, never a 500). **`ManualPayoutRail` is the real rail and the copy says so plainly** ("Vyrobel does not move this money — marking a transfer paid RECORDS a bank transfer you already made"); **Stripe Connect is disabled "Soon", never callable**. SEPA export / IBAN / the "no verified IBAN" hold rail OMITTED (no such field exists); the design's non-reconciling constants never ported. |
+
 Per-screen tests: `OperatorRackViewTest`, `OperatorFrontDeskViewTest`, `OperatorHousekeepingViewTest`,
-`OperatorReservationDetailViewTest`, `OperatorDashboardViewTest`. The **operator-mutation pattern**
+`OperatorReservationDetailViewTest`, `OperatorDashboardViewTest`, **`OperatorOwnerDetailViewTest`**,
+**`OperatorPayoutRunTest`** (the real create/pay writes asserted against the DB, idempotency, guarded
+double-pay, cross-org 404). The **operator-mutation pattern**
 (reuse for every operator write): **POST → controller → existing service action → PRG redirect**; the POST
 re-runs the web middleware (tenant context set), `{id}` is a **string** param resolved via tenant-scoped
 `findOrFail` (never RMB) → cross-org 404. Never a Livewire wire-action for a scoped mutation.
@@ -581,7 +645,44 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — WAVE 1: the owner-accounting styled long-tail (planning done; designs all present)
+## NEXT ACTION — (1) the 🔴 `/app` authorization gate, then (2) Wave 2
+
+**WAVE 1 IS COMPLETE** (2026-07-16, four gated sub-gates, `55c9219` → `5530f6b` → `9ff2ad9` → HEAD). The
+owner-accounting wedge now has its full styled long-tail: **Balance · Expenses · Agreement · Archive · Unit
+Detail · Documents** (owner) + **Owner Detail · Payout Run** (operator) + **Remittance & Booking-Summary
+PDFs**. Presentation only — zero certified-backend files touched, verified per gate. Suite **402 tests /
+4652 assertions**, PHPStan L5 0 errors, Pint clean, `migrate:fresh --seed` clean. Browser-verified
+end-to-end, including a **real payout write** (pending → paid, the source statement cascaded to paid,
+`payout.paid` domain + audit events recorded) and **every listed owner document actually downloading**.
+
+1. **🔴 FIRST — close the `/app` authorization gap** (the register above). An owner-role user can currently
+   reach the whole operator back office and every other owner's financials. It is pre-existing, but Wave 1
+   deepened what sits behind that door. **Do this before any real owner login**; it needs a decision (which
+   roles may reach `/app`; whether owners should hold a Membership at all), not a default.
+2. **THEN Wave 2** — per `docs/TIER1-SPEC.md`: reservations list + cancelled/no-show + refund + Guests CRM
+   (over the certified reservations/folio backend). Then Wave 3 (Owner Messages inbox — the inbox backend +
+   operator surface already exist), Wave 4 (Rates + Channels UI, New/Group Booking, Portfolio, Block
+   Calendar, Roles/Settings). The 3 NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) last.
+3. **In parallel — CUSTOMER VALIDATION is still the highest-value non-build move.** The wedge is now
+   demoable at full depth (statement → remittance PDF → payout run → the owner sees it paid, reconciling to
+   the cent). Tier-2 (Guest Portal ~24, Analytics, Reviews, Billing, Notifications, Emails) stays
+   speculative without signal.
+
+**Lessons Wave 1 paid for (do not re-learn them):**
+- **The design exports are decodable** — each embeds its template + logic; the Wave 1 audit recovered all
+  ten to exact panels/labels/enums without a browser. **But decoding reveals what the design SAYS, not what
+  is true**: they carry fabricated figures, fabricated prior-year history, non-reconciling arithmetic, inert
+  buttons and authoring bugs. The backend is the source of truth.
+- **Static analysis cannot see a rendered page.** Two real bugs (raw Blade shipped to the user; a Livewire
+  prop shadowing view data → 500) passed `php -l` + PHPStan + Pint + Blade-compile and were caught ONLY by
+  running the suite and opening a browser. Always do both before claiming a gate.
+- **Trust the repo over the plan.** Three planned instructions were factually wrong against the real code
+  (ADR/RevPAR aren't in these designs; `statement_id + room_revenue` doesn't reconcile to `gross_minor`;
+  `user_id != null` ≠ portal access). Audit first, every time.
+
+---
+
+## (historical) NEXT ACTION — WAVE 1: the owner-accounting styled long-tail — ✅ DONE 2026-07-16
 
 **Honest framing:** every piece that can be built without an external account is done and demoable
 end-to-end. Certified backends (multi-tenant PMS + channel manager + Stripe payments + owner accounting/

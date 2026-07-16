@@ -11,6 +11,7 @@ use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
+use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
@@ -28,10 +29,12 @@ use App\Livewire\MaintenanceTicketDetail;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
+use App\Livewire\Operator\PayoutRun;
 use App\Livewire\Owner\OwnerAgreement;
 use App\Livewire\Owner\OwnerArchive;
 use App\Livewire\Owner\OwnerBalance;
 use App\Livewire\Owner\OwnerDashboard;
+use App\Livewire\Owner\OwnerDocuments;
 use App\Livewire\Owner\OwnerExpenses;
 use App\Livewire\Owner\OwnerMyUnits;
 use App\Livewire\Owner\OwnerPayouts;
@@ -137,6 +140,13 @@ Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
     // deliberately reads the whole owner relationship the operator manages, within their own org
     // (Owner is BelongsToOrganization → a cross-org id 404s).
     Route::get('/owners/{owner}', OperatorOwnerDetail::class)->name('owners.show');
+    // Wave 1 · Sub-gate 4 — the operator PAYOUT RUN (tenant-scoped): finalized statements ready to pay
+    // → REAL payouts through the certified OwnerPayoutService (ManualPayoutRail is the working rail;
+    // the Stripe-Connect rail stays a config-gated skeleton that THROWS — never faked). The writes use
+    // the operator-mutation pattern: POST → controller → service → PRG (CSRF + tenant re-scoped).
+    Route::get('/payouts/run', PayoutRun::class)->name('payouts.run');
+    Route::post('/payouts/create', [PayoutRunActionController::class, 'create'])->name('payouts.create');
+    Route::post('/payouts/pay', [PayoutRunActionController::class, 'pay'])->name('payouts.pay');
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
     // Unified Inbox — UNSTYLED operator contract stubs (thread list + thread view; styled screen is a
@@ -224,4 +234,7 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/expenses', OwnerExpenses::class)->name('expenses');
     Route::get('/agreement', OwnerAgreement::class)->name('agreement');
     Route::get('/archive', OwnerArchive::class)->name('archive');
+    // Wave 1 · Sub-gate 4 — the owner's document library: an owner-scoped aggregation over the REAL
+    // generatable PDFs (statement · remittance · booking summary). No document is invented.
+    Route::get('/documents', OwnerDocuments::class)->name('documents');
 });
