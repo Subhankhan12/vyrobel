@@ -74,6 +74,26 @@ class Guest extends Model
         return $this->hasMany(GuestDocument::class);
     }
 
+    /**
+     * The stays this guest LEADS (Wave 2 · Guests CRM).
+     *
+     * Keyed on `reservations.lead_guest_id` — the same FK {@see Reservation::leadGuest()} points back
+     * through, and the one every built operator surface already treats as "the guest of this booking"
+     * (FrontDesk, ReservationDetail, InboxThread::guestCard). A booking can also carry additional
+     * occupants via the real `reservation_guests` pivot; they are deliberately NOT included here, because
+     * "reservations of this guest" would then mean two different things on two screens. If a
+     * fellow-traveller lens is ever wanted it belongs in its own, separately-named relation.
+     *
+     * Read-only convenience: it adds no behaviour and changes no guarantee — it is the relation the Wave 2
+     * inventory flagged as the one shallow gap behind every guest derivation.
+     *
+     * @return HasMany<Reservation, $this>
+     */
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class, 'lead_guest_id');
+    }
+
     public function isAnonymized(): bool
     {
         return $this->anonymized_at !== null;

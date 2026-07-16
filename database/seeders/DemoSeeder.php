@@ -19,6 +19,7 @@ use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Reservation;
 use App\Models\RoomType;
+use App\Models\Tag;
 use App\Models\Tax;
 use App\Models\Unit;
 use App\Models\User;
@@ -172,9 +173,19 @@ class DemoSeeder extends Seeder
         $availability->recompute($apartment->id, self::RANGE_START, self::RANGE_END);
 
         // --- Guests ---
-        $guest1 = Guest::create(['first_name' => 'Demo', 'last_name' => 'Traveller', 'email' => 'demo.traveller@vyrobel-demo.test', 'phone' => '+351910000001', 'nationality' => 'GB']);
-        $guest2 = Guest::create(['first_name' => 'Demo', 'last_name' => 'Walker', 'email' => 'demo.walker@vyrobel-demo.test', 'phone' => '+351910000002', 'nationality' => 'DE']);
+        // `is_vip` / `risk_flag` are REAL columns and `tags` is a REAL per-tenant catalog on the shared
+        // polymorphic pivot — but nothing in the app has ever written any of the three, so the Guests CRM
+        // would demo them as permanently empty. Seeded here (demo data, like every guest on this row) so the
+        // styled list shows the true feature. The guest PROFILE is where they become editable (Wave 2 ·
+        // Sub-gate 5); until then this is the only writer.
+        $guest1 = Guest::create(['first_name' => 'Demo', 'last_name' => 'Traveller', 'email' => 'demo.traveller@vyrobel-demo.test', 'phone' => '+351910000001', 'nationality' => 'GB', 'is_vip' => true]);
+        $guest2 = Guest::create(['first_name' => 'Demo', 'last_name' => 'Walker', 'email' => 'demo.walker@vyrobel-demo.test', 'phone' => '+351910000002', 'nationality' => 'DE', 'risk_flag' => true]);
         $guest3 = Guest::create(['first_name' => 'Demo', 'last_name' => 'Booker', 'email' => 'demo.booker@vyrobel-demo.test', 'phone' => '+351910000003', 'nationality' => 'FR']);
+
+        $repeatTag = Tag::create(['name' => 'Repeat', 'color' => '#B4822C']);
+        $corporateTag = Tag::create(['name' => 'Corporate', 'color' => '#8A6410']);
+        $guest1->tags()->attach($repeatTag);
+        $guest3->tags()->attach($corporateTag);
 
         $vat = Tax::create(['property_id' => $property->id, 'name' => 'VAT', 'kind' => 'vat', 'mode' => 'percentage', 'rate' => 23.0]);
 

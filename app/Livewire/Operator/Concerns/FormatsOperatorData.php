@@ -85,6 +85,38 @@ trait FormatsOperatorData
     }
 
     /**
+     * ISO-3166 alpha-2 → a country name for display ("IE" → "Ireland"), or null when there is genuinely no
+     * value. Shared by the Guests CRM list and the guest profile (Wave 2).
+     *
+     * ⚠️ THE CODE IS THE FALLBACK, NOT AN ERROR. `ext-intl` is NOT in composer.json's require, so it cannot
+     * be assumed present — without it (or for a code ICU does not know) this returns the real alpha-2 code.
+     * Both outputs are TRUE; one is merely prettier. Declaring a new platform requirement to gild a display
+     * label is not a trade worth making, and inlining a 250-row country table would be worse.
+     *
+     * The CALLER decides what the value means: on `guests.nationality` this is a NATIONALITY, not a country
+     * of residence (no residence column exists) — label it accordingly.
+     */
+    protected function countryName(mixed $iso2): ?string
+    {
+        $code = is_string($iso2) ? mb_strtoupper(trim($iso2)) : '';
+
+        if (! preg_match('/^[A-Z]{2}$/', $code)) {
+            return null;
+        }
+
+        if (extension_loaded('intl')) {
+            $name = \Locale::getDisplayRegion('-'.$code, 'en');
+
+            // ICU echoes the input back for a region it does not know — that is not a name, so fall through.
+            if ($name !== '' && $name !== $code) {
+                return $name;
+            }
+        }
+
+        return $code;
+    }
+
+    /**
      * Booking source → a short human label (direct/OTA/walk-in/…). Reads the real `source` string;
      * unknown values are title-cased rather than dropped.
      */

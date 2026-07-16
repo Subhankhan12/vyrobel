@@ -332,6 +332,15 @@
         .vy-tag.tone-no-show .vy-dot { background: var(--vy-amber); }
         .vy-tag.tone-cancelled { background: rgba(166, 154, 146, 0.18); color: var(--vy-faint); }
         .vy-tag.tone-cancelled .vy-dot { background: var(--vy-faint); }
+        /* Guest CRM flags (Wave 2) — the real `guests.is_vip` / `risk_flag` columns + the tag catalog.
+           Warm only, per the design rule: at-risk borrows the established amber WARNING tone (the same one
+           `.vy-unassigned` uses) rather than introducing a red. */
+        .vy-tag.tone-vip { background: rgba(180, 130, 44, 0.16); color: #8a6410; }
+        .vy-tag.tone-vip .vy-dot { background: #b4822c; }
+        .vy-tag.tone-risk { background: rgba(178, 106, 8, 0.15); color: var(--vy-amber); }
+        .vy-tag.tone-risk .vy-dot { background: var(--vy-amber); }
+        .vy-tag.tone-tag { background: rgba(120, 70, 40, 0.08); color: var(--vy-muted); }
+        .vy-tag.tone-tag .vy-dot { background: var(--vy-faint); }
 
         /* Unit assignment chip / unassigned + assign link */
         .vy-unit-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--vy-ink); background: rgba(120, 70, 40, 0.07); border-radius: 6px; padding: 2px 7px; }

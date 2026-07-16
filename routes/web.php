@@ -28,6 +28,7 @@ use App\Livewire\InboxList;
 use App\Livewire\InboxThread;
 use App\Livewire\MaintenanceList;
 use App\Livewire\MaintenanceTicketDetail;
+use App\Livewire\Operator\GuestsList;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
@@ -205,6 +206,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // guard at the UI: it shows the real remaining-refundable per payment, caps the input at it, and offers
     // nothing once remaining = 0 — so the button cannot invite a rejection. The service stays the authority.
     Route::get('/reservations/{reservation}/refund', ReservationRefund::class)->name('reservations.refund-screen');
+    // Wave 2 · Sub-gate 4 — the operator GUESTS LIST (the CRM). Tenant-scoped, read-only.
+    // ⚠️ This is the PII-visible surface (locked decision 4): guest email/phone are decrypted for display
+    // HERE and nowhere else — the front desk, the reservations list and the inbox stay name-only.
+    // "Total billed" comes from the shared App\Support\Guest\GuestSpend and the status badge from the shared
+    // App\Support\Reservations\ReservationStage, so this page and the guest profile cannot disagree.
+    Route::get('/guests', GuestsList::class)->name('guests');
     // Design pass · Operator Screen 4 — REAL append-only folio actions via POST → controller →
     // FolioService → redirect (PRG). {reservation} is a string param resolved tenant-scoped in the
     // controller (never RMB) → cross-org 404. A refund is a NEW offsetting entry (never an edit).

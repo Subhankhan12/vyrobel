@@ -69,6 +69,26 @@ final class ReservationStage
     public const FILTERABLE = [self::UPCOMING, self::DUE, self::IN_HOUSE, self::PAST, self::TENTATIVE, self::CANCELLED];
 
     /**
+     * The real `status` enum values behind the CANCELLED stage — named ONCE so a caller that needs the
+     * inverse in SQL ("stays that actually happened") cannot drift from {@see for()} and {@see scope()} by
+     * re-typing the pair. The Guests CRM's stay counts and its repeat-guest tile both key on this.
+     *
+     * @var list<string>
+     */
+    public const CANCELLED_STATUSES = ['cancelled', 'no_show'];
+
+    /**
+     * Guest-level precedence: which ONE stage speaks for a guest who has several reservations.
+     *
+     * Ordered by what an operator needs to know first — someone standing in the lobby outranks an arrival
+     * due, which outranks a future booking, which outranks history. CANCELLED is LAST: a guest whose only
+     * other stay is `past` is a past guest, not a cancelled one.
+     *
+     * @var list<string>
+     */
+    public const PRECEDENCE = [self::IN_HOUSE, self::DUE, self::UPCOMING, self::TENTATIVE, self::PAST, self::CANCELLED];
+
+    /**
      * The stage of ONE reservation. Reads the real enum + the real dates; invents nothing.
      */
     public static function for(Reservation $reservation, ?CarbonInterface $today = null): string
@@ -77,7 +97,7 @@ final class ReservationStage
         $status = (string) $reservation->status;
 
         // Terminal first — a cancelled future stay is NOT "past", it never happened.
-        if (in_array($status, ['cancelled', 'no_show'], true)) {
+        if (in_array($status, self::CANCELLED_STATUSES, true)) {
             return self::CANCELLED;
         }
 
@@ -125,7 +145,7 @@ final class ReservationStage
         $t = $today->toDateString();
 
         return match ($stage) {
-            self::CANCELLED => $query->whereIn('status', ['cancelled', 'no_show']),
+            self::CANCELLED => $query->whereIn('status', self::CANCELLED_STATUSES),
             self::IN_HOUSE => $query->where('status', 'checked_in'),
             self::TENTATIVE => $query->whereIn('status', ['enquiry', 'tentative']),
             self::UPCOMING => $query->where('status', 'confirmed')->whereDate('check_in', '>', $t),
@@ -140,6 +160,38 @@ final class ReservationStage
                     ->whereDate('check_out', '<=', $t))),
             default => $query,
         };
+    }
+
+    /**
+     * The ONE stage that speaks for a GUEST who has several reservations — the Guests CRM's status column
+     * and the guest profile's header both read it, so the two cannot disagree about the same person.
+     *
+     * It lives here, in the class that owns the stage vocabulary, rather than in the Guests list: a guest's
+     * status is not a different question from a reservation's status, it is the same question asked of a
+     * set. Every stage still comes from {@see for()} — this method only PICKS between them, per
+     * {@see PRECEDENCE}; it re-derives nothing and knows no dates of its own.
+     *
+     * Returns NULL for a guest with no reservations at all — a real state (a profile that has never booked),
+     * which the caller renders as "—" rather than inventing a stage for someone who has no stay.
+     *
+     * @param  iterable<Reservation>  $reservations
+     */
+    public static function mostSignificant(iterable $reservations, ?CarbonInterface $today = null): ?string
+    {
+        $today = self::today($today);
+        $found = [];
+
+        foreach ($reservations as $reservation) {
+            $found[self::for($reservation, $today)] = true;
+        }
+
+        foreach (self::PRECEDENCE as $stage) {
+            if (isset($found[$stage])) {
+                return $stage;
+            }
+        }
+
+        return null;
     }
 
     /**
