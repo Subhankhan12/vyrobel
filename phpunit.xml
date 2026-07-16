@@ -18,6 +18,13 @@
         </include>
     </source>
     <php>
+        <!-- The suite outgrew PHP's 128M CLI default: dompdf embeds a full DejaVu font per PDF export
+             test, and every operator test now provisions its org's 13-role x 44-permission catalog for
+             the /app back-office gate. Verified as headroom, NOT a leak (the whole suite passes under a
+             raised limit; nothing grows unboundedly). Set here so the documented `php artisan test`
+             works — it spawns a child PHP that re-reads php.ini, so a `-d memory_limit` on the parent
+             does not reach it. -->
+        <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

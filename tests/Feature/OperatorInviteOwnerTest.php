@@ -17,13 +17,15 @@ uses(RefreshDatabase::class);
 // only the OWNER role is wired (Manager/Accountant are disabled "Coming soon" and rejected server-side);
 // an active email surfaces a clean flash, never a 500.
 
-/** An active org member with NO owner link — the operator. */
+/** An active org member with NO owner link, holding a real back-office role — the operator. */
 function operatorFor(array $scenario, string $email = 'op@vyrobel.test'): User
 {
     $user = User::factory()->create(['email' => $email, 'status' => 'active']);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    // A Membership alone is NOT operator access: /app is an allow-list gate (EnsureBackOfficeAccess) —
+    // an owner has a Membership too. The inviting operator holds a real role, as a live one does.
+    return grantBackOfficeRole($user, $scenario['org']);
 }
 
 // ── The screen renders, tenant-scoped ────────────────────────────────────────────────────────────

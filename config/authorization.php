@@ -23,6 +23,45 @@ return [
     'super_admin_role' => 'Super Admin',
 
     /*
+     * BACK-OFFICE ROLES — who may enter the OPERATOR app (/app). The security boundary between an
+     * operator and an owner, enforced by App\Http\Middleware\EnsureBackOfficeAccess on the /app group.
+     *
+     * Every name here MUST exist in the `roles` matrix below (asserted by BackOfficeAccessTest).
+     *
+     * DELIBERATELY EXCLUDED — these are portal roles, not back-office roles:
+     *   - `External Owner` (owner_portal.view only) — a property/unit owner. They belong in /owner, and
+     *     their data is row-scoped by OwnerScope; letting them into /app would expose the whole org
+     *     (OwnerScope is inactive off-portal) — the hole this list closes.
+     *   - `Guest` (guest_portal.view only).
+     * A user with NO role is also excluded: this is an allow-list, so it fails closed by construction.
+     *
+     * ⚠️ NAMING TRAP: `Property Owner` IS a back-office role — it is the ORGANISATION ADMIN (`['*']`,
+     * "full control within their own organization"), i.e. the person who runs the hotel business. It is
+     * NOT the property/unit owner who gets the owner portal — that is `External Owner`. Do not "fix"
+     * this by removing Property Owner.
+     *
+     * NOT LISTED: `Super Admin`. It is a GLOBAL role (team_id = null) and this check is team-scoped, so
+     * it could never match here anyway; worse, it is currently UNASSIGNABLE — `model_has_roles`
+     * .organization_id is NOT NULL and part of the PRIMARY KEY, so a null-team assignment cannot be
+     * stored (see docs/DECISIONS.md 2026-07-16). Adding it here would be untestable dead code in a
+     * security gate. When that defect is fixed, grant platform staff access via the team-cleared idiom
+     * used by HorizonServiceProvider::gate(), and cover it with a test.
+     */
+    'back_office_roles' => [
+        'Property Owner',       // the ORG ADMIN (see the naming trap above), not a unit owner
+        'Group Admin',
+        'Hotel Manager',
+        'Revenue Manager',
+        'Front Desk',
+        'Reservation Agent',
+        'Housekeeping',
+        'Maintenance',
+        'Accountant',
+        'Marketing Manager',
+        'Guest Support Agent',
+    ],
+
+    /*
      * The full global permission catalog. Keep additive; never renumber.
      */
     'permissions' => [

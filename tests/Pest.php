@@ -48,3 +48,4 @@ require_once __DIR__.'/Support/booking_helpers.php';
 require_once __DIR__.'/Support/channel_helpers.php';
 require_once __DIR__.'/Support/booking_engine_helpers.php';
 require_once __DIR__.'/Support/owner_helpers.php';
+require_once __DIR__.'/Support/auth_helpers.php';

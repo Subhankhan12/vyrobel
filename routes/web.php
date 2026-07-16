@@ -18,6 +18,7 @@ use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Livewire\FrontDesk;
@@ -125,11 +126,18 @@ Route::prefix('book/{property}')
     });
 
 /*
- * Phase 1 CONTRACT-STUB pages (unstyled). Read-only Livewire components that expose the data
- * shapes for the later design pass. Behind `auth` so the SetTenantForWebRequest middleware can
- * resolve the active organization from the authenticated user (tenant isolation intact).
+ * THE OPERATOR APP (/app) — `auth` + the BACK-OFFICE GATE.
+ *
+ * `auth` gives us a user and lets SetTenantForWebRequest resolve the active organization (tenant
+ * isolation intact). {@see EnsureBackOfficeAccess} then enforces the operator/owner boundary: only a
+ * user holding a `config('authorization.back_office_roles')` role IN THE ACTIVE ORG may enter. This
+ * closes the critical hole where `auth` alone let an owner — who necessarily holds an active Membership,
+ * because that is the only way their org resolves — walk into the whole back office, and (since
+ * OwnerScope is inactive off-portal) read EVERY owner's financials at /app/owners/{owner}.
+ * See docs/DECISIONS.md 2026-07-16. The gate is on the GROUP, so it covers every route below —
+ * including any added later.
  */
-Route::middleware('auth')->prefix('app')->name('app.')->group(function () {
+Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
     // Auth Phase B · Step 4 — operator Owners screen + the invite-owner write (POST → controller → PRG).

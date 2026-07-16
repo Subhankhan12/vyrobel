@@ -13,13 +13,13 @@ uses(RefreshDatabase::class);
 // PII (email) never is; and the check-in ACTION genuinely persists through the real staff action and
 // stays tenant-scoped (a cross-org check-in 404s and mutates nothing).
 
-/** A user who is an active member of the scenario's org. */
+/** A real front-desk OPERATOR: an active member of the scenario's org holding a back-office role. */
 function deskMember(array $scenario, string $name = 'Marisol Vandenberg'): User
 {
     $user = User::factory()->create(['name' => $name]);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    return grantBackOfficeRole($user, $scenario['org']);
 }
 
 // ── 1. Real arrivals render with real guest / status / balance; PII not leaked ───────────────────

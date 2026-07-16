@@ -37,6 +37,9 @@ it('runs the full Phase B chain end-to-end: operator invite → email link → a
     $unit = $s['units'][0];
     $operator = User::factory()->create(['email' => 'op-e2e@vyrobel.test', 'status' => 'active']);
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $operator->id, 'status' => 'active']);
+    // A Membership alone is NOT operator access — /app is an allow-list gate (EnsureBackOfficeAccess).
+    // The inviting operator holds a real back-office role, exactly as a live invited staff member does.
+    $operator = grantBackOfficeRole($operator, $s['org']);
 
     // ── 1. The operator invites an owner via the REAL modal action (POST → controller → service → PRG)
     Mail::fake();

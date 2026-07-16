@@ -19,7 +19,9 @@ function mtDetailMember(array $scenario, string $name = 'Marcus Bellweather'): U
     $user = User::factory()->create(['name' => $name, 'status' => 'active']);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    // A Membership alone is NOT operator access — /app is an allow-list of back-office roles
+    // (EnsureBackOfficeAccess). A real staff member holds one, as OwnerInviteService assigns.
+    return grantBackOfficeRole($user, $scenario['org']);
 }
 
 // ── 1. Real facts + real activity timeline (no fabricated entries) ───────────────────────────────

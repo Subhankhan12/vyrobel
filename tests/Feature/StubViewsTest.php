@@ -42,11 +42,16 @@ it('isolates tenants at the web layer through the request middleware', function 
     $reservationA = book($sA, ['unit_id' => $sA['units'][0]->id]);
     $userA = User::factory()->create();
     Membership::create(['organization_id' => $orgA->id, 'user_id' => $userA->id, 'status' => 'active']);
+    // A Membership alone is NOT operator access — /app is an allow-list gate (EnsureBackOfficeAccess).
+    // Each user holds a back-office role in their OWN org only: spatie's team filter means A's role
+    // grants nothing in B, so the cross-org 404 below still proves tenant isolation, not a missing role.
+    $userA = grantBackOfficeRole($userA, $orgA);
 
     $sB = seedScenario(1);
     $orgB = $sB['org'];
     $userB = User::factory()->create();
     Membership::create(['organization_id' => $orgB->id, 'user_id' => $userB->id, 'status' => 'active']);
+    $userB = grantBackOfficeRole($userB, $orgB);
 
     // Both members can load their own units page (200 proves the middleware resolved a context).
     $this->actingAs($userA)->get('/app/units')->assertOk();

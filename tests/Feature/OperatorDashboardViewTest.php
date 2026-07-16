@@ -13,12 +13,17 @@ uses(RefreshDatabase::class);
 // from the real Availability spine — not a mislabeled/cross-org number); TENANT isolation holds (org B's
 // data never enters org A's KPIs); no fabricated metric/series; no guest PII.
 
+/**
+ * A real operator: an active member of the scenario's org holding a real back-office role — what
+ * EnsureBackOfficeAccess allow-lists on /app. The role is team-scoped, so it grants nothing in any
+ * other org, and the tenant-isolation tests below stay honest.
+ */
 function dashMember(array $scenario, string $name = 'Marisol Vandenberg'): User
 {
     $user = User::factory()->create(['name' => $name]);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    return grantBackOfficeRole($user, $scenario['org']);
 }
 
 // ── 1. Occupancy is a TRUE org figure (2 of 3 sold) + arrivals real + no PII + deferred flagged ──

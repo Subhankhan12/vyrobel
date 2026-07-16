@@ -32,13 +32,18 @@ uses(RefreshDatabase::class);
 //   • the design's fabrications (IBAN / "Pause payouts" / "Remove owner" / "Workspace paused" /
 //     "Scheduled") are never invented, encrypted tax_id is never rendered, and no raw Blade leaks.
 
-/** An operator staff member of the given scenario's org. */
+/**
+ * An operator staff member of the given scenario's org: an active Membership PLUS a real back-office
+ * role, as a genuine staff invite produces (OwnerInviteService::assignStaffRole). The role is what
+ * EnsureBackOfficeAccess allow-lists on /app — a Membership alone is not operator access, since an
+ * owner has one too. This user is deliberately NOT owner-linked: an owner would be bounced to /owner.
+ */
 function ownerDetailStaff(array $scenario, string $name = 'Marcus Bellweather'): User
 {
     $user = User::factory()->create(['name' => $name, 'status' => 'active']);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    return grantBackOfficeRole($user, $scenario['org']);
 }
 
 /**

@@ -13,19 +13,22 @@ uses(RefreshDatabase::class);
 // rate limiting, generic (non-enumerating) errors, session regeneration, role-based redirect, and the
 // guard on /app + /owner (with /book staying public).
 
-/** An active org member with NO owner link — routes to the operator app. */
-function operatorUser(array $scenario, string $email, string $password = 'password'): User
+// The operator fixture is the SHARED operatorUser() (tests/Support/auth_helpers.php): an active member
+// holding a REAL back-office role. This file's local copy — a Membership and nothing else — was never a
+// realistic operator (an owner has a Membership too) and would now be locked out of /app by
+// EnsureBackOfficeAccess. The shared helper takes attributes as an array: operatorUser($s, ['email' => …]).
+
+/**
+ * An active org member ALSO linked to an Owner — routes to the owner portal.
+ *
+ * Deliberately does NOT build on operatorUser(): an owner must hold NO back-office role. That is the
+ * boundary EnsureBackOfficeAccess enforces, so granting one here would erase the distinction this file
+ * asserts (owner → /owner, operator → /app).
+ */
+function ownerUser(array $scenario, string $email, string $password = 'password'): User
 {
     $user = User::factory()->create(['email' => $email, 'password' => $password, 'status' => 'active']);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
-
-    return $user;
-}
-
-/** An active org member ALSO linked to an Owner — routes to the owner portal. */
-function ownerUser(array $scenario, string $email, string $password = 'password'): User
-{
-    $user = operatorUser($scenario, $email, $password);
     Owner::factory()->create(['user_id' => $user->id, 'status' => 'active']);
 
     return $user;
@@ -39,7 +42,7 @@ it('renders the styled login form', function () {
 // ── Success → role routing + real context downstream ─────────────────────────────────────────────
 it('logs an operator in and routes to the app with tenant context set', function () {
     $s = seedScenario(1);
-    $user = operatorUser($s, 'operator@vyrobel.test');
+    $user = operatorUser($s, ['email' => 'operator@vyrobel.test', 'password' => 'password']);
 
     $this->post('/login', ['email' => 'operator@vyrobel.test', 'password' => 'password'])
         ->assertRedirect('/app/dashboard');
@@ -62,7 +65,7 @@ it('logs an owner in and routes to the owner portal with owner scope active', fu
 
 it('updates last_login_at on success', function () {
     $s = seedScenario(1);
-    operatorUser($s, 'stamp@vyrobel.test');
+    operatorUser($s, ['email' => 'stamp@vyrobel.test', 'password' => 'password']);
 
     $this->post('/login', ['email' => 'stamp@vyrobel.test', 'password' => 'password']);
     $this->assertDatabaseMissing('users', ['email' => 'stamp@vyrobel.test', 'last_login_at' => null]);
@@ -71,7 +74,7 @@ it('updates last_login_at on success', function () {
 // ── Failure → generic error, NO user enumeration, not authenticated ──────────────────────────────
 it('rejects a wrong password with a generic error and no session', function () {
     $s = seedScenario(1);
-    operatorUser($s, 'real@vyrobel.test');
+    operatorUser($s, ['email' => 'real@vyrobel.test', 'password' => 'password']);
 
     $this->post('/login', ['email' => 'real@vyrobel.test', 'password' => 'WRONG'])
         ->assertSessionHasErrors(['email' => trans('auth.failed')]);
@@ -80,7 +83,7 @@ it('rejects a wrong password with a generic error and no session', function () {
 
 it('gives the SAME generic error for an unknown email (no enumeration)', function () {
     $s = seedScenario(1);
-    operatorUser($s, 'exists@vyrobel.test');
+    operatorUser($s, ['email' => 'exists@vyrobel.test', 'password' => 'password']);
 
     // Identical message → an attacker can't tell a real account from a fake one.
     $this->post('/login', ['email' => 'exists@vyrobel.test', 'password' => 'WRONG'])
@@ -92,7 +95,7 @@ it('gives the SAME generic error for an unknown email (no enumeration)', functio
 
 it('refuses an inactive account with the same generic error', function () {
     $s = seedScenario(1);
-    $user = operatorUser($s, 'suspended@vyrobel.test');
+    $user = operatorUser($s, ['email' => 'suspended@vyrobel.test', 'password' => 'password']);
     $user->update(['status' => 'suspended']);
 
     $this->post('/login', ['email' => 'suspended@vyrobel.test', 'password' => 'password'])
@@ -103,7 +106,7 @@ it('refuses an inactive account with the same generic error', function () {
 // ── Brute-force rate limiting ────────────────────────────────────────────────────────────────────
 it('rate-limits after 5 failed attempts', function () {
     $s = seedScenario(1);
-    operatorUser($s, 'target@vyrobel.test');
+    operatorUser($s, ['email' => 'target@vyrobel.test', 'password' => 'password']);
     RateLimiter::clear(Str::lower('target@vyrobel.test').'|127.0.0.1');
 
     for ($i = 0; $i < 5; $i++) {
@@ -121,7 +124,7 @@ it('rate-limits after 5 failed attempts', function () {
 // ── Logout → session torn down ───────────────────────────────────────────────────────────────────
 it('logs out, invalidates the session, and blocks the app afterwards', function () {
     $s = seedScenario(1);
-    $user = operatorUser($s, 'bye@vyrobel.test');
+    $user = operatorUser($s, ['email' => 'bye@vyrobel.test', 'password' => 'password']);
 
     $this->actingAs($user)->get('/app/dashboard')->assertOk();
     $this->post('/logout')->assertRedirect('/login');
@@ -144,7 +147,7 @@ it('guards /app and /owner but keeps /book public', function () {
 // ── Already-authenticated visitors are bounced off the login form ────────────────────────────────
 it('redirects an already-authenticated user away from the login form', function () {
     $s = seedScenario(1);
-    $user = operatorUser($s, 'here@vyrobel.test');
+    $user = operatorUser($s, ['email' => 'here@vyrobel.test', 'password' => 'password']);
 
     $this->actingAs($user)->get('/login')->assertRedirect('/app/dashboard');
 });

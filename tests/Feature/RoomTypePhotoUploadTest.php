@@ -13,13 +13,15 @@ uses(RefreshDatabase::class);
 // Demo-readiness polish · Part A · Step A2 — the operator photo UPLOAD (the app's first user file-upload
 // path, treated as a security surface) + the public/operator/owner DISPLAY wiring. Reuses the media table.
 
-/** An active org member — the operator. */
+/** An active org member holding a real back-office role — the operator. */
 function photoOperator(array $s, string $email = 'photo-op@vyrobel.test'): User
 {
     $u = User::factory()->create(['email' => $email, 'status' => 'active']);
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $u->id, 'status' => 'active']);
 
-    return $u;
+    // A Membership alone is NOT operator access: /app is an allow-list gate (EnsureBackOfficeAccess),
+    // so the uploader must hold a real back-office role, as a live invited staff member does.
+    return grantBackOfficeRole($u, $s['org']);
 }
 
 /** Count a room-type's photos under super-admin (cross-org assertions). */

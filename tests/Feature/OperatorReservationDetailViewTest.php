@@ -15,12 +15,13 @@ uses(RefreshDatabase::class);
 // wired money actions (record payment, full refund) persist APPEND-ONLY through FolioService (a refund
 // is a NEW offsetting entry, the original untouched); encrypted guest PII is never rendered.
 
+/** A real OPERATOR: an active member of the scenario's org holding a back-office role. */
 function detailMember(array $scenario, string $name = 'Marisol Vandenberg'): User
 {
     $user = User::factory()->create(['name' => $name]);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    return grantBackOfficeRole($user, $scenario['org']);
 }
 
 /** Book a reservation and give it a folio: room €300 + city tax €30, optionally a €200 payment. */

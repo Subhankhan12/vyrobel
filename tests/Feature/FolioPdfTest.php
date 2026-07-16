@@ -13,12 +13,13 @@ uses(RefreshDatabase::class);
 // Demo-readiness · Part B · Step B2 — operator FOLIO PDF. Real append-only ledger (charges +, payments −,
 // refunds their own line); reconciles to the cent (matching the on-screen folio); TENANT-scoped download.
 
+/** A real OPERATOR: an active member of the scenario's org holding a back-office role. */
 function folioMember(array $s, string $email = 'folio-op@vyrobel.test'): User
 {
     $user = User::factory()->create(['email' => $email, 'status' => 'active']);
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    return grantBackOfficeRole($user, $s['org']);
 }
 
 /** Book a reservation with a folio: room €300 + city tax €30 (= €330 charges), + a €200 payment. */

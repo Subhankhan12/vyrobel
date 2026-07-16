@@ -17,12 +17,13 @@ uses(RefreshDatabase::class);
 // "to clean" KPI reflect reality, and a later dirty→clean cycle is a REAL transition (not a
 // clean→clean no-op). Idempotent — a double check-out doesn't double-anything.
 
+/** A real OPERATOR: an active member of the scenario's org holding a back-office role. */
 function coMember(array $scenario): User
 {
     $user = User::factory()->create(['status' => 'active']);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    return grantBackOfficeRole($user, $scenario['org']);
 }
 
 // ── Check-out flips the unit dirty AND generates the departure task ───────────────────────────────

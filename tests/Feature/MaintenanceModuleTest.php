@@ -21,7 +21,9 @@ function maintMember(array $s): User
     $user = User::factory()->create(['status' => 'active']);
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    // A Membership alone is NOT operator access — /app is an allow-list of back-office roles
+    // (EnsureBackOfficeAccess). A real staff member holds one, as OwnerInviteService assigns.
+    return grantBackOfficeRole($user, $s['org']);
 }
 
 // ── The unstyled stub renders real tenant-scoped tickets; org B's ticket is not shown ────────────

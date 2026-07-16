@@ -26,13 +26,18 @@ uses(RefreshDatabase::class);
 //   • the design's fictions are never rendered ("Scheduled"/"On hold" are in neither real enum; no IBAN
 //     column exists; no SEPA export exists), and no raw Blade leaks.
 
-/** An operator staff member of the given scenario's org. */
+/**
+ * An operator staff member of the given scenario's org: an active Membership PLUS a real back-office
+ * role, as a genuine staff invite produces (OwnerInviteService::assignStaffRole). The role is what
+ * EnsureBackOfficeAccess allow-lists on /app — a Membership alone is not operator access, since an
+ * owner has one too.
+ */
 function payoutRunStaff(array $scenario, string $name = 'Marcus Bellweather'): User
 {
     $user = User::factory()->create(['name' => $name, 'status' => 'active']);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    return grantBackOfficeRole($user, $scenario['org']);
 }
 
 /**

@@ -147,6 +147,8 @@ it('leaves the operator side seeing all owners (owner scope inactive off-portal)
     ['s' => $s, 'a' => $a, 'b' => $b] = portalScenario();
     $operator = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $operator->id, 'status' => 'active']);
+    // A real operator (not an owner): holds a back-office role, so the /app allow-list gate lets them in.
+    $operator = grantBackOfficeRole($operator, $s['org']);
 
     // Operator hits the operator units page (no owner middleware) → sees BOTH owners' units.
     $this->actingAs($operator)->get('/app/units')

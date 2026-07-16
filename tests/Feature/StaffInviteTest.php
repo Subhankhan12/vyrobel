@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class);
@@ -19,13 +20,33 @@ uses(RefreshDatabase::class);
 // (hashed/single-use/expiring tokens, no enumeration, tenant isolation) but branch: NO owner record,
 // NO agreement, NO units — a Membership + a REAL spatie role, landing in /app (not /owner).
 
-/** An active org member with NO owner link — the inviting operator. */
+/**
+ * An active org member with NO owner link, holding a real back-office role — the inviting operator.
+ *
+ * /app is an allow-list gate (EnsureBackOfficeAccess), so a Membership alone is not operator access.
+ * `Property Owner` is the ORG ADMIN (see config/authorization.php) — i.e. exactly who invites staff.
+ *
+ * Deliberately NOT grantBackOfficeRole(): that helper provisions the org's WHOLE role catalog, which
+ * would silently satisfy the fail-safe test below (it asserts the staff roles are NOT provisioned).
+ * Creating just this one role opens the gate and leaves `Hotel Manager`/`Accountant` unprovisioned.
+ */
 function staffOperator(array $scenario, string $email): User
 {
     $user = User::factory()->create(['email' => $email, 'status' => 'active']);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    $registrar = app(PermissionRegistrar::class);
+    $previousTeam = $registrar->getPermissionsTeamId();
+    $registrar->setPermissionsTeamId($scenario['org']->id);   // roles are team-scoped (team = org)
+
+    try {
+        Role::findOrCreate('Property Owner', (string) config('authorization.guard'));
+        $user->assignRole('Property Owner');
+    } finally {
+        $registrar->setPermissionsTeamId($previousTeam);
+    }
+
+    return $user->fresh() ?? $user;
 }
 
 /** Provision the org's spatie catalog roles (as org-creation / the demo seeder do) so staff roles exist. */

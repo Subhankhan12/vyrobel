@@ -132,10 +132,12 @@ it('protects staff surfaces with auth and isolates orgs at the web layer', funct
     $reservationA = book($sA, ['unit_id' => $sA['units'][0]->id]);
     $userA = User::factory()->create();
     Membership::create(['organization_id' => $orgA->id, 'user_id' => $userA->id, 'status' => 'active']);
+    grantBackOfficeRole($userA, $orgA);   // a real operator: /app is role-gated, a Membership alone is not access
 
     $sB = seedScenario(1);
     $userB = User::factory()->create();
     Membership::create(['organization_id' => $sB['org']->id, 'user_id' => $userB->id, 'status' => 'active']);
+    grantBackOfficeRole($userB, $sB['org']);   // role in B's OWN org only — the cross-org isolation below still holds
 
     // Auth-protected: the route sits behind the `auth` middleware. Asserted structurally because
     // there is no login screen yet (that's the design/auth pass — consistent with Phase 1 Step 9,

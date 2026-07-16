@@ -11,13 +11,17 @@ uses(RefreshDatabase::class);
 // (another org's booking is never visible); only REAL reservation statuses/labels are shown (nothing
 // invented); guest NAMES are shown (operator surface) but encrypted PII (email) never is.
 
-/** A user who is an active member of the scenario's org (so SetTenantForWebRequest resolves it). */
+/**
+ * A real operator: an active member of the scenario's org (so SetTenantForWebRequest resolves it) who
+ * also holds a real back-office role — what EnsureBackOfficeAccess allow-lists on /app, and what a
+ * genuine staff invite assigns. The role is team-scoped, so it grants nothing in any other org.
+ */
 function memberOf(array $scenario, string $name = 'Marisol Vandenberg'): User
 {
     $user = User::factory()->create(['name' => $name]);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return $user;
+    return grantBackOfficeRole($user, $scenario['org']);
 }
 
 // ── 1. A real reservation renders as a booking bar with real guest / status / dates ──────────────
