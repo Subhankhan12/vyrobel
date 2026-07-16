@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Folio;
 use App\Models\Payment;
+use App\Models\PropertyPolicy;
 use App\Models\Reservation;
+use App\Models\ReservationStatusHistory;
 use App\Models\ReservationUnit;
+use App\Models\User;
 use App\Services\FolioService;
 use App\Support\Folio\FolioTotals;
+use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -32,16 +38,41 @@ use Livewire\Component;
  * SAME rows and reconcile to the folio's cached figures to the cent. No line the ledger doesn't
  * contain is ever rendered (the owner-statement fake-fee precedent).
  *
+ * TERMINAL STATES (Wave 2 · sub-gate 2). "Cancelled" and "No-show" are STATE VARIANTS of this screen,
+ * not screens of their own — the design showed them as separate pages; they are one component in a
+ * different real state. When `status` is terminal the screen adds a provenance panel built ONLY from
+ * columns `terminate()` genuinely writes: `cancelled_at` (labelled per state — a no-show sets the SAME
+ * shared column, so it reads "Marked no-show at", never "Cancelled at") and `cancellation_reason` (a
+ * no-show HAS none — `markNoShow()` passes null — so the row is OMITTED, never filled with a dash or an
+ * invented "guest never arrived"). The released-inventory claim is real and automatic: `terminate()` →
+ * `releaseLine()` frees `sold`. Nothing else about the terminal state is asserted.
+ *
  * Honesty triage (rule locked in DECISIONS.md 2026-07-11):
  *   • REAL     — guest name, stay summary, units, reservation status (real enum), and the folio ledger.
  *                Record payment + full refund are REAL and persist (append-only, via FolioService).
- *   • DERIVED  — charges / paid / balance totals, computed from the real ledger rows only.
- *   • DEFERRED — add charge, partial refund, void, capture-hold, modify / move room / cancel: shown
- *                real-looking but flagged "not yet available" — never a faked money move (move-room
- *                goes through the guarded AssignmentService; deferred like the rack drag).
+ *                CANCEL + MARK-NO-SHOW are REAL and persist through AssignmentService — the single
+ *                inventory write path — via ReservationLifecycleController (POST → service → PRG).
+ *                The status TIMELINE is the real `reservation_status_history` audit trail (actor
+ *                included; "System" where `changed_by` is genuinely null, e.g. the OTA webhook).
+ *                The cancellation POLICY is the real `property_policies.cancellation` JSON — this screen
+ *                is its FIRST reader in the app. Rendered as CONFIGURED CONTEXT, never as a computed fee.
+ *   • DERIVED  — charges / paid / balance totals, computed from the real ledger rows only. The lifecycle
+ *                stage badge (ReservationStage — the shared resolver, so this screen can never disagree
+ *                with the reservations list about the same booking).
+ *   • DEFERRED — add charge, partial refund, void, capture-hold, modify / move room: shown real-looking
+ *                but flagged "not yet available" — never a faked money move (move-room goes through the
+ *                guarded AssignmentService; deferred like the rack drag). The cancellation FEE and the
+ *                no-show FEE/WAIVER are disabled "Soon": no fee engine exists (locked decision 5 — it is
+ *                a policy subsystem), so NO fee figure is ever rendered, computed or implied.
  *   • NO BACKEND — export / print: disabled "Soon". A deposit/pre-auth line shows ONLY when a real
  *                deposit_hold authorization exists — never a fabricated pre-auth.
  *   • Guest PII — name only; encrypted email/phone never rendered.
+ *
+ * NOT DONE, deliberately: the folio rails are NOT hidden on a terminal reservation, though the design
+ * drops them behind a "Folio closed · read-only" lock. `folios.status` has a `'closed'` value that NO
+ * code ever writes and NO guard enforces — every folio in the system is `'open'`, forever. Rendering the
+ * lock would assert an invariant that does not exist; a cancelled booking can still genuinely need a
+ * refund settled. Honest today; revisit if `FolioService::closeFolio()` is ever built.
  */
 #[Layout('components.layouts.operator')]
 class ReservationDetail extends Component
@@ -77,8 +108,24 @@ class ReservationDetail extends Component
 
         $folio = $folioModel !== null ? $this->buildFolio($folioModel, $currency) : null;
 
+        // The transition allow-lists are the WRITE PATH's own (public constants on the controller that
+        // performs the mutation), never a second copy: a button this screen offers is exactly a transition
+        // ReservationLifecycleController will accept, and it cannot drift out of step with it.
+        $canCancel = in_array($status, ReservationLifecycleController::CANCELLABLE, true);
+        $canNoShow = in_array($status, ReservationLifecycleController::NO_SHOWABLE, true);
+
         return view('livewire.reservation-detail', [
             'viewer' => $this->viewer(),
+            'terminal' => $this->terminalState($reservation, $status, $meta),
+            'timeline' => $this->timeline($reservation),
+            // Cancellation policy is CONTEXT for a CANCELLATION — so it shows exactly where it is
+            // meaningful: on a cancelled booking, or on one that can still be cancelled. Not on a
+            // checked-out stay (noise), and deliberately NOT on a no-show: `property_policies.cancellation`
+            // is the cancellation policy specifically, there is no no-show key in it, and captioning it at
+            // a no-show would imply a no-show policy the property has not configured.
+            'policy' => $canCancel || $status === 'cancelled' ? $this->cancellationPolicy($reservation) : null,
+            'can_cancel' => $canCancel,
+            'can_no_show' => $canNoShow,
             'reservation' => [
                 'id' => $reservation->id,
                 'reference' => (string) $reservation->reference,
@@ -103,6 +150,159 @@ class ReservationDetail extends Component
             ])->all(),
             'folio' => $folio,
         ]);
+    }
+
+    /**
+     * The terminal-state provenance panel — ONLY for a genuinely terminal reservation, and built only
+     * from what `AssignmentService::terminate()` actually writes.
+     *
+     * `cancelled_at` is a SHARED column: a no-show stamps it too. So it is labelled per state rather than
+     * always "Cancelled at", which would misreport a no-show. `cancellation_reason` is rendered only when
+     * genuinely set — `markNoShow()` stores none, so on a no-show the row is omitted entirely rather than
+     * shown as "—" (a dash implies an empty field; the truth is there is no field).
+     *
+     * @param  array{label: string, tone: string}  $meta  the real status meta, already resolved by render()
+     * @return array<string, mixed>|null
+     */
+    private function terminalState(Reservation $reservation, string $status, array $meta): ?array
+    {
+        if (! in_array($status, ['cancelled', 'no_show'], true)) {
+            return null;
+        }
+
+        $isNoShow = $status === 'no_show';
+        $reason = trim((string) ($reservation->cancellation_reason ?? ''));
+
+        // Both the status enum and the shared stage resolver land on CANCELLED here — consistent by
+        // design, and taken from the shared resolver so this screen can never disagree with the list.
+        $stageMeta = ReservationStage::meta(ReservationStage::for($reservation));
+
+        return [
+            'label' => $meta['label'],
+            'tone' => $meta['tone'],
+            'stage_label' => $stageMeta['label'],
+            'stage_tone' => $stageMeta['tone'],
+            'at_label' => $isNoShow ? 'Marked no-show at' : 'Cancelled at',
+            'at' => $reservation->cancelled_at !== null
+                ? CarbonImmutable::parse($reservation->cancelled_at)->format('j M Y · H:i')
+                : null,
+            'reason' => $reason !== '' ? $reason : null,
+            // The ONE consequence that is real and automatic — terminate() → releaseLine() → sold−−.
+            'released' => $isNoShow
+                ? 'Every held night was released when this booking was marked a no-show — the unit is back on the calendar and can be resold.'
+                : 'Every held night was released when this booking was cancelled — the unit is back on the calendar and can be resold.',
+            // DEFERRED (locked decision 5): no fee engine exists. A LABEL only — never a figure.
+            'fee_label' => $isNoShow ? 'No-show fee · waiver' : 'Cancellation fee',
+        ];
+    }
+
+    /**
+     * The REAL transition trail from `reservation_status_history` — written by AssignmentService on
+     * booking + terminate, and by the CheckIn/CheckOut actions. Every label runs through
+     * `reservationStatusMeta()` for BOTH sides, so the vocabulary is the real enum end-to-end.
+     *
+     * A null `from_status` is the first row (the booking) — rendered as the destination alone, with no
+     * arrow: there is no "New"/"Created" status in the enum and this screen will not invent one. A null
+     * `changed_by` is genuinely system-written (the OTA webhook cancels with no authenticated user) —
+     * "System" reports that truthfully.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function timeline(Reservation $reservation): array
+    {
+        // Read the rows through their OWN tenant-scoped model rather than the `statusHistory` relation:
+        // that relation carries no generics, so a collection reached through it degrades to
+        // Collection<int, Model> and every real column read becomes an undefined-property error. Same
+        // table, same global scope, same rows — just a type PHPStan can actually check. Ordered oldest
+        // first, with the ULID breaking ties: `created_at` is second-granular and a book→cancel can land
+        // inside one second (it does in tests), while ULIDs are monotonic within a process.
+        $rows = ReservationStatusHistory::query()
+            ->where('reservation_id', $reservation->id)
+            ->with('changedBy')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
+        return $rows->map(function (ReservationStatusHistory $row): array {
+            $to = $this->reservationStatusMeta((string) $row->to_status)['label'];
+            $from = $row->from_status !== null
+                ? $this->reservationStatusMeta((string) $row->from_status)['label']
+                : null;
+            $reason = trim((string) ($row->reason ?? ''));
+
+            // `changed_by` is a nullable FK → a real User, or genuinely nobody. The instanceof narrows the
+            // ungenericized BelongsTo to the real model — the same idiom FormatsOperatorData::viewer() uses.
+            $actor = $row->changedBy;
+
+            return [
+                // Composed here, not in Blade: the transition must stay one contiguous string.
+                'label' => $from !== null ? $from.' → '.$to : $to,
+                // `created_at` is `timestamp NOT NULL useCurrent()` — never null, so no null branch.
+                'at' => CarbonImmutable::parse($row->created_at)->format('j M Y · H:i'),
+                'actor' => $actor instanceof User ? (string) $actor->name : 'System',
+                'reason' => $reason !== '' ? $reason : null,
+            ];
+        })->values()->all();
+    }
+
+    /**
+     * The property's CONFIGURED cancellation policy — the real `property_policies.cancellation` JSON.
+     * This screen is its first reader in the app (nothing else has ever read the column).
+     *
+     * ⚠️ THIS IS CONTEXT, NOT A FEE. No fee engine exists (locked decision 5), so nothing here is
+     * computed against this stay: it reports what is on file, and the copy says so. The JSON has no
+     * defined contract — only DemoSeeder writes it, as `{"type": "flexible", "free_until_days": 2}` — so
+     * ONLY those two genuinely-present keys are rendered; an unknown key is not guessed at, and a missing
+     * or empty policy returns null (the panel disappears rather than showing an empty shell).
+     *
+     * @return array<string, string>|null
+     */
+    private function cancellationPolicy(Reservation $reservation): ?array
+    {
+        // Read through PropertyPolicy's own tenant-scoped model, keyed by the reservation's real
+        // `property_id` — same reason as timeline(): `Property::policies()` carries no generics, so
+        // reaching the rows through the relation degrades them to bare Models.
+        $policies = PropertyPolicy::query()
+            ->where('property_id', $reservation->property_id)
+            ->get();
+
+        foreach ($policies as $row) {
+            // Read through the Eloquent accessor: `cancellation` is a json column that PropertyPolicy
+            // casts to `array`, but the static schema scanner sees only the raw json (string|null) and
+            // does not apply the cast. getAttribute() applies the real cast at runtime and returns mixed,
+            // so the guard below is a genuine check rather than a fight with the type. Same idiom as
+            // FormatsOwnerData::portfolioCurrency() / OwnerExpenses::sourceType().
+            $policy = $row->getAttribute('cancellation');
+
+            if (! is_array($policy) || $policy === []) {
+                continue;
+            }
+
+            $parts = [];
+
+            $type = $policy['type'] ?? null;
+            if (is_string($type) && trim($type) !== '') {
+                // No policy-type vocabulary exists — title-case the stored value, never map it to an
+                // invented enum. Same posture as sourceLabel()'s default arm.
+                $parts[] = ucfirst(str_replace('_', ' ', trim($type)));
+            }
+
+            // array_key_exists, not isset/truthiness: `free_until_days: 0` is a real, meaningful value.
+            if (array_key_exists('free_until_days', $policy) && is_numeric($policy['free_until_days'])) {
+                $days = (int) $policy['free_until_days'];
+                $parts[] = $days > 0
+                    ? 'free until '.$days.' '.Str::plural('day', $days).' before arrival'
+                    : 'free until the arrival day';
+            }
+
+            if ($parts === []) {
+                continue;
+            }
+
+            return ['summary' => implode(' — ', $parts)];
+        }
+
+        return null;
     }
 
     /**

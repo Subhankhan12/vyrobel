@@ -14,8 +14,42 @@
         @endif
 
         <div class="vy-detail-cols vy-fade">
-            {{-- MAIN: stay summary + units + folio ledger --}}
+            {{-- MAIN: terminal state (when real) + stay summary + units + folio ledger --}}
             <div class="vy-stack">
+                {{-- TERMINAL STATE — rendered ONLY when the real status is cancelled/no_show. Every value
+                     comes from a column AssignmentService::terminate() genuinely wrote. `cancelled_at` is
+                     labelled per state (a no-show stamps the same shared column); the reason row is OMITTED
+                     when there is none (a no-show has none) rather than faked with a dash. --}}
+                @if ($terminal !== null)
+                    <div class="vy-card">
+                        <div class="vy-detail-head">
+                            <span class="vy-eyebrow">{{ $terminal['label'] }}</span>
+                            <span class="vy-tag tone-{{ $terminal['stage_tone'] }}"><span class="vy-dot"></span>{{ $terminal['stage_label'] }}</span>
+                        </div>
+
+                        <div class="vy-facts" style="margin-top: 14px;">
+                            @if ($terminal['at'])
+                                <div><div class="vy-fact-label">{{ $terminal['at_label'] }}</div><div class="vy-fact-val">{{ $terminal['at'] }}</div></div>
+                            @endif
+                            @if ($terminal['reason'])
+                                <div><div class="vy-fact-label">Reason</div><div class="vy-fact-val">{{ $terminal['reason'] }}</div></div>
+                            @endif
+                        </div>
+
+                        {{-- REAL + automatic: terminate() → releaseLine() frees `sold`. Claims nothing more. --}}
+                        <div class="vy-callout is-oos" style="margin-top: 14px;">
+                            <div class="vy-callout-title">Inventory released</div>
+                            {{ $terminal['released'] }}
+                        </div>
+
+                        {{-- DEFERRED (locked decision 5): there is no fee engine. A label, never a figure. --}}
+                        <div class="vy-action-list" style="margin-top: 12px;">
+                            <div class="vy-defer-item"><span>{{ $terminal['fee_label'] }}</span><span class="vy-soon-tag">Soon</span></div>
+                        </div>
+                        <div class="vy-recon" style="margin-top: 6px;">No fee was calculated or charged — cancellation fees need a policy engine that isn’t built.</div>
+                    </div>
+                @endif
+
                 <div class="vy-card">
                     <div class="vy-detail-head">
                         <span class="vy-detail-ref">{{ $reservation['reference'] }}</span>
@@ -41,6 +75,30 @@
                         </div>
                     @endforeach
                 </div>
+
+                {{-- STATUS TIMELINE — the REAL `reservation_status_history` append-only audit trail. Both
+                     sides of every transition are the real status enum via reservationStatusMeta(); the
+                     actor is the real `changed_by` user, or "System" where it is genuinely null (an OTA
+                     webhook cancel has no authenticated user). Nothing is invented. --}}
+                @if ($timeline !== [])
+                    <div class="vy-card">
+                        <h2 class="vy-card-title" style="margin-bottom: 6px;">Status history</h2>
+                        <div class="vy-timeline">
+                            @foreach ($timeline as $event)
+                                <div class="vy-tl-item">
+                                    <div class="vy-tl-rail"><span class="vy-tl-dot"></span><span class="vy-tl-line"></span></div>
+                                    <div class="vy-tl-body">
+                                        <div class="vy-tl-label">{{ $event['label'] }}</div>
+                                        <div class="vy-tl-meta">{{ $event['actor'] }} · {{ $event['at'] }}</div>
+                                        @if ($event['reason'])
+                                            <div class="vy-tl-meta">{{ $event['reason'] }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 <div class="vy-card">
                     <h2 class="vy-card-title" style="margin-bottom: 6px;">Folio</h2>
@@ -91,8 +149,50 @@
                 </div>
             </div>
 
-            {{-- RIGHT RAIL: record payment (wired) + deferred actions --}}
+            {{-- RIGHT RAIL: lifecycle (wired) + policy + record payment (wired) + deferred actions --}}
             <div class="vy-stack">
+                {{-- WIRED: cancel + mark-no-show POST through ReservationLifecycleController →
+                     AssignmentService (the single inventory write path). Each is offered ONLY when the REAL
+                     current status allows it — the gates are the controller's own constants, so the UI can
+                     never offer a transition the write path refuses. --}}
+                @if ($can_cancel || $can_no_show)
+                    <div class="vy-card">
+                        <span class="vy-eyebrow">Lifecycle</span>
+
+                        @if ($can_no_show)
+                            <form method="POST" action="{{ route('app.reservations.no-show', $reservation['id']) }}" style="margin-top: 12px;"
+                                onsubmit="return confirm('Mark this reservation as a no-show? The held nights are released back to the calendar.');">
+                                @csrf
+                                <button type="submit" class="vy-act vy-act--ghost">Mark no-show</button>
+                            </form>
+                            <div class="vy-recon" style="margin-top: 8px;">Frees the held nights. No reason is recorded — the service stores none for a no-show.</div>
+                        @endif
+
+                        @if ($can_cancel)
+                            <form method="POST" action="{{ route('app.reservations.cancel', $reservation['id']) }}" style="margin-top: 14px;"
+                                onsubmit="return confirm('Cancel this reservation? The held nights are released back to the calendar. This cannot be undone.');">
+                                @csrf
+                                <label class="vy-field-label" for="cancel-reason">Cancel · reason (optional)</label>
+                                <div class="vy-input-group">
+                                    <input class="vy-input" type="text" name="reason" id="cancel-reason" maxlength="255" placeholder="Why is it being cancelled?">
+                                    <button type="submit" class="vy-act vy-act--accent">Cancel</button>
+                                </div>
+                            </form>
+                            <div class="vy-recon" style="margin-top: 8px;">Cancelling is final — there is no reinstate, and the freed nights can be resold immediately.</div>
+                        @endif
+                    </div>
+                @endif
+
+                {{-- REAL, read-only: the property's CONFIGURED policy (`property_policies.cancellation`).
+                     CONTEXT ONLY — no fee is computed against this stay; the copy says so explicitly. --}}
+                @if ($policy !== null)
+                    <div class="vy-card">
+                        <span class="vy-eyebrow">Cancellation policy</span>
+                        <div class="vy-fact-val" style="margin-top: 10px;">{{ $policy['summary'] }}</div>
+                        <div class="vy-recon" style="margin-top: 6px;">The policy on file for this property. Nothing has been calculated against this booking.</div>
+                    </div>
+                @endif
+
                 <div class="vy-card vy-card--accent">
                     <span class="vy-eyebrow">Record a payment</span>
                     {{-- WIRED: posts through FolioService (append-only). Manual/offline under the default gateway. --}}
@@ -116,7 +216,8 @@
                         <div class="vy-defer-item"><span>Partial / custom refund</span><span class="vy-soon-tag">Soon</span></div>
                         <div class="vy-defer-item"><span>Void</span><span class="vy-soon-tag">Soon</span></div>
                         <div class="vy-defer-item"><span>Move room</span><span class="vy-soon-tag">Soon</span></div>
-                        <div class="vy-defer-item"><span>Modify · cancel</span><span class="vy-soon-tag">Soon</span></div>
+                        {{-- Cancel is no longer deferred — it is wired for real in the Lifecycle card above. --}}
+                        <div class="vy-defer-item"><span>Modify dates · guests</span><span class="vy-soon-tag">Soon</span></div>
                     </div>
                     {{-- REAL folio PDF export (tenant-scoped, reconciles to the cent). CSV export stays deferred. --}}
                     <a href="{{ route('app.reservations.folio-pdf', $reservation['id']) }}" class="vy-btn vy-btn--accent" style="margin-top:12px;width:100%;justify-content:center" title="Download the folio as a PDF">

@@ -12,6 +12,7 @@ use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
+use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
@@ -201,6 +202,22 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // Design pass · Operator Screen 4 — REAL append-only folio actions via POST → controller →
     // FolioService → redirect (PRG). {reservation} is a string param resolved tenant-scoped in the
     // controller (never RMB) → cross-org 404. A refund is a NEW offsetting entry (never an edit).
+    // Wave 2 · Sub-gate 2 — the LIFECYCLE transitions behind the terminal-state panels (cancel / mark
+    // no-show). POST → controller → AssignmentService (the single guarded inventory write path, which
+    // frees `sold`, writes reservation_status_history and emits the domain event) → PRG.
+    //
+    // ⚠️ THE STATUS GUARD LIVES IN THE CONTROLLER, and that is NOT the usual pattern — read before moving
+    // it. `AssignmentService::terminate()` has NO status guard: re-cancelling an already-cancelled
+    // reservation does not throw, it silently OVERWRITES `cancelled_at`/`cancellation_reason` (destroying
+    // the provenance the terminal panel renders) and appends a junk `cancelled → cancelled` row to the
+    // append-only audit trail. Proven empirically — see docs/DECISIONS.md 2026-07-16. So
+    // ReservationLifecycleController::CANCELLABLE / ::NO_SHOWABLE are load-bearing, not cosmetic, and the
+    // component gates its buttons off those same constants so the UI cannot offer what the write refuses.
+    // The proper fix is a guard inside terminate() itself (a service change — recorded as outstanding).
+    // The controller's `catch (RuntimeException)` is still real: releaseLine() → lockAvailability() can
+    // throw inside the transaction, and the rollback is total.
+    Route::post('/reservations/{reservation}/cancel', [ReservationLifecycleController::class, 'cancel'])->name('reservations.cancel');
+    Route::post('/reservations/{reservation}/no-show', [ReservationLifecycleController::class, 'markNoShow'])->name('reservations.no-show');
     Route::post('/reservations/{reservation}/payments', [ReservationFolioActionController::class, 'recordPayment'])->name('reservations.payment');
     Route::post('/reservations/{reservation}/refunds', [ReservationFolioActionController::class, 'refund'])->name('reservations.refund');
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
