@@ -25,7 +25,11 @@ use App\Livewire\MaintenanceList;
 use App\Livewire\MaintenanceTicketDetail;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwners;
+use App\Livewire\Owner\OwnerAgreement;
+use App\Livewire\Owner\OwnerArchive;
+use App\Livewire\Owner\OwnerBalance;
 use App\Livewire\Owner\OwnerDashboard;
+use App\Livewire\Owner\OwnerExpenses;
 use App\Livewire\Owner\OwnerMyUnits;
 use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerStatementView;
@@ -197,4 +201,10 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');
     // Design pass · Screen 4 — owner units + owner-scoped occupancy calendar (new owner-scoped page).
     Route::get('/units', OwnerMyUnits::class)->name('units');
+    // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
+    // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
+    Route::get('/balance', OwnerBalance::class)->name('balance');
+    Route::get('/expenses', OwnerExpenses::class)->name('expenses');
+    Route::get('/agreement', OwnerAgreement::class)->name('agreement');
+    Route::get('/archive', OwnerArchive::class)->name('archive');
 });

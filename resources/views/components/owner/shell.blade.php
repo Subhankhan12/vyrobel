@@ -21,10 +21,10 @@
             ['calendar', 'Calendar', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', null],
         ]],
         ['EARNINGS', [
-            ['statements', 'Statements', 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', null],
+            ['statements', 'Statements', 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', route('owner.archive')],
             ['payouts', 'Payouts', 'M3 7h18v12H3zM3 11h18M15 15h3', route('owner.payouts')],
-            ['balance', 'Balance', 'M12 3v18M6 21h12M5 8h14l-3 5H8z', null],
-            ['expenses', 'Expenses', 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6', null],
+            ['balance', 'Balance', 'M12 3v18M6 21h12M5 8h14l-3 5H8z', route('owner.balance')],
+            ['expenses', 'Expenses', 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6', route('owner.expenses')],
             ['tax', 'Tax center', 'M6 6h.01M18 18h.01M6 18 18 6', null],
         ]],
         ['MANAGE', [
@@ -32,7 +32,7 @@
             ['insights', 'Insights', 'M4 15l4-5 4 3 6-8', null],
             ['rates', 'Rates', 'M4 4h9l7 7-9 9-7-7zM8 8h.01', null],
             ['reviews', 'Reviews', 'M12 4l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4-3.9-3.8 5.4-.8z', null],
-            ['agreement', 'Agreement', 'M5 4h11l3 3v13H5zM8 12c3-1 4 2 6 0M8 16h8', null],
+            ['agreement', 'Agreement', 'M5 4h11l3 3v13H5zM8 12c3-1 4 2 6 0M8 16h8', route('owner.agreement')],
             ['messages', 'Messages', 'M4 5h16v11H9l-5 4z', null],
         ]],
         ['ACCOUNT', [
