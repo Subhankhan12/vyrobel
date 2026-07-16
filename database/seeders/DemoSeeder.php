@@ -87,10 +87,18 @@ class DemoSeeder extends Seeder
             ['status' => 'active', 'invited_at' => now()],
         );
         app(PermissionRegistrar::class)->setPermissionsTeamId($org->id);
-        $owner->assignRole('Property Owner');
 
-        // A staff/operator login so BOTH role journeys are demoable via the real login: this user is an
-        // org MEMBER with no owner link → routes to the operator app (/app); demo-owner → the owner portal.
+        // The demo owner is a UNIT OWNER — exactly what OwnerInviteService's owner path now produces:
+        // an active Membership (the only way their org resolves) + the owner-only `External Owner` role
+        // (`owner_portal.view` and nothing else). NOT `Property Owner`: despite the name, that is the ORG
+        // ADMIN (`['*']` — all 44 permissions). This seeder used to grant it, which handed the demo owner
+        // payments.refund/guests.erase/users.manage and, before the back-office gate, the entire operator
+        // app. The demo must model production, or the security gate is not what the demo journeys prove.
+        $owner->syncRoles(['External Owner']);
+
+        // A staff/operator login so BOTH role journeys are demoable via the real login. A Membership alone
+        // is NOT operator access (an owner has one too — that was the hole): staff need a real back-office
+        // role, as a real staff invite assigns. Hotel Manager mirrors OwnerInviteService's 'manager' slug.
         $staff = User::firstOrCreate(
             ['email' => 'demo-staff@vyrobel-demo.test'],
             ['name' => 'Demo Staff', 'password' => Hash::make('password'), 'status' => 'active'],
@@ -99,6 +107,7 @@ class DemoSeeder extends Seeder
             ['organization_id' => $org->id, 'user_id' => $staff->id],
             ['status' => 'active', 'invited_at' => now()],
         );
+        $staff->syncRoles(['Hotel Manager']);
 
         // --- Mixed property ---
         $property = Property::create([

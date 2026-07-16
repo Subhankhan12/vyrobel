@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Mail\OwnerInviteMail;
 use App\Models\ManagementAgreement;
 use App\Models\Membership;
@@ -15,6 +16,7 @@ use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -51,6 +53,16 @@ class OwnerInviteService
         'manager' => 'Hotel Manager',
         'accountant' => 'Accountant',
     ];
+
+    /**
+     * The OWNER-ONLY catalog role: `owner_portal.view` and nothing else — deliberately NOT in
+     * `config('authorization.back_office_roles')`, so an owner is refused the operator app at the ROLE
+     * level as well as by the route gate (defense-in-depth; see EnsureBackOfficeAccess).
+     *
+     * ⚠️ NOT `Property Owner` — that is the ORG ADMIN (`['*']`, all 44 permissions). The names are a
+     * trap; `DemoSeeder` fell into it and gave a unit owner every permission, including payments.refund.
+     */
+    private const OWNER_ROLE = 'External Owner';
 
     /**
      * Create (or refresh) a pending invite, then email the tokened set-password link.
@@ -184,6 +196,7 @@ class OwnerInviteService
 
                 if ($invite->owner_id !== null) {
                     $this->activateOwner($invite);
+                    $this->assignOwnerRole($user, $invite);
                 } else {
                     $this->assignStaffRole($user, $invite);
                 }
@@ -313,6 +326,71 @@ class OwnerInviteService
                 'effective_to' => null,
                 'status' => 'active',
             ]);
+        }
+    }
+
+    /**
+     * OWNER activation: assign the owner-only {@see self::OWNER_ROLE} (`External Owner` —
+     * `owner_portal.view`, nothing else) for the invite's org.
+     *
+     * WHY: an owner necessarily holds an ACTIVE Membership (the only way SetTenantForWebRequest can
+     * resolve their org — remove it and /owner 500s). Before the back-office gate, that Membership read
+     * as "is staff" and handed them the whole operator app. Giving them an explicit owner-only role makes
+     * their capability POSITIVE rather than "happens to hold no role", so the
+     * `config('authorization.back_office_roles')` allow-list has nothing to admit even if a future route
+     * forgets {@see EnsureBackOfficeAccess}. Layer 2 of two.
+     *
+     * NOT FAIL-SAFE-BY-THROW, unlike {@see assignStaffRole()} — deliberately, and the asymmetry is the
+     * point. A staff member without their role is BROKEN (locked out of /app), so that path rolls the
+     * activation back. An owner's portal access comes from the `owners.user_id` link, NOT from this role:
+     * an owner with no role reaches /owner exactly the same and is EQUALLY non-operator-capable (the
+     * allow-list admits neither). So if the role is not provisioned for the org, we log and carry on
+     * rather than blocking a legitimate owner from activating over an unrelated org-setup gap. The
+     * security property holds in both branches; only the explicitness differs. (A role missing from the
+     * CATALOG is a different thing — a code/config bug — and DOES throw.)
+     */
+    private function assignOwnerRole(User $user, OwnerInvite $invite): void
+    {
+        $orgId = (string) $invite->organization_id;
+        $roleName = self::OWNER_ROLE;
+
+        /** @var array<string, mixed> $catalog */
+        $catalog = (array) config('authorization.roles', []);
+
+        // A catalog without the owner role is a code/config defect, not an environment gap — fail loudly.
+        if (! array_key_exists($roleName, $catalog)) {
+            throw new RuntimeException("Owner role [{$roleName}] is not defined in the RBAC catalog.");
+        }
+
+        $guard = (string) config('authorization.guard');
+        $teamKey = (string) config('permission.column_names.team_foreign_key', 'team_id');
+
+        $registrar = app(PermissionRegistrar::class);
+        $previousTeam = $registrar->getPermissionsTeamId();
+        $registrar->setPermissionsTeamId($orgId);   // roles are team-scoped (team = org)
+
+        try {
+            $provisioned = Role::query()
+                ->where('name', $roleName)
+                ->where('guard_name', $guard)
+                ->where($teamKey, $orgId)
+                ->exists();
+
+            if (! $provisioned) {
+                // Safe, but worth surfacing: the org never ran OrganizationRoleProvisioner.
+                Log::warning('owner_invite.owner_role_not_provisioned', [
+                    'organization_id' => $orgId,
+                    'role' => $roleName,
+                    'owner_id' => $invite->owner_id,
+                    'note' => 'Owner activated WITHOUT the owner-only role; portal access is unaffected and they remain non-operator-capable.',
+                ]);
+
+                return;
+            }
+
+            $user->assignRole($roleName);
+        } finally {
+            $registrar->setPermissionsTeamId($previousTeam);
         }
     }
 
