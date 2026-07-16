@@ -31,6 +31,7 @@ use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Operator\PayoutRun;
+use App\Livewire\Operator\ReservationsList;
 use App\Livewire\Owner\OwnerAgreement;
 use App\Livewire\Owner\OwnerArchive;
 use App\Livewire\Owner\OwnerBalance;
@@ -188,6 +189,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     Route::post('/room-types/{roomType}/photos/{photo}/cover', [RoomTypePhotoController::class, 'setCover'])->name('room-types.photos.cover');
     Route::post('/room-types/{roomType}/photos/{photo}/move', [RoomTypePhotoController::class, 'move'])->name('room-types.photos.move');
     Route::delete('/room-types/{roomType}/photos/{photo}', [RoomTypePhotoController::class, 'destroy'])->name('room-types.photos.destroy');
+    // Wave 2 · Sub-gate 1 — the operator RESERVATIONS LIST (tenant-scoped, read-only). Declared BEFORE
+    // the {reservation} detail so the literal path wins. Stage filters come from the shared
+    // App\Support\Reservations\ReservationStage — the same resolver the badge uses, so a chip can never
+    // disagree with what it filters on.
+    Route::get('/reservations', ReservationsList::class)->name('reservations');
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
     // Demo-readiness · Part B — operator folio PDF. TENANT-scoped (string id → findOrFail → cross-org 404).
     // Real append-only ledger; reconciles to the cent; streams application/pdf.
