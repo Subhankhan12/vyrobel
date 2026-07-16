@@ -7,9 +7,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 ## Status (verified against the repo)
 
 - **On `main`, working tree clean** (only the untracked design-source exports under `docs/design/raw/` remain
-  uncommitted — **gitignored** raw Claude Design HTML, not in a fresh clone). Suite: **`php artisan test` → 340
-  tests / 3831 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this session.
+  uncommitted — **gitignored** raw Claude Design HTML, not in a fresh clone). Suite: **`php artisan test` → 430
+  tests / 4835 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this session.
   **PHPStan (Larastan) level 5, 0 errors** (`--memory-limit=1G`) — re-verified. **Pint clean** — re-verified.
+  ⚠️ `phpunit.xml` sets **`memory_limit=512M`** — the suite outgrew PHP's 128M CLI default (verified headroom,
+  not a leak; see the register). `php artisan test` spawns a child that re-reads php.ini, so `-d` won't reach it.
   Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`, `REDIS_CLIENT=predis`; `database` documented as
   fallback). The three planning docs (`docs/ROADMAP.md`, `docs/TIER1-SPEC.md`, `docs/DESIGN-COVERAGE.md`) were
   authored on branch `docs/roadmap-audit` and **merged into `main`** in this consolidation — a fresh session on
@@ -21,7 +23,7 @@ conflicts with the repo, **trust the repo** and fix this file.
   Browser-verifying it then surfaced a **critical pre-existing authorization hole** (an owner-role user could
   reach the whole operator back office and every other owner's financials), now **FIXED in two gated steps**
   (`5155a48` route gate → `f63866a` root cause) — **invariant #26**, defense-in-depth, each layer proven to
-  block independently. Suite **340/3831 → 420 tests / 4795 assertions**.
+  block independently. Suite **340/3831 → 430 tests / 4835 assertions** (Wave 1 + the `/app` gate + the refund bound #27).
   **The product is now safe for a real owner login.**
 - **AUTH — COMPLETE & SECURE (chapter finished): login/logout + invites (owner + staff) + password reset.**
   Real session auth fronts the app; **the dev-login shim is gone.** Phase A: one shared login
@@ -225,6 +227,8 @@ conflicts with the repo, **trust the repo** and fix this file.
    never emits an inventory event (no push→event→push loop).
 7. **Append-only correct-by-reversal financial ledger** — posted `payments`/`invoices`/`folio_items`
    never edited/deleted; refunds/voids are NEW offsetting entries; deposit hold ≠ paid until captured.
+   ⚠️ **#7 bounds EDITS, not SUMS** — see #27, which is a genuinely different guarantee. Conflating the two
+   is exactly how a €369.00 payment once took three full refunds while every rule here held.
 8. **Money = integer minor units + ISO currency**, via `App\Support\Money\Money` / `MoneyCast`. Never a float.
 9. **PII** — `guests.email`/`phone` encrypted; GDPR erase = `anonymize()` (null PII, purge file bytes).
 10. **Event direction** — `domain_events` emitted post-commit by the WRITE side only;
@@ -362,6 +366,35 @@ conflicts with the repo, **trust the repo** and fix this file.
       missing from the CATALOG is a code bug and still throws.
     (Locked `docs/DECISIONS.md` 2026-07-16; proven by `BackOfficeAccessTest` + `OwnerNotOperatorCapableTest`,
     the former mutation-verified — removing the gate fails 5 of its tests.)
+
+**The refund bound (money — 2026-07-16):**
+27. **CUMULATIVE refunds against a payment may EQUAL but never EXCEED that payment's original amount.**
+    **This is NOT invariant #7 and was not implied by it.** #7 (append-only, correct-by-reversal) says a
+    refund is a NEW offsetting row and the original is never edited — it bounds **edits**. Nothing bounded
+    the **sum**. Both held simultaneously while a €369.00 payment took **three full refunds = €1,107.00**
+    (every refund a legitimate append-only row, original untouched). #27 is the missing bound.
+    - **Enforced in `FolioService::refundPayment()` — the single write path, so EVERY caller is covered.**
+      Never re-implement it per controller. `remaining = original − Σ prior succeeded refunds`; reject
+      `amount > remaining` with `App\Exceptions\Folio\RefundExceedsPaymentException` — a clean domain
+      rejection, **never a silent clamp or partial application**. It subsumes the old per-call check (no
+      priors ⇒ remaining IS the original), so partial refunds up to the original still work exactly as before.
+    - **ORDERING IS LOAD-BEARING:** the guard runs **before** `$this->gateway->refund()`. The gateway is
+      invoked before any row is written, so a guard placed after it would move REAL money and only then
+      reject. Do not reorder.
+    - **The sum** = `payments WHERE type='refund' AND status='succeeded' AND
+      metadata->refunds_payment_id = <id> AND currency = <original.currency>` — the link is a **JSON path**
+      (there is no FK column). Only `succeeded` counts (a failed refund moved no money and must not consume
+      headroom). **`withTrashed()`** — a soft-deleted refund STILL bounds; posted financial rows should never
+      be deleted (#7), so this is belt-and-braces: a delete must never hand back refundable headroom.
+    - **Same-currency only** — minor units are not comparable across currencies, so the bound and its sum
+      would be meaningless. (Previously unchecked: a 100 USD refund against a 100 EUR payment PASSED.)
+    - **Non-positive rejected** — a €0.00 refund passes any `> remaining` test and posts a junk row into a
+      ledger that can never be tidied away.
+    - **The UI must not invite the rejection:** `ReservationDetail` marks a payment refundable only while
+      `remainingRefundableMinor() > 0` (and exposes the remainder). The button persisting after a full
+      refund is what made the bug reachable in the shipped product. The service stays the authority.
+    (Locked `docs/DECISIONS.md` 2026-07-16; proven by `RefundGuardTest` — written FIRST and run against the
+    unguarded code: **7 of 10 failed pre-fix, 10/10 pass post-fix, and removing the guard fails 4 again**.)
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 

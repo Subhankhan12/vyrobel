@@ -1071,6 +1071,73 @@ tests / 3831 assertions green on MySQL, PHPStan L5 0 errors, Pint clean.** The t
 branch `docs/roadmap-audit` (7fea230 → ae1541b → 9785561) and **merged to `main`** in this consolidation so a
 fresh session on `main` sees them.
 
+### 2026-07-16 — 💰 MONEY FIX SHIPPED: cumulative refunds against a payment are now BOUNDED (invariant #27)
+
+**A live financial bug, found while inventorying Wave 2 — closed before the Wave 2 refund screen builds on
+top of it.** `FolioService::refundPayment()` checked the refund amount against the **ORIGINAL** on every
+call and **nothing summed prior refunds**, so a payment could be refunded without limit. Proven on a dev DB:
+a **€369.00 payment accepted three full refunds = €1,107.00** (each call satisfying `36900 <= 36900`).
+
+**It was reachable in the SHIPPED product, not merely latent.** The original payment stays
+`type=payment, status=succeeded` after a refund, `ReservationDetail:171` marked **any** settled payment
+`refundable => true`, and the controller re-checked only that the payment was settled — so the Refund button
+**persisted after refunding** and a second click refunded again. Wave 2's refund screen would have turned
+"click twice" into "refund €50 twenty times".
+
+- **Decision: this is a NEW invariant (#27), NOT a violation of #7.** — **Why:** the distinction is the whole
+  lesson. Invariant #7 (append-only, correct-by-reversal) held perfectly throughout: every refund WAS a
+  legitimate new offsetting row and the original was never touched. **#7 bounds EDITS; it never bounded the
+  SUM.** A guarantee stack can be fully green and still leak money if nobody ever wrote down the bound. #7's
+  entry in PROJECT-STATE now cross-references #27 so the two are not conflated again.
+- **Decision: the guard lives in `FolioService::refundPayment()`, never per-controller.** — **Why:** it is
+  the single write path (audited: exactly ONE production caller — `ReservationFolioActionController:57` —
+  plus 3 test callers), so one guard covers every path, including the Wave 2 screen and anything added later.
+  Same reasoning as `AssignmentService` being the sole inventory writer.
+- **Decision: the guard runs BEFORE the gateway call.** — **Why:** `$this->gateway->refund()` is invoked
+  before any row is written. A guard placed after it would move REAL money against a live gateway and only
+  then reject. This ordering is load-bearing and is documented in the method.
+- **Decision: reject with a domain exception, never clamp.** — **Why:** silently clamping a €6,000 refund to
+  the €5,000 remaining would post an amount the operator never authorised. `RefundExceedsPaymentException`
+  (extends `RuntimeException`, mirroring `App\Exceptions\Booking\*`) is caught by the controller → a clean
+  flash, never a 500.
+- **Decision: `withTrashed()` when summing prior refunds.** — **Why:** conservative for a money guard. Posted
+  financial rows should never be deleted (#7), so this is belt-and-braces — but a soft-delete must never
+  become a way to hand back refundable headroom. Only `succeeded` refunds count: a failed refund moved no
+  money and must not consume headroom (locked by a test).
+
+**Two further real bugs found in the same method and fixed here:**
+1. **Cross-currency refunds passed.** `refundPayment` never checked that the refund currency matched the
+   payment's — it stamped the refund with the **amount's** currency and compared raw minor units across
+   currencies. **A 100 USD refund against a 100 EUR payment was accepted.** Now rejected: the cumulative sum
+   is only meaningful same-currency, so the check is required for the bound to mean anything.
+2. **A €0.00 refund was accepted** — a hole in the first cut of *this* fix, caught by its own test: with
+   `remaining = 0` the controller called `refundPayment(…, Money(0))`, and `0 > 0` is false, so it posted a
+   junk €0.00 row into an append-only ledger and reported "Refund issued.". Non-positive amounts now rejected.
+
+**PROOF — fail-then-pass, then mutation (a money test that cannot fail is worthless):** `RefundGuardTest`
+(10) was written **FIRST** and run against the unguarded code — **7 of 10 FAILED** (the over-refund accepted,
+the HTTP path not rejecting, the button persisting). After the fix: **10/10**. Removing the guard again fails
+**4**; restoring it passes 10/10. Two of my own tests were also wrong and fixed: one asserted on a route
+**name** that never renders (only the URL does) so it passed **vacuously**; another misused Pest's
+`toThrow()` second argument as a description when it is a **message matcher** — the same class of trap as
+`toContain()` in Wave 1.
+
+**Browser-verified on real demo data:** three refund attempts through the real operator UI on the same
+€369.00 payment → **€369.00 refunded, ONE row, zero junk rows, original untouched** ("Refund issued." then
+"already fully refunded." twice). Also confirmed live: a legitimate partial refund works (10000 → remaining
+23210), €0.00 rejected, cross-currency USD rejected, `remaining+1` rejected, `exactly remaining` accepted →
+remaining 0.
+
+**Legitimate refunds unregressed** — the two existing partial-refund proofs (`FolioLedgerTest:23`,
+`FolioPdfTest:73`) and `StripePaymentTest` pass untouched; the money/ledger paths (folio · payments · owner
+attribution/expenses/statements/payouts · the Wave 1 PDFs) re-assert green at 97 tests / 2516 assertions.
+Suite **420 → 430 tests / 4835 assertions**, PHPStan L5 0 errors, Pint clean, `migrate:fresh --seed` clean.
+
+**The lesson worth keeping:** this was found by *inventorying a design*, not by a test failing — the whole
+certified suite was green over it. Guarantees only hold where someone wrote the bound down.
+
+---
+
 ### 2026-07-16 — ✅ SECURITY FIX SHIPPED: the `/app` authorization hole is CLOSED (route gate + owner-only role)
 
 The finding recorded below is **fixed**, in two gated steps: **`5155a48`** (layer 1, the route gate) →
