@@ -1024,6 +1024,53 @@ account-gated (unchanged — the composer honestly reflects this per channel). *
 browser-verified the reply round-trip (Delivered). **Full suite 340 tests / 3831 assertions green; PHPStan L5
 0 errors; Pint clean.** The Unified Inbox module is now **COMPLETE end-to-end (backend + styled UI)**.
 
+### 2026-07-16 — ROADMAP AUDIT + planning docs (analysis only, NO code) — the current planning source of truth
+
+The buildable-in-a-vacuum core being complete, this was the gated ROADMAP-AUDIT-then-fork task named in the
+prior consolidation. **Read-only analysis** — no app code, schema, or test touched; the only outputs are three
+new versioned docs. Every "built/done" claim was cross-checked against the actual repo (routes, `app/Livewire`,
+`app/Http/Controllers`, `app/Services`, `app/Models`, `database/migrations`), trusting the repo over the
+catalogue's optimism. **These three docs are now the planning source of truth for what to build next** (read
+them before starting any new screen):
+
+- **`docs/ROADMAP.md`** — the full designed-vs-built-vs-remaining map across ~16 modules. Headline: **~26 of
+  ~124 designed screens done (~21%) — the operational spine + owner-accounting wedge + public booking write +
+  real auth.** Remaining work triaged into three tiers: **Tier 1** (~14 buildable-now *completion* workstreams —
+  styled UI over certified backends, only 3 need a backend gate first: Global Search, 2FA, Maintenance
+  Settings), **Tier 2** (~6 net-new *speculative* modules with no backend — Guest Portal ~24, Analytics,
+  Reviews, Billing, Notifications, Emails), **Tier 3** (~8 *account-gated* items — real inbox channels, Channex
+  live, Stripe Connect payouts, Stripe card checkout, production email, live billing). **Key ratio: only ~8 of
+  ~90 remaining screens are truly account-gated; the bulk is buildable now** — the constraint is build effort +
+  product commitment, not external blockers.
+- **`docs/TIER1-SPEC.md`** — build-ready per-screen specs for the Tier 1 completions: for each, the design
+  feature inventory + the **repo-verified backend reality per feature** (✅ REAL / 🟨 DERIVABLE / 🟥
+  NEEDS-BACKEND / ⬜ DEFER, each naming the real model/service/column/route), the write actions (service method
+  named or flagged as new), a strength rating, and a **buildability verdict** (READY / MOSTLY-READY /
+  NEEDS-BACKEND-FIRST). Ends with a **5-wave build order** grouped by shared backend. **Honesty caveat recorded
+  in the doc:** the design HTML files are minified React SPAs that are opaque to text extraction — the design
+  feature lists are catalogue-derived *intent* (confirm exact panels in-browser at build time), while the
+  **backend verdicts are rigorously repo-grounded** (the load-bearing part).
+- **`docs/DESIGN-COVERAGE.md`** — exists-vs-missing design audit. **Ground truth: `docs/design/raw/` has 125
+  files / 124 screens** (the catalogue says 120 — **off by 5**; the extras `Operator Inbox`, `Operator
+  Conversation`, `Owner Invite Email`, `Vyrobel Invite Owner`, `Vyrobel Set Password` are now-built inbox/auth
+  exports). **Coverage is near-total — only ~3 needed screens lack a design** (Operator Units [already built],
+  Password Reset Email [already built], 2FA [needs backend anyway]); **every Tier-2 future module is already
+  fully designed.** **Design is NOT the bottleneck for any planned work.** Also surfaced an **un-scoped module**
+  in the designs (`Operator Team Schedule` + `Operator Schedule PDF` — staff rostering, no backend, not in the
+  ROADMAP) — flagged as a potential Tier-2. **Action noted:** reconcile `docs/design/CATALOGUE.md` to 125/124.
+
+**Decision — NEXT = Wave 1 (the owner-accounting long-tail).** Per TIER1-SPEC's build order, and confirmed by
+DESIGN-COVERAGE (**all 10 Wave 1 designs EXIST — zero design gate**): four gated sub-gates over the CERTIFIED
+owner-accounting backend, owner/tenant-scoped, honesty rule enforced — (1) Owner Balance · Expenses · Agreement
+· Archive; (2) Remittance-Advice + Booking-Summary PDFs; (3) Owner Unit Detail + Operator Owner Detail;
+(4) Payout Run + Owner Documents. Stub what the design implies but the backend lacks (ADR/RevPAR charts, CSV
+export, owner-editable rates). Then Waves 2–4 (reservations/folio · inbox · rates/channels/settings).
+**In parallel, customer validation of the already-demoable product remains the highest-value non-build move**
+(the Tier-2 bets are speculative without signal). **Verified at this point (unchanged by the analysis): 340
+tests / 3831 assertions green on MySQL, PHPStan L5 0 errors, Pint clean.** The three docs were committed on
+branch `docs/roadmap-audit` (7fea230 → ae1541b → 9785561) and **merged to `main`** in this consolidation so a
+fresh session on `main` sees them.
+
 <!-- Add further entries below, most recent first, each with a date. -->
 <!-- ### YYYY-MM-DD
 - **Decision:** … — **Why:** … -->

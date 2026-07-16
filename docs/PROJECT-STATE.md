@@ -6,12 +6,17 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-- **HEAD `1e32599`** on `main`, working tree clean (only the untracked design-source exports under
-  `docs/design/` remain uncommitted — the raw Claude Design HTML). Suite: **`php artisan test` → 340 tests
-  / 3831 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`). **PHPStan (Larastan) level 5, 0
-  errors** (`--memory-limit=1G`). **Pint clean.** Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`,
-  `REDIS_CLIENT=predis`; `database` documented as fallback). (This HEAD names the last commit at the time
-  of writing; the final docs-only commit advances it by one with no state change.)
+- **On `main`, working tree clean** (only the untracked design-source exports under `docs/design/raw/` remain
+  uncommitted — **gitignored** raw Claude Design HTML, not in a fresh clone). Suite: **`php artisan test` → 340
+  tests / 3831 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this session.
+  **PHPStan (Larastan) level 5, 0 errors** (`--memory-limit=1G`) — re-verified. **Pint clean** — re-verified.
+  Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`, `REDIS_CLIENT=predis`; `database` documented as
+  fallback). The three planning docs (`docs/ROADMAP.md`, `docs/TIER1-SPEC.md`, `docs/DESIGN-COVERAGE.md`) were
+  authored on branch `docs/roadmap-audit` and **merged into `main`** in this consolidation — a fresh session on
+  `main` sees them.
+- **CURRENT PHASE: planning complete → Wave 1 build next.** The buildable-in-a-vacuum core is done and
+  demoable; a full ROADMAP audit (2026-07-16) produced the three planning docs above and set the next target to
+  **Wave 1 — the owner-accounting styled long-tail** (see "NEXT ACTION" at the bottom). No Wave 1 code started.
 - **AUTH — COMPLETE & SECURE (chapter finished): login/logout + invites (owner + staff) + password reset.**
   Real session auth fronts the app; **the dev-login shim is gone.** Phase A: one shared login
   (operator+owner), active-only `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors,
@@ -562,7 +567,12 @@ plain GET links (e.g. `?month=`).
   `docs/prompts/phase-3-owner-accounting.md` (all done/certified) · `docs/prompts/live-integration-checkpoint.md`
   (Stripe leg done; Channex Steps 1–2 outstanding)
 - **Design source of truth** → **`docs/design/CATALOGUE.md`** (per-file inventory + backend-status legend, ~120 screens) · `docs/design/design-system-brief.md` · `docs/design/owner-portal-spec.md`. The raw Claude Design HTML lives in **`docs/design/raw/*.html` — GITIGNORED / local-only (not in a fresh clone)**; the `.md` specs above ARE versioned.
-- **Product roadmap** → `docs/ROADMAP.md` *(to be created by the next-action roadmap audit — see NEXT ACTION)*.
+- **PLANNING SOURCE OF TRUTH (read before starting any new screen)** →
+  **`docs/ROADMAP.md`** (designed-vs-built-vs-remaining across ~16 modules; Tier 1 buildable-now / Tier 2 net-new
+  speculative / Tier 3 account-gated) · **`docs/TIER1-SPEC.md`** (per-screen build specs for the Tier 1
+  completions — backend reality per feature, write methods, buildability verdict, 5-wave build order) ·
+  **`docs/DESIGN-COVERAGE.md`** (exists-vs-missing design audit — 125 files / 124 screens in `docs/design/raw/`,
+  near-total coverage; catalogue is off by 5 and should be reconciled to 125/124).
 - **Code style / testing patterns** → `docs/CODING-STANDARDS.md` · **Conventions + commands** → `CLAUDE.md`
 - **Code** → `app/Services/` (incl. `InboxService`, `GuestMatcher`, `MaintenanceService`, owner-accounting services) ·
   `app/Payments/` · **`app/Payouts/`** · **`app/Messaging/`** (channel interface + ManualChannel + Deferred skeletons + resolver) ·
@@ -571,38 +581,61 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — the buildable-in-a-vacuum core is COMPLETE; audit the roadmap, then fork
+## NEXT ACTION — WAVE 1: the owner-accounting styled long-tail (planning done; designs all present)
 
 **Honest framing:** every piece that can be built without an external account is done and demoable
 end-to-end. Certified backends (multi-tenant PMS + channel manager + Stripe payments + owner accounting/
-payouts + maintenance + unified inbox) now carry their **entire styled surface** — owner portal, operator
+payouts + maintenance + unified inbox) now carry their **entire built styled surface** — owner portal, operator
 back office (calendar · front desk · housekeeping · maintenance · reservation+folio · dashboard · units ·
 owners · **inbox**), and the public booking loop (browse → room → checkout → confirmation, a real guarded
 write). **Real auth fronts all of it** (Phase A + B: sign-in → invite owner/staff → set password → portal;
 dev email via Mailpit). **A real hybrid operator could run day-to-day ops, take a direct booking, message a
-guest, and an owner could read statements/payouts reconciling to the cent — today.** No unstyled stubs
-remain. **What's left is either ACCOUNT-GATED or a net-new speculative module** (see the Deferred register).
+guest, and an owner could read statements/payouts reconciling to the cent — today.** The 2026-07-16 ROADMAP
+audit set the concrete next target below (see `docs/ROADMAP.md` + `docs/TIER1-SPEC.md` + `docs/DESIGN-COVERAGE.md`).
 
-**IMMEDIATE NEXT TASK — (a) a full product ROADMAP audit.** Produce `docs/ROADMAP.md`: reconcile the ~120-
-screen `docs/design/CATALOGUE.md` against what's actually built (this file + git log) → a clear
-**designed vs built vs remaining** map, each remaining item tagged BUILDABLE-NOW vs ACCOUNT-GATED with its
-unblock. This turns "what next" from a guess into a grounded decision. Then fork:
+**IMMEDIATE NEXT TASK — Wave 1: style the owner-accounting long-tail** (per `docs/TIER1-SPEC.md`'s build order;
+**all 10 Wave 1 designs EXIST** per `docs/DESIGN-COVERAGE.md` — zero design gate). All READY = pure integration
+over the CERTIFIED owner-accounting backend (`OwnerLedgerEntry`, `OwnerExpense`, `ManagementAgreement`,
+`OwnerStatement`, `Payout`, `OwnerPayoutService`, `OwnerPortalService`, `PdfService`), on the **owner** design
+system (`<x-owner.shell>` + `FormatsOwnerData`) and the **operator** one where noted, owner/tenant-scoped. Four
+gated sub-gates (commit per gate; per-screen render/isolation test):
 
-- **(b) A BUILDABLE-NOW item from the roadmap** — a net-new design-only module (Guest Portal ~32 · Reviews ·
-  Subscription/billing · Analytics/reports) or a smaller in-product item (CSV/remittance exports · room
-  descriptions/reviews). Each is a gated, phased build like Owner Accounting — **no backend exists today**.
-- **(c) An ACCOUNT-GATED unblock** — once the external account exists: a real inbox channel (email/whatsapp/
-  OTA), Channex staging, Stripe Connect payouts, Stripe card checkout, or a production email provider. Run the
-  relevant checkpoint prompt (`docs/prompts/live-integration-checkpoint.md` for Channex/Stripe).
-- **(d) CUSTOMER VALIDATION — RECOMMENDED.** The remaining big modules are **speculative without customer
-  signal**. Stand up Mailpit and demo the **full loop to a real hybrid operator** (public booking → operator
-  manages it → invite owner → owner sees statements/payouts to the cent → message a guest in the inbox); let
-  real feedback pick (b)/(c) over building breadth blind. No product code — config + a demo + discovery.
+1. **Owner Balance · Owner Expenses · Owner Agreement · Owner Archive** — SIMPLE read screens over
+   `OwnerLedgerEntry` (running balance = cumulative sum) / `OwnerExpense` / `ManagementAgreement` / finalized
+   `OwnerStatement`. Owner-scoped (`OwnerScope`, fail-closed).
+2. **Owner Remittance-Advice PDF + Owner Booking-Summary PDF** — mirror the existing `OwnerStatementPdfController`
+   + `Support\Pdf\OwnerStatementDocument`; reconcile to the cent (shared `MoneyFormatter`, no invented lines).
+3. **Owner Unit Detail + Operator Owner Detail** — Unit Detail = owner-scoped occupancy (reuse the My Units
+   logic — never room-type-wide) + per-unit revenue from `owner_ledger`; Operator Owner Detail = the
+   **tenant-scoped** (NOT owner-scoped) operator lens on the same data (`/app/owners/{owner}`; the Owners *list*
+   already exists).
+4. **Payout Run + Owner Documents** — Payout Run = batch over `OwnerPayoutService::createFromStatement`/`pay`
+   (`ManualPayoutRail` is the real path; the Stripe-Connect step stays honestly stubbed); Owner Documents =
+   aggregation view over statements/payouts/PDFs.
+
+**Honesty rule (invariant #19) — stub what the design implies but the backend lacks:** ADR/RevPAR/trend charts
+(Tier-2 Analytics — show only derivable occupancy/revenue, stub the rest "Soon"), **CSV export** (standing
+deferral), **owner-editable rates** (a product-policy decision — default read-only). **After Wave 1:** Wave 2
+(reservations list + cancelled/no-show + refund + Guests CRM, over reservations/folio), Wave 3 (Owner Messages
+inbox), Wave 4 (Rates + Channels UI, New/Group Booking, Portfolio, Block Calendar, Roles/Settings). The 3
+NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) come last.
+
+**In parallel — CUSTOMER VALIDATION remains the highest-value NON-build move.** The Tier-2 modules (Guest
+Portal ~24, Analytics, Reviews, Billing, Notifications, Emails) are **net-new, designed, but speculative without
+customer signal.** Standing up Mailpit + demoing the full built loop to a real hybrid operator (public booking →
+operator manages → invite owner → owner sees statements/payouts to the cent → message a guest) would let real
+feedback prioritise Tier 2/3 over building breadth blind. Wave 1 (completions of an already-shipped module) is
+safe to pursue regardless — it strengthens exactly what you'd demo. Account-gated unblocks (real inbox channel ·
+Channex staging · Stripe Connect · Stripe card checkout · prod email) proceed only once the external account
+exists (`docs/prompts/live-integration-checkpoint.md` for Channex/Stripe).
 
 **If resuming design/build work:** inherit the relevant role design system (owner / operator / public — do
 NOT redefine it; the operator system already covers the new maintenance + inbox screens); wire live data
 through the existing services (call, never modify); honour the **design-pass honesty rule + scoped-render/
 guarded-mutation discipline** (invariants #19–20) + the module invariants (#22 maintenance, #23–25 inbox);
 **per-gate commit + per-screen render/isolation (+ action-persistence) test**; wire the certified services,
-never a parallel write path. Read `docs/design/CATALOGUE.md` first. **The `.md` design specs are versioned;**
-the raw Claude Design HTML (`docs/design/raw/*.html`) is **gitignored / local-only** — not in a fresh clone.
+never a parallel write path. **Read `docs/TIER1-SPEC.md` (the per-screen build spec + backend-reality tags)
+and `docs/DESIGN-COVERAGE.md` (which designs exist) first, then `docs/design/CATALOGUE.md`.** **The `.md`
+design + planning specs are versioned;** the raw Claude Design HTML (`docs/design/raw/*.html`) is **gitignored /
+local-only** — not in a fresh clone (open the relevant `raw/*.html` in a browser at build time to confirm exact
+panels, since the bundles are minified SPAs).
