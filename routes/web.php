@@ -32,6 +32,7 @@ use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Operator\PayoutRun;
+use App\Livewire\Operator\ReservationRefund;
 use App\Livewire\Operator\ReservationsList;
 use App\Livewire\Owner\OwnerAgreement;
 use App\Livewire\Owner\OwnerArchive;
@@ -199,6 +200,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // Demo-readiness · Part B — operator folio PDF. TENANT-scoped (string id → findOrFail → cross-org 404).
     // Real append-only ledger; reconciles to the cent; streams application/pdf.
     Route::get('/reservations/{reservation}/folio.pdf', [FolioPdfController::class, 'download'])->name('reservations.folio-pdf');
+    // Wave 2 · Sub-gate 3 — the dedicated REFUND screen. Read-only; the write reuses the existing
+    // `reservations.refund` POST below (now amount-aware). The screen exists to RESPECT the #27 cumulative
+    // guard at the UI: it shows the real remaining-refundable per payment, caps the input at it, and offers
+    // nothing once remaining = 0 — so the button cannot invite a rejection. The service stays the authority.
+    Route::get('/reservations/{reservation}/refund', ReservationRefund::class)->name('reservations.refund-screen');
     // Design pass · Operator Screen 4 — REAL append-only folio actions via POST → controller →
     // FolioService → redirect (PRG). {reservation} is a string param resolved tenant-scoped in the
     // controller (never RMB) → cross-org 404. A refund is a NEW offsetting entry (never an edit).

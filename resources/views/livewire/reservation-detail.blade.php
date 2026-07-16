@@ -210,15 +210,22 @@
                 <div class="vy-card">
                     <span class="vy-eyebrow">More actions</span>
                     {{-- DEFERRED / NO-BACKEND: real operations that need more UI or the guarded write path —
-                         shown honestly, never faked. A refund is available inline per settled payment above. --}}
+                         shown honestly, never faked. A FULL refund is available inline per settled payment
+                         above; partial/custom refunds are no longer deferred — they have a real screen. --}}
                     <div class="vy-action-list" style="margin-top: 10px;">
                         <div class="vy-defer-item"><span>Add charge</span><span class="vy-soon-tag">Soon</span></div>
-                        <div class="vy-defer-item"><span>Partial / custom refund</span><span class="vy-soon-tag">Soon</span></div>
                         <div class="vy-defer-item"><span>Void</span><span class="vy-soon-tag">Soon</span></div>
                         <div class="vy-defer-item"><span>Move room</span><span class="vy-soon-tag">Soon</span></div>
                         {{-- Cancel is no longer deferred — it is wired for real in the Lifecycle card above. --}}
                         <div class="vy-defer-item"><span>Modify dates · guests</span><span class="vy-soon-tag">Soon</span></div>
                     </div>
+                    {{-- WIRED (Wave 2 · sub-gate 3): the dedicated refund screen — a real payment picker that
+                         shows each payment's REMAINING refundable and caps a partial refund at it. The inline
+                         per-payment full refund above still works and is unchanged. --}}
+                    <a href="{{ route('app.reservations.refund-screen', $reservation['id']) }}" class="vy-btn vy-btn--ghost" style="margin-top:12px;width:100%;justify-content:center" title="Refund a settled payment in full or in part">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
+                        Partial / custom refund
+                    </a>
                     {{-- REAL folio PDF export (tenant-scoped, reconciles to the cent). CSV export stays deferred. --}}
                     <a href="{{ route('app.reservations.folio-pdf', $reservation['id']) }}" class="vy-btn vy-btn--accent" style="margin-top:12px;width:100%;justify-content:center" title="Download the folio as a PDF">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>

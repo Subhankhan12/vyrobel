@@ -41,7 +41,21 @@ class ReservationFolioActionController extends Controller
         return $this->back($model->id, 'Payment recorded.');
     }
 
-    /** Refund a specific prior payment in FULL — a NEW offsetting entry; the original is untouched. */
+    /**
+     * Refund a specific prior payment — a NEW offsetting entry; the original is untouched.
+     *
+     * AMOUNT-AWARE (Wave 2 · sub-gate 3). `FolioService::refundPayment()` has always taken an arbitrary
+     * Money, so PARTIAL refunds were a CONTROLLER gap, not a service gap (docs/WAVE2-INVENTORY.md §4).
+     * Two callers now share this action and both must keep working:
+     *   • the inline per-payment button on the reservation detail — posts NO `amount` → the full remaining,
+     *     exactly as before (RefundGuardTest asserts its flash verbatim);
+     *   • the dedicated refund screen — posts a partial `amount` in major units.
+     *
+     * ⚠️ THE ZERO HOLE. `refundPayment()` rejects `amount <= 0` with an **InvalidArgumentException**, which
+     * does NOT extend RuntimeException and is therefore NOT caught below — a €0 submission would 500. That
+     * was unreachable while this controller only ever sent the full remaining; an operator-entered amount
+     * makes it reachable, so 0 is refused HERE, before the service is called.
+     */
     public function refund(Request $request, FolioService $folios, string $reservation): RedirectResponse
     {
         $model = Reservation::query()->findOrFail($reservation);
@@ -64,12 +78,28 @@ class ReservationFolioActionController extends Controller
             return $this->back($model->id, 'That payment is already fully refunded.');
         }
 
+        $raw = $request->input('amount');
+        $requested = is_scalar($raw) && trim((string) $raw) !== '';
+
+        // No amount asked for → the full REMAINING (never the original). Preserves the inline button.
+        $minor = $requested ? $this->parseAmountMinor($raw) : $remaining;
+
+        if ($minor <= 0) {
+            return $this->back($model->id, 'Enter a refund amount greater than zero.');
+        }
+
         try {
-            $folios->refundPayment($payment, new Money($remaining, (string) $payment->currency));
+            $folios->refundPayment($payment, new Money($minor, (string) $payment->currency));
         } catch (RefundExceedsPaymentException) {
-            // The service is the authority (it also covers a concurrent refund landing between the read
-            // above and this call) — surfaced cleanly, never a 500.
-            return $this->back($model->id, 'That payment is already fully refunded.');
+            // The service is the authority — it re-reads the cumulative total inside the call, so it also
+            // covers a concurrent refund landing between the read above and this one. Surfaced cleanly,
+            // never a 500 and NEVER silently clamped down to what would fit: refunding less than was asked
+            // for, without saying so, is its own money bug.
+            $left = $folios->remainingRefundableMinor($payment->fresh() ?? $payment);
+
+            return $this->back($model->id, $left > 0
+                ? 'That refund was refused — only '.$this->majorUnits($left).' '.$payment->currency.' is still refundable against that payment.'
+                : 'That payment is already fully refunded.');
         }
 
         return $this->back($model->id, 'Refund issued.');
@@ -85,6 +115,18 @@ class ReservationFolioActionController extends Controller
         $value = (float) $raw;
 
         return $value > 0 ? (int) round($value * 100) : 0;
+    }
+
+    /**
+     * Integer minor units → a plain major-unit string for a flash message ("20000" → "200.00").
+     *
+     * Deliberately NOT symbolised: the currency-symbol map lives in the Livewire presentation trait, and a
+     * controller flash is not a presentation surface. The ISO code is appended by the caller instead —
+     * unambiguous, and it invents nothing.
+     */
+    private function majorUnits(int $minor): string
+    {
+        return number_format($minor / 100, 2, '.', '');
     }
 
     private function back(string $reservationId, string $notice): RedirectResponse
