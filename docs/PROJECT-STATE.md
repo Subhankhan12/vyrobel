@@ -14,12 +14,15 @@ conflicts with the repo, **trust the repo** and fix this file.
   fallback). The three planning docs (`docs/ROADMAP.md`, `docs/TIER1-SPEC.md`, `docs/DESIGN-COVERAGE.md`) were
   authored on branch `docs/roadmap-audit` and **merged into `main`** in this consolidation — a fresh session on
   `main` sees them.
-- **CURRENT PHASE: WAVE 1 COMPLETE (2026-07-16) → next = the 🔴 CRITICAL `/app` authorization gate, then
-  Wave 2.** The ROADMAP audit's Wave 1 shipped as four gated sub-gates (`55c9219` → `5530f6b` → `9ff2ad9` →
-  this commit): **9 new screens/documents over the CERTIFIED owner-accounting backend, presentation only**
-  (mechanically verified at every gate: **ZERO** files changed under `app/Services`, `app/Models`,
-  `database/migrations`, `app/Payouts`). Suite **340/3831 → 402 tests / 4652 assertions**. Wave 1 also
-  surfaced a **critical pre-existing authorization gap** — see the register below; it is the top priority.
+- **CURRENT PHASE: WAVE 1 COMPLETE + the `/app` AUTHORIZATION HOLE CLOSED (2026-07-16) → next = Wave 2.**
+  Wave 1 shipped as four gated sub-gates (`55c9219` → `5530f6b` → `9ff2ad9` → `4d68e8c`): **9 new screens/
+  documents over the CERTIFIED owner-accounting backend, presentation only** (mechanically verified at every
+  gate: **ZERO** files changed under `app/Services`, `app/Models`, `database/migrations`, `app/Payouts`).
+  Browser-verifying it then surfaced a **critical pre-existing authorization hole** (an owner-role user could
+  reach the whole operator back office and every other owner's financials), now **FIXED in two gated steps**
+  (`5155a48` route gate → `f63866a` root cause) — **invariant #26**, defense-in-depth, each layer proven to
+  block independently. Suite **340/3831 → 420 tests / 4795 assertions**.
+  **The product is now safe for a real owner login.**
 - **AUTH — COMPLETE & SECURE (chapter finished): login/logout + invites (owner + staff) + password reset.**
   Real session auth fronts the app; **the dev-login shim is gone.** Phase A: one shared login
   (operator+owner), active-only `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors,
@@ -326,34 +329,50 @@ conflicts with the repo, **trust the repo** and fix this file.
     `Guest::anonymize()` **scrubs the guest's message bodies + sender labels + participant identity/subject**,
     keeping the skeleton for audit (never soft-delete-and-keep-PII). (Locked `docs/DECISIONS.md` 2026-07-14.)
 
+**The operator/owner boundary (the `/app` authorization gate — 2026-07-16):**
+26. **An owner-role user is NOT operator-capable, and is refused `/app` at BOTH the route AND the role
+    level.** Two independent layers; each is tested in isolation so a regression in either is caught alone:
+    - **ROUTE (layer 1)** — `App\Http\Middleware\EnsureBackOfficeAccess` on the **`/app` GROUP** (never
+      per-route, so a route added later cannot forget it; a test asserts EVERY `app/` route carries it).
+      It requires a role from the `config('authorization.back_office_roles')` **ALLOW-LIST**, checked
+      **team-scoped** — so no role, a portal-only role, or a role held in a DIFFERENT org all **fail
+      closed**, and the gate composes with tenant isolation rather than bypassing it. An owner-linked user
+      is redirected to `/owner`; everyone else gets a bare 403. Neither response renders operator data.
+      **Ordering is load-bearing:** it MUST run after `SetTenantForWebRequest` sets spatie's team id, or
+      `hasAnyRole()` matches nothing and EVERY operator is locked out — asserted by a test on the resolved
+      middleware chain.
+    - **ROLE (layer 2)** — the owner-invite path assigns the owner-only **`External Owner`**
+      (`owner_portal.view`, nothing else), so the allow-list has **nothing to admit** even on a route that
+      forgets the middleware. Asserted with NO HTTP at all: an activated owner's
+      `hasAnyRole(back_office_roles)` is false.
+    - **⚠️ `Property Owner` IS a back-office role** — it is the ORG ADMIN (`['*']`, all 44 permissions), NOT
+      the unit owner (that is `External Owner`). The names are a trap; `DemoSeeder` fell into it and granted
+      a unit owner `payments.refund`. **The demo seeds the production model** (demo-owner → `External
+      Owner`, demo-staff → `Hotel Manager`) and a test locks it — otherwise the demo journeys would not
+      exercise the boundary they appear to.
+    - **The owner's Membership STAYS and is not the bug** — `SetTenantForWebRequest` resolves the org ONLY
+      from active Memberships, and `SetOwnerScopeForPortal`'s `Owner::query()` runs under the tenant guard,
+      which THROWS with no context: remove it and `/owner` 500s on every route. Nothing in `OwnerContext`/
+      `OwnerScope` reads Membership (owner identity is purely `owners.user_id`). **A Membership is NOT
+      operator access** — assuming it was IS what created the hole.
+    - **Owner-role assignment is deliberately non-throwing** when the role is unprovisioned (unlike
+      `assignStaffRole`, which throws): a staff member without their role is broken, but an owner's portal
+      access comes from the owner link, so an owner with no role works identically and is equally
+      non-operator-capable. It logs and proceeds rather than blocking a legitimate activation. A role
+      missing from the CATALOG is a code bug and still throws.
+    (Locked `docs/DECISIONS.md` 2026-07-16; proven by `BackOfficeAccessTest` + `OwnerNotOperatorCapableTest`,
+    the former mutation-verified — removing the gate fails 5 of its tests.)
+
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
-### 🔴 CRITICAL — FIX FIRST, BEFORE ANY REAL OWNER LOGIN: the `/app` back office has no role gate
+### ✅ CLOSED (2026-07-16) — the `/app` authorization hole. Safe for a real owner login.
 
-**An owner-role user can access the ENTIRE operator back office, including every other owner's financials.**
-Found by browser-verifying Wave 1 · Sub-gate 3 (signed in as the demo OWNER → `/app/owners/{owner}` rendered
-in full). **Not a demo artifact — production behaviour.** Two facts combine:
-1. **`routes/web.php`: the `/app` group is `Route::middleware('auth')` ONLY** — no role/permission/policy.
-   Tenant scope holds (own org only), but *any authenticated member of that org* reaches every operator screen.
-2. **`OwnerInviteService` creates an ACTIVE `Membership` on BOTH paths** (its own comment: *"— BOTH paths"*),
-   so a **real invited OWNER** has one, `SetTenantForWebRequest` resolves their org, and `/app/*` opens.
-
-**Exposed to any owner:** rack · front desk · housekeeping · maintenance · reservations + folios · the
-**unified inbox (guest conversations)** · the owners list · and **`/app/owners/{owner}` — every other owner's
-balance, statements, payouts, commission, agreement**. This defeats **owner isolation (invariant #18) at the
-ROUTE layer**: `OwnerScope` is deliberately inactive off-portal (correct for a real operator, catastrophic
-for an owner who can reach `/app`).
-
-**PRE-EXISTING — not introduced by Wave 1** (`/app/owners` has listed every owner since Auth Phase B,
-`2d28b32`; every operator screen shares the group). Wave 1 deepened what is exposed there, which is how it
-surfaced. **Deliberately NOT fixed inline** — Wave 1 was a gated presentation pass, and this is a
-cross-cutting authorization decision (which of the 14 catalog roles may reach `/app`; whether an owner should
-hold a Membership at all — it exists so the tenant context resolves; how staff-vs-owner is decided). A guess
-bolted onto one screen would imply the surface is protected when it is not.
-**Sketch (needs a decision, not a default):** gate `/app` on a real staff capability (spatie role/permission
-from `config/authorization.php`), keep `/owner` on `SetOwnerScopeForPortal`, add a test that an owner-role
-user gets 403 on EVERY `/app` route, and keep `DemoSeeder` coherent (it gives `demo-owner` a Membership too).
-See `docs/DECISIONS.md` 2026-07-16.
+The critical item that stood here is **FIXED** (`5155a48` route gate → `f63866a` root cause). An owner-role
+user could reach the entire operator back office and every other owner's financials; both layers are now in
+place and each is proven to block independently. See **invariant #26** below and `docs/DECISIONS.md`
+2026-07-16. Two smaller defects surfaced by that audit remain open — they are recorded in "Other deferrals"
+below (**no org-creation path provisions roles**; **`Super Admin` is unassignable**), and neither is
+exploitable (both fail closed).
 
 ---
 
@@ -445,6 +464,27 @@ actual room move still routes through the existing guarded `AssignmentService` m
   (Twilio/Meta) number; **booking_com / airbnb** — OTA messaging API access (Channex messaging or the OTA
   partner API). The internal **manual** channel works today. (Was also deferred: the styled inbox UI + adding
   it to the nav — **both now DONE**.)
+
+**RBAC defects surfaced by the 2026-07-16 authorization audit (both FAIL CLOSED — not exploitable; fix when
+the area is next touched):**
+- **No application-level org creation provisions roles.** `OrganizationRoleProvisioner` is called ONLY by
+  `DemoSeeder` + two tests — there is no `Organization::create` anywhere in `app/`. So any org born outside
+  the seeder would have **zero roles**, and the `/app` back-office gate (invariant #26) would lock out every
+  user in it. Moot today (no org-creation path exists at all); **wire provisioning into org creation when
+  that lands**, or the first real org is dead on arrival. This is also why owner-role assignment is
+  non-throwing (an owner must not be blocked by an org-setup gap).
+- **`Super Admin` is unassignable, so the Horizon gate can never pass** outside `local`.
+  `model_has_roles.organization_id` is `NOT NULL` **and part of the PRIMARY KEY**, so a global (team-null)
+  role assignment cannot be stored, while the team-null lookup filters on `organization_id IS NULL` —
+  `hasRole('Super Admin')` is therefore always false. Fails closed (safe). Zero such assignments exist. Fixing
+  it needs a migration (nullable pivot team column + PK rework) — do NOT do it casually; it is spatie's own
+  schema. `Super Admin` is deliberately absent from `back_office_roles` until then (untestable dead code in a
+  security gate is worse than an honest note).
+- **The suite needs `memory_limit=512M`** (set in `phpunit.xml`). Verified headroom, NOT a leak: dompdf embeds
+  a full DejaVu font per PDF-export test, and every operator test provisions its org's 13-role × 44-permission
+  catalog. `php artisan test` spawns a child PHP that re-reads php.ini, so a `-d memory_limit` on the parent
+  never reaches it — hence the phpunit.xml setting. `tests/Support/auth_helpers.php` memoizes provisioning
+  per org to keep the cost down.
 
 **Other deferrals:** promo codes + deposits on the booking engine (schema only); `guests.stripe_customer_id`
 / saved cards (blind-index story); **auto-FX provider** (statements take an operator-supplied rate — no
@@ -645,7 +685,7 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — (1) the 🔴 `/app` authorization gate, then (2) Wave 2
+## NEXT ACTION — Wave 2 (the `/app` gate is DONE; the product is safe for a real owner login)
 
 **WAVE 1 IS COMPLETE** (2026-07-16, four gated sub-gates, `55c9219` → `5530f6b` → `9ff2ad9` → HEAD). The
 owner-accounting wedge now has its full styled long-tail: **Balance · Expenses · Agreement · Archive · Unit
@@ -655,11 +695,12 @@ PDFs**. Presentation only — zero certified-backend files touched, verified per
 end-to-end, including a **real payout write** (pending → paid, the source statement cascaded to paid,
 `payout.paid` domain + audit events recorded) and **every listed owner document actually downloading**.
 
-1. **🔴 FIRST — close the `/app` authorization gap** (the register above). An owner-role user can currently
-   reach the whole operator back office and every other owner's financials. It is pre-existing, but Wave 1
-   deepened what sits behind that door. **Do this before any real owner login**; it needs a decision (which
-   roles may reach `/app`; whether owners should hold a Membership at all), not a default.
-2. **THEN Wave 2** — per `docs/TIER1-SPEC.md`: reservations list + cancelled/no-show + refund + Guests CRM
+1. **✅ DONE — the `/app` authorization gap is CLOSED** (invariant #26; `5155a48` + `f63866a`). Route gate on
+   the `/app` group (back-office role allow-list, team-scoped, fails closed) **+** owners hold the owner-only
+   `External Owner` role, so they are refused at the role level too. Each layer proven to block independently;
+   the gate is mutation-verified; the inverted demo seeder is corrected and locked. Browser-verified: every
+   route that leaked now bounces an owner to `/owner` with zero operator data; staff are unaffected.
+2. **NEXT — Wave 2** — per `docs/TIER1-SPEC.md`: reservations list + cancelled/no-show + refund + Guests CRM
    (over the certified reservations/folio backend). Then Wave 3 (Owner Messages inbox — the inbox backend +
    operator surface already exist), Wave 4 (Rates + Channels UI, New/Group Booking, Portfolio, Block
    Calendar, Roles/Settings). The 3 NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) last.

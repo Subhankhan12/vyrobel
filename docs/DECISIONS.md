@@ -1071,7 +1071,101 @@ tests / 3831 assertions green on MySQL, PHPStan L5 0 errors, Pint clean.** The t
 branch `docs/roadmap-audit` (7fea230 → ae1541b → 9785561) and **merged to `main`** in this consolidation so a
 fresh session on `main` sees them.
 
-### 2026-07-16 — 🔴 SECURITY FINDING: the `/app` operator back office has NO role gate (owners can reach it)
+### 2026-07-16 — ✅ SECURITY FIX SHIPPED: the `/app` authorization hole is CLOSED (route gate + owner-only role)
+
+The finding recorded below is **fixed**, in two gated steps: **`5155a48`** (layer 1, the route gate) →
+**`f63866a`** (layer 2, the root cause). **The product is now safe for a real owner login.** Suite
+**402/4652 → 420 tests / 4795 assertions**, PHPStan L5 0 errors, Pint clean, `migrate:fresh --seed` clean.
+Locked as **invariant #26** in `docs/PROJECT-STATE.md`.
+
+**The audit came first, and it inverted the obvious fix** — which is why it was worth doing before touching
+code. The naive move ("gate `/app` on a staff role/permission") would have been **exactly backwards on real
+data**: the ONLY role assignment in the entire database was the **OWNER** holding `Property Owner`
+(`['*']` — all 44 permissions, including `payments.refund`), while the actual staff user held **none**.
+Verified empirically: owner `can('reservations.view')` = **true**, staff = **false**. Shipping the obvious
+gate would have locked out staff and admitted the owner.
+
+**Ground truth established (Step 0, read-only):**
+- `/app` was `Route::middleware('auth')` and nothing else. The **only** role check in the entire codebase was
+  the Horizon gate — zero `@can`/`@role` in any view, zero `authorize()`/`Gate::allows` in any controller or
+  Livewire component, zero spatie middleware registered, zero `403`s in `app/`.
+- **The owner's Membership is LOAD-BEARING and was never the bug.** `SetTenantForWebRequest` resolves the org
+  ONLY from active Memberships; `SetOwnerScopeForPortal`'s `Owner::query()` runs under the tenant guard,
+  which THROWS with no context. Remove the Membership → `/owner` 500s on every route. Nothing in
+  `OwnerContext`/`OwnerScope` reads Membership at all (owner identity is purely `owners.user_id`). So the
+  answer to "(a) tenant-context only / (b) load-bearing / (c) confers a role" is: **(a) by intent, (b) in
+  effect, never (c)**. The bug was that `/app` treated "authenticated + has a Membership" as "is staff".
+- **The naming trap:** `Property Owner` is the **ORG ADMIN** (`['*']`), *not* the unit owner — that is
+  `External Owner` (`owner_portal.view` only, provisioned but assigned by nothing). `DemoSeeder` conflated
+  them. **Production was sound** (the invite path gives owners no role, staff a real one); **the DEMO data
+  was inverted**.
+
+**The fix — defense-in-depth, two layers, each proven to block INDEPENDENTLY:**
+- **Layer 1 — `App\Http\Middleware\EnsureBackOfficeAccess` on the `/app` GROUP.** Requires a role from the new
+  `config('authorization.back_office_roles')` **allow-list**, checked **team-scoped**. Allow-list, not
+  deny-list: no role, a portal-only role, or a role in a DIFFERENT org all fail **closed**, and it composes
+  with tenant isolation instead of bypassing it. Owner-linked → redirected to `/owner` (a legitimate user
+  gets a home, not a dead end); everyone else → bare 403. Neither response renders operator data.
+  - **Keys on a ROLE, not a permission** — no single catalog permission spans every staff role
+    (Housekeeping/Maintenance/Marketing Manager/Accountant share none), verified against the matrix.
+  - **On the GROUP, never per-route** — a test asserts EVERY `app/` route carries it, so one added later
+    cannot forget it.
+  - **Ordering is load-bearing:** it must run AFTER `SetTenantForWebRequest` sets spatie's team id, or
+    `hasAnyRole()` matches nothing and every operator is locked out. Neither middleware is in
+    `Router::$middlewarePriority`, so both sink to the end in declaration order — asserted on the resolved
+    chain so a future priority tweak fails loudly rather than silently.
+  - **`Super Admin` deliberately NOT listed** — a global (team-null) role a team-scoped check could never
+    match, and currently unassignable anyway (see the defect below). Untestable dead code in a security gate
+    is worse than an honest note.
+- **Layer 2 — `OwnerInviteService` assigns the owner-only `External Owner`** (`owner_portal.view`, nothing
+  else) on the owner path. The allow-list then has **nothing to admit** even on a route that forgets the
+  middleware. **The Membership stays** (load-bearing, above).
+  - **Deliberately NON-throwing when the role is unprovisioned**, unlike `assignStaffRole()` which throws —
+    and the asymmetry is the point. A staff member without their role is BROKEN (locked out of `/app`), so
+    that path rolls back. An owner's portal access comes from `owners.user_id`, so an owner with **no** role
+    reaches `/owner` identically and is **equally** non-operator-capable. Throwing would invent a new failure
+    mode blocking a legitimate owner over an unrelated org-setup gap (nothing provisions roles at org
+    creation — see below). It logs and proceeds. A role missing from the CATALOG is a code bug and still throws.
+
+**Demo seeder corrected — the demo must model production, or the gate is not what the demo journeys prove.**
+demo-owner held `Property Owner` (all 44 permissions incl. `payments.refund`/`guests.erase`/`users.manage`);
+demo-staff held **nothing**. Now: demo-owner → `External Owner`, demo-staff → `Hotel Manager`, via the real
+provisioner path; a test locks the model. (`StubViewsTest` test 1 was passing only *because* of that wrong
+role — it drove OPERATOR pages as the owner; corrected to act as demo-staff.)
+
+**Fixtures corrected, not the gate weakened.** 87 tests began 403ing because ~19 operator test files built
+their staff as *"Membership, no role"* — which was never realistic (a real staff invite assigns a role; an
+OWNER also holds a Membership — that was the hole). New shared helpers (`tests/Support/auth_helpers.php`:
+`operatorUser` / `grantBackOfficeRole`) model a real operator. Owner, stranger, cross-org and non-member
+fixtures were deliberately left role-less so their fail-closed/404/422 assertions still prove what they claim.
+
+**Proof (not just green):** `BackOfficeAccessTest` (10) is **mutation-verified** — with the gate removed 5
+fail, restored 10/10 pass. `OwnerNotOperatorCapableTest` (7) proves each layer alone: layer 2 asserts an
+activated owner's `hasAnyRole(back_office_roles)` is false **with no HTTP at all** (so it holds for an
+ungated route); layer 1 strips layer 2 by granting the owner a back-office role and shows the gate is what
+stands at the door — each test justifies the other's existence. Browser-verified on real demo data: as
+demo-owner, all six previously-leaking routes (`/app/dashboard`, `/app/owners`, `/app/rack`,
+`/app/front-desk`, `/app/inbox`, `/app/payouts/run`) land on `/owner` with zero operator data; the owner
+portal is fully intact; as demo-staff, all seven operator routes return 200.
+
+**Two sub-defects surfaced and left open (both FAIL CLOSED — not exploitable; recorded in PROJECT-STATE):**
+1. **No app-level org creation provisions roles** — `OrganizationRoleProvisioner` is called only by
+   `DemoSeeder` + two tests; there is no `Organization::create` in `app/` at all. Any org born outside the
+   seeder would have zero roles and the gate would lock out everyone in it. Moot today; **wire provisioning
+   into org creation when that lands.**
+2. **`Super Admin` is unassignable → the Horizon gate can never pass** outside `local`.
+   `model_has_roles.organization_id` is `NOT NULL` and part of the PRIMARY KEY, so a team-null assignment
+   cannot be stored while the team-null lookup filters on `IS NULL`. Fixing it needs a migration against
+   spatie's own schema — not to be done casually.
+
+**Also:** `phpunit.xml` now sets `memory_limit=512M`. Verified **headroom, not a leak** (the whole suite
+passes under a raised limit): dompdf embeds a full DejaVu font per PDF test and every operator test now
+provisions a 13-role × 44-permission catalog. Set there because `php artisan test` spawns a child PHP that
+re-reads php.ini, so `-d memory_limit` never reaches it.
+
+---
+
+### 2026-07-16 — 🔴 SECURITY FINDING (now FIXED — see the entry above): the `/app` operator back office has NO role gate
 
 **Found while browser-verifying Wave 1 · Sub-gate 3** (logged in as the demo OWNER, loaded the OPERATOR
 screen `/app/owners/{owner}` and it rendered every financial detail). **Not a demo-data artifact — this is
