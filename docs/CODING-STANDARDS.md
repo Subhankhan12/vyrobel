@@ -20,5 +20,10 @@
 - Tests must actually pass — no skipped/xfail to look green. If it fails, report it.
 
 ## Git
-- Feature branches off `main`; small, focused commits with conventional prefixes (feat/fix/chore/test/refactor/docs).
+- **COMMIT PER GATE, DIRECTLY ON `main`** — that is what this project actually does and what CLAUDE.md
+  mandates: `git branch -a` shows only `main`, and every commit in the history (both security fixes, all
+  five Wave 2 sub-gates) landed there. Conventional prefixes (feat/fix/chore/test/refactor/docs); one
+  commit per passing gate, never batched.
+  *(This line previously mandated feature branches — a workflow the repo has never used. Corrected
+  2026-07-17 to match reality; if you WANT branches, decide it in `docs/DECISIONS.md` first.)*
 - Commit `CLAUDE.md` and `docs/`; never commit `.env`, secrets, or `CLAUDE.local.md`.

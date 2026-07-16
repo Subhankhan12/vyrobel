@@ -6,16 +6,31 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> **THE ONE-PARAGRAPH ANSWER.** The product is **COMPLETE and DEMOABLE end-to-end, and safe for a real owner
+> login**: a certified multi-tenant backend (PMS + channel manager + payments + owner accounting + maintenance
+> + unified inbox), real session auth, and **~31 styled, browser-verified screens** across the owner portal,
+> the operator back office and the public booking storefront — all on real scoped data under the honesty rule.
+> **Two critical security holes were found and closed** (the `/app` authorization leak, #26; the cumulative
+> over-refund, #27), **both by reading rather than by a failing test.** The buildable-in-a-vacuum core is
+> essentially done; what remains is **security-hardening** (the 🔴 register below — do it first),
+> **account-gated** (needs someone else's credentials) or **speculative** (Tier 2 — designed, no backend, no
+> signal). **No customer has ever seen this product**; validation is the highest-value non-build move.
+
 - **On `main`, working tree clean** (only the untracked design-source exports under `docs/design/raw/` remain
-  uncommitted — **gitignored** raw Claude Design HTML, not in a fresh clone). Suite: **`php artisan test` → 511
-  tests / 5503 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this session.
+  uncommitted — **gitignored** raw Claude Design HTML, **not in a fresh clone**). Suite: **`php artisan test`
+  → 511 tests / 5503 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
+  session across five consecutive full runs. ⚠️ **A sixth run reported 510/1 — one unidentified flaky test;
+  see register item 5. The headline is real and reproducible, but the suite is not 100% reliable run-to-run.**
   **PHPStan (Larastan) level 5, 0 errors** (`--memory-limit=1G`) — re-verified. **Pint clean** — re-verified.
   ⚠️ `phpunit.xml` sets **`memory_limit=512M`** — the suite outgrew PHP's 128M CLI default (verified headroom,
   not a leak; see the register). `php artisan test` spawns a child that re-reads php.ini, so `-d` won't reach it.
   Queue = **Redis/Horizon live** (`QUEUE_CONNECTION=redis`, `REDIS_CLIENT=predis`; `database` documented as
-  fallback). The three planning docs (`docs/ROADMAP.md`, `docs/TIER1-SPEC.md`, `docs/DESIGN-COVERAGE.md`) were
-  authored on branch `docs/roadmap-audit` and **merged into `main`** in this consolidation — a fresh session on
-  `main` sees them.
+  fallback). The three planning docs (`docs/ROADMAP.md`, `docs/TIER1-SPEC.md`, `docs/DESIGN-COVERAGE.md`) live
+  on `main`.
+- ⚠️ **THE HEAD CONVENTION.** These docs are written and committed *before* the commit that contains them, so
+  a "HEAD" named in any entry is the commit **one behind** the one that carries the words. The consolidation
+  entry naming `e160eeb` ships in the commit *after* `e160eeb`. Check `git log` for the true HEAD; never treat
+  a HEAD quoted in prose as current.
 - **CURRENT PHASE: WAVE 2 COMPLETE (2026-07-17) → next = Wave 3.** Five gated sub-gates, a commit each
   (`4eb71e2` → `cb8bcce` → `44444e6` → `f86cf4e` → HEAD): **Reservations list · Cancelled/No-show terminal
   states · the Refund screen · the Guests CRM list · the Guest profile.** Suite **430/4835 → 511 tests / 5503
@@ -224,7 +239,16 @@ conflicts with the repo, **trust the repo** and fix this file.
   tenant-scoped). Both reconcile to the screen to the cent via the shared `Support\Money\MoneyFormatter` +
   `Support\Folio\FolioTotals`.
 
-## INVARIANTS THAT MUST NEVER BREAK (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–28 (the full guarantee stack)
+
+> **All 28, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
+> (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
+> #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
+> #23–25 Unified Inbox (inbound exactly-once + grouping · deferred channels fail HONESTLY · inbox PII/GDPR) ·
+> **#26 the `/app` back-office authorization gate** · **#27 the cumulative refund bound** · **#28 the
+> guest-PII perimeter**. The last three were all locked in the last two days; #26 and #27 each closed a live
+> hole that the fully-green suite never noticed.
 
 **Phase 1 core:**
 1. **Single inventory write path** — ONLY `AssignmentService` inserts/mutates `reservation_units` /
@@ -443,6 +467,25 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
+### ⚠️ SCHEMA-ONLY: ~8 models whose tables EXIST but which no code wires (read before building "a new module")
+
+Verified 2026-07-17 — each has a migration **and** an Eloquent model, and **zero references from
+`app/Services`, `app/Http`, `app/Livewire` or `app/Actions`**: `Subscription` · `SubscriptionItem` · `Plan` ·
+`PlanFeature` · `UsageCounter` · `ApiKey` · `Webhook` · `WebhookDelivery` · `CorporateAccount` · `Group` ·
+`Invoice`. They are column-level specified in `docs/schema/phase-1.md`.
+
+**Why this block exists:** the register below calls Billing a module with "NO backend today", and Wave 4 calls
+"New/Group Booking" net-new. **That is true of services and routes and FALSE of schema and models** — and it
+is wrong in exactly the direction CLAUDE.md's *"Reuse, don't duplicate — never build a parallel structure for
+an existing concept"* rule exists to prevent. A future Billing module must extend `subscriptions`/`plans`; a
+Group Booking screen must use the existing `groups` table and `reservations.group_id` FK; a public API must
+use `api_keys`/`webhooks`.
+
+⚠️ **NAMING TRAP:** `webhooks` + `webhook_deliveries` (tenant OUTBOUND webhooks — inert) are **not**
+`webhook_events` (INBOUND Channex idempotency — real, load-bearing, invariant #11). Do not conflate them.
+
+---
+
 ### 🔴 WAVE 2 OUTSTANDING REGISTER (2026-07-17) — four items found while building, deliberately NOT fixed
 
 Each was surfaced by Wave 2, **verified empirically**, and sequenced AFTER it by explicit decision. **None is a
@@ -456,20 +499,63 @@ regression; all four predate Wave 2.** Recorded here so none is silently dropped
    UI cannot reach it — **but the service is the single write path and must guard itself** (defense-in-depth,
    the same shape as #27). ⚠️ A brief asserting "terminate() throws on an illegal transition" was **wrong**;
    the code disagreed. Verify before trusting that claim again.
-2. **Two DEAD enum values** — `payments.payment_status = 'refunded'` and `folios.status = 'closed'` exist in
-   the schema and are **never written by any code** (`FolioService::paymentStatus()` only ever writes
-   paid/partial/unpaid). Designs assume these states; a UI keying off either renders **never, silently**.
-   Either write them or drop them — until then **no surface may depend on them**.
-3. **🔴 THE UNENFORCED PERMISSION CATALOG** *(real security follow-up)*. `payments.refund` is held by Super
-   Admin / Property Owner / Group Admin / Accountant and NOT by Hotel Manager / Front Desk — **and no route
-   enforces any permission**. The coarse #26 staff/owner gate is the only real authorization: **any
-   back-office role can do anything any back-office role can do.** Lower blast-radius than the `/app` hole
-   (that leaked *other owners' financials* to an owner; this is staff-vs-staff inside one tenant), but the
-   catalog currently **describes a policy the app does not enforce**.
+2. **DEAD enum values — AT LEAST FIVE, not two** (the count and one table name were both wrong until
+   2026-07-17; re-verified by grep). These exist in the schema and are **never written by any code**, so a UI
+   keying off one renders **never, silently** — and the designs assume several of them:
+   | table.column | dead value(s) | what the code actually writes |
+   |---|---|---|
+   | **`reservations`**`.payment_status` ⚠️ *not `payments.`* | `refunded`, `charged_back` | `FolioService::paymentStatus()` only ever writes `unpaid` / `partial` / `paid` |
+   | `folios.status` | `closed`, `void` | only `open` is ever written |
+   | `payments.status` | `refunded` | only `succeeded` / `failed` / `pending` / `authorized` / `captured` |
+   **Either write them or drop them — until then NO SURFACE MAY DEPEND ON ANY OF THEM.** The general rule is
+   the real lesson: **verify any status-keyed UI against what the code actually produces**, not against the
+   enum the migration declares.
+3. **🔴 THE UNENFORCED PERMISSION CATALOG** *(real security follow-up — the highest-value build work left)*.
+   **NOT ONE permission is checked at any route, middleware or controller.** Re-verified 2026-07-17: a
+   repo-wide grep for `can:` / `->can(` / `authorize(` / `permission:` across `routes/web.php`,
+   `app/Http/Controllers/`, `app/Http/Middleware/` returns **zero** hits outside `EnsureBackOfficeAccess` —
+   and that checks a ROLE, not a permission. The coarse #26 staff/owner gate is therefore the only real
+   authorization: **any back-office role can do anything any other back-office role can do — e.g. Front Desk
+   can issue a refund, though `payments.refund` is deliberately withheld from that role.** Lower blast-radius
+   than the `/app` hole (that leaked *other owners' financials* to an owner; this is staff-vs-staff inside one
+   tenant), but the catalog **describes a policy the app does not enforce** — worse than having no catalog,
+   because it reads like protection.
+
+   **⚠️ THE COUNTS, STATED ONCE SO NOBODY "RECOUNTS" THEM AGAIN** (this has already been flip-flopped once —
+   see the correction in `docs/DECISIONS.md` 2026-07-17):
+   - **44** = `config('authorization.permissions')` — **the catalog. This is the number to quote.**
+   - **39** = the union of permissions *explicitly named* across role definitions. A DIFFERENT METRIC, not a
+     correction of 44. The remaining **5** (`organizations.manage`, `billing.manage`, `roles.manage`,
+     `settings.manage`, `api.manage`) are catalog permissions reachable ONLY via the `['*']` wildcard —
+     `OrganizationRoleProvisioner` expands `['*']` to all 44, so wildcard roles genuinely hold all of them.
+   - **14** catalog roles = **13 provisioned per-org** + **1 global `Super Admin`** (deliberately not per-org).
+     **11** are back-office (`config('authorization.back_office_roles')`).
+   - ⚠️ **Two roles hold `['*']`, and they behave differently.** `Property Owner` is a real, assignable ORG
+     ADMIN. `Super Admin` **can never be held at all** — `model_has_roles.organization_id` is NOT NULL and part
+     of the PK (see the RBAC-defects block below). Whoever implements enforcement needs both facts together,
+     or they will wire a Super Admin bypass that can never fire.
+
+   **The fix has a finding but NO decided shape.** Route middleware (`can:`), controller `authorize()`, or
+   service-level? This codebase's own grain says services own the rules (no controller here calls an event
+   recorder either) — but #26 deliberately gates the ROUTE on a role because **no single permission spans
+   every staff role**; do not misread that as a rejection of permission-checking generally. Also note 5 of the
+   44 have no surface to guard yet (no org-creation or settings screen exists). **Decide the layer in a dated
+   `docs/DECISIONS.md` entry BEFORE building** — the project's own audit-first rule.
 4. **GDPR — `Guest::anonymize()` has NO UI trigger.** The erase is correct, tested and thorough, but it can
    only be invoked from code, so a real erasure request cannot be served by an operator. *(The second GDPR gap
    — note bodies not redacted — was **CLOSED** in Wave 2: shipping the first note writer would otherwise have
    opened the hole itself. See invariant #28.)*
+
+5. **⚠️ ONE UNIDENTIFIED FLAKY TEST — the suite is a real gate, so this matters** (found 2026-07-17 during the
+   consolidation audit). Of **six consecutive full runs**, five were **511/511 green** and one reported
+   **510 passed / 1 failed**. The failure was **not captured** (the run printed only the count) and **never
+   reproduced**: 5 further full runs and 6 targeted runs of all four true-OS-concurrency suites
+   (`ConcurrentBookingTest`, `CrossSystemConcurrencyTest`, `InboxConcurrencyTest`, `DeadlockAvoidanceTest` —
+   the prime suspects, since they race real processes) were **all green**. So: the headline **511 / 5503** is
+   real and reproducible, but it is **not 100% reliable run-to-run**, and nobody yet knows which test blinked.
+   **Do not dismiss this as noise** — a gate that fails 1-in-6 for unknown reasons is a gate that will one day
+   hide a real regression. Next time it fires, capture the failure (`php artisan test > run.json 2>&1` and
+   keep the file) rather than re-running.
 
 ---
 
@@ -502,7 +588,7 @@ complete.** Detail follows below; this is the honest triage a fresh session need
     **Analytics / reports** (ADR/RevPAR/insights), transactional **email templates** (~9).
   - Smaller in-product items: **CSV / remittance-advice / booking-summary** exports; room **descriptions + reviews**;
     per-screen deferred affordances (logged in each screen's DECISIONS entry).
-  - `docs/design/CATALOGUE.md` is the **authoritative per-file design inventory** (~120 screens, backend-status
+  - `docs/design/CATALOGUE.md` is the **authoritative per-file design inventory** (**125 files / 124 screens** — reconciled 2026-07-16; the older "~120" figure is stale, and this is the denominator the ROADMAP's "~42 of ~124" rests on), backend-status
     legend) — read it before starting any new screen. Most catalogued screens map to the future modules above.
 
 ---
@@ -663,7 +749,11 @@ one-books with no overbooking**), together. The true-parallel no-double-booking 
   delivery status; deferred-channel honest "not connected" composer; forced deferred reply → honest failed;
   assign/close/reopen/snooze persist + guarded; the guest stay-stat derived-real or omitted; link-reservation
   persists).
-- **THREE browser-verified user journeys** (Playwright, real demo data — beyond feature tests): **(1)
+- **THREE browser-verified user journeys** — ⚠️ **NOT part of the runnable regression net; do not read this
+  line as a gate.** They were an agent-driven **Playwright MCP** pass against a live `php artisan serve`
+  (there is no installed Playwright, no specs, and every artefact is gitignored), so unlike every other
+  item in this section they **cannot be re-run or re-checked**. Historically real and valuable — the pass
+  found and fixed two demo-data gaps — but a manual pass, on real demo data: **(1)
   public booking** (browse→room→checkout→real direct booking), **(2) operator ops**
   (calendar/front-desk/housekeeping/folio/dashboard), **(3) owner portal** (dashboard/statement/payouts/
   units, money reconciles to the cent). This pass **found + fixed the two demo-data gaps** (public slug,
@@ -788,19 +878,27 @@ plain GET links (e.g. `?month=`).
 
 - **THIS FILE** (`docs/PROJECT-STATE.md`) → read FIRST · then **`docs/DECISIONS.md`** (the dated "why" behind every gate, append-only, full arc Phase 1 → Unified Inbox UI).
 - **Vision / phases / buy-vs-build** → `docs/master-plan.md`
+- **`docs/BOOTSTRAP-AND-OPERATING-GUIDE.md`** — *(historical: the original zero-to-Phase-1 setup runbook +
+  operating model. Superseded as guidance — but its **environment gotchas are still current** (XAMPP/MySQL-not-
+  MariaDB, the memory/config file layout), and it is the only place the operating model is written down.)*
+  ⚠️ **Environment prerequisites for a green `php artisan test`: a genuine MySQL 8 `vyrobel_test` DB (NOT
+  XAMPP's MariaDB) + Redis running** (Horizon queue) + Mailpit for the mail tests' dev transport.
 - **Data contracts (column-level source of truth)** → `docs/schema/phase-1.md` · `docs/schema/phase-2.md`
   · `docs/schema/phase-3-owner-accounting.md` · **`docs/schema/maintenance.md`** · **`docs/schema/inbox.md`**
 - **Gated build prompts** → `docs/prompts/phase-1.md` · `docs/prompts/phase-2.md` ·
   `docs/prompts/phase-3-owner-accounting.md` (all done/certified) · `docs/prompts/live-integration-checkpoint.md`
   (Stripe leg done; Channex Steps 1–2 outstanding)
-- **Design source of truth** → **`docs/design/CATALOGUE.md`** (per-file inventory + backend-status legend, ~120 screens) · `docs/design/design-system-brief.md` · `docs/design/owner-portal-spec.md`. The raw Claude Design HTML lives in **`docs/design/raw/*.html` — GITIGNORED / local-only (not in a fresh clone)**; the `.md` specs above ARE versioned.
+- **Design source of truth** → **`docs/design/CATALOGUE.md`** (per-file inventory + backend-status legend; headline count reconciled to **125 files / 124 screens**) · `docs/design/design-system-brief.md` · `docs/design/owner-portal-spec.md`. ⚠️ The raw Claude Design HTML lives in **`docs/design/raw/*.html` — GITIGNORED / local-only, NOT in a fresh clone** (125 files on this machine); the `.md` specs above ARE versioned. **A fresh clone cannot read the designs** — work from `CATALOGUE.md` / `DESIGN-COVERAGE.md` / `WAVE2-INVENTORY.md`, which are versioned and were written from them. 🔴 **BUT THAT MITIGATION DOES NOT COVER THE NEXT BUILD:** `WAVE2-INVENTORY.md` is the ONLY per-page inventory, and it covers **Wave 2 only**. **Wave 3 (the owner inbox — the stated next screen work) has no versioned design inventory**, so on a fresh clone it cannot be built faithfully. Produce a Wave 3 inventory from `raw/` **on a machine that has it** (this one does) before starting, or the design is simply unavailable. This gap is invisible here and fatal on a clone.
 - **PLANNING SOURCE OF TRUTH (read before starting any new screen)** →
-  **`docs/ROADMAP.md`** (designed-vs-built-vs-remaining across ~16 modules; Tier 1 buildable-now / Tier 2 net-new
-  speculative / Tier 3 account-gated) · **`docs/TIER1-SPEC.md`** (per-screen build specs for the Tier 1
-  completions — backend reality per feature, write methods, buildability verdict, 5-wave build order) ·
-  **`docs/DESIGN-COVERAGE.md`** (exists-vs-missing design audit — 125 files / 124 screens in `docs/design/raw/`,
-  near-total coverage; the catalogue's headline count is **reconciled** to 125/124, though those 5 screens are
-  still absent from its per-screen tables).
+  **`docs/ROADMAP.md`** (designed-vs-built-vs-remaining across ~16 modules; **~42 of ~124 screens done (~34%)**
+  — a column sum with one cross-listed row, so distinct = 41; the tilde is load-bearing) · **`docs/TIER1-SPEC.md`**
+  (per-screen build specs — backend reality per feature, write methods, buildability verdict, the 5-wave order
+  with **Waves 1–2 marked DONE**) · **`docs/DESIGN-COVERAGE.md`** (exists-vs-missing design audit — 125 files /
+  124 screens, near-total coverage; the catalogue's headline count is **reconciled**, though those 5 screens are
+  still absent from its per-screen tables) · **`docs/WAVE2-INVENTORY.md`** (1,900-line per-page feature
+  inventory of the 6 Wave-2 designs, every element tagged ✅ BUILD-NOW / 🔨 NEEDS-BACKEND / 📋 DECORATIVE-FAKE /
+  ⬜ OTHER-MODULE. **The template for how to read ANY design before building it** — and the artefact that found
+  the €1,107 over-refund bug, by inventorying rather than testing).
 - **Code style / testing patterns** → `docs/CODING-STANDARDS.md` · **Conventions + commands** → `CLAUDE.md`
 - **Code** → `app/Services/` (incl. `InboxService`, `GuestMatcher`, `MaintenanceService`, owner-accounting services) ·
   `app/Payments/` · **`app/Payouts/`** · **`app/Messaging/`** (channel interface + ManualChannel + Deferred skeletons + resolver) ·
@@ -828,94 +926,68 @@ survives a reload, with the phone ciphertext at rest and the audit trail holding
    Calendar, Roles/Settings). The 3 NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) last.
    ⚠️ **Global Search still needs the blind-index decision** — the Guests CRM proved the constraint concretely:
    it SHOWS contact detail it cannot SEARCH, because encrypted TEXT is never indexed by value.
-3. **In parallel — CUSTOMER VALIDATION is still the highest-value non-build move.** The wedge is demoable at
-   full depth (statement → remittance PDF → payout run → the owner sees it paid, reconciling to the cent), and
-   operator daily-ops now runs end-to-end (reservations → refund → guest CRM). Tier-2 (Guest Portal ~24,
-   Analytics, Reviews, Billing, Notifications, Emails) stays speculative without signal.
-
-**Lessons Wave 2 paid for (do not re-learn them):**
-- **A shared definition is the deliverable; the SQL is trivial.** Every Wave 2 headline number was ambiguous
-  or self-contradictory in the design (lifetime value netted a refund off *and* counted unpaid charges). The
-  work was deciding and naming it once — `ReservationStage`, `GuestSpend`, `GuestHistory`.
-- **Extract BEFORE the second screen ships, not after.** `GuestHistory` exists because the inbox had already
-  shipped a different stay-count rule and nobody noticed: two screens, two sincere answers, one guest.
-- **An audit trail is a PII store.** Encrypting a column at rest is undone the moment its value is copied into
-  `audit_events.before/after`, which no erase clears. Record which fields changed, never their values.
-- **Ship the erase WITH the writer.** A latent GDPR gap ("notes aren't redacted") becomes a real one the
-  moment you build the thing that writes notes.
-- **Trust the repo over the plan — again.** Wave 2's briefs were wrong three times: `terminate()` has no
-  guard (a brief claimed it throws); events are written in services, never controllers (a plan said controller);
-  and `Note` was unregistered in the morph map, so the first `record()` on it would have thrown.
-
-**Lessons Wave 1 paid for (do not re-learn them):**
-- **The design exports are decodable** — each embeds its template + logic; the Wave 1 audit recovered all
-  ten to exact panels/labels/enums without a browser. **But decoding reveals what the design SAYS, not what
-  is true**: they carry fabricated figures, fabricated prior-year history, non-reconciling arithmetic, inert
-  buttons and authoring bugs. The backend is the source of truth.
-- **Static analysis cannot see a rendered page.** Two real bugs (raw Blade shipped to the user; a Livewire
-  prop shadowing view data → 500) passed `php -l` + PHPStan + Pint + Blade-compile and were caught ONLY by
-  running the suite and opening a browser. Always do both before claiming a gate.
-- **Trust the repo over the plan.** Three planned instructions were factually wrong against the real code
-  (ADR/RevPAR aren't in these designs; `statement_id + room_revenue` doesn't reconcile to `gross_minor`;
-  `user_id != null` ≠ portal access). Audit first, every time.
+3. **In parallel — CUSTOMER VALIDATION is the highest-value NON-BUILD move, and nothing else changes that.**
+   The wedge demos at full depth (statement → remittance PDF → payout run → the owner sees it paid,
+   reconciling to the cent), operator daily-ops runs end-to-end (reservations → refund → guest CRM), and the
+   operator/owner boundary is now genuinely enforced — **safe for a real owner login**. ⚠️ **State it plainly:
+   NO CUSTOMER HAS EVER SEEN THIS PRODUCT.** The buildable-in-a-vacuum core is essentially complete; what
+   remains is security-hardening (1), account-gated (needs someone else's credentials), or **speculative**
+   (Tier 2: Guest Portal ~24, Analytics, Reviews, Billing, Notifications, Emails — designed, no backend, and
+   no evidence anyone wants them). Every additional Tier-2 screen is a bet placed without signal.
+   *(There is no outreach material in this repo — no demo script, no cold-email draft. If any exists it lives
+   outside version control; do not assume it.)*
 
 ---
 
-## (historical) NEXT ACTION — WAVE 1: the owner-accounting styled long-tail — ✅ DONE 2026-07-16
+## META-LESSONS (earned expensively — re-read before any build)
 
-**Honest framing:** every piece that can be built without an external account is done and demoable
-end-to-end. Certified backends (multi-tenant PMS + channel manager + Stripe payments + owner accounting/
-payouts + maintenance + unified inbox) now carry their **entire built styled surface** — owner portal, operator
-back office (calendar · front desk · housekeeping · maintenance · reservation+folio · dashboard · units ·
-owners · **inbox**), and the public booking loop (browse → room → checkout → confirmation, a real guarded
-write). **Real auth fronts all of it** (Phase A + B: sign-in → invite owner/staff → set password → portal;
-dev email via Mailpit). **A real hybrid operator could run day-to-day ops, take a direct booking, message a
-guest, and an owner could read statements/payouts reconciling to the cent — today.** The 2026-07-16 ROADMAP
-audit set the concrete next target below (see `docs/ROADMAP.md` + `docs/TIER1-SPEC.md` + `docs/DESIGN-COVERAGE.md`).
+These are not platitudes; each one is here because it caught a real bug or prevented a real lie, repeatedly.
 
-**IMMEDIATE NEXT TASK — Wave 1: style the owner-accounting long-tail** (per `docs/TIER1-SPEC.md`'s build order;
-**all 10 Wave 1 designs EXIST** per `docs/DESIGN-COVERAGE.md` — zero design gate). All READY = pure integration
-over the CERTIFIED owner-accounting backend (`OwnerLedgerEntry`, `OwnerExpense`, `ManagementAgreement`,
-`OwnerStatement`, `Payout`, `OwnerPayoutService`, `OwnerPortalService`, `PdfService`), on the **owner** design
-system (`<x-owner.shell>` + `FormatsOwnerData`) and the **operator** one where noted, owner/tenant-scoped. Four
-gated sub-gates (commit per gate; per-screen render/isolation test):
+- **(a) A BRIEF IS A HYPOTHESIS; THE REPO IS TRUTH.** Building has caught roughly a dozen confidently-stated,
+  factually-wrong brief assumptions — `AssignmentService::terminate()` "throws on an illegal transition" (it
+  has **no guard at all**); events belong in controllers (**no controller in this repo calls a recorder —
+  services do**); `Note` was morph-mapped (it was **not** — the first `record()` on it would have thrown);
+  `statement_id + room_revenue` reconciles to `gross_minor` (it does not); `owners.user_id != null` means
+  portal access (it does not); "9 screens" in Wave 1 (the tables always said **10**).
+  **Audit first, every time. Echo the plan against real code before writing any of it.**
+  - **⚠️ AND THE COROLLARY THAT COST US: "VERIFY" MEANS MEASURE THE RIGHT THING.** The 2026-07-17
+    consolidation "caught" a brief claiming **44 permissions** and *corrected* it to **39** — citing the repo.
+    **The brief was right and the correction was wrong.** 44 is the catalog (`config('authorization.permissions')`);
+    39 was the union of permissions named across roles — a *different question*, confidently mistaken for the
+    same one, then written into a security invariant and quoted here as proof that briefs lie. A measurement
+    that disagrees with a claim has not refuted it until you have checked you measured **the same thing**.
 
-1. **Owner Balance · Owner Expenses · Owner Agreement · Owner Archive** — SIMPLE read screens over
-   `OwnerLedgerEntry` (running balance = cumulative sum) / `OwnerExpense` / `ManagementAgreement` / finalized
-   `OwnerStatement`. Owner-scoped (`OwnerScope`, fail-closed).
-2. **Owner Remittance-Advice PDF + Owner Booking-Summary PDF** — mirror the existing `OwnerStatementPdfController`
-   + `Support\Pdf\OwnerStatementDocument`; reconcile to the cent (shared `MoneyFormatter`, no invented lines).
-3. **Owner Unit Detail + Operator Owner Detail** — Unit Detail = owner-scoped occupancy (reuse the My Units
-   logic — never room-type-wide) + per-unit revenue from `owner_ledger`; Operator Owner Detail = the
-   **tenant-scoped** (NOT owner-scoped) operator lens on the same data (`/app/owners/{owner}`; the Owners *list*
-   already exists).
-4. **Payout Run + Owner Documents** — Payout Run = batch over `OwnerPayoutService::createFromStatement`/`pay`
-   (`ManualPayoutRail` is the real path; the Stripe-Connect step stays honestly stubbed); Owner Documents =
-   aggregation view over statements/payouts/PDFs.
+- **(b) GREEN TESTS ARE NECESSARY, NOT SUFFICIENT.** **Both** critical security bugs — the €1,107 over-refund
+  on a €369 payment, and the `/app` leak of every owner's financials — were found by **READING and
+  inventorying**, never by a test failing. The fully-certified suite was green over both, for weeks. A suite
+  proves the things you thought to ask; it cannot tell you what you never asked.
+- **(c) ADVERSARIALLY RE-READ EVERY MONEY AND AUTH PATH.** That is the technique behind (b). Regression tests
+  structurally cannot find a missing invariant — only someone asking "what bounds this?" can. #27 exists
+  because someone asked what bounded the SUM when #7 only bounded the EDITS.
+- **(d) EXTRACT THE SHARED DEFINITION, AND PROVE IT IS SHARED.** Two `match`es for one concept WILL drift.
+  This session caught **three screens silently disagreeing** about the same guest (the inbox said "2 stays ·
+  guest since 2024" where the CRM said "1 stay · guest since 2026" — both sincere). The proof matters as much
+  as the extraction: assert the two callers return identical results, and mutate the helper to prove the
+  screen reads it.
+- **(e) BROWSER-VERIFY EVERY SCREEN.** Raw Blade shipped to users (`word@directive` — the `\B` rule) and a
+  Livewire prop shadowing view data (a 500) both passed `php -l` **+ PHPStan + Pint + a Blade compile**.
+  Static analysis cannot see a rendered page. Run the suite **and** open the thing.
+- **(f) EVEN THE DOCS NEED SKEPTICISM — INCLUDING THIS FILE, INCLUDING THIS SECTION.** Two proofs, both from
+  the same consolidation: a docs-sweep agent hardened a hedged "~26" into an unhedged "42" and attached a "no
+  overlaps, so it reconciles" guarantee that its own next sentence refuted; and the pass that wrote *this very
+  lesson* simultaneously "corrected" a TRUE "44 permissions" into a FALSE "39" and enshrined it inside a
+  security invariant (see (a)'s corollary). **Writing down "be skeptical" provides no immunity.**
+  **Load-bearing hedges are load-bearing.** The only thing that actually caught either error was **three
+  independent blind readers sent at the finished docs with instructions to disprove them** — no amount of
+  careful self-review did. Do that before calling any consolidation done.
+- **(g) SHIP THE ERASE WITH THE WRITER, AND THE GUARD WITH THE GATEWAY.** A latent GDPR gap becomes real the
+  moment you build the thing that writes; an ordering detail (guard **before** the gateway call) is the
+  difference between rejecting and moving real money then rejecting.
 
-**Honesty rule (invariant #19) — stub what the design implies but the backend lacks:** ADR/RevPAR/trend charts
-(Tier-2 Analytics — show only derivable occupancy/revenue, stub the rest "Soon"), **CSV export** (standing
-deferral), **owner-editable rates** (a product-policy decision — default read-only). **After Wave 1:** Wave 2
-(reservations list + cancelled/no-show + refund + Guests CRM, over reservations/folio), Wave 3 (Owner Messages
-inbox), Wave 4 (Rates + Channels UI, New/Group Booking, Portfolio, Block Calendar, Roles/Settings). The 3
-NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) come last.
+---
 
-**In parallel — CUSTOMER VALIDATION remains the highest-value NON-build move.** The Tier-2 modules (Guest
-Portal ~24, Analytics, Reviews, Billing, Notifications, Emails) are **net-new, designed, but speculative without
-customer signal.** Standing up Mailpit + demoing the full built loop to a real hybrid operator (public booking →
-operator manages → invite owner → owner sees statements/payouts to the cent → message a guest) would let real
-feedback prioritise Tier 2/3 over building breadth blind. Wave 1 (completions of an already-shipped module) is
-safe to pursue regardless — it strengthens exactly what you'd demo. Account-gated unblocks (real inbox channel ·
-Channex staging · Stripe Connect · Stripe card checkout · prod email) proceed only once the external account
-exists (`docs/prompts/live-integration-checkpoint.md` for Channex/Stripe).
+## (historical) NEXT ACTION — WAVE 1 — ✅ DONE 2026-07-16
 
-**If resuming design/build work:** inherit the relevant role design system (owner / operator / public — do
-NOT redefine it; the operator system already covers the new maintenance + inbox screens); wire live data
-through the existing services (call, never modify); honour the **design-pass honesty rule + scoped-render/
-guarded-mutation discipline** (invariants #19–20) + the module invariants (#22 maintenance, #23–25 inbox);
-**per-gate commit + per-screen render/isolation (+ action-persistence) test**; wire the certified services,
-never a parallel write path. **Read `docs/TIER1-SPEC.md` (the per-screen build spec + backend-reality tags)
-and `docs/DESIGN-COVERAGE.md` (which designs exist) first, then `docs/design/CATALOGUE.md`.** **The `.md`
-design + planning specs are versioned;** the raw Claude Design HTML (`docs/design/raw/*.html`) is **gitignored /
-local-only** — not in a fresh clone (open the relevant `raw/*.html` in a browser at build time to confirm exact
-panels, since the bundles are minified SPAs).
+Removed 2026-07-17: it was a full stale copy of the Wave-1 build plan that still read as pending and
+contradicted the live NEXT ACTION above by two waves. Wave 1's record lives where it belongs — the dated
+entry in `docs/DECISIONS.md` (2026-07-16) and the Wave 1 tables in the styled-surface inventory above.

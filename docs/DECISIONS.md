@@ -1505,3 +1505,125 @@ so none is silently dropped. **None is a regression; all four predate Wave 2.**
 
 Plus, from the same audit and still open: **Super Admin is unassignable** (pivot PK) and **no org-creation
 path provisions roles** — both fail closed, so neither is exploitable.
+
+---
+
+### 2026-07-17 — TOTAL-RECALL CONSOLIDATION (docs only, no code) — the arc verified, four corrections recorded
+
+A full context consolidation so a fresh session can resume with complete understanding. **Documentation only
+— zero code changed.** Everything below was verified against the live repo, not against a brief.
+
+**GROUND TRUTH at consolidation:** HEAD `e160eeb` on `main`, local == origin (pushed), working tree clean.
+**511 tests / 5503 assertions green** on genuine MySQL 8 (`vyrobel_test`), **PHPStan (Larastan) L5 — 0
+errors**, **Pint clean**, `migrate:fresh --seed` clean, queue = Redis/Horizon live. `docs/design/raw/*.html`
+(125 files) remains **gitignored** — a fresh clone has the versioned `.md` specs, not the designs themselves.
+
+**THE ARC IS COMPLETE.** All 48 dated entries *preceding this one* verified present and chronological (a `grep -c '^### 20'` returns a higher number — it counts this entry and the ones appended after it; same self-reference class as the HEAD convention): Phase 1 (Step 0 + Steps 1–8
+close-out addenda: tenancy/RBAC · property/inventory · rates/availability · guests/encrypted-PII ·
+reservations + AssignmentService · folios + FolioService · housekeeping) → Phase 2 (Steps 0–9, CERTIFIED;
+Channex, the sync-reliability backbone, Stripe, public booking, staff layer) → the Stripe live-test-mode
+validation → Owner Accounting (Steps 0–7, CERTIFIED) → the design pass + browser-verification → Auth A/B +
+Mailpit + staff invites + password reset → the Tier 1 sweep → demo-readiness (photos + PDFs) → Maintenance
+(built + UI) → Unified Inbox (core + UI) → the ROADMAP planning docs → 💰 the refund bound (#27) → ✅ the
+`/app` gate (#26) + its finding → Wave 1 → Wave 2 + its register. **Nothing was missing; nothing was
+rewritten** (this log is append-only, and its dated entries are a ledger).
+
+**FOUR CORRECTIONS — the consolidation brief was wrong on each, and the repo won (meta-lesson (a) again):**
+1. **Invariants are #1–28, not #1–27.** The brief asked for "#1–27" five times. **#28 (the guest-PII
+   perimeter) was locked in Wave 2 the same day** and is real, tested and mutation-proven. Recorded as 28.
+2. **The permission catalog holds 39 distinct permissions across 14 roles (11 back-office), not 44.** Counted
+   from `config/authorization.php`. The *finding* is unchanged and confirmed by a fresh grep: **not one is
+   checked anywhere** (`can:` / `->can(` / `authorize(` / `permission:` return zero hits across
+   `routes/web.php`, `app/Http/Controllers/`, `app/Http/Middleware/` outside `EnsureBackOfficeAccess`, which
+   checks ROLE, not permission).
+3. **~42 of ~124 screens are built (~34%), not ~26 (~21%)** — the brief quoted the pre-Wave-1 figure. The
+   ROADMAP was recounted row-by-row against real routes. ⚠️ It is a **column sum with one cross-listed row**
+   (`Owner Invite Email` is Done under both Auth and Emails), so **distinct = 41**; the tilde is load-bearing.
+4. **Wave 1 shipped 10 screens/documents, not 9** — an arithmetic slip in the original prose; the Wave 1
+   tables always listed 10. Corrected in `docs/PROJECT-STATE.md` with the correction noted inline.
+
+Also: the brief said to "reconcile the catalogue count to 125/124 **if not done**" — **it was already done**
+(2026-07-16). The honest remainder is that those five screens are still absent from the catalogue's
+*per-screen tables*, so a reader looking up "Operator Inbox" still will not find it. And the brief stated
+that "cold emails + a demo script were prepared" — **no such artefact exists in this repo.** Not recorded as
+fact; if it exists it lives outside version control.
+
+**🔴 A NEW OUTSTANDING ITEM FOUND BY THIS AUDIT — ONE UNIDENTIFIED FLAKY TEST.** Of six consecutive full
+runs, five were 511/511 green and **one reported 510 passed / 1 failed**. The failure was not captured (the
+run printed only counts) and never reproduced: five further full runs, plus six targeted runs of all four
+true-OS-concurrency suites (the prime suspects — they race real processes), were all green. **The 511/5503
+headline is real and reproducible; the suite is not 100% reliable run-to-run.** This matters because the
+suite is a real gate — a gate that blinks 1-in-6 for unknown reasons will one day hide a regression. Logged
+in the register with the instruction to CAPTURE the failure next time rather than re-run.
+
+**ONE ASYMMETRY IN THE LOG, recorded rather than papered over:** Phase 2 has an explicit "PHASE 2 CERTIFIED"
+entry and Owner Accounting has "MODULE CERTIFIED" — **Phase 1 has neither.** Its Step 0–8 decisions ARE fully
+recorded (2026-07-02), and its certification is asserted in `PROJECT-STATE.md`/`CLAUDE.md` and backed by the
+live suite (the double-booking and tenant-isolation gates pass today). No retroactive certification stamp was
+back-dated into the ledger — that would be inventing a gate nobody held. Noted here as the honest record.
+
+**Also consolidated:** the two per-wave "lessons" lists were promoted into a durable **META-LESSONS** section
+in `PROJECT-STATE.md` (a brief is a hypothesis / green ≠ sufficient / adversarially re-read money+auth /
+extract-and-prove-shared / browser-verify / distrust the docs too / ship the erase with the writer), and a
+58-line stale "(historical) NEXT ACTION — WAVE 1" block was collapsed — it still read as pending and
+contradicted the live next action by two waves.
+
+**NEXT ACTION is unchanged and stated in `PROJECT-STATE.md`:** clear the 🔴 register (the `terminate()`
+service-level guard + enforcing the permission catalog) BEFORE Wave 3 — they are real gaps, not polish. Then
+Wave 3 (owner inbox) / Wave 4. **In parallel: customer validation. No customer has ever seen this product.**
+
+---
+
+### 2026-07-17 — ⚠️ CORRECTING THE CORRECTION: "44 permissions" was RIGHT; my "39" was wrong
+
+**Reverting forward** (this log is append-only — the entry above stays as written, and this one supersedes
+its correction #2). Found by sending three blind readers at the finished docs with instructions to disprove
+them; nothing in my own review caught it.
+
+**What I got wrong.** The consolidation entry above "corrected" a brief's claim of **44 permissions** to
+**39**, citing the repo — and then quoted that as evidence in META-LESSON (a) that briefs lie. **The brief was
+right. The correction was wrong.** Verified:
+
+```
+config('authorization.permissions')                      → 44   ← THE CATALOG. Quote this number.
+union of permissions NAMED across role definitions       → 39   ← a DIFFERENT question
+in the catalog, reachable ONLY via the ['*'] wildcard    →  5   ← organizations.manage, billing.manage,
+                                                                    roles.manage, settings.manage, api.manage
+```
+`OrganizationRoleProvisioner` expands `['*']` to `config('authorization.permissions')` — **all 44** — so
+`Property Owner` genuinely holds all 44, and the pre-existing "13 roles × 44 permissions" notes in
+`PROJECT-STATE.md` and `tests/Support/auth_helpers.php` were **correct all along**. My script measured the
+union across roles and I read its answer as a refutation of a claim it was not measuring.
+
+**Why this is worth a whole entry rather than a quiet edit.** It is the exact failure the same pass warned
+about, committed in the same pass: the false number was written *into the prose of security invariant #26*,
+and then generalized into a durable "lesson" — so a future session would have inherited both the wrong figure
+and a wrong reason to trust it, with the file's own authority behind them. **A measurement that disagrees
+with a claim has not refuted it until you have checked that you measured the same thing.** META-LESSON (a)
+now carries that corollary, and (f) now names this incident.
+
+**Corrected in place** in `docs/PROJECT-STATE.md` (a snapshot, not a ledger — it should state today's truth):
+the register now quotes **44 (catalog) / 14 roles = 13 per-org + 1 global Super Admin / 11 back-office**, and
+states both metrics side by side so nobody "recounts" and flips it a third time.
+
+**The security FINDING is untouched and re-confirmed:** **not one permission is enforced anywhere** — zero
+hits for `can:` / `->can(` / `authorize(` / `permission:` across `routes/web.php`, `app/Http/Controllers/`,
+`app/Http/Middleware/` outside `EnsureBackOfficeAccess`, which checks a ROLE. The count was never the point;
+the enforcement gap is.
+
+**Same audit, other real fixes** (all verified, all now corrected in `CLAUDE.md`/`PROJECT-STATE.md`):
+- **`E2E: Playwright` was in the LOCKED STACK and Playwright is not installed** — not in `package.json`, no
+  config, zero tracked specs. Browser verification is real but is done via the **Playwright MCP server**
+  against a live `php artisan serve`; every artefact it produces is gitignored. It is therefore **not part of
+  the runnable regression net** and no longer listed as if it were.
+- **`PHP 8.2+` in the locked stack; `composer.json` requires `^8.3`** — 8.2 cannot install this project.
+- **`docs/prompts/phase-1.md` was billed as "the current build prompt"** — Phase 1 certified long ago.
+- **The demo had no documented way in.** The docs' headline is "COMPLETE & DEMOABLE" and their top priority is
+  customer validation, yet the credentials existed only inside `DemoSeeder.php`. Now documented — including
+  that `demo-owner` is *refused* from `/app` **by design** (invariant #26), which a fresh session would
+  otherwise read as a bug.
+- **The dead-enum register named the wrong table and undercounted.** It is `reservations.payment_status`
+  (not `payments.`), and there are **at least five** dead values, not two.
+- **~10 tables are schema-only** (plans/subscriptions/usage_counters/api_keys/webhooks/groups/…): models and
+  migrations exist, nothing wires them. The register said billing has "NO backend today", which invites
+  exactly the parallel-structure duplication CLAUDE.md forbids.
