@@ -9,6 +9,7 @@ use App\Models\Folio;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
+use App\Services\FolioService;
 use App\Support\Folio\FolioTotals;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -167,16 +168,23 @@ class ReservationDetail extends Component
         $status = (string) $payment->status;
         $date = CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->format('j M');
 
-        // Settled inbound money — reduces the balance; refundable in full.
+        // Settled inbound money — reduces the balance. Refundable ONLY while un-refunded headroom remains:
+        // `refundable => true` for any settled payment is what kept the button on screen after a full refund
+        // and made the cumulative over-refund reachable (docs/DECISIONS.md 2026-07-16). The service is still
+        // the authority — this just stops the UI inviting a rejection.
         if (in_array($type, ['payment', 'capture'], true) && in_array($status, ['succeeded', 'captured'], true)) {
+            $remaining = app(FolioService::class)->remainingRefundableMinor($payment);
+
             return [
                 'label' => $type === 'capture' ? 'Capture' : 'Payment',
                 'desc' => 'Received',
                 'date' => $date,
                 'amount' => '−'.$this->money($amount, $currency),
                 'tone' => 'paid',
-                'flag' => null,
-                'refundable' => true,
+                'flag' => $remaining > 0 && $remaining < $amount ? 'Partly refunded' : null,
+                'refundable' => $remaining > 0,
+                'remaining_refundable_minor' => $remaining,
+                'remaining_refundable' => $this->money($remaining, $currency),
                 'payment_id' => $payment->id,
             ];
         }

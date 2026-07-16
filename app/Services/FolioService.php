@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\Folio\RefundExceedsPaymentException;
 use App\Models\AddOn;
 use App\Models\Fee;
 use App\Models\Folio;
@@ -212,14 +213,47 @@ class FolioService
     /**
      * Refund (fully or partially) a prior payment. Correct-by-reversal: a NEW offsetting Payment
      * is created; the original row is never touched.
+     *
+     * BOUNDED: the CUMULATIVE total refunded against a payment may equal, but never exceed, the original.
+     * A fully-refunded payment refuses any further refund; a partially-refunded one accepts only up to
+     * {@see remainingRefundableMinor()}. This is a DIFFERENT invariant from append-only (#7) — #7 stops you
+     * EDITING a refund, it never bounded the SUM, which is how a €369.00 payment once took three full
+     * refunds (docs/DECISIONS.md 2026-07-16). Enforced HERE, in the single write path, so every caller is
+     * covered rather than each controller re-implementing it.
+     *
+     * @throws RefundExceedsPaymentException when the cumulative bound or the currency rule is broken
      */
     public function refundPayment(Payment $original, Money $amount): Payment
     {
         if (! in_array($original->type, ['payment', 'capture'], true)) {
             throw new InvalidArgumentException('Only a payment/capture can be refunded.');
         }
-        if ($amount->amountMinor() > $original->amount_minor) {
-            throw new InvalidArgumentException('Refund exceeds the original payment amount.');
+
+        // A refund must move money. Zero/negative would pass the bound below (0 > remaining is false) and
+        // post a meaningless €0.00 row into an APPEND-ONLY ledger that can never be tidied away.
+        if ($amount->amountMinor() <= 0) {
+            throw new InvalidArgumentException('A refund amount must be greater than zero.');
+        }
+
+        // Same-currency only: minor units are not comparable across currencies, so both the bound below and
+        // the sum it relies on would be meaningless. (Previously unchecked — a USD refund against an EUR
+        // payment passed the old raw-minor-unit comparison.)
+        if ($amount->currency() !== (string) $original->currency) {
+            throw RefundExceedsPaymentException::currencyMismatch(
+                (string) $original->getKey(), $amount->currency(), (string) $original->currency,
+            );
+        }
+
+        // THE CUMULATIVE BOUND. Subsumes the old per-call `amount > original` check: with no prior refunds
+        // the remainder IS the original. Runs BEFORE the gateway call below — ordering is load-bearing, or
+        // we would move real money and only then reject.
+        $alreadyRefunded = $this->refundedTotalMinor($original);
+        $remaining = (int) $original->amount_minor - $alreadyRefunded;
+
+        if ($amount->amountMinor() > $remaining) {
+            throw RefundExceedsPaymentException::forPayment(
+                (string) $original->getKey(), $amount->amountMinor(), $alreadyRefunded, (int) $original->amount_minor,
+            );
         }
 
         $result = $this->gateway->refund((string) $original->gateway_ref, $amount);
@@ -253,6 +287,43 @@ class FolioService
         $this->audit->record('payment.refunded', $refund, null, ['refunds_payment_id' => $original->getKey()]);
 
         return $refund;
+    }
+
+    /**
+     * Σ of the SUCCEEDED refunds already recorded against a payment, in that payment's currency.
+     *
+     * The link is `payments.metadata->refunds_payment_id` (a json path — there is no FK column), stamped by
+     * {@see refundPayment()}. Deliberate choices:
+     *   • `status = 'succeeded'` ONLY — a failed refund moved no money and must not consume the headroom.
+     *   • `withTrashed()` — a soft-deleted refund STILL bounds. Posted financial rows should never be
+     *     deleted (invariant #7), so this is belt-and-braces: a delete must never hand back refundable
+     *     headroom. It fails safe if that discipline ever slips.
+     *   • currency-matched — see the guard in {@see refundPayment()}.
+     */
+    public function refundedTotalMinor(Payment $original): int
+    {
+        return (int) Payment::withTrashed()
+            ->where('type', 'refund')
+            ->where('status', 'succeeded')
+            ->where('metadata->refunds_payment_id', $original->getKey())
+            ->where('currency', (string) $original->currency)
+            ->sum('amount_minor');
+    }
+
+    /**
+     * What may still be refunded against a payment: original − Σ prior succeeded refunds (never negative).
+     *
+     * Read-only. Exposed so a surface can hide the affordance and cap its input rather than inviting a
+     * rejection — the operator screen offering "Refund" on an already fully-refunded payment is exactly
+     * what made the over-refund reachable.
+     */
+    public function remainingRefundableMinor(Payment $original): int
+    {
+        if (! in_array($original->type, ['payment', 'capture'], true)) {
+            return 0;
+        }
+
+        return max(0, (int) $original->amount_minor - $this->refundedTotalMinor($original));
     }
 
     /**

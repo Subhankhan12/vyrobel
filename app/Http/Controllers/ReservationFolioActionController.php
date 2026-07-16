@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\Folio\RefundExceedsPaymentException;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Services\FolioService;
@@ -54,7 +55,22 @@ class ReservationFolioActionController extends Controller
             return $this->back($model->id, 'Only a settled payment can be refunded.');
         }
 
-        $folios->refundPayment($payment, new Money((int) $payment->amount_minor, (string) $payment->currency));
+        // Refund what is genuinely LEFT, not blindly the original: FolioService bounds the CUMULATIVE total
+        // against a payment (docs/DECISIONS.md 2026-07-16). Sending the full amount at an already-refunded
+        // payment is exactly the over-refund the guard rejects.
+        $remaining = $folios->remainingRefundableMinor($payment);
+
+        if ($remaining <= 0) {
+            return $this->back($model->id, 'That payment is already fully refunded.');
+        }
+
+        try {
+            $folios->refundPayment($payment, new Money($remaining, (string) $payment->currency));
+        } catch (RefundExceedsPaymentException) {
+            // The service is the authority (it also covers a concurrent refund landing between the read
+            // above and this call) — surfaced cleanly, never a 500.
+            return $this->back($model->id, 'That payment is already fully refunded.');
+        }
 
         return $this->back($model->id, 'Refund issued.');
     }
