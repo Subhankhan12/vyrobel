@@ -12,6 +12,8 @@ use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
+use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
+use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
@@ -197,6 +199,11 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // OwnerScope → cross-owner 404, fail-closed for non-linked). Real owner_ledger figures; reconciles to
     // the cent; no invented lines. Streams application/pdf.
     Route::get('/statements/{statement}/pdf', [OwnerStatementPdfController::class, 'download'])->name('statements.pdf');
+    // Wave 1 · Sub-gate 2 — two more owner PDFs on the SAME owner-scoped pattern (string id →
+    // findOrFail under OwnerScope → cross-owner 404; fail-closed for a non-linked user). Both reuse
+    // PdfService + the shared MoneyFormatter, so they reconcile to the screens to the cent.
+    Route::get('/statements/{statement}/bookings', [OwnerBookingSummaryPdfController::class, 'download'])->name('statements.bookings');
+    Route::get('/payouts/{payout}/remittance', [OwnerRemittancePdfController::class, 'download'])->name('payouts.remittance');
     // Design pass · Screen 3 — owner payouts (owner-scoped; new page for the certified Payout backend).
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');
     // Design pass · Screen 4 — owner units + owner-scoped occupancy calendar (new owner-scoped page).

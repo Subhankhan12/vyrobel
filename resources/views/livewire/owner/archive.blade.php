@@ -6,8 +6,10 @@
       • REAL      — the finalized/paid statement rows: the real per-owner gap-free `sequence_no`
                     ("No. 7"; omitted when null, never faked), the real period, net payable, the status
                     badge from the REAL enum ONLY (paid → "Paid", finalized → "Payout pending"), the
-                    real `has_unverified` flag, the statement link, and the statement PDF — an EXISTING
-                    owner-scoped route that reconciles to the cent, so a REAL download, not a stub.
+                    real `has_unverified` flag, the statement link, and TWO REAL owner-scoped downloads —
+                    the statement PDF and the booking-summary PDF ("Bookings", the real attributed
+                    room_revenue behind that period's gross). Both reconcile to the cent, so real
+                    downloads, not stubs.
                     A DRAFT is not archive and is excluded (it has no number and can still move).
       • DERIVED   — "Net earned · lifetime" = Σ net payable over those real rows, totalled PER PAYOUT
                     CURRENCY and rendered per currency — NEVER a cross-currency sum (invariant #17).
@@ -141,6 +143,11 @@
                                         <a href="{{ route('owner.statements.pdf', $row['id']) }}" class="vy-btn vy-btn--ghost" style="margin-left:10px;padding:5px 10px;font-size:12px" title="Download this statement as a PDF">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
                                             PDF
+                                        </a>
+                                        {{-- REAL download — the owner-scoped booking-summary PDF: the real bookings behind this period's gross --}}
+                                        <a href="{{ route('owner.statements.bookings', $row['id']) }}" class="vy-btn vy-btn--ghost" style="margin-left:6px;padding:5px 10px;font-size:12px" title="Download the bookings behind this statement as a PDF">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
+                                            Bookings
                                         </a>
                                     </td>
                                 </tr>

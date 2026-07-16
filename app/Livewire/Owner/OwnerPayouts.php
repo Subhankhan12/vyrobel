@@ -10,6 +10,7 @@ use App\Models\OwnerStatementLine;
 use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
 use App\Services\OwnerPortalService;
+use App\Support\Payouts\RailLabel;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -32,8 +33,11 @@ use Livewire\Component;
  *   • LIFECYCLE— rendered with the REAL states ONLY (statement Finalized → payout Pending → Paid, plus
  *                Failed/Reversed). Payout.status ∈ pending/paid/failed/reversed — the design's
  *                "Scheduled"/"On hold" states DO NOT EXIST and are never invented.
+ *   • REAL     — the per-payout REMITTANCE ADVICE PDF (Wave 1 · Sub-gate 2): each row links to
+ *                `owner.payouts.remittance`, an owner-scoped download off the real payout + its source
+ *                statement's real lines. (Was "Receipt · Soon" — no longer deferred.)
  *   • NO BACKEND — on-hold/verification banner, IBAN/payout-account, estimated dates, upcoming-schedule
- *                projections, receipts/exports, and the payout-preference controls with no field
+ *                projections, bulk exports, and the payout-preference controls with no field
  *                (frequency/day/minimum/pause): omitted or disabled "Soon", never a fake action/IBAN/date.
  */
 #[Layout('components.layouts.owner')]
@@ -212,13 +216,13 @@ class OwnerPayouts extends Component
         return ['steps' => $steps, 'note' => $note];
     }
 
+    /**
+     * Delegates to the SHARED rail map so this screen and the Remittance PDF that mirrors it can never
+     * disagree about how a payout was sent (same discipline as MoneyFormatter — Wave 1 · Sub-gate 2).
+     */
     private function railLabel(string $rail): string
     {
-        return match ($rail) {
-            'manual' => 'Bank transfer',
-            'stripe_connect' => 'Stripe Connect',
-            default => ucfirst(str_replace('_', ' ', $rail)),
-        };
+        return RailLabel::for($rail);
     }
 
     /**

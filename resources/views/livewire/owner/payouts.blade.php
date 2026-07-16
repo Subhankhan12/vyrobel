@@ -5,13 +5,15 @@
 
     HONESTY MAP (rule locked in DECISIONS.md 2026-07-11; see App\Livewire\Owner\OwnerPayouts):
       • REAL      — payout history (amount / date / rail=Bank transfer / status / statement link),
-                    paid-this-year, next/pending totals, payout currency.
+                    paid-this-year, next/pending totals, payout currency. The per-row REMITTANCE link
+                    (Wave 1 · Sub-gate 2) streams a real owner-scoped PDF built from this payout + its
+                    source statement's real lines — no longer "Soon".
       • DERIVED   — paid-this-year = Σ real paid payouts; next-payout breakdown = the source statement's
                     real lines.
       • LIFECYCLE — REAL states only (Finalized → Pending → Paid, + Failed/Reversed). NO "Scheduled" /
                     "On hold" — those are not modelled and are never invented.
       • NO BACKEND— on-hold/verification banner, IBAN/payout account, estimated dates, projections,
-                    receipts/exports, and the non-existent preference controls: omitted or disabled "Soon".
+                    bulk exports, and the non-existent preference controls: omitted or disabled "Soon".
 --}}
 <x-owner.shell active="payouts" title="Payouts" :viewer="$viewer">
     <div class="vy-cols">
@@ -78,7 +80,7 @@
                                         @if ($p['statement_id'])
                                             <a href="{{ route('owner.statements.show', $p['statement_id']) }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Statement</a>
                                         @endif
-                                        <span class="vy-soon-tag" style="margin-left:8px">Receipt · Soon</span>
+                                        <a href="{{ route('owner.payouts.remittance', $p['id']) }}" class="vy-btn vy-btn--ghost" style="margin-left:8px;padding:5px 10px;font-size:12px" title="Download the remittance advice for this payout as a PDF">Remittance</a>
                                     </td>
                                 </tr>
                             @empty
