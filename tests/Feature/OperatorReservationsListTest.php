@@ -1,11 +1,9 @@
 <?php
 
 use App\Models\Guest;
-use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\Reservation;
-use App\Models\User;
 use App\Support\Reservations\ReservationStage;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,20 +55,6 @@ function listReservation(array $s, int $unitIndex, string $status, string $check
 function listGuest(string $first, string $last, array $extra = []): Guest
 {
     return Guest::create(array_merge(['first_name' => $first, 'last_name' => $last], $extra));
-}
-
-/** An OWNER-role user: a Membership (the only way their org resolves) and NO back-office role — as production. */
-function listOwnerUser(array $s, int $unitIndex): User
-{
-    $user = User::factory()->create(['name' => 'Olive Owner', 'status' => 'active']);
-    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
-    $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
-    $s['units'][$unitIndex]->update(['owner_id' => $owner->id]);
-    ManagementAgreement::factory()->create([
-        'owner_id' => $owner->id, 'commission_pct' => 15.00, 'effective_from' => '2026-01-01',
-    ]);
-
-    return $user;
 }
 
 // ── 1. THE POINT OF THE PAGE — real rows, real columns, tenant-scoped ────────────────────────────
@@ -135,7 +119,7 @@ it('refuses an owner-role user and sends them to their own portal', function () 
     $reservation = listReservation($s, 0, 'confirmed', '2026-09-01', '2026-09-03', ['lead_guest_id' => $guest->id]);
     postRoom($reservation, 42500);
 
-    $owner = listOwnerUser($s, 0);
+    $owner = ownerRoleUser($s, 0);
 
     // A Membership is NOT staff access — EnsureBackOfficeAccess is an allow-list of real back-office roles.
     $response = $this->actingAs($owner)->get('/app/reservations');

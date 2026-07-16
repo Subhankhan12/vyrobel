@@ -1,12 +1,9 @@
 <?php
 
 use App\Models\Guest;
-use App\Models\ManagementAgreement;
-use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\Reservation;
 use App\Models\Tag;
-use App\Models\User;
 use App\Services\FolioService;
 use App\Services\InboxService;
 use App\Support\Guest\GuestSpend;
@@ -60,20 +57,6 @@ function crmStay(array $s, int $unitIndex, Guest $guest, string $status, string 
     ]);
 
     return $reservation->fresh();
-}
-
-/** An OWNER-role user: a Membership (the only way their org resolves) and NO back-office role — as production. */
-function crmOwnerUser(array $s, int $unitIndex): User
-{
-    $user = User::factory()->create(['name' => 'Olive Owner', 'status' => 'active']);
-    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
-    $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
-    $s['units'][$unitIndex]->update(['owner_id' => $owner->id]);
-    ManagementAgreement::factory()->create([
-        'owner_id' => $owner->id, 'commission_pct' => 15.00, 'effective_from' => '2026-01-01',
-    ]);
-
-    return $user;
 }
 
 // ── 1. THE POINT OF THE PAGE — real guests, real columns, real flags ─────────────────────────────
@@ -135,7 +118,7 @@ it('never renders the CRM for an owner-role user, who holds a Membership but no 
     $s = seedScenario(1);
     crmGuest('Ada', 'Lovelace', ['email' => 'ada.lovelace@example.test']);
 
-    $response = $this->actingAs(crmOwnerUser($s, 0))->get('/app/guests');
+    $response = $this->actingAs(ownerRoleUser($s, 0))->get('/app/guests');
 
     $response->assertRedirect(route('owner.dashboard'));
     // Not one byte of the page — nor the PII on it — was rendered before the bounce.

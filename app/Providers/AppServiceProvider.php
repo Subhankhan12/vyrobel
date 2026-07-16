@@ -26,6 +26,7 @@ use App\Models\ManagementAgreement;
 use App\Models\Media;
 use App\Models\Message;
 use App\Models\MessageThread;
+use App\Models\Note;
 use App\Models\Organization;
 use App\Models\OverbookingConflict;
 use App\Models\Owner;
@@ -145,6 +146,12 @@ class AppServiceProvider extends ServiceProvider
             'inventory_block' => InventoryBlock::class,
             'amenity' => Amenity::class,
             'tag' => Tag::class,
+            // Registered when the guest profile became the first thing to WRITE a note (Wave 2 · Sub-gate 5).
+            // Latent until now only because Note is always the morph CHILD (`notable_type` stores the mapped
+            // parent), so nothing ever asked Note for its own alias. Both event recorders call
+            // `$subject?->getMorphClass()`, and under enforceMorphMap an unregistered model THROWS — so the
+            // first `record('note.created', $note)` would have blown up. Proven, not assumed.
+            'note' => Note::class,
             'media' => Media::class,
             'guest' => Guest::class,
             'reservation' => Reservation::class,

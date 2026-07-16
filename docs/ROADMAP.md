@@ -10,8 +10,15 @@ optimism.**
 flagged. No HTML was re-rendered — the catalogue's content-verified filenames plus a route/component/service
 cross-check are sufficient.
 
-**Read alongside:** `docs/PROJECT-STATE.md` (resume snapshot + invariants #1–25 + deferred register) and
+**Read alongside:** `docs/PROJECT-STATE.md` (resume snapshot + invariants #1–28 + deferred register) and
 `docs/DECISIONS.md` (the dated "why").
+
+**⚠️ Wave status (this doc is the *map*, not the build order).** **Wave 1 (owner-accounting long tail) shipped
+2026-07-16** and **Wave 2 (operator daily ops) shipped 2026-07-17** — the scorecard and the Tier 1 backlog
+below reflect both. **The build order lives in `docs/TIER1-SPEC.md`** (5 waves), not here. **Before Wave 3
+(Owner Messages), the WAVE 2 OUTSTANDING REGISTER in `docs/PROJECT-STATE.md` comes first** — four items
+(`terminate()`'s missing internal status guard · two dead enum values · the unenforced permission catalog ·
+`anonymize()` has no UI trigger). They are security/correctness debt, not screens.
 
 **Legend — true current state per screen:**
 - ✅ **DONE** — backend built AND styled UI integrated (live in the app).
@@ -37,11 +44,11 @@ operator dashboard → units → owners → unified inbox** — all on certified
 public storefront (browse → room → checkout → confirmation — a real guarded write through `AssignmentService`).
 An **owner** can read **statements/payouts/units** reconciling to the cent and download a branded PDF. The
 guarantee stack (no-double-booking, tenant isolation, append-only money, owner isolation) is proven by
-**340 tests / 3831 assertions** green on MySQL 8.
+**511 tests / 5503 assertions** green on MySQL 8.
 
-**The headline of what remains:** the *operational core is done*, but it is roughly **one-quarter of the
-designed vision by screen count**. The other three-quarters is **(1)** styled UIs over backends that already
-exist (buildable now — completions/polish), **(2)** four large net-new modules that have **no backend at all**
+**The headline of what remains:** the *operational core is done*, and Waves 1–2 have since taken it to roughly
+**one-third of the designed vision by screen count**. The other two-thirds is **(1)** styled UIs over backends
+that already exist (buildable now — completions/polish), **(2)** four large net-new modules with **no backend at all**
 (Guest Portal, Reviews, Analytics, Subscription/Billing — each a speculative multi-week product bet), and
 **(3)** a handful of live-rail integrations that are **account-gated** (real inbox channels, Channex live,
 Stripe Connect payouts, Stripe card checkout, production email). **The good news: very little of the remaining
@@ -56,12 +63,12 @@ Screen counts are approximate (a few designs are on-screen ↔ PDF pairs; totals
 |---|---:|---:|---:|---|
 | Auth & Onboarding | ~9 | 5 | 4 | **PARTIAL** (core auth done; onboarding wizards not) |
 | Public Booking (storefront) | 4 | 4 | 0 | **COMPLETE** (card checkout deferred 🔴) |
-| Operator Core / PMS | ~16 | 6 | 10 | **PARTIAL** |
-| Owner Portal | ~28 | 5 | 23 | **PARTIAL** (the wedge screens done) |
+| Operator Core / PMS | ~16 | 12 | 4 | **PARTIAL** (spine + Wave 2's daily ops done) |
+| Owner Portal | ~28 | 13 | ~15 | **PARTIAL** (wedge + Wave 1's long tail done) |
 | Maintenance | 4 | 2 | 2 | **PARTIAL** (module core complete end-to-end) |
 | Unified Inbox | ~5 | 2 | 3 | **PARTIAL** (operator done; real channels 🔴) |
 | Channel Manager (Channex) | 2 | 0 | 2 | **BACKEND-ONLY** (+ live 🔴) |
-| Payments & Payouts | ~3 | 0 UI | 3 | **BACKEND-ONLY** (Connect 🔴) |
+| Payments & Payouts | ~3 | 2 | 1 | **PARTIAL** (Wave 1's Payout Run + Owner Detail; Connect 🔴) |
 | Settings / Admin / RBAC / Security | ~9 | 0 | 9 | **NOT STARTED** (UI) |
 | Notifications | ~4 | 0 | 4 | **NOT STARTED** |
 | Emails / Templates | ~12 | 2 | 10 | **PARTIAL** (2 functional emails; no template system) |
@@ -70,13 +77,27 @@ Screen counts are approximate (a few designs are on-screen ↔ PDF pairs; totals
 | Analytics / Reports | 4 | 0 | 4 | **NOT STARTED** (no backend) |
 | Subscription / Billing | 3 | 0 | 3 | **NOT STARTED** (schema-only) |
 | System / shared (design ref) | 2 | — | — | reference only |
-| **TOTAL** | **~124** | **~26** | **~90** | **~21% of screens done** |
+| **TOTAL** | **~124** | **42** | **~82** | **~34% of screens done** |
 
-> **Catalogue discrepancy flagged:** `docs/design/CATALOGUE.md` counts 120 files (119 screens + index). The
-> actual `docs/design/raw/` has **125 files**. The five extras — `Operator Inbox`, `Operator Conversation`,
-> `Owner Invite Email`, `Vyrobel Invite Owner`, `Vyrobel Set Password` — are newer exports that correspond to
-> screens that are **now built** (the styled inbox + the auth invite/set-password chain). The catalogue should
-> be reconciled to 125; this roadmap already accounts for them.
+> **How the TOTAL is derived (read before trusting the arithmetic).** **Done ~42** is the sum of the Done
+> column, recounted row-by-row against real routes (`routes/web.php`) after Waves 1–2. ⚠️ **It is a column
+> sum, not a distinct count:** `Owner Invite Email` is cross-listed under both Auth and Emails and is Done in
+> both, so **distinct screens done is 41** — the same cross-listing described below applies to the Done column
+> too, not only to Designed/Remaining. The tilde is load-bearing; do not harden it. (An email template has no
+> route, so that row is verified by its Mailable + Blade, not by `route:list`.) **Designed ~124** is the
+> filesystem count of `docs/design/raw/`, **not** the sum
+> of the Designed column: several screens are deliberately listed under two areas (`Owner Payout Method` under
+> both Owner Portal and Payments; `Owner Settings`/`Security`/`Team` under both Owner Portal and Settings;
+> `Owner Messages` under both Owner Portal and Inbox; `Guest Messages` under both Inbox and Guest Portal;
+> `Owner Invite Email` under both Auth and Emails). So the Designed and Remaining **columns sum higher than
+> the TOTAL by design** — cross-reference, not double-count. **Remaining ~82 = 124 − 42.**
+>
+> **Counting basis differs from `docs/PROJECT-STATE.md` — both are right.** This table's unit is the
+> **catalogue screen**; PROJECT-STATE's wave summaries count **deliverables** (Wave 1 = "9 screens/
+> documents", Wave 2 = "5 screens"). The gap is where one deliverable covers two catalogue screens —
+> Wave 1's `Owner Documents`/`Owner Archive` pair, and Wave 2's cancelled/no-show terminal states shipped as
+> one pass over `ReservationDetail` but catalogued as two screens. On this table's per-screen basis Waves 1–2
+> closed **16 rows** (26 → 42). Do not "fix" either number to match the other.
 
 ---
 
@@ -125,22 +146,27 @@ Screen counts are approximate (a few designs are on-screen ↔ PDF pairs; totals
 | `Operator Housekeeping` | ✅ DONE | `/app/housekeeping` — kanban = real status enum; status-advance writes (drag/assign deferred) |
 | `Operator Reservation Detail` | ✅ DONE | `/app/reservations/{id}` — append-only folio + record-payment/refund; folio PDF |
 | `Operator Units` | ✅ DONE | `/app/units` — real unit/condition enums + owner link (built beyond the catalogue's list) |
-| `Operator Reservations` (list) | 🟨 BACKEND-ONLY | Reservations backend exists; no styled list/filter screen (only detail). — 🟢 · **S** |
-| `Operator Reservation Cancelled` | 🟨 BACKEND-ONLY | Cancelled-state view of the detail screen. — 🟢 · **S** |
-| `Operator Reservation No-show` | 🟨 BACKEND-ONLY | No-show charge/refund state view. — 🟢 · **S** |
+| `Operator Reservations` (list) | ✅ DONE | **Wave 2** — `/app/reservations`; chips + badges both from the shared `ReservationStage` (a chip cannot drift from what it filters) |
+| `Operator Reservation Cancelled` | ✅ DONE | **Wave 2** — terminal state on `ReservationDetail`; guarded `cancel` write via `ReservationLifecycleController::CANCELLABLE` |
+| `Operator Reservation No-show` | ✅ DONE | **Wave 2** — terminal state on `ReservationDetail`; guarded `markNoShow` via `NO_SHOWABLE` |
 | `Operator New Reservation` | 🟨 BACKEND-ONLY | `AssignmentService::book()` exists; no create-booking wizard UI. — 🟢 · **M** |
 | `Operator Group Booking` | 🟨 BACKEND-ONLY | `groups` schema + model exist; multi-room group flow not wired. — 🟢 · **M** |
-| `Operator Refund` | 🟨 BACKEND-ONLY | `FolioService::refund` exists (wired into detail); no dedicated refund screen. — 🟢 · **S** |
-| `Operator Guests` (CRM) | 🟨 BACKEND-ONLY | Guests backend exists; no CRM list/profile UI. — 🟢 · **M** |
-| `Operator Guest Profile` | 🟨 BACKEND-ONLY | Per-guest history/folio/messages. — 🟢 · **M** |
+| `Operator Refund` | ✅ DONE | **Wave 2** — `/app/reservations/{id}/refund`, over the **#27-guarded** backend; caps at the real `remainingRefundableMinor()`, re-derives nothing |
+| `Operator Guests` (CRM) | ✅ DONE | **Wave 2** — `/app/guests`; ⚠️ **PII-visible (invariant #28)**; search is name-only *and says why* (encrypted TEXT is not indexed by value) |
+| `Operator Guest Profile` | ✅ DONE | **Wave 2** — `/app/guests/{guest}`; **real writes** via the new `GuestService` (contact/flags/notes/tags); audit records field NAMES, never values (#28) |
 | `Operator Portfolio` | 🟨 BACKEND-ONLY | Multi-property overview; properties + availability exist. — 🟢 · **M** |
 | `Operator Search` | 🟨 BACKEND-ONLY | Cross-entity global search; data exists, no search UI/service. — 🟢 · **M** |
 
-- **BUILT:** the operational spine (6 screens) — the part an operator touches every day.
-- **MISSING:** all 🟢 **BUILDABLE NOW** — styled UIs over already-certified services (reservations,
-  AssignmentService, FolioService, guests, properties). None account-gated. Total ≈ **L** across the module.
+- **BUILT:** the operational spine (6 screens) — the part an operator touches every day — **plus Wave 2's
+  daily-ops completion (6 more rows: reservations list · cancelled · no-show · refund · guests CRM · guest
+  profile).** Wave 2 was **not** presentation-only: the guest profile added `GuestService`, the first guest
+  write path, because the design's "Save changes" persisted nothing.
+- **MISSING (4):** New Reservation · Group Booking · Portfolio · Global Search — all 🟢 **BUILDABLE NOW** over
+  already-certified services, none account-gated. ⚠️ **Global Search needs the blind-index decision first**
+  (the Guests CRM proved the constraint: encrypted TEXT is never indexed by value) — it is a Wave 5
+  NEEDS-BACKEND-FIRST item, not a straight UI pass. Total ≈ **M–L** across the module.
 
-### 4. Owner Portal — **PARTIAL** (the wedge/hero screens done; the long tail is not)
+### 4. Owner Portal — **PARTIAL** (the wedge/hero screens **and** Wave 1's long tail done; settings/analytics/tax remain)
 
 | Screen | State | Notes |
 |---|---|---|
@@ -149,15 +175,15 @@ Screen counts are approximate (a few designs are on-screen ↔ PDF pairs; totals
 | `Owner Statement PDF` | ✅ DONE | branded PDF via `PdfService`; reconciles to the cent |
 | `Owner Payouts` | ✅ DONE | `/owner/payouts` — real pending/paid/failed/reversed lifecycle |
 | `Owner My Units` | ✅ DONE | `/owner/units` — owner-scoped occupancy (excludes non-owner units) |
-| `Owner Expenses` | 🟨 BACKEND-ONLY | `OwnerExpenseService` + `owner_expenses` exist; no styled list. — 🟢 · **S** |
-| `Owner Balance` | 🟨 BACKEND-ONLY | `owner_ledger` exists; no running-balance UI. — 🟢 · **S** |
-| `Owner Agreement` | 🟨 BACKEND-ONLY | `management_agreements` exist; no terms screen. — 🟢 · **S** |
+| `Owner Expenses` | ✅ DONE | **Wave 1** — `/owner/expenses`; real `owner_expenses` incl. maintenance-sourced; `deductible` kept **TRI-STATE** (true/false/**null**), never coerced |
+| `Owner Balance` | ✅ DONE | **Wave 1** — `/owner/balance`; real ledger + per-row running balance; net position DERIVED (Σ `signedMinor`) |
+| `Owner Agreement` | ✅ DONE | **Wave 1** — `/owner/agreement`; effective-dated terms, display-only, honest nulls ("Not set", never "0%"). ⚠️ scoped explicitly via `OwnerContext` (the models are **not** owner-scoped) |
 | `Owner Bookings` / `Owner Booking Detail` | 🟨 BACKEND-ONLY | Attributed reservations exist; owner-lens booking views not built. — 🟢 · **M** |
-| `Owner Unit Detail` | 🟨 BACKEND-ONLY | Per-unit occupancy/performance. — 🟢 · **M** |
+| `Owner Unit Detail` | ✅ DONE | **Wave 1** — `/owner/units/{unit}`; owner-scoped occupancy for **this unit only**; cross-owner/operator-owned → 404 |
 | `Owner Block Calendar` | 🟨 BACKEND-ONLY | `inventory_blocks` exist; owner drag-block calendar not built. — 🟢 · **M** |
-| `Owner Documents` / `Owner Archive` | 🟨 BACKEND-ONLY | Statement/payout docs exist; no doc-library UI. — 🟢 · **S–M** |
-| `Owner Remittance Advice PDF` | 🟨 BACKEND-ONLY | Payout data exists; PDF not built (only statement PDF is). — 🟢 · **S** |
-| `Owner Booking Summary PDF` | 🟨 BACKEND-ONLY | Reservation data exists; PDF not built. — 🟢 · **S** |
+| `Owner Documents` / `Owner Archive` | ✅ DONE | **Wave 1** — `/owner/documents` (aggregates only the **really generatable** PDFs — every row downloads) + `/owner/archive` (finalized statements, real gap-free `sequence_no`, drafts excluded) |
+| `Owner Remittance Advice PDF` | ✅ DONE | **Wave 1** — `/owner/payouts/{payout}/remittance`; the amount label derives from the REAL status ("Net payable" while pending, never "Net paid") |
+| `Owner Booking Summary PDF` | ✅ DONE | **Wave 1** — `/owner/statements/{s}/bookings`; the bookings behind a statement's gross |
 | `Owner Team` | 🟨 BACKEND-ONLY | Users/roles/invites exist; owner sub-user UI not built. — 🟢 · **M** |
 | `Owner Security` / `Owner Settings` | 🟨 BACKEND-ONLY | User settings exist; no styled owner settings. — 🟢 · **M** |
 | `Owner Rates` | 🟨 BACKEND-ONLY | Only if rates are owner-editable; `RateAndRestrictionService` exists. — 🟢 · **M** |
@@ -165,13 +191,20 @@ Screen counts are approximate (a few designs are on-screen ↔ PDF pairs; totals
 | `Owner Reports` / `Owner Insights` | ⬜ NOT BUILT | Analytics — see **Analytics module** (no backend). |
 | `Owner Reviews` | ⬜ NOT BUILT | See **Reviews module** (no backend). |
 | `Owner Tax Center` / `Owner Annual Tax Summary PDF` | ⬜ NOT BUILT | No tax-computation backend. — 🟢 (buildable) but net-new · **L** |
-| `Owner Messages` | ⬜ | Owner-side inbox — see **Unified Inbox** (needs owner portal shell). |
+| `Owner Messages` | ⬜ | Owner-side inbox — see **Unified Inbox**. **Wave 3, and unblocked:** the owner portal shell + `InboxService` both exist; it needs the owner-portal inbox SCREEN. (This row used to say "needs owner portal shell" — a phantom blocker: 13 owner screens already live on that shell.) |
 | `Owner Notifications` | ⬜ NOT BUILT | See **Notifications module**. |
 | `Owner Help` | ⬜ NOT BUILT | Static FAQ. — 🟢 · **S** |
 
-- **BUILT:** the 5 wedge screens (dashboard, statement, statement PDF, payouts, units) — the differentiator.
-- **MISSING:** a long tail of 🟢 **BUILDABLE NOW** owner screens over certified owner-accounting backends,
-  plus `Owner Payout Method` (🔴 Stripe Connect) and the analytics/reviews/tax screens (net-new backends).
+- **BUILT (13):** the 5 wedge screens (dashboard, statement, statement PDF, payouts, units) — the
+  differentiator — **plus Wave 1's long tail (6 screens: balance · expenses · agreement · archive · unit
+  detail · documents) and 2 PDFs (remittance · booking summary).** Wave 1 was **presentation only**,
+  mechanically verified per gate: **zero** files changed under `app/Services`, `app/Models`,
+  `database/migrations`, `app/Payouts`. Three shared helpers stop screen↔document drift (`RailLabel`,
+  `OwnerOccupancy`, `assertNoRawBlade()`).
+- **MISSING (~15):** `Owner Messages` (**Wave 3 — next**), owner-lens `Bookings`/`Booking Detail`/`Block
+  Calendar`, `Team`/`Security`/`Settings`/`Rates`, `Help` — all 🟢 **BUILDABLE NOW**; plus `Owner Payout
+  Method` (🔴 Stripe Connect) and the analytics/reviews/tax screens (net-new backends). **The
+  owner-accounting long tail specifically is no longer the gap — Wave 1 closed it.**
 
 ### 5. Maintenance — **PARTIAL** (module core COMPLETE end-to-end; two analytics/config extras remain)
 
@@ -217,17 +250,17 @@ Screen counts are approximate (a few designs are on-screen ↔ PDF pairs; totals
 - **MISSING (live):** the ARI/webhook/HMAC shapes are **documented guesses**. — 🔴 **ACCOUNT-GATED** · unblock:
   a Channex staging account + a public tunnel (run `docs/prompts/live-integration-checkpoint.md`) · **M**.
 
-### 8. Payments & Payouts — **BACKEND-ONLY** (certified; operator/owner payout UIs + Connect remain)
+### 8. Payments & Payouts — **PARTIAL** (Wave 1 shipped both operator UIs; only Connect remains)
 
 | Screen | State | Notes |
 |---|---|---|
-| `Operator Payout Run` | 🟨 BACKEND-ONLY | `OwnerPayoutService` + `ManualPayoutRail` certified; no batch-payout UI. — 🟢 · **M** |
-| `Operator Owner Detail` | 🟨 BACKEND-ONLY | Owner-accounting backend certified; no operator-side owner detail screen. — 🟢 · **M** |
+| `Operator Payout Run` | ✅ DONE | **Wave 1** — `/app/payouts/run`; **REAL money writes** through the certified `OwnerPayoutService` (`createFromStatement`/`pay`), idempotent + guarded. **`ManualPayoutRail` is the real rail and the copy says so** ("Vyrobel does not move this money — marking a transfer paid RECORDS a bank transfer you already made"); **Stripe Connect disabled "Soon", never callable** |
+| `Operator Owner Detail` | ✅ DONE | **Wave 1** — `/app/owners/{owner}`; the operator's lens on ONE owner. ⚠️ **OwnerScope is INACTIVE on `/app`** → every read filtered explicitly by `owner_id` (tested symmetrically both ways) |
 | `Owner Payout Method` | ⬜/🔴 | Bank details — **Stripe Connect**. — 🔴 · unblock: connected-account onboarding + KYC · **M** |
 
 - **BUILT:** Stripe payments (validated live test-mode), `FolioService` append-only ledger, owner payouts via
   `ManualPayoutRail` (the real, tested disbursement path).
-- **MISSING (UI):** payout-run + operator owner-detail — 🟢 **BUILDABLE NOW**.
+- **BUILT (UI):** payout-run + operator owner-detail — **shipped in Wave 1** (2026-07-16).
 - **MISSING (live):** `StripeConnectPayoutRail.send()` throws. — 🔴 **ACCOUNT-GATED** · unblock: Stripe Connect
   credentials + KYC · **M**.
 
@@ -314,25 +347,31 @@ design system, not app screens.
 These are styled UIs (or small features) over backends that are already built and tested. **No external
 dependency. Highest ratio of value to risk — every one is a completion, not a bet.**
 
+**⚠️ Waves 1–2 have shipped against this table** — the ✅ rows below are DONE, kept (not deleted) so the
+backlog stays readable as a ledger. **The sequenced build order is `docs/TIER1-SPEC.md`, not this table.**
+
 | # | Module | Item | Size | Type |
 |---|---|---|---|---|
-| 1 | Operator Core | **Reservations list** + Cancelled/No-show states | M | completion |
+| 1 | Operator Core | ✅ **DONE (Wave 2)** — **Reservations list** + Cancelled/No-show states | M | completion |
 | 2 | Operator Core | **New Reservation** wizard (over `AssignmentService`) | M | completion |
 | 3 | Operator Core | **Group Booking** flow | M | completion |
-| 4 | Operator Core | **Guests CRM** (list + profile) | M | completion |
-| 5 | Operator Core | **Portfolio** + **Global Search** | M | completion |
-| 6 | Owner Portal | **Expenses · Balance · Agreement · Documents/Archive** (over owner-accounting) | M | completion |
-| 7 | Owner Portal | **Bookings · Booking Detail · Unit Detail · Block Calendar** | M–L | completion |
-| 8 | Owner Portal | **Remittance / Booking-Summary PDFs** (over `PdfService`) | S | completion |
+| 4 | Operator Core | ✅ **DONE (Wave 2)** — **Guests CRM** (list + profile) + the **Refund** screen; added `GuestService` | M | completion |
+| 5 | Operator Core | **Portfolio** + **Global Search** (⚠️ Search needs the blind-index decision first) | M | completion |
+| 6 | Owner Portal | ✅ **DONE (Wave 1)** — **Expenses · Balance · Agreement · Documents/Archive** (over owner-accounting) | M | completion |
+| 7 | Owner Portal | 🟡 **HALF DONE** — ✅ **Unit Detail (Wave 1)**; **Bookings · Booking Detail · Block Calendar** remain | M–L | completion |
+| 8 | Owner Portal | ✅ **DONE (Wave 1)** — **Remittance / Booking-Summary PDFs** (over `PdfService`) | S | completion |
 | 9 | Channel Mgr | **Operator Channels** config UI + **Rates/ARI grid** | M | completion |
-| 10 | Payments | **Payout Run** + **Operator Owner Detail** UIs | M | completion |
+| 10 | Payments | ✅ **DONE (Wave 1)** — **Payout Run** + **Operator Owner Detail** UIs | M | completion |
 | 11 | Maintenance | **Maintenance Costs** analytics + **Settings** | M | polish |
-| 12 | Inbox | **Owner Messages** surface (over `InboxService`) | M | completion |
+| 12 | Inbox | **Owner Messages** surface (over `InboxService`) — **Wave 3, next** | M | completion |
 | 13 | Auth | **Operator + Owner + Add-Unit onboarding** wizards; **2FA** flow | M | completion |
 | 14 | Settings | **Property Settings · Profile · Roles matrix · Security/audit** | M–L | completion |
 
-**Tier 1 headline:** ~14 workstreams, all 🟢 buildable now, all completing already-started modules. This is
-where the operator/owner product goes from "core done" to "feature-complete PMS + owner portal." No blockers.
+**Tier 1 headline:** **14 workstreams — 5 fully done** (Waves 1–2: rows 1, 4, 6, 8, 10) **+ row 7 half done,
+so ~8½ remain.** All still 🟢 buildable now, all completing already-started modules. This is where the
+operator/owner product goes from "core done" to "feature-complete PMS + owner portal." **No blockers — but the
+WAVE 2 OUTSTANDING REGISTER (`docs/PROJECT-STATE.md`) is sequenced ahead of the next screen**, and `Global
+Search` (row 5) is really a Wave 5 NEEDS-BACKEND-FIRST item.
 
 ### Tier 2 — Buildable now, **net-new modules** (🟢, but each a multi-week product BET)
 
@@ -372,15 +411,16 @@ green-field builds. Run `docs/prompts/live-integration-checkpoint.md` for the Ch
 
 ## D. Honest notes
 
-- **Account-gated vs buildable ratio — the reassuring part.** Of the ~90 remaining screens, **only ~8 items
+- **Account-gated vs buildable ratio — the reassuring part.** Of the ~82 remaining screens, **only ~8 items
   are truly account-gated** (Tier 3), and even those mostly have working fakes + code paths awaiting a
   credential. **The overwhelming majority of remaining work is buildable now in-repo.** Vyrobel is *not* stuck
   waiting on third parties — it's a matter of build effort and product prioritization.
 
-- **Completion vs speculation — the important distinction.** Tier 1 (~14 workstreams) **completes modules
-  already started** over certified backends — low risk, high confidence, clearly valuable to the operators/
-  owners the product already serves. Tier 2 (~6 modules) are **net-new speculative bets** — buildable, but
-  with **no customer signal**. Building Tier 2 blind is the main risk to guard against.
+- **Completion vs speculation — the important distinction.** Tier 1 (14 workstreams, **~8½ still open** after
+  Waves 1–2) **completes modules already started** over certified backends — low risk, high confidence,
+  clearly valuable to the operators/owners the product already serves. Tier 2 (~6 modules) are **net-new
+  speculative bets** — buildable, but with **no customer signal**. Building Tier 2 blind is the main risk to
+  guard against.
 
 - **The biggest "module" is the emptiest.** The **Guest Portal is ~24 designed screens with zero backend** —
   it is the single largest chunk of the *designed vision* and the single largest *unbuilt* area. It is a
@@ -392,10 +432,12 @@ green-field builds. Run `docs/prompts/live-integration-checkpoint.md` for the Ch
   honestly **NOT STARTED**, not "backend exists." Same caution for `corporate_accounts`, `groups`,
   `webhooks`/`api_keys`, and tax — scaffolding without a service is not a usable backend.
 
-- **What "done" really means here.** The ~26 done screens are **the operational heart of the product** (daily
-  operator ops + the owner-accounting wedge + the public booking write + real auth). That is exactly the
-  right ~21% to have finished first — it is the demoable, sellable core. The remaining 79% is breadth, not
-  the spine.
+- **What "done" really means here.** The 42 done screens are **the operational heart of the product** (daily
+  operator ops + the owner-accounting wedge, wedge *and* long tail + the public booking write + real auth).
+  That is exactly the right ~34% to have finished first — it is the demoable, sellable core. The remaining
+  ~66% is breadth, not the spine. **Waves 1–2 deepened the spine rather than widening it** — the owner
+  accounting story now runs statement → remittance PDF → payout run → the owner sees it paid, and operator
+  daily-ops runs reservations → refund → guest CRM, both end-to-end and reconciling to the cent.
 
 - **Recommendation (unchanged from PROJECT-STATE):** before committing to Tier 2's speculative bets,
   **validate with a real hybrid operator** (demo the full built loop). Let real feedback pick which Tier 2

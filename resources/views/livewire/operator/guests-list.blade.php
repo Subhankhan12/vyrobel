@@ -168,10 +168,10 @@
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <span class="vy-avatar">{{ $row['initials'] }}</span>
                                             <div style="min-width: 0;">
-                                                {{-- Plain text this gate: the profile is Sub-gate 5 and has no
-                                                     route yet, so this becomes a link next — never a link to
-                                                     nowhere. --}}
-                                                <div class="vy-u-code">{{ $row['name'] }}</div>
+                                                {{-- The profile landed in Sub-gate 5, so the name is now a real
+                                                     link (it was plain text while that route did not exist —
+                                                     never a link to nowhere). --}}
+                                                <a class="vy-u-code vy-arr-link" href="{{ route('app.guests.show', $row['id']) }}">{{ $row['name'] }}</a>
                                                 <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 4px;">
                                                     {{-- REAL boolean columns — not invented flags. --}}
                                                     @if ($row['is_vip'])

@@ -1275,7 +1275,7 @@ Wave 1 of the ROADMAP audit's build order, executed as four gated sub-gates with
 screens/documents over the CERTIFIED owner-accounting backend. Presentation + wiring of existing services
 ONLY — mechanically verified at every gate: ZERO files changed under `app/Services`, `app/Models`,
 `database/migrations`, `app/Payouts`, `app/Support/Owner` (services/), `app/Support/Money`.** No schema, no
-service, no guarantee touched. Suite **340/3831 → 4xx/4xxx**, PHPStan L5 0 errors, Pint clean at every gate.
+service, no guarantee touched. Suite **340/3831 → 430/4835**, PHPStan L5 0 errors, Pint clean at every gate.
 
 **What shipped** (all owner screens owner-scoped + fail-closed; operator screens tenant-scoped):
 - **Sub-gate 1** (`55c9219`) — **Owner Balance** (real ledger activity + per-row running balance; DERIVED
@@ -1367,6 +1367,141 @@ has no state machine).
 on the Remittance PDF, the pending payout and Balance's in-transit; unit A1 `44280` → "€442.80" = 540.00 −
 97.20. Money is per-currency throughout — **never a cross-currency sum** (no silent FX, invariant #17).
 
-<!-- Add further entries below, most recent first, each with a date. -->
-<!-- ### YYYY-MM-DD
-- **Decision:** … — **Why:** … -->
+---
+
+### 2026-07-17 — WAVE 2 COMPLETE — the operator daily-ops long-tail (5 gated sub-gates)
+
+Wave 2 of the ROADMAP build order, five gated sub-gates with a commit each: **Reservations list ·
+Cancelled/No-show terminal states · the Refund screen · the Guests CRM list · the Guest profile.** Suite
+**430/4835 → 511/5503**, PHPStan L5 0 errors, Pint clean, `migrate:fresh --seed` clean at every gate.
+Browser-verified on real demo data at every gate.
+
+Unlike Wave 1 this was **not** presentation-only: Sub-gate 5 adds the first guest write path (a real
+`GuestService`), because the design's "Save changes" persisted nothing and a fake save is not a screen.
+
+**THE SIX LOCKED DECISIONS** (taken before building, because each was ambiguous or self-contradictory in the
+designs — the SQL was always trivial; the *definition* was the deliverable):
+
+1. **Lifetime spend = BILLED**, labelled "Total billed", with the real open-folio balance BESIDE it. The
+   design's "lifetime value" netted a refund off (only coherent for money COLLECTED) while including €701 of
+   unpaid charges (only coherent for money BILLED). **It cannot be both.** → `App\Support\Guest\GuestSpend`.
+2. **Status semantics = ONE shared resolver, three screens.** In-house = `checked_in`; Upcoming = `confirmed`
+   ∧ future check-in; Past = `checked_out` ∨ window closed. → `App\Support\Reservations\ReservationStage`,
+   which holds BOTH the badge (`for()`) and the SQL filter (`scope()`) so a chip cannot drift from the badge
+   it filters on. `DUE` exists because the three headline buckets don't cover a came-due-never-checked-in
+   arrival; `CANCELLED` is deliberately NOT folded into PAST (a cancelled *future* stay never happened).
+3. **Stat tiles = current calendar month, by `check_in`, EXCLUDING cancelled, per currency**, with the scope
+   on the face of the tile. Every design figure was a constant that reconciled to nothing.
+4. **PII = the Guests CRM only.** Guest email/phone are shown on the CRM list + profile and NOWHERE else;
+   front desk, reservations and inbox stay name-only. **Enforced by a test that asserts the perimeter from
+   the outside, and mutation-proven** (leaking an email onto the reservations list fails it).
+5. **Fee engines DEFERRED** — a cancellation-policy subsystem, not a screen. Never compute or fake a fee.
+6. **Property Switcher DEFERRED** — no active-property concept exists; solve it once, globally.
+
+**THE SHARED EXTRACTIONS** (the anti-drift discipline — two `match`es for one concept WILL disagree):
+- **`Support\Reservations\ReservationStage`** — the stage vocabulary; badge + SQL in one class. Gained
+  `mostSignificant()` (which ONE stage speaks for a guest with several stays) + `CANCELLED_STATUSES`.
+- **`Support\Guest\GuestSpend`** — the BILLED definition. Reconciles to the ledger **by construction**:
+  `FolioService::recompute()` writes the cached folio columns FROM the same append-only rows `FolioTotals`
+  reads, and `GuestSpendTest` asserts the identity folio-by-folio so a future drift fails loudly.
+- **`Support\Guest\GuestHistory`** — stays · nights · "guest since". **Extracted because three screens were
+  about to disagree and one had already shipped**: `InboxThread`'s guest card counted EVERY reservation
+  (cancellations included) and dated "guest since" from the earliest of them. Proven live: for a guest with
+  one real 2026 stay and one cancelled 2024 booking the inbox said *"2 stays · guest since 2024"* while the
+  CRM said *"1 stay · guest since 2026"* — both sincere, on both numbers. The inbox now reads the shared rule.
+- **`Guest::reservations()`** — the approved shallow relation, on `lead_guest_id` (the FK every built surface
+  already treats as "the guest of this booking"). The `reservation_guests` pivot's fellow-travellers are
+  deliberately excluded, or "this guest's reservations" would mean two things on two screens.
+
+**REAL BACKEND ADDED (Sub-gate 5 only)** — `App\Services\GuestService`, the single guest write path:
+profile edit · notes · tags. `docs/WAVE2-INVENTORY.md` §A9 proposed "plain Eloquent + a controller"; that was
+**wrong against this codebase's conventions** — CLAUDE.md requires an `audit_events` + `domain_events` row per
+state change, and every writer records those INSIDE the service (no controller in the repo calls a recorder).
+
+- **⚠️ THE AUDIT TRAIL MUST NOT BECOME A SECOND, UNENCRYPTED PII STORE.** `guests.email`/`phone` are encrypted
+  casts; `audit_events.before`/`after` are plain JSON that `anonymize()` does not clear. Recording the old/new
+  email there would re-retain the exact PII an erase destroys and silently undo encryption-at-rest. The audit
+  therefore records **which fields changed, never their values** — enough to answer "who touched this guest's
+  email on Tuesday?", never enough to reconstruct it. (`Guest::anonymize()` already stated this rule for
+  itself; it holds for every write.) Asserted by test, verified in the browser.
+- **`'note' => Note::class` added to the morph map** — a live tripwire, proven not assumed:
+  `(new Note)->getMorphClass()` THREW `ClassMorphViolationException` under `enforceMorphMap`, and both
+  recorders call `getMorphClass()` on the subject. Latent only because Note had always been the morph CHILD.
+- Tags are **created on first use** (`firstOrCreate`, tenant-scoped): `tags` has been real since Phase 1 and
+  **nothing had ever written one**, so a pick-list would be empty in every tenant forever. `unique(org, name)`
+  makes a name the identity within a tenant, so create-on-use is the intended shape, not a duplicate factory.
+  Detaching keeps the catalogue — it is the workspace's vocabulary, not one guest's property.
+
+**A DELIBERATE DEVIATION FROM "LOG, DON'T FIX" — `Guest::anonymize()` now redacts NOTE BODIES.** The register
+below logs GDPR gaps rather than fixing them, and that was right while notes had **zero writers anywhere** —
+the gap was unreachable. Sub-gate 5 builds the writer, which promotes it to **live**: operators type
+identifying detail into `notes.body` ("travelling with X"), and `anonymize()` already redacts inbox message
+bodies for exactly this reason. Shipping the writer without the erase would have broken CLAUDE.md's PII
+invariant **with brand-new code**. Three lines, inside the existing transaction, mirroring the message
+redaction; the row + author + timestamp survive (never soft-delete-and-keep-PII). The *other* gap —
+`anonymize()` has no UI trigger — remains logged.
+
+**Money reconciles to the cent, cross-surface** (browser-verified on real demo data): every guest's rendered
+"Total billed"/"Open balance" equals `FolioTotals`' independent read of the append-only rows — Booker €246.00,
+Resident €664.20, Traveller €369.00, Walker €664.20 with €332.10 due. The profile and the list show the same
+figures **because they read the same helper**, and €369.00 ÷ 3 nights = €123.00/night.
+
+**OMITTED, not faked** (the standing order is OMIT AGGRESSIVELY — each verified absent, not greyed out): the
+whole **"Latest review" panel** (~15% of the profile — there is no reviews table, model or migration
+anywhere); the **paused-billing banner** (rejected by name in Wave 1, not reopened); the **localStorage refund
+netting** and its non-reconciling "€978 open folio" (both branches hard-coded; 978 only holds if the refund is
+exactly €277); **"Dublin, Ireland"** + the City input (no residence column — `nationality` is char(2), a
+NATIONALITY); **"Prefers email"** (no `preferred_channel`; `language` is a locale); the **8 hard-coded
+preference chips** (a designer's guess in the design's own script → the tenant's real tag catalogue); the
+**bulk bar, its Send/Delete modals and the CSV export** (a guest is erased via `anonymize()`, never deleted —
+a Delete button would keep the PII while looking like an erase); **pagination + sort** (neither has a handler
+in the design); the **"+4%" delta** and the 248/38/31% constants (no historical snapshot exists to compute a
+trend against); and the **"Shown to housekeeping & front desk" / "Flags arrivals" claims — verified FALSE**
+(nothing outside the model reads `is_vip`, and neither surface reads tags). **Marketing consent is shown as a
+RECORD, not a promise**: the column is real and this page is its first reader anywhere, but there is no
+sending mechanism, so the caption says exactly that.
+
+**The design's vocabulary was wrong and is not used:** "Completed" is not in the status enum (it means
+`checked_out`); "In house" is the STAGE of a `checked_in` row; **"Booking.com"/"Expedia"/"Airbnb" are not
+modelled at all** (`source` is direct/walk_in/ota/corporate/group/agent/manual with no brand column) — an OTA
+booking reads "OTA". (Don't be fooled by `message_threads.channel`, which *does* carry `booking_com`/`airbnb`
+— that is the messaging medium, a different enum for a different concept.)
+
+**Also closed in Wave 2:** the **partial-refund CONTROLLER gap** — `FolioService::refundPayment()` always took
+an arbitrary `Money`, so partial refunds were never a backend gap; the controller just never sent one. It is
+now amount-aware (no `amount` → the full REMAINING, preserving the inline button), rejects €0 **before** the
+service (an `InvalidArgumentException` that is not caught would have 500'd), and surfaces an over-refund
+rejection as a clean flash that is **never silently clamped** — refunding less than was asked for without
+saying so is its own money bug.
+
+---
+
+### 2026-07-17 — WAVE 2 OUTSTANDING REGISTER — four items found while building, deliberately NOT fixed
+
+Each was surfaced by Wave 2, verified empirically, and sequenced AFTER it by explicit decision. Recorded here
+so none is silently dropped. **None is a regression; all four predate Wave 2.**
+
+1. **`AssignmentService::terminate()` has NO internal status guard.** Proven: re-cancelling an already-
+   cancelled reservation overwrites `cancelled_at`/`cancellation_reason` and writes a junk `cancelled →
+   cancelled` status-history row. Wave 2 guards it at the CONTROLLER (`ReservationLifecycleController`'s
+   public `CANCELLABLE`/`NO_SHOWABLE` allow-lists, which the component also gates its buttons off), so the
+   shipped UI cannot reach it — but **the service is the single write path and must guard itself**
+   (defense-in-depth, the same shape as the #27 refund bound). My own brief asserted "both throw for an
+   illegal transition"; the code disagreed.
+2. **Two DEAD enum values** — `payments.payment_status = 'refunded'` and `folios.status = 'closed'` are in the
+   schema and **never written by any code** (`FolioService::paymentStatus()` only ever writes
+   paid/partial/unpaid). The designs assume states the code never produces, so a UI keying off either would
+   render **never, silently**. Either write them or drop them; until then, no surface may depend on them.
+3. **🔴 THE UNENFORCED PERMISSION CATALOG.** `payments.refund` is held by Super Admin / Property Owner /
+   Group Admin / Accountant and NOT by Hotel Manager / Front Desk — **and no route enforces any permission.**
+   The coarse #26 staff/owner gate is the only real authorization: any back-office role can do anything a
+   back-office role can do. Lower blast-radius than the `/app` hole (that leaked *other owners' financials* to
+   an owner; this is staff-vs-staff within one tenant) but it is a real security follow-up, and the catalog
+   currently **describes a policy the app does not enforce**.
+4. **Two GDPR gaps** — (a) `Guest::anonymize()` has **no UI trigger**: the erase is correct and tested but can
+   only be invoked from code, so a real erasure request cannot be served by an operator. (b) *(CLOSED
+   2026-07-17 — see the entry above: note bodies are now redacted, because Wave 2 shipped the first note
+   writer and would otherwise have opened the hole itself.)*
+
+Plus, from the same audit and still open: **Super Admin is unassignable** (pivot PK) and **no org-creation
+path provisions roles** — both fail closed, so neither is exploitable.

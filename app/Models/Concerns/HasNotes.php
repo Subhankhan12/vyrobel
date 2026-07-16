@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  */
 trait HasNotes
 {
+    /**
+     * The relation genuinely yields Notes, so it says so: without the generic, static analysis infers a
+     * bare `Model` and every caller that reads `$model->notes` or creates through it loses its type.
+     *
+     * @return MorphMany<Note, $this>
+     */
     public function notes(): MorphMany
     {
         return $this->morphMany(Note::class, 'notable');

@@ -2,8 +2,10 @@
 
 use App\Actions\Authorization\OrganizationRoleProvisioner;
 use App\Http\Middleware\EnsureBackOfficeAccess;
+use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Organization;
+use App\Models\Owner;
 use App\Models\User;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -75,5 +77,43 @@ if (! function_exists('operatorUser')) {
         ]);
 
         return grantBackOfficeRole($user, $scenario['org'], $role);
+    }
+}
+
+if (! function_exists('ownerRoleUser')) {
+    /**
+     * An OWNER-role user, exactly as production builds one: a Membership (the ONLY way their org resolves)
+     * and NO back-office role. This is the fixture that proves invariant #26 — the shape that USED to walk
+     * straight into the operator back office, because a Membership was mistaken for operator access.
+     *
+     * It lives in Support/ rather than in a test file because three suites need it (reservations list,
+     * guests list, guest profile) and a `function` declared in one Pest file is only loaded when THAT file
+     * loads — running a single sibling file in isolation would fatal on an undefined function. Same
+     * discipline as the shared app helpers: one definition, so three tests cannot drift about what an
+     * "owner" is.
+     *
+     * The unit is given to the owner (and an agreement created) so the user is a genuine owner of something
+     * in this org — a bare Owner row with no unit would be a weaker test than production reality.
+     */
+    function ownerRoleUser(array $scenario, int $unitIndex = 0): User
+    {
+        $user = User::factory()->create(['name' => 'Olive Owner', 'status' => 'active']);
+
+        Membership::create([
+            'organization_id' => $scenario['org']->id,
+            'user_id' => $user->id,
+            'status' => 'active',
+        ]);
+
+        $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
+        $scenario['units'][$unitIndex]->update(['owner_id' => $owner->id]);
+
+        ManagementAgreement::factory()->create([
+            'owner_id' => $owner->id,
+            'commission_pct' => 15.00,
+            'effective_from' => '2026-01-01',
+        ]);
+
+        return $user;
     }
 }

@@ -26,11 +26,20 @@ class Note extends Model
         'author_id',
     ];
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function notable(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * The staff member who wrote the note. NULLABLE by design (`nullOnDelete`) — a note outlives the person
+     * who wrote it, so a caller must handle null rather than assume an author.
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');

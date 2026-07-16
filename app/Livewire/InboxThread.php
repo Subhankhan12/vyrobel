@@ -12,10 +12,10 @@ use App\Models\MessageThread;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\InboxService;
+use App\Support\Guest\GuestHistory;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -173,16 +173,14 @@ class InboxThread extends Component
         $guest = $thread->guest;
         $channel = $this->channelMeta((string) $thread->channel);
 
-        $stat = null;
-        if ($guest !== null) {
-            $reservations = Reservation::query()->where('lead_guest_id', $guest->id)->get(['id', 'check_in']);
-            $count = $reservations->count();
-            if ($count > 0) {
-                $sinceYear = $reservations->min('check_in');
-                $year = $sinceYear !== null ? CarbonImmutable::parse($sinceYear)->format('Y') : null;
-                $stat = $count.' '.Str::plural('stay', $count).($year !== null ? ' · guest since '.$year : '');
-            }
-        }
+        // The SHARED definition (Wave 2 · Sub-gate 5), not this screen's own count. This card used to count
+        // EVERY reservation — cancellations included — and date "guest since" from the earliest of them,
+        // while the Guests CRM counts only stays that actually happened. Two screens, two sincere answers,
+        // one guest. GuestHistory is now the single rule; `status` is selected because it decides what
+        // counts.
+        $stat = $guest !== null
+            ? GuestHistory::for(Reservation::query()->where('lead_guest_id', $guest->id)->get(['id', 'status', 'check_in', 'check_out']))['stat']
+            : null;
 
         return [
             'name' => $this->guestName($thread),

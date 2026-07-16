@@ -7,8 +7,8 @@ conflicts with the repo, **trust the repo** and fix this file.
 ## Status (verified against the repo)
 
 - **On `main`, working tree clean** (only the untracked design-source exports under `docs/design/raw/` remain
-  uncommitted — **gitignored** raw Claude Design HTML, not in a fresh clone). Suite: **`php artisan test` → 430
-  tests / 4835 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this session.
+  uncommitted — **gitignored** raw Claude Design HTML, not in a fresh clone). Suite: **`php artisan test` → 511
+  tests / 5503 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this session.
   **PHPStan (Larastan) level 5, 0 errors** (`--memory-limit=1G`) — re-verified. **Pint clean** — re-verified.
   ⚠️ `phpunit.xml` sets **`memory_limit=512M`** — the suite outgrew PHP's 128M CLI default (verified headroom,
   not a leak; see the register). `php artisan test` spawns a child that re-reads php.ini, so `-d` won't reach it.
@@ -16,9 +16,23 @@ conflicts with the repo, **trust the repo** and fix this file.
   fallback). The three planning docs (`docs/ROADMAP.md`, `docs/TIER1-SPEC.md`, `docs/DESIGN-COVERAGE.md`) were
   authored on branch `docs/roadmap-audit` and **merged into `main`** in this consolidation — a fresh session on
   `main` sees them.
-- **CURRENT PHASE: WAVE 1 COMPLETE + the `/app` AUTHORIZATION HOLE CLOSED (2026-07-16) → next = Wave 2.**
-  Wave 1 shipped as four gated sub-gates (`55c9219` → `5530f6b` → `9ff2ad9` → `4d68e8c`): **9 new screens/
-  documents over the CERTIFIED owner-accounting backend, presentation only** (mechanically verified at every
+- **CURRENT PHASE: WAVE 2 COMPLETE (2026-07-17) → next = Wave 3.** Five gated sub-gates, a commit each
+  (`4eb71e2` → `cb8bcce` → `44444e6` → `f86cf4e` → HEAD): **Reservations list · Cancelled/No-show terminal
+  states · the Refund screen · the Guests CRM list · the Guest profile.** Suite **430/4835 → 511 tests / 5503
+  assertions**. Unlike Wave 1 this was **not** presentation-only — Sub-gate 5 adds the first guest write path
+  (`GuestService`), because the design's "Save changes" persisted nothing and a fake save is not a screen.
+  Three shared extractions prevent screen-to-screen drift: **`ReservationStage`** (badge + SQL in one class),
+  **`GuestSpend`** (the BILLED definition, reconciling to the ledger by construction) and **`GuestHistory`**
+  (stays · nights · "guest since" — extracted because the inbox had ALREADY shipped a different rule and said
+  *"2 stays · guest since 2024"* where the CRM said *"1 stay · guest since 2026"*). **⚠️ Read the WAVE 2
+  OUTSTANDING REGISTER in the deferred register below — four real items, deliberately not fixed.**
+  See `docs/DECISIONS.md` 2026-07-17 (two entries).
+- **(historical) WAVE 1 COMPLETE + the `/app` AUTHORIZATION HOLE CLOSED (2026-07-16).**
+  Wave 1 shipped as four gated sub-gates (`55c9219` → `5530f6b` → `9ff2ad9` → `4d68e8c`): **10 new screens/
+  documents over the CERTIFIED owner-accounting backend, presentation only** (⚠️ the original prose said "9"
+  — an arithmetic slip, not a change in the facts; the Wave 1 tables below have always listed **10**: owner
+  Balance · Expenses · Agreement · Archive · Unit Detail · Documents + 2 PDFs, and operator Owner Detail +
+  Payout Run. Corrected 2026-07-17.) (Mechanically verified at every
   gate: **ZERO** files changed under `app/Services`, `app/Models`, `database/migrations`, `app/Payouts`).
   Browser-verifying it then surfaced a **critical pre-existing authorization hole** (an owner-role user could
   reach the whole operator back office and every other owner's financials), now **FIXED in two gated steps**
@@ -38,9 +52,11 @@ conflicts with the repo, **trust the repo** and fix this file.
   to Mailpit** (invite + reset emails land in a viewable inbox); expired invites are pruned daily
   (`invites:prune-expired`). **DEFERRED, flagged not faked:** **email DELIVERY in production** (dev = Mailpit;
   needs a real provider), 2FA. See `docs/DECISIONS.md` 2026-07-13.
-- **DESIGN PASS — COMPLETE. The whole styled surface over the certified backend is done — 17 screens:**
-  **owner portal (4)** · **operator core (5) + Units (1) + Maintenance board & work order (2) + Inbox list &
-  conversation (2)** · **public booking storefront (3, incl. the real checkout WRITE)**. All on the certified backends, honesty rule enforced per-screen by a render/
+- **DESIGN PASS — the original 17-screen pass is COMPLETE, and Waves 1–2 have since added 14 more (~31 total):**
+  **owner portal (4 + Wave 1's 6 + 2 PDFs)** · **operator core (5) + Units (1) + Maintenance board & work order
+  (2) + Inbox list & conversation (2) + Wave 1's Owner Detail & Payout Run (2) + Wave 2's Reservations list ·
+  Refund screen · Guests list · Guest profile (4)** · **public booking storefront (3, incl. the real checkout
+  WRITE)**. The per-wave inventories below are authoritative; this line is the count. All on the certified backends, honesty rule enforced per-screen by a render/
   isolation test; **backends/schema/guarantees UNCHANGED** (presentation only). **No unstyled stubs
   remain.** Three role design systems: `components/layouts/owner`+`<x-owner.shell>`+`FormatsOwnerData` ·
   `components/layouts/operator`+`<x-operator.shell>`+`FormatsOperatorData` · `components/public/shell`
@@ -264,7 +280,7 @@ conflicts with the repo, **trust the repo** and fix this file.
     by `SetOwnerScopeForPortal`, **deactivated on `terminate`** (no leak into operator requests);
     **composes with tenant scope** (both boundaries hold; cross-org 404 both directions).
 
-**Design pass (presentation-only — these govern every styled screen, and hold across all 13):**
+**Design pass (presentation-only — these govern EVERY styled screen, all ~31 of them):**
 19. **Design-pass honesty rule** — every styled element is exactly one of: **REAL** (wired to a certified
     read/service), **DERIVED** (computed from real figures only), **DEFERRED** (visually stubbed + "not
     yet available"), or **NO-BACKEND** (disabled "Soon"). NEVER a fabricated figure/status/action/photo/
@@ -396,7 +412,66 @@ conflicts with the repo, **trust the repo** and fix this file.
     (Locked `docs/DECISIONS.md` 2026-07-16; proven by `RefundGuardTest` — written FIRST and run against the
     unguarded code: **7 of 10 failed pre-fix, 10/10 pass post-fix, and removing the guard fails 4 again**.)
 
+**The guest-PII perimeter (Wave 2 — 2026-07-17):**
+28. **Guest contact PII (`guests.email`/`phone`) is rendered ON THE GUESTS CRM ONLY — the list and the
+    profile — and NOWHERE else.** Front desk, reservations list and inbox show the guest NAME only. The CRM
+    is where an operator legitimately needs to reach a guest; a booking row is not.
+    - **The perimeter is ENFORCED BY A TEST, not by a docblock.** `OperatorGuestsListTest` renders the front
+      desk, the reservations list and the inbox and asserts each shows the NAME and NOT the contact — so a
+      passing run means "name yes, contact no", never "the page was empty". **Mutation-proven:** adding an
+      email to the reservations list fails it.
+    - **No public Livewire prop may hold a guest.** A public prop is serialized into the page payload and
+      round-trips over `/livewire/update`; both CRM screens hold a plain string id and resolve in `render()`,
+      so decrypted contact reaches the HTML and stops there. (This is the same `$xxxId` rule as invariant #20,
+      for a second reason.)
+    - **⚠️ THE AUDIT TRAIL MUST NOT BECOME A SECOND, UNENCRYPTED PII STORE.** `email`/`phone` are encrypted
+      casts; `audit_events.before`/`after` and `domain_events.payload` are plain JSON that
+      `Guest::anonymize()` does not clear. **`GuestService` records WHICH FIELDS changed, never their
+      values** — enough to answer "who touched this guest's email on Tuesday?", never enough to reconstruct
+      it. Writing the old/new address there would re-retain the exact PII an erase destroys and silently
+      undo encryption-at-rest. `Guest::anonymize()` already stated this rule for itself ("never put the
+      erased PII into the audit before/after"); **it holds for every write, not just the erase.**
+    - **Every PII store must be erasable.** `anonymize()` clears the guest's columns, their ID documents,
+      their inbox message bodies/participant identity AND (since Wave 2 shipped the first note writer) their
+      **note bodies** — a staff note about an identified person is that person's personal data. When a new
+      free-text store about a guest is added, it MUST be added to `anonymize()` in the same change.
+    - **Search cannot see it, and the page says so.** Encrypted TEXT is never indexed by value, so the CRM
+      searches names only and states that in the footer rather than letting an operator conclude the data is
+      missing. (The blind-index is a standing deferral.)
+    (Locked `docs/DECISIONS.md` 2026-07-17; proven by `OperatorGuestsListTest` + `OperatorGuestProfileTest` +
+    `GuestServiceTest`.)
+
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
+
+### 🔴 WAVE 2 OUTSTANDING REGISTER (2026-07-17) — four items found while building, deliberately NOT fixed
+
+Each was surfaced by Wave 2, **verified empirically**, and sequenced AFTER it by explicit decision. **None is a
+regression; all four predate Wave 2.** Recorded here so none is silently dropped. Full detail:
+`docs/DECISIONS.md` 2026-07-17.
+
+1. **`AssignmentService::terminate()` has NO internal status guard.** Proven: re-cancelling an already-
+   cancelled reservation overwrites `cancelled_at`/`cancellation_reason` and writes a junk `cancelled →
+   cancelled` status-history row. Wave 2 guards it at the CONTROLLER (`ReservationLifecycleController`'s
+   public `CANCELLABLE`/`NO_SHOWABLE` allow-lists, which the component gates its buttons off), so the shipped
+   UI cannot reach it — **but the service is the single write path and must guard itself** (defense-in-depth,
+   the same shape as #27). ⚠️ A brief asserting "terminate() throws on an illegal transition" was **wrong**;
+   the code disagreed. Verify before trusting that claim again.
+2. **Two DEAD enum values** — `payments.payment_status = 'refunded'` and `folios.status = 'closed'` exist in
+   the schema and are **never written by any code** (`FolioService::paymentStatus()` only ever writes
+   paid/partial/unpaid). Designs assume these states; a UI keying off either renders **never, silently**.
+   Either write them or drop them — until then **no surface may depend on them**.
+3. **🔴 THE UNENFORCED PERMISSION CATALOG** *(real security follow-up)*. `payments.refund` is held by Super
+   Admin / Property Owner / Group Admin / Accountant and NOT by Hotel Manager / Front Desk — **and no route
+   enforces any permission**. The coarse #26 staff/owner gate is the only real authorization: **any
+   back-office role can do anything any back-office role can do.** Lower blast-radius than the `/app` hole
+   (that leaked *other owners' financials* to an owner; this is staff-vs-staff inside one tenant), but the
+   catalog currently **describes a policy the app does not enforce**.
+4. **GDPR — `Guest::anonymize()` has NO UI trigger.** The erase is correct, tested and thorough, but it can
+   only be invoked from code, so a real erasure request cannot be served by an operator. *(The second GDPR gap
+   — note bodies not redacted — was **CLOSED** in Wave 2: shipping the first note writer would otherwise have
+   opened the hole itself. See invariant #28.)*
+
+---
 
 ### ✅ CLOSED (2026-07-16) — the `/app` authorization hole. Safe for a real owner login.
 
@@ -527,7 +602,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**340 tests / 3831 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**511 tests / 5503 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -630,7 +705,7 @@ wire live · DERIVED → from real figures only · DEFERRED → stubbed "not yet
 disabled "Soon" (never a fake action/IBAN/date/download); reconcile money to the cent; owner isolation
 holds; guest PII never exposed — is locked in `docs/DECISIONS.md` (2026-07-11).
 
-## Operator screens — STYLED & LIVE (COMPLETE — 5 core + Units)
+## Operator screens — STYLED & LIVE (5 core + Units + Wave 1's 2 + Wave 2's 5)
 
 Shared foundation: `resources/views/components/layouts/operator.blade.php` (dedicated operator layout —
 same Vyrobel tokens as the owner one, copied not shared) · `resources/views/components/operator/shell.blade.php`
@@ -652,10 +727,25 @@ same Vyrobel tokens as the owner one, copied not shared) · `resources/views/com
 | `/app/owners/{owner}` | `App\Livewire\Operator\OperatorOwnerDetail` → `livewire/operator/owner-detail` | ✅ the operator's lens on ONE owner (units/agreement/statements/payouts/balance). `Owner` is `BelongsToOrganization` → cross-org 404 free. ⚠️ **OwnerScope is INACTIVE on `/app`**, so every other read is filtered EXPLICITLY by `owner_id` (the test asserts symmetrically both ways that two owners in ONE org never bleed). Portal-access state is the REAL invite state (`user_id` alone does NOT mean access — it is linked at invite time to an inactive login). Owner email/phone rendered (the operator's own CRM record); **tax_id + raw address never read**. Edit/Remove modal + its no-column toggles OMITTED. |
 | `/app/payouts/run` (+ POST `payouts.create` / `payouts.pay`) | `App\Livewire\Operator\PayoutRun` + `Operator\PayoutRunActionController` → `livewire/operator/payout-run` | ✅ **REAL money writes** through the certified `OwnerPayoutService` (`createFromStatement` / `pay`) via POST→controller→service→PRG. Ready-set mirrors the service's own rule exactly (finalized+locked, net>0, no pending/paid payout). Idempotent + guarded (an illegal transition → clean flash, never a 500). **`ManualPayoutRail` is the real rail and the copy says so plainly** ("Vyrobel does not move this money — marking a transfer paid RECORDS a bank transfer you already made"); **Stripe Connect is disabled "Soon", never callable**. SEPA export / IBAN / the "no verified IBAN" hold rail OMITTED (no such field exists); the design's non-reconciling constants never ported. |
 
+**WAVE 2 (2026-07-17) — operator daily ops. TENANT-scoped, behind the #26 gate. Locked decisions in
+`docs/DECISIONS.md` 2026-07-17.**
+
+| Route | Component / view | Styled |
+|---|---|---|
+| `/app/reservations` | `App\Livewire\Operator\ReservationsList` → `livewire/operator/reservations-list` | ✅ every booking, one row each. Stage chips + badges BOTH from the shared **`ReservationStage`** (`scope()` for the SQL, `for()` for the badge — a chip cannot drift from what it filters). Chip counts are the REAL count of what the click delivers, search included. Tiles = this calendar month, by `check_in`, cancelled/no-show EXCLUDED, per currency. **OMITTED:** the paused banner, the bulk composer + Send, bulk select, the month picker, sort controls, the "Refunded" badge (a DEAD enum). "Booking.com"/"Completed" never rendered — neither is modelled. |
+| `/app/reservations/{reservation}` (extended) | `App\Livewire\ReservationDetail` + `Operator\ReservationLifecycleController` | ✅ **cancelled + no-show terminal states** — real terminal panel, timeline, cancellation policy, and guarded lifecycle writes (`cancel` / `markNoShow`) gated off the controller's public `CANCELLABLE`/`NO_SHOWABLE` allow-lists. ⚠️ Those constants are **load-bearing**: `AssignmentService::terminate()` has **no internal guard** (register item 1). |
+| `/app/reservations/{reservation}/refund` | `App\Livewire\Operator\ReservationRefund` → `livewire/operator/reservation-refund` | ✅ the dedicated refund screen over the **#27-guarded** backend. It **re-derives nothing**: shows the real `remainingRefundableMinor()` per payment, caps the input at it, and offers nothing once remaining = 0 — so the UI cannot invite a rejection. The service stays the authority. **Partial refunds were never a backend gap** — the controller is now amount-aware (no `amount` → full remaining), rejects €0 BEFORE the service, and surfaces an over-refund as a clean flash, **never a silent clamp**. |
+| `/app/guests` | `App\Livewire\Operator\GuestsList` → `livewire/operator/guests-list` | ✅ the CRM list. Real `is_vip`/`risk_flag`/tags/nationality; **⚠️ PII-visible (invariant #28)** — email/phone decrypted HERE and on the profile only. "Total billed" + open balance from the shared **`GuestSpend`**; stays from the shared **`GuestHistory`**; badge from `ReservationStage`. Search is **name-only and says why** (encrypted TEXT is not indexed by value). **OMITTED:** the bulk bar + Send/Delete modals (a guest is erased via `anonymize()`, never deleted), CSV export, Add guest (no form exists), pagination, sort, the "+4%" delta. |
+| `/app/guests/{guest}` (+ POST `guests.update` / `guests.notes.store` / `guests.tags.store`, DELETE `guests.tags.destroy`) | `App\Livewire\Operator\GuestProfile` + `Operator\GuestActionController` → `livewire/operator/guest-profile` | ✅ **REAL writes** through the new `App\Services\GuestService` (the single guest write path) — contact edit (encrypted on save by the cast), VIP/risk/marketing toggles, **notes** (the first writer of the shared `notes` table, ever) and **tags** (created on first use — `unique(org,name)`, so a pick-list would have been empty forever). The design's "Save changes" fired a toast and persisted **nothing**; this survives a reload. **⚠️ The audit records WHICH fields changed, never their values** (invariant #28). **OMITTED:** the whole "Latest review" panel (no reviews table exists), the localStorage refund netting + its non-reconciling "€978", "Dublin, Ireland" (no residence column), "Prefers email" (no column), the 8 hard-coded preference chips, and the "Shown to housekeeping"/"Flags arrivals" claims (**verified FALSE**). |
+
 Per-screen tests: `OperatorRackViewTest`, `OperatorFrontDeskViewTest`, `OperatorHousekeepingViewTest`,
 `OperatorReservationDetailViewTest`, `OperatorDashboardViewTest`, **`OperatorOwnerDetailViewTest`**,
 **`OperatorPayoutRunTest`** (the real create/pay writes asserted against the DB, idempotency, guarded
-double-pay, cross-org 404). The **operator-mutation pattern**
+double-pay, cross-org 404), and **Wave 2's** `OperatorReservationsListTest` · `ReservationStageTest` ·
+`ReservationTerminalStatesTest` · `RefundScreenTest` · **`OperatorGuestsListTest`** (the PII perimeter,
+mutation-proven) · **`OperatorGuestProfileTest`** (the save is real, not a toast) · `GuestSpendTest` ·
+`GuestHistoryTest` · `GuestServiceTest` (the audit must not hold PII; `anonymize()` redacts notes). The
+**operator-mutation pattern**
 (reuse for every operator write): **POST → controller → existing service action → PRG redirect**; the POST
 re-runs the web middleware (tenant context set), `{id}` is a **string** param resolved via tenant-scoped
 `findOrFail` (never RMB) → cross-org 404. Never a Livewire wire-action for a scoped mutation.
@@ -709,7 +799,8 @@ plain GET links (e.g. `?month=`).
   speculative / Tier 3 account-gated) · **`docs/TIER1-SPEC.md`** (per-screen build specs for the Tier 1
   completions — backend reality per feature, write methods, buildability verdict, 5-wave build order) ·
   **`docs/DESIGN-COVERAGE.md`** (exists-vs-missing design audit — 125 files / 124 screens in `docs/design/raw/`,
-  near-total coverage; catalogue is off by 5 and should be reconciled to 125/124).
+  near-total coverage; the catalogue's headline count is **reconciled** to 125/124, though those 5 screens are
+  still absent from its per-screen tables).
 - **Code style / testing patterns** → `docs/CODING-STANDARDS.md` · **Conventions + commands** → `CLAUDE.md`
 - **Code** → `app/Services/` (incl. `InboxService`, `GuestMatcher`, `MaintenanceService`, owner-accounting services) ·
   `app/Payments/` · **`app/Payouts/`** · **`app/Messaging/`** (channel interface + ManualChannel + Deferred skeletons + resolver) ·
@@ -718,29 +809,43 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — Wave 2 (the `/app` gate is DONE; the product is safe for a real owner login)
+## NEXT ACTION — Wave 3 (Waves 1 and 2 are DONE; the product is safe for a real owner login)
 
-**WAVE 1 IS COMPLETE** (2026-07-16, four gated sub-gates, `55c9219` → `5530f6b` → `9ff2ad9` → HEAD). The
-owner-accounting wedge now has its full styled long-tail: **Balance · Expenses · Agreement · Archive · Unit
-Detail · Documents** (owner) + **Owner Detail · Payout Run** (operator) + **Remittance & Booking-Summary
-PDFs**. Presentation only — zero certified-backend files touched, verified per gate. Suite **402 tests /
-4652 assertions**, PHPStan L5 0 errors, Pint clean, `migrate:fresh --seed` clean. Browser-verified
-end-to-end, including a **real payout write** (pending → paid, the source statement cascaded to paid,
-`payout.paid` domain + audit events recorded) and **every listed owner document actually downloading**.
+**WAVE 2 IS COMPLETE** (2026-07-17, five gated sub-gates, `4eb71e2` → `cb8bcce` → `44444e6` → `f86cf4e` →
+HEAD): **Reservations list · Cancelled/No-show terminal states · the Refund screen · the Guests CRM list ·
+the Guest profile.** Suite **511 tests / 5503 assertions**, PHPStan L5 0 errors, Pint clean,
+`migrate:fresh --seed` clean, browser-verified at every gate — including a **real profile write** that
+survives a reload, with the phone ciphertext at rest and the audit trail holding only the field NAMES.
 
-1. **✅ DONE — the `/app` authorization gap is CLOSED** (invariant #26; `5155a48` + `f63866a`). Route gate on
-   the `/app` group (back-office role allow-list, team-scoped, fails closed) **+** owners hold the owner-only
-   `External Owner` role, so they are refused at the role level too. Each layer proven to block independently;
-   the gate is mutation-verified; the inverted demo seeder is corrected and locked. Browser-verified: every
-   route that leaked now bounces an owner to `/owner` with zero operator data; staff are unaffected.
-2. **NEXT — Wave 2** — per `docs/TIER1-SPEC.md`: reservations list + cancelled/no-show + refund + Guests CRM
-   (over the certified reservations/folio backend). Then Wave 3 (Owner Messages inbox — the inbox backend +
-   operator surface already exist), Wave 4 (Rates + Channels UI, New/Group Booking, Portfolio, Block
+1. **⛔ FIRST — clear the WAVE 2 OUTSTANDING REGISTER** (four items, in the register above). The two that
+   matter: **`terminate()`'s missing internal status guard** (currently controller-guarded only — the service
+   is the single write path and must guard itself) and **the unenforced permission catalog** (`payments.refund`
+   et al. are held by role but checked by nothing; only the coarse #26 gate is real). Then the two dead enums
+   and the `anonymize()` UI trigger. These are small, and they are security/correctness debt with a written
+   decision behind them — do them before more screens.
+2. **THEN — Wave 3** per `docs/TIER1-SPEC.md`: the **Owner Messages inbox** (the inbox backend + the operator
+   surface both already exist). Then Wave 4 (Rates + Channels UI, New/Group Booking, Portfolio, Block
    Calendar, Roles/Settings). The 3 NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) last.
-3. **In parallel — CUSTOMER VALIDATION is still the highest-value non-build move.** The wedge is now
-   demoable at full depth (statement → remittance PDF → payout run → the owner sees it paid, reconciling to
-   the cent). Tier-2 (Guest Portal ~24, Analytics, Reviews, Billing, Notifications, Emails) stays
-   speculative without signal.
+   ⚠️ **Global Search still needs the blind-index decision** — the Guests CRM proved the constraint concretely:
+   it SHOWS contact detail it cannot SEARCH, because encrypted TEXT is never indexed by value.
+3. **In parallel — CUSTOMER VALIDATION is still the highest-value non-build move.** The wedge is demoable at
+   full depth (statement → remittance PDF → payout run → the owner sees it paid, reconciling to the cent), and
+   operator daily-ops now runs end-to-end (reservations → refund → guest CRM). Tier-2 (Guest Portal ~24,
+   Analytics, Reviews, Billing, Notifications, Emails) stays speculative without signal.
+
+**Lessons Wave 2 paid for (do not re-learn them):**
+- **A shared definition is the deliverable; the SQL is trivial.** Every Wave 2 headline number was ambiguous
+  or self-contradictory in the design (lifetime value netted a refund off *and* counted unpaid charges). The
+  work was deciding and naming it once — `ReservationStage`, `GuestSpend`, `GuestHistory`.
+- **Extract BEFORE the second screen ships, not after.** `GuestHistory` exists because the inbox had already
+  shipped a different stay-count rule and nobody noticed: two screens, two sincere answers, one guest.
+- **An audit trail is a PII store.** Encrypting a column at rest is undone the moment its value is copied into
+  `audit_events.before/after`, which no erase clears. Record which fields changed, never their values.
+- **Ship the erase WITH the writer.** A latent GDPR gap ("notes aren't redacted") becomes a real one the
+  moment you build the thing that writes notes.
+- **Trust the repo over the plan — again.** Wave 2's briefs were wrong three times: `terminate()` has no
+  guard (a brief claimed it throws); events are written in services, never controllers (a plan said controller);
+  and `Note` was unregistered in the morph map, so the first `record()` on it would have thrown.
 
 **Lessons Wave 1 paid for (do not re-learn them):**
 - **The design exports are decodable** — each embeds its template + logic; the Wave 1 audit recovered all

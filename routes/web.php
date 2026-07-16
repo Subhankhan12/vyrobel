@@ -8,6 +8,7 @@ use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\Operator\FolioPdfController;
+use App\Http\Controllers\Operator\GuestActionController;
 use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
@@ -28,6 +29,7 @@ use App\Livewire\InboxList;
 use App\Livewire\InboxThread;
 use App\Livewire\MaintenanceList;
 use App\Livewire\MaintenanceTicketDetail;
+use App\Livewire\Operator\GuestProfile;
 use App\Livewire\Operator\GuestsList;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
@@ -212,6 +214,15 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // "Total billed" comes from the shared App\Support\Guest\GuestSpend and the status badge from the shared
     // App\Support\Reservations\ReservationStage, so this page and the guest profile cannot disagree.
     Route::get('/guests', GuestsList::class)->name('guests');
+    // Wave 2 · Sub-gate 5 — the guest PROFILE + its REAL writes. The design's "Save changes" fired a toast
+    // and persisted nothing; these POSTs go through GuestService (the single path that records the audit +
+    // domain events). {guest} is a plain string resolved tenant-scoped in the component/controller (never
+    // RMB) → cross-org 404. Contact fields are encrypted casts — the cast does the encrypting.
+    Route::get('/guests/{guest}', GuestProfile::class)->name('guests.show');
+    Route::post('/guests/{guest}', [GuestActionController::class, 'updateProfile'])->name('guests.update');
+    Route::post('/guests/{guest}/notes', [GuestActionController::class, 'addNote'])->name('guests.notes.store');
+    Route::post('/guests/{guest}/tags', [GuestActionController::class, 'addTag'])->name('guests.tags.store');
+    Route::delete('/guests/{guest}/tags', [GuestActionController::class, 'removeTag'])->name('guests.tags.destroy');
     // Design pass · Operator Screen 4 — REAL append-only folio actions via POST → controller →
     // FolioService → redirect (PRG). {reservation} is a string param resolved tenant-scoped in the
     // controller (never RMB) → cross-org 404. A refund is a NEW offsetting entry (never an edit).

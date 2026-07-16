@@ -8,7 +8,8 @@ catalogue's stated count.
 **Headline:** design coverage is **near-total** — the design library actually **exceeds** what's built (most
 files are designs for not-yet-built modules). Of ~90 needed screens, only **~3 are missing a design**, and
 those are edge cases (one already built without a design, one gated on a new backend, one a minor email
-template). **Wave 1 (the immediate build target) is 100% designed — no design gate blocks it.**
+template). **Waves 1 and 2 were both 100% designed and are now both BUILT (2026-07-16 / 2026-07-17) — no
+design gate blocked either, and none blocks Wave 3.**
 
 ---
 
@@ -16,11 +17,13 @@ template). **Wave 1 (the immediate build target) is 100% designed — no design 
 
 - **Actual files in `docs/design/raw/`: 125** (all `.html`; no non-HTML files).
 - **Screens = 124** (125 minus `index.html`, the Screen Library manifest).
-- **Catalogue drift:** `docs/design/CATALOGUE.md` states **120 files (119 screens + index)** — **off by 5.**
-  The folder has **5 more** files than the catalogue enumerates. The extras are **newer exports** that
-  correspond to screens that are **now built** (inbox + auth):
+- **Catalogue drift: RESOLVED ✅.** `docs/design/CATALOGUE.md` was reconciled on **2026-07-16** and now states
+  **125 files / 124 screens**, matching the folder. (It previously said 120 files / 119 screens — the figure
+  `index.html` still reports, since the manifest predates five exports and was never regenerated. Trust the
+  filesystem over `index.html`.) The 5 files the old count missed are **newer exports** for screens that are
+  **now built** (inbox + auth) — recorded here for the history:
 
-  | Extra file (in folder, not in catalogue's count) | What it is | Build status |
+  | File the old catalogue count missed | What it is | Build status |
   |---|---|---|
   | `Operator Inbox.html` | Operator unified-inbox thread list | ✅ built (`/app/inbox`) |
   | `Operator Conversation.html` | Operator inbox conversation view | ✅ built (`/app/inbox/{thread}`) |
@@ -28,9 +31,14 @@ template). **Wave 1 (the immediate build target) is 100% designed — no design 
   | `Vyrobel Invite Owner.html` | Operator "invite owner" screen | ✅ built (`/app/owners` modal) |
   | `Vyrobel Set Password.html` | Accept-invite / set-password screen | ✅ built (`auth/set-password`) |
 
-  > **Action:** `docs/design/CATALOGUE.md` should be reconciled to **125 files / 124 screens** and the 5
-  > screens above added to its tables (they're currently absent or under-counted). This report already accounts
-  > for them.
+  > **The COUNT action is closed; ONE HALF REMAINS.** The original action had two parts: reconcile the
+  > headline count, **and add the five screens to the catalogue's tables**. The first is done — `CATALOGUE.md`
+  > now reads 125 files / 124 screens. **The second is not:** those five are named only in the
+  > "RECONCILED 2026-07-16" paragraph (`CATALOGUE.md:14-15`) and appear in **no per-screen table**, so a reader
+  > looking up "Operator Inbox" in the catalogue still will not find it. Consequently the per-group split
+  > (32 Guest · 40 Operator · 31 Owner · 5 platform-auth · 9 Emails · 2 System/shared = 119) is still read from
+  > `index.html` and remains **five light** — the catalogue flags this itself. Small, and worth doing when the
+  > catalogue is next touched.
 
 ---
 
@@ -48,18 +56,18 @@ Legend: **✅ EXISTS** (design file present, named) · **❌ MISSING** (no desig
 | Owner Statement PDF | ✅ `Owner Statement PDF.html` | ✅ built |
 | Owner Payouts | ✅ `Owner Payouts.html` | ✅ built |
 | Owner My Units | ✅ `Owner My Units.html` | ✅ built |
-| Owner Unit Detail | ✅ `Owner Unit Detail.html` | — |
-| Owner Expenses | ✅ `Owner Expenses.html` | — |
-| Owner Balance | ✅ `Owner Balance.html` | — |
-| Owner Agreement | ✅ `Owner Agreement.html` | — |
+| Owner Unit Detail | ✅ `Owner Unit Detail.html` | ✅ built (`/owner/units/{unit}` — Wave 1) |
+| Owner Expenses | ✅ `Owner Expenses.html` | ✅ built (`/owner/expenses` — Wave 1) |
+| Owner Balance | ✅ `Owner Balance.html` | ✅ built (`/owner/balance` — Wave 1) |
+| Owner Agreement | ✅ `Owner Agreement.html` | ✅ built (`/owner/agreement` — Wave 1) |
 | Owner Bookings | ✅ `Owner Bookings.html` | — |
 | Owner Booking Detail | ✅ `Owner Booking Detail.html` | — |
 | Owner Block Calendar | ✅ `Owner Block Calendar.html` | — |
 | Owner Rates | ✅ `Owner Rates.html` | — |
-| Owner Documents | ✅ `Owner Documents.html` | — |
-| Owner Archive | ✅ `Owner Archive.html` | — |
-| Owner Remittance Advice PDF | ✅ `Owner Remittance Advice PDF.html` | — |
-| Owner Booking Summary PDF | ✅ `Owner Booking Summary PDF.html` | — |
+| Owner Documents | ✅ `Owner Documents.html` | ✅ built (`/owner/documents` — Wave 1) |
+| Owner Archive | ✅ `Owner Archive.html` | ✅ built (`/owner/archive` — Wave 1) |
+| Owner Remittance Advice PDF | ✅ `Owner Remittance Advice PDF.html` | ✅ built (`/owner/payouts/{payout}/remittance` — Wave 1) |
+| Owner Booking Summary PDF | ✅ `Owner Booking Summary PDF.html` | ✅ built (`/owner/statements/{statement}/bookings` — Wave 1) |
 | Owner Annual Tax Summary PDF | ✅ `Owner Annual Tax Summary PDF.html` | — (tax, no backend) |
 | Owner Tax Center | ✅ `Owner Tax Center.html` | — (tax, no backend) |
 | Owner Payout Method | ✅ `Owner Payout Method.html` | — (🔴 Stripe Connect) |
@@ -85,14 +93,14 @@ Legend: **✅ EXISTS** (design file present, named) · **❌ MISSING** (no desig
 | Operator Housekeeping | ✅ `Operator Housekeeping.html` | ✅ built |
 | Operator Reservation Detail | ✅ `Operator Reservation Detail.html` | ✅ built |
 | **Operator Units** | ❌ **MISSING** | ✅ built (`/app/units`, styled ad hoc on the operator system) |
-| Operator Reservations (list) | ✅ `Operator Reservations.html` | — |
-| Operator Reservation Cancelled | ✅ `Operator Reservation Cancelled.html` | — |
-| Operator Reservation No-show | ✅ `Operator Reservation No-show.html` | — |
+| Operator Reservations (list) | ✅ `Operator Reservations.html` | ✅ built (`/app/reservations` — Wave 2) |
+| Operator Reservation Cancelled | ✅ `Operator Reservation Cancelled.html` | ✅ built (Wave 2 — a terminal state ON the reservation detail, not a separate route) |
+| Operator Reservation No-show | ✅ `Operator Reservation No-show.html` | ✅ built (Wave 2 — same; terminal state on the detail) |
 | Operator New Reservation | ✅ `Operator New Reservation.html` | — |
 | Operator Group Booking | ✅ `Operator Group Booking.html` | — |
-| Operator Refund | ✅ `Operator Refund.html` | — |
-| Operator Guests (CRM) | ✅ `Operator Guests.html` | — |
-| Operator Guest Profile | ✅ `Operator Guest Profile.html` | — |
+| Operator Refund | ✅ `Operator Refund.html` | ✅ built (`/app/reservations/{reservation}/refund` — Wave 2) |
+| Operator Guests (CRM) | ✅ `Operator Guests.html` | ✅ built (`/app/guests` — Wave 2) |
+| Operator Guest Profile | ✅ `Operator Guest Profile.html` | ✅ built (`/app/guests/{guest}` — Wave 2) |
 | Operator Portfolio | ✅ `Operator Portfolio.html` | — |
 | Operator Search | ✅ `Operator Search.html` | — |
 
@@ -201,8 +209,8 @@ Guest PDF pack (all ✅): `Guest Folio Receipt PDF` · `Guest VAT Invoice PDF` �
 |---|---|---|
 | Operator Channels | ✅ `Operator Channels.html` | — (backend certified) |
 | Operator Rates / ARI grid | ✅ `Operator Rates.html` | — (backend certified) |
-| Operator Payout Run | ✅ `Operator Payout Run.html` | — |
-| Operator Owner Detail | ✅ `Operator Owner Detail.html` | — |
+| Operator Payout Run | ✅ `Operator Payout Run.html` | ✅ built (`/app/payouts/run` — Wave 1) |
+| Operator Owner Detail | ✅ `Operator Owner Detail.html` | ✅ built (`/app/owners/{owner}` — Wave 1) |
 | Owner Payout Method | ✅ `Owner Payout Method.html` | — (🔴 Stripe Connect) |
 
 ---
@@ -233,25 +241,33 @@ future module.**
 
 ---
 
-## D. Wave 1 coverage (the immediate build target) — **10/10 EXIST ✅**
+## D. Wave 1 coverage — **10/10 EXIST ✅ · ALL BUILT (2026-07-16)**
 
-Per `docs/TIER1-SPEC.md`, Wave 1 is the READY owner-accounting long-tail. **Every Wave 1 screen has a design —
-zero design gate; all can be built now.**
+Per `docs/TIER1-SPEC.md`, Wave 1 was the READY owner-accounting long-tail. **Every Wave 1 screen had a design —
+zero design gate — and every one has since shipped.** Kept as the record that the prediction held: the design
+library covered the wave completely, and the build needed no design work first.
 
 | Wave 1 screen | Design | Status |
 |---|---|---|
-| Owner Balance | ✅ `Owner Balance.html` | build now |
-| Owner Expenses | ✅ `Owner Expenses.html` | build now |
-| Owner Agreement | ✅ `Owner Agreement.html` | build now |
-| Owner Archive | ✅ `Owner Archive.html` | build now |
-| Owner Remittance PDF | ✅ `Owner Remittance Advice PDF.html` | build now |
-| Owner Booking PDF | ✅ `Owner Booking Summary PDF.html` | build now |
-| Owner Unit Detail | ✅ `Owner Unit Detail.html` | build now |
-| Operator Owner Detail | ✅ `Operator Owner Detail.html` | build now |
-| Payout Run | ✅ `Operator Payout Run.html` | build now |
-| Owner Documents | ✅ `Owner Documents.html` | build now |
+| Owner Balance | ✅ `Owner Balance.html` | ✅ built |
+| Owner Expenses | ✅ `Owner Expenses.html` | ✅ built |
+| Owner Agreement | ✅ `Owner Agreement.html` | ✅ built |
+| Owner Archive | ✅ `Owner Archive.html` | ✅ built |
+| Owner Remittance PDF | ✅ `Owner Remittance Advice PDF.html` | ✅ built |
+| Owner Booking PDF | ✅ `Owner Booking Summary PDF.html` | ✅ built |
+| Owner Unit Detail | ✅ `Owner Unit Detail.html` | ✅ built |
+| Operator Owner Detail | ✅ `Operator Owner Detail.html` | ✅ built |
+| Payout Run | ✅ `Operator Payout Run.html` | ✅ built |
+| Owner Documents | ✅ `Owner Documents.html` | ✅ built |
 
-**Verdict: Wave 1 is 100% design-covered. Nothing to design first — proceed straight to the styled-UI build.**
+**Verdict (held): Wave 1 was 100% design-covered; nothing had to be designed first. Wave 2 (Reservations list ·
+cancelled/no-show terminal states · Refund · Guests CRM · Guest Profile) then shipped 2026-07-17 on the same
+footing — also 100% pre-designed.**
+
+**The immediate build target is no longer a design question.** Next up is the **Wave 2 outstanding register**
+(`terminate()`'s missing internal status guard · two dead enum values · the unenforced permission catalog ·
+`anonymize()` having no UI trigger) — all **code**, no design needed — and then **Wave 3 (Owner Messages
+inbox)**, whose design `Owner Messages.html` already **✅ EXISTS** (see §B, Unified Inbox).
 
 ---
 
@@ -277,16 +293,19 @@ Files in `docs/design/raw/` that don't map 1:1 to a distinct *needed app screen*
 
 ## Summary
 
-- **Folder truth:** 125 files / 124 screens (catalogue says 120 — **reconcile +5**, all now-built inbox/auth).
+- **Folder truth:** 125 files / 124 screens — and the catalogue now **agrees** (reconciled 2026-07-16). The
+  +5 were all now-built inbox/auth exports.
 - **Coverage:** near-total. Of ~90 needed screens across all modules, **only ~3 lack a design** — and those
   are: **Operator Units** (already built), **Password Reset Email** (already built), and **2FA** (needs backend
   anyway). **All Tier-2 future modules are fully designed.**
-- **Wave 1:** **10/10 designed** — no design work precedes the build.
+- **Waves 1 & 2:** both were 100% designed and **both are now BUILT** (2026-07-16 / 2026-07-17) — design never
+  gated either. **Wave 3 (Owner Messages)** is likewise already designed.
 - **Bottleneck reality:** **design is not the constraint** for any planned work. Every buildable-now screen and
   every speculative future module already has its design. The constraint is build effort (Tier 1) and product
   commitment (Tier 2), not design availability.
 
 ---
 
-*Read-only audit. Ground truth = the real `docs/design/raw/` listing (125 files). Trust the folder over the
-catalogue; the catalogue should be updated to match.*
+*Read-only audit. Ground truth = the real `docs/design/raw/` listing (125 files) — re-verified 2026-07-17.
+The catalogue was updated to match on 2026-07-16 and no longer disagrees; where `index.html`'s own manifest
+count still lags, trust the folder.*

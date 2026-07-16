@@ -147,6 +147,18 @@ class Guest extends Model
                 MessageThread::query()->whereKey($threadIds)->update(['participant_identity' => null, 'subject' => null]);
             }
 
+            // GDPR: scrub the operator's NOTES about this guest for the same reason as the messages above —
+            // `notes.body` is free text and staff write identifying detail into it ("travelling with X",
+            // "allergic to Y"). A note ABOUT an identified person is their personal data, so leaving it would
+            // keep PII the erase promises to destroy. Redact the body, keep the row + author + timestamp so
+            // the audit skeleton survives — never soft-delete-and-keep-PII.
+            //
+            // This landed WITH the guest profile (Wave 2 · Sub-gate 5), the first thing in the app that ever
+            // WROTE a note: until then the table was empty everywhere, so the gap was unreachable rather than
+            // benign. Shipping the writer without this would have opened a real hole in a store the app
+            // already promises to clear. Tenant-scoped + guest-scoped via the morph relation.
+            $this->notes()->update(['body' => '']);
+
             // NOTE: never put the erased PII into the audit before/after — that would re-retain it.
             app(AuditEventRecorder::class)->record(
                 action: 'guest.anonymized',

@@ -68,6 +68,11 @@ Strength: **SIMPLE** (display over existing data) · **MODERATE** (derived data 
 (many extras, new writes, or partial backend). Buildability: **READY** (pure integration) · **MOSTLY-READY**
 (small backend additions listed) · **NEEDS-BACKEND-FIRST** (a backend gate precedes the UI).
 
+**Status (2026-07-17):** the Strength/Buildability ratings below are the **pre-build** assessment and are kept
+as the record of what we predicted. **Wave 1 shipped 2026-07-16; Wave 2 shipped 2026-07-17** — see
+*Recommended build order* for what each wave actually shipped, and the per-screen sections for the decisions
+that resolved their open questions.
+
 ### Operator
 
 | Screen | Route / stub | Strength | Buildability |
@@ -131,6 +136,13 @@ Strength: **SIMPLE** (display over existing data) · **MODERATE** (derived data 
 ## Operator — per-screen detail
 
 ### Reservations list — `Operator Reservations.html`
+- **STATUS: ✅ BUILT — Wave 2 · sub-gate 1 (2026-07-17).** Live at `/app/reservations` (`ReservationsList`).
+  **Decision that resolved the status semantics:** a *stage* is **not** a *status*.
+  `App\Support\Reservations\ReservationStage` holds the badge **and** the SQL filter (`for()` + `scope()`) in
+  ONE class, so a filter chip cannot drift from what it filters. The design showed "Completed" and "In house"
+  as if they were statuses — they are not in the 7-value enum ("Completed" is `checked_out`; "In house" is the
+  *stage* of a `checked_in` reservation). No enum value was invented; `DUE` and `CANCELLED` are separate stages
+  because folding them into the three headline buckets would lie.
 - **Route/stub:** net-new `/app/reservations` (only the *detail* screen exists today). Livewire list component.
 - **Design contains (intent):** paginated reservations table (guest, dates, room/unit, source badge, status
   badge, balance); **filters** (status, source/channel, date range, property); **search**; **bulk actions**;
@@ -149,6 +161,10 @@ Strength: **SIMPLE** (display over existing data) · **MODERATE** (derived data 
 - **Verdict:** **READY.**
 
 ### Reservation Cancelled / No-show (states) — `Operator Reservation Cancelled.html`, `Operator Reservation No-show.html`
+- **STATUS: ✅ BUILT — Wave 2 · sub-gate 2 (2026-07-17).** Both terminal states render on
+  `/app/reservations/{id}`; cancel and no-show are guarded POSTs (`ReservationLifecycleController` →
+  `AssignmentService::cancelReservation` / `markNoShow`), exactly as the "biggest risk" line below called for.
+  Fee engines (cancellation/no-show fees) were deliberately deferred, not faked.
 - **Route/stub:** reuse `/app/reservations/{id}` (`ReservationDetail`) with state-conditional rendering.
 - **Design contains (intent):** the reservation detail rendered in a terminal state — cancellation/no-show
   banner, the folio showing the reversal/charge ledger, refund affordance.
@@ -201,6 +217,13 @@ Strength: **SIMPLE** (display over existing data) · **MODERATE** (derived data 
   create + a group-folio roll-up decision. Everything underneath exists.
 
 ### Refund (dedicated) — `Operator Refund.html`
+- **STATUS: ✅ BUILT — Wave 2 · sub-gate 3 (2026-07-17).** Live at `/app/reservations/{id}/refund`
+  (`ReservationRefund`), POSTing to the existing `reservations.refund` action (now amount-aware). **The screen
+  exists to respect invariant #27 — the cumulative refund bound — at the UI:** it shows the real
+  *remaining-refundable* per payment and caps the input at it. ⚠️ #27 was closed in `0b9c800` **after** this
+  spec was written: the "append-only correctness" note below was **necessary but not sufficient** — append-only
+  (#7) bounds EDITS, #27 bounds the SUM, and a €369 payment took three full refunds while both reads of this
+  spec's advice were satisfied.
 - **Route/stub:** net-new page (or modal) — refund flow. The action already exists inside `ReservationDetail`.
 - **Design contains (intent):** refund form (amount, reason, method), folio preview, toggles (full/partial).
 - **Backend reality:**
@@ -212,6 +235,23 @@ Strength: **SIMPLE** (display over existing data) · **MODERATE** (derived data 
 - **Verdict:** **READY.**
 
 ### Guests CRM — list `Operator Guests.html` + profile `Operator Guest Profile.html`
+- **STATUS: ✅ BUILT — Wave 2 · sub-gates 4–5 (2026-07-17).** List `/app/guests` (`GuestsList`) + profile
+  `/app/guests/{guest}` (`GuestProfile`); writes via `GuestActionController` → `GuestService`.
+  **The decisions that resolved this screen's open questions:**
+  - **Lifetime spend — DONE, and the answer is BILLED.** `App\Support\Guest\GuestSpend`, labelled
+    **"Total billed"**, with the real **open balance BESIDE it**. The design's single figure netted a refund
+    off AND counted unpaid charges — **it could not be both**, so the two are shown as the two separate facts
+    they are. Shared by the list and the profile, so they cannot disagree.
+  - **Stays / nights / "guest since" — DONE.** `App\Support\Guest\GuestHistory`, **shared with the inbox's
+    guest card** — which already rendered "N stays · guest since YYYY" counting cancellations, so the inbox and
+    the CRM were about to say "3 stays" and "2 stays" about the same person on the same afternoon, both
+    sincerely. A stay = a non-cancelled reservation, keyed on `ReservationStage::CANCELLED_STATUSES` so it
+    cannot drift from the stage badge either.
+  - **`Guest::reservations()` now exists** — keyed on `reservations.lead_guest_id`, the FK every built operator
+    surface already treats as "the guest of this booking". The `reservation_guests` pivot is **deliberately
+    excluded**: including it would make "reservations of this guest" mean two different things on two screens.
+  - **Search is name-only** — email/phone are encrypted at rest (see *Global Search* below). The page **SHOWS
+    contact detail it cannot SEARCH**, and its footer says so outright rather than silently returning nothing.
 - **Route/stub:** net-new `/app/guests` (list) + `/app/guests/{guest}` (profile).
 - **Design contains (intent, list):** guest table; **filters** (VIP, risk, nationality, marketing consent);
   **search**; **export**; **VIP / risk badges**; lifetime spend + last-stay columns; row → profile.
@@ -226,11 +266,14 @@ Strength: **SIMPLE** (display over existing data) · **MODERATE** (derived data 
   - Notes / tags — ✅ REAL (polymorphic `Note`, `Tag`).
   - Stay history — ✅ REAL (`Reservation` where lead_guest_id / `reservation_guests`).
   - **Lifetime spend / last stay** — 🟨 DERIVABLE (aggregate folios/payments per guest; not a stored column).
+    **Now derived — `GuestSpend` (billed + open balance) + `GuestHistory` (stays/nights/since).**
   - Export — 🟨 DERIVABLE (CSV of the query; note CSV export is a standing deferral — flag it).
 - **Writes:** edit guest, add note/tag, `anonymize()` (GDPR — exists). Guest create = Eloquent/`GuestMatcher`.
 - **Strength:** MODERATE. **Biggest risk:** the lifetime-spend aggregation (derive, don't fake) and PII
   discipline (encrypted contact, name-only where appropriate).
 - **Verdict:** list **READY**; profile **MOSTLY-READY** (needs the lifetime-spend/last-stay derivation helper).
+  **Both BUILT (2026-07-17) — the derivation shipped as `GuestSpend` + `GuestHistory`; the helper the profile
+  was waiting on is the one that also stopped the inbox and the CRM disagreeing.**
 
 ### Portfolio (multi-property) — `Operator Portfolio.html`
 - **Route/stub:** net-new `/app/portfolio`.
@@ -259,6 +302,11 @@ Strength: **SIMPLE** (display over existing data) · **MODERATE** (derived data 
 - **Strength:** MODERATE. **Biggest risk:** encrypted-PII search — cannot search guest email/phone without the
   deferred blind index; scope search to non-encrypted fields (reference, guest name, unit code) and flag the
   limitation.
+- **⚠️ Wave 2 PROVED this concretely (2026-07-17), so it is no longer a prediction:** the Guests CRM search is
+  **name-only**, and the screen **shows contact detail it cannot search** — its footer says so outright
+  ("Search covers names only — email and phone are encrypted at rest, so they cannot be searched"). The
+  blind-index gap is already visible in the shipped product; Global Search will hit exactly the same wall, and
+  the CRM's footer is the precedent for how to flag it honestly rather than silently returning nothing.
 - **Verdict:** **NEEDS-BACKEND-FIRST** — a (small) search service must precede the UI; and full guest-contact
   search needs the deferred blind-index.
 
@@ -557,9 +605,17 @@ owner+tenant-scoped in `render()`, never RMB. Reads flow through `OwnerPortalSer
 Sequenced fastest-wins-first, **grouped by shared backend** so a cluster ships together. Every item is 🟢
 buildable now (no external account) unless marked 🔴.
 
-### Wave 1 — READY, over the *owner-accounting* backend (the wedge's long tail; highest confidence)
-All reuse the owner shell + `OwnerPortalService`/owner-accounting services + `OwnerScope`. Ship as one design
-sub-pass:
+### Wave 1 — ✅ COMPLETE (shipped 2026-07-16) — over the *owner-accounting* backend (the wedge's long tail)
+**Shipped, across four gated sub-gates:** owner **Balance** · **Expenses** · **Agreement** · **Archive** ·
+**Unit Detail** · **Documents** · operator **Owner Detail** · **Payout Run** (REAL money writes via the
+certified `OwnerPayoutService`; `ManualPayoutRail` real, Stripe Connect honestly disabled "Soon") · plus the
+**Remittance Advice** and **Booking Summary** PDFs. Presentation only — **zero** files changed under
+`app/Services` / `app/Models` / `database/migrations` / `app/Payouts`, verified per gate. Three shared
+extractions prevent screen↔document drift: `Support\Payouts\RailLabel`, `Support\Owner\OwnerOccupancy`
+(keyed on **physical unit id, never room type**), and `assertNoRawBlade()`.
+
+*(Original plan, kept as the record.)* All reuse the owner shell + `OwnerPortalService`/owner-accounting
+services + `OwnerScope`. Ship as one design sub-pass:
 1. **Owner Balance** (ledger) · **Owner Expenses** · **Owner Agreement** · **Owner Archive** — SIMPLE, pure
    read over `OwnerLedgerEntry`/`OwnerExpense`/`ManagementAgreement`/`OwnerStatement`.
 2. **Owner Remittance Advice PDF** + **Owner Booking Summary PDF** — mirror the existing statement-PDF pattern.
@@ -568,14 +624,33 @@ sub-pass:
 5. **Payout Run** — batch over `OwnerPayoutService::createFromStatement/pay` (ManualPayoutRail; Connect 🔴 stub).
 6. **Owner Documents** — aggregation view over the above (MOSTLY-READY).
 
-### Wave 2 — READY, over the *reservations/folio* backend (operator daily-ops completion)
+### Wave 2 — ✅ COMPLETE (shipped 2026-07-17) — over the *reservations/folio* backend (operator daily-ops)
+**Shipped, across five gated sub-gates:** operator **Reservations list** · **Reservation cancelled / no-show**
+terminal states · the **Refund** screen · the **Guests CRM list** · the **Guest profile**. Four shared
+definitions came out of it so two surfaces cannot disagree: `Support\Reservations\ReservationStage` (badge AND
+its SQL filter), `Support\Guest\GuestSpend` ("Total billed" + open balance beside it),
+`Support\Guest\GuestHistory` (stays/nights/since — shared with the inbox guest card), and `Guest::reservations()`
+(lead_guest_id; pivot deliberately excluded). It also produced **invariant #28** (the guest-PII perimeter) and a
+**🔴 four-item outstanding register** — see below.
+
+*(Original plan, kept as the record.)*
 7. **Reservations list** + **Cancelled/No-show** states — table + terminal-state detail over `Reservation` +
    existing `cancelReservation`/`markNoShow`/`refundPayment`.
 8. **Refund** (dedicated, partial + reason) — over `FolioService::refundPayment`.
 9. **Guests CRM list** — over `Guest` (+ VIP/risk/tags/notes); then **Guest Profile** (MOSTLY-READY — add the
    lifetime-spend derivation).
 
-### Wave 3 — READY, over *inbox* + owner surfaces
+### ⛔ SEQUENCED FIRST — clear the Wave 2 outstanding register (before any Wave 3 work)
+Wave 2 shipped with **four items deliberately found-and-not-fixed**, recorded in the
+**🔴 WAVE 2 OUTSTANDING REGISTER** in `docs/PROJECT-STATE.md` (that register is the authority; do not restate
+its detail here): `AssignmentService::terminate()`'s **missing internal status guard** · **two dead enum
+values** (`payments.payment_status = 'refunded'`, `folios.status = 'closed'`) · the **🔴 unenforced permission
+catalog** (a real security follow-up) · **`anonymize()` has no UI trigger** (a GDPR erase path with no way to
+invoke it). This is correctness/security debt from a wave we just shipped — it is cleared **before** Wave 3
+starts, not carried.
+
+### Wave 3 — ⬅️ NEXT BUILD TARGET (pending) — READY, over *inbox* + owner surfaces
+*(Starts once the register above is clear.)*
 10. **Owner Messages** (inbox) — reuse `InboxService`, owner-scoped, on the owner shell.
 
 ### Wave 4 — MOSTLY-READY, small backend additions (grouped by shared backend)

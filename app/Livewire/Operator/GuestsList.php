@@ -9,6 +9,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Tag;
+use App\Support\Guest\GuestHistory;
 use App\Support\Guest\GuestSpend;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
@@ -284,10 +285,9 @@ class GuestsList extends Component
             'phone' => $this->contact($guest->phone),
             // Decision 2 — a nationality, not a residence.
             'nationality' => $this->countryName($guest->nationality),
-            // Decision 3 — a cancelled booking is not a stay; the rule comes from the shared resolver.
-            'stays' => $guest->reservations
-                ->reject(fn ($reservation): bool => in_array((string) $reservation->status, ReservationStage::CANCELLED_STATUSES, true))
-                ->count(),
+            // Decision 3 — a cancelled booking is not a stay. The rule is the SHARED GuestHistory's, so this
+            // count, the profile's and the inbox guest card's are the same number by construction.
+            'stays' => GuestHistory::for($guest->reservations)['stays'],
             'stage' => $stage,
             'stage_meta' => $stage !== null ? ReservationStage::meta($stage) : null,
             // Decision 1 (locked) — BILLED, with the open balance BESIDE it, never netted into it.
