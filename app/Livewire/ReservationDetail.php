@@ -111,8 +111,15 @@ class ReservationDetail extends Component
         // The transition allow-lists are the WRITE PATH's own (public constants on the controller that
         // performs the mutation), never a second copy: a button this screen offers is exactly a transition
         // ReservationLifecycleController will accept, and it cannot drift out of step with it.
-        $canCancel = in_array($status, ReservationLifecycleController::CANCELLABLE, true);
-        $canNoShow = in_array($status, ReservationLifecycleController::NO_SHOWABLE, true);
+        //
+        // …AND the actor's PERMISSION (2026-07-17). Both routes are now gated on `can:reservations.cancel`,
+        // which e.g. Housekeeping does not hold. A button is offered only when BOTH are true — the state
+        // permits the transition AND this user is allowed to make it. Either alone would render a control
+        // that 403s or gets refused, which is the "UI must not invite a rejection" failure (#27's principle,
+        // applied to authorization rather than to money).
+        $mayTerminate = auth()->user()?->can('reservations.cancel') ?? false;
+        $canCancel = $mayTerminate && in_array($status, ReservationLifecycleController::CANCELLABLE, true);
+        $canNoShow = $mayTerminate && in_array($status, ReservationLifecycleController::NO_SHOWABLE, true);
 
         return view('livewire.reservation-detail', [
             'viewer' => $this->viewer(),

@@ -25,7 +25,9 @@ function operatorFor(array $scenario, string $email = 'op@vyrobel.test'): User
 
     // A Membership alone is NOT operator access: /app is an allow-list gate (EnsureBackOfficeAccess) —
     // an owner has a Membership too. The inviting operator holds a real role, as a live one does.
-    return grantBackOfficeRole($user, $scenario['org']);
+    // Group Admin: inviting ASSIGNS A REAL ROLE, so the route is gated on `users.manage` — the
+    // privilege-escalation gate. Held by Property Owner / Group Admin only, never Hotel Manager.
+    return grantBackOfficeRole($user, $scenario['org'], 'Group Admin');
 }
 
 // ── The screen renders, tenant-scoped ────────────────────────────────────────────────────────────

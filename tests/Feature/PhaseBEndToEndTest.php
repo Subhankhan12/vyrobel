@@ -39,7 +39,8 @@ it('runs the full Phase B chain end-to-end: operator invite → email link → a
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $operator->id, 'status' => 'active']);
     // A Membership alone is NOT operator access — /app is an allow-list gate (EnsureBackOfficeAccess).
     // The inviting operator holds a real back-office role, exactly as a live invited staff member does.
-    $operator = grantBackOfficeRole($operator, $s['org']);
+    // Group Admin: this chain invites staff, and the invite route is gated on `users.manage` (#30).
+    $operator = grantBackOfficeRole($operator, $s['org'], 'Group Admin');
 
     // ── 1. The operator invites an owner via the REAL modal action (POST → controller → service → PRG)
     Mail::fake();

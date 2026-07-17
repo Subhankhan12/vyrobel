@@ -35,7 +35,10 @@ function refundScreen(int $paidMinor = 30000): array
         'payment' => $payment,
         'reservation' => $reservation,
         'scenario' => $s,
-        'staff' => operatorUser($s),
+        // Accountant, not the Hotel Manager default: the refund route + screen are gated on
+        // `payments.refund` (invariant #30), which the catalog DELIBERATELY withholds from a manager.
+        // The fixture moves to a role that genuinely holds it — the check is not weakened to suit it.
+        'staff' => operatorUser($s, [], 'Accountant'),
         'screen' => "/app/reservations/{$reservation->id}/refund",
         'post' => "/app/reservations/{$reservation->id}/refunds",
     ];

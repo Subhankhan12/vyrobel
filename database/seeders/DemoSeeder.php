@@ -110,6 +110,52 @@ class DemoSeeder extends Seeder
         );
         $staff->syncRoles(['Hotel Manager']);
 
+        // A SECOND staff login, deliberately — so the demo DEMONSTRATES the separation of duties rather than
+        // hitting a wall (2026-07-17). The catalog withholds `payments.refund` and `payouts.manage` from
+        // Hotel Manager: handing money back to a guest, or remitting an owner, is an accounting act. Now that
+        // those routes are actually enforced (invariant #30), `demo-staff` correctly sees no refund button and
+        // no payout controls — which reads as a BUG unless the demo can also show the other side of the line.
+        //
+        // Two accounts, one point: the control is real, and the right person can still do the work.
+        //   demo-staff@…      Hotel Manager → runs the house; cannot refund or pay out
+        //   demo-accountant@… Accountant    → refunds + runs the payout run
+        //
+        // (The alternative — granting demo-staff a role that can do everything — is how the #26 audit's
+        // inverted seeder happened: a seeder that disagrees with the production model teaches the wrong thing.)
+        $accountant = User::firstOrCreate(
+            ['email' => 'demo-accountant@vyrobel-demo.test'],
+            ['name' => 'Demo Accountant', 'password' => Hash::make('password'), 'status' => 'active'],
+        );
+        Membership::firstOrCreate(
+            ['organization_id' => $org->id, 'user_id' => $accountant->id],
+            ['status' => 'active', 'invited_at' => now()],
+        );
+        $accountant->syncRoles(['Accountant']);
+
+        // The ORG ADMIN. ⚠️ Added because enforcing `users.manage` (invariant #30) otherwise LEFT THE INVITE
+        // FLOW UNDEMOABLE: `demo-staff` could invite an owner before only because nothing checked, and
+        // neither Hotel Manager nor Accountant holds `users.manage` — so with the gate on, NO demo account
+        // could reach a real shipped feature. Caught by seeding and looking, not by a test.
+        //
+        // ⚠️ `Property Owner` is the ORG ADMIN (`['*']`), NOT the unit owner — the naming trap the #26 audit
+        // found the demo seeder falling into. The unit owner is `demo-owner` (External Owner) below.
+        //
+        // The four accounts now mirror the production model exactly, and together they demo the whole RBAC
+        // story rather than one all-powerful login:
+        //   demo-admin@…      Property Owner  → org admin: invites staff/owners, can do anything
+        //   demo-accountant@… Accountant      → refunds + runs the payout run
+        //   demo-staff@…      Hotel Manager   → runs the house; NO refund, NO payout, NO invite
+        //   demo-owner@…      External Owner  → /owner only; refused from /app entirely (#26)
+        $admin = User::firstOrCreate(
+            ['email' => 'demo-admin@vyrobel-demo.test'],
+            ['name' => 'Demo Admin', 'password' => Hash::make('password'), 'status' => 'active'],
+        );
+        Membership::firstOrCreate(
+            ['organization_id' => $org->id, 'user_id' => $admin->id],
+            ['status' => 'active', 'invited_at' => now()],
+        );
+        $admin->syncRoles(['Property Owner']);
+
         // --- Mixed property ---
         $property = Property::create([
             'name' => 'Demo Seaside Property', 'brand' => 'Vyrobel Demo', 'type' => 'mixed',

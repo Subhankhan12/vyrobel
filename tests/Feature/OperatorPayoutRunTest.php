@@ -37,7 +37,9 @@ function payoutRunStaff(array $scenario, string $name = 'Marcus Bellweather'): U
     $user = User::factory()->create(['name' => $name, 'status' => 'active']);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return grantBackOfficeRole($user, $scenario['org']);
+    // Accountant: the payout run is gated on `payouts.manage` (added 2026-07-17 — it had no permission at
+    // all), held by Property Owner / Group Admin / Accountant. Paying an owner out is an accounting act.
+    return grantBackOfficeRole($user, $scenario['org'], 'Accountant');
 }
 
 /**

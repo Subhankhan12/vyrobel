@@ -21,7 +21,9 @@ function detailMember(array $scenario, string $name = 'Marisol Vandenberg'): Use
     $user = User::factory()->create(['name' => $name]);
     Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
 
-    return grantBackOfficeRole($user, $scenario['org']);
+    // Group Admin: this screen exercises BOTH `payments.record` and `payments.refund` (now enforced), and
+    // still needs `reservations.view` to render — Accountant lacks that, Group Admin holds all three.
+    return grantBackOfficeRole($user, $scenario['org'], 'Group Admin');
 }
 
 /** Book a reservation and give it a folio: room €300 + city tax €30, optionally a €200 payment. */

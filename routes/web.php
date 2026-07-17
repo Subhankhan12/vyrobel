@@ -148,7 +148,8 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
     // Auth Phase B · Step 4 — operator Owners screen + the invite-owner write (POST → controller → PRG).
     Route::get('/owners', OperatorOwners::class)->name('owners');
-    Route::post('/owners/invite', [InviteOwnerController::class, 'store'])->middleware('throttle:10,1')->name('owners.invite');
+    Route::post('/owners/invite', [InviteOwnerController::class, 'store'])
+        ->middleware(['throttle:10,1', 'can:users.manage'])->name('owners.invite');
     // Wave 1 · Sub-gate 3 — the operator's TENANT-scoped lens on ONE owner (units/agreement/
     // statements/payouts/balance). NOT owner-scoped: OwnerScope is inactive off-portal, so this
     // deliberately reads the whole owner relationship the operator manages, within their own org
@@ -159,8 +160,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // the Stripe-Connect rail stays a config-gated skeleton that THROWS — never faked). The writes use
     // the operator-mutation pattern: POST → controller → service → PRG (CSRF + tenant re-scoped).
     Route::get('/payouts/run', PayoutRun::class)->name('payouts.run');
-    Route::post('/payouts/create', [PayoutRunActionController::class, 'create'])->name('payouts.create');
-    Route::post('/payouts/pay', [PayoutRunActionController::class, 'pay'])->name('payouts.pay');
+    Route::post('/payouts/create', [PayoutRunActionController::class, 'create'])
+        ->middleware('can:payouts.manage')->name('payouts.create');
+    Route::post('/payouts/pay', [PayoutRunActionController::class, 'pay'])
+        ->middleware('can:payouts.manage')->name('payouts.pay');
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
     // Unified Inbox — UNSTYLED operator contract stubs (thread list + thread view; styled screen is a
@@ -207,7 +210,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // `reservations.refund` POST below (now amount-aware). The screen exists to RESPECT the #27 cumulative
     // guard at the UI: it shows the real remaining-refundable per payment, caps the input at it, and offers
     // nothing once remaining = 0 — so the button cannot invite a rejection. The service stays the authority.
-    Route::get('/reservations/{reservation}/refund', ReservationRefund::class)->name('reservations.refund-screen');
+    // Gated on the same permission as the POST it exists to perform (2026-07-17). It is a GET, but its ONLY
+    // purpose is refunding: leaving it open would let an unpermitted role open a refund form that 403s on
+    // submit — precisely the "UI must not invite a rejection" failure #27 warns about, just one click later.
+    Route::get('/reservations/{reservation}/refund', ReservationRefund::class)
+        ->middleware('can:payments.refund')->name('reservations.refund-screen');
     // Wave 2 · Sub-gate 4 — the operator GUESTS LIST (the CRM). Tenant-scoped, read-only.
     // ⚠️ This is the PII-visible surface (locked decision 4): guest email/phone are decrypted for display
     // HERE and nowhere else — the front desk, the reservations list and the inbox stay name-only.
@@ -240,10 +247,14 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // The proper fix is a guard inside terminate() itself (a service change — recorded as outstanding).
     // The controller's `catch (RuntimeException)` is still real: releaseLine() → lockAvailability() can
     // throw inside the transaction, and the rollback is total.
-    Route::post('/reservations/{reservation}/cancel', [ReservationLifecycleController::class, 'cancel'])->name('reservations.cancel');
-    Route::post('/reservations/{reservation}/no-show', [ReservationLifecycleController::class, 'markNoShow'])->name('reservations.no-show');
-    Route::post('/reservations/{reservation}/payments', [ReservationFolioActionController::class, 'recordPayment'])->name('reservations.payment');
-    Route::post('/reservations/{reservation}/refunds', [ReservationFolioActionController::class, 'refund'])->name('reservations.refund');
+    Route::post('/reservations/{reservation}/cancel', [ReservationLifecycleController::class, 'cancel'])
+        ->middleware('can:reservations.cancel')->name('reservations.cancel');
+    Route::post('/reservations/{reservation}/no-show', [ReservationLifecycleController::class, 'markNoShow'])
+        ->middleware('can:reservations.cancel')->name('reservations.no-show');
+    Route::post('/reservations/{reservation}/payments', [ReservationFolioActionController::class, 'recordPayment'])
+        ->middleware('can:payments.record')->name('reservations.payment');
+    Route::post('/reservations/{reservation}/refunds', [ReservationFolioActionController::class, 'refund'])
+        ->middleware('can:payments.refund')->name('reservations.refund');
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
     // Design pass · Operator Screen 3 — REAL housekeeping status advance via POST → action → redirect
     // (PRG). {task} is a string param resolved tenant-scoped in the controller (never RMB) → cross-org 404.

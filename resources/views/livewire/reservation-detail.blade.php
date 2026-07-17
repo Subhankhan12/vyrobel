@@ -117,7 +117,11 @@
                                     </div>
                                     <span class="vy-ledger-date">{{ $line['date'] }}</span>
                                     <span class="vy-ledger-amt tone-{{ $line['tone'] }}">{{ $line['amount'] }}</span>
-                                    @if ($line['refundable'])
+                                    {{-- `can` as well as `refundable`: the route is gated on payments.refund
+                                         (2026-07-17), which Hotel Manager and Front Desk deliberately do NOT
+                                         hold. A button that 403s is the authorization twin of the #27 bug —
+                                         the UI must never invite a rejection. --}}
+                                    @if ($line['refundable'] && auth()->user()?->can('payments.refund'))
                                         {{-- WIRED: a full refund is a NEW offsetting entry (append-only) via FolioService. --}}
                                         <form method="POST" action="{{ route('app.reservations.refund', $reservation['id']) }}" class="vy-refund-btn">
                                             @csrf
@@ -193,6 +197,7 @@
                     </div>
                 @endif
 
+                @can('payments.record')
                 <div class="vy-card vy-card--accent">
                     <span class="vy-eyebrow">Record a payment</span>
                     {{-- WIRED: posts through FolioService (append-only). Manual/offline under the default gateway. --}}
@@ -206,6 +211,7 @@
                     </form>
                     <div class="vy-recon" style="margin-top: 12px;">Offline / manual payment. Card &amp; 3DS capture is wired at the gateway, not this screen.</div>
                 </div>
+                @endcan
 
                 <div class="vy-card">
                     <span class="vy-eyebrow">More actions</span>
@@ -222,10 +228,12 @@
                     {{-- WIRED (Wave 2 · sub-gate 3): the dedicated refund screen — a real payment picker that
                          shows each payment's REMAINING refundable and caps a partial refund at it. The inline
                          per-payment full refund above still works and is unchanged. --}}
+                    @can('payments.refund')
                     <a href="{{ route('app.reservations.refund-screen', $reservation['id']) }}" class="vy-btn vy-btn--ghost" style="margin-top:12px;width:100%;justify-content:center" title="Refund a settled payment in full or in part">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
                         Partial / custom refund
                     </a>
+                    @endcan
                     {{-- REAL folio PDF export (tenant-scoped, reconciles to the cent). CSV export stays deferred. --}}
                     <a href="{{ route('app.reservations.folio-pdf', $reservation['id']) }}" class="vy-btn vy-btn--accent" style="margin-top:12px;width:100%;justify-content:center" title="Download the folio as a PDF">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>

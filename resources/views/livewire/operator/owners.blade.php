@@ -47,10 +47,15 @@
                 </span>
             </div>
             <div class="vy-right">
+                {{-- users.manage (2026-07-17): the invite ASSIGNS A REAL ROLE, so it is the privilege-
+                     escalation gate — held by Property Owner / Group Admin only. Hidden rather than shown
+                     dead, so the UI never invites the 403. --}}
+                @can('users.manage')
                 <button type="button" class="vy-btn vy-btn--accent" @click="open = true">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 20c0-3.3 2.7-5 6-5s6 1.7 6 5M18 14v6M21 17h-6"/></svg>
                     Invite an owner
                 </button>
+                @endcan
             </div>
         </div>
 
@@ -109,10 +114,17 @@
         </div>
 
         {{-- ============================ INVITE MODAL ============================ --}}
+        {{-- The WHOLE modal is behind users.manage (2026-07-17), not just the button that opens it: a form an
+             unpermitted user could never submit has no business in their DOM. The route is gated too — this
+             is the UI half, so the control is never offered (#27's "never invite a rejection"). --}}
+        @can('users.manage')
         <div class="vy-modal-backdrop" x-cloak x-show="open" x-transition.opacity
              @keydown.escape.window="open = false" @click.self="open = false">
             <div class="vy-modal" x-show="open" x-transition
                  role="dialog" aria-modal="true" aria-labelledby="vy-invite-title">
+                {{-- users.manage (2026-07-17) — THE escalation gate. This form assigns a REAL spatie role, so
+                     without it a Housekeeping user could invite themselves an Accountant and inherit
+                     payments.refund in two requests. Proven before the fix; see PermissionEnforcementTest. --}}
                 <form method="POST" action="{{ route('app.owners.invite') }}">
                     @csrf
 
@@ -231,6 +243,7 @@
                 </form>
             </div>
         </div>
+        @endcan
 
         </div>
     </x-operator.shell>

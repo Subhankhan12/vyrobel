@@ -114,6 +114,13 @@ return [
         'taxes.manage',
         'fees.manage',
         'addons.manage',
+        // Owner payouts — money OUT (2026-07-17). ⚠️ ADDED because it was MISSING: the payout run has always
+        // moved real money through OwnerPayoutService (create + pay, the ManualPayoutRail), and there was no
+        // permission in this catalog to check it against — the coarse /app door was the only thing standing
+        // in. Granted to the same set as `payments.refund` (Property Owner* / Group Admin / Accountant) and
+        // deliberately NOT to Hotel Manager: paying an owner out is an accounting act, and a manager who
+        // cannot hand a guest their money back should not be able to remit an owner's either.
+        'payouts.manage',
 
         // Housekeeping & maintenance
         'housekeeping.view',
@@ -145,6 +152,7 @@ return [
             'reservations.cancel', 'reservations.checkin', 'reservations.checkout',
             'guests.view', 'guests.manage', 'guests.erase', 'guest_documents.manage', 'corporate_accounts.manage',
             'folios.view', 'folios.manage', 'payments.view', 'payments.record', 'payments.refund',
+            'payouts.manage',
             'invoices.view', 'invoices.issue', 'taxes.manage', 'fees.manage', 'addons.manage',
             'housekeeping.view', 'housekeeping.manage', 'maintenance.manage',
             'reports.view',
@@ -202,6 +210,7 @@ return [
         'Accountant' => [
             'folios.view', 'folios.manage',
             'payments.view', 'payments.record', 'payments.refund',
+            'payouts.manage',
             'invoices.view', 'invoices.issue',
             'taxes.manage', 'fees.manage', 'addons.manage',
             'reports.view',

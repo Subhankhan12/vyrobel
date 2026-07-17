@@ -86,7 +86,7 @@
                 <div class="vy-card vy-fade">
                     <div class="vy-detail-head">
                         <h2 class="vy-card-title">Ready to pay</h2>
-                        @if (count($ready) > 0)
+                        @if (count($ready) > 0 && auth()->user()?->can('payouts.manage'))
                             <form method="POST" action="{{ route('app.payouts.create') }}">
                                 @csrf
                                 <button type="submit" class="vy-btn vy-btn--accent">
@@ -129,11 +129,15 @@
                                             </td>
                                             <td class="vy-u-code">{{ $row['net'] }}</td>
                                             <td>
+                                                {{-- payouts.manage (2026-07-17): money OUT. Held by Property
+                                                     Owner / Group Admin / Accountant, not Hotel Manager. --}}
+                                                @can('payouts.manage')
                                                 <form method="POST" action="{{ route('app.payouts.create') }}">
                                                     @csrf
                                                     <input type="hidden" name="statement_id" value="{{ $row['statement_id'] }}">
                                                     <button type="submit" class="vy-act vy-act--accent">Create payout</button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach
@@ -149,7 +153,7 @@
                 <div class="vy-card vy-fade">
                     <div class="vy-detail-head">
                         <h2 class="vy-card-title">Pending transfers</h2>
-                        @if (count($pending) > 0 && $rail['can_send'])
+                        @if (count($pending) > 0 && $rail['can_send'] && auth()->user()?->can('payouts.manage'))
                             <form method="POST" action="{{ route('app.payouts.pay') }}">
                                 @csrf
                                 <button type="submit" class="vy-btn vy-btn--accent">
@@ -190,7 +194,7 @@
                                             <td>{{ $row['method'] }}</td>
                                             <td class="vy-u-code">{{ $row['amount'] }}</td>
                                             <td>
-                                                @if ($rail['can_send'])
+                                                @if ($rail['can_send'] && auth()->user()?->can('payouts.manage'))
                                                     <form method="POST" action="{{ route('app.payouts.pay') }}">
                                                         @csrf
                                                         <input type="hidden" name="payout_id" value="{{ $row['payout_id'] }}">

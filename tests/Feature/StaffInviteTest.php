@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -40,7 +41,19 @@ function staffOperator(array $scenario, string $email): User
     $registrar->setPermissionsTeamId($scenario['org']->id);   // roles are team-scoped (team = org)
 
     try {
-        Role::findOrCreate('Property Owner', (string) config('authorization.guard'));
+        $role = Role::findOrCreate('Property Owner', (string) config('authorization.guard'));
+
+        // ⚠️ A TARGETED GRANT, NOT A ROLE SWAP — and the distinction is this file's whole point.
+        // The invite route is now gated on `can:users.manage` (invariant #30). `Property Owner` holds `['*']`
+        // in the CATALOG, but this fixture creates the role bare, via Role::findOrCreate, DELIBERATELY: it
+        // must NOT call the provisioner, because the fail-safe test below asserts the staff roles are
+        // *unprovisioned*. So the role exists with ZERO permissions attached — name-correct, permission-empty
+        // — and `can('users.manage')` would fail on the very role that is supposed to hold everything.
+        // Granting exactly the one permission the gate needs opens the door without provisioning the catalog,
+        // preserving what this file exists to prove.
+        Permission::findOrCreate('users.manage', (string) config('authorization.guard'));
+        $role->givePermissionTo('users.manage');
+
         $user->assignRole('Property Owner');
     } finally {
         $registrar->setPermissionsTeamId($previousTeam);

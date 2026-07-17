@@ -546,7 +546,17 @@ regression; all four predate Wave 2.** Recorded here so none is silently dropped
    — note bodies not redacted — was **CLOSED** in Wave 2: shipping the first note writer would otherwise have
    opened the hole itself. See invariant #28.)*
 
-5. **⚠️ ONE UNIDENTIFIED FLAKY TEST — the suite is a real gate, so this matters** (found 2026-07-17 during the
+5. **THE CATALOG HAS NO INBOX PERMISSION — logged, not invented** (found 2026-07-17 while enforcing #30).
+   `InboxActionController` performs six real writes (reply — which sends a **guest-facing message** — plus
+   assign/close/reopen/snooze/link-reservation) and there is **no `inbox.*` / `messages.*` permission in the
+   catalog to gate them on**. They are therefore still protected only by the coarse #26 door. Deliberately
+   **not** invented during the enforcement gate: naming a permission is a product decision about who may
+   speak to a guest, and inventing one to make a table look complete is exactly the fabrication the honesty
+   rule forbids. Decide the name + role grants in a dated `docs/DECISIONS.md` entry, then enforce.
+   *(The same is true of the other deferred low-risk surfaces — housekeeping/maintenance/photos DO have real
+   permissions and simply were not in the first enforced set; the inbox has none at all.)*
+
+6. **⚠️ ONE UNIDENTIFIED FLAKY TEST — the suite is a real gate, so this matters** (found 2026-07-17 during the
    consolidation audit). Of **six consecutive full runs**, five were **511/511 green** and one reported
    **510 passed / 1 failed**. The failure was **not captured** (the run printed only the count) and **never
    reproduced**: 5 further full runs and 6 targeted runs of all four true-OS-concurrency suites

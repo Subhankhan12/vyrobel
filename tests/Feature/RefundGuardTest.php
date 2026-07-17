@@ -180,7 +180,9 @@ it('keeps a valid refund append-only: a new offsetting row, the original untouch
 // ── 9. THE GUARD IS IN THE SERVICE — so the HTTP path is covered too, and rejects CLEANLY ─────────
 it('blocks an over-refund through the operator HTTP path with a clean error, not a 500', function () {
     ['folios' => $folios, 'payment' => $payment, 'scenario' => $s] = guardedPayment(30000);
-    $staff = operatorUser($s);
+    // Accountant — the role the catalog actually trusts with `payments.refund` (now enforced, #30).
+    // This file is about the #27 MONEY bound, so its actor must get past authorization to reach it.
+    $staff = operatorUser($s, [], 'Accountant');
 
     $reservationId = $payment->reservation_id;
 
@@ -205,7 +207,9 @@ it('blocks an over-refund through the operator HTTP path with a clean error, not
 // ── 10. The UI stops inviting the over-refund: a fully-refunded payment is not refundable ─────────
 it('marks a fully-refunded payment as no longer refundable and exposes the remaining amount', function () {
     ['folios' => $folios, 'payment' => $payment, 'scenario' => $s] = guardedPayment(30000);
-    $staff = operatorUser($s);
+    // Accountant — the role the catalog actually trusts with `payments.refund` (now enforced, #30).
+    // This file is about the #27 MONEY bound, so its actor must get past authorization to reach it.
+    $staff = operatorUser($s, [], 'Accountant');
     $reservationId = $payment->reservation_id;
 
     // NB assert on the RENDERED form action (a URL), not the route NAME — `route()` renders the URL, so
