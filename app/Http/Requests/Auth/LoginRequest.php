@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -44,19 +45,25 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Verify the credentials, or throw a GENERIC validation error (no enumeration) — rate-limited.
+     * VERIFY the credentials WITHOUT logging in, or throw a GENERIC validation error (no enumeration) —
+     * rate-limited.
+     *
+     * ⚠️ `Auth::validate` (not `attempt`) is the load-bearing choice for 2FA: it checks the password against
+     * the `hashed` column but establishes NO session. The caller ({@see LoginController})
+     * then decides — a 2FA-enabled user is held in a pending state and challenged BEFORE `Auth::login`; a
+     * non-2FA user is logged in immediately (validate + login is equivalent to the old single `attempt`, so
+     * that path is unchanged). `status = active` is folded into the credential query exactly as before, so a
+     * suspended account still fails with the SAME generic message (no enumeration).
      */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        // `status` is a plain (non-password) attribute → Auth adds it as a WHERE, so only an ACTIVE
-        // user with the right password authenticates. Failure is indistinguishable across causes.
-        $ok = Auth::attempt([
+        $ok = Auth::validate([
             'email' => (string) $this->string('email'),
             'password' => (string) $this->string('password'),
             'status' => 'active',
-        ], false);
+        ]);
 
         if (! $ok) {
             RateLimiter::hit($this->throttleKey());

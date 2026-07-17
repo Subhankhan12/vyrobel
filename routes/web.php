@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
+use App\Http\Middleware\RequireTwoFactorPending;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Livewire\FrontDesk;
@@ -79,6 +81,18 @@ Route::get('/', function () {
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store']);
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+
+/*
+ * 2FA login CHALLENGE (Auth · Step 2) — reachable ONLY in the "2FA pending" state (correct password given,
+ * not yet logged in) via RequireTwoFactorPending. That pending marker is a plain session key, NOT the auth
+ * guard, so it grants no authenticated access — /app + /owner reject a pending user by construction. The POST
+ * verifies a TOTP code OR a single-use recovery code and is rate-limited in the controller (per pending user
+ * + IP); CSRF-protected (web group). Session regenerated on success (fixation protection).
+ */
+Route::middleware(RequireTwoFactorPending::class)->group(function () {
+    Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'create'])->name('two-factor.challenge');
+    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])->name('two-factor.login');
+});
 
 /*
  * PUBLIC forgot / reset password (Auth Phase B · finishing sweep). Laravel Password broker — tokened,

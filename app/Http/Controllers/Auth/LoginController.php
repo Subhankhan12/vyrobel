@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -38,25 +39,45 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    /** Authenticate, regenerate the session (fixation protection), and redirect by role. */
+    /**
+     * Verify the password, then EITHER challenge for 2FA (if enabled) or log in — regenerating the session
+     * (fixation protection) and redirecting by role.
+     */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $request->authenticate();   // verifies the password; does NOT log in (Auth::validate)
 
-        /** @var User $user */
-        $user = $request->user();
+        // The credentials are validated, so this active user exists. Resolved explicitly (validate leaves no
+        // authenticated user on the request) by email + status ONLY — never a request-supplied id.
+        $user = User::query()
+            ->where('email', Str::lower(trim((string) $request->string('email'))))
+            ->where('status', 'active')
+            ->firstOrFail();
+
         $home = $this->homeFor($user);
 
-        // Authenticated but with no workspace at all — do not leave a half-usable session. Same
-        // teardown as logout, with a generic message (never a 500 into a context-less /app request).
+        // No workspace at all — reject before any session/challenge. Auth::validate created no session, so
+        // there is nothing to tear down; just the generic message (never a 500 into a context-less /app).
         if ($home === null) {
-            $this->teardown($request);
-
             throw ValidationException::withMessages([
                 'email' => 'This account does not have access to any workspace yet.',
             ]);
         }
 
+        // 🔐 2FA — a password-verified but 2FA-enabled user is NOT logged in. They enter a PENDING state (a
+        // plain session key, NEVER the auth guard) and are challenged. That state grants no authenticated
+        // access by construction: /app + /owner sit behind `auth`, which a not-logged-in user fails. The
+        // session id is regenerated for fixation protection on this transition.
+        if ($user->hasTwoFactorEnabled()) {
+            $request->session()->put('login.2fa.user_id', (string) $user->getKey());
+            $request->session()->regenerate();
+
+            return redirect()->route('two-factor.challenge');
+        }
+
+        // No 2FA → log in now. Auth::validate + Auth::login is equivalent to the old single Auth::attempt for
+        // this path, so the non-2FA login is unchanged (no regression).
+        Auth::login($user);
         $request->session()->regenerate();
         $user->forceFill(['last_login_at' => now()])->saveQuietly();
 

@@ -23,6 +23,11 @@ use Spatie\Permission\Traits\HasRoles;
 /**
  * Global (non-tenant) account. ULID PK so every user-referencing FK across the schema is
  * a uniform char(26). Roles/permissions are org-scoped via spatie teams (team = organization).
+ *
+ * The `encrypted:array` cast decrypts + JSON-decodes the recovery codes on read, so the runtime type is an
+ * array of `{code, used_at}` entries (Larastan can only see the encrypted-string column, hence this hint).
+ *
+ * @property list<array{code: string, used_at: string|null}>|null $two_factor_recovery_codes
  */
 #[Fillable(['name', 'email', 'password', 'locale', 'status', 'two_factor_enabled', 'last_login_at'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]

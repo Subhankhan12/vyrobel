@@ -120,6 +120,49 @@ class TwoFactorService
     }
 
     /**
+     * Verify a LOGIN-CHALLENGE input: a 6-digit TOTP code OR an unused recovery code. A recovery code that
+     * matches is CONSUMED (its `used_at` is stamped) so it can never be used twice. Returns true on either.
+     */
+    public function verifyChallenge(User $user, string $input): bool
+    {
+        $secret = $user->two_factor_secret;
+
+        // TOTP first: digits only, exactly six, verified against the secret.
+        $totp = preg_replace('/\D/', '', $input) ?? '';
+        if ($secret !== null && strlen($totp) === 6 && $this->verify((string) $secret, $totp)) {
+            return true;
+        }
+
+        // Otherwise a recovery code (single-use).
+        return $this->consumeRecoveryCode($user, $input);
+    }
+
+    /**
+     * Consume a recovery code if it matches an UNUSED one — constant-time compared, and marked used so it is
+     * single-use. Returns false if there is no match (or it was already used).
+     */
+    private function consumeRecoveryCode(User $user, string $input): bool
+    {
+        $normalized = Str::upper(trim($input));
+        $codes = $user->two_factor_recovery_codes;
+
+        if ($codes === null) {
+            return false;
+        }
+
+        foreach ($codes as $i => $entry) {
+            if ($entry['used_at'] === null && hash_equals($entry['code'], $normalized)) {
+                $codes[$i]['used_at'] = now()->toIso8601String();
+                $user->forceFill(['two_factor_recovery_codes' => $codes])->save();
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param  list<string>  $codes
      * @return list<array{code: string, used_at: null}>
      */
