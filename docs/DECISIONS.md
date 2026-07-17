@@ -1904,3 +1904,72 @@ a function declared in one Pest file only loads with that file.
 
 `DemoSeeder` seeds **two real owner↔operator threads through the real service** (one left unread, so the
 badge and the Unread filter demo on genuine state).
+
+## 2026-07-17 — WAVE 4 CORE built (Rates · New Reservation · backed Settings) — three gated sub-gates
+
+**The three genuinely-buildable Wave 4 screens per `docs/WAVE4-INVENTORY.md`, each its own gate + commit,
+each wiring an EXISTING certified service (never a parallel path) + only the small additions named below.
+The other Wave-4 designs (Portfolio, Owner Team, Vyrobel Onboarding, Group Booking, Owner Rates,
+Channels-as-drawn, Roles) are SUBSYSTEMS or account-gated — out of scope, see the register + the inventory.**
+
+- **Sub-gate 1 — Operator Rates** (`/app/rates`; `RatesGrid` + `RateActionController`). The FIRST-EVER
+  production caller of the certified-but-uncalled `RateAndRestrictionService` (`setRate`/`setRestriction`).
+  **PER-ROOM-TYPE, not per-unit** (STRUCT-1: `rate_calendar` is keyed on `rate_plan_id`, so a per-unit grid
+  would silently move every unit under a room type). A room-type × 14-day grid of real rates / availability /
+  restriction badges + three derived tiles (avg rate PER CURRENCY, booked %, open nights — **no fabricated
+  trend**; the design's "+8% vs Aug" has no baseline). **Integer money (#17):** the typed € is parsed to
+  minor units by STRING arithmetic (`175.57 → 17557`, never `(int) round($x*100)` which drops a cent).
+  Gated `can:rates.view` (page) / `can:rates.manage` (write) — both already in the catalog, correctly scoped
+  (Property Owner / Group Admin / Hotel Manager / Revenue Manager, NOT Front Desk). The dead-enum
+  channel-sync pills were omitted proactively.
+
+- **Sub-gate 2 — New Reservation** (`/app/reservations/create`; `NewReservation` +
+  `ReservationCreateController`). ONE direct booking through the certified single write path
+  `AssignmentService::createBooking` (the no-double-booking guarantee is untouched — this screen never
+  re-implements it), plus the three guards the audit demanded (the design is "SAFE as drawn: ❌"):
+  **GUARD 1 honest availability** — a new `UnitAvailabilityService` mirrors createBooking's Level A
+  (room-type `available()≥1` every night) + Level B (unit free of active `reservation_unit` / `inventory_block`
+  overlaps) + priced; the controller re-derives it server-side (never trusts a client price), and the row
+  lock stays the actual guarantee (a forced booking of a taken unit is rejected, nothing created).
+  **GUARD 2 PII** — the existing-guest search is NAME-only (email/phone are encrypted, never rendered or
+  queried); a new guest's contact details go to the encrypted columns, never echoed back.
+  **GUARD 3 no raw PAN (PCI)** — there is NO card-number field anywhere; an optional payment is the MANUAL
+  folio path (`FolioService::recordPayment` over `ManualPaymentGateway` — cash/bank), gated `payments.record`;
+  card capture is stubbed "Soon" for the account-gated Stripe tokenization (asserted: no PAN column, card
+  method refused, `card_token = null`). Gated `can:reservations.create`; separation of duties — an Agent may
+  book but not take payment.
+
+- **Sub-gate 3 — backed Settings slices** (`/app/settings`: `OperatorSettings` + `SettingsActionController`
+  + `SettingsService`; `/owner/settings`: `OwnerSettings` + `OwnerProfileController`). The FIRST code in
+  `app/` to write `properties` / `property_policies` / `organizations` config (only the seeder did before).
+  **Operator + Property settings de-conflicted into ONE surface** (so tax/policy config has one write path,
+  not two that drift). BACKED + wired: property name/timezone/star-rating/check-in-out/status, stay policies
+  pet/smoking/min-max-stay, org currency/locale/billing-email. Per-section permission split:
+  `can:properties.manage` (property + policies; Property Owner + Group Admin) / `can:settings.manage` (org;
+  Property Owner only) — both existing, never Front Desk. Taxes/fees rendered READ-ONLY (real data; full CRUD
+  is a later, larger surface). Unbacked design fields (branding/white-label, invoice numbering, notification
+  routing) stubbed **"Soon", never a toast-only fake save** — the design's `saveGuard:()=>{}` trap.
+  **Owner self-profile** (name + encrypted email/phone): the SAFE self-edit the audit named — `Owner` is
+  `BelongsToOrganization` NOT `BelongsToOwner`, so `OwnerScope` does not scope it; the write is guarded by an
+  EXPLICIT `where('user_id', auth id)` (no owner id anywhere in the request), proven by having owner A's edit
+  leave owner B untouched.
+
+**Shared extraction:** `App\Support\Money\MoneyInput::toMinor()` — the ONE string→minor-unit parser (no float
+drift), used by both the rate and the payment writes; Sub-gate 1's `RateActionController` was refactored onto
+it (one parser for every typed-money surface). Two Larastan relation generics added
+(`RoomType::ratePlans`/`defaultRatePlan`, `Property::policies`) so `->first()` infers the model, not `Model`.
+**No new permission was needed** — every gate reused an existing catalog permission (the inventory's
+`channels.manage`-absent finding does not touch these three screens).
+
+**Verification (all three gates):** suite **588 tests / 5946 assertions** green on MySQL; PHPStan L5 + Pint
+clean; `migrate:fresh --seed` clean; each browser-verified with a REAL persisting write — Rates €100.00 →
+€155.50 with the avg tile recomputing to a reconciling €141.98; a booking landing on the certified
+Reservation Detail with folio Room +€300 / Payment −€150 / Balance €150 "reconciled to the folio ledger"; the
+property star-rating and the owner's phone persisting across the PRG.
+
+**KEPT in the register — Wave 4 CORE does NOT close these:** the **dead-enum channel-lifecycle**
+(`channels.status` + `channel_mappings.status` are READ as ARI-push gates but written only by a test factory,
+so the certified channel manager is INERT in production until a status writer exists — the Channels UI is that
+missing writer, not "a thin CRUD controller") · the two payment/folio dead enums (`payment_status='refunded'`,
+`folios.status='closed'`) · the two RBAC self-provision defects (Super Admin unassignable; no org-creation
+path provisions roles) · no `inbox.*` and no `channels.manage` permission in the catalog.

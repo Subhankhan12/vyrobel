@@ -56,6 +56,9 @@ class Property extends Model
         ];
     }
 
+    /**
+     * @return HasMany<PropertyPolicy, $this>
+     */
     public function policies(): HasMany
     {
         return $this->hasMany(PropertyPolicy::class);

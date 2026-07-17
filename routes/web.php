@@ -17,8 +17,10 @@ use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
+use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
+use App\Http\Controllers\Owner\OwnerProfileController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\ReservationFolioActionController;
@@ -38,6 +40,7 @@ use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
+use App\Livewire\Operator\OperatorSettings;
 use App\Livewire\Operator\PayoutRun;
 use App\Livewire\Operator\RatesGrid;
 use App\Livewire\Operator\ReservationRefund;
@@ -52,6 +55,7 @@ use App\Livewire\Owner\OwnerMessages;
 use App\Livewire\Owner\OwnerMessageThread;
 use App\Livewire\Owner\OwnerMyUnits;
 use App\Livewire\Owner\OwnerPayouts;
+use App\Livewire\Owner\OwnerSettings;
 use App\Livewire\Owner\OwnerStatementView;
 use App\Livewire\Owner\OwnerUnitDetail;
 use App\Livewire\ReservationDetail;
@@ -183,6 +187,16 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // RatesGrid gates the editor off the SAME permission so the UI never offers a write the route refuses).
     Route::get('/rates', RatesGrid::class)->middleware('can:rates.view')->name('rates');
     Route::post('/rates', [RateActionController::class, 'apply'])->middleware('can:rates.manage')->name('rates.update');
+
+    // Settings (Wave 4) — ONE coherent settings surface (Operator + Property settings de-conflicted). Only
+    // the BACKED columns are written (properties / property_policies / organizations); unbacked design fields
+    // are stubbed "Soon", never a fake save. The page + property/policy writers are gated `properties.manage`
+    // (Property Owner / Group Admin); the ORG writer is additionally gated `settings.manage` (Property Owner)
+    // — per-section separation of duties, NOT Front Desk. Both permissions already exist in the catalog.
+    Route::get('/settings', OperatorSettings::class)->middleware('can:properties.manage')->name('settings');
+    Route::post('/settings/property', [SettingsActionController::class, 'updateProperty'])->middleware('can:properties.manage')->name('settings.property');
+    Route::post('/settings/policies', [SettingsActionController::class, 'updatePolicies'])->middleware('can:properties.manage')->name('settings.policies');
+    Route::post('/settings/organization', [SettingsActionController::class, 'updateOrganization'])->middleware('can:settings.manage')->name('settings.organization');
     // Unified Inbox — UNSTYLED operator contract stubs (thread list + thread view; styled screen is a
     // later design pass). Tenant-scoped; the view resolves {thread} via a scoped findOrFail → cross-org 404.
     Route::get('/inbox', InboxList::class)->name('inbox');
@@ -345,4 +359,12 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // Wave 1 · Sub-gate 4 — the owner's document library: an owner-scoped aggregation over the REAL
     // generatable PDFs (statement · remittance · booking summary). No document is invented.
     Route::get('/documents', OwnerDocuments::class)->name('documents');
+
+    // Wave 4 — owner SELF-PROFILE. The owner edits their OWN contact details (name + encrypted
+    // email/phone). ⚠️ Owner is BelongsToOrganization, NOT BelongsToOwner, so OwnerScope does not scope it:
+    // the write resolves the owner by an EXPLICIT `where('user_id', auth id)` (no owner id in the request),
+    // so an owner can only ever edit their own row. The payout account/IBAN, notification prefs, team and 2FA
+    // are net-new subsystems, stubbed "Soon".
+    Route::get('/settings', OwnerSettings::class)->name('settings');
+    Route::post('/settings', [OwnerProfileController::class, 'update'])->name('settings.update');
 });

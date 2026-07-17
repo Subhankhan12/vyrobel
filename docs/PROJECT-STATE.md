@@ -8,7 +8,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 > **THE ONE-PARAGRAPH ANSWER.** The product is **COMPLETE and DEMOABLE end-to-end, and safe for a real owner
 > login**: a certified multi-tenant backend (PMS + channel manager + payments + owner accounting + maintenance
-> + unified inbox), real session auth, and **~31 styled, browser-verified screens** across the owner portal,
+> + unified inbox), real session auth, and **~37 styled, browser-verified screens** across the owner portal,
 > the operator back office and the public booking storefront — all on real scoped data under the honesty rule.
 > **Four security/integrity holes have been found and closed**, none of them by a failing test: the `/app`
 > authorization leak (**#26**), the cumulative over-refund (**#27**), the unguarded re-termination (**#29**),
@@ -21,7 +21,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 - **On `main`, working tree clean** (only the untracked design-source exports under `docs/design/raw/` remain
   uncommitted — **gitignored** raw Claude Design HTML, **not in a fresh clone**). Suite: **`php artisan test`
-  → 556 tests / 5733 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
+  → 588 tests / 5946 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
   session across three consecutive full runs. ✅ **BOTH flaky tests are CLOSED** (root-caused 2026-07-17 —
   and they were the same disease: an assertion whose needle was too generic, never a product bug. See the
   register). The suite is a trustworthy gate.
@@ -35,7 +35,16 @@ conflicts with the repo, **trust the repo** and fix this file.
   a "HEAD" named in any entry is the commit **one behind** the one that carries the words. The consolidation
   entry naming `e160eeb` ships in the commit *after* `e160eeb`. Check `git log` for the true HEAD; never treat
   a HEAD quoted in prose as current.
-- **CURRENT PHASE: WAVE 3 COMPLETE (2026-07-17) → next = Wave 4.** Five gated sub-gates, a commit each
+- **CURRENT PHASE: WAVE 4 CORE COMPLETE (2026-07-17)** — the three genuinely-buildable Wave 4 screens, three
+  gated sub-gates (`8971d20` **Operator Rates** per-room-type over the certified `setRate`/`setRestriction` →
+  `6e3b717` **New Reservation** guarded `createBooking` + 3 guards [honest per-unit availability via the new
+  `UnitAvailabilityService`, PII name-only, NO raw PAN] → HEAD **backed Settings** [`/app/settings` +
+  `/owner/settings`; first `app/` writes of properties/property_policies/organizations config; owner self-edit
+  `user_id`-guarded]). Shared `App\Support\Money\MoneyInput` (one typed-money parser). No new permission —
+  every gate reused an existing catalog permission. **DEFERRED as subsystems/account-gated** (Portfolio ·
+  Owner Team · Vyrobel Onboarding · Group Booking · Owner Rates · Channels-as-drawn · Roles · Stripe card
+  tokenization) — per-screen readiness + the trap register live in `docs/WAVE4-INVENTORY.md`. **Prior — WAVE 3
+  COMPLETE (2026-07-17):** the owner inbox. **Prior — WAVE 2 COMPLETE:** five gated sub-gates, a commit each
   (`4eb71e2` → `cb8bcce` → `44444e6` → `f86cf4e` → HEAD): **Reservations list · Cancelled/No-show terminal
   states · the Refund screen · the Guests CRM list · the Guest profile.** Suite **430/4835 → 511 tests / 5503
   assertions**. Unlike Wave 1 this was **not** presentation-only — Sub-gate 5 adds the first guest write path
@@ -784,7 +793,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**556 tests / 5733 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**588 tests / 5946 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -1020,7 +1029,21 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — Wave 4 (Waves 1–3 are DONE; the security/integrity register is CLEAR)
+## NEXT ACTION — Wave 4 CORE is DONE; what remains is subsystems / account-gated / customer validation
+
+> **WAVE 4 CORE COMPLETE (2026-07-17)** — the three genuinely-buildable Wave 4 screens are built, gated,
+> tested (588/5946) and browser-verified: **Operator Rates** (per-room-type, first caller of the certified
+> `setRate`/`setRestriction`), **New Reservation** (guarded `createBooking` + the 3 safety guards), and the
+> **backed Settings slices** (`/app/settings` + owner self-profile). See `docs/DECISIONS.md` 2026-07-17 and
+> `docs/WAVE4-INVENTORY.md`. **What is LEFT of Wave 4 is deliberately NOT built** — each is a subsystem or is
+> account-gated, per the inventory: **Portfolio** (multi-property subsystem), **Owner Team** (owner
+> sub-tenancy), **Vyrobel Onboarding** (tenant-provisioning epic), **Group Booking** (atomic group write +
+> the parallel-structure trap), **Owner Rates** (owner-scope schema needed), **Channels-as-drawn** (CRUD +
+> the `channels.status` writer + live Channex), **Roles** (security redesign — the fixed-catalog/editable
+> mismatch + escalation weapon), **Stripe card tokenization**. The highest-value non-build move remains
+> **customer validation** — the wedge demos at full depth and no customer has seen it.
+
+**(historical) The original Wave-4 lead-in:**
 
 **WAVE 2 IS COMPLETE** (2026-07-17, five gated sub-gates, `4eb71e2` → `cb8bcce` → `44444e6` → `f86cf4e` →
 HEAD): **Reservations list · Cancelled/No-show terminal states · the Refund screen · the Guests CRM list ·
