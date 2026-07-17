@@ -21,7 +21,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 - **On `main`, working tree clean** (only the untracked design-source exports under `docs/design/raw/` remain
   uncommitted — **gitignored** raw Claude Design HTML, **not in a fresh clone**). Suite: **`php artisan test`
-  → 588 tests / 5946 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
+  → 597 tests / 5986 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
   session across three consecutive full runs. ✅ **BOTH flaky tests are CLOSED** (root-caused 2026-07-17 —
   and they were the same disease: an assertion whose needle was too generic, never a product bug. See the
   register). The suite is a trustworthy gate.
@@ -793,7 +793,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**588 tests / 5946 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**597 tests / 5986 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·

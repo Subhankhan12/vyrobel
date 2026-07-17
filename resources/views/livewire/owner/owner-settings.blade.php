@@ -44,6 +44,41 @@
             </form>
         </div>
 
+        {{-- ── Change password — current password verified server-side; same guard + shared reset path as
+             the operator side. Owner is resolved from auth(), never a request id. ───────────────────────── --}}
+        @if (session('password_status'))
+            <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-accent); margin-bottom: 16px;">
+                <div style="font-size: 13.5px; color: var(--vy-ink);">{{ session('password_status') }}</div>
+            </div>
+        @endif
+        <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+            <h2 style="font-family: var(--vy-display); font-size: 15px; font-weight: 600; margin: 0 0 4px;">Change password</h2>
+            <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 16px;">Enter your current password to confirm it’s you. Other devices with “remember me” are signed out.</p>
+            <form method="POST" action="{{ route('owner.settings.password') }}">
+                @csrf
+                <div style="display: grid; gap: 14px; max-width: 380px;">
+                    <div>
+                        <label style="{{ $lbl }}" for="cur_pw">Current password</label>
+                        <input id="cur_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" required>
+                        @error('current_password') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label style="{{ $lbl }}" for="new_pw">New password</label>
+                        <input id="new_pw" type="password" name="password" class="vy-input" autocomplete="new-password" required>
+                        @error('password') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                        <span style="font-size: 11px; color: var(--vy-faint);">At least 8 characters.</span>
+                    </div>
+                    <div>
+                        <label style="{{ $lbl }}" for="conf_pw">Confirm new password</label>
+                        <input id="conf_pw" type="password" name="password_confirmation" class="vy-input" autocomplete="new-password" required>
+                    </div>
+                </div>
+                <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                    <button type="submit" class="vy-btn" style="background: var(--vy-grad); color: #fff; padding: 11px 22px;">Update password</button>
+                </div>
+            </form>
+        </div>
+
         {{-- ── STUBBED — net-new subsystems, honestly "Soon" (NOT a fake save) ────────────────────────── --}}
         <div class="vy-card vy-fade">
             <h2 style="font-family: var(--vy-display); font-size: 15px; font-weight: 600; margin: 0 0 12px;">More</h2>

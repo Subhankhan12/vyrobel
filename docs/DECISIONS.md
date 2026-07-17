@@ -1973,3 +1973,41 @@ so the certified channel manager is INERT in production until a status writer ex
 missing writer, not "a thin CRUD controller") · the two payment/folio dead enums (`payment_status='refunded'`,
 `folios.status='closed'`) · the two RBAC self-provision defects (Super Admin unassignable; no org-creation
 path provisions roles) · no `inbox.*` and no `channels.manage` permission in the catalog.
+
+## 2026-07-17 — CHANGE PASSWORD built (operator + owner) — the auth chapter is complete for the logged-in user
+
+**The one genuinely quick-buildable auth screen from `docs/AUTH-INVENTORY.md` — a logged-in operator or owner
+changes their OWN password from within the app.** One gate, reusing the existing reset machinery; no password
+crypto reimplemented.
+
+- **The shared path (so reset + change can't drift):** extracted `User::changePasswordTo(string)` — hash (via
+  the `password` 'hashed' cast) + rotate `remember_token` (`Str::random(60)`) + save — and refactored
+  `PasswordResetController::reset()` ONTO it. RESET and CHANGE now go through ONE hash+rotate path.
+- **The controller:** `Auth\ChangePasswordController` (operator + owner methods → a shared `change()`). The
+  user is resolved from `auth()` ONLY — no user id anywhere in the request — so a session can only change its
+  OWN password (an operator can't touch an owner's and vice-versa; proven by test). 🔒 The **current password
+  is verified** (`current_password` rule → `Hash::check`) BEFORE any change — the anti-hijack guard; a wrong
+  current password changes nothing (proven). New password meets the reset rules (`min:8`, `confirmed`).
+  Rate-limited (`throttle:6,1`) + CSRF + PRG.
+- **Session behaviour (matches reset):** the current device stays signed in; rotating the remember token
+  invalidates any "remember me" cookie on OTHER sessions. (`Auth::logoutOtherDevices` would additionally end
+  other *active* sessions but needs the `AuthenticateSession` middleware — out of scope; the remember-token
+  rotation is the reset-flow baseline.)
+- **Where it lives:** a lean operator **`/app/security`** page (`OperatorSecurity`) behind `auth` + #26 with
+  **NO fine-grained gate** — because `/app/settings` is `properties.manage`-gated (managers only) and EVERY
+  back-office user must be able to change their own password (a Housekeeping user reaches `/app/security` but
+  NOT `/app/settings` — proven). On the owner side, a change-password card on the existing **`/owner/settings`**
+  (every owner reaches it). The operator shell's "Security" nav is now live.
+- **Honesty:** the design's Security screens also draw 2FA, active sessions, connected apps and IP rules — all
+  **unbacked subsystems** (still 🔴 in `docs/AUTH-INVENTORY.md`) — shown as an honest "Soon", never faked.
+
+**Verification:** `tests/Feature/ChangePasswordTest.php` (9 — happy path + remember-token rotation, wrong
+current rejected/unchanged, mismatch + too-short rejected, `auth()`-resolution [A changes, B untouched], owner
+side, auth-required, the non-manager reachability of `/app/security`, and the shared path). Suite **597 tests /
+5986 assertions** green (the reset flow is unregressed by the refactor); PHPStan L5 + Pint clean;
+`migrate:fresh --seed` clean; **browser-verified BOTH sides end-to-end** — change → log out → log in with the
+new password (operator + owner).
+
+**The auth chapter is now complete for the logged-in user** (login · forgot/reset · invite/set-password ·
+**change password**). The remaining auth items stay **BLOCKED subsystems** (per `docs/AUTH-INVENTORY.md`): SaaS
+self-signup / tenant-provisioning, 2FA (TOTP), the whole Guest Portal auth, sessions/connected-apps/IP-rules.

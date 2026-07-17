@@ -13,7 +13,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 
 /**
@@ -83,11 +82,9 @@ class PasswordResetController extends Controller
                 'status' => 'active',
             ],
             function (User $user, string $password): void {
-                // 'hashed' cast hashes the plaintext once; rotate the remember token (signs out other sessions).
-                $user->forceFill([
-                    'password' => $password,
-                    'remember_token' => Str::random(60),
-                ])->save();
+                // The ONE shared hash + remember-token-rotate path (also used by the in-app change-password
+                // flow, ChangePasswordController) — never reimplemented here, so reset and change can't drift.
+                $user->changePasswordTo($password);
 
                 event(new PasswordReset($user));
             },

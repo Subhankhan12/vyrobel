@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AcceptInviteController;
+use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\BookingEngineController;
@@ -40,6 +41,7 @@ use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
+use App\Livewire\Operator\OperatorSecurity;
 use App\Livewire\Operator\OperatorSettings;
 use App\Livewire\Operator\PayoutRun;
 use App\Livewire\Operator\RatesGrid;
@@ -197,6 +199,14 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     Route::post('/settings/property', [SettingsActionController::class, 'updateProperty'])->middleware('can:properties.manage')->name('settings.property');
     Route::post('/settings/policies', [SettingsActionController::class, 'updatePolicies'])->middleware('can:properties.manage')->name('settings.policies');
     Route::post('/settings/organization', [SettingsActionController::class, 'updateOrganization'])->middleware('can:settings.manage')->name('settings.organization');
+
+    // Change password (Auth) — the operator Security page + its guarded write. Reachable by EVERY back-office
+    // user (auth + #26, NO fine-grained gate — unlike /app/settings, which is manager-gated) so anyone can
+    // change their OWN password. The write resolves the user from auth() (never a request id), VERIFIES the
+    // current password, and reuses User::changePasswordTo (the shared reset hash + remember-token-rotate
+    // path). Rate-limited like the rest of the auth chapter.
+    Route::get('/security', OperatorSecurity::class)->name('security');
+    Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
     // Unified Inbox — UNSTYLED operator contract stubs (thread list + thread view; styled screen is a
     // later design pass). Tenant-scoped; the view resolves {thread} via a scoped findOrFail → cross-org 404.
     Route::get('/inbox', InboxList::class)->name('inbox');
@@ -367,4 +377,7 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // are net-new subsystems, stubbed "Soon".
     Route::get('/settings', OwnerSettings::class)->name('settings');
     Route::post('/settings', [OwnerProfileController::class, 'update'])->name('settings.update');
+    // Change password (Auth) — owner-side write on the owner Settings page. Owner resolved from auth() (never
+    // a request id), current password verified, shared reset hash+rotate path. Rate-limited like the rest of auth.
+    Route::post('/settings/password', [ChangePasswordController::class, 'owner'])->middleware('throttle:6,1')->name('settings.password');
 });

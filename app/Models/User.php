@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Mail\PasswordResetMail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -51,6 +54,22 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token): void
     {
         Mail::to($this->email)->send(new PasswordResetMail((string) $token, (string) $this->email, (string) $this->name));
+    }
+
+    /**
+     * Set a new password and rotate the remember token — THE single hash+rotate path, shared by the
+     * password-RESET flow ({@see PasswordResetController::reset()}) and the in-app
+     * CHANGE-password flow ({@see ChangePasswordController}), so the two can never
+     * drift. The `password` 'hashed' cast hashes the plaintext exactly once; rotating `remember_token`
+     * invalidates any "remember me" cookie held by OTHER sessions (a password change must end other remembered
+     * sessions), while the CURRENT request's session stays valid — the caller keeps the user signed in here.
+     */
+    public function changePasswordTo(string $plainPassword): void
+    {
+        $this->forceFill([
+            'password' => $plainPassword,
+            'remember_token' => Str::random(60),
+        ])->save();
     }
 
     public function organizations(): BelongsToMany
