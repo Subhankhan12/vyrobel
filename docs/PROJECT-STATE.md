@@ -6,25 +6,29 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> **THE ONE-PARAGRAPH ANSWER.** The product is **COMPLETE and DEMOABLE end-to-end, and safe for a real owner
+> **THE ONE-PARAGRAPH ANSWER.** The product is **COMPLETE, DEEP, DEMOABLE end-to-end, and safe for a real owner
 > login**: a certified multi-tenant backend (PMS + channel manager + payments + owner accounting + maintenance
-> + unified inbox), real session auth, and **~37 styled, browser-verified screens** across the owner portal,
-> the operator back office and the public booking storefront — all on real scoped data under the honesty rule.
-> **Four security/integrity holes have been found and closed**, none of them by a failing test: the `/app`
-> authorization leak (**#26**), the cumulative over-refund (**#27**), the unguarded re-termination (**#29**),
-> and a **privilege escalation** — any back-office role could invite itself an Accountant and inherit
-> `payments.refund` — closed by enforcing the permission catalog (**#30**). GDPR erasure now has a real,
-> permission-gated trigger (**#28**). **The security/integrity register is CLEAR**, so Wave 3/4 screens
-> inherit correct enforcement instead of needing a retrofit. What remains is **account-gated** (needs someone
-> else's credentials) or **speculative** (Tier 2 — designed, no backend, no signal), plus the small open items
-> in the register. **No customer has ever seen this product**; validation is the highest-value non-build move.
+> + unified inbox), a **fully hardened auth chapter** (login · invites · password reset · change-password ·
+> **2FA/TOTP**), and **~38 styled, browser-verified screens** across the owner portal, the operator back office
+> and the public booking storefront — all on real scoped data under the honesty rule. **Five security/integrity
+> holes have been found and closed this session, none of them by a failing test:** the `/app` authorization leak
+> (**#26**), the cumulative over-refund (**#27**), the missing GDPR-erasure trigger (**#28**), the unguarded
+> re-termination (**#29**), and a **privilege escalation** — any back-office role could invite itself an
+> Accountant and inherit `payments.refund` — closed by enforcing the permission catalog (**#30**). **The
+> security/integrity register is CLEAR**, so every screen inherits correct enforcement instead of needing a
+> retrofit. What remains is **subsystems/epics** (real commitments, not quick wins), **speculative** (Tier 2 —
+> designed, no backend, no signal), or **account-gated** (needs someone else's credentials), plus the small open
+> items in the register. **The buildable-in-a-vacuum, clearly-worth-it core is essentially complete — 2FA was the
+> last such subsystem. No customer has ever reacted to this product**; validation is now the highest-value move —
+> more building has diminishing returns until the signal comes in.
 
-- **On `main`, working tree clean** (only the untracked design-source exports under `docs/design/raw/` remain
-  uncommitted — **gitignored** raw Claude Design HTML, **not in a fresh clone**). Suite: **`php artisan test`
-  → 597 tests / 5986 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
-  session across three consecutive full runs. ✅ **BOTH flaky tests are CLOSED** (root-caused 2026-07-17 —
-  and they were the same disease: an assertion whose needle was too generic, never a product bug. See the
-  register). The suite is a trustworthy gate.
+- **On `main`, working tree clean, local == origin** (HEAD `11288d6` at the time of writing this capstone —
+  the doc commit that carries these words advances HEAD by one; see the HEAD convention below). Only the
+  untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 617 tests / 6100 assertions, all green** on
+  genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
+  (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
+  product bug. See the register). The suite is a trustworthy gate.
   **PHPStan (Larastan) level 5, 0 errors** (`--memory-limit=1G`) — re-verified. **Pint clean** — re-verified.
   ⚠️ `phpunit.xml` sets **`memory_limit=512M`** — the suite outgrew PHP's 128M CLI default (verified headroom,
   not a leak; see the register). `php artisan test` spawns a child that re-reads php.ini, so `-d` won't reach it.
@@ -35,7 +39,14 @@ conflicts with the repo, **trust the repo** and fix this file.
   a "HEAD" named in any entry is the commit **one behind** the one that carries the words. The consolidation
   entry naming `e160eeb` ships in the commit *after* `e160eeb`. Check `git log` for the true HEAD; never treat
   a HEAD quoted in prose as current.
-- **CURRENT PHASE: WAVE 4 CORE COMPLETE (2026-07-17)** — the three genuinely-buildable Wave 4 screens, three
+- **LATEST — the AUTH CHAPTER is DONE (2026-07-18).** After Wave 4 Core came two auth gates: **CHANGE PASSWORD**
+  (`e6978d8`, operator `/app/security` + owner `/owner/settings`, current-password-verified, reusing the one
+  shared `User::changePasswordTo()` hash+rotate path) and **2FA / TOTP** (`031716a` enrollment + recovery codes
+  → `aca017c` login challenge → `11288d6` consolidation) — opt-in per user, secrets/codes **encrypted** (fixing
+  a pre-existing plaintext `two_factor_secret`), the pending state grants no auth **by construction** (**#31**).
+  `google2fa` + `bacon-qr-code`, not Fortify; browser-verified both portals. **2FA was the last buildable-in-a-
+  vacuum subsystem.** See `docs/DECISIONS.md` 2026-07-18 + `docs/AUTH-INVENTORY.md`.
+- **PRIOR PHASE: WAVE 4 CORE COMPLETE (2026-07-17)** — the three genuinely-buildable Wave 4 screens, three
   gated sub-gates (`8971d20` **Operator Rates** per-room-type over the certified `setRate`/`setRestriction` →
   `6e3b717` **New Reservation** guarded `createBooking` + 3 guards [honest per-unit availability via the new
   `UnitAvailabilityService`, PII name-only, NO raw PAN] → HEAD **backed Settings** [`/app/settings` +
@@ -67,8 +78,17 @@ conflicts with the repo, **trust the repo** and fix this file.
   (`5155a48` route gate → `f63866a` root cause) — **invariant #26**, defense-in-depth, each layer proven to
   block independently. Suite **340/3831 → 430 tests / 4835 assertions** (Wave 1 + the `/app` gate + the refund bound #27).
   **The product is now safe for a real owner login.**
-- **AUTH — COMPLETE & SECURE (chapter finished): login/logout + invites (owner + staff) + password reset.**
-  Real session auth fronts the app; **the dev-login shim is gone.** Phase A: one shared login
+- **AUTH — COMPLETE & SECURE (chapter finished): login/logout + invites (owner + staff) + password reset +
+  in-app change-password + 2FA (TOTP).** **Change password** (`e6978d8`, operator `/app/security` behind #26
+  only so every back-office role reaches it · owner card on `/owner/settings`): `auth()`-resolved (never a
+  request id), **current-password-verified** (anti-hijack), reusing the ONE shared `User::changePasswordTo()`
+  (hash via the 'hashed' cast + rotate remember-token) that reset was refactored onto so they can't drift.
+  **2FA (TOTP, `031716a`→`aca017c`→`11288d6`):** enrollment (confirm-before-activate) + one-time recovery codes
+  (single-use, `hash_equals`) + a login challenge slotted between password and session (`Auth::validate` →
+  challenge → `Auth::login`; non-2FA login unchanged), secrets/codes **encrypted at rest** (fixing the
+  pre-existing plaintext `two_factor_secret`), disable-requires-re-auth, self-only, rate-limited — **invariant
+  #31** (`TwoFactorService` / `TwoFactorChallengeController` / `RequireTwoFactorPending`; `google2fa` +
+  `bacon-qr-code`, NOT Fortify). Real session auth fronts the app; **the dev-login shim is gone.** Phase A: one shared login
   (operator+owner), active-only `Auth::attempt`, per-(email,ip) rate limit, generic non-enumerating errors,
   session regeneration, role-routing (`/app` vs `/owner`), `/book` public. Phase B: an operator invites via a
   **sha256-hashed, single-use, 7-day, revocable** tokened email link → the invitee sets a **hashed**
@@ -79,12 +99,16 @@ conflicts with the repo, **trust the repo** and fix this file.
   rate-limited). Proven by `PhaseBEndToEndTest` + `StaffInviteTest` + `PasswordResetTest`. **Dev email wired
   to Mailpit** (invite + reset emails land in a viewable inbox); expired invites are pruned daily
   (`invites:prune-expired`). **DEFERRED, flagged not faked:** **email DELIVERY in production** (dev = Mailpit;
-  needs a real provider), 2FA. See `docs/DECISIONS.md` 2026-07-13.
-- **DESIGN PASS — the original 17-screen pass is COMPLETE, and Waves 1–2 have since added 14 more (~31 total):**
-  **owner portal (4 + Wave 1's 6 + 2 PDFs)** · **operator core (5) + Units (1) + Maintenance board & work order
-  (2) + Inbox list & conversation (2) + Wave 1's Owner Detail & Payout Run (2) + Wave 2's Reservations list ·
-  Refund screen · Guests list · Guest profile (4)** · **public booking storefront (3, incl. the real checkout
-  WRITE)**. The per-wave inventories below are authoritative; this line is the count. All on the certified backends, honesty rule enforced per-screen by a render/
+  needs a real provider). **2FA is now BUILT** (see the auth bullet above / DECISIONS.md 2026-07-18). Remaining
+  BLOCKED auth subsystems: self-signup/tenant-provisioning, guest auth, sessions/connected-apps/IP-rules. See
+  `docs/DECISIONS.md` 2026-07-13 + `docs/AUTH-INVENTORY.md`.
+- **DESIGN PASS — the original 17-screen pass is COMPLETE, and Waves 1–4 + auth have since taken it to ~38:**
+  **owner portal (4 + Wave 1's 6 + 2 PDFs + Wave 3's Messages + Wave 4's Settings)** · **operator core (5) +
+  Units (1) + Maintenance board & work order (2) + Inbox list & conversation (2) + Wave 1's Owner Detail &
+  Payout Run (2) + Wave 2's Reservations list · Cancelled/No-show · Refund screen · Guests list · Guest profile
+  (5) + Wave 4's Rates · New Reservation · Settings (3) + the `/app/security` change-password/2FA page (1)** ·
+  **public booking storefront (3, incl. the real checkout WRITE)** · plus the auth screens (login · reset ·
+  set-password · forgot · **2FA challenge**). The per-wave inventories below are authoritative; this line is the count. All on the certified backends, honesty rule enforced per-screen by a render/
   isolation test; **backends/schema/guarantees UNCHANGED** (presentation only). **No unstyled stubs
   remain.** Three role design systems: `components/layouts/owner`+`<x-owner.shell>`+`FormatsOwnerData` ·
   `components/layouts/operator`+`<x-operator.shell>`+`FormatsOperatorData` · `components/public/shell`
@@ -231,6 +255,25 @@ conflicts with the repo, **trust the repo** and fix this file.
   `App\Http\Controllers\Auth\Concerns\RedirectsByRole`). **Expired-invite prune** =
   `App\Console\Commands\PruneExpiredInvites` → `OwnerInviteService::pruneExpired()` (scheduled daily).
   Email delivery = Mailpit in dev (prod provider deferred).
+- **Auth — change-password + 2FA (this session).** **Change password:** `App\Http\Controllers\Auth\ChangePasswordController`
+  (operator + owner → one shared `change()`), the ONE shared `App\Models\User::changePasswordTo()` (hash +
+  remember-token rotate — reset refactored onto it), operator page `App\Livewire\Operator\OperatorSecurity`
+  (`/app/security`, behind #26 only), owner card on `/owner/settings`. **2FA (TOTP):**
+  `App\Support\TwoFactor\TwoFactorService` (google2fa + bacon-qr-code — enroll/confirm/recovery-codes/verify/
+  verifyChallenge/consumeRecoveryCode/disable), `App\Http\Controllers\Auth\TwoFactorController` (enable/confirm/
+  regenerate/disable, self-only) + `TwoFactorChallengeController` (the login challenge) +
+  `App\Http\Middleware\RequireTwoFactorPending` (fences the challenge; the pending marker is a session key, NOT
+  the guard — **#31**); shared Livewire `App\Livewire\Concerns\PreparesTwoFactor` + partial across both Security
+  panels; `users.two_factor_secret`/`two_factor_recovery_codes` **encrypted** casts;
+  `LoginRequest`/`LoginController` split `Auth::validate` → challenge → `Auth::login`.
+- **Wave 2–4 operator/owner screen services + shared extractions.** First guest write path
+  **`App\Services\GuestService`** (Wave 2). Wave 4: **`App\Services\UnitAvailabilityService`** (honest per-unit
+  availability for New Reservation) + the Rates grid as the first production caller of `setRate`/`setRestriction`.
+  Drift-proof shared definitions (each with a proof-it's-shared test): **`App\Support\Reservations\ReservationStage`**
+  (stage badge + SQL filter in one class), **`App\Support\Guest\GuestSpend`** (the BILLED lifetime-spend
+  definition, reconciles to the ledger by construction), **`App\Support\Guest\GuestHistory`** (stays · nights ·
+  "guest since"), **`App\Support\Money\MoneyInput`** (one typed-money parser), and the Blade-safety guard
+  `assertNoRawBlade()` (tests/Support). Owner inbox: `message_threads.owner_id` + `BelongsToOwner` (Wave 3).
 - **Photos** — shared `media` table (collection `photos`) via `App\Models\Concerns\HasPhotos` on RoomType;
   operator upload/reorder/cover/remove through `App\Http\Controllers\Operator\RoomTypePhotoController`
   (secure: content-validated images, ULID filenames, size cap, tenant-scoped); `public` disk (S3 for prod).
@@ -678,6 +721,8 @@ so it contains "U2" **~1.05% of the time** → **~15% per run** across 8 routes.
    path provisions roles** (moot today: no such path exists). ⚠️ Whoever fixes enforcement further needs both
    facts together with #30, or they will wire a Super Admin bypass that can never fire.
 
+4. **THE CERTIFIED CHANNEL MANAGER IS INERT IN PRODUCTION — nothing writes `channels.status` / `channel_mappings.status`** (verified 2026-07-18 by grep — same class of bug as the dead enums in item 1, but with a bigger blast radius). The ARI push and the mapping guard **gate on `status = active` / `connected`** (`ChannelMappingGuard`, `AriSnapshotBuilder` both `where('status', STATUS_ACTIVE)`), yet the ONLY writers of a `connected`/`active` status are **`ChannelFactory` / `ChannelMappingFactory`** — there is no production flow that connects a channel or activates a mapping. So the whole certified sync backbone (which is real and tested against `FakeChannexClient`) would **never fire for a real operator**: a `Channel` row created outside a factory sits at the default `disconnected` forever. This is not a leak or a data bug — it fails *closed* (no sync rather than wrong sync) — but it means **"Channels-as-drawn" is not just a UI: it must ship the status writer (connect/activate flow) or the channel manager does nothing in production.** Folded into the Channels subsystem in the deferred list below.
+
 ### ✅ CLOSED (2026-07-16) — the `/app` authorization hole. Safe for a real owner login.
 
 The critical item that stood here is **FIXED** (`5155a48` route gate → `f63866a` root cause). An owner-role
@@ -689,26 +734,48 @@ exploitable (both fail closed).
 
 ---
 
-**AT A GLANCE — everything else remaining is either ACCOUNT-GATED (needs an external account/credential) or a
-net-new BUILDABLE-NOW module (design exists, no backend). The buildable-in-a-vacuum core is essentially
-complete.** Detail follows below; this is the honest triage a fresh session needs.
+**AT A GLANCE — the honest four-way triage a fresh session needs.** The buildable-in-a-vacuum, clearly-worth-it,
+self-contained core is **essentially complete** (2FA was the last such subsystem). What remains splits cleanly:
 
-- **ACCOUNT-GATED (blocked on an external account — cannot finish in a vacuum):**
-  - **Real inbox channels** — email (inbound-email provider e.g. Postmark/Mailgun + verified sending domain) ·
-    whatsapp (Meta WhatsApp Business API approval + a BSP/Twilio number) · booking_com/airbnb (OTA messaging
-    API access). The `manual` channel + the whole interface work now; each adapter is an honest throwing skeleton.
-  - **Channex staging** — real ARI/webhook/HMAC vs a Channex sandbox account + a public tunnel (fake fully tested).
-  - **Stripe Connect payouts** — owner disbursement (connected-account onboarding + KYC). `ManualPayoutRail` is real+tested.
-  - **Stripe card checkout** — live card entry (Elements + 3DS) needs live/test keys; manual/pay-on-arrival is the real path now.
-  - **Production email delivery** — a real transactional provider (Postmark/SES). Dev/demo = Mailpit (wired).
-- **BUILDABLE-NOW (no external dependency — but each is net-new + speculative without customer signal):**
-  - Net-new **design-only modules** with NO backend today, each a gated phased build like Owner Accounting:
-    **Guest Portal** (~32 screens), **Reviews / reputation**, **Subscription / billing / paywall**,
-    **Analytics / reports** (ADR/RevPAR/insights), transactional **email templates** (~9).
-  - Smaller in-product items: **CSV / remittance-advice / booking-summary** exports; room **descriptions + reviews**;
-    per-screen deferred affordances (logged in each screen's DECISIONS entry).
-  - `docs/design/CATALOGUE.md` is the **authoritative per-file design inventory** (**125 files / 124 screens** — reconciled 2026-07-16; the older "~120" figure is stale, and this is the denominator the ROADMAP's "~42 of ~124" rests on), backend-status
-    legend) — read it before starting any new screen. Most catalogued screens map to the future modules above.
+**① STILL-OPEN register items (none blocking; detail above).** Two/three dead enum values
+(`reservations.payment_status='refunded'`, `folios.status='closed'`, `payments.status='refunded'`) · the
+**inbox has no catalog permission** (its writes are #26-only — a product decision, deliberately not invented) ·
+two fail-closed **RBAC defects** (no app-level org-creation provisions roles; `Super Admin` unassignable) · the
+**channel manager is inert in production** (nothing writes `channels.status`/`channel_mappings.status`). Each is
+a known, honest note — fix when the area is next touched.
+
+**② SUBSYSTEMS / EPICS — buildable now (no external account), but REAL commitments, NOT quick wins.** Each is a
+gated phased build with a genuine backend, exactly like Owner Accounting was:
+- **Self-signup / tenant-provisioning** (the org-creation epic — and the chicken-and-egg with the RBAC defect
+  above: no path provisions roles, so it must `runAsSuperAdmin` outside `/app`).
+- **Guest auth** (`Guest` is NOT `Authenticatable` today — a whole auth surface, separate from operator/owner).
+- **Sessions / connected-apps / IP-rules** (the "More security" stubs — session-tracking + OAuth-app store + an IP engine).
+- **Portfolio** (multi-property subsystem) · **Owner Team** (owner sub-tenancy) · **Group Booking** (atomic
+  group write — extend the EXISTING `groups` + `reservations.group_id`, never a parallel table) · **Owner Rates**
+  (needs owner-scope rate schema) · **Channels-as-drawn** (CRUD + the missing `channels.status` writer + a live
+  connect flow — see register item 4) · **Roles** (a security redesign, needs the RBAC defects resolved first).
+  Per-screen readiness + traps: `docs/WAVE4-INVENTORY.md`.
+
+**③ SPECULATIVE MODULES — designed, ZERO backend, NO customer signal. Do NOT build blind (per the ROADMAP).**
+**Guest Portal** (~24 authenticated screens — the largest bet; ROADMAP is authoritative, `CATALOGUE.md` counts
+32 by including guest-auth/other guest screens) · **Analytics / reports** (ADR/RevPAR/insights) · **Reviews /
+reputation** · **Subscription / billing / paywall** (must extend the schema-only `subscriptions`/`plans`) ·
+**Notifications** · transactional **email templates** (~9). Smaller in-product items: CSV / remittance-advice /
+booking-summary exports; room descriptions + reviews.
+
+**④ ACCOUNT-GATED — cannot be built until an external credential is obtained (blocked in a vacuum).**
+- **Real inbox channels** — email (inbound-email provider e.g. Postmark/Mailgun + verified sending domain) ·
+  whatsapp (Meta WhatsApp Business API approval + a BSP/Twilio number) · booking_com/airbnb (OTA messaging API).
+  The `manual` channel + the whole interface work now; each adapter is an honest throwing skeleton.
+- **Channex staging** — real ARI/webhook/HMAC vs a Channex sandbox account + a public tunnel (fake fully tested).
+- **Stripe Connect payouts** — owner disbursement (connected-account onboarding + KYC). `ManualPayoutRail` is real+tested.
+- **Stripe card checkout** — live card entry (Elements + 3DS) needs live/test keys; New Reservation's card capture
+  waits on this; manual/pay-on-arrival is the real path now.
+- **Production email delivery** — a real transactional provider (Postmark/SES). Dev/demo = Mailpit (wired).
+
+**Design is NOT a bottleneck.** `docs/design/CATALOGUE.md` is the authoritative per-file inventory
+(**125 files / 124 screens** — reconciled 2026-07-16; the denominator the ROADMAP's "~42 of ~124" rests on).
+Most catalogued screens map to the ② / ③ modules above.
 
 ---
 
@@ -732,7 +799,7 @@ complete.** Detail follows below; this is the honest triage a fresh session need
   stay deferred** (no schema).
 - **The remaining design-only screens** — most of the ~120-file Claude Design library (`docs/design/
   CATALOGUE.md`) maps to FUTURE modules with **no backend today** and were deliberately NOT built: the full
-  **guest portal** (~32), **reviews**, **subscription billing / paywall**, **transactional emails** (~9), and
+  **guest portal** (~24 per ROADMAP), **reviews**, **subscription billing / paywall**, **transactional emails** (~9), and
   **analytics** (Reports/Insights, ADR/RevPAR trends). Do NOT build backend for these ad hoc — each is a gated
   module. *(The **Maintenance** and **Unified Inbox** modules are now COMPLETE end-to-end — backend + styled
   UI — so they're no longer in this future list.)* *(`docs/design/CATALOGUE.md` is the authoritative per-file
@@ -812,7 +879,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**597 tests / 5986 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**617 tests / 6100 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -873,6 +940,29 @@ one-books with no overbooking**), together. The true-parallel no-double-booking 
   delivery status; deferred-channel honest "not connected" composer; forced deferred reply → honest failed;
   assign/close/reopen/snooze persist + guarded; the guest stay-stat derived-real or omitted; link-reservation
   persists).
+- **Security / integrity suite — MUTATION-VERIFIED (each proven to FAIL without its guard; this is the point).**
+  `BackOfficeAccessTest` (#26 — an owner-role user is bounced from every `/app` route + the owner-only role;
+  each defense-in-depth layer blocks independently) · `RefundGuardTest` (#27 — cumulative refunds bounded,
+  same-currency, non-positive rejected; **failed 7/10 pre-fix**) · the `terminate()` service guard (#29 — a
+  terminal reservation cannot be re-terminated; both callers funnel one `TERMINAL_STATUSES`) ·
+  `PermissionEnforcementTest` (#30 — 7 routes + the refund screen enforce `can:`; **stripping every `can:`
+  refails 5**; the privilege-escalation invite path closed) · `GuestErasureTest` (#28 — `guests.erase`-gated,
+  typed-ERASE-confirmed anonymize; **8 failed pre-fix**). All found by READING, not by a failing test.
+- **Auth — change-password + 2FA.** `ChangePasswordTest` (9 — happy path + remember-token rotation, wrong
+  current rejected/unchanged, `auth()`-resolution [A changes, B untouched], owner side, the non-manager
+  reachability of `/app/security`, the shared path) · `TwoFactorEnrollmentTest` (12 — confirm-before-activate
+  mutation-proven, recovery codes single-use + regenerate-invalidates, disable-requires-re-auth, encrypted at
+  rest, self-only) · **`TwoFactorChallengeTest`** (8 — **mutation-proving invariant #31**: a correct password
+  alone reaches neither `/app` nor `/owner`; valid TOTP completes; recovery code completes + is consumed [no
+  reuse]; invalid rejected + throttled [blocks even a valid code past the limit]; a non-2FA login is unchanged).
+- **Wave 2–4 screens + the shared-definition drift proofs** (a shared rule is worthless unless a test proves
+  both surfaces use it): `ReservationStage` — its 28-combination status×date partition is asserted exhaustive
+  (a chip can't drift from what it filters) · `GuestSpend` — `for()` / `forGuestIds()` return identical figures
+  and **reconcile to the ledger by construction** · `GuestHistory` — one stays/nights/"guest since" rule (the
+  inbox and CRM had shipped two). Plus the per-screen render/isolation + guarded-write tests for the
+  Reservations list, Cancelled/No-show, the Refund screen, the Guests CRM + profile, Operator Rates, New
+  Reservation (the 3 guards), Settings (operator + owner), and the owner inbox (`/owner/messages`, owner-scope
+  mutation-proven — invariant #18).
 - **THREE browser-verified user journeys** — ⚠️ **NOT part of the runnable regression net; do not read this
   line as a gate.** They were an agent-driven **Playwright MCP** pass against a live `php artisan serve`
   (there is no installed Playwright, no specs, and every artefact is gitignored), so unlike every other
@@ -1029,17 +1119,18 @@ plain GET links (e.g. `?month=`).
 - **Gated build prompts** → `docs/prompts/phase-1.md` · `docs/prompts/phase-2.md` ·
   `docs/prompts/phase-3-owner-accounting.md` (all done/certified) · `docs/prompts/live-integration-checkpoint.md`
   (Stripe leg done; Channex Steps 1–2 outstanding)
-- **Design source of truth** → **`docs/design/CATALOGUE.md`** (per-file inventory + backend-status legend; headline count reconciled to **125 files / 124 screens**) · `docs/design/design-system-brief.md` · `docs/design/owner-portal-spec.md`. ⚠️ The raw Claude Design HTML lives in **`docs/design/raw/*.html` — GITIGNORED / local-only, NOT in a fresh clone** (125 files on this machine); the `.md` specs above ARE versioned. **A fresh clone cannot read the designs** — work from `CATALOGUE.md` / `DESIGN-COVERAGE.md` / `WAVE2-INVENTORY.md`, which are versioned and were written from them. 🔴 **BUT THAT MITIGATION DOES NOT COVER THE NEXT BUILD:** `WAVE2-INVENTORY.md` is the ONLY per-page inventory, and it covers **Wave 2 only**. **Wave 3 (the owner inbox — the stated next screen work) has no versioned design inventory**, so on a fresh clone it cannot be built faithfully. Produce a Wave 3 inventory from `raw/` **on a machine that has it** (this one does) before starting, or the design is simply unavailable. This gap is invisible here and fatal on a clone.
+- **Design source of truth** → **`docs/design/CATALOGUE.md`** (per-file inventory + backend-status legend; headline count reconciled to **125 files / 124 screens**) · `docs/design/design-system-brief.md` · `docs/design/owner-portal-spec.md`. ⚠️ The raw Claude Design HTML lives in **`docs/design/raw/*.html` — GITIGNORED / local-only, NOT in a fresh clone** (125 files on this machine); the `.md` specs above ARE versioned. **A fresh clone cannot read the designs** — work from `CATALOGUE.md` / `DESIGN-COVERAGE.md` / `WAVE2-INVENTORY.md` / `WAVE4-INVENTORY.md` / `AUTH-INVENTORY.md`, which are versioned and were written from them. ⚠️ **The per-page inventories are per-wave, not total:** Waves 2 and 4 + the auth screens have versioned inventories; a FUTURE build of a design without one (most Tier-2 modules) must first produce its inventory from `raw/` **on a machine that has it** (this one does), or the design is simply unavailable on a clone.
 - **PLANNING SOURCE OF TRUTH (read before starting any new screen)** →
   **`docs/ROADMAP.md`** (designed-vs-built-vs-remaining across ~16 modules; **~42 of ~124 screens done (~34%)**
-  — a column sum with one cross-listed row, so distinct = 41; the tilde is load-bearing) · **`docs/TIER1-SPEC.md`**
-  (per-screen build specs — backend reality per feature, write methods, buildability verdict, the 5-wave order
-  with **Waves 1–2 marked DONE**) · **`docs/DESIGN-COVERAGE.md`** (exists-vs-missing design audit — 125 files /
-  124 screens, near-total coverage; the catalogue's headline count is **reconciled**, though those 5 screens are
-  still absent from its per-screen tables) · **`docs/WAVE2-INVENTORY.md`** (1,900-line per-page feature
-  inventory of the 6 Wave-2 designs, every element tagged ✅ BUILD-NOW / 🔨 NEEDS-BACKEND / 📋 DECORATIVE-FAKE /
-  ⬜ OTHER-MODULE. **The template for how to read ANY design before building it** — and the artefact that found
-  the €1,107 over-refund bug, by inventorying rather than testing).
+  — a column sum with one cross-listed row, so distinct = 41; the tilde is load-bearing; Guest Portal counted at
+  ~24) · **`docs/TIER1-SPEC.md`** (per-screen build specs — backend reality per feature, write methods,
+  buildability verdict, the 5-wave order with **Waves 1–4 CORE done**) · **`docs/DESIGN-COVERAGE.md`**
+  (exists-vs-missing design audit — 125 files / 124 screens, near-total coverage) · **`docs/WAVE2-INVENTORY.md`**
+  + **`docs/WAVE4-INVENTORY.md`** (per-page feature inventories, every element tagged ✅ BUILD-NOW / 🔨
+  NEEDS-BACKEND / 📋 DECORATIVE-FAKE / ⬜ OTHER-MODULE — **the template for reading ANY design before building
+  it**; WAVE2 is the artefact that found the €1,107 over-refund by inventorying rather than testing) ·
+  **`docs/AUTH-INVENTORY.md`** (every auth/onboarding design: BUILT vs quick-buildable vs blocked — carries the
+  superseding 2026-07-18 note that change-password + 2FA are now built).
 - **Code style / testing patterns** → `docs/CODING-STANDARDS.md` · **Conventions + commands** → `CLAUDE.md`
 - **Code** → `app/Services/` (incl. `InboxService`, `GuestMatcher`, `MaintenanceService`, owner-accounting services) ·
   `app/Payments/` · **`app/Payouts/`** · **`app/Messaging/`** (channel interface + ManualChannel + Deferred skeletons + resolver) ·
@@ -1048,19 +1139,27 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — Wave 4 CORE is DONE; what remains is subsystems / account-gated / customer validation
+## NEXT ACTION — the buildable-in-a-vacuum core is COMPLETE (2FA was the last); NEXT = CUSTOMER VALIDATION
 
-> **WAVE 4 CORE COMPLETE (2026-07-17)** — the three genuinely-buildable Wave 4 screens are built, gated,
-> tested (588/5946) and browser-verified: **Operator Rates** (per-room-type, first caller of the certified
-> `setRate`/`setRestriction`), **New Reservation** (guarded `createBooking` + the 3 safety guards), and the
-> **backed Settings slices** (`/app/settings` + owner self-profile). See `docs/DECISIONS.md` 2026-07-17 and
-> `docs/WAVE4-INVENTORY.md`. **What is LEFT of Wave 4 is deliberately NOT built** — each is a subsystem or is
-> account-gated, per the inventory: **Portfolio** (multi-property subsystem), **Owner Team** (owner
-> sub-tenancy), **Vyrobel Onboarding** (tenant-provisioning epic), **Group Booking** (atomic group write +
-> the parallel-structure trap), **Owner Rates** (owner-scope schema needed), **Channels-as-drawn** (CRUD +
-> the `channels.status` writer + live Channex), **Roles** (security redesign — the fixed-catalog/editable
-> mismatch + escalation weapon), **Stripe card tokenization**. The highest-value non-build move remains
-> **customer validation** — the wedge demos at full depth and no customer has seen it.
+> **THE HONEST HEADLINE (2026-07-18).** The self-contained, clearly-worth-it, buildable-without-anyone-else's-
+> credentials work is **essentially done.** This session took it a long way — Waves 1–4 CORE, five security/
+> integrity fixes, the full auth chapter (login · invites · reset · change-password · **2FA**). **2FA was the
+> last such subsystem.** Everything that remains is one of three things, and none of them is a "quick win a
+> fresh session should just start": **① subsystems/epics** (real gated builds — Portfolio, Owner Team,
+> tenant-provisioning/self-signup, Group Booking, Owner Rates, Channels-as-drawn incl. the missing
+> `channels.status` writer, Roles, guest auth, sessions/apps), **② speculative modules** (Guest Portal ~24,
+> Analytics, Reviews, Billing, Notifications, Emails — designed, ZERO backend, and **no evidence anyone wants
+> them**), **③ account-gated** (real inbox channels, Channex live, Stripe Connect, Stripe card checkout, prod
+> email — blocked on someone else's credentials). Full tagged triage: the register above.
+>
+> **⚠️ SO THE HIGHEST-VALUE MOVE IS NO LONGER A BUILD — IT IS CUSTOMER VALIDATION.** The product demos at full
+> depth (statement → remittance PDF → payout run → the owner sees it paid, to the cent; operator daily-ops
+> end-to-end; a real direct booking) and is **safe for a real owner login**. **No customer has ever reacted to
+> it.** An intro email is out to a warm contact (Fatima); more outreach + demo prep should come next, and a
+> customer's actual reaction should DIRECT which ② epic or ③ integration is worth committing to — rather than
+> picking one blind. **Record it plainly: more building has diminishing returns until the signal comes in.**
+> *(There is no outreach material in this repo — no demo script, no cold-email draft. If any exists it lives
+> outside version control; do not assume it.)*
 
 **(historical) The original Wave-4 lead-in:**
 
@@ -1112,8 +1211,10 @@ These are not platitudes; each one is here because it caught a real bug or preve
   has **no guard at all**); events belong in controllers (**no controller in this repo calls a recorder —
   services do**); `Note` was morph-mapped (it was **not** — the first `record()` on it would have thrown);
   `statement_id + room_revenue` reconciles to `gross_minor` (it does not); `owners.user_id != null` means
-  portal access (it does not); "9 screens" in Wave 1 (the tables always said **10**).
-  **Audit first, every time. Echo the plan against real code before writing any of it.**
+  portal access (it does not); "9 screens" in Wave 1 (the tables always said **10**); the existing
+  `two_factor_secret` column was safe to reuse (it was **plaintext** — the 2FA build had to encrypt it); the
+  certified channel manager works in production (**nothing writes `channels.status`** — it is inert without a
+  connect/activate flow, found 2026-07-18 by grep). **Audit first, every time. Echo the plan against real code before writing any of it.**
   - **⚠️ AND THE COROLLARY THAT COST US: "VERIFY" MEANS MEASURE THE RIGHT THING.** The 2026-07-17
     consolidation "caught" a brief claiming **44 permissions** and *corrected* it to **39** — citing the repo.
     **The brief was right and the correction was wrong.** 44 is the catalog (`config('authorization.permissions')`);
@@ -1147,6 +1248,25 @@ These are not platitudes; each one is here because it caught a real bug or preve
 - **(g) SHIP THE ERASE WITH THE WRITER, AND THE GUARD WITH THE GATEWAY.** A latent GDPR gap becomes real the
   moment you build the thing that writes; an ordering detail (guard **before** the gateway call) is the
   difference between rejecting and moving real money then rejecting.
+- **(h) A UI-SHAPE MATCH IS NOT A BACKEND MATCH — audit the model's scoping columns before trusting a "READY"
+  rating.** Wave 3 (the owner inbox) was rated presentation-only by BOTH planning docs, yet `message_threads`
+  had no `owner_id`, so `BelongsToOwner` could not apply and `OwnerScope` **never ran** — building it as specced
+  would have shown every owner every other owner's (and every guest's) conversation. A screen that looks like a
+  read is a security build if the data isn't scoped for it. **Trust the schema, not the mockup.**
+- **(i) SECURITY FIXES HAVE A METHOD, and it is not "add a check".** Every one of this session's five holes
+  followed it: **audit-first** (read the real code, find who actually calls the path — `terminate()` had two
+  callers that *disagreed*); **put the guard where ALL paths are covered** (`refundPayment()`/`terminate()`
+  guard in the single service method, not per-controller; authorization on the ROUTE where a permission is a
+  request fact, deliberately unlike the data-bound service guards); **mutation-prove it** (write the test FIRST,
+  watch it fail, fix, watch it pass, then strip the guard and watch it fail again — a guard with no red run
+  proves nothing); **fix the fixtures, never the check** (a test that fails because its actor lacks a permission
+  is telling you to fix the actor); **defense-in-depth** (#26 was two independent layers, each proven to block
+  alone). And #31's variant: **prefer relying on a guard that already exists** (the pending state is rejected by
+  the standard `auth` middleware) over inventing a new one that a future route could forget.
+- **(j) WHEN A TEST FLAKES, SUSPECT THE ASSERTION BEFORE THE APP.** Both flakes closed this arc were the same
+  disease — a needle too generic to distinguish the bug from a coin flip (a raw faker name vs escaped HTML; a
+  2-char unit code vs random CSRF tokens). The app was correct both times. **A needle must be one that could
+  ONLY appear by the bug; CAPTURE the failing run, do not re-run until it hides.** (Detail in the register.)
 
 ---
 

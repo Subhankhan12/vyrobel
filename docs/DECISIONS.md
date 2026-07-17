@@ -2032,3 +2032,36 @@ with this repo's bespoke, hardened auth chapter).
 **Verification.** `TwoFactorEnrollmentTest` (12) + `TwoFactorChallengeTest` (8) — the challenge file **mutation-proves** the security property: a 2FA user who gives the *correct password* cannot reach `/app` or `/owner` until a valid code; valid TOTP completes; valid recovery code completes **and is consumed** (no reuse); invalid is rejected + throttled (a valid code is blocked past the limit); a wrong password never enters the pending state; a **non-2FA user logs in unchanged** (no regression). Full suite **617 tests / 6100 assertions** green; PHPStan L5 + Pint clean; `migrate:fresh --seed` clean. **Browser-verified end-to-end BOTH portals** (operator + owner): enroll → recovery codes → log out → TOTP-challenged login → recovery-code login → disable-with-re-auth (wrong password rejected, 2FA stays on; correct password turns it off) → subsequent login passes straight through. Demo accounts reset to password-only afterward, so the documented demo login is unchanged.
 
 **The auth chapter now includes 2FA.** Remaining BLOCKED auth subsystems (per `docs/AUTH-INVENTORY.md`): SaaS self-signup / tenant-provisioning, the whole Guest Portal auth, and sessions / connected-apps / IP-rules (all still honest "Soon").
+
+## 2026-07-18 — CAPSTONE SESSION CONSOLIDATION (docs only, NO code) — the buildable core is complete; next is customer validation
+
+**A total-recall consolidation at the close of a very large session**, refreshing `docs/PROJECT-STATE.md` +
+`CLAUDE.md` to the true current state and adding this dated marker. **No code changed** — this entry records
+where the product stands, not a new decision.
+
+- **Ground truth (verified for this capstone):** HEAD `11288d6`, on `main`, **local == origin, tree clean**.
+  **`php artisan test` → 617 tests / 6100 assertions, all green** on MySQL 8 (`vyrobel_test`). **PHPStan L5, 0
+  errors. Pint clean.** (The doc commit carrying these words advances HEAD by one — the HEAD convention.)
+- **The arc this session covered** (all already recorded in their own dated entries above; this is the index):
+  Wave 1 (owner-accounting long-tail, 10 screens) → the `/app` authorization fix (**#26**) → the cumulative
+  over-refund fix (**#27**) → Wave 2 (reservations + Guests CRM, 5 screens; the `ReservationStage`/`GuestSpend`/
+  `GuestHistory` extractions; the notes-redaction GDPR fix) → the security register cleared (`terminate()` guard
+  **#29**, the enforced permission catalog **#30**, the `anonymize()` UI trigger **#28**; both flaky tests
+  root-caused) → Wave 3 (the owner inbox; `owner_id` + `BelongsToOwner`, **#18** extended) → Wave 4 CORE (Rates,
+  New Reservation, Settings; `MoneyInput`, `UnitAvailabilityService`) → **Change Password** → **2FA (TOTP)**,
+  invariant **#31**. **Five security/integrity holes closed this session, every one found by READING, not by a
+  failing test.**
+- **The honest state, recorded plainly:** the buildable-in-a-vacuum, clearly-worth-it, self-contained core is
+  **essentially complete — 2FA was the last such subsystem.** What remains is **① subsystems/epics** (real
+  gated builds: Portfolio, Owner Team, tenant-provisioning, Group Booking, Owner Rates, Channels-as-drawn,
+  Roles, guest auth, sessions/apps), **② speculative modules** (Guest Portal ~24, Analytics, Reviews, Billing,
+  Notifications, Emails — designed, zero backend, **no customer signal**), and **③ account-gated** (real inbox
+  channels, Channex live, Stripe Connect, Stripe card checkout, prod email). Plus the small **still-open register
+  items** (dead enums; no inbox permission; two fail-closed RBAC defects; and — recorded this session — **the
+  channel manager is inert in production because nothing writes `channels.status`/`channel_mappings.status`**,
+  verified by grep).
+- **THE NEXT MOVE IS NOT A BUILD — it is CUSTOMER VALIDATION.** The product demos at full depth and is safe for
+  a real owner login; **no customer has ever reacted to it.** An intro email is out to a warm contact; a real
+  reaction should DIRECT which ① epic or ③ integration is worth committing to, rather than betting blind. **More
+  building has diminishing returns until the signal comes in.** Full tagged triage + the invariant list #1–31 +
+  the meta-lessons live in `docs/PROJECT-STATE.md`; read it first on a new session, then this file.
