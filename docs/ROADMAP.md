@@ -10,15 +10,18 @@ optimism.**
 flagged. No HTML was re-rendered — the catalogue's content-verified filenames plus a route/component/service
 cross-check are sufficient.
 
-**Read alongside:** `docs/PROJECT-STATE.md` (resume snapshot + invariants #1–28 + deferred register) and
+**Read alongside:** `docs/PROJECT-STATE.md` (resume snapshot + invariants #1–30 + deferred register) and
 `docs/DECISIONS.md` (the dated "why").
 
 **⚠️ Wave status (this doc is the *map*, not the build order).** **Wave 1 (owner-accounting long tail) shipped
 2026-07-16** and **Wave 2 (operator daily ops) shipped 2026-07-17** — the scorecard and the Tier 1 backlog
-below reflect both. **The build order lives in `docs/TIER1-SPEC.md`** (5 waves), not here. **Before Wave 3
-(Owner Messages), the WAVE 2 OUTSTANDING REGISTER in `docs/PROJECT-STATE.md` comes first** — four items
-(`terminate()`'s missing internal status guard · two dead enum values · the unenforced permission catalog ·
-`anonymize()` has no UI trigger). They are security/correctness debt, not screens.
+below reflect both. **The build order lives in `docs/TIER1-SPEC.md`** (5 waves), not here.
+**✅ The Wave 2 register's security/integrity debt was cleared first (2026-07-17)** — the `terminate()` service
+guard (**#29**), the now-ENFORCED permission catalog (**#30**), and the GDPR erasure trigger — deliberately
+**before** Wave 3, so new screens inherit correct enforcement instead of a retrofit. **Wave 3 (Owner Messages)
+is the next build.** ⚠️ Two register items remain and are worth knowing before you build: the **dead enum
+values** (a status-keyed UI can render never, silently) and the **missing inbox permission** — which matters
+directly to Wave 3, since the inbox writes have no catalog permission to gate on yet.
 
 **Legend — true current state per screen:**
 - ✅ **DONE** — backend built AND styled UI integrated (live in the app).
@@ -44,7 +47,7 @@ operator dashboard → units → owners → unified inbox** — all on certified
 public storefront (browse → room → checkout → confirmation — a real guarded write through `AssignmentService`).
 An **owner** can read **statements/payouts/units** reconciling to the cent and download a branded PDF. The
 guarantee stack (no-double-booking, tenant isolation, append-only money, owner isolation) is proven by
-**511 tests / 5503 assertions** green on MySQL 8.
+**543 tests / 5646 assertions** green on MySQL 8.
 
 **The headline of what remains:** the *operational core is done*, and Waves 1–2 have since taken it to roughly
 **one-third of the designed vision by screen count**. The other two-thirds is **(1)** styled UIs over backends

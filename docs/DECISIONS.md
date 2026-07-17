@@ -1627,3 +1627,155 @@ the enforcement gap is.
 - **~10 tables are schema-only** (plans/subscriptions/usage_counters/api_keys/webhooks/groups/…): models and
   migrations exist, nothing wires them. The register said billing has "NO backend today", which invites
   exactly the parallel-structure duplication CLAUDE.md forbids.
+
+---
+
+### 2026-07-17 — 🔐 THE SECURITY/INTEGRITY REGISTER CLEARED — three gated fixes before Wave 3
+
+Done deliberately **before** more screens, so Wave 3/4 inherit correct enforcement instead of a retrofit.
+Three independent fixes, a gate each, every guard mutation-proven in both directions. Suite **511/5503 →
+543/5646**; PHPStan L5, Pint clean; `migrate:fresh --seed` clean; all three browser-verified together.
+
+**⚠️ EVERY ONE OF THESE WAS WORSE THAN THE REGISTER SAID, AND THE AUDIT IS WHY WE KNOW.**
+
+---
+
+**1. ✅ `AssignmentService::terminate()` — the TERMINATION BOUND (invariant #29). `f4a8913`.**
+
+The register said: guarded only at the controller, so a *future* caller could reopen it. **The audit found
+there were already TWO callers and they DISAGREED.** `BookingImportService::cancel()` — the OTA/Channex
+**inbound webhook** path, i.e. a network-triggered, RETRYING caller — had always reached
+`cancelReservation()`, carrying its own guard that checked only `['cancelled','no_show']`. So **an OTA
+cancelling a stay the guest had already COMPLETED (`checked_out`) went straight through and stamped
+`cancelled_at` onto it**, while the operator controller refused exactly that transition. Two rules, one
+concept, silently disagreeing on a network-driven path.
+
+Proven on real demo data before the fix (run, not asserted):
+```
+1st cancel : reason="Guest called - family emergency"  at=10:17:04  historyRows=2
+2nd cancel : reason="oops duplicate webhook"           at=10:17:05  historyRows=3
+→ original REASON destroyed · cancelled_at OVERWRITTEN · junk `cancelled -> cancelled` row appended
+```
+
+**IT IS #27'S SHAPE AGAIN: a certified service missing a bound.** #7 (append-only) was never violated — every
+row a second termination wrote was a legitimate append. **#7 bounds EDITS; nothing bounded a SECOND
+TERMINATION**, which is a REWRITE: it destroys the provenance the detail screen renders from those very
+columns and re-emits `reservation.cancelled` to every consumer.
+
+- `AssignmentService::TERMINAL_STATUSES = ['cancelled','no_show','checked_out']` — **the ONE definition**.
+- The guard sits in the **private** `terminate()`, **before** the transaction (a rejected call rolls nothing
+  back and touches no inventory). Both public entries funnel through it → one check, every caller.
+- `ReservationAlreadyTerminalException extends BookingException` (→ RuntimeException) so the controller's
+  existing catch renders a clean flash, never a 500.
+- **The OTA path NO-OPS rather than throws** — it reads the shared constant and returns before asking. On a
+  retrying webhook, letting a terminal booking reach the guarded service would turn an ordinary duplicate
+  delivery into a **poison message**. Idempotent at the edge, authoritative in the service.
+- The controller keeps its allow-list (defense-in-depth, the #26 shape), and a test asserts `CANCELLABLE` is
+  the exact **complement** of `TERMINAL_STATUSES` over the real 7-value enum — two constants in two files is
+  how drift starts.
+- **Mutation-proven:** 5 failed + 1 error pre-guard → 13/13 → neutered → 5 fail again.
+
+---
+
+**2. ✅ THE PERMISSION CATALOG IS NOW ENFORCED (invariant #30). `9123ee7`.**
+
+The catalog was **decorative**: 44 permissions, 14 roles, and **not one checked at any route, middleware or
+controller** — the coarse #26 door admitted all 11 back-office roles EQUALLY.
+
+**🔑 THE HEADLINE WAS NOT THE REFUND — IT WAS PRIVILEGE ESCALATION, and gating the refund alone would have
+been COSMETIC.** `POST /app/owners/invite` assigns a **real spatie role** and was gated only by that door.
+Proven end-to-end before the fix:
+```
+Housekeeping (units.view, housekeeping.view, housekeeping.manage — cannot refund, cannot manage users)
+  → POST /app/owners/invite {role: accountant, email: attacker@controlled.test}
+  → ✗ INVITE MINTED role=accountant status=pending
+  → Accountant holds payments.refund => true      ← two requests, no operator involved
+```
+**Never gate a money route without gating the role-granting route in the same change** — the attacker simply
+invites themselves the role.
+
+**ENFORCED** — `can:<permission>` route middleware on: `owners.invite → users.manage` ·
+`reservations.refund` **+ its GET screen** `→ payments.refund` · `reservations.payment → payments.record` ·
+`payouts.create|pay → payouts.manage` · `reservations.cancel|no-show → reservations.cancel`.
+
+- **`payouts.manage` DID NOT EXIST** (catalog 44 → **45**). The payout run had always moved real money with no
+  permission to check against. Property Owner*/Group Admin/Accountant — **not** Hotel Manager: remitting an
+  owner is an accounting act, same logic as `payments.refund`.
+- **⚠️ AUTHORIZATION GOES ON THE ROUTE, NOT THE SERVICE — the deliberate exception to #27/#29's rule.** A
+  permission is a REQUEST fact about an ACTOR; a bound is a DATA fact about a ROW. `FolioService::refundPayment()`
+  is called by tests and jobs with **no authenticated user**. Do not "unify" them.
+- Ordering verified: `Authorize` runs **last** — after #26, after `SetTenantForWebRequest` sets the spatie
+  team — and survives Livewire updates. ⚠️ **A null team fails silently to `false`.**
+- **THE UI NEVER INVITES A 403** (#27's principle, applied to authorization): the refund button + partial link
+  + screen, Record-a-payment, cancel/no-show, every payout control, and the **whole invite modal** (not just
+  its button) are `@can`-gated.
+- **FIX FIXTURES, NEVER THE CHECK** (the #26 lesson): 28 tests / 7 files moved to correctly-permissioned
+  roles. `StaffInviteTest` got a **targeted** `givePermissionTo('users.manage')` rather than a role swap —
+  a swap would have destroyed the deliberate non-provisioning its fail-safe test exists to prove.
+  ⚠️ **Cross-org isolation tests keep a PERMITTED actor**, or `can:` 403s before the scoped `findOrFail` and
+  the `assertNotFound()` silently stops proving tenancy.
+- **THE DECISION BEHIND IT** (locked with the user): the catalog is RIGHT — a Hotel Manager cannot hand money
+  back; that is a normal, deliberate control. So the demo gains a **second and third account** and
+  *demonstrates* the separation instead of hitting a wall.
+- **Mutation-proven:** 6 failed pre-enforcement → 10/10 → strip every `can:` → 5 fail again.
+
+**THE FOUR DEMO ACCOUNTS NOW MIRROR PRODUCTION RBAC** (and together they demo the whole story, rather than one
+all-powerful login — the inverted-seeder mistake #26 found, in reverse):
+```
+demo-admin@…      Property Owner  → org admin: invites staff/owners; can do anything
+demo-accountant@… Accountant      → refunds + runs the payout run
+demo-staff@…      Hotel Manager   → runs the house; NO refund, NO payout, NO invite
+demo-owner@…      External Owner  → /owner only; refused from /app entirely (#26)
+```
+⚠️ `demo-admin` was added because enforcing `users.manage` otherwise left the **invite flow undemoable** —
+`demo-staff` could invite before *only because nothing checked*. Caught by seeding and looking, not by a test.
+
+---
+
+**3. ✅ GDPR ERASURE HAS A TRIGGER. `94ef7ad`.**
+
+⚠️ **The reframe: `Guest::anonymize()` was called from NOWHERE** — no route, no controller, no component;
+every hit outside the model was a comment or a test. The erase was correct, thorough and tested, and **no
+operator could run it**, so a data-subject request could not actually be served. This BUILT the feature.
+
+- `POST /app/guests/{guest}/anonymize` → controller → **the existing `anonymize()`** → PRG. It re-implements
+  **no** redaction: that method already nulls the columns, hard-deletes ID documents *and their bytes*,
+  redacts inbox message bodies + the thread's participant identity, and redacts note bodies. **A second copy
+  would drift and quietly miss a store — which for an erasure means keeping data you said you destroyed.**
+- **`can:guests.erase`** (Property Owner / Group Admin only): running the house does not include erasing a
+  person. Route AND button gated.
+- **NOT ONE-CLICK, AND THE SERVER CHECKS:** a typed `ERASE` validated server-side; the `confirm()` dialog is
+  only a softer second layer, because **intent must survive a bookmarked POST**.
+- Asserted end-to-end: raw guest row carries no name/phone; note body `''`; every inbox message body `''`;
+  thread `participant_identity` null — while **€300.00 of billed history still reconciles** and the row is
+  neither deleted nor soft-deleted.
+- **Mutation-proven:** 8 failed pre-build → 9/9 → strip `can:guests.erase` → the permission test fails;
+  neuter the typed-confirmation rule → the not-one-click test fails.
+
+---
+
+**4. ✅ THE FLAKY TEST — root-caused by CAPTURING it, not re-running.**
+
+`OwnerStatementPdfTest::"renders only real ledger lines"` asserted `toContain($owner->name)` — the **raw**
+faker name — against **Blade-rendered (escaped) HTML**. `OwnerFactory` uses `faker->name()`, and **1.68% of
+faker names contain an apostrophe** ("Abelardo O'Conner" → `O&#039;Conner`), so ~**1 run in 6** failed on a
+page that was **perfectly correct**. A TEST bug, never a product bug. Fixed to `e($owner->name)` and **proven
+deterministically** by forcing a real apostrophe-bearing name: old assertion fails, new one passes.
+
+**Two lessons worth more than the fix:** the four true-OS-concurrency suites were the obvious suspects and
+were **innocent** (6/6 green under targeted runs) — the answer only came from capturing the failure
+(`php artisan test > run.json 2>&1`). And it is a clean case of testing **the needle rather than the
+behaviour**.
+
+---
+
+**STILL OPEN (kept in the register, none blocking):** the **dead enum values** (≥5, not 2 — a status-keyed UI
+renders never, silently); **no inbox permission exists in the catalog**, so the inbox's six writes — including
+a guest-facing reply — remain #26-only (**logged, not invented**: naming it is a product decision about who
+may speak to a guest, and it matters directly to Wave 3); and the two fail-closed RBAC defects (Super Admin
+unassignable; no org-creation path provisions roles).
+
+**WHAT THIS BUYS THE NEXT BUILD:** the enforcement layer is now correct and patterned, so a Wave 3/4 write
+route carries its `can:<permission>` and `@can`-gates its control **by following the established, tested
+shape** — rather than shipping unguarded and being retrofitted later. That was the entire point of doing this
+before the screens.

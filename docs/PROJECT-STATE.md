@@ -10,17 +10,20 @@ conflicts with the repo, **trust the repo** and fix this file.
 > login**: a certified multi-tenant backend (PMS + channel manager + payments + owner accounting + maintenance
 > + unified inbox), real session auth, and **~31 styled, browser-verified screens** across the owner portal,
 > the operator back office and the public booking storefront — all on real scoped data under the honesty rule.
-> **Two critical security holes were found and closed** (the `/app` authorization leak, #26; the cumulative
-> over-refund, #27), **both by reading rather than by a failing test.** The buildable-in-a-vacuum core is
-> essentially done; what remains is **security-hardening** (the 🔴 register below — do it first),
-> **account-gated** (needs someone else's credentials) or **speculative** (Tier 2 — designed, no backend, no
-> signal). **No customer has ever seen this product**; validation is the highest-value non-build move.
+> **Four security/integrity holes have been found and closed**, none of them by a failing test: the `/app`
+> authorization leak (**#26**), the cumulative over-refund (**#27**), the unguarded re-termination (**#29**),
+> and a **privilege escalation** — any back-office role could invite itself an Accountant and inherit
+> `payments.refund` — closed by enforcing the permission catalog (**#30**). GDPR erasure now has a real,
+> permission-gated trigger (**#28**). **The security/integrity register is CLEAR**, so Wave 3/4 screens
+> inherit correct enforcement instead of needing a retrofit. What remains is **account-gated** (needs someone
+> else's credentials) or **speculative** (Tier 2 — designed, no backend, no signal), plus the small open items
+> in the register. **No customer has ever seen this product**; validation is the highest-value non-build move.
 
 - **On `main`, working tree clean** (only the untracked design-source exports under `docs/design/raw/` remain
   uncommitted — **gitignored** raw Claude Design HTML, **not in a fresh clone**). Suite: **`php artisan test`
-  → 511 tests / 5503 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
-  session across five consecutive full runs. ⚠️ **A sixth run reported 510/1 — one unidentified flaky test;
-  see register item 5. The headline is real and reproducible, but the suite is not 100% reliable run-to-run.**
+  → 543 tests / 5646 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
+  session across four consecutive full runs. ✅ **The flaky test is CLOSED** (root-caused 2026-07-17: a test
+  asserting a raw faker name against Blade-escaped HTML — see the register). The suite is a trustworthy gate.
   **PHPStan (Larastan) level 5, 0 errors** (`--memory-limit=1G`) — re-verified. **Pint clean** — re-verified.
   ⚠️ `phpunit.xml` sets **`memory_limit=512M`** — the suite outgrew PHP's 128M CLI default (verified headroom,
   not a leak; see the register). `php artisan test` spawns a child that re-reads php.ini, so `-d` won't reach it.
@@ -239,7 +242,7 @@ conflicts with the repo, **trust the repo** and fix this file.
   tenant-scoped). Both reconcile to the screen to the cent via the shared `Support\Money\MoneyFormatter` +
   `Support\Folio\FolioTotals`.
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–28 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–30 (the full guarantee stack)
 
 > **All 28, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
@@ -247,8 +250,14 @@ conflicts with the repo, **trust the repo** and fix this file.
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
 > #23–25 Unified Inbox (inbound exactly-once + grouping · deferred channels fail HONESTLY · inbox PII/GDPR) ·
 > **#26 the `/app` back-office authorization gate** · **#27 the cumulative refund bound** · **#28 the
-> guest-PII perimeter**. The last three were all locked in the last two days; #26 and #27 each closed a live
-> hole that the fully-green suite never noticed.
+> guest-PII perimeter (+ the erasure trigger)** · **#29 the termination bound** · **#30 fine-grained
+> permission enforcement**.
+>
+> ⚠️ **The last five were all locked in the last three days, and FOUR of them closed a live hole that the
+> fully-green suite never noticed** (#26 an owner reading every other owner's financials · #27 a €369 payment
+> taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a completed stay · #30 any back-office role
+> minting itself an Accountant). Every one was found by **reading**, never by a test failing. That is the
+> single most important fact about this codebase's safety record — see META-LESSONS (b).
 
 **Phase 1 core:**
 1. **Single inventory write path** — ONLY `AssignmentService` inserts/mutates `reservation_units` /
@@ -459,11 +468,83 @@ conflicts with the repo, **trust the repo** and fix this file.
       their inbox message bodies/participant identity AND (since Wave 2 shipped the first note writer) their
       **note bodies** — a staff note about an identified person is that person's personal data. When a new
       free-text store about a guest is added, it MUST be added to `anonymize()` in the same change.
+    - **AND IT IS NOW REACHABLE (2026-07-17).** Until then `anonymize()` was called from **NOWHERE** — the
+      erase was correct, thorough and tested, and no operator could run it, so a data-subject request could
+      not actually be served. `POST /app/guests/{guest}/anonymize` is the trigger: gated on
+      **`can:guests.erase`** (Property Owner / Group Admin only — running the house does not include erasing a
+      person), **server-verified typed confirmation** (a client `confirm()` is bypassable by anyone who can
+      POST, and an irreversible action's intent check must survive a bookmarked request), and it **calls the
+      existing method** rather than re-implementing redaction — a second copy would drift and quietly miss a
+      store, which for an erasure means keeping data you said you destroyed. The erased profile still renders,
+      and its financial history still reconciles.
     - **Search cannot see it, and the page says so.** Encrypted TEXT is never indexed by value, so the CRM
       searches names only and states that in the footer rather than letting an operator conclude the data is
       missing. (The blind-index is a standing deferral.)
     (Locked `docs/DECISIONS.md` 2026-07-17; proven by `OperatorGuestsListTest` + `OperatorGuestProfileTest` +
     `GuestServiceTest`.)
+
+**The termination bound (2026-07-17):**
+29. **A TERMINAL RESERVATION CANNOT BE TERMINATED AGAIN.** Terminal = `AssignmentService::TERMINAL_STATUSES`
+    = `['cancelled', 'no_show', 'checked_out']` — **the ONE definition**, read by every layer.
+    - **The guard is INSIDE the private `terminate()`**, before the transaction (a rejected call rolls nothing
+      back and touches no inventory). Both public entries — `cancelReservation()` and `markNoShow()` — funnel
+      through it, so **one check covers every caller that exists or ever will**. That is the whole point.
+    - **⚠️ WHY THE SERVICE AND NOT THE CALLERS: there were already TWO callers and they DISAGREED.** The Wave 2
+      note claimed the operator controller was the only one; `BookingImportService::cancel()` — the OTA/Channex
+      **inbound webhook** path, i.e. a network-triggered, RETRYING caller — had always reached it too, with its
+      own guard checking only `['cancelled','no_show']`. So an OTA cancelling a stay the guest had **already
+      completed** (`checked_out`) went straight through and stamped `cancelled_at` onto it, while the
+      controller refused exactly that. Two rules, one concept.
+    - **A SECOND TERMINATION IS A REWRITE, NOT AN APPEND** — which is exactly why #7 never caught it. It
+      overwrites `cancelled_at`/`cancellation_reason` (destroying the provenance the detail screen renders from
+      those very columns), appends a junk `cancelled → cancelled` row to an append-only trail, and re-emits
+      `reservation.cancelled` to every consumer. **Same blind spot, same shape, as #27** bounding the SUM of
+      refunds where #7 only bounded their edits.
+    - **The OTA path NO-OPS, it does not throw** — it reads `TERMINAL_STATUSES` and returns before ever asking.
+      On a retrying webhook, letting a terminal booking reach the guarded service would turn an ordinary
+      duplicate delivery into a **poison message**. Idempotent at the edge, authoritative in the service.
+    - **The controller keeps its allow-list** (defense-in-depth, the #26 shape), and a test asserts
+      `CANCELLABLE` is the exact **complement** of `TERMINAL_STATUSES` over the real 7-value enum — so the UI
+      can never offer what the service will refuse.
+    (Locked `docs/DECISIONS.md` 2026-07-17; proven by `TerminateGuardTest` — written FIRST: **5 failed + 1
+    error pre-guard, 13/13 after, and neutering the guard fails 5 again**. The bug was demonstrated on real
+    demo data before the fix.)
+
+**Fine-grained authorization — the catalog is CONSULTED (2026-07-17):**
+30. **THE SENSITIVE WRITE ROUTES ENFORCE THEIR CATALOG PERMISSION.** Until now the 45-permission catalog was
+    **decorative**: not one permission was checked anywhere, so the coarse #26 door admitted all 11
+    back-office roles EQUALLY and `payments.refund` — deliberately withheld from Hotel Manager and Front Desk
+    — was effectively held by everyone who could reach `/app`. **A catalog that describes a policy the app
+    does not enforce is worse than none: it reads like protection.**
+    - **ENFORCED** via `can:<permission>` **route middleware** on the `/app` group:
+      `owners.invite → users.manage` · `reservations.refund` **+ its GET screen** `→ payments.refund` ·
+      `reservations.payment → payments.record` · `payouts.create|pay → payouts.manage` ·
+      `reservations.cancel|no-show → reservations.cancel` · `guests.anonymize → guests.erase`.
+    - **🔑 THE HEADLINE WAS PRIVILEGE ESCALATION, NOT THE REFUND.** `POST /app/owners/invite` assigns a REAL
+      spatie role. Proven end-to-end before the fix: **Housekeeping → invite self as `accountant` → invite
+      minted → Accountant holds `payments.refund`. Two requests, no operator involved.** Gating the refund
+      route alone would have been **cosmetic** — the attacker just mints an Accountant. Never gate a money
+      route without gating the role-granting route in the same change.
+    - **`payouts.manage` DID NOT EXIST** and was added (catalog 44 → **45**). The payout run had always moved
+      real money with no permission to check against. Granted to Property Owner\*/Group Admin/Accountant,
+      mirroring `payments.refund`; **not** Hotel Manager — remitting an owner is an accounting act.
+    - **⚠️ AUTHORIZATION GOES ON THE ROUTE, NOT IN THE SERVICE — deliberately unlike #27/#29.** A permission is
+      a REQUEST-level fact about an ACTOR; those are DATA-level bounds about a ROW. `FolioService::refundPayment()`
+      is called by tests and jobs with **no authenticated user**; a `can()` there would be meaningless or fatal.
+      The bound guards every caller; the permission guards every actor. **Do not "unify" them.**
+    - **THE UI MUST NOT INVITE A 403** (#27's principle, applied to authorization): every control on a gated
+      route is `@can`-gated — the refund button + partial-refund link, Record-a-payment, cancel/no-show, every
+      payout control, the whole invite modal (not just the button that opens it), and the erase card.
+    - **ORDERING IS SOUND AND VERIFIED:** `Authorize` runs **last** — after #26 and after
+      `SetTenantForWebRequest` sets the spatie team — and is re-applied on Livewire update requests.
+      ⚠️ **A null team fails SILENTLY to `false`**, so nothing may be placed above that middleware.
+    - **#26 STILL RUNS FIRST.** This is a fine-grained layer ON TOP of the coarse door, never a replacement —
+      an owner is bounced before any permission is consulted (asserted).
+    - **FIX FIXTURES, NEVER THE CHECK** (the #26 lesson): 28 tests across 7 files moved to
+      correctly-permissioned roles. ⚠️ **Cross-org isolation tests must keep a PERMITTED actor**, or `can:`
+      403s before the scoped `findOrFail` and the `assertNotFound()` silently stops proving tenancy.
+    (Locked `docs/DECISIONS.md` 2026-07-17; proven by `PermissionEnforcementTest` + `GuestErasureTest` —
+    written FIRST: **6 and 8 failed respectively; 10/10 and 9/9 after; stripping every `can:` fails 5 again**.)
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
@@ -486,22 +567,39 @@ use `api_keys`/`webhooks`.
 
 ---
 
-### 🔴 WAVE 2 OUTSTANDING REGISTER (2026-07-17) — four items found while building, deliberately NOT fixed
+### ✅ CLOSED (2026-07-17) — the three 🔴 security/integrity items, and the flaky test
 
-Each was surfaced by Wave 2, **verified empirically**, and sequenced AFTER it by explicit decision. **None is a
-regression; all four predate Wave 2.** Recorded here so none is silently dropped. Full detail:
-`docs/DECISIONS.md` 2026-07-17.
+The Wave 2 register is **cleared of its security/integrity items**, done BEFORE Wave 3 so new screens inherit
+correct enforcement rather than needing a retrofit. Full detail: `docs/DECISIONS.md` 2026-07-17.
 
-1. **`AssignmentService::terminate()` has NO internal status guard.** Proven: re-cancelling an already-
-   cancelled reservation overwrites `cancelled_at`/`cancellation_reason` and writes a junk `cancelled →
-   cancelled` status-history row. Wave 2 guards it at the CONTROLLER (`ReservationLifecycleController`'s
-   public `CANCELLABLE`/`NO_SHOWABLE` allow-lists, which the component gates its buttons off), so the shipped
-   UI cannot reach it — **but the service is the single write path and must guard itself** (defense-in-depth,
-   the same shape as #27). ⚠️ A brief asserting "terminate() throws on an illegal transition" was **wrong**;
-   the code disagreed. Verify before trusting that claim again.
-2. **DEAD enum values — AT LEAST FIVE, not two** (the count and one table name were both wrong until
-   2026-07-17; re-verified by grep). These exist in the schema and are **never written by any code**, so a UI
-   keying off one renders **never, silently** — and the designs assume several of them:
+1. ✅ **`terminate()`'s missing internal guard** → **invariant #29**. `f4a8913`. The audit found it was worse
+   than logged: there were already **two** callers and they **disagreed** (the OTA webhook path let
+   `checked_out` through). One `TERMINAL_STATUSES` definition, guarded in the shared private `terminate()`.
+2. ✅ **The unenforced permission catalog** → **invariant #30**. `9123ee7`. 7 routes + the refund screen now
+   enforce `can:<permission>`; `payouts.manage` added (catalog 44 → 45). ⚠️ The headline turned out to be
+   **privilege escalation** (Housekeeping could mint itself an Accountant), not the refund.
+3. ✅ **`Guest::anonymize()` had no UI trigger** → folded into **#28** + **#30**. `94ef7ad`. It was called from
+   NOWHERE; now a `guests.erase`-gated, server-confirmed trigger on the guest profile.
+4. ✅ **The flaky test** — root-caused, not shrugged off (see below).
+
+### ✅ CLOSED (2026-07-17) — the flaky test: a TEST bug, never a product bug
+
+`OwnerStatementPdfTest::"renders only real ledger lines"` asserted `toContain($owner->name)` — the **raw**
+faker name — against **Blade-rendered (escaped) HTML**. `OwnerFactory` uses `faker->name()`, and **1.68% of
+faker names contain an apostrophe** ("Abelardo O'Conner" → `O&#039;Conner`), so ~**1 run in 6** failed on a
+page that was **perfectly correct**. Fixed to assert `e($owner->name)`; **proven deterministically** by
+forcing a real apostrophe-bearing faker name (old assertion fails, new one passes).
+
+**Two lessons worth more than the fix:** the four true-OS-concurrency suites were the obvious suspects and
+were **innocent** (6/6 green under targeted runs) — the answer only came from **CAPTURING the failure**
+(`php artisan test > run.json 2>&1`) instead of re-running until it went away. And it is a clean case of
+testing **the needle rather than the behaviour**: the assertion was wrong, not the app.
+
+### 🔴 STILL OPEN — the register's remaining items
+
+1. **DEAD enum values — AT LEAST FIVE** (the count and one table name were both wrong until 2026-07-17;
+   re-verified by grep). These exist in the schema and are **never written by any code**, so a UI keying off
+   one renders **never, silently** — and the designs assume several of them:
    | table.column | dead value(s) | what the code actually writes |
    |---|---|---|
    | **`reservations`**`.payment_status` ⚠️ *not `payments.`* | `refunded`, `charged_back` | `FolioService::paymentStatus()` only ever writes `unpaid` / `partial` / `paid` |
@@ -510,66 +608,22 @@ regression; all four predate Wave 2.** Recorded here so none is silently dropped
    **Either write them or drop them — until then NO SURFACE MAY DEPEND ON ANY OF THEM.** The general rule is
    the real lesson: **verify any status-keyed UI against what the code actually produces**, not against the
    enum the migration declares.
-3. **🔴 THE UNENFORCED PERMISSION CATALOG** *(real security follow-up — the highest-value build work left)*.
-   **NOT ONE permission is checked at any route, middleware or controller.** Re-verified 2026-07-17: a
-   repo-wide grep for `can:` / `->can(` / `authorize(` / `permission:` across `routes/web.php`,
-   `app/Http/Controllers/`, `app/Http/Middleware/` returns **zero** hits outside `EnsureBackOfficeAccess` —
-   and that checks a ROLE, not a permission. The coarse #26 staff/owner gate is therefore the only real
-   authorization: **any back-office role can do anything any other back-office role can do — e.g. Front Desk
-   can issue a refund, though `payments.refund` is deliberately withheld from that role.** Lower blast-radius
-   than the `/app` hole (that leaked *other owners' financials* to an owner; this is staff-vs-staff inside one
-   tenant), but the catalog **describes a policy the app does not enforce** — worse than having no catalog,
-   because it reads like protection.
 
-   **⚠️ THE COUNTS, STATED ONCE SO NOBODY "RECOUNTS" THEM AGAIN** (this has already been flip-flopped once —
-   see the correction in `docs/DECISIONS.md` 2026-07-17):
-   - **44** = `config('authorization.permissions')` — **the catalog. This is the number to quote.**
-   - **39** = the union of permissions *explicitly named* across role definitions. A DIFFERENT METRIC, not a
-     correction of 44. The remaining **5** (`organizations.manage`, `billing.manage`, `roles.manage`,
-     `settings.manage`, `api.manage`) are catalog permissions reachable ONLY via the `['*']` wildcard —
-     `OrganizationRoleProvisioner` expands `['*']` to all 44, so wildcard roles genuinely hold all of them.
-   - **14** catalog roles = **13 provisioned per-org** + **1 global `Super Admin`** (deliberately not per-org).
-     **11** are back-office (`config('authorization.back_office_roles')`).
-   - ⚠️ **Two roles hold `['*']`, and they behave differently.** `Property Owner` is a real, assignable ORG
-     ADMIN. `Super Admin` **can never be held at all** — `model_has_roles.organization_id` is NOT NULL and part
-     of the PK (see the RBAC-defects block below). Whoever implements enforcement needs both facts together,
-     or they will wire a Super Admin bypass that can never fire.
-
-   **The fix has a finding but NO decided shape.** Route middleware (`can:`), controller `authorize()`, or
-   service-level? This codebase's own grain says services own the rules (no controller here calls an event
-   recorder either) — but #26 deliberately gates the ROUTE on a role because **no single permission spans
-   every staff role**; do not misread that as a rejection of permission-checking generally. Also note 5 of the
-   44 have no surface to guard yet (no org-creation or settings screen exists). **Decide the layer in a dated
-   `docs/DECISIONS.md` entry BEFORE building** — the project's own audit-first rule.
-4. **GDPR — `Guest::anonymize()` has NO UI trigger.** The erase is correct, tested and thorough, but it can
-   only be invoked from code, so a real erasure request cannot be served by an operator. *(The second GDPR gap
-   — note bodies not redacted — was **CLOSED** in Wave 2: shipping the first note writer would otherwise have
-   opened the hole itself. See invariant #28.)*
-
-5. **THE CATALOG HAS NO INBOX PERMISSION — logged, not invented** (found 2026-07-17 while enforcing #30).
+2. **THE CATALOG HAS NO INBOX PERMISSION — logged, not invented** (found 2026-07-17 while enforcing #30).
    `InboxActionController` performs six real writes (reply — which sends a **guest-facing message** — plus
    assign/close/reopen/snooze/link-reservation) and there is **no `inbox.*` / `messages.*` permission in the
-   catalog to gate them on**. They are therefore still protected only by the coarse #26 door. Deliberately
-   **not** invented during the enforcement gate: naming a permission is a product decision about who may
-   speak to a guest, and inventing one to make a table look complete is exactly the fabrication the honesty
-   rule forbids. Decide the name + role grants in a dated `docs/DECISIONS.md` entry, then enforce.
-   *(The same is true of the other deferred low-risk surfaces — housekeeping/maintenance/photos DO have real
-   permissions and simply were not in the first enforced set; the inbox has none at all.)*
+   catalog to gate them on**. They remain protected only by the coarse #26 door. Deliberately **not** invented
+   during the enforcement gate: naming a permission is a product decision about who may speak to a guest, and
+   inventing one to make a table look complete is exactly the fabrication the honesty rule forbids. Decide the
+   name + role grants in a dated `docs/DECISIONS.md` entry, then enforce.
+   *(The other deferred low-risk surfaces — housekeeping / maintenance / photos / guest notes+tags — DO have
+   real permissions and simply were not in the first enforced set. The inbox has none at all.)*
 
-6. **✅ CLOSED 2026-07-17 — THE FLAKY TEST, root-caused.** It was
-   `OwnerStatementPdfTest::"renders only real ledger lines — no invented card-processing fee"`, and the cause
-   was a **test bug, never a product bug**: it asserted `toContain($owner->name)` — the **raw** faker name —
-   against **Blade-rendered (escaped) HTML**. `OwnerFactory` uses `faker->name()`, and **1.68% of faker names
-   contain an apostrophe** ("Abelardo O'Conner"), which Blade escapes to `O&#039;Conner`. So roughly one run
-   in six, on a page that was perfectly correct, the needle simply wasn't there. Fixed by asserting
-   `e($owner->name)` — what the page genuinely renders — and **proven deterministically** by forcing the name
-   to a real apostrophe-bearing faker output: the old assertion fails, the new one passes.
-   **The lesson is worth more than the fix:** the concurrency suites were the "obvious" suspects and were
-   innocent (6/6 green under targeted runs); the answer only came from **capturing the failure** instead of
-   re-running until it went away. And it is a clean example of testing the *needle* rather than the
-   *behaviour* — the assertion, not the app, was wrong.
-
----
+3. **The two RBAC defects from the 2026-07-16 audit, both fail-closed and neither exploitable:** `Super Admin`
+   is **unassignable** (`model_has_roles.organization_id` is NOT NULL and part of the PK, so a null-team
+   assignment cannot be stored — which also makes the Horizon gate dead in practice), and **no org-creation
+   path provisions roles** (moot today: no such path exists). ⚠️ Whoever fixes enforcement further needs both
+   facts together with #30, or they will wire a Super Admin bypass that can never fire.
 
 ### ✅ CLOSED (2026-07-16) — the `/app` authorization hole. Safe for a real owner login.
 
@@ -700,7 +754,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**511 tests / 5503 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**543 tests / 5646 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -927,12 +981,12 @@ the Guest profile.** Suite **511 tests / 5503 assertions**, PHPStan L5 0 errors,
 `migrate:fresh --seed` clean, browser-verified at every gate — including a **real profile write** that
 survives a reload, with the phone ciphertext at rest and the audit trail holding only the field NAMES.
 
-1. **⛔ FIRST — clear the WAVE 2 OUTSTANDING REGISTER** (four items, in the register above). The two that
-   matter: **`terminate()`'s missing internal status guard** (currently controller-guarded only — the service
-   is the single write path and must guard itself) and **the unenforced permission catalog** (`payments.refund`
-   et al. are held by role but checked by nothing; only the coarse #26 gate is real). Then the two dead enums
-   and the `anonymize()` UI trigger. These are small, and they are security/correctness debt with a written
-   decision behind them — do them before more screens.
+1. ✅ **DONE — the WAVE 2 REGISTER's security/integrity items are CLEAR** (2026-07-17, three gated fixes:
+   `f4a8913` #29 · `9123ee7` #30 · `94ef7ad` the erasure trigger; plus the flaky test root-caused). They were
+   deliberately done BEFORE Wave 3 **so new screens inherit correct enforcement rather than needing a
+   retrofit** — a Wave 3/4 write route now simply carries its `can:<permission>`, and its control is
+   `@can`-gated, because the pattern is established and tested. What remains in the register (the dead enums,
+   the missing inbox permission, the two fail-closed RBAC defects) is **small and none of it blocks a build**.
 2. **THEN — Wave 3** per `docs/TIER1-SPEC.md`: the **Owner Messages inbox** (the inbox backend + the operator
    surface both already exist). Then Wave 4 (Rates + Channels UI, New/Group Booking, Portfolio, Block
    Calendar, Roles/Settings). The 3 NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) last.
