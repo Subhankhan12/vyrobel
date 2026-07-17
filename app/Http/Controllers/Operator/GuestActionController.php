@@ -122,6 +122,51 @@ class GuestActionController extends Controller
         return $this->back($model->id, 'guest_notice', 'Tag removed.');
     }
 
+    /**
+     * ⚠️ GDPR ERASURE — irreversible, permission-gated, server-confirmed.
+     *
+     * THE POINT OF THIS METHOD IS THAT IT IS SHORT. `Guest::anonymize()` already does the work — it nulls the
+     * PII columns, HARD-deletes the ID documents AND their stored bytes, redacts the guest's inbox message
+     * bodies + the thread's encrypted participant identity, and redacts staff NOTE bodies (Wave 2). This
+     * controller adds authorization, intent and a redirect, and re-implements NONE of it: a second copy of
+     * that list would drift and quietly miss a store, which for an erasure means keeping personal data you
+     * told a data subject you had destroyed.
+     *
+     * Until 2026-07-17 `anonymize()` was reachable from NOWHERE — no route, no controller, no component. The
+     * erase was correct and tested, and no operator could actually run it. That is why this exists.
+     *
+     * `can:guests.erase` on the route (Property Owner / Group Admin only — invariant #30): running the house
+     * does not include erasing a person. #26 still refuses an owner before any of this is consulted.
+     *
+     * NOT ONE-CLICK, AND THE SERVER IS THE ONE THAT CHECKS. The view renders a typed confirmation; a
+     * client-side `confirm()` is bypassable by anyone who can POST, so the typed word is validated HERE.
+     * `validate()` is used because this view renders `$errors` (see updateProfile()'s note).
+     */
+    public function anonymize(Request $request, string $guest): RedirectResponse
+    {
+        $model = Guest::query()->findOrFail($guest);   // tenant-scoped → cross-org 404
+
+        // Idempotence with a clean flash, never a 500: re-erasing is harmless (the fields are already null)
+        // but it would restamp `anonymized_at` and re-audit, implying a second erasure that did not happen.
+        if ($model->isAnonymized()) {
+            return $this->back($model->id, 'guest_error', 'That guest has already been anonymized.');
+        }
+
+        $request->validate([
+            // The literal word the UI asks for. Rejecting anything else is the intent check — an erasure is
+            // permanent, so "did you mean it?" must survive a bookmarked POST, not just a dialog.
+            'confirm' => ['required', 'string', 'in:ERASE'],
+        ], [
+            'confirm.required' => 'Type ERASE to confirm this permanent erasure.',
+            'confirm.in' => 'Type ERASE exactly to confirm this permanent erasure.',
+        ]);
+
+        // The REAL erase — one call, the existing method, its own transaction + audit/domain events.
+        $model->anonymize();
+
+        return $this->back($model->id, 'guest_notice', 'Guest erased. Their personal data is gone; the financial history remains.');
+    }
+
     /** PRG back to the profile, using the two flash keys that view renders. */
     private function back(string $guestId, string $key, string $message): RedirectResponse
     {

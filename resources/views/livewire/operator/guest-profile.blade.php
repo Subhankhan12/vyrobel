@@ -317,6 +317,41 @@
                         </form>
                     @endif
                 </div>
+
+                {{-- ── GDPR ERASURE — the trigger anonymize() never had ────────────────────────────
+                     Gated on `guests.erase` (Property Owner / Group Admin only): running the house does not
+                     include erasing a person. Hidden, not shown-and-403'd. Absent once already erased —
+                     there is nothing left to destroy. --}}
+                @can('guests.erase')
+                    @unless ($guest['anonymized'])
+                        <div class="vy-card">
+                            <h2 class="vy-card-title" style="margin-bottom: 6px;">Erase this guest</h2>
+                            <div class="vy-recon" style="margin-top: 0;">
+                                Right to erasure. This <strong>permanently</strong> destroys their name, contact
+                                details, ID documents, notes and message history. It <strong>cannot be undone</strong>.
+                                Their stays and financial records are kept — without their identity — so the books
+                                still balance.
+                            </div>
+
+                            {{-- NOT one-click. The typed word is checked by the SERVER (a dialog alone is
+                                 bypassable by anyone who can POST); the confirm() is a second, softer layer. --}}
+                            <form method="POST" action="{{ route('app.guests.anonymize', $guest['id']) }}"
+                                  style="margin-top: 12px;"
+                                  onsubmit="return confirm('Permanently erase this guest? Their personal data cannot be recovered.');">
+                                @csrf
+                                <label class="vy-field-label" for="confirm">Type ERASE to confirm</label>
+                                <div class="vy-input-group">
+                                    <input class="vy-input" type="text" id="confirm" name="confirm"
+                                           autocomplete="off" placeholder="ERASE" aria-describedby="erase-help">
+                                    <button type="submit" class="vy-btn vy-btn--ghost">Erase</button>
+                                </div>
+                                <div id="erase-help" class="vy-recon" style="margin-top: 6px;">
+                                    Erasing is permanent and immediate.
+                                </div>
+                            </form>
+                        </div>
+                    @endunless
+                @endcan
             </div>
         </div>
 

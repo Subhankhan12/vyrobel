@@ -230,6 +230,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     Route::post('/guests/{guest}/notes', [GuestActionController::class, 'addNote'])->name('guests.notes.store');
     Route::post('/guests/{guest}/tags', [GuestActionController::class, 'addTag'])->name('guests.tags.store');
     Route::delete('/guests/{guest}/tags', [GuestActionController::class, 'removeTag'])->name('guests.tags.destroy');
+    // ⚠️ GDPR ERASURE (2026-07-17) — the trigger `Guest::anonymize()` never had. It was called from NOWHERE:
+    // the erase was correct and tested, and no operator could run it, so a data-subject request could not
+    // actually be served. Gated on `can:guests.erase` (Property Owner / Group Admin only — invariant #30):
+    // running the house does not include erasing a person. IRREVERSIBLE, so the controller verifies a TYPED
+    // confirmation server-side — a client dialog is bypassable by anyone who can POST.
+    Route::post('/guests/{guest}/anonymize', [GuestActionController::class, 'anonymize'])
+        ->middleware('can:guests.erase')->name('guests.anonymize');
     // Design pass · Operator Screen 4 — REAL append-only folio actions via POST → controller →
     // FolioService → redirect (PRG). {reservation} is a string param resolved tenant-scoped in the
     // controller (never RMB) → cross-org 404. A refund is a NEW offsetting entry (never an edit).

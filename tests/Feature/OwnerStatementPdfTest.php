@@ -79,7 +79,12 @@ it('renders only real ledger lines — no invented card-processing fee', functio
 
     $html = view('pdfs.owner-statement', OwnerStatementDocument::data($a['statement']))->render();
 
-    expect($html)->toContain($a['owner']->name)
+    // ⚠️ e() — THE ESCAPED name, because that is what Blade actually renders. This was THE FLAKY TEST
+    // (register item 6, root-caused 2026-07-17 after it blinked once in six full runs): `OwnerFactory` uses
+    // `faker->name()`, **1.68% of which contain an apostrophe** ("Abelardo O'Conner"), and Blade escapes it
+    // to `O&#039;Conner`. So this assertion failed ~1 run in 6, on a page that was perfectly correct —
+    // testing the needle rather than the behaviour. The PAGE was never wrong; the comparison was.
+    expect($html)->toContain(e($a['owner']->name))
         ->and($html)->toContain(MoneyFormatter::display((int) $a['statement']->net_payable_minor, 'EUR'))
         ->and(strtolower($html))->not->toContain('card-processing')
         ->and(strtolower($html))->not->toContain('processing fee')

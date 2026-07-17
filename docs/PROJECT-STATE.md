@@ -556,16 +556,18 @@ regression; all four predate Wave 2.** Recorded here so none is silently dropped
    *(The same is true of the other deferred low-risk surfaces — housekeeping/maintenance/photos DO have real
    permissions and simply were not in the first enforced set; the inbox has none at all.)*
 
-6. **⚠️ ONE UNIDENTIFIED FLAKY TEST — the suite is a real gate, so this matters** (found 2026-07-17 during the
-   consolidation audit). Of **six consecutive full runs**, five were **511/511 green** and one reported
-   **510 passed / 1 failed**. The failure was **not captured** (the run printed only the count) and **never
-   reproduced**: 5 further full runs and 6 targeted runs of all four true-OS-concurrency suites
-   (`ConcurrentBookingTest`, `CrossSystemConcurrencyTest`, `InboxConcurrencyTest`, `DeadlockAvoidanceTest` —
-   the prime suspects, since they race real processes) were **all green**. So: the headline **511 / 5503** is
-   real and reproducible, but it is **not 100% reliable run-to-run**, and nobody yet knows which test blinked.
-   **Do not dismiss this as noise** — a gate that fails 1-in-6 for unknown reasons is a gate that will one day
-   hide a real regression. Next time it fires, capture the failure (`php artisan test > run.json 2>&1` and
-   keep the file) rather than re-running.
+6. **✅ CLOSED 2026-07-17 — THE FLAKY TEST, root-caused.** It was
+   `OwnerStatementPdfTest::"renders only real ledger lines — no invented card-processing fee"`, and the cause
+   was a **test bug, never a product bug**: it asserted `toContain($owner->name)` — the **raw** faker name —
+   against **Blade-rendered (escaped) HTML**. `OwnerFactory` uses `faker->name()`, and **1.68% of faker names
+   contain an apostrophe** ("Abelardo O'Conner"), which Blade escapes to `O&#039;Conner`. So roughly one run
+   in six, on a page that was perfectly correct, the needle simply wasn't there. Fixed by asserting
+   `e($owner->name)` — what the page genuinely renders — and **proven deterministically** by forcing the name
+   to a real apostrophe-bearing faker output: the old assertion fails, the new one passes.
+   **The lesson is worth more than the fix:** the concurrency suites were the "obvious" suspects and were
+   innocent (6/6 green under targeted runs); the answer only came from **capturing the failure** instead of
+   re-running until it went away. And it is a clean example of testing the *needle* rather than the
+   *behaviour* — the assertion, not the app, was wrong.
 
 ---
 
