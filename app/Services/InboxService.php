@@ -70,7 +70,7 @@ class InboxService
     /**
      * Open a new thread on a channel (optionally pre-linked to a guest/reservation).
      *
-     * @param  array{channel: string, external_thread_ref?: string|null, subject?: string|null, guest_id?: string|null, reservation_id?: string|null, participant_identity?: string|null, assigned_to?: string|null, meta?: array<string, mixed>|null}  $data
+     * @param  array{channel: string, external_thread_ref?: string|null, subject?: string|null, guest_id?: string|null, owner_id?: string|null, reservation_id?: string|null, participant_identity?: string|null, assigned_to?: string|null, meta?: array<string, mixed>|null}  $data
      */
     public function startThread(array $data): MessageThread
     {
@@ -79,6 +79,8 @@ class InboxService
             'external_thread_ref' => $data['external_thread_ref'] ?? null,
             'subject' => $data['subject'] ?? null,
             'guest_id' => $data['guest_id'] ?? null,
+            // Wave 3 — an owner↔operator thread. `guest_id` XOR `owner_id` is the discriminator.
+            'owner_id' => $data['owner_id'] ?? null,
             'reservation_id' => $data['reservation_id'] ?? null,
             'participant_identity' => $data['participant_identity'] ?? null,
             'assigned_to' => $data['assigned_to'] ?? null,
@@ -265,6 +267,72 @@ class InboxService
     }
 
     /** Mark a thread read (operator opened it) — clears the unread counter. */
+    /**
+     * An OWNER's message on an owner↔operator thread (Wave 3) — the owner portal's single write path.
+     *
+     * ⚠️ IT IS `inbound`, AND THAT IS NOT A QUIRK. `direction` is ORG-RELATIVE: a message from the owner is
+     * coming INTO the organization, exactly like a guest's. So the owner portal renders the transcript
+     * MIRRORED — their own messages are the `inbound` ones — while the operator inbox reads the same rows
+     * unchanged. One column, two correct perspectives; no per-surface duplicate.
+     *
+     * WHY THIS EXISTS RATHER THAN REUSING {@see postInbound()}, which is the same shape on paper:
+     *   1. postInbound() runs `resolveInboundGuest()` → the **GuestMatcher**. On an owner thread there is no
+     *      guest, so it would try to match/CREATE one from the participant identity — **a spurious Guest
+     *      record for the owner**, polluting the CRM and the guest count.
+     *   2. postInbound() is WEBHOOK-shaped: it resolves-or-CREATES the thread from an `external_thread_ref`
+     *      and carries the external-id idempotency machinery. An owner posting a form to a thread they are
+     *      already reading needs neither, and a find-or-create keyed on a ref is a silent wrong-thread risk.
+     * So the owner path is explicit: a known thread, a known author, no matching, no idempotency anchor.
+     *
+     * It DOES bump `unread_count` — correctly. That counter is the OPERATOR's ("inbound since they last
+     * read"), and an owner's message is exactly the thing that should light up their inbox.
+     */
+    public function postOwnerMessage(MessageThread $thread, string $body, ?User $author = null): Message
+    {
+        $message = Message::create([
+            'thread_id' => $thread->id,
+            'direction' => 'inbound',              // into the org — see the docblock
+            'channel' => $thread->channel,
+            'body' => $body,
+            'author_user_id' => $author?->id,
+            // The owner's own name, not "Operator" (which sendOutbound() hard-codes for the other side).
+            'sender_label' => $author instanceof User ? (string) $author->name : 'Owner',
+            'delivery_status' => 'received',       // internal: recording IS the delivery
+            'received_at' => now(),
+        ]);
+
+        // Atomic — a concurrent operator markRead() must not lose the bump.
+        $thread->increment('unread_count');
+        $thread->forceFill([
+            'last_message_at' => $message->received_at,
+            'last_inbound_at' => $message->received_at,
+            'status' => $thread->status === 'closed' ? 'open' : $thread->status,
+        ])->save();
+
+        $this->domainEvents->record('inbox.message_received', $message, [
+            'thread_id' => (string) $thread->id,
+            'channel' => $thread->channel,
+            'from' => 'owner',
+        ]);
+        $this->audit->record('inbox.message_received', $message, null, ['direction' => 'inbound', 'from' => 'owner']);
+
+        return $message;
+    }
+
+    /**
+     * The OWNER's read position on a thread — deliberately NOT {@see markRead()}.
+     *
+     * ⚠️ `markRead()` zeroes `unread_count`, which is the OPERATOR's counter. An owner-portal read action that
+     * called it would silently clear the operator's badge — making the operator's inbox lie about work they
+     * have not seen. The owner's read state is its own timestamp; the two never touch.
+     */
+    public function markReadByOwner(MessageThread $thread): MessageThread
+    {
+        $thread->forceFill(['owner_last_read_at' => now()])->save();
+
+        return $thread;
+    }
+
     public function markRead(MessageThread $thread): MessageThread
     {
         if ($thread->unread_count === 0) {

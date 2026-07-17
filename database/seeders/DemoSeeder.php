@@ -246,7 +246,11 @@ class DemoSeeder extends Seeder
         // --- Owner accounting (the wedge) — the demo user IS a property owner of the apartments ---
         // Real + coherent: attribution reads the folios, the statement is a pure ledger projection,
         // the payout is created from the finalized statement. Nothing fabricated.
-        $this->seedOwnerAccounting($owner, $property, $apartment, $aptRate, $aptUnits, $vat, $walkIn);
+        $ownerParty = $this->seedOwnerAccounting($owner, $property, $apartment, $aptRate, $aptUnits, $vat, $walkIn);
+
+        // --- Owner ↔ operator messages (Wave 3) — real threads via the real InboxService, so the owner
+        // Messages screen (and the operator's inbox) demo on genuine data.
+        $this->seedOwnerMessages($ownerParty, $staff);
 
         // --- Maintenance — a coherent spread so the styled board + work order demo the module. Every
         // ticket is created through the real MaintenanceService (guarded lifecycle, real events, the real
@@ -388,7 +392,7 @@ class DemoSeeder extends Seeder
         Collection $aptUnits,
         Tax $vat,
         Reservation $walkIn,
-    ): void {
+    ): Owner {
         // The owner PARTY, linked to the login (owners.user_id) so SetOwnerScopeForPortal resolves it.
         $ownerParty = Owner::create([
             'type' => 'individual',
@@ -429,6 +433,46 @@ class DemoSeeder extends Seeder
         $draft = $statements->generateDraft($ownerParty->id, '2026-09-01', '2026-09-30');
         $finalized = $statements->finalize($draft);
         app(OwnerPayoutService::class)->createFromStatement($finalized);
+
+        return $ownerParty;
+    }
+
+    /**
+     * Two real owner↔operator conversations (Wave 3) so the owner Messages screen demos with REAL threads.
+     *
+     * Every message goes through the REAL InboxService — `postOwnerMessage()` for the owner's side (inbound:
+     * into the org) and `sendOutbound()` for the staff reply — never a raw insert. So the demo exercises the
+     * exact path the portal uses, and the threads appear in the OPERATOR's inbox too (named, not "Unknown
+     * sender"), which is the loop actually closing.
+     *
+     * One thread is left with an UNREAD staff reply so the owner's unread badge/filter demo on real state
+     * rather than on a decorative dot. Content is deliberately mundane and demo-flagged by the account names
+     * — the design's own script promised a "Payouts → Preferences" screen that does not exist, and invented a
+     * €10,370 statement figure; nothing here claims a feature or a number the app cannot back.
+     */
+    private function seedOwnerMessages(Owner $ownerParty, User $staff): void
+    {
+        $inbox = app(InboxService::class);
+        $ownerUser = $ownerParty->user;
+
+        // 1. Answered — the owner asked, staff replied. Demos a full transcript, both directions.
+        $payouts = $inbox->startThread([
+            'channel' => 'manual',
+            'subject' => 'September payout',
+            'owner_id' => $ownerParty->id,
+        ]);
+        $inbox->postOwnerMessage($payouts, 'Morning! Is the September payout still on track for the usual date?', $ownerUser);
+        $inbox->sendOutbound($payouts, 'It is — your September statement is finalised and the transfer is queued. You can see the figures under Statements.', $staff);
+
+        // 2. UNREAD for the owner — a staff reply they have not opened, so the unread badge + the Unread
+        // filter demo on real state (owner_last_read_at is null until they open it).
+        $maintenance = $inbox->startThread([
+            'channel' => 'manual',
+            'subject' => 'Aircon in the apartment',
+            'owner_id' => $ownerParty->id,
+        ]);
+        $inbox->postOwnerMessage($maintenance, 'Any update on the aircon repair in the apartment?', $ownerUser);
+        $inbox->sendOutbound($maintenance, 'The engineer has been and it is fixed — the cost is itemised on your expenses.', $staff);
     }
 
     /**

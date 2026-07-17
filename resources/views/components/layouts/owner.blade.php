@@ -292,6 +292,53 @@
         .vy-list-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--vy-hairline); }
         .vy-list-row:last-child { border-bottom: none; }
         .vy-list-row:hover .vy-row-month { color: var(--vy-accent); }
+
+        /* ---- Messages (Wave 3) — the owner portal's first FORM + first transcript ---------------
+           Built on the OWNER tokens above, not copied from the operator layout: the two design systems
+           are deliberately separate files (the owner one is the warmer, calmer of the two). The shapes
+           mirror the operator inbox because a conversation is a conversation. */
+        .vy-topbar-sub { font-size: 12px; color: var(--vy-muted); margin-top: 3px; }
+        .vy-flash { display: flex; align-items: center; gap: 9px; padding: 11px 14px; border-radius: var(--vy-r-md); font-size: 13px; font-weight: 500; margin-bottom: 16px; }
+        .vy-flash.is-ok { background: rgba(31, 122, 90, 0.10); color: var(--vy-green); border: 1px solid rgba(31, 122, 90, 0.18); }
+        .vy-flash.is-err { background: rgba(178, 106, 8, 0.10); color: var(--vy-amber); border: 1px solid rgba(178, 106, 8, 0.2); }
+
+        .vy-input { flex: 1; min-width: 0; padding: 10px 13px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.7); font: inherit; font-size: 13.5px; color: var(--vy-ink); outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
+        .vy-input:focus { border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.10); }
+        .vy-input::placeholder { color: var(--vy-faint); }
+        .vy-input-group { display: flex; gap: 8px; align-items: stretch; }
+
+        /* Conversation rail */
+        .vy-msg-cols { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 18px; align-items: start; }
+        @media (max-width: 900px) { .vy-msg-cols { grid-template-columns: minmax(0, 1fr); } }
+        .vy-convo-row { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--vy-r-md); text-decoration: none; color: inherit; border-bottom: 1px solid var(--vy-hairline); transition: background .15s ease, transform .15s ease; }
+        .vy-convo-row:last-child { border-bottom: none; }
+        .vy-convo-row:hover { background: rgba(255, 255, 255, 0.55); transform: translateX(2px); }
+        .vy-convo-row.is-unread { background: rgba(232, 112, 58, 0.06); }
+        .vy-convo-row.is-active { background: #fff; box-shadow: var(--vy-shadow-sm); }
+        .vy-convo-av { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(140deg, var(--vy-peach), var(--vy-accent)); color: #fff; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 13.5px; }
+        .vy-convo-main { flex: 1; min-width: 0; }
+        .vy-convo-name { font-family: var(--vy-display); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); }
+        .vy-convo-row.is-unread .vy-convo-name { font-weight: 600; }
+        .vy-convo-role { font-size: 11px; color: var(--vy-faint); margin-top: 1px; }
+        .vy-convo-preview { font-size: 12.5px; color: var(--vy-muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-convo-row.is-unread .vy-convo-preview { color: var(--vy-ink); font-weight: 500; }
+        .vy-convo-meta { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .vy-convo-time { font-size: 11px; color: var(--vy-faint); white-space: nowrap; }
+        .vy-unread-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--vy-accent); }
+
+        /* Transcript */
+        .vy-day-sep { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; color: var(--vy-faint); font-size: 11px; }
+        .vy-day-sep::before, .vy-day-sep::after { content: ""; flex: 1; height: 1px; background: var(--vy-hairline); }
+        .vy-bubble-row { display: flex; margin-bottom: 12px; }
+        .vy-bubble-row.is-mine { justify-content: flex-end; }
+        .vy-bubble { max-width: 76%; padding: 11px 14px; border-radius: 16px; font-size: 13.5px; line-height: 1.55; }
+        /* Theirs — cream. Mine — terracotta. The owner's OWN messages are `inbound` (org-relative), so the
+           component mirrors the direction; the CSS just paints what it is told. */
+        .vy-bubble.is-theirs { background: rgba(255, 252, 248, 0.9); border: 1px solid var(--vy-glass-border); border-bottom-left-radius: 5px; color: var(--vy-ink); }
+        .vy-bubble.is-mine { background: var(--vy-grad); color: #fff; border-bottom-right-radius: 5px; }
+        .vy-bubble-meta { font-size: 10.5px; color: var(--vy-faint); margin-top: 5px; }
+        .vy-bubble-row.is-mine .vy-bubble-meta { text-align: right; }
+        .vy-bubble-failed { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; color: var(--vy-amber); }
         .vy-quick { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
         /* Rail pill (e.g. "Bank transfer") */

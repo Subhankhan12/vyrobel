@@ -50,6 +50,7 @@ class InboxList extends Component
         $models = MessageThread::query()
             ->with([
                 'guest',
+                'owner',   // Wave 3 — an owner thread's counterparty (guest_id XOR owner_id)
                 'reservation.reservationUnits.unit',
                 'assignedTo',
                 'messages' => fn ($q) => $q->latest()->limit(1),
@@ -108,6 +109,15 @@ class InboxList extends Component
     /** Guest NAME (front-desk precedent), else the last sender label — NEVER the encrypted identity. */
     private function displayName(MessageThread $thread): string
     {
+        // WAVE 3 — an owner↔operator thread has NO guest (`guest_id` XOR `owner_id`). Before this it fell
+        // through to "Unknown sender", which was both ugly and WRONG: the owner is the most precisely-known
+        // counterparty in the system. The operator MUST see these threads and be able to reply, or an owner
+        // messages into a void — so naming them is part of closing the loop, not cosmetics.
+        $owner = $thread->owner;
+        if ($owner !== null && trim((string) $owner->name) !== '') {
+            return (string) $owner->name;
+        }
+
         $guest = $thread->guest;
         if ($guest !== null) {
             $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name));

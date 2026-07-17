@@ -16,6 +16,7 @@ use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
+use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\ReservationFolioActionController;
@@ -43,6 +44,8 @@ use App\Livewire\Owner\OwnerBalance;
 use App\Livewire\Owner\OwnerDashboard;
 use App\Livewire\Owner\OwnerDocuments;
 use App\Livewire\Owner\OwnerExpenses;
+use App\Livewire\Owner\OwnerMessages;
+use App\Livewire\Owner\OwnerMessageThread;
 use App\Livewire\Owner\OwnerMyUnits;
 use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerStatementView;
@@ -284,6 +287,15 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
  */
 Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/', OwnerDashboard::class)->name('dashboard');
+    // WAVE 3 — the OWNER INBOX (owner ↔ the operator's staff). OWNER-scoped by OwnerScope: MessageThread
+    // gained `owner_id` + BelongsToOwner, so a cross-owner thread AND every operator↔guest thread
+    // (owner_id NULL) 404 here — the two-inbox boundary falls out of the scope, not out of a predicate.
+    // The reply is a REAL message via InboxService::postOwnerMessage() (inbound = into the org), never a
+    // fake send. {thread} is a plain string resolved in the component/controller (never RMB).
+    Route::get('/messages', OwnerMessages::class)->name('messages');
+    Route::get('/messages/{thread}', OwnerMessageThread::class)->name('messages.show');
+    Route::post('/messages', [OwnerMessageActionController::class, 'start'])->name('messages.start');
+    Route::post('/messages/{thread}', [OwnerMessageActionController::class, 'reply'])->name('messages.reply');
     Route::get('/statements/{statement}', OwnerStatementView::class)->name('statements.show');
     // Demo-readiness · Part B — branded owner-statement PDF. OWNER-scoped (string id → findOrFail under
     // OwnerScope → cross-owner 404, fail-closed for non-linked). Real owner_ledger figures; reconciles to

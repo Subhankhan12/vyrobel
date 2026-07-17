@@ -56,7 +56,7 @@ class InboxThread extends Component
     public function render(): View
     {
         $thread = MessageThread::query()
-            ->with(['guest', 'reservation.reservationUnits.unit'])
+            ->with(['guest', 'owner', 'reservation.reservationUnits.unit'])
             ->findOrFail($this->threadId);
 
         $channel = $this->channelMeta((string) $thread->channel);
@@ -152,6 +152,13 @@ class InboxThread extends Component
     /** Guest NAME only (front-desk precedent) — never the encrypted participant identity/contact. */
     private function guestName(MessageThread $thread): string
     {
+        // WAVE 3 — an owner↔operator thread has no guest; its counterparty is the OWNER. Named, not
+        // "Unknown sender": the operator has to know who they are replying to.
+        $owner = $thread->owner;
+        if ($owner !== null && trim((string) $owner->name) !== '') {
+            return (string) $owner->name;
+        }
+
         $guest = $thread->guest;
         if ($guest === null) {
             return 'Unknown sender';

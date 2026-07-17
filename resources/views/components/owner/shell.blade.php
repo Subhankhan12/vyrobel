@@ -3,14 +3,16 @@
 
      Props:
        active  — the nav key to highlight ('overview' | 'statements' | …)
-       title   — the topbar <h1>
-       viewer  — ['name' => string, 'initials' => string] (the authenticated user, for the chip)
+       title    — the topbar <h1>
+       subtitle — a small line under the title (Wave 3; optional, mirrors <x-operator.shell>)
+       viewer   — ['name' => string, 'initials' => string] (the authenticated user, for the chip)
 
      Nav honesty: only items with a real route navigate; the active item is highlighted (non-link);
      every other item is a non-interactive placeholder for a screen not built yet (never a fake link). --}}
 @props([
     'active' => '',
     'title' => '',
+    'subtitle' => '',
     'viewer' => ['name' => 'Owner', 'initials' => 'O'],
 ])
 @php
@@ -34,7 +36,7 @@
             ['rates', 'Rates', 'M4 4h9l7 7-9 9-7-7zM8 8h.01', null],
             ['reviews', 'Reviews', 'M12 4l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4-3.9-3.8 5.4-.8z', null],
             ['agreement', 'Agreement', 'M5 4h11l3 3v13H5zM8 12c3-1 4 2 6 0M8 16h8', route('owner.agreement')],
-            ['messages', 'Messages', 'M4 5h16v11H9l-5 4z', null],
+            ['messages', 'Messages', 'M4 5h16v11H9l-5 4z', route('owner.messages')],
         ]],
         ['ACCOUNT', [
             ['settings', 'Settings', 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2', null],
@@ -80,7 +82,14 @@
 
     <div class="vy-main">
         <div class="vy-topbar">
-            <h1>{{ $title }}</h1>
+            <div>
+                <h1>{{ $title }}</h1>
+                {{-- Wave 3 — the owner shell gained a subtitle to match <x-operator.shell>'s. Rendered only
+                     when given, so the ten screens that pass none are byte-for-byte unchanged. --}}
+                @if ($subtitle !== '')
+                    <div class="vy-topbar-sub">{{ $subtitle }}</div>
+                @endif
+            </div>
             <div class="vy-topbar-actions">
                 <span class="vy-bell" title="Notifications — coming soon" aria-label="Notifications">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0"/></svg>

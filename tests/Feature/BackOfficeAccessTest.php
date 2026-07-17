@@ -104,6 +104,18 @@ it('still lets the owner into their own portal, scoped to their own data', funct
     $a = gateOwner($s, 'Amara Okafor', 0, 20000);
     $b = gateOwner($s, 'Bruno Keller', 1, 42500);
 
+    // ⚠️ A DISTINCTIVE CODE, AND IT IS NOT COSMETIC — this was a FLAKY TEST (found + fixed 2026-07-17,
+    // Wave 3). seedScenario codes units `U1`, `U2`… and `@livewireScripts` injects a 40-char random CSRF
+    // token into every page, TWICE. `Str::random(40)` is alphanumeric, so it contains the two-character
+    // string "U2" about **0.95% of the time** — across 2 tokens × 8 routes that is a ~14% chance per run of
+    // `assertDontSee('U2')` failing on a page that leaked nothing whatsoever.
+    //
+    // Same family as the OwnerStatementPdf flake: the assertion tested the NEEDLE, not the behaviour. The
+    // prior art is already in this repo — OperatorReservationsListTest renames the foreign unit to
+    // `FOREIGNUNIT9` for exactly this reason. A leak-proof needle is one that could ONLY appear by leaking.
+    $b['unit']->update(['code' => 'BRUNOUNIT9']);
+    $b['unit']->refresh();
+
     foreach (['/owner', '/owner/units', '/owner/balance', '/owner/expenses', '/owner/agreement', '/owner/archive', '/owner/payouts', '/owner/documents'] as $route) {
         $this->actingAs($a['user'])->get($route)
             ->assertOk()

@@ -1,11 +1,15 @@
 <?php
 
 use App\Models\ManagementAgreement;
+use App\Models\Membership;
+use App\Models\MessageThread;
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
 use App\Models\Reservation;
 use App\Models\Unit;
+use App\Models\User;
 use App\Services\FolioService;
+use App\Services\InboxService;
 use App\Support\Money\Money;
 use Illuminate\Testing\TestResponse;
 
@@ -76,5 +80,54 @@ if (! function_exists('lineFor')) {
     {
         return OwnerLedgerEntry::where('owner_id', $ownerId)
             ->where('entry_type', $entryType)->whereNull('reverses_id')->first();
+    }
+}
+
+if (! function_exists('inboxOwner')) {
+    /**
+     * An owner with a real portal login, a unit and an agreement — as production builds one.
+     *
+     * In Support/ rather than a test file because BOTH the isolation suite and the screen suite need it, and
+     * a `function` declared in one Pest file only exists when THAT file loads — running a sibling in
+     * isolation would fatal on an undefined function. (Exactly the trap `ownerRoleUser()` hit in Wave 2.)
+     *
+     * @param  array<string, mixed>  $scenario
+     * @return array{user: User, owner: Owner}
+     */
+    function inboxOwner(array $scenario, string $name, int $unitIndex): array
+    {
+        $user = User::factory()->create(['name' => $name, 'status' => 'active']);
+        Membership::create([
+            'organization_id' => $scenario['org']->id,
+            'user_id' => $user->id,
+            'status' => 'active',
+        ]);
+
+        $owner = Owner::factory()->create([
+            'user_id' => $user->id,
+            'name' => $name,
+            'payout_currency' => 'EUR',
+        ]);
+        $scenario['units'][$unitIndex]->update(['owner_id' => $owner->id]);
+
+        ManagementAgreement::factory()->create([
+            'owner_id' => $owner->id,
+            'commission_pct' => 15.00,
+            'effective_from' => '2026-01-01',
+        ]);
+
+        return ['user' => $user, 'owner' => $owner];
+    }
+}
+
+if (! function_exists('ownerThread')) {
+    /** An owner↔operator thread, opened through the REAL service (never a raw insert). */
+    function ownerThread(Owner $owner, string $subject = 'A question'): MessageThread
+    {
+        return app(InboxService::class)->startThread([
+            'channel' => 'manual',      // internal: recording IS the delivery
+            'subject' => $subject,
+            'owner_id' => $owner->id,   // guest_id XOR owner_id — the discriminator
+        ]);
     }
 }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\Models\Concerns\BelongsToOwner;
+use App\Models\Scopes\OwnerScope;
 use App\Services\InboxService;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -15,9 +17,15 @@ use Illuminate\Support\Carbon;
 
 /**
  * A unified-inbox conversation (tenant-scoped). `channel` is the communication medium enum
- * (manual/email/whatsapp/booking_com/airbnb) — NOT the OTA-distribution `Channel` model. Threads
- * link optionally to a real {@see Guest} + {@see Reservation} for booking context; lifecycle
+ * (manual/email/whatsapp/booking_com/airbnb) — NOT the OTA-distribution `Channel` model. Lifecycle
  * open → snoozed/closed is guarded by {@see InboxService}.
+ *
+ * TWO KINDS OF CONVERSATION, discriminated by `guest_id` XOR `owner_id` (deliberately not a type enum —
+ * the FKs already say which, and a third source of truth could disagree with them):
+ *   • OPERATOR ↔ GUEST  — `guest_id` set (+ optional `reservation_id` for booking context). The original
+ *     Unified Inbox; arrives over a real channel, routed via the encrypted `participant_identity`.
+ *   • OPERATOR ↔ OWNER  — `owner_id` set (Wave 3). In-app over `manual` (recording IS the delivery); no
+ *     participant_identity, because there is nothing external to route to.
  *
  * `participant_identity` is ENCRYPTED (the guest's channel address, used to route outbound) — never
  * rendered on the operator surface, and never a competing copy of a linked guest's PII.
@@ -27,6 +35,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $external_thread_ref
  * @property string|null $subject
  * @property string|null $guest_id
+ * @property string|null $owner_id
  * @property string|null $reservation_id
  * @property string|null $participant_identity
  * @property string $status
@@ -34,12 +43,26 @@ use Illuminate\Support\Carbon;
  * @property int $unread_count
  * @property Carbon|null $last_message_at
  * @property Carbon|null $last_inbound_at
+ * @property Carbon|null $owner_last_read_at
  * @property Carbon|null $snoozed_until
  * @property array<string, mixed>|null $meta
  */
 class MessageThread extends Model
 {
-    use BelongsToOrganization, HasUlids, SoftDeletes;
+    /**
+     * ⚠️ `BelongsToOwner` IS A SECURITY BOUNDARY HERE, NOT A CONVENIENCE (Wave 3).
+     *
+     * It applies {@see OwnerScope}, and the entire two-inbox boundary falls out of it:
+     *   • `/owner` (OwnerContext ACTIVE) → `owner_id IN (their ids)`. A guest thread has `owner_id = NULL`, so
+     *     it is excluded **automatically** — the owner portal cannot see an operator↔guest conversation
+     *     without anyone writing a predicate. A non-linked user gets `1=0` (fail-closed).
+     *   • `/app` (OwnerContext INACTIVE) → no constraint. The operator sees every thread and can reply, so the
+     *     loop closes without a second query path.
+     *
+     * REMOVING THIS TRAIT SILENTLY LEAKS EVERY OWNER'S THREADS TO EVERY OTHER OWNER — the scope does not warn,
+     * it simply stops running. `OwnerInboxIsolationTest` mutation-proves that: delete the trait and it fails.
+     */
+    use BelongsToOrganization, BelongsToOwner, HasUlids, SoftDeletes;
 
     protected $fillable = [
         'organization_id',
@@ -47,6 +70,10 @@ class MessageThread extends Model
         'external_thread_ref',
         'subject',
         'guest_id',
+        // Wave 3 — the owner↔operator counterparty. `guest_id` XOR `owner_id` IS the discriminator: the two
+        // FKs already say which kind of conversation this is, so there is deliberately no `participant_type`
+        // enum to drift out of step with them.
+        'owner_id',
         'reservation_id',
         'participant_identity',
         'status',
@@ -54,6 +81,9 @@ class MessageThread extends Model
         'unread_count',
         'last_message_at',
         'last_inbound_at',
+        // The OWNER's read position — distinct from `unread_count`, which is the OPERATOR's (markRead() zeroes
+        // that one, so an owner-side read must never touch it).
+        'owner_last_read_at',
         'snoozed_until',
         'meta',
     ];
@@ -69,6 +99,7 @@ class MessageThread extends Model
             'unread_count' => 'integer',
             'last_message_at' => 'datetime',
             'last_inbound_at' => 'datetime',
+            'owner_last_read_at' => 'datetime',
             'snoozed_until' => 'datetime',
         ];
     }
@@ -88,8 +119,17 @@ class MessageThread extends Model
     }
 
     /**
-     * @return BelongsTo<Guest, $this>
+     * The OWNER this conversation is with, on an owner↔operator thread — null on a guest thread.
+     * `guest_id` XOR `owner_id`: the pair of FKs is the discriminator (see the class docblock).
+     *
+     * @return BelongsTo<Owner, $this>
      */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(Owner::class);
+    }
+
+    /** @return BelongsTo<Guest, $this> */
     public function guest(): BelongsTo
     {
         return $this->belongsTo(Guest::class);

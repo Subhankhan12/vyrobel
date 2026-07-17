@@ -11,11 +11,22 @@ use App\Models\Message;
 use Illuminate\Support\Str;
 
 /**
- * The MANUAL/internal channel — the only fully-working channel now (the "real" leg of the interface +
- * fake + real pattern, analogous to ManualPaymentGateway / ManualPayoutRail). An outbound message is
- * recorded and immediately considered delivered (no external provider); inbound is INJECTED (an
- * operator logs a call/walk-in note, or a test/demo posts a message) and normalised straight through.
- * No network, no credentials — genuinely records + routes, never faked.
+ * The MANUAL/INTERNAL channel — the only fully-working channel now (the "real" leg of the interface +
+ * fake + real pattern, analogous to ManualPaymentGateway / ManualPayoutRail). **Recording IS the
+ * delivery**: there is no external provider to hand off to, so an outbound message is delivered the moment
+ * it is written. No network, no credentials — genuinely records + routes, never faked.
+ *
+ * IT CARRIES TWO KINDS OF TRAFFIC, and "recording is the delivery" is the honest description of both
+ * (widened 2026-07-17, Wave 3 — the behaviour did not change, only this wording, which was written when
+ * the inbox had one use):
+ *   • An operator LOGGING an external conversation — a phone call or walk-in note. Delivery already
+ *     happened, out of band; the record is the point.
+ *   • An IN-APP owner↔operator message. Both parties read it inside Vyrobel, so writing the row IS the
+ *     delivery — there is nothing to send and no address to route to.
+ *
+ * A distinct `in_app` channel + adapter was considered and rejected: it would be byte-for-byte identical to
+ * this class, and CLAUDE.md's "reuse, don't duplicate" rule points here. The enum value names the MEDIUM
+ * (internal, vs email/whatsapp/OTA), not the participant — `guest_id` XOR `owner_id` says who.
  */
 class ManualChannel implements MessageChannel
 {
