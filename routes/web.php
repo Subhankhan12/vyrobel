@@ -13,6 +13,7 @@ use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
+use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
@@ -36,6 +37,7 @@ use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Operator\PayoutRun;
+use App\Livewire\Operator\RatesGrid;
 use App\Livewire\Operator\ReservationRefund;
 use App\Livewire\Operator\ReservationsList;
 use App\Livewire\Owner\OwnerAgreement;
@@ -169,6 +171,16 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
         ->middleware('can:payouts.manage')->name('payouts.pay');
     Route::get('/rack', ReservationRack::class)->name('rack');
     Route::get('/units', UnitsList::class)->name('units');
+
+    // Rates & availability (Wave 4) — the READ grid + the guarded rate/restriction write, which is the
+    // FIRST production caller of RateAndRestrictionService (setRate/setRestriction). PER-ROOM-TYPE (the
+    // design's per-unit grid can't be backed by the per-rate-plan tables — docs/WAVE4-INVENTORY STRUCT-1),
+    // tenant-scoped, integer money parsed server-side. GET gated on `rates.view` (Housekeeping/Maintenance/
+    // Marketing/Guest Support hold none → the nav shows them "Soon", never a 403); POST gated on
+    // `rates.manage` — deliberately NOT Front Desk or Reservation Agent (invariant #30, separation of duties;
+    // RatesGrid gates the editor off the SAME permission so the UI never offers a write the route refuses).
+    Route::get('/rates', RatesGrid::class)->middleware('can:rates.view')->name('rates');
+    Route::post('/rates', [RateActionController::class, 'apply'])->middleware('can:rates.manage')->name('rates.update');
     // Unified Inbox — UNSTYLED operator contract stubs (thread list + thread view; styled screen is a
     // later design pass). Tenant-scoped; the view resolves {thread} via a scoped findOrFail → cross-org 404.
     Route::get('/inbox', InboxList::class)->name('inbox');

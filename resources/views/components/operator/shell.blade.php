@@ -33,7 +33,7 @@
         ]],
         ['DISTRIBUTION', [
             ['channels', 'Channels', 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3', null],
-            ['rates', 'Rates', 'M4 4h9l7 7-9 9-7-7zM8 8h.01', null],
+            ['rates', 'Rates', 'M4 4h9l7 7-9 9-7-7zM8 8h.01', auth()->user()?->can('rates.view') ? route('app.rates') : null],
         ]],
         ['OWNERS', [
             ['owners', 'Owners', 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', route('app.owners')],

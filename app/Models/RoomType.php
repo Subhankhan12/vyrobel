@@ -77,6 +77,9 @@ class RoomType extends Model
         return $this->hasMany(self::class, 'parent_room_type_id');
     }
 
+    /**
+     * @return HasMany<RatePlan, $this>
+     */
     public function ratePlans(): HasMany
     {
         return $this->hasMany(RatePlan::class);
@@ -87,6 +90,9 @@ class RoomType extends Model
         return $this->hasMany(Availability::class);
     }
 
+    /**
+     * @return BelongsTo<RatePlan, $this>
+     */
     public function defaultRatePlan(): BelongsTo
     {
         return $this->belongsTo(RatePlan::class, 'default_rate_plan_id');

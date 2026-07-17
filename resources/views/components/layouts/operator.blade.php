@@ -715,6 +715,44 @@
         .vy-pm-btn--danger { color: var(--vy-accent); }
         .vy-pm-empty { font-size: 12.5px; color: var(--vy-faint); padding: 6px 2px; }
 
+        /* ---- Rates & availability grid (Wave 4) ------------------------------------------------ */
+        .vyr-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+        .vyr-winnav { display: inline-flex; align-items: center; gap: 6px; }
+        .vyr-winlabel { font-family: var(--vy-display); font-weight: 600; font-size: 14px; padding: 0 8px; min-width: 156px; text-align: center; }
+        .vyr-navbtn { width: 34px; height: 34px; display: inline-grid; place-items: center; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); text-decoration: none; }
+        .vyr-navbtn:hover { background: rgba(255,255,255,.9); }
+        .vyr-jump { font-size: 12.5px; color: var(--vy-accent); text-decoration: none; font-weight: 600; }
+        .vyr-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .vyr-grid { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 760px; }
+        .vyr-grid th, .vyr-grid td { border-bottom: 1px solid var(--vy-hairline); }
+        .vyr-corner, .vyr-rt { position: sticky; left: 0; z-index: 2; background: var(--vy-glass); backdrop-filter: blur(6px); text-align: left; min-width: 188px; }
+        .vyr-dhead { padding: 8px 6px; text-align: center; min-width: 62px; }
+        .vyr-dhead.is-weekend { background: rgba(232,112,58,.06); }
+        .vyr-dweekday { font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-faint); }
+        .vyr-dday { font-family: var(--vy-display); font-weight: 700; font-size: 15px; color: var(--vy-ink); }
+        .vyr-dmonth { font-size: 10px; color: var(--vy-muted); }
+        .vyr-rt { padding: 12px 14px; }
+        .vyr-rt-name { font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
+        .vyr-rt-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; }
+        .vyr-cell { padding: 6px; text-align: center; vertical-align: top; min-width: 62px; }
+        .vyr-cell.is-weekend { background: rgba(232,112,58,.04); }
+        .vyr-cellbtn { display: block; width: 100%; border: 1px solid transparent; border-radius: var(--vy-r-sm); background: rgba(255,255,255,.5); padding: 7px 4px; cursor: pointer; font-family: inherit; transition: border-color .12s ease, background .12s ease; }
+        .vyr-cellbtn:hover { border-color: var(--vy-accent-border); background: #fff; }
+        .vyr-cellbtn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
+        .vyr-cell-static { padding: 7px 4px; }
+        .vyr-rate { font-family: var(--vy-display); font-weight: 600; font-size: 13px; color: var(--vy-ink); }
+        .vyr-rate.is-empty { color: var(--vy-faint); font-weight: 500; }
+        .vyr-avail { font-size: 10.5px; color: var(--vy-muted); margin-top: 3px; }
+        .vyr-avail.is-out { color: var(--vy-accent); font-weight: 600; }
+        .vyr-flags { display: flex; gap: 3px; justify-content: center; margin-top: 4px; min-height: 13px; }
+        .vyr-flag { font-size: 9px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; padding: 1px 5px; border-radius: var(--vy-r-pill); }
+        .vyr-flag--min { background: rgba(178,106,8,.12); color: var(--vy-amber); }
+        .vyr-flag--closed { background: rgba(194,65,12,.12); color: var(--vy-accent); }
+        .vyr-noplan { font-size: 11.5px; color: var(--vy-faint); padding: 10px 6px; text-align: center; }
+        .vyr-editor { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 14px; align-items: end; }
+        .vyr-check { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--vy-ink); font-weight: 500; margin-bottom: 7px; }
+        .vyr-soon-note { font-size: 12px; color: var(--vy-faint); margin-top: 14px; display: flex; align-items: flex-start; gap: 7px; line-height: 1.5; }
+
         /* ---- Responsive ------------------------------------------------------------------------ */
         @media (max-width: 1100px) {
             .vy-kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); }
