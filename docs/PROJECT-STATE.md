@@ -252,16 +252,16 @@ conflicts with the repo, **trust the repo** and fix this file.
   tenant-scoped). Both reconcile to the screen to the cent via the shared `Support\Money\MoneyFormatter` +
   `Support\Folio\FolioTotals`.
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–30 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–31 (the full guarantee stack)
 
-> **All 28, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 31, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
 > #23–25 Unified Inbox (inbound exactly-once + grouping · deferred channels fail HONESTLY · inbox PII/GDPR) ·
 > **#26 the `/app` back-office authorization gate** · **#27 the cumulative refund bound** · **#28 the
 > guest-PII perimeter (+ the erasure trigger)** · **#29 the termination bound** · **#30 fine-grained
-> permission enforcement**.
+> permission enforcement** · **#31 the 2FA-pending state grants no authenticated access**.
 >
 > ⚠️ **The last five were all locked in the last three days, and FOUR of them closed a live hole that the
 > fully-green suite never noticed** (#26 an owner reading every other owner's financials · #27 a €369 payment
@@ -568,6 +568,20 @@ conflicts with the repo, **trust the repo** and fix this file.
       403s before the scoped `findOrFail` and the `assertNotFound()` silently stops proving tenancy.
     (Locked `docs/DECISIONS.md` 2026-07-17; proven by `PermissionEnforcementTest` + `GuestErasureTest` —
     written FIRST: **6 and 8 failed respectively; 10/10 and 9/9 after; stripping every `can:` fails 5 again**.)
+31. **THE 2FA-PENDING STATE GRANTS NO AUTHENTICATED ACCESS — BY CONSTRUCTION.** When a user with 2FA gives the
+    correct password, they are NOT logged in: `LoginRequest` uses `Auth::validate` (verify, no session) and
+    `LoginController` holds them in a **pending** state — a plain session key `login.2fa.user_id`, **NEVER the
+    auth guard** — then redirects to `/two-factor-challenge`. Because the marker is not the guard, the pending
+    user is not `Auth::check()`-true, so `/app` + `/owner` (behind `auth`) **reject them with no new
+    authorization code** — the existing middleware does it. `RequireTwoFactorPending` only fences the challenge
+    page itself. Only a valid **TOTP or single-use recovery code** runs `Auth::login` (+ session `regenerate`
+    for fixation, + route by role); invalid codes are **rate-limited** per pending-user+IP. Recovery codes are
+    **single-use** (`used_at` stamped, `hash_equals`); the secret + codes are **encrypted at rest** (the secret
+    column was plaintext before 2FA — now fixed). A **non-2FA** login is unchanged (validate+login ≡ the old
+    `attempt`). ⚠️ **Do not turn the pending marker into an authenticated session or a guard** — that would hand
+    a password-only attacker everything the second factor is meant to stop. (Built `docs/DECISIONS.md`
+    2026-07-18; enrollment `031716a`, challenge `aca017c`; proven by `TwoFactorEnrollmentTest` [12] +
+    `TwoFactorChallengeTest` [8], the latter mutation-proving that a correct password alone reaches nothing.)
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
@@ -745,8 +759,13 @@ complete.** Detail follows below; this is the honest triage a fresh session need
   Mailpit switch documented inline. **PRODUCTION still needs a real transactional provider**
   (Postmark/SES/etc.) — **Mailpit is dev/demo only.** The flow was always complete; only the prod
   transport remains deferred.
-- **2FA** — schema columns (`two_factor_secret`/`two_factor_enabled`) exist, no flow — not built. (Password
-  reset is now DONE — see the auth chapter above / DECISIONS.md 2026-07-13.)
+- **2FA (TOTP) — ✅ BUILT & CERTIFIED (2026-07-18), no longer blocked.** Opt-in per user: enrollment
+  (confirm-before-activate) + one-time recovery codes + the login challenge, secrets/codes **encrypted**
+  (fixing the pre-existing plaintext `two_factor_secret`), disable-requires-re-auth, self-only, rate-limited.
+  The pending state grants nothing by construction → **invariant #31**. `google2fa` + `bacon-qr-code`, NOT
+  Fortify. Proven by `TwoFactorEnrollmentTest` (12) + `TwoFactorChallengeTest` (8); browser-verified both
+  portals. See DECISIONS.md 2026-07-18. (Password reset + change password were done earlier — see the auth
+  chapter above.)
 
 **Maintenance module — COMPLETE end-to-end (backend certified + styled UI, design pass 2026-07-14).**
 Nothing deferred for this module. (Was: "styled maintenance UI" + "manual-move flag surfacing" — **both now
@@ -1064,7 +1083,8 @@ survives a reload, with the phone ciphertext at rest and the audit trail holding
    owner's threads. **The lesson for Wave 4: a UI-shape match is not a backend match. Audit the model's
    scoping columns before trusting a READY rating.**
    **NEXT — Wave 4** per `docs/TIER1-SPEC.md`: Rates + Channels UI, New/Group Booking, Portfolio, Block
-   Calendar, Roles/Settings. The 3 NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) last.
+   Calendar, Roles/Settings. **2FA is now DONE** (2026-07-18 — invariant #31); the 2 remaining
+   NEEDS-BACKEND-FIRST items (Global Search, Maintenance Settings) last.
    ⚠️ Two register items bear on Wave 4 directly: the **dead enum values** (a status-keyed UI renders never,
    silently — Rates/Channels are status-heavy) and the fact that **New/Group Booking has schema already**
    (`groups`, `reservations.group_id`) — extend it, never build a parallel structure.
