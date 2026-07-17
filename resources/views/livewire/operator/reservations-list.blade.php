@@ -83,12 +83,14 @@
                 </form>
             </div>
             <div class="vy-right">
-                {{-- Wave 4 design, no route. Disabled rather than a link to nowhere (the shipped rack /
-                     units precedent). --}}
-                <span class="vy-btn is-soon" aria-disabled="true">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                    New reservation <span class="vy-soon-tag">Soon</span>
-                </span>
+                {{-- Built in Wave 4. Gated on reservations.create (the control, not just the route) so a role
+                     that can't create one is never offered the button — no dead-end 403 (the Gate-2 lesson). --}}
+                @can('reservations.create')
+                    <a class="vy-btn vy-btn--accent" href="{{ route('app.reservations.create') }}">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                        New reservation
+                    </a>
+                @endcan
             </div>
         </div>
 

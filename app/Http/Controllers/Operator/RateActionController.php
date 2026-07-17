@@ -10,6 +10,7 @@ use App\Models\RatePlan;
 use App\Models\RoomType;
 use App\Services\RateAndRestrictionService;
 use App\Support\Money\Money;
+use App\Support\Money\MoneyInput;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -88,7 +89,7 @@ class RateActionController extends Controller
         // half-apply a restriction and then fail on the rate.
         $priceMinor = null;
         if ($setRate) {
-            $priceMinor = $this->parseMinorUnits((string) $request->input('rate', ''));
+            $priceMinor = MoneyInput::toMinor((string) $request->input('rate', ''), self::MAX_PRICE_MINOR);
             if ($priceMinor === null) {
                 return $this->back($fromParam, 'Enter a valid nightly rate, e.g. 175 or 175.50.');
             }
@@ -179,31 +180,6 @@ class RateActionController extends Controller
         }
 
         return $roomType->ratePlans()->where('is_active', true)->orderBy('created_at')->first();
-    }
-
-    /**
-     * Parse a hand-typed money amount to integer minor units WITHOUT a float multiply. Accepts an optional
-     * currency glyph, thousands commas and up to two decimal places; rejects negatives and anything else.
-     * Returns null on any invalid or non-positive input.
-     */
-    private function parseMinorUnits(string $input): ?int
-    {
-        $clean = str_replace([' ', ','], '', trim($input));
-        $clean = ltrim($clean, '€£$');
-
-        if ($clean === '' || preg_match('/^\d+(\.\d{1,2})?$/', $clean) !== 1) {
-            return null;
-        }
-
-        [$whole, $fraction] = array_pad(explode('.', $clean), 2, '');
-        $fraction = str_pad($fraction, 2, '0');           // "5" → "50", "" → "00"
-        $minor = ((int) $whole) * 100 + (int) $fraction;  // integer arithmetic only
-
-        if ($minor <= 0 || $minor > self::MAX_PRICE_MINOR) {
-            return null;
-        }
-
-        return $minor;
     }
 
     /** A Y-m-d string from request input, or null if it is not a real calendar date. */

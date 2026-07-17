@@ -753,6 +753,27 @@
         .vyr-check { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--vy-ink); font-weight: 500; margin-bottom: 7px; }
         .vyr-soon-note { font-size: 12px; color: var(--vy-faint); margin-top: 14px; display: flex; align-items: flex-start; gap: 7px; line-height: 1.5; }
 
+        /* ---- New reservation (Wave 4) ---------------------------------------------------------- */
+        .vyn-rt { padding: 13px 0; border-top: 1px solid var(--vy-hairline); }
+        .vyn-rt:first-child { border-top: none; padding-top: 2px; }
+        .vyn-rt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+        .vyn-rt-name { font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
+        .vyn-rt-price { font-family: var(--vy-display); font-weight: 600; font-size: 14px; color: var(--vy-accent); white-space: nowrap; }
+        .vyn-units { display: flex; flex-wrap: wrap; gap: 8px; }
+        .vyn-unit { display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); font-size: 13px; cursor: pointer; transition: border-color .12s ease, background .12s ease; }
+        .vyn-unit:has(input:checked) { border-color: var(--vy-accent); box-shadow: var(--vy-shadow-accent); background: #fff; }
+        .vyn-unit input { accent-color: var(--vy-accent); }
+        .vyn-unpriced { font-size: 12px; color: var(--vy-faint); font-style: italic; }
+        .vyn-guest { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); cursor: pointer; margin-bottom: 6px; }
+        .vyn-guest:has(input:checked) { border-color: var(--vy-accent); background: #fff; }
+        .vyn-guest input { accent-color: var(--vy-accent); }
+        .vyn-guest-av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--vy-grad); color: #fff; font-size: 11px; font-weight: 700; flex: none; }
+        .vyn-empty { font-size: 12.5px; color: var(--vy-muted); padding: 8px 0; }
+        .vyn-tabs { display: inline-flex; gap: 4px; padding: 4px; background: rgba(255,255,255,.45); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md); margin-bottom: 12px; }
+        .vyn-tab { padding: 7px 14px; border-radius: var(--vy-r-sm); font-size: 12.5px; font-weight: 600; color: var(--vy-muted); cursor: pointer; border: none; background: none; }
+        .vyn-tab.is-on { background: #fff; color: var(--vy-accent); box-shadow: var(--vy-shadow-sm); }
+        .vyn-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+
         /* ---- Responsive ------------------------------------------------------------------------ */
         @media (max-width: 1100px) {
             .vy-kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); }

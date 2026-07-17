@@ -14,6 +14,7 @@ use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\RateActionController;
+use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
@@ -33,6 +34,7 @@ use App\Livewire\MaintenanceList;
 use App\Livewire\MaintenanceTicketDetail;
 use App\Livewire\Operator\GuestProfile;
 use App\Livewire\Operator\GuestsList;
+use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
@@ -217,6 +219,15 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // App\Support\Reservations\ReservationStage — the same resolver the badge uses, so a chip can never
     // disagree with what it filters on.
     Route::get('/reservations', ReservationsList::class)->name('reservations');
+
+    // New reservation (Wave 4) — the READ screen + the guarded booking write. MUST precede the
+    // `{reservation}` show route so "create" is not captured as an id. The write is the certified
+    // AssignmentService::createBooking (single path, no double-booking); gated on `reservations.create`
+    // (Front Desk / Reservation Agent / Hotel Manager / Group Admin / Property Owner). An optional MANUAL
+    // payment inside the controller additionally checks `payments.record`. Never a raw PAN (GUARD 3).
+    Route::get('/reservations/create', NewReservation::class)->middleware('can:reservations.create')->name('reservations.create');
+    Route::post('/reservations/create', [ReservationCreateController::class, 'store'])->middleware('can:reservations.create')->name('reservations.store');
+
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
     // Demo-readiness · Part B — operator folio PDF. TENANT-scoped (string id → findOrFail → cross-org 404).
     // Real append-only ledger; reconciles to the cent; streams application/pdf.
