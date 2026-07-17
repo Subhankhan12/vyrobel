@@ -18,8 +18,7 @@ cross-check are sufficient.
 below reflect both. **The build order lives in `docs/TIER1-SPEC.md`** (5 waves), not here.
 **✅ The Wave 2 register's security/integrity debt was cleared first (2026-07-17)** — the `terminate()` service
 guard (**#29**), the now-ENFORCED permission catalog (**#30**), and the GDPR erasure trigger — deliberately
-**before** Wave 3, so new screens inherit correct enforcement instead of a retrofit. **Wave 3 (Owner Messages)
-is the next build.** ⚠️ Two register items remain and are worth knowing before you build: the **dead enum
+**before** Wave 3, so new screens inherit correct enforcement instead of a retrofit. **Wave 3 (Owner Messages) shipped 2026-07-17**; **Wave 4 is next**. ⚠️ Two register items remain and are worth knowing before you build: the **dead enum
 values** (a status-keyed UI can render never, silently) and the **missing inbox permission** — which matters
 directly to Wave 3, since the inbox writes have no catalog permission to gate on yet.
 
@@ -47,7 +46,7 @@ operator dashboard → units → owners → unified inbox** — all on certified
 public storefront (browse → room → checkout → confirmation — a real guarded write through `AssignmentService`).
 An **owner** can read **statements/payouts/units** reconciling to the cent and download a branded PDF. The
 guarantee stack (no-double-booking, tenant isolation, append-only money, owner isolation) is proven by
-**543 tests / 5646 assertions** green on MySQL 8.
+**556 tests / 5733 assertions** green on MySQL 8.
 
 **The headline of what remains:** the *operational core is done*, and Waves 1–2 have since taken it to roughly
 **one-third of the designed vision by screen count**. The other two-thirds is **(1)** styled UIs over backends

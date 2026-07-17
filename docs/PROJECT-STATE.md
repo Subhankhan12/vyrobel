@@ -21,9 +21,10 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 - **On `main`, working tree clean** (only the untracked design-source exports under `docs/design/raw/` remain
   uncommitted — **gitignored** raw Claude Design HTML, **not in a fresh clone**). Suite: **`php artisan test`
-  → 543 tests / 5646 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
-  session across four consecutive full runs. ✅ **The flaky test is CLOSED** (root-caused 2026-07-17: a test
-  asserting a raw faker name against Blade-escaped HTML — see the register). The suite is a trustworthy gate.
+  → 556 tests / 5733 assertions, all green** on genuine **MySQL 8** (`vyrobel_test`) — re-verified this
+  session across three consecutive full runs. ✅ **BOTH flaky tests are CLOSED** (root-caused 2026-07-17 —
+  and they were the same disease: an assertion whose needle was too generic, never a product bug. See the
+  register). The suite is a trustworthy gate.
   **PHPStan (Larastan) level 5, 0 errors** (`--memory-limit=1G`) — re-verified. **Pint clean** — re-verified.
   ⚠️ `phpunit.xml` sets **`memory_limit=512M`** — the suite outgrew PHP's 128M CLI default (verified headroom,
   not a leak; see the register). `php artisan test` spawns a child that re-reads php.ini, so `-d` won't reach it.
@@ -34,7 +35,7 @@ conflicts with the repo, **trust the repo** and fix this file.
   a "HEAD" named in any entry is the commit **one behind** the one that carries the words. The consolidation
   entry naming `e160eeb` ships in the commit *after* `e160eeb`. Check `git log` for the true HEAD; never treat
   a HEAD quoted in prose as current.
-- **CURRENT PHASE: WAVE 2 COMPLETE (2026-07-17) → next = Wave 3.** Five gated sub-gates, a commit each
+- **CURRENT PHASE: WAVE 3 COMPLETE (2026-07-17) → next = Wave 4.** Five gated sub-gates, a commit each
   (`4eb71e2` → `cb8bcce` → `44444e6` → `f86cf4e` → HEAD): **Reservations list · Cancelled/No-show terminal
   states · the Refund screen · the Guests CRM list · the Guest profile.** Suite **430/4835 → 511 tests / 5503
   assertions**. Unlike Wave 1 this was **not** presentation-only — Sub-gate 5 adds the first guest write path
@@ -308,10 +309,23 @@ conflicts with the repo, **trust the repo** and fix this file.
     negative net carries forward (never a reverse-charge), append-only lifecycle (`supersedes_id`).
 18. **OWNER ISOLATION — a row-level scope WITHIN a tenant, treated like tenant isolation** —
     `OwnerContext` + `OwnerScope` (via `BelongsToOwner` on Unit/OwnerStatement/OwnerStatementLine/
-    Payout/OwnerLedgerEntry/OwnerExpense). **FAILS CLOSED** (active + empty set → nothing, never all
-    owners); inactive off-portal (operator/CLI/tests see all, subject to tenant scope); activated only
-    by `SetOwnerScopeForPortal`, **deactivated on `terminate`** (no leak into operator requests);
+    Payout/OwnerLedgerEntry/OwnerExpense/**MessageThread**). **FAILS CLOSED** (active + empty set → nothing,
+    never all owners); inactive off-portal (operator/CLI/tests see all, subject to tenant scope); activated
+    only by `SetOwnerScopeForPortal`, **deactivated on `terminate`** (no leak into operator requests);
     **composes with tenant scope** (both boundaries hold; cross-org 404 both directions).
+    - **⚠️ THE TRAIT IS THE BOUNDARY — WITHOUT THE COLUMN THE SCOPE DOES NOT FAIL CLOSED, IT NEVER RUNS**
+      (proven in Wave 3, and the reason `message_threads.owner_id` landed BEFORE the owner-inbox screen).
+      `OwnerScope` keys on `owner_id`; a model without that column simply cannot carry `BelongsToOwner`, so
+      an owner-facing read over it is **tenant-scoped only** — every other owner's rows, visible. That is
+      invariant #26's shape wearing a different hat. **Before building any owner-facing screen over a model,
+      check it has the column and the trait; the scope will not warn you.**
+    - **THE BOUNDARY FALLS OUT OF THE SCOPE — never write the predicate yourself.** On `MessageThread` an
+      operator↔guest thread has `owner_id = NULL`, so `owner_id IN (their ids)` excludes it automatically:
+      the owner portal cannot see a guest conversation without anyone coding that rule. Adding a manual
+      `->where('owner_id', …)` alongside would imply the scope were optional.
+    - Proven SYMMETRICALLY (both owners, both directions — a scope that returned everything would pass a
+      one-way test) and MUTATION-PROVEN: removing the trait fails 4 tests, including the guest-thread leak.
+      (`OwnerPortalIsolationTest`, `OwnerInboxIsolationTest`.)
 
 **Design pass (presentation-only — these govern EVERY styled screen, all ~31 of them):**
 19. **Design-pass honesty rule** — every styled element is exactly one of: **REAL** (wired to a certified
@@ -582,7 +596,7 @@ correct enforcement rather than needing a retrofit. Full detail: `docs/DECISIONS
    NOWHERE; now a `guests.erase`-gated, server-confirmed trigger on the guest profile.
 4. ✅ **The flaky test** — root-caused, not shrugged off (see below).
 
-### ✅ CLOSED (2026-07-17) — the flaky test: a TEST bug, never a product bug
+### ✅ CLOSED (2026-07-17) — BOTH flaky tests: the same disease, and neither was a product bug
 
 `OwnerStatementPdfTest::"renders only real ledger lines"` asserted `toContain($owner->name)` — the **raw**
 faker name — against **Blade-rendered (escaped) HTML**. `OwnerFactory` uses `faker->name()`, and **1.68% of
@@ -590,10 +604,21 @@ faker names contain an apostrophe** ("Abelardo O'Conner" → `O&#039;Conner`), s
 page that was **perfectly correct**. Fixed to assert `e($owner->name)`; **proven deterministically** by
 forcing a real apostrophe-bearing faker name (old assertion fails, new one passes).
 
-**Two lessons worth more than the fix:** the four true-OS-concurrency suites were the obvious suspects and
-were **innocent** (6/6 green under targeted runs) — the answer only came from **CAPTURING the failure**
-(`php artisan test > run.json 2>&1`) instead of re-running until it went away. And it is a clean case of
-testing **the needle rather than the behaviour**: the assertion was wrong, not the app.
+**THE SECOND ONE (found in Wave 3), same disease:** `BackOfficeAccessTest` asserted
+`assertDontSee($unit->code)` where `seedScenario` codes units **`U2`** — *two characters* — against owner
+pages carrying **three random 40-char CSRF tokens** (`@livewireScripts`). `Str::random(40)` is alphanumeric,
+so it contains "U2" **~1.05% of the time** → **~15% per run** across 8 routes. Fixed with a leak-proof needle
+(`BRUNOUNIT9`) — the repo's own `FOREIGNUNIT9` prior art — and proven deterministically.
+
+**THE LESSONS, worth more than either fix:**
+1. **BOTH were the same disease: testing the NEEDLE, not the BEHAVIOUR.** A raw faker name vs escaped HTML;
+   a 2-char code vs random tokens. In both, the app was perfectly correct and the assertion was wrong.
+   **When a test flakes, suspect the assertion's specificity before you suspect the app.**
+2. **A needle must be one that could ONLY appear by the bug.** `assertDontSee('U2')` cannot distinguish a
+   leak from a coin flip. `assertDontSee('BRUNOUNIT9')` can.
+3. **CAPTURE the failure; do not re-run until it goes away.** (`php artisan test > run.json 2>&1`.) The four
+   true-OS-concurrency suites were the obvious suspects for the first flake and were **innocent** (6/6 green
+   under targeted runs) — re-running would only ever have hidden it.
 
 ### 🔴 STILL OPEN — the register's remaining items
 
@@ -618,6 +643,11 @@ testing **the needle rather than the behaviour**: the assertion was wrong, not t
    name + role grants in a dated `docs/DECISIONS.md` entry, then enforce.
    *(The other deferred low-risk surfaces — housekeeping / maintenance / photos / guest notes+tags — DO have
    real permissions and simply were not in the first enforced set. The inbox has none at all.)*
+   ⚠️ **Wave 3 widened this, and did not narrow it:** the OWNER inbox (`/owner/messages`) is gated by **#26 +
+   the owner scope** (an owner can only ever reach their own threads — invariant #18, mutation-proven), and
+   the operator's replies to owner threads run through the same unguarded `InboxActionController`. So the gap
+   is unchanged in kind: still no `inbox.*` permission, still a product decision about who may speak to a
+   guest or an owner. Still logged, still not invented.
 
 3. **The two RBAC defects from the 2026-07-16 audit, both fail-closed and neither exploitable:** `Super Admin`
    is **unassignable** (`model_has_roles.organization_id` is NOT NULL and part of the PK, so a null-team
@@ -754,7 +784,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**543 tests / 5646 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**556 tests / 5733 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -855,8 +885,25 @@ backends/schema/guarantees UNCHANGED.**
 | `/owner/statements/{s}/bookings` | `Owner\OwnerBookingSummaryPdfController` + `Support\Pdf\OwnerBookingSummaryDocument` | ✅ PDF — the bookings behind a statement's gross. Occupancy + the guest column OMITTED (see below). |
 | `/owner/payouts/{payout}/remittance` | `Owner\OwnerRemittancePdfController` + `Support\Pdf\OwnerRemittanceDocument` | ✅ PDF — remittance advice per payout; the amount label is derived from the REAL status ("Net payable" while pending, never "Net paid"). |
 
+**WAVE 3 (2026-07-17) — the OWNER INBOX. Owner-scoped by `BelongsToOwner`; a REAL write path.**
+
+| Route | Component / view | Styled |
+|---|---|---|
+| `/owner/messages` | `App\Livewire\Owner\OwnerMessages` → `livewire/owner/messages` | ✅ the owner's REAL threads with their operator's staff (a real user + their real back-office role — NOT the design's 5 fabricated directory entries, two of which were the SaaS vendor). Unread badge/filter/count DERIVED from `owner_last_read_at` vs later staff replies (never the operator's `unread_count`). Search hits real `messages.body` — **plaintext, so no blind index needed**, unlike guest contact. Compose = ONE real query (the org's back-office members). |
+| `/owner/messages/{thread}` (+ POST `messages.reply` / `messages.start`) | `App\Livewire\Owner\OwnerMessageThread` + `Owner\OwnerMessageActionController` → `livewire/owner/message-thread` | ✅ the transcript, **MIRRORED** (`direction` is org-relative → the owner's own message is `inbound`; the operator inbox reads the same rows the other way up). The reply is a REAL message via `InboxService::postOwnerMessage()` → it lands in the operator's inbox, **named**, and bumps their unread. `failed` rendered honestly (#24); **no "✓✓ Read"** — that value is not in the enum. |
+
+⚠️ **The backend Wave 3 added, and why each piece exists:** `message_threads.owner_id` + `BelongsToOwner`
+(**without the column the scope does not fail closed — it never runs**; see invariant #18) · `owner_last_read_at`
+(the operator's `unread_count` is theirs, and `markRead()` zeroes it) · `postOwnerMessage()` (not
+`postInbound()` — the GuestMatcher would mint a spurious Guest for the owner; not `sendOutbound()` — wrong
+direction + hard-codes the "Operator" label) · `markReadByOwner()`. The operator inbox now NAMES owner threads
+(was "Unknown sender"). **CUT, not deferred:** owner↔"Vyrobel Support"/"Billing" (the SaaS vendor —
+cross-tenant, cannot live in an org-scoped table) and owner↔"Maintenance team" (a team is not a user).
+
 Per-screen tests: `OwnerStatementViewTest`, `OwnerDashboardViewTest`, `OwnerPayoutsViewTest`,
-`OwnerMyUnitsViewTest` (+ existing `OwnerPortalIsolationTest`). The **design-pass honesty rule** — REAL →
+`OwnerMyUnitsViewTest`, **`OwnerMessagesTest`** (the mirror, the real reply, the loop closing into the
+operator's inbox, the fabrications absent), **`OwnerInboxIsolationTest`** (symmetric + mutation-proven)
+(+ existing `OwnerPortalIsolationTest`). The **design-pass honesty rule** — REAL →
 wire live · DERIVED → from real figures only · DEFERRED → stubbed "not yet available" · NO-BACKEND →
 disabled "Soon" (never a fake action/IBAN/date/download); reconcile money to the cent; owner isolation
 holds; guest PII never exposed — is locked in `docs/DECISIONS.md` (2026-07-11).
@@ -973,7 +1020,7 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — Wave 3 (Waves 1 and 2 are DONE; the product is safe for a real owner login)
+## NEXT ACTION — Wave 4 (Waves 1–3 are DONE; the security/integrity register is CLEAR)
 
 **WAVE 2 IS COMPLETE** (2026-07-17, five gated sub-gates, `4eb71e2` → `cb8bcce` → `44444e6` → `f86cf4e` →
 HEAD): **Reservations list · Cancelled/No-show terminal states · the Refund screen · the Guests CRM list ·
@@ -987,9 +1034,17 @@ survives a reload, with the phone ciphertext at rest and the audit trail holding
    retrofit** — a Wave 3/4 write route now simply carries its `can:<permission>`, and its control is
    `@can`-gated, because the pattern is established and tested. What remains in the register (the dead enums,
    the missing inbox permission, the two fail-closed RBAC defects) is **small and none of it blocks a build**.
-2. **THEN — Wave 3** per `docs/TIER1-SPEC.md`: the **Owner Messages inbox** (the inbox backend + the operator
-   surface both already exist). Then Wave 4 (Rates + Channels UI, New/Group Booking, Portfolio, Block
-   Calendar, Roles/Settings). The 3 NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) last.
+2. ✅ **DONE — Wave 3, the Owner Messages inbox** (2026-07-17, `49ab9a6`). ⚠️ **And it was NOT
+   presentation-only, though both planning docs said so** — `TIER1-SPEC` rated it READY and `ROADMAP` called
+   it 🟢 M. `message_threads` had no `owner_id`, so `BelongsToOwner` could not be applied and `OwnerScope`
+   **never ran**: the screen as specced would have shown every owner every guest conversation and every other
+   owner's threads. **The lesson for Wave 4: a UI-shape match is not a backend match. Audit the model's
+   scoping columns before trusting a READY rating.**
+   **NEXT — Wave 4** per `docs/TIER1-SPEC.md`: Rates + Channels UI, New/Group Booking, Portfolio, Block
+   Calendar, Roles/Settings. The 3 NEEDS-BACKEND-FIRST items (Global Search, 2FA, Maintenance Settings) last.
+   ⚠️ Two register items bear on Wave 4 directly: the **dead enum values** (a status-keyed UI renders never,
+   silently — Rates/Channels are status-heavy) and the fact that **New/Group Booking has schema already**
+   (`groups`, `reservations.group_id`) — extend it, never build a parallel structure.
    ⚠️ **Global Search still needs the blind-index decision** — the Guests CRM proved the constraint concretely:
    it SHOWS contact detail it cannot SEARCH, because encrypted TEXT is never indexed by value.
 3. **In parallel — CUSTOMER VALIDATION is the highest-value NON-BUILD move, and nothing else changes that.**

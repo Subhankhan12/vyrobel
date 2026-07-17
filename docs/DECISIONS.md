@@ -1779,3 +1779,128 @@ unassignable; no org-creation path provisions roles).
 route carries its `can:<permission>` and `@can`-gates its control **by following the established, tested
 shape** — rather than shipping unguarded and being retrofitted later. That was the entire point of doing this
 before the screens.
+
+---
+
+### 2026-07-17 — WAVE 3 COMPLETE — the OWNER INBOX (owner ↔ operator staff), over the existing InboxService
+
+The owner portal's Messages screen, on the certified Unified Inbox backend. The `messages` nav slot the shell
+had reserved as an honest "Soon" is now a real route. Suite **543/5646 → 556/5733**; PHPStan L5, Pint clean;
+`migrate:fresh --seed` clean; browser-verified end-to-end, both directions.
+
+**🔴 THE STEP-0 AUDIT CHANGED THE SHAPE — this was NOT presentation-only.** `docs/TIER1-SPEC.md` rated it
+**READY** and `docs/ROADMAP.md` called it 🟢 **M**; both mistook a UI-shape match for a backend match. The
+truth: `OwnerScope` keys on `owner_id`, `message_threads` had no such column, so `BelongsToOwner` **could not
+be applied** — the scope did not "fail closed", **it never ran**. An owner inbox over the model as it stood
+would have been tenant-scoped only: **every guest conversation and every other owner's threads, visible to
+any owner.** Invariant #26's exact shape. The column landed before a line of the screen.
+
+**THE MINIMAL BACKEND** (confirmed at the gate; nothing else was added):
+- **`message_threads.owner_id`** (nullable FK → owners, nullOnDelete) + **`BelongsToOwner` on MessageThread**.
+  **`guest_id` XOR `owner_id` IS the discriminator** — deliberately NOT a `participant_type` enum, which
+  would be a third source of truth able to disagree with the two FKs (the drift `RailLabel`/`OwnerOccupancy`
+  were extracted to prevent).
+- **`message_threads.owner_last_read_at`** — because `unread_count` is the **OPERATOR's** ("inbound since
+  THEY last read") and `markRead()` zeroes it. An owner-side read touching it would **silently clear the
+  operator's badge for work they have not seen**. Hence `InboxService::markReadByOwner()`, which touches only
+  the timestamp. The owner's unread = staff replies after it.
+- **`InboxService::postOwnerMessage()`** — extends, never reimplements. **Not `postInbound()`**: it runs the
+  GuestMatcher (minting a **spurious Guest for the owner**) and is webhook-shaped (find-or-create by
+  `external_thread_ref` = a silent wrong-thread risk). **Not `sendOutbound()`**: that is the operator's
+  direction and hard-codes the `"Operator"` sender label.
+- **`ManualChannel`'s docblock widened — behaviour unchanged.** "Recording IS the delivery" already described
+  an in-app message exactly. A distinct `in_app` channel + adapter was considered and **rejected**: it would
+  be byte-for-byte identical (reuse, don't duplicate). The enum names the MEDIUM; the FKs say who.
+- **The operator inbox now NAMES an owner thread** — it said "Unknown sender", which was both ugly and wrong
+  (the owner is the most precisely-known counterparty in the system). Required, or an owner messages into a
+  void.
+
+**THE BOUNDARY FALLS OUT OF THE SCOPE — nobody writes a predicate** (see invariant #18):
+`/owner` → `owner_id IN (their ids)`, so a guest thread's NULL owner_id is excluded automatically ·
+`/app` → OwnerContext inactive → unconstrained, so the operator sees everything and can reply ·
+no owner link → `1=0`. Proven **symmetrically** (both owners, both directions, plus never-a-guest-thread and
+cross-org) and **mutation-proven**: delete the trait and 4 tests fail, including the guest-thread leak.
+
+**THE TRANSCRIPT IS MIRRORED, and that is the model being right, not a hack.** `messages.direction` is
+ORG-relative (`inbound` = into the organization), so on an owner thread the OWNER's own messages are the
+`inbound` ones and staff replies are `outbound`. The operator inbox reads the same rows the other way up.
+**One column, two correct perspectives, nothing duplicated to drift.** Asserted, not eyeballed.
+
+---
+
+**⚠️ CUT — ARCHITECTURALLY OUT, *NOT* "DEFERRED POLISH".** The distinction matters: these are not things we
+ran out of time for, they are things that **cannot exist in this shape**. The design's counterparty list was
+three products in one rail:
+- **"Vyrobel Support" / "Vyrobel Billing" — the SaaS VENDOR, not the operator.** Vyrobel is multi-tenant;
+  `message_threads` is `organization_id`-scoped. **A thread to Vyrobel-the-company is not a tenant
+  conversation at all** — it is cross-tenant vendor support, staffed by Vyrobel employees who are in no org's
+  `users` table, spanning every tenant. It cannot live in this table without breaking tenancy. That is a
+  helpdesk product (identity, routing, staffing, SLA), not a screen. **Do not "add it later" here.**
+  (Its seeded thread also promised a *"Payouts → Preferences"* screen that does not exist.)
+- **"Maintenance team" — a TEAM, not a user.** There is no user id to address or attribute a reply to; a
+  team/queue counterparty is a second model (many recipients, assignment, no single author). The Maintenance
+  module is already complete end-to-end and is where repair conversations belong.
+- **BUILT INSTEAD: owner ↔ a named operator staff user** — **ONE real query** (the org's back-office members)
+  replacing the design's **five fabricated directory entries**, which contradicted themselves inside a single
+  file (`ana` was `online: true` in one list and `false` in the other).
+
+**OMITTED POLISH — no backend, flagged with the reason, never faked** (~a third of the design):
+- **"✓✓ Read"** — an **INVENTED ENUM VALUE**. `messages.delivery_status` is exactly
+  received/queued/sent/delivered/failed; there is no `read`, no `read_at`, no receipt mechanism. Worse, the
+  design **defaults every seeded message to it** (asserting staff have read everything the owner ever sent)
+  **while omitting `failed`** — the one real state the built inbox honestly surfaces (#24). We render
+  `failed` and no receipts.
+- **Presence dots** — no presence exists anywhere (`users.last_login_at` is a login timestamp, not a
+  heartbeat; there is no websocket layer).
+- **"usually replies within an hour"** — not computed: the design picks between two strings using the
+  fabricated presence boolean. There is no first-response metric and no SLA. It would make a **response-time
+  promise on behalf of staff that the app cannot measure, let alone keep** — the Wave 1 stub-ADR/RevPAR rule.
+- **Typing indicator** (a setTimeout on a fake bot) · **stars/reactions** (localStorage — per-browser,
+  per-device, invisible to the operator) · **the pin** (persists **nowhere**, not even localStorage) ·
+  **attachments** (`blob:` URLs that die on reload; the real `media`/`documents` polymorphs exist, but wiring
+  them is its own gate) · **the canned auto-reply bot** — which would demo this as a **live, staffed,
+  two-way system with presence and receipts**. It is the single most misleading thing in the file.
+
+**CHEAP-WIN CHECK — nothing cleared the bar; SKIPPED deliberately rather than padding the wave:**
+- **Per-thread favourite/mute.** The demo owner has **2 threads** — favouriting/sorting two things is
+  meaningless. And **"mute" implies suppressing notifications that do not exist**: there is no notification
+  backend (`app/Notifications/` does not exist; `Notifiable` is only Laravel's password-reset mail trait).
+  That is the same class as the response-time metric — a promise the app cannot keep.
+- **Static-prefill suggested chips.** Value is ~5 seconds of typing. And **2 of the design's 3 chips gesture
+  at features the owner nav honestly marks "Coming soon" three inches away**: *"Can I block dates for
+  personal use?"* (no owner calendar — `owner.calendar` does not exist) and *"Send me the tax summary"* (no
+  tax centre — `owner.tax` does not exist). Shipping them means either the design's copy (misleading) or
+  inventing product copy. Not worth it.
+
+**THE OPERATOR SIDE IS COMPLETE — verified, not assumed.** Owner threads appear in the EXISTING operator
+inbox, **named**, with the composer enabled (`manual` is a connected channel), and a reply through the real
+POST path lands in the owner's portal as **theirs**, marked unread again. The full round trip works both
+ways through the real UI; no operator-side affordance was needed.
+
+**STILL STANDS:** the **inbox-permission gap** — the catalog has **no `inbox.*` permission**, so these
+threads (like the guest inbox's six writes) are gated by **#26 + the owner scope** only. Naming a permission
+is a product decision about who may speak to a guest/owner; still logged, still not invented. And **GDPR
+#25**: `Guest::anonymize()` redacts threads **by `guest_id`**, so owner threads are untouched by it — correct
+(an owner is not a guest; erasing a guest must not shred the owner's conversations), and stated so nobody
+"fixes" it.
+
+**Two more real bugs found by building:**
+- **A same-second ordering ambiguity.** Two messages in one conversation routinely share a whole-second
+  `created_at` — a reply seconds after a question is the NORMAL case, not an edge — so the "last message"
+  preview could show the older one. Fixed with the repo's own ULID tie-break (`created_at DESC, id DESC`).
+- **🎯 THE SECOND FLAKY TEST — root-caused, and the pair is now instructive.** `BackOfficeAccessTest`
+  asserted `assertDontSee($unit->code)` where `seedScenario` codes units **`U2`** — *two characters* —
+  against owner pages carrying **three random 40-char CSRF tokens** (`@livewireScripts`). `Str::random(40)`
+  contains "U2" **~1.05% of the time** → **~15% per run** across 8 routes. Fixed with a leak-proof needle
+  (`BRUNOUNIT9`), using the repo's own `FOREIGNUNIT9` prior art, and **proven deterministically**.
+  **BOTH flakes were the same disease: testing the NEEDLE rather than the BEHAVIOUR** — a raw faker name vs
+  escaped HTML, and a 2-char code vs random tokens. In both, the app was perfectly correct and the assertion
+  was wrong. **When a test flakes, suspect the assertion's specificity before the app.**
+
+Also: the owner shell gained an optional `subtitle` prop (mirroring `<x-operator.shell>`; the ten screens
+that pass none are unchanged), the owner design system gained its first form + transcript CSS (built on OWNER
+tokens, not copied from the operator layout), and `inboxOwner()`/`ownerThread()` live in `tests/Support` —
+a function declared in one Pest file only loads with that file.
+
+`DemoSeeder` seeds **two real owner↔operator threads through the real service** (one left unread, so the
+badge and the Unread filter demo on genuine state).
