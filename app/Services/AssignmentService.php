@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\Booking\InsufficientAvailabilityException;
+use App\Exceptions\Booking\ReservationAlreadyTerminalException;
 use App\Exceptions\Booking\UnitUnavailableException;
+use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Models\Availability;
 use App\Models\InventoryBlock;
 use App\Models\OverbookingConflict;
@@ -45,6 +47,23 @@ use InvalidArgumentException;
  */
 class AssignmentService
 {
+    /**
+     * THE ONE definition of "already terminal" — the statuses a reservation can no longer be terminated
+     * FROM, because it already has been (invariant #29). Read by {@see terminate()} (which throws),
+     * by {@see BookingImportService::cancel()} (which no-ops before ever asking, so a retrying
+     * OTA webhook can never become a poison message), and asserted against
+     * {@see ReservationLifecycleController::CANCELLABLE} — which is its exact
+     * complement over the real 7-value enum, so the operator UI can never offer what this will refuse.
+     *
+     * `checked_out` is HERE deliberately: the guest demonstrably stayed. "Cancelling" a completed stay is not
+     * a cancellation, it is the destruction of a record — and it was reachable via the OTA path until
+     * 2026-07-17. The three callers used to hold their own copies of this rule and two of them disagreed
+     * about exactly this value; it is one constant now so they cannot.
+     *
+     * @var list<string>
+     */
+    public const TERMINAL_STATUSES = ['cancelled', 'no_show', 'checked_out'];
+
     public function __construct(
         private DomainEventRecorder $domainEvents,
         private AuditEventRecorder $audit,
@@ -583,9 +602,32 @@ class AssignmentService
         }
     }
 
+    /**
+     * ⚠️ THE TERMINATION BOUND (invariant #29) — the guard lives HERE, at the single choke point.
+     *
+     * `terminate()` is private and BOTH public entries ({@see cancelReservation()}, {@see markNoShow()})
+     * funnel through it, so one check covers every caller that exists or ever will. That is the point: until
+     * 2026-07-17 the rule lived in the CALLERS, and there were two of them, and **they disagreed** — the
+     * operator controller refused `checked_out` while `BookingImportService::cancel()` (the OTA/Channex
+     * inbound path, i.e. a network-triggered RETRYING caller) let it through and stamped `cancelled_at` onto
+     * a stay the guest had already completed. Two rules for one concept always drift.
+     *
+     * A SECOND TERMINATION IS A REWRITE, NOT AN APPEND — which is exactly why append-only (#7) never caught
+     * it: it overwrites `cancelled_at`/`cancellation_reason` (destroying the provenance the detail screen
+     * renders from those very columns), appends a meaningless `cancelled → cancelled` row to the audit
+     * trail, and re-emits `reservation.cancelled` to every downstream consumer. Same blind spot, same shape,
+     * as #27 bounding the SUM of refunds where #7 only bounded their edits.
+     *
+     * @throws ReservationAlreadyTerminalException when already terminal
+     */
     private function terminate(Reservation $reservation, string $status, ?string $reason): Reservation
     {
         $fromStatus = (string) $reservation->status;
+
+        // BEFORE the transaction: nothing to roll back, and no inventory is touched on a rejected call.
+        if (in_array($fromStatus, self::TERMINAL_STATUSES, true)) {
+            throw new ReservationAlreadyTerminalException($fromStatus, $status);
+        }
 
         DB::transaction(function () use ($reservation, $status, $reason, $fromStatus): void {
             // releaseLine handles both cases: active → free sold; overbooked → close its conflict

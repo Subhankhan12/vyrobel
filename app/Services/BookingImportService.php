@@ -94,7 +94,15 @@ class BookingImportService
             return null; // never imported → nothing to cancel
         }
 
-        if (in_array($reservation->status, ['cancelled', 'no_show'], true)) {
+        // The SHARED definition (invariant #29), not this path's own copy. It used to check only
+        // ['cancelled','no_show'] — so an OTA cancelling a stay the guest had already COMPLETED
+        // (`checked_out`) went straight through to the service and stamped `cancelled_at` onto it, while the
+        // operator controller refused exactly that transition. Two rules, one concept, silently disagreeing.
+        //
+        // ⚠️ AND IT MUST STAY A NO-OP, NOT A THROW. This runs on the inbound webhook path: a failed job is
+        // RETRIED, so letting a terminal booking reach the now-guarded service would turn an ordinary
+        // duplicate delivery into a poison message. Idempotent here; authoritative there.
+        if (in_array($reservation->status, AssignmentService::TERMINAL_STATUSES, true)) {
             return $reservation; // already terminal → idempotent no-op
         }
 
