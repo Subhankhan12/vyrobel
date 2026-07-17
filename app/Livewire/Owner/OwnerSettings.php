@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Http\Controllers\Owner\OwnerProfileController;
+use App\Livewire\Concerns\PreparesTwoFactor;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\Owner;
 use Illuminate\Contracts\View\View;
@@ -21,15 +22,15 @@ use Livewire\Component;
  * same guard the write uses. Showing an owner their OWN email/phone (decrypted) is correct — the PII
  * perimeter is about OTHER people's contact details, not one's own.
  *
- * Honesty (invariant #19): only the BACKED self-profile (name + encrypted email/phone) is editable.
- * Everything the "Owner Settings" design draws over no backend — the payout account / IBAN (a locked schema
- * omission), notification preferences, an owner sub-team, and 2FA — is stubbed "Soon" as a net-new
- * SUBSYSTEM, never a fake save (the design's saveGuard:()=>{} trap).
+ * Honesty (invariant #19): the BACKED self-profile (name + encrypted email/phone), the change-password write
+ * and the real TOTP two-factor panel are all live. What the "Owner Settings" design draws over no backend —
+ * the payout account / IBAN (a locked schema omission), notification preferences and an owner sub-team — is
+ * stubbed "Soon" as a net-new SUBSYSTEM, never a fake save (the design's saveGuard:()=>{} trap).
  */
 #[Layout('components.layouts.owner')]
 class OwnerSettings extends Component
 {
-    use FormatsOwnerData;
+    use FormatsOwnerData, PreparesTwoFactor;
 
     public function render(): View
     {
@@ -38,6 +39,7 @@ class OwnerSettings extends Component
         return view('livewire.owner.owner-settings', [
             'viewer' => $this->viewer(),
             'hasOwner' => $owner !== null,
+            'twoFactor' => $this->twoFactorPanel('owner.settings.2fa'),
             'profile' => $owner !== null ? [
                 'name' => (string) $owner->name,
                 'email' => (string) ($owner->email ?? ''),

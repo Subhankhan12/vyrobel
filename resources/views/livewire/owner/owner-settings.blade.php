@@ -79,11 +79,14 @@
             </form>
         </div>
 
+        {{-- ── Two-factor authentication — REAL TOTP (google2fa + bacon QR). Shared panel. ─────────────── --}}
+        @include('livewire.partials.two-factor-panel')
+
         {{-- ── STUBBED — net-new subsystems, honestly "Soon" (NOT a fake save) ────────────────────────── --}}
         <div class="vy-card vy-fade">
             <h2 style="font-family: var(--vy-display); font-size: 15px; font-weight: 600; margin: 0 0 12px;">More</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-                @foreach (['Payout account & bank details', 'Notification preferences', 'Team & access', 'Two-factor security'] as $stub)
+                @foreach (['Payout account & bank details', 'Notification preferences', 'Team & access'] as $stub)
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 13px; border: 1px solid var(--vy-hairline); border-radius: 10px;">
                         <span style="font-size: 13px; color: var(--vy-muted);">{{ $stub }}</span>
                         <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-faint); background: rgba(0,0,0,.04); padding: 3px 9px; border-radius: 20px;">Soon</span>

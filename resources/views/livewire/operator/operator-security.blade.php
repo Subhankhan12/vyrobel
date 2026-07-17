@@ -40,11 +40,14 @@
             </form>
         </div>
 
+        {{-- ── Two-factor authentication — REAL TOTP (google2fa + bacon QR). Shared panel. ─────────────── --}}
+        @include('livewire.partials.two-factor-panel')
+
         {{-- ── Honest "Soon" — these are net-new subsystems, not wired (never a fake toggle). ──────────── --}}
         <div class="vy-card vy-fade" style="max-width: 560px;">
             <h2 class="vy-card-title" style="margin-bottom: 12px;">More security</h2>
             <div style="display: grid; gap: 10px;">
-                @foreach (['Two-factor authentication', 'Active sessions & devices', 'Connected apps', 'IP allow-list'] as $stub)
+                @foreach (['Active sessions & devices', 'Connected apps', 'IP allow-list'] as $stub)
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 13px; border: 1px solid var(--vy-hairline); border-radius: var(--vy-r-sm);">
                         <span style="font-size: 13px; color: var(--vy-muted);">{{ $stub }}</span>
                         <span class="vy-btn is-soon" aria-disabled="true" style="padding: 5px 11px; font-size: 11.5px;">Soon</span>

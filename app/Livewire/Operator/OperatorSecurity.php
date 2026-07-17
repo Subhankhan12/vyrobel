@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Operator;
 
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Livewire\Concerns\PreparesTwoFactor;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -25,12 +26,13 @@ use Livewire\Component;
 #[Layout('components.layouts.operator')]
 class OperatorSecurity extends Component
 {
-    use FormatsOperatorData;
+    use FormatsOperatorData, PreparesTwoFactor;
 
     public function render(): View
     {
         return view('livewire.operator.operator-security', [
             'viewer' => $this->viewer(),
+            'twoFactor' => $this->twoFactorPanel('app.security.2fa'),
         ]);
     }
 }

@@ -25,7 +25,7 @@ use Spatie\Permission\Traits\HasRoles;
  * a uniform char(26). Roles/permissions are org-scoped via spatie teams (team = organization).
  */
 #[Fillable(['name', 'email', 'password', 'locale', 'status', 'two_factor_enabled', 'last_login_at'])]
-#[Hidden(['password', 'remember_token', 'two_factor_secret'])]
+#[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -40,6 +40,12 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
+            // Secret + recovery codes are ENCRYPTED at rest (convention #5). The secret existed as PLAINTEXT
+            // text before 2FA was wired; the cast fixes that latent exposure. `encrypted:array` stores the
+            // recovery codes as encrypted JSON ([{code, used_at}]).
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'datetime',
             'last_login_at' => 'datetime',
         ];
     }
@@ -70,6 +76,17 @@ class User extends Authenticatable
             'password' => $plainPassword,
             'remember_token' => Str::random(60),
         ])->save();
+    }
+
+    /**
+     * Whether 2FA is ACTIVE — the SINGLE source of truth (no drift, the #27 lesson): a secret is present AND
+     * the user CONFIRMED enrollment with a valid code (`two_factor_confirmed_at` set). A generated-but-
+     * unconfirmed secret is NOT active, so it never gates login (the anti-lockout confirm step). The
+     * `two_factor_enabled` column is mirrored for display only and is NEVER read for this decision.
+     */
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
     }
 
     public function organizations(): BelongsToMany

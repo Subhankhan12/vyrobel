@@ -67,8 +67,8 @@ it('shows the owner their own details and not another owner’s', function () {
     assertNoRawBlade($response);
 });
 
-// ── 4. HONESTY — the unbacked subsystems are "Soon", not a fake save ─────────────────────────────
-it('stubs the payout account, notifications, team and 2FA as Soon', function () {
+// ── 4. HONESTY — the unbacked subsystems are "Soon", not a fake save (2FA is now REAL, not a stub) ──
+it('stubs the payout account, notifications and team as Soon, and shows the real two-factor panel', function () {
     $s = seedScenario(1);
     $a = inboxOwner($s, 'Amara Okafor', 0);
 
@@ -76,8 +76,10 @@ it('stubs the payout account, notifications, team and 2FA as Soon', function () 
         ->assertOk()
         ->assertSee('Payout account & bank details')
         ->assertSee('Notification preferences')
-        ->assertSee('Two-factor security')
-        ->assertSee('not wired yet');
+        ->assertSee('not wired yet')
+        // 2FA moved from a "Soon" stub to a real TOTP panel this gate.
+        ->assertSee('Two-factor authentication')
+        ->assertSee('Enable two-factor');
 });
 
 // ── 5. FAIL-CLOSED — a user with no owner link cannot write a profile ────────────────────────────

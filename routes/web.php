@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
@@ -207,6 +208,14 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // path). Rate-limited like the rest of the auth chapter.
     Route::get('/security', OperatorSecurity::class)->name('security');
     Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
+
+    // Two-factor ENROLLMENT (self-service; the login challenge is separate). Real TOTP (google2fa) — enable →
+    // confirm-code (anti-lockout) → one-time recovery codes; regenerate; disable (re-auth). Self-only
+    // (auth()-resolved). Confirm/disable rate-limited. Behind #26 like the rest of /app.
+    Route::post('/security/2fa/enable', [TwoFactorController::class, 'enable'])->name('security.2fa.enable');
+    Route::post('/security/2fa/confirm', [TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('security.2fa.confirm');
+    Route::post('/security/2fa/recovery-codes', [TwoFactorController::class, 'regenerate'])->name('security.2fa.regenerate');
+    Route::post('/security/2fa/disable', [TwoFactorController::class, 'disable'])->middleware('throttle:6,1')->name('security.2fa.disable');
     // Unified Inbox — UNSTYLED operator contract stubs (thread list + thread view; styled screen is a
     // later design pass). Tenant-scoped; the view resolves {thread} via a scoped findOrFail → cross-org 404.
     Route::get('/inbox', InboxList::class)->name('inbox');
@@ -380,4 +389,9 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // Change password (Auth) — owner-side write on the owner Settings page. Owner resolved from auth() (never
     // a request id), current password verified, shared reset hash+rotate path. Rate-limited like the rest of auth.
     Route::post('/settings/password', [ChangePasswordController::class, 'owner'])->middleware('throttle:6,1')->name('settings.password');
+    // Two-factor ENROLLMENT (owner side) — same shared TwoFactorController, self-only, back() to /owner/settings.
+    Route::post('/settings/2fa/enable', [TwoFactorController::class, 'enable'])->name('settings.2fa.enable');
+    Route::post('/settings/2fa/confirm', [TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('settings.2fa.confirm');
+    Route::post('/settings/2fa/recovery-codes', [TwoFactorController::class, 'regenerate'])->name('settings.2fa.regenerate');
+    Route::post('/settings/2fa/disable', [TwoFactorController::class, 'disable'])->middleware('throttle:6,1')->name('settings.2fa.disable');
 });
