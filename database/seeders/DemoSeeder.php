@@ -6,6 +6,8 @@ use App\Actions\Authorization\OrganizationRoleProvisioner;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Models\Amenity;
 use App\Models\Building;
+use App\Models\Channel;
+use App\Models\ChannelMapping;
 use App\Models\Floor;
 use App\Models\Guest;
 use App\Models\ManagementAgreement;
@@ -25,6 +27,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
+use App\Services\ChannelConnectionService;
 use App\Services\FolioService;
 use App\Services\InboxService;
 use App\Services\MaintenanceService;
@@ -261,6 +264,50 @@ class DemoSeeder extends Seeder
         // --- Unified Inbox — coherent guest conversations through the REAL InboxService (no raw inserts):
         // a linked pre-arrival question (+ operator reply), an unlinked stranger enquiry, a resolved thread.
         $this->seedInbox($staff, $guest1, $stay1, $guest2);
+
+        // --- Channel manager (Channex) — a CONNECTED demo channel + ACTIVE room-type/rate-plan mappings, so the
+        // (Phase 1) Channels screen has real data and the certified ARI-push pipeline is armed. Both statuses are
+        // written through the real ChannelConnectionService (the writer that was missing — nothing else sets
+        // 'connected'/'active', which left the channel manager inert in production). The live Channex sync itself
+        // stays account-gated. Seeded LAST so no already-created demo stay retroactively enqueues a push.
+        $this->seedChannel($property, $doubleRoom, $apartment, $roomRate, $aptRate);
+    }
+
+    /**
+     * A demo Channex channel, CONNECTED through the real writer (so `channels.status='connected'` — the value the
+     * outbound ARI push gates on), with both room types + their rate plans mapped and ACTIVATED. The credential is
+     * a clearly-fake demo string (encrypted at rest); the live provider handshake/sync stays account-gated.
+     */
+    private function seedChannel(Property $property, RoomType $doubleRoom, RoomType $apartment, RatePlan $roomRate, RatePlan $aptRate): void
+    {
+        $connections = app(ChannelConnectionService::class);
+
+        $channel = Channel::create([
+            'property_id' => $property->id,
+            'provider' => 'channex',
+            'name' => 'Booking.com (demo)',
+            'external_property_id' => 'chx-demo-property',
+            'credentials' => 'demo-channex-key-not-real',
+            'status' => 'disconnected',
+        ]);
+        $connections->connect($channel);
+
+        foreach ([[$doubleRoom, $roomRate, 'chx-rt-dbl', 'chx-rp-dbl'], [$apartment, $aptRate, 'chx-rt-apt', 'chx-rp-apt']] as [$roomType, $ratePlan, $extRoomType, $extRatePlan]) {
+            $connections->activateMapping(ChannelMapping::create([
+                'channel_id' => $channel->id,
+                'kind' => ChannelMapping::KIND_ROOM_TYPE,
+                'room_type_id' => $roomType->id,
+                'external_id' => $extRoomType,
+                'status' => 'pending',
+            ]));
+            $connections->activateMapping(ChannelMapping::create([
+                'channel_id' => $channel->id,
+                'kind' => ChannelMapping::KIND_RATE_PLAN,
+                'rate_plan_id' => $ratePlan->id,
+                'external_id' => $extRatePlan,
+                'status' => 'pending',
+            ]));
+        }
     }
 
     /**
