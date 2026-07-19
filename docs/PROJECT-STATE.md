@@ -715,11 +715,22 @@ so it contains "U2" **~1.05% of the time** → **~15% per run** across 8 routes.
    is unchanged in kind: still no `inbox.*` permission, still a product decision about who may speak to a
    guest or an owner. Still logged, still not invented.
 
-3. **The two RBAC defects from the 2026-07-16 audit, both fail-closed and neither exploitable:** `Super Admin`
+3. **The two RBAC defects from the 2026-07-16 audit, both fail-closed and neither exploitable — reviewed in
+   Phase 0.3 (2026-07-20) and FORMALLY DEFERRED to the gates that build their fix:** `Super Admin`
    is **unassignable** (`model_has_roles.organization_id` is NOT NULL and part of the PK, so a null-team
    assignment cannot be stored — which also makes the Horizon gate dead in practice), and **no org-creation
    path provisions roles** (moot today: no such path exists). ⚠️ Whoever fixes enforcement further needs both
    facts together with #30, or they will wire a Super Admin bypass that can never fire.
+   - **Defect 1 (provisioning) → Phase 7 (tenant provisioning).** There is no `Organization::create` in `app/`,
+     so nothing to hook onto today; the org-creation transaction Phase 7 builds MUST call
+     `OrganizationRoleProvisioner::provision()` atomically, or the first real org is dead on arrival. A global
+     `Organization::created` hook was CONSIDERED and REJECTED in 0.3: it would add provisioning overhead +
+     shared-permission-table contention to 90 org-creating test files (incl. the true-parallel concurrency
+     suites) to guard a path that does not exist. The provisioner's docblock now carries this loudly.
+   - **Defect 2 (Super Admin) → whenever the spatie schema is next touched.** The fix needs a migration on
+     spatie's OWN `model_has_roles` (nullable team column + PK rework) — not casual; `Super Admin` stays out of
+     `back_office_roles` until then. Both are fail-closed (an unprovisioned org is unusable, not insecure; an
+     unassignable role grants nothing), so deferral is safe. Logged, not fixed — deliberately.
 
 4. **THE CERTIFIED CHANNEL MANAGER IS INERT IN PRODUCTION — nothing writes `channels.status` / `channel_mappings.status`** (verified 2026-07-18 by grep — same class of bug as the dead enums in item 1, but with a bigger blast radius). The ARI push and the mapping guard **gate on `status = active` / `connected`** (`ChannelMappingGuard`, `AriSnapshotBuilder` both `where('status', STATUS_ACTIVE)`), yet the ONLY writers of a `connected`/`active` status are **`ChannelFactory` / `ChannelMappingFactory`** — there is no production flow that connects a channel or activates a mapping. So the whole certified sync backbone (which is real and tested against `FakeChannexClient`) would **never fire for a real operator**: a `Channel` row created outside a factory sits at the default `disconnected` forever. This is not a leak or a data bug — it fails *closed* (no sync rather than wrong sync) — but it means **"Channels-as-drawn" is not just a UI: it must ship the status writer (connect/activate flow) or the channel manager does nothing in production.** Folded into the Channels subsystem in the deferred list below.
 

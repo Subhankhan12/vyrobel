@@ -267,9 +267,12 @@ holds N) → Portfolio → Insights + Reports (operator, per-property + all-prop
 (owner-scoped).
 
 **PHASE 7 — The SaaS layer (~3–4 weeks)**
-Tenant provisioning (Vyrobel Onboarding — the org-creation epic, solving the role-provisioning chicken-and-egg
-from Phase 0.3) → Subscription billing (Paywall + Checkout + Operator Billing; live charges when Stripe live keys
-exist) → Owner Team (owner sub-tenancy) → Team Schedule (rostering).
+Tenant provisioning (Vyrobel Onboarding — the org-creation epic). ⚠️ **Carries the two deferred Phase-0.3 RBAC
+fixes:** (a) the org-creation transaction MUST call `OrganizationRoleProvisioner::provision()` atomically (org +
+first user + roles in one commit), or the first real org is dead on arrival — RBAC defect #1; (b) fix `Super
+Admin` unassignability (a migration on spatie's own `model_has_roles` — nullable team column + PK rework — then
+add `Super Admin` back to `back_office_roles`) — RBAC defect #2. Then → Subscription billing (Paywall + Checkout
++ Operator Billing; live charges when Stripe live keys exist) → Owner Team (owner sub-tenancy) → Team Schedule.
 
 **PHASE 8 — Live integrations (as accounts land — parallel throughout)**
 Stripe Connect payouts live → card capture live → Channex live sync → WhatsApp/OTA inbox channels → production
