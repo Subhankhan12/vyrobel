@@ -1,6 +1,7 @@
 {{-- Owner SETTINGS (Wave 4 · Sub-gate 3) — the owner's OWN account details, on the owner design system.
-     Only the BACKED self-profile (name + encrypted email/phone) is editable; the payout account/IBAN,
-     notification preferences, team and 2FA are net-new SUBSYSTEMS, stubbed "Soon", never a fake save.
+     The BACKED self-profile (name + encrypted email/phone), change-password, and the real TOTP 2FA panel are
+     all live; the payout account/IBAN, notification preferences and team are net-new SUBSYSTEMS, stubbed
+     "Soon", never a fake save. (2FA shipped 2026-07-18 — no longer stubbed.)
      The write is guarded by user_id (Owner is not BelongsToOwner). See App\Livewire\Owner\OwnerSettings.
 
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
