@@ -21,6 +21,7 @@ use App\Models\Guest;
 use App\Models\HousekeepingTask;
 use App\Models\InventoryBlock;
 use App\Models\Invoice;
+use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
 use App\Models\ManagementAgreement;
 use App\Models\Media;
@@ -180,6 +181,7 @@ class AppServiceProvider extends ServiceProvider
             'owner_statement_line' => OwnerStatementLine::class,
             'payout' => Payout::class,
             'maintenance_ticket' => MaintenanceTicket::class,
+            'maintenance_setting' => MaintenanceSetting::class,
             'message_thread' => MessageThread::class,
             'message' => Message::class,
         ]);

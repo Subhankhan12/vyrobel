@@ -16,6 +16,7 @@ use App\Http\Controllers\Operator\GuestActionController;
 use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
+use App\Http\Controllers\Operator\MaintenanceSettingsController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationCreateController;
@@ -45,6 +46,8 @@ use App\Livewire\Operator\GuestProfile;
 use App\Livewire\Operator\GuestsList;
 use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorDashboard;
+use App\Livewire\Operator\OperatorMaintenanceCosts;
+use App\Livewire\Operator\OperatorMaintenanceSettings;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Operator\OperatorRoles;
@@ -264,6 +267,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // Maintenance module — styled work-order board + detail (design pass · Maintenance UI). Tenant-scoped;
     // the detail resolves {ticket} via a scoped findOrFail in render() → cross-org 404.
     Route::get('/maintenance', MaintenanceList::class)->name('maintenance');
+    // Maintenance COSTS (analytics) + SETTINGS (Phase 1 · Sub-gate 4) — declared BEFORE `{ticket}` so "costs"/
+    // "settings" are not captured as a ticket id. Gated on `maintenance.manage`. Costs is read-only real
+    // aggregates; Settings persists typed columns (SLA / category-assignee / toggles) — never a toast-only save.
+    Route::get('/maintenance/costs', OperatorMaintenanceCosts::class)->middleware('can:maintenance.manage')->name('maintenance.costs');
+    Route::get('/maintenance/settings', OperatorMaintenanceSettings::class)->middleware('can:maintenance.manage')->name('maintenance.settings');
+    Route::post('/maintenance/settings', [MaintenanceSettingsController::class, 'update'])->middleware('can:maintenance.manage')->name('maintenance.settings.update');
     Route::get('/maintenance/{ticket}', MaintenanceTicketDetail::class)->name('maintenance.show');
     // Maintenance writes — REAL open + assign via POST → controller → MaintenanceService → redirect (PRG).
     // A foreign unit_id / cross-org {ticket} 404s; a guarded illegal transition flashes cleanly (never 500).

@@ -32,6 +32,10 @@
             </div>
             <div class="vy-right">
                 <span class="vy-pill is-soon" aria-disabled="true">Filters <span class="vy-soon-tag">Soon</span></span>
+                @can('maintenance.manage')
+                    <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.costs') }}" style="margin-right: 8px;">Costs</a>
+                    <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.settings') }}" style="margin-right: 8px;">Settings</a>
+                @endcan
                 <button type="button" class="vy-btn vy-btn--accent" @click="open = true">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                     New ticket
