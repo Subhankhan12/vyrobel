@@ -69,10 +69,10 @@ use Livewire\Component;
  *   • Guest PII — name only; encrypted email/phone never rendered.
  *
  * NOT DONE, deliberately: the folio rails are NOT hidden on a terminal reservation, though the design
- * drops them behind a "Folio closed · read-only" lock. `folios.status` has a `'closed'` value that NO
- * code ever writes and NO guard enforces — every folio in the system is `'open'`, forever. Rendering the
- * lock would assert an invariant that does not exist; a cancelled booking can still genuinely need a
- * refund settled. Honest today; revisit if `FolioService::closeFolio()` is ever built.
+ * drops them behind a "Folio closed · read-only" lock. There is no folio close/void lifecycle — every folio
+ * is `'open'` (Phase 0.2 REMOVED the never-written `'closed'`/`'void'` enum values rather than leave a lock
+ * that could never engage). A cancelled booking can still genuinely need a refund settled. Revisit if
+ * `FolioService::closeFolio()` is ever built — it would re-add `'closed'` WITH the guard that enforces it.
  */
 #[Layout('components.layouts.operator')]
 class ReservationDetail extends Component

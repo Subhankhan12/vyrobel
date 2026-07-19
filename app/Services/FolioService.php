@@ -439,17 +439,26 @@ class FolioService
             $reservation->update([
                 'total_minor' => $total,
                 'balance_minor' => $balance,
-                'payment_status' => $this->paymentStatus($total, $paid, $balance),
+                'payment_status' => $this->paymentStatus($total, $balance, $received, $refunded),
             ]);
         }
     }
 
-    private function paymentStatus(int $total, int $paid, int $balance): string
+    /**
+     * The reservation-level `payment_status`, derived from the ledger. `'refunded'` means money came IN and has
+     * been (net) fully refunded back OUT — a distinct, truthful state from `'unpaid'` (nothing ever received): a
+     * fully-refunded stay must not read as if the guest never paid. (Phase 0.2 made this real; `'charged_back'`
+     * was dropped from the enum — no chargeback/dispute flow exists.)
+     */
+    private function paymentStatus(int $total, int $balance, int $received, int $refunded): string
     {
+        $paid = $received - $refunded;
+
         return match (true) {
-            $total > 0 && $balance <= 0 => 'paid',
-            $paid > 0 => 'partial',
-            default => 'unpaid',
+            $total > 0 && $balance <= 0 => 'paid',           // net settled (or overpaid)
+            $paid > 0 => 'partial',                          // some net money still in, not fully settled
+            $received > 0 && $refunded > 0 => 'refunded',    // received, then refunded (net) back out
+            default => 'unpaid',                             // nothing ever received
         };
     }
 

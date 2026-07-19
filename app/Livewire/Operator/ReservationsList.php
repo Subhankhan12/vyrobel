@@ -60,11 +60,10 @@ use Livewire\Component;
  *         nothing would reintroduce exactly that contradiction.
  *       – SORT CONTROLS. The design has none (its headers are plain spans); the ordering below is stated in
  *         the footer instead of implied by chevrons that would not work.
- *       – The "Refunded" row badge. The design reads it from localStorage written by a sibling design, and
- *         `payment_status='refunded'` is a DEAD enum value (FolioService::paymentStatus() only ever writes
- *         paid/partial/unpaid), so keying off it would render never, silently. The honest derivation is an
- *         EXISTS over `payments type='refund'` — real, but out of this gate's scope, so no badge is shown
- *         rather than one that cannot fire.
+ *       – The "Refunded" row badge. The design reads it from localStorage written by a sibling design. As of
+ *         Phase 0.2 `payment_status='refunded'` IS a real, written state (a fully-refunded stay —
+ *         FolioService::paymentStatus()), so the value is no longer dead; wiring the list badge to it is a
+ *         follow-up UI gate, so no badge is shown HERE yet rather than one this screen does not yet compute.
  *   • SOON     — "New reservation": a separate Wave 4 design with no route. Rendered disabled, matching the
  *                shipped ReservationRack / UnitsList precedent — never a link to nowhere.
  *   • PII      — the guest NAME only. `guests.email`/`phone` are encrypted casts on TEXT columns and this is

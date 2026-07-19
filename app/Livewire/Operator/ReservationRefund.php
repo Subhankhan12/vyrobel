@@ -63,9 +63,10 @@ use Livewire\Component;
  *                The real `payments.gateway` is shown instead.
  *   • OMITTED  — "Arrives · 2–5 business days": no settlement-ETA field exists (a GatewayResult carries
  *                {id, status}). Pure invention.
- *   • OMITTED  — `payment_status = 'refunded'`: a DEAD enum value. `FolioService::paymentStatus()` only
- *                ever writes paid/partial/unpaid, so keying anything on it renders NEVER. Refund state here
- *                is computed from the real refund rows via the service helpers.
+ *   • DERIVED  — `payment_status = 'refunded'` is now a REAL reservation-level state (Phase 0.2 — a fully-
+ *                refunded stay). This screen still computes its finer per-PAYMENT refund state (Σ refunded /
+ *                remaining refundable) from the real refund rows via the service helpers — the granularity a
+ *                single reservation-level flag cannot carry.
  *   • Guest PII — name only; the encrypted email/phone are never rendered (the ReservationDetail posture).
  *
  * KNOWN GAP, recorded not papered over: the `payments.refund` permission exists (config/authorization.php)
