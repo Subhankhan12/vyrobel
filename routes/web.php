@@ -20,6 +20,7 @@ use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
+use App\Http\Controllers\Operator\RoleAssignmentController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
@@ -46,6 +47,7 @@ use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
+use App\Livewire\Operator\OperatorRoles;
 use App\Livewire\Operator\OperatorSearch;
 use App\Livewire\Operator\OperatorSecurity;
 use App\Livewire\Operator\OperatorSettings;
@@ -191,6 +193,15 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // deliberately reads the whole owner relationship the operator manages, within their own org
     // (Owner is BelongsToOrganization → a cross-org id 404s).
     Route::get('/owners/{owner}', OperatorOwnerDetail::class)->name('owners.show');
+
+    // ROLES & ACCESS (Phase 1 · Sub-gate 3) — VIEW the fixed catalog (roles + read-only permissions + members)
+    // and ASSIGN a role to a member. Gated on `users.manage` (only an admin manages roles — the same gate that
+    // closed the owner-invite escalation, #30). The role→permission catalog is CODE-DEFINED + read-only; only
+    // the user↔role assignment is written, and RoleAssignmentService bounds it by the privilege-subset rule so
+    // no one can grant a role with more access than their own.
+    Route::get('/roles', OperatorRoles::class)->middleware('can:users.manage')->name('roles');
+    Route::post('/roles/assign', [RoleAssignmentController::class, 'assign'])->middleware('can:users.manage')->name('roles.assign');
+    Route::post('/roles/revoke', [RoleAssignmentController::class, 'revoke'])->middleware('can:users.manage')->name('roles.revoke');
     // Wave 1 · Sub-gate 4 — the operator PAYOUT RUN (tenant-scoped): finalized statements ready to pay
     // → REAL payouts through the certified OwnerPayoutService (ManualPayoutRail is the working rail;
     // the Stripe-Connect rail stays a config-gated skeleton that THROWS — never faked). The writes use
