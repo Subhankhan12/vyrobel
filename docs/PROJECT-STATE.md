@@ -1139,27 +1139,27 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — the buildable-in-a-vacuum core is COMPLETE (2FA was the last); NEXT = CUSTOMER VALIDATION
+## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); NEXT = the phased build in `docs/GAP-ANALYSIS.md`, Phase 0 first
 
-> **THE HONEST HEADLINE (2026-07-18).** The self-contained, clearly-worth-it, buildable-without-anyone-else's-
-> credentials work is **essentially done.** This session took it a long way — Waves 1–4 CORE, five security/
-> integrity fixes, the full auth chapter (login · invites · reset · change-password · **2FA**). **2FA was the
-> last such subsystem.** Everything that remains is one of three things, and none of them is a "quick win a
-> fresh session should just start": **① subsystems/epics** (real gated builds — Portfolio, Owner Team,
-> tenant-provisioning/self-signup, Group Booking, Owner Rates, Channels-as-drawn incl. the missing
-> `channels.status` writer, Roles, guest auth, sessions/apps), **② speculative modules** (Guest Portal ~24,
-> Analytics, Reviews, Billing, Notifications, Emails — designed, ZERO backend, and **no evidence anyone wants
-> them**), **③ account-gated** (real inbox channels, Channex live, Stripe Connect, Stripe card checkout, prod
-> email — blocked on someone else's credentials). Full tagged triage: the register above.
+> **THE SIGNAL CAME. The "don't build blind" framing below is SUPERSEDED.** A warm operator contact (Fatima)
+> **liked the demo AND the prototype**, so the requirement is now concrete: **the real product must work the way
+> the prototype shows.** The prototype (124 designed screens) is the SPEC; the repo stays the truth for what backs
+> it; every gap gets BUILT, not faked. The full phased map — **audit-verified against real code** (5-agent pass,
+> 2026-07-20; 50 claims → 33 confirmed / 8 incorrect / 8 nuanced) — is **`docs/GAP-ANALYSIS.md`**.
 >
-> **⚠️ SO THE HIGHEST-VALUE MOVE IS NO LONGER A BUILD — IT IS CUSTOMER VALIDATION.** The product demos at full
-> depth (statement → remittance PDF → payout run → the owner sees it paid, to the cent; operator daily-ops
-> end-to-end; a real direct booking) and is **safe for a real owner login**. **No customer has ever reacted to
-> it.** An intro email is out to a warm contact (Fatima); more outreach + demo prep should come next, and a
-> customer's actual reaction should DIRECT which ② epic or ③ integration is worth committing to — rather than
-> picking one blind. **Record it plainly: more building has diminishing returns until the signal comes in.**
-> *(There is no outreach material in this repo — no demo script, no cold-email draft. If any exists it lives
-> outside version control; do not assume it.)*
+> **The honest position:** **~40 built screens/artifacts · ~84 designed-but-unbuilt.** What remains splits into
+> ① subsystems/epics (guest auth, notifications, reviews/wallet, tenant-provisioning, Group Booking, Owner Rates,
+> Channels-as-drawn, Roles, Portfolio) · ② the ~24-screen Guest Portal (on guest auth) · ③ account-gated (inbox
+> channels, Channex, Stripe Connect/cards, prod email). **⚠️ AUDIT CORRECTION:** **multi-property is NOT a schema
+> epic** — the schema already holds N properties/org; Portfolio is a property-selector + CRUD + ~8–10 `->first()`
+> call-site refactors (re-scoped L→M). The three TRUE greenfield subsystems are **guest auth · notifications ·
+> reviews/wallet** — multi-property is not one.
+>
+> **NEXT = PHASE 0 (fix & harden), in progress:** the inert channel manager (`channels.status` writer + connect
+> skeleton + demo seed — prove the ARI push fires) · the dead-enums decision · the two RBAC defects · the stale
+> `OperatorSecurity` docblock · a QA walkthrough (`docs/QA-WALKTHROUGH.md`). Then Phases 1–3 finish the
+> operator+owner apps (**make Fatima operational soonest**) before the large Guest Portal phase (4).
+> See `docs/GAP-ANALYSIS.md` for the full 0–8 plan + the corrected per-front inventory.
 
 **(historical) The original Wave-4 lead-in:**
 

@@ -2065,3 +2065,42 @@ where the product stands, not a new decision.
   reaction should DIRECT which ① epic or ③ integration is worth committing to, rather than betting blind. **More
   building has diminishing returns until the signal comes in.** Full tagged triage + the invariant list #1–31 +
   the meta-lessons live in `docs/PROJECT-STATE.md`; read it first on a new session, then this file.
+
+## 2026-07-20 — CUSTOMER SIGNAL ARRIVED + the master GAP ANALYSIS (audit-verified) — the plan is now "build it all, like the prototype"
+
+**The "no signal, don't build blind" framing above is SUPERSEDED.** A warm operator contact (Fatima) **liked the
+demo AND the prototype**, and the requirement is now concrete: **the real product must work the way the prototype
+shows.** The prototype (all 124 designed screens) is the SPEC for what each screen shows; the repo stays the truth
+for what backs it; every gap gets BUILT (not faked). The full phased map is a new durable doc, **`docs/GAP-ANALYSIS.md`**.
+
+- **This was NOT taken on faith — the plan was audit-verified against real code before being recorded** (a
+  5-agent verification pass, 2026-07-20, at HEAD `c34669a`; 50 repo-checkable claims → 33 CONFIRMED, 8 INCORRECT,
+  8 NUANCED). Meta-lesson (a) held: the plan's structure and every large gap it named were TRUE (guest auth,
+  notifications, reviews, wallet, tenant-provisioning, group booking — all verified zero-backing), but the audit
+  corrected three things, now baked into `GAP-ANALYSIS.md`:
+  - **⚠️ MULTI-PROPERTY IS NOT A SCHEMA EPIC (the consequential correction).** The schema already supports N
+    properties/org — `properties.organization_id` is a plain FK, the `property_user` pivot + `User::properties()`/
+    `Property::staff()` relations exist, and `property_id` is already on `channels`/`groups`/`rate_plans`. The
+    limitation is a UI convention: ~6 files / ~9 call sites resolve "the property" as
+    `Property::query()->orderBy('name')->first()` (`FrontDesk`, `ReservationRack`, `OperatorDashboard`,
+    `NewReservation`, …). **Portfolio (Phase 6) re-scoped from an L-subsystem to an M** (a property selector/context
+    + a property-CRUD path + refactoring those call sites).
+  - **CORRECTED COUNTS.** ~40 built screens/artifacts (not "38–41 loosely"), ~84 designed-but-unbuilt. The plan's
+    per-front counts double-counted **terminal states** (Reservation Cancelled/No-show are states on Reservation
+    Detail, not screens), **POST sections** (Property Settings is a section of the one `/app/settings` screen), and
+    a nonexistent separate **owner Security screen** (change-password + 2FA live on `/owner/settings`); and it
+    MISSED **Units** (built, styled, no design file). **Guest Portal = ~24** (the authoritative ROADMAP module
+    count), not 32 (that's the design-export file count incl. the 4 already-built public-booking screens).
+  - **NUANCES baked in:** the generic `settings` KV table + `Setting` model are DORMANT (future settings screens
+    follow the typed-column `SettingsService` pattern, not the KV scaffold); maintenance has a hard-coded 5-value
+    `category` enum already (only SLA + *configurable* categories are missing); a property-scoped availability
+    search exists (`BookingEngineService::search`) — the gap is GLOBAL cross-entity search + the blind-index
+    decision for encrypted guest contact.
+- **The three TRUE greenfield subsystems the prototype assumes** (verified absent, zero backing): **guest auth**
+  (`Guest extends Model`, not `Authenticatable`), **notifications** (no table, no `app/Notifications/`, zero
+  `->notify()`), and **reviews + wallet/credits** (no tables). Multi-property is NOT one of them.
+- **NEXT ACTION is now the phased build in `docs/GAP-ANALYSIS.md`, starting PHASE 0 (fix & harden):** the inert
+  channel manager (a real `channels.status` writer + connect skeleton + demo seed — prove the ARI push fires), the
+  dead-enums decision, the two RBAC defects, the stale-docblock cleanup, and a QA walkthrough script
+  (`docs/QA-WALKTHROUGH.md`). Sequencing bias: **make Fatima operational soonest** (Phases 0–3 before the large
+  Guest Portal phase). PROJECT-STATE + CLAUDE NEXT ACTION updated to point here.

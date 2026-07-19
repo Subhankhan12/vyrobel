@@ -1,0 +1,292 @@
+# Vyrobel — Master Gap Analysis & Phased Development Plan
+
+**"Make the real product work the way the prototype shows."** The complete map from the built repo to the full
+124-screen prototype, with every repo-checkable claim **audit-verified against actual code** (5-agent verification,
+2026-07-20, at HEAD `c34669a`) and the corrections baked in.
+
+> **THE CUSTOMER SIGNAL (this is why this doc exists).** Fatima — a warm operator contact — **liked the demo AND
+> the prototype**. The requirement is now concrete: **the real product must work the way the prototype shows.**
+> This **supersedes** the prior "no customer has reacted — don't build blind" framing in PROJECT-STATE/CLAUDE.
+> The prototype is now the SPEC for what each screen shows; the repo stays the truth for what backs it; every gap
+> gets BUILT (not faked) per this plan. **Sequencing bias: make Fatima OPERATIONAL soonest** (Phases 0–3 complete
+> the operator+owner product for her daily business before the large Guest Portal phase).
+
+> ⚠️ **AUDIT PROVENANCE.** The original plan's structure is sound and every large gap it named is genuinely absent
+> (guest auth, notifications, reviews, wallet, tenant-provisioning, group booking — all verified with zero backing
+> code). The verification changed three things, folded in below: **(a) multi-property is NOT a schema epic** —
+> re-scoped from L to M; **(b) the counts** — states/POST-sections/PDFs were miscounted as screens; **(c) several
+> nuances** — a dormant settings scaffold, an existing maintenance category enum, an existing property-scoped
+> search. Meta-lesson (a) held again: a brief is a hypothesis, the repo is truth.
+
+---
+
+## 0. THE HONEST HEADLINE (corrected)
+
+- **Built & working: ~40 screens/artifacts** — 21 operator screens · 15 owner-portal screens · 3 public-booking
+  screens · ~5 auth screens (login/forgot/reset/accept-invite/2FA-challenge) · 3 PDFs (statement/remittance/booking-
+  summary; owner folio PDF too) · 2 Mailables. The operational spine: operator daily ops, the owner-accounting
+  wedge, public booking, and a hardened auth chapter (login · invites · reset · change-password · **2FA/TOTP**).
+- **Not built: ~84 designed screens** across four fronts: the rest of the Operator app (~18), the Owner portal
+  long-tail (~16), the **entire Guest Portal (~24 — the largest single gap)**, the SaaS platform layer (~3), and
+  ~9 transactional email templates.
+- **Three true greenfield subsystems the prototype assumes** (verified absent — zero backing code/schema):
+  **GUEST AUTH** (`Guest extends Model`, not `Authenticatable`; no guest guard/password/route), **NOTIFICATIONS**
+  (no table, no `app/Notifications/`, zero `->notify()` calls), and **REVIEWS + WALLET/CREDITS** (no tables/models).
+  ⚠️ **MULTI-PROPERTY is NOT one of them** — see the correction in §6.
+- **~8 items are ACCOUNT-GATED** — cannot work until external accounts exist (Stripe Connect KYC, Stripe live
+  cards, Channex, WhatsApp Business, OTA messaging, a production email provider, an ID-verification provider).
+
+**Honest estimate to "everything like the prototype": ~5–7 months of disciplined solo build** at this project's
+quality bar, plus the account approvals in parallel.
+
+### ⚠️ Counting rules (the audit's corrections — so the numbers stop drifting)
+- **A screen is a routed GET surface**, not a state, a POST section, or a PDF. So: Reservation **Cancelled** /
+  **No-show** are terminal *states* rendered on Reservation Detail (no routes) — **not screens**. **Property
+  Settings** is one POST section of the single `/app/settings` screen — **not a second screen**. A separate owner
+  **Security** screen does **not** exist — change-password + 2FA live ON `/owner/settings` (the nav's "Security" is
+  still Coming-soon).
+- **Units exists, built, with NO design file** (`/app/units` → `UnitsList`, styled ad-hoc) — count it built.
+- **Guest Portal = ~24** (the authoritative ROADMAP module count). The "32" is the design-export *file* count for
+  the guest role group, which also contains the 4 already-built public-booking screens + cross-listed artifacts.
+- Design totals: **125 files / 124 screens** in `docs/design/raw/` (`CATALOGUE.md`, the filesystem is the authority).
+
+---
+
+## 1. OPERATOR APP — 40 designed · 21 built · ~18 remaining
+
+### ✅ Built & working (21 routed screens)
+Dashboard · Calendar/Rack · Front Desk · Housekeeping · Maintenance board · Work Order · Inbox · Conversation ·
+Reservations List · New Reservation · Reservation Detail (Cancelled/No-show render here as terminal states) · Refund ·
+Guests · Guest Profile · Rates · **Units** (no design file) · Owners · Owner Detail · Payout Run · Settings (with
+Property/Policies/Organization POST sections) · Security (password + real TOTP 2FA).
+
+### ⬜ Remaining (~18), grouped by what they need
+
+**Group O1 — buildable over existing/small backend (build first):**
+| Page | Needs | Size |
+|---|---|---|
+| Operator Search | A GLOBAL cross-entity search (reservations/guests/units/owners). Property-scoped availability search already exists (`BookingEngineService::search`); the gap is cross-entity + the **blind-index decision** (encrypted guest email/phone can't be `LIKE`-searched) | M |
+| Operator Group Booking | Atomic `GroupBookingService` over the EXISTING `groups` + `reservations.group_id` (extend, never parallel) + group-folio roll-up decision | M |
+| Operator Maintenance Costs | Cost analytics over existing maintenance + owner-expense data (per-ticket cost already surfaces on the Work Order) | S–M |
+| Operator Profile | Self-profile writer (name/email) — the owner side already has one (`OwnerProfileController`); mirror it | S |
+| Operator Maintenance Settings | SLA schema (net-new) + configurable categories (a `category` enum already exists — 5 hard-coded values; making it configurable needs a table or enum migrations) | M |
+
+**Group O2 — subsystems (each a real project):**
+| Page | The subsystem underneath | Size |
+|---|---|---|
+| Operator Roles | ⚠️ Security-first REDESIGN — read the 13 catalog roles + assign one, gated `can:roles.manage`. The design as drawn is an **escalation weapon** (WAVE4-INVENTORY). Needs the RBAC defects (§Phase 0.3) resolved first | M |
+| Operator Channels | Channel/mapping CRUD + a REAL `channels.status` writer (⚠️ **the certified channel manager is INERT in production** — see Phase 0.1) + connect flow. Live sync = account-gated (Channex) | M–L |
+| Operator Notifications + Notification Preferences | The NOTIFICATION SUBSYSTEM: events → dispatcher → in-app feed + per-user prefs. Cross-links every module | L |
+| Operator Email Templates + Email Editor | An email-template subsystem (stored templates, variables, preview, editor) riding the notification dispatcher | M–L |
+| Operator Team Schedule + Schedule PDF | Staff rostering — a new module (shifts, assignments, PDF) | M |
+| Operator Insights + Reports | The ANALYTICS module (ADR/RevPAR/occupancy/revenue). Multi-property in its full form; a single-property v1 is possible now | L |
+| Operator Reviews | The REVIEWS module (guest reviews + operator responses) — shared with Owner + Guest surfaces | M–L |
+| Operator Portfolio | The multi-property UI (property switcher + all-properties roll-up). ⚠️ **NOT a schema epic** — see §6; re-scoped **M** | M |
+| Operator Billing | Vyrobel-the-SaaS billing the operator (subscription) — pairs with Paywall/Checkout | L |
+
+---
+
+## 2. OWNER PORTAL — 31 designed · 15 built · 16 remaining
+
+### ✅ Built & working (15 routed screens)
+Dashboard · My Units · Statement (+PDF) · Balance · Expenses · Payouts · Archive · Unit Detail · Documents ·
+Agreement · Messages (list + thread) · Settings (carries change-password + 2FA + self-profile write) · Remittance
+Advice PDF · Booking Summary PDF. *(Owner "Security" is NOT a separate built screen — its capability lives on
+Settings; the accept-invite set-password page and the Invite Email are Auth-group artifacts, real but counted there.)*
+
+### ⬜ Remaining (16), grouped
+
+**Group W1 — buildable over existing backend (build first):**
+| Page | Needs | Size |
+|---|---|---|
+| Owner Bookings + Booking Detail | Owner-scoped views over existing reservations/attribution (shared resolvers exist) | M |
+| Owner Block Calendar | Owner self-blocking their OWN units via the EXISTING `blockInventory` path (owner-scoped + policy) | M |
+| Owner Help | Static/lightly-dynamic help surface | S |
+
+**Group W2 — needs schema/policy decisions:**
+| Page | Needs | Size |
+|---|---|---|
+| Owner Rates | ⚠️ Rate tables have **NO owner scoping** (`rate_plans`/`rate_calendar`/`restrictions` — verified, no `owner_id`; a rate keys on room-type/rate-plan, not unit). As drawn it leaks every owner's rates. Needs owner-scope schema + the "may owners edit rates?" policy (WAVE4-INVENTORY T3) | M |
+| Owner Add Unit | Owner-initiated unit intake — likely a REQUEST to the operator, not direct creation (policy decision) | M |
+| Owner Tax Center + Annual Tax Summary PDF | Tax-ID schema + held-payout logic + annual aggregation | M |
+| Owner Payout Method | ⚠️ **No bank/IBAN column exists anywhere** (owners carry `payout_currency` only; payouts carry free-text `external_ref`). Buildable as data-capture now; live payouts = account-gated (Stripe Connect) | M + gated |
+| Owner Team | Owner sub-tenancy (an owner invites their own users) — a permission subsystem | L |
+| Owner Onboarding wizard (Steps 1–3) | No onboarding wizard exists (Step-1 profile write already ships on Settings). Steps 2–3 need Payout Method + notification prefs | ties to others |
+
+**Group W3 — rides shared subsystems (build once, surface twice):**
+| Page | Shared subsystem |
+|---|---|
+| Owner Reports + Insights | ANALYTICS (owner-scoped views) |
+| Owner Reviews | REVIEWS (owner-scoped) |
+| Owner Notifications | NOTIFICATIONS (owner feed + prefs) |
+
+---
+
+## 3. GUEST PORTAL — ~24 designed · ~0 authenticated built · ~24 remaining — THE BIGGEST FRONT
+
+### ✅ Built (the public, anonymous booking flow — counted under public booking, NOT the guest-portal module)
+Guest Browse · Villa Detail · Checkout (+confirmation). Real, guarded, can't double-book.
+
+### ⬜ Remaining (~24) — and the hard truth: it ALL sits on GUEST AUTH, which does not exist
+`Guest extends Model` (not `Authenticatable`); no guest guard in `config/auth.php`; no password column in the
+`guests` migration; no guest login/signup/account route anywhere. **So the Guest Portal is: first a guest-auth
+subsystem, then the portal on top.**
+
+**G1 — Guest auth foundation (the gate for everything):** Guest Login · Signup · Verify Email — a guest guard,
+registration tied to bookings/email, verification. **(L — the foundation)**
+
+**G2 — Core self-service:** Account · Trips · Booking · Reservation · **Manage Booking** (date-change requests,
+add-ons→folio, wallet credit, cancellation) · Online Check-in · Arrival Info (+PDF). **(L; Manage Booking alone M–L)**
+
+**G3 — Money-facing:** Payments · Folio Receipt (+PDF) · Credits (wallet) · Refund Receipt PDF · Credit Note PDF ·
+Statement of Account PDF · VAT Invoice PDF — folio views + a WALLET/credits ledger + more PdfService docs. **(M–L)**
+
+**G4 — Engagement:** Guest Messages (guest side of the inbox) · Review (feeds Reviews) · Wishlist · Waitlist ·
+Add-ons · Referral Landing · Email Preferences · Help. **(M–L spread)**
+
+**G5 — Account-gated:** Guest ID Verification (KYC/ID-scan) — needs an external verification provider.
+
+---
+
+## 4. PLATFORM / SaaS LAYER — 5 designed (+2 in emails) · 4 built · 3 remaining
+
+### ✅ Built
+Vyrobel Login · Reset Password · Set Password (accept-invite) · Invite Owner (all hardened; the invite modal also
+issues staff roles).
+
+### ⬜ Remaining
+| Page | What it really is | Size |
+|---|---|---|
+| Vyrobel Onboarding | **TENANT PROVISIONING** — public signup creating a new operator org: org + first user + role provisioning (⚠️ the chicken-and-egg: **no path provisions roles today** — verified, `Organization::create` appears nowhere in `app/`) + a first property/room-type/unit wizard | L (the epic) |
+| Vyrobel Paywall + Checkout | **SUBSCRIPTION BILLING** — plans, paywall, subscription checkout (Stripe Billing — partly account-gated for live charges); pairs with Operator Billing | L + gated |
+
+---
+
+## 5. TRANSACTIONAL EMAILS — ~10 designed · 2 functional · ~9 remaining
+
+Booking Confirmation · Cancellation · Payment Reminder · Pre-arrival · Refund Confirmation · Review Request ·
+Waitlist Notification · Winback · (Guest) Verify Email · + the Email Previews index. **Verified: exactly TWO
+Mailables exist** (`OwnerInviteMail`, `PasswordResetMail`), 2 send-sites total, no `app/Notifications/`. These ride
+TWO things: the NOTIFICATION/dispatch subsystem (what triggers them) + a PRODUCTION EMAIL PROVIDER (account-gated;
+Mailpit covers dev). Build templates + triggers with the notification subsystem; go live when the provider exists.
+**(M once the dispatcher exists.)**
+
+---
+
+## 6. THE CROSS-CUTTING SUBSYSTEMS — and the multi-property correction
+
+Foundations multiple pages sit on; build each once, deliberately.
+
+1. **GUEST AUTH** — unlocks all ~24 Guest Portal pages. (L) — *verified greenfield.*
+2. **NOTIFICATIONS** (events → dispatcher → in-app + email + prefs) — unlocks Operator/Owner/Guest Notifications,
+   Notification Preferences, and all ~9 transactional emails. (L) — *verified greenfield.*
+3. **REVIEWS** (Operator + Owner + Guest surfaces) + **WALLET/credits ledger** (Guest Credits + Manage Booking). —
+   *verified greenfield (no reviews/wallet table anywhere).*
+
+⚠️ **MULTI-PROPERTY IS NOT A SCHEMA SUBSYSTEM — the audit's most consequential correction.** The schema ALREADY
+supports N properties per org: `properties.organization_id` is a plain FK (no unique constraint); the `property_user`
+staff pivot exists with live `User::properties()` / `Property::staff()` relations; `property_id` is already on
+`channels`, `groups`, and `rate_plans`. **The limitation is a UI/QUERY convention, not the model.** ~6 files / ~9
+call sites resolve "the property" as `Property::query()->orderBy('name')->first()` (`FrontDesk`, `ReservationRack`,
+`OperatorDashboard`, `NewReservation`, `OperatorSettings`, …), and 2 org-wide list screens would blend properties.
+**Portfolio therefore needs a property-context/selector + a property-CRUD path (none exists) + refactoring those
+~8–10 call sites — re-scoped from L-subsystem to M.** (This is Phase 6.)
+
+**Two nuances to carry:**
+- **Settings pattern:** a generic `settings` KV table + `Setting` model EXIST but are 100% dormant (zero
+  readers/writers). The shipped pattern is **typed columns via `SettingsService`** (whitelisted
+  property/policy/org fields). **Future settings screens follow the typed-column `SettingsService` pattern — do NOT
+  revive the KV scaffold.**
+- **Maintenance:** a `category` enum already exists (5 hard-coded values: plumbing/electrical/appliance/structural/
+  other). Only **SLA schema** and **configurable** categories are missing.
+
+---
+
+## 7. ACCOUNT-GATED REGISTER (Subhan's parallel track — no code unblocks these)
+
+| Item | What to obtain | Unblocks |
+|---|---|---|
+| Stripe Connect | Connect onboarding + KYC | Real owner payouts; Payout Method live |
+| Stripe live keys | Live card processing | Card capture at booking/checkout; subscription charges |
+| Channex account | Sandbox → live | Real OTA sync (Channels live) |
+| WhatsApp Business API | Meta approval (weeks) + a BSP | WhatsApp inbox channel |
+| OTA messaging API | Booking.com/Airbnb partner access | OTA inbox channels |
+| Email provider | Postmark/Mailgun + verified domain | Production email sending |
+| ID-verification provider | e.g. Stripe Identity | Guest ID Verification |
+
+**Start Stripe Connect + the email provider NOW** — cheapest to obtain, unblock the most.
+
+---
+
+## 8. THE PHASED DEVELOPMENT PLAN (the build order)
+
+Sequencing logic: **fix what's silently broken → finish the operator+owner apps (Fatima's daily reality) → build
+the shared foundations → the Guest Portal on top → the SaaS layer → live integrations as accounts land.** Every
+phase = gated Claude Code prompts (audit-first · ⛔ stops · per-gate commits · mutation-proven guards ·
+browser-verified · honesty rule — nothing faked · integer money · real enums · tenant/owner/guest isolation
+fail-closed). Consolidation between phases.
+
+**PHASE 0 — Fix & harden (~1 week) — the product must not lie to itself** *(IN PROGRESS)*
+- **0.1** The inert channel manager: a real `channels.status` writer (a connect flow that sets `status='connected'`
+  — the value `EnqueueAriPushOnInventoryChange` gates on) + a connect-flow skeleton (live sync stays account-gated
+  behind the interface, honest "Soon") + a **demo channel seed** (the `channels` table is empty after
+  `migrate:fresh --seed`). Prove the ARI push now fires for a connected channel.
+- **0.2** The dead enums: `reservations.payment_status='refunded'` and `folios.status='closed'` — write them where
+  they belong OR remove the UI assumption. Recommend per enum; implement; prove no UI keys an unwritten value.
+- **0.3** The 2 fail-closed RBAC defects (no app-level org-creation provisions roles; Super Admin unassignable) —
+  fix, or explicitly re-log with the reason each stays (both fail closed; org-creation provisioning naturally
+  belongs to Phase 7's tenant-provisioning).
+- **0.4** Cleanup: the stale `OperatorSecurity` "2FA Soon" docblock (the code contradicts it).
+- **0.5** A full manual QA WALKTHROUGH SCRIPT (`docs/QA-WALKTHROUGH.md`) — every screen, every role, click+expect.
+
+**PHASE 1 — Complete the Operator app, buildable set (~2–3 weeks)**
+Operator Search (global + blind-index decision) → Group Booking (atomic service over existing `groups`) → Roles
+(security-first redesign; needs Phase 0.3) → Maintenance Costs + Maintenance Settings → Operator Profile.
+
+**PHASE 2 — Complete the Owner portal, buildable set (~2 weeks)**
+Owner Bookings + Booking Detail → Block Calendar (over `blockInventory`) → Owner Rates (schema + policy first) →
+Tax Center (+ Annual Tax PDF) → Payout Method (data capture; live rail waits on Stripe Connect) → Add Unit
+(request flow) → Help.
+
+**PHASE 3 — The NOTIFICATION subsystem + all transactional emails (~2–3 weeks)**
+Events → dispatcher → in-app feeds (Operator + Owner Notifications) + preferences → the ~9 email templates +
+triggers (live sending flips on when the provider account exists) → Email Templates + Editor screens.
+
+**PHASE 4 — GUEST AUTH + the Guest Portal core (~4–6 weeks — the biggest single phase)**
+Guest auth (Authenticatable guest, signup/login/verify, tied to bookings) → Account + Trips + Booking/Reservation →
+Manage Booking (date-change, add-ons→folio, cancellation) → Online Check-in + Arrival Info (+PDF) → Payments +
+Folio Receipt (+ money PDFs) → the Wallet/credits ledger + Guest Credits → Guest Messages (guest side of the inbox)
+→ Wishlist/Waitlist/Add-ons/Email-prefs/Help → Guest Review (with Phase 5).
+
+**PHASE 5 — The REVIEWS module, all three surfaces (~2 weeks)**
+Guest Review → moderation → Operator Reviews (respond) → Owner Reviews (read).
+
+**PHASE 6 — MULTI-PROPERTY (re-scoped M) + Analytics (~3–4 weeks)**
+Property context/selector + a property-CRUD path + refactor the ~8–10 `->first()` call sites (the schema already
+holds N) → Portfolio → Insights + Reports (operator, per-property + all-properties) → Owner Reports/Insights
+(owner-scoped).
+
+**PHASE 7 — The SaaS layer (~3–4 weeks)**
+Tenant provisioning (Vyrobel Onboarding — the org-creation epic, solving the role-provisioning chicken-and-egg
+from Phase 0.3) → Subscription billing (Paywall + Checkout + Operator Billing; live charges when Stripe live keys
+exist) → Owner Team (owner sub-tenancy) → Team Schedule (rostering).
+
+**PHASE 8 — Live integrations (as accounts land — parallel throughout)**
+Stripe Connect payouts live → card capture live → Channex live sync → WhatsApp/OTA inbox channels → production
+email → Guest ID verification.
+
+---
+
+## 9. HOW WE WORK (unchanged — the discipline that got us here)
+
+Every phase = gated prompts (audit-first, ⛔ stops, per-gate commits, mutation-proven guards, browser-verified,
+honesty rule — nothing faked, integer money, real enums, tenant/owner/guest isolation fail-closed). Consolidation
+between phases. **The prototype is the SPEC for what each screen shows; the repo stays the truth for what backs it;
+every gap between them gets BUILT, not faked**, per this plan.
+
+## 10. ONE RECOMMENDATION TO CARRY
+
+Sequence *within* this plan by what makes Fatima OPERATIONAL soonest. Phases 0–3 complete the operator+owner
+product for her daily business; the Guest Portal (4) is the biggest phase and the one where her actual guests'
+behaviour should shape details. **One question that safely reorders Phases 3 and 4:** *"Which do you need first —
+the guest self-service portal, or the notifications/emails?"* Everything else stands as planned.
