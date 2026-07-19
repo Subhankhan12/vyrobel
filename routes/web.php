@@ -11,6 +11,7 @@ use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\Operator\FolioPdfController;
+use App\Http\Controllers\Operator\GroupBookingController;
 use App\Http\Controllers\Operator\GuestActionController;
 use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
@@ -38,6 +39,7 @@ use App\Livewire\InboxList;
 use App\Livewire\InboxThread;
 use App\Livewire\MaintenanceList;
 use App\Livewire\MaintenanceTicketDetail;
+use App\Livewire\Operator\GroupBooking;
 use App\Livewire\Operator\GuestProfile;
 use App\Livewire\Operator\GuestsList;
 use App\Livewire\Operator\NewReservation;
@@ -274,6 +276,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // payment inside the controller additionally checks `payments.record`. Never a raw PAN (GUARD 3).
     Route::get('/reservations/create', NewReservation::class)->middleware('can:reservations.create')->name('reservations.create');
     Route::post('/reservations/create', [ReservationCreateController::class, 'store'])->middleware('can:reservations.create')->name('reservations.store');
+
+    // GROUP BOOKING (Phase 1 · Sub-gate 1) — a block of rooms created ATOMICALLY through the single write path
+    // (AssignmentService::createGroupBooking — all-or-nothing, no phantom events). Same `reservations.create`
+    // gate as a single booking; the dates ride the GET (scope-safe availability), the block rides the POST.
+    Route::get('/group-booking', GroupBooking::class)->middleware('can:reservations.create')->name('group-booking');
+    Route::post('/group-booking', [GroupBookingController::class, 'store'])->middleware('can:reservations.create')->name('group-booking.store');
 
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
     // Demo-readiness · Part B — operator folio PDF. TENANT-scoped (string id → findOrFail → cross-org 404).

@@ -9,6 +9,7 @@ use App\Exceptions\Booking\ReservationAlreadyTerminalException;
 use App\Exceptions\Booking\UnitUnavailableException;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Models\Availability;
+use App\Models\Group;
 use App\Models\InventoryBlock;
 use App\Models\OverbookingConflict;
 use App\Models\Reservation;
@@ -108,6 +109,92 @@ class AssignmentService
         ]);
 
         return $reservation->refresh();
+    }
+
+    /**
+     * Create a GROUP block ATOMICALLY — the group header + ONE member reservation per unit, every member
+     * occupying inventory through the SAME locked core as {@see createBooking()} (Level A + Level B under
+     * `SELECT … FOR UPDATE`), all in ONE transaction. **All-or-nothing:** if ANY member's unit is unavailable,
+     * `occupy()` throws and the WHOLE block rolls back — no group, no member reservations, no reservation_units,
+     * no `sold` left incremented.
+     *
+     * ⚠️ THE PHANTOM-EVENT GUARD (docs/WAVE4-INVENTORY.md, trap T6). `reservation.confirmed` events drive the
+     * ARI push + availability recompute the moment {@see DomainEventRecorder} dispatches them (synchronously).
+     * A naive `foreach { createBooking() }` would record+dispatch each member's event immediately AFTER that
+     * member's inner commit — i.e. INSIDE this outer transaction — so a LATER member's failure would roll the
+     * rows back but the listeners would already have fired (ARI push enqueued, availability recomputed) for
+     * rows that no longer exist. Here every event is recorded ONLY AFTER the outer transaction commits, one per
+     * member that ACTUALLY persisted — so nothing fires for a block that rolled back.
+     *
+     * The single-write-path invariant is why this lives on AssignmentService (it needs the private locking
+     * core); the folio roll-up (master vs individual) is the caller's — {@see GroupBookingService}.
+     *
+     * @param  array<string, mixed>  $groupAttributes  name · occasion · property_id · billing_mode · block_code · pickup_deadline · contact
+     * @param  list<array{reservation: array<string, mixed>, line: array<string, mixed>}>  $members
+     */
+    public function createGroupBooking(array $groupAttributes, array $members): Group
+    {
+        // Deterministic member ordering (unit, then room_type + check_in) so two concurrent group bookings
+        // lock the shared availability rows in the SAME order — deadlock-free, the same discipline as the
+        // per-line usort inside createBooking().
+        usort($members, fn (array $a, array $b): int => [(string) ($a['line']['unit_id'] ?? ''), (string) $a['line']['room_type_id'], (string) $a['line']['check_in']]
+            <=> [(string) ($b['line']['unit_id'] ?? ''), (string) $b['line']['room_type_id'], (string) $b['line']['check_in']]);
+
+        /** @var array{group: Group, reservations: list<Reservation>} $result */
+        $result = DB::transaction(function () use ($groupAttributes, $members): array {
+            $group = Group::create($groupAttributes);
+
+            $reservations = [];
+            foreach ($members as $member) {
+                $reservation = Reservation::create(array_merge([
+                    'status' => 'confirmed',
+                    'source' => 'group',
+                    'booked_at' => now(),
+                    'group_id' => $group->getKey(),
+                ], $member['reservation'], [
+                    'reference' => $member['reservation']['reference'] ?? $this->generateReference(),
+                    'group_id' => $group->getKey(),
+                ]));
+
+                $this->occupy($reservation, $member['line']);   // throws → the whole block rolls back
+                $this->recordStatusHistory($reservation, null, (string) $reservation->status);
+
+                $reservations[] = $reservation;
+            }
+
+            return ['group' => $group, 'reservations' => $reservations];
+        });
+
+        // POST-COMMIT — the block is real. Record events ONLY now, one per persisted member (the phantom guard).
+        $group = $result['group'];
+        $reservations = $result['reservations'];
+
+        $this->domainEvents->record('group.created', $group, [
+            'member_count' => count($reservations),
+            'billing_mode' => (string) $group->billing_mode,
+        ]);
+        $this->audit->record('group.created', $group, null, [
+            'name' => $group->name,
+            'member_count' => count($reservations),
+        ]);
+
+        foreach ($reservations as $reservation) {
+            // The inventory-occupation event (a tentative HOLD occupies the unit too, so it must sync to
+            // channels — hence this fires for confirmed AND tentative members; the status carries the hold type).
+            $this->domainEvents->record('reservation.confirmed', $reservation, [
+                'reference' => $reservation->reference,
+                'group_id' => (string) $group->getKey(),
+            ]);
+            $this->audit->record('reservation.created', $reservation, null, [
+                'reference' => $reservation->reference,
+                'status' => $reservation->status,
+                'group_id' => (string) $group->getKey(),
+            ]);
+        }
+
+        $group->setRelation('reservations', collect($reservations)->map->refresh());
+
+        return $group;
     }
 
     /**

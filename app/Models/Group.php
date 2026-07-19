@@ -21,7 +21,9 @@ class Group extends Model
         'organization_id',
         'property_id',
         'name',
+        'occasion',
         'block_code',
+        'billing_mode',
         'pickup_deadline',
         'contact',
     ];
@@ -42,6 +44,9 @@ class Group extends Model
         return $this->belongsTo(Property::class);
     }
 
+    /**
+     * @return HasMany<Reservation, $this>
+     */
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
