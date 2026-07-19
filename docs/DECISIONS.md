@@ -2104,3 +2104,48 @@ for what backs it; every gap gets BUILT (not faked). The full phased map is a ne
   dead-enums decision, the two RBAC defects, the stale-docblock cleanup, and a QA walkthrough script
   (`docs/QA-WALKTHROUGH.md`). Sequencing bias: **make Fatima operational soonest** (Phases 0–3 before the large
   Guest Portal phase). PROJECT-STATE + CLAUDE NEXT ACTION updated to point here.
+
+## 2026-07-20 — PHASE 0 (fix & harden) COMPLETE — five gated sub-gates; the product no longer lies to itself
+
+The first phase of `docs/GAP-ANALYSIS.md`, done as five gated sub-gates (per-gate commits, mutation-proven where
+there's a guard, browser-verified where there's a screen). Goal: close what was silently broken BEFORE building
+new features on top of it.
+
+- **0.1 — the inert channel manager, fixed (`8e3b54c`).** `App\Services\ChannelConnectionService` is the real
+  `channels.status` / `channel_mappings.status` writer that was missing: `EnqueueAriPushOnInventoryChange` pushes
+  ARI only to `status='connected'` channels (mapping guard only includes `status='active'`), but nothing in
+  `app/` ever wrote either — only factories — so the certified sync backbone could never fire for a real
+  operator. The writer records audit + domain events inside the service; the `channel.*` events are NOT in the
+  ARI trigger set (no loop). The local activation is real; the live Channex handshake stays account-gated behind
+  the `ChannelManagerClient` seam. `DemoSeeder` now seeds a connected channel + active mappings.
+  **MUTATION-PROVEN** (`ChannelConnectionTest`): a disconnected channel enqueues NO push on a booking; after
+  `connect()` an equivalent booking enqueues + processes exactly one. The Channels UI that drives this in
+  production (+ `channels.manage`) is Phase 1.
+- **0.2 — the dead status enums, resolved per enum (`88b2326`).** `reservations.payment_status='refunded'` is
+  now genuinely WRITTEN (`FolioService::paymentStatus()` — a fully-refunded stay, so it no longer reads the small
+  lie 'unpaid'); `'charged_back'` dropped (no dispute flow). `folios.status` `'closed'`/`'void'` dropped (no
+  close/void lifecycle; a half-built lock would be a worse lie). A migration prunes both enums (safe — zero rows
+  carried a removed value). Mutation-proven + a `SHOW COLUMNS` assertion that no unwritable value remains
+  (`DeadEnumResolutionTest`). One harmless remnant (`payments.status='refunded'`) documented, out of scope.
+- **0.3 — the two fail-closed RBAC defects, re-logged + formally deferred (`863c5b1`).** Neither has a code path
+  to fix today, so (the sanctioned outcome for a fail-closed defect) each is deferred with reasons to the gate
+  that builds its fix: defect #1 (no org-creation provisions roles) → Phase 7's tenant-provisioning transaction
+  MUST call `OrganizationRoleProvisioner::provision()`; defect #2 (`Super Admin` unassignable) → a spatie
+  `model_has_roles` schema migration. A global `Organization::created` hook for #1 was CONSIDERED and REJECTED
+  (it would add provisioning overhead + shared-permission-table contention to 90 org-creating test files, incl.
+  the true-parallel concurrency suites, to guard a path that doesn't exist). The provisioner's docblock, which
+  falsely claimed it was "called at organization-creation time", is now honest + loud.
+- **0.4 — stale "2FA is Soon" docblocks fixed (`18f4193`).** `OperatorSecurity`'s docblock still called 2FA an
+  unbacked "Soon" panel (and change-password its "ONE real feature"), and the owner-settings Blade comment
+  listed 2FA among stubbed subsystems — both contradicted by the shipped real TOTP (invariant #31). Corrected;
+  the genuinely-unbacked panels stay honestly "Soon". Comment-only.
+- **0.5 — the QA walkthrough (`b7b36fd`).** `docs/QA-WALKTHROUGH.md`: a run-it-yourself runbook over every built
+  screen, every role — public booking, all 21 operator + 15 owner screens, the security-boundary checks
+  (#26/#28/#30 + cross-org 404), the full auth chapter, a role matrix, and a per-surface "Soon" register so
+  honest deferrals aren't logged as bugs.
+
+**Verification:** full suite **625 tests / 6125 assertions** green on MySQL (Phase 0 added +8: the 5 channel-
+connection + 3 dead-enum tests); PHPStan L5 + Pint clean; `migrate:fresh --seed` clean (demo channel connected +
+mappings active, enums pruned); the money screens browser-verified (render intact after the 0.2 docblock edits).
+**NEXT = Phase 1** (complete the operator app: Search, Group Booking, Roles, Maintenance Costs/Settings, Operator
+Profile).

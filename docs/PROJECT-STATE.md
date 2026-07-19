@@ -688,17 +688,13 @@ so it contains "U2" **~1.05% of the time** → **~15% per run** across 8 routes.
 
 ### 🔴 STILL OPEN — the register's remaining items
 
-1. **DEAD enum values — AT LEAST FIVE** (the count and one table name were both wrong until 2026-07-17;
-   re-verified by grep). These exist in the schema and are **never written by any code**, so a UI keying off
-   one renders **never, silently** — and the designs assume several of them:
-   | table.column | dead value(s) | what the code actually writes |
+1. ✅ **DEAD enum values — RESOLVED in Phase 0.2 (2026-07-20), except one low-priority remnant.**
+   | table.column | was dead | resolution |
    |---|---|---|
-   | **`reservations`**`.payment_status` ⚠️ *not `payments.`* | `refunded`, `charged_back` | `FolioService::paymentStatus()` only ever writes `unpaid` / `partial` / `paid` |
-   | `folios.status` | `closed`, `void` | only `open` is ever written |
-   | `payments.status` | `refunded` | only `succeeded` / `failed` / `pending` / `authorized` / `captured` |
-   **Either write them or drop them — until then NO SURFACE MAY DEPEND ON ANY OF THEM.** The general rule is
-   the real lesson: **verify any status-keyed UI against what the code actually produces**, not against the
-   enum the migration declares.
+   | **`reservations`**`.payment_status` | `refunded`, `charged_back` | ✅ `refunded` now **WRITTEN** (`FolioService::paymentStatus()` — a fully-refunded stay); `charged_back` **REMOVED** from the enum (no dispute flow). Mutation-proven (`DeadEnumResolutionTest`). |
+   | `folios.status` | `closed`, `void` | ✅ **REMOVED** from the enum (no folio close/void lifecycle; re-add WITH enforcement when `FolioService::closeFolio()` is built). |
+   | `payments.status` | `refunded` | ⚠️ **STILL dead but harmless** — a refund creates a NEW `type='refund'` row (never restamps the original), and no UI keys on it. Drop in a future cleanup (out of 0.2's scope, which was the two above). |
+   The lesson stands: **verify any status-keyed UI against what the code actually produces**, not the enum the migration declares.
 
 2. **THE CATALOG HAS NO INBOX PERMISSION — logged, not invented** (found 2026-07-17 while enforcing #30).
    `InboxActionController` performs six real writes (reply — which sends a **guest-facing message** — plus
@@ -732,7 +728,15 @@ so it contains "U2" **~1.05% of the time** → **~15% per run** across 8 routes.
      `back_office_roles` until then. Both are fail-closed (an unprovisioned org is unusable, not insecure; an
      unassignable role grants nothing), so deferral is safe. Logged, not fixed — deliberately.
 
-4. **THE CERTIFIED CHANNEL MANAGER IS INERT IN PRODUCTION — nothing writes `channels.status` / `channel_mappings.status`** (verified 2026-07-18 by grep — same class of bug as the dead enums in item 1, but with a bigger blast radius). The ARI push and the mapping guard **gate on `status = active` / `connected`** (`ChannelMappingGuard`, `AriSnapshotBuilder` both `where('status', STATUS_ACTIVE)`), yet the ONLY writers of a `connected`/`active` status are **`ChannelFactory` / `ChannelMappingFactory`** — there is no production flow that connects a channel or activates a mapping. So the whole certified sync backbone (which is real and tested against `FakeChannexClient`) would **never fire for a real operator**: a `Channel` row created outside a factory sits at the default `disconnected` forever. This is not a leak or a data bug — it fails *closed* (no sync rather than wrong sync) — but it means **"Channels-as-drawn" is not just a UI: it must ship the status writer (connect/activate flow) or the channel manager does nothing in production.** Folded into the Channels subsystem in the deferred list below.
+4. ✅ **THE CHANNEL MANAGER — no longer inert; the `channels.status` writer shipped in Phase 0.1 (2026-07-20).**
+   `App\Services\ChannelConnectionService` is the real writer (`connect()` → `connected`, `activateMapping()` →
+   `active` — the exact values the ARI push + mapping guard gate on), recording audit + domain events inside the
+   service. The `DemoSeeder` now seeds a connected channel + active mappings, so `migrate:fresh --seed` produces
+   a non-empty, ARMED channels table. Mutation-proven (`ChannelConnectionTest`: a disconnected channel enqueues
+   NO push; after `connect()` a booking pushes exactly once). ⚠️ **What remains is the operator-facing connect
+   FLOW: the Channels UI (Phase 1) that lets a real operator create + connect a channel through this writer**
+   (+ the `channels.manage` permission), and the live Channex sync itself (account-gated). The backend is no
+   longer inert; the UI to drive it in production is Phase 1 (see `docs/GAP-ANALYSIS.md`).
 
 ### ✅ CLOSED (2026-07-16) — the `/app` authorization hole. Safe for a real owner login.
 
@@ -748,12 +752,13 @@ exploitable (both fail closed).
 **AT A GLANCE — the honest four-way triage a fresh session needs.** The buildable-in-a-vacuum, clearly-worth-it,
 self-contained core is **essentially complete** (2FA was the last such subsystem). What remains splits cleanly:
 
-**① STILL-OPEN register items (none blocking; detail above).** Two/three dead enum values
-(`reservations.payment_status='refunded'`, `folios.status='closed'`, `payments.status='refunded'`) · the
-**inbox has no catalog permission** (its writes are #26-only — a product decision, deliberately not invented) ·
-two fail-closed **RBAC defects** (no app-level org-creation provisions roles; `Super Admin` unassignable) · the
-**channel manager is inert in production** (nothing writes `channels.status`/`channel_mappings.status`). Each is
-a known, honest note — fix when the area is next touched.
+**① REGISTER items — MOST CLOSED in Phase 0 (2026-07-20); detail above.** ✅ **The channel manager is no longer
+inert** — the `channels.status` writer shipped (0.1). ✅ **The dead enums are resolved** — `payment_status`
+now writes `'refunded'`, and `charged_back`/`folios.status='closed'`/`'void'` were dropped (0.2); one harmless
+remnant (`payments.status='refunded'`) documented. ⏸️ **The two fail-closed RBAC defects** (no app-level
+org-creation provisions roles → Phase 7; `Super Admin` unassignable → a spatie-schema migration) were reviewed
+and **formally deferred** to their fix gates (0.3). Still genuinely open: the **inbox has no catalog permission**
+(its writes are #26-only — a product decision, deliberately not invented). None blocking.
 
 **② SUBSYSTEMS / EPICS — buildable now (no external account), but REAL commitments, NOT quick wins.** Each is a
 gated phased build with a genuine backend, exactly like Owner Accounting was:
@@ -1166,9 +1171,12 @@ plain GET links (e.g. `?month=`).
 > call-site refactors (re-scoped L→M). The three TRUE greenfield subsystems are **guest auth · notifications ·
 > reviews/wallet** — multi-property is not one.
 >
-> **NEXT = PHASE 0 (fix & harden), in progress:** the inert channel manager (`channels.status` writer + connect
-> skeleton + demo seed — prove the ARI push fires) · the dead-enums decision · the two RBAC defects · the stale
-> `OperatorSecurity` docblock · a QA walkthrough (`docs/QA-WALKTHROUGH.md`). Then Phases 1–3 finish the
+> **✅ PHASE 0 (fix & harden) COMPLETE (2026-07-20)** — five gated sub-gates (`8e3b54c` channel writer ·
+> `88b2326` dead enums · `863c5b1` RBAC re-log · `18f4193` docblocks · `b7b36fd` QA walkthrough): the channel
+> manager un-inerted, the dead enums resolved, the two fail-closed RBAC defects re-logged + deferred, stale
+> docblocks fixed, `docs/QA-WALKTHROUGH.md` written. **NEXT = PHASE 1** — complete the operator app's buildable
+> set: Search (global + the blind-index decision) · Group Booking (atomic, over the existing `groups`) · Roles
+> (security-first redesign) · Maintenance Costs/Settings · Operator Profile. Then Phases 2–3 finish the
 > operator+owner apps (**make Fatima operational soonest**) before the large Guest Portal phase (4).
 > See `docs/GAP-ANALYSIS.md` for the full 0–8 plan + the corrected per-front inventory.
 
