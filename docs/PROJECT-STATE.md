@@ -9,7 +9,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **THE ONE-PARAGRAPH ANSWER.** The product is **COMPLETE, DEEP, DEMOABLE end-to-end, and safe for a real owner
 > login**: a certified multi-tenant backend (PMS + channel manager + payments + owner accounting + maintenance
 > + unified inbox), a **fully hardened auth chapter** (login · invites · password reset · change-password ·
-> **2FA/TOTP**), and **~38 styled, browser-verified screens** across the owner portal, the operator back office
+> **2FA/TOTP**), and **~44 styled, browser-verified screens** across the owner portal, the operator back office
 > and the public booking storefront — all on real scoped data under the honesty rule. **Five security/integrity
 > holes have been found and closed this session, none of them by a failing test:** the `/app` authorization leak
 > (**#26**), the cumulative over-refund (**#27**), the missing GDPR-erasure trigger (**#28**), the unguarded
@@ -19,13 +19,16 @@ conflicts with the repo, **trust the repo** and fix this file.
 > retrofit. What remains is **subsystems/epics** (real commitments, not quick wins), **speculative** (Tier 2 —
 > designed, no backend, no signal), or **account-gated** (needs someone else's credentials), plus the small open
 > items in the register. **The buildable-in-a-vacuum, clearly-worth-it core is essentially complete — 2FA was the
-> last such subsystem. No customer has ever reacted to this product**; validation is now the highest-value move —
-> more building has diminishing returns until the signal comes in.
+> last such subsystem.** ⚠️ **UPDATE (2026-07-20): the customer signal ARRIVED** — a warm operator contact
+> (Fatima) liked the demo AND the prototype, so the requirement is now **"make the real product work like the
+> prototype"** (the "no customer has reacted / don't build blind" framing that once sat here is SUPERSEDED — see
+> the NEXT ACTION section at the foot of this file). **Phases 0 and 1 of `docs/GAP-ANALYSIS.md` are DONE; Phase 2
+> (owner portal buildable set) is next.**
 
 - **On `main`, working tree clean, local == origin** (HEAD `11288d6` at the time of writing this capstone —
   the doc commit that carries these words advances HEAD by one; see the HEAD convention below). Only the
   untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
-  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 617 tests / 6100 assertions, all green** on
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 660 tests / 6278 assertions, all green** on
   genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
   (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
   product bug. See the register). The suite is a trustworthy gate.
@@ -895,7 +898,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**617 tests / 6100 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**660 tests / 6278 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -1155,7 +1158,7 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); NEXT = the phased build in `docs/GAP-ANALYSIS.md`, Phase 0 first
+## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); Phases 0–1 DONE; NEXT = Phase 2 in `docs/GAP-ANALYSIS.md`
 
 > **THE SIGNAL CAME. The "don't build blind" framing below is SUPERSEDED.** A warm operator contact (Fatima)
 > **liked the demo AND the prototype**, so the requirement is now concrete: **the real product must work the way
@@ -1163,22 +1166,39 @@ plain GET links (e.g. `?month=`).
 > it; every gap gets BUILT, not faked. The full phased map — **audit-verified against real code** (5-agent pass,
 > 2026-07-20; 50 claims → 33 confirmed / 8 incorrect / 8 nuanced) — is **`docs/GAP-ANALYSIS.md`**.
 >
-> **The honest position:** **~40 built screens/artifacts · ~84 designed-but-unbuilt.** What remains splits into
-> ① subsystems/epics (guest auth, notifications, reviews/wallet, tenant-provisioning, Group Booking, Owner Rates,
-> Channels-as-drawn, Roles, Portfolio) · ② the ~24-screen Guest Portal (on guest auth) · ③ account-gated (inbox
+> **The honest position:** **~46 built screens/artifacts · ~78 designed-but-unbuilt.** What remains splits into
+> ① subsystems/epics (guest auth, notifications, reviews/wallet, tenant-provisioning, Owner Rates,
+> Channels-as-drawn, Portfolio) · ② the ~24-screen Guest Portal (on guest auth) · ③ account-gated (inbox
 > channels, Channex, Stripe Connect/cards, prod email). **⚠️ AUDIT CORRECTION:** **multi-property is NOT a schema
 > epic** — the schema already holds N properties/org; Portfolio is a property-selector + CRUD + ~8–10 `->first()`
 > call-site refactors (re-scoped L→M). The three TRUE greenfield subsystems are **guest auth · notifications ·
 > reviews/wallet** — multi-property is not one.
 >
-> **✅ PHASE 0 (fix & harden) COMPLETE (2026-07-20)** — five gated sub-gates (`8e3b54c` channel writer ·
-> `88b2326` dead enums · `863c5b1` RBAC re-log · `18f4193` docblocks · `b7b36fd` QA walkthrough): the channel
-> manager un-inerted, the dead enums resolved, the two fail-closed RBAC defects re-logged + deferred, stale
-> docblocks fixed, `docs/QA-WALKTHROUGH.md` written. **NEXT = PHASE 1** — complete the operator app's buildable
-> set: Search (global + the blind-index decision) · Group Booking (atomic, over the existing `groups`) · Roles
-> (security-first redesign) · Maintenance Costs/Settings · Operator Profile. Then Phases 2–3 finish the
-> operator+owner apps (**make Fatima operational soonest**) before the large Guest Portal phase (4).
-> See `docs/GAP-ANALYSIS.md` for the full 0–8 plan + the corrected per-front inventory.
+> **✅ PHASE 0 (fix & harden) COMPLETE (2026-07-20, `a7068d1`)** — the channel manager un-inerted, the dead
+> enums resolved, the two fail-closed RBAC defects re-logged + deferred, stale docblocks fixed,
+> `docs/QA-WALKTHROUGH.md` written.
+>
+> **✅ PHASE 1 (complete the operator app, buildable set) COMPLETE (2026-07-20)** — five gated sub-gates
+> (`eefd22d` Group Booking · `1595583` Search · `35019e9` Roles · `a4a3ddc` Maintenance Costs+Settings · HEAD
+> Operator Profile). Six screens, five new services (`GroupBookingService`, `SearchService`,
+> `RoleAssignmentService`, `MaintenanceCostService`, `MaintenanceSettingsService`) + `OperatorProfileController`.
+> The security-critical shapes held: **Group Booking** is atomic over the existing `groups` with a phantom-event
+> guard (a rolled-back block fires ZERO `reservation.confirmed` events — mutation-proven); **Search** is
+> tenant-scoped and searches guests by NAME only (encrypted email/phone can't be `LIKE`-searched → the
+> blind-index decision is DEFERRED and the limit is surfaced, never silent); **Roles** REFUSED the design's
+> catalog-edit (an escalation weapon) and enforces the **privilege-subset rule** (`perms(role) ⊆ perms(actor)`,
+> so only `['*']` grants `['*']`); **Maintenance Costs** are real aggregates that reconcile to the cent (the
+> fabricated labour/parts split refused, not faked); **Maintenance Settings** are typed columns via the
+> `SettingsService` pattern (NOT the dormant KV scaffold); **Operator Profile** is a SELF-ONLY name/email write
+> (auth-resolved, never a request id — mutation-proven a smuggled `user_id` can't reach another account). Deferred
+> out of Phase 1 (logged, not faked): the **blind-index** contact-search decision, **notification dispatch**
+> (→ Phase 3), and PDF/Excel **exports** of the cost report.
+>
+> **NEXT = PHASE 2** — complete the owner portal's buildable set: Owner Bookings + Booking Detail · Block Calendar
+> (over the existing `blockInventory`) · Owner Rates (owner-scope schema + policy first) · Tax Center (+ Annual Tax
+> PDF) · Payout Method (data capture; live rail waits on Stripe Connect) · Add Unit (request flow) · Help. Then
+> Phase 3 finishes the operator+owner apps (**make Fatima operational soonest**) before the large Guest Portal
+> phase (4). See `docs/GAP-ANALYSIS.md` for the full 0–8 plan + the corrected per-front inventory.
 
 **(historical) The original Wave-4 lead-in:**
 

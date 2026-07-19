@@ -22,11 +22,13 @@
 
 ## 0. THE HONEST HEADLINE (corrected)
 
-- **Built & working: ~40 screens/artifacts** — 21 operator screens · 15 owner-portal screens · 3 public-booking
+- **Built & working: ~46 screens/artifacts** — **27** operator screens · 15 owner-portal screens · 3 public-booking
   screens · ~5 auth screens (login/forgot/reset/accept-invite/2FA-challenge) · 3 PDFs (statement/remittance/booking-
   summary; owner folio PDF too) · 2 Mailables. The operational spine: operator daily ops, the owner-accounting
   wedge, public booking, and a hardened auth chapter (login · invites · reset · change-password · **2FA/TOTP**).
-- **Not built: ~84 designed screens** across four fronts: the rest of the Operator app (~18), the Owner portal
+  **✅ PHASE 1 COMPLETE (2026-07-20)** added the 6 operator screens below (Search · Group Booking · Maintenance
+  Costs · Maintenance Settings · Roles · Profile) — operator 21 → 27.
+- **Not built: ~78 designed screens** across four fronts: the rest of the Operator app (~12), the Owner portal
   long-tail (~16), the **entire Guest Portal (~24 — the largest single gap)**, the SaaS platform layer (~3), and
   ~9 transactional email templates.
 - **Three true greenfield subsystems the prototype assumes** (verified absent — zero backing code/schema):
@@ -52,29 +54,30 @@ quality bar, plus the account approvals in parallel.
 
 ---
 
-## 1. OPERATOR APP — 40 designed · 21 built · ~18 remaining
+## 1. OPERATOR APP — 40 designed · 27 built · ~12 remaining
 
-### ✅ Built & working (21 routed screens)
+### ✅ Built & working (27 routed screens)
 Dashboard · Calendar/Rack · Front Desk · Housekeeping · Maintenance board · Work Order · Inbox · Conversation ·
 Reservations List · New Reservation · Reservation Detail (Cancelled/No-show render here as terminal states) · Refund ·
 Guests · Guest Profile · Rates · **Units** (no design file) · Owners · Owner Detail · Payout Run · Settings (with
-Property/Policies/Organization POST sections) · Security (password + real TOTP 2FA).
+Property/Policies/Organization POST sections) · Security (password + real TOTP 2FA) · **Search · Group Booking ·
+Maintenance Costs · Maintenance Settings · Roles · Profile** (the six ✅ Phase 1 screens).
 
-### ⬜ Remaining (~18), grouped by what they need
-
-**Group O1 — buildable over existing/small backend (build first):**
-| Page | Needs | Size |
+### ✅ Group O1 + Roles — SHIPPED in Phase 1 (2026-07-20, 5 gated sub-gates)
+| Page | Shipped as | Sub-gate |
 |---|---|---|
-| Operator Search | A GLOBAL cross-entity search (reservations/guests/units/owners). Property-scoped availability search already exists (`BookingEngineService::search`); the gap is cross-entity + the **blind-index decision** (encrypted guest email/phone can't be `LIKE`-searched) | M |
-| Operator Group Booking | Atomic `GroupBookingService` over the EXISTING `groups` + `reservations.group_id` (extend, never parallel) + group-folio roll-up decision | M |
-| Operator Maintenance Costs | Cost analytics over existing maintenance + owner-expense data (per-ticket cost already surfaces on the Work Order) | S–M |
-| Operator Profile | Self-profile writer (name/email) — the owner side already has one (`OwnerProfileController`); mirror it | S |
-| Operator Maintenance Settings | SLA schema (net-new) + configurable categories (a `category` enum already exists — 5 hard-coded values; making it configurable needs a table or enum migrations) | M |
+| Operator Group Booking | `GroupBookingService` + atomic `AssignmentService::createGroupBooking` over the EXISTING `groups` + `reservations.group_id` (extend, not parallel); phantom-event guard mutation-proven (a rolled-back block fires ZERO events) | SG1 `eefd22d` |
+| Operator Search | `SearchService` — GLOBAL cross-entity (reservations/guests/units/owners), tenant-scoped, **guests by NAME only** (encrypted email/phone can't be `LIKE`-searched → the blind-index decision is DEFERRED, and the limitation is surfaced, never silent) | SG2 `1595583` |
+| Operator Roles | `RoleAssignmentService` — VIEW the catalog + ASSIGN, gated `can:users.manage`. The design's catalog-EDIT (New/Save/Delete role) was **refused as an escalation weapon**; the **privilege-subset rule** (`perms(role) ⊆ perms(actor)`) blocks escalation, mutation-proven (Group Admin can't grant Property Owner) | SG3 `35019e9` |
+| Operator Maintenance Costs | `MaintenanceCostService` — REAL derived aggregates over resolved tickets (reconcile to the cent); the fabricated labour-vs-parts split **refused, not faked**; empty → "—" | SG4 `a4a3ddc` |
+| Operator Maintenance Settings | `MaintenanceSettingsService` + `maintenance_settings` typed columns (SLA hours, category→assignee, toggles) via the `SettingsService` pattern (NOT the dormant KV scaffold); notification dispatch honestly deferred to Phase 3 | SG4 `a4a3ddc` |
+| Operator Profile | `OperatorProfileController` — SELF-ONLY name/email write (auth-resolved, never a request id — mirrors `OwnerProfileController`); unbacked design fields (phone/timezone/preferred-name) OMITTED, not faked | SG5 (this gate) |
+
+### ⬜ Remaining (~12), grouped by what they need
 
 **Group O2 — subsystems (each a real project):**
 | Page | The subsystem underneath | Size |
 |---|---|---|
-| Operator Roles | ⚠️ Security-first REDESIGN — read the 13 catalog roles + assign one, gated `can:roles.manage`. The design as drawn is an **escalation weapon** (WAVE4-INVENTORY). Needs the RBAC defects (§Phase 0.3) resolved first | M |
 | Operator Channels | Channel/mapping CRUD + a REAL `channels.status` writer (⚠️ **the certified channel manager is INERT in production** — see Phase 0.1) + connect flow. Live sync = account-gated (Channex) | M–L |
 | Operator Notifications + Notification Preferences | The NOTIFICATION SUBSYSTEM: events → dispatcher → in-app feed + per-user prefs. Cross-links every module | L |
 | Operator Email Templates + Email Editor | An email-template subsystem (stored templates, variables, preview, editor) riding the notification dispatcher | M–L |
@@ -226,7 +229,7 @@ phase = gated Claude Code prompts (audit-first · ⛔ stops · per-gate commits 
 browser-verified · honesty rule — nothing faked · integer money · real enums · tenant/owner/guest isolation
 fail-closed). Consolidation between phases.
 
-**PHASE 0 — Fix & harden (~1 week) — the product must not lie to itself** *(IN PROGRESS)*
+**PHASE 0 — Fix & harden (~1 week) — the product must not lie to itself** *(✅ DONE — `a7068d1`)*
 - **0.1** The inert channel manager: a real `channels.status` writer (a connect flow that sets `status='connected'`
   — the value `EnqueueAriPushOnInventoryChange` gates on) + a connect-flow skeleton (live sync stays account-gated
   behind the interface, honest "Soon") + a **demo channel seed** (the `channels` table is empty after
@@ -239,11 +242,17 @@ fail-closed). Consolidation between phases.
 - **0.4** Cleanup: the stale `OperatorSecurity` "2FA Soon" docblock (the code contradicts it).
 - **0.5** A full manual QA WALKTHROUGH SCRIPT (`docs/QA-WALKTHROUGH.md`) — every screen, every role, click+expect.
 
-**PHASE 1 — Complete the Operator app, buildable set (~2–3 weeks)**
-Operator Search (global + blind-index decision) → Group Booking (atomic service over existing `groups`) → Roles
-(security-first redesign; needs Phase 0.3) → Maintenance Costs + Maintenance Settings → Operator Profile.
+**PHASE 1 — Complete the Operator app, buildable set** *(✅ DONE — 2026-07-20, 5 gated sub-gates `eefd22d` →
+`1595583` → `35019e9` → `a4a3ddc` → this gate)*
+Operator Search (global; guests name-only, blind-index deferred) → Group Booking (atomic service over existing
+`groups`; phantom-event guard) → Roles (security-first; catalog-edit refused, privilege-subset rule) → Maintenance
+Costs (real aggregates) + Maintenance Settings (typed columns) → Operator Profile (self-only name/email). Five new
+services (`GroupBookingService`, `SearchService`, `RoleAssignmentService`, `MaintenanceCostService`,
+`MaintenanceSettingsService`) + `OperatorProfileController`. Deferred out of Phase 1 (logged, not faked): the
+**blind-index** contact-search decision, **notification dispatch** (→ Phase 3), and PDF/Excel **exports** of the
+cost report.
 
-**PHASE 2 — Complete the Owner portal, buildable set (~2 weeks)**
+**PHASE 2 — Complete the Owner portal, buildable set (~2 weeks)** *(⬅ NEXT)*
 Owner Bookings + Booking Detail → Block Calendar (over `blockInventory`) → Owner Rates (schema + policy first) →
 Tax Center (+ Annual Tax PDF) → Payout Method (data capture; live rail waits on Stripe Connect) → Add Unit
 (request flow) → Help.

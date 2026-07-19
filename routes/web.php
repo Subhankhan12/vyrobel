@@ -17,6 +17,7 @@ use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\MaintenanceSettingsController;
+use App\Http\Controllers\Operator\OperatorProfileController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationCreateController;
@@ -50,6 +51,7 @@ use App\Livewire\Operator\OperatorMaintenanceCosts;
 use App\Livewire\Operator\OperatorMaintenanceSettings;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
+use App\Livewire\Operator\OperatorProfile;
 use App\Livewire\Operator\OperatorRoles;
 use App\Livewire\Operator\OperatorSearch;
 use App\Livewire\Operator\OperatorSecurity;
@@ -244,6 +246,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // path). Rate-limited like the rest of the auth chapter.
     Route::get('/security', OperatorSecurity::class)->name('security');
     Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
+
+    // Operator PROFILE (Phase 1 · Sub-gate 5) — the logged-in operator's OWN name + work email. Like /security,
+    // behind auth + #26 with NO fine-grained gate (every back-office user has a profile). The write is SELF-ONLY:
+    // the controller resolves $request->user() (never a request id), so there is no id to tamper with to reach
+    // another account. Only the genuinely-backed fields persist; unbacked design fields are omitted, not faked.
+    Route::get('/profile', OperatorProfile::class)->name('profile');
+    Route::post('/profile', [OperatorProfileController::class, 'update'])->name('profile.update');
 
     // Two-factor ENROLLMENT (self-service; the login challenge is separate). Real TOTP (google2fa) — enable →
     // confirm-code (anti-lockout) → one-time recovery codes; regenerate; disable (re-auth). Self-only

@@ -2149,3 +2149,75 @@ connection + 3 dead-enum tests); PHPStan L5 + Pint clean; `migrate:fresh --seed`
 mappings active, enums pruned); the money screens browser-verified (render intact after the 0.2 docblock edits).
 **NEXT = Phase 1** (complete the operator app: Search, Group Booking, Roles, Maintenance Costs/Settings, Operator
 Profile).
+
+## 2026-07-20 — PHASE 1 (complete the operator app, buildable set) COMPLETE — five gated sub-gates
+
+The second phase of `docs/GAP-ANALYSIS.md`, done as five gated sub-gates (audit-first · per-gate commit ·
+mutation-proven where there's a guard · browser-verified where there's a screen · honesty rule · integer money ·
+real enums · tenant/self isolation fail-closed). Six operator screens shipped; the operator app's buildable-set is
+now complete (operator 21 → 27 built). **Push held to this final gate** (the five commits landed together). The
+recurring lesson: **every one of these screens had a security-critical shape the design did NOT show, and the audit
+is why we know** — building any of them as drawn would have shipped a hole.
+
+- **SG1 — Group Booking (`eefd22d`).** `GroupBookingService` + `AssignmentService::createGroupBooking()` — an
+  ATOMIC multi-unit block over the EXISTING `groups` + `reservations.group_id` (extend, never a parallel
+  per-channel table; `source='group'`). The security-critical decision is the **phantom-event guard**:
+  `DomainEventRecorder::record()` dispatches `DomainEventRecorded` SYNCHRONOUSLY, so the group's
+  `reservation.confirmed` events are recorded ONLY after the outer transaction commits (one per persisted member)
+  — otherwise a rolled-back block would fire ARI-push/recompute listeners for reservations that never existed.
+  Prices are re-derived server-side (integer minor units via `UnitAvailabilityService::availableUnitMap`, never a
+  client float); the organiser's PII goes to the encrypted `Guest` columns; the write is gated `can:reservations.create`.
+  **MUTATION-PROVEN** (`OperatorGroupBookingTest`, 6): pre-book a unit, attempt an overlapping group → the whole
+  block rolls back (0 groups persisted) AND the `domain_events` count is UNCHANGED — no phantom event escaped.
+- **SG2 — Global Search (`1595583`).** `SearchService` — a GLOBAL cross-entity search (reservations by
+  reference/lead-guest name · guests · units · owners), tenant-scoped by construction. The security/honesty
+  decision: **guests are searched by NAME only.** `guests.email`/`phone` are `encrypted` casts → the ciphertext is
+  not `LIKE`-searchable, so a contact-string search is impossible without a blind index. Rather than silently
+  return nothing for an email query, the screen DETECTS a contact-looking query (`looksLikeContact()`) and surfaces
+  the limitation. **The blind-index decision is DEFERRED** (it's a schema commitment — a hashed index column per
+  searchable field); logged, not faked. Per-entity results are gated on the viewer's abilities
+  (`guests.view`/`units.view`), the route on `can:reservations.view`. Proven tenant-isolated + name-not-email
+  (`OperatorSearchTest`, 8).
+- **SG3 — Roles (`35019e9`) — the security-critical gate.** `RoleAssignmentService` — VIEW the fixed permission
+  catalog + ASSIGN/REVOKE a catalog role, gated `can:users.manage`. **The design as drawn was an escalation
+  weapon** (New role / Save / Delete = edit the catalog itself) and was **REFUSED** — the catalog is read-only.
+  Assignment enforces the **privilege-subset rule**: an actor may only assign a role whose permissions they
+  already hold IN FULL (`perms(role) ⊆ perms(actor)`), so a Group Admin cannot grant `Property Owner` (`['*']`) —
+  only `['*']` grants `['*']`. Plus: no self-management, tenant-bound target, catalog-roles-only. spatie is
+  team-scoped (team = org); `setPermissionsTeamId($orgId)` around every read/write. **MUTATION-PROVEN**
+  (`OperatorRolesTest`, 7): a Group Admin's attempt to assign `Property Owner` throws `RoleAssignmentException`
+  and grants nothing. (This gate needed Phase 0.3's RBAC re-log as its backdrop — the two fail-closed defects stay
+  deferred to their fix gates.)
+- **SG4 — Maintenance Costs + Settings (`a4a3ddc`).** `MaintenanceCostService` — every figure a REAL derived
+  aggregate over resolved tickets (total · orders · avg · by-category · top-units · by-month · owner-unit vs
+  operator-unit split from `units.owner_id`), reconciling to the cent; an empty period is `—`, never a fabricated
+  €0.00. **The prototype's labour-vs-parts split was REFUSED, not faked** — the schema holds ONE `cost_minor` per
+  ticket, no breakdown to render. `MaintenanceSettingsService` + a new `maintenance_settings` table persists SLA
+  hours, category→technician assignees (tenant-validated — a cross-org technician is dropped), and toggles as
+  **TYPED COLUMNS via the `SettingsService` pattern — NOT the dormant KV `Setting` scaffold** (the audit's
+  standing rule). Notification toggles STORE now; dispatch is honestly **deferred to Phase 3**. `MaintenanceSetting`
+  registered in the morph map (it's an audit subject). Both gated `can:maintenance.manage`. Proven
+  (`OperatorMaintenanceAdminTest`, 6): aggregates reconcile, typed persistence (not toast-only), cross-org
+  assignee dropped, gate holds for Front Desk.
+- **SG5 — Operator Profile (this gate).** `OperatorProfileController` — the logged-in operator edits their OWN
+  name + work email, via POST → controller → PRG (a REAL persist on the `users` row, not a toast-only save).
+  **SELF-ONLY, and the guard is the resolution itself:** the user is `$request->user()` (the authenticated login)
+  and there is NO user id anywhere in the request — so there is no id to tamper with to reach another account (the
+  change-password / owner-self-edit discipline). `email` is the login identifier (plaintext on `User`, unlike
+  encrypted guest PII) and is kept UNIQUE-ignoring-self. Role / status / member-since render read-only; the
+  design's unbacked fields (phone / preferred-name / timezone / density) are **OMITTED, not faked** (no column →
+  no fake save). Behind auth + #26 with NO fine-grained gate (like `/app/security` — every back-office user has a
+  profile). **MUTATION-PROVEN** (`OperatorProfileTest`, 8): a smuggled `user_id`/`id` in the body is ignored (only
+  the actor's row changes, the victim's is untouched); email uniqueness; name required; an owner-role user is
+  refused (#26 → `owner.dashboard`).
+
+**Deferred out of Phase 1 (logged, not faked):** the **blind-index** contact-search decision (SG2 — a schema
+commitment), **notification dispatch** for the maintenance toggles (SG4 → Phase 3's notification subsystem), and
+**PDF/Excel exports** of the cost report (SG4 — the figures are real; only the export is deferred).
+
+**Verification:** full suite **660 tests / 6278 assertions** green on MySQL (Phase 1 added +35 across the five
+gates); PHPStan L5 + Pint clean; `migrate:fresh --seed` clean; the Operator Profile self-edit browser-verified end
+to end (edit name → PRG → the new value round-trips to the topbar chip, identity card AND the form field; role /
+status / member-since shown; nav highlights "Your profile"; no raw Blade). **NEXT = Phase 2** (complete the owner
+portal's buildable set: Bookings + Detail · Block Calendar · Owner Rates · Tax Center · Payout Method · Add Unit ·
+Help).
