@@ -46,6 +46,7 @@ use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
+use App\Livewire\Operator\OperatorSearch;
 use App\Livewire\Operator\OperatorSecurity;
 use App\Livewire\Operator\OperatorSettings;
 use App\Livewire\Operator\PayoutRun;
@@ -176,6 +177,11 @@ Route::prefix('book/{property}')
 Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
+
+    // GLOBAL SEARCH (Phase 1 · Sub-gate 2) — cross-entity search (reservations/guests/units/owners), the query
+    // on a GET (scope-safe reads). Gated on `reservations.view` (the operations read baseline); per-entity
+    // results follow the viewer's abilities inside the component. Tenant-scoped; NOT availability search.
+    Route::get('/search', OperatorSearch::class)->middleware('can:reservations.view')->name('search');
     // Auth Phase B · Step 4 — operator Owners screen + the invite-owner write (POST → controller → PRG).
     Route::get('/owners', OperatorOwners::class)->name('owners');
     Route::post('/owners/invite', [InviteOwnerController::class, 'store'])
