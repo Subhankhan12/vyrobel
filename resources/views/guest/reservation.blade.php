@@ -66,7 +66,9 @@
         @endforelse
     </section>
 
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <span class="vy-btn vy-btn--ghost" style="opacity:.55;cursor:not-allowed" title="Coming soon">Manage booking · Soon</span>
-    </div>
+    @if ($trip['stage'] !== 'past' && $trip['stage'] !== 'cancelled')
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a class="vy-btn vy-btn--ghost" href="{{ route('guest.manage', $trip['id']) }}" style="text-decoration:none">Manage booking</a>
+        </div>
+    @endif
 </x-guest.shell>

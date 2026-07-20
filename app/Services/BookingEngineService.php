@@ -239,7 +239,12 @@ class BookingEngineService
      * Sum nightly prices for a rate plan across the stay; null if ANY night is unpriced (can't
      * sell a partially-priced stay).
      */
-    private function priceOver(string $ratePlanId, string $checkIn, string $checkOut): ?int
+    /**
+     * The total price of a rate plan over a stay (minor units), or null if ANY night is unpriced. Public so the
+     * guest date-change quote (Phase 4b) can price a proposed new stay through the SAME rate path the booking
+     * engine uses — a read-only, informational figure.
+     */
+    public function priceOver(string $ratePlanId, string $checkIn, string $checkOut): ?int
     {
         $start = CarbonImmutable::parse($checkIn)->startOfDay();
         $end = CarbonImmutable::parse($checkOut)->startOfDay();

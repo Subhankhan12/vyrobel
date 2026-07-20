@@ -13,6 +13,7 @@ use App\Http\Controllers\Guest\GuestAccountController;
 use App\Http\Controllers\Guest\GuestClaimController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
+use App\Http\Controllers\Guest\GuestManageController;
 use App\Http\Controllers\Guest\GuestPasswordResetController;
 use App\Http\Controllers\Guest\GuestReservationController;
 use App\Http\Controllers\Guest\GuestTripsController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Operator\EmailPreviewController;
 use App\Http\Controllers\Operator\EmailTemplateController;
 use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
+use App\Http\Controllers\Operator\GuestRequestAdminController;
 use App\Http\Controllers\Operator\GuestActionController;
 use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
@@ -188,6 +190,11 @@ Route::prefix('guest')->name('guest.')->group(function () {
     Route::middleware(['auth:guest', SetTenantForGuestRequest::class])->group(function () {
         Route::get('/trips', [GuestTripsController::class, 'index'])->name('trips');   // Phase 4b · the landing
         Route::get('/reservation/{reservation}', [GuestReservationController::class, 'show'])->name('reservation');
+        // Manage booking (SG3) — date-change/add-on/cancellation as operator-confirmed REQUESTS (never guest writes).
+        Route::get('/reservation/{reservation}/manage', [GuestManageController::class, 'show'])->name('manage');
+        Route::post('/reservation/{reservation}/manage/date-change', [GuestManageController::class, 'requestDateChange'])->middleware('throttle:12,1')->name('manage.date-change');
+        Route::post('/reservation/{reservation}/manage/add-ons', [GuestManageController::class, 'requestAddOns'])->middleware('throttle:12,1')->name('manage.add-ons');
+        Route::post('/reservation/{reservation}/manage/cancel', [GuestManageController::class, 'requestCancellation'])->middleware('throttle:12,1')->name('manage.cancel');
         Route::get('/home', [GuestHomeController::class, 'index'])->name('home');       // legacy → redirects to trips
         Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
         Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');
@@ -471,6 +478,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
         ->middleware('can:reservations.cancel')->name('reservations.cancel');
     Route::post('/reservations/{reservation}/no-show', [ReservationLifecycleController::class, 'markNoShow'])
         ->middleware('can:reservations.cancel')->name('reservations.no-show');
+
+    // Phase 4b · SG3 — guest change REQUESTS: the operator confirm/decline side (status only; the real change is
+    // applied with the operator's certified tools). A guest can never reach here (web guard, back-office gate).
+    Route::get('/guest-requests', [GuestRequestAdminController::class, 'index'])->middleware('can:reservations.view')->name('guest-requests');
+    Route::post('/guest-requests/{guestRequest}/confirm', [GuestRequestAdminController::class, 'confirm'])->middleware('can:reservations.manage')->name('guest-requests.confirm');
+    Route::post('/guest-requests/{guestRequest}/decline', [GuestRequestAdminController::class, 'decline'])->middleware('can:reservations.manage')->name('guest-requests.decline');
     Route::post('/reservations/{reservation}/payments', [ReservationFolioActionController::class, 'recordPayment'])
         ->middleware('can:payments.record')->name('reservations.payment');
     Route::post('/reservations/{reservation}/refunds', [ReservationFolioActionController::class, 'refund'])
