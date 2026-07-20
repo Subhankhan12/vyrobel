@@ -63,6 +63,8 @@ use App\Livewire\Operator\ReservationsList;
 use App\Livewire\Owner\OwnerAgreement;
 use App\Livewire\Owner\OwnerArchive;
 use App\Livewire\Owner\OwnerBalance;
+use App\Livewire\Owner\OwnerBookingDetail;
+use App\Livewire\Owner\OwnerBookings;
 use App\Livewire\Owner\OwnerDashboard;
 use App\Livewire\Owner\OwnerDocuments;
 use App\Livewire\Owner\OwnerExpenses;
@@ -426,6 +428,12 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // Wave 1 · Sub-gate 3 — ONE of the owner's units. Owner-scoped: a non-owned/cross-owner unit id
     // 404s under OwnerScope. Occupancy is THIS-unit/THIS-owner (never room-type-wide).
     Route::get('/units/{unit}', OwnerUnitDetail::class)->name('units.show');
+    // Phase 2 · Sub-gate 1 — the owner's bookings across their OWN units + one booking's detail. Owner-scoped
+    // THROUGH the units: reservations carry no owner_id, so the set is derived from the owner-scoped units and
+    // {booking} is REJECTED (404) unless it touches one this owner owns (never trusts the request id). Read-only;
+    // guest NAME only (no contact — invariant #28). Filters ride GET so the owner middleware re-runs.
+    Route::get('/bookings', OwnerBookings::class)->name('bookings');
+    Route::get('/bookings/{booking}', OwnerBookingDetail::class)->name('bookings.show');
     // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
     // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
     Route::get('/balance', OwnerBalance::class)->name('balance');

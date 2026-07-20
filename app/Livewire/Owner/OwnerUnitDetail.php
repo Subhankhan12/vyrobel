@@ -15,6 +15,7 @@ use App\Models\Unit;
 use App\Services\AvailabilityService;
 use App\Services\OwnerPortalService;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Owner\OwnerOccupancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -122,15 +123,6 @@ class OwnerUnitDetail extends Component
         $this->unitId = $unit;
     }
 
-    /**
-     * The canonical entry_type order for the attribution breakdown — these EIGHT values ARE the enum.
-     * Ordering only: nothing is added, dropped, or re-signed by listing them.
-     */
-    private const TYPE_ORDER = [
-        'room_revenue', 'cleaning', 'addon', 'adjustment',
-        'commission', 'management_fee', 'ota_cost', 'expense',
-    ];
-
     public function render(): View
     {
         // Owner + tenant scoped: a cross-owner / operator-owned / unknown id resolves to nothing → 404.
@@ -156,7 +148,7 @@ class OwnerUnitDetail extends Component
                 'prev' => $month->copy()->subMonthNoOverflow()->format('Y-m'),
                 'next' => $month->copy()->addMonthNoOverflow()->format('Y-m'),
             ],
-            'attribution' => $this->attribution($entries),
+            'attribution' => OwnerLedgerAttribution::breakdown($entries),
             'bookings' => $this->bookings($unit, $monthStart, $monthEnd),
             'commission' => $this->commission($unit),
             'statements' => $this->statements($entries),
@@ -258,108 +250,6 @@ class OwnerUnitDetail extends Component
     }
 
     /**
-     * The month's attribution, bucketed PER CURRENCY then PER entry_type, each bucket being Σ signedMinor.
-     *
-     * Why bucket-then-sign rather than a hand-picked credit/debit type list: a reversal is an ordinary row
-     * with the direction flipped (invariant #16), so summing signedMinor within a type nets a reversed
-     * pair to 0 automatically — and EVERY row lands in exactly one bucket, including `adjustment`, which
-     * belongs to neither a fixed "revenue" nor a fixed "deductions" list. The split is then taken on each
-     * bucket's own sign, so Credited + Deductions = Net EXACTLY, by construction, whatever the rows are.
-     * Nothing is filtered out and nothing can go missing from the breakdown.
-     *
-     * @param  Collection<int, OwnerLedgerEntry>  $entries
-     * @return list<array{currency: string, net_minor: int, net_display: string, credited_display: string, deducted_display: string, credits: list<array{label: string, display: string}>, deductions: list<array{label: string, display: string}>}>
-     */
-    private function attribution(Collection $entries): array
-    {
-        /** @var array<string, array<string, int>> $buckets */
-        $buckets = [];
-
-        foreach ($entries as $entry) {
-            $currency = (string) $entry->currency;
-            $type = (string) $entry->entry_type;
-            $buckets[$currency][$type] = ($buckets[$currency][$type] ?? 0) + $entry->signedMinor();
-        }
-
-        ksort($buckets);   // deterministic currency order
-
-        $blocks = [];
-
-        foreach ($buckets as $currency => $byType) {
-            $credits = [];
-            $deductions = [];
-            $creditedMinor = 0;
-            $deductedMinor = 0;
-
-            foreach ($this->orderedTypes($byType) as $type) {
-                $minor = $byType[$type];
-                $row = [
-                    'label' => $this->entryTypeLabel($type),
-                    'display' => $this->money($minor, $currency, signed: true),
-                ];
-
-                if ($minor < 0) {
-                    $deductions[] = $row;
-                    $deductedMinor += $minor;
-                } else {
-                    $credits[] = $row;
-                    $creditedMinor += $minor;
-                }
-            }
-
-            $netMinor = $creditedMinor + $deductedMinor;   // deducted is already negative
-
-            $blocks[] = [
-                'currency' => $currency,
-                'net_minor' => $netMinor,
-                'net_display' => $this->money($netMinor, $currency),
-                'credited_display' => $this->money($creditedMinor, $currency, signed: true),
-                'deducted_display' => $this->money($deductedMinor, $currency, signed: true),
-                'credits' => $credits,
-                'deductions' => $deductions,
-            ];
-        }
-
-        return $blocks;
-    }
-
-    /**
-     * The entry types present, in the canonical enum order. An unrecognised type (there should be none)
-     * is appended rather than dropped — a row never vanishes from a total it is part of.
-     *
-     * @param  array<string, int>  $byType
-     * @return list<string>
-     */
-    private function orderedTypes(array $byType): array
-    {
-        $known = array_values(array_filter(
-            self::TYPE_ORDER,
-            fn (string $type): bool => array_key_exists($type, $byType),
-        ));
-
-        $unknown = array_values(array_diff(array_keys($byType), self::TYPE_ORDER));
-        sort($unknown);
-
-        return array_merge($known, $unknown);
-    }
-
-    /** entry_type enum → an owner-facing label. The 8 arms ARE the enum; nothing else is invented. */
-    private function entryTypeLabel(string $type): string
-    {
-        return match ($type) {
-            'room_revenue' => 'Room revenue',
-            'commission' => 'Commission',
-            'management_fee' => 'Management fee',
-            'ota_cost' => 'OTA cost',
-            'cleaning' => 'Cleaning',
-            'addon' => 'Add-on',
-            'expense' => 'Expense',
-            'adjustment' => 'Adjustment',
-            default => ucfirst(str_replace('_', ' ', $type)),
-        };
-    }
-
-    /**
      * The stays on THIS unit that touch the month — active physical-unit lines only (an `overbooked` line
      * carries no unit_id and never occupied this unit), half-open [check_in, check_out) against the month.
      *
@@ -418,53 +308,15 @@ class OwnerUnitDetail extends Component
             return [];
         }
 
-        $rows = OwnerLedgerEntry::query()
+        // Grouped by reservation, then handed to the ONE shared net rule per group so this per-stay figure
+        // cannot drift from the owner Bookings list / Booking Detail (same discipline as OwnerOccupancy).
+        return OwnerLedgerEntry::query()
             ->where('unit_id', $unit->id)
             ->whereIn('reservation_id', $reservationIds)
-            ->get();
-
-        /** @var array<string, array<string, int>> $byReservation */
-        $byReservation = [];
-
-        foreach ($rows as $row) {
-            $reservationId = (string) $row->reservation_id;
-            $currency = (string) $row->currency;
-            $byReservation[$reservationId][$currency] = ($byReservation[$reservationId][$currency] ?? 0) + $row->signedMinor();
-        }
-
-        $out = [];
-
-        foreach ($byReservation as $reservationId => $byCurrency) {
-            ksort($byCurrency);
-            $displays = [];
-
-            foreach ($byCurrency as $currency => $minor) {
-                $displays[] = $this->money($minor, $currency);
-            }
-
-            $out[$reservationId] = $displays;
-        }
-
-        return $out;
-    }
-
-    /**
-     * reservations.source enum ∈ direct|walk_in|ota|corporate|group|agent|manual. The seven arms ARE the
-     * enum. ⚠️ There is NO 'booking_com'/'airbnb': the OTA BRAND IS NOT MODELLED, so a brand can never be
-     * rendered here — an OTA booking is "OTA", nothing more specific.
-     */
-    private function sourceLabel(string $source): string
-    {
-        return match ($source) {
-            'direct' => 'Direct',
-            'walk_in' => 'Walk-in',
-            'ota' => 'OTA',
-            'corporate' => 'Corporate',
-            'group' => 'Group',
-            'agent' => 'Agent',
-            'manual' => 'Manual',
-            default => ucfirst(str_replace('_', ' ', $source)),
-        };
+            ->get()
+            ->groupBy(fn (OwnerLedgerEntry $row): string => (string) $row->reservation_id)
+            ->map(fn (Collection $group): array => OwnerLedgerAttribution::netDisplays($group))
+            ->all();
     }
 
     /**
