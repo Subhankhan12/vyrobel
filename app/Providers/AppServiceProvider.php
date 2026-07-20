@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Auth\GuestUserProvider;
 use App\Events\DomainEventRecorded;
 use App\Listeners\DispatchNotificationsForDomainEvent;
 use App\Listeners\EnqueueAriPushOnInventoryChange;
@@ -67,6 +68,7 @@ use App\Support\Tenancy\TenantContext;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -134,6 +136,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Phase 4a — register the GUEST realm's custom user provider (blind-index lookup, tenant-scope-free).
+        // Named 'guest-eloquent' in config/auth.php providers.guests. Never touches the `web`/`users` provider.
+        Auth::provider('guest-eloquent', function ($app, array $config): GuestUserProvider {
+            return new GuestUserProvider($app['hash'], (string) $config['model']);
+        });
+
         // Stable morph aliases so polymorphic *_type columns (mediable_type, notable_type,
         // subject_type, owner_type, model_has_roles.model_type, …) store short, refactor-proof
         // names instead of FQCNs. ENFORCED: any polymorphic use of an unmapped model throws,

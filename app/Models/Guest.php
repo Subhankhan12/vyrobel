@@ -8,11 +8,18 @@ use App\Models\Concerns\HasNotes;
 use App\Models\Concerns\HasTags;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,10 +28,16 @@ use Illuminate\Support\Facades\Storage;
  * {@see anonymize()} — it nulls PII and sets `anonymized_at` WITHOUT deleting the row, so
  * reservation/financial history (which references this id) stays intact. We never
  * soft-delete-and-retain PII.
+ *
+ * ⚠️ PORTAL AUTH (Phase 4a) — a Guest is Authenticatable on a SEPARATE 'guest' guard/realm (NOT the operator/owner
+ * `web` guard; a guest can never reach `/app` or `/owner`). The account is UNCLAIMED until a `password` is set AND
+ * the email is verified ({@see hasPortalAccount()}); a booking's Guest row exists first, the guest claims it later.
+ * `email` is encrypted (non-deterministic → not queryable), so login/claim look a guest up by {@see emailHash()}
+ * (a keyed blind index), never by the plaintext.
  */
-class Guest extends Model
+class Guest extends Model implements AuthenticatableContract, CanResetPasswordContract, MustVerifyEmailContract
 {
-    use BelongsToOrganization, HasDocuments, HasFactory, HasNotes, HasTags, HasUlids, SoftDeletes;
+    use AuthenticatableTrait, BelongsToOrganization, CanResetPasswordTrait, HasDocuments, HasFactory, HasNotes, HasTags, HasUlids, MustVerifyEmailTrait, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'organization_id',
@@ -47,6 +60,9 @@ class Guest extends Model
     protected $hidden = [
         'email',
         'phone',
+        'password',
+        'remember_token',
+        'email_hash',
     ];
 
     /**
@@ -57,6 +73,8 @@ class Guest extends Model
         return [
             'email' => 'encrypted',
             'phone' => 'encrypted',
+            'password' => 'hashed',
+            'email_verified_at' => 'datetime',
             'dob' => 'date',
             'is_vip' => 'boolean',
             'risk_flag' => 'boolean',
@@ -64,6 +82,34 @@ class Guest extends Model
             'external_refs' => 'array',
             'anonymized_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Keep the blind index in lock-step with the (encrypted) email on every write — including anonymize(), which
+     * nulls the email → nulls the hash, so an erased guest can no longer be found by email.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Guest $guest): void {
+            $email = $guest->email;   // plaintext via the encrypted cast
+            $guest->email_hash = ($email !== null && trim($email) !== '') ? self::emailHash($email) : null;
+        });
+    }
+
+    /**
+     * The BLIND INDEX for an email — a keyed HMAC of the normalised (lower-cased, trimmed) address. Deterministic
+     * (so login/claim can look a guest up despite the encrypted column) but keyed with the app key, so the low
+     * entropy of an email address can't be reversed from the hash alone. NEVER store or compare the plaintext.
+     */
+    public static function emailHash(string $email): string
+    {
+        return hash_hmac('sha256', mb_strtolower(trim($email)), (string) config('app.key'));
+    }
+
+    /** The account is CLAIMED (can log in) only once a password is set AND the email is verified. */
+    public function hasPortalAccount(): bool
+    {
+        return $this->password !== null && $this->email_verified_at !== null;
     }
 
     /**
@@ -133,6 +179,11 @@ class Guest extends Model
                 'language' => null,
                 'external_refs' => null,
                 'marketing_consent' => false,
+                // GDPR erase ALSO destroys any portal account — an anonymized guest can never log in again
+                // (email_hash is nulled by the saving() hook when email → null). Portal auth is Phase 4a.
+                'password' => null,
+                'email_verified_at' => null,
+                'remember_token' => null,
                 'anonymized_at' => $anonymizedAt,
             ])->save();
 

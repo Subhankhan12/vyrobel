@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Guest;
 use App\Models\User;
 
 return [
@@ -42,6 +43,15 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Phase 4a — the GUEST realm. A SEPARATE session guard, distinct from `web` (operator/owner). A guest is
+        // authenticated here and ONLY here; `web` never authenticates a Guest and `guest` never authenticates a
+        // User. Its provider looks a guest up by the blind-index email hash (the email is encrypted). Do NOT point
+        // any `/app` or `/owner` route at this guard — the realm separation is by construction.
+        'guest' => [
+            'driver' => 'session',
+            'provider' => 'guests',
+        ],
     ],
 
     /*
@@ -67,10 +77,14 @@ return [
             'model' => env('AUTH_MODEL', User::class),
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        // Phase 4a — the GUEST provider. A CUSTOM driver (registered in AppServiceProvider) because a guest is
+        // retrieved by the blind-index `email_hash`, not the encrypted `email`, and the lookup runs OUTSIDE any
+        // tenant context (login is pre-tenant) so it queries without the organization scope. Only CLAIMED accounts
+        // (password set) are retrievable for login.
+        'guests' => [
+            'driver' => 'guest-eloquent',
+            'model' => Guest::class,
+        ],
     ],
 
     /*
