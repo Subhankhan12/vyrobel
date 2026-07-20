@@ -124,15 +124,23 @@ Auth-group artifacts, real but counted there.)*
 
 ---
 
-## 3. GUEST PORTAL — ~24 designed · ~0 authenticated built · ~24 remaining — THE BIGGEST FRONT
+## 3. GUEST PORTAL — ~24 designed · GUEST AUTH FOUNDATION BUILT (Phase 4a) · ~24 portal screens remain
 
 ### ✅ Built (the public, anonymous booking flow — counted under public booking, NOT the guest-portal module)
 Guest Browse · Villa Detail · Checkout (+confirmation). Real, guarded, can't double-book.
 
-### ⬜ Remaining (~24) — and the hard truth: it ALL sits on GUEST AUTH, which does not exist
-`Guest extends Model` (not `Authenticatable`); no guest guard in `config/auth.php`; no password column in the
-`guests` migration; no guest login/signup/account route anywhere. **So the Guest Portal is: first a guest-auth
-subsystem, then the portal on top.**
+### ✅ GUEST AUTH FOUNDATION — BUILT (Phase 4a, 2026-07-20)
+The hard truth WAS "it all sits on guest auth, which does not exist." **It exists now.** `Guest` is Authenticatable
+on a SEPARATE `guest` guard (a keyed **blind index** solves the encrypted-email lookup); booking-tied claim + email
+verification (Phase-3 Verify Email wired); guest login + reset (hardened, #28 through the reset surface); Guest
+Account (self-only, guest-isolation mutation-proven) + safe removal. Realm separation + guest isolation +
+booking-tied + no-enumeration mutation-proven; operator/owner auth unregressed. Screens: guest login · claim ·
+verify/set-password · forgot/reset · account (+ a minimal home). See `docs/DECISIONS.md` 2026-07-20 (Phase 4a).
+
+### ⬜ Remaining (~24) — the PORTAL on top of the 4a foundation (Phase 4b/4c)
+Account (detail) · Trips · Booking/Reservation · Manage Booking · Online Check-in + Arrival Info · Payments + Folio
+Receipt · Wallet/Credits · Guest Messages · Wishlist/Waitlist/Add-ons/Email-prefs/Help · Guest Review. Each sits on
+the guest guard + guest isolation (resolve from the guard, never a request id).
 
 **G1 — Guest auth foundation (the gate for everything):** Guest Login · Signup · Verify Email — a guest guard,
 registration tied to bookings/email, verification. **(L — the foundation)**
@@ -275,11 +283,23 @@ on when the provider account exists (Mailpit covers dev). Deferred honestly (no 
 digest / new-device / terms-changed; scheduled ones (arrivals, housekeeping-behind, SLA, pre-arrival, winback)
 need a scheduler. Detail: `docs/DECISIONS.md` 2026-07-20 (Phase 3).
 
-**PHASE 4 — GUEST AUTH + the Guest Portal core (~4–6 weeks — the biggest single phase)** *(⬅ NEXT)*
-Guest auth (Authenticatable guest, signup/login/verify, tied to bookings) → Account + Trips + Booking/Reservation →
-Manage Booking (date-change, add-ons→folio, cancellation) → Online Check-in + Arrival Info (+PDF) → Payments +
-Folio Receipt (+ money PDFs) → the Wallet/credits ledger + Guest Credits → Guest Messages (guest side of the inbox)
-→ Wishlist/Waitlist/Add-ons/Email-prefs/Help → Guest Review (with Phase 5).
+**PHASE 4a — GUEST AUTH FOUNDATION** *(✅ DONE — 2026-07-20, 4 gated sub-gates `524a1d3` → `70f4d02` → `e2710ff`
+→ this gate)*
+A SECOND auth realm for guests, alongside the operator/owner `web` realm WITHOUT disturbing it: Guest
+Authenticatable on a SEPARATE `guest` guard + a **blind-index** email lookup (the email is encrypted) → BOOKING-TIED
+claim + email verification (wired the Phase-3 Verify Email; no free sign-up — a conscious divergence) → guest login
++ password reset (hardened, #28-through-the-blind-index on the reset token table + link) → Guest Account (self-only,
+guest-isolation mutation-proven) + safe account removal (revoke access, keep records). REALM SEPARATION +
+GUEST ISOLATION + BOOKING-TIED + NO-ENUMERATION all mutation-proven; the existing auth chapter unregressed. A
+claimed demo guest (demo.traveller@vyrobel-demo.test / password) is seeded. Detail: `docs/DECISIONS.md` 2026-07-20
+(Phase 4a).
+
+**PHASE 4b — the GUEST PORTAL core (on the 4a foundation)** *(⬅ NEXT)*
+Account (detail) + Trips + Booking/Reservation → Manage Booking (date-change, add-ons→folio, cancellation) →
+Online Check-in + Arrival Info (+PDF) → Payments + Folio Receipt (+ money PDFs) → the Wallet/credits ledger + Guest
+Credits → Guest Messages (guest side of the inbox) → Wishlist/Waitlist/Add-ons/Email-prefs/Help → Guest Review
+(with Phase 5). Every screen sits on 4a's guest guard + guest isolation (resolve from the guard, never a request id).
+Deferred from 4a: guest email-change (re-verify flow); guest ID verification (KYC, account-gated).
 
 **PHASE 5 — The REVIEWS module, all three surfaces (~2 weeks)**
 Guest Review → moderation → Operator Reviews (respond) → Owner Reviews (read).

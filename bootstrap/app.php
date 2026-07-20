@@ -19,8 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
             SetTenantForWebRequest::class,
         ]);
 
-        // Unauthenticated web requests to guarded routes (/app/*, /owner/*) redirect to the login form.
-        $middleware->redirectGuestsTo(fn () => route('login'));
+        // Unauthenticated web requests to guarded routes redirect to the correct realm's login form: the GUEST
+        // portal (/guest/*) bounces to the guest login, everything else (/app, /owner) to the operator/owner
+        // login. Realm separation extends to the redirect target — a guest is never sent to the operator login.
+        $middleware->redirectGuestsTo(fn (Request $request): string => $request->is('guest/*')
+            ? route('guest.login')
+            : route('login'));
 
         // Inbound provider webhooks are stateless and signature-authenticated, not session/form
         // posts — exempt them from CSRF (there is no token to send). The public booking-engine JSON

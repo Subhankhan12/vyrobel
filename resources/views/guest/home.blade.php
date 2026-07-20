@@ -10,8 +10,10 @@
 
     <div class="vy-notice">You’re signed in to your Vyrobel guest account.</div>
 
+    <a class="vy-btn" href="{{ route('guest.account') }}" style="text-decoration:none;margin-bottom:10px">Your account</a>
+
     <form method="POST" action="{{ route('guest.logout') }}">
         @csrf
-        <button type="submit" class="vy-btn">Sign out</button>
+        <button type="submit" class="vy-btn" style="background:none;color:var(--vy-accent);border:1px solid var(--vy-hairline);box-shadow:none">Sign out</button>
     </form>
 @endsection

@@ -243,6 +243,11 @@ class DemoSeeder extends Seeder
         $walkIn = $this->createDemoStay('walk_in', $property, $apartment, $aptRate, $aptUnits[0], $guest2, '2026-09-06', '2026-09-09', $vat, fullyPaid: false);
         $this->createDemoStay('ota', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest3, '2026-09-10', '2026-09-12', $vat, fullyPaid: true, otaRef: 'OTA-DEMO-0001');
 
+        // Phase 4a — a CLAIMED guest PORTAL account so the guest portal has a real demo login. guest1 (Demo
+        // Traveller) leads stay1 above, so this is a genuine BOOKING-TIED account: demo.traveller@vyrobel-demo.test
+        // / password. (The 'hashed' cast hashes the plaintext; the saving() hook stamps its blind index.)
+        $guest1->forceFill(['password' => 'password', 'email_verified_at' => now()])->save();
+
         // Check the walk-in out → real departure-clean task via the checkout event → listener.
         app(CheckOutReservation::class)->handle($walkIn);
 

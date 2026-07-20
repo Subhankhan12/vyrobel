@@ -2373,3 +2373,66 @@ tests) — see the count in `PROJECT-STATE.md`; PHPStan L5 + Pint clean; `migrat
 right owner/operator only. Two `git checkout` traps hit + recovered (an uncommitted `via()` edit reverted during a
 mutation pass, twice — re-applied and re-proven both times; the lesson: mutation-restore an untracked/working-tree
 guard with perl or Write, not `git checkout`). **NEXT = Phase 4** (guest auth + the Guest Portal core).
+
+### 2026-07-20 — Phase 4a COMPLETE: the GUEST AUTH FOUNDATION (a second auth realm, 4 gated sub-gates)
+
+**The most security-sensitive greenfield in the project — a SECOND auth realm for guests, alongside the
+operator/owner `web` realm, WITHOUT disturbing it.** Commits `524a1d3` → `70f4d02` → `e2710ff` → this gate. The
+existing auth chapter (login · invites · reset · change-password · 2FA) is fully intact throughout (asserted).
+
+- **SG1 — Guest Authenticatable (`524a1d3`).** Guest implements the Authenticatable / CanResetPassword /
+  MustVerifyEmail contracts + traits (mirroring the framework `User`). New `guests` columns: `password`
+  (nullable — a booking exists before the account is claimed; `hashed` cast), `remember_token`,
+  `email_verified_at`, and **`email_hash`** — a BLIND INDEX (keyed HMAC of the normalised email), because
+  `guests.email` is encrypted (non-deterministic → not queryable), kept in lock-step with the email by a saving()
+  hook. A SEPARATE `guest` guard + custom `GuestUserProvider` (retrieves by `email_hash`, CLAIMED accounts only,
+  querying WITHOUT the tenant scope — guest auth is pre-tenant, the org is derived from the resolved guest: the
+  one legitimate cross-tenant read). `Guest::hasPortalAccount()` = password AND verified. GDPR `anonymize()` now
+  ALSO destroys the account. **Realm separation mutation-proven** at guard + provider level (a guest is not a web
+  user and vice versa; `web->check()` false for a guest → /app + /owner reject by construction).
+- **SG2 — booking-tied claim + email verification (`70f4d02`).** A guest claims access for their BOOKING email:
+  enter email → if it has a real booking (blind index) + no account → a native HMAC-`signed`, expiring link (the
+  MustVerifyEmail primitive; no token stored, no PII in the URL) → set password → claimed + verified + signed in
+  on the guest guard. Wires the **Phase-3 Verify Email trigger** (was template-built, deferred). **Booking-tied +
+  no-enumeration mutation-proven** (bypassing the has-booking check makes a no-booking email send a link → the
+  test fails; the response is identical whether or not a booking/account exists, including the already-claimed
+  path). ⚠️ **DIVERGENCE (recorded):** the design's "Join for member rates" FREE sign-up is NOT built — accounts
+  are booking-tied; a guest with no booking cannot create one.
+- **SG3 — guest login + password reset (`e2710ff`).** Login on the `guest` guard (never web; rate-limited per
+  email+IP in a `|guest|` bucket; session regenerated; generic failure; only claimed+verified resolves — the
+  provider now requires both). Reset on a SEPARATE `guests` broker + `guest_password_reset_tokens`. ⚠️ **#28
+  through the reset surface:** the token table keys on the BLIND INDEX (`getEmailForPasswordReset → email_hash`),
+  never plaintext; the reset link is TOKEN-ONLY (no email in the URL); the ONE shared `Guest::changePasswordTo()`
+  hash+rotate path (mirrors `User`'s). **Realm separation mutation-proven** (making login attempt on the `web`
+  guard breaks guest login entirely — a guest's creds match no `User`, so the guest guard is load-bearing). ⚠️
+  Caught in the browser pass: `redirect()->intended()` shares `session('url.intended')` across guards → a stale
+  /app|/owner target could cross realms → switched to a direct redirect (intended() is unsafe across auth realms).
+- **SG4 — Guest Account + guest isolation + consolidate (this gate).** The authed guest's OWN profile
+  (name/phone/country/language — email read-only), change-password (current-verified, `current_password:guest`,
+  via the shared `changePasswordTo()`), and account removal. 🔒 **GUEST ISOLATION mutation-proven** — everything
+  resolves from the guest guard, NEVER a request id (no `{guest}` param); resolving from a request id instead lets
+  A edit B → the isolation test fails. Path-aware `redirectGuestsTo` (a `/guest/*` bounce goes to the GUEST login,
+  never the operator login). ⚠️ **CHOICES (stated):** EMAIL change DEFERRED (it's the login identifier + drives
+  the blind index → needs re-verify + re-index). ACCOUNT DELETION = **revoke portal access** (null the auth
+  fields), KEEPING the guest row + PII + bookings — SAFER than an instant self-anonymize (which would strip a
+  guest's name off an upcoming booking / operator records); full GDPR erasure stays operator-mediated
+  (`Guest::anonymize()`). This DIVERGES from the design's "This can't be undone" framing (the UI says "remove
+  portal access", honestly).
+
+**Phase-4a invariants (register):** GUEST REALM SEPARATION — a guest authenticates only on the `guest` guard and
+can never reach /app or /owner (by construction; mutation-proven); GUEST ISOLATION — a guest sees/edits ONLY their
+own record (resolved from the guard, never a request id; mutation-proven A-can't-reach-B); BOOKING-TIED CLAIM — an
+account exists only for an email with a real booking; NO ENUMERATION across claim/verify/login/reset; #28 EXTENDED
+— the blind index keeps the encrypted email queryable for auth without storing plaintext, and the reset token
+table + link carry only the hash/token, never the plaintext.
+
+**DEFERRED / ACCOUNT-GATED:** the Guest Portal itself (Trips, bookings, Account detail) → Phase 4b/4c on this
+foundation; guest email-change → a later re-verify flow; guest ID verification (KYC) → account-gated; production
+email delivery → a mail provider (Mailpit is dev). **Seed:** a claimed demo guest (demo.traveller@vyrobel-demo.test
+/ password, booking-tied) so 4b has a real guest login.
+
+**Verification:** guest-auth suite (22: foundation 5 · claim 6 · login/reset 6 · account 5) green; the existing
+operator/owner auth UNREGRESSED; full suite green (count in `PROJECT-STATE.md`); PHPStan L5 + Pint clean;
+`migrate:fresh --seed` clean; browser + Mailpit verified (claim → Verify Email → set password → home; login →
+home, /app + /owner blocked; reset email token-only + blind-index token table; account self-edit persists).
+**NEXT = Phase 4b** (the Guest Portal core, on this auth foundation).

@@ -22,15 +22,19 @@ conflicts with the repo, **trust the repo** and fix this file.
 > last such subsystem.** ⚠️ **UPDATE (2026-07-20): the customer signal ARRIVED** — a warm operator contact
 > (Fatima) liked the demo AND the prototype, so the requirement is now **"make the real product work like the
 > prototype"** (the "no customer has reacted / don't build blind" framing that once sat here is SUPERSEDED — see
-> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2 AND 3 of `docs/GAP-ANALYSIS.md` are DONE;
-> Phase 4 (guest auth + the Guest Portal core) is next.** Phase 3 = the notification subsystem (in-app feeds +
+> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3 AND 4a of `docs/GAP-ANALYSIS.md` are DONE;
+> Phase 4b (the Guest Portal core, on the 4a auth foundation) is next.** Phase 4a = the GUEST AUTH FOUNDATION — a
+> SECOND auth realm for guests (Guest Authenticatable on a separate `guest` guard + a blind-index email lookup,
+> booking-tied claim + email verification, guest login + reset hardened, Guest Account + guest isolation), realm
+> separation + guest isolation mutation-proven, the operator/owner auth untouched — 4 gated sub-gates, pushed.
+> Phase 3 = the notification subsystem (in-app feeds +
 > typed preferences that GENUINELY gate on both channels) + the wired real events + all guest transactional emails
 > (Mailpit-real) + owner/operator email delivery + the Email Templates view — 5 gated sub-gates, pushed.
 
 - **On `main`, working tree clean, local == origin** (HEAD advances by one with the doc commit that carries these
   words; check `git log` for the true HEAD — see the HEAD convention below). Only the
   untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
-  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 728 tests / 6546 assertions, all green** on
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 752 tests / 6673 assertions, all green** on
   genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
   (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
   product bug. See the register). The suite is a trustworthy gate.
@@ -1160,13 +1164,25 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); Phases 0–3 DONE; NEXT = Phase 4 in `docs/GAP-ANALYSIS.md`
+## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); Phases 0–3 + 4a DONE; NEXT = Phase 4b in `docs/GAP-ANALYSIS.md`
 
 > **THE SIGNAL CAME. The "don't build blind" framing below is SUPERSEDED.** A warm operator contact (Fatima)
 > **liked the demo AND the prototype**, so the requirement is now concrete: **the real product must work the way
 > the prototype shows.** The prototype (124 designed screens) is the SPEC; the repo stays the truth for what backs
 > it; every gap gets BUILT, not faked. The full phased map — **audit-verified against real code** (5-agent pass,
 > 2026-07-20; 50 claims → 33 confirmed / 8 incorrect / 8 nuanced) — is **`docs/GAP-ANALYSIS.md`**.
+>
+> **✅ PHASE 4a COMPLETE (2026-07-20) — the GUEST AUTH FOUNDATION**, 4 gated sub-gates (`524a1d3` → `70f4d02` →
+> `e2710ff` → this gate): a SECOND auth realm for guests, alongside the operator/owner `web` realm WITHOUT
+> disturbing it. Guest Authenticatable on a separate `guest` guard + a keyed **blind index** (the encrypted email
+> isn't queryable) · BOOKING-TIED claim + email verification (Phase-3 Verify Email wired; NO free sign-up — a
+> conscious divergence) · guest login + password reset hardened (#28 through the reset token table + link) · Guest
+> Account (self-only) + safe account removal (revoke access, keep records). **REALM SEPARATION** (a guest can't
+> reach /app|/owner; a guest ⟂ web at guard + provider level) + **GUEST ISOLATION** (a guest sees/edits only their
+> own; resolve from the guard never a request id) + **BOOKING-TIED** + **NO-ENUMERATION** all mutation-proven; the
+> existing operator/owner auth chapter UNREGRESSED. A claimed demo guest (demo.traveller@vyrobel-demo.test /
+> password) is seeded. NEXT = **Phase 4b** (the Guest Portal core — Trips/bookings/Account detail/etc. — on this
+> foundation). Detail: `docs/DECISIONS.md` 2026-07-20 (Phase 4a).
 >
 > **✅ PHASE 3 COMPLETE (2026-07-20) — the notification subsystem + all transactional emails**, 5 gated sub-gates
 > (`7cca65c` → `7905570` → `640f149` → `6c51271` → this gate): the notification CORE (Laravel-native, real events

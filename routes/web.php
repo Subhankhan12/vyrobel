@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
+use App\Http\Controllers\Guest\GuestAccountController;
 use App\Http\Controllers\Guest\GuestClaimController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
@@ -178,7 +179,15 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::post('/reset-password', [GuestPasswordResetController::class, 'reset'])->name('password.update');
     });
 
-    Route::get('/home', [GuestHomeController::class, 'index'])->name('home');
+    // Authenticated guest area (SG2 home + SG4 account) — behind the GUEST guard; an unauthenticated visitor is
+    // bounced to the GUEST login (the path-aware redirectGuestsTo in bootstrap/app.php), never the operator login.
+    Route::middleware('auth:guest')->group(function () {
+        Route::get('/home', [GuestHomeController::class, 'index'])->name('home');
+        Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
+        Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');
+        Route::post('/account/password', [GuestAccountController::class, 'changePassword'])->middleware('throttle:6,1')->name('account.password');
+        Route::post('/account/delete', [GuestAccountController::class, 'destroy'])->name('account.delete');
+    });
 });
 
 /*
