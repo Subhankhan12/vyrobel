@@ -11,6 +11,7 @@
         ['trips', 'Trips', route('guest.trips')],
         ['payments', 'Payments', route('guest.payments')],
         ['wallet', 'Wallet', route('guest.wallet')],
+        ['messages', 'Messages', route('guest.messages')],
         ['account', 'Account', route('guest.account')],
     ];
 @endphp

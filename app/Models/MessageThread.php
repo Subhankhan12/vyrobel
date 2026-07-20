@@ -84,6 +84,9 @@ class MessageThread extends Model
         // The OWNER's read position — distinct from `unread_count`, which is the OPERATOR's (markRead() zeroes
         // that one, so an owner-side read must never touch it).
         'owner_last_read_at',
+        // The GUEST's read position (Phase 4c · SG3) — same reasoning as owner_last_read_at: a guest-portal read
+        // must never zero the OPERATOR's `unread_count`.
+        'guest_last_read_at',
         'snoozed_until',
         'meta',
     ];
@@ -100,6 +103,7 @@ class MessageThread extends Model
             'last_message_at' => 'datetime',
             'last_inbound_at' => 'datetime',
             'owner_last_read_at' => 'datetime',
+            'guest_last_read_at' => 'datetime',
             'snoozed_until' => 'datetime',
         ];
     }

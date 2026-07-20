@@ -17,6 +17,7 @@ use App\Http\Controllers\Guest\GuestDocumentController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
 use App\Http\Controllers\Guest\GuestManageController;
+use App\Http\Controllers\Guest\GuestMessagesController;
 use App\Http\Controllers\Guest\GuestPasswordResetController;
 use App\Http\Controllers\Guest\GuestPaymentsController;
 use App\Http\Controllers\Guest\GuestReceiptController;
@@ -220,6 +221,12 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::get('/wallet', [GuestWalletController::class, 'show'])->name('wallet');
         Route::post('/wallet/redeem', [GuestWalletController::class, 'redeem'])->middleware('throttle:12,1')->name('wallet.redeem');
         Route::post('/wallet/apply/{reservation}', [GuestWalletController::class, 'apply'])->middleware('throttle:12,1')->name('wallet.apply');
+        // Messages (SG3) — the guest side of the Unified Inbox: the guest's own thread(s), sending a real message
+        // via InboxService. Guest-scoped by guest_id (a foreign / owner thread → 404); no reimplementation.
+        Route::get('/messages', [GuestMessagesController::class, 'index'])->name('messages');
+        Route::post('/messages', [GuestMessagesController::class, 'start'])->middleware('throttle:12,1')->name('messages.start');
+        Route::get('/messages/{thread}', [GuestMessagesController::class, 'show'])->name('messages.show');
+        Route::post('/messages/{thread}', [GuestMessagesController::class, 'send'])->middleware('throttle:20,1')->name('messages.send');
         Route::get('/home', [GuestHomeController::class, 'index'])->name('home');       // legacy → redirects to trips
         Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
         Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');

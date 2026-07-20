@@ -15,6 +15,7 @@ use App\Models\SyncJob;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Guest\GuestName;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -329,6 +330,56 @@ class InboxService
     public function markReadByOwner(MessageThread $thread): MessageThread
     {
         $thread->forceFill(['owner_last_read_at' => now()])->save();
+
+        return $thread;
+    }
+
+    /**
+     * A GUEST-authored message from the portal (Phase 4c · SG3) — the mirror of {@see postOwnerMessage()} for the
+     * guest side. Posted as `inbound` (into the org), so the operator inbox reads it as a message TO them and the
+     * guest's own transcript shows it as theirs. `author_user_id` is null (a guest is not a User) and the label is
+     * the guest's NAME only (#28 — no contact PII). It DOES bump `unread_count` — that is the OPERATOR's counter,
+     * and a guest message is exactly what should light up their inbox. Not {@see postInbound()}: that runs the
+     * GuestMatcher (spurious guest) and is webhook/idempotency-shaped — here the thread + guest are already known.
+     */
+    public function postGuestMessage(MessageThread $thread, string $body): Message
+    {
+        $message = Message::create([
+            'thread_id' => $thread->id,
+            'direction' => 'inbound',              // into the org — the operator sees a message TO them
+            'channel' => $thread->channel,
+            'body' => $body,
+            'author_user_id' => null,              // a guest is not an operator User
+            'sender_label' => GuestName::display($thread->guest),   // name only (#28)
+            'delivery_status' => 'received',       // internal: recording IS the delivery
+            'received_at' => now(),
+        ]);
+
+        // Atomic — a concurrent operator markRead() must not lose the bump.
+        $thread->increment('unread_count');
+        $thread->forceFill([
+            'last_message_at' => $message->received_at,
+            'last_inbound_at' => $message->received_at,
+            'status' => $thread->status === 'closed' ? 'open' : $thread->status,
+        ])->save();
+
+        $this->domainEvents->record('inbox.message_received', $message, [
+            'thread_id' => (string) $thread->id,
+            'channel' => $thread->channel,
+            'from' => 'guest',
+        ]);
+        $this->audit->record('inbox.message_received', $message, null, ['direction' => 'inbound', 'from' => 'guest']);
+
+        return $message;
+    }
+
+    /**
+     * The GUEST's read position — deliberately NOT {@see markRead()}, exactly as {@see markReadByOwner()}: it
+     * touches only `guest_last_read_at`, never `unread_count` (the OPERATOR's badge).
+     */
+    public function markReadByGuest(MessageThread $thread): MessageThread
+    {
+        $thread->forceFill(['guest_last_read_at' => now()])->save();
 
         return $thread;
     }
