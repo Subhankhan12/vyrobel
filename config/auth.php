@@ -113,6 +113,15 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        // Phase 4a — the GUEST realm's reset broker, on the guests provider + its own token table. The token
+        // table keys on the guest's blind-index hash (not the plaintext email); see the migration + Guest.
+        'guests' => [
+            'provider' => 'guests',
+            'table' => 'guest_password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
     ],
 
     /*

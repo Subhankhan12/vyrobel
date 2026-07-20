@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Mail\GuestPasswordResetMail;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\HasDocuments;
 use App\Models\Concerns\HasNotes;
 use App\Models\Concerns\HasTags;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Guest\GuestName;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
@@ -22,7 +24,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Guest profile (PII, convention #5). `email`/`phone` are encrypted at rest. GDPR erase is
@@ -116,6 +120,35 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
     public function hasPortalAccount(): bool
     {
         return $this->password !== null && $this->email_verified_at !== null;
+    }
+
+    /**
+     * ⚠️ The reset broker keys its token table on THIS — the BLIND INDEX (`email_hash`), never the plaintext
+     * email — so no guest PII is written to `guest_password_reset_tokens` (invariant #28). The user still enters
+     * their plaintext email on the forms; the provider resolves it to a guest, and the token is matched by hash.
+     */
+    public function getEmailForPasswordReset(): string
+    {
+        return (string) $this->email_hash;
+    }
+
+    /** Deliver the guest reset link through our own branded, email-safe Mailable (Mailpit in dev; prod: a provider). */
+    public function sendPasswordResetNotification($token): void
+    {
+        Mail::to((string) $this->email)->send(new GuestPasswordResetMail((string) $token, GuestName::display($this)));
+    }
+
+    /**
+     * The ONE hash + remember-token-rotate path for a guest — mirrors {@see User::changePasswordTo()}, so the
+     * guest reset and any future guest change-password can't drift. Rotating the remember token logs OTHER
+     * remembered guest sessions out on a password change.
+     */
+    public function changePasswordTo(string $plainPassword): void
+    {
+        $this->forceFill([
+            'password' => $plainPassword,
+            'remember_token' => Str::random(60),
+        ])->save();
     }
 
     /**

@@ -11,6 +11,8 @@ use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\Guest\GuestClaimController;
 use App\Http\Controllers\Guest\GuestHomeController;
+use App\Http\Controllers\Guest\GuestLoginController;
+use App\Http\Controllers\Guest\GuestPasswordResetController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -158,13 +160,25 @@ Route::middleware('throttle:6,1')->group(function () {
  * expiring URLs. NEVER point an /app or /owner route at the guest guard — the realms are separate by construction.
  */
 Route::prefix('guest')->name('guest.')->group(function () {
+    // Booking-tied claim (SG2).
     Route::get('/claim', [GuestClaimController::class, 'create'])->name('claim');
     Route::post('/claim', [GuestClaimController::class, 'store'])->middleware('throttle:6,1')->name('claim.store');
     Route::get('/claim/sent', [GuestClaimController::class, 'sent'])->name('claim.sent');
     Route::get('/claim/verify/{guest}/{hash}', [GuestClaimController::class, 'verify'])->middleware('signed')->name('claim.verify');
     Route::post('/claim/verify/{guest}/{hash}', [GuestClaimController::class, 'claim'])->middleware('signed', 'throttle:6,1')->name('claim.complete');
+
+    // Login + password reset (SG3) — on the guest guard/broker. Rate-limited; reset is no-enumeration + hashed tokens.
+    Route::get('/login', [GuestLoginController::class, 'create'])->name('login');
+    Route::post('/login', [GuestLoginController::class, 'store']);
+    Route::post('/logout', [GuestLoginController::class, 'destroy'])->name('logout');
+    Route::middleware('throttle:6,1')->group(function () {
+        Route::get('/forgot-password', [GuestPasswordResetController::class, 'showForgot'])->name('password.request');
+        Route::post('/forgot-password', [GuestPasswordResetController::class, 'sendLink'])->name('password.email');
+        Route::get('/reset-password/{token}', [GuestPasswordResetController::class, 'showReset'])->name('password.reset');
+        Route::post('/reset-password', [GuestPasswordResetController::class, 'reset'])->name('password.update');
+    });
+
     Route::get('/home', [GuestHomeController::class, 'index'])->name('home');
-    Route::post('/logout', [GuestHomeController::class, 'logout'])->name('logout');
 });
 
 /*

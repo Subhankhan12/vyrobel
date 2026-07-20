@@ -77,7 +77,8 @@ class GuestUserProvider extends EloquentUserProvider
         return Guest::query()
             ->withoutGlobalScope(OrganizationScope::class)
             ->where('email_hash', Guest::emailHash($email))
-            ->whereNotNull('password')   // only a claimed account can log in
+            ->whereNotNull('password')            // claimed…
+            ->whereNotNull('email_verified_at')   // …AND verified — only a full portal account authenticates/resets
             ->first();
     }
 }

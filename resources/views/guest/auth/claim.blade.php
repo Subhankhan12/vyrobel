@@ -20,5 +20,5 @@
         <button type="submit" class="vy-btn">Send me a link</button>
     </form>
 
-    <div class="vy-foot">Only bookings made with Vyrobel can be accessed here.</div>
+    <div class="vy-foot">Already set up? <a class="vy-link" href="{{ route('guest.login') }}">Sign in</a></div>
 @endsection
