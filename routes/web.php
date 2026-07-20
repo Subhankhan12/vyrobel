@@ -28,6 +28,7 @@ use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerBlockController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
+use App\Http\Controllers\Owner\OwnerPayoutMethodController;
 use App\Http\Controllers\Owner\OwnerProfileController;
 use App\Http\Controllers\Owner\OwnerRateController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
@@ -75,6 +76,7 @@ use App\Livewire\Owner\OwnerExpenses;
 use App\Livewire\Owner\OwnerMessages;
 use App\Livewire\Owner\OwnerMessageThread;
 use App\Livewire\Owner\OwnerMyUnits;
+use App\Livewire\Owner\OwnerPayoutMethod;
 use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerRates;
 use App\Livewire\Owner\OwnerSettings;
@@ -460,6 +462,14 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/tax', OwnerTaxCenter::class)->name('tax');
     Route::post('/tax', [OwnerTaxController::class, 'save'])->name('tax.save');
     Route::get('/tax/{year}/summary.pdf', [OwnerTaxController::class, 'downloadAnnual'])->name('tax.annual');
+    // Phase 2 · Sub-gate 5 — Owner Payout Method. SELF-ONLY + owner-scoped: new methods attach to the owner
+    // resolved by user_id (never a request id); set-default/remove resolve the method through the owner scope
+    // (a cross-owner id 404s). The full IBAN is ENCRYPTED + never rendered (masked ···· last4). DATA CAPTURE
+    // only — the live rail (Stripe Connect) is deferred, so nothing here moves money.
+    Route::get('/payout-method', OwnerPayoutMethod::class)->name('payout-method');
+    Route::post('/payout-method', [OwnerPayoutMethodController::class, 'store'])->name('payout-method.add');
+    Route::post('/payout-method/{method}/default', [OwnerPayoutMethodController::class, 'setDefault'])->name('payout-method.default');
+    Route::delete('/payout-method/{method}', [OwnerPayoutMethodController::class, 'destroy'])->name('payout-method.remove');
     // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
     // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
     Route::get('/balance', OwnerBalance::class)->name('balance');
