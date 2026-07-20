@@ -14,6 +14,7 @@ use App\Http\Controllers\Guest\GuestClaimController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
 use App\Http\Controllers\Guest\GuestPasswordResetController;
+use App\Http\Controllers\Guest\GuestReservationController;
 use App\Http\Controllers\Guest\GuestTripsController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
@@ -186,6 +187,7 @@ Route::prefix('guest')->name('guest.')->group(function () {
     // per-booking isolation is that every controller resolves THROUGH the authed guest's own relations).
     Route::middleware(['auth:guest', SetTenantForGuestRequest::class])->group(function () {
         Route::get('/trips', [GuestTripsController::class, 'index'])->name('trips');   // Phase 4b · the landing
+        Route::get('/reservation/{reservation}', [GuestReservationController::class, 'show'])->name('reservation');
         Route::get('/home', [GuestHomeController::class, 'index'])->name('home');       // legacy → redirects to trips
         Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
         Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');

@@ -20,5 +20,8 @@
         <span style="font-size:12.5px;font-weight:600;color:{{ $trip['balance_due'] ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">{{ $trip['balance_label'] }}</span>
     </div>
 
-    <div style="font-size:11px;color:var(--vy-faint);margin-top:6px">Confirmation {{ $trip['reference'] }}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px">
+        <span style="font-size:11px;color:var(--vy-faint)">Confirmation {{ $trip['reference'] }}</span>
+        <a href="{{ route('guest.reservation', $trip['id']) }}" style="font-size:12.5px;font-weight:600;color:var(--vy-accent);text-decoration:none">View booking →</a>
+    </div>
 </div>
