@@ -22,6 +22,7 @@ use App\Http\Controllers\Guest\GuestPasswordResetController;
 use App\Http\Controllers\Guest\GuestPaymentsController;
 use App\Http\Controllers\Guest\GuestReceiptController;
 use App\Http\Controllers\Guest\GuestReservationController;
+use App\Http\Controllers\Guest\GuestSavedController;
 use App\Http\Controllers\Guest\GuestTripsController;
 use App\Http\Controllers\Guest\GuestWalletController;
 use App\Http\Controllers\HousekeepingActionController;
@@ -227,6 +228,14 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::post('/messages', [GuestMessagesController::class, 'start'])->middleware('throttle:12,1')->name('messages.start');
         Route::get('/messages/{thread}', [GuestMessagesController::class, 'show'])->name('messages.show');
         Route::post('/messages/{thread}', [GuestMessagesController::class, 'send'])->middleware('throttle:20,1')->name('messages.send');
+        // Saved (SG4) — wishlist (saved rooms) + waitlist (join for sold-out dates). Real, self-only stores;
+        // every item/entry resolves through the authed guest's guest_id (a foreign id → 404).
+        Route::get('/saved', [GuestSavedController::class, 'show'])->name('saved');
+        Route::post('/saved/wishlist', [GuestSavedController::class, 'addWishlist'])->middleware('throttle:30,1')->name('saved.wishlist.add');
+        Route::post('/saved/wishlist/{item}/remove', [GuestSavedController::class, 'removeWishlist'])->name('saved.wishlist.remove');
+        Route::post('/saved/waitlist', [GuestSavedController::class, 'joinWaitlist'])->middleware('throttle:30,1')->name('saved.waitlist.join');
+        Route::post('/saved/waitlist/{entry}/leave', [GuestSavedController::class, 'leaveWaitlist'])->name('saved.waitlist.leave');
+        Route::post('/saved/waitlist/{entry}/reconfirm', [GuestSavedController::class, 'reconfirmWaitlist'])->name('saved.waitlist.reconfirm');
         Route::get('/home', [GuestHomeController::class, 'index'])->name('home');       // legacy → redirects to trips
         Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
         Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');

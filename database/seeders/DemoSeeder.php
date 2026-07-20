@@ -32,6 +32,7 @@ use App\Services\AvailabilityService;
 use App\Services\ChannelConnectionService;
 use App\Services\FolioService;
 use App\Services\GuestWalletService;
+use App\Services\GuestWishlistService;
 use App\Services\InboxService;
 use App\Services\MaintenanceService;
 use App\Services\OwnerAttributionService;
@@ -287,6 +288,12 @@ class DemoSeeder extends Seeder
         $wallet->credit($guest1, GuestCreditEntry::TYPE_REFUND, 'Goodwill refund credit', Money::of(2500, 'EUR'));
         $wallet->credit($guest1, GuestCreditEntry::TYPE_BIRTHDAY, 'Birthday credit', Money::of(1000, 'EUR'), expiresAt: CarbonImmutable::now()->addDays(60));
         PromoCode::create(['code' => 'WELCOME10', 'amount_minor' => 1000, 'currency' => 'EUR', 'description' => 'Welcome credit', 'max_redemptions' => 100, 'is_active' => true]);
+
+        // Phase 4c · SG4 — DEMO saved lists (through the real GuestWishlistService) so the Saved page shows a
+        // wishlist + a waitlist. Demo data, like every guest row here.
+        $saved = app(GuestWishlistService::class);
+        $saved->saveRoom($guest1, $apartment);
+        $saved->joinWaitlist($guest1, $doubleRoom, ['check_in' => '2026-09-20', 'check_out' => '2026-09-23', 'notify_similar' => true]);
 
         // Check the walk-in out → real departure-clean task via the checkout event → listener.
         app(CheckOutReservation::class)->handle($walkIn);

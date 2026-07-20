@@ -2516,3 +2516,70 @@ end-to-end** both portals — guest requests a date change → pending → opera
 untouched); guest opens the near-term stay → **released door code + copy** + wifi; the far stay → **withheld**
 ("closer to arrival"); online check-in → submitted, `status` unchanged. **NEXT = Phase 4c** (guest money +
 engagement: payments/wallet/receipts + reviews).
+
+## 2026-07-22 — PHASE 4c: GUEST MONEY + ENGAGEMENT — **THE GUEST PORTAL IS COMPLETE** — invariants #34–35
+
+Four gated sub-gates, each guest-isolated + mutation-proven, then pushed. This completes the Guest Portal.
+
+- **SG1 — Payments + Folio Receipt + money PDFs** (`4e172e0`) — the guest's balance + history across their OWN
+  bookings via the shared `FolioTotals` (the exact operator/owner figures, reconciling to the cent), a per-booking
+  Folio Receipt screen, and five real PDFs (`GuestDocumentController`): Folio Receipt + Statement reuse
+  `FolioDocument`; new **VAT Invoice** (`GuestInvoiceDocument` — net + `type='tax'` = gross, reconciling *by
+  construction*, the right way for a legal tax doc) and **Refund Receipt + Credit Note** (`GuestReversalDocument` —
+  from real succeeded refunds; rendered ONLY when a real refund exists, else 404 — never fabricated). 🪤 The card
+  charge / Apple Pay is DEFERRED (account-gated Stripe, same as New-Reservation card capture): balance shown +
+  honest "Soon", no faked payment, no raw PAN, no guest payment write path. Isolation mutation-proven on the
+  sharpest leak — bypassing the guest relation in the PDF controller lets A download B's financial documents.
+- **SG2 — the Wallet / Credits LEDGER** (`9353d16`) — **invariant #34.** `guest_credit_ledger` mirrors
+  `owner_ledger`: `direction` credit/debit · positive `amount_minor` · `reverses_id` self-FK (correct-by-reversal)
+  · polymorphic `source` · `expires_at`. **Deliberately NO balance column** — the spendable balance is DERIVED
+  (Σ live credits − Σ debits) in `GuestWalletService`. **No overdraw** — `debit`/`applyToBooking` throw
+  `WalletOverdrawException` BEFORE any write when the amount exceeds the derived balance; expired credit is excluded
+  (query-time; strict FIFO lot accounting is a stated seam). **Redeem a code** — real `promo_codes`, single-use
+  (`max_redemptions` + once-per-guest); invalid/expired/already-used refused honestly. **Apply to booking** — a real
+  debit AND a folio credit that reduces what's owed, via a new additive `FolioService::applyWalletCredit()` (a
+  negative discount line through the single folio write path; `posted_by` null — a guest request's default guard is
+  the guest, so it never reads `Auth::id()`, avoiding the FK trap `postCharge` would hit). Both models registered in
+  the morph map. Mutation-proven: neutering the overdraw guard lets a debit exceed the balance; dropping the
+  `guest_id` filter surfaces another guest's credit. Deferred honestly: loyalty tiers, referral auto-earn.
+- **SG3 — Guest Messages** (`5006c7b`) — **invariant #35.** The guest side of the EXISTING Unified Inbox (extended,
+  not reimplemented — the third participant surface on one inbox, after operator + owner). `InboxService` gains
+  `postGuestMessage()` + `markReadByGuest()`, the exact mirror of the owner methods: a guest message is `inbound`
+  (into the org — the operator reads it the other way up), `author_user_id` null, `sender_label` the guest NAME only
+  (#28). It bumps `unread_count` (the operator's badge); `markReadByGuest` touches only the new `guest_last_read_at`,
+  NEVER `unread_count` (the Wave-3 owner trap, avoided the same way). Threads resolve only through the authed guest's
+  `guest_id` (never RMB). Mutation-proven: bypassing the filter lets A open another guest's AND an owner↔operator
+  thread. GDPR (#25): `Guest::anonymize()` already redacts these bodies — proven for a portal-authored message.
+- **SG4 — Wishlist + Waitlist** (`this commit`) — real, guest-owned stores. `guest_wishlist_items` (saved room
+  types; save is idempotent; a "Save to wishlist" button on the public storefront room view, shown only to a
+  signed-in guest, ties browse → wishlist). `guest_waitlist_entries` (join for sold-out dates — exact dates OR a
+  flexible month; re-confirm extends the expiry; leave). Both self-only, resolved through the guest's `guest_id`;
+  isolation mutation-proven (A can't remove B's item / leave B's waitlist entry). 🪤 Deferred honestly: the notify
+  TRIGGER ("a spot opens" = a cancellation freeing a waitlisted date → Phase-3 email) + SMS (account-gated) + auto-
+  hold (holding inventory has real availability implications, would go through AssignmentService) — the store +
+  re-confirm + expiry are real; the trigger/hold are a stated seam, not faked.
+
+**NEW INVARIANTS.**
+- **#34 — the guest WALLET is an append-only ledger.** Balance DERIVED (no balance column), integer minor units
+  (#17), correct-by-reversal (owner_ledger/folio discipline). It can NEVER overdraw — a debit beyond the derived
+  spendable balance is refused before any write, and expired credit doesn't count toward it.
+- **#35 — guest inbox isolation.** A guest sees ONLY their own thread(s) (resolved through `guest_id`, never RMB) —
+  never another guest's, never an owner↔operator thread. A guest-side read moves only `guest_last_read_at`, never the
+  operator's `unread_count`. (The same shape as the owner-inbox extension in Wave 3.)
+
+**THE GUEST PORTAL IS COMPLETE** — auth foundation (4a) + Trips · Reservation · Manage (operator-confirmed requests)
+· Check-in · Arrival (4b) + Payments · Folio Receipt · money PDFs · Wallet · Messages · Wishlist · Waitlist (4c),
+every screen guest-isolated + mutation-proven, on real data under the honesty rule.
+
+**DEFERRED / ACCOUNT-GATED (honest, not faked):** the card charge / Apple Pay → account-gated Stripe; SMS alerts →
+account-gated; loyalty tiers → a loyalty subsystem; referral auto-earn → deferred (a referral credit is real only
+when earned); the waitlist notify-trigger + auto-hold → a stated seam (a cancellation listener + Phase-3 email +
+AssignmentService hold); production mail provider → Mailpit is dev.
+
+**Verification:** Phase-4c guest tests green (Payments 8 · Wallet 7 · Messages 5 · Saved 4); full suite **797 /
+6839** green on MySQL; PHPStan L5 + Pint clean; `migrate:fresh --seed` clean; **browser-verified end-to-end** —
+Payments hub reconciles (Paid €738); a real 879KB `%PDF` downloads in the live session; wallet €35 derived → redeem
+`WELCOME10` → €45 → apply €20 → wallet €25 AND booking owed €184.50 → €164.50 (both sides reconcile); guest sends a
+message → it lands in the operator's existing inbox (unread bumped); a room saved from the public storefront
+appears on the Saved page. **NEXT = Phase 5** (the Reviews module — guest review → moderation → operator/owner
+surfaces).

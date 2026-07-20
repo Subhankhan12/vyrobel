@@ -147,13 +147,20 @@ does the real inventory/folio/refund write and can't self-approve. Online Check-
 wifi, isolated to the owned booking AND released only within the arrival window (invariant #33). See
 `docs/DECISIONS.md` 2026-07-21 (Phase 4b).
 
-### ⬜ Remaining (~18) — Phase 4c (guest money + engagement) on the 4b core
-Payments + Folio Receipt · Wallet/Credits · Refund/Credit-Note/VAT PDFs · Guest Messages · Wishlist/Waitlist/
-Add-ons/Email-prefs/Help · Guest Review. Each sits on the guest guard + guest isolation (as the 4b core does).
+### ✅ GUEST MONEY + ENGAGEMENT — BUILT (Phase 4c, 2026-07-22, 4 gated sub-gates `4e172e0` → `9353d16` → `5006c7b` → HEAD) — **THE GUEST PORTAL IS COMPLETE**
+**Payments + Folio Receipt + five money PDFs** (card charge account-gated Stripe; VAT invoice reconciles by
+construction; refund/credit docs only when a real refund exists) · **the Wallet/credits LEDGER** (append-only,
+balance DERIVED, no-overdraw, single-use promo codes, apply-to-booking via an additive
+`FolioService::applyWalletCredit()` — **invariant #34**) · **Guest Messages** (the Unified Inbox extended, the third
+participant surface — `postGuestMessage`/`markReadByGuest` mirror the owner methods; **invariant #35**) · **Wishlist
++ Waitlist** (real self-only stores; a storefront "Save" ties browse → wishlist; the waitlist notify-trigger + SMS +
+auto-hold deferred honestly). Every screen guest-isolated + mutation-proven. See `docs/DECISIONS.md` 2026-07-22.
 
-**G1 — Guest auth foundation (the gate for everything):** ✅ BUILT (Phase 4a). **G2 — Core self-service:** ✅ BUILT
-(Phase 4b — Trips · Reservation · Manage Booking · Online Check-in · Arrival Info). The Manage-Booking real EXECUTE
-(the operator applying a confirmed request) stays the operator's certified tools; guest-facing PDFs → 4c.
+**G1 — Guest auth foundation:** ✅ BUILT (Phase 4a). **G2 — Core self-service:** ✅ BUILT (Phase 4b). **G3–G4 —
+money-facing + engagement:** ✅ BUILT (Phase 4c). The Manage-Booking real EXECUTE (the operator applying a confirmed
+request) stays the operator's certified tools. Remaining account-gated/later: card charge/Apple Pay (Stripe), SMS
+alerts, loyalty tiers, referral auto-earn, the waitlist notify-trigger + auto-hold, production mail. **The Guest
+Portal is complete; the guest Review feeds Phase 5.**
 
 **G3 — Money-facing:** Payments · Folio Receipt (+PDF) · Credits (wallet) · Refund Receipt PDF · Credit Note PDF ·
 Statement of Account PDF · VAT Invoice PDF — folio views + a WALLET/credits ledger + more PdfService docs. **(M–L)**
@@ -311,13 +318,15 @@ within the arrival window — invariant #33, never a fabricated code). Every scr
 A 500 the green suite masked (operator confirm route-model-bound a scoped model → resolved pre-tenant) was found in a
 browser + fixed with the string-id pattern, test hardened. Detail: `docs/DECISIONS.md` 2026-07-21 (Phase 4b).
 
-**PHASE 4c — GUEST money + engagement (on the 4b core)** *(⬅ NEXT)*
-Payments + Folio Receipt (+ money PDFs) → the Wallet/credits ledger + Guest Credits → Guest Messages (guest side of
-the inbox) → Wishlist/Waitlist/Add-ons/Email-prefs/Help → Guest Review (with Phase 5). Every screen on 4a's guest
-guard + guest isolation. Deferred honestly: online payment/Apple Pay/card (Stripe); the operator's real
-execute-on-confirm of a guest change request (their certified tools); guest ID verification (KYC, account-gated).
+**PHASE 4c — GUEST money + engagement (on the 4b core)** *(✅ DONE — 2026-07-22, 4 gated sub-gates `4e172e0` →
+`9353d16` → `5006c7b` → HEAD) — **THE GUEST PORTAL IS COMPLETE***
+Payments + Folio Receipt + money PDFs (card charge account-gated) → the Wallet/credits ledger (append-only, DERIVED
+balance, no-overdraw — **#34**) → Guest Messages (the Unified Inbox extended, third participant surface — **#35**) →
+Wishlist + Waitlist (real self-only stores; storefront "Save" tie; notify-trigger/SMS/auto-hold deferred honestly).
+Every screen guest-isolated + mutation-proven. Deferred honestly: card charge/Apple Pay (Stripe), SMS, loyalty
+tiers, referral auto-earn, the waitlist notify-trigger + auto-hold. Detail: `docs/DECISIONS.md` 2026-07-22.
 
-**PHASE 5 — The REVIEWS module, all three surfaces (~2 weeks)**
+**PHASE 5 — The REVIEWS module, all three surfaces (~2 weeks)** *(⬅ NEXT)*
 Guest Review → moderation → Operator Reviews (respond) → Owner Reviews (read).
 
 **PHASE 6 — MULTI-PROPERTY (re-scoped M) + Analytics (~3–4 weeks)**

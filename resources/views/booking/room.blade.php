@@ -39,6 +39,16 @@
             <h1 class="vy-detail-title">{{ $room['name'] }}</h1>
             <div class="vy-detail-kind">{{ $room['kind'] }} · sleeps up to {{ $room['capacity'] }}</div>
 
+            {{-- Save to wishlist — shown only to a signed-in guest (Phase 4c · SG4). A real POST to the guest's
+                 own wishlist; anonymous visitors see nothing (no bouncing button). --}}
+            @if (\Illuminate\Support\Facades\Auth::guard('guest')->check())
+                <form method="POST" action="{{ route('guest.saved.wishlist.add') }}" style="margin-top:12px">
+                    @csrf
+                    <input type="hidden" name="room_type_id" value="{{ $room['id'] }}">
+                    <button type="submit" style="display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:22px;border:1px solid rgba(120,70,40,.18);background:#fff;color:#C2410C;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">♥ Save to wishlist</button>
+                </form>
+            @endif
+
             {{-- REAL specs from the RoomType schema (only what genuinely exists) --}}
             <div class="vy-specs">
                 <div class="vy-spec"><div class="vy-spec-label">Sleeps</div><div class="vy-spec-val">{{ $room['capacity'] }}</div></div>
