@@ -43,6 +43,6 @@
     </section>
 
     <p class="vy-line-sub" style="font-size:12px;margin-top:14px">
-        Choose what we tell you and where in your notification preferences (arriving next). Statements are always kept in your portal regardless.
+        Choose what we tell you and where in <a href="{{ route('owner.notification-preferences') }}" style="color:var(--vy-accent)">Notification preferences</a>. Statements are always kept in your portal regardless.
     </p>
 </x-owner.shell>

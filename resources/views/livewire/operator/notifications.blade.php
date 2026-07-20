@@ -44,7 +44,7 @@
         </div>
 
         <p class="vy-line-sub" style="font-size:12px;margin-top:14px;color:var(--vy-muted)">
-            Per-event email preferences arrive next.
+            Choose which of these reach you in <a href="{{ route('app.notification-preferences') }}" style="color:var(--vy-accent)">Notification preferences</a>.
         </p>
 
     </x-operator.shell>

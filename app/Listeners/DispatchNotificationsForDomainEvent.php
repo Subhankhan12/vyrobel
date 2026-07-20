@@ -6,9 +6,12 @@ namespace App\Listeners;
 
 use App\Events\DomainEventRecorded;
 use App\Models\DomainEvent;
+use App\Models\MaintenanceSetting;
+use App\Models\MaintenanceTicket;
 use App\Models\Payout;
 use App\Models\Reservation;
 use App\Notifications\Operator\NewBookingNotification;
+use App\Notifications\Operator\UrgentWorkOrderNotification;
 use App\Notifications\Owner\PayoutSentNotification;
 use App\Support\Notifications\NotificationRecipients;
 use App\Support\Tenancy\TenantContext;
@@ -27,7 +30,7 @@ use Illuminate\Support\Facades\Notification;
 class DispatchNotificationsForDomainEvent
 {
     /** The event types this listener maps to notifications (extended in Sub-gate 3). */
-    private const HANDLED = ['reservation.confirmed', 'payout.paid'];
+    private const HANDLED = ['reservation.confirmed', 'payout.paid', 'maintenance_ticket.opened'];
 
     /**
      * Domain-event ids already turned into notifications — an IDEMPOTENCY guard. The sync event bus delivers a
@@ -71,6 +74,7 @@ class DispatchNotificationsForDomainEvent
             match ($domainEvent->event_type) {
                 'reservation.confirmed' => $this->newBooking($domainEvent, $orgId),
                 'payout.paid' => $this->payoutSent($domainEvent),
+                'maintenance_ticket.opened' => $this->urgentWorkOrder($domainEvent, $orgId),
             };
         });
     }
@@ -96,6 +100,30 @@ class DispatchNotificationsForDomainEvent
         $user = $payout?->owner?->user;
         if ($user !== null) {
             $user->notify(new PayoutSentNotification($payout));
+        }
+    }
+
+    /**
+     * An URGENT maintenance ticket opened → the org's operators — but ONLY when the org's Maintenance Settings
+     * opt in (`notify_new_urgent`). This is the ORG-level gate that finally makes the Phase-1 maintenance toggle
+     * DO something; the per-user `urgent_work_order` preference then gates each recipient's delivery.
+     */
+    private function urgentWorkOrder(DomainEvent $domainEvent, string $orgId): void
+    {
+        $ticket = MaintenanceTicket::query()->find($domainEvent->subject_id);
+        if (! $ticket instanceof MaintenanceTicket || (string) $ticket->priority !== 'urgent') {
+            return;
+        }
+
+        // Org-level gate — no row means the migration default (notify on new urgent). Read-only, no side effect.
+        $setting = MaintenanceSetting::query()->first();
+        if ($setting !== null && ! $setting->notify_new_urgent) {
+            return;
+        }
+
+        $operators = $this->recipients->operatorsForOrg($orgId);
+        if ($operators->isNotEmpty()) {
+            Notification::send($operators, new UrgentWorkOrderNotification($ticket));
         }
     }
 }

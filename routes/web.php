@@ -11,6 +11,7 @@ use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
 use App\Http\Controllers\Operator\GuestActionController;
@@ -55,6 +56,7 @@ use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorMaintenanceCosts;
 use App\Livewire\Operator\OperatorMaintenanceSettings;
+use App\Livewire\Operator\OperatorNotificationPreferences;
 use App\Livewire\Operator\OperatorNotifications;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
@@ -82,6 +84,7 @@ use App\Livewire\Owner\OwnerHelp;
 use App\Livewire\Owner\OwnerMessages;
 use App\Livewire\Owner\OwnerMessageThread;
 use App\Livewire\Owner\OwnerMyUnits;
+use App\Livewire\Owner\OwnerNotificationPreferences;
 use App\Livewire\Owner\OwnerNotifications;
 use App\Livewire\Owner\OwnerPayoutMethod;
 use App\Livewire\Owner\OwnerPayouts;
@@ -277,6 +280,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // Phase 3 · Sub-gate 1 — the operator in-app notification feed (the AUTHENTICATED user's OWN notifications;
     // per-user Notifiable → isolation by construction). Behind #26 only (every back-office user has a feed).
     Route::get('/notifications', OperatorNotifications::class)->name('notifications');
+    // Phase 3 · Sub-gate 2 — per-user notification preferences (self-only; the audience is the route default, not
+    // the request). These GENUINELY gate delivery (via NotificationPreferences::allows); always-on locked.
+    Route::get('/notification-preferences', OperatorNotificationPreferences::class)->name('notification-preferences');
+    Route::post('/notification-preferences', [NotificationPreferenceController::class, 'update'])->defaults('audience', 'operator')->name('notification-preferences.update');
 
     Route::get('/security', OperatorSecurity::class)->name('security');
     Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
@@ -503,6 +510,9 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // Phase 3 · Sub-gate 1 — the owner in-app notification feed (the owner's OWN notifications; per-user
     // Notifiable → never another user's, never another owner's).
     Route::get('/notifications', OwnerNotifications::class)->name('notifications');
+    // Phase 3 · Sub-gate 2 — owner notification preferences (self-only; audience from the route default).
+    Route::get('/notification-preferences', OwnerNotificationPreferences::class)->name('notification-preferences');
+    Route::post('/notification-preferences', [NotificationPreferenceController::class, 'update'])->defaults('audience', 'owner')->name('notification-preferences.update');
     // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
     // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
     Route::get('/balance', OwnerBalance::class)->name('balance');
