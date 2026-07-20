@@ -80,6 +80,6 @@ class GuestClaimController extends Controller
         Auth::guard('guest')->login($model);
         $request->session()->regenerate();   // session-fixation protection on activation
 
-        return redirect()->route('guest.home');
+        return redirect()->route('guest.trips');
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Guest;
 
 use App\Http\Controllers\Controller;
-use App\Models\Guest;
+use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
 use App\Support\Guest\GuestName;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -30,6 +30,8 @@ use Illuminate\Validation\Rules\Password;
  */
 class GuestAccountController extends Controller
 {
+    use ResolvesGuest;
+
     public function show(): View
     {
         $guest = $this->guest();
@@ -96,14 +98,5 @@ class GuestAccountController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('guest.login')->with('status', 'Your portal access has been removed.');
-    }
-
-    /** SELF — the authenticated guest, resolved from the guard (never a request id). */
-    private function guest(): Guest
-    {
-        $guest = Auth::guard('guest')->user();
-        abort_unless($guest instanceof Guest, 403);
-
-        return $guest;
     }
 }

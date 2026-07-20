@@ -77,7 +77,7 @@
     </form>
 
     <div class="vy-foot">
-        <a class="vy-link" href="{{ route('guest.home') }}">Back</a>
+        <a class="vy-link" href="{{ route('guest.trips') }}">Back to trips</a>
         &nbsp;·&nbsp;
         <form method="POST" action="{{ route('guest.logout') }}" style="display:inline">
             @csrf

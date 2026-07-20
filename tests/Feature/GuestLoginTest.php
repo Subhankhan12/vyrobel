@@ -33,7 +33,7 @@ it('logs a claimed guest in on the guest guard and lands them in the guest area'
     $guest = loginGuest($s);
 
     $this->post('/guest/login', ['email' => 'ada@example.test', 'password' => 'correct horse battery'])
-        ->assertRedirect(route('guest.home'));
+        ->assertRedirect(route('guest.trips'));
 
     $this->assertAuthenticatedAs($guest, 'guest');
     $this->assertGuest('web');   // NOT authenticated on the operator/owner realm
@@ -116,5 +116,5 @@ it('resets a guest password with no enumeration and a blind-index token', functi
     $this->post('/guest/reset-password', ['token' => $token, 'email' => 'ada@example.test', 'password' => 'brand new pw 123', 'password_confirmation' => 'brand new pw 123'])
         ->assertRedirect(route('guest.login'));
     expect(Hash::check('brand new pw 123', (string) $guest->fresh()->password))->toBeTrue();
-    $this->post('/guest/login', ['email' => 'ada@example.test', 'password' => 'brand new pw 123'])->assertRedirect(route('guest.home'));
+    $this->post('/guest/login', ['email' => 'ada@example.test', 'password' => 'brand new pw 123'])->assertRedirect(route('guest.trips'));
 });

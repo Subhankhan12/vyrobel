@@ -14,6 +14,7 @@ use App\Http\Controllers\Guest\GuestClaimController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
 use App\Http\Controllers\Guest\GuestPasswordResetController;
+use App\Http\Controllers\Guest\GuestTripsController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -50,6 +51,7 @@ use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Http\Middleware\RequireTwoFactorPending;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetOwnerScopeForPortal;
+use App\Http\Middleware\SetTenantForGuestRequest;
 use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
 use App\Livewire\InboxList;
@@ -179,10 +181,12 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::post('/reset-password', [GuestPasswordResetController::class, 'reset'])->name('password.update');
     });
 
-    // Authenticated guest area (SG2 home + SG4 account) — behind the GUEST guard; an unauthenticated visitor is
-    // bounced to the GUEST login (the path-aware redirectGuestsTo in bootstrap/app.php), never the operator login.
-    Route::middleware('auth:guest')->group(function () {
-        Route::get('/home', [GuestHomeController::class, 'index'])->name('home');
+    // Authenticated guest area — behind the GUEST guard (an unauthenticated visitor bounces to the GUEST login,
+    // never the operator login) + SetTenantForGuestRequest (portal reads resolve within the guest's OWN org; the
+    // per-booking isolation is that every controller resolves THROUGH the authed guest's own relations).
+    Route::middleware(['auth:guest', SetTenantForGuestRequest::class])->group(function () {
+        Route::get('/trips', [GuestTripsController::class, 'index'])->name('trips');   // Phase 4b · the landing
+        Route::get('/home', [GuestHomeController::class, 'index'])->name('home');       // legacy → redirects to trips
         Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
         Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');
         Route::post('/account/password', [GuestAccountController::class, 'changePassword'])->middleware('throttle:6,1')->name('account.password');

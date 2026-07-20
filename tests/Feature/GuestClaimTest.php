@@ -47,7 +47,7 @@ it('lets a guest with a real booking claim their account, set a password, and la
 
     // 4. Complete the claim.
     $this->post($sentUrl, ['password' => 'super secret pw', 'password_confirmation' => 'super secret pw'])
-        ->assertRedirect(route('guest.home'));
+        ->assertRedirect(route('guest.trips'));
 
     // 5. The account is claimed (hashed password + verified) and the guest is signed in on the GUEST guard.
     $fresh = $guest->fresh();

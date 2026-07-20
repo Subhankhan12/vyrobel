@@ -30,9 +30,9 @@ class GuestLoginController extends Controller
         $request->authenticate();
         $request->session()->regenerate();   // fixation protection
 
-        // Always land in the guest area — NOT redirect()->intended(), whose session('url.intended') is shared
+        // Always land on the guest's Trips — NOT redirect()->intended(), whose session('url.intended') is shared
         // across guards and could carry a stale /app or /owner target into the guest realm.
-        return redirect()->route('guest.home');
+        return redirect()->route('guest.trips');
     }
 
     /** Sign out of the GUEST guard only. */
