@@ -13,10 +13,13 @@ use App\Http\Controllers\Guest\GuestAccountController;
 use App\Http\Controllers\Guest\GuestArrivalController;
 use App\Http\Controllers\Guest\GuestCheckinController;
 use App\Http\Controllers\Guest\GuestClaimController;
+use App\Http\Controllers\Guest\GuestDocumentController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
 use App\Http\Controllers\Guest\GuestManageController;
 use App\Http\Controllers\Guest\GuestPasswordResetController;
+use App\Http\Controllers\Guest\GuestPaymentsController;
+use App\Http\Controllers\Guest\GuestReceiptController;
 use App\Http\Controllers\Guest\GuestReservationController;
 use App\Http\Controllers\Guest\GuestTripsController;
 use App\Http\Controllers\HousekeepingActionController;
@@ -202,6 +205,15 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::get('/reservation/{reservation}/check-in', [GuestCheckinController::class, 'show'])->name('checkin');
         Route::post('/reservation/{reservation}/check-in', [GuestCheckinController::class, 'submit'])->middleware('throttle:12,1')->name('checkin.submit');
         Route::get('/reservation/{reservation}/arrival', [GuestArrivalController::class, 'show'])->name('arrival');
+        // Payments (SG1) — balance + history across owned bookings (card charge = deferred Stripe rail) + the
+        // per-booking Folio Receipt + the money PDFs (each owned-booking-only; a cross-guest id → 404).
+        Route::get('/payments', [GuestPaymentsController::class, 'index'])->name('payments');
+        Route::get('/reservation/{reservation}/receipt', [GuestReceiptController::class, 'show'])->name('receipt');
+        Route::get('/reservation/{reservation}/receipt.pdf', [GuestDocumentController::class, 'folioReceipt'])->name('doc.receipt');
+        Route::get('/reservation/{reservation}/invoice.pdf', [GuestDocumentController::class, 'vatInvoice'])->name('doc.invoice');
+        Route::get('/reservation/{reservation}/statement.pdf', [GuestDocumentController::class, 'statement'])->name('doc.statement');
+        Route::get('/reservation/{reservation}/refund.pdf', [GuestDocumentController::class, 'refundReceipt'])->name('doc.refund');
+        Route::get('/reservation/{reservation}/credit-note.pdf', [GuestDocumentController::class, 'creditNote'])->name('doc.credit-note');
         Route::get('/home', [GuestHomeController::class, 'index'])->name('home');       // legacy → redirects to trips
         Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
         Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');

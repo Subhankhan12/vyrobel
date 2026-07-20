@@ -48,6 +48,10 @@
                 <span style="font-size:11.5px;color:var(--vy-faint)">Online payment is coming — for now, settle on arrival or reply to your confirmation.</span>
             </div>
         @endif
+
+        <div style="margin-top:14px">
+            <a class="vy-link" href="{{ route('guest.receipt', $trip['id']) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">View receipt &amp; documents →</a>
+        </div>
     </section>
 
     {{-- Timeline --}}

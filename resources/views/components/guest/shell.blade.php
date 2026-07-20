@@ -9,6 +9,7 @@
     $viewerName = \App\Support\Guest\GuestName::display($viewer);
     $nav = [
         ['trips', 'Trips', route('guest.trips')],
+        ['payments', 'Payments', route('guest.payments')],
         ['account', 'Account', route('guest.account')],
     ];
 @endphp
