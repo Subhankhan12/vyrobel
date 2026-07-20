@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 // Tier 1 sweep · Step 3 — daily cleanup of genuinely expired, never-accepted invites + their
 // never-activated artifacts (conservative + idempotent; see OwnerInviteService::pruneExpired()).
 Schedule::command('invites:prune-expired')->daily();
+
+// Phase 3 · Sub-gate 4 — daily guest payment reminders for balances due before arrival (the real trigger; the
+// email is genuine via Mailpit in dev / a real provider in prod).
+Schedule::command('emails:send-payment-reminders')->dailyAt('09:00');

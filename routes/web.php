@@ -12,6 +12,7 @@ use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
+use App\Http\Controllers\Operator\EmailPreviewController;
 use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
 use App\Http\Controllers\Operator\GuestActionController;
@@ -287,6 +288,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
 
     Route::get('/security', OperatorSecurity::class)->name('security');
     Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
+
+    // Phase 3 · Sub-gate 4 — Email Previews: render every transactional email with real sample data (no send).
+    // Behind the back-office gate (#26) only, like /security — a read-only design tool for any back-office role.
+    Route::get('/email-previews', [EmailPreviewController::class, 'index'])->name('email-previews');
+    Route::get('/email-previews/{key}', [EmailPreviewController::class, 'show'])->name('email-previews.show');
 
     // Operator PROFILE (Phase 1 · Sub-gate 5) — the logged-in operator's OWN name + work email. Like /security,
     // behind auth + #26 with NO fine-grained gate (every back-office user has a profile). The write is SELF-ONLY:

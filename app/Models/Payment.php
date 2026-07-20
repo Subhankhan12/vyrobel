@@ -62,6 +62,9 @@ class Payment extends Model
         return $this->belongsTo(Folio::class);
     }
 
+    /**
+     * @return BelongsTo<Reservation, $this>
+     */
     public function reservation(): BelongsTo
     {
         return $this->belongsTo(Reservation::class);

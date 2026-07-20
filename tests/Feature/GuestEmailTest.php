@@ -1,0 +1,156 @@
+<?php
+
+use App\Mail\BookingConfirmationMail;
+use App\Mail\CancellationMail;
+use App\Mail\PaymentReminderMail;
+use App\Mail\PreArrivalMail;
+use App\Mail\RefundConfirmationMail;
+use App\Mail\ReviewRequestMail;
+use App\Mail\VerifyEmailMail;
+use App\Mail\WaitlistNotificationMail;
+use App\Mail\WinbackMail;
+use App\Services\AssignmentService;
+use App\Services\FolioService;
+use App\Support\Money\Money;
+use App\Support\Money\MoneyFormatter;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
+
+uses(RefreshDatabase::class);
+
+// GUEST TRANSACTIONAL EMAILS (Phase 3 · Sub-gate 4) — Mailables that ride the mail channel (Mailpit in dev),
+// styled to the email brand, carrying that BOOKING's real data with integer money (MoneyFormatter). The three
+// with a real event today send automatically (booking confirmed / cancelled / refunded); the payment reminder
+// sends from its real command. Proven here: they fire on the real event/command, to the GUEST's own address
+// ONLY (no PII leak), with the real figures; the deferred-trigger templates still render.
+
+/** seedScenario's guest has no email; give it one so the guest is reachable. */
+function emailGuest(array $s, string $email = 'ada@example.test'): void
+{
+    $s['guest']->update(['email' => $email, 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
+}
+
+// ── Booking confirmation — on the real reservation.confirmed, to the guest ─────────────────────────
+it('emails the guest a booking confirmation on a confirmed booking', function () {
+    Mail::fake();
+    $s = seedScenario(1);
+    emailGuest($s);
+
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    Mail::assertSent(BookingConfirmationMail::class, fn (BookingConfirmationMail $mail): bool => $mail->hasTo('ada@example.test') && $mail->reservation->is($reservation));
+});
+
+// ── Cancellation — on the real reservation.cancelled, to the guest ─────────────────────────────────
+it('emails the guest a cancellation on a cancelled booking', function () {
+    Mail::fake();
+    $s = seedScenario(1);
+    emailGuest($s);
+
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    app(AssignmentService::class)->cancelReservation($reservation, 'Change of plans');
+
+    Mail::assertSent(CancellationMail::class, fn (CancellationMail $mail): bool => $mail->hasTo('ada@example.test') && $mail->reservation->is($reservation));
+});
+
+// ── Refund confirmation — on the real payment.refunded, real amount, to the guest ─────────────────
+it('emails the guest a refund confirmation with the real amount', function () {
+    Mail::fake();
+    $s = seedScenario(1);
+    emailGuest($s);
+
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    $folio = app(FolioService::class)->openFolio($reservation);
+    app(FolioService::class)->postCharge($folio, 'room', 'Room', Money::of(20000, 'EUR'));
+    $payment = app(FolioService::class)->recordPayment($folio, Money::of(20000, 'EUR'));
+    app(FolioService::class)->refundPayment($payment, Money::of(5000, 'EUR'));   // fires payment.refunded
+
+    Mail::assertSent(RefundConfirmationMail::class, fn (RefundConfirmationMail $mail): bool => $mail->hasTo('ada@example.test') && (int) $mail->refund->amount_minor === 5000);
+});
+
+// ── PII: a guest email goes to that guest's OWN address ONLY ───────────────────────────────────────
+it('sends a guest email to exactly the guest and nobody else', function () {
+    Mail::fake();
+    $s = seedScenario(1);
+    emailGuest($s);
+
+    book($s, ['unit_id' => $s['units'][0]->id]);
+
+    Mail::assertSent(BookingConfirmationMail::class, function (BookingConfirmationMail $mail): bool {
+        return $mail->hasTo('ada@example.test')
+            && count($mail->to) === 1        // exactly one recipient
+            && count($mail->cc) === 0
+            && count($mail->bcc) === 0;
+    });
+});
+
+// ── No address → no send (the guard) ──────────────────────────────────────────────────────────────
+it('sends no email when the guest has no address on file', function () {
+    Mail::fake();
+    $s = seedScenario(1);   // seed guest has NO email
+
+    book($s, ['unit_id' => $s['units'][0]->id]);
+
+    Mail::assertNotSent(BookingConfirmationMail::class);
+});
+
+// ── Payment reminder command — arriving soon + a balance → the guest, real balance ────────────────
+it('emails a payment reminder to a soon-arriving guest who still owes a balance', function () {
+    Carbon::setTestNow('2026-08-30');   // so the 2026-09-01 booking is 2 days out (inside the 3-day window)
+    Mail::fake();
+    $s = seedScenario(1);
+    emailGuest($s);
+
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    postRoom($reservation, 20000);   // a charge, no payment → balance due
+
+    $this->artisan('emails:send-payment-reminders')->assertSuccessful();
+
+    Mail::assertSent(PaymentReminderMail::class, fn (PaymentReminderMail $mail): bool => $mail->hasTo('ada@example.test') && $mail->balanceMinor === 20000);
+    Carbon::setTestNow();
+});
+
+it('sends no payment reminder when the balance is settled', function () {
+    Carbon::setTestNow('2026-08-30');
+    Mail::fake();
+    $s = seedScenario(1);
+    emailGuest($s);
+
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    $folio = app(FolioService::class)->openFolio($reservation);
+    app(FolioService::class)->postCharge($folio, 'room', 'Room', Money::of(20000, 'EUR'));
+    app(FolioService::class)->recordPayment($folio, Money::of(20000, 'EUR'));   // settled
+
+    $this->artisan('emails:send-payment-reminders')->assertSuccessful();
+
+    Mail::assertNotSent(PaymentReminderMail::class);
+    Carbon::setTestNow();
+});
+
+// ── Rendered content — real reference, guest name, integer money matching the reservation ─────────
+it('renders the booking confirmation with the reservation’s real reference, guest and total', function () {
+    $s = seedScenario(1);
+    emailGuest($s);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    $html = (new BookingConfirmationMail($reservation))->render();
+
+    expect($html)
+        ->toContain((string) $reservation->reference)
+        ->toContain('Ada Lovelace')
+        ->toContain(MoneyFormatter::display((int) $reservation->total_minor, (string) $reservation->currency));
+});
+
+// ── The deferred-trigger templates all render (built now; triggers land in their phase) ───────────
+it('renders every deferred-trigger email template', function () {
+    $s = seedScenario(1);
+    emailGuest($s);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    expect((new PreArrivalMail($reservation))->render())->toContain('Getting ready for your stay');
+    expect((new ReviewRequestMail($reservation))->render())->toContain('How was your stay');
+    expect((new WaitlistNotificationMail('Ada', 'Seaside', '12–15 Aug 2026'))->render())->toContain('just opened up');
+    expect((new WinbackMail('Ada', 'Seaside'))->render())->toContain('welcome you back');
+    expect((new VerifyEmailMail('Ada', 'https://vyrobel.test/verify/abc'))->render())->toContain('Confirm your email');
+});

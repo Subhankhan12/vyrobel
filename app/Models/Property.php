@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * @property string $currency
  * @property string $timezone
+ * @property array<string, mixed>|null $address
  */
 class Property extends Model
 {
