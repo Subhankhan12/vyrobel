@@ -202,6 +202,26 @@ class DemoSeeder extends Seeder
         $property->amenities()->attach([$wifi->id, $pool->id]);
         $roomUnits->each(fn (Unit $u) => $u->amenities()->attach($wifi->id));
 
+        // Arrival info (Phase 4b · SG4) — DEMO door codes + wifi so the guest Arrival Info screen shows a real,
+        // released pack. door_code/wifi_password are encrypted at rest; they surface only for the owning guest,
+        // and only inside the arrival window (ArrivalPack). Demo values, flagged demo by living in this seeder.
+        $roomUnits->each(fn (Unit $u) => $u->update([
+            'door_code' => match ($u->code) {
+                '101' => '4021', '102' => '7788', default => '5390'
+            },
+            'wifi_ssid' => 'Seaside-Guest',
+            'wifi_password' => 'welcome2026',
+            'arrival_notes' => 'Main entrance on Rua do Mar — your room is on the first floor, up the stairs and to the right.',
+        ]));
+        $aptUnits->each(fn (Unit $u) => $u->update([
+            'door_code' => match ($u->code) {
+                'A1' => '9145', default => '6273'
+            },
+            'wifi_ssid' => 'Seaside-Apartments',
+            'wifi_password' => 'welcome2026',
+            'arrival_notes' => 'Ground-floor apartments — enter through the courtyard gate; your door is signposted.',
+        ]));
+
         // DEMO photos — real, viewable JPEGs generated locally (never hotlinked/fabricated), so the
         // storefront + unit cards look populated. Production photos are real operator uploads.
         $this->seedPhotos($doubleRoom, 'Double Room', [[232, 112, 58], [194, 65, 12]], 3);
@@ -242,6 +262,15 @@ class DemoSeeder extends Seeder
         $stay1 = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[0], $guest1, '2026-09-05', '2026-09-08', $vat, fullyPaid: true);
         $walkIn = $this->createDemoStay('walk_in', $property, $apartment, $aptRate, $aptUnits[0], $guest2, '2026-09-06', '2026-09-09', $vat, fullyPaid: false);
         $this->createDemoStay('ota', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest3, '2026-09-10', '2026-09-12', $vat, fullyPaid: true, otaRef: 'OTA-DEMO-0001');
+
+        // Phase 4b · SG4 — a NEAR-TERM stay for guest1 (arrives tomorrow), so the guest Arrival Info screen
+        // demos a RELEASED pack (door code + wifi visible, since it's inside the arrival window) alongside the
+        // far Sep stay whose code is still withheld. Priced + made available over just these dates.
+        $soonIn = CarbonImmutable::today()->addDay();
+        $soonOut = $soonIn->addDays(3);
+        $this->seedCalendarRange($roomRate, 10000, $soonIn->toDateString(), $soonOut->toDateString());
+        $availability->recompute($doubleRoom->id, $soonIn->toDateString(), $soonOut->toDateString());
+        $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[2], $guest1, $soonIn->toDateString(), $soonOut->toDateString(), $vat, fullyPaid: true);
 
         // Phase 4a — a CLAIMED guest PORTAL account so the guest portal has a real demo login. guest1 (Demo
         // Traveller) leads stay1 above, so this is a genuine BOOKING-TIED account: demo.traveller@vyrobel-demo.test
@@ -557,10 +586,15 @@ class DemoSeeder extends Seeder
 
     private function seedCalendar(RatePlan $ratePlan, int $priceMinor): void
     {
-        $date = CarbonImmutable::parse(self::RANGE_START);
-        $end = CarbonImmutable::parse(self::RANGE_END);
+        $this->seedCalendarRange($ratePlan, $priceMinor, self::RANGE_START, self::RANGE_END);
+    }
 
-        for (; $date->lessThan($end); $date = $date->addDay()) {
+    private function seedCalendarRange(RatePlan $ratePlan, int $priceMinor, string $start, string $end): void
+    {
+        $date = CarbonImmutable::parse($start);
+        $endDate = CarbonImmutable::parse($end);
+
+        for (; $date->lessThan($endDate); $date = $date->addDay()) {
             RateCalendar::create([
                 'rate_plan_id' => $ratePlan->id,
                 'date' => $date->toDateString(),

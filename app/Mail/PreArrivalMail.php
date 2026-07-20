@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Models\Reservation;
+use App\Support\Guest\ArrivalPack;
 use App\Support\Guest\GuestName;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -33,8 +34,6 @@ class PreArrivalMail extends Mailable
     public function content(): Content
     {
         $r = $this->reservation;
-        $address = $r->property->address ?? [];
-        $directions = trim(implode(', ', array_filter(array_map('strval', $address))));
 
         return new Content(
             view: 'emails.pre-arrival',
@@ -42,7 +41,8 @@ class PreArrivalMail extends Mailable
                 'guestName' => GuestName::display($r->leadGuest),
                 'propertyName' => (string) ($r->property->name ?? 'your stay'),
                 'checkIn' => Carbon::parse($r->check_in)->format('D, j M Y'),
-                'directions' => $directions !== '' ? $directions : null,
+                // SAME source as the guest Arrival Info screen — one directions rule, no drift.
+                'directions' => ArrivalPack::directions($r->property),
                 'accessCode' => $this->accessCode,
             ],
         );

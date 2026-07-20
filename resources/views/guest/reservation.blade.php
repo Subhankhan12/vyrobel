@@ -68,6 +68,8 @@
 
     @if ($trip['stage'] !== 'past' && $trip['stage'] !== 'cancelled')
         <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a class="vy-btn" href="{{ route('guest.checkin', $trip['id']) }}" style="text-decoration:none">Online check-in</a>
+            <a class="vy-btn vy-btn--ghost" href="{{ route('guest.arrival', $trip['id']) }}" style="text-decoration:none">Arrival info</a>
             <a class="vy-btn vy-btn--ghost" href="{{ route('guest.manage', $trip['id']) }}" style="text-decoration:none">Manage booking</a>
         </div>
     @endif

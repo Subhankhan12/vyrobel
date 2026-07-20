@@ -35,6 +35,10 @@ class Unit extends Model
         'owner_id',
         'housekeeping_status',
         'condition_status',
+        'door_code',
+        'wifi_ssid',
+        'wifi_password',
+        'arrival_notes',
         'is_active',
     ];
 
@@ -46,6 +50,10 @@ class Unit extends Model
         return [
             'max_occupancy' => 'integer',
             'is_active' => 'boolean',
+            // Physically-sensitive arrival secrets — encrypted at rest (defence-in-depth beneath the
+            // owned-booking + arrival-window guards that govern who ever sees them). See ArrivalPack.
+            'door_code' => 'encrypted',
+            'wifi_password' => 'encrypted',
         ];
     }
 

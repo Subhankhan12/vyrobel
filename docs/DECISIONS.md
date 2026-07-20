@@ -2436,3 +2436,83 @@ operator/owner auth UNREGRESSED; full suite green (count in `PROJECT-STATE.md`);
 `migrate:fresh --seed` clean; browser + Mailpit verified (claim → Verify Email → set password → home; login →
 home, /app + /owner blocked; reset email token-only + blind-index token table; account self-edit persists).
 **NEXT = Phase 4b** (the Guest Portal core, on this auth foundation).
+
+## 2026-07-21 — PHASE 4b: the GUEST PORTAL CORE (Trips · Reservation · Manage · Check-in · Arrival) — invariants #32–33
+
+Built on the 4a auth foundation, four gated sub-gates, each guest-isolated + mutation-proven, then pushed:
+
+- **SG1 — Guest Trips** (`28aa439`) — the post-login landing (`/guest/trips`): the authed guest's own bookings,
+  upcoming/past, resolved through `Guest::reservations()` (`lead_guest_id`), NEVER a request id. New: the guest
+  portal shell (`<x-guest.shell>`), `App\Support\Guest\GuestTrip::card()` (status via `ReservationStage`, money
+  via `FolioTotals`+`MoneyFormatter` — the same resolvers the operator/owner surfaces use, so the guest can't
+  disagree with them), `ResolvesGuest` trait (the single guest-resolution point), `SetTenantForGuestRequest`
+  (sets the guest's OWN org as tenant context so portal reads resolve — explicitly NOT the isolation; the
+  isolation is resolving through the guest's relations). Isolation mutation-proven: `Reservation::query()` leaks
+  B's booking to A.
+- **SG2 — Guest Reservation detail** (`9cac64b`) — one owned booking: stay, charges/balance (reconciling to the
+  folio via `GuestReservationView`), a timeline that DELIBERATELY omits the operator staff actor (PII restraint).
+  Payment "Settle" stubbed → 4c. Isolation mutation-proven: `Reservation::findOrFail` lets A open B → 200.
+- **SG3 — Guest Manage Booking** (`79151f1`) — **THE OPERATOR-CONFIRMED-REQUEST PATTERN (invariant #32).** A
+  guest changing dates / adding extras / cancelling touches inventory / the folio / money, so EVERY guest action
+  is a `pending` `guest_change_requests` row the operator confirms — the guest NEVER runs the real write and
+  can't self-approve. New: `GuestChangeRequest` + `GuestChangeRequestService` (`confirm`/`decline` are STATUS
+  ONLY; the real date-change / cancel-and-refund / folio charge stays the operator's certified tools, deferred
+  honestly), a REAL read-only date-change quote through the SAME rate path the booking engine uses
+  (`BookingEngineService::priceOver()` made public) that says "no published price yet" rather than fabricate a
+  figure, and the operator confirm/decline screen (`/app/guest-requests`, guest NAME only · #28). Proven: a real
+  cancel injected into the request path fails 3 tests; guest can't self-approve (web guard refuses at `/app`);
+  cross-org operator confirm → 404.
+  - **🔐 A 500 the green suite MASKED, found by opening it in a browser.** The operator confirm/decline
+    route-model-bound `{guestRequest}`, but `SetTenantForWebRequest` is APPENDED to the web group so it runs
+    AFTER `SubstituteBindings` — the scoped `GuestChangeRequest::first()` resolved with NO tenant context and
+    threw `TenantContextMissing` (HTTP 500). The test passed only because the `TenantContext` singleton lingered
+    from `seedScenario` in the same process. Fixed by resolving a STRING id INSIDE the action (the established
+    operator-controller pattern — every other operator controller already does this; RMB of a scoped model is the
+    anti-pattern), scope intact → cross-org still 404s. The test was HARDENED with `TenantContext::forget()` so it
+    exercises the real middleware path — fixing the test's blind spot, not just the bug. The lesson (again):
+    static checks + a green suite cannot see a page that 500s.
+- **SG4 — Guest Check-in + Arrival Info** (`this commit`) — **DOOR-CODE / ARRIVAL ISOLATION + TIMING (invariant
+  #33).**
+  - **Online check-in** is the GUEST's pre-check-in intent — it stamps `reservations.guest_checked_in_at`, a
+    submitted flag DISTINCT from the operator's authoritative check-in (`FrontDeskService::checkIn` →
+    `status='checked_in'`, where the real arrival guards run). The guest confirming their details NEVER moves the
+    booking's status. Proven: injecting `status='checked_in'` into the guest submit fails the test.
+  - **Passport / ID capture is ACCOUNT-GATED KYC** — an honest "coming soon" stub; no image captured, stored, or
+    "verified".
+  - **Arrival Info** — directions (the property's real address, the SAME source as the Phase-3 pre-arrival email
+    via the shared `ArrivalPack::directions()` — one rule, no drift), check-in/out times, and the sensitive
+    access secrets. A SIMPLE arrival store was added on the physical `units` (`door_code` + `wifi_password`
+    **encrypted at rest**, `wifi_ssid`, `arrival_notes`). The door code is guarded TWICE: (1) resolved through
+    the guest's own relation (foreign → 404), (2) released by the arrival WINDOW inside `ArrivalPack`
+    (`LEAD_DAYS=2` before check-in through check-out, and never for a cancelled booking) — a code exposed months
+    early or to the wrong guest is a physical-security leak. When no real code exists it says "collect your key at
+    reception"; before the window it says "closer to arrival" — never a fabricated code. Copy-to-clipboard for
+    code/wifi. Local recommendations honestly "coming soon". Proven: A opening B's arrival → 404 (mutation-proven
+    — bypassing the guest relation lets A see `BBB-SECRET`); forcing `released=true` fails the withhold test.
+  - **Demo:** the pre-arrival window is real (days, not months) yet the demo must SHOW a released pack — so guest1
+    gets a near-term stay (arrives tomorrow, priced + available over just those dates) whose code IS released,
+    ALONGSIDE the far Sep stay whose code is still withheld: both states demoable. Demo door codes/wifi seeded on
+    the units (flagged demo by living in `DemoSeeder`).
+
+**NEW INVARIANTS.**
+- **#32 — Guest-initiated changes are OPERATOR-CONFIRMED REQUESTS.** A guest can propose a date-change / add-on /
+  cancellation, but only as a `pending` request record; the guest never performs the real inventory / folio /
+  refund write and can't self-approve (the confirm route is `/app`, refused to the guest realm). The operator
+  confirms (status only) and then applies the real change with their certified tools. Same shape as the
+  operator/owner boundary: the guest may ask, the operator acts.
+- **#33 — Door-code / arrival-info isolation + timing.** The arrival pack — ESPECIALLY the door code — is shown
+  ONLY for the authed guest's OWN booking (resolved through their own relation, never a request id) AND only
+  within the arrival window (withheld before it, and for cancelled bookings). Unset fields are honest; a code is
+  never fabricated. `door_code`/`wifi_password` are encrypted at rest beneath both guards.
+
+**DEFERRED (honest, not faked):** online payment / Apple Pay / card → **Phase 4c** (Stripe); wallet + receipts →
+4c; guest ID verification (KYC) → account-gated; guest reviews → **Phase 5**; the operator's real execute-on-
+confirm of a guest change request → the operator's existing guarded tools (front desk / reservations / folio);
+local recommendations → later.
+
+**Verification:** Phase-4b guest-portal tests green (Trips/Reservation isolation · Manage 7 · Check-in+Arrival 8);
+full suite **773 / 6738** green on MySQL; PHPStan L5 + Pint clean; `migrate:fresh --seed` clean; **browser-verified
+end-to-end** both portals — guest requests a date change → pending → operator confirms → status-only (booking
+untouched); guest opens the near-term stay → **released door code + copy** + wifi; the far stay → **withheld**
+("closer to arrival"); online check-in → submitted, `status` unchanged. **NEXT = Phase 4c** (guest money +
+engagement: payments/wallet/receipts + reviews).

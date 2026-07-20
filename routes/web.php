@@ -10,6 +10,8 @@ use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\Guest\GuestAccountController;
+use App\Http\Controllers\Guest\GuestArrivalController;
+use App\Http\Controllers\Guest\GuestCheckinController;
 use App\Http\Controllers\Guest\GuestClaimController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
@@ -24,8 +26,8 @@ use App\Http\Controllers\Operator\EmailPreviewController;
 use App\Http\Controllers\Operator\EmailTemplateController;
 use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
-use App\Http\Controllers\Operator\GuestRequestAdminController;
 use App\Http\Controllers\Operator\GuestActionController;
+use App\Http\Controllers\Operator\GuestRequestAdminController;
 use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
@@ -195,6 +197,11 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::post('/reservation/{reservation}/manage/date-change', [GuestManageController::class, 'requestDateChange'])->middleware('throttle:12,1')->name('manage.date-change');
         Route::post('/reservation/{reservation}/manage/add-ons', [GuestManageController::class, 'requestAddOns'])->middleware('throttle:12,1')->name('manage.add-ons');
         Route::post('/reservation/{reservation}/manage/cancel', [GuestManageController::class, 'requestCancellation'])->middleware('throttle:12,1')->name('manage.cancel');
+        // Online check-in (SG4) — the GUEST's pre-check-in intent (stamps guest_checked_in_at); NOT the operator's
+        // authoritative check-in. Arrival info (SG4) — directions/times + the timing-gated door code & wifi.
+        Route::get('/reservation/{reservation}/check-in', [GuestCheckinController::class, 'show'])->name('checkin');
+        Route::post('/reservation/{reservation}/check-in', [GuestCheckinController::class, 'submit'])->middleware('throttle:12,1')->name('checkin.submit');
+        Route::get('/reservation/{reservation}/arrival', [GuestArrivalController::class, 'show'])->name('arrival');
         Route::get('/home', [GuestHomeController::class, 'index'])->name('home');       // legacy → redirects to trips
         Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
         Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');

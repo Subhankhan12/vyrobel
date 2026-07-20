@@ -49,6 +49,7 @@ class Reservation extends Model
         'booked_at',
         'cancelled_at',
         'cancellation_reason',
+        'guest_checked_in_at',
         'notes_guest',
         'notes_internal',
     ];
@@ -68,6 +69,7 @@ class Reservation extends Model
             'deposit' => MoneyCast::class.':deposit_minor,currency',
             'booked_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'guest_checked_in_at' => 'datetime',
         ];
     }
 

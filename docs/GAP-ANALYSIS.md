@@ -137,16 +137,23 @@ Account (self-only, guest-isolation mutation-proven) + safe removal. Realm separ
 booking-tied + no-enumeration mutation-proven; operator/owner auth unregressed. Screens: guest login · claim ·
 verify/set-password · forgot/reset · account (+ a minimal home). See `docs/DECISIONS.md` 2026-07-20 (Phase 4a).
 
-### ⬜ Remaining (~24) — the PORTAL on top of the 4a foundation (Phase 4b/4c)
-Account (detail) · Trips · Booking/Reservation · Manage Booking · Online Check-in + Arrival Info · Payments + Folio
-Receipt · Wallet/Credits · Guest Messages · Wishlist/Waitlist/Add-ons/Email-prefs/Help · Guest Review. Each sits on
-the guest guard + guest isolation (resolve from the guard, never a request id).
+### ✅ GUEST PORTAL CORE — BUILT (Phase 4b, 2026-07-21, 4 gated sub-gates `28aa439` → `9cac64b` → `79151f1` → HEAD)
+**Trips · Reservation detail · Manage Booking · Online Check-in · Arrival Info** — the guest self-service core, each
+on the guest guard + guest isolation (resolve from the guard, never a request id; foreign → 404, mutation-proven
+per screen). Manage Booking = the **operator-confirmed-request** pattern (invariant #32): the guest proposes a
+date-change/add-on/cancellation as a `pending` `guest_change_requests` row, the operator confirms; the guest never
+does the real inventory/folio/refund write and can't self-approve. Online Check-in = a guest pre-check-in intent
+(`guest_checked_in_at`), NOT the operator's authoritative check-in. Arrival Info = directions/times + door code +
+wifi, isolated to the owned booking AND released only within the arrival window (invariant #33). See
+`docs/DECISIONS.md` 2026-07-21 (Phase 4b).
 
-**G1 — Guest auth foundation (the gate for everything):** Guest Login · Signup · Verify Email — a guest guard,
-registration tied to bookings/email, verification. **(L — the foundation)**
+### ⬜ Remaining (~18) — Phase 4c (guest money + engagement) on the 4b core
+Payments + Folio Receipt · Wallet/Credits · Refund/Credit-Note/VAT PDFs · Guest Messages · Wishlist/Waitlist/
+Add-ons/Email-prefs/Help · Guest Review. Each sits on the guest guard + guest isolation (as the 4b core does).
 
-**G2 — Core self-service:** Account · Trips · Booking · Reservation · **Manage Booking** (date-change requests,
-add-ons→folio, wallet credit, cancellation) · Online Check-in · Arrival Info (+PDF). **(L; Manage Booking alone M–L)**
+**G1 — Guest auth foundation (the gate for everything):** ✅ BUILT (Phase 4a). **G2 — Core self-service:** ✅ BUILT
+(Phase 4b — Trips · Reservation · Manage Booking · Online Check-in · Arrival Info). The Manage-Booking real EXECUTE
+(the operator applying a confirmed request) stays the operator's certified tools; guest-facing PDFs → 4c.
 
 **G3 — Money-facing:** Payments · Folio Receipt (+PDF) · Credits (wallet) · Refund Receipt PDF · Credit Note PDF ·
 Statement of Account PDF · VAT Invoice PDF — folio views + a WALLET/credits ledger + more PdfService docs. **(M–L)**
@@ -294,12 +301,21 @@ GUEST ISOLATION + BOOKING-TIED + NO-ENUMERATION all mutation-proven; the existin
 claimed demo guest (demo.traveller@vyrobel-demo.test / password) is seeded. Detail: `docs/DECISIONS.md` 2026-07-20
 (Phase 4a).
 
-**PHASE 4b — the GUEST PORTAL core (on the 4a foundation)** *(⬅ NEXT)*
-Account (detail) + Trips + Booking/Reservation → Manage Booking (date-change, add-ons→folio, cancellation) →
-Online Check-in + Arrival Info (+PDF) → Payments + Folio Receipt (+ money PDFs) → the Wallet/credits ledger + Guest
-Credits → Guest Messages (guest side of the inbox) → Wishlist/Waitlist/Add-ons/Email-prefs/Help → Guest Review
-(with Phase 5). Every screen sits on 4a's guest guard + guest isolation (resolve from the guard, never a request id).
-Deferred from 4a: guest email-change (re-verify flow); guest ID verification (KYC, account-gated).
+**PHASE 4b — the GUEST PORTAL core (on the 4a foundation)** *(✅ DONE — 2026-07-21, 4 gated sub-gates `28aa439` →
+`9cac64b` → `79151f1` → HEAD)*
+Trips → Reservation detail → **Manage Booking** (date-change/add-on/cancellation as **operator-confirmed requests**,
+invariant #32 — the guest proposes, the operator confirms; the guest never does the real write / can't self-approve)
+→ **Online Check-in** (a guest pre-check-in intent, NOT the operator's authoritative check-in; passport/KYC deferred
+honestly) → **Arrival Info** (directions/times + door code + wifi, isolated to the owned booking AND released only
+within the arrival window — invariant #33, never a fabricated code). Every screen guest-isolated + mutation-proven.
+A 500 the green suite masked (operator confirm route-model-bound a scoped model → resolved pre-tenant) was found in a
+browser + fixed with the string-id pattern, test hardened. Detail: `docs/DECISIONS.md` 2026-07-21 (Phase 4b).
+
+**PHASE 4c — GUEST money + engagement (on the 4b core)** *(⬅ NEXT)*
+Payments + Folio Receipt (+ money PDFs) → the Wallet/credits ledger + Guest Credits → Guest Messages (guest side of
+the inbox) → Wishlist/Waitlist/Add-ons/Email-prefs/Help → Guest Review (with Phase 5). Every screen on 4a's guest
+guard + guest isolation. Deferred honestly: online payment/Apple Pay/card (Stripe); the operator's real
+execute-on-confirm of a guest change request (their certified tools); guest ID verification (KYC, account-gated).
 
 **PHASE 5 — The REVIEWS module, all three surfaces (~2 weeks)**
 Guest Review → moderation → Operator Reviews (respond) → Owner Reviews (read).
