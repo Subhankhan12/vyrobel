@@ -9,7 +9,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **THE ONE-PARAGRAPH ANSWER.** The product is **COMPLETE, DEEP, DEMOABLE end-to-end, and safe for a real owner
 > login**: a certified multi-tenant backend (PMS + channel manager + payments + owner accounting + maintenance
 > + unified inbox), a **fully hardened auth chapter** (login · invites · password reset · change-password ·
-> **2FA/TOTP**), and **~44 styled, browser-verified screens** across the owner portal, the operator back office
+> **2FA/TOTP**), and **~53 styled, browser-verified screens** across the owner portal, the operator back office
 > and the public booking storefront — all on real scoped data under the honesty rule. **Five security/integrity
 > holes have been found and closed this session, none of them by a failing test:** the `/app` authorization leak
 > (**#26**), the cumulative over-refund (**#27**), the missing GDPR-erasure trigger (**#28**), the unguarded
@@ -28,7 +28,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **On `main`, working tree clean, local == origin** (HEAD `11288d6` at the time of writing this capstone —
   the doc commit that carries these words advances HEAD by one; see the HEAD convention below). Only the
   untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
-  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 660 tests / 6278 assertions, all green** on
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 697 tests / 6468 assertions, all green** on
   genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
   (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
   product bug. See the register). The suite is a trustworthy gate.
@@ -898,7 +898,7 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**660 tests / 6278 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**697 tests / 6468 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
@@ -1158,7 +1158,7 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); Phases 0–1 DONE; NEXT = Phase 2 in `docs/GAP-ANALYSIS.md`
+## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); Phases 0–2 DONE; NEXT = Phase 3 in `docs/GAP-ANALYSIS.md`
 
 > **THE SIGNAL CAME. The "don't build blind" framing below is SUPERSEDED.** A warm operator contact (Fatima)
 > **liked the demo AND the prototype**, so the requirement is now concrete: **the real product must work the way
@@ -1166,7 +1166,7 @@ plain GET links (e.g. `?month=`).
 > it; every gap gets BUILT, not faked. The full phased map — **audit-verified against real code** (5-agent pass,
 > 2026-07-20; 50 claims → 33 confirmed / 8 incorrect / 8 nuanced) — is **`docs/GAP-ANALYSIS.md`**.
 >
-> **The honest position:** **~46 built screens/artifacts · ~78 designed-but-unbuilt.** What remains splits into
+> **The honest position:** **~55 built screens/artifacts · ~70 designed-but-unbuilt.** What remains splits into
 > ① subsystems/epics (guest auth, notifications, reviews/wallet, tenant-provisioning, Owner Rates,
 > Channels-as-drawn, Portfolio) · ② the ~24-screen Guest Portal (on guest auth) · ③ account-gated (inbox
 > channels, Channex, Stripe Connect/cards, prod email). **⚠️ AUDIT CORRECTION:** **multi-property is NOT a schema
@@ -1194,11 +1194,25 @@ plain GET links (e.g. `?month=`).
 > out of Phase 1 (logged, not faked): the **blind-index** contact-search decision, **notification dispatch**
 > (→ Phase 3), and PDF/Excel **exports** of the cost report.
 >
-> **NEXT = PHASE 2** — complete the owner portal's buildable set: Owner Bookings + Booking Detail · Block Calendar
-> (over the existing `blockInventory`) · Owner Rates (owner-scope schema + policy first) · Tax Center (+ Annual Tax
-> PDF) · Payout Method (data capture; live rail waits on Stripe Connect) · Add Unit (request flow) · Help. Then
-> Phase 3 finishes the operator+owner apps (**make Fatima operational soonest**) before the large Guest Portal
-> phase (4). See `docs/GAP-ANALYSIS.md` for the full 0–8 plan + the corrected per-front inventory.
+> **✅ PHASE 2 (complete the owner portal, buildable set) COMPLETE (2026-07-20)** — six gated sub-gates
+> (`0dfc560` Bookings + Detail · `598cc9b` Block Calendar · `58f0b49` Owner Rates · `5119548` Tax Center + PDF ·
+> `b95228f` Payout Method · HEAD Add Unit + Help). Eight owner screens + the operator Unit Requests screen + the
+> Annual Tax PDF (owner 15 → 23). **Owner isolation is the phase's #1 concern and every gate proves it a different
+> way:** Bookings 404 a cross-owner `{booking}` (reservations have no owner_id → scoped THROUGH the units); Block
+> Calendar's write guard is mutation-proven for block AND release (and it un-latented `blockInventory` to enforce
+> `assertUnitFree`); Owner Rates — the highest-risk MONEY write — scopes by **exclusive ownership** (a room type
+> is editable only if EVERY unit is the owner's), mutation-proven both ways, DIRECT edit with the no-approval
+> divergence recorded; Tax Center's payout HOLD is genuine (refused at the money path, released on tax-ID save —
+> mutation-proven), tax_id encrypted; Payout Method's IBAN is encrypted + masked, self-only across read/set-default/
+> remove; Add Unit is an owner REQUEST (not direct billable-inventory creation), operator-visible. New shared rule
+> `OwnerLedgerAttribution` (the ONE "Net to you"); + `OwnerBlockService`, `OwnerRateService`, `OwnerTaxService`,
+> `PayoutMethod`/`Iban`, `UnitRequest`. Deferred (logged, not faked): Stripe Connect payout EXECUTION
+> (account-gated), owner-rate/unit approval workflows, the operator's unit-creation-from-a-request (their action).
+>
+> **NEXT = PHASE 3** — the NOTIFICATION subsystem + all transactional emails (events → dispatcher → in-app feeds +
+> preferences → the ~9 email templates + triggers; live sending flips on when the provider account exists). This
+> completes the operator+owner apps (**make Fatima operational soonest**) before the large Guest Portal phase (4).
+> See `docs/GAP-ANALYSIS.md` for the full 0–8 plan + the corrected per-front inventory.
 
 **(historical) The original Wave-4 lead-in:**
 

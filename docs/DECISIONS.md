@@ -2244,3 +2244,58 @@ Recorded at the gate (the full Phase-2 consolidation lands at SG6). Two decision
   certified `RateAndRestrictionService` (`setRate`/`setRestriction`) — the SAME path the operator screen drives;
   `RoomType::primaryRatePlan()` was extracted so both screens agree on which plan a room type's rate lives on.
   Integer money via `MoneyInput` (175.57 → 17557, string arithmetic, no float).
+
+## 2026-07-20 — PHASE 2 (complete the Owner portal, buildable set) COMPLETE — six gated sub-gates
+
+The third phase of `docs/GAP-ANALYSIS.md`, done as six gated sub-gates (audit-first · per-gate commit ·
+mutation-proven guards · browser-verified · honesty rule · integer money · owner isolation fail-closed). Eight
+owner screens + one operator screen (Unit Requests) + the Annual Tax PDF; the owner portal's buildable-set is now
+complete (owner 15 → 23 built). **All six commits pushed together at this final gate.** The through-line: **owner
+isolation is the #1 concern of the whole phase, and every gate proves it a different way.**
+
+- **SG1 — Owner Bookings + Booking Detail (`0dfc560`).** Owner-scoped THROUGH the units: reservations carry no
+  `owner_id` (owner A + owner B share the operator's ORG), so the set is derived from the owner-scoped
+  `OwnerPortalService::units()`, and Booking Detail 404s a `{booking}` id unless it touches an owned unit —
+  mutation-proven (disable the guard → owner B's booking leaks at 200). "Net to you" flows through the ONE new
+  shared `App\Support\Owner\OwnerLedgerAttribution` rule (net-per-currency + gross→net breakdown), and
+  `OwnerUnitDetail` was refactored onto it so Unit Detail / Bookings / Booking Detail / the statement can't drift.
+  Guest NAME only (invariant #28); real source enum (OTA, never a brand); stage via the shared `ReservationStage`.
+- **SG2 — Owner Block Calendar (`598cc9b`).** The owner holds/releases dates on their OWN units via the certified
+  `AssignmentService` (single inventory write path), never a parallel system. The owner-scope WRITE guard
+  (`OwnerBlockService::ownedUnitOrFail`, resolved from owned units, never a request id) is mutation-proven for
+  BOTH block and release. ⚠️ We ALSO closed a latent gap: `blockInventory` now calls `assertUnitFree` for
+  unit-level blocks — the overlap enforcement the migration + model docblocks always promised but never actually
+  ran — safely (existing block + the 20 concurrency tests stay green). `reason='owner'` (real enum) + the granular
+  reason in `notes`; unblock reuses the already-wired `inventory_block.released` event; never touches `sold`.
+- **SG3 — Owner Rates (`58f0b49`) — the phase's highest-risk gate: an owner-scoped MONEY write.** FULL direct
+  edit via the certified `setRate`/`setRestriction` (same path as the operator; `RoomType::primaryRatePlan()`
+  extracted so both agree). ⚠️ Because rates are per-room-type and a room type can hold units of different owners,
+  the guard is **exclusive ownership**: `editableRoomTypes()` keeps only room types where EVERY unit is the
+  owner's (drops any with a foreign unit) — resolved through ownership, never a request id. Mutation-proven BOTH
+  ways (cross-owner write AND the subtle shared-with-operator case both 403 without it). **DIRECT edit, NO
+  approval — a conscious divergence** from the design's approval/guardrails model, recorded (the design's
+  Proposed-changes/Guardrails/comp-set/tiers have no schema and are NOT faked as "pending"). Integer money.
+- **SG4 — Tax Center + Annual Tax PDF (`5119548`).** Self-only (owner by `user_id`), `tax_id`/`vat_number`
+  ENCRYPTED at rest (asserted ciphertext; audit records fields not values, #28). The payout HOLD is GENUINE, not
+  a label: `OwnerPayoutService::pay()` throws `PayoutHeldException` before the rail send for a tax-incomplete
+  owner and releases on save — mutation-proven (disabling it lets a tax-incomplete owner be paid). No regression:
+  a `tax_id` default on `OwnerFactory` keeps factory owners tax-complete. Real annual aggregation reconciling by
+  construction (a statement's buckets sum to its net); withholding omitted (no engine), not faked.
+- **SG5 — Payout Method (`b95228f`).** New `payout_methods` (IBAN ENCRYPTED + never rendered; masked ···· last4
+  from cleartext `iban_last4`/`iban_country` so a list never decrypts the whole number). Self-only mutation-proven
+  across read / set-default / remove (owner-scoped resolve → cross-owner 404). Real ISO 7064 mod-97 checksum +
+  country/last4 from the string; the bank NAME is NOT fabricated (no registry — the owner labels it). Live Stripe
+  Connect rail deferred honestly — no fake Verified / micro-deposit / schedule / next-payout-date.
+- **SG6 — Add a Unit (request flow) + Help (this gate).** ⚠️ POLICY (stated): an owner does NOT create billable
+  inventory directly — Add Unit files a `unit_requests` record (owner-scoped, pending, self-only) the operator
+  reviews; a new operator `/app/unit-requests` screen (tenant-scoped, gated `units.view`) is the visibility side;
+  the operator's actual unit-creation stays their own manual action (not built). `requested_kind` is the REAL
+  `units.unit_kind` enum (no invented types). Help is a STATIC FAQ linking to the real owner screens + the ONE
+  real contact route ("Message your manager" → the Wave-3 owner↔operator inbox) — the design's AI Q&A, support
+  TICKET queue, article counts and system-status board are unbuilt subsystems and are NOT rendered (no faked
+  tickets/chat/status).
+
+**Verification:** full suite **697 tests / 6468 assertions** green on MySQL (Phase 2 added +41); PHPStan L5 + Pint
+clean; `migrate:fresh --seed` clean (4 new migrations: group-booking fields were Phase 1; here tax-profile fields,
+payout_methods, unit_requests); every screen browser-verified on the demo owner/operator. **NEXT = Phase 3** (the
+notification subsystem + transactional emails).

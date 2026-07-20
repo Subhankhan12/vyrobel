@@ -22,15 +22,17 @@
 
 ## 0. THE HONEST HEADLINE (corrected)
 
-- **Built & working: ~46 screens/artifacts** — **27** operator screens · 15 owner-portal screens · 3 public-booking
-  screens · ~5 auth screens (login/forgot/reset/accept-invite/2FA-challenge) · 3 PDFs (statement/remittance/booking-
-  summary; owner folio PDF too) · 2 Mailables. The operational spine: operator daily ops, the owner-accounting
-  wedge, public booking, and a hardened auth chapter (login · invites · reset · change-password · **2FA/TOTP**).
-  **✅ PHASE 1 COMPLETE (2026-07-20)** added the 6 operator screens below (Search · Group Booking · Maintenance
-  Costs · Maintenance Settings · Roles · Profile) — operator 21 → 27.
-- **Not built: ~78 designed screens** across four fronts: the rest of the Operator app (~12), the Owner portal
-  long-tail (~16), the **entire Guest Portal (~24 — the largest single gap)**, the SaaS platform layer (~3), and
-  ~9 transactional email templates.
+- **Built & working: ~55 screens/artifacts** — **28** operator screens · **23** owner-portal screens · 3 public-booking
+  screens · ~5 auth screens (login/forgot/reset/accept-invite/2FA-challenge) · 4 PDFs (statement/remittance/booking-
+  summary/annual-tax; owner folio PDF too) · 2 Mailables. The operational spine: operator daily ops, the
+  owner-accounting wedge + the **full owner portal buildable set**, public booking, and a hardened auth chapter.
+  **✅ PHASE 1 COMPLETE (2026-07-20)** added 6 operator screens (Search · Group Booking · Maintenance Costs ·
+  Maintenance Settings · Roles · Profile) — operator 21 → 27. **✅ PHASE 2 COMPLETE (2026-07-20)** added 8 owner
+  screens (Bookings · Booking Detail · Block Calendar · Rates · Tax Center · Payout Method · Add a Unit · Help) +
+  the operator Unit Requests screen + the Annual Tax PDF — owner 15 → 23, operator 27 → 28.
+- **Not built: ~70 designed screens** across four fronts: the rest of the Operator app (~12), the Owner portal
+  long-tail (~8, all deferred subsystems), the **entire Guest Portal (~24 — the largest single gap)**, the SaaS
+  platform layer (~3), and ~9 transactional email templates.
 - **Three true greenfield subsystems the prototype assumes** (verified absent — zero backing code/schema):
   **GUEST AUTH** (`Guest extends Model`, not `Authenticatable`; no guest guard/password/route), **NOTIFICATIONS**
   (no table, no `app/Notifications/`, zero `->notify()` calls), and **REVIEWS + WALLET/CREDITS** (no tables/models).
@@ -54,9 +56,11 @@ quality bar, plus the account approvals in parallel.
 
 ---
 
-## 1. OPERATOR APP — 40 designed · 27 built · ~12 remaining
+## 1. OPERATOR APP — 40 designed · 28 built · ~12 remaining
+*(+1 no-design-file screen: **Unit Requests** `/app/unit-requests` — the operator-visibility side of the owner
+Add-Unit request, added in Phase 2 · SG6.)*
 
-### ✅ Built & working (27 routed screens)
+### ✅ Built & working (28 routed screens)
 Dashboard · Calendar/Rack · Front Desk · Housekeeping · Maintenance board · Work Order · Inbox · Conversation ·
 Reservations List · New Reservation · Reservation Detail (Cancelled/No-show render here as terminal states) · Refund ·
 Guests · Guest Profile · Rates · **Units** (no design file) · Owners · Owner Detail · Payout Run · Settings (with
@@ -89,39 +93,34 @@ Maintenance Costs · Maintenance Settings · Roles · Profile** (the six ✅ Pha
 
 ---
 
-## 2. OWNER PORTAL — 31 designed · 15 built · 16 remaining
+## 2. OWNER PORTAL — 31 designed · 23 built · ~8 remaining
 
-### ✅ Built & working (15 routed screens)
+### ✅ Built & working (23 routed screens)
 Dashboard · My Units · Statement (+PDF) · Balance · Expenses · Payouts · Archive · Unit Detail · Documents ·
 Agreement · Messages (list + thread) · Settings (carries change-password + 2FA + self-profile write) · Remittance
-Advice PDF · Booking Summary PDF. *(Owner "Security" is NOT a separate built screen — its capability lives on
-Settings; the accept-invite set-password page and the Invite Email are Auth-group artifacts, real but counted there.)*
+Advice PDF · Booking Summary PDF · **Bookings · Booking Detail · Block Calendar · Rates · Tax Center (+ Annual Tax
+PDF) · Payout Method · Add a Unit · Help** (the eight ✅ Phase 2 screens). *(Owner "Security" is NOT a separate
+built screen — its capability lives on Settings; the accept-invite set-password page and the Invite Email are
+Auth-group artifacts, real but counted there.)*
 
-### ⬜ Remaining (16), grouped
-
-**Group W1 — buildable over existing backend (build first):**
-| Page | Needs | Size |
+### ✅ SHIPPED in Phase 2 (2026-07-20, 6 gated sub-gates) — the owner portal's buildable set
+| Page | Shipped as | Sub-gate |
 |---|---|---|
-| Owner Bookings + Booking Detail | Owner-scoped views over existing reservations/attribution (shared resolvers exist) | M |
-| Owner Block Calendar | Owner self-blocking their OWN units via the EXISTING `blockInventory` path (owner-scoped + policy) | M |
-| Owner Help | Static/lightly-dynamic help surface | S |
+| Owner Bookings + Booking Detail | Owner-scoped THROUGH the units (reservations have no owner_id; a `{booking}` id 404s unless it touches an owned unit — mutation-proven). "Net to you" via the ONE shared `OwnerLedgerAttribution` rule; guest NAME only | SG1 `0dfc560` |
+| Owner Block Calendar | Over the EXISTING `blockInventory` (extended so it enforces `assertUnitFree` for unit-level blocks — the enforcement its docblock always promised); owner-scope write guard mutation-proven; unblock via the wired `inventory_block.released` | SG2 `598cc9b` |
+| Owner Rates | FULL owner edit via the certified `setRate`/`setRestriction`. Owner-scope on a MONEY write = **exclusive-ownership** (`editableRoomTypes()` drops any room type with a foreign unit) — mutation-proven both ways; direct-edit-no-approval divergence recorded | SG3 `58f0b49` |
+| Owner Tax Center + Annual Tax PDF | Encrypted `tax_id`; the payout HOLD is genuine (`OwnerPayoutService::pay()` refuses a tax-incomplete owner, releases on save — mutation-proven); real annual aggregation reconciling to the cent; self-only PDF | SG4 `5119548` |
+| Owner Payout Method | New `payout_methods` (IBAN ENCRYPTED, masked ···· last4 from cleartext columns); self-only mutation-proven across read/set-default/remove; live Stripe Connect rail deferred honestly; real ISO mod-97 IBAN checksum | SG5 `b95228f` |
+| Owner Add a Unit + Help | Add Unit is an owner REQUEST (`unit_requests`, pending) the operator reviews — NOT direct creation of billable inventory (policy: state the choice) + a new operator `/app/unit-requests` visibility screen; Help is a STATIC FAQ + the real Messages route (no faked tickets) | SG6 (this gate) |
 
-**Group W2 — needs schema/policy decisions:**
-| Page | Needs | Size |
-|---|---|---|
-| Owner Rates | ⚠️ Rate tables have **NO owner scoping** (`rate_plans`/`rate_calendar`/`restrictions` — verified, no `owner_id`; a rate keys on room-type/rate-plan, not unit). As drawn it leaks every owner's rates. Needs owner-scope schema + the "may owners edit rates?" policy (WAVE4-INVENTORY T3) | M |
-| Owner Add Unit | Owner-initiated unit intake — likely a REQUEST to the operator, not direct creation (policy decision) | M |
-| Owner Tax Center + Annual Tax Summary PDF | Tax-ID schema + held-payout logic + annual aggregation | M |
-| Owner Payout Method | ⚠️ **No bank/IBAN column exists anywhere** (owners carry `payout_currency` only; payouts carry free-text `external_ref`). Buildable as data-capture now; live payouts = account-gated (Stripe Connect) | M + gated |
-| Owner Team | Owner sub-tenancy (an owner invites their own users) — a permission subsystem | L |
-| Owner Onboarding wizard (Steps 1–3) | No onboarding wizard exists (Step-1 profile write already ships on Settings). Steps 2–3 need Payout Method + notification prefs | ties to others |
-
-**Group W3 — rides shared subsystems (build once, surface twice):**
-| Page | Shared subsystem |
+### ⬜ Remaining (~8) — deferred subsystems (each rides a shared foundation)
+| Page | Shared subsystem / reason |
 |---|---|
 | Owner Reports + Insights | ANALYTICS (owner-scoped views) |
 | Owner Reviews | REVIEWS (owner-scoped) |
-| Owner Notifications | NOTIFICATIONS (owner feed + prefs) |
+| Owner Notifications | NOTIFICATIONS (owner feed + prefs) — Phase 3 |
+| Owner Team | Owner sub-tenancy (an owner invites their own users) — a permission subsystem (L) |
+| Owner Onboarding wizard (Steps 1–3) | No onboarding wizard exists (Step-1 profile write ships on Settings; Steps 2–3 = Payout Method [now built] + notification prefs) |
 
 ---
 
@@ -252,12 +251,18 @@ services (`GroupBookingService`, `SearchService`, `RoleAssignmentService`, `Main
 **blind-index** contact-search decision, **notification dispatch** (→ Phase 3), and PDF/Excel **exports** of the
 cost report.
 
-**PHASE 2 — Complete the Owner portal, buildable set (~2 weeks)** *(⬅ NEXT)*
-Owner Bookings + Booking Detail → Block Calendar (over `blockInventory`) → Owner Rates (schema + policy first) →
-Tax Center (+ Annual Tax PDF) → Payout Method (data capture; live rail waits on Stripe Connect) → Add Unit
-(request flow) → Help.
+**PHASE 2 — Complete the Owner portal, buildable set** *(✅ DONE — 2026-07-20, 6 gated sub-gates `0dfc560` →
+`598cc9b` → `58f0b49` → `5119548` → `b95228f` → this gate)*
+Owner Bookings + Booking Detail (owner-scoped through units) → Block Calendar (over `blockInventory`, now
+enforcing `assertUnitFree`) → Owner Rates (FULL owner edit; exclusive-ownership scoping; direct-edit-no-approval
+divergence recorded) → Tax Center (+ Annual Tax PDF; genuine held-payout) → Payout Method (encrypted/masked IBAN;
+live Stripe Connect rail deferred) → Add a Unit (owner REQUEST flow + operator Unit Requests visibility) → Help
+(static). New: `OwnerLedgerAttribution`, `OwnerBlockService`, `OwnerRateService`/`RoomType::primaryRatePlan()`,
+`OwnerTaxService` + `PayoutHeldException`, `PayoutMethod`/`Iban`/`OwnerPayoutMethodService`, `UnitRequest`/
+`OwnerUnitRequestService`. **Deferred (logged, not faked):** Stripe Connect payout EXECUTION (account-gated);
+any operator-approval workflow for owner rates; the operator's unit-CREATION from a request (their manual action).
 
-**PHASE 3 — The NOTIFICATION subsystem + all transactional emails (~2–3 weeks)**
+**PHASE 3 — The NOTIFICATION subsystem + all transactional emails (~2–3 weeks)** *(⬅ NEXT)*
 Events → dispatcher → in-app feeds (Operator + Owner Notifications) + preferences → the ~9 email templates +
 triggers (live sending flips on when the provider account exists) → Email Templates + Editor screens.
 

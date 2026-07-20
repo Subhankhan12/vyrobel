@@ -34,6 +34,7 @@ use App\Http\Controllers\Owner\OwnerRateController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\Owner\OwnerTaxController;
+use App\Http\Controllers\Owner\OwnerUnitRequestController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
@@ -60,10 +61,12 @@ use App\Livewire\Operator\OperatorRoles;
 use App\Livewire\Operator\OperatorSearch;
 use App\Livewire\Operator\OperatorSecurity;
 use App\Livewire\Operator\OperatorSettings;
+use App\Livewire\Operator\OperatorUnitRequests;
 use App\Livewire\Operator\PayoutRun;
 use App\Livewire\Operator\RatesGrid;
 use App\Livewire\Operator\ReservationRefund;
 use App\Livewire\Operator\ReservationsList;
+use App\Livewire\Owner\OwnerAddUnit;
 use App\Livewire\Owner\OwnerAgreement;
 use App\Livewire\Owner\OwnerArchive;
 use App\Livewire\Owner\OwnerBalance;
@@ -73,6 +76,7 @@ use App\Livewire\Owner\OwnerBookings;
 use App\Livewire\Owner\OwnerDashboard;
 use App\Livewire\Owner\OwnerDocuments;
 use App\Livewire\Owner\OwnerExpenses;
+use App\Livewire\Owner\OwnerHelp;
 use App\Livewire\Owner\OwnerMessages;
 use App\Livewire\Owner\OwnerMessageThread;
 use App\Livewire\Owner\OwnerMyUnits;
@@ -208,6 +212,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // deliberately reads the whole owner relationship the operator manages, within their own org
     // (Owner is BelongsToOrganization → a cross-org id 404s).
     Route::get('/owners/{owner}', OperatorOwnerDetail::class)->name('owners.show');
+    // Phase 2 · Sub-gate 6 — the operator sees owners' add-unit REQUESTS here (tenant-scoped; owner scope is
+    // inactive off-portal). Read-only: creating the real unit stays the operator's own action. Gated units.view.
+    Route::get('/unit-requests', OperatorUnitRequests::class)->middleware('can:units.view')->name('unit-requests');
 
     // ROLES & ACCESS (Phase 1 · Sub-gate 3) — VIEW the fixed catalog (roles + read-only permissions + members)
     // and ASSIGN a role to a member. Gated on `users.manage` (only an admin manages roles — the same gate that
@@ -470,6 +477,12 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::post('/payout-method', [OwnerPayoutMethodController::class, 'store'])->name('payout-method.add');
     Route::post('/payout-method/{method}/default', [OwnerPayoutMethodController::class, 'setDefault'])->name('payout-method.default');
     Route::delete('/payout-method/{method}', [OwnerPayoutMethodController::class, 'destroy'])->name('payout-method.remove');
+    // Phase 2 · Sub-gate 6 — Add a unit is an owner REQUEST (self-only, owner-scoped), NOT direct creation: a new
+    // unit changes the operator's billable inventory, so the operator reviews the request and creates the real
+    // unit as their own action. Plus a STATIC Help surface (FAQ + the real "Message your manager" inbox route).
+    Route::get('/add-unit', OwnerAddUnit::class)->name('add-unit');
+    Route::post('/add-unit', [OwnerUnitRequestController::class, 'store'])->name('add-unit.submit');
+    Route::get('/help', OwnerHelp::class)->name('help');
     // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
     // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
     Route::get('/balance', OwnerBalance::class)->name('balance');
