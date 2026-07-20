@@ -21,7 +21,7 @@
             ['overview', 'Overview', 'M3 10.5 12 3l9 7.5M5 9.5V21h5v-6h4v6h5V9.5', route('owner.dashboard')],
             ['units', 'My units', 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', route('owner.units')],
             ['bookings', 'Bookings', 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', route('owner.bookings')],
-            ['calendar', 'Calendar', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', null],
+            ['calendar', 'Calendar', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', route('owner.calendar')],
         ]],
         ['EARNINGS', [
             ['statements', 'Statements', 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', route('owner.archive')],

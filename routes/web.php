@@ -25,6 +25,7 @@ use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Http\Controllers\Operator\RoleAssignmentController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\SettingsActionController;
+use App\Http\Controllers\Owner\OwnerBlockController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerProfileController;
@@ -63,6 +64,7 @@ use App\Livewire\Operator\ReservationsList;
 use App\Livewire\Owner\OwnerAgreement;
 use App\Livewire\Owner\OwnerArchive;
 use App\Livewire\Owner\OwnerBalance;
+use App\Livewire\Owner\OwnerBlockCalendar;
 use App\Livewire\Owner\OwnerBookingDetail;
 use App\Livewire\Owner\OwnerBookings;
 use App\Livewire\Owner\OwnerDashboard;
@@ -434,6 +436,13 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // guest NAME only (no contact — invariant #28). Filters ride GET so the owner middleware re-runs.
     Route::get('/bookings', OwnerBookings::class)->name('bookings');
     Route::get('/bookings/{booking}', OwnerBookingDetail::class)->name('bookings.show');
+    // Phase 2 · Sub-gate 2 — the owner Block Calendar. Reads are owner-scoped through the unit; the WRITES go
+    // through OwnerBlockService → the certified AssignmentService (single inventory write path). The unit is
+    // resolved from the owner's OWN units (never the request id) — a foreign unit id is 403 — and blockInventory
+    // enforces non-overlap (a booked/blocked date is rejected by the real assertUnitFree rule).
+    Route::get('/calendar', OwnerBlockCalendar::class)->name('calendar');
+    Route::post('/calendar/block', [OwnerBlockController::class, 'store'])->name('calendar.block');
+    Route::delete('/calendar/blocks/{block}', [OwnerBlockController::class, 'destroy'])->name('calendar.release');
     // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
     // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
     Route::get('/balance', OwnerBalance::class)->name('balance');

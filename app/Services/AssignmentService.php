@@ -441,11 +441,26 @@ class AssignmentService
      * Create an inventory block through the single write path, then trigger an availability
      * recompute (via the domain event → listener). This never mutates `sold`.
      *
+     * ⚠️ A UNIT-level block (unit_id set) is guarded by {@see assertUnitFree()} INSIDE the transaction —
+     * the enforcement the migration + model docblocks always promised ("must not overlap an active
+     * reservation_unit on the same unit; enforcement lives in AssignmentService"). It throws
+     * {@see UnitUnavailableException} on an overlapping reservation (`occupied`) or an existing block
+     * (`blocked`), and its row locks are held to commit, so a concurrent booking/block can't slip in.
+     * Room-type-level blocks (unit_id null) have no specific unit to check and are unchanged.
+     *
      * @param  array<string, mixed>  $attributes
      */
     public function blockInventory(array $attributes): InventoryBlock
     {
-        $block = DB::transaction(fn (): InventoryBlock => InventoryBlock::create($attributes));
+        $unitId = $attributes['unit_id'] ?? null;
+
+        $block = DB::transaction(function () use ($attributes, $unitId): InventoryBlock {
+            if ($unitId !== null) {
+                $this->assertUnitFree((string) $unitId, $attributes['start_date'], $attributes['end_date'], null);
+            }
+
+            return InventoryBlock::create($attributes);
+        });
 
         $roomTypeId = $block->room_type_id ?? $block->unit?->room_type_id;
 
@@ -457,6 +472,28 @@ class AssignmentService
         $this->audit->record('inventory_block.created', $block, null, ['reason' => $block->reason]);
 
         return $block;
+    }
+
+    /**
+     * Release (soft-delete) an inventory block through the single write path, then recompute availability
+     * (via the `inventory_block.released` event → the recompute + ARI-push listeners, already wired). The
+     * counterpart to {@see blockInventory()}; like it, never mutates `sold`. The event payload carries the
+     * room type + range so the recompute — which runs AFTER the block is gone — restores the freed nights.
+     */
+    public function releaseInventoryBlock(InventoryBlock $block): void
+    {
+        $roomTypeId = $block->room_type_id ?? $block->unit?->room_type_id;
+        $start = CarbonImmutable::parse($block->start_date)->toDateString();
+        $end = CarbonImmutable::parse($block->end_date)->toDateString();
+
+        DB::transaction(fn () => $block->delete());   // soft delete — the row survives for audit
+
+        $this->domainEvents->record('inventory_block.released', $block, [
+            'room_type_id' => $roomTypeId,
+            'start_date' => $start,
+            'end_date' => $end,
+        ]);
+        $this->audit->record('inventory_block.released', $block, null, ['reason' => $block->reason]);
     }
 
     // ---- locking core -------------------------------------------------------------------

@@ -1,0 +1,139 @@
+<?php
+
+use App\Models\Availability;
+use App\Models\InventoryBlock;
+use App\Models\Membership;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+// OWNER BLOCK CALENDAR (Phase 2 · Sub-gate 2) — the owner holds/releases dates on their OWN units, routed
+// through the certified AssignmentService (single inventory write path).
+//   • block/release PERSIST and move real availability (via the inventory_block.* events → recompute);
+//   • THE OWNER-SCOPE GUARD (on a WRITE): an owner CANNOT block/release another owner's unit (the unit is
+//     resolved from the owner's own units, never a request id) — mutation-proven;
+//   • the block RESPECTS existing reservations via the REAL rule (assertUnitFree), not a reinvented check.
+
+/** A linked owner-portal user owning unit[$index]. Guarded + uniquely named so it can't collide across files. */
+if (! function_exists('blkOwner')) {
+    function blkOwner(array $s, int $index, string $name): array
+    {
+        $unit = $s['units'][$index];
+        $owner = ownUnit($unit);
+
+        $user = User::factory()->create(['name' => $name]);
+        Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+        $owner->update(['user_id' => $user->id]);
+
+        return ['user' => $user, 'owner' => $owner, 'unit' => $unit];
+    }
+}
+
+/** The `blocked` count on the room-type's availability row for a date (0 when no row/no block). */
+function blockedCount(string $roomTypeId, string $date): int
+{
+    $row = Availability::query()->where('room_type_id', $roomTypeId)->whereDate('date', $date)->first();
+
+    return $row === null ? 0 : (int) $row->blocked;
+}
+
+// ── 1. BLOCK persists (reason='owner', note) AND moves real availability ──────────────────────────
+it('blocks the owner’s own dates and reduces availability', function () {
+    $s = seedScenario(1);
+    $a = blkOwner($s, 0, 'Amara Okafor');
+
+    $this->actingAs($a['user'])->post('/owner/calendar/block', [
+        'unit_id' => $a['unit']->id, 'first_night' => '2026-10-01', 'last_night' => '2026-10-02', 'reason' => 'Owner stay',
+    ])->assertRedirect()->assertSessionHas('block_notice');
+
+    $block = InventoryBlock::query()->where('unit_id', $a['unit']->id)->first();
+    expect($block)->not->toBeNull()
+        ->and($block->reason)->toBe('owner')          // the REAL enum value, never an invented one
+        ->and($block->notes)->toBe('Owner stay');     // the granular reason lives in notes
+
+    // Both held nights show as blocked on the room type's availability (the real recompute ran).
+    expect(blockedCount((string) $a['unit']->room_type_id, '2026-10-01'))->toBe(1)
+        ->and(blockedCount((string) $a['unit']->room_type_id, '2026-10-02'))->toBe(1)
+        ->and(blockedCount((string) $a['unit']->room_type_id, '2026-10-03'))->toBe(0);   // half-open — the 3rd is open
+});
+
+// ── 2. RELEASE removes the block and restores availability ────────────────────────────────────────
+it('releases a block and restores availability', function () {
+    $s = seedScenario(1);
+    $a = blkOwner($s, 0, 'Amara Okafor');
+
+    $this->actingAs($a['user'])->post('/owner/calendar/block', [
+        'unit_id' => $a['unit']->id, 'first_night' => '2026-10-01', 'last_night' => '2026-10-02', 'reason' => 'Deep clean',
+    ]);
+    $block = InventoryBlock::query()->where('unit_id', $a['unit']->id)->firstOrFail();
+    expect(blockedCount((string) $a['unit']->room_type_id, '2026-10-01'))->toBe(1);
+
+    $this->actingAs($a['user'])->delete('/owner/calendar/blocks/'.$block->id)
+        ->assertRedirect()->assertSessionHas('block_notice');
+
+    expect(InventoryBlock::query()->where('unit_id', $a['unit']->id)->exists())->toBeFalse()   // soft-deleted → gone
+        ->and(blockedCount((string) $a['unit']->room_type_id, '2026-10-01'))->toBe(0);          // freed again
+});
+
+// ── 3. THE GUARD — an owner CANNOT block another owner's unit (mutation-proven) ───────────────────
+it('rejects blocking another owner’s unit and writes nothing', function () {
+    $s = seedScenario(2);
+    $a = blkOwner($s, 0, 'Amara Okafor');
+    $b = blkOwner($s, 1, 'Bruno Vale');
+
+    // A tampers with the request unit id to point at B's unit → 403, nothing written.
+    $this->actingAs($a['user'])->post('/owner/calendar/block', [
+        'unit_id' => $b['unit']->id, 'first_night' => '2026-10-01', 'last_night' => '2026-10-02', 'reason' => 'Owner stay',
+    ])->assertForbidden();
+
+    expect(InventoryBlock::query()->where('unit_id', $b['unit']->id)->exists())->toBeFalse();
+});
+
+// ── 4. RESPECTS existing reservations via the REAL rule (assertUnitFree) ──────────────────────────
+it('refuses to block a date that already has a guest booking', function () {
+    $s = seedScenario(1);
+    $a = blkOwner($s, 0, 'Amara Okafor');
+    book($s, ['unit_id' => $a['unit']->id]);   // an active reservation on 2026-09-01..03
+
+    // Blocking a night inside that stay is rejected by blockInventory's assertUnitFree — the real rule, not a
+    // reinvented check — and surfaces as a friendly message, with NO block written.
+    $this->actingAs($a['user'])->post('/owner/calendar/block', [
+        'unit_id' => $a['unit']->id, 'first_night' => '2026-09-01', 'last_night' => '2026-09-02', 'reason' => 'Owner stay',
+    ])->assertRedirect()->assertSessionHas('block_error');
+
+    expect(InventoryBlock::query()->where('unit_id', $a['unit']->id)->exists())->toBeFalse();
+});
+
+// ── 5. RELEASE is owner-scoped too — an owner can't release another owner's block ─────────────────
+it('rejects releasing another owner’s block and leaves it intact', function () {
+    $s = seedScenario(2);
+    $a = blkOwner($s, 0, 'Amara Okafor');
+    $b = blkOwner($s, 1, 'Bruno Vale');
+
+    $this->actingAs($b['user'])->post('/owner/calendar/block', [
+        'unit_id' => $b['unit']->id, 'first_night' => '2026-10-01', 'last_night' => '2026-10-02', 'reason' => 'Owner stay',
+    ]);
+    $bBlock = InventoryBlock::query()->where('unit_id', $b['unit']->id)->firstOrFail();
+
+    $this->actingAs($a['user'])->delete('/owner/calendar/blocks/'.$bBlock->id)->assertForbidden();
+
+    expect(InventoryBlock::query()->where('unit_id', $b['unit']->id)->exists())->toBeTrue();   // untouched
+});
+
+// ── 6. The screen is owner-scoped; a non-linked user fails closed ─────────────────────────────────
+it('shows only the owner’s own units and fails closed for a non-linked user', function () {
+    $s = seedScenario(2);
+    $a = blkOwner($s, 0, 'Amara Okafor');
+    $b = blkOwner($s, 1, 'Bruno Vale');
+
+    $this->actingAs($a['user'])->get('/owner/calendar')
+        ->assertOk()
+        ->assertSee((string) $a['unit']->code)        // A's own unit is pickable…
+        ->assertDontSee((string) $b['unit']->code);   // …B's is not
+
+    $stranger = User::factory()->create();
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
+    $this->actingAs($stranger)->get('/owner/calendar')
+        ->assertOk()->assertSee('No units are linked');   // empty owner set → nothing to block
+});
