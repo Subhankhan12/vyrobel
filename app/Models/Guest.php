@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -34,6 +35,11 @@ use Illuminate\Support\Facades\Storage;
  * the email is verified ({@see hasPortalAccount()}); a booking's Guest row exists first, the guest claims it later.
  * `email` is encrypted (non-deterministic → not queryable), so login/claim look a guest up by {@see emailHash()}
  * (a keyed blind index), never by the plaintext.
+ *
+ * @property string|null $password
+ * @property Carbon|null $email_verified_at
+ * @property string|null $email_hash
+ * @property string|null $remember_token
  */
 class Guest extends Model implements AuthenticatableContract, CanResetPasswordContract, MustVerifyEmailContract
 {

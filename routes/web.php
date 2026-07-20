@@ -9,6 +9,8 @@ use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
+use App\Http\Controllers\Guest\GuestClaimController;
+use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -147,6 +149,22 @@ Route::middleware('throttle:6,1')->group(function () {
     Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->name('password.email');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
     Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+});
+
+/*
+ * GUEST PORTAL — the separate 'guest' realm (Phase 4a). PUBLIC claim/verify pages (a guest has no account yet) +
+ * a minimal authed guest home. BOOKING-TIED: the claim only ever sends a link to an email that has a real booking
+ * (no enumeration — the response is neutral either way). The verify/complete links are native HMAC-`signed`,
+ * expiring URLs. NEVER point an /app or /owner route at the guest guard — the realms are separate by construction.
+ */
+Route::prefix('guest')->name('guest.')->group(function () {
+    Route::get('/claim', [GuestClaimController::class, 'create'])->name('claim');
+    Route::post('/claim', [GuestClaimController::class, 'store'])->middleware('throttle:6,1')->name('claim.store');
+    Route::get('/claim/sent', [GuestClaimController::class, 'sent'])->name('claim.sent');
+    Route::get('/claim/verify/{guest}/{hash}', [GuestClaimController::class, 'verify'])->middleware('signed')->name('claim.verify');
+    Route::post('/claim/verify/{guest}/{hash}', [GuestClaimController::class, 'claim'])->middleware('signed', 'throttle:6,1')->name('claim.complete');
+    Route::get('/home', [GuestHomeController::class, 'index'])->name('home');
+    Route::post('/logout', [GuestHomeController::class, 'logout'])->name('logout');
 });
 
 /*
