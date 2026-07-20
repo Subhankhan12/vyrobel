@@ -32,6 +32,7 @@ use App\Http\Controllers\Owner\OwnerProfileController;
 use App\Http\Controllers\Owner\OwnerRateController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
+use App\Http\Controllers\Owner\OwnerTaxController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
@@ -78,6 +79,7 @@ use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerRates;
 use App\Livewire\Owner\OwnerSettings;
 use App\Livewire\Owner\OwnerStatementView;
+use App\Livewire\Owner\OwnerTaxCenter;
 use App\Livewire\Owner\OwnerUnitDetail;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
@@ -451,6 +453,13 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // theirs) — resolved through ownership, never a request id — so a shared/foreign room type is 403.
     Route::get('/rates', OwnerRates::class)->name('rates');
     Route::post('/rates/apply', [OwnerRateController::class, 'apply'])->name('rates.apply');
+    // Phase 2 · Sub-gate 4 — Owner Tax Center. SELF-ONLY: the owner is resolved by user_id (never a request
+    // id), so tax details + summaries are always the authenticated owner's own. Saving a tax ID RELEASES held
+    // payouts (the genuine hold is in OwnerPayoutService::pay()). The annual PDF is self-only (no owner id in
+    // the URL — a non-linked user 404s) and reconciles to the owner's real committed statements.
+    Route::get('/tax', OwnerTaxCenter::class)->name('tax');
+    Route::post('/tax', [OwnerTaxController::class, 'save'])->name('tax.save');
+    Route::get('/tax/{year}/summary.pdf', [OwnerTaxController::class, 'downloadAnnual'])->name('tax.annual');
     // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
     // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
     Route::get('/balance', OwnerBalance::class)->name('balance');

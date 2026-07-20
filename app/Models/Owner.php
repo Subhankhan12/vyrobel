@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\Services\OwnerPayoutService;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,8 @@ class Owner extends Model
         'email',
         'phone',
         'tax_id',
+        'tax_country',
+        'vat_number',
         'address',
         'payout_currency',
         'user_id',
@@ -44,8 +47,19 @@ class Owner extends Model
             'email' => 'encrypted',
             'phone' => 'encrypted',
             'tax_id' => 'encrypted',
+            'vat_number' => 'encrypted',
             'address' => 'array',
         ];
+    }
+
+    /**
+     * Whether the owner's tax details are complete enough to release payouts — i.e. a tax ID is on file. This
+     * is the ONE definition of "tax complete", read by {@see OwnerPayoutService::pay()} (the
+     * genuine payout hold) and the Tax Center. `tax_id` is an encrypted column; this only reads its presence.
+     */
+    public function hasTaxDetails(): bool
+    {
+        return filled($this->tax_id);
     }
 
     /**

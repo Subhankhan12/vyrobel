@@ -24,6 +24,9 @@ class OwnerFactory extends Factory
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
+            // A tax ID on file by default → the owner is "tax complete", so payouts are not held. A test that
+            // needs the HELD state (Tax Center) creates the owner with tax_id null explicitly.
+            'tax_id' => (string) $this->faker->numerify('#########'),
             'payout_currency' => 'EUR',
             'status' => 'active',
         ];

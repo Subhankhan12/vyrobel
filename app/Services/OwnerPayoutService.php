@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\Owner\PayoutHeldException;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
@@ -91,6 +92,14 @@ class OwnerPayoutService
     {
         if ($payout->status !== 'pending') {
             throw new RuntimeException("Only a pending payout can be paid (status: {$payout->status}).");
+        }
+
+        // HELD until tax details are on file — the genuine hold (Sub-gate 4). This runs BEFORE the rail send,
+        // so no money moves for a tax-incomplete owner; it releases automatically once they add a tax ID. The
+        // operator Payout Run already catches RuntimeException per payout, so a held payout stays pending.
+        $owner = $payout->owner;
+        if ($owner !== null && ! $owner->hasTaxDetails()) {
+            throw PayoutHeldException::missingTaxDetails((string) $owner->name);
         }
 
         $rail ??= $this->rail;
