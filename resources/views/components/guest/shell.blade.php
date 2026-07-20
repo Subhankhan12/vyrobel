@@ -10,6 +10,7 @@
     $nav = [
         ['trips', 'Trips', route('guest.trips')],
         ['payments', 'Payments', route('guest.payments')],
+        ['wallet', 'Wallet', route('guest.wallet')],
         ['account', 'Account', route('guest.account')],
     ];
 @endphp

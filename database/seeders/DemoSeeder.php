@@ -10,11 +10,13 @@ use App\Models\Channel;
 use App\Models\ChannelMapping;
 use App\Models\Floor;
 use App\Models\Guest;
+use App\Models\GuestCreditEntry;
 use App\Models\ManagementAgreement;
 use App\Models\Media;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Owner;
+use App\Models\PromoCode;
 use App\Models\Property;
 use App\Models\PropertyPolicy;
 use App\Models\RateCalendar;
@@ -29,6 +31,7 @@ use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\ChannelConnectionService;
 use App\Services\FolioService;
+use App\Services\GuestWalletService;
 use App\Services\InboxService;
 use App\Services\MaintenanceService;
 use App\Services\OwnerAttributionService;
@@ -270,12 +273,20 @@ class DemoSeeder extends Seeder
         $soonOut = $soonIn->addDays(3);
         $this->seedCalendarRange($roomRate, 10000, $soonIn->toDateString(), $soonOut->toDateString());
         $availability->recompute($doubleRoom->id, $soonIn->toDateString(), $soonOut->toDateString());
-        $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[2], $guest1, $soonIn->toDateString(), $soonOut->toDateString(), $vat, fullyPaid: true);
+        // Half-paid so it carries a real balance — the guest can apply wallet credit to it (Phase 4c · SG2).
+        $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[2], $guest1, $soonIn->toDateString(), $soonOut->toDateString(), $vat, fullyPaid: false);
 
         // Phase 4a — a CLAIMED guest PORTAL account so the guest portal has a real demo login. guest1 (Demo
         // Traveller) leads stay1 above, so this is a genuine BOOKING-TIED account: demo.traveller@vyrobel-demo.test
         // / password. (The 'hashed' cast hashes the plaintext; the saving() hook stamps its blind index.)
         $guest1->forceFill(['password' => 'password', 'email_verified_at' => now()])->save();
+
+        // Phase 4c · SG2 — DEMO wallet credits + a promo code so the guest Wallet has a real, spendable balance
+        // (appended through the certified GuestWalletService — never a raw balance). Clearly demo, like every row.
+        $wallet = app(GuestWalletService::class);
+        $wallet->credit($guest1, GuestCreditEntry::TYPE_REFUND, 'Goodwill refund credit', Money::of(2500, 'EUR'));
+        $wallet->credit($guest1, GuestCreditEntry::TYPE_BIRTHDAY, 'Birthday credit', Money::of(1000, 'EUR'), expiresAt: CarbonImmutable::now()->addDays(60));
+        PromoCode::create(['code' => 'WELCOME10', 'amount_minor' => 1000, 'currency' => 'EUR', 'description' => 'Welcome credit', 'max_redemptions' => 100, 'is_active' => true]);
 
         // Check the walk-in out → real departure-clean task via the checkout event → listener.
         app(CheckOutReservation::class)->handle($walkIn);

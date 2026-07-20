@@ -22,6 +22,7 @@ use App\Http\Controllers\Guest\GuestPaymentsController;
 use App\Http\Controllers\Guest\GuestReceiptController;
 use App\Http\Controllers\Guest\GuestReservationController;
 use App\Http\Controllers\Guest\GuestTripsController;
+use App\Http\Controllers\Guest\GuestWalletController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -214,6 +215,11 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::get('/reservation/{reservation}/statement.pdf', [GuestDocumentController::class, 'statement'])->name('doc.statement');
         Route::get('/reservation/{reservation}/refund.pdf', [GuestDocumentController::class, 'refundReceipt'])->name('doc.refund');
         Route::get('/reservation/{reservation}/credit-note.pdf', [GuestDocumentController::class, 'creditNote'])->name('doc.credit-note');
+        // Wallet (SG2) — the guest's credit balance (derived from the append-only ledger), redeem-a-code, apply
+        // credit to a booking. Guest-scoped; no overdraw; a foreign booking for an apply → 404.
+        Route::get('/wallet', [GuestWalletController::class, 'show'])->name('wallet');
+        Route::post('/wallet/redeem', [GuestWalletController::class, 'redeem'])->middleware('throttle:12,1')->name('wallet.redeem');
+        Route::post('/wallet/apply/{reservation}', [GuestWalletController::class, 'apply'])->middleware('throttle:12,1')->name('wallet.apply');
         Route::get('/home', [GuestHomeController::class, 'index'])->name('home');       // legacy → redirects to trips
         Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
         Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');

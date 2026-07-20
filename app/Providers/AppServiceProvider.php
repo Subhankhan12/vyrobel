@@ -21,6 +21,7 @@ use App\Models\Folio;
 use App\Models\FolioItem;
 use App\Models\Group;
 use App\Models\Guest;
+use App\Models\GuestCreditEntry;
 use App\Models\HousekeepingTask;
 use App\Models\InventoryBlock;
 use App\Models\Invoice;
@@ -41,6 +42,7 @@ use App\Models\OwnerStatementLine;
 use App\Models\Payment;
 use App\Models\PaymentAuthorization;
 use App\Models\Payout;
+use App\Models\PromoCode;
 use App\Models\Property;
 use App\Models\RatePlan;
 use App\Models\Reservation;
@@ -194,6 +196,10 @@ class AppServiceProvider extends ServiceProvider
             'maintenance_setting' => MaintenanceSetting::class,
             'message_thread' => MessageThread::class,
             'message' => Message::class,
+            // Phase 4c — the guest wallet ledger + promo codes (used as polymorphic `source` on ledger entries
+            // and folio items; enforceMorphMap THROWS on an unregistered model, so both must be mapped).
+            'guest_credit_entry' => GuestCreditEntry::class,
+            'promo_code' => PromoCode::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a

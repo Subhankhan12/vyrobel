@@ -93,6 +93,43 @@ class FolioService
         return $item->refresh();
     }
 
+    /**
+     * Apply a guest WALLET CREDIT to this folio (Phase 4c · SG2) — a new negative `discount` line that reduces the
+     * balance owed, through the single write path + recompute (the balance stays the derived truth; this is the
+     * "credits are new negative lines" rule above). A SYSTEM/guest credit, not an operator action, so `posted_by`
+     * stays null — unlike {@see postCharge()} it never reads Auth::id() (a guest request's default guard is the
+     * guest, not an operator user). The wallet-side debit is recorded by {@see GuestWalletService::applyToBooking()}.
+     *
+     * @param  Money  $amount  the POSITIVE credit amount; stored as a negative line
+     */
+    public function applyWalletCredit(Folio $folio, Money $amount, ?Model $reference = null): FolioItem
+    {
+        $line = Money::of(-abs($amount->amountMinor()), $amount->currency());
+
+        $item = DB::transaction(function () use ($folio, $line, $reference): FolioItem {
+            $item = FolioItem::create([
+                'folio_id' => $folio->getKey(),
+                'type' => 'discount',
+                'description' => 'Wallet credit applied',
+                'unit_amount' => $line,
+                'quantity' => 1,
+                'amount' => $line,
+                'currency' => $folio->currency,
+                'reference_type' => $reference?->getMorphClass(),
+                'reference_id' => $reference?->getKey(),
+                'posted_at' => now(),
+            ]);
+
+            $this->recompute($folio);
+
+            return $item;
+        });
+
+        $this->domainEvents->record('folio.wallet_credit_applied', $item, ['amount_minor' => $line->amountMinor()]);
+
+        return $item->refresh();
+    }
+
     public function postAddOn(Folio $folio, AddOn $addOn, int $quantity = 1): FolioItem
     {
         return $this->postCharge($folio, 'add_on', $addOn->name, $addOn->price, $quantity, reference: $addOn);
