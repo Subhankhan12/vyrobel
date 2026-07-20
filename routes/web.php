@@ -29,6 +29,7 @@ use App\Http\Controllers\Owner\OwnerBlockController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerProfileController;
+use App\Http\Controllers\Owner\OwnerRateController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\ReservationFolioActionController;
@@ -74,6 +75,7 @@ use App\Livewire\Owner\OwnerMessages;
 use App\Livewire\Owner\OwnerMessageThread;
 use App\Livewire\Owner\OwnerMyUnits;
 use App\Livewire\Owner\OwnerPayouts;
+use App\Livewire\Owner\OwnerRates;
 use App\Livewire\Owner\OwnerSettings;
 use App\Livewire\Owner\OwnerStatementView;
 use App\Livewire\Owner\OwnerUnitDetail;
@@ -443,6 +445,12 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/calendar', OwnerBlockCalendar::class)->name('calendar');
     Route::post('/calendar/block', [OwnerBlockController::class, 'store'])->name('calendar.block');
     Route::delete('/calendar/blocks/{block}', [OwnerBlockController::class, 'destroy'])->name('calendar.release');
+    // Phase 2 · Sub-gate 3 — Owner Rates (the highest-risk gate: an owner-scoped MONEY write). The owner sets
+    // nightly rates DIRECTLY on their OWN room types via the certified RateAndRestrictionService. The write is
+    // guarded in OwnerRateService: a room type is editable ONLY if the owner owns it EXCLUSIVELY (every unit is
+    // theirs) — resolved through ownership, never a request id — so a shared/foreign room type is 403.
+    Route::get('/rates', OwnerRates::class)->name('rates');
+    Route::post('/rates/apply', [OwnerRateController::class, 'apply'])->name('rates.apply');
     // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
     // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
     Route::get('/balance', OwnerBalance::class)->name('balance');

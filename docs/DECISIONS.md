@@ -2221,3 +2221,26 @@ to end (edit name → PRG → the new value round-trips to the topbar chip, iden
 status / member-since shown; nav highlights "Your profile"; no raw Blade). **NEXT = Phase 2** (complete the owner
 portal's buildable set: Bookings + Detail · Block Calendar · Owner Rates · Tax Center · Payout Method · Add Unit ·
 Help).
+
+## 2026-07-20 — Owner Rates: DIRECT edit, no approval (conscious divergence) + the exclusivity guard (Phase 2 · SG3)
+
+Recorded at the gate (the full Phase-2 consolidation lands at SG6). Two decisions worth pinning now:
+
+- **DIRECT edit, NO approval — a CONSCIOUS DIVERGENCE from the design.** The "Owner Rates" prototype is an
+  approval/guardrails model: the manager *proposes* rate changes, the owner *approves / declines / counters*, and
+  sets floor/ceiling guardrails ("Every change needs your sign-off before it goes live"). The product decision is
+  **FULL DIRECT edit** — the owner sets the rate and it is live immediately. There is NO proposal / approval /
+  guardrail schema, so those sections (Proposed changes, Guardrails, comp-set, Base/Weekend/Peak tiers) are NOT
+  rendered as real and NO fake "pending sign-off" state is shown. An operator-approval workflow would be a clean
+  additive layer later (a proposals table + an approve step in front of `setRate`). Recorded so the divergence is
+  a decision, not an omission.
+- **THE OWNER-SCOPE GUARD ON A PER-ROOM-TYPE MONEY WRITE — exclusivity.** Rates key on rate_plan → room_type, and
+  a room type can hold units owned by different parties, so an owner may edit a room type's rate ONLY IF they own
+  it EXCLUSIVELY (every unit in it is theirs). The editable set is resolved through ownership
+  (`OwnerRateService::editableRoomTypes()`: owner-scoped units → their room types → drop any with a foreign unit),
+  never from a request id; a write outside it throws `OwnerRateException` → 403 with nothing written. This is both
+  the read-isolation set and the write allow-list — mutation-proven both ways (removing the guard lets owner A set
+  owner B's rate AND lets A edit a room type shared with the operator; both 2/2 fail without it). Wired through the
+  certified `RateAndRestrictionService` (`setRate`/`setRestriction`) — the SAME path the operator screen drives;
+  `RoomType::primaryRatePlan()` was extracted so both screens agree on which plan a room type's rate lives on.
+  Integer money via `MoneyInput` (175.57 → 17557, string arithmetic, no float).

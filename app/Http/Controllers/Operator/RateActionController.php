@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Livewire\Operator\RatesGrid;
-use App\Models\RatePlan;
 use App\Models\RoomType;
 use App\Services\RateAndRestrictionService;
 use App\Support\Money\Money;
@@ -119,7 +118,7 @@ class RateActionController extends Controller
 
         foreach ($roomTypes as $roomType) {
             if ($setRate) {
-                $plan = $this->primaryRatePlan($roomType);
+                $plan = $roomType->primaryRatePlan();
                 if ($plan === null) {
                     // A room type with no rate plan has nowhere to store a price — report it rather than
                     // silently skipping, so the operator knows the rate did not land.
@@ -164,22 +163,6 @@ class RateActionController extends Controller
         }
 
         return [RoomType::query()->findOrFail($roomTypeId)];
-    }
-
-    /**
-     * A room type's primary rate plan: its declared default, else the oldest active plan. Rates are stored
-     * per rate plan, so the grid edits exactly one plan per room-type row (STRUCT-1).
-     */
-    private function primaryRatePlan(RoomType $roomType): ?RatePlan
-    {
-        if ($roomType->default_rate_plan_id !== null) {
-            $default = $roomType->defaultRatePlan()->first();
-            if ($default !== null) {
-                return $default;
-            }
-        }
-
-        return $roomType->ratePlans()->where('is_active', true)->orderBy('created_at')->first();
     }
 
     /** A Y-m-d string from request input, or null if it is not a real calendar date. */

@@ -62,6 +62,9 @@ class RoomType extends Model
         return $this->belongsTo(Property::class);
     }
 
+    /**
+     * @return HasMany<Unit, $this>
+     */
     public function units(): HasMany
     {
         return $this->hasMany(Unit::class);
@@ -96,5 +99,23 @@ class RoomType extends Model
     public function defaultRatePlan(): BelongsTo
     {
         return $this->belongsTo(RatePlan::class, 'default_rate_plan_id');
+    }
+
+    /**
+     * The room type's PRIMARY rate plan: its declared default, else its oldest active plan (null if it has
+     * none). Rates are stored per rate plan (`rate_calendar.rate_plan_id`), so both the operator Rates grid
+     * and the owner Rates screen edit exactly this one plan per room type — ONE definition here so the two
+     * surfaces can never drift about which plan a room type's rate lives on.
+     */
+    public function primaryRatePlan(): ?RatePlan
+    {
+        if ($this->default_rate_plan_id !== null) {
+            $default = $this->defaultRatePlan()->first();
+            if ($default !== null) {
+                return $default;
+            }
+        }
+
+        return $this->ratePlans()->where('is_active', true)->orderBy('created_at')->first();
     }
 }
