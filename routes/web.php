@@ -13,6 +13,7 @@ use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Operator\EmailPreviewController;
+use App\Http\Controllers\Operator\EmailTemplateController;
 use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
 use App\Http\Controllers\Operator\GuestActionController;
@@ -289,8 +290,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     Route::get('/security', OperatorSecurity::class)->name('security');
     Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
 
-    // Phase 3 · Sub-gate 4 — Email Previews: render every transactional email with real sample data (no send).
-    // Behind the back-office gate (#26) only, like /security — a read-only design tool for any back-office role.
+    // Phase 3 · Sub-gate 5 — Email Templates: the documented management view (subject / trigger / variables) for
+    // every transactional email; editing is honestly deferred. Sub-gate 4 · Email Previews render each email with
+    // real sample data (no send). Both behind the back-office gate (#26), like /security.
+    Route::get('/email-templates', [EmailTemplateController::class, 'index'])->name('email-templates');
     Route::get('/email-previews', [EmailPreviewController::class, 'index'])->name('email-previews');
     Route::get('/email-previews/{key}', [EmailPreviewController::class, 'show'])->name('email-previews.show');
 

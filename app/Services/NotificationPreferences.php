@@ -30,30 +30,32 @@ class NotificationPreferences
 
     /**
      * The fixed catalog of preference-able events. audience decides which portal's screen shows it; always_on
-     * marks the security-critical ones; default is the delivery default when a user has no stored row.
+     * marks the security-critical ones. Defaults are PER CHANNEL: `default` is the in-app default; `email_default`
+     * is the email default — email is selective (opt-in) for routine operational events and on for the financial
+     * / security / urgent ones, so activating the email channel (Sub-gate 5) doesn't bury users in mail.
      *
-     * @var array<string, array{label: string, description: string, group: string, audience: string, always_on: bool, default: bool}>
+     * @var array<string, array{label: string, description: string, group: string, audience: string, always_on: bool, default: bool, email_default: bool}>
      */
     public const CATALOG = [
         // ── Operator ──
-        'new_booking' => ['label' => 'New booking', 'description' => 'A booking is confirmed', 'group' => 'Front desk', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'arrivals_today' => ['label' => 'Arrivals due today', 'description' => 'Guests arriving that still need a unit', 'group' => 'Front desk', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'balance_due' => ['label' => 'Balance due at checkout', 'description' => 'An outstanding balance at check-out', 'group' => 'Front desk', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'housekeeping_behind' => ['label' => 'Housekeeping behind', 'description' => 'Turnovers are running late', 'group' => 'Operations', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'urgent_work_order' => ['label' => 'Urgent work order', 'description' => 'A high-priority maintenance ticket opens', 'group' => 'Operations', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'unit_out_of_order' => ['label' => 'Unit out of order', 'description' => 'A unit is taken out of service', 'group' => 'Operations', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'owner_payout_sent' => ['label' => 'Owner payout sent', 'description' => 'A payout is disbursed to an owner', 'group' => 'Finance', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'statement_finalized' => ['label' => 'Statement ready', 'description' => 'An owner statement is finalized', 'group' => 'Finance', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'new_review' => ['label' => 'New review', 'description' => 'A guest leaves a review', 'group' => 'Reputation', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'channel_sync_error' => ['label' => 'Channel sync error', 'description' => 'A channel stops syncing', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'new_device_login' => ['label' => 'Login from a new device', 'description' => 'Your account signs in somewhere new', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => true],
-        'daily_summary' => ['label' => 'Daily morning summary', 'description' => 'A digest of the day at 08:00', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => false],
+        'new_booking' => ['label' => 'New booking', 'description' => 'A booking is confirmed', 'group' => 'Front desk', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'arrivals_today' => ['label' => 'Arrivals due today', 'description' => 'Guests arriving that still need a unit', 'group' => 'Front desk', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'balance_due' => ['label' => 'Balance due at checkout', 'description' => 'An outstanding balance at check-out', 'group' => 'Front desk', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'housekeeping_behind' => ['label' => 'Housekeeping behind', 'description' => 'Turnovers are running late', 'group' => 'Operations', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'urgent_work_order' => ['label' => 'Urgent work order', 'description' => 'A high-priority maintenance ticket opens', 'group' => 'Operations', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => true],
+        'unit_out_of_order' => ['label' => 'Unit out of order', 'description' => 'A unit is taken out of service', 'group' => 'Operations', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'owner_payout_sent' => ['label' => 'Owner payout sent', 'description' => 'A payout is disbursed to an owner', 'group' => 'Finance', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => true],
+        'statement_finalized' => ['label' => 'Statement ready', 'description' => 'An owner statement is finalized', 'group' => 'Finance', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => true],
+        'new_review' => ['label' => 'New review', 'description' => 'A guest leaves a review', 'group' => 'Reputation', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'channel_sync_error' => ['label' => 'Channel sync error', 'description' => 'A channel stops syncing', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => true],
+        'new_device_login' => ['label' => 'Login from a new device', 'description' => 'Your account signs in somewhere new', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => true],
+        'daily_summary' => ['label' => 'Daily morning summary', 'description' => 'A digest of the day at 08:00', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => false, 'email_default' => false],
         // ── Owner ──
-        'statement_ready' => ['label' => 'Statement ready', 'description' => 'Your monthly statement is finalized', 'group' => 'Earnings', 'audience' => 'owner', 'always_on' => false, 'default' => true],
-        'payout_sent' => ['label' => 'Payout sent', 'description' => 'The day money leaves for your account', 'group' => 'Earnings', 'audience' => 'owner', 'always_on' => false, 'default' => true],
-        'performance_digest' => ['label' => 'Performance digest', 'description' => 'Occupancy & earnings vs last month', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true],
-        'terms_changed' => ['label' => 'Terms changed', 'description' => 'A change to commission or fees', 'group' => 'Account', 'audience' => 'owner', 'always_on' => false, 'default' => true],
-        'account_security' => ['label' => 'Account & security', 'description' => 'Sign-ins and bank changes — always on', 'group' => 'Account', 'audience' => 'owner', 'always_on' => true, 'default' => true],
+        'statement_ready' => ['label' => 'Statement ready', 'description' => 'Your monthly statement is finalized', 'group' => 'Earnings', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
+        'payout_sent' => ['label' => 'Payout sent', 'description' => 'The day money leaves for your account', 'group' => 'Earnings', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
+        'performance_digest' => ['label' => 'Performance digest', 'description' => 'Occupancy & earnings vs last month', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'terms_changed' => ['label' => 'Terms changed', 'description' => 'A change to commission or fees', 'group' => 'Account', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
+        'account_security' => ['label' => 'Account & security', 'description' => 'Sign-ins and bank changes — always on', 'group' => 'Account', 'audience' => 'owner', 'always_on' => true, 'default' => true, 'email_default' => true],
     ];
 
     /**
@@ -72,7 +74,7 @@ class NotificationPreferences
             return true;
         }
         if (! $notifiable instanceof User) {
-            return $entry['default'];
+            return $this->defaultFor($entry, $channel);
         }
 
         $pref = NotificationPreference::query()
@@ -81,7 +83,19 @@ class NotificationPreferences
             ->where('channel', $channel)
             ->first();
 
-        return $pref !== null ? (bool) $pref->enabled : $entry['default'];
+        return $pref !== null ? (bool) $pref->enabled : $this->defaultFor($entry, $channel);
+    }
+
+    /**
+     * The default on/off for one channel when a user has no stored row — `email_default` for email, `default` for
+     * in-app. Keeps the per-channel default in ONE place so the gate ({@see allows()}) and the screen
+     * ({@see statesFor()}) can never disagree about what "no preference yet" means.
+     *
+     * @param  array{always_on: bool, default: bool, email_default: bool, ...}  $entry
+     */
+    private function defaultFor(array $entry, string $channel): bool
+    {
+        return $channel === 'email' ? $entry['email_default'] : $entry['default'];
     }
 
     /**
@@ -123,7 +137,7 @@ class NotificationPreferences
                 $pref = $stored->get($key.'|'.$channel);
                 $out[$key][$channel] = $entry['always_on']
                     ? true
-                    : ($pref instanceof NotificationPreference ? (bool) $pref->enabled : $entry['default']);
+                    : ($pref instanceof NotificationPreference ? (bool) $pref->enabled : $this->defaultFor($entry, $channel));
             }
         }
 
@@ -133,7 +147,7 @@ class NotificationPreferences
     /**
      * The catalog entries for one audience ('operator' | 'owner'), preserving order.
      *
-     * @return array<string, array{label: string, description: string, group: string, audience: string, always_on: bool, default: bool}>
+     * @return array<string, array{label: string, description: string, group: string, audience: string, always_on: bool, default: bool, email_default: bool}>
      */
     public static function catalogFor(string $audience): array
     {

@@ -2299,3 +2299,77 @@ isolation is the #1 concern of the whole phase, and every gate proves it a diffe
 clean; `migrate:fresh --seed` clean (4 new migrations: group-booking fields were Phase 1; here tax-profile fields,
 payout_methods, unit_requests); every screen browser-verified on the demo owner/operator. **NEXT = Phase 3** (the
 notification subsystem + transactional emails).
+
+### 2026-07-20 — Phase 3 COMPLETE: the notification subsystem + all transactional emails (5 gated sub-gates)
+
+**The whole chapter is done and pushed.** Events → dispatcher → per-user in-app feeds + genuinely-gating
+preferences → the real events wired → the guest transactional emails (Mailpit-real) → owner/operator email
+delivery through the same gate → the Email Templates view. Commits `7cca65c` → `7905570` → `640f149` →
+`6c51271` → this gate.
+
+- **SG1 — notification CORE (`7cca65c`).** Laravel-native (`Notifiable` + the `notifications` table + a
+  `FeedNotification` base). A `DispatchNotificationsForDomainEvent` listener turns REAL `DomainEventRecorded`
+  events into per-user database notifications; operator = the org's back-office staff (`NotificationRecipients`),
+  owner = the ONE owner via their linked user. **ISOLATION mutation-proven** (a user never reads/marks another's).
+  ⚠️ **The sync event bus DOUBLE-DELIVERS** (listeners are auto-discovered AND manually registered) — the
+  idempotent inventory listeners masked it; a notification must not double-fire, so a static `$processed` guard
+  keyed on the domain-event id makes each event produce its notifications exactly once. Bells + feeds in both
+  shells.
+- **SG2 — Notification Preferences (`7905570`).** A TYPED `notification_preferences` store (constrained
+  `event_key` + `channel` enum + bool), NOT the KV scaffold. `NotificationPreferences` = the fixed CATALOG + THE
+  GATE `allows()`, called from `via()` BEFORE delivery. 🪤 **Preferences GENUINELY gate — mutation-proven** (an
+  off toggle drops the channel → nothing is written; bypass it and the off-case delivers → test fails). Self-only
+  (audience from the route default, never a request id — a user can't change another's). **Always-on** (Account &
+  security) can't be disabled — `save()` forces it + `allows()` short-circuits + the UI locks it, all three agree
+  (mutation-proven). Resolved the Phase-1 maintenance deferral: `maintenance_ticket.opened` (urgent) gated by the
+  org `MaintenanceSetting.notify_new_urgent` AND the per-user pref (two-layer, proven).
+- **SG3 — wire the real events (`640f149`).** Audit-first: enumerated the ~40 event types that actually fire
+  before wiring. Wired `reservation.checked_out` (folio balance > 0) → BalanceDue · `unit.condition_changed`
+  (→out_of_service) → UnitOutOfOrder · `payout.paid` → owner PayoutSent **+** operator OwnerPayoutSent ·
+  `owner_statement.finalized` → owner StatementReady **+** operator StatementFinalized · `channel.error` →
+  ChannelSyncError · `owner.payout_method_changed` → account-security (always-on). **One service change, stated:**
+  `OwnerPayoutMethodService` recorded audit-only — it now ALSO records the `owner.payout_method_changed` DOMAIN
+  event (the #events invariant: a state change writes BOTH rows; payload carries only WHICH change, never the
+  IBAN). **DEFERRED honestly** (no backing event today, NOT wired): arrivals/housekeeping-behind/SLA/daily-summary
+  (need a scheduler) · new-review (Phase 5) · new-device sign-in (needs device detection) · performance-digest
+  (needs an aggregator) · terms-changed (no agreement-change event exists). Balance>0 guard + owner isolation both
+  mutation-proven; an unmapped real event (`reservation.cancelled`) yields nothing (we defer, never invent).
+- **SG4 — guest transactional emails (`6c51271`).** Nine email-safe Mailables on a shared brand layout (the
+  owner-invite system; the on-screen frosted design isn't email-safe). Integer money via `MoneyFormatter` (same
+  figure as folio/PDFs). **Real triggers now:** booking-confirmation (`reservation.confirmed`) · cancellation
+  (`reservation.cancelled`) · refund (`payment.refunded`, successful only) via `SendGuestTransactionalEmails` —
+  same bus/idempotency, but ⚠️ **a mail failure is caught so a booking never rolls back on an SMTP hiccup** (the
+  correct transaction/side-effect boundary) — and to the guest's OWN address only (no cc/bcc; no address → no
+  send). Payment-reminder = the real `emails:send-payment-reminders` command (scheduled daily; balance from the
+  shared `FolioTotals`). **Template built · trigger deferred honestly:** pre-arrival (scheduler; access code only
+  when a real one exists — never fabricated) · review→Phase 5 · waitlist→Phase 4 · verify→Phase 4 · winback
+  (scheduler; NO fabricated discount). **Email Previews** (`/app/email-previews`) render every email with real
+  sample data, sending nothing. Root-cause typing: added `@return` generics to `Folio`/`Payment::reservation()`
+  + `Reservation::property()` and `@property $address` to `Property` (benefits all callers).
+- **SG5 — owner/operator email delivery + Email Templates + consolidate (this gate).** ⭐ **The SG2 email toggle
+  is no longer cosmetic:** `FeedNotification::via()` now adds the `mail` channel through the SAME gate
+  (`allows(email)`), and `toMail()` renders the branded `emails.notification` view to the user's own address.
+  🪤 **Mutation-proven** (force `mail` on unconditionally → the off-toggle test fails). **Email is selective by
+  default** — a per-channel `email_default` in the catalog (financial/security/urgent ON, routine operational
+  OFF), resolved in ONE `defaultFor()` so the gate and the screen can't disagree; so activating email doesn't
+  bury users in mail. Proven from the real seed: only email-default-ON events emailed (owner "Your statement is
+  ready" → the owner only; operator "Statement finalized"/"Urgent work order" → the 3 staff only; NO "New
+  booking"/"Balance due" emails), isolation holding on the email channel. **Email Templates screen**
+  (`/app/email-templates`, back-office gate) — **HONEST CHOICE: the VIEW is real** (every template's subject,
+  trigger status, and merge variables + a live-preview link), **editing is deferred** ("Edit templates · Soon",
+  NOT a fake save — a per-tenant template store + variable substitution + Mailables reading overrides is a genuine
+  subsystem). Guest-level email preferences stay a Phase-4 (guest-portal) concern; production email delivery
+  stays account-gated (a provider; Mailpit is dev).
+
+**Phase-3 invariants (added to the register):** preferences gate delivery on BOTH channels (in-app + email),
+never cosmetic; always-on security notifications can't be suppressed; notification isolation (owner ↔ operator,
+per-user); **a guest-email/notification-mail failure NEVER rolls back the domain transaction that triggered it**;
+no PII in domain-event payloads or logs (record WHICH changed, never values); guest emails go to the guest's own
+address only.
+
+**Verification:** full suite green on MySQL (Phase 3 added the notification core/preferences/wiring/email
+tests) — see the count in `PROJECT-STATE.md`; PHPStan L5 + Pint clean; `migrate:fresh --seed` clean; **Mailpit
+(real SMTP, dev) shows the real emails** — booking/refund/reminder to the guest, statement/payout/urgent to the
+right owner/operator only. Two `git checkout` traps hit + recovered (an uncommitted `via()` edit reverted during a
+mutation pass, twice — re-applied and re-proven both times; the lesson: mutation-restore an untracked/working-tree
+guard with perl or Write, not `git checkout`). **NEXT = Phase 4** (guest auth + the Guest Portal core).

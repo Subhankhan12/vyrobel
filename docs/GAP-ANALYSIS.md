@@ -83,8 +83,8 @@ Maintenance Costs · Maintenance Settings · Roles · Profile** (the six ✅ Pha
 | Page | The subsystem underneath | Size |
 |---|---|---|
 | Operator Channels | Channel/mapping CRUD + a REAL `channels.status` writer (⚠️ **the certified channel manager is INERT in production** — see Phase 0.1) + connect flow. Live sync = account-gated (Channex) | M–L |
-| Operator Notifications + Notification Preferences | The NOTIFICATION SUBSYSTEM: events → dispatcher → in-app feed + per-user prefs. Cross-links every module | L |
-| Operator Email Templates + Email Editor | An email-template subsystem (stored templates, variables, preview, editor) riding the notification dispatcher | M–L |
+| ✅ Operator Notifications + Notification Preferences | **BUILT (Phase 3)** — events → dispatcher → in-app feed + typed prefs that genuinely gate (in-app + email) | — |
+| ✅ Operator Email Templates | **BUILT (Phase 3)** — the documented VIEW (subject/trigger/variables + preview); an editable per-tenant template STORE is deferred honestly ("Edit · Soon") | editor: M–L |
 | Operator Team Schedule + Schedule PDF | Staff rostering — a new module (shifts, assignments, PDF) | M |
 | Operator Insights + Reports | The ANALYTICS module (ADR/RevPAR/occupancy/revenue). Multi-property in its full form; a single-property v1 is possible now | L |
 | Operator Reviews | The REVIEWS module (guest reviews + operator responses) — shared with Owner + Guest surfaces | M–L |
@@ -118,7 +118,7 @@ Auth-group artifacts, real but counted there.)*
 |---|---|
 | Owner Reports + Insights | ANALYTICS (owner-scoped views) |
 | Owner Reviews | REVIEWS (owner-scoped) |
-| Owner Notifications | NOTIFICATIONS (owner feed + prefs) — Phase 3 |
+| ✅ Owner Notifications | **BUILT (Phase 3)** — owner feed + typed preferences (genuinely gating, in-app + email) |
 | Owner Team | Owner sub-tenancy (an owner invites their own users) — a permission subsystem (L) |
 | Owner Onboarding wizard (Steps 1–3) | No onboarding wizard exists (Step-1 profile write ships on Settings; Steps 2–3 = Payout Method [now built] + notification prefs) |
 
@@ -164,14 +164,16 @@ issues staff roles).
 
 ---
 
-## 5. TRANSACTIONAL EMAILS — ~10 designed · 2 functional · ~9 remaining
+## 5. TRANSACTIONAL EMAILS — ✅ BUILT in Phase 3 (2026-07-20)
 
 Booking Confirmation · Cancellation · Payment Reminder · Pre-arrival · Refund Confirmation · Review Request ·
-Waitlist Notification · Winback · (Guest) Verify Email · + the Email Previews index. **Verified: exactly TWO
-Mailables exist** (`OwnerInviteMail`, `PasswordResetMail`), 2 send-sites total, no `app/Notifications/`. These ride
-TWO things: the NOTIFICATION/dispatch subsystem (what triggers them) + a PRODUCTION EMAIL PROVIDER (account-gated;
-Mailpit covers dev). Build templates + triggers with the notification subsystem; go live when the provider exists.
-**(M once the dispatcher exists.)**
+Waitlist Notification · Winback · (Guest) Verify Email · + the Email Previews index — **all 9 built** as email-safe
+Mailables on the shared brand layout, plus the branded owner/operator notification email. **Real triggers now:**
+booking-confirmation / cancellation / refund (on their domain events) + payment-reminder (the
+`emails:send-payment-reminders` command, scheduled) + owner/operator notification emails (through the preference
+gate). **Triggers deferred honestly** (template built, no fake send): review→Phase 5, waitlist→Phase 4,
+verify→Phase 4, pre-arrival/winback→a scheduler. Dev delivery is **real via Mailpit** (proven); PRODUCTION delivery
+needs a mail provider — the ONE remaining account-gated piece.
 
 ---
 
@@ -262,11 +264,18 @@ live Stripe Connect rail deferred) → Add a Unit (owner REQUEST flow + operator
 `OwnerUnitRequestService`. **Deferred (logged, not faked):** Stripe Connect payout EXECUTION (account-gated);
 any operator-approval workflow for owner rates; the operator's unit-CREATION from a request (their manual action).
 
-**PHASE 3 — The NOTIFICATION subsystem + all transactional emails (~2–3 weeks)** *(⬅ NEXT)*
-Events → dispatcher → in-app feeds (Operator + Owner Notifications) + preferences → the ~9 email templates +
-triggers (live sending flips on when the provider account exists) → Email Templates + Editor screens.
+**PHASE 3 — The NOTIFICATION subsystem + all transactional emails** *(✅ DONE — 2026-07-20, 5 gated sub-gates
+`7cca65c` → `7905570` → `640f149` → `6c51271` → this gate)*
+Events → `DispatchNotificationsForDomainEvent` → per-user in-app feeds (Operator + Owner Notifications) + a TYPED
+`notification_preferences` store that GENUINELY gates delivery (mutation-proven, both channels) → the real events
+wired (isolation-scoped) → 9 guest transactional email Mailables (Mailpit-real; booking/cancellation/refund +
+payment-reminder command live, the rest template-built with triggers deferred to their phase) → owner/operator
+email delivery through the SAME gate → Email Templates view (editing deferred honestly). Live email sending flips
+on when the provider account exists (Mailpit covers dev). Deferred honestly (no backing event): performance
+digest / new-device / terms-changed; scheduled ones (arrivals, housekeeping-behind, SLA, pre-arrival, winback)
+need a scheduler. Detail: `docs/DECISIONS.md` 2026-07-20 (Phase 3).
 
-**PHASE 4 — GUEST AUTH + the Guest Portal core (~4–6 weeks — the biggest single phase)**
+**PHASE 4 — GUEST AUTH + the Guest Portal core (~4–6 weeks — the biggest single phase)** *(⬅ NEXT)*
 Guest auth (Authenticatable guest, signup/login/verify, tied to bookings) → Account + Trips + Booking/Reservation →
 Manage Booking (date-change, add-ons→folio, cancellation) → Online Check-in + Arrival Info (+PDF) → Payments +
 Folio Receipt (+ money PDFs) → the Wallet/credits ledger + Guest Credits → Guest Messages (guest side of the inbox)

@@ -22,13 +22,15 @@ conflicts with the repo, **trust the repo** and fix this file.
 > last such subsystem.** ⚠️ **UPDATE (2026-07-20): the customer signal ARRIVED** — a warm operator contact
 > (Fatima) liked the demo AND the prototype, so the requirement is now **"make the real product work like the
 > prototype"** (the "no customer has reacted / don't build blind" framing that once sat here is SUPERSEDED — see
-> the NEXT ACTION section at the foot of this file). **Phases 0 and 1 of `docs/GAP-ANALYSIS.md` are DONE; Phase 2
-> (owner portal buildable set) is next.**
+> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2 AND 3 of `docs/GAP-ANALYSIS.md` are DONE;
+> Phase 4 (guest auth + the Guest Portal core) is next.** Phase 3 = the notification subsystem (in-app feeds +
+> typed preferences that GENUINELY gate on both channels) + the wired real events + all guest transactional emails
+> (Mailpit-real) + owner/operator email delivery + the Email Templates view — 5 gated sub-gates, pushed.
 
-- **On `main`, working tree clean, local == origin** (HEAD `11288d6` at the time of writing this capstone —
-  the doc commit that carries these words advances HEAD by one; see the HEAD convention below). Only the
+- **On `main`, working tree clean, local == origin** (HEAD advances by one with the doc commit that carries these
+  words; check `git log` for the true HEAD — see the HEAD convention below). Only the
   untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
-  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 697 tests / 6468 assertions, all green** on
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 728 tests / 6546 assertions, all green** on
   genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
   (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
   product bug. See the register). The suite is a trustworthy gate.
@@ -1158,13 +1160,24 @@ plain GET links (e.g. `?month=`).
   `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
   `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); Phases 0–2 DONE; NEXT = Phase 3 in `docs/GAP-ANALYSIS.md`
+## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); Phases 0–3 DONE; NEXT = Phase 4 in `docs/GAP-ANALYSIS.md`
 
 > **THE SIGNAL CAME. The "don't build blind" framing below is SUPERSEDED.** A warm operator contact (Fatima)
 > **liked the demo AND the prototype**, so the requirement is now concrete: **the real product must work the way
 > the prototype shows.** The prototype (124 designed screens) is the SPEC; the repo stays the truth for what backs
 > it; every gap gets BUILT, not faked. The full phased map — **audit-verified against real code** (5-agent pass,
 > 2026-07-20; 50 claims → 33 confirmed / 8 incorrect / 8 nuanced) — is **`docs/GAP-ANALYSIS.md`**.
+>
+> **✅ PHASE 3 COMPLETE (2026-07-20) — the notification subsystem + all transactional emails**, 5 gated sub-gates
+> (`7cca65c` → `7905570` → `640f149` → `6c51271` → this gate): the notification CORE (Laravel-native, real events
+> → per-user feed, isolation + idempotency) · Notification Preferences (TYPED store that GENUINELY gates delivery,
+> mutation-proven, always-on security, Phase-1 maintenance toggle resolved) · the real events wired (checkout
+> balance-due, out-of-service, payout/statement to owner+operator, channel error, account-security; deferrals
+> precise about why) · the 9 guest transactional emails (Mailpit-real; booking/cancellation/refund/reminder live,
+> the rest template-built-trigger-deferred) · owner/operator email delivery through the SAME preference gate
+> (selective email defaults; mutation-proven off→no-email) + the Email Templates view (editing deferred honestly).
+> **ONE account-gated piece remains for emails: a production mail provider (Mailpit is dev).** NEXT = **Phase 4**
+> (guest auth is the true greenfield the ~24-screen Guest Portal sits on).
 >
 > **The honest position:** **~55 built screens/artifacts · ~70 designed-but-unbuilt.** What remains splits into
 > ① subsystems/epics (guest auth, notifications, reviews/wallet, tenant-provisioning, Owner Rates,

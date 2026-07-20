@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Services\NotificationPreferences;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
@@ -14,11 +15,10 @@ use Illuminate\Notifications\Notification;
  *   • {@see eventKey()} — the preference key ({@see NotificationPreferences} decides which channels a user allows), and
  *   • {@see data()} — the stored payload the feed renders (title / context / url / category).
  *
- * ⚠️ CHANNELS ARE PREFERENCE-GATED (Sub-gate 2). {@see via()} asks {@see NotificationPreferences::allows()} per
- * channel, so an OFF toggle genuinely suppresses this notification — it is not cosmetic. Always-on (security)
- * events can't be suppressed, but that rule lives in the catalog + allows() (not here) — so nothing in this base
- * special-cases it. The `mail` channel is added in Sub-gate 4 (when the Mailables exist), gated the same way on
- * the `email` preference.
+ * ⚠️ CHANNELS ARE PREFERENCE-GATED (Sub-gate 2, both channels live Sub-gate 5). {@see via()} asks
+ * {@see NotificationPreferences::allows()} per channel, so an OFF toggle genuinely suppresses this notification on
+ * that channel — it is not cosmetic, on EITHER in-app or email. Always-on (security) events can't be suppressed,
+ * but that rule lives in the catalog + allows() (not here) — so nothing in this base special-cases it.
  */
 abstract class FeedNotification extends Notification
 {
@@ -39,9 +39,10 @@ abstract class FeedNotification extends Notification
 
     /**
      * The channels to deliver on — the intersection of what this notification supports and what the notifiable's
-     * preferences ALLOW. An off `in_app` toggle drops 'database' → nothing is written to the feed (genuine
-     * suppression); an always-on event is never dropped because {@see NotificationPreferences::allows()}
-     * short-circuits it to true. Sub-gate 4 adds 'mail' here, gated identically on the `email` preference.
+     * preferences ALLOW. An off `in_app` toggle drops 'database' → nothing is written to the feed; an off `email`
+     * toggle drops 'mail' → no email is sent (genuine suppression on BOTH channels). An always-on event is never
+     * dropped because {@see NotificationPreferences::allows()} short-circuits it to true. This is the ONE gate for
+     * both channels — the SG2 email toggle is not cosmetic: mutation-proven that off → no email.
      *
      * @return list<string>
      */
@@ -53,8 +54,31 @@ abstract class FeedNotification extends Notification
         if ($prefs->allows($notifiable, $this->eventKey(), 'in_app')) {
             $channels[] = 'database';
         }
+        if ($prefs->allows($notifiable, $this->eventKey(), 'email')) {
+            $channels[] = 'mail';
+        }
 
         return $channels;
+    }
+
+    /**
+     * The email form of this notification (Sub-gate 5) — the SAME title/context/link as the in-app feed row,
+     * rendered through the shared branded email layout. The mail channel routes it to the notifiable's own email;
+     * it is only ever built when {@see via()} allowed the `email` channel. The feed's RELATIVE url is made
+     * absolute for the email.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $data = $this->data($notifiable);
+
+        return (new MailMessage)
+            ->subject($data['title'])
+            ->view('emails.notification', [
+                'title' => $data['title'],
+                'context' => $data['context'],
+                'url' => url($data['url']),
+                'category' => $data['category'],
+            ]);
     }
 
     /**

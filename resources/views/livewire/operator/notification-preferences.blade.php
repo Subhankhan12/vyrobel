@@ -42,7 +42,7 @@
                 @endforeach
 
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap;gap:10px">
-                    <span class="vy-line-sub" style="font-size:11.5px;color:var(--vy-muted)">Email delivery arrives with the email templates — the toggle is saved now. Push & SMS: coming later.</span>
+                    <span class="vy-line-sub" style="font-size:11.5px;color:var(--vy-muted)">In-app and email delivery are both live — anything left on for email also lands in your inbox. Push &amp; SMS: coming later.</span>
                     <button type="submit" class="vy-btn vy-btn--accent" style="padding:9px 20px">Save changes</button>
                 </div>
             </div>
