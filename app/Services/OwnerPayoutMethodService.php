@@ -8,6 +8,7 @@ use App\Models\Owner;
 use App\Models\PayoutMethod;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Events\DomainEventRecorder;
 use App\Support\Payouts\Iban;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -23,10 +24,17 @@ use Illuminate\Support\Facades\DB;
  *
  * The full IBAN is ENCRYPTED at rest (model cast); only its last four + country are stored in the clear, for the
  * masked display. Audit records the country/last4 (non-sensitive), never the full IBAN (invariant #28).
+ *
+ * ⚠️ Every change ALSO writes a `owner.payout_method_changed` DOMAIN event (convention: a meaningful state change
+ * writes BOTH an audit row AND a domain-events row). That domain event is what drives the owner's ALWAYS-ON
+ * "Account & security" notification (Phase 3). The payload carries only WHICH change happened, never the IBAN.
  */
 class OwnerPayoutMethodService
 {
-    public function __construct(private AuditEventRecorder $audit) {}
+    public function __construct(
+        private AuditEventRecorder $audit,
+        private DomainEventRecorder $domainEvents,
+    ) {}
 
     /** The authenticated user's OWN owner record (never a request id); non-linked → 404 (fail closed). */
     public function owner(User $user): Owner
@@ -73,6 +81,7 @@ class OwnerPayoutMethodService
         ]);
 
         $this->audit->record('owner.payout_method_added', $owner, null, ['country' => $method->iban_country, 'last4' => $method->iban_last4]);
+        $this->domainEvents->record('owner.payout_method_changed', $owner, ['change' => 'added']);
 
         return $method;
     }
@@ -90,6 +99,7 @@ class OwnerPayoutMethodService
             $method->update(['is_default' => true]);
 
             $this->audit->record('owner.payout_method_default_changed', $method->owner, null, ['last4' => $method->iban_last4]);
+            $this->domainEvents->record('owner.payout_method_changed', $method->owner, ['change' => 'default_changed']);
         });
     }
 
@@ -112,6 +122,7 @@ class OwnerPayoutMethodService
             }
 
             $this->audit->record('owner.payout_method_removed', $owner, null, ['last4' => $method->iban_last4]);
+            $this->domainEvents->record('owner.payout_method_changed', $owner, ['change' => 'removed']);
         });
     }
 }
