@@ -42,6 +42,7 @@
             ['messages', 'Messages', 'M4 5h16v11H9l-5 4z', route('owner.messages')],
         ]],
         ['ACCOUNT', [
+            ['notifications', 'Notifications', 'M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0', route('owner.notifications')],
             ['settings', 'Settings', 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2', route('owner.settings')],
             ['security', 'Security', 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z', null],
             ['team', 'Team & access', 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', null],
@@ -94,9 +95,11 @@
                 @endif
             </div>
             <div class="vy-topbar-actions">
-                <span class="vy-bell" title="Notifications — coming soon" aria-label="Notifications">
+                @php $unread = auth()->user()?->unreadNotifications()->count() ?? 0; @endphp
+                <a href="{{ route('owner.notifications') }}" class="vy-bell" title="Notifications" aria-label="Notifications" style="position:relative;text-decoration:none;color:inherit">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0"/></svg>
-                </span>
+                    @if ($unread > 0)<span aria-label="{{ $unread }} unread" style="position:absolute;top:-3px;right:-3px;min-width:15px;height:15px;padding:0 3px;border-radius:999px;background:var(--vy-accent);color:#fff;font-size:9.5px;font-weight:700;display:grid;place-items:center">{{ $unread > 9 ? '9+' : $unread }}</span>@endif
+                </a>
                 <span class="vy-chip">
                     <span class="vy-avatar">{{ $viewer['initials'] }}</span>
                     <span class="vy-chip-name">{{ $viewer['name'] }}</span>

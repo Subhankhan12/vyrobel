@@ -10,6 +10,7 @@ use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\HousekeepingActionController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
 use App\Http\Controllers\Operator\GuestActionController;
@@ -54,6 +55,7 @@ use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorMaintenanceCosts;
 use App\Livewire\Operator\OperatorMaintenanceSettings;
+use App\Livewire\Operator\OperatorNotifications;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Operator\OperatorProfile;
@@ -80,6 +82,7 @@ use App\Livewire\Owner\OwnerHelp;
 use App\Livewire\Owner\OwnerMessages;
 use App\Livewire\Owner\OwnerMessageThread;
 use App\Livewire\Owner\OwnerMyUnits;
+use App\Livewire\Owner\OwnerNotifications;
 use App\Livewire\Owner\OwnerPayoutMethod;
 use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerRates;
@@ -105,6 +108,16 @@ Route::get('/', function () {
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store']);
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+
+/*
+ * Notification mark-read writes (Phase 3) — shared by the operator + owner feeds. Behind `auth` only (both
+ * portals). SELF-ONLY by construction: the controller writes through $request->user()->notifications, so a
+ * cross-user id 404s — a user can only ever mark their OWN notifications read.
+ */
+Route::middleware('auth')->group(function () {
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+});
 
 /*
  * 2FA login CHALLENGE (Auth · Step 2) — reachable ONLY in the "2FA pending" state (correct password given,
@@ -261,6 +274,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     // change their OWN password. The write resolves the user from auth() (never a request id), VERIFIES the
     // current password, and reuses User::changePasswordTo (the shared reset hash + remember-token-rotate
     // path). Rate-limited like the rest of the auth chapter.
+    // Phase 3 · Sub-gate 1 — the operator in-app notification feed (the AUTHENTICATED user's OWN notifications;
+    // per-user Notifiable → isolation by construction). Behind #26 only (every back-office user has a feed).
+    Route::get('/notifications', OperatorNotifications::class)->name('notifications');
+
     Route::get('/security', OperatorSecurity::class)->name('security');
     Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
 
@@ -483,6 +500,9 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/add-unit', OwnerAddUnit::class)->name('add-unit');
     Route::post('/add-unit', [OwnerUnitRequestController::class, 'store'])->name('add-unit.submit');
     Route::get('/help', OwnerHelp::class)->name('help');
+    // Phase 3 · Sub-gate 1 — the owner in-app notification feed (the owner's OWN notifications; per-user
+    // Notifiable → never another user's, never another owner's).
+    Route::get('/notifications', OwnerNotifications::class)->name('notifications');
     // Wave 1 · Sub-gate 1 — the owner-accounting long-tail (all read-only, owner-scoped, over the
     // CERTIFIED owner-accounting backend; presentation only, no service/schema change).
     Route::get('/balance', OwnerBalance::class)->name('balance');

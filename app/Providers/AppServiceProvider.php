@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Events\DomainEventRecorded;
+use App\Listeners\DispatchNotificationsForDomainEvent;
 use App\Listeners\EnqueueAriPushOnInventoryChange;
 use App\Listeners\GenerateDepartureCleanTask;
 use App\Listeners\RecomputeAvailabilityOnInventoryChange;
@@ -194,6 +195,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(DomainEventRecorded::class, RecomputeAvailabilityOnInventoryChange::class);
         Event::listen(DomainEventRecorded::class, GenerateDepartureCleanTask::class);
         Event::listen(DomainEventRecorded::class, EnqueueAriPushOnInventoryChange::class);
+        // Phase 3 — turn real domain events into per-user notifications (database channel; mail added Sub-gate 4).
+        // Also a strict one-directional consumer: it reads the event, resolves recipients, and dispatches; it
+        // records no domain events itself (no loop).
+        Event::listen(DomainEventRecorded::class, DispatchNotificationsForDomainEvent::class);
 
         // Rate limiter for the public booking engine (Step 7) — per-IP, protects search/quote/book
         // from scraping/abuse. Limit is config-driven so it can be tightened per environment.
