@@ -34,8 +34,8 @@
             ['tax', 'Tax center', 'M6 6h.01M18 18h.01M6 18 18 6', route('owner.tax')],
         ]],
         ['MANAGE', [
-            ['reports', 'Reports', 'M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6', null],
-            ['insights', 'Insights', 'M4 15l4-5 4 3 6-8', null],
+            ['reports', 'Reports', 'M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6', route('owner.reports')],
+            ['insights', 'Insights', 'M4 15l4-5 4 3 6-8', route('owner.insights')],
             ['rates', 'Rates', 'M4 4h9l7 7-9 9-7-7zM8 8h.01', route('owner.rates')],
             ['reviews', 'Reviews', 'M12 4l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4-3.9-3.8 5.4-.8z', route('owner.reviews')],
             ['agreement', 'Agreement', 'M5 4h11l3 3v13H5zM8 12c3-1 4 2 6 0M8 16h8', route('owner.agreement')],

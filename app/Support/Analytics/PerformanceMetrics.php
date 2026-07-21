@@ -142,6 +142,37 @@ final class PerformanceMetrics
     }
 
     /**
+     * A REAL month-by-month trend for an owner's units (mirrors {@see monthlyTrendForProperties}) — one
+     * {@see MetricSet} per calendar month, every month real, an empty month an honest zero.
+     *
+     * @param  list<string>  $unitIds
+     * @return list<array{month: string, label: string, metrics: MetricSet}>
+     */
+    public static function monthlyTrendForOwnerUnits(array $unitIds, CarbonImmutable $start, CarbonImmutable $end, string $currency): array
+    {
+        $trend = [];
+        $cursor = $start->startOfMonth();
+        $guard = 0;
+
+        while ($cursor->lessThan($end) && $guard < 13) {
+            $bucketStart = $cursor->greaterThan($start) ? $cursor : $start;
+            $nextMonth = $cursor->addMonth();
+            $bucketEnd = $nextMonth->lessThan($end) ? $nextMonth : $end;
+
+            $trend[] = [
+                'month' => $cursor->format('Y-m'),
+                'label' => $cursor->format('M'),
+                'metrics' => self::forOwnerUnits($unitIds, $bucketStart, $bucketEnd, $currency),
+            ];
+
+            $cursor = $nextMonth;
+            $guard++;
+        }
+
+        return $trend;
+    }
+
+    /**
      * Active reservation_unit lines overlapping [start, end), with their reservation's source/status for
      * the channel mix. Half-open overlap: check_in < end AND check_out > start.
      *

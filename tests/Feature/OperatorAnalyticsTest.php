@@ -67,6 +67,17 @@ it('reports real revenue and maintenance, and marks untracked cost categories ho
     assertNoRawBlade($res);
 });
 
+// ── 5b. THE PORTFOLIO COMPARISON — real ADR/RevPAR/revenue via the metric layer (deferred from 6a) ──
+it('shows a real Portfolio comparison reconciling to the metric layer', function () {
+    $s = seedScenario(1);
+    book($s, ['unit_id' => $s['units'][0]->id, 'price_minor' => 20000]);   // Sep 1–3, 2 nights → ADR €100.00
+
+    $this->actingAs(operatorUser($s, [], 'Hotel Manager'))->get('/app/portfolio')
+        ->assertOk()
+        ->assertSee('This year, side by side')
+        ->assertSee('€100.00');   // real ADR (€200 room revenue ÷ 2 room-nights), reconciling to SG1
+});
+
 // ── 5. 🔒 PER-PROPERTY SCOPE — Insights follows the selected property (the 6a context) ──────────────
 it('scopes Insights to the selected property, not an arbitrary one', function () {
     $s = seedScenario(1);

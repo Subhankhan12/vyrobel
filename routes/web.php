@@ -109,6 +109,7 @@ use App\Livewire\Owner\OwnerDashboard;
 use App\Livewire\Owner\OwnerDocuments;
 use App\Livewire\Owner\OwnerExpenses;
 use App\Livewire\Owner\OwnerHelp;
+use App\Livewire\Owner\OwnerInsights;
 use App\Livewire\Owner\OwnerMessages;
 use App\Livewire\Owner\OwnerMessageThread;
 use App\Livewire\Owner\OwnerMyUnits;
@@ -117,6 +118,7 @@ use App\Livewire\Owner\OwnerNotifications;
 use App\Livewire\Owner\OwnerPayoutMethod;
 use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerRates;
+use App\Livewire\Owner\OwnerReports;
 use App\Livewire\Owner\OwnerReviews;
 use App\Livewire\Owner\OwnerSettings;
 use App\Livewire\Owner\OwnerStatementView;
@@ -615,6 +617,11 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/units', OwnerMyUnits::class)->name('units');
     // Phase 5 — Owner Reviews (read-only): published reviews for the owner's OWN units (owner-scoped).
     Route::get('/reviews', OwnerReviews::class)->name('reviews');
+    // Phase 6b · Analytics — owner Insights + Reports over the SG1 metric layer, scoped to the owner's OWN
+    // units (OwnerPortalService::units() + owner-scoped OwnerLedgerEntry). Earnings reconcile to the ledger
+    // (the same figures the statements show). Read-only; owner isolation fails closed for a non-linked user.
+    Route::get('/insights', OwnerInsights::class)->name('insights');
+    Route::get('/reports', OwnerReports::class)->name('reports');
     // Wave 1 · Sub-gate 3 — ONE of the owner's units. Owner-scoped: a non-owned/cross-owner unit id
     // 404s under OwnerScope. Occupancy is THIS-unit/THIS-owner (never room-type-wide).
     Route::get('/units/{unit}', OwnerUnitDetail::class)->name('units.show');

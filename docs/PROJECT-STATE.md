@@ -24,9 +24,16 @@ conflicts with the repo, **trust the repo** and fix this file.
 > last such subsystem.** ⚠️ **UPDATE (2026-07-20): the customer signal ARRIVED** — a warm operator contact
 > (Fatima) liked the demo AND the prototype, so the requirement is now **"make the real product work like the
 > prototype"** (the "no customer has reacted / don't build blind" framing that once sat here is SUPERSEDED — see
-> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b, 4c, 5 AND 6a of `docs/GAP-ANALYSIS.md`
-> are DONE — the Guest Portal is complete, the Reviews module is complete, AND the product is now MULTI-PROPERTY;
-> Phase 6b (Analytics) is next.** Phase 6a = MULTI-PROPERTY: a per-user session-backed `PropertyContext` + a topbar
+> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b, 4c, 5 AND 6 (a+b) of `docs/GAP-ANALYSIS.md`
+> are DONE — the Guest Portal + Reviews are complete, the product is MULTI-PROPERTY, AND it has real ANALYTICS;
+> Phase 7 (the SaaS layer) is next.** Phase 6b = ANALYTICS: the shared `App\Support\Analytics\PerformanceMetrics` +
+> `MetricSet` metric layer (ADR/RevPAR/occupancy/room revenue, stay-night attribution, **RevPAR = ADR × occupancy
+> exactly**, reconciling to `FolioTotals` + the availability spine; scopes property/all/owner-units) → operator
+> Insights + Reports (`reports.view`, per-property + all-properties) → owner Reports + Insights (owner-scoped,
+> **earnings reconcile to the owner ledger**) → the real Portfolio comparison. **Every figure a REAL aggregate; the
+> prototype's invented history/narrative REFUSED; a thin period an honest empty state; lead-time/pace deferred "Soon"
+> — invariant #39.** 3 gated sub-gates, mutation-proven (reconciliation + owner isolation), the fabrication-absence
+> tested. Phase 6a = MULTI-PROPERTY: a per-user session-backed `PropertyContext` + a topbar
 > switcher + the COMPLETE `Property::…->first()` refactor (Tier A 10 sites/8 files + Tier B 5 blend-risk list screens,
 > grep-clean — a `->first()` silently returns an ARBITRARY property once an org runs several, so this was a genuine
 > wrong-property bug) + property CRUD (`properties.manage`, org-scoped) + the Portfolio overview (real per-property
@@ -57,7 +64,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **On `main`, working tree clean, local == origin** (HEAD advances by one with the doc commit that carries these
   words; check `git log` for the true HEAD — see the HEAD convention below). Only the
   untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
-  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 833 tests / 6976 assertions, all green** on
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 848 tests / 7099 assertions, all green** on
   genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
   (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
   product bug. See the register). The suite is a trustworthy gate.
@@ -368,12 +375,14 @@ conflicts with the repo, **trust the repo** and fix this file.
   `Support\Guest\GuestReservationView` · `Support\Guest\GuestName` (incl. the #28 `reviewByline`) ·
   `Support\Guest\ArrivalPack` · `Support\Reviews\ReviewRating` + `ReviewList` · `Support\Property\PropertyContext`
   (the ONE current-property resolution) + `Support\Property\PropertyOccupancy` (the ONE occupancy-for-a-property, shared
-  by the Dashboard + Portfolio) · `assertNoRawBlade()` (the Blade-safety
+  by the Dashboard + Portfolio) · `Support\Analytics\PerformanceMetrics` + `MetricSet` (the ONE performance-metrics
+  derivation — ADR/RevPAR/occupancy/revenue, reconciling; shared by operator Insights/Reports, the Portfolio
+  comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–38 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–39 (the full guarantee stack)
 
-> **All 38, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 39, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
@@ -386,7 +395,10 @@ conflicts with the repo, **trust the repo** and fix this file.
 > real completed stays** · **#37 review moderation + rating are real (only published is public; rating derived)** ·
 > **#38 multi-property: every property-scoped operation resolves through the selected `PropertyContext`, never an
 > arbitrary `->first()`; a WRITE targets a concrete property, never "all"; property access is the `property_user`
-> pivot-or-all allow-list; a created property is org-scoped**.
+> pivot-or-all allow-list; a created property is org-scoped** · **#39 analytics are REAL aggregates through the ONE
+> shared `PerformanceMetrics` layer, reconciling to `FolioTotals` / the availability spine / the owner ledger — NEVER
+> fabricated (no invented history/trend/narrative); a thin period shows an honest empty state; owner analytics are
+> owner-scoped (their units only)**.
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -766,6 +778,21 @@ conflicts with the repo, **trust the repo** and fix this file.
       `BelongsToOrganization` (organization_id auto-filled, never cross-org) and it enters the selector. The
       **grep-clean** proof (no property-resolution `->first()` remains) is the sweep's completeness guarantee — a missed
       site is a wrong-property bug. Mutation-proven both ways. (Phase 6a.)
+
+39. **ANALYTICS ARE REAL AGGREGATES — NEVER FABRICATED.** Every analytics figure is derived through the ONE shared
+    `App\Support\Analytics\PerformanceMetrics` + `MetricSet` — occupancy/ADR/RevPAR/room revenue on a stated
+    stay-night basis (RN = in-range nights of active `reservation_units`, reconciling to `availability.sold`; RR =
+    `price_minor` pro-rated, reconciling to the folio room line; AN = `availability.total` for a property scope, or
+    unit-count × days for an owner scope). **The identity RevPAR = ADR × occupancy holds EXACTLY** (same RN). Reports
+    revenue is Σ real `folio_items` (reconciles to `FolioTotals`); operator costs show only what's real (maintenance),
+    the rest "Not tracked yet"; owner **earnings reconcile to the owner ledger** via `OwnerLedgerAttribution` (the
+    statements' figure). **The prototype's invented multi-year history + generated narrative are REFUSED** — never
+    rendered; a real-derived observation ("busiest night is Monday") is fine, an invented one is not; a thin/empty
+    period shows an honest empty state, never a fake curve. Money never sums across currencies (#17). **Operator
+    analytics gated `reports.view`** (NOT Front Desk); **owner analytics owner-scoped** (their units only — resolved
+    through `OwnerPortalService::units()` + owner-scoped `OwnerLedgerEntry`, a non-linked user fails closed).
+    Reconciliation + owner isolation mutation-proven; the fabrication-absence tested. **Deferred honestly:** lead time
+    + booking pace + channel-attribution depth (derivable but too thin in real data). (Phase 6b.)
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
@@ -1317,33 +1344,33 @@ plain GET links (e.g. `?month=`).
   single source for #26/#30) · `database/migrations/` + `database/seeders/DemoSeeder.php` ·
   `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — Phases 0–5 AND 6a DONE; NEXT = Phase 6b (Analytics) in `docs/GAP-ANALYSIS.md`
+## NEXT ACTION — Phases 0–5 AND 6 (a+b) DONE; NEXT = Phase 7 (the SaaS layer) in `docs/GAP-ANALYSIS.md`
 
-> **CURRENT (2026-07-21). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5 AND 6a of the phased plan are COMPLETE** — three full
+> **CURRENT (2026-07-21). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5 AND 6 (a+b) of the phased plan are COMPLETE** — three full
 > user-facing apps (operator · owner · guest) + a public storefront + hardened multi-realm auth (operator/owner
-> `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~80 styled/browser-verified screens
-> on real scoped data under the honesty rule, now **MULTI-PROPERTY**. Suite **833 / 6976** green on MySQL; PHPStan L5
-> + Pint clean; `migrate:fresh --seed` clean (2 demo properties). Invariants **#1–38**. **The Guest Portal is
-> complete; the Reviews module is complete; the product is multi-property.** (The dated per-phase detail is in
+> `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~84 styled/browser-verified screens
+> on real scoped data under the honesty rule, now **MULTI-PROPERTY with real ANALYTICS**. Suite **848 / 7099** green on
+> MySQL; PHPStan L5 + Pint clean; `migrate:fresh --seed` clean (2 demo properties). Invariants **#1–39**. **The Guest
+> Portal + Reviews are complete; the product is multi-property with real analytics.** (The dated per-phase detail is in
 > `docs/DECISIONS.md`; the older "customer signal / don't build blind" framing below is HISTORICAL — the signal came
 > and every phase since was built to the prototype.)
 >
-> **✅ PHASE 6a — MULTI-PROPERTY (DONE, 2026-07-21, 2 gated steps `5589ac0` → this gate).** `PropertyContext` +
-> `SetCurrentPropertyForWebRequest` + the topbar switcher (the `property_user` **pivot-or-all** allow-list) + the
-> COMPLETE `->first()` refactor (Tier A 10 sites/8 files + Tier B 5 blend-risk list screens, **grep-clean**,
-> mutation-proven the selected context governs) + property CRUD (`properties.manage`, org-scoped) + the Portfolio
-> overview (real per-property data; honest "finish setup to go live"; ADR/RevPAR/revenue comparison deferred to 6b).
-> `#[Locked]`+mount-capture (`ResolvesCurrentProperty`) fixes the Livewire `/livewire/update` boundary — invariant
-> **#38**.
+> **✅ PHASE 6b — ANALYTICS (DONE, 2026-07-21, 3 gated sub-gates `8254e26` → `df9c95e` → this gate).** The shared
+> `PerformanceMetrics` + `MetricSet` layer (ADR/RevPAR/occupancy/room revenue, stay-night attribution, RevPAR = ADR ×
+> occupancy exactly, reconciling to `FolioTotals` + the availability spine) → operator Insights + Reports
+> (`reports.view`, per-property + all-properties) → owner Reports + Insights (owner-scoped, **earnings reconcile to the
+> owner ledger**) → the real Portfolio comparison. Every figure a REAL aggregate; the invented history/narrative
+> REFUSED; a thin period an honest empty state; lead-time/pace deferred "Soon" — invariant **#39**. Reconciliation +
+> owner isolation mutation-proven; the fabrication-absence tested. **✅ PHASE 6a — MULTI-PROPERTY** (2 gated steps):
+> `PropertyContext` + the topbar switcher + the COMPLETE `->first()` refactor (grep-clean) + property CRUD + the
+> Portfolio — invariant **#38**.
 >
-> **⬅ NEXT = PHASE 6b — ANALYTICS.** Operator Insights/Reports (per-property + all-properties: ADR/RevPAR/RevPAR + the
-> revenue comparison deferred from the Portfolio) + owner Reports/Insights (owner-scoped), on REAL aggregates (never a
-> fabricated chart) — builds on the Phase-6a property context.
+> **⬅ NEXT = PHASE 7 — THE SaaS LAYER.** Tenant provisioning / self-signup (the org-creation epic — where the two
+> deferred fail-closed RBAC self-provision defects finally get fixed) · subscription billing · Owner Team · Team
+> Schedule.
 >
 > **THE FULL REMAINING MAP (`docs/GAP-ANALYSIS.md` is authoritative):**
-> - **Phase 6b — Analytics (NEXT):** operator Insights/Reports (per-property + all-properties) + owner Reports, on REAL
->   aggregates (never a fabricated chart) — builds on 6a.
-> - **Phase 7 — the SaaS layer:** tenant-provisioning / self-signup (the org-creation epic + the chicken-and-egg of
+> - **Phase 7 — the SaaS layer (NEXT):** tenant-provisioning / self-signup (the org-creation epic + the chicken-and-egg of
 >   the first admin — this is where the **two fail-closed RBAC self-provision defects** get fixed, because
 >   org-creation is finally built) · subscription billing (Paywall/Checkout) · Owner Team (owner sub-tenancy) ·
 >   Team Schedule / rostering.

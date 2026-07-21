@@ -2768,3 +2768,62 @@ Rack/Units/New-Reservation/Dashboard all follow, bidirectional, session-persiste
 
 **NEXT = Phase 6b — Analytics** (Insights + Reports, operator per-property + all-properties; owner-scoped views) — the
 deferred ADR/RevPAR/revenue comparison lands here. Then Phase 7 (the SaaS layer).
+
+### 2026-07-21 — Phase 6b COMPLETE: the ANALYTICS module (a shared metric layer + operator/owner surfaces; 3 gated sub-gates) · PHASE 6 (a+b) DONE
+
+**The most fabrication-tempting phase, held to the honesty rule.** The prototype's analytics are heavily INVENTED —
+multi-year history (2023–2025), "best September on record", named guests, generated narrative ("Saturdays sell out
+first", "October is pacing 9 pts behind"). NONE of that is real, and the demo data is recent + sparse, so REAL
+analytics show LITTLE — which is CORRECT. Every number in this module is a real aggregate over real bookings/folios/
+inventory; a thin/empty period shows an honest empty state; the invented history/narrative is REFUSED (never rendered).
+
+**⛔ SG1 — THE SHARED METRIC LAYER, built + proven FIRST (`8254e26`).** `App\Support\Analytics\PerformanceMetrics`
++ `MetricSet` — the ONE derivation (anti-drift family, alongside `FolioTotals`/`OwnerOccupancy`). **Basis (stated):**
+stay-night attribution over `[start, end)` — RN (room-nights sold) = in-range nights of ACTIVE `reservation_units`
+(reconciles to the `availability.sold` spine); RR (room revenue) = `price_minor` PRO-RATED by in-range/stay nights
+(reconciles to the folio room line); AN (available room-nights) = Σ `availability.total` (property scope) or
+unit-count × days (owner scope — unit-level, because a room type is SHARED across owners' units). **ADR = RR÷RN ·
+RevPAR = RR÷AN · occupancy = RN÷AN → RevPAR = ADR × occupancy EXACTLY.** Scopes: `forProperties` (single or the 6a
+all-properties roll-up) + `forOwnerUnits`. Also real: LOS, cancellation rate, channel mix (`reservations.source`).
+Money never sums across currencies (`multiCurrency` flag, #17). **COMPUTABILITY VERDICT (honest):** ✅ REAL —
+occupancy · ADR · RevPAR · room revenue · LOS · cancellation rate · channel mix (direct/OTA/walk-in/corporate/group).
+📋 DEFER (UI "Soon") — lead time + booking pace (derivable from `booked_at` but too thin in sparse recent data to be
+meaningful). 📋 REFUSE — the invented multi-year history + generated narrative. **RECONCILIATION PROVEN** (5 tests):
+a known booking → the exact hand-calculated ADR/occupancy/RevPAR/revenue; the RevPAR identity holds exactly; a
+boundary-straddling stay pro-rates to its in-range nights; empty → honest zero; owner scope isolates (A sees it, B
+sees zero).
+
+**⛔ SG2 — Operator Insights + Reports (`df9c95e`).** Scoped by the 6a property context, gated `can:reports.view` (a
+management/analytics baseline — NOT Front Desk / Housekeeping / Reservation Agent, #30, mutation-proven). **Insights:**
+real metric cards + a REAL month-by-month trend (only months with real bookings; honest "not enough data yet" below 2
+active months) + real channel mix; lead-time/pace deferred "Soon". **Reports:** revenue = Σ REAL folio items
+(room/ancillary/tax, reconciles to `FolioTotals`); the ONE real operator cost is MAINTENANCE (resolved tickets on
+scope units); the prototype's other cost lines (channel commissions/cleaning/supplies/linen) have NO data source →
+listed "Not tracked yet", never fabricated; net = gross − tracked costs; top units by real room revenue. **The
+fabrication-absence is TESTED** (`assertDontSee 2023/2024/best September/on record/pts behind`).
+
+**⛔ SG3 — Owner Reports + Insights + the Portfolio comparison + consolidate (this gate).** **Owner analytics**
+(`App\Livewire\Owner\OwnerInsights`/`OwnerReports`, `/owner/insights` + `/owner/reports`) — OWNER-SCOPED via
+`OwnerPortalService::units()` + the owner-scoped `OwnerLedgerEntry` (never a request id; a non-linked user fails
+CLOSED — sees nothing, mutation-proven). **Earnings reconcile to the owner ledger BY CONSTRUCTION** via the shared
+`OwnerLedgerAttribution::netPerCurrency` — the exact figure the statements show (per-unit nets sum to the total).
+Occupancy/nights = the metric layer over the owner's units. **Owner Insights narrative is real-or-omitted:** the ONE
+observation ("your busiest night of the week is …") is genuinely derived from the owner's real bookings and OMITTED
+below 5 nights / no clear leader — never fabricated. **The Portfolio comparison** (deferred from 6a) is now the real
+side-by-side ADR/RevPAR/revenue per property (this year), via the metric layer, reconciling; a property with no data
+shows honest zeros. **New invariant #39.**
+
+**Anti-drift extraction:** `PerformanceMetrics` + `MetricSet` join the shared family; the same numbers appear on
+operator Insights, the Portfolio comparison, and (owner-scoped) owner analytics.
+
+**Browser-verified:** operator Insights (Seaside this-year: ADR €128.24, trend Jul €600 + Sep €1,580, Direct+OTA) ·
+Reports (room €2,180 + tax €501.40 + maintenance €225 → net €1,955, untracked "Not tracked yet") · Portfolio
+comparison (Seaside ADR €128.24/RevPAR €6.86/€2,180 · Vista €0 honest empty · Portfolio group) · owner Reports (net
+€705.60 = A1 €442.80 + A2 €262.80, reconciles) · owner Insights (ADR €180, "busiest night is Monday", honest thin
+trend). Suite **848 tests / 7099 assertions** green · PHPStan L5 + Pint clean · `migrate:fresh --seed` clean. Phase 6b
+commits: `8254e26` (SG1) → `df9c95e` (SG2) → this gate (SG3).
+
+**PHASE 6 (a + b) is COMPLETE — the product is multi-property with real analytics. NEXT = Phase 7 — the SaaS layer**
+(tenant provisioning / self-signup — where the two deferred fail-closed RBAC self-provision defects finally get fixed
+· subscription billing · Owner Team). Deferred honestly out of 6b: lead time + booking pace + channel-attribution
+depth (thin data); the invented history/narrative (refused).

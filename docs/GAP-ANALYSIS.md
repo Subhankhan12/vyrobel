@@ -86,7 +86,7 @@ Maintenance Costs · Maintenance Settings · Roles · Profile** (the six ✅ Pha
 | ✅ Operator Notifications + Notification Preferences | **BUILT (Phase 3)** — events → dispatcher → in-app feed + typed prefs that genuinely gate (in-app + email) | — |
 | ✅ Operator Email Templates | **BUILT (Phase 3)** — the documented VIEW (subject/trigger/variables + preview); an editable per-tenant template STORE is deferred honestly ("Edit · Soon") | editor: M–L |
 | Operator Team Schedule + Schedule PDF | Staff rostering — a new module (shifts, assignments, PDF) | M |
-| Operator Insights + Reports | The ANALYTICS module (ADR/RevPAR/occupancy/revenue). Multi-property in its full form; a single-property v1 is possible now | L |
+| ✅ Operator Insights + Reports | **BUILT (Phase 6b)** — real ADR/RevPAR/occupancy/revenue over the shared `PerformanceMetrics` layer, scoped by the 6a property context (per-property + all-properties); Reports = real folio revenue + real maintenance cost (other cost lines "Not tracked yet"). Gated `reports.view`. No fabricated history/narrative. | — |
 | Operator Reviews | The REVIEWS module (guest reviews + operator responses) — shared with Owner + Guest surfaces | M–L |
 | ✅ Operator Portfolio | **BUILT (Phase 6a)** — the property switcher (topbar, session-backed, pivot-aware) + the Portfolio overview (real per-property unit counts/occupancy/status; ADR/RevPAR deferred to 6b) + property CRUD (`properties.manage`). The complete `->first()` refactor landed with it (grep-clean). | — |
 | Operator Billing | Vyrobel-the-SaaS billing the operator (subscription) — pairs with Paywall/Checkout | L |
@@ -116,7 +116,7 @@ Auth-group artifacts, real but counted there.)*
 ### ⬜ Remaining (~8) — deferred subsystems (each rides a shared foundation)
 | Page | Shared subsystem / reason |
 |---|---|
-| Owner Reports + Insights | ANALYTICS (owner-scoped views) |
+| ✅ Owner Reports + Insights | **BUILT (Phase 6b)** — owner-scoped analytics over the same `PerformanceMetrics` layer (their units only, isolation mutation-proven); earnings reconcile to the owner ledger (`OwnerLedgerAttribution`); a real-or-omitted observation. |
 | Owner Reviews | REVIEWS (owner-scoped) |
 | ✅ Owner Notifications | **BUILT (Phase 3)** — owner feed + typed preferences (genuinely gating, in-app + email) |
 | Owner Team | Owner sub-tenancy (an owner invites their own users) — a permission subsystem (L) |
@@ -345,11 +345,15 @@ blend-risk list screens; grep-clean, mutation-proven the selected context govern
 (`properties.manage`, org-scoped) + the Portfolio overview (real per-property data, honest "finish setup" state). The
 L→M re-scope was correct — the schema already held N properties. See `docs/DECISIONS.md` 2026-07-21 (Phase 6a).
 
-**PHASE 6b — ANALYTICS (~2 weeks)** *(⬅ NEXT)*
-Insights + Reports (operator, per-property + all-properties: ADR/RevPAR/RevPAR + the revenue comparison table deferred
-from the Portfolio) → Owner Reports/Insights (owner-scoped). Builds on the Phase-6a property context.
+**PHASE 6b — ANALYTICS** *(✅ DONE — 2026-07-21, 3 gated sub-gates `8254e26` → `df9c95e` → this gate)*
+The shared metric layer (`App\Support\Analytics\PerformanceMetrics` + `MetricSet` — ADR/RevPAR/occupancy/room revenue,
+stay-night attribution, RevPAR = ADR × occupancy exactly, reconciling to FolioTotals + the availability spine; scopes
+property/all/owner-units) → operator Insights + Reports (per-property + all-properties, `reports.view`) → owner
+Reports + Insights (owner-scoped, earnings reconcile to the ledger) → the real Portfolio comparison. Every figure a
+REAL aggregate; the prototype's invented history/narrative REFUSED; lead-time/pace deferred honestly. See
+`docs/DECISIONS.md` 2026-07-21 (Phase 6b). **⇒ PHASE 6 (a + b) COMPLETE.**
 
-**PHASE 7 — The SaaS layer (~3–4 weeks)**
+**PHASE 7 — The SaaS layer (~3–4 weeks)** *(⬅ NEXT)*
 Tenant provisioning (Vyrobel Onboarding — the org-creation epic). ⚠️ **Carries the two deferred Phase-0.3 RBAC
 fixes:** (a) the org-creation transaction MUST call `OrganizationRoleProvisioner::provision()` atomically (org +
 first user + roles in one commit), or the first real org is dead on arrival — RBAC defect #1; (b) fix `Super

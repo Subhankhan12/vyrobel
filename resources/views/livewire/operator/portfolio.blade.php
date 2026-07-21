@@ -51,9 +51,9 @@
                 <div class="vy-dk-sub">across the portfolio</div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Revenue · ADR · RevPAR</div>
-                <div class="vy-dk-val" style="font-size: 15px; color: var(--vy-faint); font-weight: 600; letter-spacing: 0;">With Insights</div>
-                <div class="vy-dk-sub">side-by-side comparison arrives in 6b</div>
+                <div class="vy-dk-label">ADR · {{ $comparisonYear }}</div>
+                <div class="vy-dk-val">{{ $comparison['total']['adr'] }}</div>
+                <div class="vy-dk-sub">RevPAR {{ $comparison['total']['revpar'] }}</div>
             </div>
         </div>
 
@@ -99,6 +99,37 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
+        @endif
+
+        {{-- SIDE-BY-SIDE COMPARISON (deferred from 6a, real in 6b) — ADR/RevPAR/revenue per property, this
+             year, all REAL via the SG1 metric layer. A property with no data shows honest zeros. --}}
+        @if (count($comparison['rows']) > 0)
+            <div class="vy-card vy-fade" style="margin-top: 14px;">
+                <div class="vy-card-head"><h3>This year, side by side</h3><span class="vy-card-note">occupancy · ADR · RevPAR · room revenue · {{ $comparisonYear }}</span></div>
+                <table class="vy-table">
+                    <thead><tr><th>Property</th><th class="vy-num">Occupancy</th><th class="vy-num">ADR</th><th class="vy-num">RevPAR</th><th class="vy-num">Room revenue</th></tr></thead>
+                    <tbody>
+                        @foreach ($comparison['rows'] as $r)
+                            <tr>
+                                <td>{{ $r['name'] }}</td>
+                                <td class="vy-num">{{ $r['occupancy_pct'] }}%</td>
+                                <td class="vy-num">{{ $r['adr'] }}</td>
+                                <td class="vy-num">{{ $r['revpar'] }}</td>
+                                <td class="vy-num">{{ $r['revenue'] }}</td>
+                            </tr>
+                        @endforeach
+                        @if (count($comparison['rows']) > 1)
+                            <tr style="font-weight:700;border-top:1.5px solid var(--vy-glass-border)">
+                                <td>Portfolio</td>
+                                <td class="vy-num">{{ $comparison['total']['occupancy_pct'] }}%</td>
+                                <td class="vy-num">{{ $comparison['total']['adr'] }}</td>
+                                <td class="vy-num">{{ $comparison['total']['revpar'] }}</td>
+                                <td class="vy-num">{{ $comparison['total']['revenue'] }}</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
             </div>
         @endif
 

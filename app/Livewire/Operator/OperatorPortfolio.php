@@ -7,6 +7,7 @@ namespace App\Livewire\Operator;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Property;
 use App\Services\FrontDeskService;
+use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Property\PropertyContext;
 use App\Support\Property\PropertyOccupancy;
 use Carbon\CarbonImmutable;
@@ -104,7 +105,51 @@ class OperatorPortfolio extends Component
                 'rooms_total' => $aggregate['total'],
                 'arrivals' => $arrivalsToday,
             ],
+            'comparison' => $this->comparison($properties),
+            'comparisonYear' => CarbonImmutable::today()->format('Y'),
+            'canViewAnalytics' => (bool) auth()->user()?->can('reports.view'),
         ]);
+    }
+
+    /**
+     * The side-by-side ADR / RevPAR / revenue comparison (deferred from Phase 6a, real in 6b) — one row per
+     * property + a group row, all REAL via the SG1 {@see PerformanceMetrics} for the current year. A
+     * property with no data shows honest zeros; nothing is fabricated.
+     *
+     * @param  Collection<int, Property>  $properties
+     * @return array{rows: list<array{name: string, occupancy_pct: int, adr: string, revpar: string, revenue: string}>, total: array{occupancy_pct: int, adr: string, revpar: string, revenue: string}}
+     */
+    private function comparison($properties): array
+    {
+        $today = CarbonImmutable::today();
+        $start = $today->startOfYear();
+        $end = $start->addYear();
+
+        $rows = $properties->map(function (Property $property) use ($start, $end): array {
+            $currency = (string) ($property->currency ?? 'EUR');
+            $m = PerformanceMetrics::forProperties([(string) $property->id], $start, $end, $currency);
+
+            return [
+                'name' => (string) $property->name,
+                'occupancy_pct' => $m->occupancyPct(),
+                'adr' => $this->money($m->adrMinor(), $currency),
+                'revpar' => $this->money($m->revparMinor(), $currency),
+                'revenue' => $this->money($m->roomRevenueMinor, $currency),
+            ];
+        })->all();
+
+        $currency = (string) ($properties->first()->currency ?? 'EUR');
+        $group = PerformanceMetrics::forProperties($this->accessibleIds, $start, $end, $currency);
+
+        return [
+            'rows' => $rows,
+            'total' => [
+                'occupancy_pct' => $group->occupancyPct(),
+                'adr' => $this->money($group->adrMinor(), $currency),
+                'revpar' => $this->money($group->revparMinor(), $currency),
+                'revenue' => $this->money($group->roomRevenueMinor, $currency),
+            ],
+        ];
     }
 
     /**
