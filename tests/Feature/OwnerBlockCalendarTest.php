@@ -126,11 +126,15 @@ it('shows only the owner’s own units and fails closed for a non-linked user', 
     $s = seedScenario(2);
     $a = blkOwner($s, 0, 'Amara Okafor');
     $b = blkOwner($s, 1, 'Bruno Vale');
+    // Distinctive codes — a 2-char code like "U2" is too generic a needle and can collide with incidental
+    // page content (ULIDs, hex, SVG paths), making assertSee/assertDontSee order-dependently flaky.
+    $a['unit']->update(['code' => 'AOWNEDBLK']);
+    $b['unit']->update(['code' => 'BOWNEDBLK']);
 
     $this->actingAs($a['user'])->get('/owner/calendar')
         ->assertOk()
-        ->assertSee((string) $a['unit']->code)        // A's own unit is pickable…
-        ->assertDontSee((string) $b['unit']->code);   // …B's is not
+        ->assertSee('AOWNEDBLK')        // A's own unit is pickable…
+        ->assertDontSee('BOWNEDBLK');   // …B's is not
 
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);

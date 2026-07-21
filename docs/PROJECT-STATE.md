@@ -24,9 +24,16 @@ conflicts with the repo, **trust the repo** and fix this file.
 > last such subsystem.** ⚠️ **UPDATE (2026-07-20): the customer signal ARRIVED** — a warm operator contact
 > (Fatima) liked the demo AND the prototype, so the requirement is now **"make the real product work like the
 > prototype"** (the "no customer has reacted / don't build blind" framing that once sat here is SUPERSEDED — see
-> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b, 4c, 5 AND 6 (a+b) of `docs/GAP-ANALYSIS.md`
-> are DONE — the Guest Portal + Reviews are complete, the product is MULTI-PROPERTY, AND it has real ANALYTICS;
-> Phase 7 (the SaaS layer) is next.** Phase 6b = ANALYTICS: the shared `App\Support\Analytics\PerformanceMetrics` +
+> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b) AND 7a of
+> `docs/GAP-ANALYSIS.md` are DONE — Guest Portal + Reviews complete, MULTI-PROPERTY, real ANALYTICS, AND public
+> SELF-SIGNUP that provisions a whole new tenant org; Phase 7b (subscription billing) is next.** Phase 7a = TENANT
+> PROVISIONING: `App\Services\TenantProvisioningService` atomically creates a new operator org (org + provisioned
+> roles + founder + `Property Owner` + first property in ONE transaction) — the chicken-and-egg escaped via the
+> pre-tenant `TenantContext::runAsSuperAdmin` path (`Organization::create`'s first `app/` caller;
+> `OrganizationRoleProvisioner::provision()`'s first real caller) — plus the public `/signup` onboarding wizard
+> (rate-limited, neutral enumeration, founder auto-logged-in, honest "finish setup"). **BOTH deferred fail-closed
+> RBAC defects FIXED, mutation-proven:** org-creation now provisions roles (#1); the founder holds the ASSIGNABLE
+> `Property Owner`, never the global `Super Admin` (#2 self-provision) — invariant **#40**. Phase 6b = ANALYTICS: the shared `App\Support\Analytics\PerformanceMetrics` +
 > `MetricSet` metric layer (ADR/RevPAR/occupancy/room revenue, stay-night attribution, **RevPAR = ADR × occupancy
 > exactly**, reconciling to `FolioTotals` + the availability spine; scopes property/all/owner-units) → operator
 > Insights + Reports (`reports.view`, per-property + all-properties) → owner Reports + Insights (owner-scoped,
@@ -64,7 +71,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **On `main`, working tree clean, local == origin** (HEAD advances by one with the doc commit that carries these
   words; check `git log` for the true HEAD — see the HEAD convention below). Only the
   untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
-  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 848 tests / 7099 assertions, all green** on
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 857 tests / 7139 assertions, all green** on
   genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
   (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
   product bug. See the register). The suite is a trustworthy gate.
@@ -380,9 +387,9 @@ conflicts with the repo, **trust the repo** and fix this file.
   comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–39 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–40 (the full guarantee stack)
 
-> **All 39, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 40, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
@@ -398,7 +405,10 @@ conflicts with the repo, **trust the repo** and fix this file.
 > pivot-or-all allow-list; a created property is org-scoped** · **#39 analytics are REAL aggregates through the ONE
 > shared `PerformanceMetrics` layer, reconciling to `FolioTotals` / the availability spine / the owner ledger — NEVER
 > fabricated (no invented history/trend/narrative); a thin period shows an honest empty state; owner analytics are
-> owner-scoped (their units only)**.
+> owner-scoped (their units only)** · **#40 tenant provisioning is ATOMIC + provisions roles: a new org is created
+> only through `TenantProvisioningService` (org + 13 roles + founder + `Property Owner` + first property in ONE
+> transaction, all-or-nothing); a provisioned org has a valid RBAC state; the founder holds the ASSIGNABLE org-admin
+> role, never the global `Super Admin`; org isolation holds for provisioned orgs**.
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -794,6 +804,20 @@ conflicts with the repo, **trust the repo** and fix this file.
     Reconciliation + owner isolation mutation-proven; the fabrication-absence tested. **Deferred honestly:** lead time
     + booking pace + channel-attribution depth (derivable but too thin in real data). (Phase 6b.)
 
+40. **TENANT PROVISIONING IS ATOMIC + PROVISIONS ROLES (the chicken-and-egg, solved).** A brand-new operator org is
+    created ONLY through `App\Services\TenantProvisioningService`, in ONE `DB::transaction` (all-or-nothing): the
+    Organization (via `TenantContext::runAsSuperAdmin` — the pre-tenant escape, since `Organization` is the tenant
+    boundary, not a `BelongsToOrganization` model) + its 13 provisioned roles (`OrganizationRoleProvisioner::provision`
+    — org-creation now provisions roles, so the org is not dead-on-arrival under #26 — **RBAC DEFECT #1 FIXED**) + the
+    founder `User` (hashed, active) + an active `Membership` + `assignRole('Property Owner')` on the org's spatie team
+    (the founder holds a legitimate, ASSIGNABLE org-admin role — never the global `Super Admin`, a cross-tenant
+    platform role a founder must never hold — **RBAC DEFECT #2 resolved for self-provision**) + the first `Property`. A
+    mid-provision failure rolls back the ENTIRE org (no orphan org/user/roles/membership/property); a provisioned org
+    is tenant-isolated both directions; the founder belongs only to their org. The public `/signup` surface is
+    rate-limited, hardened (hashed password, session regenerated, no email-verification gate — the founder matches
+    existing operators), and handles enumeration neutrally (org existence never leaks; a duplicate email fails
+    non-committally). Mutation-proven. (Phase 7a.)
+
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
 ### ⚠️ SCHEMA-ONLY: ~8 models whose tables EXIST but which no code wires (read before building "a new module")
@@ -879,22 +903,22 @@ so it contains "U2" **~1.05% of the time** → **~15% per run** across 8 routes.
    is unchanged in kind: still no `inbox.*` permission, still a product decision about who may speak to a
    guest or an owner. Still logged, still not invented.
 
-3. **The two RBAC defects from the 2026-07-16 audit, both fail-closed and neither exploitable — reviewed in
-   Phase 0.3 (2026-07-20) and FORMALLY DEFERRED to the gates that build their fix:** `Super Admin`
-   is **unassignable** (`model_has_roles.organization_id` is NOT NULL and part of the PK, so a null-team
-   assignment cannot be stored — which also makes the Horizon gate dead in practice), and **no org-creation
-   path provisions roles** (moot today: no such path exists). ⚠️ Whoever fixes enforcement further needs both
-   facts together with #30, or they will wire a Super Admin bypass that can never fire.
-   - **Defect 1 (provisioning) → Phase 7 (tenant provisioning).** There is no `Organization::create` in `app/`,
-     so nothing to hook onto today; the org-creation transaction Phase 7 builds MUST call
-     `OrganizationRoleProvisioner::provision()` atomically, or the first real org is dead on arrival. A global
-     `Organization::created` hook was CONSIDERED and REJECTED in 0.3: it would add provisioning overhead +
-     shared-permission-table contention to 90 org-creating test files (incl. the true-parallel concurrency
-     suites) to guard a path that does not exist. The provisioner's docblock now carries this loudly.
-   - **Defect 2 (Super Admin) → whenever the spatie schema is next touched.** The fix needs a migration on
-     spatie's OWN `model_has_roles` (nullable team column + PK rework) — not casual; `Super Admin` stays out of
-     `back_office_roles` until then. Both are fail-closed (an unprovisioned org is unusable, not insecure; an
-     unassignable role grants nothing), so deferral is safe. Logged, not fixed — deliberately.
+3. ✅ **The two RBAC defects from the 2026-07-16 audit — BOTH FIXED in Phase 7a (2026-07-21), mutation-proven.**
+   They were fail-closed and never exploitable, and were formally deferred to "the gate that builds org creation"
+   — which is Phase 7a (tenant provisioning).
+   - ✅ **Defect 1 (provisioning) — FIXED.** `App\Services\TenantProvisioningService` calls
+     `OrganizationRoleProvisioner::provision()` atomically inside the org-creation transaction (the provisioner's
+     first real caller), so every self-signup org gets its 13 team-scoped roles and is NOT dead-on-arrival under
+     #26. Proven: a provisioned org has ≥13 roles and its founder can manage.
+   - ✅ **Defect 2 (Super Admin) — RESOLVED for self-provision.** The founder holds the ASSIGNABLE, team-scoped
+     `Property Owner` (org admin, `['*']` within the org) — the legitimate top role for a tenant founder — never
+     the global `Super Admin` (a cross-tenant platform role a founder must never hold — that would be an
+     over-grant). **RESIDUAL, re-scoped as a SEPARATE deferred PLATFORM item (NOT a self-provision defect):** the
+     global `Super Admin` stays unassignable (`model_has_roles.organization_id` is NOT NULL and part of the PK;
+     MySQL forbids NULL in a PK, so making it assignable needs a surrogate-PK rework of spatie's OWN table). That
+     affects only the Horizon/platform-admin gate — no tenant founder needs it — so it stays deferred to whenever
+     the spatie schema is next reworked; `Super Admin` remains out of `back_office_roles` until then. (See
+     `docs/DECISIONS.md` 2026-07-21, Phase 7a.)
 
 4. ✅ **THE CHANNEL MANAGER — no longer inert; the `channels.status` writer shipped in Phase 0.1 (2026-07-20).**
    `App\Services\ChannelConnectionService` is the real writer (`connect()` → `connected`, `activateMapping()` →
@@ -1344,14 +1368,16 @@ plain GET links (e.g. `?month=`).
   single source for #26/#30) · `database/migrations/` + `database/seeders/DemoSeeder.php` ·
   `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — Phases 0–5 AND 6 (a+b) DONE; NEXT = Phase 7 (the SaaS layer) in `docs/GAP-ANALYSIS.md`
+## NEXT ACTION — Phases 0–5, 6 (a+b) AND 7a DONE; NEXT = Phase 7b (subscription billing) in `docs/GAP-ANALYSIS.md`
 
-> **CURRENT (2026-07-21). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5 AND 6 (a+b) of the phased plan are COMPLETE** — three full
-> user-facing apps (operator · owner · guest) + a public storefront + hardened multi-realm auth (operator/owner
-> `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~84 styled/browser-verified screens
-> on real scoped data under the honesty rule, now **MULTI-PROPERTY with real ANALYTICS**. Suite **848 / 7099** green on
-> MySQL; PHPStan L5 + Pint clean; `migrate:fresh --seed` clean (2 demo properties). Invariants **#1–39**. **The Guest
-> Portal + Reviews are complete; the product is multi-property with real analytics.** (The dated per-phase detail is in
+> **CURRENT (2026-07-21). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b) AND 7a of the phased plan are COMPLETE** — three
+> full user-facing apps (operator · owner · guest) + a public storefront + **public self-signup that provisions a
+> whole new tenant org** + hardened multi-realm auth (operator/owner `web` + a separate `guest` guard, incl. 2FA),
+> all on the certified backend, ~85 styled/browser-verified screens on real scoped data under the honesty rule, now
+> **MULTI-PROPERTY with real ANALYTICS and SELF-SERVE SIGNUP**. Suite **857 / 7139** green on MySQL; PHPStan L5 + Pint
+> clean; `migrate:fresh --seed` clean (2 demo properties). Invariants **#1–40**. **The Guest Portal + Reviews are
+> complete; multi-property + real analytics; tenant provisioning ships (both RBAC defects fixed).** (The dated
+> per-phase detail is in
 > `docs/DECISIONS.md`; the older "customer signal / don't build blind" framing below is HISTORICAL — the signal came
 > and every phase since was built to the prototype.)
 >
@@ -1365,15 +1391,18 @@ plain GET links (e.g. `?month=`).
 > `PropertyContext` + the topbar switcher + the COMPLETE `->first()` refactor (grep-clean) + property CRUD + the
 > Portfolio — invariant **#38**.
 >
-> **⬅ NEXT = PHASE 7 — THE SaaS LAYER.** Tenant provisioning / self-signup (the org-creation epic — where the two
-> deferred fail-closed RBAC self-provision defects finally get fixed) · subscription billing · Owner Team · Team
-> Schedule.
+> **✅ PHASE 7a — TENANT PROVISIONING (DONE, 2026-07-21, 2 gated steps `0c4643d` → this gate).**
+> `TenantProvisioningService` atomically creates a new operator org (org + provisioned roles + founder + `Property
+> Owner` + first property in ONE transaction; chicken-and-egg escaped via `runAsSuperAdmin`) + the public `/signup`
+> onboarding wizard (rate-limited, neutral enumeration, founder auto-logged-in, honest "finish setup"). **BOTH
+> deferred fail-closed RBAC defects FIXED, mutation-proven** — invariant **#40**.
+>
+> **⬅ NEXT = PHASE 7b — SUBSCRIPTION BILLING.** Paywall + Checkout + Operator Billing (Stripe Billing; live charges
+> when live keys exist). Then Owner Team (7c) · Team Schedule (7d).
 >
 > **THE FULL REMAINING MAP (`docs/GAP-ANALYSIS.md` is authoritative):**
-> - **Phase 7 — the SaaS layer (NEXT):** tenant-provisioning / self-signup (the org-creation epic + the chicken-and-egg of
->   the first admin — this is where the **two fail-closed RBAC self-provision defects** get fixed, because
->   org-creation is finally built) · subscription billing (Paywall/Checkout) · Owner Team (owner sub-tenancy) ·
->   Team Schedule / rostering.
+> - **Phase 7b — subscription billing (NEXT):** Paywall/Checkout + Operator Billing (Stripe Billing; live charges when
+>   Stripe live keys exist) · then Owner Team (7c, owner sub-tenancy) · Team Schedule / rostering (7d).
 > - **Phase 8 — account-gated integrations** as accounts land (see the ACCOUNT-GATED tail below).
 >
 > **🔒 ACCOUNT-GATED TAIL (external accounts required — CANNOT be built until obtained; deferred HONESTLY throughout
@@ -1389,9 +1418,10 @@ plain GET links (e.g. `?month=`).
 > auto-earn (a referral credit is real only when genuinely earned) · the waitlist notify-trigger + auto-hold ·
 > email-template editing · guest email-change (a re-verify flow).
 >
-> **⚠️ STILL-OPEN (non-blocking):** the **two fail-closed RBAC self-provision defects** — Super Admin unassignable +
-> no org-creation path provisions roles — deliberately deferred to **Phase 7**, where tenant-provisioning builds the
-> org-creation flow they belong to. (They fail CLOSED — they block nothing that ships today.)
+> **✅ RESOLVED (Phase 7a, 2026-07-21):** the two fail-closed RBAC self-provision defects are FIXED — org-creation now
+> provisions roles (#1), and the founder holds the assignable `Property Owner` (#2). Residual (re-scoped, separate,
+> deferred): the global `Super Admin` stays unassignable — a PLATFORM-admin concern (Horizon gate), never a tenant
+> founder's, needing a spatie-PK rework whenever that schema is next touched.
 >
 > ---
 > **(HISTORICAL — the framing that led here; kept for the record.)** A warm operator contact (Fatima)

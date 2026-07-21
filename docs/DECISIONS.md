@@ -2827,3 +2827,58 @@ commits: `8254e26` (SG1) → `df9c95e` (SG2) → this gate (SG3).
 (tenant provisioning / self-signup — where the two deferred fail-closed RBAC self-provision defects finally get fixed
 · subscription billing · Owner Team). Deferred honestly out of 6b: lead time + booking pace + channel-attribution
 depth (thin data); the invented history/narrative (refused).
+
+### 2026-07-21 — Phase 7a COMPLETE: TENANT PROVISIONING / self-signup (atomic org creation + both RBAC defects fixed; 2 gated steps)
+
+**The SaaS layer begins: a public path that creates a brand-new operator organization.** This is the epic the
+audit flagged from the start — `Organization::create` appeared in ZERO `app/` files, `OrganizationRoleProvisioner::provision()`
+had ZERO callers, and two fail-closed RBAC defects were formally deferred to "the gate that builds org creation."
+That gate is here, and both are fixed.
+
+**THE CHICKEN-AND-EGG (solved cleanly).** A normal write can't create an org: `BelongsToOrganization` throws with
+no tenant context; the permission gate needs a user holding `organizations.manage` — but no user exists yet. The
+escape is a controlled PRE-TENANT path built from existing primitives (the same shape the seeder uses):
+`TenantContext::runAsSuperAdmin()` creates the org OUTSIDE any tenant/permission context (`Organization` is the
+tenant boundary, not a `BelongsToOrganization` model), then `provision()` gives it a valid RBAC state, then
+`forOrganization()` runs the rest inside it. Public signup is a pre-auth route, so it never touches the gate.
+
+**⛔ STEP 1 — `App\Services\TenantProvisioningService` (`0c4643d`).** THE single atomic path, all in one
+`DB::transaction`: ① `runAsSuperAdmin` → `Organization::create`; ② `OrganizationRoleProvisioner::provision($org)`
+— **its first real app caller** (RBAC DEFECT #1 FIXED: org-creation now provisions the org's 13 team-scoped
+roles, so a self-signup org is no longer dead-on-arrival under the #26 back-office gate); ③ `forOrganization` →
+founder `User` (hashed, active) + active `Membership` + `assignRole('Property Owner')` on the org's spatie team
+(RBAC DEFECT #2 resolved for self-provision: the founder holds a legitimate, ASSIGNABLE org-admin role — never
+the global `Super Admin`, a cross-tenant platform role a founder must never hold) + the first `Property`.
+**Mutation-proven** (4 tests): a mid-provision failure rolls back the ENTIRE org (no orphans); tenant isolation
+both directions; the founder belongs only to their org; a working RBAC state (founder holds Property Owner with
+`properties.manage`/`users.manage`/`payments.refund`, NOT Super Admin — both defect fixes proven); existing
+tenants unregressed.
+
+**⛔ STEP 2 — the onboarding wizard (this gate).** `App\Http\Controllers\Auth\OnboardingController` + a public
+`/signup` (GET wizard, POST provision): a 3-step self-contained wizard (business → founder account → first
+property; vanilla-JS stepper, degrades to a full form; "connecting channels is optional — Soon"). One POST calls
+the provisioning service atomically → the org + founder + roles + first property exist → the founder is logged
+in on the web guard (session regenerated, like accept-invite) → lands on the Portfolio, where their one property
+honestly shows **"Finish setup to go live"** (0 units — the real provisioned state, never a faked "ready").
+**HARDENING:** rate-limited (`throttle:5,1`); founder password hashed; NO email-verification gate (`User` isn't
+`MustVerifyEmail` — the founder matches every existing operator); enumeration handled neutrally — ORG existence
+never leaks (slugs auto-disambiguate), and a duplicate email fails with a NEUTRAL message (no "already taken"); a
+fully zero-enumeration accept-and-verify variant is deferred (needs production email + trades away immediate
+login). **Tests** (5): end-to-end signup → the founder can OPERATE the org (reaches `/app/settings` +
+`/app/roles` through the real #26/#30 gates); neutral duplicate-email; validation creates nothing; isolation from
+an existing tenant; an authed user is bounced from `/signup`. Also hardened a pre-existing order-flaky owner test
+(the 2-char `U1`/`U2` needle → distinctive codes) so the gate stays trustworthy.
+
+**Browser-verified:** signed up "Harbour Collective" → a brand-new ISOLATED org (its Portfolio shows only its own
+"Harbour Lofts", never the demo's Seaside/Vista), the founder logged in as admin (reaches `/app/roles`, sees the
+provisioned role catalog + their Property Owner role). Suite **857 tests / 7139 assertions** green · PHPStan L5 +
+Pint clean · `migrate:fresh --seed` clean. New invariant **#40**. Phase 7a commits: `0c4643d` (Step 1) → this gate.
+
+**THE TWO RBAC DEFECTS ARE FIXED — removed from the open register.** Residual, re-scoped as a SEPARATE deferred
+PLATFORM item (NOT a self-provision defect): the global `Super Admin` remains unassignable
+(`model_has_roles.organization_id` is NOT NULL and part of the PK; MySQL forbids NULL in a PK), which affects only
+the Horizon/platform-admin gate — a tenant founder must never hold Super Admin, so this is out of scope for
+self-signup and stays deferred to whenever the spatie schema is next reworked.
+
+**NEXT = Phase 7b — SUBSCRIPTION BILLING** (Paywall + Checkout + Operator Billing; Stripe Billing, live charges
+when live keys exist). Then 7c (Owner Team) · 7d (rostering) · Phase 8 (account-gated integrations).

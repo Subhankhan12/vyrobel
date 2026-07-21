@@ -120,7 +120,7 @@
             <button type="submit" class="vy-btn">Sign in</button>
         </form>
 
-        <div class="vy-foot">Vyrobel · secure sign-in</div>
+        <div class="vy-foot">New to Vyrobel? <a class="vy-forgot" href="{{ route('signup') }}">Create an account</a></div>
     </main>
 </body>
 </html>

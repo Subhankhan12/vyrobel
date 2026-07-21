@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\TwoFactorController;
@@ -141,6 +142,15 @@ Route::get('/', function () {
  */
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store']);
+
+/*
+ * Vyrobel self-signup / ONBOARDING (Phase 7a) — PUBLIC, pre-auth. Provisions a brand-new operator org
+ * atomically (org + roles + founder + Property Owner + first property) via TenantProvisioningService, then
+ * logs the founder in. Rate-limited against abuse; enumeration handled neutrally (see the controller). The
+ * founding user's auth is hardened like the rest of the chapter (hashed password, session regenerated).
+ */
+Route::get('/signup', [OnboardingController::class, 'create'])->name('signup');
+Route::post('/signup', [OnboardingController::class, 'store'])->middleware('throttle:5,1');
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 /*

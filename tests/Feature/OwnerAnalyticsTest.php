@@ -76,10 +76,11 @@ it('shows owner insights metrics with no invented narrative', function () {
 
     $res->assertOk()->assertSee('Occupancy')->assertSee('ADR')->assertSee('RevPAR');
 
-    // 🪤 The prototype's invented observations are never rendered (real-or-omitted).
+    // 🪤 The prototype's invented observations are never rendered (real-or-omitted). Distinctive phrases
+    // only — a bare year like "2024" is too generic a needle (it collides with incidental ULIDs/wire-ids).
     $res->assertDontSee('Saturdays sell out first')
         ->assertDontSee('pts behind')
-        ->assertDontSee('2024')->assertDontSee('on record');
+        ->assertDontSee('on record');
 
     assertNoRawBlade($res);
 });

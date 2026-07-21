@@ -181,7 +181,7 @@ issues staff roles).
 ### ⬜ Remaining
 | Page | What it really is | Size |
 |---|---|---|
-| Vyrobel Onboarding | **TENANT PROVISIONING** — public signup creating a new operator org: org + first user + role provisioning (⚠️ the chicken-and-egg: **no path provisions roles today** — verified, `Organization::create` appears nowhere in `app/`) + a first property/room-type/unit wizard | L (the epic) |
+| ✅ Vyrobel Onboarding | **BUILT (Phase 7a)** — public `/signup` provisions a new operator org atomically (`TenantProvisioningService`: org + 13 provisioned roles + founder + Property Owner + first property in one transaction) and logs the founder in. The chicken-and-egg is escaped via the pre-tenant `runAsSuperAdmin` path; **BOTH deferred RBAC defects fixed** (org-creation now provisions roles; the founder holds the assignable Property Owner). Mutation-proven (atomic rollback, isolation, RBAC state). | — |
 | Vyrobel Paywall + Checkout | **SUBSCRIPTION BILLING** — plans, paywall, subscription checkout (Stripe Billing — partly account-gated for live charges); pairs with Operator Billing | L + gated |
 
 ---
@@ -353,13 +353,18 @@ Reports + Insights (owner-scoped, earnings reconcile to the ledger) → the real
 REAL aggregate; the prototype's invented history/narrative REFUSED; lead-time/pace deferred honestly. See
 `docs/DECISIONS.md` 2026-07-21 (Phase 6b). **⇒ PHASE 6 (a + b) COMPLETE.**
 
-**PHASE 7 — The SaaS layer (~3–4 weeks)** *(⬅ NEXT)*
-Tenant provisioning (Vyrobel Onboarding — the org-creation epic). ⚠️ **Carries the two deferred Phase-0.3 RBAC
-fixes:** (a) the org-creation transaction MUST call `OrganizationRoleProvisioner::provision()` atomically (org +
-first user + roles in one commit), or the first real org is dead on arrival — RBAC defect #1; (b) fix `Super
-Admin` unassignability (a migration on spatie's own `model_has_roles` — nullable team column + PK rework — then
-add `Super Admin` back to `back_office_roles`) — RBAC defect #2. Then → Subscription billing (Paywall + Checkout
-+ Operator Billing; live charges when Stripe live keys exist) → Owner Team (owner sub-tenancy) → Team Schedule.
+**PHASE 7a — TENANT PROVISIONING / self-signup** *(✅ DONE — 2026-07-21, 2 gated steps `0c4643d` → this gate)*
+`TenantProvisioningService` (atomic: org + provisioned roles + founder + Property Owner + first property in one
+transaction; chicken-and-egg escaped via `runAsSuperAdmin`) + the public `/signup` onboarding wizard. **BOTH deferred
+Phase-0.3 RBAC defects FIXED:** (a) org-creation now calls `OrganizationRoleProvisioner::provision()` atomically —
+RBAC defect #1; (b) the founder holds the ASSIGNABLE `Property Owner` (org admin), resolving the self-provision gap —
+RBAC defect #2. Mutation-proven (rollback, isolation, RBAC state). **Residual, re-scoped as a SEPARATE deferred
+platform item:** the global `Super Admin` stays unassignable (spatie `model_has_roles` PK rework; MySQL forbids NULL
+in a PK) — affects only the Horizon/platform-admin gate, never a tenant founder. See `docs/DECISIONS.md` 2026-07-21.
+
+**PHASE 7b — SUBSCRIPTION BILLING** *(⬅ NEXT)*
+Paywall + Checkout + Operator Billing (Stripe Billing; live charges when Stripe live keys exist). Then → Owner Team
+(owner sub-tenancy) → Team Schedule / rostering.
 
 **PHASE 8 — Live integrations (as accounts land — parallel throughout)**
 Stripe Connect payouts live → card capture live → Channex live sync → WhatsApp/OTA inbox channels → production
