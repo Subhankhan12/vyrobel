@@ -9,9 +9,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
- * Tenant billing state. Stripe reference stays null until Phase 2.
+ * Tenant billing state. `stripe_subscription_id` stays null until live Stripe Billing (account-gated).
+ *
+ * @property string $status
+ * @property ?Carbon $trial_ends_at
+ * @property ?Carbon $current_period_end
+ * @property ?string $stripe_subscription_id
  */
 class Subscription extends Model
 {

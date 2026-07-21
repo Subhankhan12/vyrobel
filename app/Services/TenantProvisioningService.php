@@ -54,6 +54,7 @@ final class TenantProvisioningService
         private TenantContext $tenant,
         private OrganizationRoleProvisioner $provisioner,
         private PermissionRegistrar $registrar,
+        private BillingService $billing,
     ) {}
 
     /**
@@ -119,6 +120,10 @@ final class TenantProvisioningService
                         : null,
                     'status' => 'active',
                 ]);
+
+                // Phase 7b — start the org's free trial ATOMICALLY (part of the same transaction, so a trial
+                // failure rolls the whole org back). The trial ends `trial_days` after this org's creation.
+                $this->billing->startTrialFor($org);
 
                 return ['organization' => $org, 'user' => $user, 'property' => $newProperty];
             });

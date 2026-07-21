@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleCatalogSeeder::class,
+            BillingPlanSeeder::class,   // the placeholder plan catalog (Phase 7b) — before the demo org's trial
             DemoSeeder::class,
         ]);
 

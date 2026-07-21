@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Billing\SubscriptionStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -56,6 +57,26 @@ class Organization extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * The org's current (latest) subscription (Phase 7b). Read with an EXPLICIT org filter and no global
+     * scope so it is safe to call in any context — including outside a tenant request (`Subscription` is
+     * `BelongsToOrganization`, whose scope would otherwise throw with no tenant context); the explicit
+     * `organization_id` predicate is the scope's own boundary, so this never leaks another org's row.
+     */
+    public function currentSubscription(): ?Subscription
+    {
+        return Subscription::withoutGlobalScopes()
+            ->where('organization_id', $this->id)
+            ->latest()
+            ->first();
+    }
+
+    /** The derived billing/access state for this org (trial/active/lapsed, remaining days, …). */
+    public function billingStatus(): SubscriptionStatus
+    {
+        return new SubscriptionStatus($this->currentSubscription());
     }
 
     public function apiKeys(): HasMany
