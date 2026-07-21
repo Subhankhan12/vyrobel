@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property ?Carbon $trial_ends_at
  * @property ?Carbon $current_period_end
  * @property ?string $stripe_subscription_id
+ * @property-read ?Plan $plan
  */
 class Subscription extends Model
 {

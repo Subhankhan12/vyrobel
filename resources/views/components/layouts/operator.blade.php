@@ -204,6 +204,33 @@
         .vy-table tr:last-child td { border-bottom: 0; }
         .vy-table .vy-num { text-align: right; font-variant-numeric: tabular-nums; }
 
+        /* Billing — Paywall + Checkout (Phase 7b). */
+        .vy-bill-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; padding: 5px 12px; border-radius: var(--vy-r-pill); border: 1px solid var(--vy-glass-border); }
+        .vy-bill-trial { color: #8f6414; } .vy-bill-trial .vy-status-dot { background: #d99a3d; }
+        .vy-bill-ok { color: #3d6b3d; } .vy-bill-ok .vy-status-dot { background: var(--vy-accent-3, #E8703A); }
+        .vy-bill-warn { color: #8f3110; } .vy-bill-warn .vy-status-dot { background: #8f3110; }
+        .vy-bill-line { font-size: 13.5px; color: var(--vy-ink); }
+        .vy-bill-tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .vy-bill-tier { position: relative; background: rgba(255,255,255,.7); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md, 16px); padding: 22px 20px; box-shadow: var(--vy-shadow-sm); display: flex; flex-direction: column; }
+        .vy-bill-tier.is-featured { border-color: var(--vy-accent-border); box-shadow: 0 0 0 1px var(--vy-accent-border), var(--vy-shadow-sm); }
+        .vy-bill-tag { position: absolute; top: -10px; right: 16px; font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--vy-grad); border-radius: 6px; padding: 3px 8px; }
+        .vy-bill-name { font-family: var(--vy-display, inherit); font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+        .vy-bill-blurb { font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px; }
+        .vy-bill-price { font-size: 30px; font-weight: 700; color: var(--vy-ink); font-family: var(--vy-display, inherit); }
+        .vy-bill-per { font-size: 14px; font-weight: 500; color: var(--vy-muted); }
+        .vy-bill-yearly { font-size: 11.5px; color: var(--vy-faint); margin: 3px 0 16px; }
+        .vy-bill-feats { list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+        .vy-bill-feats li { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--vy-ink); }
+        .vy-bill-feats li svg { color: var(--vy-accent-3, #E8703A); flex: none; }
+        .vy-bill-feats li.is-off { color: var(--vy-faint); } .vy-bill-feats li.is-off svg { color: var(--vy-faint); }
+        .vy-bill-note { color: var(--vy-faint); font-size: 11.5px; }
+        .vy-bill-disclaimer { font-size: 11.5px; color: var(--vy-faint); margin-top: 14px; }
+        .vy-seg { display: inline-flex; border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-pill); overflow: hidden; }
+        .vy-seg-btn { padding: 7px 16px; font-size: 12.5px; font-weight: 500; color: var(--vy-muted); text-decoration: none; }
+        .vy-seg-btn.is-on { background: var(--vy-grad); color: #fff; }
+        .vy-bill-gate { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; padding: 12px 14px; border-radius: var(--vy-r-md); background: rgba(224,146,30,.1); border: 1px solid rgba(224,146,30,.32); font-size: 12.5px; color: var(--vy-ink); }
+        .vy-bill-gate svg { color: var(--vy-amber, #b26a08); flex: none; margin-top: 1px; }
+
         /* ---- Reusable surfaces ----------------------------------------------------------------- */
         .vy-card {
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);

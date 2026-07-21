@@ -12,6 +12,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Global product package catalog (not tenant-scoped). `price` is a Money value object over
  * the `price_minor` + `currency` columns.
+ *
+ * @property string $code
+ * @property string $name
+ * @property int $price_minor
+ * @property string $currency
+ * @property string $interval
+ * @property bool $is_active
  */
 class Plan extends Model
 {

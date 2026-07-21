@@ -27,6 +27,8 @@ class Organization extends Model
         'country',
         'status',
         'billing_email',
+        'billing_company',
+        'billing_vat_id',
         'custom_domain',
         'branding',
     ];

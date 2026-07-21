@@ -68,4 +68,53 @@ final class BillingService
 
         return Plan::query()->where('code', $tier.'_monthly')->firstOrFail();
     }
+
+    /** A specific tier's plan for an interval (e.g. 'essential', 'yearly'). */
+    public function planFor(string $tier, string $interval): ?Plan
+    {
+        return Plan::query()->where('code', $tier.'_'.$interval)->first();
+    }
+
+    /**
+     * The tier catalog for the Paywall/Checkout — REAL plan rows + the config feature splits. Prices are the
+     * PLACEHOLDER minor-unit values from config/billing.php (Subhan sets the real ones); no charge is implied.
+     *
+     * @return list<array{code: string, name: string, blurb: string, currency: string, monthly_minor: int, yearly_minor: int, features: list<array{key: string, label: string, enabled: bool, limit: ?int}>}>
+     */
+    public function catalog(): array
+    {
+        $this->ensurePlans();
+        $out = [];
+
+        /** @var array<string, array{name: string, blurb: string, features: array<string, array{label: string, enabled?: bool, limit?: ?int}>}> $tiers */
+        $tiers = config('billing.tiers', []);
+
+        foreach ($tiers as $code => $tier) {
+            // ensurePlans() above guarantees both interval rows exist for every config tier.
+            $monthly = Plan::query()->where('code', $code.'_monthly')->firstOrFail();
+            $yearly = Plan::query()->where('code', $code.'_yearly')->firstOrFail();
+
+            $features = [];
+            foreach ($tier['features'] as $key => $feature) {
+                $features[] = [
+                    'key' => $key,
+                    'label' => (string) $feature['label'],
+                    'enabled' => (bool) ($feature['enabled'] ?? true),
+                    'limit' => $feature['limit'] ?? null,
+                ];
+            }
+
+            $out[] = [
+                'code' => $code,
+                'name' => (string) $tier['name'],
+                'blurb' => (string) $tier['blurb'],
+                'currency' => $monthly->currency,
+                'monthly_minor' => $monthly->price_minor,
+                'yearly_minor' => $yearly->price_minor,
+                'features' => $features,
+            ];
+        }
+
+        return $out;
+    }
 }

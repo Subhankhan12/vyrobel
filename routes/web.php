@@ -30,6 +30,7 @@ use App\Http\Controllers\Guest\GuestWalletController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
+use App\Http\Controllers\Operator\BillingActionController;
 use App\Http\Controllers\Operator\EmailPreviewController;
 use App\Http\Controllers\Operator\EmailTemplateController;
 use App\Http\Controllers\Operator\FolioPdfController;
@@ -79,6 +80,8 @@ use App\Livewire\Operator\GroupBooking;
 use App\Livewire\Operator\GuestProfile;
 use App\Livewire\Operator\GuestsList;
 use App\Livewire\Operator\NewReservation;
+use App\Livewire\Operator\OperatorBilling;
+use App\Livewire\Operator\OperatorBillingCheckout;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorInsights;
 use App\Livewire\Operator\OperatorMaintenanceCosts;
@@ -356,6 +359,15 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // is a REAL aggregate reconciling to FolioTotals; no fabricated history/narrative.
     Route::get('/insights', OperatorInsights::class)->middleware('can:reports.view')->name('insights');
     Route::get('/reports', OperatorReports::class)->middleware('can:reports.view')->name('reports');
+
+    // Phase 7b · Subscription billing — the Paywall + Checkout, gated `can:billing.manage` (the founder /
+    // Property Owner, NOT Front Desk). Read-only until the account-gated Stripe charge: the tiers + the
+    // honest derived trial status render; the subscribe action is the deferred Stripe-Billing seam (no
+    // charge, no "active" off a fake payment, no raw card). Company/VAT captured on the org for invoicing.
+    Route::get('/billing', OperatorBilling::class)->middleware('can:billing.manage')->name('billing');
+    Route::get('/billing/checkout', OperatorBillingCheckout::class)->middleware('can:billing.manage')->name('billing.checkout');
+    Route::post('/billing/company', [BillingActionController::class, 'saveCompany'])->middleware('can:billing.manage')->name('billing.company');
+    Route::post('/billing/subscribe', [BillingActionController::class, 'subscribe'])->middleware('can:billing.manage')->name('billing.subscribe');
 
     // GLOBAL SEARCH (Phase 1 · Sub-gate 2) — cross-entity search (reservations/guests/units/owners), the query
     // on a GET (scope-safe reads). Gated on `reservations.view` (the operations read baseline); per-entity
