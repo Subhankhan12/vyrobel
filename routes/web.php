@@ -40,6 +40,7 @@ use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\MaintenanceSettingsController;
 use App\Http\Controllers\Operator\OperatorProfileController;
+use App\Http\Controllers\Operator\OperatorReviewsController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationCreateController;
@@ -529,6 +530,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name(
     Route::get('/guest-requests', [GuestRequestAdminController::class, 'index'])->middleware('can:reservations.view')->name('guest-requests');
     Route::post('/guest-requests/{guestRequest}/confirm', [GuestRequestAdminController::class, 'confirm'])->middleware('can:reservations.manage')->name('guest-requests.confirm');
     Route::post('/guest-requests/{guestRequest}/decline', [GuestRequestAdminController::class, 'decline'])->middleware('can:reservations.manage')->name('guest-requests.decline');
+    // Reviews (Phase 5) — see reviews (reviews.view), respond + moderate (reviews.manage). A reputation task,
+    // NOT Front Desk. Actions carry a STRING {review}, resolved tenant-scoped in-action (cross-org → 404).
+    Route::get('/reviews', [OperatorReviewsController::class, 'index'])->middleware('can:reviews.view')->name('reviews');
+    Route::post('/reviews/{review}/respond', [OperatorReviewsController::class, 'respond'])->middleware('can:reviews.manage')->name('reviews.respond');
+    Route::post('/reviews/{review}/publish', [OperatorReviewsController::class, 'publish'])->middleware('can:reviews.manage')->name('reviews.publish');
+    Route::post('/reviews/{review}/reject', [OperatorReviewsController::class, 'reject'])->middleware('can:reviews.manage')->name('reviews.reject');
     Route::post('/reservations/{reservation}/payments', [ReservationFolioActionController::class, 'recordPayment'])
         ->middleware('can:payments.record')->name('reservations.payment');
     Route::post('/reservations/{reservation}/refunds', [ReservationFolioActionController::class, 'refund'])

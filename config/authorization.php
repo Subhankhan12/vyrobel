@@ -127,6 +127,11 @@ return [
         'housekeeping.manage',
         'maintenance.manage',
 
+        // Reviews & reputation (Phase 5) — guest reviews: respond + moderate (publish/reject). A reputation/guest-
+        // relations task, deliberately NOT a Front Desk one.
+        'reviews.view',
+        'reviews.manage',
+
         // Reporting & portals
         'reports.view',
         'owner_portal.view',
@@ -155,6 +160,7 @@ return [
             'payouts.manage',
             'invoices.view', 'invoices.issue', 'taxes.manage', 'fees.manage', 'addons.manage',
             'housekeeping.view', 'housekeeping.manage', 'maintenance.manage',
+            'reviews.view', 'reviews.manage',
             'reports.view',
         ],
 
@@ -168,6 +174,7 @@ return [
             'folios.view', 'folios.manage', 'payments.view', 'payments.record',
             'invoices.view', 'invoices.issue', 'taxes.manage', 'fees.manage', 'addons.manage',
             'housekeeping.view', 'housekeeping.manage', 'maintenance.manage',
+            'reviews.view', 'reviews.manage',
             'reports.view',
         ],
 
@@ -219,6 +226,7 @@ return [
         'Marketing Manager' => [
             'guests.view',
             'corporate_accounts.manage',
+            'reviews.view', 'reviews.manage',
             'reports.view',
         ],
 
@@ -226,6 +234,7 @@ return [
             'reservations.view',
             'guests.view',
             'folios.view',
+            'reviews.view', 'reviews.manage',
             'housekeeping.view',
         ],
 

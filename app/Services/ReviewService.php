@@ -95,6 +95,16 @@ class ReviewService
         return $review;
     }
 
+    /** The operator's public response to a review (Phase 5 · SG3). Shown with the review where it is published. */
+    public function respond(Review $review, string $response): Review
+    {
+        $review->forceFill(['operator_response' => trim($response), 'responded_at' => now()])->save();
+
+        $this->audit->record('review.responded', $review, null, ['has_response' => true]);
+
+        return $review;
+    }
+
     /** MODERATION — reject a review so it is never publicly visible (unpublishes a published one too). Idempotent. */
     public function reject(Review $review): Review
     {

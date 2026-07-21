@@ -32,6 +32,7 @@
             ['reservations', 'Reservations', 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', route('app.reservations')],
             ['guest-requests', 'Guest requests', 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM9 10h6M9 13h4', auth()->user()?->can('reservations.view') ? route('app.guest-requests') : null],
             ['guests', 'Guests', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', route('app.guests')],
+            ['reviews', 'Reviews', 'M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6-6.3 4.6L7.9 14 2 9.4h7.6z', auth()->user()?->can('reviews.view') ? route('app.reviews') : null],
         ]],
         ['DISTRIBUTION', [
             ['channels', 'Channels', 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3', null],

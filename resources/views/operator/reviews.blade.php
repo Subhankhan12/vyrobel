@@ -1,0 +1,69 @@
+{{-- Operator Reviews (Phase 5 · SG3) — see reviews, respond, moderate (publish/reject). Guest NAME only (#28);
+     controls gated on reviews.manage so the UI never invites a 403. RAW-BLADE RULE: every `@` follows a space,
+     newline or tag. --}}
+<x-operator.shell active="reviews" title="Reviews">
+    @if (session('status'))
+        <div class="vy-note" style="margin:0 0 14px;padding:12px 14px;border-radius:12px;background:rgba(70,120,60,.10);color:rgb(60,105,52);font-size:13px">{{ session('status') }}</div>
+    @endif
+    @if (session('error'))
+        <div class="vy-note" style="margin:0 0 14px;padding:12px 14px;border-radius:12px;background:rgba(180,68,58,.10);color:rgb(150,50,42);font-size:13px">{{ session('error') }}</div>
+    @endif
+
+    <p style="color:var(--vy-muted,#6b6b6b);font-size:13px;margin:0 0 16px">
+        Respond to your guests and choose what’s published. Auto-responses and review-gating are coming soon —
+        for now, every response and publish decision is yours.
+    </p>
+
+    @forelse ($reviews as $review)
+        <section class="vy-card" style="margin-bottom:12px;padding:16px 18px;border-radius:14px;background:#fff;border:1px solid rgba(120,70,40,.10)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+                <div>
+                    <span style="font-size:18px;color:#E8703A;letter-spacing:2px">{{ $review['stars'] }}</span>
+                    <span style="font-size:13px;color:#2B2320;font-weight:600;margin-left:8px">{{ $review['guest'] }}</span>
+                    @if ($review['room'] !== '')<span style="font-size:12px;color:#8A8079"> · {{ $review['room'] }}</span>@endif
+                    <span style="font-size:11px;color:#A69A92"> · {{ $review['at'] }}</span>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center">
+                    @if ($review['private'])
+                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:#8A6410;background:#FBEFD8;border-radius:8px;padding:2px 8px">Private</span>
+                    @elseif ($review['status'] === 'published')
+                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:rgb(60,105,52);background:rgba(70,120,60,.12);border-radius:8px;padding:2px 8px">Published</span>
+                    @elseif ($review['status'] === 'rejected')
+                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:rgb(150,50,42);background:rgba(180,68,58,.10);border-radius:8px;padding:2px 8px">Rejected</span>
+                    @else
+                        <span style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:#B26A08;background:#FBEFD8;border-radius:8px;padding:2px 8px">Pending</span>
+                    @endif
+                </div>
+            </div>
+
+            @if (count($review['tags']) > 0)
+                <div style="margin-top:10px">@foreach ($review['tags'] as $tag)<span style="display:inline-block;padding:3px 9px;border-radius:14px;background:#F6EBE2;font-size:11px;color:#6b6b6b;margin:0 5px 5px 0">{{ $tag }}</span>@endforeach</div>
+            @endif
+            @if ($review['body'] !== '')
+                <div style="font-size:13.5px;color:#2B2320;margin-top:10px;line-height:1.5">{{ $review['body'] }}</div>
+            @endif
+
+            @if ($review['response'] !== '')
+                <div style="margin-top:12px;padding:10px 13px;border-radius:10px;background:#F6EBE2;font-size:13px;color:#4A4038"><strong style="color:#2B2320">Your response:</strong> {{ $review['response'] }}</div>
+            @endif
+
+            @can('reviews.manage')
+                <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(120,70,40,.10);display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
+                    <form method="POST" action="{{ route('app.reviews.respond', $review['id']) }}" style="flex:1;min-width:220px;display:flex;gap:8px">
+                        @csrf
+                        <input type="text" name="response" maxlength="2000" placeholder="Write a response…" value="{{ $review['response'] }}" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(120,70,40,.18);font-family:inherit;font-size:13px">
+                        <button type="submit" style="padding:9px 15px;border-radius:20px;border:none;background:#C2410C;color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Respond</button>
+                    </form>
+                    @if (! $review['private'] && $review['status'] !== 'published')
+                        <form method="POST" action="{{ route('app.reviews.publish', $review['id']) }}">@csrf<button type="submit" style="padding:9px 15px;border-radius:20px;border:1px solid rgba(70,120,60,.35);background:#fff;color:rgb(60,105,52);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Publish</button></form>
+                    @endif
+                    @if ($review['status'] !== 'rejected')
+                        <form method="POST" action="{{ route('app.reviews.reject', $review['id']) }}">@csrf<button type="submit" style="padding:9px 15px;border-radius:20px;border:1px solid rgba(180,68,58,.3);background:#fff;color:rgb(150,50,42);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Reject</button></form>
+                    @endif
+                </div>
+            @endcan
+        </section>
+    @empty
+        <section class="vy-card" style="padding:30px;text-align:center;color:#8A8079;font-size:14px;background:#fff;border-radius:14px;border:1px solid rgba(120,70,40,.10)">No reviews yet.</section>
+    @endforelse
+</x-operator.shell>

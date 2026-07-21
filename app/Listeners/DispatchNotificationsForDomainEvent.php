@@ -14,11 +14,13 @@ use App\Models\Owner;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\Reservation;
+use App\Models\Review;
 use App\Models\Unit;
 use App\Notifications\FeedNotification;
 use App\Notifications\Operator\BalanceDueNotification;
 use App\Notifications\Operator\ChannelSyncErrorNotification;
 use App\Notifications\Operator\NewBookingNotification;
+use App\Notifications\Operator\NewReviewNotification;
 use App\Notifications\Operator\OwnerPayoutSentNotification;
 use App\Notifications\Operator\StatementFinalizedNotification;
 use App\Notifications\Operator\UnitOutOfOrderNotification;
@@ -42,9 +44,9 @@ use Illuminate\Support\Facades\Notification;
  * notifications go to the ONE owner the subject belongs to (via their linked user) — never another owner.
  *
  * DEFERRED HONESTLY (no backing event today — NOT wired, so nothing fake fires): arrivals-due / housekeeping-
- * behind / SLA-breach / daily-summary (all need a scheduler, not a discrete event) · new-review (Reviews is
- * Phase 5) · new-device sign-in (needs device detection — the OTHER half of account & security) · performance
- * digest (needs a monthly aggregator) · terms-changed (no agreement-change event is recorded anywhere).
+ * behind / SLA-breach / daily-summary (all need a scheduler, not a discrete event) · new-device sign-in (needs
+ * device detection — the OTHER half of account & security) · performance digest (needs a monthly aggregator) ·
+ * terms-changed (no agreement-change event is recorded anywhere). (new-review is now WIRED — Phase 5.)
  */
 class DispatchNotificationsForDomainEvent
 {
@@ -58,6 +60,7 @@ class DispatchNotificationsForDomainEvent
         'owner_statement.finalized',
         'channel.error',
         'owner.payout_method_changed',
+        'review.submitted',
     ];
 
     /**
@@ -107,6 +110,7 @@ class DispatchNotificationsForDomainEvent
                 'owner_statement.finalized' => $this->statementFinalized($domainEvent, $orgId),
                 'channel.error' => $this->channelSyncError($domainEvent, $orgId),
                 'owner.payout_method_changed' => $this->accountSecurity($domainEvent),
+                'review.submitted' => $this->newReview($domainEvent, $orgId),
             };
         });
     }
@@ -229,6 +233,17 @@ class DispatchNotificationsForDomainEvent
 
         $change = (string) (($domainEvent->payload['change'] ?? '') ?: '');
         $user->notify(new AccountSecurityNotification($change));
+    }
+
+    /** A guest left a review → the org's operators (preference-gated on `new_review`). */
+    private function newReview(DomainEvent $domainEvent, string $orgId): void
+    {
+        $review = Review::query()->find($domainEvent->subject_id);
+        if (! $review instanceof Review) {
+            return;
+        }
+
+        $this->toOperators($orgId, new NewReviewNotification($review));
     }
 
     /** Send one notification to every back-office recipient in the org (no-op when there are none). */
