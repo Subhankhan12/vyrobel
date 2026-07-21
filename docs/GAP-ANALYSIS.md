@@ -119,7 +119,7 @@ Auth-group artifacts, real but counted there.)*
 | ✅ Owner Reports + Insights | **BUILT (Phase 6b)** — owner-scoped analytics over the same `PerformanceMetrics` layer (their units only, isolation mutation-proven); earnings reconcile to the owner ledger (`OwnerLedgerAttribution`); a real-or-omitted observation. |
 | Owner Reviews | REVIEWS (owner-scoped) |
 | ✅ Owner Notifications | **BUILT (Phase 3)** — owner feed + typed preferences (genuinely gating, in-app + email) |
-| Owner Team | Owner sub-tenancy (an owner invites their own users) — a permission subsystem (L) |
+| ✅ Owner Team | **BUILT (Phase 7c)** — owner sub-tenancy: a primary owner invites their own sub-users (`owner_users`) at 3 fixed roles (co-owner/accountant/view-only) into the owner portal, scoped to that owner. NESTED isolation composed from the existing OwnerScope + tenant scope (no new scope). Capability matrix per the design (payout = co-owner ONLY, #28); team management = primary-owner-only (self-escalation structurally impossible); the owner-realm invite is hardened + owner-scoped. Invariant #42. |
 | Owner Onboarding wizard (Steps 1–3) | No onboarding wizard exists (Step-1 profile write ships on Settings; Steps 2–3 = Payout Method [now built] + notification prefs) |
 
 ---
@@ -369,8 +369,14 @@ lapsed → paywall, never mid-trial, fail-open on no record) + feature-gating (`
 channels Pro-only). The LIVE Stripe charge + webhooks + subscription lifecycle stay account-gated (deferred
 honestly — no faked payment); prices are placeholders Subhan sets. See `docs/DECISIONS.md` 2026-07-22 (Phase 7b).
 
-**PHASE 7c — OWNER TEAM** *(⬅ NEXT)*
-Owner sub-tenancy — an owner invites their own users (a permission subsystem). Then Team Schedule / rostering (7d).
+**PHASE 7c — OWNER TEAM** *(✅ DONE — 2026-07-22, 3 gated sub-gates `11eb637` → `5b5ea7b` → this gate)*
+Owner sub-tenancy — a primary owner invites their own sub-users (`owner_users`) at 3 fixed roles into the owner
+portal, scoped to that owner. Nested isolation composed from OwnerScope + tenant scope (no new scope); the design
+capability matrix (payout co-owner-only, #28); team management primary-owner-only (self-escalation impossible);
+the owner-realm invite hardened + owner-scoped. Invariant #42. See `docs/DECISIONS.md` 2026-07-22 (Phase 7c).
+
+**PHASE 7d — TEAM SCHEDULE / ROSTERING** *(⬅ NEXT)*
+Staff scheduling / rostering. Then Phase 8 (account-gated integrations, incl. LIVE Stripe billing).
 
 **PHASE 8 — Live integrations (as accounts land — parallel throughout)**
 Stripe Connect payouts live → card capture live → Channex live sync → WhatsApp/OTA inbox channels → production

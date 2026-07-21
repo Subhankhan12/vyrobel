@@ -45,11 +45,17 @@ class OwnerUser extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Owner, $this>
+     */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(Owner::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

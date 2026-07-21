@@ -78,6 +78,17 @@ class OwnerContext
         return $this->primaryOwner;
     }
 
+    /**
+     * Whether the acting user is an invited SUB-USER (owner-team member) rather than the primary owner or a
+     * non-linked user — i.e. they have owner access but do not own the account. Drives the honest "managed by
+     * the account owner" copy on the self-only tax/payout screens (a truly non-linked user keeps the plain
+     * "no owner linked" state).
+     */
+    public function isSubUser(): bool
+    {
+        return ! $this->primaryOwner && $this->ownerIds !== [];
+    }
+
     /** Whether the acting user holds a given owner-team capability ({@see OwnerTeamRole}). */
     public function can(string $capability): bool
     {

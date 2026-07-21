@@ -2933,3 +2933,69 @@ as the guest card charge + owner payout rail. The specific PRICES are placeholde
 
 **NEXT = Phase 7c — OWNER TEAM** (owner sub-tenancy — an owner invites their own users). Then 7d (Team Schedule /
 rostering) · Phase 8 (account-gated integrations, incl. LIVE Stripe billing when the account lands).
+
+---
+
+## 2026-07-22 — PHASE 7c: OWNER TEAM (owner sub-tenancy) ✅ COMPLETE
+
+A primary owner invites their OWN sub-users into the owner portal, scoped to that owner's data, at one of three
+fixed roles. **Nested sub-tenancy**: a sub-user ⊆ their owner ⊆ their org. Three gated sub-gates.
+
+**⛔ SG1 — the model + NESTED isolation (`11eb637`).** `owner_users` (org, owner, user, role
+[co_owner/accountant/view_only], status [active/disabled], soft-deletes, `unique(owner_id,user_id)`) — the nested
+boundary table + `OwnerUser` model + `Owner::teamMembers()`. `OwnerTeamRole` — the fixed 3-role capability model.
+`SetOwnerScopeForPortal` now resolves owner ids from BOTH the primary owner (`Owner.user_id`) AND active
+`owner_users` memberships, and the acting role (primary → co_owner; else highest sub-membership). `OwnerContext`
+gained `role()`. `EnsureBackOfficeAccess` recognises an active sub-user as owner-linked → redirected to /owner.
+**THE CRUX: the nesting falls out of COMPOSITION** — the sub-user's `OwnerContext` resolves their owner via the
+pivot → the existing `OwnerScope` (owner boundary) + tenant global scope (org boundary) both hold automatically,
+**no new scope invented**. Mutation-proven (`OwnerTeamIsolationTest`, 4): A's sub-user sees A's units never B's ·
+refused /app + /guest, served /owner · disabled sub-user + non-linked member fail closed (empty scope) · primary
+owner unregressed.
+
+**⛔ SG2 — the capability matrix + the payout gate + role integrity (`5b5ea7b`).** `EnsureOwnerCapability`
+middleware gates owner routes by the acting role's capability (authorization by ROUTE — a REQUEST fact about an
+ACTOR, invariant #30 discipline); `OwnerContext::can()`/`isPrimaryOwner()`; `@ownercan`/`@primaryowner` Blade
+conditionals gate the UI from the SAME source (never invites a 403). Capability grid taken **verbatim from the
+"Owner Team" design matrix** — deliberately **NOT a privilege chain** (accountant has documents+exports but not
+calendar; view-only has calendar but not documents/exports): financials (all) · approvals/actions (co-owner) ·
+documents (co+acct) · calendar (co+view) · exports (co+acct) · **payout (co-owner ONLY)**. **🔒 Payout account /
+IBAN is co-owner-ONLY** — an accountant or view-only sub-user reaching the encrypted IBAN is a money-security
+hole (#28); browser-proven both are 403'd. **🔒 Role integrity is STRUCTURAL**: team management is held by NO
+role (not even a co-owner) — gated on `isPrimaryOwner()` — so `OwnerTeamRole::canAssign()` requires the primary
+owner and self-escalation is IMPOSSIBLE. **DECISION (design-faithful, strictest)**: team management =
+**primary-owner-only** (the design's Co-owner reads "Can't manage the team"); the one-line co-owner relaxation
+stays in reserve. **The gate COMPOSES, never masks**: it only 403s users WITH owner access; a non-linked /
+disabled user falls through to the SG1 empty fail-closed — so all 12 owner-scope isolation tests stayed green
+(gate redesigned, tests NOT rewritten). Browser also caught a demo-setup collision (the seeded operator
+`demo-accountant@` shares an email) — NOT a code bug. Mutation-proven (`OwnerTeamCapabilityTest`, 7).
+
+**⛔ SG3 — the Owner Team screen + invite flow + consolidate (this gate).** `owner_team_invites` + `OwnerTeamInvite`
++ `OwnerTeamInviteService` — the OWNER-REALM parallel of `OwnerInviteService`, REUSING the exact token discipline
+(sha256-only, single-use, expiring, no-enumeration, session-regen) but with owner-realm semantics (joins an
+`owner_users` membership under a SPECIFIC owner + role, never an Owner party). `AcceptOwnerTeamInviteController`
+(public `/team-invite/{token}`, reuses the set-password view). `EnsurePrimaryOwner` middleware gates the screen
++ EVERY mutation at the ROUTE (mutations are real controller routes, NOT Livewire actions — so the owner
+middleware, which does NOT run on `/livewire/update`, enforces the gate on every write; the 6a boundary lesson).
+`OwnerTeamController` (invite/change-role/remove/revoke; `{member}`/`{invite}` resolved owner-scoped, never
+trusted from the request; a removed sub-user's orphaned login is disabled → **can't log in**). `OwnerTeam`
+read-only Livewire component + view (you + members + pending invites + invite form + role legend; a TRUTHFUL
+last-active from real `last_login_at`, never a fabricated "active 3 days ago"). **SG3 UX polish**: the self-only
+tax/payout screens now show an honest "belongs to the account owner and is managed by them" for a SUB-USER
+(`@ownersubuser` = has owner access but not primary owner) — never a bare "not linked" that implies a broken
+account, never another owner's data; a genuinely non-linked user keeps the plain "no owner linked" state.
+Demo-seeded: two real sub-users (accountant + view-only) + a pending invite under the demo owner.
+**🔒 The invite is SCOPED + hardened**: it can only land the sub-user under the `owner_id` on the row (no
+mis-scoping); no enumeration; hashed single-use token. Mutation-proven (`OwnerTeamInviteTest`, 6): invite → claim
+joins the right owner at the right role · no enumeration (bad/spent token → generic page) · screen + every
+mutation primary-owner-only (a co-owner sub-user is 403) · primary owner manages the team · a removed sub-user
+can't log in · cross-owner member 404s (owner-scoped mutations). Browser-verified end-to-end: owner sees the team
++ invites someone (real pending row) · a sub-user is refused team/payout/calendar (403), served docs/statements,
+bounced from /app · the tax honest-state renders for a sub-user.
+
+New invariant **#42** (owner sub-tenancy). Suite **886 tests / 7326 assertions** green · PHPStan L5 + Pint clean ·
+`migrate:fresh --seed` clean (demo owner + 2 sub-users + a pending invite). Phase 7c commits: `11eb637` (SG1) →
+`5b5ea7b` (SG2) → this gate (SG3).
+
+**NEXT = Phase 7d — TEAM SCHEDULE / rostering.** Then Phase 8 (account-gated integrations, incl. LIVE Stripe
+billing when the account lands).

@@ -16,6 +16,8 @@ use App\Models\Media;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Owner;
+use App\Models\OwnerTeamInvite;
+use App\Models\OwnerUser;
 use App\Models\Plan;
 use App\Models\PromoCode;
 use App\Models\Property;
@@ -607,7 +609,60 @@ class DemoSeeder extends Seeder
         $finalized = $statements->finalize($draft);
         app(OwnerPayoutService::class)->createFromStatement($finalized);
 
+        // Phase 7c — the OWNER TEAM: two real sub-users under the demo owner (accountant + view-only) plus a
+        // pending invite, so the Owner Team screen demos on real state. Each mirrors what the invite flow
+        // produces: an active login + Membership + owner_users pivot + the owner-only `External Owner` role.
+        $this->seedOwnerTeam($ownerParty);
+
         return $ownerParty;
+    }
+
+    /**
+     * Demo owner-team sub-users (Phase 7c · SG3). Real `owner_users` members under the demo owner + a pending
+     * invite. Passwords are the demo 'password'; each carries `External Owner` so they land on /owner and are
+     * refused /app (#26). Flagged demo by the @vyrobel-demo.test emails. `last_login_at` is left null (they
+     * haven't signed in) — the screen shows an honest "hasn't signed in yet", never a fabricated last-active.
+     */
+    private function seedOwnerTeam(Owner $ownerParty): void
+    {
+        $orgId = (string) $ownerParty->organization_id;
+        $registrar = app(PermissionRegistrar::class);
+        $registrar->setPermissionsTeamId($orgId);
+
+        $members = [
+            ['name' => 'Demo Owner Accountant', 'email' => 'demo-owner-accountant@vyrobel-demo.test', 'role' => 'accountant'],
+            ['name' => 'Demo Owner Viewer', 'email' => 'demo-owner-viewer@vyrobel-demo.test', 'role' => 'view_only'],
+        ];
+
+        foreach ($members as $m) {
+            $user = User::firstOrCreate(
+                ['email' => $m['email']],
+                ['name' => $m['name'], 'password' => Hash::make('password'), 'status' => 'active'],
+            );
+            Membership::firstOrCreate(
+                ['organization_id' => $orgId, 'user_id' => $user->id],
+                ['status' => 'active'],
+            );
+            OwnerUser::firstOrCreate(
+                ['owner_id' => $ownerParty->id, 'user_id' => $user->id],
+                ['organization_id' => $orgId, 'role' => $m['role'], 'status' => 'active', 'invited_at' => now()],
+            );
+            if (! $user->hasRole('External Owner')) {
+                $user->assignRole('External Owner');
+            }
+        }
+
+        // A pending invite (view-only) so the "Pending invites" section demos — a real row, no email sent.
+        OwnerTeamInvite::firstOrCreate(
+            ['owner_id' => $ownerParty->id, 'email' => 'demo-owner-invitee@vyrobel-demo.test', 'status' => 'pending'],
+            [
+                'organization_id' => $orgId,
+                'invited_by' => $ownerParty->user_id,
+                'token_hash' => hash('sha256', 'demo-invite-'.$ownerParty->id),   // a placeholder — never emailed
+                'role' => 'view_only',
+                'expires_at' => now()->addDays(7),
+            ],
+        );
     }
 
     /**

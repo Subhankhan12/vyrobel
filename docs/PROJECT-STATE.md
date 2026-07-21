@@ -394,9 +394,9 @@ conflicts with the repo, **trust the repo** and fix this file.
   comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–41 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–42 (the full guarantee stack)
 
-> **All 41, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 42, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
@@ -420,7 +420,16 @@ conflicts with the repo, **trust the repo** and fix this file.
 > AFTER the trial (in-trial/active = full, expired/canceled = the Paywall, NEVER a mid-trial lock-out) and FAILS
 > OPEN on a missing subscription; feature-gating is by plan (channels Pro-only); the LIVE Stripe charge + webhooks
 > are ACCOUNT-GATED — nothing flips an org to `active` off a fake payment, no raw card stored; billing is
-> tenant-scoped + `billing.manage`-gated**.
+> tenant-scoped + `billing.manage`-gated** · **#42 owner sub-tenancy (Owner Team): a sub-user ⊆ their owner ⊆ their
+> org — the NESTED isolation is COMPOSED from the existing `OwnerScope` (owner boundary) + tenant scope (org
+> boundary), NO new scope; the 3 fixed owner-team roles (co-owner/accountant/view-only) gate the portal by the
+> design's capability matrix (NOT a privilege chain) through `EnsureOwnerCapability`, and the **payout account /
+> IBAN is co-owner-ONLY** (money-security, #28); team management is held by NO role — gated on
+> `isPrimaryOwner()` (primary-owner-only), so `canAssign()` refuses every sub-user and self-escalation is
+> STRUCTURALLY impossible; the owner-realm invite reuses the hardened token discipline (sha256-only, single-use,
+> expiring, no-enumeration) and is OWNER-SCOPED (it can only land a sub-user under the invite's own `owner_id`); a
+> removed sub-user's orphaned login is disabled (can't log in); the capability gate COMPOSES with — never masks —
+> the owner-scope fail-closed (it only 403s users WITH owner access)**.
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -1399,14 +1408,15 @@ plain GET links (e.g. `?month=`).
 
 ## NEXT ACTION — Phases 0–5, 6 (a+b), 7a AND 7b DONE; NEXT = Phase 7c (Owner Team) in `docs/GAP-ANALYSIS.md`
 
-> **CURRENT (2026-07-22). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b), 7a AND 7b of the phased plan are COMPLETE** —
+> **CURRENT (2026-07-22). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b), 7a, 7b AND 7c of the phased plan are COMPLETE** —
 > three full user-facing apps (operator · owner · guest) + a public storefront + **public self-signup that provisions
-> a whole new tenant org with a free trial** + **subscription billing** + hardened multi-realm auth (operator/owner
-> `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~87 styled/browser-verified screens on
-> real scoped data under the honesty rule, now **MULTI-PROPERTY with real ANALYTICS, SELF-SERVE SIGNUP + BILLING**.
-> Suite **869 / 7233** green on MySQL; PHPStan L5 + Pint clean; `migrate:fresh --seed` clean (2 demo properties, demo
-> org on a real Essential subscription). Invariants **#1–41**. **Guest Portal + Reviews complete; multi-property +
-> real analytics; tenant provisioning + subscription billing ship (the live Stripe charge account-gated).** (The dated
+> a whole new tenant org with a free trial** + **subscription billing** + **OWNER TEAM (owner sub-tenancy)** + hardened
+> multi-realm auth (operator/owner `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~88
+> styled/browser-verified screens on real scoped data under the honesty rule, now **MULTI-PROPERTY with real ANALYTICS,
+> SELF-SERVE SIGNUP + BILLING, and OWNER SUB-TENANCY**. Suite **886 / 7326** green on MySQL; PHPStan L5 + Pint clean;
+> `migrate:fresh --seed` clean (2 demo properties, demo org on a real Essential subscription, demo owner + 2 sub-users
+> + a pending invite). Invariants **#1–42**. **Guest Portal + Reviews complete; multi-property + real analytics;
+> tenant provisioning + subscription billing + owner team ship (the live Stripe charge account-gated).** (The dated
 > per-phase detail is in
 > `docs/DECISIONS.md`; the older "customer signal / don't build blind" framing below is HISTORICAL — the signal came
 > and every phase since was built to the prototype.)

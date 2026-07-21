@@ -16,7 +16,14 @@
     @endif
 
     @unless ($linked)
-        <div class="vy-card vy-fade"><div class="vy-empty">No owner account is linked to your login yet.</div></div>
+        {{-- 🔒 SG3 — the payout account is the account owner's SELF-ONLY setting (resolved by user_id).
+             A co-owner sub-user reaching it has no owner row of their own — tell them honestly it's the
+             owner's, never a bare "not linked", and never expose another owner's IBAN. --}}
+        @ownersubuser
+            <div class="vy-card vy-fade"><div class="vy-empty">The payout account belongs to the account owner and is managed by them — only they can change where payouts settle.</div></div>
+        @else
+            <div class="vy-card vy-fade"><div class="vy-empty">No owner account is linked to your login yet.</div></div>
+        @endownersubuser
     @else
         {{-- Honest live-rail status — capturing an account does NOT enable an automated transfer yet --}}
         <div class="vy-card vy-fade" style="margin-bottom:18px">

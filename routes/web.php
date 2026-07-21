@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AcceptInviteController;
+use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OnboardingController;
@@ -61,11 +62,13 @@ use App\Http\Controllers\Owner\OwnerRateController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\Owner\OwnerTaxController;
+use App\Http\Controllers\Owner\OwnerTeamController;
 use App\Http\Controllers\Owner\OwnerUnitRequestController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Http\Middleware\EnsureOwnerCapability;
+use App\Http\Middleware\EnsurePrimaryOwner;
 use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\RequireTwoFactorPending;
 use App\Http\Middleware\ResolvePublicProperty;
@@ -129,6 +132,7 @@ use App\Livewire\Owner\OwnerReviews;
 use App\Livewire\Owner\OwnerSettings;
 use App\Livewire\Owner\OwnerStatementView;
 use App\Livewire\Owner\OwnerTaxCenter;
+use App\Livewire\Owner\OwnerTeam;
 use App\Livewire\Owner\OwnerUnitDetail;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
@@ -282,6 +286,10 @@ Route::prefix('guest')->name('guest.')->group(function () {
 Route::middleware('throttle:10,1')->group(function () {
     Route::get('/invite/{token}', [AcceptInviteController::class, 'show'])->name('invite.accept');
     Route::post('/invite/{token}', [AcceptInviteController::class, 'store']);
+    // Phase 7c · SG3 — the OWNER-TEAM claim (owner-realm parallel): same public, hashed, single-use,
+    // rate-limited machinery; the invitee sets a password → joins their owner's team at the assigned role.
+    Route::get('/team-invite/{token}', [AcceptOwnerTeamInviteController::class, 'show'])->name('owner.team.invite.accept');
+    Route::post('/team-invite/{token}', [AcceptOwnerTeamInviteController::class, 'store']);
 });
 
 /*
@@ -750,4 +758,18 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::post('/settings/2fa/confirm', [TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('settings.2fa.confirm');
     Route::post('/settings/2fa/recovery-codes', [TwoFactorController::class, 'regenerate'])->name('settings.2fa.regenerate');
     Route::post('/settings/2fa/disable', [TwoFactorController::class, 'disable'])->middleware('throttle:6,1')->name('settings.2fa.disable');
+
+    // Phase 7c · SG3 — the OWNER TEAM (owner sub-tenancy). 🔒 PRIMARY OWNER ONLY: EnsurePrimaryOwner gates
+    // the read screen AND every mutation at the ROUTE (team management is held by no role — not even a
+    // co-owner — so self-escalation is structurally impossible). The mutations are real controller routes
+    // (NOT Livewire actions) so the owner middleware — which does NOT run on /livewire/update — enforces
+    // the gate on every write. {member}/{invite} are string ids resolved owner-scoped in the controller,
+    // never trusted from the request.
+    Route::middleware(EnsurePrimaryOwner::class)->group(function () {
+        Route::get('/team', OwnerTeam::class)->name('team');
+        Route::post('/team/invite', [OwnerTeamController::class, 'invite'])->middleware('throttle:10,1')->name('team.invite');
+        Route::patch('/team/members/{member}', [OwnerTeamController::class, 'updateRole'])->name('team.members.role');
+        Route::delete('/team/members/{member}', [OwnerTeamController::class, 'remove'])->name('team.members.remove');
+        Route::post('/team/invites/{invite}/revoke', [OwnerTeamController::class, 'revokeInvite'])->name('team.invites.revoke');
+    });
 });

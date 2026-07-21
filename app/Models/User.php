@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
@@ -28,6 +29,7 @@ use Spatie\Permission\Traits\HasRoles;
  * array of `{code, used_at}` entries (Larastan can only see the encrypted-string column, hence this hint).
  *
  * @property list<array{code: string, used_at: string|null}>|null $two_factor_recovery_codes
+ * @property Carbon|null $last_login_at the `datetime` cast makes this a Carbon at runtime
  */
 #[Fillable(['name', 'email', 'password', 'locale', 'status', 'two_factor_enabled', 'last_login_at'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]

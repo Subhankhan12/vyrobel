@@ -240,5 +240,6 @@ class AppServiceProvider extends ServiceProvider
         // @primaryowner hides team management (the primary owner's alone).
         Blade::if('ownercan', fn (string $capability): bool => app(OwnerContext::class)->can($capability));
         Blade::if('primaryowner', fn (): bool => app(OwnerContext::class)->isPrimaryOwner());
+        Blade::if('ownersubuser', fn (): bool => app(OwnerContext::class)->isSubUser());
     }
 }

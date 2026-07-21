@@ -71,7 +71,9 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('invite.accept', $token) }}" novalidate>
+        {{-- $action lets the owner-TEAM claim (Phase 7c) reuse this screen with its own POST target;
+             defaults to the operator invite-accept route. --}}
+        <form method="POST" action="{{ $action ?? route('invite.accept', $token) }}" novalidate>
             @csrf
             <div class="vy-field">
                 <label class="vy-label" for="password">New password</label>

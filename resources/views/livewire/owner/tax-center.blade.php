@@ -16,7 +16,14 @@
     @endif
 
     @unless ($linked)
-        <div class="vy-card vy-fade"><div class="vy-empty">No owner account is linked to your login yet.</div></div>
+        {{-- 🔒 SG3 — this is the account owner's SELF-ONLY tax profile (resolved by user_id). A sub-user
+             (co-owner/accountant) has no owner row of their own, so tell them honestly it's the owner's —
+             never a bare "not linked" that implies a broken account, and never another owner's data. --}}
+        @ownersubuser
+            <div class="vy-card vy-fade"><div class="vy-empty">The tax profile belongs to the account owner and is managed by them — it isn’t part of your team role.</div></div>
+        @else
+            <div class="vy-card vy-fade"><div class="vy-empty">No owner account is linked to your login yet.</div></div>
+        @endownersubuser
     @else
         {{-- Held-payout banner — REAL: the owner's actual pending payouts, held until a tax ID is on file --}}
         @if ($held !== [])
