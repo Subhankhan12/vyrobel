@@ -127,10 +127,13 @@
                     </div>
                 </div>
                 {{-- REAL PDF download — owner-scoped, reconciles to the on-screen figures to the cent. --}}
+                {{-- 🔒 SG2 — a view-only sub-user is "no exports": the download is hidden (and the route is gated). --}}
+                @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                 <a href="{{ route('owner.statements.pdf', $statement['id']) }}" class="vy-btn vy-btn--accent" style="margin-top:16px;width:100%;justify-content:center" title="Download this statement as a PDF">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
                     Download statement
                 </a>
+                @endownercan
             </section>
         </div>
     </div>

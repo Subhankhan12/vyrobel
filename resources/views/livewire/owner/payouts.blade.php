@@ -80,7 +80,9 @@
                                         @if ($p['statement_id'])
                                             <a href="{{ route('owner.statements.show', $p['statement_id']) }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Statement</a>
                                         @endif
+                                        @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                                         <a href="{{ route('owner.payouts.remittance', $p['id']) }}" class="vy-btn vy-btn--ghost" style="margin-left:8px;padding:5px 10px;font-size:12px" title="Download the remittance advice for this payout as a PDF">Remittance</a>
+                                        @endownercan
                                     </td>
                                 </tr>
                             @empty

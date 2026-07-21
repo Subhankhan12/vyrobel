@@ -71,11 +71,17 @@
                     @endfor
                     @foreach ($grid as $cell)
                         @if ($cell['state'] === 'blocked')
-                            <form method="POST" action="{{ route('owner.calendar.release', $cell['block_id']) }}" style="margin:0">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="vyc-day vyc-blocked" title="Owner hold — click to release">{{ $cell['day'] }}</button>
-                            </form>
+                            {{-- 🔒 SG2 — releasing a hold is an "Approval" (co-owner only). A view-only sub-user sees
+                                 the blocked day but cannot click to release it (the route is co-owner-gated too). --}}
+                            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                <form method="POST" action="{{ route('owner.calendar.release', $cell['block_id']) }}" style="margin:0">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="vyc-day vyc-blocked" title="Owner hold — click to release">{{ $cell['day'] }}</button>
+                                </form>
+                            @else
+                                <div class="vyc-day vyc-blocked" title="Owner hold">{{ $cell['day'] }}</div>
+                            @endownercan
                         @elseif ($cell['state'] === 'booked')
                             <div class="vyc-day vyc-booked" title="Booked — a guest reservation">
                                 <span>{{ $cell['day'] }}</span>
@@ -84,7 +90,11 @@
                         @elseif ($cell['state'] === 'past')
                             <div class="vyc-day vyc-past">{{ $cell['day'] }}</div>
                         @else
-                            <button type="button" class="vyc-day vyc-open" data-date="{{ $cell['date'] }}" title="Open — click to fill the block form">{{ $cell['day'] }}</button>
+                            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                <button type="button" class="vyc-day vyc-open" data-date="{{ $cell['date'] }}" title="Open — click to fill the block form">{{ $cell['day'] }}</button>
+                            @else
+                                <div class="vyc-day vyc-open" title="Open">{{ $cell['day'] }}</div>
+                            @endownercan
                         @endif
                     @endforeach
                 </div>
@@ -93,6 +103,9 @@
             {{-- RIGHT — the block form + scheduled blocks --}}
             <div class="vy-stack" style="display:flex;flex-direction:column;gap:18px">
 
+                {{-- 🔒 SG2 — blocking dates is an "Approval" (co-owner only); a view-only sub-user gets a read-only
+                     calendar with no block form. The POST route is co-owner-gated too, so this is control-parity. --}}
+                @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
                 <section class="vy-card vy-fade">
                     <h2 class="vy-card-title" style="margin-bottom:4px">Block dates</h2>
                     <p class="vy-line-sub" style="font-size:12px;margin:0 0 12px">Pick the first and last night to hold on <strong>{{ $unit['label'] }}</strong>.</p>
@@ -122,6 +135,7 @@
                     </form>
                     <p class="vy-line-sub" style="font-size:11.5px;margin-top:10px">A date already booked or blocked can’t be held — you’ll be told to pick open dates.</p>
                 </section>
+                @endownercan
 
                 <section class="vy-card vy-fade" style="animation-delay:.04s">
                     <div style="display:flex;justify-content:space-between;align-items:baseline">
@@ -135,11 +149,13 @@
                                 <div style="font-size:13px;font-weight:600;color:var(--vy-ink)">{{ $block['range'] }}</div>
                                 <div class="vy-line-sub" style="font-size:12px">{{ $block['reason'] }} · {{ $block['nights'] }} {{ \Illuminate\Support\Str::plural('night', $block['nights']) }}</div>
                             </div>
-                            <form method="POST" action="{{ route('owner.calendar.release', $block['id']) }}" style="margin:0">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12px">Remove</button>
-                            </form>
+                            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                <form method="POST" action="{{ route('owner.calendar.release', $block['id']) }}" style="margin:0">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12px">Remove</button>
+                                </form>
+                            @endownercan
                         </div>
                     @empty
                         <div class="vy-empty" style="margin-top:10px">No blocks on this unit yet.</div>

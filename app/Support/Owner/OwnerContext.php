@@ -38,15 +38,24 @@ class OwnerContext
     private ?string $role = null;
 
     /**
-     * Activate portal scope for the given owner ids (may be empty → fail-closed) + the acting user's role.
+     * Whether the acting user is the PRIMARY owner (the `owners.user_id` account holder) as opposed to an
+     * invited sub-user. Team management (invite/change-role/remove) is the primary owner's alone
+     * ({@see OwnerTeamRole::canAssign()}), so this — not the role — gates it.
+     */
+    private bool $primaryOwner = false;
+
+    /**
+     * Activate portal scope for the given owner ids (may be empty → fail-closed) + the acting user's role
+     * + whether they are the primary owner.
      *
      * @param  list<string>  $ownerIds
      */
-    public function activate(array $ownerIds, ?string $role = null): void
+    public function activate(array $ownerIds, ?string $role = null, bool $primaryOwner = false): void
     {
         $this->active = true;
         $this->ownerIds = array_values(array_unique($ownerIds));
         $this->role = $role;
+        $this->primaryOwner = $primaryOwner;
     }
 
     public function deactivate(): void
@@ -54,12 +63,25 @@ class OwnerContext
         $this->active = false;
         $this->ownerIds = [];
         $this->role = null;
+        $this->primaryOwner = false;
     }
 
     /** The acting user's owner-team role on the scoped owner (co_owner/accountant/view_only), or null. */
     public function role(): ?string
     {
         return $this->role;
+    }
+
+    /** Whether the acting user is the primary owner (the account holder), not an invited sub-user. */
+    public function isPrimaryOwner(): bool
+    {
+        return $this->primaryOwner;
+    }
+
+    /** Whether the acting user holds a given owner-team capability ({@see OwnerTeamRole}). */
+    public function can(string $capability): bool
+    {
+        return OwnerTeamRole::allows($this->role, $capability);
     }
 
     public function active(): bool
@@ -90,8 +112,10 @@ class OwnerContext
         $previousActive = $this->active;
         $previousIds = $this->ownerIds;
         $previousRole = $this->role;
+        $previousPrimary = $this->primaryOwner;
 
-        $this->activate($ownerIds, OwnerTeamRole::CO_OWNER);   // a programmatic owner read acts as the owner (full)
+        // A programmatic owner read acts as the primary owner (full data + team).
+        $this->activate($ownerIds, OwnerTeamRole::CO_OWNER, true);
 
         try {
             return $callback();
@@ -99,6 +123,7 @@ class OwnerContext
             $this->active = $previousActive;
             $this->ownerIds = $previousIds;
             $this->role = $previousRole;
+            $this->primaryOwner = $previousPrimary;
         }
     }
 }

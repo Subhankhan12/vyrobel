@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Membership;
-use App\Models\OwnerUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -10,27 +9,7 @@ uses(RefreshDatabase::class);
 // PHASE 7c · SG1 — the owner-sub-user model + NESTED isolation. A sub-user ⊆ their owner ⊆ their org: they
 // see ONLY their owner's units/data (never another owner's), can't reach the operator app, and stay on the
 // owner realm. The nesting falls out of the existing owner scope (OwnerScope) + tenant scope, composed.
-
-/**
- * An owner sub-user: a user with a Membership (so the tenant resolves) linked to an owner via `owner_users`
- * with an owner-team role. Like the owner, they carry NO back-office role, so #26 keeps them out of /app.
- */
-function ownerSubUser(array $scenario, string $ownerId, string $role = 'view_only', string $status = 'active'): User
-{
-    $user = User::factory()->create(['status' => 'active']);
-    Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
-    // Owner-realm role (like the owner) so #26 bounces them to /owner rather than 403-ing.
-    grantBackOfficeRole($user, $scenario['org'], 'External Owner');
-    OwnerUser::create([
-        'organization_id' => $scenario['org']->id,
-        'owner_id' => $ownerId,
-        'user_id' => $user->id,
-        'role' => $role,
-        'status' => $status,
-    ]);
-
-    return $user;
-}
+// The `ownerSubUser()` helper lives in tests/Support/owner_helpers.php (shared with the capability suite).
 
 // ── 1. 🔒 NESTED ISOLATION — a sub-user of owner A sees A's units, never owner B's ─────────────────
 it('scopes a sub-user to their owner only — A\'s sub-user never sees B\'s units', function () {
@@ -71,11 +50,13 @@ it('fails closed for a disabled sub-user and a plain member with no owner link',
     $ownerId = (string) $s['units'][0]->fresh()->owner_id;
     $s['units'][0]->update(['code' => 'SECRETUNIT']);
 
-    // A disabled membership resolves NO owner → empty owner scope → the sub-user sees nothing.
+    // A disabled membership resolves NO owner (status filter) → EMPTY owner scope. The capability gate targets
+    // only users WITH owner access, so this falls through to the scope's own fail-closed: the page renders but
+    // shows nothing. Either way the sub-user never sees a unit.
     $disabled = ownerSubUser($s, $ownerId, 'view_only', 'disabled');
     $this->actingAs($disabled)->get('/owner/units')->assertOk()->assertDontSee('SECRETUNIT');
 
-    // A plain org member with no owner link at all — same fail-closed empty scope.
+    // A plain org member with no owner link at all — same empty scope, same fail-closed.
     $stranger = User::factory()->create(['status' => 'active']);
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
     $this->actingAs($stranger)->get('/owner/units')->assertOk()->assertDontSee('SECRETUNIT');

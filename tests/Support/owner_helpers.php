@@ -5,6 +5,7 @@ use App\Models\Membership;
 use App\Models\MessageThread;
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
+use App\Models\OwnerUser;
 use App\Models\Reservation;
 use App\Models\Unit;
 use App\Models\User;
@@ -129,5 +130,33 @@ if (! function_exists('ownerThread')) {
             'subject' => $subject,
             'owner_id' => $owner->id,   // guest_id XOR owner_id — the discriminator
         ]);
+    }
+}
+
+if (! function_exists('ownerSubUser')) {
+    /**
+     * An OWNER-TEAM sub-user (Phase 7c): a User with an active Membership (so the tenant resolves) + the
+     * owner-realm `External Owner` role (so #26 routes them to /owner, not a dead-end 403) + an `owner_users`
+     * row linking them to $ownerId at $role. Their portal scope + acting role resolve from that pivot.
+     *
+     * Shared in Support/ (not a test file) so BOTH the isolation and capability suites use it without
+     * cross-file function-load order — the exact discipline the header describes.
+     *
+     * @param  array<string, mixed>  $scenario  a seedScenario() result
+     */
+    function ownerSubUser(array $scenario, string $ownerId, string $role = 'view_only', string $status = 'active'): User
+    {
+        $user = User::factory()->create(['status' => 'active']);
+        Membership::create(['organization_id' => $scenario['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+        grantBackOfficeRole($user, $scenario['org'], 'External Owner');
+        OwnerUser::create([
+            'organization_id' => $scenario['org']->id,
+            'owner_id' => $ownerId,
+            'user_id' => $user->id,
+            'role' => $role,
+            'status' => $status,
+        ]);
+
+        return $user;
     }
 }

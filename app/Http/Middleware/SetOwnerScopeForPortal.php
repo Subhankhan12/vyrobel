@@ -34,6 +34,7 @@ class SetOwnerScopeForPortal
         $user = $request->user();
         $ownerIds = [];
         $role = null;
+        $isPrimaryOwner = false;
 
         if ($user instanceof User) {
             // ① Owners this user OWNS (the primary account holder) — the implicit Co-owner.
@@ -54,7 +55,8 @@ class SetOwnerScopeForPortal
             )));
 
             // The acting role: a primary owner is Co-owner; otherwise the most-privileged sub-user role.
-            if ($primaryOwnerIds !== []) {
+            $isPrimaryOwner = $primaryOwnerIds !== [];
+            if ($isPrimaryOwner) {
                 $role = OwnerTeamRole::CO_OWNER;
             } elseif ($subMemberships->isNotEmpty()) {
                 $role = $this->highestRole($subMemberships->pluck('role')->map(fn ($r): string => (string) $r)->all());
@@ -62,7 +64,7 @@ class SetOwnerScopeForPortal
         }
 
         // Always activate on the portal — an empty set fails closed (sees nothing), never all owners.
-        $context->activate($ownerIds, $role);
+        $context->activate($ownerIds, $role, $isPrimaryOwner);
 
         return $next($request);
     }

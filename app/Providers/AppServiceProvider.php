@@ -73,6 +73,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -232,5 +233,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('booking', fn (Request $request): Limit => Limit::perMinute(
             (int) config('services.booking.rate_limit', 60)
         )->by($request->ip() ?? 'unknown'));
+
+        // Phase 7c · SG2 — owner-team UI gating. ONE source of truth with the route gate ({@see
+        // EnsureOwnerCapability}): both read the acting role from OwnerContext, so a control is shown only
+        // when the route would allow it (never inviting a 403). @ownercan hides a capability-scoped control;
+        // @primaryowner hides team management (the primary owner's alone).
+        Blade::if('ownercan', fn (string $capability): bool => app(OwnerContext::class)->can($capability));
+        Blade::if('primaryowner', fn (): bool => app(OwnerContext::class)->isPrimaryOwner());
     }
 }

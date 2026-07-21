@@ -81,7 +81,13 @@
                         <input id="vat_number" type="text" name="vat_number" value="{{ old('vat_number', $profile['vat_number']) }}" placeholder="e.g. PT501234567" class="vy-input">
                     </div>
 
-                    <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center">Save tax details</button>
+                    {{-- 🔒 SG2 — an accountant may READ tax & documents but SAVING is an "Approval" (co-owner only);
+                         the tax.save route is co-owner-gated too, so this hides a button that would 403. --}}
+                    @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center">Save tax details</button>
+                    @else
+                        <p class="vy-line-sub" style="font-size:12px;margin:0">Read-only — a co-owner can update these tax details.</p>
+                    @endownercan
                 </form>
                 <p class="vy-line-sub" style="font-size:11.5px;margin-top:10px">Your tax ID and VAT number are encrypted at rest. Saving them releases any held payouts.</p>
             </section>

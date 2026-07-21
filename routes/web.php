@@ -65,6 +65,7 @@ use App\Http\Controllers\Owner\OwnerUnitRequestController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
+use App\Http\Middleware\EnsureOwnerCapability;
 use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\RequireTwoFactorPending;
 use App\Http\Middleware\ResolvePublicProperty;
@@ -132,6 +133,7 @@ use App\Livewire\Owner\OwnerUnitDetail;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
 use App\Livewire\UnitsList;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -616,6 +618,15 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
  * owner PWA is the design pass.
  */
 Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->name('owner.')->group(function () {
+    // Phase 7c · SG2 — owner-team capability gates ({@see EnsureOwnerCapability}). Named locals keep the
+    // per-route middleware legible; the primary owner acts as co_owner (all capabilities), so every existing
+    // owner flow is unaffected — these only restrict invited sub-users to their role's grid.
+    $capCalendar = EnsureOwnerCapability::class.':'.OwnerTeamRole::CAP_CALENDAR;   // co-owner + view-only
+    $capDocuments = EnsureOwnerCapability::class.':'.OwnerTeamRole::CAP_DOCUMENTS; // co-owner + accountant
+    $capExports = EnsureOwnerCapability::class.':'.OwnerTeamRole::CAP_EXPORTS;     // co-owner + accountant
+    $capActions = EnsureOwnerCapability::class.':'.OwnerTeamRole::CAP_ACTIONS;     // co-owner only
+    $capPayout = EnsureOwnerCapability::class.':'.OwnerTeamRole::CAP_PAYOUT;       // co-owner only
+
     Route::get('/', OwnerDashboard::class)->name('dashboard');
     // WAVE 3 — the OWNER INBOX (owner ↔ the operator's staff). OWNER-scoped by OwnerScope: MessageThread
     // gained `owner_id` + BelongsToOwner, so a cross-owner thread AND every operator↔guest thread
@@ -630,16 +641,22 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // Demo-readiness · Part B — branded owner-statement PDF. OWNER-scoped (string id → findOrFail under
     // OwnerScope → cross-owner 404, fail-closed for non-linked). Real owner_ledger figures; reconciles to
     // the cent; no invented lines. Streams application/pdf.
-    Route::get('/statements/{statement}/pdf', [OwnerStatementPdfController::class, 'download'])->name('statements.pdf');
-    // Wave 1 · Sub-gate 2 — two more owner PDFs on the SAME owner-scoped pattern (string id →
-    // findOrFail under OwnerScope → cross-owner 404; fail-closed for a non-linked user). Both reuse
-    // PdfService + the shared MoneyFormatter, so they reconcile to the screens to the cent.
-    Route::get('/statements/{statement}/bookings', [OwnerBookingSummaryPdfController::class, 'download'])->name('statements.bookings');
-    Route::get('/payouts/{payout}/remittance', [OwnerRemittancePdfController::class, 'download'])->name('payouts.remittance');
+    // 🔒 Phase 7c · SG2 — EXPORTS (PDF downloads) require the exports capability: co-owner + accountant only.
+    // A view-only sub-user is "no exports" (design) — refused here even on their own owner's data. The
+    // owner-scope 404 still applies inside; this gate is the role layer on top.
+    Route::middleware($capExports)->group(function () {
+        Route::get('/statements/{statement}/pdf', [OwnerStatementPdfController::class, 'download'])->name('statements.pdf');
+        // Wave 1 · Sub-gate 2 — two more owner PDFs on the SAME owner-scoped pattern (string id →
+        // findOrFail under OwnerScope → cross-owner 404; fail-closed for a non-linked user). Both reuse
+        // PdfService + the shared MoneyFormatter, so they reconcile to the screens to the cent.
+        Route::get('/statements/{statement}/bookings', [OwnerBookingSummaryPdfController::class, 'download'])->name('statements.bookings');
+        Route::get('/payouts/{payout}/remittance', [OwnerRemittancePdfController::class, 'download'])->name('payouts.remittance');
+    });
     // Design pass · Screen 3 — owner payouts (owner-scoped; new page for the certified Payout backend).
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');
     // Design pass · Screen 4 — owner units + owner-scoped occupancy calendar (new owner-scoped page).
-    Route::get('/units', OwnerMyUnits::class)->name('units');
+    // 🔒 SG2 — "Calendar & bookings" capability: co-owner + view-only (an accountant is refused).
+    Route::get('/units', OwnerMyUnits::class)->middleware($capCalendar)->name('units');
     // Phase 5 — Owner Reviews (read-only): published reviews for the owner's OWN units (owner-scoped).
     Route::get('/reviews', OwnerReviews::class)->name('reviews');
     // Phase 6b · Analytics — owner Insights + Reports over the SG1 metric layer, scoped to the owner's OWN
@@ -649,46 +666,57 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/reports', OwnerReports::class)->name('reports');
     // Wave 1 · Sub-gate 3 — ONE of the owner's units. Owner-scoped: a non-owned/cross-owner unit id
     // 404s under OwnerScope. Occupancy is THIS-unit/THIS-owner (never room-type-wide).
-    Route::get('/units/{unit}', OwnerUnitDetail::class)->name('units.show');
+    Route::get('/units/{unit}', OwnerUnitDetail::class)->middleware($capCalendar)->name('units.show');
     // Phase 2 · Sub-gate 1 — the owner's bookings across their OWN units + one booking's detail. Owner-scoped
     // THROUGH the units: reservations carry no owner_id, so the set is derived from the owner-scoped units and
     // {booking} is REJECTED (404) unless it touches one this owner owns (never trusts the request id). Read-only;
     // guest NAME only (no contact — invariant #28). Filters ride GET so the owner middleware re-runs.
-    Route::get('/bookings', OwnerBookings::class)->name('bookings');
-    Route::get('/bookings/{booking}', OwnerBookingDetail::class)->name('bookings.show');
+    Route::get('/bookings', OwnerBookings::class)->middleware($capCalendar)->name('bookings');
+    Route::get('/bookings/{booking}', OwnerBookingDetail::class)->middleware($capCalendar)->name('bookings.show');
     // Phase 2 · Sub-gate 2 — the owner Block Calendar. Reads are owner-scoped through the unit; the WRITES go
     // through OwnerBlockService → the certified AssignmentService (single inventory write path). The unit is
     // resolved from the owner's OWN units (never the request id) — a foreign unit id is 403 — and blockInventory
     // enforces non-overlap (a booked/blocked date is rejected by the real assertUnitFree rule).
-    Route::get('/calendar', OwnerBlockCalendar::class)->name('calendar');
-    Route::post('/calendar/block', [OwnerBlockController::class, 'store'])->name('calendar.block');
-    Route::delete('/calendar/blocks/{block}', [OwnerBlockController::class, 'destroy'])->name('calendar.release');
+    // 🔒 SG2 — the calendar READ is "Calendar & bookings" (co-owner + view-only); the block/release WRITES are
+    // "Approvals" (co-owner only), so a view-only sub-user can see the calendar but cannot block/release.
+    Route::get('/calendar', OwnerBlockCalendar::class)->middleware($capCalendar)->name('calendar');
+    Route::post('/calendar/block', [OwnerBlockController::class, 'store'])->middleware($capActions)->name('calendar.block');
+    Route::delete('/calendar/blocks/{block}', [OwnerBlockController::class, 'destroy'])->middleware($capActions)->name('calendar.release');
     // Phase 2 · Sub-gate 3 — Owner Rates (the highest-risk gate: an owner-scoped MONEY write). The owner sets
     // nightly rates DIRECTLY on their OWN room types via the certified RateAndRestrictionService. The write is
     // guarded in OwnerRateService: a room type is editable ONLY if the owner owns it EXCLUSIVELY (every unit is
     // theirs) — resolved through ownership, never a request id — so a shared/foreign room type is 403.
-    Route::get('/rates', OwnerRates::class)->name('rates');
-    Route::post('/rates/apply', [OwnerRateController::class, 'apply'])->name('rates.apply');
+    // 🔒 SG2 — Rates is an "Approval" (setting money): co-owner only, page and write.
+    Route::get('/rates', OwnerRates::class)->middleware($capActions)->name('rates');
+    Route::post('/rates/apply', [OwnerRateController::class, 'apply'])->middleware($capActions)->name('rates.apply');
     // Phase 2 · Sub-gate 4 — Owner Tax Center. SELF-ONLY: the owner is resolved by user_id (never a request
     // id), so tax details + summaries are always the authenticated owner's own. Saving a tax ID RELEASES held
     // payouts (the genuine hold is in OwnerPayoutService::pay()). The annual PDF is self-only (no owner id in
     // the URL — a non-linked user 404s) and reconciles to the owner's real committed statements.
-    Route::get('/tax', OwnerTaxCenter::class)->name('tax');
-    Route::post('/tax', [OwnerTaxController::class, 'save'])->name('tax.save');
-    Route::get('/tax/{year}/summary.pdf', [OwnerTaxController::class, 'downloadAnnual'])->name('tax.annual');
+    // 🔒 SG2 — Tax center is "Documents & tax" (co-owner + accountant, read); SAVING tax details is an
+    // "Approval" (co-owner only); the annual summary is an EXPORT (co-owner + accountant).
+    Route::get('/tax', OwnerTaxCenter::class)->middleware($capDocuments)->name('tax');
+    Route::post('/tax', [OwnerTaxController::class, 'save'])->middleware($capActions)->name('tax.save');
+    Route::get('/tax/{year}/summary.pdf', [OwnerTaxController::class, 'downloadAnnual'])->middleware($capExports)->name('tax.annual');
     // Phase 2 · Sub-gate 5 — Owner Payout Method. SELF-ONLY + owner-scoped: new methods attach to the owner
     // resolved by user_id (never a request id); set-default/remove resolve the method through the owner scope
     // (a cross-owner id 404s). The full IBAN is ENCRYPTED + never rendered (masked ···· last4). DATA CAPTURE
     // only — the live rail (Stripe Connect) is deferred, so nothing here moves money.
-    Route::get('/payout-method', OwnerPayoutMethod::class)->name('payout-method');
-    Route::post('/payout-method', [OwnerPayoutMethodController::class, 'store'])->name('payout-method.add');
-    Route::post('/payout-method/{method}/default', [OwnerPayoutMethodController::class, 'setDefault'])->name('payout-method.default');
-    Route::delete('/payout-method/{method}', [OwnerPayoutMethodController::class, 'destroy'])->name('payout-method.remove');
+    // 🔒 Phase 7c · SG2 — the SENSITIVE payout account (encrypted IBAN / where the money goes) is CO-OWNER
+    // ONLY. The capability gate refuses an accountant or view-only sub-user on BOTH the read page and every
+    // write — a non-co-owner reaching the IBAN is a money-security hole (invariant #28 holds on the column).
+    Route::middleware($capPayout)->group(function () {
+        Route::get('/payout-method', OwnerPayoutMethod::class)->name('payout-method');
+        Route::post('/payout-method', [OwnerPayoutMethodController::class, 'store'])->name('payout-method.add');
+        Route::post('/payout-method/{method}/default', [OwnerPayoutMethodController::class, 'setDefault'])->name('payout-method.default');
+        Route::delete('/payout-method/{method}', [OwnerPayoutMethodController::class, 'destroy'])->name('payout-method.remove');
+    });
     // Phase 2 · Sub-gate 6 — Add a unit is an owner REQUEST (self-only, owner-scoped), NOT direct creation: a new
     // unit changes the operator's billable inventory, so the operator reviews the request and creates the real
     // unit as their own action. Plus a STATIC Help surface (FAQ + the real "Message your manager" inbox route).
-    Route::get('/add-unit', OwnerAddUnit::class)->name('add-unit');
-    Route::post('/add-unit', [OwnerUnitRequestController::class, 'store'])->name('add-unit.submit');
+    // 🔒 SG2 — requesting a new unit is an "Approval" action: co-owner only (page and submit).
+    Route::get('/add-unit', OwnerAddUnit::class)->middleware($capActions)->name('add-unit');
+    Route::post('/add-unit', [OwnerUnitRequestController::class, 'store'])->middleware($capActions)->name('add-unit.submit');
     Route::get('/help', OwnerHelp::class)->name('help');
     // Phase 3 · Sub-gate 1 — the owner in-app notification feed (the owner's OWN notifications; per-user
     // Notifiable → never another user's, never another owner's).
@@ -704,7 +732,8 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/archive', OwnerArchive::class)->name('archive');
     // Wave 1 · Sub-gate 4 — the owner's document library: an owner-scoped aggregation over the REAL
     // generatable PDFs (statement · remittance · booking summary). No document is invented.
-    Route::get('/documents', OwnerDocuments::class)->name('documents');
+    // 🔒 SG2 — "Documents & tax": co-owner + accountant (a view-only sub-user is refused).
+    Route::get('/documents', OwnerDocuments::class)->middleware($capDocuments)->name('documents');
 
     // Wave 4 — owner SELF-PROFILE. The owner edits their OWN contact details (name + encrypted
     // email/phone). ⚠️ Owner is BelongsToOrganization, NOT BelongsToOwner, so OwnerScope does not scope it:

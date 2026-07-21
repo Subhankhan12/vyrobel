@@ -139,16 +139,18 @@
                                     <td class="vy-num vy-mono vy-net">{{ $row['net_display'] }}</td>
                                     <td class="vy-num" style="white-space:nowrap">
                                         <a href="{{ route('owner.statements.show', $row['id']) }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">View</a>
-                                        {{-- REAL download — the owner-scoped statement PDF reconciles to these figures to the cent --}}
+                                        {{-- REAL downloads — owner-scoped PDFs. 🔒 SG2 — a view-only sub-user is
+                                             "no exports": both are hidden (and the routes are export-gated). --}}
+                                        @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                                         <a href="{{ route('owner.statements.pdf', $row['id']) }}" class="vy-btn vy-btn--ghost" style="margin-left:10px;padding:5px 10px;font-size:12px" title="Download this statement as a PDF">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
                                             PDF
                                         </a>
-                                        {{-- REAL download — the owner-scoped booking-summary PDF: the real bookings behind this period's gross --}}
                                         <a href="{{ route('owner.statements.bookings', $row['id']) }}" class="vy-btn vy-btn--ghost" style="margin-left:6px;padding:5px 10px;font-size:12px" title="Download the bookings behind this statement as a PDF">
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
                                             Bookings
                                         </a>
+                                        @endownercan
                                     </td>
                                 </tr>
                             @endforeach
