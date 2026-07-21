@@ -81,6 +81,31 @@ class Organization extends Model
         return new SubscriptionStatus($this->currentSubscription());
     }
 
+    /**
+     * Whether the org's current PLAN grants a feature (Phase 7b feature-gating) — e.g. `channels` is Pro-only.
+     * FAILS OPEN on a missing subscription (never gate an org with no billing record); returns false while
+     * lapsed (no access at all); otherwise reads the real `plan_features` row for the org's plan (an unknown
+     * feature key defaults to allowed, so gating is opt-in per key).
+     */
+    public function planAllows(string $feature): bool
+    {
+        $subscription = $this->currentSubscription();
+        if ($subscription === null) {
+            return true;
+        }
+
+        if (! $this->billingStatus()->hasFullAccess()) {
+            return false;
+        }
+
+        $planFeature = PlanFeature::query()
+            ->where('plan_id', $subscription->plan_id)
+            ->where('key', $feature)
+            ->first();
+
+        return $planFeature === null ? true : (bool) $planFeature->enabled;
+    }
+
     public function apiKeys(): HasMany
     {
         return $this->hasMany(ApiKey::class);

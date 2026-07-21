@@ -65,6 +65,7 @@ use App\Http\Controllers\Owner\OwnerUnitRequestController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
+use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\RequireTwoFactorPending;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetCurrentPropertyForWebRequest;
@@ -335,7 +336,7 @@ Route::prefix('book/{property}')
  * See docs/DECISIONS.md 2026-07-16. The gate is on the GROUP, so it covers every route below —
  * including any added later.
  */
-Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForWebRequest::class])->prefix('app')->name('app.')->group(function () {
+Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
 
@@ -368,6 +369,8 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::get('/billing/checkout', OperatorBillingCheckout::class)->middleware('can:billing.manage')->name('billing.checkout');
     Route::post('/billing/company', [BillingActionController::class, 'saveCompany'])->middleware('can:billing.manage')->name('billing.company');
     Route::post('/billing/subscribe', [BillingActionController::class, 'subscribe'])->middleware('can:billing.manage')->name('billing.subscribe');
+    // Dev/test-only affordance to demo the access gate (404s outside local/testing) — never a real payment.
+    Route::post('/billing/dev-expire', [BillingActionController::class, 'devExpireTrial'])->middleware('can:billing.manage')->name('billing.dev-expire');
 
     // GLOBAL SEARCH (Phase 1 · Sub-gate 2) — cross-entity search (reservations/guests/units/owners), the query
     // on a GET (scope-safe reads). Gated on `reservations.view` (the operations read baseline); per-entity

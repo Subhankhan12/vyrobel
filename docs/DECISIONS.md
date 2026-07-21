@@ -2882,3 +2882,54 @@ self-signup and stays deferred to whenever the spatie schema is next reworked.
 
 **NEXT = Phase 7b — SUBSCRIPTION BILLING** (Paywall + Checkout + Operator Billing; Stripe Billing, live charges
 when live keys exist). Then 7c (Owner Team) · 7d (rostering) · Phase 8 (account-gated integrations).
+
+### 2026-07-22 — Phase 7b COMPLETE: SUBSCRIPTION BILLING — the free-trial SaaS model (charge account-gated; 3 gated sub-gates)
+
+**Vyrobel bills the OPERATOR — the SaaS revenue model.** DECIDED: the free-trial model — sign up (7a) →
+provisioned with a real trial (full access, N days) → trial expiry → the Paywall → subscribe. The most
+account-gated phase: the STRUCTURE + LOGIC + UI are built REAL; the LIVE CHARGE + Stripe webhooks are deferred
+HONESTLY (the same discipline as the guest card charge + the owner payout rail). NEVER a faked payment.
+
+**⛔ SG1 — plans/tiers + subscription-state + the REAL trial (`4a3b5cd`).** Reuses the existing schema-only
+`plans`/`plan_features`/`subscriptions` tables (their first real callers). config/billing.php holds the tiers
+(Essential/Pro, monthly/yearly) with CONFIGURABLE PLACEHOLDER prices + feature splits (marked — Subhan sets
+real pricing; nothing fabricated as final) + `trial_days`; `BillingPlanSeeder` materialises them.
+`App\Support\Billing\SubscriptionStatus` is THE derivation (onTrial/active/lapsed/trialDaysRemaining from the
+timestamp, never a stored countdown) — **fails OPEN on a missing subscription** (a missing billing record never
+paywalls — the opposite of the fail-CLOSED security posture, so a billing bug can't lock out a customer).
+`BillingService::startTrialFor` starts the trial ATOMICALLY inside the 7a provisioning transaction (`status =
+'active'` is only ever reached through a real Stripe charge — no method flips it off a fake payment).
+
+**⛔ SG2 — Paywall + Checkout (`5a52696`).** `OperatorBilling` (the Paywall — real derived status + the tiers
+with placeholder prices + the feature splits) + `OperatorBillingCheckout` (chosen tier, real monthly/yearly
+toggle, company/VAT capture [`organizations.billing_company`/`billing_vat_id`, a new migration — the org's own
+business identity, NOT card data], the summary; NO card field). `BillingActionController::subscribe` is **THE
+ACCOUNT-GATED SEAM** — takes no money, stores no card, does NOT activate; records the choice + returns an honest
+"Vyrobel isn't collecting payments yet — no card was charged". Gated `can:billing.manage` (founder/Property
+Owner, NOT Front Desk). Fixed a Blade word@directive trap ("subscribed@if").
+
+**⛔ SG3 — access + feature gating + consolidate (this gate).** `EnsureSubscriptionActive` on the `/app` group:
+a LAPSED org (expired trial / canceled) is redirected to the Paywall — but the gate bites ONLY after the trial
+(in-trial/active = full access, never a mid-onboarding lock-out), FAILS OPEN on a missing subscription, and
+ALWAYS lets the billing routes through (so a lapsed org can reach the Paywall to subscribe). Feature-gating:
+`Organization::planAllows($feature)` — `channels` is Pro-only (Essential refused, Pro/Pro-trial granted),
+surfaced as a "Pro" lock on the Channels nav item for an Essential org. The demo org is seeded ACTIVE on
+ESSENTIAL (a sensible demo billing state — clearly demo data; it also demos the channels Pro-lock). A DEV/TEST-
+ONLY "expire trial" affordance (404s outside local/testing) demos the access gate — never a real payment.
+
+**Mutation-proven** (across BillingTrialTest/BillingPaywallTest/BillingAccessGateTest, 12 tests): the trial is
+real (14 days from the provisioning timestamp); a past-trial org is expired/lapsed; access — an expired/canceled
+org → the Paywall, an in-trial/active org → full, a no-subscription org fails open, the Paywall stays reachable
+when lapsed; feature — Essential refused channels, Pro granted; the subscribe seam NEVER charges or activates
+(sub stays trialing, stripe id null). Browser-verified: signup → "Trial · 14 days left"; Checkout pro-yearly →
+€990 summary + honest "no card charged"; the demo Essential org shows the Channels Pro-lock; expiring the trial
+→ redirected to the Paywall ("Trial ended").
+
+**⚠️ DEFERRED / ACCOUNT-GATED (the biggest seam):** the LIVE Stripe charge + webhooks + the subscription
+lifecycle FROM Stripe (`stripe_subscription_id` stays null; nothing flips to active) — Subhan's to obtain, same
+as the guest card charge + owner payout rail. The specific PRICES are placeholders Subhan sets. New invariant
+**#41**. Suite **869 tests / 7233 assertions** green · PHPStan L5 + Pint clean · `migrate:fresh --seed` clean
+(demo active on Essential). Phase 7b commits: `4a3b5cd` (SG1) → `5a52696` (SG2) → this gate (SG3).
+
+**NEXT = Phase 7c — OWNER TEAM** (owner sub-tenancy — an owner invites their own users). Then 7d (Team Schedule /
+rostering) · Phase 8 (account-gated integrations, incl. LIVE Stripe billing when the account lands).

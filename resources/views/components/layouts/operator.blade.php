@@ -230,6 +230,7 @@
         .vy-seg-btn.is-on { background: var(--vy-grad); color: #fff; }
         .vy-bill-gate { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; padding: 12px 14px; border-radius: var(--vy-r-md); background: rgba(224,146,30,.1); border: 1px solid rgba(224,146,30,.32); font-size: 12.5px; color: var(--vy-ink); }
         .vy-bill-gate svg { color: var(--vy-amber, #b26a08); flex: none; margin-top: 1px; }
+        .vy-plan-tag { margin-left: auto; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--vy-grad); border-radius: 5px; padding: 1px 5px; }
 
         /* ---- Reusable surfaces ----------------------------------------------------------------- */
         .vy-card {

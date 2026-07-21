@@ -18,6 +18,11 @@
     'viewer' => ['name' => 'Operator', 'initials' => 'O'],
 ])
 @php
+    // Phase 7b feature-gating: whether the org's plan grants Channels (Pro-only). Shown as a "Pro" tag on the
+    // Channels nav item for an Essential org (vs the account-gated "Soon" everyone else sees).
+    $__billingOrg = \App\Models\Organization::query()->find(app(\App\Support\Tenancy\TenantContext::class)->id());
+    $channelsAllowed = $__billingOrg?->planAllows('channels') ?? true;
+
     // [key, label, icon-path, route|null]. A null route renders a disabled "Soon" placeholder.
     $navGroups = [
         ['OPERATIONS', [
@@ -83,6 +88,12 @@
                             <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
                             {{ $label }}
                         </a>
+                    @elseif ($key === 'channels' && ! $channelsAllowed)
+                        {{-- Feature-gated by plan: Channels is a Pro feature; an Essential org sees a "Pro" lock. --}}
+                        <span class="vy-nav-item" aria-disabled="true" title="Channels is a Pro feature — upgrade to unlock">
+                            <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
+                            {{ $label }}<span class="vy-plan-tag">Pro</span>
+                        </span>
                     @else
                         <span class="vy-nav-item" aria-disabled="true" title="Coming soon">
                             <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>

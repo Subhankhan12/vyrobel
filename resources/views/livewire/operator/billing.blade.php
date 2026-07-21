@@ -53,5 +53,13 @@
         </div>
 
         <p class="vy-bill-disclaimer vy-fade">Prices shown are placeholders while we finalise pricing. Vyrobel isn't collecting payments yet — live billing is coming soon.</p>
+
+        @if (app()->environment('local') && ($status['on_trial'] || $status['active']))
+            {{-- DEV/TEST ONLY — expire the trial to see the access gate. Not a real action; hidden in production. --}}
+            <form method="POST" action="{{ route('app.billing.dev-expire') }}" class="vy-fade" style="margin-top:8px">
+                @csrf
+                <button type="submit" class="vy-btn vy-btn--ghost" style="font-size:11px">Test only · expire trial</button>
+            </form>
+        @endif
     </x-operator.shell>
 </div>

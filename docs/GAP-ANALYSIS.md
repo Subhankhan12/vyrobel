@@ -182,7 +182,7 @@ issues staff roles).
 | Page | What it really is | Size |
 |---|---|---|
 | ✅ Vyrobel Onboarding | **BUILT (Phase 7a)** — public `/signup` provisions a new operator org atomically (`TenantProvisioningService`: org + 13 provisioned roles + founder + Property Owner + first property in one transaction) and logs the founder in. The chicken-and-egg is escaped via the pre-tenant `runAsSuperAdmin` path; **BOTH deferred RBAC defects fixed** (org-creation now provisions roles; the founder holds the assignable Property Owner). Mutation-proven (atomic rollback, isolation, RBAC state). | — |
-| Vyrobel Paywall + Checkout | **SUBSCRIPTION BILLING** — plans, paywall, subscription checkout (Stripe Billing — partly account-gated for live charges); pairs with Operator Billing | L + gated |
+| ✅ Vyrobel Paywall + Checkout | **BUILT (Phase 7b)** — the free-trial model: plans/tiers (placeholder prices) + subscription-state + the real trial (from 7a) + the Paywall + Checkout (company/VAT, period toggle) + access-gating (lapsed → paywall, never mid-trial) + feature-gating (channels Pro-only). The LIVE Stripe charge + webhooks stay account-gated (deferred honestly — no faked payment). | — |
 
 ---
 
@@ -362,9 +362,15 @@ RBAC defect #2. Mutation-proven (rollback, isolation, RBAC state). **Residual, r
 platform item:** the global `Super Admin` stays unassignable (spatie `model_has_roles` PK rework; MySQL forbids NULL
 in a PK) — affects only the Horizon/platform-admin gate, never a tenant founder. See `docs/DECISIONS.md` 2026-07-21.
 
-**PHASE 7b — SUBSCRIPTION BILLING** *(⬅ NEXT)*
-Paywall + Checkout + Operator Billing (Stripe Billing; live charges when Stripe live keys exist). Then → Owner Team
-(owner sub-tenancy) → Team Schedule / rostering.
+**PHASE 7b — SUBSCRIPTION BILLING** *(✅ DONE — 2026-07-22, 3 gated sub-gates `4a3b5cd` → `5a52696` → this gate)*
+The free-trial model: plans/tiers (placeholder prices) + `SubscriptionStatus` + the real trial (from 7a
+provisioning) + the Paywall + Checkout (company/VAT, period toggle) + access-gating (`EnsureSubscriptionActive`:
+lapsed → paywall, never mid-trial, fail-open on no record) + feature-gating (`Organization::planAllows` —
+channels Pro-only). The LIVE Stripe charge + webhooks + subscription lifecycle stay account-gated (deferred
+honestly — no faked payment); prices are placeholders Subhan sets. See `docs/DECISIONS.md` 2026-07-22 (Phase 7b).
+
+**PHASE 7c — OWNER TEAM** *(⬅ NEXT)*
+Owner sub-tenancy — an owner invites their own users (a permission subsystem). Then Team Schedule / rostering (7d).
 
 **PHASE 8 — Live integrations (as accounts land — parallel throughout)**
 Stripe Connect payouts live → card capture live → Channex live sync → WhatsApp/OTA inbox channels → production

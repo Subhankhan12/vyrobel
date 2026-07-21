@@ -16,6 +16,7 @@ use App\Models\Media;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Owner;
+use App\Models\Plan;
 use App\Models\PromoCode;
 use App\Models\Property;
 use App\Models\PropertyPolicy;
@@ -23,6 +24,7 @@ use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Reservation;
 use App\Models\RoomType;
+use App\Models\Subscription;
 use App\Models\Tag;
 use App\Models\Tax;
 use App\Models\Unit;
@@ -344,6 +346,18 @@ class DemoSeeder extends Seeder
         // 'connected'/'active', which left the channel manager inert in production). The live Channex sync itself
         // stays account-gated. Seeded LAST so no already-created demo stay retroactively enqueues a push.
         $this->seedChannel($property, $doubleRoom, $apartment, $roomRate, $aptRate);
+
+        // Phase 7b — a real subscription for the demo org so billing is demoable. ACTIVE on ESSENTIAL: an
+        // established paying operator (seeded DEMO data, like every row here — the product never flips an org
+        // to active off a fake payment; the live charge stays account-gated). Essential also demos the REAL
+        // feature gate — Channels shows a "Pro" lock in the nav.
+        $essentialPlan = Plan::query()->where('code', 'essential_monthly')->first();
+        if ($essentialPlan !== null) {
+            Subscription::firstOrCreate(
+                ['organization_id' => $org->id],
+                ['plan_id' => $essentialPlan->id, 'status' => 'active', 'current_period_end' => now()->addMonth()],
+            );
+        }
 
         // Phase 6a · multi-property — a SECOND real property in the same org, so the property switcher has
         // something to switch between and the ->first() refactor is demoable. It is deliberately young: real

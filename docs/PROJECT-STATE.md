@@ -24,9 +24,16 @@ conflicts with the repo, **trust the repo** and fix this file.
 > last such subsystem.** ⚠️ **UPDATE (2026-07-20): the customer signal ARRIVED** — a warm operator contact
 > (Fatima) liked the demo AND the prototype, so the requirement is now **"make the real product work like the
 > prototype"** (the "no customer has reacted / don't build blind" framing that once sat here is SUPERSEDED — see
-> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b) AND 7a of
-> `docs/GAP-ANALYSIS.md` are DONE — Guest Portal + Reviews complete, MULTI-PROPERTY, real ANALYTICS, AND public
-> SELF-SIGNUP that provisions a whole new tenant org; Phase 7b (subscription billing) is next.** Phase 7a = TENANT
+> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b), 7a AND 7b of
+> `docs/GAP-ANALYSIS.md` are DONE — Guest Portal + Reviews complete, MULTI-PROPERTY, real ANALYTICS, public
+> SELF-SIGNUP, AND SUBSCRIPTION BILLING (the free-trial model); Phase 7c (Owner Team) is next.** Phase 7b = BILLING:
+> plans/tiers (Essential/Pro, PLACEHOLDER prices — Subhan sets real ones) + `App\Support\Billing\SubscriptionStatus`
+> (the ONE derivation — trial/active/lapsed, **fails OPEN** on a missing record) + the REAL trial started atomically
+> in 7a provisioning + the Paywall + Checkout (company/VAT, period toggle) + access-gating (`EnsureSubscriptionActive`:
+> lapsed → paywall, NEVER mid-trial) + feature-gating (`Organization::planAllows` — channels Pro-only). **🪤 THE LIVE
+> CHARGE + Stripe webhooks are ACCOUNT-GATED** (deferred, same as the guest card charge / owner payout rail): the
+> subscribe action takes no money, stores no card, never flips an org to active (`stripe_subscription_id` null) —
+> invariant **#41**. Phase 7a = TENANT
 > PROVISIONING: `App\Services\TenantProvisioningService` atomically creates a new operator org (org + provisioned
 > roles + founder + `Property Owner` + first property in ONE transaction) — the chicken-and-egg escaped via the
 > pre-tenant `TenantContext::runAsSuperAdmin` path (`Organization::create`'s first `app/` caller;
@@ -71,7 +78,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **On `main`, working tree clean, local == origin** (HEAD advances by one with the doc commit that carries these
   words; check `git log` for the true HEAD — see the HEAD convention below). Only the
   untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
-  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 857 tests / 7139 assertions, all green** on
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 869 tests / 7233 assertions, all green** on
   genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
   (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
   product bug. See the register). The suite is a trustworthy gate.
@@ -387,9 +394,9 @@ conflicts with the repo, **trust the repo** and fix this file.
   comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–40 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–41 (the full guarantee stack)
 
-> **All 40, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 41, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
@@ -408,7 +415,12 @@ conflicts with the repo, **trust the repo** and fix this file.
 > owner-scoped (their units only)** · **#40 tenant provisioning is ATOMIC + provisions roles: a new org is created
 > only through `TenantProvisioningService` (org + 13 roles + founder + `Property Owner` + first property in ONE
 > transaction, all-or-nothing); a provisioned org has a valid RBAC state; the founder holds the ASSIGNABLE org-admin
-> role, never the global `Super Admin`; org isolation holds for provisioned orgs**.
+> role, never the global `Super Admin`; org isolation holds for provisioned orgs** · **#41 subscription billing:
+> the trial is REAL (from the 7a provisioning timestamp, days derived); access is gated on the real billing state
+> AFTER the trial (in-trial/active = full, expired/canceled = the Paywall, NEVER a mid-trial lock-out) and FAILS
+> OPEN on a missing subscription; feature-gating is by plan (channels Pro-only); the LIVE Stripe charge + webhooks
+> are ACCOUNT-GATED — nothing flips an org to `active` off a fake payment, no raw card stored; billing is
+> tenant-scoped + `billing.manage`-gated**.
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -817,6 +829,23 @@ conflicts with the repo, **trust the repo** and fix this file.
     rate-limited, hardened (hashed password, session regenerated, no email-verification gate — the founder matches
     existing operators), and handles enumeration neutrally (org existence never leaks; a duplicate email fails
     non-committally). Mutation-proven. (Phase 7a.)
+
+41. **SUBSCRIPTION BILLING — the trial is REAL, access is gated on the real state, the charge is ACCOUNT-GATED.**
+    Vyrobel bills the operator on the free-trial model. A new org (7a) starts a real `trialing` subscription
+    (`trial_ends = created + trial_days`; days DERIVED by `App\Support\Billing\SubscriptionStatus`, never a stored
+    countdown), created atomically inside the 7a provisioning transaction. Plans/tiers live in config/billing.php
+    with CONFIGURABLE PLACEHOLDER prices (Subhan sets real ones — never fabricated as final), materialised into the
+    real `plans`/`plan_features` tables. **ACCESS GATE** (`EnsureSubscriptionActive` on `/app`): a LAPSED org
+    (expired trial / canceled) → the Paywall; but the gate bites ONLY after the trial (in-trial/active = full — a
+    founder is NEVER locked out mid-onboarding/mid-trial), FAILS OPEN on a missing subscription (a missing billing
+    record must never paywall — the opposite of the fail-CLOSED security posture), and always lets the billing
+    routes through (so a lapsed org can reach the Paywall). **FEATURE GATE** (`Organization::planAllows`): `channels`
+    is Pro-only (Essential refused, Pro/Pro-trial granted), surfaced as a "Pro" nav lock. **🪤 THE LIVE CHARGE IS
+    ACCOUNT-GATED** — the subscribe action takes no money, stores no card, and NEVER flips an org to `active`
+    (`status='active'` + `stripe_subscription_id` are only ever reached through live Stripe Billing, deferred like
+    the guest card charge + owner payout rail). Company/VAT are the org's own business identity (not card data).
+    Billing is tenant-scoped + `billing.manage`-gated (founder/Property Owner, not Front Desk). Mutation-proven.
+    (Phase 7b.)
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
@@ -1368,15 +1397,16 @@ plain GET links (e.g. `?month=`).
   single source for #26/#30) · `database/migrations/` + `database/seeders/DemoSeeder.php` ·
   `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — Phases 0–5, 6 (a+b) AND 7a DONE; NEXT = Phase 7b (subscription billing) in `docs/GAP-ANALYSIS.md`
+## NEXT ACTION — Phases 0–5, 6 (a+b), 7a AND 7b DONE; NEXT = Phase 7c (Owner Team) in `docs/GAP-ANALYSIS.md`
 
-> **CURRENT (2026-07-21). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b) AND 7a of the phased plan are COMPLETE** — three
-> full user-facing apps (operator · owner · guest) + a public storefront + **public self-signup that provisions a
-> whole new tenant org** + hardened multi-realm auth (operator/owner `web` + a separate `guest` guard, incl. 2FA),
-> all on the certified backend, ~85 styled/browser-verified screens on real scoped data under the honesty rule, now
-> **MULTI-PROPERTY with real ANALYTICS and SELF-SERVE SIGNUP**. Suite **857 / 7139** green on MySQL; PHPStan L5 + Pint
-> clean; `migrate:fresh --seed` clean (2 demo properties). Invariants **#1–40**. **The Guest Portal + Reviews are
-> complete; multi-property + real analytics; tenant provisioning ships (both RBAC defects fixed).** (The dated
+> **CURRENT (2026-07-22). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b), 7a AND 7b of the phased plan are COMPLETE** —
+> three full user-facing apps (operator · owner · guest) + a public storefront + **public self-signup that provisions
+> a whole new tenant org with a free trial** + **subscription billing** + hardened multi-realm auth (operator/owner
+> `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~87 styled/browser-verified screens on
+> real scoped data under the honesty rule, now **MULTI-PROPERTY with real ANALYTICS, SELF-SERVE SIGNUP + BILLING**.
+> Suite **869 / 7233** green on MySQL; PHPStan L5 + Pint clean; `migrate:fresh --seed` clean (2 demo properties, demo
+> org on a real Essential subscription). Invariants **#1–41**. **Guest Portal + Reviews complete; multi-property +
+> real analytics; tenant provisioning + subscription billing ship (the live Stripe charge account-gated).** (The dated
 > per-phase detail is in
 > `docs/DECISIONS.md`; the older "customer signal / don't build blind" framing below is HISTORICAL — the signal came
 > and every phase since was built to the prototype.)
@@ -1397,17 +1427,25 @@ plain GET links (e.g. `?month=`).
 > onboarding wizard (rate-limited, neutral enumeration, founder auto-logged-in, honest "finish setup"). **BOTH
 > deferred fail-closed RBAC defects FIXED, mutation-proven** — invariant **#40**.
 >
-> **⬅ NEXT = PHASE 7b — SUBSCRIPTION BILLING.** Paywall + Checkout + Operator Billing (Stripe Billing; live charges
-> when live keys exist). Then Owner Team (7c) · Team Schedule (7d).
+> **✅ PHASE 7b — SUBSCRIPTION BILLING (DONE, 2026-07-22, 3 gated sub-gates `4a3b5cd` → `5a52696` → this gate).** The
+> free-trial model: plans/tiers (placeholder prices) + `SubscriptionStatus` + the real trial (from 7a) + the Paywall +
+> Checkout (company/VAT, period toggle) + access-gating (`EnsureSubscriptionActive`: lapsed → paywall, never mid-trial,
+> fail-open) + feature-gating (channels Pro-only). **The LIVE Stripe charge + webhooks are ACCOUNT-GATED** — no faked
+> payment, no "active" off a fake charge, no raw card. Invariant **#41**.
+>
+> **⬅ NEXT = PHASE 7c — OWNER TEAM.** Owner sub-tenancy — an owner invites their own users (a permission subsystem).
+> Then Team Schedule / rostering (7d).
 >
 > **THE FULL REMAINING MAP (`docs/GAP-ANALYSIS.md` is authoritative):**
-> - **Phase 7b — subscription billing (NEXT):** Paywall/Checkout + Operator Billing (Stripe Billing; live charges when
->   Stripe live keys exist) · then Owner Team (7c, owner sub-tenancy) · Team Schedule / rostering (7d).
-> - **Phase 8 — account-gated integrations** as accounts land (see the ACCOUNT-GATED tail below).
+> - **Phase 7c — Owner Team (NEXT):** owner sub-tenancy (an owner invites their own users) · then Team Schedule /
+>   rostering (7d).
+> - **Phase 8 — account-gated integrations** as accounts land (see the ACCOUNT-GATED tail below) — incl. **LIVE
+>   subscription billing** (the Stripe charge + webhooks the 7b Checkout seam is built up to).
 >
 > **🔒 ACCOUNT-GATED TAIL (external accounts required — CANNOT be built until obtained; deferred HONESTLY throughout
 > — build the experience, NEVER fake a charge/send/verify):** the card charge / Apple Pay everywhere (Stripe live) ·
-> owner payout EXECUTION (Stripe Connect + KYC) · live OTA sync (Channex staging) · WhatsApp / OTA inbox channels ·
+> **LIVE subscription billing** (Stripe Billing — the 7b Checkout seam is built up to the charge + webhooks) · owner
+> payout EXECUTION (Stripe Connect + KYC) · live OTA sync (Channex staging) · WhatsApp / OTA inbox channels ·
 > SMS (waitlist + notifications) · production email (Mailpit is dev) · guest ID verification / KYC.
 > **Subhan's parallel track — START Stripe Connect + an email provider FIRST** (they unblock the most: real
 > payments + the owner payout rail + production email + the review/pre-arrival/waitlist email triggers).

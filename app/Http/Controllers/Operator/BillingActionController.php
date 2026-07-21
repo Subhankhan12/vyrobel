@@ -65,4 +65,19 @@ class BillingActionController extends Controller
         return redirect()->to(route('app.billing'))->with('billing_notice',
             'Vyrobel isn’t collecting payments yet — live billing is coming soon. Your trial continues, and we’ll email you before it ends. (No card was charged.)');
     }
+
+    /**
+     * ⚠️ DEV/TEST ONLY — expire the current trial to demo the access gate (an expired org → the Paywall).
+     * NOT a payment or a real state change a user could reach in production: it 404s outside local/testing.
+     */
+    public function devExpireTrial(Request $request): RedirectResponse
+    {
+        abort_unless(app()->environment('local', 'testing'), 404);
+
+        $org = Organization::query()->findOrFail(app(TenantContext::class)->id());
+        $subscription = $org->currentSubscription();
+        $subscription?->update(['status' => 'trialing', 'trial_ends_at' => now()->subDay()]);
+
+        return redirect()->to(route('app.billing'))->with('billing_notice', 'Test only: your trial was expired.');
+    }
 }
