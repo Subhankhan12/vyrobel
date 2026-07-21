@@ -2648,3 +2648,49 @@ reviews seeded); **browser-verified end-to-end** — a guest reviews their compl
 publishes it + the new-review notification lands in the feed, the owner sees only their unit's review, and the
 public storefront shows the derived rating (★5 / ★4) + the published review with a #28 byline + the operator's
 response. **NEXT = Phase 6** (multi-property + Analytics).
+
+## 2026-07-23 — PRE-PHASE-6a TOTAL-RECALL CONSOLIDATION (documentation only, no code changes)
+
+A full context snapshot before Phase 6a, verified against the actual repo. **This entry is the resume anchor: the
+product now has THREE full user-facing apps + a public storefront + hardened multi-realm auth, all on the certified
+backend; Phases 0–5 of the phased plan (`docs/GAP-ANALYSIS.md`) are COMPLETE.**
+
+**Ground truth (verified this consolidation):** HEAD `8d33d8e` (the actual HEAD is this doc commit, one ahead — the
+"advances by one" convention: the docs name HEAD one commit behind because the commit that writes these words IS the
+new HEAD). Branch `main`, working tree clean, local == origin (all Phase-0→5 work pushed). Suite **819 tests / 6910
+assertions, all green on MySQL 8** (`vyrobel_test`). **PHPStan L5 clean · Pint clean · `migrate:fresh --seed`
+clean.** 97 migrations · 49 service classes · ~50+ styled/browser-verified screens · **invariants #1–37**. (One
+stray Pint formatting nit in the Phase-4c `guest_credit_ledger` migration — a docblock `@see` FQCN — was auto-fixed
+here so the snapshot is genuinely clean; formatting only, no logic.)
+
+**THE COMPLETE BUILD ARC (all recorded above in dated detail; summarized here as the index):**
+- **Original build (pre-plan):** Phase 1 core (tenancy/RBAC teams-mode · ULIDs · integer money · inventory +
+  AssignmentService [the no-double-booking guarantee] · availability · guests/PII encryption · reservations · folios
+  + FolioService · housekeeping) · Phase 2 (Channex + the sync-reliability backbone · Stripe, validated live once ·
+  public booking · staff actions) · Owner accounting (attribution → append-only `owner_ledger` → statements →
+  expenses → payouts + OwnerContext isolation) — all CERTIFIED. Then: the design pass + browser-verification · Auth
+  A/B + password reset + Mailpit · demo-readiness (photos + PDFs) · Maintenance · the Unified Inbox (interface +
+  ManualChannel + deferred channels) · the planning docs (ROADMAP/TIER1-SPEC/DESIGN-COVERAGE) · **Wave 1** (owner
+  long-tail, 9 screens; OwnerOccupancy/RailLabel/assertNoRawBlade) · **security: /app authz gate #26** · **over-refund
+  guard #27** · **Wave 2** (reservations + Guests CRM, 5 screens; ReservationStage/GuestSpend/GuestHistory; notes
+  redaction) · **security follow-ups: terminate() guard #29 · the ENFORCED permission catalog #30 · the anonymize()
+  UI trigger** · **Wave 3** (owner inbox, owner_id + BelongsToOwner) · **Wave 4 CORE** (Operator Rates · New
+  Reservation [3 guards, no raw PAN] · backed Settings; MoneyInput/UnitAvailabilityService) · **Change Password** ·
+  **2FA/TOTP #31**.
+- **The customer signal + the plan:** Fatima liked the demo AND the prototype → "build the real product like the
+  prototype" (SUPERSEDED "no signal, don't build blind"). The master `GAP-ANALYSIS.md` audit corrected multi-property
+  from an L to an M (the schema already holds N properties/org).
+- **The phased build (all gated, mutation-proven, pushed):** **Phase 0** (fix & harden: channels.status writer · dead
+  enums resolved · QA-WALKTHROUGH) · **Phase 1** (operator buildable set: Group Booking · Search · Roles · Maintenance
+  Costs/Settings · Profile) · **Phase 2** (owner buildable set: Bookings/Detail · Block Calendar · Owner Rates · Tax
+  Center · Payout Method · Add Unit · Help) · **Phase 3** (notifications feed + typed preferences + emails) · **Phase
+  4a** (guest auth foundation: the guest guard + blind index + booking-tied claim) · **Phase 4b** (Guest Portal core:
+  Trips · Reservation · Manage [#32] · Check-in/Arrival [#33]) · **Phase 4c** (Guest Portal money + engagement:
+  Payments/PDFs · Wallet ledger [#34] · Messages [#35] · Wishlist/Waitlist — THE GUEST PORTAL COMPLETE) · **Phase 5**
+  (Reviews module: Guest Review [#36] · moderation + ReviewRating [#37] · Operator Reviews · Owner Reviews ·
+  storefront).
+
+**NEXT = Phase 6a** (multi-property): the `->first()` refactor (a COMPLETE grep-clean sweep — the schema already
+holds N properties/org, so a missed call site is a wrong-property bug), then a property selector, property CRUD, and
+the Portfolio screen — proven before Phase 6b (Analytics) builds on it. See `docs/PROJECT-STATE.md` for the full
+resume snapshot (invariants #1–37, the tagged register, the account-gated tail, the meta-lessons).

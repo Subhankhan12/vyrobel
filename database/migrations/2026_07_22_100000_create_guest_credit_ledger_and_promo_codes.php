@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\GuestWalletService;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
  * and the folio (invariants #7 append-only · #17 integer money).
  *
  * 🪤 There is DELIBERATELY NO balance column. The spendable balance is DERIVED (Σ live credits − Σ debits) in
- * {@see \App\Services\GuestWalletService}; storing a mutable balance would be the drift bug the ledger discipline
+ * {@see GuestWalletService}; storing a mutable balance would be the drift bug the ledger discipline
  * exists to prevent. Every row is a credit or a debit with a positive `amount_minor` (the `direction` carries the
  * sign). Correct-by-reversal: reversing a credit posts a NEW debit whose `reverses_id` points at it — never an
  * edit or delete. `expires_at` (credits only) lets a credit stop counting toward the spendable balance.

@@ -320,23 +320,68 @@ conflicts with the repo, **trust the repo** and fix this file.
   owner-scoped) · **operator folio** (`App\Http\Controllers\Operator\FolioPdfController` + `Support\Pdf\FolioDocument`,
   tenant-scoped). Both reconcile to the screen to the cent via the shared `Support\Money\MoneyFormatter` +
   `Support\Folio\FolioTotals`.
+- **Multi-realm auth (operator/owner `web` + a separate `guest` guard)** — the operator/owner chapter (login ·
+  invites [owner/Hotel Manager/Accountant] · password reset · change-password via `User::changePasswordTo` ·
+  **2FA/TOTP** [`google2fa` + `bacon-qr-code`, enrollment + recovery codes + login challenge, secrets encrypted]);
+  and the **guest realm** (Phase 4a) — `App\Auth\GuestUserProvider` on a separate `guest` guard (`config/auth.php`),
+  a keyed **blind index** (`guests.email_hash`) since the encrypted email isn't queryable, booking-tied claim +
+  email verification, `Guest::changePasswordTo`. `App\Http\Middleware\SetTenantForGuestRequest` +
+  `App\Http\Controllers\Guest\Concerns\ResolvesGuest` (the single guest-resolution point). Realm separation +
+  guest isolation mutation-proven; the operator/owner chapter unregressed.
+- **Notification subsystem (Phase 3)** — `notifications` table (Laravel-native `Notifiable`) + the
+  `App\Listeners\DispatchNotificationsForDomainEvent` listener (real `DomainEventRecorded` events → per-user feed,
+  isolation-scoped + double-fire idempotency) + a TYPED `App\Services\NotificationPreferences` store that GENUINELY
+  gates BOTH channels via `App\Notifications\FeedNotification::via()` (always-on Account-&-security can't be
+  disabled). Operator/owner notifications in `App\Notifications\Operator\*` / `Owner\*`. 9 guest transactional
+  emails (`App\Mail\*` on a shared brand layout) via `App\Listeners\SendGuestTransactionalEmails` (booking/
+  cancellation/refund/review-request LIVE on their domain events; a mail failure never rolls back the domain txn).
+- **THE GUEST PORTAL (Phase 4b/4c) — complete** — on the guest guard, every screen guest-isolated + mutation-proven
+  (resolve through the guest's own relation, foreign → 404): **Trips · Reservation detail · Manage Booking**
+  (operator-confirmed `guest_change_requests` via `App\Services\GuestChangeRequestService` — #32) **· Online
+  Check-in · Arrival Info** (`App\Support\Guest\ArrivalPack`, door-code isolation + timing — #33) **· Payments +
+  Folio Receipt + 5 money PDFs** (`App\Support\Guest\GuestPayments` + `App\Support\Pdf\GuestInvoiceDocument`/
+  `GuestReversalDocument`; card charge account-gated) **· the Wallet/credits LEDGER** (`App\Services\GuestWalletService`
+  + `guest_credit_ledger`/`promo_codes`; append-only, derived balance, no overdraw — #34; `FolioService::applyWalletCredit`
+  is the folio-side seam) **· Guest Messages** (the Unified Inbox EXTENDED — `InboxService::postGuestMessage`/
+  `markReadByGuest`, `guest_last_read_at` — #35) **· Wishlist + Waitlist** (`App\Services\GuestWishlistService` +
+  `guest_wishlist_items`/`guest_waitlist_entries`). Controllers in `App\Http\Controllers\Guest\*`.
+- **THE REVIEWS MODULE (Phase 5) — complete across 5 surfaces** — `reviews` model + **`App\Services\ReviewService`**
+  (the single write path: submit tied to a real completed stay [#36] · publish/reject moderation · operator
+  respond). The ONE rating derivation **`App\Support\Reviews\ReviewRating`** (`publicScope()` = public AND
+  published; average DERIVED, never fabricated — #37) + `App\Support\Reviews\ReviewList` (the shared public list,
+  #28 byline). Surfaces: guest `App\Http\Controllers\Guest\GuestReviewController` · operator
+  `App\Http\Controllers\Operator\OperatorReviewsController` (`reviews.manage`) · owner `App\Livewire\Owner\OwnerReviews`
+  (owner-scoped read) · public storefront (`BookingEngineController` room/browse). `App\Notifications\Operator\NewReviewNotification`
+  on `review.submitted`; the Review-Request email on `reservation.checked_out`.
+- **THE SHARED-EXTRACTION ANTI-DRIFT FAMILY** (the "a document and the screen it mirrors must never disagree" rule —
+  one definition, so surfaces can't disagree; several mutation-proven-as-shared): `Support\Money\MoneyFormatter` ·
+  `Support\Folio\FolioTotals` · `Support\Owner\OwnerOccupancy` · `Support\Payouts\RailLabel` ·
+  `Support\Reservations\ReservationStage` · `Support\Guest\GuestSpend` · `Support\Guest\GuestHistory` ·
+  `Support\Money\MoneyInput` · `Services\UnitAvailabilityService` · `User`/`Guest::changePasswordTo` ·
+  `Support\Owner\OwnerLedgerAttribution` (the ONE "Net to you") · `Support\Guest\GuestTrip` ·
+  `Support\Guest\GuestReservationView` · `Support\Guest\GuestName` (incl. the #28 `reviewByline`) ·
+  `Support\Guest\ArrivalPack` · `Support\Reviews\ReviewRating` + `ReviewList` · `assertNoRawBlade()` (the Blade-safety
+  guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–31 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–37 (the full guarantee stack)
 
-> **All 31, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 37, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
 > #23–25 Unified Inbox (inbound exactly-once + grouping · deferred channels fail HONESTLY · inbox PII/GDPR) ·
 > **#26 the `/app` back-office authorization gate** · **#27 the cumulative refund bound** · **#28 the
 > guest-PII perimeter (+ the erasure trigger)** · **#29 the termination bound** · **#30 fine-grained
-> permission enforcement** · **#31 the 2FA-pending state grants no authenticated access**.
+> permission enforcement** · **#31 the 2FA-pending state grants no authenticated access** · **#32 guest-initiated
+> changes are operator-confirmed requests** · **#33 door-code/arrival isolation + timing** · **#34 the guest wallet
+> is an append-only ledger (derived balance, no overdraw)** · **#35 guest inbox isolation** · **#36 reviews tie to
+> real completed stays** · **#37 review moderation + rating are real (only published is public; rating derived)**.
 >
-> ⚠️ **The last five were all locked in the last three days, and FOUR of them closed a live hole that the
-> fully-green suite never noticed** (#26 an owner reading every other owner's financials · #27 a €369 payment
-> taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a completed stay · #30 any back-office role
-> minting itself an Accountant). Every one was found by **reading**, never by a test failing. That is the
-> single most important fact about this codebase's safety record — see META-LESSONS (b).
+> ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
+> owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
+> completed stay · #30 any back-office role minting itself an Accountant). Every one was found by **reading**,
+> never by a test failing. The guest-realm/reviews guards (#32–37) were all built mutation-proven from the start
+> (each proven to FAIL without the guard). See META-LESSONS (b), (e), (i).
 
 **Phase 1 core:**
 1. **Single inventory write path** — ONLY `AssignmentService` inserts/mutates `reservation_units` /
@@ -652,6 +697,43 @@ conflicts with the repo, **trust the repo** and fix this file.
     2026-07-18; enrollment `031716a`, challenge `aca017c`; proven by `TwoFactorEnrollmentTest` [12] +
     `TwoFactorChallengeTest` [8], the latter mutation-proving that a correct password alone reaches nothing.)
 
+**Guest Portal (Phase 4b/4c) — the guest realm + its guards:**
+32. **GUEST-INITIATED CHANGES ARE OPERATOR-CONFIRMED REQUESTS.** A guest changing dates / adding an extra /
+    cancelling touches inventory / the folio / money, so it is only ever a `pending` `guest_change_requests` row
+    the operator confirms. The guest NEVER performs the real inventory/folio/refund write and can't self-approve
+    (the confirm route is `/app`, refused to the guest realm). Same shape as the operator/owner boundary: the
+    guest may ask, the operator acts. (Phase 4b · SG3.)
+33. **DOOR-CODE / ARRIVAL-INFO ISOLATION + TIMING.** The arrival pack — ESPECIALLY the door code — shows ONLY for
+    the authed guest's OWN booking (resolved through their own relation, never a request id) AND only within the
+    arrival window (`ArrivalPack`, `LEAD_DAYS=2` before check-in through check-out; withheld before it, and for a
+    cancelled booking). `door_code`/`wifi_password` are encrypted at rest; an unset field is honest, a code is
+    never fabricated. Leaking a code to the wrong guest — or months early — is a physical-security issue, so both
+    guards apply. (Phase 4b · SG4.)
+34. **THE GUEST WALLET IS AN APPEND-ONLY LEDGER.** `guest_credit_ledger` mirrors `owner_ledger` — `direction`
+    credit/debit, positive `amount_minor`, `reverses_id` self-FK (correct-by-reversal), `expires_at`. There is
+    DELIBERATELY NO balance column: the spendable balance is DERIVED (Σ live credits − Σ debits) in
+    `GuestWalletService`. It can NEVER overdraw — a debit beyond the derived balance is refused BEFORE any write
+    (`WalletOverdrawException`), and expired credit doesn't count. Integer minor units (#8). Apply-to-booking is a
+    real debit + a folio credit via the additive `FolioService::applyWalletCredit()` (`posted_by` null — a guest
+    request's default guard is the guest, so it never reads `Auth::id()`). (Phase 4c · SG2.)
+35. **GUEST INBOX ISOLATION.** A guest sees ONLY their own thread(s) (resolved through `guest_id`, never RMB) —
+    never another guest's, never an owner↔operator thread. A guest-side read moves only `guest_last_read_at`,
+    never the operator's `unread_count` (the same trap the owner-inbox extension avoided). The guest side EXTENDS
+    the one Unified Inbox — `InboxService::postGuestMessage`/`markReadByGuest` mirror the owner methods; no
+    reimplementation. (Phase 4c · SG3.)
+
+**Reviews (Phase 5) — the module's two guarantees:**
+36. **REVIEWS TIE TO REAL COMPLETED STAYS.** A guest reviews only their OWN completed (checked-out/PAST) booking —
+    never a future/cancelled/foreign/not-their stay — and at most once per stay (`reviews.reservation_id` unique).
+    The review FREEZES the physical `unit_id`/`room_type_id` at review time (so the owner + storefront surfaces
+    don't drift on live re-resolution). Owner isolation: an owner sees reviews for THEIR OWN units only (resolved
+    through the owner-scoped `OwnerPortalService::units()`). (Phase 5.)
+37. **REVIEW MODERATION + RATING ARE REAL.** A submitted review is `pending` (never auto-public); only a
+    published+public review is publicly visible (a pending/rejected/private one never is; a **private** review can
+    NEVER be published — the guest's choice is binding). Every rating is DERIVED from published+public reviews via
+    the ONE shared `App\Support\Reviews\ReviewRating` (`publicScope()` = the single source of "publicly visible") —
+    never a stored/fabricated number; a subject with none shows "No reviews yet". (Phase 5.)
+
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
 ### ⚠️ SCHEMA-ONLY: ~8 models whose tables EXIST but which no code wires (read before building "a new module")
@@ -921,9 +1003,16 @@ amenities, same-day-turnover housekeeping dedupe).
 
 ## Regression net — `php artisan test` (MySQL `vyrobel_test`)
 
-**697 tests / 6468 assertions, all green. "Green here means the whole guarantee stack holds"** — Phase 1
+**819 tests / 6910 assertions, all green on MySQL 8. "Green here means the whole guarantee stack holds"** — Phase 1
 (double-booking/tenant/ledger/GDPR/event-discipline), Phase 2 (cross-system contention/sync-reliability/
 payments), Owner Accounting (attribution-to-the-cent/append-only-reversal/period-locking/owner-isolation),
+**the phased build** (Phases 0–5: operator + owner buildable sets · the notification subsystem · the whole
+Guest Portal [auth realm + Trips/Reservation/Manage/Check-in/Arrival + Payments/Wallet/Messages/Saved] · the
+Reviews module), and the **mutation-verified security/isolation suites** — authz (#26) · refund bound (#27) ·
+2FA (#31) · guest realm-separation + guest isolation (#32/#33/#35) · the wallet ledger no-overdraw (#34) ·
+owner isolation · reviews tie-to-real-stay + moderation + owner-review isolation (#36/#37) · permission
+enforcement (#30) — **each proven to FAIL without its guard** (the mutation is applied, the test goes red, the
+guard is restored). Also covered:
 **Auth Phase A + B** (`AuthLoginTest` · `OwnerInviteBackendTest` · `OwnerInviteAcceptTest` ·
 `OwnerInviteEmailTest` · `OperatorInviteOwnerTest` · **`StaffInviteTest`** — Hotel Manager / Accountant
 activation → `/app` + real spatie role, no owner artifacts, fail-safe on unprovisioned/unknown role · and
@@ -1174,16 +1263,74 @@ plain GET links (e.g. `?month=`).
   **`docs/AUTH-INVENTORY.md`** (every auth/onboarding design: BUILT vs quick-buildable vs blocked — carries the
   superseding 2026-07-18 note that change-password + 2FA are now built).
 - **Code style / testing patterns** → `docs/CODING-STANDARDS.md` · **Conventions + commands** → `CLAUDE.md`
-- **Code** → `app/Services/` (incl. `InboxService`, `GuestMatcher`, `MaintenanceService`, owner-accounting services) ·
-  `app/Payments/` · **`app/Payouts/`** · **`app/Messaging/`** (channel interface + ManualChannel + Deferred skeletons + resolver) ·
-  `app/Services/Channex/` · `app/Jobs/Sync/` · `app/Actions/Reservations/` · **`app/Mail/`** · `app/Http/Controllers/` (+ `Auth/`, `Operator/`, `Owner/`) ·
-  `app/Http/Middleware/` · `app/Livewire/` (+ `app/Livewire/Owner/`, `app/Livewire/Operator/`) ·
-  `app/Support/` (`Tenancy/`, `Owner/`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`) · `app/Models/` (+ `Scopes/`, `Concerns/`) ·
-  `database/migrations/` + `database/seeders/DemoSeeder.php` · `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
+- **Code** → `app/Services/` (incl. `InboxService`, `GuestMatcher`, `MaintenanceService`, owner-accounting services,
+  and the **guest-realm/reviews** services: `GuestAccountService`, `GuestWalletService`, `GuestWishlistService`,
+  `ReviewService`) · `app/Payments/` · **`app/Payouts/`** · **`app/Messaging/`** (channel interface + ManualChannel +
+  Deferred skeletons + resolver) · `app/Services/Channex/` · `app/Jobs/Sync/` · `app/Actions/Reservations/` ·
+  **`app/Mail/`** · `app/Notifications/` (+ `Operator/`) · `app/Listeners/` (domain-event → notifications/emails) ·
+  **`app/Auth/`** (`GuestUserProvider` — the custom `guest-eloquent` driver, registered in `AppServiceProvider`) ·
+  `app/Http/Controllers/` (+ `Auth/`, `Operator/`, `Owner/`, **`Guest/`** — whose `Concerns/ResolvesGuest` resolves the
+  guest FROM the guard, never a request id) · `app/Http/Middleware/` (incl. `EnsureBackOfficeAccess`,
+  `SetTenantForGuestRequest`, the guest-guard chain) · `app/Http/Requests/` (incl. `Auth/`, `Guest/GuestLoginRequest`) ·
+  `app/Providers/` (morph map in `AppServiceProvider`) ·
+  `app/Livewire/` (+ `app/Livewire/Owner/` incl. `OwnerReviews`, `app/Livewire/Operator/`) ·
+  `app/Support/` (`Tenancy/`, `Owner/`, **`Guest/`** incl. `GuestName`/`GuestTrip`/`GuestPayments`, **`Reviews/`** =
+  `ReviewRating`+`ReviewList`, `Money/`, `Events/`, `Media/`, `Pdf/`, `Folio/`, `Reservations/`, `Payouts/`) ·
+  `app/Models/` (+ `Scopes/` incl. `OwnerScope`, `Concerns/` incl. `BelongsToOrganization`/`BelongsToOwner`) ·
+  `resources/views/` (+ `operator/`, `owner/`, **`guest/`**, `booking/`, `pdfs/`, `emails/`) ·
+  **`config/auth.php`** (the `guest` guard + its `guests` provider on the custom `guest-eloquent` driver, alongside the
+  `web` guard/`users` provider — plus the separate `guests` password-reset broker) ·
+  **`config/authorization.php`** (THE permission catalog + role→permission map + `back_office_roles` allow-list — the
+  single source for #26/#30) · `database/migrations/` + `database/seeders/DemoSeeder.php` ·
+  `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — CUSTOMER SIGNAL ARRIVED (2026-07-20); Phases 0–3 + 4a DONE; NEXT = Phase 4b in `docs/GAP-ANALYSIS.md`
+## NEXT ACTION — Phases 0–5 DONE; NEXT = Phase 6a (multi-property) in `docs/GAP-ANALYSIS.md`
 
-> **THE SIGNAL CAME. The "don't build blind" framing below is SUPERSEDED.** A warm operator contact (Fatima)
+> **CURRENT (2026-07-23). Phases 0, 1, 2, 3, 4a, 4b, 4c AND 5 of the phased plan are COMPLETE** — three full
+> user-facing apps (operator · owner · guest) + a public storefront + hardened multi-realm auth (operator/owner
+> `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~50+ styled/browser-verified screens
+> on real scoped data under the honesty rule. Suite **819 / 6910** green on MySQL; PHPStan L5 + Pint clean;
+> `migrate:fresh --seed` clean. Invariants **#1–37**. **The Guest Portal is complete; the Reviews module is
+> complete.** (The dated per-phase detail is in `docs/DECISIONS.md`; the older "customer signal / don't build blind"
+> framing below is HISTORICAL — the signal came and every phase since was built to the prototype.)
+>
+> **⬅ NEXT = PHASE 6a — MULTI-PROPERTY.** The schema ALREADY holds N properties/org, so this is an **M, not an L**
+> (the audit re-scoped it). The work, in order: **(1) the `->first()` refactor — a COMPLETE grep-clean sweep of
+> every "the property" assumption** (`Property::first()`, `->property` singular reads, single-property helpers); a
+> missed call site is a wrong-property bug, so this is a total sweep, mutation-guarded. **(2) a property
+> selector/context** (which property am I acting on — operator-side; the owner side is already unit→property
+> scoped). **(3) property CRUD** (create/edit a property). **(4) the Portfolio screen** (all-properties overview).
+> Prove 6a before **Phase 6b (Analytics)** builds aggregates on top of it.
+>
+> **THE FULL REMAINING MAP (`docs/GAP-ANALYSIS.md` is authoritative):**
+> - **Phase 6a — multi-property (NEXT):** the `->first()` sweep + selector + CRUD + Portfolio.
+> - **Phase 6b — Analytics:** operator Insights/Reports (per-property + all-properties) + owner Reports, on REAL
+>   aggregates (never a fabricated chart) — builds on 6a.
+> - **Phase 7 — the SaaS layer:** tenant-provisioning / self-signup (the org-creation epic + the chicken-and-egg of
+>   the first admin — this is where the **two fail-closed RBAC self-provision defects** get fixed, because
+>   org-creation is finally built) · subscription billing (Paywall/Checkout) · Owner Team (owner sub-tenancy) ·
+>   Team Schedule / rostering.
+> - **Phase 8 — account-gated integrations** as accounts land (see the ACCOUNT-GATED tail below).
+>
+> **🔒 ACCOUNT-GATED TAIL (external accounts required — CANNOT be built until obtained; deferred HONESTLY throughout
+> — build the experience, NEVER fake a charge/send/verify):** the card charge / Apple Pay everywhere (Stripe live) ·
+> owner payout EXECUTION (Stripe Connect + KYC) · live OTA sync (Channex staging) · WhatsApp / OTA inbox channels ·
+> SMS (waitlist + notifications) · production email (Mailpit is dev) · guest ID verification / KYC.
+> **Subhan's parallel track — START Stripe Connect + an email provider FIRST** (they unblock the most: real
+> payments + the owner payout rail + production email + the review/pre-arrival/waitlist email triggers).
+>
+> **🪤 DEFERRED SUBSYSTEMS (real features, later — NOT account-gated, just not built yet; each stubbed honestly,
+> never faked):** response-automation + review-gating (Reviews — **deceptive review-gating deliberately NOT built**;
+> the honest equivalent is the guest's own "send privately to the manager") · loyalty tiers (Silver/Gold) · referral
+> auto-earn (a referral credit is real only when genuinely earned) · the waitlist notify-trigger + auto-hold ·
+> email-template editing · guest email-change (a re-verify flow).
+>
+> **⚠️ STILL-OPEN (non-blocking):** the **two fail-closed RBAC self-provision defects** — Super Admin unassignable +
+> no org-creation path provisions roles — deliberately deferred to **Phase 7**, where tenant-provisioning builds the
+> org-creation flow they belong to. (They fail CLOSED — they block nothing that ships today.)
+>
+> ---
+> **(HISTORICAL — the framing that led here; kept for the record.)** A warm operator contact (Fatima)
 > **liked the demo AND the prototype**, so the requirement is now concrete: **the real product must work the way
 > the prototype shows.** The prototype (124 designed screens) is the SPEC; the repo stays the truth for what backs
 > it; every gap gets BUILT, not faked. The full phased map — **audit-verified against real code** (5-agent pass,
