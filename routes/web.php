@@ -52,6 +52,7 @@ use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Http\Controllers\Operator\RoleAssignmentController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
+use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerBlockController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
@@ -99,6 +100,7 @@ use App\Livewire\Operator\OperatorPortfolio;
 use App\Livewire\Operator\OperatorProfile;
 use App\Livewire\Operator\OperatorReports;
 use App\Livewire\Operator\OperatorRoles;
+use App\Livewire\Operator\OperatorSchedule;
 use App\Livewire\Operator\OperatorSearch;
 use App\Livewire\Operator\OperatorSecurity;
 use App\Livewire\Operator\OperatorSettings;
@@ -609,6 +611,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // Design pass · Operator Screen 3 — REAL housekeeping status advance via POST → action → redirect
     // (PRG). {task} is a string param resolved tenant-scoped in the controller (never RMB) → cross-org 404.
     Route::post('/housekeeping/{task}/status', [HousekeepingActionController::class, 'updateStatus'])->name('housekeeping.status');
+    // Phase 7d — TEAM SCHEDULE. VIEW is broad (any staff sees the team roster, `schedule.view`); ASSIGN is a
+    // manager-level act (`schedule.manage`, NOT Front Desk). The write is a real POST (NOT a Livewire action)
+    // so the /app property middleware runs and the shift lands on the SELECTED property (PropertyContext).
+    Route::get('/schedule', OperatorSchedule::class)->middleware('can:schedule.view')->name('schedule');
+    Route::post('/schedule/shift', [ScheduleController::class, 'assign'])->middleware('can:schedule.manage')->name('schedule.assign');
     // Phase 2 Step 8 — front-desk staff surface (arrivals/departures/in-house + action contracts).
     Route::get('/front-desk', FrontDesk::class)->name('front-desk');
     // Design pass · Operator Screen 2 — REAL check-in/out via POST → action → redirect (PRG). The

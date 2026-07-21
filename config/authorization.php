@@ -132,6 +132,11 @@ return [
         'reviews.view',
         'reviews.manage',
 
+        // Team schedule / rostering (Phase 7d) — VIEW is broad (any staff can see the team roster); MANAGE
+        // (assign shifts, approve time-off) is a manager-level act, deliberately NOT a Front Desk one.
+        'schedule.view',
+        'schedule.manage',
+
         // Reporting & portals
         'reports.view',
         'owner_portal.view',
@@ -162,6 +167,7 @@ return [
             'housekeeping.view', 'housekeeping.manage', 'maintenance.manage',
             'reviews.view', 'reviews.manage',
             'reports.view',
+            'schedule.view', 'schedule.manage',
         ],
 
         'Hotel Manager' => [
@@ -176,6 +182,7 @@ return [
             'housekeeping.view', 'housekeeping.manage', 'maintenance.manage',
             'reviews.view', 'reviews.manage',
             'reports.view',
+            'schedule.view', 'schedule.manage',
         ],
 
         'Revenue Manager' => [
@@ -183,6 +190,7 @@ return [
             'rates.view', 'rates.manage', 'availability.view', 'availability.manage', 'restrictions.manage',
             'reservations.view',
             'reports.view',
+            'schedule.view',
         ],
 
         'Front Desk' => [
@@ -194,6 +202,7 @@ return [
             'folios.view', 'folios.manage', 'payments.view', 'payments.record',
             'invoices.view', 'invoices.issue',
             'housekeeping.view',
+            'schedule.view',
         ],
 
         'Reservation Agent' => [
@@ -201,17 +210,20 @@ return [
             'reservations.view', 'reservations.create', 'reservations.manage', 'reservations.cancel',
             'guests.view', 'guests.manage',
             'folios.view',
+            'schedule.view',
         ],
 
         'Housekeeping' => [
             'units.view',
             'housekeeping.view', 'housekeeping.manage',
+            'schedule.view',
         ],
 
         'Maintenance' => [
             'units.view',
             'housekeeping.view',
             'maintenance.manage',
+            'schedule.view',
         ],
 
         'Accountant' => [
@@ -236,6 +248,7 @@ return [
             'folios.view',
             'reviews.view', 'reviews.manage',
             'housekeeping.view',
+            'schedule.view',
         ],
 
         'External Owner' => [

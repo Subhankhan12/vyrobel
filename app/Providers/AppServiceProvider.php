@@ -49,6 +49,7 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Review;
 use App\Models\RoomType;
+use App\Models\Shift;
 use App\Models\Tag;
 use App\Models\Tax;
 use App\Models\Unit;
@@ -210,6 +211,8 @@ class AppServiceProvider extends ServiceProvider
             'promo_code' => PromoCode::class,
             // Phase 5 — reviews are a domain-event/audit subject (review.submitted), so the model needs an alias.
             'review' => Review::class,
+            // Phase 7d — roster shifts are an audit subject (schedule.shift.assigned).
+            'shift' => Shift::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a
