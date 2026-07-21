@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Models\Owner;
+use App\Models\OwnerUser;
 use App\Models\Scopes\OwnerScope;
 use App\Models\User;
 use App\Services\OwnerInviteService;
@@ -69,11 +70,13 @@ class EnsureBackOfficeAccess
             return $next($request);
         }
 
-        // A linked owner has a real home — send them there rather than to a dead end. Resolved
-        // super-admin because the tenant context may legitimately be unset (a user with no active
-        // membership never gets one), and this must not throw the tenant guard on the way to a 403.
+        // A linked owner — primary account holder OR an active owner-team sub-user (Phase 7c) — has a
+        // real home; send them there rather than to a dead end. Resolved super-admin because the tenant
+        // context may legitimately be unset (a user with no active membership never gets one), and this
+        // must not throw the tenant guard on the way to a 403.
         $isOwner = app(TenantContext::class)->runAsSuperAdmin(
-            fn (): bool => Owner::query()->where('user_id', $user->getKey())->exists(),
+            fn (): bool => Owner::query()->where('user_id', $user->getKey())->exists()
+                || OwnerUser::query()->where('user_id', $user->getKey())->where('status', 'active')->exists(),
         );
 
         if ($isOwner) {

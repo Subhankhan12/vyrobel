@@ -32,20 +32,34 @@ class OwnerContext
     private array $ownerIds = [];
 
     /**
-     * Activate portal scope for the given owner ids (may be empty → fail-closed).
+     * The acting user's OWNER-TEAM role on the scoped owner (Phase 7c): 'co_owner' (incl. the primary owner),
+     * 'accountant', 'view_only', or null when the user is not an owner/sub-user. Drives capability gating.
+     */
+    private ?string $role = null;
+
+    /**
+     * Activate portal scope for the given owner ids (may be empty → fail-closed) + the acting user's role.
      *
      * @param  list<string>  $ownerIds
      */
-    public function activate(array $ownerIds): void
+    public function activate(array $ownerIds, ?string $role = null): void
     {
         $this->active = true;
         $this->ownerIds = array_values(array_unique($ownerIds));
+        $this->role = $role;
     }
 
     public function deactivate(): void
     {
         $this->active = false;
         $this->ownerIds = [];
+        $this->role = null;
+    }
+
+    /** The acting user's owner-team role on the scoped owner (co_owner/accountant/view_only), or null. */
+    public function role(): ?string
+    {
+        return $this->role;
     }
 
     public function active(): bool
@@ -75,14 +89,16 @@ class OwnerContext
     {
         $previousActive = $this->active;
         $previousIds = $this->ownerIds;
+        $previousRole = $this->role;
 
-        $this->activate($ownerIds);
+        $this->activate($ownerIds, OwnerTeamRole::CO_OWNER);   // a programmatic owner read acts as the owner (full)
 
         try {
             return $callback();
         } finally {
             $this->active = $previousActive;
             $this->ownerIds = $previousIds;
+            $this->role = $previousRole;
         }
     }
 }

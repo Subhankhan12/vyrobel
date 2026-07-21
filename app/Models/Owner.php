@@ -79,6 +79,17 @@ class Owner extends Model
     }
 
     /**
+     * The owner's team — delegate sub-users with an owner-team role (Phase 7c). The primary owner
+     * (`user_id`) is the implicit Co-owner and is NOT in this list.
+     *
+     * @return HasMany<OwnerUser, $this>
+     */
+    public function teamMembers(): HasMany
+    {
+        return $this->hasMany(OwnerUser::class);
+    }
+
+    /**
      * @return HasMany<ManagementAgreement, $this>
      */
     public function agreements(): HasMany
