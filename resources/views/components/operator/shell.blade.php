@@ -21,6 +21,7 @@
     // [key, label, icon-path, route|null]. A null route renders a disabled "Soon" placeholder.
     $navGroups = [
         ['OPERATIONS', [
+            ['portfolio', 'Portfolio', 'M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01', auth()->user()?->can('properties.view') ? route('app.portfolio') : null],
             ['dashboard', 'Dashboard', 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z', route('app.dashboard')],
             ['search', 'Search', 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35', auth()->user()?->can('reservations.view') ? route('app.search') : null],
             ['inbox', 'Inbox', 'M4 13h5l2 3h2l2-3h5M4 13V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M4 13v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5', route('app.inbox')],

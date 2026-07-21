@@ -6,13 +6,12 @@ namespace App\Livewire\Operator;
 
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
-use App\Models\Availability;
 use App\Models\HousekeepingTask;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\Reservation;
-use App\Models\RoomType;
 use App\Services\FrontDeskService;
+use App\Support\Property\PropertyOccupancy;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -69,7 +68,7 @@ class OperatorDashboard extends Component
         $propertyIds = $properties->pluck('id')->map(fn ($id): string => (string) $id)->all();
         $primary = $properties->first();
 
-        $occupancy = $this->occupancy($propertyIds, $date);
+        $occupancy = PropertyOccupancy::forProperties($propertyIds, $date);
         $arrivals = $this->deskAcross($desk, 'arrivals', $propertyIds, $date);
         $departures = $this->deskAcross($desk, 'departures', $propertyIds, $date);
         $inHouse = $this->deskAcross($desk, 'inHouse', $propertyIds, $date);
@@ -135,42 +134,6 @@ class OperatorDashboard extends Component
         }
 
         return $merged;
-    }
-
-    /**
-     * TRUE occupancy for the night: sum the real Availability spine (total/sold/available) across the
-     * room types of EVERY property in the read set. Scoped by tenant-scoped room types, so another
-     * org's rows can never enter the sum. This is the fix for the room-type-wide mislabel trap, now
-     * multi-property aware.
-     *
-     * @param  list<string>  $propertyIds
-     * @return array{total: int, sold: int, available: int, pct: int}
-     */
-    private function occupancy(array $propertyIds, string $date): array
-    {
-        $roomTypeIds = $propertyIds === []
-            ? []
-            : RoomType::query()->whereIn('property_id', $propertyIds)->pluck('id')->all();
-        if ($roomTypeIds === []) {
-            return ['total' => 0, 'sold' => 0, 'available' => 0, 'pct' => 0];
-        }
-
-        /** @var Collection<int, Availability> $rows */
-        $rows = Availability::query()
-            ->whereIn('room_type_id', $roomTypeIds)
-            ->whereDate('date', $date)
-            ->get();
-
-        $total = (int) $rows->sum('total');
-        $sold = (int) $rows->sum('sold');
-        $available = $rows->reduce(fn (int $carry, Availability $a): int => $carry + $a->available(), 0);
-
-        return [
-            'total' => $total,
-            'sold' => $sold,
-            'available' => $available,
-            'pct' => $total > 0 ? (int) round($sold / $total * 100) : 0,
-        ];
     }
 
     /**

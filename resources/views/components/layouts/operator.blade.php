@@ -154,6 +154,30 @@
         .vy-propsw-select:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; border-radius: 4px; }
         .vy-propsw-static { font-size: 13px; font-weight: 500; color: var(--vy-ink); }
 
+        /* Portfolio (Phase 6a · Step 2) — per-property cards over the accessible set. */
+        .vy-portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-top: 14px; }
+        .vy-prop-card { background: var(--vy-surface, rgba(255,255,255,.7)); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md, 16px); padding: 16px 17px; box-shadow: var(--vy-shadow-sm); display: flex; flex-direction: column; gap: 13px; }
+        .vy-prop-card.is-current { border-color: var(--vy-accent-border); box-shadow: 0 0 0 1px var(--vy-accent-border), var(--vy-shadow-sm); }
+        .vy-prop-head { display: flex; align-items: center; gap: 12px; }
+        .vy-prop-mark { width: 38px; height: 38px; border-radius: 11px; background: var(--vy-grad); color: #fff; font-size: 15px; font-weight: 600; display: grid; place-items: center; flex: none; }
+        .vy-prop-id { min-width: 0; }
+        .vy-prop-name { display: block; font-family: var(--vy-display, inherit); font-size: 15px; font-weight: 600; color: var(--vy-ink); }
+        .vy-prop-current { margin-left: 7px; font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-accent); background: rgba(232,112,58,.12); border-radius: 5px; padding: 1px 6px; vertical-align: middle; }
+        .vy-prop-loc { display: block; font-size: 12px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-prop-stats { display: flex; gap: 8px; }
+        .vy-prop-stats > div { flex: 1; background: rgba(255,255,255,.5); border: 1px solid var(--vy-glass-border); border-radius: 10px; padding: 8px 6px; text-align: center; }
+        .vy-ps-val { display: block; font-size: 16px; font-weight: 600; color: var(--vy-ink); }
+        .vy-ps-lab { display: block; font-size: 10px; color: var(--vy-faint); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+        .vy-prop-status { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--vy-muted); }
+        .vy-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--vy-muted); flex: none; }
+        .vy-prop-status.vy-status-ok { color: #3d6b3d; } .vy-status-ok .vy-status-dot { background: var(--vy-accent-3, #E8703A); }
+        .vy-prop-status.vy-status-warn { color: #8f6414; } .vy-status-warn .vy-status-dot { background: #d99a3d; }
+        .vy-prop-status.vy-status-muted { color: var(--vy-faint); } .vy-status-muted .vy-status-dot { background: var(--vy-faint); }
+        .vy-prop-actions { display: flex; gap: 8px; margin-top: auto; }
+        .vy-prop-actions .vy-btn { flex: 1; justify-content: center; }
+        .vy-prop-actions form { flex: 1; display: flex; }
+        .vy-prop-actions form .vy-btn { width: 100%; }
+
         /* ---- Reusable surfaces ----------------------------------------------------------------- */
         .vy-card {
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);

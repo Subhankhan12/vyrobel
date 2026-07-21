@@ -42,6 +42,7 @@ use App\Http\Controllers\Operator\MaintenanceSettingsController;
 use App\Http\Controllers\Operator\OperatorProfileController;
 use App\Http\Controllers\Operator\OperatorReviewsController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
+use App\Http\Controllers\Operator\PropertyController;
 use App\Http\Controllers\Operator\PropertySwitchController;
 use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationCreateController;
@@ -84,6 +85,7 @@ use App\Livewire\Operator\OperatorNotificationPreferences;
 use App\Livewire\Operator\OperatorNotifications;
 use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
+use App\Livewire\Operator\OperatorPortfolio;
 use App\Livewire\Operator\OperatorProfile;
 use App\Livewire\Operator\OperatorRoles;
 use App\Livewire\Operator\OperatorSearch;
@@ -325,6 +327,14 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // they can access; the controller re-validates the id against that set (defence in depth — the
     // middleware validates again on the next request), so a foreign/stale id can never take effect.
     Route::post('/property/switch', [PropertySwitchController::class, 'update'])->name('property.switch');
+
+    // Phase 6a · Step 2 — the PORTFOLIO overview + property CRUD. The overview is gated `properties.view`
+    // (every back-office role sees it); creating/editing a property is gated `properties.manage` (Property
+    // Owner / Group Admin — NOT Front Desk / Hotel Manager, #30). A created property is org-scoped by
+    // BelongsToOrganization; an edit resolves its target by a tenant-scoped id (cross-org 404s).
+    Route::get('/portfolio', OperatorPortfolio::class)->middleware('can:properties.view')->name('portfolio');
+    Route::post('/portfolio', [PropertyController::class, 'store'])->middleware('can:properties.manage')->name('portfolio.store');
+    Route::post('/portfolio/update', [PropertyController::class, 'update'])->middleware('can:properties.manage')->name('portfolio.update');
 
     // GLOBAL SEARCH (Phase 1 · Sub-gate 2) — cross-entity search (reservations/guests/units/owners), the query
     // on a GET (scope-safe reads). Gated on `reservations.view` (the operations read baseline); per-entity

@@ -2694,3 +2694,77 @@ here so the snapshot is genuinely clean; formatting only, no logic.)
 holds N properties/org, so a missed call site is a wrong-property bug), then a property selector, property CRUD, and
 the Portfolio screen — proven before Phase 6b (Analytics) builds on it. See `docs/PROJECT-STATE.md` for the full
 resume snapshot (invariants #1–37, the tagged register, the account-gated tail, the meta-lessons).
+
+### 2026-07-21 — Phase 6a COMPLETE: MULTI-PROPERTY (property context/selector + the complete `->first()` refactor + property CRUD + Portfolio; 2 gated steps)
+
+**The gap Phase 6a closed (the audit's most consequential correction).** Multi-property was NOT a schema epic — the
+schema already held N properties per org (`properties.organization_id` a plain FK; the `property_user` staff pivot
+with live `User::properties()`/`Property::staff()`; `property_id` on `channels`/`groups`/`rate_plans`). The real
+limitation was a UI/QUERY convention: ~10 call sites resolved "the property" as
+`Property::query()->orderBy('name')->first()`, which **silently returns an ARBITRARY property once an org runs more
+than one** — a wrong-property read, or worse a wrong-property WRITE (a booking landing in the wrong property). So this
+was re-scoped **L → M** and built as a CORRECTNESS refactor + a selector + CRUD + Portfolio. The two steps:
+
+**⛔ STEP 0 — the audit (read-only).** Enumerated every property-resolution site, tiered by risk: **Tier A** (10
+explicit `->first()` sites across 8 files — reads vs writes distinguished) + **Tier B** (5 org-wide list screens that
+BLEND properties with no `->first()` to flag them — the subtle ones a naive grep misses: RatesGrid, ReservationsList,
+HousekeepingBoard, MaintenanceList, UnitsList). Public/slug resolution (`ResolvePublicProperty`, `BookingEngineController`)
++ non-property `->first()`s correctly left alone. Confirmed the **property-access model** and the **selector design**.
+
+**⛔ STEP 1 — the property context/selector + the COMPLETE refactor (`5589ac0`).**
+- **`App\Support\Property\PropertyContext`** (singleton, mirrors `TenantContext`/`OwnerContext`) — the current working
+  property + the `property_user` allow-list (`accessibleIds`) + an explicit "all properties" roll-up (`readIds`,
+  honoured by aggregate reads only). **`id()` ALWAYS returns a concrete property** (the default when "all" is active),
+  so a property-scoped WRITE can never target "all". A foreign/stale selection is normalised away — never leaks.
+- **PROPERTY-ACCESS MODEL (decision):** the `property_user` pivot is an **OPTIONAL allow-list** — a user with pivot
+  rows is restricted to those properties; **a user with NO pivot rows gets the whole org** (empty ⇒ full org). This
+  safely activates the dormant forward-hook: no existing user is locked out, single-property behaviour is unregressed,
+  and no data migration is needed. `User::accessiblePropertyIds()` is the one rule.
+- **`SetCurrentPropertyForWebRequest`** middleware on the `/app` group (after tenant is set) — resolves the per-user
+  session selection (`current_property_id`), VALIDATED against the accessible set (a foreign/stale id falls back to the
+  default; never 500s). The **topbar switcher** (`x-operator.property-switcher` → `PropertySwitchController`,
+  POST→session→PRG, re-validates server-side); a single-property org shows a static label, not a dropdown.
+- **`App\Livewire\Concerns\ResolvesCurrentProperty`** — captures the resolved values in `mount()` and holds them as
+  **`#[Locked]`** props. **WHY (a real Livewire isolation fix):** a wire-action re-render hits `/livewire/update`,
+  which is OUTSIDE the `/app` group, so the context is INACTIVE there; capturing at mount keeps render() correct across
+  wire updates, and `#[Locked]` stops a client smuggling a non-assigned property id onto a wire update (cross-property
+  access WITHIN an org is not caught by tenant scope). Same family as the invariant-#20 scoped-model-prop trap.
+- **THE COMPLETE REFACTOR (grep-clean):** all 10 Tier-A sites resolve through the context (reads show the selected
+  property; the writes — GroupBooking, NewReservation, Settings ×3, GroupBookingController — LAND in it);
+  ReservationCreateController derives `property_id` from the chosen room type (correct by construction) and now honours
+  the allow-list on the write path. The 5 Tier-B screens scope to the read set (selected, or all). `OperatorDashboard`
+  aggregates over the read set. **Proven grep-clean** — no property-resolution `->first()` remains (only the
+  slug/public sites + docblock references to the old pattern).
+- **Mutation-proven** (`tests/Feature/MultiPropertyContextTest.php`, 8 tests): selecting B makes a read/write act on B
+  not the alphabetically-first A (and `->first()` is gone); the pivot allow-list refuses a switch to / booking in an
+  unassigned property; "all" rolls up both; single-property unregressed.
+
+**⛔ STEP 2 — property CRUD + Portfolio + consolidate (this gate).**
+- **`App\Http\Controllers\Operator\PropertyController`** (store + edit) gated **`can:properties.manage`** (Property
+  Owner / Group Admin — NOT Front Desk / Hotel Manager, #30, mutation-proven). A created property is **org-scoped** by
+  `BelongsToOrganization` (never cross-org), gets a unique storefront slug, and **enters the selector** (and the
+  creator's pivot if they are pivoted). An edit resolves its target by a tenant-scoped id (cross-org 404s).
+- **`App\Livewire\Operator\OperatorPortfolio`** (`/app/portfolio`, `can:properties.view`) — the multi-property
+  overview: an all-properties KPI strip + a card per property with **REAL/DERIVED** data only (unit counts, occupancy
+  from the Availability spine via the shared `App\Support\Property\PropertyOccupancy`, arrivals from the front-desk
+  read), and a status **DERIVED** from real inventory: **"Finish setup to go live"** when a property has no units yet
+  (its genuine pre-operational state, not a faked status). Add/Edit affordances render only for `properties.manage`.
+- **HONESTY — deferred, not faked:** the prototype's side-by-side **ADR / RevPAR / revenue comparison table is
+  ANALYTICS → deferred to Phase 6b** (never fabricated). "Billed per unit" is a Phase-7 subscription concept (no
+  billing subsystem exists yet) — no charge is shown or taken.
+- **Anti-drift extraction:** `PropertyOccupancy` is the ONE occupancy-for-a-property derivation, shared by the
+  Dashboard and the Portfolio so the two surfaces can't disagree.
+- **DEMO:** a 2nd real property (**Demo Vista Apartments** — bookable, honest empty, no stays), sorted after Seaside so
+  the demo default is unchanged. **Demo caveat handled, not faked:** `demo-staff` is a Hotel Manager (`properties.view`
+  only) → can SEE Portfolio but not create; CRUD browser-verified as **`demo-admin` (Property Owner)** instead.
+- **Tests** (`tests/Feature/OperatorPortfolioTest.php`, 6): CRUD org-scope + permission gate (Group Admin creates;
+  Hotel Manager + Front Desk 403); Portfolio real data + the honest finish-setup state; tenant isolation (no cross-org
+  view/edit); the full add → select → book flow isolated to the new property.
+
+**INVARIANT #38 (multi-property) added** — see PROJECT-STATE. **Verification:** suite **833 tests / 6976 assertions**
+green · PHPStan L5 + Pint clean · `migrate:fresh --seed` clean (2 demo properties) · browser-verified (switch →
+Rack/Units/New-Reservation/Dashboard all follow, bidirectional, session-persistent; add a property as Property Owner →
+"Finish setup to go live" → it enters the switcher). Phase 6a commits: `5589ac0` (Step 1) → this gate (Step 2).
+
+**NEXT = Phase 6b — Analytics** (Insights + Reports, operator per-property + all-properties; owner-scoped views) — the
+deferred ADR/RevPAR/revenue comparison lands here. Then Phase 7 (the SaaS layer).

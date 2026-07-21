@@ -24,9 +24,15 @@ conflicts with the repo, **trust the repo** and fix this file.
 > last such subsystem.** ⚠️ **UPDATE (2026-07-20): the customer signal ARRIVED** — a warm operator contact
 > (Fatima) liked the demo AND the prototype, so the requirement is now **"make the real product work like the
 > prototype"** (the "no customer has reacted / don't build blind" framing that once sat here is SUPERSEDED — see
-> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b, 4c AND 5 of `docs/GAP-ANALYSIS.md`
-> are DONE — the Guest Portal is complete AND the Reviews module is complete; Phase 6 (multi-property + Analytics)
-> is next.** Phase 5 = the REVIEWS module across five surfaces: Guest Review (tied to a real completed stay,
+> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b, 4c, 5 AND 6a of `docs/GAP-ANALYSIS.md`
+> are DONE — the Guest Portal is complete, the Reviews module is complete, AND the product is now MULTI-PROPERTY;
+> Phase 6b (Analytics) is next.** Phase 6a = MULTI-PROPERTY: a per-user session-backed `PropertyContext` + a topbar
+> switcher + the COMPLETE `Property::…->first()` refactor (Tier A 10 sites/8 files + Tier B 5 blend-risk list screens,
+> grep-clean — a `->first()` silently returns an ARBITRARY property once an org runs several, so this was a genuine
+> wrong-property bug) + property CRUD (`properties.manage`, org-scoped) + the Portfolio overview (real per-property
+> data; ADR/RevPAR deferred to 6b). Property access = the `property_user` **pivot-or-all** allow-list (empty ⇒ full
+> org — invariant **#38**); `#[Locked]`+mount-capture (`ResolvesCurrentProperty`) fixes the Livewire `/livewire/update`
+> boundary. Mutation-proven the selected context governs (2 gated steps). Phase 5 = the REVIEWS module across five surfaces: Guest Review (tied to a real completed stay,
 > one per stay — **#36**), moderation (only published+public is public; rating DERIVED, never fabricated — **#37**),
 > Operator Reviews (respond + moderate, `reviews.manage`, new-review notification wired), Owner Reviews
 > (owner-scoped read), and the public storefront (derived rating + published reviews, #28 byline) — 4 gated
@@ -51,7 +57,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **On `main`, working tree clean, local == origin** (HEAD advances by one with the doc commit that carries these
   words; check `git log` for the true HEAD — see the HEAD convention below). Only the
   untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
-  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 819 tests / 6910 assertions, all green** on
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 833 tests / 6976 assertions, all green** on
   genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
   (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
   product bug. See the register). The suite is a trustworthy gate.
@@ -360,12 +366,14 @@ conflicts with the repo, **trust the repo** and fix this file.
   `Support\Money\MoneyInput` · `Services\UnitAvailabilityService` · `User`/`Guest::changePasswordTo` ·
   `Support\Owner\OwnerLedgerAttribution` (the ONE "Net to you") · `Support\Guest\GuestTrip` ·
   `Support\Guest\GuestReservationView` · `Support\Guest\GuestName` (incl. the #28 `reviewByline`) ·
-  `Support\Guest\ArrivalPack` · `Support\Reviews\ReviewRating` + `ReviewList` · `assertNoRawBlade()` (the Blade-safety
+  `Support\Guest\ArrivalPack` · `Support\Reviews\ReviewRating` + `ReviewList` · `Support\Property\PropertyContext`
+  (the ONE current-property resolution) + `Support\Property\PropertyOccupancy` (the ONE occupancy-for-a-property, shared
+  by the Dashboard + Portfolio) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–37 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–38 (the full guarantee stack)
 
-> **All 37, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 38, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
@@ -375,7 +383,10 @@ conflicts with the repo, **trust the repo** and fix this file.
 > permission enforcement** · **#31 the 2FA-pending state grants no authenticated access** · **#32 guest-initiated
 > changes are operator-confirmed requests** · **#33 door-code/arrival isolation + timing** · **#34 the guest wallet
 > is an append-only ledger (derived balance, no overdraw)** · **#35 guest inbox isolation** · **#36 reviews tie to
-> real completed stays** · **#37 review moderation + rating are real (only published is public; rating derived)**.
+> real completed stays** · **#37 review moderation + rating are real (only published is public; rating derived)** ·
+> **#38 multi-property: every property-scoped operation resolves through the selected `PropertyContext`, never an
+> arbitrary `->first()`; a WRITE targets a concrete property, never "all"; property access is the `property_user`
+> pivot-or-all allow-list; a created property is org-scoped**.
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -733,6 +744,28 @@ conflicts with the repo, **trust the repo** and fix this file.
     NEVER be published — the guest's choice is binding). Every rating is DERIVED from published+public reviews via
     the ONE shared `App\Support\Reviews\ReviewRating` (`publicScope()` = the single source of "publicly visible") —
     never a stored/fabricated number; a subject with none shows "No reviews yet". (Phase 5.)
+
+38. **MULTI-PROPERTY: OPERATIONS ACT ON THE SELECTED PROPERTY, NEVER AN ARBITRARY `->first()`.** An org runs N
+    properties; before Phase 6a ~10 sites resolved "the property" as `Property::query()->orderBy('name')->first()`,
+    which silently returns an ARBITRARY property once there is more than one (a wrong-property read, or a wrong-property
+    WRITE — a booking in the wrong property). Every property-scoped read/write now resolves through
+    `App\Support\Property\PropertyContext` (the per-user session-backed current property), set by
+    `SetCurrentPropertyForWebRequest` on the `/app` group and chosen with the topbar switcher.
+    - **A WRITE targets a CONCRETE property, never "all"** — `PropertyContext::id()` always yields a single property
+      (the default when "all" is selected); "all properties" (`readIds()`) is an explicit ROLL-UP honoured by aggregate
+      READ surfaces only (Dashboard/Portfolio/the Tier-B list screens).
+    - **PROPERTY ACCESS = the `property_user` pivot-or-all allow-list.** A user with pivot rows is restricted to those
+      properties; a user with NO rows gets the whole org (`User::accessiblePropertyIds()`; empty ⇒ full org, so no
+      existing user is locked out and single-property is unregressed). Honoured on BOTH the switcher and the write path
+      (a pivoted user can't switch to, or book/create into, an unassigned property).
+    - **Livewire boundary:** a wire-action re-render hits `/livewire/update`, OUTSIDE the `/app` group, so the context
+      is INACTIVE there — operator screens capture the resolved ids at `mount()` and hold them as **`#[Locked]`** props
+      (`App\Livewire\Concerns\ResolvesCurrentProperty`); Locked stops a client smuggling a non-assigned property id
+      (cross-property access WITHIN an org is not caught by tenant scope). Same family as invariant #20.
+    - **A CREATED property is ORG-SCOPED** — `PropertyController` (gated `properties.manage`, #30) creates through
+      `BelongsToOrganization` (organization_id auto-filled, never cross-org) and it enters the selector. The
+      **grep-clean** proof (no property-resolution `->first()` remains) is the sweep's completeness guarantee — a missed
+      site is a wrong-property bug. Mutation-proven both ways. (Phase 6a.)
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
@@ -1284,27 +1317,31 @@ plain GET links (e.g. `?month=`).
   single source for #26/#30) · `database/migrations/` + `database/seeders/DemoSeeder.php` ·
   `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — Phases 0–5 DONE; NEXT = Phase 6a (multi-property) in `docs/GAP-ANALYSIS.md`
+## NEXT ACTION — Phases 0–5 AND 6a DONE; NEXT = Phase 6b (Analytics) in `docs/GAP-ANALYSIS.md`
 
-> **CURRENT (2026-07-23). Phases 0, 1, 2, 3, 4a, 4b, 4c AND 5 of the phased plan are COMPLETE** — three full
+> **CURRENT (2026-07-21). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5 AND 6a of the phased plan are COMPLETE** — three full
 > user-facing apps (operator · owner · guest) + a public storefront + hardened multi-realm auth (operator/owner
-> `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~50+ styled/browser-verified screens
-> on real scoped data under the honesty rule. Suite **819 / 6910** green on MySQL; PHPStan L5 + Pint clean;
-> `migrate:fresh --seed` clean. Invariants **#1–37**. **The Guest Portal is complete; the Reviews module is
-> complete.** (The dated per-phase detail is in `docs/DECISIONS.md`; the older "customer signal / don't build blind"
-> framing below is HISTORICAL — the signal came and every phase since was built to the prototype.)
+> `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~80 styled/browser-verified screens
+> on real scoped data under the honesty rule, now **MULTI-PROPERTY**. Suite **833 / 6976** green on MySQL; PHPStan L5
+> + Pint clean; `migrate:fresh --seed` clean (2 demo properties). Invariants **#1–38**. **The Guest Portal is
+> complete; the Reviews module is complete; the product is multi-property.** (The dated per-phase detail is in
+> `docs/DECISIONS.md`; the older "customer signal / don't build blind" framing below is HISTORICAL — the signal came
+> and every phase since was built to the prototype.)
 >
-> **⬅ NEXT = PHASE 6a — MULTI-PROPERTY.** The schema ALREADY holds N properties/org, so this is an **M, not an L**
-> (the audit re-scoped it). The work, in order: **(1) the `->first()` refactor — a COMPLETE grep-clean sweep of
-> every "the property" assumption** (`Property::first()`, `->property` singular reads, single-property helpers); a
-> missed call site is a wrong-property bug, so this is a total sweep, mutation-guarded. **(2) a property
-> selector/context** (which property am I acting on — operator-side; the owner side is already unit→property
-> scoped). **(3) property CRUD** (create/edit a property). **(4) the Portfolio screen** (all-properties overview).
-> Prove 6a before **Phase 6b (Analytics)** builds aggregates on top of it.
+> **✅ PHASE 6a — MULTI-PROPERTY (DONE, 2026-07-21, 2 gated steps `5589ac0` → this gate).** `PropertyContext` +
+> `SetCurrentPropertyForWebRequest` + the topbar switcher (the `property_user` **pivot-or-all** allow-list) + the
+> COMPLETE `->first()` refactor (Tier A 10 sites/8 files + Tier B 5 blend-risk list screens, **grep-clean**,
+> mutation-proven the selected context governs) + property CRUD (`properties.manage`, org-scoped) + the Portfolio
+> overview (real per-property data; honest "finish setup to go live"; ADR/RevPAR/revenue comparison deferred to 6b).
+> `#[Locked]`+mount-capture (`ResolvesCurrentProperty`) fixes the Livewire `/livewire/update` boundary — invariant
+> **#38**.
+>
+> **⬅ NEXT = PHASE 6b — ANALYTICS.** Operator Insights/Reports (per-property + all-properties: ADR/RevPAR/RevPAR + the
+> revenue comparison deferred from the Portfolio) + owner Reports/Insights (owner-scoped), on REAL aggregates (never a
+> fabricated chart) — builds on the Phase-6a property context.
 >
 > **THE FULL REMAINING MAP (`docs/GAP-ANALYSIS.md` is authoritative):**
-> - **Phase 6a — multi-property (NEXT):** the `->first()` sweep + selector + CRUD + Portfolio.
-> - **Phase 6b — Analytics:** operator Insights/Reports (per-property + all-properties) + owner Reports, on REAL
+> - **Phase 6b — Analytics (NEXT):** operator Insights/Reports (per-property + all-properties) + owner Reports, on REAL
 >   aggregates (never a fabricated chart) — builds on 6a.
 > - **Phase 7 — the SaaS layer:** tenant-provisioning / self-signup (the org-creation epic + the chicken-and-egg of
 >   the first admin — this is where the **two fail-closed RBAC self-provision defects** get fixed, because

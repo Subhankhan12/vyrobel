@@ -88,7 +88,7 @@ Maintenance Costs · Maintenance Settings · Roles · Profile** (the six ✅ Pha
 | Operator Team Schedule + Schedule PDF | Staff rostering — a new module (shifts, assignments, PDF) | M |
 | Operator Insights + Reports | The ANALYTICS module (ADR/RevPAR/occupancy/revenue). Multi-property in its full form; a single-property v1 is possible now | L |
 | Operator Reviews | The REVIEWS module (guest reviews + operator responses) — shared with Owner + Guest surfaces | M–L |
-| Operator Portfolio | The multi-property UI (property switcher + all-properties roll-up). ⚠️ **NOT a schema epic** — see §6; re-scoped **M** | M |
+| ✅ Operator Portfolio | **BUILT (Phase 6a)** — the property switcher (topbar, session-backed, pivot-aware) + the Portfolio overview (real per-property unit counts/occupancy/status; ADR/RevPAR deferred to 6b) + property CRUD (`properties.manage`). The complete `->first()` refactor landed with it (grep-clean). | — |
 | Operator Billing | Vyrobel-the-SaaS billing the operator (subscription) — pairs with Paywall/Checkout | L |
 
 ---
@@ -216,7 +216,10 @@ staff pivot exists with live `User::properties()` / `Property::staff()` relation
 call sites resolve "the property" as `Property::query()->orderBy('name')->first()` (`FrontDesk`, `ReservationRack`,
 `OperatorDashboard`, `NewReservation`, `OperatorSettings`, …), and 2 org-wide list screens would blend properties.
 **Portfolio therefore needs a property-context/selector + a property-CRUD path (none exists) + refactoring those
-~8–10 call sites — re-scoped from L-subsystem to M.** (This is Phase 6.)
+~8–10 call sites — re-scoped from L-subsystem to M.** (This is Phase 6.) **✅ DONE (Phase 6a, 2026-07-21):** the
+`PropertyContext`/selector, the COMPLETE `->first()` refactor (Tier A 10 sites + Tier B 5 blend-risk screens,
+grep-clean), property CRUD, and the Portfolio all shipped — mutation-proven the selected context governs, the pivot is
+an optional allow-list (empty ⇒ full org). Analytics (ADR/RevPAR/reports) is Phase 6b.
 
 **Two nuances to carry:**
 - **Settings pattern:** a generic `settings` KV table + `Setting` model EXIST but are 100% dormant (zero
@@ -335,10 +338,16 @@ rating DERIVED via the shared `ReviewRating`, never fabricated — **#37**) → 
 Phase-3 Review-Request email + new-review notification, and the 4b Trips review link. Deferred honestly:
 response-automation + review-gating (a subsystem). Detail: `docs/DECISIONS.md` 2026-07-23.
 
-**PHASE 6 — MULTI-PROPERTY (re-scoped M) + Analytics (~3–4 weeks)** *(⬅ NEXT)*
-Property context/selector + a property-CRUD path + refactor the ~8–10 `->first()` call sites (the schema already
-holds N) → Portfolio → Insights + Reports (operator, per-property + all-properties) → Owner Reports/Insights
-(owner-scoped).
+**PHASE 6a — MULTI-PROPERTY (re-scoped M)** *(✅ DONE — 2026-07-21, 2 gated steps `5589ac0` → this gate)*
+Property context/selector (`PropertyContext` + `SetCurrentPropertyForWebRequest` + the topbar switcher; the
+`property_user` allow-list = pivot-or-all) + the COMPLETE `->first()` refactor (Tier A: 10 sites/8 files; Tier B: 5
+blend-risk list screens; grep-clean, mutation-proven the selected context governs) + property CRUD
+(`properties.manage`, org-scoped) + the Portfolio overview (real per-property data, honest "finish setup" state). The
+L→M re-scope was correct — the schema already held N properties. See `docs/DECISIONS.md` 2026-07-21 (Phase 6a).
+
+**PHASE 6b — ANALYTICS (~2 weeks)** *(⬅ NEXT)*
+Insights + Reports (operator, per-property + all-properties: ADR/RevPAR/RevPAR + the revenue comparison table deferred
+from the Portfolio) → Owner Reports/Insights (owner-scoped). Builds on the Phase-6a property context.
 
 **PHASE 7 — The SaaS layer (~3–4 weeks)**
 Tenant provisioning (Vyrobel Onboarding — the org-creation epic). ⚠️ **Carries the two deferred Phase-0.3 RBAC
