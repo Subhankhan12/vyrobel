@@ -79,6 +79,39 @@ final class PerformanceMetrics
     }
 
     /**
+     * A REAL month-by-month trend across [start, end) for a property scope — one {@see MetricSet} per
+     * calendar month the range touches (capped at 13 to bound work). Every month is real data; a month with
+     * no activity is an honest zero, NEVER a fabricated point — the caller shows a "not enough data yet"
+     * state when too few months carry activity, rather than drawing a meaningless 1-point line.
+     *
+     * @param  list<string>  $propertyIds
+     * @return list<array{month: string, label: string, metrics: MetricSet}>
+     */
+    public static function monthlyTrendForProperties(array $propertyIds, CarbonImmutable $start, CarbonImmutable $end, string $currency): array
+    {
+        $trend = [];
+        $cursor = $start->startOfMonth();
+        $guard = 0;
+
+        while ($cursor->lessThan($end) && $guard < 13) {
+            $bucketStart = $cursor->greaterThan($start) ? $cursor : $start;
+            $nextMonth = $cursor->addMonth();
+            $bucketEnd = $nextMonth->lessThan($end) ? $nextMonth : $end;
+
+            $trend[] = [
+                'month' => $cursor->format('Y-m'),
+                'label' => $cursor->format('M'),
+                'metrics' => self::forProperties($propertyIds, $bucketStart, $bucketEnd, $currency),
+            ];
+
+            $cursor = $nextMonth;
+            $guard++;
+        }
+
+        return $trend;
+    }
+
+    /**
      * Owner scope — the owner's OWN units only (owner-scoped upstream; never a request id). Available
      * nights use the unit-level denominator so a non-owned unit in the same room type is excluded.
      *

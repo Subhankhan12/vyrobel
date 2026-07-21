@@ -178,6 +178,32 @@
         .vy-prop-actions form { flex: 1; display: flex; }
         .vy-prop-actions form .vy-btn { width: 100%; }
 
+        /* Analytics — Insights + Reports (Phase 6b). */
+        .vy-ins-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-top: 14px; }
+        @media (max-width: 900px) { .vy-ins-grid { grid-template-columns: 1fr; } }
+        .vy-card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+        .vy-card-head h3 { margin: 0; font-family: var(--vy-display, inherit); font-size: 14px; font-weight: 600; color: var(--vy-ink); }
+        .vy-card-note { font-size: 11.5px; color: var(--vy-faint); }
+        .vy-trend { display: flex; align-items: flex-end; gap: 8px; height: 150px; padding-top: 6px; }
+        .vy-trend-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
+        .vy-trend-bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+        .vy-trend-bar { display: block; width: 62%; min-height: 2px; border-radius: 5px 5px 0 0; background: var(--vy-grad); }
+        .vy-trend-lab { font-size: 10.5px; color: var(--vy-muted); }
+        .vy-mix-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+        .vy-mix-lab { flex: 0 0 92px; font-size: 12.5px; color: var(--vy-ink); }
+        .vy-mix-track { flex: 1; height: 8px; border-radius: 999px; background: rgba(120,70,40,.1); overflow: hidden; }
+        .vy-mix-fill { display: block; height: 100%; border-radius: 999px; background: var(--vy-accent-3, #E8703A); }
+        .vy-mix-val { flex: 0 0 38px; text-align: right; font-size: 12px; font-weight: 600; color: var(--vy-muted); }
+        .vy-report-line { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--vy-glass-border); font-size: 13.5px; color: var(--vy-ink); }
+        .vy-report-line:last-child { border-bottom: 0; }
+        .vy-report-muted { color: var(--vy-muted); }
+        .vy-report-total { font-weight: 700; border-top: 1.5px solid var(--vy-glass-border); border-bottom: 0; margin-top: 2px; }
+        .vy-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .vy-table th { text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-faint); padding: 6px 8px; border-bottom: 1px solid var(--vy-glass-border); }
+        .vy-table td { padding: 9px 8px; border-bottom: 1px solid var(--vy-glass-border); color: var(--vy-ink); }
+        .vy-table tr:last-child td { border-bottom: 0; }
+        .vy-table .vy-num { text-align: right; font-variant-numeric: tabular-nums; }
+
         /* ---- Reusable surfaces ----------------------------------------------------------------- */
         .vy-card {
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);

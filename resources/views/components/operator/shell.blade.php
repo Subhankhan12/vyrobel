@@ -23,6 +23,7 @@
         ['OPERATIONS', [
             ['portfolio', 'Portfolio', 'M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01', auth()->user()?->can('properties.view') ? route('app.portfolio') : null],
             ['dashboard', 'Dashboard', 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z', route('app.dashboard')],
+            ['insights', 'Insights', 'M3 3v18h18M7 14l3-4 3 3 4-6', auth()->user()?->can('reports.view') ? route('app.insights') : null],
             ['search', 'Search', 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35', auth()->user()?->can('reservations.view') ? route('app.search') : null],
             ['inbox', 'Inbox', 'M4 13h5l2 3h2l2-3h5M4 13V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M4 13v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5', route('app.inbox')],
             ['calendar', 'Calendar', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', route('app.rack')],
@@ -42,6 +43,7 @@
         ['OWNERS', [
             ['owners', 'Owners', 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', route('app.owners')],
             ['payout-run', 'Payout run', 'M3 7h18v12H3zM3 11h18M15 15h3', route('app.payouts.run')],
+            ['reports', 'Reports', 'M9 17v-6M12 17V7M15 17v-3M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z', auth()->user()?->can('reports.view') ? route('app.reports') : null],
             ['unit-requests', 'Unit requests', 'M12 5v14M5 12h14M4 4h16', auth()->user()?->can('units.view') ? route('app.unit-requests') : null],
         ]],
         ['ACCOUNT', [

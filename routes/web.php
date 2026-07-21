@@ -79,6 +79,7 @@ use App\Livewire\Operator\GuestProfile;
 use App\Livewire\Operator\GuestsList;
 use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorDashboard;
+use App\Livewire\Operator\OperatorInsights;
 use App\Livewire\Operator\OperatorMaintenanceCosts;
 use App\Livewire\Operator\OperatorMaintenanceSettings;
 use App\Livewire\Operator\OperatorNotificationPreferences;
@@ -87,6 +88,7 @@ use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Operator\OperatorPortfolio;
 use App\Livewire\Operator\OperatorProfile;
+use App\Livewire\Operator\OperatorReports;
 use App\Livewire\Operator\OperatorRoles;
 use App\Livewire\Operator\OperatorSearch;
 use App\Livewire\Operator\OperatorSecurity;
@@ -335,6 +337,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::get('/portfolio', OperatorPortfolio::class)->middleware('can:properties.view')->name('portfolio');
     Route::post('/portfolio', [PropertyController::class, 'store'])->middleware('can:properties.manage')->name('portfolio.store');
     Route::post('/portfolio/update', [PropertyController::class, 'update'])->middleware('can:properties.manage')->name('portfolio.update');
+
+    // Phase 6b · Analytics — operator Insights + Reports over the SG1 metric layer, scoped by the Phase-6a
+    // property context (per-property or the all-properties roll-up). Read-only, gated `can:reports.view` (a
+    // management/analytics baseline — NOT Front Desk / Housekeeping / Reservation Agent, #30). Every figure
+    // is a REAL aggregate reconciling to FolioTotals; no fabricated history/narrative.
+    Route::get('/insights', OperatorInsights::class)->middleware('can:reports.view')->name('insights');
+    Route::get('/reports', OperatorReports::class)->middleware('can:reports.view')->name('reports');
 
     // GLOBAL SEARCH (Phase 1 · Sub-gate 2) — cross-entity search (reservations/guests/units/owners), the query
     // on a GET (scope-safe reads). Gated on `reservations.view` (the operations read baseline); per-entity
