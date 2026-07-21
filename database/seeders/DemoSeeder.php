@@ -277,6 +277,15 @@ class DemoSeeder extends Seeder
         // Half-paid so it carries a real balance — the guest can apply wallet credit to it (Phase 4c · SG2).
         $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[2], $guest1, $soonIn->toDateString(), $soonOut->toDateString(), $vat, fullyPaid: false);
 
+        // Phase 5 — a PAST, checked-out stay for guest1 so the review flow is demoable (and the checkout fires the
+        // real Review Request email → Mailpit). Priced + available over just these past dates.
+        $pastIn = CarbonImmutable::today()->subDays(14);
+        $pastOut = $pastIn->addDays(3);
+        $this->seedCalendarRange($roomRate, 10000, $pastIn->toDateString(), $pastOut->toDateString());
+        $availability->recompute($doubleRoom->id, $pastIn->toDateString(), $pastOut->toDateString());
+        $pastStay = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest1, $pastIn->toDateString(), $pastOut->toDateString(), $vat, fullyPaid: true);
+        app(CheckOutReservation::class)->handle($pastStay);
+
         // Phase 4a — a CLAIMED guest PORTAL account so the guest portal has a real demo login. guest1 (Demo
         // Traveller) leads stay1 above, so this is a genuine BOOKING-TIED account: demo.traveller@vyrobel-demo.test
         // / password. (The 'hashed' cast hashes the plaintext; the saving() hook stamps its blind index.)

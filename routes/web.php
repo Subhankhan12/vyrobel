@@ -22,6 +22,7 @@ use App\Http\Controllers\Guest\GuestPasswordResetController;
 use App\Http\Controllers\Guest\GuestPaymentsController;
 use App\Http\Controllers\Guest\GuestReceiptController;
 use App\Http\Controllers\Guest\GuestReservationController;
+use App\Http\Controllers\Guest\GuestReviewController;
 use App\Http\Controllers\Guest\GuestSavedController;
 use App\Http\Controllers\Guest\GuestTripsController;
 use App\Http\Controllers\Guest\GuestWalletController;
@@ -208,6 +209,9 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::get('/reservation/{reservation}/check-in', [GuestCheckinController::class, 'show'])->name('checkin');
         Route::post('/reservation/{reservation}/check-in', [GuestCheckinController::class, 'submit'])->middleware('throttle:12,1')->name('checkin.submit');
         Route::get('/reservation/{reservation}/arrival', [GuestArrivalController::class, 'show'])->name('arrival');
+        // Review (Phase 5) — a guest reviews their OWN completed stay (foreign/future/cancelled → 404); one per stay.
+        Route::get('/reservation/{reservation}/review', [GuestReviewController::class, 'show'])->name('review');
+        Route::post('/reservation/{reservation}/review', [GuestReviewController::class, 'submit'])->middleware('throttle:12,1')->name('review.submit');
         // Payments (SG1) — balance + history across owned bookings (card charge = deferred Stripe rail) + the
         // per-booking Folio Receipt + the money PDFs (each owned-booking-only; a cross-guest id → 404).
         Route::get('/payments', [GuestPaymentsController::class, 'index'])->name('payments');

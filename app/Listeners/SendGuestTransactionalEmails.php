@@ -8,6 +8,7 @@ use App\Events\DomainEventRecorded;
 use App\Mail\BookingConfirmationMail;
 use App\Mail\CancellationMail;
 use App\Mail\RefundConfirmationMail;
+use App\Mail\ReviewRequestMail;
 use App\Models\DomainEvent;
 use App\Models\Guest;
 use App\Models\Payment;
@@ -33,7 +34,7 @@ use Throwable;
 class SendGuestTransactionalEmails
 {
     /** @var array<int, string> */
-    private const HANDLED = ['reservation.confirmed', 'reservation.cancelled', 'payment.refunded'];
+    private const HANDLED = ['reservation.confirmed', 'reservation.cancelled', 'payment.refunded', 'reservation.checked_out'];
 
     /** @var array<string, true> */
     private static array $processed = [];
@@ -64,6 +65,7 @@ class SendGuestTransactionalEmails
                 'reservation.confirmed' => $this->bookingConfirmation($domainEvent),
                 'reservation.cancelled' => $this->cancellation($domainEvent),
                 'payment.refunded' => $this->refundConfirmation($domainEvent),
+                'reservation.checked_out' => $this->reviewRequest($domainEvent),
             };
         });
     }
@@ -87,6 +89,18 @@ class SendGuestTransactionalEmails
         // A refund, if any, gets its OWN payment.refunded → RefundConfirmationMail; the cancellation email doesn't
         // guess a figure, so refundMinor is left null here.
         $this->sendToGuest($reservation->leadGuest, new CancellationMail($reservation, is_string($reason) ? $reason : null));
+    }
+
+    /**
+     * Phase 5 — the Review Request email, fired on a REAL completed stay (post-checkout). The (previously deferred)
+     * trigger is now wired: it links the guest to the review page for THIS stay. Mailpit in dev; prod account-gated.
+     */
+    private function reviewRequest(DomainEvent $domainEvent): void
+    {
+        $reservation = Reservation::query()->with(['leadGuest', 'property'])->find($domainEvent->subject_id);
+        if ($reservation instanceof Reservation) {
+            $this->sendToGuest($reservation->leadGuest, new ReviewRequestMail($reservation, route('guest.review', $reservation->getKey())));
+        }
     }
 
     private function refundConfirmation(DomainEvent $domainEvent): void
