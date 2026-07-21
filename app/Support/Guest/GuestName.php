@@ -23,4 +23,20 @@ class GuestName
 
         return $name !== '' ? $name : 'Guest';
     }
+
+    /**
+     * The PUBLIC review byline (Phase 5) — first name + last initial only (e.g. "Ada L."), never the full surname
+     * or any contact detail (#28). An anonymized guest (name stripped) renders the neutral "A guest".
+     */
+    public static function reviewByline(?Guest $guest): string
+    {
+        $first = trim((string) $guest?->first_name);
+        if ($first === '') {
+            return 'A guest';
+        }
+
+        $last = trim((string) $guest?->last_name);
+
+        return $last !== '' ? $first.' '.mb_substr($last, 0, 1).'.' : $first;
+    }
 }

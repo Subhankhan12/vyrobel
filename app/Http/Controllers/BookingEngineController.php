@@ -9,6 +9,8 @@ use App\Models\BookingQuote;
 use App\Models\Property;
 use App\Models\RoomType;
 use App\Services\BookingEngineService;
+use App\Support\Reviews\ReviewList;
+use App\Support\Reviews\ReviewRating;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -61,6 +63,7 @@ class BookingEngineController extends Controller
             foreach ($this->engine->search($property, $checkIn, $checkOut, $adults, $children) as $offer) {
                 $card = $this->roomOffer($offer);
                 $card['cover'] = $covers[(string) $offer['room_type_id']] ?? null;
+                $card['rating'] = ReviewRating::forRoomType((string) $offer['room_type_id']);   // real derived rating
                 $rooms[] = $card;
             }
         }
@@ -134,6 +137,10 @@ class BookingEngineController extends Controller
                 'searched' => $searched,
             ],
             'offer' => $offer,
+            // Phase 5 — REAL published reviews + the DERIVED rating (via the shared ReviewRating/ReviewList);
+            // never fabricated. A room with no published reviews → has_reviews false ("No reviews yet").
+            'rating' => ReviewRating::forRoomType((string) $rt->getKey()),
+            'reviews' => ReviewList::forRoomType((string) $rt->getKey()),
         ]);
     }
 

@@ -111,6 +111,7 @@ use App\Livewire\Owner\OwnerNotifications;
 use App\Livewire\Owner\OwnerPayoutMethod;
 use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerRates;
+use App\Livewire\Owner\OwnerReviews;
 use App\Livewire\Owner\OwnerSettings;
 use App\Livewire\Owner\OwnerStatementView;
 use App\Livewire\Owner\OwnerTaxCenter;
@@ -585,6 +586,8 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');
     // Design pass · Screen 4 — owner units + owner-scoped occupancy calendar (new owner-scoped page).
     Route::get('/units', OwnerMyUnits::class)->name('units');
+    // Phase 5 — Owner Reviews (read-only): published reviews for the owner's OWN units (owner-scoped).
+    Route::get('/reviews', OwnerReviews::class)->name('reviews');
     // Wave 1 · Sub-gate 3 — ONE of the owner's units. Owner-scoped: a non-owned/cross-owner unit id
     // 404s under OwnerScope. Occupancy is THIS-unit/THIS-owner (never room-type-wide).
     Route::get('/units/{unit}', OwnerUnitDetail::class)->name('units.show');

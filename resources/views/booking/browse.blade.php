@@ -77,6 +77,9 @@
                         </div>
                         <div class="vy-room-body">
                             <div class="vy-room-name">{{ $room['name'] }}</div>
+                            @if (($room['rating']['has_reviews'] ?? false))
+                                <div style="font-size:12.5px;color:#2B2320;margin:2px 0 4px"><span style="color:#E8703A">★</span> <strong>{{ $room['rating']['average'] }}</strong> <span style="color:#8A8079">· {{ $room['rating']['count'] }}</span></div>
+                            @endif
                             <div class="vy-room-meta">
                                 <span class="vy-avail-chip @if ($room['available'] <= 2) is-tight @endif">
                                     {{ $room['available'] }} left
@@ -100,8 +103,8 @@
 
             <div class="vy-deferred-note">
                 <span class="vy-soon-tag">Coming soon</span>
-                Room photos, amenities &amp; guest reviews are on the way — prices and availability above
-                are live, and you can book direct now.
+                Full room descriptions are on the way — prices, availability and guest ratings above are live
+                (open a room for its reviews), and you can book direct now.
             </div>
         @endif
     @endif

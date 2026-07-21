@@ -2583,3 +2583,68 @@ Payments hub reconciles (Paid €738); a real 879KB `%PDF` downloads in the live
 message → it lands in the operator's existing inbox (unread bumped); a room saved from the public storefront
 appears on the Saved page. **NEXT = Phase 5** (the Reviews module — guest review → moderation → operator/owner
 surfaces).
+
+## 2026-07-23 — PHASE 5: the REVIEWS MODULE (one module, five surfaces) — invariants #36–37 — COMPLETE
+
+Four gated sub-gates, each guard mutation-proven, then pushed. One cohesive module across guest · moderation ·
+operator · owner · public storefront.
+
+- **SG1 — Guest Review** (`83e9d63`) — a guest reviews a REAL completed stay. New `reviews` model (tied to one
+  reservation, unique = one review per stay; denormalizes the physical `unit_id` + `room_type_id` from the stay's
+  assigned unit — so the owner + storefront surfaces query without re-resolving, and the review is FROZEN to the
+  unit stayed in). rating (1–5) · tags · body · visibility (public/private) · status (pending/published/rejected).
+  `ReviewService` is the single write path. 🔒 TIED TO A REAL COMPLETED STAY (mutation-proven both ways): the
+  reservation resolves through the guest's own relations (foreign → 404) AND must be a completed (PAST) stay
+  (future/cancelled → 404); one per stay. A public review is `pending` (never auto-public); "send privately to the
+  manager" sets `visibility=private` (operator feedback, never published). **Closed two Phase-3/4b deferrals:** the
+  Review-Request email now fires on the real `reservation.checked_out` event (Mailpit-proven), and the Guest Trips
+  card shows a "★ Review your stay" link → "★ Reviewed". GDPR: `anonymize()` de-identifies the review (author →
+  "Guest") — it flows from the guest anonymization, no review-table change; no PII in the `review.submitted` event.
+- **SG2 — Moderation + the shared rating derivation** (`fcf52fb`) — **invariant #37.** `ReviewService::publish()`
+  (a pending public review → published; a PRIVATE review can NEVER be published — the guest's choice is binding)
+  and `reject()` (→ rejected, unpublishing a published one). `App\Support\Reviews\ReviewRating` is the ONE
+  rating-derivation definition (mirrors FolioTotals): `publicScope()` = the single source of "publicly visible"
+  (visibility=public AND status=published); `forRoomType`/`forUnit`/`forProperty` → `{count, average, has_reviews}`,
+  average DERIVED (never stored), no reviews → `has_reviews=false` ("No reviews yet", never a fabricated number).
+  Mutation-proven: dropping the `status=published` filter lets a pending review count → caught.
+- **SG3 — Operator Reviews + response + moderate** (`814806c`) — `reviews.view` + `reviews.manage` added to the
+  catalog (a reputation task, NOT Front Desk; granted to Hotel Manager / Marketing Manager / Guest Support Agent —
+  and Group Admin, to keep the privilege-subset rule intact: adding `reviews.*` to Hotel Manager broke Group
+  Admin's ability to assign it — a real regression `OperatorRolesTest` caught). `OperatorReviewsController`
+  (`/app/reviews`): list (guest NAME only #28), respond, publish/reject; string `{review}` resolved tenant-scoped
+  in-action (never RMB); index on `reviews.view`, actions on `reviews.manage`, controls `@can`-gated.
+  **Closed the Phase-3 deferral:** `review.submitted` dispatches `NewReviewNotification`, preference-gated on the
+  `new_review` catalog key (which existed since Phase 3, trigger deferred). Response-automation + review-gating
+  DEFERRED honestly (the screen says so); deceptive review-gating deliberately NOT built. Mutation-proven: dropping
+  `can:reviews.manage` lets Front Desk publish → caught.
+- **SG4 — Owner Reviews + public storefront** (`this commit`) — **invariant #36.** Owner Reviews (`/owner/reviews`,
+  the pre-existing "Soon" nav item now wired) — READ-ONLY (the operator owns the response); the owner sees the
+  PUBLISHED reviews for THEIR OWN units, resolved through the owner-scoped `OwnerPortalService::units()` (owner→units,
+  the OwnerScope boundary). 🔒 OWNER ISOLATION mutation-proven (bypassing the owner scope lets A see B's unit
+  reviews → caught). Public storefront: the room-detail + browse cards show the DERIVED rating + the published
+  reviews (via the shared `ReviewRating`/`ReviewList`); only published shown (a pending/private review never
+  appears); no reviews → "No reviews yet"; the byline is `GuestName::reviewByline` = first name + last initial only
+  (#28), anonymized → "A guest".
+
+**NEW INVARIANTS.**
+- **#36 — reviews tie to REAL completed stays.** A guest reviews only their OWN completed (checked-out/PAST)
+  booking — never a future/cancelled/foreign/not-their stay — and at most once per stay. The review freezes the
+  physical `unit_id`/`room_type_id` at review time. Owner isolation: an owner sees reviews for THEIR OWN units only.
+- **#37 — review moderation + rating are REAL.** A submitted review is `pending` (never auto-public); only a
+  published+public review is publicly visible (a pending/rejected/private one never is; a private review can never
+  be published). Every rating is DERIVED from published+public reviews via the shared `ReviewRating` — never a
+  stored/fabricated number; a subject with none shows "No reviews yet".
+
+**THE REVIEWS MODULE IS COMPLETE** across five surfaces (guest · moderation · operator · owner · storefront), on
+real data under the honesty rule. **CLOSED DEFERRALS:** the Phase-3 Review-Request email + new-review notification,
+and the 4b Guest Trips review link — all now wired real.
+
+**DEFERRED HONESTLY:** response-automation + review-gating → a subsystem (the manual response + moderation is real;
+deceptive gating is deliberately not built) · production mail provider → Mailpit is dev.
+
+**Verification:** Phase-5 tests green (Guest Review 8 · Moderation 7 · Operator 4 · Owner+Storefront 3); full suite
+**819 / 6910** green on MySQL; PHPStan L5 + Pint clean; `migrate:fresh --seed` clean (a completed stay + published
+reviews seeded); **browser-verified end-to-end** — a guest reviews their completed stay (pending), the operator
+publishes it + the new-review notification lands in the feed, the owner sees only their unit's review, and the
+public storefront shows the derived rating (★5 / ★4) + the published review with a #28 byline + the operator's
+response. **NEXT = Phase 6** (multi-property + Analytics).

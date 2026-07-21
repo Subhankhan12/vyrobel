@@ -326,10 +326,16 @@ Wishlist + Waitlist (real self-only stores; storefront "Save" tie; notify-trigge
 Every screen guest-isolated + mutation-proven. Deferred honestly: card charge/Apple Pay (Stripe), SMS, loyalty
 tiers, referral auto-earn, the waitlist notify-trigger + auto-hold. Detail: `docs/DECISIONS.md` 2026-07-22.
 
-**PHASE 5 — The REVIEWS module, all three surfaces (~2 weeks)** *(⬅ NEXT)*
-Guest Review → moderation → Operator Reviews (respond) → Owner Reviews (read).
+**PHASE 5 — The REVIEWS module** *(✅ DONE — 2026-07-23, 4 gated sub-gates `83e9d63` → `fcf52fb` → `814806c` →
+HEAD)*
+Guest Review (tied to a real completed stay, one per stay — **#36**) → moderation (only published+public is public;
+rating DERIVED via the shared `ReviewRating`, never fabricated — **#37**) → Operator Reviews (respond + moderate,
+`reviews.manage`, the new-review notification wired) → Owner Reviews (owner-scoped read) → public storefront
+(derived rating + published reviews, #28 first-name byline). Every guard mutation-proven. Closed deferrals: the
+Phase-3 Review-Request email + new-review notification, and the 4b Trips review link. Deferred honestly:
+response-automation + review-gating (a subsystem). Detail: `docs/DECISIONS.md` 2026-07-23.
 
-**PHASE 6 — MULTI-PROPERTY (re-scoped M) + Analytics (~3–4 weeks)**
+**PHASE 6 — MULTI-PROPERTY (re-scoped M) + Analytics (~3–4 weeks)** *(⬅ NEXT)*
 Property context/selector + a property-CRUD path + refactor the ~8–10 `->first()` call sites (the schema already
 holds N) → Portfolio → Insights + Reports (operator, per-property + all-properties) → Owner Reports/Insights
 (owner-scoped).

@@ -308,14 +308,16 @@ class DemoSeeder extends Seeder
         // Check the walk-in out → real departure-clean task via the checkout event → listener.
         app(CheckOutReservation::class)->handle($walkIn);
 
-        // Phase 5 — DEMO reviews (through the real ReviewService): guest1's past stay is a PUBLISHED review with the
-        // operator's response (for the storefront + operator/owner surfaces); guest2's walk-in is a PENDING review
-        // for the operator to moderate. Real data, flagged demo like every guest row.
+        // Phase 5 — DEMO reviews (through the real ReviewService). guest1's past stay (an operator ROOM) → a
+        // PUBLISHED review + the operator's response (storefront double room + operator). guest2's walk-in (an
+        // OWNER apartment) → a PUBLISHED review (so the OWNER + the apartment storefront show real data). Real
+        // data, flagged demo like every guest row.
         $reviews = app(ReviewService::class);
         $g1Review = $reviews->submit($guest1, $pastStay->fresh(), ['rating' => 5, 'tags' => ['Great location', 'Spotless villa'], 'body' => 'A wonderful stay — spotless and superbly located. We’ll be back.']);
         $reviews->publish($g1Review);
         $reviews->respond($g1Review, 'Thank you so much — it was a pleasure hosting you. Come back soon!');
-        $reviews->submit($guest2, $walkIn->fresh(), ['rating' => 4, 'tags' => ['Comfy beds'], 'body' => 'Comfortable and central. Check-in took a little while.']);
+        $g2Review = $reviews->submit($guest2, $walkIn->fresh(), ['rating' => 4, 'tags' => ['Comfy beds'], 'body' => 'Comfortable and central. Check-in took a little while.']);
+        $reviews->publish($g2Review);
 
         // --- Owner accounting (the wedge) — the demo user IS a property owner of the apartments ---
         // Real + coherent: attribution reads the folios, the statement is a pure ledger projection,

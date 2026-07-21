@@ -9,10 +9,10 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **THE ONE-PARAGRAPH ANSWER.** The product is **COMPLETE, DEEP, DEMOABLE end-to-end, and safe for a real owner
 > login**: a certified multi-tenant backend (PMS + channel manager + payments + owner accounting + maintenance
 > + unified inbox), a **fully hardened auth chapter** (login · invites · password reset · change-password ·
-> **2FA/TOTP**), and **~65 styled, browser-verified screens** across the owner portal, the operator back office,
-> the public booking storefront and the **COMPLETE guest portal** (Phase 4b: Trips · Reservation · Manage ·
-> Check-in · Arrival; Phase 4c: Payments · Receipt · money PDFs · Wallet · Messages · Saved) — all on real scoped
-> data under the honesty rule. **Five security/integrity
+> **2FA/TOTP**), and **~68 styled, browser-verified screens** across the owner portal, the operator back office,
+> the public booking storefront, the **COMPLETE guest portal** (Phase 4b/4c) and the **Reviews module** (Phase 5:
+> Guest Review · Operator Reviews · Owner Reviews · storefront ratings/reviews) — all on real scoped data under the
+> honesty rule. **Five security/integrity
 > holes have been found and closed this session, none of them by a failing test:** the `/app` authorization leak
 > (**#26**), the cumulative over-refund (**#27**), the missing GDPR-erasure trigger (**#28**), the unguarded
 > re-termination (**#29**), and a **privilege escalation** — any back-office role could invite itself an
@@ -24,8 +24,13 @@ conflicts with the repo, **trust the repo** and fix this file.
 > last such subsystem.** ⚠️ **UPDATE (2026-07-20): the customer signal ARRIVED** — a warm operator contact
 > (Fatima) liked the demo AND the prototype, so the requirement is now **"make the real product work like the
 > prototype"** (the "no customer has reacted / don't build blind" framing that once sat here is SUPERSEDED — see
-> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b AND 4c of `docs/GAP-ANALYSIS.md`
-> are DONE — THE GUEST PORTAL IS COMPLETE; Phase 5 (the Reviews module) is next.** Phase 4c = guest money +
+> the NEXT ACTION section at the foot of this file). **Phases 0, 1, 2, 3, 4a, 4b, 4c AND 5 of `docs/GAP-ANALYSIS.md`
+> are DONE — the Guest Portal is complete AND the Reviews module is complete; Phase 6 (multi-property + Analytics)
+> is next.** Phase 5 = the REVIEWS module across five surfaces: Guest Review (tied to a real completed stay,
+> one per stay — **#36**), moderation (only published+public is public; rating DERIVED, never fabricated — **#37**),
+> Operator Reviews (respond + moderate, `reviews.manage`, new-review notification wired), Owner Reviews
+> (owner-scoped read), and the public storefront (derived rating + published reviews, #28 byline) — 4 gated
+> sub-gates, pushed. Phase 4c = guest money +
 > engagement: Payments + Folio Receipt + five money PDFs (card charge account-gated), the Wallet/credits ledger
 > (append-only, balance DERIVED, no-overdraw — **invariant #34**), Guest Messages (the Unified Inbox extended, third
 > participant surface — **invariant #35**), and Wishlist + Waitlist (real self-only stores; notify-trigger/auto-hold
@@ -46,7 +51,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 - **On `main`, working tree clean, local == origin** (HEAD advances by one with the doc commit that carries these
   words; check `git log` for the true HEAD — see the HEAD convention below). Only the
   untracked design-source exports under `docs/design/raw/` stay uncommitted — **gitignored** raw Claude Design
-  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 797 tests / 6839 assertions, all green** on
+  HTML, **not in a fresh clone**. Suite: **`php artisan test` → 819 tests / 6910 assertions, all green** on
   genuine **MySQL 8** (`vyrobel_test`) — re-verified for this capstone. ✅ **BOTH flaky tests are CLOSED**
   (root-caused 2026-07-17 — and they were the same disease: an assertion whose needle was too generic, never a
   product bug. See the register). The suite is a trustworthy gate.
