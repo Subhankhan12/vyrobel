@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\SetCurrentPropertyForWebRequest;
 use App\Livewire\Operator\OperatorSettings;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Services\SettingsService;
+use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -33,7 +35,7 @@ class SettingsActionController extends Controller
 {
     public function updateProperty(Request $request, SettingsService $settings): RedirectResponse
     {
-        $property = Property::query()->orderBy('name')->firstOrFail();   // tenant-scoped
+        $property = $this->currentProperty();
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -51,7 +53,7 @@ class SettingsActionController extends Controller
 
     public function updatePolicies(Request $request, SettingsService $settings): RedirectResponse
     {
-        $property = Property::query()->orderBy('name')->firstOrFail();
+        $property = $this->currentProperty();
 
         $data = $request->validate([
             'pet' => ['required', 'in:allowed,on_request,not_allowed'],
@@ -67,7 +69,7 @@ class SettingsActionController extends Controller
 
     public function updateOrganization(Request $request, SettingsService $settings): RedirectResponse
     {
-        $property = Property::query()->orderBy('name')->firstOrFail();
+        $property = $this->currentProperty();
         $organization = Organization::query()->findOrFail($property->organization_id);
 
         $data = $request->validate([
@@ -79,6 +81,17 @@ class SettingsActionController extends Controller
         $settings->updateOrganization($organization, $data);
 
         return $this->back('Organization settings saved.');
+    }
+
+    /**
+     * The property being edited = the operator's CURRENT property context (Phase 6a · multi-property),
+     * tenant-scoped. Runs in the `/app` group where {@see SetCurrentPropertyForWebRequest}
+     * has activated the {@see PropertyContext}, so the write lands in the SELECTED property — never an
+     * arbitrary `->first()`. A missing context (org with no property) 404s, exactly as `firstOrFail` did.
+     */
+    private function currentProperty(): Property
+    {
+        return Property::query()->findOrFail(app(PropertyContext::class)->id());
     }
 
     private function back(string $notice): RedirectResponse

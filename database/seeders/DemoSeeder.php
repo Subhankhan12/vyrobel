@@ -344,6 +344,45 @@ class DemoSeeder extends Seeder
         // 'connected'/'active', which left the channel manager inert in production). The live Channex sync itself
         // stays account-gated. Seeded LAST so no already-created demo stay retroactively enqueues a push.
         $this->seedChannel($property, $doubleRoom, $apartment, $roomRate, $aptRate);
+
+        // Phase 6a · multi-property — a SECOND real property in the same org, so the property switcher has
+        // something to switch between and the ->first() refactor is demoable. It is deliberately young: real
+        // room type + units + rates + availability (bookable), but NO reservations yet — its honest empty
+        // state ("finish setup"). Named so "Demo Seaside Property" still sorts first, keeping the demo's
+        // default working property unchanged.
+        $this->seedSecondProperty($org);
+    }
+
+    /**
+     * A minimal-but-REAL second property for the demo (Phase 6a). Bookable (rate + published availability)
+     * yet unpopulated — the genuine "new property, finish setup" state, never faked occupancy or stays.
+     */
+    private function seedSecondProperty(Organization $org): void
+    {
+        $property = Property::create([
+            'name' => 'Demo Vista Apartments', 'brand' => 'Vyrobel Demo', 'type' => 'aparthotel',
+            'slug' => 'vista-demo', 'currency' => 'EUR', 'timezone' => 'Europe/Lisbon',
+            'check_in_time' => '15:00:00', 'check_out_time' => '11:00:00', 'status' => 'active',
+        ]);
+        PropertyPolicy::create([
+            'property_id' => $property->id,
+            'cancellation' => ['type' => 'flexible', 'free_until_days' => 2],
+            'pet' => 'not_allowed', 'smoking' => 'not_allowed', 'min_stay' => 2, 'max_stay' => 60,
+        ]);
+
+        $studio = RoomType::create([
+            'property_id' => $property->id, 'name' => 'City Studio', 'code' => 'STU', 'kind' => 'apartment',
+            'std_occupancy' => 2, 'max_adults' => 2, 'max_children' => 1, 'bedrooms' => 0,
+        ]);
+        collect(['V1', 'V2', 'V3'])->each(fn (string $code) => Unit::create([
+            'property_id' => $property->id, 'room_type_id' => $studio->id,
+            'code' => $code, 'unit_kind' => 'apartment', 'max_occupancy' => 3,
+        ]));
+
+        $studioRate = RatePlan::create(['property_id' => $property->id, 'room_type_id' => $studio->id, 'name' => 'Flexible', 'code' => 'FLEX-STU', 'currency' => 'EUR']);
+        $studio->update(['default_rate_plan_id' => $studioRate->id]);
+        $this->seedCalendar($studioRate, 12500);
+        app(AvailabilityService::class)->recompute($studio->id, self::RANGE_START, self::RANGE_END);
     }
 
     /**

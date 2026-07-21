@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Livewire\Operator;
 
 use App\Http\Controllers\Operator\ReservationCreateController;
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Guest;
-use App\Models\Property;
 use App\Services\AssignmentService;
 use App\Services\UnitAvailabilityService;
 use Carbon\CarbonImmutable;
@@ -44,6 +44,7 @@ use Livewire\Component;
 class NewReservation extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     private const MAX_QUERY = 100;
 
@@ -52,7 +53,7 @@ class NewReservation extends Component
 
     public function render(UnitAvailabilityService $availability): View
     {
-        $property = Property::query()->orderBy('name')->first();
+        $property = $this->currentProperty();
 
         $checkIn = $this->validDate(request()->query('check_in'));
         $checkOut = $this->validDate(request()->query('check_out'));

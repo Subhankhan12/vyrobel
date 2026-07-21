@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\RoomType;
 use App\Models\Unit;
@@ -39,10 +40,14 @@ use Livewire\Component;
 class UnitsList extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     public function render(): View
     {
+        // Phase 6a · multi-property: scope to the current property (or every accessible property when
+        // "all"). Pre-6a this listed units org-wide, blending properties in a multi-property org.
         $models = Unit::query()
+            ->whereIn('property_id', $this->currentReadIds)
             ->with(['roomType.photos', 'owner'])
             ->orderBy('code')
             ->get();
@@ -69,8 +74,10 @@ class UnitsList extends Component
             ];
         })->all();
 
-        // Room-types (with photos) for the operator photo manager — REAL, tenant-scoped inventory.
+        // Room-types (with photos) for the operator photo manager — REAL inventory, scoped to the
+        // current property (or every accessible property when "all").
         $roomTypes = RoomType::query()
+            ->whereIn('property_id', $this->currentReadIds)
             ->with('photos')
             ->orderBy('name')
             ->get()

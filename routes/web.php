@@ -42,6 +42,7 @@ use App\Http\Controllers\Operator\MaintenanceSettingsController;
 use App\Http\Controllers\Operator\OperatorProfileController;
 use App\Http\Controllers\Operator\OperatorReviewsController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
+use App\Http\Controllers\Operator\PropertySwitchController;
 use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
@@ -63,6 +64,7 @@ use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Http\Middleware\RequireTwoFactorPending;
 use App\Http\Middleware\ResolvePublicProperty;
+use App\Http\Middleware\SetCurrentPropertyForWebRequest;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Http\Middleware\SetTenantForGuestRequest;
 use App\Livewire\FrontDesk;
@@ -314,9 +316,15 @@ Route::prefix('book/{property}')
  * See docs/DECISIONS.md 2026-07-16. The gate is on the GROUP, so it covers every route below —
  * including any added later.
  */
-Route::middleware(['auth', EnsureBackOfficeAccess::class])->prefix('app')->name('app.')->group(function () {
+Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForWebRequest::class])->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
+
+    // Phase 6a · multi-property — the topbar property switcher. Sets the per-user working property
+    // (or "all") in the session, then PRG back. Any back-office user may switch among the properties
+    // they can access; the controller re-validates the id against that set (defence in depth — the
+    // middleware validates again on the next request), so a foreign/stale id can never take effect.
+    Route::post('/property/switch', [PropertySwitchController::class, 'update'])->name('property.switch');
 
     // GLOBAL SEARCH (Phase 1 · Sub-gate 2) — cross-entity search (reservations/guests/units/owners), the query
     // on a GET (scope-safe reads). Gated on `reservations.view` (the operations read baseline); per-entity

@@ -121,4 +121,27 @@ class User extends Authenticatable
             ->withPivot(['organization_id'])
             ->withTimestamps();
     }
+
+    /**
+     * The properties this user may work in, name-ordered (Phase 6a · multi-property access model).
+     *
+     * The `property_user` pivot is an OPTIONAL allow-list: if the user has any pivot rows they are
+     * restricted to those properties; if they have NONE they get every property in the org. Empty
+     * pivot ⇒ full org keeps single-property behaviour unregressed and locks no existing user out
+     * (the pivot was a dormant forward-hook before Phase 6a). Both queries run under the active
+     * tenant scope, so this only ever returns current-org property ids.
+     *
+     * @return list<string>
+     */
+    public function accessiblePropertyIds(): array
+    {
+        $pivotIds = $this->properties()->orderBy('properties.name')->pluck('properties.id');
+
+        if ($pivotIds->isNotEmpty()) {
+            return $pivotIds->map(fn ($id): string => (string) $id)->values()->all();
+        }
+
+        return Property::query()->orderBy('name')->pluck('id')
+            ->map(fn ($id): string => (string) $id)->values()->all();
+    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Operator;
 
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Availability;
 use App\Models\HousekeepingTask;
@@ -50,25 +51,38 @@ use Livewire\Component;
 class OperatorDashboard extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     public function render(): View
     {
         $desk = app(FrontDeskService::class);
-        $property = Property::query()->orderBy('name')->first();
         $date = $this->resolveDate();
         $day = CarbonImmutable::parse($date);
 
-        $occupancy = $property !== null ? $this->occupancy($property, $date) : ['total' => 0, 'sold' => 0, 'available' => 0, 'pct' => 0];
-        $arrivals = $property !== null ? $desk->arrivals($property->id, $date) : new Collection;
-        $departures = $property !== null ? $desk->departures($property->id, $date) : new Collection;
-        $inHouse = $property !== null ? $desk->inHouse($property->id, $date) : new Collection;
-        $housekeeping = $property !== null ? $this->housekeeping($property) : ['pending' => 0, 'in_progress' => 0, 'clean' => 0, 'inspected' => 0, 'to_clean' => 0];
+        // Phase 6a · multi-property: the dashboard aggregates over the READ set — a single selected
+        // property, or every accessible property when "all" is chosen. The set is bounded (and locked)
+        // by the property context, so this is never an arbitrary ->first() and never a foreign property.
+        /** @var Collection<int, Property> $properties */
+        $properties = $this->currentReadIds === []
+            ? new Collection
+            : Property::query()->whereIn('id', $this->currentReadIds)->orderBy('name')->get();
+        $propertyIds = $properties->pluck('id')->map(fn ($id): string => (string) $id)->all();
+        $primary = $properties->first();
 
-        $currency = (string) ($property->currency ?? 'EUR');
+        $occupancy = $this->occupancy($propertyIds, $date);
+        $arrivals = $this->deskAcross($desk, 'arrivals', $propertyIds, $date);
+        $departures = $this->deskAcross($desk, 'departures', $propertyIds, $date);
+        $inHouse = $this->deskAcross($desk, 'inHouse', $propertyIds, $date);
+        $housekeeping = $this->housekeeping($propertyIds);
+
+        $currency = (string) ($primary->currency ?? 'EUR');
+        $propertyLabel = $this->viewingAllProperties
+            ? ['id' => 'all', 'name' => 'All properties']
+            : ($primary !== null ? ['id' => (string) $primary->id, 'name' => (string) $primary->name] : null);
 
         return view('livewire.operator.dashboard', [
             'viewer' => $this->viewer(),
-            'property' => $property !== null ? ['id' => $property->id, 'name' => $property->name] : null,
+            'property' => $propertyLabel,
             'day' => [
                 'date' => $date,
                 'label' => $day->format('l, j M Y'),
@@ -103,15 +117,40 @@ class OperatorDashboard extends Component
     }
 
     /**
-     * TRUE org-wide occupancy for the night: sum the real Availability spine (total/sold/available)
-     * across the property's room types. Scoped by the property's tenant-scoped room types, so another
-     * org's rows can never enter the sum. This is the fix for the room-type-wide mislabel trap.
+     * Merge a FrontDeskService list across every property in the read set (a single property, or all
+     * accessible when "all"). Each call is property-scoped; the merge is the multi-property roll-up.
      *
+     * @param  list<string>  $propertyIds
+     * @return Collection<int, Reservation>
+     */
+    private function deskAcross(FrontDeskService $desk, string $method, array $propertyIds, string $date): Collection
+    {
+        /** @var Collection<int, Reservation> $merged */
+        $merged = new Collection;
+
+        foreach ($propertyIds as $propertyId) {
+            /** @var Collection<int, Reservation> $rows */
+            $rows = $desk->{$method}($propertyId, $date);
+            $merged = $merged->merge($rows);
+        }
+
+        return $merged;
+    }
+
+    /**
+     * TRUE occupancy for the night: sum the real Availability spine (total/sold/available) across the
+     * room types of EVERY property in the read set. Scoped by tenant-scoped room types, so another
+     * org's rows can never enter the sum. This is the fix for the room-type-wide mislabel trap, now
+     * multi-property aware.
+     *
+     * @param  list<string>  $propertyIds
      * @return array{total: int, sold: int, available: int, pct: int}
      */
-    private function occupancy(Property $property, string $date): array
+    private function occupancy(array $propertyIds, string $date): array
     {
-        $roomTypeIds = RoomType::query()->where('property_id', $property->id)->pluck('id')->all();
+        $roomTypeIds = $propertyIds === []
+            ? []
+            : RoomType::query()->whereIn('property_id', $propertyIds)->pluck('id')->all();
         if ($roomTypeIds === []) {
             return ['total' => 0, 'sold' => 0, 'available' => 0, 'pct' => 0];
         }
@@ -135,17 +174,20 @@ class OperatorDashboard extends Component
     }
 
     /**
-     * Housekeeping status counts for the property (real enum), + "to clean" = pending + in_progress.
+     * Housekeeping status counts across the read set (real enum), + "to clean" = pending + in_progress.
      *
+     * @param  list<string>  $propertyIds
      * @return array{pending: int, in_progress: int, clean: int, inspected: int, to_clean: int}
      */
-    private function housekeeping(Property $property): array
+    private function housekeeping(array $propertyIds): array
     {
-        $counts = HousekeepingTask::query()
-            ->where('property_id', $property->id)
-            ->selectRaw('status, COUNT(*) as c')
-            ->groupBy('status')
-            ->pluck('c', 'status');
+        $counts = $propertyIds === []
+            ? collect()
+            : HousekeepingTask::query()
+                ->whereIn('property_id', $propertyIds)
+                ->selectRaw('status, COUNT(*) as c')
+                ->groupBy('status')
+                ->pluck('c', 'status');
 
         $pending = (int) ($counts['pending'] ?? 0);
         $inProgress = (int) ($counts['in_progress'] ?? 0);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Operator;
 
 use App\Http\Controllers\Operator\SettingsActionController;
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Fee;
 use App\Models\Organization;
@@ -38,10 +39,11 @@ use Livewire\Component;
 class OperatorSettings extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     public function render(): View
     {
-        $property = Property::query()->orderBy('name')->first();
+        $property = $this->currentProperty();
         $policy = $property?->policies()->first();
         $organization = $property !== null ? Organization::query()->find($property->organization_id) : null;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
-use App\Models\Property;
 use App\Models\ReservationUnit;
 use App\Models\RoomType;
 use App\Services\AvailabilityService;
@@ -58,6 +58,7 @@ use Livewire\Component;
 class ReservationRack extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     /** How many nights the rack shows at once. */
     public int $days = 14;
@@ -66,7 +67,7 @@ class ReservationRack extends Component
     {
         $availability = app(AvailabilityService::class);
 
-        $property = Property::query()->orderBy('name')->first();
+        $property = $this->currentProperty();
 
         /** @var Collection<int, RoomType> $roomTypes */
         $roomTypes = $property !== null

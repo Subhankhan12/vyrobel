@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Operator;
 
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\FrontDesk;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Reservation;
@@ -103,6 +104,7 @@ use Livewire\Component;
 class ReservationsList extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     /** Bound the search term: a LIKE pattern is not a place to accept unbounded user input. */
     private const MAX_QUERY = 100;
@@ -115,10 +117,10 @@ class ReservationsList extends Component
 
         $rows = $this->rows($stage, $query, $today);
 
-        // The tenant's TRUE total, ignoring both filter and search — it distinguishes "this tenant has no
-        // reservations" from "your filter matched none", which are different empty states with different
-        // advice. It must never be a count of the filtered set.
-        $total = Reservation::query()->count();
+        // The property's TRUE total, ignoring both filter and search — it distinguishes "this property has
+        // no reservations" from "your filter matched none", which are different empty states with different
+        // advice. It must never be a count of the filtered set. Scoped to the current property (or all).
+        $total = Reservation::query()->whereIn('property_id', $this->currentReadIds)->count();
 
         return view('livewire.operator.reservations-list', [
             'viewer' => $this->viewer(),
@@ -166,7 +168,9 @@ class ReservationsList extends Component
      */
     private function baseQuery(string $search): Builder
     {
-        $query = Reservation::query();
+        // Phase 6a · multi-property: scope to the current property (or every accessible property when
+        // "all"). Pre-6a this listed reservations org-wide, blending properties in a multi-property org.
+        $query = Reservation::query()->whereIn('property_id', $this->currentReadIds);
 
         if ($search === '') {
             return $query;
@@ -334,6 +338,7 @@ class ReservationsList extends Component
     private function monthStats(CarbonImmutable $today): array
     {
         $rows = Reservation::query()
+            ->whereIn('property_id', $this->currentReadIds)
             ->whereBetween('check_in', [
                 $today->startOfMonth()->toDateString(),
                 $today->endOfMonth()->toDateString(),

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Http\Controllers\FrontDeskActionController;
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Property;
 use App\Models\Reservation;
@@ -50,11 +51,12 @@ use Livewire\Component;
 class FrontDesk extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     public function render(): View
     {
         $desk = app(FrontDeskService::class);
-        $property = Property::query()->orderBy('name')->first();
+        $property = $this->currentProperty();
 
         $date = $this->resolveDate($property);
 

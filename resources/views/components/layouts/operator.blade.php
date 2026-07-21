@@ -147,6 +147,13 @@
         .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; }
         .vy-chip-name { font-size: 13px; font-weight: 500; }
 
+        /* Property switcher (Phase 6a · multi-property) — sits in the topbar actions. */
+        .vy-propsw { display: flex; align-items: center; gap: 7px; padding: 4px 10px 4px 11px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); color: var(--vy-muted); }
+        .vy-propsw-ico { color: var(--vy-accent); flex: none; }
+        .vy-propsw-select { border: 0; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--vy-ink); padding: 3px 2px; cursor: pointer; max-width: 180px; }
+        .vy-propsw-select:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; border-radius: 4px; }
+        .vy-propsw-static { font-size: 13px; font-weight: 500; color: var(--vy-ink); }
+
         /* ---- Reusable surfaces ----------------------------------------------------------------- */
         .vy-card {
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);

@@ -11,6 +11,7 @@ use App\Models\Property;
 use App\Services\AssignmentService;
 use App\Services\GroupBookingService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -38,7 +39,11 @@ class GroupBookingController extends Controller
 
     public function store(Request $request, GroupBookingService $groups, UnitAvailabilityService $availability): RedirectResponse
     {
-        $property = Property::query()->orderBy('name')->first();
+        // Phase 6a · multi-property: the block is created in the operator's CURRENT property (the
+        // selected context), not an arbitrary ->first(). The context is active in the /app group and
+        // bounded to the user's accessible set, so the whole block — offer + write — lands in the
+        // intended property.
+        $property = Property::query()->whereKey(app(PropertyContext::class)->id())->first();
         if ($property === null) {
             return $this->back($request, 'No property is configured yet.');
         }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\Operator;
 
 use App\Http\Controllers\Operator\GroupBookingController;
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
-use App\Models\Property;
 use App\Services\AssignmentService;
 use App\Services\UnitAvailabilityService;
 use Carbon\CarbonImmutable;
@@ -34,10 +34,11 @@ use Livewire\Component;
 class GroupBooking extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     public function render(UnitAvailabilityService $availability): View
     {
-        $property = Property::query()->orderBy('name')->first();
+        $property = $this->currentProperty();
 
         $checkIn = $this->validDate(request()->query('check_in'));
         $checkOut = $this->validDate(request()->query('check_out'));

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Operator;
 
 use App\Http\Controllers\Operator\RateActionController;
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Availability;
 use App\Models\RateCalendar;
@@ -63,6 +64,7 @@ use Livewire\Component;
 class RatesGrid extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     /** The grid shows a two-week window — enough to plan a fortnight without an unreadable wall of columns. */
     private const WINDOW_DAYS = 14;
@@ -73,7 +75,11 @@ class RatesGrid extends Component
         $dates = $this->windowDates($from);
         $lastDate = end($dates);
 
+        // Phase 6a · multi-property: scope the grid to the current property (or every accessible
+        // property when "all" is selected). Pre-6a this read ALL room types org-wide — which silently
+        // BLENDED properties once an org ran more than one.
         $roomTypes = RoomType::query()
+            ->whereIn('property_id', $this->currentReadIds)
             ->with(['defaultRatePlan', 'ratePlans' => fn ($q) => $q->where('is_active', true)->orderBy('created_at')])
             ->withCount('units')
             ->orderBy('name')

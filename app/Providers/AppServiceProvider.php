@@ -67,6 +67,7 @@ use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
 use App\Support\Owner\OwnerContext;
+use App\Support\Property\PropertyContext;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -91,6 +92,11 @@ class AppServiceProvider extends ServiceProvider
         // Owner-portal scope (Step 6) is request-scoped shared state too — the OwnerScope global
         // scope and SetOwnerScopeForPortal middleware must see the same instance. Inactive by default.
         $this->app->singleton(OwnerContext::class);
+
+        // Property working-context (Phase 6a · multi-property) is request-scoped shared state: the
+        // SetCurrentPropertyForWebRequest middleware, the switcher, and every /app screen resolving
+        // "the current property" must see the same instance. Inactive by default (CLI/queue/tests).
+        $this->app->singleton(PropertyContext::class);
 
         // Payment gateway selection is config-driven (services.payments.gateway; per-tenant
         // override is a Phase 3 hook). `manual` = offline (Phase 1); `stripe` = Step 6. FolioService

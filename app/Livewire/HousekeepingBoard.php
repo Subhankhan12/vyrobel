@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Http\Controllers\HousekeepingActionController;
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\HousekeepingTask;
 use App\Models\User;
@@ -47,6 +48,7 @@ use Livewire\Component;
 class HousekeepingBoard extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     /** The kanban columns, in workflow order — exactly the real status enum. */
     private const STATUSES = ['pending', 'in_progress', 'clean', 'inspected'];
@@ -67,7 +69,10 @@ class HousekeepingBoard extends Component
         $high = 0;
         $total = 0;
 
+        // Phase 6a · multi-property: the board shows the current property (or every accessible property
+        // when "all"). Pre-6a it listed housekeeping org-wide, blending properties in a multi-property org.
         $tasks = HousekeepingTask::query()
+            ->whereIn('property_id', $this->currentReadIds)
             ->with(['unit', 'assignedTo'])
             ->orderByRaw("FIELD(priority, 'high', 'normal', 'low')")
             ->orderBy('date')

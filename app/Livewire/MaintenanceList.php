@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Http\Controllers\Operator\MaintenanceActionController;
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\MaintenanceTicket;
 use App\Models\Membership;
@@ -13,6 +14,7 @@ use App\Models\User;
 use App\Services\MaintenanceService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -54,6 +56,7 @@ use Livewire\Component;
 class MaintenanceList extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
 
     /** The kanban lanes, in workflow order — exactly the real active-status enum. */
     private const STATUSES = ['open', 'in_progress', 'resolved'];
@@ -66,7 +69,10 @@ class MaintenanceList extends Component
 
     public function render(): View
     {
+        // Phase 6a · multi-property: scope to the current property (or every accessible property when
+        // "all"). Tickets carry no property_id — they hang off a unit — so scope through the unit.
         $tickets = MaintenanceTicket::query()
+            ->whereHas('unit', fn (Builder $q) => $q->whereIn('property_id', $this->currentReadIds))
             ->with(['unit', 'assignedTo'])
             ->whereIn('status', self::STATUSES)
             ->orderByRaw("FIELD(priority, 'urgent', 'high', 'normal', 'low')")
@@ -105,6 +111,7 @@ class MaintenanceList extends Component
         // Units genuinely out of service right now (the real condition_status, tenant-scoped) + the
         // active OOS ticket that governs each (for the "View" link on the rail).
         $oosModels = Unit::query()
+            ->whereIn('property_id', $this->currentReadIds)
             ->where('condition_status', 'out_of_service')
             ->orderBy('code')
             ->get();
@@ -180,6 +187,7 @@ class MaintenanceList extends Component
     private function ownUnits(): array
     {
         return Unit::query()
+            ->whereIn('property_id', $this->currentReadIds)
             ->orderBy('code')
             ->get()
             ->map(fn (Unit $u): array => [

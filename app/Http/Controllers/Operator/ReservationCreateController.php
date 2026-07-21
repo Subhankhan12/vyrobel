@@ -16,6 +16,7 @@ use App\Services\UnitAvailabilityService;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
+use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -72,6 +73,15 @@ class ReservationCreateController extends Controller
 
         $roomType = RoomType::query()->find($roomTypeId);   // tenant-scoped → cross-org is simply "not found"
         if ($roomType === null) {
+            return $this->back($request, 'That room type isn’t available.');
+        }
+
+        // Phase 6a · multi-property: the reservation lands in the ROOM TYPE's property (a booking for
+        // room type X is in X's property). NewReservation only offers the current property's room types,
+        // but a crafted POST could submit an in-org room type from a property the user isn't assigned to —
+        // so honour the property_user allow-list on the write path too, not just in the picker.
+        $context = app(PropertyContext::class);
+        if ($context->active() && ! in_array((string) $roomType->property_id, $context->accessibleIds(), true)) {
             return $this->back($request, 'That room type isn’t available.');
         }
 
