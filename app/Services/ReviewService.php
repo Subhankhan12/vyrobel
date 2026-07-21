@@ -72,4 +72,42 @@ class ReviewService
 
         return $review;
     }
+
+    /**
+     * MODERATION — publish a PUBLIC review so it becomes publicly visible (Phase 5 · SG2). A `private` review can
+     * NEVER be published (the guest's choice is respected). Idempotent. A meaningful state change → events.
+     */
+    public function publish(Review $review): Review
+    {
+        if ($review->visibility !== Review::VISIBILITY_PUBLIC) {
+            throw new ReviewNotAllowedException('A private review can’t be published.');
+        }
+        if ($review->status === Review::STATUS_PUBLISHED) {
+            return $review;
+        }
+
+        $before = (string) $review->status;
+        $review->forceFill(['status' => Review::STATUS_PUBLISHED, 'published_at' => now()])->save();
+
+        $this->domainEvents->record('review.published', $review, ['rating' => $review->rating]);
+        $this->audit->record('review.published', $review, ['status' => $before], ['status' => Review::STATUS_PUBLISHED]);
+
+        return $review;
+    }
+
+    /** MODERATION — reject a review so it is never publicly visible (unpublishes a published one too). Idempotent. */
+    public function reject(Review $review): Review
+    {
+        if ($review->status === Review::STATUS_REJECTED) {
+            return $review;
+        }
+
+        $before = (string) $review->status;
+        $review->forceFill(['status' => Review::STATUS_REJECTED, 'published_at' => null])->save();
+
+        $this->domainEvents->record('review.rejected', $review, []);
+        $this->audit->record('review.rejected', $review, ['status' => $before], ['status' => Review::STATUS_REJECTED]);
+
+        return $review;
+    }
 }
