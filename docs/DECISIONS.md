@@ -3195,3 +3195,83 @@ this pass fixed them **without touching money/auth/isolation logic or the mutati
 Suite **924 / 7517** green (921 + the 3 new) · PHPStan L5 · Pint clean · `migrate:fresh --seed` clean. **Next: the
 design-fidelity pass** (`docs/AUDIT-REPORT.md` §4). Account-gated tail stays deferred (live charge/payout/KYC/OTA/
 WhatsApp/SMS). Audit-fix commits: `c0ce419` (G1) → `7cd1550` (G2) → this doc-consolidation (G3).
+
+### 2026-07-22 — Total-recall consolidation · BACKFILL (Phases 7c/7d + Phase 8 email/Stripe) + the design-fidelity pass
+
+This entry backfills the dated log for phases that shipped (commits below) but whose per-phase DECISIONS entries
+were deferred to this consolidation, then records the audit-era design-fidelity pass. Chronology is carried by the
+hashes; the entry itself is appended (append-only order preserved). All are on `main`, pushed.
+
+**Phase 7c — OWNER SUB-TENANCY (Owner Team) COMPLETE** (`3b…`→`5b5ea7b`→`8b341c2`). An owner sub-user ⊆ their
+owner ⊆ org, the NESTED isolation COMPOSED from the existing `OwnerScope` + tenant scope (no new scope invented).
+`owner_users` pivot + the ONE capability matrix `App\Support\Owner\OwnerTeamRole` (three fixed roles: co-owner /
+accountant / view-only) read by BOTH the route gate `EnsureOwnerCapability` and the UI `@ownercan` — so gate and UI
+can't drift. The SENSITIVE payout account is **co-owner ONLY** (money-security, #28 on the encrypted IBAN column);
+team management is **primary-owner ONLY** (`EnsurePrimaryOwner`/`isPrimaryOwner()`, held by NO role — self-escalation
+structurally impossible; `OwnerTeamRole::canAssign()` requires the primary owner). The owner-realm invite reuses the
+hardened token discipline + is owner-scoped. **Owner writes are CONTROLLER routes (not Livewire actions)** so the
+middleware runs (the `/livewire/update` boundary) — later proven by `OwnerCapabilityMutationBoundaryTest`. Invariant **#42**.
+
+**Phase 7d — TEAM SCHEDULE COMPLETE** (`88e3af1`→`152dc8d`). A weekly staff roster, TENANT + PROPERTY scoped over
+REAL staff (`StaffRoster` = active `Membership` ∩ a back-office role; a shift lands on the selected `PropertyContext`,
+never `->first()`, never a fabricated person). `ShiftType`/`StaffDepartment`/`StaffRoster` + the ONE `RosterWeek`
+builder read by both the grid and the schedule PDF (they reconcile). Managing = `schedule.manage` (manager-level, not
+Front Desk); viewing = broad `schedule.view`. Time-off is a request→approval SEPARATION with **self-approval
+impossible** (`LeaveService`); a shift-on-approved-leave is a REAL computed conflict. Invariant **#43**. THE BUILDABLE
+PHASE 7 (SaaS layer) IS COMPLETE.
+
+**Phase 8 — PRODUCTION EMAIL · LIT UP** (`9b40e32`→`f879de3`; `docs/EMAIL-PRODUCTION.md`). Postmark wired as the
+production transport; STRICT test/prod separation. THE #1 GUARD `MailSafetyGuard` (code-guard) REFUSES a real-sending
+transport (postmark/ses) outside `APP_ENV=production` and downgrades to `log` — so even `MAIL_MAILER=postmark` in dev
+can't email a real person. The Phase-3 boundary (a mail failure NEVER rolls back the domain txn) re-proven with the
+real transport; bounces handled Postmark-native. Domain auth (SPF/DKIM/DMARC) documented. **Code-complete; Subhan's
+cutover = the DNS records + the Postmark server token + one real send to his own address.** Invariant **#44**
+(email-safety + mail-never-rolls-back).
+
+**Phase 8 — LIVE STRIPE · LIT UP (test-mode-proven) across all THREE seams** (`ae29575` SG0 → `2a1bb47` SG1 subscription
+billing → `f8a31e9` SG2 guest card charge → `dda2a80` SG3 owner payout rail; `docs/STRIPE-PRODUCTION.md`). Seams:
+subscription billing (Checkout → webhook-driven org activation), guest folio card charge (hosted Checkout → folio on
+`payment_intent.succeeded`, reconciles), owner payout rail (Connect Transfer → payout `processing→paid` on
+`transfer.created`). **Iron rules, all proven against `FakeStripeClient` (real HMAC, no network):** the card never
+touches the server (hosted Checkout — PCI SAQ A); **fulfil on the WEBHOOK, not the redirect**; every webhook
+SIGNATURE-VERIFIED against the RAW body (two DISTINCT endpoints — account `/webhooks/stripe` + Connect
+`/webhooks/stripe/connect`, separate secrets); **multi-layer idempotency** (deterministic `StripeIdempotency` send-key
++ the `webhook_events` unique `event.id` index + `firstOrCreate(gateway_ref)`); the owner payout **can never
+double-transfer** (unique key + `lockForUpdate` ledger row-lock, re-check pending inside the lock — proven to double
+WITHOUT the lock and once WITH) and only ever pays its OWN owner; ledgers stay append-only / correct-by-reversal /
+integer-minor (#17,#27). `StripeSafetyGuard` (code-guard) REFUSES a live `sk_live_…` key outside `production` (the fake
+client is bound instead). **Test-mode-proven; the LIVE-KEY FLIP is Subhan's documented final step** (activate account,
+live Prices, register both webhook endpoints, flip ENV, $1 real-card smoke-test → refund). Invariant **#45**.
+
+**FULL-SYSTEM AUDIT + demo-blocker fixes** — recorded in the 2026-07-22 audit entry above (`4fb22fa` audit →
+`c0ce419`/`7cd1550`/`420995a` fixes). Verdict: **demo-ready** after the fixes; **customer-ready pending the
+account-gated tail** (Channex/WhatsApp/SMS/KYC) + Subhan's email/Stripe cutovers + deployment.
+
+**DESIGN-FIDELITY PASS — IN PROGRESS** (`bdeb3f7`→`6ae6d3e`→`1d4a7b8`→`936bd2f`→`5c78a67`→`98c4e13`;
+`docs/design/DIVERGENCE-REGISTER.md`). Presentation-only (Blade/CSS/components/layout/states — NEVER
+behaviour/logic/guards; suite stays 924/7517 green per page-commit). The shared design TOKENS already match
+`docs/design/design-system-brief.md` near-exactly (the app was built from it), so this is PER-PAGE layout fidelity.
+The sharpened discipline — **THREE-CATEGORY discrimination** on every gap: ✅ **KIND-1** layout/arrangement → FIX with
+shared tokens/components; 🚫 **KIND-2** fabricated content (84% occupancy, Marco Reyes, task lists, synced-channel
+panels) → REFUSE, style the real/sparse/empty state to the prototype's treatment (a well-styled honest state IS
+parity); 📐 **KIND-3** beyond the presentation boundary (a data-shape the component doesn't fetch, or JS not built) →
+DOCUMENT as an intentional divergence, do NOT cross the boundary to chase a look. GATE 0: the operator **shell**
+regrouped to the prototype's sections (OVERVIEW/FRONT DESK/OPERATIONS/FINANCE/SYSTEM), propagating to every operator
+page (`bdeb3f7`). Then RESTRUCTURED (KIND-1): **Dashboard** (uniform 5-tile KPI row + a right-rail dark "Tonight"
+panel + an HK progress bar — real data, refused the fabricated 84%/tasks/channels; `6ae6d3e`), **Reservation Detail**
+(a prominent dark "Balance due" panel leading the right rail — real reconciled folio; refused the prototype's
+email/phone guest card as a #28 PII breach; `936bd2f`), **Reservations List** (3 uniform full-width KPI tiles + FIXED a
+shared-grid regression the Dashboard commit introduced: `.vy-dash-kpis` is now count-agnostic — `repeat(4)` default +
+opt-in `--3`/`--5` modifiers; `5c78a67`), **Guests CRM** (3 uniform full-width KPI tiles; `98c4e13`). INTENTIONAL
+DIVERGENCE (KIND-3, documented not chased): **Reservation Rack** (prototype = per-unit Gantt with spanning bars; app =
+per-room-type availability-counts grid — a Gantt needs per-unit spans the component doesn't fetch) and **Front Desk**
+(prototype = tabs + hourly timeline + unassigned count = JS/data; the app's KPI band + arrival rows already at parity).
+Shared UI extractions introduced/generalised: the **`.vy-tonight` dark stat panel** (Dashboard + Reservation Detail)
+and the **count-agnostic `.vy-dash-kpis`** modifiers — the anti-drift discipline applied to UI, not just logic. NEXT:
+resume the operator queue — **Rates next**, then Maintenance/Units/Settings/Roles/Profile/Notifications/Inbox/Reports/
+Team Schedule/Housekeeping/Billing — then GATE 2 (owner), GATE 3 (guest), GATE 4 (public/billing + fold the register
+into `docs/design/CATALOGUE.md`). Setup to resume: `php -S 127.0.0.1:8899` from `docs/design/raw/` (gitignored) for
+side-by-side diffing.
+
+**This consolidation:** docs-only, no code changed; suite **924 / 7517** green on MySQL, PHPStan L5 + Pint clean,
+`migrate:fresh --seed` clean; HEAD `98c4e13`, `main`, local == origin. Invariants **#1–#45**.

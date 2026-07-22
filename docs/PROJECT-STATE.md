@@ -6,6 +6,61 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐ **CURRENT STATE — 2026-07-22 total-recall consolidation (HEAD `98c4e13`, `main`, local == origin, tree clean).
+> This block supersedes any earlier "next is Phase 7c" prose below (kept as historical detail).**
+>
+> **THE ENTIRE BUILDABLE PRODUCT IS COMPLETE (Phases 0–7), and Phase 8's two OBTAINABLE integrations are LIT UP.**
+> Three full user-facing apps — operator back office (`/app`), owner portal (`/owner`), guest portal (`/guest`) —
+> plus a public storefront (`/book/{slug}`) and public self-signup (`/signup`) that atomically provisions a new
+> tenant org on a free trial. On a certified multi-tenant backend (PMS + channel manager + Stripe payments + owner
+> accounting + maintenance + unified inbox + notifications/emails + reviews + analytics + tenant provisioning +
+> subscription billing + owner sub-tenancy + staff rostering), behind **hardened multi-realm auth** (operator/owner
+> `web` guard + a separate `guest` guard; login · self-signup · invites · owner-team invites · password reset ·
+> change-password · 2FA/TOTP). MULTI-PROPERTY (`PropertyContext`) · REAL analytics (`PerformanceMetrics`, RevPAR =
+> ADR × occupancy) · the SaaS layer (atomic provisioning · subscription billing/paywall · owner team · team schedule).
+> **Phase 8 — PRODUCTION EMAIL** (Postmark, `MailSafetyGuard` code-guard): code-complete, Subhan's cutover = DNS +
+> token (`docs/EMAIL-PRODUCTION.md`). **Phase 8 — LIVE STRIPE across all three seams** (subscription billing · guest
+> card charge · owner payout rail/Connect): TEST-MODE-PROVEN (webhook-source-of-truth, signature-verified against the
+> raw body, multi-layer idempotency, no raw PAN/SAQ A, the payout double-transfer-guarded, `StripeSafetyGuard`
+> code-guard), Subhan's cutover = the live-key flip (`docs/STRIPE-PRODUCTION.md`).
+>
+> A **full-system Playwright AUDIT** (`docs/AUDIT-REPORT.md`, all 5 apps, 26 screenshots) found ONE demo-blocker +
+> follow-ups, now FIXED (the four unstyled operator controller-pages wrapped in `x-layouts.operator`; the storefront
+> rate-seed rolling window; the dev expire-trial button = already-gated false positive; the `/livewire/update`
+> owner-capability boundary test — gate holds). Verdict: **DEMO-READY**; customer-ready pending the account-gated tail
+> + Subhan's cutovers + deployment.
+>
+> A **DESIGN-FIDELITY PASS is IN PROGRESS** (`docs/design/DIVERGENCE-REGISTER.md`) — presentation-only, per-page,
+> three-category discipline (✅ KIND-1 layout → FIX · 🚫 KIND-2 fabricated content → REFUSE · 📐 KIND-3 beyond the
+> presentation boundary → DOCUMENT). Done: the operator **shell** regrouped to the prototype's sections + 4 pages
+> RESTRUCTURED (Dashboard, Reservation Detail, Reservations List, Guests CRM) + 2 INTENTIONAL DIVERGENCES (Rack Gantt,
+> Front Desk tabs/timeline). Shared UI anti-drift added: `.vy-tonight` dark stat panel, count-agnostic `.vy-dash-kpis`
+> (`--3`/`--4`/`--5`). **NEXT = resume the design pass operator queue — Rates next** (then Maintenance/Units/Settings/
+> Roles/Profile/Notifications/Inbox/Reports/Team Schedule/Housekeeping/Billing), then GATE 2 owner, GATE 3 guest,
+> GATE 4 public/billing + fold the register into `docs/design/CATALOGUE.md`. Setup: `php -S 127.0.0.1:8899` from
+> `docs/design/raw/` (gitignored) for side-by-side diffing.
+>
+> Suite **924 tests / 7517 assertions** green on MySQL 8; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean;
+> Redis/Horizon live. **Invariants #1–#45.** Read order for a fresh session: **PROJECT-STATE → DECISIONS →
+> GAP-ANALYSIS → AUDIT-REPORT → design/DIVERGENCE-REGISTER.**
+>
+> **TAGGED OUTSTANDING REGISTER (honest):**
+> - **DESIGN-FIDELITY PASS — in progress** (the operator queue above → owner → guest → public; per-page,
+>   presentation-only, three-category classify + register, suite green, browser-verify).
+> - **ACCOUNT-GATED remaining** (each a focused prompt as the account lands): Channex live OTA sync · WhatsApp/OTA
+>   inbox channels · SMS (waitlist/notifications) · guest ID verification / KYC. (Email + Stripe are DONE — pending
+>   only Subhan's cutovers.)
+> - **RESIDUAL PLATFORM item** (deferred): the global `Super Admin` role's residual assignability — a Horizon-style
+>   platform gate + a spatie-PK rework; a founder must NEVER hold it (provisioning already gives them `Property
+>   Owner`, #40).
+> - **SUBHAN'S LIVE CUTOVERS (not code):** email DNS (SPF/DKIM/DMARC) + Postmark token + one real send
+>   (`docs/EMAIL-PRODUCTION.md`); Stripe go-live (activate · live Prices · both webhook endpoints · flip ENV · $1
+>   smoke-test → refund, `docs/STRIPE-PRODUCTION.md`).
+> - **DEPLOYMENT (not a build):** runs locally on XAMPP — needs production hosting/domain/HTTPS/MySQL/Redis-Horizon.
+>
+> ---
+> *Historical one-paragraph-answer (pre-7c; kept for the arc — trust the CURRENT STATE block above where they differ):*
+
 > **THE ONE-PARAGRAPH ANSWER.** The product is **COMPLETE, DEEP, DEMOABLE end-to-end, and safe for a real owner
 > login**: a certified multi-tenant backend (PMS + channel manager + payments + owner accounting + maintenance
 > + unified inbox), a **fully hardened auth chapter** (login · invites · password reset · change-password ·
@@ -1438,7 +1493,13 @@ plain GET links (e.g. `?month=`).
   single source for #26/#30) · `database/migrations/` + `database/seeders/DemoSeeder.php` ·
   `tests/Feature/` + `tests/Unit/` + `tests/Support/`.
 
-## NEXT ACTION — Phases 0–5, 6 (a+b), 7a AND 7b DONE; NEXT = Phase 7c (Owner Team) in `docs/GAP-ANALYSIS.md`
+## NEXT ACTION — ⭐ SUPERSEDED by the CURRENT STATE block at the TOP of this file (2026-07-22)
+
+> **⚠️ The authoritative next action is the ⭐ CURRENT STATE block at the top: ALL of Phase 7 is done AND Phase 8's
+> email + Stripe are lit up AND the audit + demo-blocker fixes are done — so NEXT = RESUME the DESIGN-FIDELITY PASS
+> (operator queue, `Rates` next; see `docs/design/DIVERGENCE-REGISTER.md`). The section below is retained for its
+> Phase-7 detail but no longer names the next action.**
+
 
 > **CURRENT (2026-07-22). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b) AND ALL OF PHASE 7 (7a, 7b, 7c, 7d) of the phased
 > plan are COMPLETE — the SaaS layer is done** — three full user-facing apps (operator · owner · guest) + a public
