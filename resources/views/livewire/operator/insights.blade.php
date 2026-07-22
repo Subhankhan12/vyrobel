@@ -25,7 +25,9 @@
         {{-- METRIC CARDS — all REAL, reconciling to the metric layer / FolioTotals --}}
         <div class="vy-dash-kpis vy-fade" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
             @foreach ($cards as $c)
-                <div class="vy-dash-kpi @if ($c['key'] === 'occupancy') is-feature @endif">
+                {{-- Uniform light tiles (the prototype's Insights KPI band has no dark hero; matches the
+                     Rates/Reservations/Guests precedent). --}}
+                <div class="vy-dash-kpi">
                     <div class="vy-dk-label">{{ $c['label'] }}</div>
                     <div class="vy-dk-val">{{ $c['value'] }}</div>
                     <div class="vy-dk-sub">{{ $c['sub'] }}</div>
