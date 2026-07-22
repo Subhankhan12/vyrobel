@@ -12,13 +12,28 @@
             </div>
         @endif
 
-        {{-- Toolbar: DERIVED summary + honest NO-BACKEND affordances --}}
-        <div class="vy-rack-toolbar vy-fade">
-            <div class="vy-left vy-summary" style="margin: 0;">
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $summary['total'] }}</span><span class="vy-sc-label">Tasks</span></div>
-                <div class="vy-summary-chip @if ($summary['high'] > 0) is-due @endif"><span class="vy-sc-num">{{ $summary['high'] }}</span><span class="vy-sc-label">High priority</span></div>
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $summary['pending'] + $summary['in_progress'] }}</span><span class="vy-sc-label">Open</span></div>
+        {{-- KPI band — DERIVED real counts as uniform light tiles (the shared .vy-dash-kpis--3 band,
+             matching the prototype's status pills + the Maintenance/Inbox precedent). --}}
+        <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade">
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">Tasks</div>
+                <div class="vy-dk-val">{{ $summary['total'] }}</div>
+                <div class="vy-dk-sub">cleaning tasks in view</div>
             </div>
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">High priority</div>
+                <div class="vy-dk-val">{{ $summary['high'] }}</div>
+                <div class="vy-dk-sub">flagged urgent</div>
+            </div>
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">Open</div>
+                <div class="vy-dk-val">{{ $summary['pending'] + $summary['in_progress'] }}</div>
+                <div class="vy-dk-sub">pending + in progress</div>
+            </div>
+        </div>
+
+        {{-- Slim toolbar — honest "Soon" affordances (the summary moved up into the KPI band). --}}
+        <div class="vy-rack-toolbar vy-fade" style="justify-content: flex-end; margin-top: 14px;">
             <div class="vy-right">
                 <span class="vy-pill is-soon" aria-disabled="true">Filters <span class="vy-soon-tag">Soon</span></span>
                 <span class="vy-pill is-soon" aria-disabled="true">Export <span class="vy-soon-tag">Soon</span></span>
