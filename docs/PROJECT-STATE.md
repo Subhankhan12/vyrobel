@@ -1453,7 +1453,15 @@ plain GET links (e.g. `?month=`).
 > `MailSafetyGuard`; the Phase-3 mail-failure boundary re-proven with the real transport; DNS + the one real send are
 > Subhan's). Suite **921 / 7496** with **LIVE STRIPE wired TEST-MODE-FIRST across all three seams** (subscription
 > billing · guest card charge · owner payout rail/Connect — webhook-driven, multi-layer idempotent, no raw PAN,
-> the payout double-transfer-guarded; the live-key flip is Subhan's). Invariants **#1–45**. **Guest Portal + Reviews
+> the payout double-transfer-guarded; the live-key flip is Subhan's). Invariants **#1–45**. Suite **924 / 7517**
+> after a **full READ-ONLY system audit** (`docs/AUDIT-REPORT.md`, 26 browser screenshots) whose demo-blockers were
+> then cleared in a targeted presentation/seed/test pass: `c0ce419` wrapped the four **unstyled operator controller-
+> pages** (Reviews/Guest requests/Email previews/Email templates — bare `<x-operator.shell>`, no document `<head>`)
+> in `<x-layouts.operator>` — the "static checks can't see a rendered page" lesson, live; `7cd1550` rolled the demo
+> `rate_calendar` to a `today→+180d` window (storefront demos real availability, not "0 rooms"); and the
+> `/livewire/update` owner-capability caveat is **CLOSED** by `OwnerCapabilityMutationBoundaryTest` (gate holds — owner
+> writes are gated controller routes; NO owner Livewire component exposes a mutating action, so nothing rides
+> `/livewire/update`). **Next = the design-fidelity pass** (`docs/AUDIT-REPORT.md` §4). **Guest Portal + Reviews
 > complete; multi-property + real analytics; tenant provisioning + subscription billing + owner team + team schedule +
 > production email + live Stripe (test-mode) ship (the Postmark live token + DNS, and the Stripe live-key flip, are
 > Subhan's go-live steps).** (The dated

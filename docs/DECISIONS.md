@@ -3155,3 +3155,43 @@ Phase-8-Stripe commits: `ae29575` (SG0) → `2a1bb47` (SG1) → `f8a31e9` (SG2) 
 **Phase-8 account-gated register — production email ✅ · LIVE STRIPE (all 3 seams) ✅ (test-mode-proven; live-flip
 = Subhan's).** Still pending (as accounts land): Channex live sync · WhatsApp / OTA inbox channels · SMS · guest
 ID verification (KYC).
+
+### 2026-07-22 — Audit demo-blocker remediation (targeted; presentation/seed/test-scoped) · 3 gated fixes
+
+A full READ-ONLY system audit (`docs/AUDIT-REPORT.md`, 26 browser screenshots, HEAD `4fb22fa`) drove a live
+Playwright browser through all five apps, health-swept every route, ran the RBAC/owner-capability matrices, and
+exercised four real mutations (guest check-in, storefront booking → `R-KHMWQN33` + inventory + domain event,
+self-serve signup → atomic provisioning, trial-expiry → paywall). It surfaced ONE demo-blocker plus follow-ups;
+this pass fixed them **without touching money/auth/isolation logic or the mutation-proven guards**.
+
+- **GATE 1 (`c0ce419`) — P1: four operator pages rendered UNSTYLED.** Reviews · Guest requests · Email previews ·
+  Email templates are the only operator screens rendered by a plain **controller** whose Blade root is
+  `<x-operator.shell>` — a **body-only** component (no `<!doctype>/<head>/@vite`). The 25 Livewire pages get the
+  document via `#[Layout('components.layouts.operator')]`; `<x-guest.shell>` self-wraps; `<x-operator.shell>` does
+  not. HTTP `200` + no exception + no raw-Blade leak, so every static check + the status-only health sweep missed
+  it — **the CLAUDE.md "static checks cannot see a rendered page" lesson, live.** Fix: wrap each of the four views'
+  shell in `<x-layouts.operator>` (the SAME document the Livewire pages sit inside). Chosen over making
+  `<x-operator.shell>` self-wrap (would DOUBLE-`<head>` the 25 Livewire pages). Presentation/layout-only.
+  **Browser-verified** (the only real proof): four pages fully styled; 25 Livewire pages unregressed (exactly one
+  `<head>` each). `fix-reviews-after.png` · `fix-guest-requests-after.png` · `fix-dashboard-noregress.png`.
+- **GATE 2 (`7cd1550`) — P2 storefront "0 rooms" (seed) + P2 dev button (false positive).** The storefront offered
+  nothing for most dates because the demo `rate_calendar` was seeded only for a fixed Sept band — availability was
+  open but UNPRICED (engine correct). **Seed-only fix:** `RANGE` is now a rolling `today → +180d` window (spanning
+  the fixed Sept demo stays); `seedCalendarRange` made idempotent (`updateOrCreate`) so the wide window overlaps the
+  near-term stay's own range without colliding on the unique `(rate_plan_id, date)`. Engine untouched. Browser-
+  verified: 20–23 Aug now offers 2 rooms (`fix-storefront-august.png`). The dev **"expire trial"** button was a
+  **false positive** — already gated to `local` at the view **and** `abort_unless(local,testing)→404` at the
+  controller; a production operator never sees or reaches it. No change.
+- **GATE 3 — the `/livewire/update` owner-capability caveat: CLOSED, gate holds, no gap.** The audit confirmed the
+  owner capability gates at the ROUTE layer but hadn't exercised the Livewire-update mutation layer (which skips
+  route middleware — the 6a boundary). New `tests/Feature/OwnerCapabilityMutationBoundaryTest.php` (3 tests / 21
+  assertions) proves the boundary two ways: (1) the **real HTTP mutation path** (POST/PATCH/DELETE to the payout +
+  team controller routes) 403s for every non-permitted sub-user (accountant/view-only on payout; every sub-user
+  incl. co-owner on team management) and passes for the account holder; (2) **structurally**, the sensitive owner
+  Livewire components (`OwnerPayoutMethod`, `OwnerTeam`) — and in fact **every** owner Livewire component — expose
+  only `render`/`mount`, i.e. **no mutating wire action**, so `/livewire/update` carries no owner mutation to
+  bypass a gate. The 7c design (owner writes on gated controller routes, not wire actions) is confirmed sound.
+
+Suite **924 / 7517** green (921 + the 3 new) · PHPStan L5 · Pint clean · `migrate:fresh --seed` clean. **Next: the
+design-fidelity pass** (`docs/AUDIT-REPORT.md` §4). Account-gated tail stays deferred (live charge/payout/KYC/OTA/
+WhatsApp/SMS). Audit-fix commits: `c0ce419` (G1) → `7cd1550` (G2) → this doc-consolidation (G3).

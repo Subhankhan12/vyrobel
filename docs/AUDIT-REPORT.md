@@ -6,6 +6,21 @@
 
 ---
 
+## 0. Resolution status (updated 2026-07-22 — demo-blockers cleared)
+
+The demo-blocking findings and the flagged follow-up have been fixed in a targeted, presentation/seed/test-scoped pass (money/auth/isolation logic untouched):
+
+| Finding | Status | Commit |
+|---|---|---|
+| **P1-1** · four operator pages unstyled | ✅ **RESOLVED** — wrapped the four controller views in `<x-layouts.operator>` (the document layout the 25 Livewire pages already use). Browser-verified: all four fully styled; 25 Livewire pages unregressed (exactly 1 `<head>` each). `fix-reviews-after.png`, `fix-guest-requests-after.png`, `fix-dashboard-noregress.png`. | `c0ce419` |
+| **P2-1** · storefront "0 rooms" for most dates | ✅ **RESOLVED** — demo `rate_calendar` now seeds a rolling `today → +180d` window (was a fixed Sept band). Seed-only; engine untouched. Browser-verified: 20–23 Aug now offers 2 rooms. `fix-storefront-august.png`. | `7cd1550` |
+| **P2-2** · dev "expire trial" button on Billing | ✅ **FALSE POSITIVE** — already gated to `local` at the view (`@if app()->environment('local')`) **and** the controller (`abort_unless(local,testing) → 404`). A production operator never sees or reaches it. No change. | — |
+| **Caveat** · owner capability at the `/livewire/update` layer | ✅ **CLOSED — gate holds, no gap** — the sensitive owner mutations (payout account, team management) are **controller routes** (gated by `EnsureOwnerCapability` / `EnsurePrimaryOwner`), not Livewire actions. New test `OwnerCapabilityMutationBoundaryTest` proves it two ways: the real HTTP mutation path 403s for every non-permitted sub-user, and **every** owner Livewire component exposes only `render`/`mount` (no mutating action rides `/livewire/update`). | Gate 3 |
+
+Remaining open items are the **non-blocking P3s** (non-today default date; storefront media/landing ratings; signup name-prefill verify; storefront guest-name verify) and the **account-gated tail** (live charge/payout/KYC/OTA/WhatsApp/SMS — deferred by design). **Next is the design-fidelity pass** (§4), out of scope for this targeted fix.
+
+---
+
 ## 1. Executive summary
 
 Vyrobel is, structurally, a genuinely deep and honest multi-tenant hotel-management SaaS. Across five apps I drove real browser sessions per role, health-swept **every** GET route, ran the security-critical RBAC/capability matrices, and exercised four **real** end-to-end mutations (guest online check-in, a public storefront booking that created a real reservation through the single inventory write-path, a self-serve signup that atomically provisioned a whole new tenant org, and a trial-expiry that correctly dropped the org behind the paywall). The core architecture — tenancy, RBAC, money, inventory concurrency guarantee, provisioning, billing-state derivation — held up under live exercise, and the honesty rule is visibly respected everywhere (deferred features are badged "Soon" / "Not yet available", never faked).
@@ -37,7 +52,7 @@ Vyrobel is, structurally, a genuinely deep and honest multi-tenant hotel-managem
 
 ### Verdict
 
-- **Demo-ready? — YES, after two quick fixes.** Fix the four unstyled operator pages (P1) and either widen the seed rate window or demo the storefront with September dates (P2 #2). With those two done, the full loop — storefront booking → operator ops → owner portal → guest portal → self-serve signup → billing/paywall — is genuinely impressive, coherent, and honest. Everything a demo would touch **except those four pages** is polished and works on real data.
+- **Demo-ready? — YES (blockers cleared 2026-07-22, see §0).** The four unstyled operator pages are fixed and the storefront rate window is widened; both browser-verified. The full loop — storefront booking → operator ops → owner portal → guest portal → self-serve signup → billing/paywall — is now genuinely impressive, coherent, and honest end-to-end on real data.
 - **Customer-ready? — NOT YET.** The unstyled-pages bug is a hard blocker for any customer touching Reviews / Guest requests / Email. Beyond it: the account-gated tail (live Stripe **charge**/payout execution, guest ID/KYC, OTA/WhatsApp/SMS channels) is deferred *by design and honestly*, and seed/rate coverage + the dev "expire trial" button need cleanup. The **foundations are sound and verified** — this is a finishing/hardening gap, not an architectural one.
 
 ---
