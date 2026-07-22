@@ -138,7 +138,12 @@ return [
     'stripe' => [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
+        // The ACCOUNT webhook endpoint's signing secret (/webhooks/stripe — payments + subscription billing).
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        // The CONNECT webhook endpoint's signing secret — a DISTINCT endpoint (/webhooks/stripe/connect) with
+        // its OWN secret (owner-payout transfer/account events). Separated per Stripe best practice; each
+        // endpoint verifies against its own secret. Wired in SG3 (owner payout rail).
+        'connect_webhook_secret' => env('STRIPE_CONNECT_WEBHOOK_SECRET'),
         'fake' => env('STRIPE_FAKE', true),
     ],
 

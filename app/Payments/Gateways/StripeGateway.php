@@ -7,6 +7,7 @@ namespace App\Payments\Gateways;
 use App\Payments\Contracts\PaymentGateway;
 use App\Payments\GatewayResult;
 use App\Payments\Stripe\StripeClientInterface;
+use App\Payments\Stripe\StripeIdempotency;
 use App\Payments\Stripe\StripeIntent;
 use App\Support\Money\Money;
 
@@ -39,6 +40,7 @@ class StripeGateway implements PaymentGateway
             $token,
             capture: true,
             metadata: $this->stringMetadata($metadata),
+            idempotencyKey: $this->idempotencyKey('folio_charge', $metadata),
         );
 
         return $this->intentToResult($intent, successStatuses: ['succeeded'], successLabel: 'succeeded');
@@ -52,6 +54,7 @@ class StripeGateway implements PaymentGateway
             $token,
             capture: false,
             metadata: $this->stringMetadata($metadata),
+            idempotencyKey: $this->idempotencyKey('folio_authorize', $metadata),
         );
 
         return $this->intentToResult($intent, successStatuses: ['requires_capture', 'succeeded'], successLabel: 'authorized');
@@ -59,7 +62,8 @@ class StripeGateway implements PaymentGateway
 
     public function capture(string $reference, Money $amount): GatewayResult
     {
-        $intent = $this->stripe->capturePaymentIntent($reference, $amount->amountMinor());
+        // Capturing an already-captured intent is idempotent — key on the intent id so a retry returns it.
+        $intent = $this->stripe->capturePaymentIntent($reference, $amount->amountMinor(), StripeIdempotency::keyFor('folio_capture', $reference));
 
         return new GatewayResult($intent->status === 'succeeded', $intent->id, 'captured');
     }
@@ -98,6 +102,20 @@ class StripeGateway implements PaymentGateway
         }
 
         return new GatewayResult(false, $intent->id, 'failed', "Stripe intent status: {$intent->status}");
+    }
+
+    /**
+     * The deterministic Idempotency-Key for a charge/authorize, derived from a STABLE ref the caller puts in
+     * `metadata['idempotency_ref']` (a per-payment-attempt id — created before the charge). No ref → null (the
+     * caller opted out); the plumbing is ready and the guest-payment flow (SG2) supplies the ref.
+     *
+     * @param  array<string, mixed>  $metadata
+     */
+    private function idempotencyKey(string $operation, array $metadata): ?string
+    {
+        $ref = $metadata['idempotency_ref'] ?? null;
+
+        return is_scalar($ref) && (string) $ref !== '' ? StripeIdempotency::keyFor($operation, (string) $ref) : null;
     }
 
     /**

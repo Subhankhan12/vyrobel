@@ -62,6 +62,7 @@ use App\Payments\Gateways\StripeGateway;
 use App\Payments\Stripe\FakeStripeClient;
 use App\Payments\Stripe\StripeClient;
 use App\Payments\Stripe\StripeClientInterface;
+use App\Payments\Stripe\StripeSafetyGuard;
 use App\Payouts\Contracts\PayoutRail;
 use App\Payouts\Rails\ManualPayoutRail;
 use App\Payouts\Rails\StripeConnectPayoutRail;
@@ -119,15 +120,27 @@ class AppServiceProvider extends ServiceProvider
         // Config-gated Stripe SDK seam (services.stripe.fake, default true): FakeStripeClient
         // everywhere until real keys are deliberately configured. Singleton so a fake stays
         // inspectable across a request/test.
-        $this->app->singleton(StripeClientInterface::class, function (): StripeClientInterface {
-            if (config('services.stripe.fake', true)) {
+        // 🔒 Phase 8 money #1 guard: a LIVE key outside `production` is REFUSED — the fake client is bound
+        // instead (StripeSafetyGuard), so a stray STRIPE_FAKE=false + a live key in a dev .env can never charge.
+        $this->app->singleton(StripeClientInterface::class, function ($app): StripeClientInterface {
+            $secret = (string) config('services.stripe.secret');
+            $forceFake = StripeSafetyGuard::forceFakeOutsideProduction(
+                $app->environment(),
+                (bool) config('services.stripe.fake', true),
+                $secret,
+            );
+
+            if ($forceFake) {
+                if (! config('services.stripe.fake', true)) {
+                    Log::warning('StripeSafetyGuard refused a live Stripe key outside production — using the fake client.', [
+                        'environment' => $app->environment(),
+                    ]);
+                }
+
                 return new FakeStripeClient(config('services.stripe.webhook_secret'));
             }
 
-            return new StripeClient(
-                (string) config('services.stripe.secret'),
-                config('services.stripe.webhook_secret'),
-            );
+            return new StripeClient($secret, config('services.stripe.webhook_secret'));
         });
 
         // Config-gated (services.channex.fake, default true): FakeChannexClient everywhere

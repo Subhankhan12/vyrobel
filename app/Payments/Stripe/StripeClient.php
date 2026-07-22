@@ -35,7 +35,7 @@ class StripeClient implements StripeClientInterface
         $this->sdk = new StripeSdk($secret);
     }
 
-    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = []): StripeIntent
+    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = [], ?string $idempotencyKey = null): StripeIntent
     {
         $params = [
             'amount' => $amountMinor,
@@ -51,7 +51,9 @@ class StripeClient implements StripeClientInterface
             $params['automatic_payment_methods'] = ['enabled' => true, 'allow_redirects' => 'never'];
         }
 
-        $intent = $this->sdk->paymentIntents->create($params);
+        // The deterministic Idempotency-Key: a retry with the same key returns the ORIGINAL intent
+        // (Stripe's guarantee) — no second charge.
+        $intent = $this->sdk->paymentIntents->create($params, $this->options($idempotencyKey));
 
         return new StripeIntent(
             (string) $intent->id,
@@ -62,10 +64,10 @@ class StripeClient implements StripeClientInterface
         );
     }
 
-    public function capturePaymentIntent(string $intentId, ?int $amountMinor = null): StripeIntent
+    public function capturePaymentIntent(string $intentId, ?int $amountMinor = null, ?string $idempotencyKey = null): StripeIntent
     {
         $params = $amountMinor !== null ? ['amount_to_capture' => $amountMinor] : [];
-        $intent = $this->sdk->paymentIntents->capture($intentId, $params);
+        $intent = $this->sdk->paymentIntents->capture($intentId, $params, $this->options($idempotencyKey));
 
         return new StripeIntent((string) $intent->id, (string) $intent->status);
     }
@@ -77,14 +79,24 @@ class StripeClient implements StripeClientInterface
         return new StripeIntent((string) $intent->id, (string) $intent->status);
     }
 
-    public function refund(string $intentId, int $amountMinor): StripeRefund
+    public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null): StripeRefund
     {
         $refund = $this->sdk->refunds->create([
             'payment_intent' => $intentId,
             'amount' => $amountMinor,
-        ]);
+        ], $this->options($idempotencyKey));
 
         return new StripeRefund((string) $refund->id, (string) $refund->status);
+    }
+
+    /**
+     * The Stripe request options — the deterministic Idempotency-Key when the caller supplied one.
+     *
+     * @return array{idempotency_key?: string}
+     */
+    private function options(?string $idempotencyKey): array
+    {
+        return $idempotencyKey !== null && $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
     }
 
     public function constructWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent

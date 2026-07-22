@@ -21,6 +21,14 @@ class FakeStripeClient implements StripeClientInterface
     /** @var array<string, array<string, mixed>> */
     public array $intents = [];
 
+    /**
+     * Idempotency-Key → the id of the object it first created. A repeated key returns the ORIGINAL
+     * (Stripe's real behaviour), so a double-charge is structurally impossible — provable without network.
+     *
+     * @var array<string, string>
+     */
+    public array $idempotency = [];
+
     /** @var list<array{intent_id: string, amount_minor: int}> */
     public array $captures = [];
 
@@ -40,8 +48,15 @@ class FakeStripeClient implements StripeClientInterface
         private readonly ?string $webhookSecret = null,
     ) {}
 
-    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = []): StripeIntent
+    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = [], ?string $idempotencyKey = null): StripeIntent
     {
+        // A repeated Idempotency-Key returns the ORIGINAL intent — never a second charge (Stripe's guarantee).
+        if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
+            $existing = $this->intents[$this->idempotency[$idempotencyKey]];
+
+            return new StripeIntent((string) $existing['id'], (string) $existing['status'], null, (int) $existing['amount_minor'], (string) $existing['currency']);
+        }
+
         $id = 'pi_fake_'.Str::lower(Str::random(20));
         // Mirror live Stripe: with no payment method an intent is `requires_payment_method` (it can
         // neither be confirmed nor held); with a method, capture:true settles now and capture:false
@@ -61,11 +76,14 @@ class FakeStripeClient implements StripeClientInterface
             'payment_method' => $paymentMethod,
             'metadata' => $metadata,
         ];
+        if ($idempotencyKey !== null) {
+            $this->idempotency[$idempotencyKey] = $id;
+        }
 
         return new StripeIntent($id, $status, $clientSecret, $amountMinor, $currency);
     }
 
-    public function capturePaymentIntent(string $intentId, ?int $amountMinor = null): StripeIntent
+    public function capturePaymentIntent(string $intentId, ?int $amountMinor = null, ?string $idempotencyKey = null): StripeIntent
     {
         $intent = $this->intents[$intentId] ?? throw new RuntimeException("FakeStripeClient: unknown intent {$intentId}.");
         // Mirror live Stripe: only a `requires_capture` intent may be captured (a hold created with
@@ -87,10 +105,18 @@ class FakeStripeClient implements StripeClientInterface
         return new StripeIntent($intentId, 'canceled');
     }
 
-    public function refund(string $intentId, int $amountMinor): StripeRefund
+    public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null): StripeRefund
     {
+        // A repeated Idempotency-Key returns the ORIGINAL refund — never a double refund.
+        if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
+            return new StripeRefund($this->idempotency[$idempotencyKey], 'succeeded');
+        }
+
         $id = 're_fake_'.Str::lower(Str::random(20));
         $this->refunds[] = ['intent_id' => $intentId, 'amount_minor' => $amountMinor, 'id' => $id];
+        if ($idempotencyKey !== null) {
+            $this->idempotency[$idempotencyKey] = $id;
+        }
 
         return new StripeRefund($id, 'succeeded');
     }
