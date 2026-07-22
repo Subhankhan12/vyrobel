@@ -35,8 +35,8 @@
              had no prior-period snapshot anywhere in the schema to compute against. Not one was ported.
              These tiles are deliberately NOT re-scoped by the chips or the search below — each label states
              its own scope, and a tile that silently tracked the filter would make its label false. ─────── --}}
-        <div class="vy-dash-kpis vy-fade">
-            <div class="vy-dash-kpi is-feature">
+        <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade">
+            <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Guest profiles</div>
                 <div class="vy-dk-val">{{ $stats['profiles'] }}</div>
                 <div class="vy-dk-sub">
