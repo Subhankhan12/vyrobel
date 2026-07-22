@@ -34,10 +34,13 @@
 
         {{-- All-properties KPI strip — REAL aggregates over the accessible set --}}
         <div class="vy-dash-kpis vy-fade">
-            <div class="vy-dash-kpi is-feature">
+            {{-- Uniform light tile (the prototype's Portfolio KPIs have no dark hero; matches the
+                 Rates/Insights precedent). The occupancy bar keeps a light-surface track bg so it stays
+                 visible off the dark panel (page-local override — the shared .vy-dk-track is untouched). --}}
+            <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Occupancy tonight</div>
                 <div class="vy-dk-val">{{ $summary['occupancy_pct'] }}<span class="vy-dk-unit">%</span></div>
-                <div class="vy-dk-track"><span style="width: {{ min(100, $summary['occupancy_pct']) }}%"></span></div>
+                <div class="vy-dk-track" style="background: rgba(120, 70, 40, 0.10);"><span style="width: {{ min(100, $summary['occupancy_pct']) }}%"></span></div>
                 <div class="vy-dk-sub">{{ $summary['rooms_sold'] }} of {{ $summary['rooms_total'] }} rooms sold</div>
             </div>
             <div class="vy-dash-kpi">
