@@ -153,8 +153,23 @@
                 </div>
             </div>
 
-            {{-- RIGHT RAIL: lifecycle (wired) + policy + record payment (wired) + deferred actions --}}
+            {{-- RIGHT RAIL: balance-due panel (design) + lifecycle (wired) + policy + record payment (wired) + deferred actions --}}
             <div class="vy-stack">
+                {{-- BALANCE DUE — the design's prominent dark balance panel. REAL folio figures (reconciled
+                     to the ledger); an honest Settled/Due state, no fabricated progress ratio. Reuses the
+                     shared dark stat panel (.vy-tonight) introduced on the Dashboard. --}}
+                @if ($folio !== null)
+                    <div class="vy-tonight">
+                        <span class="vy-eyebrow">Balance due</span>
+                        <div class="vy-tonight-val">{{ $folio['balance'] }}</div>
+                        <div class="vy-tonight-sub">of {{ $folio['charges'] }} total</div>
+                        <div class="vy-tonight-row">
+                            <div class="vy-tonight-cell"><div class="vy-tc-k">Paid</div><div class="vy-tc-v">{{ $folio['paid'] }}</div></div>
+                            <div class="vy-tonight-cell"><div class="vy-tc-k">Status</div><div class="vy-tc-v">{{ $folio['has_balance'] ? 'Due' : 'Settled' }}</div></div>
+                        </div>
+                    </div>
+                @endif
+
                 {{-- WIRED: cancel + mark-no-show POST through ReservationLifecycleController →
                      AssignmentService (the single inventory write path). Each is offered ONLY when the REAL
                      current status allows it — the gates are the controller's own constants, so the UI can
