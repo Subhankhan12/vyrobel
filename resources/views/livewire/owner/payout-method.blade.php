@@ -25,11 +25,26 @@
             <div class="vy-card vy-fade"><div class="vy-empty">No owner account is linked to your login yet.</div></div>
         @endownersubuser
     @else
-        {{-- Honest live-rail status — capturing an account does NOT enable an automated transfer yet --}}
+        {{-- Phase 8 · SG3 — the LIVE Stripe Connect payout rail. Connect handles the owner's KYC + payouts; the
+             encrypted IBAN below stays for the manual/offline rail. --}}
         <div class="vy-card vy-fade" style="margin-bottom:18px">
-            <div style="font-size:13px;color:var(--vy-ink)">
-                Your payouts are sent by your account manager to your default account. <strong>Automated bank transfers are coming soon</strong> — for now, adding an account tells us where to send them.
-            </div>
+            @if ($connect_enabled)
+                <div style="font-size:13px;color:var(--vy-ink)"><strong style="color:rgb(31,122,90)">✓ Stripe connected</strong> — your payouts settle automatically to your connected Stripe account.</div>
+            @else
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+                    <div style="font-size:13px;color:var(--vy-ink);max-width:420px">
+                        @if ($connect_started)
+                            Your Stripe onboarding isn’t finished. <strong>Continue setup</strong> to receive automated payouts.
+                        @else
+                            <strong>Get paid automatically.</strong> Connect a Stripe account to receive your payouts directly — Stripe handles verification; your details never touch Vyrobel.
+                        @endif
+                    </div>
+                    <form method="POST" action="{{ route('owner.payout-method.connect') }}" style="margin:0">
+                        @csrf
+                        <button type="submit" class="vy-btn vy-btn--accent">{{ $connect_started ? 'Continue setup' : 'Connect Stripe' }}</button>
+                    </form>
+                </div>
+            @endif
         </div>
 
         <div class="vy-cols" style="display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start">

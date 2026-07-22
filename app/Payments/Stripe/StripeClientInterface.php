@@ -69,4 +69,34 @@ interface StripeClientInterface
      * throw if the signature/secret is invalid. Never trusts an unverified payload.
      */
     public function constructWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent;
+
+    // ── Connect (owner payout rail — Phase 8 · SG3) ──────────────────────────────────────────────────
+
+    /**
+     * Create a Connect account (Standard) for an owner. `$metadata` (e.g. owner_id) is stamped on the account.
+     *
+     * @param  array<string, string>  $metadata
+     */
+    public function createConnectAccount(string $email, array $metadata = [], ?string $idempotencyKey = null): StripeConnectAccount;
+
+    /** Fetch a Connect account's current state (payouts_enabled reflects Stripe's KYC verification). */
+    public function retrieveConnectAccount(string $accountId): StripeConnectAccount;
+
+    /** Create a hosted onboarding Account Link — the URL the owner completes KYC on (Stripe-hosted). */
+    public function createConnectAccountLink(string $accountId, string $refreshUrl, string $returnUrl): StripeAccountLink;
+
+    /**
+     * Create a TRANSFER (platform → a connected owner account) — REAL MONEY LEAVING. The deterministic
+     * `$idempotencyKey` makes a retry return THIS transfer, never a second. `$destinationAccountId` is the
+     * OWNER's connected account (resolved from the payout's owner — never another owner's).
+     *
+     * @param  array<string, string>  $metadata
+     */
+    public function createTransfer(int $amountMinor, string $currency, string $destinationAccountId, array $metadata = [], ?string $idempotencyKey = null): StripeTransfer;
+
+    /**
+     * Verify a CONNECT webhook signature against the SEPARATE Connect endpoint secret (a distinct endpoint
+     * from the account webhook, per Stripe best practice). Throws on an invalid signature.
+     */
+    public function constructConnectWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent;
 }

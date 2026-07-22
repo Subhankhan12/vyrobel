@@ -34,6 +34,8 @@ class Owner extends Model
         'address',
         'payout_currency',
         'user_id',
+        'stripe_connect_account_id',
+        'stripe_connect_payouts_enabled',
         'status',
         'notes',
     ];
@@ -49,6 +51,7 @@ class Owner extends Model
             'tax_id' => 'encrypted',
             'vat_number' => 'encrypted',
             'address' => 'array',
+            'stripe_connect_payouts_enabled' => 'boolean',
         ];
     }
 

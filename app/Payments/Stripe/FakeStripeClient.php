@@ -44,8 +44,15 @@ class FakeStripeClient implements StripeClientInterface
      */
     public ?string $nextIntentStatus = null;
 
+    /** @var list<array{id: string, amount_minor: int, currency: string, destination: string, metadata: array<string, string>}> — created transfers, inspectable in tests. */
+    public array $transfers = [];
+
+    /** @var array<string, bool> — connect account id → payouts_enabled (test-mode owner accounts). */
+    public array $connectAccounts = [];
+
     public function __construct(
         private readonly ?string $webhookSecret = null,
+        private readonly ?string $connectWebhookSecret = null,
     ) {}
 
     public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = [], ?string $idempotencyKey = null): StripeIntent
@@ -196,6 +203,63 @@ class FakeStripeClient implements StripeClientInterface
             type: (string) ($decoded['type'] ?? ''),
             payload: $decoded,
         );
+    }
+
+    public function createConnectAccount(string $email, array $metadata = [], ?string $idempotencyKey = null): StripeConnectAccount
+    {
+        $id = 'acct_fake_'.Str::lower(Str::random(16));
+        $this->connectAccounts[$id] = false;   // KYC not yet complete — payouts disabled until account.updated
+
+        return new StripeConnectAccount($id, false);
+    }
+
+    public function retrieveConnectAccount(string $accountId): StripeConnectAccount
+    {
+        return new StripeConnectAccount($accountId, $this->connectAccounts[$accountId] ?? false);
+    }
+
+    public function createConnectAccountLink(string $accountId, string $refreshUrl, string $returnUrl): StripeAccountLink
+    {
+        return new StripeAccountLink('https://connect.stripe.test/onboard/'.$accountId);
+    }
+
+    public function createTransfer(int $amountMinor, string $currency, string $destinationAccountId, array $metadata = [], ?string $idempotencyKey = null): StripeTransfer
+    {
+        // 🔒 A repeated Idempotency-Key returns the ORIGINAL transfer — never a second money movement.
+        if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
+            $id = $this->idempotency[$idempotencyKey];
+
+            return new StripeTransfer($id, $destinationAccountId);
+        }
+
+        $id = 'tr_fake_'.Str::lower(Str::random(20));
+        $this->transfers[] = ['id' => $id, 'amount_minor' => $amountMinor, 'currency' => $currency, 'destination' => $destinationAccountId, 'metadata' => $metadata];
+        if ($idempotencyKey !== null) {
+            $this->idempotency[$idempotencyKey] = $id;
+        }
+
+        return new StripeTransfer($id, $destinationAccountId);
+    }
+
+    public function constructConnectWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent
+    {
+        if (! is_string($this->connectWebhookSecret) || $this->connectWebhookSecret === '' || $signatureHeader === null) {
+            throw new RuntimeException('FakeStripeClient: missing CONNECT webhook secret or signature.');
+        }
+        if (! $this->signatureValid($payload, $signatureHeader, $this->connectWebhookSecret)) {
+            throw new RuntimeException('FakeStripeClient: invalid CONNECT webhook signature.');
+        }
+
+        /** @var array<string, mixed> $decoded */
+        $decoded = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
+
+        return new StripeEvent((string) ($decoded['id'] ?? ''), (string) ($decoded['type'] ?? ''), $decoded);
+    }
+
+    /** Test helper — mark a fake Connect account's payouts enabled (mirrors the account.updated webhook). */
+    public function enableConnectAccount(string $accountId): void
+    {
+        $this->connectAccounts[$accountId] = true;
     }
 
     /**

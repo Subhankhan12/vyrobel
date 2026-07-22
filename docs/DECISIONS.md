@@ -3098,3 +3098,60 @@ PHPStan L5 + Pint clean · no real send in any environment · no secrets in the 
 **Phase-8 account-gated register — production email ✅ LIT UP.** Still pending (as accounts land): **LIVE Stripe
 billing** (next) · card charge / Apple Pay · owner payout rail (Stripe Connect + KYC) · Channex live sync ·
 WhatsApp / OTA inbox channels · SMS · guest ID verification.
+
+---
+
+## 2026-07-22 — PHASE 8 (second piece): LIVE STRIPE across all three seams (test-mode-first) ✅ COMPLETE
+
+Real money — the safety posture INVERTS (build so it CANNOT charge wrong). Live Stripe wired into the three
+seams Phase 2 built the plumbing for (guest charge, owner payout) + the 7b subscribe seam — TEST-MODE-FIRST,
+proven against the `FakeStripeClient` (no network) with real Stripe signature verification. **NO live key in the
+build** (the flip is Subhan's final step). Four gated sub-gates. Runbook: `docs/STRIPE-PRODUCTION.md`.
+
+**⛔ SG0 — foundation (`ae29575`).** Phase 2 already had the client seam + a signature-verified,
+event.id-idempotent webhook controller + the `STRIPE_FAKE` gate (the deferred-not-faked discipline vindicated).
+Added: 🔒 **StripeSafetyGuard** (the money #1 guard — a live `sk_live_` key is REFUSED outside `production`,
+the fake is bound; a stray `STRIPE_FAKE=false`+live key in dev/CI can't charge) + the **sending-side idempotency
+key** (`StripeIdempotency::keyFor`, pure/deterministic, threaded through every write; the fake dedupes) +
+`STRIPE_CONNECT_WEBHOOK_SECRET` (the separate Connect endpoint). Two-layer idempotency now complete + proven both
+ways (`StripeFoundationTest`).
+
+**⛔ SG1 — subscription billing (`2a1bb47`).** subscribe → a Stripe Checkout Session (subscription mode; the
+plan's `stripe_price_id`; the card on Stripe's page). 🔒 **Fulfil on the WEBHOOK not the redirect:**
+`BillingWebhookService` is the ONLY place an org goes active/past_due/canceled (checkout.session.completed /
+customer.subscription.* / invoice.*); the 7b `SubscriptionStatus` derives access from `status`, so the lifecycle
+drives the paywall from real events. Columns `subscriptions.stripe_customer_id` + `plans.stripe_price_id`. Proven
+a closed tab still activates via the webhook (`BillingStripeTest`).
+
+**⛔ SG2 — guest card charge (`f8a31e9`).** The guest pays their OWN booking's balance → a Checkout Session
+(payment mode). 🔒 **Reconcile on the WEBHOOK (max reuse):** a PENDING Payment is pre-created against the
+session's PaymentIntent (`FolioService::recordCheckoutIntent` — `firstOrCreate` on `gateway_ref` → a 3rd
+double-charge layer), and the EXISTING `payment_intent.succeeded` webhook (→ `settlePayment` → recompute) posts
+the real charge to the folio, integer money, reconciling. 🔒 Guest isolation #28 (booking through
+`guest()->reservations()`, foreign → 404). Refunds unchanged — the single `FolioService::refundPayment` (#27
+cumulative bound, correct-by-reversal) reused. `GuestCardChargeTest`.
+
+**⛔ SG3 — the owner payout rail (Connect) + consolidate (this gate) — the HIGHEST-STAKES seam.** Owner connects
+a Stripe **Standard** account (they own KYC/payouts; Stripe handles it) via hosted onboarding — `OwnerConnectController`,
+self-only, co-owner-gated (#42); `stripe_connect_payouts_enabled` flips on the `account.updated` Connect webhook.
+`StripeConnectPayoutRail::send()` creates a **Transfer** to THE PAYOUT'S owner's connected account.
+🔒 **THE DOUBLE-TRANSFER GUARD (the key proof):** `OwnerPayoutService::pay()` runs the whole disburse inside a
+DB transaction that **row-locks the payout** (`lockForUpdate`) and re-checks `pending` INSIDE the lock — so a
+concurrent pay() (double-click / a webhook racing a sync callback) BLOCKS then refuses (no 2nd transfer); the
+transfer also carries a deterministic **Idempotency-Key**. Both proven load-bearing: **two transfers WITHOUT the
+guard, ONE WITH** (`OwnerPayoutStripeConnectTest`). 🔒 Correct owner only (destination resolved from the payout's
+owner, never another's). Webhook-driven: pay() → `processing`; the `transfer.created` CONNECT webhook (SEPARATE
+secret, event.id-idempotent) → `paid` + statement paid. Refuses an un-connected owner (no transfer, honest).
+Owner Payout Method UI: the "Automated transfers coming soon" deferral is now a real "Connect Stripe" onboarding.
+The payout status enum gained `processing`.
+
+**⚠️ THE LIVE-KEY FLIP IS SUBHAN's FINAL STEP** (documented in `docs/STRIPE-PRODUCTION.md`): activate the account,
+create live Prices, enable Connect, register BOTH live webhook endpoints (account + Connect), flip the prod ENV
+(`STRIPE_FAKE=false` + live keys + `PAYMENTS_GATEWAY=stripe` + `PAYOUTS_RAIL=stripe_connect`), then a $1 real-card
+smoke-test + refund per Stripe's go-live. New invariant **#45**. Suite **921 / 7496** green · PHPStan L5 + Pint
+clean · `migrate:fresh --seed` clean · no live key in the build · no secrets in the repo · no raw PAN.
+Phase-8-Stripe commits: `ae29575` (SG0) → `2a1bb47` (SG1) → `f8a31e9` (SG2) → this gate (SG3).
+
+**Phase-8 account-gated register — production email ✅ · LIVE STRIPE (all 3 seams) ✅ (test-mode-proven; live-flip
+= Subhan's).** Still pending (as accounts land): Channex live sync · WhatsApp / OTA inbox channels · SMS · guest
+ID verification (KYC).

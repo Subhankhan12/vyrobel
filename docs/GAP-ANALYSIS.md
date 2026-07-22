@@ -387,8 +387,15 @@ Invariant #43. **With 7d, PHASE 7 — the SaaS layer — is COMPLETE.** See `doc
   send outside `production`); the Phase-3 mail-failure boundary re-proven with the real transport; bounce =
   Postmark-native for v1 (app-side blind-indexed suppression documented, not faked). The DNS records + the live
   token + the one controlled real send are Subhan's. Runbook: `docs/EMAIL-PRODUCTION.md`. Invariant #44.
-- ⬅ **NEXT: LIVE Stripe subscription billing** (7b's account-gated charge + webhooks) → card capture live →
-  Stripe Connect payouts + KYC → Channex live sync → WhatsApp/OTA inbox channels → SMS → Guest ID verification.
+- ✅ **LIVE STRIPE (all three seams) — DONE test-mode (2026-07-22, `ae29575` (SG0) → `2a1bb47` (SG1) → `f8a31e9`
+  (SG2) → this gate (SG3))** — subscription billing (Checkout + webhook-driven activation) · guest card charge
+  (hosted Checkout → folio on the webhook, #28) · owner payout rail (Connect transfer, **double-transfer-guarded**
+  by a unique idempotency key + a `lockForUpdate` row-lock, proven to double WITHOUT and once WITH; correct owner
+  only). Webhook-driven (fulfil on the webhook, not the redirect); signature-verified (separate account + Connect
+  secrets); multi-layer idempotent; no raw PAN (SAQ A); `StripeSafetyGuard` refuses a live key outside production.
+  The live-key flip is Subhan's documented go-live step. Runbook: `docs/STRIPE-PRODUCTION.md`. Invariant #45.
+- ⬅ **NEXT (still account-gated, as accounts land):** Channex live sync → WhatsApp/OTA inbox channels → SMS →
+  Guest ID verification (KYC).
 
 ---
 

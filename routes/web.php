@@ -57,6 +57,7 @@ use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerBlockController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
+use App\Http\Controllers\Owner\OwnerConnectController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerPayoutMethodController;
 use App\Http\Controllers\Owner\OwnerProfileController;
@@ -67,6 +68,7 @@ use App\Http\Controllers\Owner\OwnerTaxController;
 use App\Http\Controllers\Owner\OwnerTeamController;
 use App\Http\Controllers\Owner\OwnerUnitRequestController;
 use App\Http\Controllers\ReservationFolioActionController;
+use App\Http\Controllers\StripeConnectWebhookController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Http\Middleware\EnsureOwnerCapability;
@@ -313,6 +315,9 @@ Route::post('/webhooks/channex/{channel}', ChannexWebhookController::class)->nam
  * no route params, the event body carries the payment_intent id.
  */
 Route::post('/webhooks/stripe', StripeWebhookController::class)->name('webhooks.stripe');
+// Phase 8 · SG3 — the SEPARATE Stripe CONNECT webhook endpoint (its own signing secret): owner-account KYC
+// (account.updated) + payout transfer confirmation (transfer.created). Signature-verified, idempotent.
+Route::post('/webhooks/stripe/connect', StripeConnectWebhookController::class)->name('webhooks.stripe.connect');
 
 /*
  * Public, unauthenticated BOOKING ENGINE (Step 7) — backend + unstyled contract stub. Tenant/
@@ -735,6 +740,8 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // write — a non-co-owner reaching the IBAN is a money-security hole (invariant #28 holds on the column).
     Route::middleware($capPayout)->group(function () {
         Route::get('/payout-method', OwnerPayoutMethod::class)->name('payout-method');
+        // Phase 8 · SG3 — connect a Stripe account for the LIVE payout rail (self-only, co-owner via $capPayout).
+        Route::post('/payout-method/connect', [OwnerConnectController::class, 'start'])->middleware('throttle:6,1')->name('payout-method.connect');
         Route::post('/payout-method', [OwnerPayoutMethodController::class, 'store'])->name('payout-method.add');
         Route::post('/payout-method/{method}/default', [OwnerPayoutMethodController::class, 'setDefault'])->name('payout-method.default');
         Route::delete('/payout-method/{method}', [OwnerPayoutMethodController::class, 'destroy'])->name('payout-method.remove');

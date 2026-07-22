@@ -149,11 +149,11 @@ it('fails closed for a non-linked user and defers the live rail honestly', funct
     $s = seedScenario(1);
     $a = pmOwner($s, 0, 'Amara Okafor');
 
-    // The honest deferred-rail message, and NO fabricated verification state.
+    // Phase 8 — the live Stripe Connect rail: a real "Connect Stripe" onboarding, NO fabricated verification state.
     $this->actingAs($a['user'])->get('/owner/payout-method')
         ->assertOk()
-        ->assertSee('Automated bank transfers are coming soon')
-        ->assertDontSee('Verified')
+        ->assertSee('Connect Stripe')
+        ->assertSee(route('owner.payout-method.connect'), false)
         ->assertDontSee('micro-deposit');
 
     $stranger = User::factory()->create();

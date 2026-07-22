@@ -70,6 +70,12 @@ final class StripeEvent
         return is_int($value) ? $value : null;
     }
 
+    /** A bool field of `data.object` (e.g. a Connect account's 'payouts_enabled'). */
+    public function objectBool(string $key): bool
+    {
+        return (bool) ($this->object()[$key] ?? false);
+    }
+
     /** The `organization_id` stamped into `data.object.metadata` at Checkout create — resolves the tenant. */
     public function metadataOrganizationId(): ?string
     {

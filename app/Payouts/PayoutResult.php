@@ -15,5 +15,8 @@ final class PayoutResult
         public readonly bool $successful,
         public readonly ?string $externalRef = null,
         public readonly ?string $failureReason = null,
+        // Phase 8: the money movement is INITIATED but not yet confirmed (a Stripe Connect transfer — the
+        // Connect webhook flips the payout to `paid`). The manual rail leaves this false (settled offline).
+        public readonly bool $pending = false,
     ) {}
 }

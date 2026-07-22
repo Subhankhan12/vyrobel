@@ -50,7 +50,9 @@
         <!-- CI default gateway is Manual regardless of .env (which may be flipped to stripe during a
              live-integration checkpoint). Stripe tests opt in per-test via config(). -->
         <env name="PAYMENTS_GATEWAY" value="manual"/>
+        <env name="PAYOUTS_RAIL" value="manual"/>
         <env name="STRIPE_WEBHOOK_SECRET" value="whsec_test_stripe_secret"/>
+        <env name="STRIPE_CONNECT_WEBHOOK_SECRET" value="whsec_test_connect_secret"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>

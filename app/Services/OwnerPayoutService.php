@@ -84,52 +84,89 @@ class OwnerPayoutService
     }
 
     /**
-     * Disburse a pending payout through the (config-selected or supplied) rail. On success the payout
-     * is marked paid and its source statement flipped to paid; on failure the payout is marked failed
-     * (retry via {@see retry()} creates a new record).
+     * Disburse a pending payout through the (config-selected or supplied) rail. On success a manual/offline
+     * payout is marked `paid` + its statement flipped to paid; a Stripe Connect transfer is marked
+     * `processing` (the Connect webhook confirms it → `paid`). On failure the payout is marked failed (retry
+     * via {@see retry()} creates a new record).
+     *
+     * 🔒 NO DOUBLE-TRANSFER (the highest-stakes guard): the whole disburse runs inside a DB transaction that
+     * ROW-LOCKS the payout (`lockForUpdate`) and RE-CHECKS `pending` INSIDE the lock — so a concurrent pay()
+     * (a double-click, a webhook racing a sync callback) BLOCKS, then sees the row is no longer pending and
+     * refuses, never sending a second transfer. The rail's deterministic Idempotency-Key backstops it at
+     * Stripe. Two layers, both load-bearing.
      */
     public function pay(Payout $payout, ?PayoutRail $rail = null): Payout
     {
-        if ($payout->status !== 'pending') {
-            throw new RuntimeException("Only a pending payout can be paid (status: {$payout->status}).");
-        }
-
-        // HELD until tax details are on file — the genuine hold (Sub-gate 4). This runs BEFORE the rail send,
-        // so no money moves for a tax-incomplete owner; it releases automatically once they add a tax ID. The
-        // operator Payout Run already catches RuntimeException per payout, so a held payout stays pending.
-        $owner = $payout->owner;
-        if ($owner !== null && ! $owner->hasTaxDetails()) {
-            throw PayoutHeldException::missingTaxDetails((string) $owner->name);
-        }
-
         $rail ??= $this->rail;
-        $result = $rail->send($payout);
 
-        DB::transaction(function () use ($payout, $rail, $result): void {
+        [$result, $fresh] = DB::transaction(function () use ($payout, $rail): array {
+            // 🔒 Row-lock THIS payout; a concurrent pay() waits here until we commit.
+            $locked = Payout::query()->lockForUpdate()->findOrFail($payout->getKey());
+
+            // Re-check INSIDE the lock — a second caller now sees a non-pending row and refuses (no 2nd transfer).
+            if ($locked->status !== 'pending') {
+                throw new RuntimeException("Only a pending payout can be paid (status: {$locked->status}).");
+            }
+
+            // HELD until tax details are on file (Sub-gate 4) — BEFORE the transfer, so no money moves for a
+            // tax-incomplete owner; releases automatically once they add a tax ID.
+            $owner = $locked->owner;
+            if ($owner !== null && ! $owner->hasTaxDetails()) {
+                throw PayoutHeldException::missingTaxDetails((string) $owner->name);
+            }
+
+            $result = $rail->send($locked);   // the transfer — still under the lock (idempotency-keyed by the rail)
+
             if ($result->successful) {
-                $payout->update([
-                    'status' => 'paid',
+                $locked->update([
+                    // A Connect transfer is INITIATED here; the Connect webhook flips it to `paid`. Manual = paid now.
+                    'status' => $result->pending ? 'processing' : 'paid',
                     'rail' => $rail->name(),
                     'external_ref' => $result->externalRef,
-                    'paid_at' => now(),
+                    'paid_at' => $result->pending ? null : now(),
                 ]);
 
-                OwnerStatement::query()->whereKey($payout->owner_statement_id)->update(['status' => 'paid']);
+                if (! $result->pending) {
+                    OwnerStatement::query()->whereKey($locked->owner_statement_id)->update(['status' => 'paid']);
+                }
             } else {
-                $payout->update([
+                $locked->update([
                     'status' => 'failed',
                     'rail' => $rail->name(),
                     'failure_reason' => $result->failureReason,
                     'failed_at' => now(),
                 ]);
             }
+
+            return [$result, $locked];
         });
 
         $event = $result->successful ? 'payout.paid' : 'payout.failed';
-        $this->domainEvents->record($event, $payout->refresh(), ['rail' => $rail->name()]);
-        $this->audit->record($event, $payout, ['status' => 'pending'], ['status' => $payout->status, 'rail' => $rail->name()]);
+        $this->domainEvents->record($event, $fresh->refresh(), ['rail' => $rail->name()]);
+        $this->audit->record($event, $fresh, ['status' => 'pending'], ['status' => $fresh->status, 'rail' => $rail->name()]);
 
-        return $payout->refresh();
+        return $fresh->refresh();
+    }
+
+    /**
+     * Confirm a Stripe Connect payout `processing → paid` from the CONNECT webhook (transfer.created), and flip
+     * its statement to paid. Idempotent: only a `processing` row advances (a re-delivered webhook is a no-op),
+     * so real money is confirmed exactly once. Resolved by the transfer id (external_ref).
+     */
+    public function confirmTransfer(string $transferId): void
+    {
+        $payout = Payout::query()->where('external_ref', $transferId)->where('status', 'processing')->first();
+        if ($payout === null) {
+            return;   // unknown / already confirmed → no-op
+        }
+
+        DB::transaction(function () use ($payout): void {
+            $payout->update(['status' => 'paid', 'paid_at' => now()]);
+            OwnerStatement::query()->whereKey($payout->owner_statement_id)->update(['status' => 'paid']);
+        });
+
+        $this->domainEvents->record('payout.paid', $payout->refresh(), ['rail' => 'stripe_connect']);
+        $this->audit->record('payout.paid', $payout, ['status' => 'processing'], ['status' => 'paid']);
     }
 
     /**

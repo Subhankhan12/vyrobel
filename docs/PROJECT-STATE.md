@@ -394,9 +394,9 @@ conflicts with the repo, **trust the repo** and fix this file.
   comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–44 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–45 (the full guarantee stack)
 
-> **All 44, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 45, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
@@ -448,7 +448,20 @@ conflicts with the repo, **trust the repo** and fix this file.
 > real transport — a provider send failure is caught + logged (never the address, #28) and NEVER rolls back the
 > booking/notification (the email is best-effort); mail goes to the correct recipient only (the guest's/owner's
 > OWN address, #28). Bounce/complaint suppression is Postmark-native for v1 (an app-side, blind-indexed
-> suppression store is documented, not faked); the DNS records + the one controlled real send are Subhan's**.
+> suppression store is documented, not faked); the DNS records + the one controlled real send are Subhan's** ·
+> **#45 live Stripe (money paths, test-mode-first): a real charge can NEVER happen outside `production` — a live
+> `sk_live_` key is refused by `StripeSafetyGuard` (the fake client is bound); the card NEVER touches the server
+> (hosted Checkout — PCI SAQ A, no raw PAN); every money path FULFILS ON THE WEBHOOK, never the redirect (a
+> subscription activates / a folio settles / a payout confirms only on checkout.session.completed /
+> payment_intent.succeeded / transfer.created); every webhook is SIGNATURE-VERIFIED against the raw body (the
+> account + Connect endpoints have SEPARATE secrets) and idempotent on `webhook_events(source,event.id)`;
+> double-money is impossible by MULTIPLE layers — a deterministic sending-side Idempotency-Key on every Stripe
+> write (retry → the original object), the `event.id` unique index (re-delivery → once), and — for the guest
+> charge — `firstOrCreate(gateway_ref)`; **the owner payout CANNOT double-transfer** (a unique Idempotency-Key +
+> a `lockForUpdate` row-lock on the payout, re-checked pending inside the lock — proven to transfer twice WITHOUT
+> and once WITH) and a transfer only ever goes to ITS OWN owner's connected account; the ledgers stay
+> append-only / correct-by-reversal / integer money (#17, #27), reconciling; the LIVE-KEY FLIP (test→live keys +
+> the live webhook endpoints) is Subhan's documented go-live step, never done in the build**.
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -1438,9 +1451,12 @@ plain GET links (e.g. `?month=`).
 > demo owner + 2 sub-users + a pending invite, a demo roster week + leave + request). Suite **900 / 7409** with
 > **PRODUCTION EMAIL lit up** (Postmark wired as the prod transport via ENV; test/prod separation enforced in code by
 > `MailSafetyGuard`; the Phase-3 mail-failure boundary re-proven with the real transport; DNS + the one real send are
-> Subhan's). Invariants **#1–44**. **Guest Portal + Reviews complete; multi-property + real analytics; tenant
-> provisioning + subscription billing + owner team + team schedule + production email ship (the live Stripe charge
-> account-gated; Postmark live token + DNS are Subhan's).** (The dated
+> Subhan's). Suite **921 / 7496** with **LIVE STRIPE wired TEST-MODE-FIRST across all three seams** (subscription
+> billing · guest card charge · owner payout rail/Connect — webhook-driven, multi-layer idempotent, no raw PAN,
+> the payout double-transfer-guarded; the live-key flip is Subhan's). Invariants **#1–45**. **Guest Portal + Reviews
+> complete; multi-property + real analytics; tenant provisioning + subscription billing + owner team + team schedule +
+> production email + live Stripe (test-mode) ship (the Postmark live token + DNS, and the Stripe live-key flip, are
+> Subhan's go-live steps).** (The dated
 > per-phase detail is in
 > `docs/DECISIONS.md`; the older "customer signal / don't build blind" framing below is HISTORICAL — the signal came
 > and every phase since was built to the prototype.)

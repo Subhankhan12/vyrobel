@@ -111,8 +111,9 @@ class AppServiceProvider extends ServiceProvider
             ? $app->make(StripeGateway::class)
             : $app->make(ManualPaymentGateway::class));
 
-        // Owner payout rail (Step 5): manual (offline) by default; Stripe Connect is a config-gated,
-        // deferred skeleton that throws if selected — never the active rail in tests.
+        // Owner payout rail: manual (offline) by default; `stripe_connect` is the LIVE Connect rail (Phase 8 ·
+        // SG3 — real transfers to owners' connected accounts, idempotency-keyed + row-locked). Test keys/fake
+        // in the build; live keys are Subhan's go-live. The container auto-injects the Stripe client seam.
         $this->app->bind(PayoutRail::class, fn ($app): PayoutRail => config('services.payouts.rail') === 'stripe_connect'
             ? $app->make(StripeConnectPayoutRail::class)
             : $app->make(ManualPayoutRail::class));
@@ -137,10 +138,10 @@ class AppServiceProvider extends ServiceProvider
                     ]);
                 }
 
-                return new FakeStripeClient(config('services.stripe.webhook_secret'));
+                return new FakeStripeClient(config('services.stripe.webhook_secret'), config('services.stripe.connect_webhook_secret'));
             }
 
-            return new StripeClient($secret, config('services.stripe.webhook_secret'));
+            return new StripeClient($secret, config('services.stripe.webhook_secret'), config('services.stripe.connect_webhook_secret'));
         });
 
         // Config-gated (services.channex.fake, default true): FakeChannexClient everywhere

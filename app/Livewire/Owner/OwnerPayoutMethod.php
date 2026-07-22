@@ -47,6 +47,8 @@ class OwnerPayoutMethod extends Component
                 'linked' => false,
                 'methods' => [],
                 'currency' => 'EUR',
+                'connect_started' => false,
+                'connect_enabled' => false,
             ]);
         }
 
@@ -63,6 +65,9 @@ class OwnerPayoutMethod extends Component
                 'is_default' => (bool) $m->is_default,
             ])->all(),
             'currency' => (string) ($owner->payout_currency ?? 'EUR'),
+            // Phase 8 · SG3 — the live Stripe Connect rail status.
+            'connect_started' => is_string($owner->stripe_connect_account_id) && $owner->stripe_connect_account_id !== '',
+            'connect_enabled' => (bool) $owner->stripe_connect_payouts_enabled,
         ]);
     }
 }

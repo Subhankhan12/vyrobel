@@ -24,6 +24,7 @@ class StripeClient implements StripeClientInterface
     public function __construct(
         string $secret,
         private readonly ?string $webhookSecret,
+        private readonly ?string $connectWebhookSecret = null,
     ) {
         if ($secret === '') {
             throw new RuntimeException(
@@ -153,6 +154,59 @@ class StripeClient implements StripeClientInterface
 
         // Throws \Stripe\Exception\SignatureVerificationException on a bad signature.
         $event = Webhook::constructEvent($payload, $signatureHeader, $this->webhookSecret);
+
+        return new StripeEvent((string) $event->id, (string) $event->type, $event->toArray());
+    }
+
+    public function createConnectAccount(string $email, array $metadata = [], ?string $idempotencyKey = null): StripeConnectAccount
+    {
+        $account = $this->sdk->accounts->create([
+            'type' => 'standard',
+            'email' => $email,
+            'metadata' => $metadata,
+        ], $this->options($idempotencyKey));
+
+        return new StripeConnectAccount((string) $account->id, (bool) $account->payouts_enabled);
+    }
+
+    public function retrieveConnectAccount(string $accountId): StripeConnectAccount
+    {
+        $account = $this->sdk->accounts->retrieve($accountId);
+
+        return new StripeConnectAccount((string) $account->id, (bool) $account->payouts_enabled);
+    }
+
+    public function createConnectAccountLink(string $accountId, string $refreshUrl, string $returnUrl): StripeAccountLink
+    {
+        $link = $this->sdk->accountLinks->create([
+            'account' => $accountId,
+            'refresh_url' => $refreshUrl,
+            'return_url' => $returnUrl,
+            'type' => 'account_onboarding',
+        ]);
+
+        return new StripeAccountLink((string) $link->url);
+    }
+
+    public function createTransfer(int $amountMinor, string $currency, string $destinationAccountId, array $metadata = [], ?string $idempotencyKey = null): StripeTransfer
+    {
+        $transfer = $this->sdk->transfers->create([
+            'amount' => $amountMinor,
+            'currency' => strtolower($currency),
+            'destination' => $destinationAccountId,
+            'metadata' => $metadata,
+        ], $this->options($idempotencyKey));
+
+        return new StripeTransfer((string) $transfer->id, (string) $transfer->destination);
+    }
+
+    public function constructConnectWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent
+    {
+        if (! is_string($this->connectWebhookSecret) || $this->connectWebhookSecret === '' || $signatureHeader === null) {
+            throw new RuntimeException('StripeClient: missing CONNECT webhook secret or signature.');
+        }
+
+        $event = Webhook::constructEvent($payload, $signatureHeader, $this->connectWebhookSecret);
 
         return new StripeEvent((string) $event->id, (string) $event->type, $event->toArray());
     }
