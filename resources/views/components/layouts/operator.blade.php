@@ -659,7 +659,11 @@
         .vy-recon svg { color: var(--vy-accent); }
 
         /* ---- Operator dashboard ---------------------------------------------------------------- */
-        .vy-dash-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+        /* KPI band. Default 4-up (wraps for the 6-tile Insights → 4+2). Per-count modifiers let a page pick a
+           full-width row: --5 (Dashboard), --3 (Reservations). The design shows each KPI row spanning full width. */
+        .vy-dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .vy-dash-kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .vy-dash-kpis--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
         .vy-dash-kpi {
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
             -webkit-backdrop-filter: blur(22px) saturate(1.15);
@@ -878,7 +882,7 @@
         @media (max-width: 1100px) {
             .vy-kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .vy-detail-cols { grid-template-columns: minmax(0, 1fr); }
-            .vy-dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .vy-dash-kpis, .vy-dash-kpis--3, .vy-dash-kpis--5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .vy-dash-cols { grid-template-columns: minmax(0, 1fr); }
         }
         @media (max-width: 860px) {

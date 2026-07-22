@@ -29,8 +29,8 @@
              re-scoped by the chips or the search below — a tile that silently tracked the filter would make
              its own label false. Every figure the design shipped here was a hard-coded constant that did not
              reconcile to its own rows; not one was ported. ─────────────────────────────────────────────── --}}
-        <div class="vy-dash-kpis vy-fade">
-            <div class="vy-dash-kpi is-feature">
+        <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade">
+            <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Arrivals this month</div>
                 <div class="vy-dk-val">{{ $stats['count'] }}</div>
                 <div class="vy-dk-sub">checking in this calendar month · cancellations and no-shows excluded</div>

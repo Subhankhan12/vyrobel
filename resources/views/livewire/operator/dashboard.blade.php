@@ -33,7 +33,7 @@
             <div class="vy-card vy-fade"><div class="vy-empty">No property yet — add a property to see its dashboard.</div></div>
         @else
             {{-- KPI TILES — a uniform row (design's arrangement); every figure REAL + tenant-scoped --}}
-            <div class="vy-dash-kpis vy-fade">
+            <div class="vy-dash-kpis vy-dash-kpis--5 vy-fade">
                 <div class="vy-dash-kpi">
                     <div class="vy-dk-label">Arrivals today</div>
                     <div class="vy-dk-val">{{ $kpis['arrivals'] }}</div>
