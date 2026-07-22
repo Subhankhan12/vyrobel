@@ -55,6 +55,16 @@ interface StripeClientInterface
     public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession;
 
     /**
+     * Create a PAYMENT-mode Checkout Session for a one-off amount (Phase 8 · SG2 — a guest folio charge). The
+     * card is entered on Stripe's hosted page. Returns the session id + url + the PaymentIntent id Stripe
+     * created (a pending Payment is pre-created against it; the payment_intent.succeeded webhook settles it).
+     * Integer minor units.
+     *
+     * @param  array<string, string>  $metadata
+     */
+    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession;
+
+    /**
      * Verify a webhook signature (Stripe's `Stripe-Signature` scheme) and return the event, or
      * throw if the signature/secret is invalid. Never trusts an unverified payload.
      */

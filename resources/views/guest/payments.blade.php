@@ -5,6 +5,13 @@
     <h1 class="vy-h1">Payments</h1>
     <p class="vy-lead">Your balance and payment history across your stays.</p>
 
+    @if (session('pay_notice'))
+        <div class="vy-card" style="margin-bottom:12px;border-left:3px solid var(--vy-accent)"><div style="font-size:13px;color:var(--vy-ink)">{{ session('pay_notice') }}</div></div>
+    @endif
+    @if (session('pay_error'))
+        <div class="vy-card" style="margin-bottom:12px;border-left:3px solid #C2453A"><div style="font-size:13px;color:#8A2F27">{{ session('pay_error') }}</div></div>
+    @endif
+
     {{-- Summary --}}
     <section class="vy-card" style="margin-bottom:14px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
@@ -16,10 +23,7 @@
                 <div style="font-size:12px;color:var(--vy-faint);margin-top:2px">Paid to date · {{ $overview['total_paid'] }}</div>
             </div>
             @if ($overview['total_balance_minor'] > 0)
-                <div style="text-align:right">
-                    <span class="vy-btn" style="opacity:.55;cursor:not-allowed" title="Coming soon">Pay by card · Soon</span>
-                    <div style="font-size:11px;color:var(--vy-faint);margin-top:6px;max-width:230px">Card &amp; Apple Pay are coming — for now, settle on arrival or reply to your confirmation.</div>
-                </div>
+                <div style="text-align:right;font-size:11px;color:var(--vy-faint);max-width:230px">Pay a balance below by card — securely on Stripe. Your card details never touch Vyrobel.</div>
             @endif
         </div>
     </section>
@@ -35,6 +39,13 @@
                 </div>
                 <div style="text-align:right">
                     <div style="font-size:14px;font-weight:600;color:{{ $booking['balance_due'] ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">{{ $booking['balance_due'] ? $booking['balance'] : 'Paid' }}</div>
+                    @if ($booking['balance_due'])
+                        {{-- 🔒 Pay by card — hosted Stripe Checkout (card never touches Vyrobel); settles on the webhook. --}}
+                        <form method="POST" action="{{ route('guest.payments.pay', $booking['id']) }}" style="margin:4px 0 0">
+                            @csrf
+                            <button type="submit" class="vy-btn vy-btn--accent" style="padding:5px 12px;font-size:12px">Pay by card</button>
+                        </form>
+                    @endif
                     <a class="vy-link" href="{{ route('guest.receipt', $booking['id']) }}" style="font-size:12px;color:var(--vy-accent);text-decoration:none">Receipt →</a>
                 </div>
             </div>

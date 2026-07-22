@@ -16,6 +16,7 @@ use App\Http\Controllers\Guest\GuestArrivalController;
 use App\Http\Controllers\Guest\GuestCheckinController;
 use App\Http\Controllers\Guest\GuestClaimController;
 use App\Http\Controllers\Guest\GuestDocumentController;
+use App\Http\Controllers\Guest\GuestFolioPaymentController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
 use App\Http\Controllers\Guest\GuestManageController;
@@ -247,6 +248,10 @@ Route::prefix('guest')->name('guest.')->group(function () {
         // Payments (SG1) — balance + history across owned bookings (card charge = deferred Stripe rail) + the
         // per-booking Folio Receipt + the money PDFs (each owned-booking-only; a cross-guest id → 404).
         Route::get('/payments', [GuestPaymentsController::class, 'index'])->name('payments');
+        // Phase 8 · SG2 — the guest pays their OWN booking's balance by card (hosted Stripe Checkout; the card
+        // never touches the server). The folio settles on the payment_intent.succeeded webhook, never the
+        // redirect. Rate-limited; the booking is resolved through the guest's own reservations (#28).
+        Route::post('/payments/{reservation}/pay', [GuestFolioPaymentController::class, 'pay'])->middleware('throttle:10,1')->name('payments.pay');
         Route::get('/reservation/{reservation}/receipt', [GuestReceiptController::class, 'show'])->name('receipt');
         Route::get('/reservation/{reservation}/receipt.pdf', [GuestDocumentController::class, 'folioReceipt'])->name('doc.receipt');
         Route::get('/reservation/{reservation}/invoice.pdf', [GuestDocumentController::class, 'vatInvoice'])->name('doc.invoice');

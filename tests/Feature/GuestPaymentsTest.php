@@ -114,15 +114,17 @@ it('never shows another guest’s booking on the payments hub', function () {
         ->assertDontSee($bRes->reference);     // the other guest's never appears
 });
 
-// ── The card charge is DEFERRED — the balance shows an honest "Soon", never a faked payment ───────
-it('defers the card charge honestly on the payments hub', function () {
+// ── Phase 8 — the card charge is LIVE (Stripe hosted Checkout); a real "Pay by card" on a balance ────
+it('offers a real Stripe card payment on a balance (SAQ A — no card field on our page)', function () {
     $s = seedScenario(1);
     $a = payGuest($s['guest'], 'ada@example.test');
-    payBook($s, $a, $s['units'][0], chargeMinor: 30000, payMinor: 0);   // full balance due
+    $res = payBook($s, $a, $s['units'][0], chargeMinor: 30000, payMinor: 0);   // full balance due
 
     $this->actingAs($a, 'guest')->get(route('guest.payments'))
         ->assertOk()
-        ->assertSee('Pay by card · Soon');   // deferred, honest — no real payment path for the guest
+        ->assertSee('Pay by card')                                  // a real payment path (hosted Stripe Checkout)
+        ->assertSee(route('guest.payments.pay', $res->id), false)   // POSTs to the guest pay route
+        ->assertDontSee('Card number');                             // 🪤 no card field on our page (SAQ A)
 });
 
 // ── Refund receipt + credit note exist ONLY when a real refund does ───────────────────────────────

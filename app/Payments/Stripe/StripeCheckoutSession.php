@@ -14,5 +14,9 @@ final class StripeCheckoutSession
     public function __construct(
         public readonly string $id,
         public readonly string $url,
+        // For a payment-mode session (a guest folio charge) — the PaymentIntent id Stripe created for it. A
+        // pending Payment is pre-created against this id, and the existing payment_intent.succeeded webhook
+        // settles it. Null for a subscription-mode session.
+        public readonly ?string $paymentIntentId = null,
     ) {}
 }

@@ -121,6 +121,30 @@ class StripeClient implements StripeClientInterface
         return new StripeCheckoutSession((string) $session->id, (string) $session->url);
     }
 
+    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession
+    {
+        $session = $this->sdk->checkout->sessions->create([
+            'mode' => 'payment',
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => strtolower($currency),
+                    'unit_amount' => $amountMinor,
+                    'product_data' => ['name' => $description],
+                ],
+            ]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'metadata' => $metadata,
+            // Propagate the metadata onto the PaymentIntent too (reconciliation breadcrumbs).
+            'payment_intent_data' => ['metadata' => $metadata],
+        ], $this->options($idempotencyKey));
+
+        $paymentIntent = $session->payment_intent;
+
+        return new StripeCheckoutSession((string) $session->id, (string) $session->url, is_string($paymentIntent) ? $paymentIntent : null);
+    }
+
     public function constructWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent
     {
         if (! is_string($this->webhookSecret) || $this->webhookSecret === '' || $signatureHeader === null) {

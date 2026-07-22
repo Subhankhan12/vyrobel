@@ -215,6 +215,44 @@ class FolioService
     }
 
     /**
+     * Record a PENDING payment for a hosted Stripe CHECKOUT (Phase 8 · SG2 — the guest folio charge). The card
+     * is charged on Stripe's page, so no gateway.charge() here; we pre-create a `pending` Payment against the
+     * session's PaymentIntent id, and the existing `payment_intent.succeeded` webhook settles it
+     * ({@see settlePayment()}) — the folio records the money ONLY on the webhook. Pending is not counted as
+     * paid, so an abandoned checkout never shows as paid.
+     *
+     * 🔒 Idempotent by construction: `firstOrCreate` on `gateway_ref` (the PaymentIntent id) — a double-click,
+     * which reuses the SAME Stripe session (and PI) via the sending-side idempotency key, yields ONE pending row.
+     *
+     * @param  array<string, mixed>  $metadata
+     */
+    public function recordCheckoutIntent(Folio $folio, Money $amount, string $paymentIntentId, array $metadata = []): Payment
+    {
+        $payment = Payment::query()->firstOrCreate(
+            ['gateway_ref' => $paymentIntentId],
+            [
+                'folio_id' => $folio->getKey(),
+                'reservation_id' => $folio->reservation_id,
+                'gateway' => 'stripe',
+                'type' => 'payment',
+                'amount' => $amount,
+                'currency' => $amount->currency(),
+                'status' => 'pending',
+                'metadata' => $metadata,
+                'processed_at' => now(),
+            ],
+        );
+
+        if ($payment->wasRecentlyCreated) {
+            $this->recompute($folio);   // pending is NOT counted as paid — the folio changes on the webhook
+            $this->domainEvents->record('payment.recorded', $payment, ['amount_minor' => $amount->amountMinor(), 'status' => 'pending']);
+            $this->audit->record('payment.checkout_started', $payment, null, ['amount_minor' => $amount->amountMinor()]);
+        }
+
+        return $payment;
+    }
+
+    /**
      * Settle a PENDING payment once Stripe confirms it asynchronously (SCA/3DS or `processing`).
      * Idempotent: only a `pending` row transitions — a redelivered webhook (or one racing another)
      * is a no-op. This is NOT mutating a settled ledger entry; it completes the lifecycle of an
