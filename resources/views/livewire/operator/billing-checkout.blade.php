@@ -38,13 +38,13 @@
                         <input class="vy-input" id="billing_vat_id" name="billing_vat_id" value="{{ old('billing_vat_id', $vat_id) }}" maxlength="64" placeholder="e.g. PT 512 034 776">
                     </div>
 
-                    {{-- ⚠️ THE ACCOUNT-GATED SEAM — no card field, no charge. --}}
+                    {{-- 🔒 SAQ A — the card is entered on Stripe's secure hosted page, NEVER here. No card field. --}}
                     <div class="vy-bill-gate">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg>
-                        <div>Card payment is coming soon. Vyrobel isn't collecting payments yet — subscribing records your choice and continues your trial; no card is asked for or charged.</div>
+                        <div>You’ll enter your card on Stripe’s secure checkout — it never touches Vyrobel. Your subscription activates once payment is confirmed.</div>
                     </div>
 
-                    <button type="submit" class="vy-btn vy-btn--accent" style="width:100%">Subscribe to {{ $tier['name'] }} <span class="vy-soon-tag">Soon</span></button>
+                    <button type="submit" class="vy-btn vy-btn--accent" style="width:100%">Continue to secure checkout</button>
                 </form>
             </div>
 

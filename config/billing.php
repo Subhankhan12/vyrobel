@@ -35,6 +35,9 @@ return [
             'name' => 'Essential',
             'blurb' => 'For a single property finding its feet.',
             'prices_minor' => ['monthly' => 4900, 'yearly' => 49000],   // €49/mo · €490/yr — PLACEHOLDER
+            // The Stripe Price ids (test-mode → live). Subhan sets these from the Stripe dashboard per
+            // tier×interval; null defaults to a fake placeholder so the app flows end-to-end on the fake client.
+            'stripe_prices' => ['monthly' => env('STRIPE_PRICE_ESSENTIAL_MONTHLY'), 'yearly' => env('STRIPE_PRICE_ESSENTIAL_YEARLY')],
             'features' => [
                 'analytics' => ['label' => 'Insights & reports', 'enabled' => true],
                 'channels' => ['label' => 'Channel manager', 'enabled' => false],   // Pro-only (a real tier gate)
@@ -45,6 +48,7 @@ return [
             'name' => 'Pro',
             'blurb' => 'For a growing portfolio across properties.',
             'prices_minor' => ['monthly' => 9900, 'yearly' => 99000],   // €99/mo · €990/yr — PLACEHOLDER
+            'stripe_prices' => ['monthly' => env('STRIPE_PRICE_PRO_MONTHLY'), 'yearly' => env('STRIPE_PRICE_PRO_YEARLY')],
             'features' => [
                 'analytics' => ['label' => 'Insights & reports', 'enabled' => true],
                 'channels' => ['label' => 'Channel manager', 'enabled' => true],

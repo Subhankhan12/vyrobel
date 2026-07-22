@@ -45,6 +45,16 @@ interface StripeClientInterface
     public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null): StripeRefund;
 
     /**
+     * Create a SUBSCRIPTION-mode Checkout Session (Phase 8 · SG1). The card is entered on Stripe's hosted
+     * page (never our server). `$metadata` (e.g. organization_id) is stamped on BOTH the session and the
+     * created subscription, so every downstream webhook can resolve the org. Returns the session id + url;
+     * fulfilment happens on the WEBHOOK, not this call.
+     *
+     * @param  array<string, string>  $metadata
+     */
+    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession;
+
+    /**
      * Verify a webhook signature (Stripe's `Stripe-Signature` scheme) and return the event, or
      * throw if the signature/secret is invalid. Never trusts an unverified payload.
      */

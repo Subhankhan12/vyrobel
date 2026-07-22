@@ -45,7 +45,7 @@ it('shows the real tiers, placeholder prices, and the honest trial status', func
         ->assertSee('€49.00')->assertSee('€99.00')            // placeholder monthly prices (config)
         ->assertSee('left in your free trial')                // real, derived from trial_ends_at
         ->assertSee('placeholders')                            // honest placeholder-pricing note
-        ->assertSee('collecting payments yet');                // honest account-gated statement
+        ->assertSee('billed securely through Stripe');         // Phase 8 — billing is Stripe-wired (SAQ A)
 
     assertNoRawBlade($res);
 });
@@ -61,8 +61,8 @@ it('renders checkout with the period-toggled placeholder summary and a company/V
         ->assertSee('Pro')->assertSee('Yearly')
         ->assertSee('€990.00')                                 // pro yearly placeholder (config)
         ->assertSee('Company name')->assertSee('VAT / tax ID')
-        ->assertSee('Card payment is coming soon')             // the account-gated seam, honest
-        ->assertDontSee('Card number');                        // 🪤 NO card field / no raw PAN
+        ->assertSee('secure checkout')                         // Stripe-hosted — the card is entered there
+        ->assertDontSee('Card number');                        // 🪤 NO card field on our page / no raw PAN (SAQ A)
 
     // Company/VAT capture (the org's own business data, no card).
     $this->actingAs($founder)->post('/app/billing/company', [
@@ -73,22 +73,24 @@ it('renders checkout with the period-toggled placeholder summary and a company/V
     expect($org->billing_company)->toBe('Seaside Group Lda')->and($org->billing_vat_id)->toBe('PT512034776');
 });
 
-// ── 4. 🪤 THE SUBSCRIBE SEAM — account-gated: NO charge, NO activation, subscription unchanged ──────
-it('never charges or activates on subscribe — the trial is untouched (account-gated seam)', function () {
+// ── 4. 🔒 SUBSCRIBE → STRIPE CHECKOUT — the redirect NEVER activates (fulfilment is on the webhook) ──
+it('starts a Stripe Checkout on subscribe and does NOT activate off the redirect', function () {
     $s = seedScenario(1);
     trialSub((string) $s['org']->id);
     $founder = operatorUser($s, [], 'Property Owner');
 
-    $this->actingAs($founder)->post('/app/billing/subscribe', [
+    // Phase 8: subscribe now creates a hosted Stripe Checkout and redirects there (the card never touches us).
+    $res = $this->actingAs($founder)->post('/app/billing/subscribe', [
         'plan' => 'pro', 'interval' => 'yearly', 'billing_company' => 'Seaside Group Lda',
-    ])->assertRedirect(route('app.billing'))
-        ->assertSessionHas('billing_notice');
+    ]);
+    $res->assertRedirect();
+    expect($res->headers->get('Location'))->toContain('checkout.stripe.test');   // off-site to Stripe's page
 
-    // 🪤 The subscription is STILL trialing — nothing flipped to active, no Stripe id, no charge.
+    // 🔒 The subscription is STILL trialing — the REDIRECT never activates; only the webhook does (BillingStripeTest).
     $sub = Subscription::withoutGlobalScopes()->where('organization_id', $s['org']->id)->firstOrFail();
     expect($sub->status)->toBe('trialing')
         ->and($sub->stripe_subscription_id)->toBeNull();
 
-    // The company detail WAS captured (ready for real invoicing later).
+    // The company detail WAS captured (ready for real invoicing).
     expect($s['org']->fresh()->billing_company)->toBe('Seaside Group Lda');
 });

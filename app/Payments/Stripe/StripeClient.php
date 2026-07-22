@@ -99,6 +99,28 @@ class StripeClient implements StripeClientInterface
         return $idempotencyKey !== null && $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
     }
 
+    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession
+    {
+        $params = [
+            'mode' => 'subscription',
+            'line_items' => [['price' => $priceId, 'quantity' => 1]],
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'metadata' => $metadata,
+            // Propagate the org id onto the SUBSCRIPTION too, so subscription/invoice webhooks resolve the org.
+            'subscription_data' => ['metadata' => $metadata],
+        ];
+        if ($customerId !== null) {
+            $params['customer'] = $customerId;
+        } elseif ($customerEmail !== null) {
+            $params['customer_email'] = $customerEmail;
+        }
+
+        $session = $this->sdk->checkout->sessions->create($params, $this->options($idempotencyKey));
+
+        return new StripeCheckoutSession((string) $session->id, (string) $session->url);
+    }
+
     public function constructWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent
     {
         if (! is_string($this->webhookSecret) || $this->webhookSecret === '' || $signatureHeader === null) {

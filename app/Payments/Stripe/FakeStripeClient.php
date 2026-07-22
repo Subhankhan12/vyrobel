@@ -121,6 +121,35 @@ class FakeStripeClient implements StripeClientInterface
         return new StripeRefund($id, 'succeeded');
     }
 
+    /** @var array<string, array<string, mixed>> — created Checkout sessions, inspectable in tests. */
+    public array $checkoutSessions = [];
+
+    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession
+    {
+        // A repeated Idempotency-Key returns the ORIGINAL session — never a second subscription.
+        if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
+            $existing = $this->checkoutSessions[$this->idempotency[$idempotencyKey]];
+
+            return new StripeCheckoutSession((string) $existing['id'], (string) $existing['url']);
+        }
+
+        $id = 'cs_fake_'.Str::lower(Str::random(20));
+        $url = 'https://checkout.stripe.test/'.$id;
+        $this->checkoutSessions[$id] = [
+            'id' => $id,
+            'url' => $url,
+            'price' => $priceId,
+            'customer' => $customerId ?? 'cus_fake_'.Str::lower(Str::random(14)),
+            'subscription' => 'sub_fake_'.Str::lower(Str::random(14)),
+            'metadata' => $metadata,
+        ];
+        if ($idempotencyKey !== null) {
+            $this->idempotency[$idempotencyKey] = $id;
+        }
+
+        return new StripeCheckoutSession($id, $url);
+    }
+
     public function constructWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent
     {
         if (! is_string($this->webhookSecret) || $this->webhookSecret === '' || $signatureHeader === null) {

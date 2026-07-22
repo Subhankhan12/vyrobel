@@ -41,4 +41,41 @@ final class StripeEvent
 
         return is_string($pi) ? $pi : (is_string($id) ? $id : null);
     }
+
+    /**
+     * The event's `data.object` (a checkout session / subscription / invoice for billing events).
+     *
+     * @return array<string, mixed>
+     */
+    public function object(): array
+    {
+        $object = $this->payload['data']['object'] ?? [];
+
+        return is_array($object) ? $object : [];
+    }
+
+    /** A string field of `data.object` (e.g. 'customer', 'subscription', 'status'), or null. */
+    public function objectField(string $key): ?string
+    {
+        $value = $this->object()[$key] ?? null;
+
+        return is_string($value) ? $value : null;
+    }
+
+    /** An int field of `data.object` (e.g. 'current_period_end', a unix timestamp), or null. */
+    public function objectInt(string $key): ?int
+    {
+        $value = $this->object()[$key] ?? null;
+
+        return is_int($value) ? $value : null;
+    }
+
+    /** The `organization_id` stamped into `data.object.metadata` at Checkout create — resolves the tenant. */
+    public function metadataOrganizationId(): ?string
+    {
+        $metadata = $this->object()['metadata'] ?? [];
+        $id = is_array($metadata) ? ($metadata['organization_id'] ?? null) : null;
+
+        return is_string($id) ? $id : null;
+    }
 }

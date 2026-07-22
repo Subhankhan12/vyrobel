@@ -6,9 +6,12 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
+use App\Services\BillingService;
+use App\Services\BillingWebhookService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 /**
  * Billing writes (Phase 7b · SG2) — company/VAT capture + the account-gated subscribe seam. Locked
@@ -38,17 +41,16 @@ class BillingActionController extends Controller
     }
 
     /**
-     * The SUBSCRIBE action — deliberately the ACCOUNT-GATED Stripe-Billing seam. It takes NO money, stores NO
-     * card data, and does NOT flip the org to `active` (a real subscription can only ever be reached through
-     * a live Stripe charge, which is Subhan's to obtain — the same deferral as the guest card charge + the
-     * owner payout rail). It records the intended plan/interval on the company details and returns an honest
-     * "live billing is coming" message; the org's trial continues untouched.
+     * The SUBSCRIBE action (Phase 8 · SG1 — LIVE Stripe Billing, test-mode-first). Creates a Stripe Checkout
+     * Session for the chosen tier×interval and redirects the operator to Stripe's hosted card page — the card
+     * NEVER touches our server (PCI SAQ A). 🔒 This does NOT activate the org: fulfilment is on the
+     * `checkout.session.completed` WEBHOOK ({@see BillingWebhookService}), so a closed tab still
+     * activates once Stripe delivers the event. The redirect is UX only.
      */
-    public function subscribe(Request $request): RedirectResponse
+    public function subscribe(Request $request, BillingService $billing): RedirectResponse
     {
         $org = Organization::query()->findOrFail(app(TenantContext::class)->id());
 
-        // Capture the company/VAT if submitted on the checkout, so it's ready for real invoicing later.
         $data = $request->validate([
             'plan' => ['required', 'string', 'max:32'],
             'interval' => ['required', 'in:monthly,yearly'],
@@ -56,14 +58,23 @@ class BillingActionController extends Controller
             'billing_vat_id' => ['nullable', 'string', 'max:64'],
         ]);
 
+        // Capture the company/VAT for real invoicing, and set the invoice email for the Stripe customer.
         $org->update([
             'billing_company' => $data['billing_company'] ?? $org->billing_company,
             'billing_vat_id' => $data['billing_vat_id'] ?? $org->billing_vat_id,
         ]);
 
-        // 🪤 NO CHARGE. Live billing (Stripe) is account-gated — we do NOT collect payment or activate here.
-        return redirect()->to(route('app.billing'))->with('billing_notice',
-            'Vyrobel isn’t collecting payments yet — live billing is coming soon. Your trial continues, and we’ll email you before it ends. (No card was charged.)');
+        try {
+            $session = $billing->startCheckout($org, (string) $data['plan'], (string) $data['interval']);
+        } catch (Throwable $e) {
+            report($e);
+
+            return redirect()->to(route('app.billing'))->with('billing_error',
+                'We couldn’t start checkout right now — please try again, or contact support.');
+        }
+
+        // UX only — fulfilment is on the webhook. Off-site to Stripe's hosted, PCI-scoped card page.
+        return redirect()->away($session->url);
     }
 
     /**

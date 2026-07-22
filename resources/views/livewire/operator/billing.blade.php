@@ -52,7 +52,7 @@
             @endforeach
         </div>
 
-        <p class="vy-bill-disclaimer vy-fade">Prices shown are placeholders while we finalise pricing. Vyrobel isn't collecting payments yet — live billing is coming soon.</p>
+        <p class="vy-bill-disclaimer vy-fade">Prices shown are placeholders while we finalise pricing. Subscriptions are billed securely through Stripe — your card details never touch Vyrobel.</p>
 
         @if (app()->environment('local') && ($status['on_trial'] || $status['active']))
             {{-- DEV/TEST ONLY — expire the trial to see the access gate. Not a real action; hidden in production. --}}

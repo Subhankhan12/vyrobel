@@ -7,8 +7,12 @@ namespace App\Services;
 use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Payments\Stripe\StripeCheckoutSession;
+use App\Payments\Stripe\StripeClientInterface;
+use App\Payments\Stripe\StripeIdempotency;
 use App\Support\Billing\SubscriptionStatus;
 use Database\Seeders\BillingPlanSeeder;
+use RuntimeException;
 
 /**
  * Vyrobel subscription billing (Phase 7b) — the write/orchestration side (the read/derive side is the pure
@@ -51,6 +55,36 @@ final class BillingService
     public function statusFor(Organization $organization): SubscriptionStatus
     {
         return $organization->billingStatus();
+    }
+
+    /**
+     * Start a live Stripe Checkout for a tier×interval (Phase 8 · SG1). Returns the hosted Checkout Session —
+     * the card is entered on Stripe's page, never our server. 🔒 This does NOT activate the org; fulfilment is
+     * on the `checkout.session.completed` WEBHOOK ({@see BillingWebhookService}). The org id is stamped into
+     * the session + subscription metadata so the webhook resolves the tenant; a deterministic Idempotency-Key
+     * keeps a double-submit to ONE session.
+     */
+    public function startCheckout(Organization $organization, string $tier, string $interval): StripeCheckoutSession
+    {
+        $plan = $this->planFor($tier, $interval)
+            ?? throw new RuntimeException("No plan for tier [{$tier}] interval [{$interval}].");
+
+        $priceId = $plan->stripe_price_id;
+        if (! is_string($priceId) || $priceId === '') {
+            throw new RuntimeException("Plan [{$plan->code}] is not wired to a Stripe price.");
+        }
+
+        $subscription = $organization->currentSubscription();
+
+        return app(StripeClientInterface::class)->createSubscriptionCheckout(
+            priceId: $priceId,
+            successUrl: route('app.billing').'?checkout=success',
+            cancelUrl: route('app.billing').'?checkout=cancel',
+            customerId: $subscription?->stripe_customer_id,
+            customerEmail: is_string($organization->billing_email) ? $organization->billing_email : null,
+            metadata: ['organization_id' => (string) $organization->getKey(), 'plan' => $plan->code],
+            idempotencyKey: StripeIdempotency::keyFor('subscription_checkout', $organization->getKey().'_'.$plan->getKey()),
+        );
     }
 
     /** Idempotently ensure the placeholder plan catalog exists (used by startTrial + the Paywall). */

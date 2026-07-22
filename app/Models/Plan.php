@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $name
  * @property int $price_minor
  * @property string $currency
+ * @property ?string $stripe_price_id
  * @property string $interval
  * @property bool $is_active
  */
@@ -29,6 +30,7 @@ class Plan extends Model
         'name',
         'price_minor',
         'currency',
+        'stripe_price_id',
         'interval',
         'is_active',
     ];
