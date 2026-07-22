@@ -394,9 +394,9 @@ conflicts with the repo, **trust the repo** and fix this file.
   comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–43 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–44 (the full guarantee stack)
 
-> **All 43, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 44, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
@@ -440,7 +440,15 @@ conflicts with the repo, **trust the repo** and fix this file.
 > is a REAL computed conflict (assign-on-leave is refused; a pre-existing clash is flagged), never fabricated;
 > the schedule PDF renders from the SAME `RosterWeek` builder as the grid, so it RECONCILES and is
 > property-scoped (no id in the URL → cross-property/org not accessible). Shift-swapping / labor-cost /
-> coverage-AI are OUT of scope (deferred honestly, never faked)**.
+> coverage-AI are OUT of scope (deferred honestly, never faked)** · **#44 production email (Phase 8): a real
+> email is NEVER sent from a non-production environment — enforced in CODE by `MailSafetyGuard` (a real-sending
+> transport [postmark/ses/…] is refused outside `production` and downgraded to `log` at boot, so even
+> MAIL_MAILER=postmark in a dev/CI .env can't reach a real person); the test suite runs on a NON-SENDING
+> transport (`array`); provider secrets live in ENV only (never committed); the Phase-3 boundary HOLDS with the
+> real transport — a provider send failure is caught + logged (never the address, #28) and NEVER rolls back the
+> booking/notification (the email is best-effort); mail goes to the correct recipient only (the guest's/owner's
+> OWN address, #28). Bounce/complaint suppression is Postmark-native for v1 (an app-side, blind-indexed
+> suppression store is documented, not faked); the DNS records + the one controlled real send are Subhan's**.
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -1427,9 +1435,12 @@ plain GET links (e.g. `?month=`).
 > ~89 styled/browser-verified screens on real scoped data under the honesty rule, now **MULTI-PROPERTY with real
 > ANALYTICS, SELF-SERVE SIGNUP + BILLING, OWNER SUB-TENANCY, and STAFF ROSTERING**. Suite **895 / 7383** green on MySQL;
 > PHPStan L5 + Pint clean; `migrate:fresh --seed` clean (2 demo properties, demo org on a real Essential subscription,
-> demo owner + 2 sub-users + a pending invite, a demo roster week + leave + request). Invariants **#1–43**. **Guest
-> Portal + Reviews complete; multi-property + real analytics; tenant provisioning + subscription billing + owner team +
-> team schedule ship (the live Stripe charge account-gated).** (The dated
+> demo owner + 2 sub-users + a pending invite, a demo roster week + leave + request). Suite **900 / 7409** with
+> **PRODUCTION EMAIL lit up** (Postmark wired as the prod transport via ENV; test/prod separation enforced in code by
+> `MailSafetyGuard`; the Phase-3 mail-failure boundary re-proven with the real transport; DNS + the one real send are
+> Subhan's). Invariants **#1–44**. **Guest Portal + Reviews complete; multi-property + real analytics; tenant
+> provisioning + subscription billing + owner team + team schedule + production email ship (the live Stripe charge
+> account-gated; Postmark live token + DNS are Subhan's).** (The dated
 > per-phase detail is in
 > `docs/DECISIONS.md`; the older "customer signal / don't build blind" framing below is HISTORICAL — the signal came
 > and every phase since was built to the prototype.)

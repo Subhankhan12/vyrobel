@@ -3053,3 +3053,48 @@ request). Phase 7d commits: `88e3af1` (SG1) → this gate (SG2).
 7d team schedule. **NEXT = Phase 8 — account-gated integrations** (LIVE Stripe billing + card charge + owner
 payout rail + Channex live sync + WhatsApp/OTA inbox + production email + guest ID verification, as the
 accounts land).
+
+---
+
+## 2026-07-22 — PHASE 8 (first piece): PRODUCTION EMAIL — Postmark wired into the Phase-3 seam ✅ COMPLETE
+
+Phase 3 built the ENTIRE mail layer (9 Mailables + the preference gate + the "a mail failure never rolls back
+the domain txn" boundary) on Mailpit. This lights up **Postmark** as the real PRODUCTION transport — a config/ENV
+swap, NOT a Mailable rebuild. Provider = **Postmark** (Subhan's choice); live creds/domain not yet set, so the
+one controlled real send is DOCUMENTED for Subhan to run (no real send in this build). Two gated sub-gates. See
+`docs/EMAIL-PRODUCTION.md` (the runbook).
+
+**⛔ SG1 — provider config + the test/prod separation, proven FIRST (`9b40e32`).** 🔒 **MailSafetyGuard — THE #1
+guard, in CODE not convention:** a real-sending transport (postmark/ses/resend/mailgun/sendmail) is REFUSED
+outside `production` and downgraded to `log`, applied at boot in AppServiceProvider — so even
+`MAIL_MAILER=postmark` in a stray dev/CI `.env` can't email a real person unless `APP_ENV=production`; Mailpit
+`smtp` / `log` / `array` (the test transport) are left untouched. Postmark config via ENV ONLY
+(`services.postmark.token` = `env('POSTMARK_TOKEN')`; message stream + an 8s fail-fast client timeout in
+`config/mail.php`); `.env.example` documents the keys + the env matrix, no values. `docs/EMAIL-PRODUCTION.md`
+documents the exact SPF/DKIM/DMARC + custom Return-Path DNS records (Subhan's to add). Mutation-proven
+(`MailTransportSafetyTest`, 3): the running suite is on a NON-SENDING transport (`array`; can't email a real
+person) · the guard downgrades every real provider to `log` outside production and keeps it in production ·
+`log`/`array`/Mailpit-`smtp` untouched.
+
+**⛔ SG2 — delivery hardening + bounce handling + consolidate (this gate).** 🔒 **The Phase-3 boundary RE-PROVEN
+with the real transport:** a provider send failure (network / 5xx / rate-limit) is caught + logged (never the
+address — #28) and NEVER rolls back the booking/notification — proven against a transport that always throws
+(`MailDeliveryBoundaryTest`, 2: a booking AND a cancellation both survive a provider outage). **Delivery
+hardening:** the 8s fail-fast timeout (SG1) + the best-effort-with-catch boundary. **Retry/queueing DEFERRED
+deliberately (not faked):** making the transactional Mailables `ShouldQueue` would flip `Mail::assertSent` →
+`assertQueued` across the certified `GuestEmailTest`, i.e. rebuild the certified layer — out of scope; the
+boundary already guarantees a failure never breaks the business op. **Bounce/complaint — Postmark-native for v1
+(honest deferral):** Postmark automatically suppresses hard bounces + spam complaints on ITS side (won't
+re-deliver to a dead address) + surfaces them in the dashboard — the real deliverability protection. App-side
+handling (a Basic-Auth-verified `/webhooks/postmark` + a suppression store keyed by a **blind-index hash** of the
+address, since the guest email is encrypted PII #28) is documented as the future build, NOT stubbed/faked. **The
+controlled real send** (the ONE real send — to Subhan's OWN address, never a customer) is finalized as documented
+steps for Subhan to run once his creds + DNS are set (may land in spam until DKIM/DMARC propagate — honest).
+
+**⚠️ REMAINS SUBHAN's:** the Postmark server API token (prod ENV) · the DKIM/Return-Path/DMARC DNS records ·
+running the one controlled real send. New invariant **#44**. Suite **900 tests / 7409 assertions** green ·
+PHPStan L5 + Pint clean · no real send in any environment · no secrets in the repo.
+
+**Phase-8 account-gated register — production email ✅ LIT UP.** Still pending (as accounts land): **LIVE Stripe
+billing** (next) · card charge / Apple Pay · owner payout rail (Stripe Connect + KYC) · Channex live sync ·
+WhatsApp / OTA inbox channels · SMS · guest ID verification.

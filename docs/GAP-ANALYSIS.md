@@ -381,9 +381,14 @@ A weekly staff shift roster (real staff, property-scoped, manager-gated) + a tim
 grid, property-scoped). Shift-swapping / labor-cost / coverage-AI are OUT of scope (deferred honestly).
 Invariant #43. **With 7d, PHASE 7 — the SaaS layer — is COMPLETE.** See `docs/DECISIONS.md` 2026-07-22 (Phase 7d).
 
-**PHASE 8 — LIVE INTEGRATIONS (as accounts land — parallel throughout)** *(⬅ NEXT)*
-Stripe Connect payouts live → card capture live → LIVE Stripe subscription billing → Channex live sync →
-WhatsApp/OTA inbox channels → SMS → production email → Guest ID verification.
+**PHASE 8 — LIVE INTEGRATIONS (as accounts land — parallel throughout)** *(⬅ UNDERWAY)*
+- ✅ **PRODUCTION EMAIL — DONE (2026-07-22, `9b40e32` (SG1) → this gate (SG2))** — Postmark wired into the Phase-3 mail seam as
+  the prod transport (ENV only); `MailSafetyGuard` enforces test/prod separation in CODE (a real provider can't
+  send outside `production`); the Phase-3 mail-failure boundary re-proven with the real transport; bounce =
+  Postmark-native for v1 (app-side blind-indexed suppression documented, not faked). The DNS records + the live
+  token + the one controlled real send are Subhan's. Runbook: `docs/EMAIL-PRODUCTION.md`. Invariant #44.
+- ⬅ **NEXT: LIVE Stripe subscription billing** (7b's account-gated charge + webhooks) → card capture live →
+  Stripe Connect payouts + KYC → Channex live sync → WhatsApp/OTA inbox channels → SMS → Guest ID verification.
 
 ---
 
