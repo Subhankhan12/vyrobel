@@ -1,6 +1,7 @@
 {{-- Email Previews index (Phase 3 · Sub-gate 4) — every transactional email, rendered with the tenant's real
      sample data. Honest about each trigger: which send on a real event today vs template-ready-trigger-deferred.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+<x-layouts.operator title="Email previews">
 <x-operator.shell active="email-previews" title="Email previews" subtitle="Every transactional email, with real sample data">
 
     <p class="vy-line-sub" style="font-size:13px;margin-bottom:16px;color:var(--vy-muted)">
@@ -24,3 +25,4 @@
     </section>
 
 </x-operator.shell>
+</x-layouts.operator>

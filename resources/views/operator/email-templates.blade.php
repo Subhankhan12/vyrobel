@@ -1,6 +1,7 @@
 {{-- Operator Email Templates (Phase 3 · Sub-gate 5) — the management view: subject, trigger status, and merge
      variables for every transactional email, each linking to its live preview. Editing is honestly deferred.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+<x-layouts.operator title="Email templates">
 <x-operator.shell active="email-templates" title="Email templates" subtitle="The transactional emails Vyrobel sends">
 
     <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:16px">
@@ -31,3 +32,4 @@
     </section>
 
 </x-operator.shell>
+</x-layouts.operator>

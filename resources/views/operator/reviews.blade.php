@@ -1,6 +1,7 @@
 {{-- Operator Reviews (Phase 5 · SG3) — see reviews, respond, moderate (publish/reject). Guest NAME only (#28);
      controls gated on reviews.manage so the UI never invites a 403. RAW-BLADE RULE: every `@` follows a space,
      newline or tag. --}}
+<x-layouts.operator title="Reviews">
 <x-operator.shell active="reviews" title="Reviews">
     @if (session('status'))
         <div class="vy-note" style="margin:0 0 14px;padding:12px 14px;border-radius:12px;background:rgba(70,120,60,.10);color:rgb(60,105,52);font-size:13px">{{ session('status') }}</div>
@@ -67,3 +68,4 @@
         <section class="vy-card" style="padding:30px;text-align:center;color:#8A8079;font-size:14px;background:#fff;border-radius:14px;border:1px solid rgba(120,70,40,.10)">No reviews yet.</section>
     @endforelse
 </x-operator.shell>
+</x-layouts.operator>

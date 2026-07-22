@@ -1,5 +1,6 @@
 {{-- Operator: guest change requests (Phase 4b · SG3) — the confirm/decline side. Status only; the real change is
      applied with the operator's own tools. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+<x-layouts.operator title="Guest requests">
 <x-operator.shell active="guest-requests" title="Guest requests" subtitle="Date changes, extras & cancellations to confirm">
 
     @if (session('status'))
@@ -38,3 +39,4 @@
     </section>
 
 </x-operator.shell>
+</x-layouts.operator>
