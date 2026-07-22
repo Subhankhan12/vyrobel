@@ -3275,3 +3275,56 @@ side-by-side diffing.
 
 **This consolidation:** docs-only, no code changed; suite **924 / 7517** green on MySQL, PHPStan L5 + Pint clean,
 `migrate:fresh --seed` clean; HEAD `98c4e13`, `main`, local == origin. Invariants **#1–#45**.
+
+### 2026-07-23 — DESIGN-FIDELITY PASS: GATE 1 (operator) COMPLETE + GATE 2 (owner) STARTED (17 gated page-commits) + total-recall save
+
+Continues the design-fidelity pass entry above (which ended at `98c4e13` / "Rates next"). Presentation-only
+throughout — Blade/CSS/components/layout/states ONLY; NEVER behaviour/logic/services/queries/guards/routes/
+permissions/money/auth/isolation. The full suite **924 / 7517** + PHPStan L5 (0) + Pint stayed green and all blades
+compiled **after every page-commit**; each commit browser-verified (app page vs the `docs/design/raw/` prototype at
+`:8899`). Every page classified by the THREE-CATEGORY discipline and recorded in `docs/design/DIVERGENCE-REGISTER.md`.
+Commit chain `4e5efde` → `cace277` (18 commits incl. this save), all on `main`, pushed.
+
+**✅ GATE 1 — OPERATOR COMPLETE (14 queue items).**
+- **RESTRUCTURED (real KIND-1 layout fixes):**
+  - **Rates** `4e5efde` — dark-hero + 2-light → 3 uniform light tiles (`.vy-dash-kpis--3`).
+  - **Maintenance area** `30896ec` (4 sub-screens): board 4 stat-pills → the `.vy-dash-kpis` band; **work order** rail
+    now leads with the dark `.vy-tonight` STATUS panel; **costs** got real **proportional bars** (width ∝ `total_minor`,
+    peak terracotta, in-blade from data already passed); **settings** single-column → the shared two-column
+    `.vy-detail-cols` (rule editors | notify/policy rail).
+  - **Notifications feed** `f16d041` — per-row category icon in a soft circle (keyed to the real category); unread dot moved.
+  - **Inbox** `4910564` — 4 stat-pills → the `.vy-dash-kpis` band (click-to-filter preserved).
+  - **Reports** `519409c` — now leads with a real KPI band (Gross / Net / Arrivals / Tax — figures already computed).
+  - **Insights** `c797444` · **Portfolio** `f05a885` — removed the dark-hero KPI tile → uniform light (Portfolio's
+    occupancy bar kept a page-local light-surface track bg; shared `.vy-dk-track` untouched).
+  - **Housekeeping** `c335fb0` — 3 stat-pills → the `.vy-dash-kpis--3` band (kanban = the prototype's Board mode).
+- **DOCUMENTED (KIND-2 refused / KIND-3 beyond boundary — no code change, register + evidence only):**
+  Units `7bd0be8` (no prototype — app-original) · Property Settings `8d427d4` (sprawling settings dashboard = unbuilt
+  editors, or lives in dedicated screens) · **Roles `01d9181` (editable permission catalog REFUSED for security — #30
+  escalation weapon; app = read-only catalog + assign)** · Profile `b825821` (self-only; extra fields/sessions unbacked) ·
+  Team Schedule `4d55867` (KIND-3: drag-to-move / open-shifts / coverage / publish-workflow) · **Billing `6467acb`
+  (post-live-charge management view = account-gated Stripe #41; app shows the honest plan-selection state).**
+  Refused throughout: channel-sync ribbons, technician rosters, parts-on-order, pacing/goal narratives, workspace-paused
+  banners, labour/parts splits, fabricated trends (#39), and any guest-contact card that would breach **#28 PII**.
+
+**◑ GATE 2 — OWNER STARTED (6 of ~24 pages verified).**
+- **RESTRUCTURED:** **Owner Bookings** + **Owner Booking-detail** `9a7c087` — the 4 KPI cards wrapped 3+1 (the shared
+  owner `.vy-kpi-grid` is `repeat(3)`); fixed with a NEW opt-in `.vy-kpi-grid--4` modifier (existing `repeat(3)` owner
+  pages untouched — the count-agnostic-grid discipline, now on the owner side too). Full suite re-confirmed 924/7517
+  after the shared-CSS add. Booking-detail's prototype guest **email/phone/country** card refused (#28).
+- **AT PARITY** (`9a7c087`/`54b718d`/`cace277`): **Owner Dashboard · Balance · Payouts · My Units** — the owner portal
+  was built from `design-system-brief.md`, so it is consistently at-parity (earnings hero + dark NEXT-PAYOUT panel +
+  KPI bands + reconciled breakdowns + honest "Soon"/"Not yet available" states). REFUSED: the Dashboard/Units fabricated
+  occupancy trends/goals (#39) and — load-bearing — the Dashboard **Upcoming-stays with guest names + amounts** (would
+  breach **#28** guest-PII on the owner portal; the app shows the explicit PII note instead).
+- **RESUME HERE:** Owner Statement(+PDF) · Unit Detail · Rates · Tax Center(+PDF) · Payout Method · Add Unit · Reviews ·
+  Reports · Insights · Calendar/Block · Messages(+thread) · **Team (+ co-owner/accountant/view-only capability views)** ·
+  Settings · Help · Notifications · Expenses · Documents · Agreement · Archive. Then **GATE 3 (guest)** → **GATE 4
+  (public + onboarding/billing)** → fold the register into `docs/design/CATALOGUE.md` + a final full-suite run.
+  Learning carried: the systematic owner KIND-1 (the 4-up KPI grid) is already handled; the remaining owner pages are
+  very likely AT PARITY or minor divergences.
+
+**This save:** docs-only, NO code changed; suite **924 / 7517** green on MySQL 8, PHPStan L5 (0) + Pint clean,
+`migrate:fresh --seed` clean (unchanged — this session touched only Blade/CSS + docs); HEAD `cace277`, `main`,
+local == origin (pushed). Invariants **#1–#45** (unchanged — a presentation pass adds no invariant).
+`docs/design/raw/*.html` stay gitignored (served via `php -S 127.0.0.1:8899` for diffing, not in a fresh clone).
