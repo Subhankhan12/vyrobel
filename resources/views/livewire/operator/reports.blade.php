@@ -20,6 +20,32 @@
         @if ($empty)
             <div class="vy-card vy-fade"><div class="vy-empty">No arrivals or costs in {{ $activeRange['label'] }} for {{ $scopeLabel }} yet. Real data only — nothing is invented for an empty period.</div></div>
         @else
+            {{-- KPI band — the prototype leads Reports with a KPI row. These are the REAL figures the page
+                 already computes (no fabricated trend/± vs last year — #39; ADR/RevPAR/occupancy live on
+                 Insights). Uniform light .vy-dash-kpis band, matching the operator KPI-band pattern. --}}
+            <div class="vy-dash-kpis vy-fade" style="margin-bottom: 16px;">
+                <div class="vy-dash-kpi">
+                    <div class="vy-dk-label">Gross revenue</div>
+                    <div class="vy-dk-val">{{ $revenue['gross'] }}</div>
+                    <div class="vy-dk-sub">room + ancillary · {{ $activeRange['label'] }}</div>
+                </div>
+                <div class="vy-dash-kpi">
+                    <div class="vy-dk-label">Net · rev − tracked costs</div>
+                    <div class="vy-dk-val">{{ $net }}</div>
+                    <div class="vy-dk-sub">after tracked maintenance</div>
+                </div>
+                <div class="vy-dash-kpi">
+                    <div class="vy-dk-label">Arrivals</div>
+                    <div class="vy-dk-val">{{ $arrivals }}</div>
+                    <div class="vy-dk-sub">reservations in scope</div>
+                </div>
+                <div class="vy-dash-kpi">
+                    <div class="vy-dk-label">Tax collected</div>
+                    <div class="vy-dk-val">{{ $revenue['tax'] }}</div>
+                    <div class="vy-dk-sub">pass-through</div>
+                </div>
+            </div>
+
             <div class="vy-ins-grid vy-fade">
                 {{-- REVENUE — real folio breakdown --}}
                 <div class="vy-card">
