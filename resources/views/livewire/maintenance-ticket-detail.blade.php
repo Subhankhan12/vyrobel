@@ -78,12 +78,18 @@
 
             {{-- RIGHT RAIL: lifecycle (state-gated) · OOS impact · cost destination --}}
             <div class="vy-stack">
+                {{-- STATUS — the prototype leads the rail with a prominent DARK status panel; reuse the
+                     shared .vy-tonight (as on the Dashboard / Reservation Detail). Real status + a context
+                     sub-line. The prototype's "€/night on hold" figure is refused (no revenue-on-hold calc). --}}
+                <div class="vy-tonight">
+                    <span class="vy-eyebrow">Status</span>
+                    <div class="vy-tonight-val" style="font-size: 30px;">{{ $ticket['status_label'] }}</div>
+                    <div class="vy-tonight-sub">{{ $ticket['priority_label'] }} priority · Unit {{ $ticket['unit'] }}@if ($oos['active']) · out of service @endif</div>
+                </div>
+
                 {{-- Lifecycle — each action offered ONLY when the real state allows the transition. --}}
                 <div class="vy-card vy-card--accent">
-                    <span class="vy-eyebrow">Status &amp; actions</span>
-                    <div style="margin: 10px 0 4px;">
-                        <span class="vy-tag tone-{{ $ticket['status_tone'] }}"><span class="vy-dot"></span>{{ $ticket['status_label'] }}</span>
-                    </div>
+                    <span class="vy-eyebrow">Actions</span>
 
                     @if ($ticket['can_start'])
                         <form method="POST" action="{{ route('app.maintenance.start', $ticket['id']) }}" style="margin-top: 12px;">

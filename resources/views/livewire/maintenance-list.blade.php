@@ -22,14 +22,35 @@
             </div>
         @endif
 
-        {{-- Toolbar: DERIVED summary + New-ticket trigger + honest NO-BACKEND affordances --}}
-        <div class="vy-rack-toolbar vy-fade">
-            <div class="vy-left vy-summary" style="margin: 0;">
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $summary['open'] }}</span><span class="vy-sc-label">Open</span></div>
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $summary['in_progress'] }}</span><span class="vy-sc-label">In progress</span></div>
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $summary['resolved_month'] }}</span><span class="vy-sc-label">Resolved · month</span></div>
-                <div class="vy-summary-chip @if ($summary['out_of_service'] > 0) is-due @endif"><span class="vy-sc-num">{{ $summary['out_of_service'] }}</span><span class="vy-sc-label">Units OOS</span></div>
+        {{-- KPI band — DERIVED real aggregates over the org's own tickets, as uniform light tiles (the
+             shared .vy-dash-kpis band — default repeat(4) = exactly these 4 tiles — matching the prototype's
+             KPI row and the Dashboard/Rates precedent). These are the app's FOUR REAL stats; the prototype's
+             extra "Awaiting parts" tile is refused (no such status exists; a test asserts it never renders). --}}
+        <div class="vy-dash-kpis vy-fade">
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">Open</div>
+                <div class="vy-dk-val">{{ $summary['open'] }}</div>
+                <div class="vy-dk-sub">work orders awaiting action</div>
             </div>
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">In progress</div>
+                <div class="vy-dk-val">{{ $summary['in_progress'] }}</div>
+                <div class="vy-dk-sub">being worked on now</div>
+            </div>
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">Resolved · month</div>
+                <div class="vy-dk-val">{{ $summary['resolved_month'] }}</div>
+                <div class="vy-dk-sub">closed this calendar month</div>
+            </div>
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">Units out of service</div>
+                <div class="vy-dk-val">{{ $summary['out_of_service'] }}</div>
+                <div class="vy-dk-sub">blocked from sale until resolved</div>
+            </div>
+        </div>
+
+        {{-- Toolbar — actions only (the summary moved up into the KPI band). Honest "Filters · Soon". --}}
+        <div class="vy-rack-toolbar vy-fade" style="justify-content: flex-end;">
             <div class="vy-right">
                 <span class="vy-pill is-soon" aria-disabled="true">Filters <span class="vy-soon-tag">Soon</span></span>
                 @can('maintenance.manage')

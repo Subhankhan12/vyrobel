@@ -36,30 +36,39 @@
             <div class="vy-card vy-fade vymc-empty">No resolved work orders yet — cost figures appear here once maintenance tickets are closed with a cost.</div>
         @else
             <div class="vymc-cols">
-                {{-- Spend by category --}}
+                {{-- Spend by category — proportional bars (width ∝ the REAL total; peak in the terracotta
+                     gradient), matching the prototype's horizontal bar chart. All from data already passed. --}}
                 <div class="vy-card vy-fade">
                     <h2 class="vy-card-title" style="margin-bottom: 12px;">Spend by category</h2>
+                    @php $maxCat = collect($report['by_category'])->max('total_minor') ?: 1; @endphp
                     @foreach ($report['by_category'] as $row)
-                        <div class="vymc-row">
-                            <span class="vymc-row-name">{{ $categoryLabel($row['category']) }}</span>
-                            <span class="vymc-row-meta">
-                                <span class="vymc-count">{{ $row['count'] }} {{ $row['count'] === 1 ? 'order' : 'orders' }}</span>
-                                <strong>{{ $money($row['total_minor']) }}</strong>
-                            </span>
+                        <div class="vymc-item">
+                            <div class="vymc-row">
+                                <span class="vymc-row-name">{{ $categoryLabel($row['category']) }}</span>
+                                <span class="vymc-row-meta">
+                                    <span class="vymc-count">{{ $row['count'] }} {{ $row['count'] === 1 ? 'order' : 'orders' }}</span>
+                                    <strong>{{ $money($row['total_minor']) }}</strong>
+                                </span>
+                            </div>
+                            <div class="vymc-track"><span @class(['is-peak' => $row['total_minor'] >= $maxCat]) style="width: {{ max(4, (int) round($row['total_minor'] / $maxCat * 100)) }}%;"></span></div>
                         </div>
                     @endforeach
                 </div>
 
-                {{-- Top units --}}
+                {{-- Top units — same proportional bars over the REAL per-unit totals. --}}
                 <div class="vy-card vy-fade">
                     <h2 class="vy-card-title" style="margin-bottom: 12px;">Top units by spend</h2>
+                    @php $maxUnit = collect($report['top_units'])->max('total_minor') ?: 1; @endphp
                     @forelse ($report['top_units'] as $row)
-                        <div class="vymc-row">
-                            <span class="vymc-row-name"><strong>{{ $row['code'] }}</strong> <span style="color: var(--vy-muted); font-size: 12px;">{{ $row['name'] }}</span></span>
-                            <span class="vymc-row-meta">
-                                <span class="vymc-count">{{ $row['count'] }} {{ $row['count'] === 1 ? 'order' : 'orders' }}</span>
-                                <strong>{{ $money($row['total_minor']) }}</strong>
-                            </span>
+                        <div class="vymc-item">
+                            <div class="vymc-row">
+                                <span class="vymc-row-name"><strong>{{ $row['code'] }}</strong> <span style="color: var(--vy-muted); font-size: 12px;">{{ $row['name'] }}</span></span>
+                                <span class="vymc-row-meta">
+                                    <span class="vymc-count">{{ $row['count'] }} {{ $row['count'] === 1 ? 'order' : 'orders' }}</span>
+                                    <strong>{{ $money($row['total_minor']) }}</strong>
+                                </span>
+                            </div>
+                            <div class="vymc-track"><span @class(['is-peak' => $row['total_minor'] >= $maxUnit]) style="width: {{ max(4, (int) round($row['total_minor'] / $maxUnit * 100)) }}%;"></span></div>
                         </div>
                     @empty
                         <div style="color: var(--vy-muted); font-size: 12.5px;">—</div>
@@ -102,6 +111,13 @@
         .vymc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .vymc-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; font-size: 13px; color: var(--vy-ink); }
         .vymc-row + .vymc-row { border-top: 1px solid var(--vy-hairline); }
+        /* Bar rows (Spend by category / Top units) — the wrapper owns the rhythm so the row+bar read as one item. */
+        .vymc-item { padding: 10px 0; }
+        .vymc-item + .vymc-item { border-top: 1px solid var(--vy-hairline); }
+        .vymc-item .vymc-row { padding: 0; }
+        .vymc-track { height: 6px; border-radius: 6px; background: rgba(120, 70, 40, 0.09); overflow: hidden; margin-top: 8px; }
+        .vymc-track > span { display: block; height: 100%; border-radius: 6px; background: rgba(232, 112, 58, 0.42); }
+        .vymc-track > span.is-peak { background: var(--vy-grad-peach); }
         .vymc-row-meta { display: flex; align-items: center; gap: 12px; }
         .vymc-count { font-size: 11.5px; color: var(--vy-muted); }
         @media (max-width: 860px) { .vymc-kpis { grid-template-columns: repeat(2, 1fr); } .vymc-cols { grid-template-columns: 1fr; } }

@@ -18,8 +18,13 @@
         <form method="POST" action="{{ route('app.maintenance.settings.update') }}">
             @csrf
 
+            {{-- Two-column arrangement matching the prototype: wide left (the rule editors) + a right rail
+                 (the notify / policy toggles). One <form>, so Save still submits every field. --}}
+            <div class="vy-detail-cols vy-fade">
+            <div class="vy-stack">
+
             {{-- Resolution targets (SLA) --}}
-            <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+            <div class="vy-card">
                 <h2 class="vy-card-title" style="margin-bottom: 4px;">Resolution targets</h2>
                 <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 12px;">How quickly each priority should be resolved, in hours.</p>
                 <div class="vyms-grid4">
@@ -34,7 +39,7 @@
             </div>
 
             {{-- Auto-assignment: category → technician --}}
-            <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+            <div class="vy-card">
                 <h2 class="vy-card-title" style="margin-bottom: 4px;">Auto-assignment</h2>
                 <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 12px;">Route a new order to a technician by its category.</p>
                 <div class="vyms-grid2">
@@ -53,8 +58,11 @@
                 </div>
             </div>
 
+            </div>{{-- /left stack --}}
+            <div class="vy-stack">
+
             {{-- Out-of-order policy --}}
-            <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+            <div class="vy-card">
                 <h2 class="vy-card-title" style="margin-bottom: 12px;">Out-of-order policy</h2>
                 <label class="vyms-toggle">
                     <input type="checkbox" name="block_room_from_sale" value="1" @checked($settings->block_room_from_sale)>
@@ -71,7 +79,7 @@
             </div>
 
             {{-- Notifications --}}
-            <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+            <div class="vy-card">
                 <h2 class="vy-card-title" style="margin-bottom: 4px;">Notify me about <span class="vyms-soon">dispatch soon</span></h2>
                 <p style="font-size: 12px; color: var(--vy-faint); margin: 0 0 12px;">Your preferences are saved now; the alerts start firing when the notification system ships (Phase 3). Nothing is sent yet.</p>
                 @foreach ([
@@ -88,7 +96,10 @@
                 @endforeach
             </div>
 
-            <div style="display: flex; justify-content: flex-end;">
+            </div>{{-- /right stack --}}
+            </div>{{-- /detail-cols --}}
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 22px;">
                 <button type="submit" class="vy-btn vy-btn--accent" style="padding: 12px 22px;">Save changes</button>
             </div>
         </form>
