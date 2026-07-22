@@ -65,9 +65,21 @@ use Spatie\Permission\PermissionRegistrar;
  */
 class DemoSeeder extends Seeder
 {
-    private const RANGE_START = '2026-09-01';
+    /**
+     * The demo bookable window. A ROLLING window anchored at "today" (not a fixed Sept band) so the
+     * public storefront demos real availability year-round — a guest searching any normal upcoming date
+     * sees rooms, not "0 rooms available". today → +180d comfortably spans the fixed Sept demo stays.
+     * Both the rate calendar and the computed availability use this one window.
+     */
+    private function rangeStart(): string
+    {
+        return CarbonImmutable::today()->toDateString();
+    }
 
-    private const RANGE_END = '2026-10-01';
+    private function rangeEnd(): string
+    {
+        return CarbonImmutable::today()->addDays(180)->toDateString();
+    }
 
     public function run(): void
     {
@@ -249,8 +261,8 @@ class DemoSeeder extends Seeder
 
         // --- Availability (computed, not fabricated) ---
         $availability = app(AvailabilityService::class);
-        $availability->recompute($doubleRoom->id, self::RANGE_START, self::RANGE_END);
-        $availability->recompute($apartment->id, self::RANGE_START, self::RANGE_END);
+        $availability->recompute($doubleRoom->id, $this->rangeStart(), $this->rangeEnd());
+        $availability->recompute($apartment->id, $this->rangeStart(), $this->rangeEnd());
 
         // --- Guests ---
         // `is_vip` / `risk_flag` are REAL columns and `tags` is a REAL per-tenant catalog on the shared
@@ -433,7 +445,7 @@ class DemoSeeder extends Seeder
         $studioRate = RatePlan::create(['property_id' => $property->id, 'room_type_id' => $studio->id, 'name' => 'Flexible', 'code' => 'FLEX-STU', 'currency' => 'EUR']);
         $studio->update(['default_rate_plan_id' => $studioRate->id]);
         $this->seedCalendar($studioRate, 12500);
-        app(AvailabilityService::class)->recompute($studio->id, self::RANGE_START, self::RANGE_END);
+        app(AvailabilityService::class)->recompute($studio->id, $this->rangeStart(), $this->rangeEnd());
     }
 
     /**
@@ -768,7 +780,7 @@ class DemoSeeder extends Seeder
 
     private function seedCalendar(RatePlan $ratePlan, int $priceMinor): void
     {
-        $this->seedCalendarRange($ratePlan, $priceMinor, self::RANGE_START, self::RANGE_END);
+        $this->seedCalendarRange($ratePlan, $priceMinor, $this->rangeStart(), $this->rangeEnd());
     }
 
     private function seedCalendarRange(RatePlan $ratePlan, int $priceMinor, string $start, string $end): void
@@ -777,11 +789,13 @@ class DemoSeeder extends Seeder
         $endDate = CarbonImmutable::parse($end);
 
         for (; $date->lessThan($endDate); $date = $date->addDay()) {
-            RateCalendar::create([
-                'rate_plan_id' => $ratePlan->id,
-                'date' => $date->toDateString(),
-                'price' => Money::of($priceMinor, 'EUR'),
-            ]);
+            // updateOrCreate (not create) so overlapping seed windows — the rolling
+            // window below overlaps the near-term stay's own range — never collide on
+            // the unique (rate_plan_id, date) index. Seed-only, idempotent.
+            RateCalendar::updateOrCreate(
+                ['rate_plan_id' => $ratePlan->id, 'date' => $date->toDateString()],
+                ['price' => Money::of($priceMinor, 'EUR')],
+            );
         }
     }
 
