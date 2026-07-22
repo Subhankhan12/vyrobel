@@ -42,7 +42,7 @@
         {{-- ── Left: statement + breakdown ── --}}
         <div class="vy-stack">
             {{-- Hero --}}
-            <section class="vy-card vy-card--accent vy-fade vy-swap-next" style="animation-delay:.02s">
+            <section class="vy-card vy-card--accent vy-fade" style="animation-delay:.02s">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
                     <span class="vy-eyebrow">{{ strtoupper($statement['period_label']) }} · {{ $unitsCount }} {{ \Illuminate\Support\Str::plural('unit', $unitsCount) }}</span>
                     <span class="vy-status vy-status--{{ $statement['status_meta']['tone'] }}">
