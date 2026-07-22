@@ -32,34 +32,33 @@
         @if ($property === null)
             <div class="vy-card vy-fade"><div class="vy-empty">No property yet — add a property to see its dashboard.</div></div>
         @else
-            {{-- KPI TILES — every figure is REAL + tenant-scoped --}}
+            {{-- KPI TILES — a uniform row (design's arrangement); every figure REAL + tenant-scoped --}}
             <div class="vy-dash-kpis vy-fade">
-                <div class="vy-dash-kpi is-feature">
+                <div class="vy-dash-kpi">
+                    <div class="vy-dk-label">Arrivals today</div>
+                    <div class="vy-dk-val">{{ $kpis['arrivals'] }}</div>
+                    <div class="vy-dk-sub">expected today</div>
+                </div>
+                <div class="vy-dash-kpi">
+                    <div class="vy-dk-label">Departures today</div>
+                    <div class="vy-dk-val">{{ $kpis['departures'] }}</div>
+                    <div class="vy-dk-sub">expected today</div>
+                </div>
+                <div class="vy-dash-kpi">
                     <div class="vy-dk-label">Occupancy tonight</div>
                     <div class="vy-dk-val">{{ $kpis['occupancy_pct'] }}<span class="vy-dk-unit">%</span></div>
-                    <div class="vy-dk-track"><span style="width: {{ min(100, $kpis['occupancy_pct']) }}%"></span></div>
                     <div class="vy-dk-sub">{{ $kpis['rooms_sold'] }} of {{ $kpis['rooms_total'] }} rooms sold</div>
                 </div>
                 <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Rooms available</div>
-                    <div class="vy-dk-val">{{ $kpis['rooms_available'] }}</div>
-                    <div class="vy-dk-sub">of {{ $kpis['rooms_total'] }} total</div>
-                </div>
-                <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Arrivals · departures</div>
-                    <div class="vy-dk-val">{{ $kpis['arrivals'] }} <span class="vy-dk-unit">/ {{ $kpis['departures'] }}</span></div>
-                    <div class="vy-dk-sub">expected today</div>
+                    <div class="vy-dk-label">Revenue today</div>
+                    <div class="vy-dk-val">{{ $kpis['payments'] }}</div>
+                    <div class="vy-dk-sub">collected</div>
                 </div>
                 <div class="vy-dash-kpi">
                     <div class="vy-dk-label">In-house</div>
                     <div class="vy-dk-val">{{ $kpis['in_house'] }}</div>
                     <div class="vy-dk-sub">staying tonight</div>
                 </div>
-            </div>
-
-            <div class="vy-summary vy-fade" style="margin-top: 14px;">
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $housekeeping['to_clean'] }}</span><span class="vy-sc-label">To clean</span></div>
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $kpis['payments'] }}</span><span class="vy-sc-label">Payments today</span></div>
             </div>
 
             <div class="vy-dash-cols">
@@ -85,8 +84,19 @@
                     @endforelse
                 </div>
 
-                {{-- Right rail: housekeeping snapshot (REAL) + deferred analytics --}}
+                {{-- Right rail: the dark "Tonight" panel (design) + housekeeping (REAL) + deferred analytics --}}
                 <div class="vy-stack">
+                    {{-- TONIGHT — REAL occupancy + rooms sold/available (no fabricated ADR shown) --}}
+                    <div class="vy-tonight">
+                        <span class="vy-eyebrow">Tonight</span>
+                        <div class="vy-tonight-val">{{ $kpis['occupancy_pct'] }}<span class="vy-dk-unit">%</span></div>
+                        <div class="vy-tonight-sub">occupancy</div>
+                        <div class="vy-tonight-row">
+                            <div class="vy-tonight-cell"><div class="vy-tc-k">Rooms sold</div><div class="vy-tc-v">{{ $kpis['rooms_sold'] }}/{{ $kpis['rooms_total'] }}</div></div>
+                            <div class="vy-tonight-cell"><div class="vy-tc-k">Available</div><div class="vy-tc-v">{{ $kpis['rooms_available'] }}</div></div>
+                        </div>
+                    </div>
+
                     <div class="vy-card">
                         <h2 class="vy-card-title" style="margin-bottom: 12px;">Housekeeping</h2>
                         <div class="vy-hk-snapshot">
@@ -95,6 +105,13 @@
                             <div class="vy-hk-line"><span class="vy-hk-k"><span class="vy-hk-swatch" style="background: var(--vy-accent)"></span>Clean</span><span class="vy-hk-v">{{ $housekeeping['clean'] }}</span></div>
                             <div class="vy-hk-line"><span class="vy-hk-k"><span class="vy-hk-swatch" style="background: var(--vy-dark)"></span>Inspected</span><span class="vy-hk-v">{{ $housekeeping['inspected'] }}</span></div>
                         </div>
+                        @php
+                            $hkTotal = $housekeeping['pending'] + $housekeeping['in_progress'] + $housekeeping['clean'] + $housekeeping['inspected'];
+                            $hkDone = $housekeeping['clean'] + $housekeeping['inspected'];
+                            $hkPct = $hkTotal > 0 ? (int) round($hkDone / $hkTotal * 100) : 0;
+                        @endphp
+                        <div class="vy-hk-progress"><span style="width: {{ $hkPct }}%"></span></div>
+                        <div class="vy-hk-progress-label"><span>To clean · {{ $housekeeping['to_clean'] }}</span><span>{{ $hkDone }}/{{ $hkTotal }} ready</span></div>
                         <a class="vy-arr-link" href="{{ route('app.housekeeping') }}" style="display:inline-block; margin-top:12px;">Open board →</a>
                     </div>
 

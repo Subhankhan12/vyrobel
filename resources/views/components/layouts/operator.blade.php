@@ -659,7 +659,7 @@
         .vy-recon svg { color: var(--vy-accent); }
 
         /* ---- Operator dashboard ---------------------------------------------------------------- */
-        .vy-dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .vy-dash-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
         .vy-dash-kpi {
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
             -webkit-backdrop-filter: blur(22px) saturate(1.15);
@@ -691,6 +691,21 @@
         .vy-hk-line .vy-hk-k { display: inline-flex; align-items: center; gap: 8px; color: var(--vy-muted); }
         .vy-hk-line .vy-hk-v { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
         .vy-hk-swatch { width: 9px; height: 9px; border-radius: 50%; }
+
+        /* Housekeeping progress (real: cleaned+inspected of total) — the design's HK progress bar */
+        .vy-hk-progress { height: 6px; border-radius: 6px; background: var(--vy-hairline); overflow: hidden; margin-top: 14px; }
+        .vy-hk-progress > span { display: block; height: 100%; border-radius: 6px; background: var(--vy-grad); }
+        .vy-hk-progress-label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 11px; color: var(--vy-muted); margin-top: 8px; }
+
+        /* Right-rail dark "Tonight" panel (the design's TONIGHT block) — REAL occupancy + rooms sold/available */
+        .vy-tonight { background: var(--vy-grad-dark); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: var(--vy-shadow-dark); border-radius: var(--vy-r-lg); padding: 18px 20px; color: rgba(255, 255, 255, 0.92); }
+        .vy-tonight .vy-eyebrow { color: rgba(255, 255, 255, 0.5); }
+        .vy-tonight-val { font-family: var(--vy-display); font-size: 42px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; margin-top: 12px; }
+        .vy-tonight-val .vy-dk-unit { font-size: 18px; font-weight: 600; color: rgba(255, 255, 255, 0.55); margin-left: 3px; }
+        .vy-tonight-sub { font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 6px; }
+        .vy-tonight-row { display: flex; gap: 22px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+        .vy-tonight-cell .vy-tc-k { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); }
+        .vy-tonight-cell .vy-tc-v { font-family: var(--vy-display); font-size: 17px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
 
         /* ---- Units table ----------------------------------------------------------------------- */
         .vy-utable-wrap { overflow-x: auto; }
