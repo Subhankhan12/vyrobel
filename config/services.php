@@ -14,8 +14,11 @@ return [
     |
     */
 
+    // Postmark is the PRODUCTION transactional mail provider (Phase 8 — production email). The server API
+    // token comes from ENV ONLY (never committed); the MailSafetyGuard forbids this transport outside
+    // production, so a dev/test run can never send through it. See docs/EMAIL-PRODUCTION.md.
     'postmark' => [
-        'key' => env('POSTMARK_API_KEY'),
+        'token' => env('POSTMARK_TOKEN'),
     ],
 
     'resend' => [

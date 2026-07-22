@@ -55,10 +55,11 @@ return [
 
         'postmark' => [
             'transport' => 'postmark',
-            // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),
-            // 'client' => [
-            //     'timeout' => 5,
-            // ],
+            // The Postmark message stream (default 'outbound' for transactional). Token is in services.postmark.
+            'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID', 'outbound'),
+            'client' => [
+                'timeout' => 8,   // fail fast on a provider hang — the send is best-effort (Phase-3 boundary)
+            ],
         ],
 
         'resend' => [

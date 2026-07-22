@@ -68,6 +68,7 @@ use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Owner\OwnerContext;
 use App\Support\Property\PropertyContext;
 use App\Support\Tenancy\TenantContext;
@@ -77,6 +78,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -148,6 +150,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Phase 8 · production email — THE #1 GUARD: a real-sending mail transport (Postmark/SES/…) is refused
+        // outside `production`, downgraded to `log`, so no dev/CI run can ever email a real person — even with
+        // MAIL_MAILER=postmark in a stray .env. Enforced in code, not by convention. See MailSafetyGuard.
+        $configuredMailer = (string) config('mail.default');
+        $safeMailer = MailSafetyGuard::safeMailerFor($this->app->environment(), $configuredMailer);
+        if ($safeMailer !== $configuredMailer) {
+            config(['mail.default' => $safeMailer]);
+            Log::warning('MailSafetyGuard downgraded a real mail transport outside production.', [
+                'environment' => $this->app->environment(),
+                'configured' => $configuredMailer,
+                'using' => $safeMailer,
+            ]);
+        }
+
         // Phase 4a — register the GUEST realm's custom user provider (blind-index lookup, tenant-scope-free).
         // Named 'guest-eloquent' in config/auth.php providers.guests. Never touches the `web`/`users` provider.
         Auth::provider('guest-eloquent', function ($app, array $config): GuestUserProvider {
