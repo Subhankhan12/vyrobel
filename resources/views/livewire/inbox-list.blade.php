@@ -7,14 +7,34 @@
     <x-operator.shell active="inbox" title="Inbox" subtitle="Guest messages" :viewer="$viewer">
         <div x-data="{ filter: 'all', channel: 'all', q: '' }">
 
-            {{-- DERIVED summary chips + honest NO-BACKEND Compose --}}
-            <div class="vy-rack-toolbar vy-fade">
-                <div class="vy-left vy-summary" style="margin: 0;">
-                    <div class="vy-summary-chip @if ($summary['unread'] > 0) is-due @endif" @click="filter = 'unread'" style="cursor: pointer;"><span class="vy-sc-num">{{ $summary['unread'] }}</span><span class="vy-sc-label">Unread</span></div>
-                    <div class="vy-summary-chip" @click="filter = 'all'" style="cursor: pointer;"><span class="vy-sc-num">{{ $summary['open'] }}</span><span class="vy-sc-label">Open</span></div>
-                    <div class="vy-summary-chip" @click="filter = 'mine'" style="cursor: pointer;"><span class="vy-sc-num">{{ $summary['mine'] }}</span><span class="vy-sc-label">Assigned to me</span></div>
-                    <div class="vy-summary-chip" @click="filter = 'closed'" style="cursor: pointer;"><span class="vy-sc-num">{{ $summary['closed'] }}</span><span class="vy-sc-label">Closed</span></div>
+            {{-- DERIVED KPI band — real counts as uniform light tiles (the shared .vy-dash-kpis band —
+                 default repeat(4) = these 4 tiles — matching the prototype's KPI row + the Maintenance
+                 precedent). The tiles keep the app's click-to-filter behaviour. --}}
+            <div class="vy-dash-kpis vy-fade">
+                <div class="vy-dash-kpi" @click="filter = 'unread'" style="cursor: pointer;">
+                    <div class="vy-dk-label">Unread</div>
+                    <div class="vy-dk-val">{{ $summary['unread'] }}</div>
+                    <div class="vy-dk-sub">threads you haven’t opened</div>
                 </div>
+                <div class="vy-dash-kpi" @click="filter = 'all'" style="cursor: pointer;">
+                    <div class="vy-dk-label">Open</div>
+                    <div class="vy-dk-val">{{ $summary['open'] }}</div>
+                    <div class="vy-dk-sub">active conversations</div>
+                </div>
+                <div class="vy-dash-kpi" @click="filter = 'mine'" style="cursor: pointer;">
+                    <div class="vy-dk-label">Assigned to me</div>
+                    <div class="vy-dk-val">{{ $summary['mine'] }}</div>
+                    <div class="vy-dk-sub">on your plate</div>
+                </div>
+                <div class="vy-dash-kpi" @click="filter = 'closed'" style="cursor: pointer;">
+                    <div class="vy-dk-label">Closed</div>
+                    <div class="vy-dk-val">{{ $summary['closed'] }}</div>
+                    <div class="vy-dk-sub">resolved &amp; archived</div>
+                </div>
+            </div>
+
+            {{-- Slim toolbar — honest "Compose · Soon" (real outbound send is channel-gated). --}}
+            <div class="vy-rack-toolbar vy-fade" style="justify-content: flex-end; margin-top: 14px;">
                 <div class="vy-right">
                     <span class="vy-pill is-soon" aria-disabled="true">Compose <span class="vy-soon-tag">Soon</span></span>
                 </div>
