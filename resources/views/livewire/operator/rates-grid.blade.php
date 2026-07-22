@@ -37,8 +37,8 @@
 
         {{-- ── Stat tiles — DERIVED, real aggregates over the window. Avg PER CURRENCY (never summed). No
              "+8% vs Aug" trend: no historical baseline is stored, so a trend would be fabricated. ──────── --}}
-        <div class="vy-dash-kpis vy-fade">
-            <div class="vy-dash-kpi is-feature">
+        <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade">
+            <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Average nightly rate</div>
                 @forelse ($tiles['avg'] as $line)
                     <div class="vy-dk-val" @if (! $loop->first) style="font-size: 20px;" @endif>{{ $line }}</div>
