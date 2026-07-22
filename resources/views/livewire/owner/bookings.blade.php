@@ -7,7 +7,7 @@
 <x-owner.shell active="bookings" title="Bookings" :subtitle="$unitsCount.' '.\Illuminate\Support\Str::plural('unit', $unitsCount)" :viewer="$viewer">
 
     {{-- Portfolio summary — DERIVED from the owner's full booking set (per-currency net, never combined) --}}
-    <div class="vy-kpi-grid vy-fade" style="margin-bottom:20px">
+    <div class="vy-kpi-grid vy-kpi-grid--4 vy-fade" style="margin-bottom:20px">
         <div class="vy-kpi">
             <div class="vy-kpi-label">Upcoming</div>
             <div class="vy-kpi-val">{{ $summary['upcoming'] }}</div>

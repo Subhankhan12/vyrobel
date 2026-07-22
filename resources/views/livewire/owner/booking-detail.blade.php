@@ -26,7 +26,7 @@
                     <span class="vy-status vy-status--{{ $booking['stage_badge']['tone'] }}"><span class="vy-dot"></span>{{ $booking['stage_badge']['label'] }}</span>
                 </div>
 
-                <div class="vy-kpi-grid" style="margin-top:16px">
+                <div class="vy-kpi-grid vy-kpi-grid--4" style="margin-top:16px">
                     <div class="vy-kpi">
                         <div class="vy-kpi-label">Check-in</div>
                         <div class="vy-kpi-val" style="font-size:16px">{{ $booking['check_in'] }}</div>
