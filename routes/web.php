@@ -616,6 +616,14 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // so the /app property middleware runs and the shift lands on the SELECTED property (PropertyContext).
     Route::get('/schedule', OperatorSchedule::class)->middleware('can:schedule.view')->name('schedule');
     Route::post('/schedule/shift', [ScheduleController::class, 'assign'])->middleware('can:schedule.manage')->name('schedule.assign');
+    // The week's roster as a PDF (real shifts/staff/leave, selected property — reconciles to the grid). Broad view.
+    Route::get('/schedule/pdf', [ScheduleController::class, 'pdf'])->middleware('can:schedule.view')->name('schedule.pdf');
+    // TIME OFF — requesting OWN is broad + self-only; grant/approve/deny are manager-level. 🔒 The self-approval
+    // separation (a manager can't approve/grant their OWN leave) is enforced in LeaveService, mutation-proven.
+    Route::post('/schedule/time-off', [ScheduleController::class, 'requestTimeOff'])->middleware('can:schedule.view')->name('schedule.timeoff');
+    Route::post('/schedule/leave', [ScheduleController::class, 'grantLeave'])->middleware('can:schedule.manage')->name('schedule.leave.grant');
+    Route::post('/schedule/leave/{leave}/approve', [ScheduleController::class, 'approveLeave'])->middleware('can:schedule.manage')->name('schedule.leave.approve');
+    Route::post('/schedule/leave/{leave}/deny', [ScheduleController::class, 'denyLeave'])->middleware('can:schedule.manage')->name('schedule.leave.deny');
     // Phase 2 Step 8 — front-desk staff surface (arrivals/departures/in-house + action contracts).
     Route::get('/front-desk', FrontDesk::class)->name('front-desk');
     // Design pass · Operator Screen 2 — REAL check-in/out via POST → action → redirect (PRG). The

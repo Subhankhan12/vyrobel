@@ -2999,3 +2999,57 @@ New invariant **#42** (owner sub-tenancy). Suite **886 tests / 7326 assertions**
 
 **NEXT = Phase 7d — TEAM SCHEDULE / rostering.** Then Phase 8 (account-gated integrations, incl. LIVE Stripe
 billing when the account lands).
+
+---
+
+## 2026-07-22 — PHASE 7d: TEAM SCHEDULE / rostering ✅ COMPLETE (and with it PHASE 7 — the SaaS layer)
+
+A weekly staff shift roster + a time-off/leave layer + a schedule PDF, for the operator. MODERATE rostering
+(roster + time-off + PDF) — NOT shift-swapping / labor-cost / coverage-AI (those are deferred honestly, out of
+scope). Over the org's REAL staff, per-property. Two gated sub-gates.
+
+**⛔ SG1 — the weekly roster grid (`88e3af1`).** `shifts` table + `Shift` model ({org, property_id, user_id,
+date, shift_type[early/day/late/off]}, unique(property_id,user_id,date), morph alias `shift`). `ShiftType`
+(fixed pattern set + default hours) + `StaffDepartment` (role→frontdesk/housekeeping/manager) + `StaffRoster`
+(the org's REAL staff = active `Membership` ∩ a back-office role, team-scoped; owners/guests excluded) — one
+definition each. `ShiftRosterService` — THE single write path: assign upserts / `off` clears, stamps the
+passed-in property + active org, records audit; the caller validates the user against `StaffRoster`.
+`OperatorSchedule` Livewire grid (`ResolvesCurrentProperty`): real staff × 7 days for the SELECTED property,
+department filter + week nav ride GET links; managers get an inline per-cell shift picker (a real POST),
+everyone else read-only. `ScheduleController@assign` — a real POST gated `can:schedule.manage` (manager-level,
+NOT Front Desk), property from `PropertyContext::id()`. New permissions `schedule.view` (broad — any staff sees
+the roster) + `schedule.manage` (managers); nav gated `schedule.view`. Mutation-proven (`OperatorScheduleTest`
+1–4): real staff only (owners + prototype fixtures excluded; empty dept → honest empty) · a shift lands on the
+SELECTED property never A/cross-org · non-staff/cross-org user refused · VIEW broad / MANAGE manager-only.
+Browser: real demo staff; assign persists; property switch → the roster follows.
+
+**⛔ SG2 — time-off/leave + the schedule PDF + consolidate (this gate).** `leave_requests` + `LeaveRequest`
+({org, user_id, start/end_date, status[pending/approved/denied], requested_by/reviewed_by}, morph alias
+`leave_request`) — leave is about the PERSON + a date range, org-scoped (no property). `LeaveService` — THE
+single write path: `request()` (staff requests OWN → pending) · `grant()` (a manager grants approved leave to
+ANOTHER) · `approve()`/`deny()` (a manager decides). **🔒 SELF-APPROVAL is impossible**: approve/deny throw if
+the actor is the person the leave is FOR, and grant throws if a manager targets themselves — mirroring the
+guest-change-request / owner-add-unit / role-assignment self guard. **🪤 REAL CONFLICT**: `ShiftRosterService`
+now REFUSES a working shift on an approved-leave day (a computed `LeaveService::isOnApprovedLeave` check, never
+a fabricated warning); a shift set BEFORE leave was approved is FLAGGED on the grid (a real
+working-shift-on-a-leave-day). `RosterWeek` — the ONE roster builder (real staff × days with the leave overlay
++ computed conflict), read by BOTH the grid AND the PDF, so **the PDF reconciles to the screen by construction**.
+`ScheduleController` gains request/grant/approve/deny (`schedule.view` for own request; `schedule.manage` for
+the rest) + `pdf()` (the week's roster as a PDF via `PdfService`, the SELECTED property — no id in the URL, so
+cross-property/org isn't accessible). UI: leave cells + conflict flags on the grid, a time-off request form
+(anyone) + the manager approval queue (a manager's OWN pending request shows "Awaiting another manager", never
+self-approvable), a PDF button. Demo-seeded: a real week of shifts + an approved leave + a pending request.
+Mutation-proven (`OperatorScheduleTest` 5–9): request → approve → approved leave blocks a shift · a manager
+can't approve/grant their OWN · the conflict is REAL (shift+leave flagged; no overlap → none) · request broad /
+approve manager-only · the PDF streams, is property-scoped, reconciles (B has the shift, A doesn't). Browser +
+PDF verified: 10 real seeded shifts, 2 on-leave cells, the approval queue, a valid 860 KB property-scoped PDF.
+
+**⚠️ DEFERRED / OUT OF SCOPE (honestly, not faked):** shift-swapping, labor-cost/payroll,
+coverage-optimization AI — never rendered/stubbed as if built. New invariant **#43**. Suite **895 tests /
+7383 assertions** green · PHPStan L5 + Pint clean · `migrate:fresh --seed` clean (a demo week + leave +
+request). Phase 7d commits: `88e3af1` (SG1) → this gate (SG2).
+
+**PHASE 7 (the SaaS layer) is COMPLETE** — 7a tenant provisioning · 7b subscription billing · 7c owner team ·
+7d team schedule. **NEXT = Phase 8 — account-gated integrations** (LIVE Stripe billing + card charge + owner
+payout rail + Channex live sync + WhatsApp/OTA inbox + production email + guest ID verification, as the
+accounts land).

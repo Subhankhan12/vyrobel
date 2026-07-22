@@ -394,9 +394,9 @@ conflicts with the repo, **trust the repo** and fix this file.
   comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–42 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–43 (the full guarantee stack)
 
-> **All 42, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 43, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
@@ -429,7 +429,18 @@ conflicts with the repo, **trust the repo** and fix this file.
 > STRUCTURALLY impossible; the owner-realm invite reuses the hardened token discipline (sha256-only, single-use,
 > expiring, no-enumeration) and is OWNER-SCOPED (it can only land a sub-user under the invite's own `owner_id`); a
 > removed sub-user's orphaned login is disabled (can't log in); the capability gate COMPOSES with — never masks —
-> the owner-scope fail-closed (it only 403s users WITH owner access)**.
+> the owner-scope fail-closed (it only 403s users WITH owner access)** · **#43 team schedule (rostering): the
+> roster is TENANT + PROPERTY scoped over REAL staff — a shift lands on the SELECTED property
+> (`PropertyContext::id()`, never `->first()`, never cross-property/org) and is assigned only to a real staff
+> member (`StaffRoster` = active `Membership` ∩ a back-office role; owners/guests/fabricated names excluded);
+> managing the roster is manager-gated (`schedule.manage`, NOT Front Desk) while viewing is broad
+> (`schedule.view`); time-off is a request→approval SEPARATION (a staff member requests their OWN, only a
+> manager approves) and **SELF-APPROVAL is impossible** (`LeaveService` throws if the actor is the person the
+> leave is for, or grants their own) — the guest-change-request/owner-add-unit pattern; a shift-on-approved-leave
+> is a REAL computed conflict (assign-on-leave is refused; a pre-existing clash is flagged), never fabricated;
+> the schedule PDF renders from the SAME `RosterWeek` builder as the grid, so it RECONCILES and is
+> property-scoped (no id in the URL → cross-property/org not accessible). Shift-swapping / labor-cost /
+> coverage-AI are OUT of scope (deferred honestly, never faked)**.
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -1408,15 +1419,17 @@ plain GET links (e.g. `?month=`).
 
 ## NEXT ACTION — Phases 0–5, 6 (a+b), 7a AND 7b DONE; NEXT = Phase 7c (Owner Team) in `docs/GAP-ANALYSIS.md`
 
-> **CURRENT (2026-07-22). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b), 7a, 7b AND 7c of the phased plan are COMPLETE** —
-> three full user-facing apps (operator · owner · guest) + a public storefront + **public self-signup that provisions
-> a whole new tenant org with a free trial** + **subscription billing** + **OWNER TEAM (owner sub-tenancy)** + hardened
-> multi-realm auth (operator/owner `web` + a separate `guest` guard, incl. 2FA), all on the certified backend, ~88
-> styled/browser-verified screens on real scoped data under the honesty rule, now **MULTI-PROPERTY with real ANALYTICS,
-> SELF-SERVE SIGNUP + BILLING, and OWNER SUB-TENANCY**. Suite **886 / 7326** green on MySQL; PHPStan L5 + Pint clean;
-> `migrate:fresh --seed` clean (2 demo properties, demo org on a real Essential subscription, demo owner + 2 sub-users
-> + a pending invite). Invariants **#1–42**. **Guest Portal + Reviews complete; multi-property + real analytics;
-> tenant provisioning + subscription billing + owner team ship (the live Stripe charge account-gated).** (The dated
+> **CURRENT (2026-07-22). Phases 0, 1, 2, 3, 4a, 4b, 4c, 5, 6 (a+b) AND ALL OF PHASE 7 (7a, 7b, 7c, 7d) of the phased
+> plan are COMPLETE — the SaaS layer is done** — three full user-facing apps (operator · owner · guest) + a public
+> storefront + **public self-signup that provisions a whole new tenant org with a free trial** + **subscription
+> billing** + **OWNER TEAM (owner sub-tenancy)** + **TEAM SCHEDULE (staff rostering + time-off + a schedule PDF)** +
+> hardened multi-realm auth (operator/owner `web` + a separate `guest` guard, incl. 2FA), all on the certified backend,
+> ~89 styled/browser-verified screens on real scoped data under the honesty rule, now **MULTI-PROPERTY with real
+> ANALYTICS, SELF-SERVE SIGNUP + BILLING, OWNER SUB-TENANCY, and STAFF ROSTERING**. Suite **895 / 7383** green on MySQL;
+> PHPStan L5 + Pint clean; `migrate:fresh --seed` clean (2 demo properties, demo org on a real Essential subscription,
+> demo owner + 2 sub-users + a pending invite, a demo roster week + leave + request). Invariants **#1–43**. **Guest
+> Portal + Reviews complete; multi-property + real analytics; tenant provisioning + subscription billing + owner team +
+> team schedule ship (the live Stripe charge account-gated).** (The dated
 > per-phase detail is in
 > `docs/DECISIONS.md`; the older "customer signal / don't build blind" framing below is HISTORICAL — the signal came
 > and every phase since was built to the prototype.)

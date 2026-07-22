@@ -38,11 +38,13 @@ use App\Services\FolioService;
 use App\Services\GuestWalletService;
 use App\Services\GuestWishlistService;
 use App\Services\InboxService;
+use App\Services\LeaveService;
 use App\Services\MaintenanceService;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
 use App\Services\ReviewService;
+use App\Services\ShiftRosterService;
 use App\Support\Media\PlaceholderImage;
 use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
@@ -361,12 +363,45 @@ class DemoSeeder extends Seeder
             );
         }
 
+        // Phase 7d — TEAM SCHEDULE: a demo week of real shifts on the seaside property + an approved leave + a
+        // pending time-off request, so the roster + the schedule PDF + the approval queue demo on real state.
+        $this->seedTeamSchedule($property, $staff, $accountant, $admin);
+
         // Phase 6a · multi-property — a SECOND real property in the same org, so the property switcher has
         // something to switch between and the ->first() refactor is demoable. It is deliberately young: real
         // room type + units + rates + availability (bookable), but NO reservations yet — its honest empty
         // state ("finish setup"). Named so "Demo Seaside Property" still sorts first, keeping the demo's
         // default working property unchanged.
         $this->seedSecondProperty($org);
+    }
+
+    /**
+     * A demo week of REAL shifts on the seaside property (this week, so it shows by default) + one approved
+     * leave + one pending time-off request — every row a real staff member, through the real services.
+     */
+    private function seedTeamSchedule(Property $property, User $staff, User $accountant, User $admin): void
+    {
+        $roster = app(ShiftRosterService::class);
+        $leave = app(LeaveService::class);
+        $monday = CarbonImmutable::now($property->timezone ?? 'UTC')->startOfWeek(CarbonImmutable::MONDAY);
+
+        // A coherent week: the manager on days, the accountant on earlies Mon–Wed, the admin a couple of lates.
+        $plan = [
+            [$staff, [0 => 'day', 1 => 'day', 2 => 'day', 3 => 'day', 4 => 'day']],
+            [$accountant, [0 => 'early', 1 => 'early', 2 => 'early']],
+            [$admin, [3 => 'late', 4 => 'late']],
+        ];
+        foreach ($plan as [$member, $days]) {
+            foreach ($days as $offset => $type) {
+                $roster->assign($property, $member, $monday->addDays($offset), $type);
+            }
+        }
+
+        // Approved leave for the accountant Thu–Fri (granted by the admin — never self-approved).
+        $leave->grant($accountant, $admin, $monday->addDays(3)->toDateString(), $monday->addDays(4)->toDateString(), 'Annual leave');
+
+        // A pending request from the manager (Sat) for the approval queue to demo — awaits another manager.
+        $leave->request($staff, $monday->addDays(5)->toDateString(), $monday->addDays(5)->toDateString(), 'Family day');
     }
 
     /**

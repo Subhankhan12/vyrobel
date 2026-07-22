@@ -85,7 +85,7 @@ Maintenance Costs · Maintenance Settings · Roles · Profile** (the six ✅ Pha
 | Operator Channels | Channel/mapping CRUD + a REAL `channels.status` writer (⚠️ **the certified channel manager is INERT in production** — see Phase 0.1) + connect flow. Live sync = account-gated (Channex) | M–L |
 | ✅ Operator Notifications + Notification Preferences | **BUILT (Phase 3)** — events → dispatcher → in-app feed + typed prefs that genuinely gate (in-app + email) | — |
 | ✅ Operator Email Templates | **BUILT (Phase 3)** — the documented VIEW (subject/trigger/variables + preview); an editable per-tenant template STORE is deferred honestly ("Edit · Soon") | editor: M–L |
-| Operator Team Schedule + Schedule PDF | Staff rostering — a new module (shifts, assignments, PDF) | M |
+| ✅ Operator Team Schedule + Schedule PDF | **BUILT (Phase 7d)** — a weekly staff shift roster over the REAL team, property-scoped (`PropertyContext`, not `->first()`), manager-gated (`schedule.manage`); a time-off/leave layer (request→approve→blocks shifts, self-approval impossible, real computed conflicts); a schedule PDF that reconciles to the grid via the shared `RosterWeek` builder. Shift-swapping/labor-cost/coverage-AI deferred honestly. Invariant #43. |
 | ✅ Operator Insights + Reports | **BUILT (Phase 6b)** — real ADR/RevPAR/occupancy/revenue over the shared `PerformanceMetrics` layer, scoped by the 6a property context (per-property + all-properties); Reports = real folio revenue + real maintenance cost (other cost lines "Not tracked yet"). Gated `reports.view`. No fabricated history/narrative. | — |
 | Operator Reviews | The REVIEWS module (guest reviews + operator responses) — shared with Owner + Guest surfaces | M–L |
 | ✅ Operator Portfolio | **BUILT (Phase 6a)** — the property switcher (topbar, session-backed, pivot-aware) + the Portfolio overview (real per-property unit counts/occupancy/status; ADR/RevPAR deferred to 6b) + property CRUD (`properties.manage`). The complete `->first()` refactor landed with it (grep-clean). | — |
@@ -375,12 +375,15 @@ portal, scoped to that owner. Nested isolation composed from OwnerScope + tenant
 capability matrix (payout co-owner-only, #28); team management primary-owner-only (self-escalation impossible);
 the owner-realm invite hardened + owner-scoped. Invariant #42. See `docs/DECISIONS.md` 2026-07-22 (Phase 7c).
 
-**PHASE 7d — TEAM SCHEDULE / ROSTERING** *(⬅ NEXT)*
-Staff scheduling / rostering. Then Phase 8 (account-gated integrations, incl. LIVE Stripe billing).
+**PHASE 7d — TEAM SCHEDULE / ROSTERING** *(✅ DONE — 2026-07-22, 2 gated sub-gates `88e3af1` → this gate)*
+A weekly staff shift roster (real staff, property-scoped, manager-gated) + a time-off/leave layer
+(request→approve→blocks shifts, self-approval impossible, real conflicts) + a schedule PDF (reconciles to the
+grid, property-scoped). Shift-swapping / labor-cost / coverage-AI are OUT of scope (deferred honestly).
+Invariant #43. **With 7d, PHASE 7 — the SaaS layer — is COMPLETE.** See `docs/DECISIONS.md` 2026-07-22 (Phase 7d).
 
-**PHASE 8 — Live integrations (as accounts land — parallel throughout)**
-Stripe Connect payouts live → card capture live → Channex live sync → WhatsApp/OTA inbox channels → production
-email → Guest ID verification.
+**PHASE 8 — LIVE INTEGRATIONS (as accounts land — parallel throughout)** *(⬅ NEXT)*
+Stripe Connect payouts live → card capture live → LIVE Stripe subscription billing → Channex live sync →
+WhatsApp/OTA inbox channels → SMS → production email → Guest ID verification.
 
 ---
 

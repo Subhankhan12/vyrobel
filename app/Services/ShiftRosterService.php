@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\Schedule\ScheduleException;
 use App\Models\Property;
 use App\Models\Shift;
 use App\Models\User;
@@ -24,7 +25,10 @@ use RuntimeException;
  */
 class ShiftRosterService
 {
-    public function __construct(private readonly AuditEventRecorder $audit) {}
+    public function __construct(
+        private readonly AuditEventRecorder $audit,
+        private readonly LeaveService $leave,
+    ) {}
 
     /**
      * Set a staff member's shift for a date on a property. A WORKING type upserts the shift; `off` clears it
@@ -37,6 +41,12 @@ class ShiftRosterService
         }
 
         $dateString = $date->toDateString();
+
+        // 🪤 REAL CONFLICT — a working shift can't land on a day the staff member is on APPROVED leave (a
+        // computed check against the real leave record, never a fabricated warning). Clearing (`off`) is fine.
+        if (ShiftType::isWorking($type) && $this->leave->isOnApprovedLeave((string) $staff->getKey(), $dateString)) {
+            throw new ScheduleException($staff->name.' is on approved leave that day — clear the leave first.');
+        }
 
         $existing = Shift::query()
             ->where('property_id', $property->getKey())

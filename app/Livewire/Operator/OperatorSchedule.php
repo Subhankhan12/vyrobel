@@ -6,11 +6,10 @@ namespace App\Livewire\Operator;
 
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
-use App\Models\Shift;
+use App\Services\LeaveService;
+use App\Support\Schedule\RosterWeek;
 use App\Support\Schedule\ShiftType;
 use App\Support\Schedule\StaffDepartment;
-use App\Support\Schedule\StaffRoster;
-use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -46,59 +45,36 @@ class OperatorSchedule extends Component
     public function render(): View
     {
         $property = $this->currentProperty();
-        $tz = $property !== null ? (string) ($property->timezone ?? 'UTC') : 'UTC';
+        $canManage = (bool) auth()->user()?->can('schedule.manage');
 
-        // The Monday of the target week, in the property's timezone (guest-facing "today" is tz-local).
-        $monday = CarbonImmutable::now($tz)->startOfWeek(CarbonImmutable::MONDAY)->addWeeks($this->week);
-        $days = [];
-        for ($i = 0; $i < 7; $i++) {
-            $d = $monday->addDays($i);
-            $days[] = ['date' => $d->toDateString(), 'dow' => $d->format('D'), 'label' => $d->format('j M'), 'today' => $d->isSameDay(CarbonImmutable::now($tz))];
-        }
+        // The ONE roster builder — the PDF renders from the same, so screen and PDF reconcile.
+        $roster = RosterWeek::build($property, $this->week, $this->dept);
 
-        $staff = app(StaffRoster::class)->staff();
-        if ($this->dept !== 'all') {
-            $staff = array_values(array_filter($staff, fn (array $s): bool => $s['department'] === $this->dept));
-        }
-
-        // Shifts for THIS property + week, keyed by "user_id|date" for O(1) cell lookup.
-        $shiftMap = [];
-        if ($property !== null) {
-            Shift::query()
-                ->where('property_id', $property->getKey())
-                ->whereBetween('date', [$days[0]['date'], $days[6]['date']])
-                ->get()
-                ->each(function (Shift $s) use (&$shiftMap): void {
-                    $shiftMap[$s->user_id.'|'.$s->date->toDateString()] = $s->shift_type;
-                });
-        }
-
-        $rows = array_map(function (array $s) use ($days, $shiftMap): array {
-            $cells = array_map(function (array $day) use ($s, $shiftMap): array {
-                $type = $shiftMap[$s['id'].'|'.$day['date']] ?? ShiftType::OFF;
-
-                return [
-                    'date' => $day['date'],
-                    'type' => $type,
-                    'label' => ShiftType::label($type),
-                    'hours' => ShiftType::hours($type),
-                    'working' => ShiftType::isWorking($type),
-                ];
-            }, $days);
-
-            return ['staff' => $s, 'cells' => $cells];
-        }, $staff);
+        // The manager's time-off queue: pending requests to approve/deny. Read for managers only.
+        $pending = $canManage
+            ? app(LeaveService::class)->pendingRequests()->map(fn ($r): array => [
+                'id' => (string) $r->getKey(),
+                'name' => (string) $r->user->name,
+                'range' => $r->rangeLabel(),
+                'reason' => (string) ($r->reason ?? ''),
+                // A manager can't approve their OWN request (self-approval separation) — the UI shows a note
+                // instead of the buttons, so it never invites the 403/guard.
+                'is_self' => (string) $r->user_id === (string) auth()->id(),
+            ])->all()
+            : [];
 
         return view('livewire.operator.schedule', [
             'viewer' => $this->viewer(),
             'property' => $property,
-            'days' => $days,
-            'rows' => $rows,
-            'weekLabel' => $monday->format('j M').' – '.$monday->addDays(6)->format('j M Y'),
-            'isThisWeek' => $this->week === 0,
+            'days' => $roster->days,
+            'rows' => $roster->rows,
+            'weekLabel' => $roster->weekLabel,
+            'isThisWeek' => $roster->isThisWeek,
+            'conflictCount' => $roster->conflictCount,
             'departments' => StaffDepartment::FILTERS,
             'shiftTypes' => ShiftType::ALL,
-            'canManage' => (bool) auth()->user()?->can('schedule.manage'),
+            'canManage' => $canManage,
+            'pending' => $pending,
         ]);
     }
 }

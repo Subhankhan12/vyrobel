@@ -25,6 +25,7 @@ use App\Models\GuestCreditEntry;
 use App\Models\HousekeepingTask;
 use App\Models\InventoryBlock;
 use App\Models\Invoice;
+use App\Models\LeaveRequest;
 use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
 use App\Models\ManagementAgreement;
@@ -211,8 +212,9 @@ class AppServiceProvider extends ServiceProvider
             'promo_code' => PromoCode::class,
             // Phase 5 — reviews are a domain-event/audit subject (review.submitted), so the model needs an alias.
             'review' => Review::class,
-            // Phase 7d — roster shifts are an audit subject (schedule.shift.assigned).
+            // Phase 7d — roster shifts + time-off are audit subjects (schedule.shift.assigned / leave.*).
             'shift' => Shift::class,
+            'leave_request' => LeaveRequest::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a
