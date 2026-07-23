@@ -271,6 +271,9 @@
         /* Count modifier: 4-up KPI band (opt-in — existing repeat(3) pages are untouched). */
         .vy-kpi-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         @media (max-width: 900px) { .vy-kpi-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        /* Count modifier: 2-up KPI band (opt-in — 2 uniform tiles span the full band width instead of leaving an empty 3rd column). */
+        .vy-kpi-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        @media (max-width: 640px) { .vy-kpi-grid--2 { grid-template-columns: 1fr; } }
         .vy-kpi {
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
             -webkit-backdrop-filter: blur(22px) saturate(1.15);

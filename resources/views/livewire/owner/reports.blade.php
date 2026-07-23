@@ -11,7 +11,7 @@
     </div>
 
     {{-- NET EARNINGS — reconciles to your statements (Σ the owner ledger) --}}
-    <div class="vy-kpi-grid vy-fade" style="animation-delay:.02s">
+    <div class="vy-kpi-grid vy-kpi-grid--2 vy-fade" style="animation-delay:.02s">
         <div class="vy-kpi">
             <div class="vy-kpi-label">Net earnings to date</div>
             <div class="vy-kpi-val">{{ count($totalNet) > 0 ? implode(' · ', $totalNet) : '—' }}</div>
