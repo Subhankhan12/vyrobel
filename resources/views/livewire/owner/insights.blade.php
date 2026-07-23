@@ -14,7 +14,7 @@
         <div class="vy-card vy-fade"><div class="vy-empty">No units linked to your account yet.</div></div>
     @else
         {{-- METRIC CARDS — real, owner-scoped --}}
-        <div class="vy-kpi-grid vy-fade" style="animation-delay:.02s">
+        <div class="vy-kpi-grid vy-kpi-grid--4 vy-fade" style="animation-delay:.02s">
             @foreach ($cards as $c)
                 <div class="vy-kpi">
                     <div class="vy-kpi-label">{{ $c['label'] }}</div>
