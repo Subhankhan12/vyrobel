@@ -41,6 +41,7 @@
             --vy-hairline: rgba(120, 70, 40, 0.10);
             --vy-glass-border: rgba(255, 255, 255, 0.75);
             --vy-accent-border: rgba(232, 112, 58, 0.28);
+            --vy-wash: #F6EBE2;                   /* Polish Batch 1 — the faint warm-cream tint (review/team tag chips, washes). Resolves the previously-fallback-only token. */
 
             --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
             --vy-grad-peach: linear-gradient(90deg, #F0A57A, #C2410C);
@@ -313,6 +314,12 @@
         .vy-input:focus { border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.10); }
         .vy-input::placeholder { color: var(--vy-faint); }
         .vy-input-group { display: flex; gap: 8px; align-items: stretch; }
+        /* Polish Batch 1 — the form field label + wrapper (block-calendar / payout-method / tax-center / rates / add-unit).
+           Previously undefined in the owner system → labels rendered with browser defaults. Mirrors the operator layout. */
+        .vy-field { margin-bottom: 15px; }
+        .vy-field-label { display: block; font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 7px; }
+        .vy-field-label .vy-fl-note { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--vy-faint); }
+        .vy-field-label .vy-fl-right { float: right; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--vy-muted); }
 
         /* Conversation rail */
         .vy-msg-cols { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 18px; align-items: start; }

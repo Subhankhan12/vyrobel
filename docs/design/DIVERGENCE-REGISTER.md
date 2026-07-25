@@ -22,6 +22,18 @@ future reader knows it's a considered choice, not an oversight.
 **Boundary:** presentation only (Blade/CSS/components/layout/states); never behaviour/logic/services/queries/guards/
 routes/permissions. Suite 924+ / PHPStan L5 / Pint green after every page-commit.
 
+> **Polish Batch 1 (2026-07-26) — undefined-token/class fallbacks closed (`docs/POLISH-SWEEP.md` D1–D6).** A cluster of
+> CSS tokens/classes were *referenced but never defined*, so specific elements fell back to transparent/plain/unstyled
+> (invisible to the green suite). Defined once per realm's shared design system, resolving them across all four realms:
+> **`--vy-wash`** (guest chat inbound bubbles + arrival/checkin/review chips + owner reviews/team chips — were
+> transparent on the guest pages), **`--vy-shadow-dark`** (operator dark "Tonight"/feature panels on Dashboard /
+> Reservation-detail / Maintenance-work-order / Owner-detail / Payout-run / Guest-profile — had no shadow),
+> **`.vy-card--accent`** (operator "Record a payment"/"Actions"/"Edit profile" — rendered plain), **`.vy-pill.is-on`**
+> (operator Insights/Reports active range pill — no selected state), **`.vy-field-label`** (owner block-calendar /
+> payout-method / tax-center / rates / add-unit form labels — unstyled), **bare `.vy-flash`** (operator billing /
+> billing-checkout / insights / portfolio notices — untinted). Presentation-only; these pages' structural
+> classifications below are unchanged.
+
 ---
 
 ## Operator app

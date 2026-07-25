@@ -42,6 +42,7 @@
             --vy-hairline: rgba(120, 70, 40, 0.10);
             --vy-glass-border: rgba(255, 255, 255, 0.75);
             --vy-accent-border: rgba(232, 112, 58, 0.28);
+            --vy-wash: #F6EBE2;                   /* Polish Batch 1 — the faint warm-cream tint (incoming bubbles / tag chips / washes). Shared value across realms. */
 
             --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
             --vy-grad-peach: linear-gradient(90deg, #F0A57A, #C2410C);
@@ -50,6 +51,7 @@
             --vy-shadow: rgba(150, 90, 50, 0.16) 0 14px 40px, inset rgba(255, 255, 255, 0.65) 0 1px 0;
             --vy-shadow-sm: rgba(150, 90, 50, 0.12) 0 8px 22px, inset rgba(255, 255, 255, 0.6) 0 1px 0;
             --vy-shadow-accent: rgba(194, 65, 12, 0.30) 0 4px 12px;
+            --vy-shadow-dark: rgba(60, 30, 10, 0.28) 0 10px 30px;   /* Polish Batch 1 — brief-exact (design-system-brief §"Dark hero panel"); matches the owner layout. */
 
             --vy-r-pill: 30px;
             --vy-r-lg: 20px;
@@ -240,6 +242,7 @@
             box-shadow: var(--vy-shadow); padding: 22px;
         }
         .vy-card--flush { padding: 0; overflow: hidden; }
+        .vy-card--accent { border-color: var(--vy-accent-border); }   /* Polish Batch 1 — the accent card treatment (mirrors the owner layout's canonical definition). */
         .vy-eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-card-title { font-family: var(--vy-display); font-size: 15px; font-weight: 600; margin: 0; }
         .vy-muted { color: var(--vy-muted); }
@@ -266,6 +269,9 @@
             font-size: 12.5px; font-weight: 500; color: var(--vy-muted);
             background: rgba(255, 255, 255, 0.5); border: 1px solid var(--vy-glass-border); transition: all .16s ease;
         }
+        /* Polish Batch 1 — the SELECTED range/filter pill (operator Insights/Reports). Prototype-consistent:
+           the prototype's selected pills are gradient-filled with white text + an accent shadow (as `.vy-seg-btn.is-on`). */
+        .vy-pill.is-on { background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: var(--vy-shadow-accent); }
         .vy-icobtn { width: 36px; height: 36px; border-radius: var(--vy-r-sm); display: grid; place-items: center; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); cursor: pointer; }
         .vy-icobtn[aria-disabled="true"] { opacity: .4; cursor: default; }
 
@@ -741,7 +747,9 @@
 
         /* ---- Owners list + invite modal -------------------------------------------------------- */
         [x-cloak] { display: none !important; }
-        .vy-flash { display: flex; align-items: center; gap: 9px; padding: 12px 16px; border-radius: var(--vy-r-md); font-size: 13px; font-weight: 500; margin-bottom: 16px; }
+        /* Polish Batch 1 — the base carries a neutral glass notice tone so a bare `.vy-flash` (billing / billing-checkout /
+           insights multi-currency / portfolio notices) is styled, not untinted; `.is-ok` / `.is-err` override it. */
+        .vy-flash { display: flex; align-items: center; gap: 9px; padding: 12px 16px; border-radius: var(--vy-r-md); font-size: 13px; font-weight: 500; margin-bottom: 16px; background: var(--vy-glass); border: 1px solid var(--vy-glass-border); color: var(--vy-ink); }
         .vy-flash.is-ok { background: rgba(52, 140, 90, 0.12); color: rgb(34, 110, 68); border: 1px solid rgba(52, 140, 90, 0.24); }
         .vy-flash.is-err { background: rgba(194, 65, 12, 0.10); color: var(--vy-accent); border: 1px solid var(--vy-accent-border); }
 

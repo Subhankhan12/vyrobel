@@ -3637,3 +3637,41 @@ UNCHANGED. Invariants #1–48 untouched.**
   page; the two page pages read identically to the panel. Suite **977/977** green (+5 new
   `NotificationPanelTest`: capped/newest-first/unread-count, self-only, panel-in-operator-shell,
   panel-in-owner-shell, honest empty state); PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.
+
+### 2026-07-26 — POLISH BATCH 1 — defined the missing CSS tokens/classes (the highest-leverage sweep finding)
+
+**The finding (`docs/POLISH-SWEEP.md` §1, "the single biggest signal"):** the app *referenced* six CSS tokens/classes it
+never *defined*, so those elements silently fell back to transparent/plain/unstyled — invisible to a green suite (the
+pages render 200, nothing errors). **Presentation-only fix: DEFINE each one ONCE in the shared design system** (each
+realm's inline `:root` / `<style>` — there is no single external stylesheet; that per-realm block IS the shared layer),
+so every referencing element across all four realms picks it up. **No behaviour/logic/money/auth/isolation; invariants
+#1–48 untouched.**
+
+- **Values (prototype-exact vs derived, noted):**
+  - **`--vy-shadow-dark: rgba(60,30,10,0.28) 0 10px 30px`** — **brief-exact** (`design-system-brief.md` §"Dark hero
+    panel" + the owner layout's existing declaration). Added to the OPERATOR `:root` (owner already had it).
+  - **`--vy-wash: #F6EBE2`** — **derived-consistent, and in fact the value the app already renders app-wide via the
+    `var(--vy-wash, #F6EBE2)` fallback** (owner reviews/team chips, operator schedule chips). Only the GUEST portal pages
+    used `var(--vy-wash)` with NO fallback → transparent. Declared in the guest shell + owner + operator token blocks.
+  - **`.vy-card--accent { border-color: var(--vy-accent-border) }`** — mirrors the owner layout's canonical definition;
+    added to the OPERATOR layout (consumers: reservation-detail "Record a payment", maintenance-ticket-detail "Actions",
+    guest-profile "Edit profile").
+  - **`.vy-pill.is-on`** — **prototype-consistent** (the prototype's selected pills are gradient-filled with white text +
+    an accent shadow, as the app's `.vy-seg-btn.is-on`): `background: var(--vy-grad); color:#fff; border-color:transparent;
+    box-shadow: var(--vy-shadow-accent)`. Added to the OPERATOR layout (consumers: Insights + Reports range pills).
+  - **`.vy-field` / `.vy-field-label`** (+ `.vy-fl-note`/`.vy-fl-right`) — mirrors the operator layout's definition;
+    added to the OWNER layout (consumers: block-calendar, payout-method, tax-center, rates, add-unit form labels).
+  - **`.vy-flash`** base — gave the base a neutral glass tone (`background: var(--vy-glass)` + hairline border + ink) so a
+    bare `.vy-flash` (billing / billing-checkout / insights multi-currency / portfolio notices) is styled; `.is-ok`
+    (green) / `.is-err` (amber) still override. Operator layout.
+
+- **Files (3, presentation-only):** `resources/views/components/layouts/operator.blade.php` (`--vy-wash`,
+  `--vy-shadow-dark`, `.vy-card--accent`, `.vy-pill.is-on`, base `.vy-flash` tone) · `…/layouts/owner.blade.php`
+  (`--vy-wash`, `.vy-field`/`.vy-field-label`) · `…/components/guest/shell.blade.php` (`--vy-wash`).
+
+- **Browser-verified across all four realms** (these were invisible to tests): the **guest chat inbound bubble** now
+  renders its cream `#F6EBE2` fill (the conversation no longer looks one-sided — before/after captured); the operator
+  **Insights active range pill** shows its gradient selected state (was identical to inactive); the owner
+  **payout-method/…** form labels render styled uppercase; `--vy-shadow-dark`, `.vy-card--accent`, and the bare
+  `.vy-flash` resolve (computed-style confirmed). This closes **POLISH-SWEEP findings D1–D6** and their ~dozen dependent
+  elements. Suite green; PHPStan L5 (0); Pint clean.

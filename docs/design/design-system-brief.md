@@ -54,6 +54,15 @@ box-shadow: 0 10px 30px rgba(60,30,10,.28);
 - Radius: panels/cards `20px`, pills/badges `30px+` (fully round), small controls `12px`.
 - Generous whitespace; panel padding ~18–22px; comfortable row rhythm.
 
+### Shared tokens & component classes (formalised — defined once per realm's `:root` / design system)
+These are the named `--vy-*` tokens and `.vy-*` classes the app implements the above with. **Polish Batch 1 (2026-07-26)** defined the ones that were previously referenced but undefined (so they no longer fall back to transparent/plain/unstyled); every realm that uses one now declares it:
+- **`--vy-wash: #F6EBE2`** — the faint warm-cream tint used for incoming chat bubbles + tag/badge chips + soft washes. (This is the value the app already rendered everywhere via the `var(--vy-wash, #F6EBE2)` fallback; only the guest portal pages lacked the fallback, so they rendered transparent until this token was declared.)
+- **`--vy-shadow-dark: 0 10px 30px rgba(60,30,10,.28)`** — the drop shadow on the dark hero/"Tonight"/feature panels (brief-exact, see "Dark hero panel" above).
+- **`.vy-card--accent`** — a card with an accent border (`border-color: var(--vy-accent-border)`), for action cards ("Record a payment", "Actions", "Edit profile", owner NET-TO-YOU).
+- **`.vy-pill.is-on`** — the SELECTED state of a range/filter pill: gradient fill + white text + accent shadow (matches the prototype's selected pills and the segmented `.vy-seg-btn.is-on`).
+- **`.vy-field` / `.vy-field-label`** — a form field wrapper + its uppercase, letter-spaced, faint label (7px-below, `--vy-faint`).
+- **`.vy-flash`** — a notice/toast banner: a neutral glass base tone by default; `.is-ok` (green) / `.is-err` (amber/terracotta) modifiers for success/error.
+
 ---
 
 ## Components to define

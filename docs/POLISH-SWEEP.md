@@ -4,6 +4,8 @@
 
 This sweep hunts the **fine polish layer** the design-fidelity pass (which classified every page KIND-1/2/3 and drove it to at-parity / intentional-divergence) did not catalogue: exact tokens, hover/focus/transition states, count-up/loading micro-interactions, and genuine interaction bugs (a page can look right and behave wrong — the notification bell was exactly that). **Only GENUINE deviations are flagged.** Anything the register already recorded as KIND-2-fabricated (honesty rule / #39), a security refusal (#28/#30), account-gated (#45/#41/Channex/SMS/KYC), or a recorded KIND-3 (needs-JS/data-shape) is recorded as an **intentional divergence** in the appendix, **not a gap**.
 
+> **✅ POLISH BATCH 1 COMPLETE (2026-07-26)** — the missing-tokens/classes cluster (**D1 `--vy-wash` · D2 `.vy-pill.is-on` · D3 `--vy-shadow-dark` · D4 `.vy-card--accent` · D5 `.vy-field-label` · D6 bare `.vy-flash`**) is **RESOLVED**: each was defined once in the shared design system (`layouts/operator.blade.php`, `layouts/owner.blade.php`, `components/guest/shell.blade.php`), so every referencing element across all four realms now renders. Presentation-only; suite green, PHPStan L5 + Pint clean; behaviour/logic/money/auth/isolation untouched. Browser-verified (guest chat bubble now has its cream fill; the operator active range pill shows its selected state; owner form labels styled; dark-panel shadows + accent cards + bare flash resolved). Values: `--vy-shadow-dark` is brief-exact (`0 10px 30px rgba(60,30,10,.28)`); `--vy-wash` = `#F6EBE2` (the value the app already rendered everywhere via fallback — only the guest pages lacked the fallback); the rest mirror the app's existing canonical definitions. **Remaining batches (2–6) are unaffected.**
+
 ### How this was produced (coverage, honestly)
 - **Prototype side:** the shared prototype design-system's micro-interaction vocabulary was extracted from the rendered prototype (`php -S 127.0.0.1:8899`) via `document.styleSheets` — keyframes, hover/focus/transition rules, and the count-up JS. The per-page **structural** prototype→app comparison is the DIVERGENCE-REGISTER (76 page-rows), treated as established ground truth and built upon here.
 - **App side:** a full code inventory of **all ~80 app views + the four shell/layout design systems** (operator 908-line, owner 418-line, guest shell + auth layout, public shell) — every page's components, hover/focus/transition/animation, empty/loading state, interaction wiring, and undefined-token/class usage.
@@ -83,37 +85,37 @@ Each finding: **WHERE · WHAT'S OFF · PROTOTYPE SAYS · BUILDABLE? · EFFORT/PR
 
 ### 2B · DESIGN-FIDELITY
 
-**D1 — `--vy-wash` undefined → transparent backgrounds ✔** · **P1** · XS
+**D1 — `--vy-wash` undefined → transparent backgrounds ✔** · **P1** · XS · ✅ **DONE (Batch 1)** — defined `--vy-wash: #F6EBE2` in the guest shell + owner + operator token blocks; the guest chat inbound bubble now renders its cream fill (verified).
 - WHERE: cross-realm. Guest: `message-thread` inbound bubbles (verified: naked text, no fill), `arrival` door-code chip + lock icon, `checkin` ID icon, `review` tag chips. Owner: `reviews` + `team` chips (hex-fallback). The token is **used in 5 places across 4 guest files + 2 owner files but never declared** (`var(--vy-wash)` resolves to `rgba(0,0,0,0)`, verified).
 - WHAT'S OFF: the intended soft "wash" fill is absent — the guest chat looks one-sided (only the outbound bubble has a background).
 - PROTOTYPE SAYS: incoming/secondary chips carry a soft cream wash (like the operator/owner cream incoming bubbles).
 - BUILDABLE? Presentation — declare `--vy-wash` once in each shell's `:root`.
 
-**D2 — `.vy-pill.is-on` undefined → no active-filter highlight** · P2 · XS
+**D2 — `.vy-pill.is-on` undefined → no active-filter highlight** · P2 · XS · ✅ **DONE (Batch 1)** — defined `.vy-pill.is-on` (gradient fill + white + accent shadow) in the operator layout; the Insights/Reports active range pill now shows its selected state (verified).
 - WHERE: Operator · Insights (`insights.blade.php` L13) + Reports (`reports.blade.php` L12) date-range pills.
 - WHAT'S OFF: the *active* range pill is visually identical to the inactive ones — the user can't tell which range they're viewing.
 - PROTOTYPE SAYS: the selected range is highlighted (accent fill).
 - BUILDABLE? Presentation — define `.vy-pill.is-on` (billing already has the real `.vy-seg-btn.is-on` to mirror).
 
-**D3 — `--vy-shadow-dark` undefined → dark panels have no shadow** · P2 · XS
+**D3 — `--vy-shadow-dark` undefined → dark panels have no shadow** · P2 · XS · ✅ **DONE (Batch 1)** — defined `--vy-shadow-dark: rgba(60,30,10,.28) 0 10px 30px` (brief-exact) in the operator token block (owner already had it); the dark "Tonight"/feature panels regain elevation (verified resolves).
 - WHERE: Operator · dark "Tonight"/feature panels & tiles (`.vy-tonight` L705, `.vy-dash-kpi.is-feature` L673) on Dashboard, Reservation-detail, Maintenance-detail, Owner-detail, Payout-run, Guest-profile.
 - WHAT'S OFF: the dark hero panels sit flat on the page (no elevation) because the shadow token they reference isn't in `:root`.
 - PROTOTYPE SAYS: the dark panels are elevated with a soft drop shadow.
 - BUILDABLE? Presentation — declare `--vy-shadow-dark`.
 
-**D4 — `.vy-card--accent` undefined → accent cards render plain** · P2 · XS
+**D4 — `.vy-card--accent` undefined → accent cards render plain** · P2 · XS · ✅ **DONE (Batch 1)** — defined `.vy-card--accent { border-color: var(--vy-accent-border) }` in the operator layout (mirrors owner); "Record a payment"/"Actions"/"Edit profile" cards regain the accent border (verified).
 - WHERE: Operator · "Record a payment" (`reservation-detail`), "Actions" (`maintenance-ticket-detail`), "Edit profile" (`guest-profile`).
 - WHAT'S OFF: cards meant to carry an accent treatment fall back to a plain `.vy-card`.
 - PROTOTYPE SAYS: these action cards are accent-tinted to stand out.
 - BUILDABLE? Presentation — define the `.vy-card--accent` modifier.
 
-**D5 — `.vy-field` / `.vy-field-label` undefined in the owner system** · P2 · XS
+**D5 — `.vy-field` / `.vy-field-label` undefined in the owner system** · P2 · XS · ✅ **DONE (Batch 1)** — defined `.vy-field` + `.vy-field-label` (+ `.vy-fl-note`/`.vy-fl-right`) in the owner layout (mirrors operator); labels on block-calendar/payout-method/tax-center/rates/add-unit now render styled uppercase (verified).
 - WHERE: Owner · block-calendar, payout-method, tax-center, rates, add-unit form labels.
 - WHAT'S OFF: form labels render with browser defaults (unstyled) — the class exists in the operator/public shells but was never ported to `layouts/owner.blade.php`.
 - PROTOTYPE SAYS: consistent styled field labels.
 - BUILDABLE? Presentation — add the two classes to the owner layout (copy the operator definition).
 
-**D6 — Bare `.vy-flash` renders unstyled** · P2 · XS
+**D6 — Bare `.vy-flash` renders unstyled** · P2 · XS · ✅ **DONE (Batch 1)** — gave the base `.vy-flash` a neutral glass tone (bg `--vy-glass` + hairline border + ink) so bare notices on billing/checkout/insights/portfolio render styled; `.is-ok`/`.is-err` still override (verified).
 - WHERE: Operator · billing, billing-checkout, insights (multi-currency notice), portfolio — use `.vy-flash` **without** `.is-ok`/`.is-err`, and the base rule sets only layout (no bg/tone).
 - WHAT'S OFF: these notices show as untinted text with no card/background.
 - PROTOTYPE SAYS: notices are tinted status banners.
