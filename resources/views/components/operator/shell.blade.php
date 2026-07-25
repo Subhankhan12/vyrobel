@@ -138,11 +138,7 @@
             </div>
             <div class="vy-topbar-actions">
                 <x-operator.property-switcher />
-                @php $unread = auth()->user()?->unreadNotifications()->count() ?? 0; @endphp
-                <a href="{{ route('app.notifications') }}" class="vy-bell" title="Notifications" aria-label="Notifications" style="position:relative;text-decoration:none;color:inherit">
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0"/></svg>
-                    @if ($unread > 0)<span aria-label="{{ $unread }} unread" style="position:absolute;top:-3px;right:-3px;min-width:15px;height:15px;padding:0 3px;border-radius:999px;background:var(--vy-accent,#b5654a);color:#fff;font-size:9.5px;font-weight:700;display:grid;place-items:center">{{ $unread > 9 ? '9+' : $unread }}</span>@endif
-                </a>
+                <x-notifications.bell :open-all-url="route('app.notifications')" />
                 <span class="vy-chip">
                     <span class="vy-avatar">{{ $viewer['initials'] }}</span>
                     <span class="vy-chip-name">{{ $viewer['name'] }}</span>

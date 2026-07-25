@@ -61,6 +61,7 @@
         }
 
         *, *::before, *::after { box-sizing: border-box; }
+        [x-cloak] { display: none !important; }   /* prevent a flash of the notification panel before Alpine boots */
 
         html, body { margin: 0; padding: 0; }
 
