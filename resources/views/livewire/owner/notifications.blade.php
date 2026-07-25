@@ -20,12 +20,18 @@
 
     <section class="vy-card vy-fade">
         @forelse ($feed['items'] as $item)
-            <div style="display:flex;align-items:flex-start;gap:12px;padding:13px 4px;border-bottom:1px solid var(--vy-hairline)">
-                @unless ($item['read'])<span style="flex:none;width:8px;height:8px;border-radius:50%;background:var(--vy-accent);margin-top:6px" title="Unread"></span>@else<span style="flex:none;width:8px;height:8px;margin-top:6px"></span>@endunless
+            {{-- Parity delta (Phase-3 rebuild): lead with the SHARED rounded-SQUARE category tile
+                 (<x-notifications.category-icon> — ONE definition for panel + page), an unread WASH on the row, and
+                 the unread dot beside the category tag — so this page reads identically to the bell panel. --}}
+            <div style="display:flex;align-items:flex-start;gap:12px;padding:13px 8px;border-bottom:1px solid var(--vy-hairline);border-radius:8px;{{ $item['read'] ? '' : 'background:rgba(217,102,46,.05)' }}">
+                <x-notifications.category-icon :category="$item['category']" />
                 <a href="{{ $item['url'] ?? '#' }}" style="flex:1;text-decoration:none;color:inherit">
                     <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
                         <span style="font-size:13.5px;font-weight:{{ $item['read'] ? '500' : '700' }};color:var(--vy-ink)">{{ $item['title'] }}</span>
-                        <span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--vy-muted)">{{ ucwords(str_replace('_', ' ', $item['category'])) }}</span>
+                        <span style="display:flex;align-items:center;gap:8px;flex:none">
+                            <span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--vy-muted)">{{ ucwords(str_replace('_', ' ', $item['category'])) }}</span>
+                            @unless ($item['read'])<span style="flex:none;width:8px;height:8px;border-radius:50%;background:var(--vy-accent)" title="Unread"></span>@endunless
+                        </span>
                     </div>
                     <div style="font-size:12.5px;color:var(--vy-muted);margin-top:2px">{{ $item['context'] }}</div>
                     <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">{{ $item['when'] }}</div>

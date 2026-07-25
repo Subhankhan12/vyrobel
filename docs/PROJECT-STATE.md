@@ -9,6 +9,15 @@ conflicts with the repo, **trust the repo** and fix this file.
 > ⭐ **CURRENT STATE — 2026-07-23 total-recall save (HEAD `cace277`, `main`, local == origin, tree clean).
 > This block supersedes any earlier "next is Phase 7c" / "Rates next" prose below (kept as historical detail).**
 >
+> **Latest (2026-07-26, see `DECISIONS.md` for detail):** post-audit gap-sweep build batches A/B/C (owner PDFs · REAL
+> per-unit + by-unit + Insights-cadence analytics · operator ops: housekeeping-assign / move / add-charge / on-desk
+> payment money-gate + tax editing) — **Invariants #1–48** — then the **NOTIFICATION EXPERIENCE rebuild**: the top-bar
+> **bell opens a PANEL (Alpine popover, no new dependency) in BOTH shells** instead of navigating (only "Open all
+> notifications →" reaches the full page), built in the feed's exact design language (NO separate panel wireframe — the
+> proto bell is static, recorded honestly) via the ONE shared `NotificationFeed::recentForUser()` + `<x-notifications.bell>`
+> + `<x-notifications.category-icon>`; the full pages gained two parity deltas (square tile + unread wash). REAL-only (fake
+> "Channels"/"Housekeeping" pills REFUSED), self-only #28/#26, existing self-only POST mark-read routes. Suite **977/977**.
+>
 > **THE ENTIRE BUILDABLE PRODUCT IS COMPLETE (Phases 0–7), and Phase 8's two OBTAINABLE integrations are LIT UP.**
 > Three full user-facing apps — operator back office (`/app`), owner portal (`/owner`), guest portal (`/guest`) —
 > plus a public storefront (`/book/{slug}`) and public self-signup (`/signup`) that atomically provisions a new

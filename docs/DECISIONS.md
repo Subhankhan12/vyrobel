@@ -3587,3 +3587,53 @@ now `->where('property_id', $currentProperty->id)->find($id)` for both Tax and F
 → skipped), and the READ (`OperatorSettings::taxes()`/`fees()`) is property-scoped to match, so the editor
 only ever shows + edits THIS property's rows. Mutation-proven: with the context pinned to A, a POST carrying
 B's tax id leaves B unchanged. Suite green.
+
+### 2026-07-26 — NOTIFICATION EXPERIENCE — the top-bar bell now opens a PANEL, both shells (2 gates)
+
+**The founder's ask:** clicking the notification bell opened the FULL page directly; it should open a
+**dropdown/panel preview**, and reach the full page only via an explicit "Open all notifications →" link — both
+surfaces matching the notification design system exactly. Investigated first (Phase-1 findings), then built to
+the approved decisions. **Presentation + one shared-helper extension only; behaviour/money/auth/isolation
+UNCHANGED. Invariants #1–48 untouched.**
+
+- **Key honest finding:** there is **NO separate panel wireframe** — the prototype bell is a static button that
+  opens nothing (verified in the proto: clicking it does nothing; the only "panels" are decorative blobs). So
+  "match the wireframe" for the panel means **match the FEED PAGE's design language** — recorded honestly here
+  and in the DIVERGENCE-REGISTER. The owner "Notifications" prototype file is the **preferences** screen, not a
+  feed (already noted at parity).
+
+- **GATE 1 — the bell → PANEL (both shells), real feed, exact design language** (`a07ca65`):
+  - **Anti-drift:** extended the ONE shared `NotificationFeed` with a capped `recentForUser($user, $limit = 6)`
+    (+ the unread count) and a private `map()` — the single row-shape mapper now shared by the full page AND the
+    panel, so they cannot drift. The bell reuses this unread count for its badge.
+  - **Shared components:** `<x-notifications.category-icon>` (ONE definition of the rounded-square category
+    glyph tile) + `<x-notifications.bell :open-all-url>` (the Alpine popover — Livewire-4-injected Alpine, **no
+    new dependency**), reused **verbatim by the operator + owner shells**. The bell is now a `<button @click>` —
+    it NO LONGER navigates; only the footer "Open all notifications →" link reaches the full page. Owner layout
+    gained the `[x-cloak]` rule (operator already had it).
+  - **Panel:** right-aligned ~360px popover under the bell — header "Notifications · N unread"; the top ~6 recent
+    rows in the feed's design language (square category tile · bold-if-unread title · uppercase REAL category tag
+    · one-line context · relative time · unread dot + faint orange row wash); each row links to its REAL target;
+    footer = "Mark all read" (if unread>0, the EXISTING self-only POST `notifications.read-all`, PRG) + "Open all
+    notifications →". `@click.outside` + `Esc` close it; honest "All caught up" empty state.
+  - **🪤 Real only:** REFUSED the mock's fabricated demo rows and the fake **"Channels"/"Housekeeping"** pills
+    (not real notification types) — the panel + page render only real notifications and the categories that
+    actually exist, with honest labels (`system`→"System", `maintenance`→"Maintenance", `reputation`→
+    "Reputation"). **🔒 Self-only (#28/#26):** reads the authenticated user's own Notifiable rows (an owner sees
+    only their own, no cross-owner/tenant; payloads name-only) — the panel inherits, NO new scope. Mark-read
+    (single + all) reuses the EXISTING self-only POST controller routes (a cross-user id 404s), never
+    `/livewire/update`.
+
+- **GATE 2 — full-page parity deltas + docs** (this commit):
+  - The two approved deltas on **both** feed pages so the page reads identically to the panel: the row icon is
+    now the shared rounded-**square** tile (operator page was a circle; the owner page had **no** icon — now
+    added), and unread rows carry the faint orange **wash** (in addition to the dot). Presentation-only.
+  - The pages still render real notifications, the real category pills (honest labels — no fake pills), mark-all
+    + per-row mark-read (existing routes), the empty state, and the preferences footer link.
+
+- **Verification:** browser-verified BOTH shells — bell opens the panel (does NOT navigate; both operator +
+  owner), real recent rows in the feed's design language, a row links to its real target, "Mark all read" (PRG)
+  clears the badge, `Esc` + click-outside close it, "Open all notifications →" is the ONLY navigation to the
+  page; the two page pages read identically to the panel. Suite **977/977** green (+5 new
+  `NotificationPanelTest`: capped/newest-first/unread-count, self-only, panel-in-operator-shell,
+  panel-in-owner-shell, honest empty state); PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.
