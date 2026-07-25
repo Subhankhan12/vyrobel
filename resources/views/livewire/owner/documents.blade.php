@@ -20,9 +20,10 @@
                     `source_currency` (the real currency of `gross_minor`, and what that PDF totals in).
                     Each amount stands in its own currency; nothing is summed, so no silent FX
                     (invariant #17).
-      • NO BACKEND— the full-archive ZIP (no ZIP builder) and the annual tax summary (no tax engine; its
-                    "Owner Annual Tax Summary PDF" does not exist): disabled "Soon" / a soon tag, never
-                    a fake download link.
+      • REAL      — the annual tax summary PDF (OwnerAnnualTaxDocument via owner.tax.annual): a per-year
+                    link on each year group + a shortcut to the latest year, export-gated, the same
+                    document the Tax Center offers. Only linked for years that have committed statements.
+      • NO BACKEND— the full-archive ZIP (no ZIP builder): a disabled "Soon", never a fake download link.
       • NOT PORTED— the design's "OS-2025-09"/"RA-2025-09"/"BS-2025-09" reference formats, its
                     "issued 1 Oct" and "18 bookings" metas, its "net €98,710" tax figure and its inert
                     year filter (a fixed const) are all fiction — replaced by the real number, the real
@@ -67,8 +68,16 @@
                             {{ $yearGroup['count'] }} {{ \Illuminate\Support\Str::plural('document', $yearGroup['count']) }}
                         </div>
                     </div>
-                    {{-- Annual tax summary — NO BACKEND (no tax engine, no such PDF): never linked --}}
-                    <span class="vy-soon-tag">Tax summary · Soon</span>
+                    {{-- Annual tax summary — a REAL owner-scoped PDF for this year (OwnerTaxController::
+                         downloadAnnual → OwnerAnnualTaxDocument), the same export the Tax Center offers.
+                         Export-gated (CAP_EXPORTS); the year is here only because it has committed
+                         statements, exactly what annualSummary() sums, so this link never 404s. --}}
+                    @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
+                    <a href="{{ route('owner.tax.annual', $yearGroup['year']) }}" class="vy-btn vy-btn--ghost" style="padding:5px 10px;font-size:12px" title="Download the {{ $yearGroup['year'] }} annual tax summary as a PDF">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
+                        Tax summary
+                    </a>
+                    @endownercan
                 </div>
 
                 @foreach ($yearGroup['periods'] as $period)
@@ -124,14 +133,25 @@
             </section>
         @endforelse
 
-        {{-- Annual tax summary — NO BACKEND: there is no tax engine and no such PDF, so it is never
-             linked and no figure is claimed (the design's "net €98,710" is fiction). --}}
+        {{-- Annual tax summary — a REAL owner-scoped year-end PDF (OwnerAnnualTaxDocument): a one-click
+             shortcut to the MOST RECENT year's summary; the per-year links above cover every other year.
+             No figure is claimed here (the design's "net €98,710" is fiction). Export-gated. --}}
+        @php $latestTaxYear = $years[0]['year'] ?? null; @endphp
         <section class="vy-card vy-fade" style="margin-top:22px;animation-delay:.08s;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
             <div>
                 <div style="font-family:var(--vy-display);font-weight:600;font-size:14.5px">Annual tax summary</div>
-                <div class="vy-line-sub">A single year-end PDF for your accountant. Not available yet — the documents above each download on their own.</div>
+                <div class="vy-line-sub">A single year-end PDF for your accountant{{ $latestTaxYear ? ', ready for '.$latestTaxYear : '' }}.</div>
             </div>
-            <span class="vy-soon-tag">Soon</span>
+            @if ($latestTaxYear)
+                @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
+                <a href="{{ route('owner.tax.annual', $latestTaxYear) }}" class="vy-btn vy-btn--ghost" title="Download the {{ $latestTaxYear }} annual tax summary as a PDF">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
+                    {{ $latestTaxYear }} PDF
+                </a>
+                @endownercan
+            @else
+                <span class="vy-line-sub" title="Appears once your first statement is finalized">Once finalized</span>
+            @endif
         </section>
 
         {{-- Full-archive ZIP — NO BACKEND (no ZIP builder): disabled, never a fake download --}}

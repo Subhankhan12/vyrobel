@@ -8,8 +8,9 @@
                     to the cent), statement history + net total, period navigation, matched payout.
       • DERIVED   — the "% of gross" sublabel, computed from the statement's own real figures.
       • DEFERRED  — by-unit split + occupancy chart: visually stubbed, labelled "not yet available".
-      • REAL      — "Download statement" streams a branded PDF (owner-scoped) that reconciles to these
-                    figures to the cent (Part B). Remittance-advice / booking-summary PDFs stay "Soon".
+      • REAL      — three branded owner-scoped PDFs, all reconciling to these figures to the cent and all
+                    export-gated (CAP_EXPORTS): the statement PDF, the booking-summary PDF, and the
+                    remittance-advice PDF (offered only once a payout is matched — otherwise "once paid").
     There is deliberately NO "payment / card-processing fee" line — the design's invented line has no
     backing attribution component, so the breakdown only ever shows real, engine-computed components.
 --}}
@@ -107,34 +108,49 @@
                 </div>
             </section>
 
-            {{-- Documents — NO BACKEND (no PDF/CSV generation): disabled, never a fake download --}}
+            {{-- More documents — three REAL owner-scoped PDFs (statement · booking summary · remittance
+                 advice), each reconciling to the on-screen figures to the cent. 🔒 SG2 — exports are
+                 co-owner + accountant only: a view-only sub-user is "no exports", so the whole card is
+                 hidden here AND every route is export-gated. --}}
+            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
             <section class="vy-card vy-fade" style="animation-delay:.14s">
                 <span class="vy-eyebrow">More documents</span>
                 <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
-                    <div style="display:flex;justify-content:space-between;align-items:center">
-                        <div>
-                            <div style="font-size:13px;font-weight:500">Remittance advice</div>
-                            <div class="vy-line-sub">PDF export</div>
-                        </div>
-                        <span class="vy-soon-tag">Soon</span>
-                    </div>
+                    {{-- Booking summary — the REAL bookings behind this statement's gross; always available. --}}
                     <div style="display:flex;justify-content:space-between;align-items:center">
                         <div>
                             <div style="font-size:13px;font-weight:500">Booking summary</div>
                             <div class="vy-line-sub">PDF export</div>
                         </div>
-                        <span class="vy-soon-tag">Soon</span>
+                        <a href="{{ route('owner.statements.bookings', $statement['id']) }}" class="vy-btn vy-btn--ghost" style="padding:5px 10px;font-size:12px" title="Download the bookings behind this statement as a PDF">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
+                            PDF
+                        </a>
+                    </div>
+                    {{-- Remittance advice — a REAL PDF, available once a payout is matched to this statement.
+                         No matched payout yet ⇒ an honest "once paid" note, never a broken link or a stub. --}}
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <div>
+                            <div style="font-size:13px;font-weight:500">Remittance advice</div>
+                            <div class="vy-line-sub">PDF export</div>
+                        </div>
+                        @if ($payout['id'])
+                            <a href="{{ route('owner.payouts.remittance', $payout['id']) }}" class="vy-btn vy-btn--ghost" style="padding:5px 10px;font-size:12px" title="Download the remittance advice for this payout as a PDF">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
+                                PDF
+                            </a>
+                        @else
+                            <span class="vy-line-sub" title="Available once your payout is issued">Once paid</span>
+                        @endif
                     </div>
                 </div>
-                {{-- REAL PDF download — owner-scoped, reconciles to the on-screen figures to the cent. --}}
-                {{-- 🔒 SG2 — a view-only sub-user is "no exports": the download is hidden (and the route is gated). --}}
-                @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
+                {{-- The statement PDF itself — owner-scoped, reconciles to the on-screen figures to the cent. --}}
                 <a href="{{ route('owner.statements.pdf', $statement['id']) }}" class="vy-btn vy-btn--accent" style="margin-top:16px;width:100%;justify-content:center" title="Download this statement as a PDF">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
                     Download statement
                 </a>
-                @endownercan
             </section>
+            @endownercan
         </div>
     </div>
 

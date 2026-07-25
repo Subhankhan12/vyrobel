@@ -3423,3 +3423,42 @@ controller POSTs, never /livewire/update.
 clean; browser-verified as the owner AND an accountant sub-user (the sub-user profile works; the real session
 shows; deactivate is primary-owner-only). Presentation + the new backend only — money/auth/isolation paths
 otherwise untouched. Invariants **#1–46**.
+
+### 2026-07-25 — Batch A "cheap wins" — wired existing built+tested backends (from `docs/GAP-SWEEP.md`)
+
+A systematic READ-ONLY gap sweep (`docs/GAP-SWEEP.md`) surfaced a small set of features whose backend
+ALREADY EXISTED (built, routed, often tested) but that rendered as "Soon" or were mislabeled. Batch A wired
+them — **LINK/RENDER ONLY**: a nav filter + four PDF-link swaps + the stale-comment cleanup. **No controller,
+service, route, money, auth, or isolation path was touched.** Two gates, committed separately.
+
+**GATE 1 — operator nav filter (`687e234`).** `resources/views/components/operator/shell.blade.php` had no
+`array_filter`, so a null-route item — how the nav array encodes "this role lacks the permission" — fell
+through to the disabled **"Coming soon"** placeholder. A Hotel Manager therefore saw *Roles & access* /
+*Settings* / *Billing* as "Coming soon" for pages that exist and work for the org admin (the role 403s at the
+route). Mirrored `<x-owner.shell>`'s existing filter: drop null-route role-gated items so a permission-less
+role doesn't see them at all. The ONE null kept is `channels` — genuinely account-gated (Channex / a Pro
+feature), so its honest "Pro"/"Soon" placeholder is correct. **Nav visibility only; authorization unchanged**
+(the route gates still 403). Browser-verified both roles (admin sees all three, unchanged; Hotel Manager no
+longer does; `/app/roles` still 403s). New `OperatorNavVisibilityTest` (2 tests).
+
+**GATE 2 — three owner PDF links (booking-summary · remittance · annual-tax).** Each was a real, built,
+routed (tested) PDF rendered as a "Soon" tag; wired to its existing route, **each `@ownercan(CAP_EXPORTS)`-
+gated** exactly like the neighbouring statement PDF (#42 — a view-only sub-user gets no live export link and
+a 403 at the route):
+- **Booking-summary** (`owner.statements.bookings`) + **remittance** (`owner.payouts.remittance`) on the
+  Statement page. The remittance is offered ONLY when a payout is matched — else an honest "Once paid" (no
+  broken link). Surfaced the already-resolved matched-payout `id` in `OwnerStatementView`'s view payload (the
+  ONLY consumer is this link) — presentation glue, no service/route change.
+- **Annual-tax summary** (`owner.tax.annual` → `OwnerAnnualTaxDocument`) on Documents (per-year link + a
+  latest-year shortcut) + Archive (per-year link). Linked ONLY for years with committed statements — exactly
+  what `OwnerTaxService::annualSummary` sums (status ∈ finalized/paid) — so a link never 404s. The stale
+  "…Owner Annual Tax Summary PDF does not exist" comments were deleted; only the full-archive ZIP stays
+  honestly deferred (no ZIP builder).
+
+**Verification.** Browser-verified as the demo owner: all four PDFs download **200 / application/pdf**
+(`vyrobel-bookings-…`, `vyrobel-remittance-…`, `vyrobel-annual-tax-…`, `vyrobel-statement-…`); no raw Blade;
+no stale "Soon" for the wired features. As a **view-only sub-user** (#42): the Statement "More documents"
+card is hidden and all four export routes return **403** (fail-closed). Suite **945 / 7644** green on MySQL 8
+(+3: two nav-visibility tests + one Statement "Once paid" empty-state test; three view-tests updated from the
+old "Soon" assertions to the new real links); PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean.
+Money/auth/isolation paths + invariants **#1–46** UNCHANGED.

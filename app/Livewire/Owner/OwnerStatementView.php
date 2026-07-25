@@ -27,9 +27,11 @@ use Livewire\Component;
  * another org's — 404s rather than leaking.
  *
  * WIRED REAL: net payable (hero) · the breakdown lines (the real owner_statement_lines, which sum to
- * the cent) · statement history + net total · period navigation · matched payout (amount + status).
- * DEFERRED (visually stubbed, honestly labelled — no fake data): by-unit split, occupancy chart.
- * NO BACKEND (disabled affordance, never a fake action): CSV/PDF export, document downloads.
+ * the cent) · statement history + net total · period navigation · matched payout (amount + status) ·
+ * the three owner-scoped PDF exports (statement · booking summary · remittance advice — the last only
+ * when a payout is matched), each export-gated (CAP_EXPORTS) and reconciling to these figures.
+ * DEFERRED (visually stubbed, honestly labelled — no fake data): by-unit split, occupancy chart, and
+ * the history table's CSV export (no CSV builder yet).
  * There is NO invented "payment / card-processing fee" line — the breakdown only ever shows the real
  * components the engine computes.
  */
@@ -235,6 +237,9 @@ class OwnerStatementView extends Component
             $paidAt = $payout->paid_at;
 
             return [
+                // The matched payout's id — the ONLY consumer is the owner-scoped remittance-advice PDF
+                // link on this screen; null below when no payout is matched, so the link is not offered.
+                'id' => $payout->id,
                 'amount_display' => $this->money((int) $payout->amount_minor, (string) $payout->currency),
                 'status_meta' => $this->payoutStatusMeta((string) $payout->status),
                 'rail' => $payout->rail === 'manual' ? 'Bank transfer' : (string) $payout->rail,
@@ -244,6 +249,7 @@ class OwnerStatementView extends Component
 
         // No payout row yet: derive an honest "awaiting"/"draft" state from the statement itself.
         return [
+            'id' => null,   // no matched payout ⇒ no remittance advice to download yet
             'amount_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'status_meta' => $s->status === 'draft'
                 ? ['label' => 'Not yet finalized', 'tone' => 'draft']

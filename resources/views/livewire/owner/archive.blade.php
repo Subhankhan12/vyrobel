@@ -16,9 +16,10 @@
                     Year grouping, per-year net + count, the covered-month span, the statement count and
                     the "since …" span all come from the real rows. The per-year bars render ONLY in the
                     single-currency case. Search narrows the REAL rows client-side; it invents nothing.
-      • NO BACKEND— the full-archive ZIP (no ZIP builder) and the design's per-year tax summary (no tax
-                    engine; its "Owner Annual Tax Summary PDF" does not exist): disabled "Soon", never
-                    a fake download link.
+      • REAL      — the per-year annual tax summary PDF (OwnerAnnualTaxDocument via owner.tax.annual),
+                    export-gated, the same document the Tax Center offers. Linked only for years with
+                    committed statements (exactly what annualSummary() sums), so it never 404s.
+      • NO BACKEND— the full-archive ZIP (no ZIP builder): a disabled "Soon", never a fake download link.
       • NOT PORTED— the design's static "3 years · 34 documents", "since June 2023", its 7-year
                     retention promise and its "OS-2025-09" reference format are all fiction with no
                     backing row or policy. Counts + span are derived from real rows, the real reference
@@ -106,8 +107,16 @@
                             @if (count($group['nets']) > 1)<span class="vy-line-sub">(per payout currency)</span>@endif
                         </div>
                     </div>
-                    {{-- Annual tax summary — NO BACKEND (no tax engine, no such PDF): never linked --}}
-                    <span class="vy-soon-tag">Tax summary · Soon</span>
+                    {{-- Annual tax summary — a REAL owner-scoped PDF for this year (OwnerAnnualTaxDocument
+                         via owner.tax.annual), the same export the Tax Center offers. Export-gated; this
+                         year is in the archive because it has committed statements — exactly what
+                         annualSummary() sums — so the link never 404s. --}}
+                    @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
+                    <a href="{{ route('owner.tax.annual', $group['year']) }}" class="vy-btn vy-btn--ghost" style="padding:5px 10px;font-size:12px" title="Download the {{ $group['year'] }} annual tax summary as a PDF">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
+                        Tax summary
+                    </a>
+                    @endownercan
                 </div>
 
                 <div style="overflow-x:auto">

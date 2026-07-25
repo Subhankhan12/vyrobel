@@ -133,9 +133,10 @@ it('renders the real finalized archive with real statement numbers and reconcile
         ->assertSee(route('owner.statements.pdf', $x['sept']->id))
         ->assertSee(route('owner.statements.show', $x['oct']->id))
         ->assertSee(route('owner.statements.pdf', $x['oct']->id))
-        // NO BACKEND — the ZIP + the annual tax summary are disabled affordances, never links
+        // the full-archive ZIP is still a disabled affordance (no builder); the per-year annual tax
+        // summary is now a REAL export link (owner.tax.annual), the same document the Tax Center offers
         ->assertSee('Download ZIP')
-        ->assertSee('Tax summary · Soon');
+        ->assertSee(route('owner.tax.annual', 2026));
 });
 
 // ── 2. A DRAFT is NOT archive — it must never appear ─────────────────────────────────────────────
@@ -211,7 +212,7 @@ it('does not port the design\'s fabricated counts, span, retention promise or re
         // no fabricated retention policy, no fabricated reference format (the real one is sequence_no)
         ->assertDontSee('kept for 7 years')
         ->assertDontSee('OS-2025-09')
-        // the annual tax summary has no backend — never a link to a PDF that does not exist
+        // the design's fabricated "Owner Annual Tax Summary" figure is never claimed (the real PDF states none)
         ->assertDontSee('Owner Annual Tax Summary')
         ->assertDontSee('href="#"', false)
         // …the REAL derived values are shown instead

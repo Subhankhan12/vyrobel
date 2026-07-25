@@ -65,10 +65,13 @@ it('renders the real statement with a to-the-cent breakdown and never an invente
         ->assertDontSee('Payment & ops fees')
         ->assertDontSee('Card processing')
         ->assertDontSee('card-processing')
-        // Deferred + no-backend regions are honestly stubbed, never faked.
+        // Deferred regions are honestly stubbed, never faked; the history CSV/PDF export stays deferred.
         ->assertSee('Not yet available')             // by-unit / occupancy deferred
-        ->assertSee('Export CSV')
-        ->assertSee('Soon');                         // disabled export/download affordance
+        ->assertSee('Export CSV')                    // the history CSV/PDF export is still a disabled "Soon"
+        // The booking-summary + remittance PDFs are REAL exports now (were "Soon" tags). This statement has
+        // a matched payout, so the remittance links to that payout's real advice (not the "once paid" state).
+        ->assertSee(route('owner.statements.bookings', $a['statement']->id))
+        ->assertSee(route('owner.payouts.remittance', $a['payout']->id));
 
     // Reconciliation to the cent, at the presentation boundary: Σ component lines == net line == source net.
     $lines = OwnerStatementLine::query()->where('owner_statement_id', $a['statement']->id)->get();
@@ -78,6 +81,22 @@ it('renders the real statement with a to-the-cent breakdown and never an invente
     expect($components)->toBe(17000)
         ->and($net)->toBe(17000)
         ->and((int) $a['statement']->net_source_minor)->toBe(17000);
+});
+
+// ── 1b. The remittance PDF is offered ONLY when a payout is matched — else an honest empty state ──
+it('offers the remittance PDF only once a payout is matched, otherwise an honest "once paid"', function () {
+    $s = seedScenario(1);
+    $a = statementOwner($s, 0, 20000);
+
+    // Remove the matched payout: there is no remittance to download yet, so the honest "Once paid" state
+    // shows and NO remittance link is offered (a link would 404). The booking-summary PDF stays real.
+    $a['payout']->delete();
+
+    $this->actingAs($a['user'])->get("/owner/statements/{$a['statement']->id}")
+        ->assertOk()
+        ->assertSee('Once paid')
+        ->assertDontSee(route('owner.payouts.remittance', $a['payout']->id))
+        ->assertSee(route('owner.statements.bookings', $a['statement']->id));
 });
 
 // ── 2. Owner isolation holds — cross-owner 404 and no figure leak into the styled page ───────────

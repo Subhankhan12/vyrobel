@@ -63,6 +63,14 @@ conflicts with the repo, **trust the repo** and fix this file.
 > - **DESIGN-FIDELITY PASS — ✅ COMPLETE (all 4 gates, 2026-07-25)** (operator · owner · guest · public/billing; 76
 >   page-rows in `docs/design/DIVERGENCE-REGISTER.md`, summary in `docs/design/CATALOGUE.md`, dated entry in
 >   `DECISIONS.md`). Presentation-only throughout — 3 owner CSS/Blade fixes total, GATES 3+4 zero code; suite green.
+> - **GAP-SWEEP + Batch A cheap wins — ✅ DONE (2026-07-25)** (`docs/GAP-SWEEP.md` = the READ-ONLY sweep of all four
+>   realms; dated entry in `DECISIONS.md`). Wired the 4 cheapest wins whose backends already existed (LINK/RENDER
+>   only, no service/route/money/auth touched): operator nav FILTER — role-gated items hidden instead of a misleading
+>   "Coming soon" (`687e234`); the owner **booking-summary · remittance · annual-tax** PDFs now REAL
+>   `@ownercan(CAP_EXPORTS)`-gated links (`owner.statements.bookings` / `owner.payouts.remittance` / `owner.tax.annual`
+>   — all built+tested; remittance offered only when a payout is matched, annual-tax only for years with committed
+>   statements). Browser-verified: 4 PDFs 200/application-pdf; a **view-only sub-user gets 403 on all four (#42)**.
+>   Suite **945 / 7644** green; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean.
 > - **ACCOUNT-GATED remaining** (each a focused prompt as the account lands): Channex live OTA sync · WhatsApp/OTA
 >   inbox channels · SMS (waitlist/notifications) · guest ID verification / KYC. (Email + Stripe are DONE — pending
 >   only Subhan's cutovers.)

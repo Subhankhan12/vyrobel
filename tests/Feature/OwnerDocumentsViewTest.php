@@ -211,7 +211,7 @@ it('derives its counts and span from real rows and ports none of the design\'s f
         ->assertDontSee('RA-2025-09')
         ->assertDontSee('BS-2025-09')
         ->assertDontSee('18 bookings')          // an invented booking count — none is claimed here
-        // the annual tax summary has no tax engine and no PDF — never linked, and no figure claimed
+        // the design's fabricated "Owner Annual Tax Summary" figure is never claimed (the real PDF states none)
         ->assertDontSee('Owner Annual Tax Summary')
         ->assertDontSee('€98,710')
         ->assertDontSee('href="#"', false)
@@ -219,9 +219,10 @@ it('derives its counts and span from real rows and ports none of the design\'s f
         ->assertSee('6 documents')
         ->assertSee('since September 2026')
         ->assertSee('2026')                     // the real year section, derived from the real periods
-        // the NO-BACKEND affordances are honest, disabled ones — never fake downloads
+        // the full-archive ZIP is still a disabled "Soon" (no builder); the annual tax summary is now a
+        // REAL export — a per-year link + a latest-year shortcut, both to owner.tax.annual.
         ->assertSee('Download ZIP')
-        ->assertSee('Tax summary · Soon');
+        ->assertSee(route('owner.tax.annual', 2026));
 });
 
 // ── 5. Owner isolation — A sees only A's documents; a non-linked user fails closed ────────────────

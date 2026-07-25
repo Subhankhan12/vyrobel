@@ -1,5 +1,11 @@
 # Vyrobel — Systematic Gap Sweep (READ-ONLY diagnosis)
 
+> **✅ BATCH A DONE (2026-07-25)** — the four cheapest wins below are wired + shipped: **P1-1** operator
+> nav filter (`687e234`), **P1-2** Statement booking-summary + remittance PDFs, **P2-1** Documents +
+> Archive annual-tax PDF, **P2-2** Statement remittance PDF (owner-PDF trio in the GATE 2 commit). All
+> link/render only — the built+tested backends were untouched; each new PDF link is `@ownercan(CAP_EXPORTS)`-
+> gated (#42, browser-verified 200/application-pdf + view-only 403); suite 945/945 + PHPStan L5 (0) + Pint.
+
 **Date:** 2026-07-25 · **Method:** cross-referenced `docs/PROJECT-STATE.md` + `docs/DECISIONS.md` +
 `docs/design/DIVERGENCE-REGISTER.md` (the per-page wireframe→app map, authored in this session's design pass)
 + `docs/AUDIT-REPORT.md`; grepped every shell/nav + every route + every "Soon"/stub string; **browser-probed
@@ -87,7 +93,7 @@ bugs — the 4 unstyled operator pages, the owner-statement `opacity:0` hero —
 
 ### P1 — misleading / stubbed-but-real on a used path
 
-**P1-1 · Operator nav shows role-gated pages as "Coming soon"** — *dead-link / misleading-nav.*
+**P1-1 · Operator nav shows role-gated pages as "Coming soon"** — *dead-link / misleading-nav.* **✅ DONE (`687e234`).**
 - **WHERE:** operator · sidebar · `resources/views/components/operator/shell.blade.php` (render lines 86–109).
 - **WHAT:** the shell has no `array_filter` (the owner shell has one at `owner/shell.blade.php:59`), so a
   `null`-route item — which is how the array encodes "role lacks the permission" — falls into the `@else`
@@ -100,7 +106,7 @@ bugs — the 4 unstyled operator pages, the owner-statement `opacity:0` hero —
 - **FIX:** add the owner-shell `array_filter` (drop `null`-route role-gated items) to the operator shell,
   keeping only the genuinely account-gated `channels` item as its "Pro"/"Soon" placeholder.
 
-**P1-2 · Statement page renders the real Booking-summary PDF as "Soon"** — *stub-should-be-real.*
+**P1-2 · Statement page renders the real Booking-summary PDF as "Soon"** — *stub-should-be-real.* **✅ DONE (GATE 2).**
 - **WHERE:** owner · `/owner/statements/{id}` · `resources/views/livewire/owner/statement.blade.php:123–126`
   ("Booking summary · Soon"); docstring line 12 says it "stays Soon".
 - **WHAT:** `OwnerBookingSummaryPdfController::download` + `Support\Pdf\OwnerBookingSummaryDocument` + route
@@ -113,7 +119,7 @@ bugs — the 4 unstyled operator pages, the owner-statement `opacity:0` hero —
 
 ### P2 — missing/stubbed but valuable + buildable
 
-**P2-1 · Documents + Archive show the real Annual-tax PDF as "Soon"** — *stub-should-be-real (stale).*
+**P2-1 · Documents + Archive show the real Annual-tax PDF as "Soon"** — *stub-should-be-real (stale).* **✅ DONE (GATE 2).**
 - **WHERE:** owner · `resources/views/livewire/owner/documents.blade.php:71` + `archive.blade.php:110`
   ("Tax summary · Soon"); both carry a **stale comment** asserting the "Owner Annual Tax Summary PDF does not
   exist."
@@ -123,7 +129,7 @@ bugs — the 4 unstyled operator pages, the owner-statement `opacity:0` hero —
 - **BACKEND REALITY:** **real-backend-exists, unwired.** **EFFORT/VALUE:** XS / low-medium.
 - **FIX:** link `route('owner.tax.annual', $year)` from Documents + Archive (drop the stale comment).
 
-**P2-2 · Statement page renders the real Remittance PDF as "Soon"** — *stub-should-be-real.*
+**P2-2 · Statement page renders the real Remittance PDF as "Soon"** — *stub-should-be-real.* **✅ DONE (GATE 2).**
 - **WHERE:** owner · `statement.blade.php:116–119` ("Remittance advice · Soon").
 - **WHAT:** route **`owner.payouts.remittance`** (`/owner/payouts/{payout}/remittance`) exists + is real (used
   on the Payouts page). The statement component already resolves its matched `$payout`, so it can link the

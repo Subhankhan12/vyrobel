@@ -76,9 +76,12 @@ use Livewire\Component;
  *                Each amount is rendered in its OWN currency and no two are ever added — a cross-currency
  *                sum would be a silent FX the backend never made (invariant #17). This screen sums
  *                nothing: each group's net is ONE statement's real figure, and counts are counts.
- *   • NO BACKEND — "Download the full archive (ZIP)" (there is no ZIP builder) and the design's annual
- *                tax summary (there is no tax engine, and its "Owner Annual Tax Summary PDF" does not
- *                exist): disabled "Soon" / a `vy-soon-tag`, NEVER a fake download link.
+ *   • REAL     — the annual tax summary PDF now exists (OwnerAnnualTaxDocument via the export-gated
+ *                owner.tax.annual route), so each year group links its own year and a shortcut links the
+ *                latest year. Only years with committed statements are linked (exactly what
+ *                OwnerTaxService::annualSummary sums), so the link never 404s.
+ *   • NO BACKEND — "Download the full archive (ZIP)" (there is no ZIP builder): a disabled "Soon" /
+ *                `vy-soon-tag`, NEVER a fake download link.
  *   • NOT PORTED — the design's "OS-2025-09" / "RA-2025-09" / "BS-2025-09" reference formats, its
  *                "issued 1 Oct" and "18 bookings" metas, and its "net €98,710" tax figure are static
  *                fiction with no backing row: the real reference is `sequence_no`, the real date is
