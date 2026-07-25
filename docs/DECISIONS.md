@@ -3328,3 +3328,42 @@ Commit chain `4e5efde` → `cace277` (18 commits incl. this save), all on `main`
 `migrate:fresh --seed` clean (unchanged — this session touched only Blade/CSS + docs); HEAD `cace277`, `main`,
 local == origin (pushed). Invariants **#1–#45** (unchanged — a presentation pass adds no invariant).
 `docs/design/raw/*.html` stay gitignored (served via `php -S 127.0.0.1:8899` for diffing, not in a fresh clone).
+
+## 2026-07-25 — DESIGN-FIDELITY PASS ✅ COMPLETE (all four gates) — presentation-only, suite green throughout
+
+**The deep per-page design-fidelity pass is COMPLETE.** Every app page was diffed against its `docs/design/raw/`
+prototype (served at `http://127.0.0.1:8899`) and classified into the three-category discipline, with the full
+per-page record in `docs/design/DIVERGENCE-REGISTER.md` (**76 page-rows**) and the summary folded into
+`docs/design/CATALOGUE.md`.
+
+- **GATE 1 — Operator** (prior sessions): shell regroup + operator pages RESTRUCTURED / intentional-divergence.
+- **GATE 2 — Owner (25 surfaces):** 5 RESTRUCTURED, 11 at-parity, 9 intentional-divergence. **3 presentation-only
+  code fixes** — (1) Owner **Statement** hero card was rendering at `opacity:0` (a static `vy-swap-next` class
+  overrode `.vy-fade`'s animation with a no-`forwards` keyframe → reverted to base `opacity:0`); removed the class
+  so it fades in like every other card (a real invisible-element bug the browser revealed — the "static checks
+  can't see a rendered page" lesson, live). (2) Owner **Reports** 2 real KPI tiles wrapped on the `repeat(3)` grid
+  → added the opt-in `.vy-kpi-grid--2` modifier (mirrors `--4`; existing pages byte-unchanged). (3) Owner
+  **Insights** 4 real KPI tiles wrapped 3+1 → applied the existing `.vy-kpi-grid--4`.
+- **GATE 3 — Guest (17 surfaces):** 15 at-parity, 2 intentional-divergence (Login property-marketing-hero + social
+  login; Signup **booking-tied claim** vs the prototype's open self-serve signup). **0 code changes.**
+- **GATE 4 — Public + onboarding/billing (~12 surfaces):** at-parity (Room detail, Checkout, Signup wizard, Paywall,
+  Subscription checkout, Invite-owner, operator Login/Reset/Set-password), 2 scope-divergences (Browse + Search
+  results = the app's **per-property** storefront vs the prototype's **multi-property brand collection**). **0 code
+  changes.**
+
+**Method:** app page probed/screenshotted vs the prototype screenshot; each gap sorted KIND-1 (layout → FIX with
+shared tokens) / KIND-2 (fabricated content or security-breaching → REFUSE) / KIND-3 (beyond the presentation
+boundary → DOCUMENT). Per-page commits + register rows; pushed per gate. **The whole pass changed ZERO behaviour** —
+the only code touched across all four gates was the 3 owner CSS/Blade layout fixes above; GATE 3 + GATE 4 were
+entirely at-parity / intentional-divergence (documentation only).
+
+**Honesty held throughout (REFUSED, never faked):** fabricated occupancy/history/trends/narratives (#39), invented
+loyalty/referral/membership + welcome-credit promos, dead-`channels.status` sync ribbons, invented reviews/ratings
+(#37), guest-PII/contact/message cards on the owner & operator surfaces (#28), the door-code/wifi outside the gated
+in-window Arrival Info (#33), editable role catalogues (#30), stored cards / live charges / Apple Pay (#41/#45),
+and open guest self-signup (booking-tied claim only). Where a prototype looked fuller because it was invented, the
+app's honest real/sparse/empty state — styled to the prototype's treatment — **is** the parity.
+
+**Verification:** suite **924 / 7517** green on MySQL 8 (re-run at completion), PHPStan L5 = 0, Pint clean after
+every commit; blades compile; browser-verified each fix. `migrate:fresh --seed` unaffected. Invariants **#1–#45**
+unchanged (a presentation pass adds no invariant). `docs/design/raw/*.html` stay gitignored.

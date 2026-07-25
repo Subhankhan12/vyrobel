@@ -30,9 +30,10 @@ conflicts with the repo, **trust the repo** and fix this file.
 > owner-capability boundary test — gate holds). Verdict: **DEMO-READY**; customer-ready pending the account-gated tail
 > + Subhan's cutovers + deployment.
 >
-> A **DESIGN-FIDELITY PASS is IN PROGRESS** (`docs/design/DIVERGENCE-REGISTER.md` = the per-page source of truth) —
-> presentation-only, per-page, three-category discipline (✅ KIND-1 layout → FIX · 🚫 KIND-2 fabricated content →
-> REFUSE, style the honest/empty state · 📐 KIND-3 beyond the presentation boundary [logic/data/JS] → DOCUMENT).
+> A **DESIGN-FIDELITY PASS is ✅ COMPLETE — ALL FOUR GATES (2026-07-25)** (`docs/design/DIVERGENCE-REGISTER.md` = the
+> per-page source of truth, **76 page-rows**; summary folded into `docs/design/CATALOGUE.md`; dated entry in
+> `DECISIONS.md`) — presentation-only, per-page, three-category discipline (✅ KIND-1 layout → FIX · 🚫 KIND-2
+> fabricated content → REFUSE, style the honest/empty state · 📐 KIND-3 beyond the presentation boundary → DOCUMENT).
 > **GATE 0 done** (shell regrouped to OVERVIEW/FRONT DESK/OPERATIONS/FINANCE/SYSTEM) + the pre-audit 4 pages
 > (Dashboard, Reservation Detail, Reservations List, Guests CRM RESTRUCTURED; Rack Gantt + Front Desk = KIND-3
 > divergences). **✅ GATE 1 — OPERATOR COMPLETE (14 queue items, `4e5efde`→`6467acb`):** RESTRUCTURED (real KIND-1) =
@@ -40,25 +41,28 @@ conflicts with the repo, **trust the repo** and fix this file.
 > settings two-column) · Notifications feed (category icons) · Inbox (KPI band) · Reports (real KPI band) · Insights &
 > Portfolio (dark-hero → uniform light) · Housekeeping (KPI band). DOCUMENTED divergence (no code) = Units (no
 > prototype) · Property Settings · **Roles (editable catalog REFUSED for security #30)** · Profile · **Billing
-> (account-gated #41)** · Team Schedule (KIND-3). **◑ GATE 2 — OWNER STARTED (6/24, `9a7c087`→`cace277`):**
-> RESTRUCTURED = Owner Bookings + Booking-detail (4 KPI cards wrapped 3+1 → uniform 4-across via a NEW opt-in owner
-> `.vy-kpi-grid--4` modifier); AT PARITY = Dashboard · Balance · Payouts · My Units (the owner portal was built from
-> `design-system-brief.md`, so it is consistently at-parity; refused the Dashboard **Upcoming-stays guest names+amounts**
-> as a #28 PII breach). Shared UI anti-drift generalised: `.vy-tonight` dark stat panel, count-agnostic `.vy-dash-kpis`
-> (`--3`/`--5`) AND owner `.vy-kpi-grid--4`. **NEXT = resume GATE 2 owner** at **Owner Statement** (then the owner
-> long-tail listed in the register), then **GATE 3 guest**, **GATE 4 public/billing + fold the register into
-> `docs/design/CATALOGUE.md`**. The systematic owner KIND-1 (the 4-up KPI grid) is already handled — remaining owner
-> pages are very likely AT PARITY or minor divergences. Setup: `php -S 127.0.0.1:8899` from `docs/design/raw/`
-> (gitignored) for side-by-side diffing.
+> (account-gated #41)** · Team Schedule (KIND-3). **✅ GATE 2 — OWNER COMPLETE (25 surfaces):**
+> 5 RESTRUCTURED (Bookings + Booking-detail 4-up KPI · **Statement** hero-visibility fix [a real invisible-element
+> bug: `vy-swap-next` overrode `.vy-fade` with a no-`forwards` keyframe → stuck `opacity:0`; removed] · **Reports**
+> 2-up KPI via a new opt-in `.vy-kpi-grid--2` · **Insights** 4-up KPI), 11 at-parity, 9 intentional-divergence
+> (Unit Detail #28 · Rates direct-edit · Payout Method #45 · Add Unit request · Reviews #37 · Team matrix-drift ·
+> Settings/Help focused subset · Tax multi-year). **✅ GATE 3 — GUEST COMPLETE (17 surfaces, 0 code):** 15 at-parity,
+> 2 divergence (Login hero/social · Signup booking-tied-claim); #28/#33/#34/#36/#37/#45 surfaced honestly in the UX.
+> **✅ GATE 4 — PUBLIC + ONBOARDING/BILLING COMPLETE (0 code):** Room detail / Checkout (#45 pay-on-arrival) / Signup
+> wizard (#40/#41) / Paywall+trial (#41) / Sub-checkout (#45) / Invite-owner / operator auth = at-parity; Browse +
+> Search results = scope divergence (per-property storefront vs multi-property collection). **THE WHOLE PASS WAS
+> PRESENTATION-ONLY — 3 owner CSS/Blade fixes total, GATES 3+4 zero code; suite green throughout.** Shared UI
+> anti-drift generalised: `.vy-tonight` dark stat panel, count-agnostic `.vy-dash-kpis` (`--3`/`--5`) AND owner
+> `.vy-kpi-grid` (`--2`/`--4`). `docs/design/raw/*.html` served via `php -S 127.0.0.1:8899` (gitignored) for diffing.
 >
 > Suite **924 tests / 7517 assertions** green on MySQL 8; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean;
 > Redis/Horizon live. **Invariants #1–#45.** Read order for a fresh session: **PROJECT-STATE → DECISIONS →
 > GAP-ANALYSIS → AUDIT-REPORT → design/DIVERGENCE-REGISTER.**
 >
 > **TAGGED OUTSTANDING REGISTER (honest):**
-> - **DESIGN-FIDELITY PASS — in progress** (GATE 1 operator ✅ COMPLETE; GATE 2 owner ◑ 6/24; then guest → public +
->   consolidation into `docs/design/CATALOGUE.md`; per-page, presentation-only, three-category classify + register,
->   suite green, browser-verify). Resume at **Owner Statement** per `docs/design/DIVERGENCE-REGISTER.md`.
+> - **DESIGN-FIDELITY PASS — ✅ COMPLETE (all 4 gates, 2026-07-25)** (operator · owner · guest · public/billing; 76
+>   page-rows in `docs/design/DIVERGENCE-REGISTER.md`, summary in `docs/design/CATALOGUE.md`, dated entry in
+>   `DECISIONS.md`). Presentation-only throughout — 3 owner CSS/Blade fixes total, GATES 3+4 zero code; suite green.
 > - **ACCOUNT-GATED remaining** (each a focused prompt as the account lands): Channex live OTA sync · WhatsApp/OTA
 >   inbox channels · SMS (waitlist/notifications) · guest ID verification / KYC. (Email + Stripe are DONE — pending
 >   only Subhan's cutovers.)

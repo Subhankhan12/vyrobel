@@ -4,6 +4,39 @@
 (not just its filename), with the extra components/features worth preserving, duplicates flagged, and a
 mapping to the existing certified backend / unstyled stubs for the design pass.
 
+## ✅ Design-fidelity pass — COMPLETE (2026-07-25)
+
+The deep, per-page design-fidelity pass is **COMPLETE across all four gates** — every app page diffed against
+its `docs/design/raw/` prototype and classified into the three-category discipline. The **full per-page record
+is `docs/design/DIVERGENCE-REGISTER.md`** (76 page-rows); this is the headline.
+
+- **GATE 1 — Operator (`/app`):** the shell regrouped to the prototype's sections (propagates everywhere) + the
+  operator pages RESTRUCTURED (uniform KPI bands, dark stat panels, category icons, proportional bars, right-rail
+  panels) or recorded as intentional divergences (Rack Gantt, Front Desk tabs, Roles [#30], Property Settings,
+  Billing [#41]).
+- **GATE 2 — Owner (`/owner`), 25 surfaces:** 5 RESTRUCTURED (Bookings + Booking-detail 4-up KPI; **Statement**
+  hero-visibility fix; **Reports** 2-up KPI via new `.vy-kpi-grid--2`; **Insights** 4-up KPI), 11 at-parity,
+  9 intentional-divergence. **3 presentation-only code fixes** (all here).
+- **GATE 3 — Guest (`/guest`), 17 surfaces:** 15 at-parity, 2 intentional-divergence (Login marketing-hero/social,
+  Signup booking-tied-claim-vs-open-signup). **0 code changes.**
+- **GATE 4 — Public + onboarding/billing, ~12 surfaces:** at-parity (Room detail, Checkout, Signup wizard, Paywall,
+  Subscription checkout, Invite-owner, operator Login/Reset/Set-password), 2 scope-divergences (Browse + Search
+  results = per-property storefront vs the prototype's multi-property brand collection). **0 code changes.**
+
+**The whole pass was presentation-only.** Across all four gates the only code touched was CSS/Blade layout — **3
+small fixes total in this session** (Owner Statement `vy-swap-next` no-`forwards` reveal; the opt-in
+`.vy-kpi-grid--2`; `.vy-kpi-grid--4` on Owner Insights). Suite **924/924** green, PHPStan L5 = 0, Pint clean after
+every commit — behaviour/logic/services/queries/guards/routes/permissions/money/auth/isolation **UNCHANGED**.
+
+**The three categories (recap):** ✅ **RESTRUCTURED** (KIND-1 layout gaps → fixed with shared tokens/components) ·
+⚖️ **AT PARITY** (already matches — the app was largely built from `design-system-brief.md`) · 📐 **INTENTIONAL
+DIVERGENCE** (KIND-2 fabricated content **REFUSED** — invented figures/history/loyalty/channel-sync, guest-PII cards
+[#28], editable roles [#30], stored cards [#45]; and KIND-3 beyond-presentation-boundary **DOCUMENTED** — per-unit
+Gantt/rate grids, multi-step wizards, live calculators, 2-pane chats, account-gated integrations). The honest
+real/sparse/empty state, styled to the prototype's treatment, **is** parity.
+
+---
+
 ## Ground truth (read this first)
 
 - **125 files total** = **124 screens + `index.html`** (a "Vyrobel · Screen Library" manifest that groups
