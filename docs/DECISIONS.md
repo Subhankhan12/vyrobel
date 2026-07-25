@@ -3578,3 +3578,12 @@ move via assignUnit incl. occupied-refused + cross-org 404; add-charge #17 + fol
 idempotency double-submit → 1, two nonces → 2**, method selector card-deferred/cash-manual; tax editing
 bounded + clamp + gate); PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean. Browser-verified every
 screen. Money/auth/isolation paths + invariants #1–47 otherwise UNCHANGED.
+
+**Security follow-up (2026-07-26, same day) — property-scope the tax/fee edit (cross-property IDOR).** The
+automated commit review flagged that `SettingsActionController::updateTaxesAndFees` resolved a Tax/Fee by
+`find($id)` under the ORG scope only — so from Property A's settings an operator could POST a sibling
+Property B's tax id (a property a `property_user`-restricted user may not access, #38). Fixed: the write is
+now `->where('property_id', $currentProperty->id)->find($id)` for both Tax and Fee (a cross-property id → null
+→ skipped), and the READ (`OperatorSettings::taxes()`/`fees()`) is property-scoped to match, so the editor
+only ever shows + edits THIS property's rows. Mutation-proven: with the context pinned to A, a POST carrying
+B's tax id leaves B unchanged. Suite green.

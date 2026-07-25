@@ -179,3 +179,23 @@ it('gates tax-fees editing on properties.manage — Hotel Manager forbidden', fu
 
     expect((float) $tax->fresh()->rate)->toBe(6.0);   // unchanged
 })->group('security');
+
+// ── Batch C · GATE 4 — the tax/fee edit is PROPERTY-scoped (no cross-property IDOR within the org) ──
+it('will not edit a SIBLING property\'s tax — property-scoped, no cross-property IDOR', function () {
+    $s = seedScenario(1);   // the current settings property (A)
+
+    // A tax on ANOTHER property in the SAME org — a property a restricted user may not access (#38 pivot).
+    $otherProperty = Property::factory()->create(['organization_id' => $s['org']->id]);
+    $foreignTax = Tax::factory()->create([
+        'organization_id' => $s['org']->id, 'property_id' => $otherProperty->id, 'mode' => 'percentage', 'rate' => 9.0,
+    ]);
+
+    // Editing from property A's settings page (the context is pinned to A): the write scopes to A's rows,
+    // so a POST carrying B's tax id is skipped — the sibling property's tax cannot be touched from here.
+    $this->actingAs(operatorUser($s, [], 'Property Owner'))
+        ->withSession(['current_property_id' => $s['property']->id])
+        ->post('/app/settings/tax-fees', ['taxes' => [$foreignTax->id => '25']])
+        ->assertRedirect();
+
+    expect((float) $foreignTax->fresh()->rate)->toBe(9.0);   // UNCHANGED — the cross-property id was skipped
+})->group('security');

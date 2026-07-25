@@ -93,7 +93,10 @@ class SettingsActionController extends Controller
      */
     public function updateTaxesAndFees(Request $request, SettingsService $settings): RedirectResponse
     {
-        $this->currentProperty();   // asserts a tenant/property context (404 if none)
+        // The property being edited — the lookup is scoped to THIS property (not just the org), so a
+        // cross-property id (a sibling property in the same org, which a property-restricted user may not
+        // access — Phase 6a's property_user pivot) resolves to null and is skipped: no cross-property IDOR.
+        $property = $this->currentProperty();
 
         $validated = $request->validate([
             'taxes' => ['array'],
@@ -106,7 +109,7 @@ class SettingsActionController extends Controller
             if ($value === null || $value === '') {
                 continue;
             }
-            $tax = Tax::query()->find((string) $id);   // tenant-scoped → cross-org null → skipped
+            $tax = Tax::query()->where('property_id', $property->id)->find((string) $id);   // property-scoped
             if ($tax instanceof Tax) {
                 $settings->updateTax($tax, (float) $value);
             }
@@ -116,7 +119,7 @@ class SettingsActionController extends Controller
             if ($value === null || $value === '') {
                 continue;
             }
-            $fee = Fee::query()->find((string) $id);
+            $fee = Fee::query()->where('property_id', $property->id)->find((string) $id);   // property-scoped
             if ($fee instanceof Fee) {
                 $settings->updateFee($fee, (float) $value);
             }

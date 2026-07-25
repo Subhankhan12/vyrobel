@@ -57,8 +57,10 @@ class OperatorSettings extends Component
             'policy' => $this->policyForm($policy),
             'org' => $organization !== null ? $this->orgForm($organization) : [],
             'timezones' => timezone_identifiers_list(),
-            'taxes' => $this->taxes(),
-            'fees' => $this->fees(),
+            // Batch C · GATE 4 — property-scoped (this settings page edits THIS property's taxes/fees, and
+            // the write is property-scoped too), so the editor never shows or edits a sibling property's rows.
+            'taxes' => $property !== null ? $this->taxes((string) $property->id) : [],
+            'fees' => $property !== null ? $this->fees((string) $property->id) : [],
         ]);
     }
 
@@ -111,9 +113,9 @@ class OperatorSettings extends Component
      *
      * @return list<array{name: string, kind: string, basis: string}>
      */
-    private function taxes(): array
+    private function taxes(string $propertyId): array
     {
-        return Tax::query()->orderBy('name')->get()->map(fn (Tax $tax): array => [
+        return Tax::query()->where('property_id', $propertyId)->orderBy('name')->get()->map(fn (Tax $tax): array => [
             'id' => (string) $tax->id,
             'name' => (string) $tax->name,
             'kind' => ucfirst(str_replace('_', ' ', (string) $tax->kind)),
@@ -131,9 +133,9 @@ class OperatorSettings extends Component
     /**
      * @return list<array{name: string, basis: string}>
      */
-    private function fees(): array
+    private function fees(string $propertyId): array
     {
-        return Fee::query()->orderBy('name')->get()->map(fn (Fee $fee): array => [
+        return Fee::query()->where('property_id', $propertyId)->orderBy('name')->get()->map(fn (Fee $fee): array => [
             'id' => (string) $fee->id,
             'name' => (string) $fee->name,
             'percentage' => (string) $fee->mode === 'percentage',
