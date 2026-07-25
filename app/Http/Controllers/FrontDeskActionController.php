@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\Booking\UnitUnavailableException;
 use App\Models\Reservation;
+use App\Models\ReservationUnit;
+use App\Services\AssignmentService;
 use App\Services\FrontDeskService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 
 /**
  * Front-desk check-in / check-out — the REAL staff actions, driven from the styled Front Desk
@@ -50,6 +54,45 @@ class FrontDeskActionController extends Controller
         $desk->checkOut($model);
 
         return $this->backToBoard($request, "Checked out {$model->reference}.");
+    }
+
+    /**
+     * MOVE a reservation line to another unit (Batch C · GATE 2) — the SINGLE guarded inventory write path:
+     * {@see AssignmentService::assignUnit} (availability `FOR UPDATE` lock + no-overlap + same-room-type),
+     * NEVER a raw `reservation_units.unit_id` update. Gated like check-in/out (any back-office; the POST
+     * re-runs the tenant middleware). `{reservation}` + the line are resolved tenant-scoped here → cross-org
+     * 404; the line MUST belong to this reservation (never trust the request id across reservations). An
+     * occupied / cross-type target is refused by the service and surfaced as a flash — the UI offered only
+     * free same-type units, but the service is the authority under the lock.
+     */
+    public function move(Request $request, AssignmentService $assignment, string $reservation): RedirectResponse
+    {
+        $model = Reservation::query()->with('reservationUnits')->findOrFail($reservation);   // tenant-scoped → 404
+
+        $validated = $request->validate([
+            'reservation_unit_id' => ['required', 'string'],
+            'unit_id' => ['required', 'string'],
+        ]);
+
+        $line = $model->reservationUnits->firstWhere('id', $validated['reservation_unit_id']);
+        if (! $line instanceof ReservationUnit) {
+            abort(404);   // the line is not part of THIS reservation
+        }
+
+        try {
+            $assignment->assignUnit($line, (string) $validated['unit_id']);
+        } catch (UnitUnavailableException|InvalidArgumentException) {
+            // Occupied for these dates, or a different room type — the move is refused by the guard.
+            return $this->backToDetail($model->id, 'That room isn’t available for these dates — pick another.');
+        }
+
+        return $this->backToDetail($model->id, "Moved {$model->reference} to a new unit.");
+    }
+
+    /** Redirect back to the reservation detail with a folio_notice flash (shared by move/charge). */
+    private function backToDetail(string $reservationId, string $notice): RedirectResponse
+    {
+        return redirect()->to(route('app.reservations.show', $reservationId))->with('folio_notice', $notice);
     }
 
     /** Redirect back to the board on the same day (preserves ?date), with a flash notice. */

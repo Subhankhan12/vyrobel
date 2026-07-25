@@ -85,7 +85,7 @@ it('records a payment append-only through FolioService', function () {
     $f = resWithFolio($s);   // charges only, no payment yet
 
     $this->actingAs(detailMember($s))
-        ->post(route('app.reservations.payment', $f['res']->id), ['amount' => '150.00'])
+        ->post(route('app.reservations.payment', $f['res']->id), ['amount' => '150.00', 'method' => 'cash', 'idempotency_key' => 'nonce-pay-1'])
         ->assertRedirect();
 
     $this->assertDatabaseHas('payments', ['reservation_id' => $f['res']->id, 'type' => 'payment', 'amount_minor' => 15000, 'status' => 'succeeded']);
@@ -107,9 +107,136 @@ it('isolates tenants — org B cannot view or act on org A\'s folio', function (
 
     // B cannot refund or pay against A's reservation — tenant-scoped resolve 404s, nothing mutates.
     $this->actingAs($userB)->post(route('app.reservations.refund', $fA['res']->id), ['payment' => $fA['payment']->id])->assertNotFound();
-    $this->actingAs($userB)->post(route('app.reservations.payment', $fA['res']->id), ['amount' => '99.00'])->assertNotFound();
+    $this->actingAs($userB)->post(route('app.reservations.payment', $fA['res']->id), ['amount' => '99.00', 'method' => 'cash', 'idempotency_key' => 'nonce-x'])->assertNotFound();
 
     // A's folio is unchanged by B's attempts (still paid 200 / balance 130, one payment, no refund).
     $this->assertDatabaseHas('folios', ['id' => $fA['folio']->id, 'paid_minor' => 20000, 'balance_minor' => 13000]);
     expect(Payment::query()->where('reservation_id', $fA['res']->id)->where('type', 'refund')->count())->toBe(0);
+});
+
+// ── Batch C · GATE 2 — MOVE ROOM through AssignmentService::assignUnit (same-type free only) ──
+it('moves a reservation to a free same-type unit through the guarded assignUnit path', function () {
+    $s = seedScenario(2);                                   // U0, U1 — same room type
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $line = $res->reservationUnits()->first();
+
+    $this->actingAs(detailMember($s))
+        ->post(route('app.reservations.move', $res->id), [
+            'reservation_unit_id' => $line->id,
+            'unit_id' => $s['units'][1]->id,
+        ])
+        ->assertRedirect(route('app.reservations.show', $res->id));
+
+    expect((string) $line->fresh()->unit_id)->toBe((string) $s['units'][1]->id);   // really moved
+});
+
+it('refuses a move to an OCCUPIED unit — the assignUnit availability guard holds (not a raw update)', function () {
+    $s = seedScenario(2);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);     // U0, Sep 1–3
+    book($s, ['unit_id' => $s['units'][1]->id]);            // U1 occupied, same dates
+    $line = $res->reservationUnits()->first();
+
+    $this->actingAs(detailMember($s))
+        ->post(route('app.reservations.move', $res->id), [
+            'reservation_unit_id' => $line->id,
+            'unit_id' => $s['units'][1]->id,
+        ])->assertRedirect();
+
+    expect((string) $line->fresh()->unit_id)->toBe((string) $s['units'][0]->id);   // unchanged — refused by the guard
+});
+
+it('404s a move on a cross-org reservation (tenant-scoped write path)', function () {
+    $s = seedScenario(2);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $line = $res->reservationUnits()->first();
+
+    $this->actingAs(detailMember(seedScenario(1)))          // an operator in ANOTHER org
+        ->post(route('app.reservations.move', $res->id), [
+            'reservation_unit_id' => $line->id, 'unit_id' => $s['units'][1]->id,
+        ])->assertNotFound();
+})->group('security');
+
+// ── Batch C · GATE 2 — ADD CHARGE through FolioService::postCharge (#17 integer, append-only) ──
+it('adds a folio charge through postCharge (integer money, append-only)', function () {
+    $s = seedScenario(1);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    $this->actingAs(detailMember($s))
+        ->post(route('app.reservations.charge', $res->id), [
+            'type' => 'add_on', 'description' => 'Late checkout', 'amount' => '25.00',
+        ])->assertRedirect(route('app.reservations.show', $res->id));
+
+    $this->assertDatabaseHas('folio_items', ['description' => 'Late checkout', 'amount_minor' => 2500, 'type' => 'add_on']);
+});
+
+it('refuses a ≤0 charge — no zero/negative folio line', function () {
+    $s = seedScenario(1);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    $this->actingAs(detailMember($s))
+        ->post(route('app.reservations.charge', $res->id), ['type' => 'add_on', 'description' => 'ZeroCharge', 'amount' => '0']);
+
+    $this->assertDatabaseMissing('folio_items', ['description' => 'ZeroCharge']);
+});
+
+it('gates add-charge on folios.manage — a role without it is refused (403)', function () {
+    $s = seedScenario(1);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    // Housekeeping is back-office but does NOT hold folios.manage → the route gate 403s.
+    $this->actingAs(operatorUser($s, [], 'Housekeeping'))
+        ->post(route('app.reservations.charge', $res->id), ['type' => 'add_on', 'description' => 'NopeCharge', 'amount' => '10'])
+        ->assertForbidden();
+
+    $this->assertDatabaseMissing('folio_items', ['description' => 'NopeCharge']);
+})->group('security');
+
+// ── Batch C · GATE 3 — THE MONEY GATE: on-desk payment idempotency + method selector ──────────────
+it('records an on-desk payment ONCE on a double-submit with the same idempotency key (money gate)', function () {
+    $s = seedScenario(1);
+    $f = resWithFolio($s);
+    $member = detailMember($s);
+
+    // A double-click of the SAME rendered form → the SAME nonce, twice.
+    $payload = ['amount' => '150.00', 'method' => 'cash', 'idempotency_key' => 'same-nonce'];
+    $this->actingAs($member)->post(route('app.reservations.payment', $f['res']->id), $payload)->assertRedirect();
+    $this->actingAs($member)->post(route('app.reservations.payment', $f['res']->id), $payload)->assertRedirect();
+
+    // Exactly ONE payment — the idempotency guard held (append-only #17; paid = one €150).
+    expect(Payment::query()->where('reservation_id', $f['res']->id)->where('type', 'payment')->count())->toBe(1);
+    $this->assertDatabaseHas('folios', ['id' => $f['folio']->id, 'paid_minor' => 15000]);
+});
+
+it('records TWO payments for two DIFFERENT nonces — the guard is keyed, not a global block (mutation proof)', function () {
+    $s = seedScenario(1);
+    $f = resWithFolio($s);
+    $member = detailMember($s);
+
+    // WITHOUT the same-key match a second submit DOES record — proving the guard is the KEY, so a
+    // double-click (same key) records once but two genuine payments (two renders → two keys) both land.
+    $this->actingAs($member)->post(route('app.reservations.payment', $f['res']->id),
+        ['amount' => '100.00', 'method' => 'cash', 'idempotency_key' => 'nonce-a'])->assertRedirect();
+    $this->actingAs($member)->post(route('app.reservations.payment', $f['res']->id),
+        ['amount' => '50.00', 'method' => 'bank_transfer', 'idempotency_key' => 'nonce-b'])->assertRedirect();
+
+    expect(Payment::query()->where('reservation_id', $f['res']->id)->where('type', 'payment')->count())->toBe(2);
+})->group('security');
+
+it('records cash/bank as a real manual payment now, and DEFERS card to the Stripe seam (no charge in the build)', function () {
+    $s = seedScenario(1);
+    $f = resWithFolio($s);
+    $member = detailMember($s);
+
+    // Card → deferred: NO payment recorded (the account-gated Stripe seam), an honest redirect message.
+    $this->actingAs($member)->post(route('app.reservations.payment', $f['res']->id),
+        ['amount' => '150.00', 'method' => 'card', 'idempotency_key' => 'nonce-card'])->assertRedirect();
+    expect(Payment::query()->where('reservation_id', $f['res']->id)->count())->toBe(0);
+
+    // Cash → recorded now via the manual gateway, the method captured on the payment metadata.
+    $this->actingAs($member)->post(route('app.reservations.payment', $f['res']->id),
+        ['amount' => '150.00', 'method' => 'cash', 'idempotency_key' => 'nonce-cash'])->assertRedirect();
+    $payment = Payment::query()->where('reservation_id', $f['res']->id)->where('type', 'payment')->first();
+    expect($payment)->not->toBeNull()
+        ->and((string) $payment->gateway)->toBe('manual')
+        ->and($payment->metadata['method'] ?? null)->toBe('cash');
 });

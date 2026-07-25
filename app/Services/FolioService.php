@@ -20,6 +20,7 @@ use App\Support\Events\DomainEventRecorder;
 use App\Support\Money\Money;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -174,8 +175,20 @@ class FolioService
      *
      * @param  array<string, mixed>  $metadata
      */
-    public function recordPayment(Folio $folio, Money $amount, ?string $cardToken = null, array $metadata = []): Payment
+    public function recordPayment(Folio $folio, Money $amount, ?string $cardToken = null, array $metadata = [], ?string $idempotencyKey = null): Payment
     {
+        // 🔒 IDEMPOTENT (Batch C · GATE 3) when a key is given — the guest-charge firstOrCreate discipline
+        // applied to the on-desk manual payment. A re-submit / double-click with the SAME key records ONCE:
+        // checked BEFORE the gateway charge (so a duplicate never re-hits the gateway) and backed by the
+        // UNIQUE index on `idempotency_key` (the concurrent-race backstop). A null key preserves every
+        // existing caller (guest hosted-checkout keys on the PaymentIntent id via recordCheckoutIntent).
+        if ($idempotencyKey !== null) {
+            $existing = Payment::query()->where('idempotency_key', $idempotencyKey)->first();
+            if ($existing instanceof Payment) {
+                return $existing;
+            }
+        }
+
         $result = $this->gateway->charge($amount, $cardToken, $metadata);
 
         $status = $this->mapResultStatus($result);
@@ -185,25 +198,38 @@ class FolioService
             ? array_merge($metadata, ['client_secret' => $result->clientSecret])
             : $metadata;
 
-        $payment = DB::transaction(function () use ($folio, $amount, $cardToken, $storedMetadata, $result, $status): Payment {
-            $payment = Payment::create([
-                'folio_id' => $folio->getKey(),
-                'reservation_id' => $folio->reservation_id,
-                'gateway' => $this->gateway->name(),
-                'gateway_ref' => $result->reference,
-                'type' => 'payment',
-                'amount' => $amount,
-                'currency' => $amount->currency(),
-                'status' => $status,
-                'card_token' => $cardToken,
-                'metadata' => $storedMetadata,
-                'processed_at' => now(),
-            ]);
+        try {
+            $payment = DB::transaction(function () use ($folio, $amount, $cardToken, $storedMetadata, $result, $status, $idempotencyKey): Payment {
+                $payment = Payment::create([
+                    'folio_id' => $folio->getKey(),
+                    'reservation_id' => $folio->reservation_id,
+                    'gateway' => $this->gateway->name(),
+                    'gateway_ref' => $result->reference,
+                    'idempotency_key' => $idempotencyKey,
+                    'type' => 'payment',
+                    'amount' => $amount,
+                    'currency' => $amount->currency(),
+                    'status' => $status,
+                    'card_token' => $cardToken,
+                    'metadata' => $storedMetadata,
+                    'processed_at' => now(),
+                ]);
 
-            $this->recompute($folio); // a pending (3DS) payment is NOT counted as paid yet
+                $this->recompute($folio); // a pending (3DS) payment is NOT counted as paid yet
 
-            return $payment;
-        });
+                return $payment;
+            });
+        } catch (UniqueConstraintViolationException $e) {
+            // A near-simultaneous double-submit: the other request won the unique key. Return ITS payment so
+            // the caller sees exactly one recorded payment (the manual gateway charge is a harmless no-op).
+            $existing = $idempotencyKey !== null
+                ? Payment::query()->where('idempotency_key', $idempotencyKey)->first()
+                : null;
+            if ($existing instanceof Payment) {
+                return $existing;
+            }
+            throw $e;
+        }
 
         $this->domainEvents->record('payment.recorded', $payment, [
             'amount_minor' => $amount->amountMinor(),

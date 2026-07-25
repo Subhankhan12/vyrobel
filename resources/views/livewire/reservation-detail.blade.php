@@ -215,29 +215,80 @@
                 @can('payments.record')
                 <div class="vy-card vy-card--accent">
                     <span class="vy-eyebrow">Record a payment</span>
-                    {{-- WIRED: posts through FolioService (append-only). Manual/offline under the default gateway. --}}
+                    {{-- WIRED: posts through FolioService::recordPayment (append-only, integer #17). Batch C ·
+                         GATE 3 — a per-submit idempotency nonce records a double-click ONCE; a method selector
+                         (Cash / Bank transfer = real manual now · Card = the Stripe test-mode seam, deferred). --}}
                     <form method="POST" action="{{ route('app.reservations.payment', $reservation['id']) }}" style="margin-top: 12px;">
                         @csrf
+                        <input type="hidden" name="idempotency_key" value="{{ $payment_nonce }}">
+                        <label class="vy-field-label" for="pay_method">Method</label>
+                        <select class="vy-input" name="method" id="pay_method" style="margin-bottom: 8px;">
+                            <option value="cash">Cash</option>
+                            <option value="bank_transfer">Bank transfer</option>
+                            <option value="card">Card · via Stripe (test-mode)</option>
+                        </select>
                         <label class="vy-field-label" for="amount">Amount ({{ $reservation['currency'] }})</label>
                         <div class="vy-input-group">
                             <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" id="amount" placeholder="0.00">
                             <button type="submit" class="vy-btn vy-btn--accent">Record</button>
                         </div>
                     </form>
-                    <div class="vy-recon" style="margin-top: 12px;">Offline / manual payment. Card &amp; 3DS capture is wired at the gateway, not this screen.</div>
+                    <div class="vy-recon" style="margin-top: 12px;">Cash &amp; bank transfer record now (offline / manual). Card is charged via Stripe (test-mode) — available at the live-key flip.</div>
                 </div>
                 @endcan
 
                 <div class="vy-card">
                     <span class="vy-eyebrow">More actions</span>
-                    {{-- DEFERRED / NO-BACKEND: real operations that need more UI or the guarded write path —
-                         shown honestly, never faked. A FULL refund is available inline per settled payment
-                         above; partial/custom refunds are no longer deferred — they have a real screen. --}}
-                    <div class="vy-action-list" style="margin-top: 10px;">
-                        <div class="vy-defer-item"><span>Add charge</span><span class="vy-soon-tag">Soon</span></div>
+
+                    {{-- Batch C · GATE 2 — MOVE ROOM: only SAME-room-type units free for the dates (Q5). The
+                         write goes through AssignmentService::assignUnit (availability lock + no-overlap +
+                         same-type), never a raw update — so the picker offers free units and the service is
+                         the authority under the lock. No free same-type unit → an honest note, never a fake. --}}
+                    @if ($can_move)
+                        @foreach ($units as $u)
+                            @if ($u['status'] === 'active' && count($u['move_targets']) > 0)
+                                <form method="POST" action="{{ route('app.reservations.move', $reservation['id']) }}" style="margin-top: 12px;">
+                                    @csrf
+                                    <input type="hidden" name="reservation_unit_id" value="{{ $u['id'] }}">
+                                    <label class="vy-field-label">Move {{ $u['unit'] ? 'unit '.$u['unit'] : $u['room_type'] }}</label>
+                                    <div class="vy-input-group">
+                                        <select name="unit_id" class="vy-input" aria-label="Move to unit">
+                                            @foreach ($u['move_targets'] as $t)
+                                                <option value="{{ $t['id'] }}">Unit {{ $t['code'] }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="submit" class="vy-btn vy-btn--ghost">Move room</button>
+                                    </div>
+                                </form>
+                            @elseif ($u['status'] === 'active')
+                                <div class="vy-defer-item" style="margin-top: 12px;"><span>Move {{ $u['unit'] ? 'unit '.$u['unit'] : $u['room_type'] }}</span><span class="vy-soon-tag" title="No free same-type units for these dates">No free units</span></div>
+                            @endif
+                        @endforeach
+                    @endif
+
+                    {{-- Batch C · GATE 2 — ADD CHARGE: a new folio line via FolioService::postCharge (#17
+                         integer, append-only). Gated `folios.manage`. --}}
+                    @can('folios.manage')
+                        <form method="POST" action="{{ route('app.reservations.charge', $reservation['id']) }}" style="margin-top: 14px;">
+                            @csrf
+                            <label class="vy-field-label">Add a charge</label>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+                                <select name="type" class="vy-input" style="flex: 0 0 auto;" aria-label="Charge type">
+                                    @foreach ($charge_types as $ct)
+                                        <option value="{{ $ct['value'] }}">{{ $ct['label'] }}</option>
+                                    @endforeach
+                                </select>
+                                <input class="vy-input" type="text" name="description" maxlength="120" placeholder="Description" style="flex: 1 1 110px;">
+                                <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" placeholder="0.00" style="flex: 0 0 88px;">
+                                <button type="submit" class="vy-btn vy-btn--ghost">Add</button>
+                            </div>
+                        </form>
+                    @endcan
+
+                    {{-- Still deferred — need more UI / a policy subsystem; honest "Soon", never faked. Cancel
+                         is wired in the Lifecycle card above; a full refund is inline per settled payment. --}}
+                    <div class="vy-action-list" style="margin-top: 14px;">
                         <div class="vy-defer-item"><span>Void</span><span class="vy-soon-tag">Soon</span></div>
-                        <div class="vy-defer-item"><span>Move room</span><span class="vy-soon-tag">Soon</span></div>
-                        {{-- Cancel is no longer deferred — it is wired for real in the Lifecycle card above. --}}
                         <div class="vy-defer-item"><span>Modify dates · guests</span><span class="vy-soon-tag">Soon</span></div>
                     </div>
                     {{-- WIRED (Wave 2 · sub-gate 3): the dedicated refund screen — a real payment picker that

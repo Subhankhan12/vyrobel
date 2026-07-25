@@ -620,6 +620,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
         ->middleware('can:payments.record')->name('reservations.payment');
     Route::post('/reservations/{reservation}/refunds', [ReservationFolioActionController::class, 'refund'])
         ->middleware('can:payments.refund')->name('reservations.refund');
+    // Batch C · GATE 2 — ADD CHARGE: a new folio line via the append-only FolioService::postCharge (#17).
+    Route::post('/reservations/{reservation}/charge', [ReservationFolioActionController::class, 'addCharge'])
+        ->middleware('can:folios.manage')->name('reservations.charge');
+    // Batch C · GATE 2 — MOVE ROOM: the SINGLE guarded inventory write (AssignmentService::assignUnit —
+    // availability lock, no-overlap, same-room-type). Gated like check-in/out (any back-office; the POST
+    // re-runs the tenant middleware). Same-room-type only (Q5); a cross-type/occupied target is refused.
+    Route::post('/reservations/{reservation}/move', [FrontDeskActionController::class, 'move'])->name('reservations.move');
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
     // Design pass · Operator Screen 3 — REAL housekeeping status advance via POST → action → redirect
     // (PRG). {task} is a string param resolved tenant-scoped in the controller (never RMB) → cross-org 404.

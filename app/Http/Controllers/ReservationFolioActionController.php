@@ -11,6 +11,7 @@ use App\Services\FolioService;
 use App\Support\Money\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Reservation folio money actions — REAL, append-only, driven from the styled Reservation Detail
@@ -30,15 +31,62 @@ class ReservationFolioActionController extends Controller
     {
         $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
 
-        $minor = $this->parseAmountMinor($request->input('amount'));
+        $validated = $request->validate([
+            'amount' => ['required'],
+            // Batch C · GATE 3 — the method selector: cash / bank transfer record NOW (manual gateway);
+            // card is charged via Stripe (test-mode) and is deferred to the live-key flip.
+            'method' => ['required', Rule::in(['cash', 'bank_transfer', 'card'])],
+            // The per-submit idempotency nonce — a double-click / re-submit records ONCE.
+            'idempotency_key' => ['required', 'string', 'max:64'],
+        ]);
+
+        if ($validated['method'] === 'card') {
+            // 🔒 NOT a live charge in the build: on-desk card is the account-gated Stripe seam.
+            return $this->back($model->id, 'Card payments go through Stripe (test-mode) — available at the live-key flip. Record cash or a bank transfer to take an on-desk payment now.');
+        }
+
+        $minor = $this->parseAmountMinor($validated['amount']);
         if ($minor <= 0) {
             return $this->back($model->id, 'Enter a payment amount greater than zero.');
         }
 
         $folio = $folios->openFolio($model);
-        $folios->recordPayment($folio, new Money($minor, (string) $model->currency));
+        // Manual/offline payment (cash or bank transfer) — the method is recorded on the payment metadata.
+        $folios->recordPayment(
+            $folio,
+            new Money($minor, (string) $model->currency),
+            metadata: ['method' => (string) $validated['method']],
+            idempotencyKey: (string) $validated['idempotency_key'],
+        );
 
         return $this->back($model->id, 'Payment recorded.');
+    }
+
+    /**
+     * ADD a charge to the reservation's folio (Batch C · GATE 2) — through the SINGLE append-only ledger
+     * writer {@see FolioService::postCharge} (integer minor #17; a NEW folio_item, never an edit). The `type`
+     * is restricted to the real `folio_items.type` enum values offered on the screen; a ≤0 amount is refused
+     * before the service is called. Gated `folios.manage` on the route; tenant-scoped (cross-org 404).
+     */
+    public function addCharge(Request $request, FolioService $folios, string $reservation): RedirectResponse
+    {
+        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+
+        $validated = $request->validate([
+            'type' => ['required', Rule::in(['add_on', 'product', 'fee', 'manual'])],
+            'description' => ['required', 'string', 'max:120'],
+            'amount' => ['required'],
+        ]);
+
+        $minor = $this->parseAmountMinor($validated['amount']);
+        if ($minor <= 0) {
+            return $this->back($model->id, 'Enter a charge amount greater than zero.');
+        }
+
+        $folio = $folios->openFolio($model);
+        $folios->postCharge($folio, (string) $validated['type'], (string) $validated['description'], new Money($minor, (string) $model->currency));
+
+        return $this->back($model->id, 'Charge added.');
     }
 
     /**

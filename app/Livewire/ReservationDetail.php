@@ -7,11 +7,13 @@ namespace App\Livewire;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Folio;
+use App\Models\InventoryBlock;
 use App\Models\Payment;
 use App\Models\PropertyPolicy;
 use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
 use App\Models\ReservationUnit;
+use App\Models\Unit;
 use App\Models\User;
 use App\Services\FolioService;
 use App\Support\Folio\FolioTotals;
@@ -121,6 +123,12 @@ class ReservationDetail extends Component
         $canCancel = $mayTerminate && in_array($status, ReservationLifecycleController::CANCELLABLE, true);
         $canNoShow = $mayTerminate && in_array($status, ReservationLifecycleController::NO_SHOWABLE, true);
 
+        // Batch C · GATE 2 — a room MOVE is offered only on a non-terminal reservation (moving a cancelled /
+        // no-show / checked-out stay is nonsensical). The write goes through AssignmentService::assignUnit,
+        // which re-checks availability under a lock — so the free-unit list here is a UX nicety, never the
+        // authority. Gated like check-in/out (any back-office; the route re-runs the tenant middleware).
+        $canMove = ! in_array($status, ['cancelled', 'no_show', 'checked_out'], true);
+
         return view('livewire.reservation-detail', [
             'viewer' => $this->viewer(),
             'terminal' => $this->terminalState($reservation, $status, $meta),
@@ -148,15 +156,72 @@ class ReservationDetail extends Component
                 'guest' => $name !== '' ? $name : null,
             ],
             'units' => $reservation->reservationUnits->map(fn (ReservationUnit $line): array => [
+                'id' => (string) $line->id,
                 'room_type' => (string) $line->roomType->name,
                 'unit' => $line->unit?->code,
                 'check_in' => CarbonImmutable::parse($line->check_in)->format('j M'),
                 'check_out' => CarbonImmutable::parse($line->check_out)->format('j M'),
                 'status' => (string) $line->status,
                 'price' => $this->money((int) $line->price_minor, $currency),
+                // Batch C — the SAME-room-type units free for this line's dates (the move picker). Only an
+                // ACTIVE line on a non-terminal reservation can move.
+                'move_targets' => ($canMove && $line->status === 'active') ? $this->freeSameTypeUnits($line) : [],
             ])->all(),
+            'can_move' => $canMove,
+            'charge_types' => [
+                ['value' => 'add_on', 'label' => 'Service'],
+                ['value' => 'product', 'label' => 'Product'],
+                ['value' => 'fee', 'label' => 'Fee'],
+                ['value' => 'manual', 'label' => 'Other'],
+            ],
+            // Batch C · GATE 3 — a per-render nonce for the payment form's idempotency: a double-click of the
+            // SAME rendered form submits the SAME key → recorded ONCE; a genuine second payment is a new
+            // render → a new key → recorded again. Deterministic per request (Str::uuid), never fabricated data.
+            'payment_nonce' => (string) Str::uuid(),
             'folio' => $folio,
         ]);
+    }
+
+    /**
+     * The SAME-room-type units free for this line's stay dates — the move picker's options (Batch C · GATE 2,
+     * Q5: same-type only). A unit is offered when it is active, not the current unit, and has NO overlapping
+     * active reservation_unit and NO overlapping inventory block over [check_in, check_out). This is only the
+     * PICKER; {@see AssignmentService::assignUnit} re-checks under a `FOR UPDATE` lock on the write, so a race
+     * can never let a move land on an occupied unit — the list is a convenience, the service is the guard.
+     *
+     * @return list<array{id: string, code: string}>
+     */
+    private function freeSameTypeUnits(ReservationUnit $line): array
+    {
+        $checkIn = CarbonImmutable::parse($line->check_in)->toDateString();
+        $checkOut = CarbonImmutable::parse($line->check_out)->toDateString();
+
+        return Unit::query()
+            ->where('room_type_id', $line->room_type_id)
+            ->where('id', '!=', $line->unit_id)
+            ->where('is_active', '!=', false)
+            ->orderBy('code')
+            ->get()
+            ->filter(function (Unit $unit) use ($line, $checkIn, $checkOut): bool {
+                $occupied = ReservationUnit::query()
+                    ->where('unit_id', $unit->id)
+                    ->where('status', 'active')
+                    ->where('id', '!=', $line->id)
+                    ->whereDate('check_in', '<', $checkOut)
+                    ->whereDate('check_out', '>', $checkIn)
+                    ->exists();
+
+                $blocked = InventoryBlock::query()
+                    ->where('unit_id', $unit->id)
+                    ->whereDate('start_date', '<', $checkOut)
+                    ->whereDate('end_date', '>', $checkIn)
+                    ->exists();
+
+                return ! $occupied && ! $blocked;
+            })
+            ->map(fn (Unit $unit): array => ['id' => (string) $unit->id, 'code' => (string) $unit->code])
+            ->values()
+            ->all();
     }
 
     /**

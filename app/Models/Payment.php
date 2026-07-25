@@ -25,6 +25,7 @@ class Payment extends Model
         'reservation_id',
         'gateway',
         'gateway_ref',
+        'idempotency_key',
         'type',
         'amount',
         'amount_minor',
