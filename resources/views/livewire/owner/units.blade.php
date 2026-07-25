@@ -23,7 +23,7 @@
         </button>
     </div>
 
-    {{-- KPIs — all owner-scoped REAL --}}
+    {{-- KPIs — all owner-scoped REAL (Batch B: "Earned this month" is the owner's real ledger net) --}}
     <div class="vy-kpi-grid vy-fade" style="animation-delay:.02s">
         <div class="vy-kpi">
             <div class="vy-kpi-label">Units</div>
@@ -31,30 +31,49 @@
             <div class="vy-kpi-sub">In your portfolio</div>
         </div>
         <div class="vy-kpi">
-            <div class="vy-kpi-label">Occupancy</div>
+            <div class="vy-kpi-label">Avg occupancy</div>
             <div class="vy-kpi-val">{{ $occupancy['pct'] }}%</div>
             <div class="vy-kpi-sub">{{ $month['label'] }}</div>
         </div>
         <div class="vy-kpi">
-            <div class="vy-kpi-label">Nights sold</div>
-            <div class="vy-kpi-val">{{ $occupancy['nights'] }}</div>
-            <div class="vy-kpi-sub">{{ $month['label'] }}</div>
+            <div class="vy-kpi-label">Earned this month</div>
+            <div class="vy-kpi-val">{{ $earned['display'] }}</div>
+            <div class="vy-kpi-sub">Net · {{ $month['label'] }}</div>
         </div>
     </div>
 
-    {{-- Needs attention — NO BACKEND (no approvals/tasks engine): disabled, not faked --}}
-    <section class="vy-card vy-card--accent vy-fade" style="margin-top:22px;animation-delay:.05s;display:flex;justify-content:space-between;align-items:center;gap:16px">
-        <div style="display:flex;align-items:center;gap:12px">
+    {{-- Needs your attention — REAL items only (Batch B · Q5): a genuine payout hold (finalized statements
+         but no tax details), a missing payout method, an agreement renewing within 30 days. The prototype's
+         fabricated rate-change "proposals" are NOT built (#39). No real item → an honest "all caught up". --}}
+    @if (count($attention) > 0)
+        <section class="vy-card vy-fade" style="margin-top:22px;animation-delay:.05s">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                <h2 class="vy-card-title" style="margin:0">Needs your attention</h2>
+                <span class="vy-soon-tag" style="background:var(--vy-accent);color:#fff">{{ count($attention) }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+                @foreach ($attention as $item)
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--vy-hairline);border-radius:var(--vy-r-sm);background:rgba(255,255,255,.5)">
+                        <div style="min-width:0">
+                            <div style="font-weight:600;font-size:13.5px">{{ $item['title'] }}</div>
+                            <div class="vy-line-sub">{{ $item['body'] }}</div>
+                        </div>
+                        <a href="{{ $item['cta']['route'] }}" class="vy-btn vy-btn--{{ $item['tone'] === 'warn' ? 'accent' : 'ghost' }}" style="white-space:nowrap">{{ $item['cta']['label'] }}</a>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @else
+        <section class="vy-card vy-fade" style="margin-top:22px;animation-delay:.05s;display:flex;align-items:center;gap:12px">
             <span class="vy-brand-mark" style="border-radius:12px">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
             </span>
             <div>
-                <div style="font-family:var(--vy-display);font-weight:600;font-size:14.5px">Needs your attention</div>
-                <div class="vy-line-sub">Approvals, maintenance and tasks will appear here.</div>
+                <div style="font-family:var(--vy-display);font-weight:600;font-size:14.5px">You're all caught up</div>
+                <div class="vy-line-sub">No payout holds, missing details or renewals need you right now.</div>
             </div>
-        </div>
-        <span class="vy-soon-tag">Soon</span>
-    </section>
+        </section>
+    @endif
 
     {{-- Your units --}}
     <section class="vy-card vy-fade" style="margin-top:22px;animation-delay:.08s">
@@ -75,7 +94,10 @@
                             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5M5 9.5V21h14V9.5"/></svg>
                             <span class="vy-unit-name">{{ $u['name'] }}</span>
                         </a>
-                        <span class="vy-unit-badge">{{ $u['active'] ? 'Active' : 'Inactive' }}</span>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            @if ($u['is_best'])<span class="vy-unit-badge" style="background:var(--vy-accent);color:#fff" title="Your best-performing unit this month">★ Best</span>@endif
+                            <span class="vy-unit-badge">{{ $u['active'] ? 'Active' : 'Inactive' }}</span>
+                        </div>
                     </div>
                     <div class="vy-unit-body">
                         <div class="vy-line-sub" style="margin-bottom:12px">{{ $u['type'] }}</div>
@@ -86,8 +108,9 @@
                         <div class="vy-track"><span style="width:{{ $u['occupancy_pct'] }}%"></span></div>
 
                         <div class="vy-unit-stat" style="margin-top:12px"><span class="vy-muted">Nights sold</span><span style="font-weight:600">{{ $u['nights'] }}</span></div>
-                        <div class="vy-unit-stat"><span class="vy-muted">Revenue</span><span class="vy-soon-tag">Soon</span></div>
-                        <div class="vy-unit-stat"><span class="vy-muted">Nightly rate</span><span class="vy-soon-tag">Soon</span></div>
+                        {{-- Batch B — REAL per-unit revenue (gross) + nightly rate (achieved ADR); "—" when no nights sold. --}}
+                        <div class="vy-unit-stat"><span class="vy-muted">Revenue</span><span style="font-weight:600">{{ $u['revenue'] }}</span></div>
+                        <div class="vy-unit-stat"><span class="vy-muted">Nightly rate</span><span style="font-weight:600">{{ $u['nightly_rate'] ?? '—' }}</span></div>
 
                         <div style="display:flex;gap:8px;margin-top:14px">
                             <button type="button" class="vy-btn vy-btn--ghost is-soon" style="flex:1;justify-content:center;opacity:.6;cursor:not-allowed" disabled aria-disabled="true" title="Coming soon">Edit pricing</button>
@@ -167,12 +190,21 @@
         </div>
 
         <div class="vy-stack">
-            {{-- Best performer — DEFERRED (derivable, not built this pass) --}}
+            {{-- Best performer — REAL (Batch B): the owner's top unit this month by gross revenue (the
+                 shared OwnerUnitAnalytics ranking). No revenue anywhere → an honest empty state, not a
+                 fabricated winner (#39). --}}
             <section class="vy-card vy-card--dark vy-fade" style="animation-delay:.13s">
                 <span class="vy-eyebrow">Best performer</span>
-                <div style="margin-top:12px;font-size:13px;color:rgba(255,255,255,.7);line-height:1.6">
-                    A ranked view of your top unit by occupancy and revenue is coming soon.
-                </div>
+                @if ($best)
+                    <div class="vy-dark-figure" style="margin-top:10px;font-size:26px">{{ $best['name'] }}</div>
+                    <div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,.72)">{{ $best['occupancy_pct'] }}% occupancy · {{ $best['nights'] }} {{ \Illuminate\Support\Str::plural('night', $best['nights']) }} sold</div>
+                    <div style="margin-top:12px;font-family:var(--vy-display);font-weight:700;font-size:22px">{{ $best['revenue'] }}</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,.55)">Top of your {{ $best['count'] }} {{ \Illuminate\Support\Str::plural('unit', $best['count']) }} · {{ $best['month'] }}</div>
+                @else
+                    <div style="margin-top:12px;font-size:13px;color:rgba(255,255,255,.7);line-height:1.6">
+                        No bookings yet this month — your best-performing unit appears here once there is revenue to rank.
+                    </div>
+                @endif
             </section>
         </div>
     </div>

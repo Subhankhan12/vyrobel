@@ -16,18 +16,25 @@
                     no ledger rows → "Not yet attributed", never a zero dressed up as a figure.
       • GUEST PII — none. A stay is identified by its REAL reference only; no guest field is even loaded.
       • READ-ONLY — this screen writes NOTHING: no pricing form, no day-blocking, no status toggle.
+      • REAL (Batch B) — the 6-month NET revenue trend + the trailing-12-month occupancy trend (both from
+                    the real ledger / OwnerOccupancy, NEVER the design's fabricated prior years), the
+                    best-performer badge (the real cross-unit ranking), and the channel mix (the real
+                    reservations.source enum — NOT an OTA brand, which the model does not carry).
       • OMITTED   — owner-editable pricing (nightly rate / weekend uplift / min stay), day-blocking + the
                     fabricated "Blocked" split, the Live/Snoozed toggle, calendar sync, reviews & rating,
-                    the cleaning schedule, guest messages, the trend bars + multi-year heatmap (the design
-                    FABRICATES prior years), rank / "Best performer", "Direct bookings saved you €X",
-                    channel mix (the OTA brand is not modelled), the per-unit payout timeline, base rate /
-                    cleaning fee (no such column exists — the design's €140/€45 are literals). Each is
-                    dropped, NOT stubbed: rendering them even disabled would imply state that has no
-                    schema behind it.
+                    the cleaning schedule, guest messages, "Direct bookings saved you €X" (the design
+                    computes it as a fabricated directRev×0.15), the per-unit payout timeline (payouts are
+                    per-STATEMENT, never per-unit — the rail links the real Payouts screen instead), base
+                    rate / cleaning fee (no such column — the design's €140/€45 are literals). Each is
+                    dropped, NOT stubbed: rendering them even disabled would imply state that has no schema.
 --}}
 <x-owner.shell active="units" :title="$unit['name']" :viewer="$viewer">
-    <div style="margin-bottom:18px">
+    <div style="margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <a href="{{ route('owner.units') }}" style="color:var(--vy-muted);font-size:12.5px;font-weight:500;text-decoration:none">← My units</a>
+        {{-- Best performer — REAL (Batch B): shown only when this unit genuinely leads the owner's units. --}}
+        @if ($bestBadge)
+            <span class="vy-pill" style="background:var(--vy-accent);color:#fff;font-weight:600" title="Your best-performing unit this month by revenue">★ Best performer of your {{ $bestBadge['count'] }} units · {{ $bestBadge['month'] }}</span>
+        @endif
     </div>
 
     {{-- Condition — REAL (units.condition_status). Rendered only when the unit is NOT in service; the
@@ -112,6 +119,38 @@
                     <strong style="color:var(--vy-ink)">{{ $occupancy['nights'] }} nights</strong> · {{ $occupancy['pct'] }}% occupancy · {{ $month['label'] }}
                 </div>
                 <div class="vy-line-sub" style="margin-top:6px">This calendar is read-only — your operator manages bookings and availability.</div>
+            </section>
+
+            {{-- Revenue · 6 months — REAL (Batch B): this unit's NET "to you" per month, straight from the
+                 owner ledger (Σ signedMinor by month). Shared bar component. No fabricated prior years (#39):
+                 an empty month is an honest zero and a unit with no earnings shows an honest empty state. --}}
+            <section class="vy-card vy-fade" style="animation-delay:.05s">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px">
+                    <h2 class="vy-card-title">Revenue · 6 months</h2>
+                    <span class="vy-line-sub">net to you</span>
+                </div>
+                @if ($revenueTrend['has_data'])
+                    <x-charts.bars :bars="$revenueTrend['bars']" height="130px" />
+                @else
+                    <div class="vy-deferred" style="margin-top:6px"><span class="vy-eyebrow">No revenue yet</span>This unit's monthly net will chart here once it has attributed earnings.</div>
+                @endif
+            </section>
+
+            {{-- Occupancy · 12 months — REAL (Batch B): THIS unit's occupancy per month over the trailing
+                 year, via the SHARED OwnerOccupancy (unit-scoped, never room-type-wide), with the real
+                 average + peak. Shared bar component. --}}
+            <section class="vy-card vy-fade" style="animation-delay:.06s">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px">
+                    <h2 class="vy-card-title">Occupancy · 12 months</h2>
+                    @if ($occupancyTrend['has_data'])
+                        <span class="vy-line-sub">avg {{ $occupancyTrend['avg'] }}% · peak {{ $occupancyTrend['peak_pct'] }}% in {{ $occupancyTrend['peak_label'] }}</span>
+                    @endif
+                </div>
+                @if ($occupancyTrend['has_data'])
+                    <x-charts.bars :bars="$occupancyTrend['bars']" height="130px" />
+                @else
+                    <div class="vy-deferred" style="margin-top:6px"><span class="vy-eyebrow">No bookings yet</span>This unit's monthly occupancy will chart here once it has bookings.</div>
+                @endif
             </section>
 
             {{-- Attribution — every ledger row for THIS unit in the month, bucketed by entry_type and
@@ -280,6 +319,27 @@
                         <a href="{{ route('owner.agreement') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Agreement →</a>
                     </div>
                     <div class="vy-line-sub">{{ $commission['scope_label'] }}, in effect today.</div>
+                </section>
+            @endif
+
+            {{-- Channel mix — REAL (Batch B): this month's room-nights by the real reservations.source enum
+                 (Direct / OTA / Corporate …), NOT an OTA brand — the model carries no brand, so none is
+                 invented (#39). Share is of this unit's own room-nights. Absent when no bookings this month. --}}
+            @if ($channelMix['has_data'])
+                <section class="vy-card vy-fade" style="animation-delay:.1s">
+                    <span class="vy-eyebrow">Channel mix · {{ $month['label'] }}</span>
+                    <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
+                        @foreach ($channelMix['rows'] as $row)
+                            <div>
+                                <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px">
+                                    <span style="font-weight:500">{{ $row['label'] }}</span>
+                                    <span class="vy-muted">{{ $row['nights'] }} {{ \Illuminate\Support\Str::plural('night', $row['nights']) }} · {{ $row['pct'] }}%</span>
+                                </div>
+                                <div class="vy-track"><span style="width:{{ $row['pct'] }}%"></span></div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="vy-line-sub" style="margin-top:10px">Share of this unit's room-nights by booking source.</div>
                 </section>
             @endif
 

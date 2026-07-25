@@ -5,14 +5,23 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\ManagementAgreement;
+use App\Models\Owner;
+use App\Models\OwnerLedgerEntry;
+use App\Models\OwnerStatement;
+use App\Models\PayoutMethod;
 use App\Models\ReservationUnit;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Owner\OwnerOccupancy;
+use App\Support\Owner\OwnerUnitAnalytics;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -49,15 +58,25 @@ class OwnerMyUnits extends Component
     {
         $portal = app(OwnerPortalService::class);
         $units = $portal->units();   // owner-scoped, fail-closed when empty
+        $currency = $this->currency($units);
 
         $month = $this->resolveMonth($units);
         $occupancy = $this->occupancy($units, $month);
 
+        // Batch B — REAL per-unit month metrics (gross revenue · ADR · occupancy) + the best-performer
+        // ranking, both through the SHARED OwnerUnitAnalytics so this screen and Unit Detail cannot drift.
+        $unitIds = array_map('strval', $units->pluck('id')->all());
+        $perUnit = OwnerUnitAnalytics::perUnitMonth($unitIds, $month, $currency);
+        $bestUnitId = OwnerUnitAnalytics::bestUnitId($perUnit);
+
         return view('livewire.owner.units', [
             'viewer' => $this->viewer(),
             'unitsCount' => $units->count(),
-            'units' => $this->unitCards($units, $occupancy),
+            'units' => $this->unitCards($units, $occupancy, $perUnit, $currency, $bestUnitId),
             'occupancy' => $occupancy,
+            'earned' => $this->earnedThisMonth($month, $currency),
+            'best' => $this->bestPerformer($units, $perUnit, $bestUnitId, $month, $currency),
+            'attention' => $this->attentionItems(),
             'month' => [
                 'label' => $month->format('F Y'),
                 'first_weekday' => $month->copy()->startOfMonth()->dayOfWeekIso,   // 1=Mon … 7=Sun
@@ -65,6 +84,12 @@ class OwnerMyUnits extends Component
                 'next' => $month->copy()->addMonthNoOverflow()->format('Y-m'),
             ],
         ]);
+    }
+
+    /** The display currency — the units' property currency (matches OwnerInsights); EUR fallback. */
+    private function currency(Collection $units): string
+    {
+        return (string) ($units->first()?->property->currency ?? 'EUR');
     }
 
     /**
@@ -106,14 +131,17 @@ class OwnerMyUnits extends Component
     /**
      * @param  Collection<int, Unit>  $units
      * @param  array{days: int, per_unit: array<string, int>}  $occupancy
+     * @param  array<string, array{gross_minor: int, adr_minor: int, occupancy_pct: int, nights: int}>  $perUnit
      * @return list<array<string, mixed>>
      */
-    private function unitCards(Collection $units, array $occupancy): array
+    private function unitCards(Collection $units, array $occupancy, array $perUnit, string $currency, ?string $bestUnitId): array
     {
         $days = $occupancy['days'];
 
-        return $units->map(function (Unit $u) use ($occupancy, $days): array {
-            $nights = $occupancy['per_unit'][(string) $u->id] ?? 0;
+        return $units->map(function (Unit $u) use ($occupancy, $days, $perUnit, $currency, $bestUnitId): array {
+            $id = (string) $u->id;
+            $nights = $occupancy['per_unit'][$id] ?? 0;
+            $m = $perUnit[$id] ?? ['gross_minor' => 0, 'adr_minor' => 0, 'nights' => 0];
 
             return [
                 'id' => $u->id,
@@ -123,9 +151,131 @@ class OwnerMyUnits extends Component
                 'active' => $u->is_active !== false,
                 'nights' => $nights,
                 'occupancy_pct' => $days > 0 ? (int) round($nights / $days * 100) : 0,
+                // Batch B — REAL per-unit revenue (GROSS room revenue, for comparability) + nightly rate
+                // (the achieved ADR). No nights sold → no ADR figure ("—"), never a fake €0.
+                'revenue' => $this->money($m['gross_minor'], $currency),
+                'nightly_rate' => $m['nights'] > 0 ? $this->money($m['adr_minor'], $currency) : null,
+                'is_best' => $bestUnitId !== null && $id === $bestUnitId,
                 // Cover derives from the room-type (the sellable entity); null → gradient fallback.
                 'cover' => $u->roomType->coverPhoto()?->url,
             ];
         })->values()->all();
+    }
+
+    /**
+     * "Earned this month" — the owner's REAL net over the month (Σ signedMinor of the owner-scoped ledger
+     * rows dated in the month), in the display currency. A month with no rows shows a clean zero, never a
+     * fabricated figure. Owner-scoped by OwnerLedgerEntry's BelongsToOwner (#28).
+     *
+     * @return array{display: string, minor: int}
+     */
+    private function earnedThisMonth(Carbon $month, string $currency): array
+    {
+        $start = $month->copy()->startOfMonth();
+        $end = $start->copy()->addMonth();
+
+        $entries = OwnerLedgerEntry::query()
+            ->whereDate('service_date', '>=', $start->toDateString())
+            ->whereDate('service_date', '<', $end->toDateString())
+            ->get();
+
+        $net = OwnerLedgerAttribution::netPerCurrency($entries)[$currency] ?? 0;
+
+        return ['display' => $this->money($net, $currency), 'minor' => $net];
+    }
+
+    /**
+     * The best-performing unit this month, from the SHARED ranking (real gross revenue). null → an honest
+     * "no best performer yet" when nothing has earned (#39 — never a fabricated winner).
+     *
+     * @param  Collection<int, Unit>  $units
+     * @param  array<string, array{gross_minor: int, occupancy_pct: int, nights: int}>  $perUnit
+     * @return array<string, mixed>|null
+     */
+    private function bestPerformer(Collection $units, array $perUnit, ?string $bestUnitId, Carbon $month, string $currency): ?array
+    {
+        if ($bestUnitId === null) {
+            return null;
+        }
+
+        $unit = $units->firstWhere('id', $bestUnitId);
+        if (! $unit instanceof Unit) {
+            return null;
+        }
+
+        $m = $perUnit[$bestUnitId];
+
+        return [
+            'name' => (string) ($unit->name ?? $unit->code),
+            'occupancy_pct' => $m['occupancy_pct'],
+            'nights' => $m['nights'],
+            'revenue' => $this->money($m['gross_minor'], $currency),
+            'count' => $units->count(),
+            'month' => $month->format('F Y'),
+        ];
+    }
+
+    /**
+     * "Needs your attention" — REAL items only (Batch B · Q5): a genuine payout hold (finalized statements
+     * but no tax details on file), a missing payout method, and an agreement renewing within 30 days. The
+     * prototype's fabricated rate-change "proposals" are NOT built (#39). Owner-resolved via OwnerContext,
+     * so only the viewer's OWN owner rows are read (#28). No real item → the view shows an honest "caught up".
+     *
+     * @return list<array{tone: string, title: string, body: string, cta: array{label: string, route: string}}>
+     */
+    private function attentionItems(): array
+    {
+        $context = app(OwnerContext::class);
+        if (! $context->active() || $context->ownerIds() === []) {
+            return [];
+        }
+
+        $items = [];
+        $today = Carbon::today();
+
+        foreach (Owner::query()->whereIn('id', $context->ownerIds())->get() as $owner) {
+            $ownerId = (string) $owner->id;
+
+            // A GENUINE payout hold: the owner has finalized statements but no tax details on file.
+            $hasFinalized = OwnerStatement::query()->where('owner_id', $ownerId)->whereNotNull('finalized_at')->exists();
+            if ($hasFinalized && ! $owner->hasTaxDetails()) {
+                $items[] = [
+                    'tone' => 'warn',
+                    'title' => 'Add tax details to release payout',
+                    'body' => 'Your payout is on hold until your tax details are on file.',
+                    'cta' => ['label' => 'Add tax details', 'route' => route('owner.tax')],
+                ];
+            }
+
+            // No payout method on record → we cannot send earnings.
+            if (! PayoutMethod::query()->where('owner_id', $ownerId)->exists()) {
+                $items[] = [
+                    'tone' => 'warn',
+                    'title' => 'Confirm your payout bank account',
+                    'body' => 'Add a payout method so we can send your earnings.',
+                    'cta' => ['label' => 'Payout method', 'route' => route('owner.payout-method')],
+                ];
+            }
+
+            // A management agreement genuinely renewing within 30 days (real effective_to).
+            $agreement = ManagementAgreement::query()
+                ->where('owner_id', $ownerId)
+                ->whereNotNull('effective_to')
+                ->whereDate('effective_to', '>=', $today->toDateString())
+                ->whereDate('effective_to', '<=', $today->copy()->addDays(30)->toDateString())
+                ->orderBy('effective_to')
+                ->first();
+            if ($agreement instanceof ManagementAgreement && $agreement->effective_to !== null) {
+                $days = (int) $today->diffInDays($agreement->effective_to);
+                $items[] = [
+                    'tone' => 'info',
+                    'title' => 'Management agreement renews soon',
+                    'body' => 'Your agreement ends in '.$days.' '.Str::plural('day', $days).' — review the terms.',
+                    'cta' => ['label' => 'Review agreement', 'route' => route('owner.agreement')],
+                ];
+            }
+        }
+
+        return $items;
     }
 }

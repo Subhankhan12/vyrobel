@@ -65,3 +65,35 @@ it('scopes units to the owner, hides other owners, and fails closed for a non-li
         ->assertDontSee('AUNIT')
         ->assertDontSee('BUNIT');
 });
+
+// ── Batch B · GATE 2 — REAL per-unit analytics (revenue · nightly rate · best performer · earned) ──
+it('renders REAL per-unit revenue, nightly rate, best performer and a real attention feed', function () {
+    $s = seedScenario(2);
+    $a = linkUnitOwner($s, 0, 'UNITALPHA');
+    $s['units'][1]->update(['owner_id' => $a['owner']->id, 'code' => 'UNITBETA']);   // owner owns both
+    book($s, ['unit_id' => $a['unit']->id]);   // only ALPHA is booked → it is the best performer
+
+    $this->actingAs($a['user'])->get('/owner/units')
+        ->assertOk()
+        ->assertSee('Earned this month')            // the real ledger-net KPI (Batch B)
+        ->assertSee('Nightly rate')                 // the per-unit nightly-rate row is wired (was "Soon")
+        ->assertSee('Best performer')
+        ->assertSee('UNITALPHA')                    // the booked unit leads
+        ->assertSee('★ Best')                       // the best badge sits on the leading card
+        ->assertSee('Top of your 2 units')          // the real ranking, not a fabricated winner
+        // the attention feed shows a REAL item (fresh owner → no payout method), never a fabricated proposal
+        ->assertSee('Confirm your payout bank account')
+        ->assertDontSee('rate change proposed');    // the prototype's invented rate proposals are NOT built (#39)
+});
+
+// ── #39 — a unit with NO revenue shows an honest empty best-performer, never a fabricated winner ──
+it('shows an honest empty best performer when nothing has earned (#39)', function () {
+    $s = seedScenario(1);
+    $a = linkUnitOwner($s, 0, 'IDLEUNIT');   // owned, but never booked
+
+    $this->actingAs($a['user'])->get('/owner/units')
+        ->assertOk()
+        ->assertSee('IDLEUNIT')
+        ->assertSee('No bookings yet this month')   // honest empty best-performer state
+        ->assertSee('€0.00');                       // earned-this-month is a clean real zero, not fabricated
+});

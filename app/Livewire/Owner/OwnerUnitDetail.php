@@ -14,9 +14,12 @@ use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\AvailabilityService;
 use App\Services\OwnerPortalService;
+use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Owner\OwnerOccupancy;
+use App\Support\Owner\OwnerUnitAnalytics;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -79,15 +82,18 @@ use Livewire\Component;
  *     deliberately not surfaced: it is an operator-ops signal (clean/dirty/inspected), not owner-facing.
  *   • Guest messages panel + composer + quick replies — no owner messaging surface, and it would render
  *     guest PII.
- *   • 6-month revenue trend bars + the 12-month/multi-year occupancy heatmap with a year stepper —
- *     Tier-2 Analytics; worse, the design FABRICATES prior years client-side (×0.9 for 2024, ×0.8 for
- *     2023, plus a hard-coded jitter array). Fabricated history is never shipped.
- *   • Rank / "Best performer" / "#N of 3" — a cross-unit comparison already deferred on My Units.
  *   • "Direct bookings saved you €X in commission" — the design computes it as directRev × 0.15, a
- *     fabricated assumption about OTA commission.
- *   • "Channel mix" — the design splits it by Booking.com / Airbnb. The OTA BRAND IS NOT MODELLED:
- *     `reservations.source` is direct|walk_in|ota|corporate|group|agent|manual, so a brand can never be
- *     rendered. Only the real source enum appears, per stay.
+ *     fabricated assumption about OTA commission. Still omitted.
+ *
+ * BUILT REAL in Batch B (GATE 2) — with real aggregates, NEVER the design's fabricated prior years:
+ *   • The 6-month NET revenue trend ({@see revenueTrend()}) — Σ signedMinor of this unit's ledger rows per
+ *     month, in the display currency; an empty month is an honest zero.
+ *   • The trailing-12-month occupancy trend ({@see occupancyTrend()}) — the SHARED {@see OwnerOccupancy}
+ *     per month (unit-scoped), with the real average + peak. NOT a client-side ×0.9/×0.8 fabrication.
+ *   • The "Best performer" badge ({@see bestBadge()}) — the real cross-unit ranking (shared
+ *     {@see OwnerUnitAnalytics}); shown only when this unit genuinely leads and the owner has >1 unit.
+ *   • "Channel mix" ({@see channelMix()}) — this month's room-nights by the REAL `reservations.source`
+ *     enum (direct|walk_in|ota|corporate|group|agent|manual), never an OTA brand (the model has none).
  *   • Per-unit payout timeline — payouts are per-STATEMENT/per-OWNER, never per-unit; a per-unit payout
  *     timeline would be a fabricated attribution. The rail links to the real Payouts screen instead.
  *   • "Share listing" · breadcrumbs to unbuilt screens · "All bookings" (no owner bookings list exists —
@@ -137,6 +143,7 @@ class OwnerUnitDetail extends Component
         $occupancy = OwnerOccupancy::forMonth([(string) $unit->id], $month);
 
         $entries = $this->ledgerForMonth($unit, $monthStart, $monthEnd);
+        $currency = (string) ($unit->property->currency ?? 'EUR');
 
         return view('livewire.owner.unit-detail', [
             'viewer' => $this->viewer(),
@@ -153,7 +160,140 @@ class OwnerUnitDetail extends Component
             'commission' => $this->commission($unit),
             'statements' => $this->statements($entries),
             'unstatemented' => $entries->filter(fn (OwnerLedgerEntry $e): bool => $e->statement_id === null)->count(),
+            // Batch B — REAL per-unit analytics: a 6-month NET revenue trend, a trailing-12-month occupancy
+            // trend, this unit's channel mix, and a best-performer badge (all deterministic aggregates, #39).
+            'revenueTrend' => $this->revenueTrend($unit, $month, $currency),
+            'occupancyTrend' => $this->occupancyTrend($unit, $month),
+            'channelMix' => $this->channelMix($unit, $month, $currency),
+            'bestBadge' => $this->bestBadge($unit, $month, $currency),
         ]);
+    }
+
+    /**
+     * The unit's NET "to you" over the last 6 months (Batch B) — one bar per month, each = Σ signedMinor of
+     * this unit's ledger rows dated in that month, in the display currency. REAL (the ledger is the source);
+     * an empty month is an honest zero. Bar height is relative to the largest positive month.
+     *
+     * @return array{has_data: bool, bars: list<array{label: string, display: string, pct: int}>}
+     */
+    private function revenueTrend(Unit $unit, Carbon $month, string $currency): array
+    {
+        $start = $month->copy()->startOfMonth()->subMonths(5);
+        $rows = [];
+        $maxPositive = 0;
+
+        for ($i = 0; $i < 6; $i++) {
+            $mStart = $start->copy()->addMonths($i);
+            $mEnd = $mStart->copy()->addMonth();
+
+            $entries = OwnerLedgerEntry::query()
+                ->where('unit_id', $unit->id)
+                ->whereDate('service_date', '>=', $mStart->toDateString())
+                ->whereDate('service_date', '<', $mEnd->toDateString())
+                ->get();
+
+            $net = OwnerLedgerAttribution::netPerCurrency($entries)[$currency] ?? 0;
+            $maxPositive = max($maxPositive, $net);
+            $rows[] = ['label' => $mStart->format('M'), 'net' => $net];
+        }
+
+        $bars = array_map(fn (array $r): array => [
+            'label' => $r['label'],
+            'display' => $this->money($r['net'], $currency),
+            'pct' => $maxPositive > 0 && $r['net'] > 0 ? (int) round($r['net'] / $maxPositive * 100) : 0,
+        ], $rows);
+
+        return ['has_data' => $maxPositive > 0, 'bars' => $bars];
+    }
+
+    /**
+     * The unit's occupancy over the trailing 12 months (Batch B) — one bar per month via the SHARED
+     * {@see OwnerOccupancy} (this unit only), plus the real average and peak. REAL; a month with no
+     * bookings is an honest 0%.
+     *
+     * @return array{has_data: bool, avg: int, peak_label: string, peak_pct: int, bars: list<array{label: string, display: string, pct: int}>}
+     */
+    private function occupancyTrend(Unit $unit, Carbon $month): array
+    {
+        $start = $month->copy()->startOfMonth()->subMonths(11);
+        $bars = [];
+        $sum = 0;
+        $peakLabel = '';
+        $peakPct = -1;
+
+        for ($i = 0; $i < 12; $i++) {
+            $mStart = $start->copy()->addMonths($i);
+            $pct = OwnerOccupancy::forMonth([(string) $unit->id], $mStart)['pct'];
+            $sum += $pct;
+            if ($pct > $peakPct) {
+                $peakPct = $pct;
+                $peakLabel = $mStart->format('M');
+            }
+            $bars[] = ['label' => $mStart->format('M'), 'display' => $pct.'%', 'pct' => $pct];
+        }
+
+        return [
+            'has_data' => $peakPct > 0,
+            'avg' => (int) round($sum / 12),
+            'peak_label' => $peakLabel,
+            'peak_pct' => max(0, $peakPct),
+            'bars' => $bars,
+        ];
+    }
+
+    /**
+     * The unit's channel mix this month by ROOM-NIGHTS (Batch B) — the real `reservations.source` enum via
+     * the shared {@see PerformanceMetrics::forOwnerUnits} `sourceNights`. NOT an OTA brand (the model carries
+     * no brand — #39): the honest source (Direct / OTA / Corporate …) with its real nights share.
+     *
+     * @return array{has_data: bool, total: int, rows: list<array{label: string, nights: int, pct: int}>}
+     */
+    private function channelMix(Unit $unit, Carbon $month, string $currency): array
+    {
+        $start = CarbonImmutable::parse($month->copy()->startOfMonth()->toDateString());
+        $metrics = PerformanceMetrics::forOwnerUnits([(string) $unit->id], $start, $start->addMonth(), $currency);
+
+        $sourceNights = $metrics->sourceNights;
+        $total = array_sum($sourceNights);
+        if ($total === 0) {
+            return ['has_data' => false, 'total' => 0, 'rows' => []];
+        }
+
+        arsort($sourceNights);
+        $rows = [];
+        foreach ($sourceNights as $source => $nights) {
+            $rows[] = [
+                'label' => $this->sourceLabel((string) $source),
+                'nights' => (int) $nights,
+                'pct' => (int) round($nights / $total * 100),
+            ];
+        }
+
+        return ['has_data' => true, 'total' => (int) $total, 'rows' => $rows];
+    }
+
+    /**
+     * Whether THIS unit is the owner's best performer this month (Batch B) — via the SHARED
+     * {@see OwnerUnitAnalytics} ranking across the owner's OWN units. null when the owner has a single unit
+     * (a "best of 1" is meaningless) or when this unit is not the leader. No revenue anywhere → no badge.
+     *
+     * @return array{count: int, month: string}|null
+     */
+    private function bestBadge(Unit $unit, Carbon $month, string $currency): ?array
+    {
+        $units = app(OwnerPortalService::class)->units();
+        if ($units->count() < 2) {
+            return null;
+        }
+
+        $unitIds = array_map('strval', $units->pluck('id')->all());
+        $perUnit = OwnerUnitAnalytics::perUnitMonth($unitIds, $month, $currency);
+
+        if (OwnerUnitAnalytics::bestUnitId($perUnit) !== (string) $unit->id) {
+            return null;
+        }
+
+        return ['count' => $units->count(), 'month' => $month->format('F Y')];
     }
 
     /**

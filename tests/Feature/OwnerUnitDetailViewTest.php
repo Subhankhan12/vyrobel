@@ -219,3 +219,32 @@ it('renders none of the design\'s fictions', function () {
         ->assertDontSee('Booking.com')
         ->assertDontSee('Airbnb');
 });
+
+// ── Batch B · GATE 2 — the REAL per-unit charts + channel mix + best-performer badge ──────────────
+it('renders the real 6-month revenue trend, 12-month occupancy trend, channel mix and best badge', function () {
+    $s = seedScenario(2);
+    $a = unitDetailOwner($s, 0, ['code' => 'CASA-LEAD']);
+    $s['units'][1]->update(['owner_id' => $a['owner']->id, 'code' => 'CASA-IDLE']);   // owner's 2nd unit, idle
+    attributedStay($s, $a['unit'], 20000);   // 2 nights Sep 2026 → real revenue + real ledger net
+
+    $this->actingAs($a['user'])->get('/owner/units/'.$a['unit']->id)
+        ->assertOk()
+        ->assertSee('Revenue · 6 months')                  // the NET revenue trend (shared bar component)
+        ->assertSee('net to you')
+        ->assertSee('Occupancy · 12 months')               // the occupancy trend (trailing 12 months)
+        ->assertSee('Channel mix')                         // this unit's real source mix
+        ->assertSee('room-nights by booking source')       // by the real source enum, never an OTA brand (#39)
+        ->assertSee('★ Best performer of your 2 units');   // the real cross-unit ranking badge
+});
+
+// ── #28 — a single-unit owner gets NO "best performer" badge (a "best of 1" is meaningless) ───────
+it('shows no best-performer badge for a single-unit owner', function () {
+    $s = seedScenario(1);
+    $a = unitDetailOwner($s, 0, ['code' => 'SOLO-01']);
+    attributedStay($s, $a['unit'], 20000);
+
+    $this->actingAs($a['user'])->get('/owner/units/'.$a['unit']->id)
+        ->assertOk()
+        ->assertSee('Revenue · 6 months')
+        ->assertDontSee('Best performer of your');   // no cross-unit claim with a single unit
+});
