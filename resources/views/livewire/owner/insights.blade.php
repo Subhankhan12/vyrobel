@@ -50,5 +50,39 @@
                 </div>
             @endif
         </div>
+
+        {{-- WHEN GUESTS BOOK — REAL lead-time distribution via the SHARED BookingCadence (Batch B). Buckets
+             come from real created_at → check_in; an honest empty state when there is no history (#39). --}}
+        <div class="vy-card vy-fade" style="margin-top:16px">
+            <div class="vy-card-title">When guests book · {{ $activeRange['label'] }}</div>
+            <div class="vy-line-sub" style="margin-bottom:6px">Share of bookings by how far ahead they book.</div>
+            @if ($leadTime['has_data'])
+                <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+                    @foreach ($leadTime['buckets'] as $b)
+                        <div>
+                            <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px">
+                                <span style="font-weight:500">{{ $b['label'] }}</span>
+                                <span class="vy-muted">{{ $b['pct'] }}%</span>
+                            </div>
+                            <div class="vy-track"><span style="width:{{ max(2, $b['pct']) }}%"></span></div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="vy-empty">Not enough booking history yet — this appears once your units have bookings with a lead time to measure. (Real data only.)</div>
+            @endif
+        </div>
+
+        {{-- NIGHTS THAT FILL FIRST — REAL day-of-week occupancy via the SHARED BookingCadence + the SHARED
+             <x-charts.bars> component (same as operator Insights — one computation, one chart). --}}
+        <div class="vy-card vy-fade" style="margin-top:16px">
+            <div class="vy-card-title">Nights that fill first · {{ $activeRange['label'] }}</div>
+            <div class="vy-line-sub" style="margin-bottom:6px">Average occupancy by night of the week.</div>
+            @if ($weekday['has_data'])
+                <x-charts.bars :bars="$weekday['weekdays']" height="120px" :accentLast="false" />
+            @else
+                <div class="vy-empty">No bookings in this range yet.</div>
+            @endif
+        </div>
     @endif
 </x-owner.shell>

@@ -6,6 +6,14 @@
 > link/render only — the built+tested backends were untouched; each new PDF link is `@ownercan(CAP_EXPORTS)`-
 > gated (#42, browser-verified 200/application-pdf + view-only 403); suite 945/945 + PHPStan L5 (0) + Pint.
 
+> **✅ BATCH B DONE (2026-07-26)** — the three buildable analytics features are shipped, all REAL (never
+> fabricated, #39): **P2-4** the by-unit statement split (reconciles to the net to the cent, #17 — `dbf07d3`);
+> **P2-3** owner per-unit analytics (revenue · nightly rate · best-performer · 6-month NET · 12-month
+> occupancy · channel mix — `1e1269f`); **P2-5** Insights lead-time / DOW / on-the-books via a NEW SHARED
+> `BookingCadence` read by both operator + owner Insights (GATE 3 commit). A flagged, demo-only seed gives the
+> demo a meaningful real shape (median lead 42 days). The recommendation/pricing engine + per-element "vs last
+> year" deltas stay REFUSED (#39). Suite green + PHPStan L5 (0) + Pint; browser-verified vs the wireframes.
+
 **Date:** 2026-07-25 · **Method:** cross-referenced `docs/PROJECT-STATE.md` + `docs/DECISIONS.md` +
 `docs/design/DIVERGENCE-REGISTER.md` (the per-page wireframe→app map, authored in this session's design pass)
 + `docs/AUDIT-REPORT.md`; grepped every shell/nav + every route + every "Soon"/stub string; **browser-probed
@@ -138,7 +146,7 @@ bugs — the 4 unstyled operator pages, the owner-statement `opacity:0` hero —
 - **FIX:** when `$payout` is present, link `route('owner.payouts.remittance', $payout['id'])`; else keep the
   honest empty state.
 
-**P2-3 · Owner per-unit analytics ("Soon" across Unit Detail + My Units)** — *stub-buildable.*
+**P2-3 · Owner per-unit analytics ("Soon" across Unit Detail + My Units)** — *stub-buildable.* **✅ DONE (GATE 2 · `1e1269f`).**
 - **WHERE:** owner · `/owner/units`, `/owner/units/{unit}` — `units.blade.php` (13 "Soon" strings),
   `unit-detail` (per-unit revenue / nightly rate / best-performer / occupancy trend deferred).
 - **WHAT:** the wireframes show per-unit revenue, ranked best-performer, occupancy trend. Currently honest
@@ -146,13 +154,13 @@ bugs — the 4 unstyled operator pages, the owner-statement `opacity:0` hero —
 - **BACKEND REALITY:** **buildable** on the existing `Support\Analytics\PerformanceMetrics` + `MetricSet`
   (already scopes owner-units) + `owner_ledger.unit_id`. Real aggregates only. **EFFORT/VALUE:** M / medium.
 
-**P2-4 · Owner Statement "By unit" split** — *stub-buildable.*
+**P2-4 · Owner Statement "By unit" split** — *stub-buildable.* **✅ DONE (GATE 1 · `dbf07d3`).**
 - **WHERE:** owner · `statement.blade.php:197–213` (honest "Not yet available", with decorative skeleton).
 - **WHAT:** a per-unit gross/net/occupancy split of the statement. **BACKEND REALITY:** **buildable** — the
   blade itself notes it's "derivable from `owner_ledger.unit_id`". Reconciles to the same figures.
   **EFFORT/VALUE:** M / medium.
 
-**P2-5 · Insights "Lead time / Booking pace · Soon"** (operator + owner) — *stub-buildable.*
+**P2-5 · Insights "Lead time / Booking pace · Soon"** (operator + owner) — *stub-buildable.* **✅ DONE (GATE 3, via the shared `BookingCadence` — lead-time / DOW / on-the-books; per-element "vs LY" refused #39).**
 - **WHERE:** `operator/insights.blade.php`, owner `insights.blade.php` (honest "Soon").
 - **WHAT:** lead-time distribution + booking pace vs prior period. **BACKEND REALITY:** **buildable** — the
   real data (`reservations.created_at` → `check_in`) exists; a lead-time histogram + pace figure is computable

@@ -8,12 +8,12 @@ use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\Analytics\BookingCadence;
 use App\Support\Analytics\MetricSet;
 use App\Support\Analytics\PerformanceMetrics;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -43,27 +43,37 @@ class OwnerInsights extends Component
         $metrics = PerformanceMetrics::forOwnerUnits($unitIds, $range['start'], $range['end'], $currency);
         $trend = PerformanceMetrics::monthlyTrendForOwnerUnits($unitIds, $range['start'], $range['end'], $currency);
 
+        // Batch B — REAL booking cadence via the SHARED BookingCadence (identical to operator Insights).
+        $today = CarbonImmutable::today();
+        $leadTime = BookingCadence::leadTimeForOwnerUnits($unitIds, $range['start'], $range['end']);
+        $weekday = BookingCadence::weekdayOccupancyForOwnerUnits($unitIds, $range['start'], $range['end']);
+        $onTheBooks = BookingCadence::onTheBooksForOwnerUnits($unitIds, $today, 90, $currency);
+
         return view('livewire.owner.insights', [
             'viewer' => $this->viewer(),
             'unitsCount' => $units->count(),
             'ranges' => $this->rangeOptions($range['key']),
             'activeRange' => $range,
-            'cards' => $this->cards($metrics, $currency),
+            'cards' => $this->cards($metrics, $currency, $leadTime, $onTheBooks),
             'trend' => $this->trend($trend, $currency),
+            'leadTime' => $leadTime,
+            'weekday' => $weekday,
             'observation' => $this->busiestWeekday($unitIds, $range),
         ]);
     }
 
     /**
+     * @param  array{has_data: bool, median_days: int|null}  $leadTime
      * @return list<array{label: string, value: string, sub: string}>
      */
-    private function cards(MetricSet $m, string $currency): array
+    private function cards(MetricSet $m, string $currency, array $leadTime, int $onTheBooks): array
     {
         return [
             ['label' => 'Occupancy', 'value' => $m->occupancyPct().'%', 'sub' => $m->roomNightsSold.' of '.$m->availableRoomNights.' unit-nights'],
-            ['label' => 'ADR', 'value' => $this->money($m->adrMinor(), $currency), 'sub' => 'per night sold'],
-            ['label' => 'RevPAR', 'value' => $this->money($m->revparMinor(), $currency), 'sub' => 'per available night'],
-            ['label' => 'Room revenue', 'value' => $this->money($m->roomRevenueMinor, $currency), 'sub' => $m->bookings.' '.Str::plural('stay', $m->bookings).' in range'],
+            ['label' => 'Avg nightly rate', 'value' => $this->money($m->adrMinor(), $currency), 'sub' => 'per night sold'],
+            // Batch B — REAL: room revenue already booked for the next 90 days + the real median lead time.
+            ['label' => 'Next 90 days', 'value' => $this->money($onTheBooks, $currency), 'sub' => 'already on the books'],
+            ['label' => 'Median lead time', 'value' => $leadTime['median_days'] !== null ? $leadTime['median_days'].' days' : '—', 'sub' => $leadTime['has_data'] ? 'booking to check-in' : 'needs booking history'],
         ];
     }
 

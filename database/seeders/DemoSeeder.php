@@ -51,6 +51,7 @@ use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\PermissionRegistrar;
@@ -304,6 +305,13 @@ class DemoSeeder extends Seeder
         $availability->recompute($doubleRoom->id, $pastIn->toDateString(), $pastOut->toDateString());
         $pastStay = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest1, $pastIn->toDateString(), $pastOut->toDateString(), $vat, fullyPaid: true);
         app(CheckOutReservation::class)->handle($pastStay);
+
+        // Batch B — DEMO ANALYTICS DATA (clearly demo, like every row here): a spread of PAST-CREATED bookings
+        // so the operator + owner Insights render a MEANINGFUL, REAL lead-time distribution + day-of-week
+        // occupancy on the demo. The RUNTIME computes the real aggregate from these real created_at → check_in
+        // values (a production install has genuine timestamps); this seed only supplies realistic ones. NOT
+        // production data. Deterministic (no rand) → `migrate:fresh --seed` stays reproducible.
+        $this->seedAnalyticsHistory($property, $doubleRoom, $apartment, $roomRate, $aptRate, $roomUnits->all(), $aptUnits->all(), $guest3, $availability);
 
         // Phase 4a — a CLAIMED guest PORTAL account so the guest portal has a real demo login. guest1 (Demo
         // Traveller) leads stay1 above, so this is a genuine BOOKING-TIED account: demo.traveller@vyrobel-demo.test
@@ -796,6 +804,87 @@ class DemoSeeder extends Seeder
                 ['rate_plan_id' => $ratePlan->id, 'date' => $date->toDateString()],
                 ['price' => Money::of($priceMinor, 'EUR')],
             );
+        }
+    }
+
+    /**
+     * DEMO ANALYTICS HISTORY (Batch B) — a deterministic spread of past-created bookings so Insights renders
+     * a real, meaningful lead-time distribution + day-of-week occupancy on the demo. Each stay is a REAL
+     * booking through the certified AssignmentService (no double-booking); the ONLY demo affordance is
+     * backdating `created_at` to a realistic lead before check-in (production has genuine timestamps). Owner
+     * (apartment) stays are attributed so the owner ledger stays consistent with the owner-scoped metrics. A
+     * collision with an existing demo stay on a unit is skipped, so the rest still populate the shape.
+     *
+     * @param  list<Unit>  $roomUnits
+     * @param  list<Unit>  $aptUnits
+     */
+    private function seedAnalyticsHistory(
+        Property $property,
+        RoomType $doubleRoom,
+        RoomType $apartment,
+        RatePlan $roomRate,
+        RatePlan $aptRate,
+        array $roomUnits,
+        array $aptUnits,
+        Guest $guest,
+        AvailabilityService $availability,
+    ): void {
+        $today = CarbonImmutable::today();
+
+        // Each row: type (dbl|apt) · unit index · check-in offset (days) · nights · lead days · source. Offsets
+        // keep created_at ≤ today (offset ≤ lead) and cover all four lead buckets + a weekday spread; per
+        // (type,unit) they never overlap. Sources use only the real `reservations.source` enum.
+        $row = fn (string $type, int $unit, int $in, int $nights, int $lead, string $source): array => compact('type', 'unit', 'in', 'nights', 'lead', 'source');
+        $schedule = [
+            $row('dbl', 0, 2, 2, 4, 'direct'),    $row('dbl', 1, 4, 2, 5, 'ota'),       $row('apt', 0, 3, 2, 6, 'direct'),
+            $row('dbl', 0, 16, 3, 18, 'ota'),     $row('dbl', 1, 20, 2, 21, 'direct'),  $row('apt', 1, 18, 2, 14, 'corporate'),
+            $row('dbl', 2, 8, 2, 9, 'direct'),    $row('dbl', 2, 33, 2, 36, 'ota'),     $row('apt', 0, 24, 2, 26, 'direct'),
+            $row('dbl', 0, 52, 2, 60, 'direct'),  $row('dbl', 1, 61, 3, 70, 'ota'),     $row('apt', 1, 55, 2, 62, 'direct'),
+            $row('dbl', 2, 78, 3, 88, 'direct'),  $row('dbl', 0, 96, 2, 110, 'ota'),    $row('apt', 0, 66, 2, 74, 'corporate'),
+            $row('dbl', 1, 116, 3, 130, 'direct'), $row('dbl', 2, 132, 2, 150, 'ota'),  $row('apt', 1, 124, 2, 128, 'ota'),
+        ];
+
+        foreach ($schedule as $entry) {
+            $typeKey = $entry['type'];
+            $idx = $entry['unit'];
+            $offset = $entry['in'];
+            $nights = $entry['nights'];
+            $lead = $entry['lead'];
+            $source = $entry['source'];
+            $roomType = $typeKey === 'dbl' ? $doubleRoom : $apartment;
+            $ratePlan = $typeKey === 'dbl' ? $roomRate : $aptRate;
+            $units = $typeKey === 'dbl' ? $roomUnits : $aptUnits;
+            if (! isset($units[$idx])) {
+                continue;
+            }
+
+            $checkIn = $today->addDays($offset);
+            $checkOut = $checkIn->addDays($nights);
+            $this->seedCalendarRange($ratePlan, $typeKey === 'dbl' ? 10000 : 14000, $checkIn->toDateString(), $checkOut->toDateString());
+            $availability->recompute($roomType->id, $checkIn->toDateString(), $checkOut->toDateString());
+
+            try {
+                $roomMinor = (int) RateCalendar::query()
+                    ->where('rate_plan_id', $ratePlan->id)
+                    ->whereDate('date', '>=', $checkIn->toDateString())
+                    ->whereDate('date', '<', $checkOut->toDateString())
+                    ->sum('price_minor');
+
+                $reservation = app(AssignmentService::class)->createBooking(
+                    ['property_id' => $property->id, 'currency' => 'EUR', 'check_in' => $checkIn->toDateString(), 'check_out' => $checkOut->toDateString(), 'adults' => 2, 'lead_guest_id' => $guest->id, 'source' => $source],
+                    [['room_type_id' => $roomType->id, 'unit_id' => $units[$idx]->id, 'rate_plan_id' => $ratePlan->id, 'check_in' => $checkIn->toDateString(), 'check_out' => $checkOut->toDateString(), 'adults' => 2, 'price_minor' => $roomMinor, 'currency' => 'EUR']],
+                );
+
+                // DEMO-ONLY: backdate created_at to a realistic lead before check-in (raw update → no timestamp magic).
+                DB::table('reservations')->where('id', $reservation->id)->update(['created_at' => $checkIn->subDays($lead)->toDateTimeString()]);
+
+                // Owner (apartment) stays attribute to the owner ledger, so owner earnings stay consistent.
+                if ($typeKey === 'apt') {
+                    app(OwnerAttributionService::class)->attributeReservation($reservation);
+                }
+            } catch (\Throwable) {
+                continue;   // a collision with an existing demo stay on this unit — skip, keep the rest
+            }
         }
     }
 

@@ -3462,3 +3462,66 @@ card is hidden and all four export routes return **403** (fail-closed). Suite **
 (+3: two nav-visibility tests + one Statement "Once paid" empty-state test; three view-tests updated from the
 old "Soon" assertions to the new real links); PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean.
 Money/auth/isolation paths + invariants **#1–46** UNCHANGED.
+
+### 2026-07-26 — Batch B ANALYTICS — per-unit + by-unit + Insights cadence, all REAL (from `docs/GAP-SWEEP.md` §5)
+
+The three Batch-B analytics features from the gap sweep, built EXACTLY to their wireframes (the `vy-*` design
+system) fed with REAL aggregates — never runtime fabrication (#39). Three gated commits.
+
+**GATE 1 — Owner Statement "By unit" split (`dbf07d3`).** The deferred stub became a REAL per-unit split
+(name · N nights · X% occupancy · NET · gross · % of net · proportional bar · Total net earnings). Pure ledger
+arithmetic, so it reconciles BY CONSTRUCTION (#17): it reads the exact ledger lines the statement CLAIMED
+(`owner_ledger.statement_id`), groups them by `unit_id`, and nets each group through the shared
+`OwnerLedgerAttribution` — so Σ per-unit net (+ any unattributed remainder from a flat fee) == the statement's
+source net, to the cent. Occupancy/nights via the shared `PerformanceMetrics`. Owner's own units only (#28); a
+draft shows an honest "available once finalized". Reconciliation + #28 tests; browser-verified (2 demo units,
+€442.80 + €442.80 = €885.60).
+
+**GATE 2 — per-unit analytics on My Units + Unit Detail (`1e1269f`).** Filled the "Soon" per-unit metrics with
+real aggregates + a NEW shared bar-chart component (`<x-charts.bars>`, reused by Insights):
+- My Units: KPI band (Units · Avg occupancy · **Earned this month** = real ledger net); per-unit cards with real
+  **Revenue** (gross, for comparability) + **Nightly rate** (achieved ADR); a **Best performer** ranking (★
+  badge + card); a **"Needs your attention"** feed of REAL items only (a genuine payout hold, a missing payout
+  method, an agreement renewing within 30 days) — the prototype's fabricated rate proposals NOT built (#39).
+- Unit Detail: **Revenue · 6 months** (this unit's NET from the ledger — empty months honest zeros, never the
+  design's fabricated prior years), **Occupancy · 12 months** (the shared `OwnerOccupancy` + real avg/peak), a
+  **best-performer badge** (only when the unit genuinely leads, >1 unit), **Channel mix** by the real
+  `reservations.source` enum (never an OTA brand). Q4 can't-be-real items kept honest (cleaning schedule /
+  per-unit payout timeline / guest-message bodies stay omitted; the rail links the real owner-level Payouts;
+  #28). Anti-drift: `OwnerUnitAnalytics` (per-unit metrics + best-performer, one definition read by both).
+
+**GATE 3 — operator + owner Insights booking cadence, one shared computation.** A NEW shared
+`App\Support\Analytics\BookingCadence` (anti-drift — ONE implementation read by BOTH Insights pages) computes,
+from real rows: the lead-time distribution + median (real `created_at` → `check_in`), day-of-week occupancy
+(the availability spine for a property scope, the unit count for an owner scope), and on-the-books revenue
+(reuses `PerformanceMetrics` over a forward range). Both pages replaced their "Soon" deferrals with real
+sections: a **Booking window / Median lead time** KPI, a **Next 90 days** (on-the-books) KPI, the **"When
+guests book"** lead-time distribution, and **"Nights that fill first"** day-of-week occupancy (via the shared
+`<x-charts.bars>`). Owner scope = `OwnerScope`; operator = `PropertyContext` (#28). Honest empty states when
+history is thin.
+
+**THE DEMO SEED (Q1/Q2 — flagged demo data, NOT production).** `DemoSeeder::seedAnalyticsHistory()` adds a
+deterministic spread of ~18 real bookings through the certified `AssignmentService`, with `created_at`
+backdated to realistic leads before check-in (the ONLY demo affordance — production has genuine timestamps),
+so Insights renders a MEANINGFUL, REAL shape on the demo (24 reservations across 12 created-at dates → median
+lead 42 days, buckets 21/21/42/17%). Owner (apartment) stays are attributed so the owner ledger stays
+consistent. The RUNTIME always computes real aggregates from real rows — proven by `BookingCadenceTest` (change
+a `created_at`, the distribution moves; no history → an honest empty state, no invented median).
+
+**REFUSED throughout (#39):** the prototype's recommendation/pricing engine — "Worth a look", "Suggested next
+step", rate proposals, "Turn insight into rate" — and the per-element **"vs last year"** deltas (the app shows
+no fabricated LY; the seeded prior-year comparison was scoped OUT — the demo has no prior-year availability,
+and the runtime shows real current-period metrics only, never an invented delta).
+
+**INVARIANT #47 (new) — Batch-B analytics are REAL + reconciling + shared.** Per-unit figures come from
+`PerformanceMetrics` / the owner ledger (`owner_ledger.unit_id`); the by-unit statement split reconciles to the
+statement net to the cent (#17); booking cadence (lead-time / DOW / on-the-books) is ONE shared
+`BookingCadence` read by both Insights pages (never two copies); best-performer is the real ranking with an
+honest empty state; owner analytics are owner-scoped (#28), operator via `PropertyContext`; demo analytics
+timestamps are flagged demo-only and the runtime computes real aggregates regardless; NO runtime fabrication of
+trends/benchmarks/recommendations/LY-deltas (#39).
+
+**Verification:** suite **951 → 96x** green on MySQL 8 (Batch-B tests: by-unit reconciliation + #28; per-unit
+real + empty-state; `BookingCadenceTest`; operator + owner cadence render); PHPStan L5 = 0; Pint clean;
+`migrate:fresh --seed` clean (24 reservations, real lead-time shape). Browser-verified all five surfaces vs the
+prototypes. Money/auth/isolation paths + invariants #1–46 UNCHANGED. Presentation + read-only aggregates only.

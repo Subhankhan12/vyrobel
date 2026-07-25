@@ -74,7 +74,11 @@ it('shows owner insights metrics with no invented narrative', function () {
 
     $res = $this->actingAs($user)->get('/owner/insights?range=this-year');
 
-    $res->assertOk()->assertSee('Occupancy')->assertSee('ADR')->assertSee('RevPAR');
+    $res->assertOk()->assertSee('Occupancy')->assertSee('Avg nightly rate')
+        // Batch B — the KPI band now carries the REAL median lead time + on-the-books, and the real
+        // lead-time distribution + day-of-week occupancy (via the shared BookingCadence).
+        ->assertSee('Median lead time')->assertSee('Next 90 days')
+        ->assertSee('When guests book')->assertSee('Nights that fill first');
 
     // 🪤 The prototype's invented observations are never rendered (real-or-omitted). Distinctive phrases
     // only — a bare year like "2024" is too generic a needle (it collides with incidental ULIDs/wire-ids).

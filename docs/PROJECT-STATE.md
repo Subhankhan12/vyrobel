@@ -71,6 +71,19 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   — all built+tested; remittance offered only when a payout is matched, annual-tax only for years with committed
 >   statements). Browser-verified: 4 PDFs 200/application-pdf; a **view-only sub-user gets 403 on all four (#42)**.
 >   Suite **945 / 7644** green; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean.
+> - **BATCH B — ANALYTICS — ✅ DONE (2026-07-26)** (`docs/GAP-SWEEP.md` §5; dated entry in `DECISIONS.md`;
+>   register rows updated). Three features, all REAL (#39): **(1)** the owner Statement **by-unit split** — pure
+>   ledger arithmetic reconciling to the net to the cent (#17), owner-scoped (#28) — `dbf07d3`; **(2)**
+>   **per-unit analytics** on My Units + Unit Detail (real revenue · nightly rate · best-performer · 6-month NET ·
+>   12-month occupancy · channel mix · a real "Needs your attention" feed) via the shared `OwnerUnitAnalytics` +
+>   a new shared `<x-charts.bars>` — `1e1269f`; **(3)** operator + owner **Insights booking cadence** (lead-time
+>   distribution + median · day-of-week occupancy · on-the-books) via ONE shared
+>   `App\Support\Analytics\BookingCadence` (anti-drift), replacing the "Soon" deferrals. A **flagged, demo-only
+>   seed** (`DemoSeeder::seedAnalyticsHistory`, backdated `created_at`) gives the demo a real, meaningful shape
+>   (24 reservations, median lead 42 days, buckets 21/21/42/17%); the runtime computes real aggregates from real
+>   rows (proven by `BookingCadenceTest`). **REFUSED (#39):** the recommendation/pricing engine + the per-element
+>   "vs last year" deltas (no fabricated LY; prior-year demo seed scoped out — needs prior-year availability).
+>   **INVARIANT #47.** PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean.
 > - **ACCOUNT-GATED remaining** (each a focused prompt as the account lands): Channex live OTA sync · WhatsApp/OTA
 >   inbox channels · SMS (waitlist/notifications) · guest ID verification / KYC. (Email + Stripe are DONE — pending
 >   only Subhan's cutovers.)

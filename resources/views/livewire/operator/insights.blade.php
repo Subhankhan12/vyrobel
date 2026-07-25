@@ -69,20 +69,46 @@
                     @endforeach
                 @endif
             </div>
+
+            {{-- WHEN GUESTS BOOK — REAL lead-time distribution via the SHARED BookingCadence (Batch B).
+                 Buckets from real created_at → check_in; honest empty state when no history (#39). --}}
+            <div class="vy-card">
+                <div class="vy-card-head"><h3>When guests book</h3><span class="vy-card-note">by lead time</span></div>
+                @if ($leadTime['has_data'])
+                    @foreach ($leadTime['buckets'] as $b)
+                        <div class="vy-mix-row">
+                            <span class="vy-mix-lab">{{ $b['label'] }}</span>
+                            <span class="vy-mix-track"><span class="vy-mix-fill" style="width: {{ max(4, $b['pct']) }}%"></span></span>
+                            <span class="vy-mix-val">{{ $b['pct'] }}%</span>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="vy-empty">Not enough booking history yet — real data only, no invented curve.</div>
+                @endif
+            </div>
+
+            {{-- NIGHTS THAT FILL FIRST — REAL day-of-week occupancy via the SHARED BookingCadence + the
+                 SHARED <x-charts.bars> component (same computation + chart as owner Insights). --}}
+            <div class="vy-card">
+                <div class="vy-card-head"><h3>Nights that fill first</h3><span class="vy-card-note">avg occupancy by night</span></div>
+                @if ($weekday['has_data'])
+                    <x-charts.bars :bars="$weekday['weekdays']" height="120px" :accentLast="false" />
+                @else
+                    <div class="vy-empty">No bookings in this range yet.</div>
+                @endif
+            </div>
         </div>
 
-        {{-- DEFERRED (SG1 verdict) — derivable but too thin in real data to be meaningful, so honestly "Soon" --}}
+        {{-- BOOKING CADENCE — REAL (Batch B): the median lead time + the room revenue already on the books
+             for the next 90 days, via the SHARED BookingCadence. Replaces the former "Soon" deferrals. --}}
         <div class="vy-dash-kpis vy-fade" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 14px;">
-            <div class="vy-dash-kpi" style="opacity:.72">
-                <div class="vy-dk-label">Lead time <span class="vy-soon-tag">Soon</span></div>
-                <div class="vy-dk-val" style="color:var(--vy-faint)">—</div>
-                <div class="vy-dk-sub">days booked ahead — needs more booking history to be meaningful</div>
-            </div>
-            <div class="vy-dash-kpi" style="opacity:.72">
-                <div class="vy-dk-label">Booking pace <span class="vy-soon-tag">Soon</span></div>
-                <div class="vy-dk-val" style="color:var(--vy-faint)">—</div>
-                <div class="vy-dk-sub">pickup curve — needs a longer booking-date history</div>
-            </div>
+            @foreach ($cadenceCards as $c)
+                <div class="vy-dash-kpi">
+                    <div class="vy-dk-label">{{ $c['label'] }}</div>
+                    <div class="vy-dk-val">{{ $c['value'] }}</div>
+                    <div class="vy-dk-sub">{{ $c['sub'] }}</div>
+                </div>
+            @endforeach
         </div>
     </x-operator.shell>
 </div>

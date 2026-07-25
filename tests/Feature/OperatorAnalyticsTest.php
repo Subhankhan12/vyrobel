@@ -4,6 +4,7 @@ use App\Models\Property;
 use App\Models\RoomType;
 use App\Support\Property\PropertyContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -101,4 +102,21 @@ it('scopes Insights to the selected property, not an arbitrary one', function ()
     // "All properties" rolls both up → still the one real arrival.
     $this->actingAs($user)->withSession(['current_property_id' => PropertyContext::ALL])
         ->get('/app/insights?range=this-year')->assertOk()->assertSee('1 arrival in range');
+});
+
+// ── Batch B · GATE 3 — the REAL booking cadence replaces the "Soon" deferrals (shared BookingCadence) ──
+it('renders the real lead-time distribution, day-of-week occupancy and on-the-books (was "Soon")', function () {
+    $s = seedScenario(2);
+    $b = book($s, ['unit_id' => $s['units'][0]->id, 'price_minor' => 10000]);   // arrives 2026-09-01
+    // A real, backdated created_at → a real lead time to measure (production has genuine timestamps).
+    DB::table('reservations')->where('id', $b->id)->update(['created_at' => '2026-08-18 10:00:00']);
+
+    $this->actingAs(operatorUser($s, [], 'Hotel Manager'))->get('/app/insights?range=this-year')
+        ->assertOk()
+        ->assertSee('When guests book')        // the REAL lead-time distribution
+        ->assertSee('Nights that fill first')   // the REAL day-of-week occupancy
+        ->assertSee('Booking window')           // the REAL median-lead KPI (was a "Soon" tile)
+        ->assertSee('Next 90 days')             // the REAL on-the-books KPI
+        ->assertDontSee('Booking pace')         // the prototype's "Booking pace · Soon" tile is gone
+        ->assertDontSee('needs more booking history');   // the deferred "Soon" copy is gone
 });

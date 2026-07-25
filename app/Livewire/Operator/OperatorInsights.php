@@ -7,6 +7,7 @@ namespace App\Livewire\Operator;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Property;
+use App\Support\Analytics\BookingCadence;
 use App\Support\Analytics\MetricSet;
 use App\Support\Analytics\PerformanceMetrics;
 use Carbon\CarbonImmutable;
@@ -20,8 +21,12 @@ use Livewire\Component;
  * Phase-6a property context (the selected property, or the all-properties roll-up via `currentReadIds`) and
  * a real date range. EVERY figure is real/derived from {@see PerformanceMetrics}; a thin/empty range shows an
  * honest "not enough data yet" state, never a fabricated curve, and the prototype's invented multi-year
- * history + generated narrative are NOT rendered. Lead time + booking pace are deferred "Soon" (SG1 verdict:
- * derivable but too thin in the real data to be meaningful).
+ * history + generated narrative are NOT rendered. Batch B (GATE 3) lit up the REAL booking cadence via the
+ * SHARED {@see BookingCadence} (identical to owner Insights, anti-drift): the median lead time (was "Soon"),
+ * the "When guests book" lead-time distribution, the "Nights that fill first" day-of-week occupancy, and the
+ * "Next 90 days" on-the-books revenue — every one a real aggregate, an honest empty state when history is
+ * thin. The prototype's "vs last year" deltas + rate-proposal narrative stay refused (no prior-year data
+ * without the demo seed; no pricing engine — #39).
  *
  * TENANT-scoped; `/app` behind EnsureBackOfficeAccess (#26); the route carries `can:reports.view` (a
  * management/analytics baseline — NOT Front Desk / Housekeeping / Maintenance / Reservation Agent, #30).
@@ -41,14 +46,27 @@ class OperatorInsights extends Component
         $metrics = PerformanceMetrics::forProperties($ids, $range['start'], $range['end'], $currency);
         $trend = PerformanceMetrics::monthlyTrendForProperties($ids, $range['start'], $range['end'], $currency);
 
+        // Batch B — REAL booking cadence via the SHARED BookingCadence (identical to owner Insights).
+        $today = CarbonImmutable::today();
+        $leadTime = BookingCadence::leadTimeForProperties($ids, $range['start'], $range['end']);
+        $weekday = BookingCadence::weekdayOccupancyForProperties($ids, $range['start'], $range['end']);
+        $onTheBooks = BookingCadence::onTheBooksForProperties($ids, $today, 90, $currency);
+
         return view('livewire.operator.insights', [
             'viewer' => $this->viewer(),
             'scopeLabel' => $this->viewingAllProperties ? 'All properties' : $this->currentPropertyName(),
             'ranges' => $this->rangeOptions($range['key']),
             'activeRange' => $range,
             'cards' => $this->cards($metrics, $currency),
+            'cadenceCards' => [
+                // The real median lead time + the real forward-booked room revenue (replaces the "Soon" tiles).
+                ['label' => 'Booking window', 'value' => $leadTime['median_days'] !== null ? $leadTime['median_days'].' days' : '—', 'sub' => $leadTime['has_data'] ? 'median, booking to check-in' : 'needs booking history'],
+                ['label' => 'Next 90 days', 'value' => $this->money($onTheBooks, $currency), 'sub' => 'room revenue on the books'],
+            ],
             'channelMix' => $this->channelMix($metrics),
             'trend' => $this->trend($trend, $currency),
+            'leadTime' => $leadTime,
+            'weekday' => $weekday,
             'multiCurrency' => $metrics->multiCurrency,
         ]);
     }
