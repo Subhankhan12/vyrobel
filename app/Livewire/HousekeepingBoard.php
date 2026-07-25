@@ -10,6 +10,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\HousekeepingTask;
 use App\Models\User;
 use App\Services\HousekeepingService;
+use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -107,6 +108,10 @@ class HousekeepingBoard extends Component
             'viewer' => $this->viewer(),
             'columns' => $columns,
             'summary' => $summary + ['high' => $high, 'total' => $total],
+            // Batch C · GATE 1 — the REAL assignable housekeepers (Housekeeping dept only, StaffRoster) for
+            // the row picker + whether the viewer may assign (the route is `housekeeping.manage`-gated too).
+            'housekeepers' => app(StaffRoster::class)->housekeepers(),
+            'canAssign' => auth()->user()?->can('housekeeping.manage') ?? false,
         ]);
     }
 

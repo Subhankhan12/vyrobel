@@ -80,6 +80,32 @@ final class StaffRoster
         return array_map(fn (array $s): string => $s['id'], $this->staff());
     }
 
+    /**
+     * The staff in the HOUSEKEEPING department only — the assignable set for a cleaning task (Batch C ·
+     * GATE 1). A `Housekeeping`/`Maintenance` role maps here ({@see StaffDepartment}); managers/front-desk
+     * do not. Derived from the same real {@see staff()} set, so it can never show a fabricated person.
+     *
+     * @return list<array{id: string, name: string, initials: string, department: string, role_label: string}>
+     */
+    public function housekeepers(): array
+    {
+        return array_values(array_filter(
+            $this->staff(),
+            fn (array $s): bool => $s['department'] === StaffDepartment::HOUSEKEEPING,
+        ));
+    }
+
+    /**
+     * The set of real housekeeper ids — the housekeeping-assign guard checks a submitted `user_id` against
+     * this, so a cleaning task can never be assigned to a non-housekeeper / non-staff / cross-org user.
+     *
+     * @return list<string>
+     */
+    public function housekeeperIds(): array
+    {
+        return array_map(fn (array $s): string => $s['id'], $this->housekeepers());
+    }
+
     private function initials(string $name): string
     {
         $parts = preg_split('/\s+/', trim($name)) ?: [];

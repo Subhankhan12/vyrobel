@@ -86,4 +86,28 @@ class HousekeepingService
 
         return $task->refresh();
     }
+
+    /**
+     * Assign a housekeeper to a task (Batch C · GATE 1) — sets `assigned_to` and records the change on the
+     * append-only event trail (domain + audit). The write is a plain column update within the housekeeping
+     * domain; it touches no availability/inventory. The CALLER is responsible for validating that $user is a
+     * REAL housekeeper for this org ({@see StaffRoster::housekeeperIds()}), so a fabricated / cross-org /
+     * non-housekeeper person can never be assigned — this method only performs the write + the events.
+     */
+    public function assign(HousekeepingTask $task, User $user, ?User $by = null): HousekeepingTask
+    {
+        $fromUserId = $task->assigned_to;
+
+        DB::transaction(function () use ($task, $user): void {
+            $task->update(['assigned_to' => $user->getKey()]);
+        });
+
+        $this->domainEvents->record('housekeeping.task_assigned', $task, [
+            'from_user_id' => $fromUserId,
+            'to_user_id' => (string) $user->getKey(),
+        ]);
+        $this->audit->record('housekeeping.task_assigned', $task, ['assigned_to' => $fromUserId], ['assigned_to' => (string) $user->getKey()]);
+
+        return $task->refresh();
+    }
 }

@@ -105,3 +105,56 @@ it('isolates tenants — org B cannot view or advance org A\'s task', function (
         ->assertNotFound();
     $this->assertDatabaseHas('housekeeping_tasks', ['id' => $taskA->id, 'status' => 'pending']);
 });
+
+// ── Batch C · GATE 1 — REAL housekeeper assignment (housekeeping.manage; Housekeeping department only) ──
+it('assigns a REAL housekeeper to a task and persists it', function () {
+    $s = seedScenario(1);
+    $manager = hkMember($s);                                                    // Hotel Manager · housekeeping.manage
+    $cleaner = operatorUser($s, ['name' => 'Rosa Cleaner'], 'Housekeeping');    // a REAL housekeeper (dept)
+    $task = hkTask($s);                                                         // unassigned
+
+    $this->actingAs($manager)
+        ->post(route('app.housekeeping.assign', $task->id), ['user_id' => $cleaner->id])
+        ->assertRedirect(route('app.housekeeping'));
+
+    $this->assertDatabaseHas('housekeeping_tasks', ['id' => $task->id, 'assigned_to' => $cleaner->id]);
+});
+
+it('refuses a non-housekeeper — only the Housekeeping department is assignable (no fabrication)', function () {
+    $s = seedScenario(1);
+    $frontDesk = operatorUser($s, ['name' => 'Front Deskington'], 'Front Desk');   // NOT a housekeeper
+    $task = hkTask($s);
+
+    $this->actingAs(hkMember($s))
+        ->post(route('app.housekeeping.assign', $task->id), ['user_id' => $frontDesk->id])
+        ->assertSessionHasErrors('user_id');   // Rule::in(housekeeperIds) rejects a non-housekeeper
+
+    $this->assertDatabaseHas('housekeeping_tasks', ['id' => $task->id, 'assigned_to' => null]);
+});
+
+it('gates assign on housekeeping.manage — a role without it is refused (403)', function () {
+    $s = seedScenario(1);
+    $cleaner = operatorUser($s, [], 'Housekeeping');
+    $task = hkTask($s);
+
+    // A Reservation Agent runs the front desk but does NOT hold housekeeping.manage → the route gate 403s.
+    $this->actingAs(operatorUser($s, [], 'Reservation Agent'))
+        ->post(route('app.housekeeping.assign', $task->id), ['user_id' => $cleaner->id])
+        ->assertForbidden();
+
+    $this->assertDatabaseHas('housekeeping_tasks', ['id' => $task->id, 'assigned_to' => null]);
+})->group('security');
+
+it('refuses a cross-org user_id — the assignable set is THIS org\'s real housekeepers', function () {
+    $s = seedScenario(1);
+    $task = hkTask($s);
+
+    $otherOrg = seedScenario(1);
+    $foreign = operatorUser($otherOrg, [], 'Housekeeping');   // a housekeeper in ANOTHER org
+
+    $this->actingAs(hkMember($s))
+        ->post(route('app.housekeeping.assign', $task->id), ['user_id' => $foreign->id])
+        ->assertSessionHasErrors('user_id');   // not in this org's housekeeperIds → rejected
+
+    $this->assertDatabaseHas('housekeeping_tasks', ['id' => $task->id, 'assigned_to' => null]);
+})->group('security');

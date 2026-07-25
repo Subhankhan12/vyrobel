@@ -183,6 +183,19 @@ class DemoSeeder extends Seeder
         );
         $admin->syncRoles(['Property Owner']);
 
+        // Batch C · GATE 1 — a real HOUSEKEEPER so the Housekeeping board's assign picker is populated (the
+        // assignable set is the Housekeeping dept via StaffRoster). demo-housekeeper@… holds the `Housekeeping`
+        // role — a genuine demo staff member, like every row here (never a fabricated assignee).
+        $housekeeper = User::firstOrCreate(
+            ['email' => 'demo-housekeeper@vyrobel-demo.test'],
+            ['name' => 'Rosa Fernandes', 'password' => Hash::make('password'), 'status' => 'active'],
+        );
+        Membership::firstOrCreate(
+            ['organization_id' => $org->id, 'user_id' => $housekeeper->id],
+            ['status' => 'active', 'invited_at' => now()],
+        );
+        $housekeeper->syncRoles(['Housekeeping']);
+
         // --- Mixed property ---
         $property = Property::create([
             'name' => 'Demo Seaside Property', 'brand' => 'Vyrobel Demo', 'type' => 'mixed',

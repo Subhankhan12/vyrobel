@@ -66,9 +66,23 @@
                                                 {{ $task['assignee'] }}
                                             </span>
                                         @else
-                                            {{-- DEFERRED: no HousekeepingService assign method — display real state, never fake an assignment. --}}
+                                            {{-- Batch C · GATE 1 — REAL assign: pick a housekeeper (Housekeeping dept only,
+                                                 via StaffRoster) → POST → HousekeepingService::assign → PRG. Only the real
+                                                 staff appear; the route is `housekeeping.manage`-gated too. --}}
                                             <span class="vy-hk-unassigned">Unassigned</span>
-                                            <span class="vy-soon-tag" title="Assigning a housekeeper isn’t wired yet">Assign · Soon</span>
+                                            @if ($canAssign && count($housekeepers) > 0)
+                                                <form method="POST" action="{{ route('app.housekeeping.assign', $task['id']) }}" class="vy-hk-assign">
+                                                    @csrf
+                                                    <select name="user_id" class="vy-input vy-hk-assign-select" style="font-size:11.5px;padding:3px 8px" aria-label="Assign a housekeeper" onchange="if (this.value) this.form.requestSubmit()">
+                                                        <option value="" disabled selected>Assign…</option>
+                                                        @foreach ($housekeepers as $hk)
+                                                            <option value="{{ $hk['id'] }}">{{ $hk['name'] }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </form>
+                                            @elseif ($canAssign)
+                                                <span class="vy-soon-tag" title="No housekeepers on the team yet — invite one under Team">No housekeepers yet</span>
+                                            @endif
                                         @endif
                                     </div>
 
@@ -94,8 +108,9 @@
 
             <div class="vy-deferred-note" style="margin-top: 18px;">
                 <span class="vy-soon-tag">Not yet available</span>
-                Drag-to-move &amp; housekeeper assignment are planned — advance a task with its status button
-                (Start / Mark clean / Mark inspected), which persists through the real cleaning action.
+                Drag-to-move is planned — advance a task with its status button (Start / Mark clean / Mark
+                inspected) or assign a housekeeper from the picker, both of which persist through the real
+                cleaning action.
             </div>
         @endif
 

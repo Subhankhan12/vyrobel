@@ -624,6 +624,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // Design pass · Operator Screen 3 — REAL housekeeping status advance via POST → action → redirect
     // (PRG). {task} is a string param resolved tenant-scoped in the controller (never RMB) → cross-org 404.
     Route::post('/housekeeping/{task}/status', [HousekeepingActionController::class, 'updateStatus'])->name('housekeeping.status');
+    // Batch C · GATE 1 — assign a REAL housekeeper (Housekeeping dept via StaffRoster) to a task. POST →
+    // HousekeepingService::assign → PRG; `housekeeping.manage`-gated; a non-housekeeper/cross-org id refused.
+    Route::post('/housekeeping/{task}/assign', [HousekeepingActionController::class, 'assign'])->middleware('can:housekeeping.manage')->name('housekeeping.assign');
     // Phase 7d — TEAM SCHEDULE. VIEW is broad (any staff sees the team roster, `schedule.view`); ASSIGN is a
     // manager-level act (`schedule.manage`, NOT Front Desk). The write is a real POST (NOT a Livewire action)
     // so the /app property middleware runs and the shift lands on the SELECTED property (PropertyContext).
