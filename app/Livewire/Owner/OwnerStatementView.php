@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
 use App\Models\Payout;
 use App\Services\OwnerPortalService;
+use App\Support\Analytics\PerformanceMetrics;
+use App\Support\Owner\OwnerLedgerAttribution;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -65,8 +69,99 @@ class OwnerStatementView extends Component
             'nav' => $this->navigation($allStatements, $statement),
             'payout' => $this->payoutPayload($portal->payouts(), $statement, $symbol),
             'unitsCount' => $portal->units()->count(),
+            'byUnit' => $this->byUnitPayload($statement),
             'viewer' => $this->viewer(),
         ]);
+    }
+
+    /**
+     * The REAL per-unit split of this statement (Batch B · GATE 1) — pure ledger arithmetic, so it
+     * reconciles to the statement net BY CONSTRUCTION (invariant #17): the split reads the exact ledger
+     * lines this statement CLAIMED (`owner_ledger.statement_id`, stamped at finalize), groups them by
+     * `unit_id`, and nets each group through the shared {@see OwnerLedgerAttribution} primitive — so
+     * Σ(per-unit net) + (unattributed net) == Σ signedMinor == the statement's net_source, to the cent.
+     * Per-unit gross = the unit's `room_revenue` credits; occupancy/nights come from the SHARED
+     * {@see PerformanceMetrics} over the statement's own period (owner-scoped — the owner's own units only,
+     * #28). A DRAFT has no stamped lines yet → an honest "available once finalized" state, never a fake split.
+     *
+     * Everything is in the ledger's SOURCE currency and reconciles to `net_source_minor`; for a same-currency
+     * statement (the common case) that equals the payout-currency net the hero shows.
+     *
+     * @return array<string, mixed>
+     */
+    private function byUnitPayload(OwnerStatement $s): array
+    {
+        $currency = (string) $s->source_currency;
+        $symbol = $this->currencySymbol($currency);
+
+        // The exact lines this statement claims (stamped at finalize). Owner-scoped by the global scope.
+        $entries = OwnerLedgerEntry::query()
+            ->where('statement_id', $s->id)
+            ->with('unit')
+            ->get();
+
+        if ($entries->isEmpty()) {
+            // A draft (nothing stamped yet) — the by-unit split is a property of the sealed statement.
+            return ['available' => false, 'units' => [], 'unattributed' => null, 'total_net_display' => null];
+        }
+
+        $totalNet = (int) $entries->sum(fn (OwnerLedgerEntry $e): int => $e->signedMinor());
+
+        // Half-open [period_start, period_end + 1 day) so the last day of the period is included.
+        $start = CarbonImmutable::parse($s->period_start->toDateString());
+        $end = CarbonImmutable::parse($s->period_end->toDateString())->addDay();
+
+        $units = [];
+        $unattributed = null;
+
+        foreach ($entries->groupBy(fn (OwnerLedgerEntry $e): string => (string) ($e->unit_id ?? '')) as $unitId => $rows) {
+            // Net via the SHARED primitive (single currency here → one entry keyed by $currency).
+            $net = OwnerLedgerAttribution::netPerCurrency($rows)[$currency] ?? 0;
+            $pct = $totalNet !== 0 ? (int) round($net / $totalNet * 100) : 0;
+
+            if ((string) $unitId === '') {
+                // Unit-less lines (e.g. a flat management fee): an honest remainder so the split still
+                // reconciles to the whole. Absent whenever every line is unit-attributed (the demo case).
+                $unattributed = [
+                    'net_minor' => $net,
+                    'net_display' => $this->money($net, $currency),
+                    'pct' => $pct,
+                ];
+
+                continue;
+            }
+
+            // Per-unit gross = the unit's room_revenue credits; occupancy/nights from the shared metric layer.
+            $gross = (int) $rows->where('entry_type', 'room_revenue')->sum(fn (OwnerLedgerEntry $e): int => $e->signedMinor());
+            $metrics = PerformanceMetrics::forOwnerUnits([(string) $unitId], $start, $end, $currency);
+            // unit_id is set here (else-branch) and the FK is nullOnDelete, so the unit row exists.
+            $unit = $rows->first()->unit;
+
+            $units[] = [
+                'name' => (string) ($unit->name ?? $unit->code ?? 'Unit'),
+                'nights' => $metrics->roomNightsSold,
+                'occupancy_pct' => $metrics->occupancyPct(),
+                'net_minor' => $net,
+                'net_display' => $this->money($net, $currency),
+                'gross_display' => $this->money($gross, $currency),
+                'pct_of_net' => $pct,
+                'bar_width' => max(0, min(100, $pct)),
+            ];
+        }
+
+        // Best-earning unit first — the wireframe's order.
+        usort($units, fn (array $a, array $b): int => $b['net_minor'] <=> $a['net_minor']);
+
+        return [
+            'available' => true,
+            'currency_symbol' => $symbol,
+            'unit_count' => count($units),
+            'period_label' => $s->period_start->format('F Y'),
+            'units' => $units,
+            'unattributed' => $unattributed,
+            'total_net_minor' => $totalNet,
+            'total_net_display' => $this->money($totalNet, $currency),
+        ];
     }
 
     /**

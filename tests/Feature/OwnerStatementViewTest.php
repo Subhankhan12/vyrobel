@@ -3,11 +3,13 @@
 use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
+use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatementLine;
 use App\Models\User;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -40,6 +42,37 @@ function statementOwner(array $s, int $unitIndex, int $roomMinor): array
     $payout = app(OwnerPayoutService::class)->createFromStatement($statement);
 
     return compact('user', 'owner', 'unit', 'statement', 'payout');
+}
+
+/**
+ * A linked owner who owns TWO units, both attributed into ONE finalized statement — the fixture for the
+ * by-unit split (Batch B · GATE 1). Returns the owner's user + the statement + the two units.
+ *
+ * @return array{user: User, owner: Owner, units: array<int, mixed>, statement: OwnerStatement}
+ */
+function twoUnitStatement(array $s): array
+{
+    $user = User::factory()->create();
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+    $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
+    ManagementAgreement::factory()->create([
+        'owner_id' => $owner->id, 'commission_pct' => 15.00, 'effective_from' => '2026-01-01',
+    ]);
+
+    $units = [];
+    foreach ([[0, 20000], [1, 15000]] as [$idx, $roomMinor]) {
+        $unit = $s['units'][$idx];
+        $unit->update(['owner_id' => $owner->id]);
+        $units[] = $unit;
+        $reservation = book($s, ['unit_id' => $unit->id]);
+        postRoom($reservation, $roomMinor);
+        app(OwnerAttributionService::class)->attributeReservation($reservation);
+    }
+
+    $svc = app(OwnerStatementService::class);
+    $statement = $svc->finalize($svc->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
+
+    return compact('user', 'owner', 'units', 'statement');
 }
 
 // ── 1. Renders real data + a to-the-cent breakdown + NO invented fee line ────────────────────────
@@ -114,4 +147,47 @@ it('404s a cross-owner statement and never leaks another owner’s figures', fun
     // A opening B's statement → 404 (owner boundary, like a cross-tenant id).
     $this->actingAs($a['user'])->get("/owner/statements/{$b['statement']->id}")
         ->assertNotFound();
+});
+
+// ── 3. By-unit split — REAL per-unit net/gross/occupancy that RECONCILES to the statement net (#17) ──
+it('splits the statement by unit and reconciles to the net to the cent (#17)', function () {
+    $s = seedScenario(2);
+    $x = twoUnitStatement($s);   // one owner, two units, both attributed into one finalized statement
+
+    // #17 — the exact ledger lines this statement CLAIMED (statement_id), grouped by unit_id, sum to the
+    // statement's source net to the cent. This is the anti-drift guarantee: same ledger, so it cannot drift.
+    $entries = OwnerLedgerEntry::query()->where('statement_id', $x['statement']->id)->get();
+    $perUnitNet = $entries->groupBy('unit_id')->map(
+        fn ($g) => (int) $g->sum(fn ($e) => $e->signedMinor())
+    );
+    expect((int) $perUnitNet->sum())->toBe((int) $x['statement']->net_source_minor)
+        ->and($entries->whereNull('unit_id')->count())->toBe(0);   // every demo line is unit-attributed
+
+    // …and it RENDERS the real split: the section, each unit's real NET, and the reconciled total.
+    $resp = $this->actingAs($x['user'])->get("/owner/statements/{$x['statement']->id}")
+        ->assertOk()
+        ->assertSee('By unit')
+        ->assertSee('% of net')
+        ->assertSee('Total net earnings')
+        ->assertSee('occupancy');   // the real per-unit occupancy sub-label (the deferred stub is gone)
+
+    foreach ($perUnitNet as $net) {
+        $resp->assertSee(MoneyFormatter::display($net, 'EUR'));   // each real per-unit net
+    }
+    // the total net earnings display equals the statement's own net (reconciliation, on-screen)
+    $resp->assertSee(MoneyFormatter::display((int) $x['statement']->net_source_minor, 'EUR'));
+});
+
+// ── 4. By-unit is owner-scoped (#28) — another owner's unit never appears ─────────────────────────
+it('shows only the acting owner’s own units in the by-unit split (#28)', function () {
+    $s = seedScenario(3);
+    $x = twoUnitStatement($s);                      // owner A → units 0 + 1
+    $b = statementOwner($s, 2, 50000);              // owner B → unit 2 (distinctive €425.00)
+    $b['unit']->update(['name' => 'Zzz Secret Villa']);
+
+    $this->actingAs($x['user'])->get("/owner/statements/{$x['statement']->id}")
+        ->assertOk()
+        ->assertSee('By unit')
+        ->assertDontSee('Zzz Secret Villa')   // B's unit name never leaks into A's split
+        ->assertDontSee('€425.00');           // nor B's figure
 });

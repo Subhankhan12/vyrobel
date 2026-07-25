@@ -210,22 +210,67 @@
         </div>
     </section>
 
-    {{-- ── By unit (full width) — DEFERRED (derivable from owner_ledger.unit_id; not this pass) ── --}}
+    {{-- ── By unit (full width) — REAL per-unit split (Batch B · GATE 1). Pure ledger arithmetic: the exact
+         lines this statement CLAIMED (owner_ledger.statement_id, stamped at finalize), grouped by unit_id and
+         netted through the shared OwnerLedgerAttribution primitive, so Σ per-unit net (+ any unattributed
+         remainder) == the statement net to the cent (#17). Occupancy/nights via the shared PerformanceMetrics
+         over this statement's own period. Owner's OWN units only (#28). No fabrication (#39): a draft with no
+         claimed lines shows an honest "available once finalized" state, never a fake split. ── --}}
     <section class="vy-card vy-fade" style="margin-top:22px;animation-delay:.16s">
-        <h2 class="vy-card-title" style="margin-bottom:12px">By unit</h2>
-        <div class="vy-deferred">
-            <span class="vy-eyebrow">Not yet available</span>
-            A per-unit split of this statement (gross / net / occupancy) is derivable from the ledger's
-            <code>unit_id</code> on each line. Wiring the per-unit projection is a later step in the design pass.
-            <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
-                @foreach ([70, 58, 64] as $w)
+        <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+            <h2 class="vy-card-title">By unit</h2>
+            @if ($byUnit['available'])
+                <span class="vy-line-sub">{{ $byUnit['period_label'] }} · {{ $byUnit['unit_count'] }} {{ \Illuminate\Support\Str::plural('unit', $byUnit['unit_count']) }}</span>
+            @endif
+        </div>
+
+        @if ($byUnit['available'])
+            <div style="display:flex;flex-direction:column;gap:16px">
+                @foreach ($byUnit['units'] as $u)
                     <div>
-                        <div class="vy-skeleton" style="width:{{ $w + 20 }}%;height:9px;margin-bottom:8px"></div>
-                        <div class="vy-track"><span style="width:{{ $w }}%"></span></div>
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+                            <div>
+                                <div class="vy-line-label" style="font-weight:600">{{ $u['name'] }}</div>
+                                <div class="vy-line-sub">{{ $u['nights'] }} {{ \Illuminate\Support\Str::plural('night', $u['nights']) }} · {{ $u['occupancy_pct'] }}% occupancy</div>
+                            </div>
+                            <div style="text-align:right">
+                                <div class="vy-line-amt vy-net" style="font-weight:600">{{ $u['net_display'] }}</div>
+                                <div class="vy-line-sub">{{ $u['gross_display'] }} gross · {{ $u['pct_of_net'] }}% of net</div>
+                            </div>
+                        </div>
+                        <div class="vy-track" style="margin-top:8px"><span style="width:{{ $u['bar_width'] }}%"></span></div>
                     </div>
                 @endforeach
+
+                @if ($byUnit['unattributed'])
+                    {{-- Unit-less lines (e.g. a flat management fee) — an honest remainder so the split still
+                         reconciles to the whole. Absent when every line is unit-attributed (the demo case). --}}
+                    <div>
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+                            <div>
+                                <div class="vy-line-label" style="font-weight:600">Whole portfolio</div>
+                                <div class="vy-line-sub">Not attributed to a single unit</div>
+                            </div>
+                            <div style="text-align:right">
+                                <div class="vy-line-amt vy-net" style="font-weight:600">{{ $byUnit['unattributed']['net_display'] }}</div>
+                                <div class="vy-line-sub">{{ $byUnit['unattributed']['pct'] }}% of net</div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
-        </div>
+
+            <div class="vy-line vy-line--net" style="margin-top:16px">
+                <div class="vy-line-label" style="font-weight:600">Total net earnings</div>
+                <div class="vy-line-amt vy-net" style="font-weight:700">{{ $byUnit['total_net_display'] }}</div>
+            </div>
+        @else
+            <div class="vy-deferred">
+                <span class="vy-eyebrow">Available once finalized</span>
+                A per-unit split of this statement (net · gross · occupancy) appears here once the statement is
+                finalized — it is derived from the exact ledger lines the statement claims.
+            </div>
+        @endif
     </section>
 </x-owner.shell>
 
