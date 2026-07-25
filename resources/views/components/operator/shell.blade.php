@@ -8,9 +8,11 @@
        subtitle  — a small line under the title (e.g. the active property name)
        viewer    — ['name' => string, 'initials' => string] (the authenticated staff user, for the chip)
 
-     Nav honesty: ONLY items with a real, built route navigate. The active item is highlighted
-     (non-link); every other item is a non-interactive "Soon" placeholder for an operator screen not
-     built yet — never a fake link. Operator screens are TENANT-scoped, never owner-scoped. --}}
+     Nav honesty: ONLY items with a real, built route navigate. A role-gated item the acting role can't
+     reach (its route resolved to null) is FILTERED OUT below — a permission-less role simply doesn't see
+     it (mirroring <x-owner.shell>), never a misleading "Coming soon" for a page that works for an admin.
+     The one placeholder that remains is the genuinely account-gated "channels" (Channex / a Pro feature).
+     Operator screens are TENANT-scoped, never owner-scoped. --}}
 @props([
     'active' => '',
     'title' => '',
@@ -68,6 +70,20 @@
             ['email-templates', 'Email templates', 'M3 5h18v14H3zM3 7l9 6 9-6', route('app.email-templates')],
         ]],
     ];
+
+    // Drop role-gated items the acting role can't reach — their route resolved to null (that is how each
+    // item encodes "this role lacks the permission"). A permission-less role simply doesn't see them,
+    // exactly like <x-owner.shell>'s filter — never a misleading "Coming soon" for a page that already
+    // works for an admin (Roles / Settings / Billing all 403 for a Hotel Manager but exist for the org
+    // admin). The ONE null kept is 'channels': it is genuinely account-gated (Channex not connected / a
+    // Pro feature), so its honest "Pro"/"Soon" placeholder is correct, not a missing permission. Drop a
+    // whole group if nothing survives.
+    $navGroups = array_values(array_filter(array_map(function ($grp) {
+        [$group, $items] = $grp;
+        $items = array_values(array_filter($items, fn ($it) => $it[3] !== null || $it[0] === 'channels'));
+
+        return [$group, $items];
+    }, $navGroups), fn ($grp) => $grp[1] !== []));
 @endphp
 
 <div class="vy-shell">
