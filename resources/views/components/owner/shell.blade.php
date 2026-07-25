@@ -49,7 +49,7 @@
         ]],
         ['ACCOUNT', [
             ['notifications', 'Notifications', 'M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0', route('owner.notifications'), ''],
-            ['settings', 'Settings', 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2', route('owner.settings'), ''],
+            ['settings', 'Profile', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 4-6 8-6s8 2 8 6', route('owner.settings'), ''],
             ['security', 'Security', 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z', null, ''],
             ['team', 'Team & access', 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', route('owner.team'), 'team'],
             ['help', 'Help & support', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.6 9a2.5 2.5 0 0 1 4 2c0 1.6-2 2-2 3.4M12 17h.01', route('owner.help'), ''],

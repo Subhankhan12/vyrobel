@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTenantForWebRequest;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // syncing TenantContext + spatie team id. CLI/queue/tests use programmatic context.
         $middleware->web(append: [
             SetTenantForWebRequest::class,
+            // Apply the signed-in user's saved language preference (English-only strings today; the
+            // preference is real and persists — see App\Http\Middleware\SetLocale).
+            SetLocale::class,
         ]);
 
         // Unauthenticated web requests to guarded routes redirect to the correct realm's login form: the GUEST

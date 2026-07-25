@@ -55,6 +55,7 @@ use App\Http\Controllers\Operator\RoleAssignmentController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
+use App\Http\Controllers\Owner\OwnerAccountController;
 use App\Http\Controllers\Owner\OwnerBlockController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerConnectController;
@@ -776,9 +777,24 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // so an owner can only ever edit their own row. The payout account/IBAN, notification prefs, team and 2FA
     // are net-new subsystems, stubbed "Soon".
     Route::get('/settings', OwnerSettings::class)->name('settings');
-    Route::post('/settings', [OwnerProfileController::class, 'update'])->name('settings.update');
-    // Change password (Auth) — owner-side write on the owner Settings page. Owner resolved from auth() (never
-    // a request id), current password verified, shared reset hash+rotate path. Rate-limited like the rest of auth.
+
+    // Per-USER self-profile (name / language / avatar / login-email) — 🔒 self-only via auth(), NO capability
+    // gate: EVERY owner-realm user, incl. accountant / view-only SUB-USERS, edits their OWN login (this is the
+    // fix for the old sub-user 404, where the page resolved an Owner row by a user_id a sub-user doesn't have).
+    // Writes are controller POSTs (never Livewire actions) so route middleware always runs.
+    Route::post('/account', [OwnerAccountController::class, 'update'])->name('account.update');
+    Route::post('/account/avatar', [OwnerAccountController::class, 'uploadAvatar'])->middleware('throttle:20,1')->name('account.avatar');
+    Route::delete('/account/avatar', [OwnerAccountController::class, 'removeAvatar'])->name('account.avatar.remove');
+    Route::post('/account/email', [OwnerAccountController::class, 'requestEmailChange'])->middleware('throttle:6,1')->name('account.email');
+    Route::post('/account/email/cancel', [OwnerAccountController::class, 'cancelEmailChange'])->name('account.email.cancel');
+
+    // OWNER-PARTY / business details (the entity the management team pays out to) — 🔒 PRIMARY-OWNER-ONLY (#42),
+    // gated at the route by EnsurePrimaryOwner. Resolved by an explicit where('user_id', auth id); no owner id
+    // in the request, so an owner can only ever edit their own party row.
+    Route::post('/settings', [OwnerProfileController::class, 'update'])->middleware(EnsurePrimaryOwner::class)->name('settings.update');
+
+    // Change password (Auth) — owner-side write. Owner resolved from auth() (never a request id), current
+    // password verified, shared reset hash+rotate path. Rate-limited like the rest of auth.
     Route::post('/settings/password', [ChangePasswordController::class, 'owner'])->middleware('throttle:6,1')->name('settings.password');
     // Two-factor ENROLLMENT (owner side) — same shared TwoFactorController, self-only, back() to /owner/settings.
     Route::post('/settings/2fa/enable', [TwoFactorController::class, 'enable'])->name('settings.2fa.enable');
@@ -800,3 +816,11 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         Route::post('/team/invites/{invite}/revoke', [OwnerTeamController::class, 'revokeInvite'])->name('team.invites.revoke');
     });
 });
+
+// Owner login-email change · VERIFY (owner account area · Gate 1). PUBLIC + `signed`: the link is opened from
+// the NEW inbox — possibly on a device where the owner isn't signed in — so it can't sit behind `auth`. Security
+// is the HMAC signature (unforgeable) + the `sha1(pending_email)` hash binding (a later change to the pending
+// address invalidates any older link), mirroring the guest claim-verify mechanism. Rate-limited.
+Route::get('/owner/account/email/verify/{user}/{hash}', [OwnerAccountController::class, 'verifyEmailChange'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('owner.account.email.verify');

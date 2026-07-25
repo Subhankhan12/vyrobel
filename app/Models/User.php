@@ -18,6 +18,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -30,8 +31,10 @@ use Spatie\Permission\Traits\HasRoles;
  *
  * @property list<array{code: string, used_at: string|null}>|null $two_factor_recovery_codes
  * @property Carbon|null $last_login_at the `datetime` cast makes this a Carbon at runtime
+ * @property string|null $avatar_path relative path on the `public` disk of the user's own avatar
+ * @property string|null $pending_email a login-email change parked here until the signed verify link is opened
  */
-#[Fillable(['name', 'email', 'password', 'locale', 'status', 'two_factor_enabled', 'last_login_at'])]
+#[Fillable(['name', 'email', 'password', 'locale', 'avatar_path', 'status', 'two_factor_enabled', 'last_login_at'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {
@@ -94,6 +97,17 @@ class User extends Authenticatable
     public function hasTwoFactorEnabled(): bool
     {
         return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
+    }
+
+    /**
+     * Public URL of the user's OWN uploaded avatar, or null when none is set (the UI falls back to the
+     * initials chip). The bytes live on the `public` disk; only the relative path is stored on the row.
+     */
+    public function avatarUrl(): ?string
+    {
+        $path = $this->avatar_path;
+
+        return ($path === null || $path === '') ? null : Storage::disk('public')->url($path);
     }
 
     public function organizations(): BelongsToMany

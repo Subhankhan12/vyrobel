@@ -67,28 +67,33 @@ it('shows the owner their own details and not another owner’s', function () {
     assertNoRawBlade($response);
 });
 
-// ── 4. HONESTY — the unbacked subsystems are "Soon", not a fake save (2FA is now REAL, not a stub) ──
-it('stubs the payout account, notifications and team as Soon, and shows the real two-factor panel', function () {
+// ── 4. HONESTY — the old "Soon" stubs are now REAL links (owner account area · Gate 1) ───────────
+it('shows real links (no fake "Soon") for payout, notifications and team, plus the real two-factor panel', function () {
     $s = seedScenario(1);
     $a = inboxOwner($s, 'Amara Okafor', 0);
 
     $this->actingAs($a['user'])->get('/owner/settings')
         ->assertOk()
+        ->assertSee('My profile')
+        // The "More" row now LINKS to the real pages (these subsystems shipped) — no fake "Soon".
         ->assertSee('Payout account & bank details')
         ->assertSee('Notification preferences')
-        ->assertSee('not wired yet')
-        // 2FA moved from a "Soon" stub to a real TOTP panel this gate.
+        ->assertSee('Team & access')
+        ->assertDontSee('not wired yet')
+        // Real TOTP panel.
         ->assertSee('Two-factor authentication')
-        ->assertSee('Enable two-factor');
+        ->assertSee('Enable two-factor')
+        // The primary owner sees the editable owner-party (business) form.
+        ->assertSee('Save business details');
 });
 
-// ── 5. FAIL-CLOSED — a user with no owner link cannot write a profile ────────────────────────────
-it('404s the self-profile write for a user who is not an owner', function () {
+// ── 5. #42 — the owner-party write is PRIMARY-OWNER-ONLY; a non-primary-owner is refused ─────────
+it('forbids the owner-party (business) write to a user who is not the primary owner', function () {
     $s = seedScenario(1);
-    // A back-office staff user is not linked to any Owner row → firstOrFail finds nothing.
+    // A back-office staff user is not the primary owner → EnsurePrimaryOwner refuses before the controller.
     $staff = operatorUser($s, ['name' => 'Not An Owner'], 'Hotel Manager');
 
-    $this->actingAs($staff)->post('/owner/settings', ['name' => 'Hacker'])->assertNotFound();
+    $this->actingAs($staff)->post('/owner/settings', ['name' => 'Hacker'])->assertForbidden();
 
     expect(Owner::query()->where('name', 'Hacker')->exists())->toBeFalse();
 });

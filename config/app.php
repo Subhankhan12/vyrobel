@@ -80,6 +80,10 @@ return [
 
     'locale' => env('APP_LOCALE', 'en'),
 
+    // Languages a user may SAVE as their preference (Profile & account · Language). Only 'en' is translated
+    // today, so the others persist the choice and fall back to English at render time — the UI says so.
+    'available_locales' => ['en', 'pt', 'es', 'fr'],
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
