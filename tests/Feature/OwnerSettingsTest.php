@@ -80,9 +80,9 @@ it('shows real links (no fake "Soon") for payout, notifications and team, plus t
         ->assertSee('Notification preferences')
         ->assertSee('Team & access')
         ->assertDontSee('not wired yet')
-        // Real TOTP panel.
-        ->assertSee('Two-factor authentication')
-        ->assertSee('Enable two-factor')
+        // Password + two-factor now live on the dedicated Security page — linked, not on this page.
+        ->assertSee('Security')
+        ->assertSee(route('owner.security'), false)
         // The primary owner sees the editable owner-party (business) form.
         ->assertSee('Save business details');
 });

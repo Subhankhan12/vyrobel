@@ -64,6 +64,7 @@ use App\Http\Controllers\Owner\OwnerPayoutMethodController;
 use App\Http\Controllers\Owner\OwnerProfileController;
 use App\Http\Controllers\Owner\OwnerRateController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
+use App\Http\Controllers\Owner\OwnerSecurityController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\Owner\OwnerTaxController;
 use App\Http\Controllers\Owner\OwnerTeamController;
@@ -135,6 +136,7 @@ use App\Livewire\Owner\OwnerPayouts;
 use App\Livewire\Owner\OwnerRates;
 use App\Livewire\Owner\OwnerReports;
 use App\Livewire\Owner\OwnerReviews;
+use App\Livewire\Owner\OwnerSecurity;
 use App\Livewire\Owner\OwnerSettings;
 use App\Livewire\Owner\OwnerStatementView;
 use App\Livewire\Owner\OwnerTaxCenter;
@@ -793,14 +795,21 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // in the request, so an owner can only ever edit their own party row.
     Route::post('/settings', [OwnerProfileController::class, 'update'])->middleware(EnsurePrimaryOwner::class)->name('settings.update');
 
-    // Change password (Auth) — owner-side write. Owner resolved from auth() (never a request id), current
-    // password verified, shared reset hash+rotate path. Rate-limited like the rest of auth.
-    Route::post('/settings/password', [ChangePasswordController::class, 'owner'])->middleware('throttle:6,1')->name('settings.password');
-    // Two-factor ENROLLMENT (owner side) — same shared TwoFactorController, self-only, back() to /owner/settings.
-    Route::post('/settings/2fa/enable', [TwoFactorController::class, 'enable'])->name('settings.2fa.enable');
-    Route::post('/settings/2fa/confirm', [TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('settings.2fa.confirm');
-    Route::post('/settings/2fa/recovery-codes', [TwoFactorController::class, 'regenerate'])->name('settings.2fa.regenerate');
-    Route::post('/settings/2fa/disable', [TwoFactorController::class, 'disable'])->middleware('throttle:6,1')->name('settings.2fa.disable');
+    // ── SECURITY page (owner account area · Gate 2) — per-USER (self-only via auth), controller POSTs only.
+    Route::get('/security', OwnerSecurity::class)->name('security');
+    // Change password (Auth) — self-only, current password verified, shared reset hash+rotate path.
+    Route::post('/security/password', [ChangePasswordController::class, 'owner'])->middleware('throttle:6,1')->name('security.password');
+    // Two-factor ENROLLMENT — same shared TwoFactorController, self-only, back() to /owner/security.
+    Route::post('/security/2fa/enable', [TwoFactorController::class, 'enable'])->name('security.2fa.enable');
+    Route::post('/security/2fa/confirm', [TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('security.2fa.confirm');
+    Route::post('/security/2fa/recovery-codes', [TwoFactorController::class, 'regenerate'])->name('security.2fa.regenerate');
+    Route::post('/security/2fa/disable', [TwoFactorController::class, 'disable'])->middleware('throttle:6,1')->name('security.2fa.disable');
+    // Real active-session management — "sign out all other sessions" re-auths with the password.
+    Route::post('/security/sessions/sign-out-others', [OwnerSecurityController::class, 'signOutOtherSessions'])->middleware('throttle:6,1')->name('security.sessions.signout');
+    // Real owner-scoped data export ("Request my data").
+    Route::get('/security/export', [OwnerSecurityController::class, 'exportData'])->middleware('throttle:6,1')->name('security.export');
+    // DEACTIVATE (pause) — 🔒 PRIMARY-OWNER-ONLY (#42), re-auth with the password, reversible + non-destructive.
+    Route::post('/security/deactivate', [OwnerSecurityController::class, 'deactivate'])->middleware([EnsurePrimaryOwner::class, 'throttle:6,1'])->name('security.deactivate');
 
     // Phase 7c · SG3 — the OWNER TEAM (owner sub-tenancy). 🔒 PRIMARY OWNER ONLY: EnsurePrimaryOwner gates
     // the read screen AND every mutation at the ROUTE (team management is held by no role — not even a

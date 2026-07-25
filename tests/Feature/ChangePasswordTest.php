@@ -104,11 +104,11 @@ it('lets an owner change their own password with the current password verified',
     $a = inboxOwner($s, 'Amara Okafor', 0);
     $a['user']->forceFill(['password' => 'owner-current', 'remember_token' => 'OWNER-OLD'])->save();
 
-    $this->actingAs($a['user'])->post('/owner/settings/password', [
+    $this->actingAs($a['user'])->post('/owner/security/password', [
         'current_password' => 'owner-current',
         'password' => 'owner-new-pass-9',
         'password_confirmation' => 'owner-new-pass-9',
-    ])->assertRedirect(route('owner.settings'))->assertSessionHas('password_status');
+    ])->assertRedirect(route('owner.security'))->assertSessionHas('password_status');
 
     $fresh = $a['user']->fresh();
     expect(Hash::check('owner-new-pass-9', $fresh->password))->toBeTrue()
@@ -120,7 +120,7 @@ it('rejects an owner’s change with a wrong current password', function () {
     $a = inboxOwner($s, 'Amara Okafor', 0);
     $a['user']->forceFill(['password' => 'owner-current-2'])->save();
 
-    $this->actingAs($a['user'])->post('/owner/settings/password', [
+    $this->actingAs($a['user'])->post('/owner/security/password', [
         'current_password' => 'wrong',
         'password' => 'owner-new-pass-9',
         'password_confirmation' => 'owner-new-pass-9',
@@ -132,7 +132,7 @@ it('rejects an owner’s change with a wrong current password', function () {
 // ── 6. THE ROUTES ARE BEHIND auth; the operator page is reachable by ANY back-office role ────────
 it('requires auth for the change-password write and the security page', function () {
     $this->post('/app/security/password', [])->assertRedirect(route('login'));
-    $this->post('/owner/settings/password', [])->assertRedirect(route('login'));
+    $this->post('/owner/security/password', [])->assertRedirect(route('login'));
     $this->get('/app/security')->assertRedirect(route('login'));
 });
 

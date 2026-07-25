@@ -37,10 +37,10 @@ class ChangePasswordController extends Controller
         return $this->change($request, route('app.security'));
     }
 
-    /** Owner side → back to the owner Settings page, where the change-password card lives. */
+    /** Owner side → back to the owner Security page, where the change-password card lives. */
     public function owner(Request $request): RedirectResponse
     {
-        return $this->change($request, route('owner.settings'));
+        return $this->change($request, route('owner.security'));
     }
 
     private function change(Request $request, string $back): RedirectResponse

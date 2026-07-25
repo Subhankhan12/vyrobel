@@ -142,42 +142,14 @@
             </div>
         @endif
 
-        {{-- ══ Change password — self-only, current-password-verified (moves to Security next) ══════════ --}}
-        @if (session('password_status'))
-            <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:16px;">
-                <div style="font-size:13.5px;color:var(--vy-ink);">{{ session('password_status') }}</div>
+        {{-- ══ Security — password, two-factor, sessions & protection live on their own page ═══════════ --}}
+        <a href="{{ route('owner.security') }}" class="vy-card vy-fade" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;text-decoration:none;color:var(--vy-ink);">
+            <div>
+                <h2 style="{{ $h2 }}">Security</h2>
+                <p style="font-size:12.5px;color:var(--vy-muted);margin:0;">Password, two-factor authentication, active sessions and account protection.</p>
             </div>
-        @endif
-        <div class="vy-card vy-fade" style="margin-bottom:16px;">
-            <h2 style="{{ $h2 }}">Change password</h2>
-            <p style="{{ $sub }}">Enter your current password to confirm it’s you. Other devices with “remember me” are signed out.</p>
-            <form method="POST" action="{{ route('owner.settings.password') }}">
-                @csrf
-                <div style="display:grid;gap:14px;max-width:380px;">
-                    <div>
-                        <label style="{{ $lbl }}" for="cur_pw">Current password</label>
-                        <input id="cur_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" required>
-                        @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <label style="{{ $lbl }}" for="new_pw">New password</label>
-                        <input id="new_pw" type="password" name="password" class="vy-input" autocomplete="new-password" required>
-                        @error('password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-                        <span style="font-size:11px;color:var(--vy-faint);">At least 8 characters.</span>
-                    </div>
-                    <div>
-                        <label style="{{ $lbl }}" for="conf_pw">Confirm new password</label>
-                        <input id="conf_pw" type="password" name="password_confirmation" class="vy-input" autocomplete="new-password" required>
-                    </div>
-                </div>
-                <div style="margin-top:16px;display:flex;justify-content:flex-end;">
-                    <button type="submit" class="vy-btn" style="{{ $btn }}">Update password</button>
-                </div>
-            </form>
-        </div>
-
-        {{-- ══ Two-factor — REAL TOTP (shared panel) ═══════════════════════════════════════════════════ --}}
-        @include('livewire.partials.two-factor-panel')
+            <span style="color:var(--vy-accent);font-size:18px;">→</span>
+        </a>
 
         {{-- ══ More — REAL links (the old "Soon" stubs now exist) ══════════════════════════════════════ --}}
         <div class="vy-card vy-fade">

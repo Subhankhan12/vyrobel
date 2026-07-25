@@ -3367,3 +3367,59 @@ app's honest real/sparse/empty state — styled to the prototype's treatment —
 **Verification:** suite **924 / 7517** green on MySQL 8 (re-run at completion), PHPStan L5 = 0, Pint clean after
 every commit; blades compile; browser-verified each fix. `migrate:fresh --seed` unaffected. Invariants **#1–#45**
 unchanged (a presentation pass adds no invariant). `docs/design/raw/*.html` stay gitignored.
+
+## 2026-07-25 — OWNER ACCOUNT AREA rebuilt: "Profile & account" + "Security" (two gates) — invariant #46
+
+The owner-portal account area was rebuilt to the wireframes (`Owner Settings.html` + `Owner Security.html`),
+fully operational (real DB, real backend, real security), resolving a real defect: the profile was tangled
+between two identities and **404'd for owner-team sub-users**.
+
+**GATE 1 — `/owner/settings` → "Profile & account" (`bc33f33`).** The identity split:
+- **MY PROFILE (per-USER, `auth()`-resolved)** — avatar upload (new `users.avatar_path`, content-validated,
+  ULID filename, public disk — the RoomTypePhoto pattern), name (`users.name`), **login email RE-VERIFIED**
+  before it switches (parked in new `users.pending_email`; a signed `temporarySignedRoute` whose `{hash}` is
+  `sha1($pendingEmail)` is mailed to the new address via `OwnerEmailChangeMail`; the guest-claim mechanism),
+  and **language** (`users.locale` persisted + applied via a new `SetLocale` middleware — English-only strings
+  today, the preference is honest + saved). New `OwnerAccountController` (self-only, POST→PRG, audit
+  field-names-only). **This makes the page work for accountant/view-only SUB-USERS** (they have no `Owner` row —
+  the old page's `Owner::where('user_id')` returned null → 404).
+- **OWNER / BUSINESS DETAILS** — the existing `OwnerProfileController`, now **route-gated by
+  EnsurePrimaryOwner** (#42); sub-users see an honest note. Tax/VAT → Tax Center, bank → Payout Method (linked,
+  not duplicated). The stale "More · Soon" stubs are now REAL links. Nav "Settings" → "Profile".
+
+**GATE 2 — `/owner/security` → "Security" (the dead "Security" nav link, now a real page).** Per-USER:
+- **Password** (`changePasswordTo`, current-verified) + **2FA** (TOTP + recovery codes) — MOVED here from
+  Settings; owner routes renamed `owner.settings.{password,2fa}` → `owner.security.*`.
+- **Account protection checklist** — DERIVED from true state (password set · 2FA on/off · unused recovery
+  codes), NEVER a fabricated 0–100 score / "suspicious login".
+- **Active sessions** — the REAL `sessions` table (database driver); **"sign out all other sessions"**
+  deletes the other rows + rotates the remember-token, password-gated.
+- **Deactivate account** — 🔒 PRIMARY-OWNER-ONLY (EnsurePrimaryOwner), password-gated, **REVERSIBLE +
+  NON-DESTRUCTIVE**: flips `users.status` to 'disabled' (login is active-only, so the account can't sign in) —
+  bookings/statements/payouts STAY; PII erasure remains the separate #28 `anonymize()` path. Reactivation
+  (status → 'active') restores access.
+- **"Request my data"** — a real OWNER-SCOPED JSON export (profile + statements + payouts + units).
+- The rest of the wireframe (passkeys, login-approval/trusted-locations, connected apps, full login history,
+  new-device alerts, session-timeout/theme) is honest "Soon" — never a fake toggle. The fabricated
+  security-score / suspicious-login / billing / connected-channels are REFUSED.
+
+**Mutation-proven (OwnerAccountProfileTest 12 · OwnerSecurityTest 6 · updated OwnerSettings/ChangePassword/
+TwoFactorEnrollment):** sub-user profile works (no 404) · #28 self-only · #42 primary-owner gate on
+business/deactivate · email re-verify (park/switch/reject-mismatch/reject-unsigned) · avatar upload/remove/
+reject-non-image · sessions sign-out password-gated + really deletes rows · deactivate primary-owner-only +
+reversible + non-destructive (disabled → can't log in, reactivate → can, no financial data deleted) · export
+owner-scoped. All writes are controller POSTs (never /livewire/update — the boundary lesson).
+
+**INVARIANT #46 (new) — the owner account area.** Owner self-profile (name/login-email/avatar/language/
+password/2FA/sessions/export) is PER-USER, `auth()`-resolved, never a request id — so every owner-realm user
+incl. SUB-USERS manages their OWN account; OWNER-PARTY/business + payout + team + DEACTIVATE are
+PRIMARY-OWNER-ONLY (EnsurePrimaryOwner, #42); a login-email change RE-VERIFIES the new address before it
+switches; DEACTIVATE is a reversible, non-destructive status flag (login active-only; financial data stays;
+erasure stays the #28 anonymize path); active sessions are the REAL sessions table (sign-out-others
+password-gated); the protection checklist is DERIVED from true state (never a fabricated score); writes are
+controller POSTs, never /livewire/update.
+
+**Verification:** suite **942 / 7631** green on MySQL 8; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed`
+clean; browser-verified as the owner AND an accountant sub-user (the sub-user profile works; the real session
+shows; deactivate is primary-owner-only). Presentation + the new backend only — money/auth/isolation paths
+otherwise untouched. Invariants **#1–46**.

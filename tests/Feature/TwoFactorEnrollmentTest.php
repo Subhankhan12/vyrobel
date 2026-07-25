@@ -157,12 +157,12 @@ it('lets an owner enroll and confirm 2FA on the owner side', function () {
     $s = seedScenario(1);
     $a = inboxOwner($s, 'Amara Okafor', 0);
 
-    $this->actingAs($a['user'])->post('/owner/settings/2fa/enable');
+    $this->actingAs($a['user'])->post('/owner/security/2fa/enable');
     $secret = (string) $a['user']->fresh()->two_factor_secret;
 
     // from() sets the referer so the controller's back() PRG returns to the owner settings page.
-    $this->actingAs($a['user'])->from(route('owner.settings'))->post('/owner/settings/2fa/confirm', ['code' => currentOtp($secret)])
-        ->assertRedirect(route('owner.settings'))->assertSessionHas('two_factor_recovery_codes');
+    $this->actingAs($a['user'])->from(route('owner.security'))->post('/owner/security/2fa/confirm', ['code' => currentOtp($secret)])
+        ->assertRedirect(route('owner.security'))->assertSessionHas('two_factor_recovery_codes');
 
     expect($a['user']->fresh()->hasTwoFactorEnabled())->toBeTrue();
 });

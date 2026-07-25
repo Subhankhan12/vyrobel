@@ -465,7 +465,7 @@ conflicts with the repo, **trust the repo** and fix this file.
   comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–45 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–46 (the full guarantee stack)
 
 > **All 45, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
@@ -533,6 +533,17 @@ conflicts with the repo, **trust the repo** and fix this file.
 > and once WITH) and a transfer only ever goes to ITS OWN owner's connected account; the ledgers stay
 > append-only / correct-by-reversal / integer money (#17, #27), reconciling; the LIVE-KEY FLIP (test→live keys +
 > the live webhook endpoints) is Subhan's documented go-live step, never done in the build**.
+> · **#46 the OWNER ACCOUNT AREA (Profile & account + Security):** the owner self-profile
+> (name/login-email/avatar/language/password/2FA/sessions/data-export) is PER-USER — resolved from `auth()`,
+> NEVER a request id — so every owner-realm user incl. accountant/view-only SUB-USERS manages their OWN account
+> (the old sub-user 404 is gone); the OWNER-PARTY/business details + payout links + team + DEACTIVATE are
+> PRIMARY-OWNER-ONLY (`EnsurePrimaryOwner`, #42); a login-email change RE-VERIFIES the new address (a signed
+> `temporarySignedRoute` mailed to it, `{hash}`=`sha1(pending_email)`) BEFORE it switches; DEACTIVATE is a
+> REVERSIBLE, NON-DESTRUCTIVE `users.status` flag (login is active-only → a paused account can't sign in;
+> bookings/statements/payouts STAY; PII erasure remains the #28 `anonymize()` path; reactivation restores);
+> active sessions are the REAL `sessions` table (sign-out-others password-gated + rotates the remember-token);
+> the account-protection checklist is DERIVED from true state (password set · 2FA on/off · unused recovery
+> codes) — NEVER a fabricated score; all writes are controller POSTs (never `/livewire/update`).
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -1530,7 +1541,9 @@ plain GET links (e.g. `?month=`).
 > `MailSafetyGuard`; the Phase-3 mail-failure boundary re-proven with the real transport; DNS + the one real send are
 > Subhan's). Suite **921 / 7496** with **LIVE STRIPE wired TEST-MODE-FIRST across all three seams** (subscription
 > billing · guest card charge · owner payout rail/Connect — webhook-driven, multi-layer idempotent, no raw PAN,
-> the payout double-transfer-guarded; the live-key flip is Subhan's). Invariants **#1–45**. Suite **924 / 7517**
+> the payout double-transfer-guarded; the live-key flip is Subhan's). The **OWNER ACCOUNT AREA** was then rebuilt
+> (Profile & account + Security — the per-user identity split that fixes the sub-user 404; email re-verify;
+> avatar/language/sessions/export/reversible-deactivate; #46). Invariants **#1–46**. Suite **942 / 7631**
 > after a **full READ-ONLY system audit** (`docs/AUDIT-REPORT.md`, 26 browser screenshots) whose demo-blockers were
 > then cleared in a targeted presentation/seed/test pass: `c0ce419` wrapped the four **unstyled operator controller-
 > pages** (Reviews/Guest requests/Email previews/Email templates — bare `<x-operator.shell>`, no document `<head>`)

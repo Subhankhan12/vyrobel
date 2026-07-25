@@ -6,7 +6,6 @@ namespace App\Livewire\Owner;
 
 use App\Http\Controllers\Owner\OwnerAccountController;
 use App\Http\Controllers\Owner\OwnerProfileController;
-use App\Livewire\Concerns\PreparesTwoFactor;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\Owner;
 use App\Support\Owner\OwnerContext;
@@ -33,7 +32,7 @@ use Livewire\Component;
 #[Layout('components.layouts.owner')]
 class OwnerSettings extends Component
 {
-    use FormatsOwnerData, PreparesTwoFactor;
+    use FormatsOwnerData;
 
     public function render(): View
     {
@@ -71,7 +70,6 @@ class OwnerSettings extends Component
                 'phone' => (string) ($ownerParty->phone ?? ''),
                 'type' => (string) $ownerParty->type,
             ] : null,
-            'twoFactor' => $this->twoFactorPanel('owner.settings.2fa'),
         ]);
     }
 }

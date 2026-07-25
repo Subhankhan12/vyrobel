@@ -17,7 +17,7 @@ use App\Support\TwoFactor\TwoFactorService;
  * The 2FA state is derived from the SELF user (auth): `disabled` (no secret), `pending` (a secret generated
  * but not yet confirmed — shows the QR + confirm form), or `enabled` (confirmed — the source of truth
  * {@see User::hasTwoFactorEnabled()}). Recovery codes appear only when just flashed by the controller (shown
- * exactly once). The route prefix differs per portal (`app.security.2fa` vs `owner.settings.2fa`).
+ * exactly once). The route prefix differs per portal (`app.security.2fa` vs `owner.security.2fa`).
  */
 trait PreparesTwoFactor
 {
