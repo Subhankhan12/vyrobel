@@ -7,8 +7,10 @@ namespace App\Http\Controllers\Operator;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetCurrentPropertyForWebRequest;
 use App\Livewire\Operator\OperatorSettings;
+use App\Models\Fee;
 use App\Models\Organization;
 use App\Models\Property;
+use App\Models\Tax;
 use App\Services\SettingsService;
 use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
@@ -81,6 +83,46 @@ class SettingsActionController extends Controller
         $settings->updateOrganization($organization, $data);
 
         return $this->back('Organization settings saved.');
+    }
+
+    /**
+     * Batch C · GATE 4 — edit the property's TAXES & FEES (the "Editing · Soon" gap). Each posted id → a
+     * bounded {@see SettingsService::updateTax}/{@see SettingsService::updateFee} write (rate clamped 0–100,
+     * amount ≥ 0 integer minor #17). Tenant-safe: Tax/Fee are BelongsToOrganization, so a cross-org id
+     * resolves to null and is skipped — never edited. `properties.manage`-gated on the route.
+     */
+    public function updateTaxesAndFees(Request $request, SettingsService $settings): RedirectResponse
+    {
+        $this->currentProperty();   // asserts a tenant/property context (404 if none)
+
+        $validated = $request->validate([
+            'taxes' => ['array'],
+            'taxes.*' => ['nullable', 'numeric', 'min:0', 'max:100000'],
+            'fees' => ['array'],
+            'fees.*' => ['nullable', 'numeric', 'min:0', 'max:100000'],
+        ]);
+
+        foreach (($validated['taxes'] ?? []) as $id => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+            $tax = Tax::query()->find((string) $id);   // tenant-scoped → cross-org null → skipped
+            if ($tax instanceof Tax) {
+                $settings->updateTax($tax, (float) $value);
+            }
+        }
+
+        foreach (($validated['fees'] ?? []) as $id => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+            $fee = Fee::query()->find((string) $id);
+            if ($fee instanceof Fee) {
+                $settings->updateFee($fee, (float) $value);
+            }
+        }
+
+        return $this->back('Taxes & fees saved.');
     }
 
     /**

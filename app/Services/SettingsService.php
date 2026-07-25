@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Fee;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Models\PropertyPolicy;
+use App\Models\Tax;
 use App\Support\Events\AuditEventRecorder;
 use Illuminate\Support\Arr;
 
@@ -77,5 +79,32 @@ class SettingsService
         $organization->update($changes);
 
         $this->audit->record('organization.settings_updated', $organization, null, ['fields' => array_keys($changes)]);
+    }
+
+    /**
+     * Bounded edit of a property TAX (Batch C · GATE 4) — a percentage tax updates `rate` (clamped 0–100);
+     * a fixed tax updates `amount_minor` (≥ 0, integer minor from the entered major units, #17). The mode /
+     * kind is NEVER changed — only the editable figure. Tenant-safe: the caller resolves the Tax under the
+     * org scope, so a cross-org id is never reached here.
+     */
+    public function updateTax(Tax $tax, float $value): void
+    {
+        $changes = (string) $tax->mode === 'percentage'
+            ? ['rate' => max(0.0, min(100.0, $value))]
+            : ['amount_minor' => max(0, (int) round($value * 100))];
+
+        $tax->update($changes);
+        $this->audit->record('tax.updated', $tax, null, ['fields' => array_keys($changes)]);
+    }
+
+    /** Bounded edit of a property FEE (Batch C · GATE 4) — same rule as {@see updateTax}. */
+    public function updateFee(Fee $fee, float $value): void
+    {
+        $changes = (string) $fee->mode === 'percentage'
+            ? ['rate' => max(0.0, min(100.0, $value))]
+            : ['amount_minor' => max(0, (int) round($value * 100))];
+
+        $fee->update($changes);
+        $this->audit->record('fee.updated', $fee, null, ['fields' => array_keys($changes)]);
     }
 }

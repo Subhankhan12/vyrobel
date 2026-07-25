@@ -3525,3 +3525,56 @@ trends/benchmarks/recommendations/LY-deltas (#39).
 real + empty-state; `BookingCadenceTest`; operator + owner cadence render); PHPStan L5 = 0; Pint clean;
 `migrate:fresh --seed` clean (24 reservations, real lead-time shape). Browser-verified all five surfaces vs the
 prototypes. Money/auth/isolation paths + invariants #1–46 UNCHANGED. Presentation + read-only aggregates only.
+
+### 2026-07-26 — Batch C OPERATOR OPERATIONS — assign · move · add-charge · payment money-gate · tax editing
+
+The Batch-C operator-operations features from `docs/GAP-SWEEP.md` §5, built exactly to the wireframes with the
+`vy-*` system, WIRING EXISTING guarded services — never raw writes. **A key finding corrected the sweep: the
+on-desk CASH payment was ALREADY built** (a real Record form → `FolioService::recordPayment` via the default
+manual gateway); the genuine gaps were narrower.
+
+**GATE 1 — Housekeeping assign (`a728fcc`).** The board's "Assign · Soon" → a real housekeeper picker.
+`housekeeping_tasks.assigned_to` + the assignee display already existed; wired the write:
+`POST /app/housekeeping/{task}/assign` → a new `HousekeepingService::assign` → PRG, gated `housekeeping.manage`.
+🪤 REAL STAFF: the picker + guard use `StaffRoster::housekeepers()` / `housekeeperIds()` — the **Housekeeping
+department only** — so a non-housekeeper / cross-org / fabricated id is rejected (422). Demo: a real
+`demo-housekeeper` (Housekeeping role). Mirrors `ScheduleController::assign` / `MaintenanceActionController`.
+
+**GATES 2+3 — reservation move + add-charge + the payment money-gate (`b6bd623`, same screen).**
+- **Move room:** a picker of SAME-room-type units free for the dates → `POST /app/reservations/{id}/move` →
+  `AssignmentService::assignUnit` (availability `FOR UPDATE` lock + no-overlap + same-type), NEVER a raw
+  update. Gated like check-in/out (any back-office; cross-org 404). Proven not a raw write: a move to an
+  OCCUPIED unit is refused by the guard. Same-room-type only (Q5); a cross-type target is refused.
+- **Add charge:** `POST …/charge` → `FolioService::postCharge` (#17 integer, append-only), gated `folios.manage`.
+- 🔒 **THE MONEY GATE — on-desk payment idempotency + method selector.** recordPayment gained an optional
+  idempotency key; a per-submit nonce on the form makes a double-click / re-submit record ONCE — checked
+  before the gateway charge, backed by a new UNIQUE `payments.idempotency_key` index. **Mutation-proven both
+  ways:** two DIFFERENT nonces record twice, the SAME nonce records once (browser: a double-submit produced
+  ONE €77 payment). All existing money guards intact (#17, ≤0 rejected, single `FolioService` path, correct
+  folio tenant-404, append-only, `payments.record`-gated). The **method selector** — Cash / Bank transfer
+  record NOW (real manual payments, the method on the payment metadata); **Card is the account-gated Stripe
+  seam**, labelled "via Stripe · test-mode" and NOT charged in the build (an honest deferral).
+
+**GATE 4 — Tax & fees editing (this commit).** The Settings "Editing · Soon" (the sweep's named gap) →
+editable, bounded `Tax`/`Fee` rate/amount via `SettingsService::updateTax`/`updateFee` (rate clamped 0–100,
+amount ≥ 0 integer minor #17) → `POST /app/settings/tax-fees` → PRG, gated `properties.manage`; tenant-safe
+(a cross-org Tax/Fee id resolves to null and is skipped). **Scoped to a focused follow-up (honest "Soon"):
+Invoice numbering** (needs a new store — no invoice-series columns exist) **and Branding** (property name is
+already editable via the existing Property-details form; logo/white-label is a larger media surface).
+**Notification routing** stays "Soon" (Q4 — a net-new store). Transparent: two of the three approved settings
+editors are deferred, not silently dropped.
+
+**INVARIANT #48 (new) — operator-ops actions wire the guarded services, never raw writes.** A housekeeping
+assign sets `assigned_to` only after `StaffRoster` validates real Housekeeping-dept staff; a room move goes
+ONLY through `AssignmentService::assignUnit` (lock + no-overlap + same-type); a charge ONLY through
+`FolioService::postCharge`; a payment ONLY through `FolioService::recordPayment`, now **idempotent** on the
+on-desk path (a double-submit records once); the method selector is honest (cash/bank real, card = the
+deferred Stripe seam); settings edits are bounded + `properties.manage`-gated; every write is a controller
+POST → service → PRG (never /livewire/update), tenant/PropertyContext-scoped, cross-org 404. Each gate
+mutation-proven to bite.
+
+**Verification:** suite **968 → 97x** green on MySQL 8 (Batch-C tests: assign real-staff/permission/scope;
+move via assignUnit incl. occupied-refused + cross-org 404; add-charge #17 + folios.manage; **payment
+idempotency double-submit → 1, two nonces → 2**, method selector card-deferred/cash-manual; tax editing
+bounded + clamp + gate); PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean. Browser-verified every
+screen. Money/auth/isolation paths + invariants #1–47 otherwise UNCHANGED.

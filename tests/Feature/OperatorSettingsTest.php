@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\Fee;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Models\PropertyPolicy;
+use App\Models\Tax;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -140,3 +142,40 @@ it('rejects an invalid property write and changes nothing', function () {
 
     expect((string) $s['property']->fresh()->name)->toBe('H');   // untouched
 });
+
+// ── Batch C · GATE 4 — Taxes & fees editing (bounded rate/amount, properties.manage) ──────────────
+it('edits a tax rate + a fee amount through the bounded SettingsService writer', function () {
+    $s = seedScenario(1);
+    $tax = Tax::factory()->create(['organization_id' => $s['org']->id, 'property_id' => $s['property']->id, 'mode' => 'percentage', 'rate' => 6.0]);
+    $fee = Fee::factory()->create(['organization_id' => $s['org']->id, 'property_id' => $s['property']->id, 'mode' => 'flat', 'amount_minor' => 4500]);
+
+    $this->actingAs(operatorUser($s, [], 'Property Owner'))
+        ->post('/app/settings/tax-fees', [
+            'taxes' => [$tax->id => '10'],       // 6% → 10%
+            'fees' => [$fee->id => '55.00'],     // €45.00 → €55.00 (integer minor #17)
+        ])->assertRedirect();
+
+    expect((float) $tax->fresh()->rate)->toBe(10.0)
+        ->and((int) $fee->fresh()->amount_minor)->toBe(5500);
+});
+
+it('clamps a percentage tax rate to 0–100 (bounded write, no absurd rate)', function () {
+    $s = seedScenario(1);
+    $tax = Tax::factory()->create(['organization_id' => $s['org']->id, 'property_id' => $s['property']->id, 'mode' => 'percentage', 'rate' => 6.0]);
+
+    $this->actingAs(operatorUser($s, [], 'Property Owner'))
+        ->post('/app/settings/tax-fees', ['taxes' => [$tax->id => '250']]);   // over 100 → clamped
+
+    expect((float) $tax->fresh()->rate)->toBe(100.0);
+});
+
+it('gates tax-fees editing on properties.manage — Hotel Manager forbidden', function () {
+    $s = seedScenario(1);
+    $tax = Tax::factory()->create(['organization_id' => $s['org']->id, 'property_id' => $s['property']->id, 'mode' => 'percentage', 'rate' => 6.0]);
+
+    $this->actingAs(operatorUser($s, [], 'Hotel Manager'))   // holds no properties.manage
+        ->post('/app/settings/tax-fees', ['taxes' => [$tax->id => '10']])
+        ->assertForbidden();
+
+    expect((float) $tax->fresh()->rate)->toBe(6.0);   // unchanged
+})->group('security');

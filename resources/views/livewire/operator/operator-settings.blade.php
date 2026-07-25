@@ -138,27 +138,40 @@
                 </div>
             @endcan
 
-            {{-- ── Taxes & fees — REAL data, read-only (full CRUD is a later, larger surface) ──────────── --}}
+            {{-- ── Taxes & fees — Batch C · GATE 4: EDITABLE (bounded rate/amount) via the certified
+                 SettingsService (rate clamped 0–100, amount ≥ 0 integer minor #17). properties.manage-gated;
+                 a non-admin sees the read-only figure. The applied basis on every folio uses these values. ── --}}
             <div class="vy-card vy-fade" style="margin-bottom: 16px;">
-                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
-                    <h2 class="vy-card-title">Taxes &amp; fees</h2>
-                    <span class="vy-btn is-soon" aria-disabled="true" style="padding: 6px 12px; font-size: 12px;">Editing · Soon</span>
-                </div>
+                <h2 class="vy-card-title" style="margin-bottom: 12px;">Taxes &amp; fees</h2>
                 @if ($taxes === [] && $fees === [])
                     <div style="font-size: 12.5px; color: var(--vy-muted);">No taxes or fees are configured.</div>
                 @else
-                    @foreach ($taxes as $tax)
-                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--vy-hairline); font-size: 13px;">
-                            <span style="color: var(--vy-ink);">{{ $tax['name'] }} <span style="color: var(--vy-faint);">· {{ $tax['kind'] }}</span></span>
-                            <span style="font-family: var(--vy-display); font-weight: 600; color: var(--vy-ink);">{{ $tax['basis'] }}</span>
-                        </div>
-                    @endforeach
-                    @foreach ($fees as $fee)
-                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--vy-hairline); font-size: 13px;">
-                            <span style="color: var(--vy-ink);">{{ $fee['name'] }} <span style="color: var(--vy-faint);">· Fee</span></span>
-                            <span style="font-family: var(--vy-display); font-weight: 600; color: var(--vy-ink);">{{ $fee['basis'] }}</span>
-                        </div>
-                    @endforeach
+                    <form method="POST" action="{{ route('app.settings.tax-fees') }}">
+                        @csrf
+                        @foreach (array_merge(
+                            array_map(fn ($t) => $t + ['label' => $t['kind'], 'field' => 'taxes'], $taxes),
+                            array_map(fn ($f) => $f + ['label' => 'Fee', 'field' => 'fees'], $fees),
+                        ) as $row)
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--vy-hairline); font-size: 13px;">
+                                <span style="color: var(--vy-ink);">{{ $row['name'] }} <span style="color: var(--vy-faint);">· {{ $row['label'] }}</span></span>
+                                @if ($canManageProperty)
+                                    <span style="display: flex; align-items: center; gap: 6px;">
+                                        <input class="vy-input" type="number" step="{{ $row['percentage'] ? '0.1' : '0.01' }}" min="0" style="width: 92px; text-align: right;"
+                                               name="{{ $row['field'] }}[{{ $row['id'] }}]"
+                                               value="{{ $row['percentage'] ? $row['rate'] : $row['amount'] }}"
+                                               aria-label="{{ $row['name'] }} value">
+                                        <span style="font-size: 12px; color: var(--vy-muted); min-width: 34px;">{{ $row['percentage'] ? '%' : $row['currency'] }}</span>
+                                    </span>
+                                @else
+                                    <span style="font-family: var(--vy-display); font-weight: 600; color: var(--vy-ink);">{{ $row['basis'] }}</span>
+                                @endif
+                            </div>
+                        @endforeach
+
+                        @if ($canManageProperty)
+                            <button type="submit" class="vy-btn vy-btn--accent" style="margin-top: 14px; padding: 11px 20px;">Save taxes &amp; fees</button>
+                        @endif
+                    </form>
                 @endif
             </div>
 

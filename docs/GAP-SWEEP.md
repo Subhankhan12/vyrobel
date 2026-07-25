@@ -14,6 +14,15 @@
 > demo a meaningful real shape (median lead 42 days). The recommendation/pricing engine + per-element "vs last
 > year" deltas stay REFUSED (#39). Suite green + PHPStan L5 (0) + Pint; browser-verified vs the wireframes.
 
+> **✅ BATCH C DONE (2026-07-26)** — operator operations, wiring EXISTING guarded services (never raw
+> writes): **P2-6** housekeeping assign (a real Housekeeping-dept picker → `HousekeepingService::assign`,
+> `housekeeping.manage` — `a728fcc`); **P2-7** reservation **move** (via `AssignmentService::assignUnit`, same-
+> type free units) + **add-charge** (`postCharge` #17) + the **on-desk payment money-gate** — idempotency
+> (a double-submit records ONCE, mutation-proven) + a Cash/Bank/Card selector (card = the deferred Stripe seam)
+> — `b6bd623`. **Correction:** on-desk CASH payment was ALREADY built; the real gap was idempotency + move +
+> charge. **P2-8** settings: **Tax & fees editing** now real (bounded, `properties.manage`); Invoice-numbering +
+> Branding scoped to a focused follow-up (honest "Soon"). Suite green + PHPStan L5 (0) + Pint; browser-verified.
+
 **Date:** 2026-07-25 · **Method:** cross-referenced `docs/PROJECT-STATE.md` + `docs/DECISIONS.md` +
 `docs/design/DIVERGENCE-REGISTER.md` (the per-page wireframe→app map, authored in this session's design pass)
 + `docs/AUDIT-REPORT.md`; grepped every shell/nav + every route + every "Soon"/stub string; **browser-probed
@@ -166,13 +175,13 @@ bugs — the 4 unstyled operator pages, the owner-statement `opacity:0` hero —
   real data (`reservations.created_at` → `check_in`) exists; a lead-time histogram + pace figure is computable
   without fabrication. **EFFORT/VALUE:** M / medium.
 
-**P2-6 · Housekeeping assignment ("Assign · Soon")** — *stub-buildable.*
+**P2-6 · Housekeeping assignment ("Assign · Soon")** — *stub-buildable.* **✅ DONE (`a728fcc`).**
 - **WHERE:** operator · `/app/housekeeping` · `housekeeping-board.blade.php` (Assign "Soon", no assignee).
 - **WHAT:** assign a cleaning task to a real staff member. **BACKEND REALITY:** **buildable** — the active
   staff set exists (`StaffRoster` = active `Membership` ∩ back-office role, built for Team Schedule); an
   `assigned_to` on the housekeeping task + a guarded assign action. **EFFORT/VALUE:** M / medium.
 
-**P2-7 · Front Desk room-moves + on-desk payment ("planned")** — *stub-buildable.*
+**P2-7 · Front Desk room-moves + on-desk payment ("planned")** — *stub-buildable.* **✅ DONE (`b6bd623` — move + add-charge + payment idempotency/selector; cash was already built).**
 - **WHERE:** operator · `/app/front-desk` · `front-desk.blade.php` (honest "room moves & on-desk payment are
   planned; check-in/out are live").
 - **WHAT:** move a reservation to another unit + take a payment at the desk. **BACKEND REALITY:** **buildable**

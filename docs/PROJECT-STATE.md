@@ -84,6 +84,17 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   rows (proven by `BookingCadenceTest`). **REFUSED (#39):** the recommendation/pricing engine + the per-element
 >   "vs last year" deltas (no fabricated LY; prior-year demo seed scoped out — needs prior-year availability).
 >   **INVARIANT #47.** PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean.
+> - **BATCH C — OPERATOR OPERATIONS — ✅ DONE (2026-07-26)** (`docs/GAP-SWEEP.md` §5; dated entry in
+>   `DECISIONS.md`). Wiring EXISTING guarded services, never raw writes: **housekeeping assign** (a real
+>   Housekeeping-dept picker → `HousekeepingService::assign`, `housekeeping.manage` — `a728fcc`); **reservation
+>   move** (via `AssignmentService::assignUnit` — same-type free units, lock + no-overlap; proven not a raw
+>   write) + **add-charge** (`postCharge` #17) + **the on-desk payment MONEY-GATE** — idempotency (a
+>   double-submit records ONCE, mutation-proven both ways; a new UNIQUE `payments.idempotency_key`) + a
+>   Cash/Bank/Card selector (card = the deferred Stripe seam, "test-mode") — `b6bd623`. **Correction to the
+>   sweep:** on-desk CASH payment was ALREADY built; the real gap was idempotency + move + charge. Settings:
+>   **Tax & fees editing** now real (bounded, `properties.manage`); **Invoice-numbering + Branding** scoped to a
+>   focused follow-up (honest "Soon" — no invoice-series store yet; branding logo is a larger media surface);
+>   Notification routing stays "Soon". **INVARIANT #48.** Suite green; PHPStan L5 = 0; Pint clean.
 > - **ACCOUNT-GATED remaining** (each a focused prompt as the account lands): Channex live OTA sync · WhatsApp/OTA
 >   inbox channels · SMS (waitlist/notifications) · guest ID verification / KYC. (Email + Stripe are DONE — pending
 >   only Subhan's cutovers.)

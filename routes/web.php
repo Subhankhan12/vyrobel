@@ -453,6 +453,8 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::post('/settings/property', [SettingsActionController::class, 'updateProperty'])->middleware('can:properties.manage')->name('settings.property');
     Route::post('/settings/policies', [SettingsActionController::class, 'updatePolicies'])->middleware('can:properties.manage')->name('settings.policies');
     Route::post('/settings/organization', [SettingsActionController::class, 'updateOrganization'])->middleware('can:settings.manage')->name('settings.organization');
+    // Batch C · GATE 4 — edit taxes & fees (bounded rate/amount) via the certified SettingsService.
+    Route::post('/settings/tax-fees', [SettingsActionController::class, 'updateTaxesAndFees'])->middleware('can:properties.manage')->name('settings.tax-fees');
 
     // Change password (Auth) — the operator Security page + its guarded write. Reachable by EVERY back-office
     // user (auth + #26, NO fine-grained gate — unlike /app/settings, which is manager-gated) so anyone can

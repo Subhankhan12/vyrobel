@@ -114,8 +114,14 @@ class OperatorSettings extends Component
     private function taxes(): array
     {
         return Tax::query()->orderBy('name')->get()->map(fn (Tax $tax): array => [
+            'id' => (string) $tax->id,
             'name' => (string) $tax->name,
             'kind' => ucfirst(str_replace('_', ' ', (string) $tax->kind)),
+            'mode' => (string) $tax->mode,   // Batch C · GATE 4 — drives the editor's % vs amount input.
+            'percentage' => (string) $tax->mode === 'percentage',
+            'rate' => rtrim(rtrim((string) $tax->rate, '0'), '.'),
+            'amount' => number_format((int) $tax->amount_minor / 100, 2, '.', ''),
+            'currency' => (string) $tax->currency,
             'basis' => (string) $tax->mode === 'percentage'
                 ? rtrim(rtrim((string) $tax->rate, '0'), '.').'%'
                 : $this->money((int) $tax->amount_minor, (string) $tax->currency),
@@ -128,7 +134,12 @@ class OperatorSettings extends Component
     private function fees(): array
     {
         return Fee::query()->orderBy('name')->get()->map(fn (Fee $fee): array => [
+            'id' => (string) $fee->id,
             'name' => (string) $fee->name,
+            'percentage' => (string) $fee->mode === 'percentage',
+            'rate' => rtrim(rtrim((string) $fee->rate, '0'), '.'),
+            'amount' => number_format((int) $fee->amount_minor / 100, 2, '.', ''),
+            'currency' => (string) $fee->currency,
             'basis' => (string) $fee->mode === 'percentage'
                 ? rtrim(rtrim((string) $fee->rate, '0'), '.').'%'
                 : $this->money((int) $fee->amount_minor, (string) $fee->currency),
