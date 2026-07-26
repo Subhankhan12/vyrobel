@@ -1,0 +1,72 @@
+{{-- SUPER ADMIN · BUILD 1 · GATE 2 — customer detail: real operational facts + the platform lifecycle actions.
+     #28 — operational facts only (never end-guest PII). Impersonation is deliberately NOT offered (deferred). --}}
+@php $org = $d['org']; $sub = $d['subscription']; @endphp
+<x-admin.shell active="customers" :title="$org->name">
+    <a href="{{ route('admin.customers.index') }}" class="ad-back">← All customers</a>
+
+    @if (session('admin_notice'))
+        <div class="ad-flash">{{ session('admin_notice') }}</div>
+    @endif
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+        <div>
+            <div class="ad-eyebrow">Customer</div>
+            <h1 class="ad-h1">{{ $org->name }}</h1>
+            <p class="ad-lead" style="margin-bottom: 0;">
+                <span class="ad-pill ad-pill--{{ $org->status }}">{{ ucfirst($org->status) }}</span>
+                <span style="color: var(--ad-faint); margin-left: 8px;">{{ $org->slug }}</span>
+            </p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            @if ($org->status === 'suspended')
+                <form method="POST" action="{{ route('admin.customers.reactivate', $org->id) }}">
+                    @csrf
+                    <button type="submit" class="ad-btn">Reactivate customer</button>
+                </form>
+            @else
+                <form method="POST" action="{{ route('admin.customers.suspend', $org->id) }}" onsubmit="return confirm('Suspend {{ $org->name }}? This flags the account as suspended on the platform.');">
+                    @csrf
+                    <button type="submit" class="ad-btn ad-btn--danger">Suspend customer</button>
+                </form>
+            @endif
+        </div>
+    </div>
+
+    <div class="ad-grid-2" style="margin-top: 22px;">
+        <div class="ad-card">
+            <h2 class="ad-panel-title">Account</h2>
+            <dl class="ad-dl">
+                <dt>Organization</dt><dd>{{ $org->name }}</dd>
+                <dt>Slug</dt><dd>{{ $org->slug }}</dd>
+                <dt>Status</dt><dd>{{ ucfirst($org->status) }}</dd>
+                <dt>Currency</dt><dd>{{ $org->default_currency }}</dd>
+                @if ($org->billing_company)
+                    <dt>Billing name</dt><dd>{{ $org->billing_company }}</dd>
+                @endif
+                @if ($org->billing_email)
+                    <dt>Billing email</dt><dd>{{ $org->billing_email }}</dd>
+                @endif
+                <dt>Joined</dt><dd>{{ $org->created_at?->format('j M Y') ?? '—' }}</dd>
+            </dl>
+        </div>
+
+        <div class="ad-card">
+            <h2 class="ad-panel-title">Subscription</h2>
+            <dl class="ad-dl">
+                <dt>Plan</dt><dd>{{ $d['plan_name'] ?? 'None' }}</dd>
+                <dt>Billing state</dt><dd>{{ $d['billing_label'] }}</dd>
+                @if ($sub)
+                    <dt>Status</dt><dd>{{ ucfirst($sub->status) }}</dd>
+                    @if ($sub->trial_ends_at)
+                        <dt>Trial ends</dt><dd>{{ $sub->trial_ends_at->format('j M Y') }}</dd>
+                    @endif
+                    <dt>Stripe</dt><dd>{{ $sub->stripe_subscription_id ? 'Connected' : 'Not connected (billing account-gated)' }}</dd>
+                @endif
+            </dl>
+
+            <h2 class="ad-panel-title" style="margin-top: 22px;">Footprint</h2>
+            <div class="ad-row"><span class="ad-row-k">Properties</span><span class="ad-row-v">{{ number_format($d['properties']) }}</span></div>
+            <div class="ad-row"><span class="ad-row-k">Staff members</span><span class="ad-row-v">{{ number_format($d['members']) }}</span></div>
+        </div>
+    </div>
+</x-admin.shell>

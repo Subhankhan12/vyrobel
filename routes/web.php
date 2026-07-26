@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\Auth\AdminLoginController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorChallengeController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorController;
+use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
@@ -884,9 +885,16 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
         Route::get('two-factor/setup', [AdminTwoFactorController::class, 'create'])->name('2fa.setup');
         Route::post('two-factor/setup', [AdminTwoFactorController::class, 'store'])->name('2fa.setup.store');
 
-        // The console — behind MANDATORY 2FA. Gate 0 ships ONLY the isolated landing (no features yet).
+        // The console — behind MANDATORY 2FA.
         Route::middleware(EnsurePlatformAdminTwoFactor::class)->group(function () {
             Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+            // Build 1 · Gate 2 — Customers (all orgs). Reads via PlatformQuery::read; the lifecycle actions via
+            // PlatformQuery::mutate (audited). Rate-limited status actions. No impersonation (deferred).
+            Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+            Route::get('customers/{organization}', [AdminCustomerController::class, 'show'])->name('customers.show');
+            Route::post('customers/{organization}/suspend', [AdminCustomerController::class, 'suspend'])->middleware('throttle:20,1')->name('customers.suspend');
+            Route::post('customers/{organization}/reactivate', [AdminCustomerController::class, 'reactivate'])->middleware('throttle:20,1')->name('customers.reactivate');
         });
     });
 });

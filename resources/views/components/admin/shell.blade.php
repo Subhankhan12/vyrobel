@@ -10,7 +10,7 @@
     // The nav — Overview is live in Gate 0; the feature areas arrive in later gates (honest "Soon", not fake links).
     $nav = [
         ['overview', 'Overview', route('admin.dashboard'), true],
-        ['customers', 'Customers', null, false],
+        ['customers', 'Customers', route('admin.customers.index'), true],
         ['plans', 'Plans', null, false],
         ['activity', 'Security & activity', null, false],
         ['integrations', 'Integrations', null, false],
@@ -109,6 +109,34 @@
         .ad-pill--suspended { background: rgba(245,158,158,.14); color: var(--ad-danger); }
         .ad-pill--cancelled { background: rgba(148,163,184,.16); color: var(--ad-muted); }
         .ad-empty { color: var(--ad-faint); font-size: 13px; padding: 20px 2px; }
+        /* Tables (Build 1 · Gates 2/3) */
+        .ad-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+        .ad-table th { text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ad-faint); padding: 0 14px 12px; }
+        .ad-table td { padding: 13px 14px; border-top: 1px solid var(--ad-border); }
+        .ad-table tbody tr { transition: background .14s ease; }
+        .ad-table tbody tr:hover { background: var(--ad-glass); }
+        .ad-table a.ad-cell-link { color: var(--ad-ink); font-weight: 600; text-decoration: none; }
+        .ad-table a.ad-cell-link:hover { color: var(--ad-accent); }
+        .ad-table .ad-num { text-align: right; font-variant-numeric: tabular-nums; color: var(--ad-muted); }
+        /* Filters bar */
+        .ad-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+        .ad-filters input, .ad-filters select { padding: 9px 12px; border-radius: 9px; border: 1px solid var(--ad-border); background: rgba(9,14,24,.55); color: var(--ad-ink); font-family: var(--ad-sans); font-size: 13.5px; }
+        .ad-filters input:focus, .ad-filters select:focus { outline: none; border-color: var(--ad-accent); box-shadow: 0 0 0 3px var(--ad-accent-soft); }
+        .ad-filters input:focus-visible, .ad-filters select:focus-visible, .ad-table a:focus-visible, .ad-btn:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+        /* Buttons (control-room) */
+        .ad-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 16px; border-radius: 10px; font-family: var(--ad-sans); font-size: 13px; font-weight: 600; color: #fff; background: var(--ad-grad); border: none; cursor: pointer; box-shadow: 0 6px 16px rgba(99,102,241,.3); transition: transform .14s ease; text-decoration: none; }
+        .ad-btn:hover { transform: translateY(-1px); }
+        .ad-btn--ghost { background: rgba(255,255,255,.06); color: var(--ad-ink); border: 1px solid var(--ad-border); box-shadow: none; }
+        .ad-btn--danger { background: rgba(245,158,158,.14); color: var(--ad-danger); border: 1px solid rgba(245,158,158,.34); box-shadow: none; }
+        .ad-btn--sm { padding: 7px 13px; font-size: 12.5px; }
+        /* Flash notice */
+        .ad-flash { padding: 11px 15px; border-radius: 10px; background: rgba(110,231,183,.10); border: 1px solid rgba(110,231,183,.32); color: #A7F3D0; font-size: 13px; font-weight: 500; margin-bottom: 18px; }
+        /* Detail (definition list) */
+        .ad-back { display: inline-flex; align-items: center; gap: 6px; color: var(--ad-muted); text-decoration: none; font-size: 13px; margin-bottom: 14px; }
+        .ad-back:hover { color: var(--ad-ink); }
+        .ad-dl { display: grid; grid-template-columns: 160px 1fr; gap: 12px 18px; font-size: 13.5px; }
+        .ad-dl dt { color: var(--ad-muted); }
+        .ad-dl dd { margin: 0; font-weight: 500; }
         @media (max-width: 820px) { .ad-layout { grid-template-columns: 1fr; } .ad-side { flex-direction: row; overflow-x: auto; align-items: center; } .ad-nav { flex-direction: row; } .ad-nav-label { display: none; } }
     </style>
 </head>
