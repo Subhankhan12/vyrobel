@@ -65,6 +65,12 @@
         .vy-h1 { font-family: var(--vy-display); font-weight: 700; font-size: 25px; letter-spacing: -0.02em; margin: 0 0 4px; }
         .vy-lead { color: var(--vy-muted); font-size: 14px; margin: 0 0 22px; }
         .vy-card { background: var(--vy-card); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); padding: 18px 20px; }
+        /* Polish Batch 2 — the portal no longer feels inert: interactive tap-targets respond on hover (prototype-matched
+           card lift + shadow; a subtle warm tint for link rows). Opt-in — applied only to clickable cards/rows. */
+        .vy-card--tappable { cursor: pointer; transition: transform .16s ease, box-shadow .16s ease; }
+        .vy-card--tappable:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(150, 90, 50, .16); }
+        .vy-row--tappable { transition: background .15s ease; border-radius: var(--vy-r-sm); }
+        .vy-row--tappable:hover { background: rgba(120, 70, 40, .05); }
         .vy-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
         .vy-badge--confirmed { background: rgba(120,160,110,.16); color: rgb(70,120,60); }

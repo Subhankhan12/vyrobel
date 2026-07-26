@@ -70,7 +70,7 @@
         @else
             <div class="vy-rooms vy-fade">
                 @foreach ($rooms as $room)
-                    <article class="vy-room-card">
+                    <article class="vy-room-card vy-card--tappable">
                         <div class="vy-room-banner">
                             @if ($room['cover'])<img src="{{ $room['cover'] }}" alt="{{ $room['name'] }}" class="vy-card-cover" loading="lazy">@endif
                             <span class="vy-room-kind">{{ $room['kind'] }}</span>

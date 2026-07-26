@@ -243,6 +243,10 @@
         }
         .vy-card--flush { padding: 0; overflow: hidden; }
         .vy-card--accent { border-color: var(--vy-accent-border); }   /* Polish Batch 1 — the accent card treatment (mirrors the owner layout's canonical definition). */
+        /* Polish Batch 2 — the shared hover for an interactive TAP-TARGET card (opt-in; never on a static/placeholder card).
+           Prototype-matched: a small lift + an elevated shadow (proto card-hover = translateY(-1…-3px) + 0 18–44px soft shadow). */
+        .vy-card--tappable { cursor: pointer; transition: transform .16s ease, box-shadow .16s ease; }
+        .vy-card--tappable:hover { transform: translateY(-2px); box-shadow: 0 18px 44px rgba(150, 90, 50, .18); }
         .vy-eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-card-title { font-family: var(--vy-display); font-size: 15px; font-weight: 600; margin: 0; }
         .vy-muted { color: var(--vy-muted); }
@@ -755,6 +759,9 @@
 
         .vy-owner-row { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--vy-hairline); }
         .vy-owner-row:last-child { border-bottom: none; }
+        /* Polish Batch 2 — hover ONLY on the clickable (anchor) owner rows; the static <div> variant (pending invites) is untouched. */
+        a.vy-owner-row { transition: background .15s ease; }
+        a.vy-owner-row:hover { background: rgba(255, 255, 255, 0.5); }
         .vy-owner-main { flex: 1; min-width: 0; }
         .vy-owner-name { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; }
         .vy-owner-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; }

@@ -126,6 +126,9 @@
         .vy-results-title { font-family: var(--vy-display); font-weight: 600; font-size: 18px; }
         .vy-rooms { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
         .vy-room-card { border-radius: var(--vy-r-lg); overflow: hidden; background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow); display: flex; flex-direction: column; }
+        /* Polish Batch 2 — the shared hover for an interactive TAP-TARGET card (the room listing cards). Prototype-matched: lift + shadow. */
+        .vy-card--tappable { cursor: pointer; transition: transform .16s ease, box-shadow .16s ease; }
+        .vy-card--tappable:hover { transform: translateY(-2px); box-shadow: 0 18px 44px rgba(150, 90, 50, .18); }
         .vy-room-banner { height: 128px; background: var(--vy-grad); position: relative; display: flex; align-items: flex-end; padding: 12px 16px; overflow: hidden; }
         .vy-room-banner .vy-room-kind { position: relative; z-index: 1; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,.9); background: rgba(0,0,0,.16); border-radius: var(--vy-r-pill); padding: 3px 10px; }
         .vy-room-banner .vy-card-cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }

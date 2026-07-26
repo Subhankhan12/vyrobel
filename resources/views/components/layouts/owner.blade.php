@@ -163,6 +163,10 @@
             box-shadow: var(--vy-shadow); padding: 22px;
         }
         .vy-card--accent { border-color: var(--vy-accent-border); }
+        /* Polish Batch 2 — the shared hover for an interactive TAP-TARGET card (opt-in; e.g. the real unit cards, NOT the
+           dashed "List a new property · Soon" placeholder). Prototype-matched: a small lift + an elevated shadow. */
+        .vy-card--tappable { cursor: pointer; transition: transform .16s ease, box-shadow .16s ease; }
+        .vy-card--tappable:hover { transform: translateY(-2px); box-shadow: 0 18px 44px rgba(150, 90, 50, .18); }
         .vy-card--dark {
             background: var(--vy-grad-dark); color: rgba(255, 255, 255, 0.92);
             border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: var(--vy-shadow-dark);

@@ -3675,3 +3675,34 @@ so every referencing element across all four realms picks it up. **No behaviour/
   **payout-method/…** form labels render styled uppercase; `--vy-shadow-dark`, `.vy-card--accent`, and the bare
   `.vy-flash` resolve (computed-style confirmed). This closes **POLISH-SWEEP findings D1–D6** and their ~dozen dependent
   elements. Suite green; PHPStan L5 (0); Pint clean.
+
+### 2026-07-26 — POLISH BATCH 2 — hover states on shared tap-targets (the "feels inert" finding)
+
+**The finding (`docs/POLISH-SWEEP.md` M2):** clickable cards/rows across the guest portal, the public storefront, and
+several operator/owner card-grids had **no hover feedback** — the UI felt inert (hover is invisible to a green suite).
+**Presentation-only fix: add the prototype's hover treatment ONCE to a shared tap-target class**, applied **opt-in to
+genuinely-interactive elements only** so no static/placeholder card gets a misleading hover. No
+behaviour/logic/money/auth/isolation; invariants #1–48 untouched.
+
+- **Prototype hover vocabulary (extracted from the compiled prototype's `:hover` rules):** cards lift on hover —
+  `transform: translateY(-1…-3px)` + a soft elevated shadow (`0 18–44px rgba(150,90,50,.16–.22)`); rows take a subtle warm
+  background tint (`rgba(120,70,40,.06)` / `rgba(217,102,46,.08)`). Consistent with the app's existing `translateY(-1px)`
+  button-lift + `.15s` transitions.
+- **Shared classes defined once per realm (`layouts/operator.blade.php`, `layouts/owner.blade.php`,
+  `components/guest/shell.blade.php`, `components/public/shell.blade.php`):**
+  - **`.vy-card--tappable`** — `cursor: pointer` + `:hover { transform: translateY(-2px); box-shadow: 0 18px 44px
+    rgba(150,90,50,.18) }` (guest: a softer `0 16px 40px rgba(150,90,50,.16)`). **Prototype-matched** (lift + elevated shadow).
+  - **`.vy-row--tappable`** (guest) — `:hover { background: rgba(120,70,40,.05) }` (**prototype-matched** warm row tint).
+  - **`a.vy-owner-row:hover`** (operator) — `background: rgba(255,255,255,.5)`, scoped to the anchor so the static `<div>`
+    pending-invite rows are untouched.
+- **Applied opt-in to interactive tap-targets** (5 view files): guest **Trips** cards (via a new `$tappable` include flag on
+  the shared `trip-card` partial — set true from Trips, default false so the partial reused as the **Reservation-detail
+  header** stays static), guest **Messages** rows, storefront **Browse** room cards, owner **My Units** real cards (NOT the
+  dashed "List a new property · Soon" placeholder), operator **Portfolio** property cards. `a.vy-owner-row` covers **Owners**.
+- **🔒 Interactive-only scoping — browser-verified:** the dashed unit placeholder carries **0** modifiers; the
+  Reservation-detail trip-card header renders **0** tappable cards — neither gets a misleading hover.
+- **Browser-verified across realms** (hover is invisible to tests): real hover fires on **guest** Trips cards
+  (`translateY(-2px)` + `0 16px 40px` shadow — before/after captured) and **operator** Portfolio cards (`translateY(-2px)` +
+  `0 18px 44px`); **owner** unit-card modifier + `cursor:pointer` + `:hover` rule confirmed; **public** uses the byte-identical
+  rule (the demo storefront wasn't reachable on this seed — a slug/config detail unrelated to this change). Closes
+  **POLISH-SWEEP M2**. Suite green; PHPStan L5 (0); Pint clean.

@@ -84,7 +84,7 @@
 
         <div class="vy-unit-grid">
             @forelse ($units as $u)
-                <div class="vy-unit-card">
+                <div class="vy-unit-card vy-card--tappable">
                     @if ($u['cover'])
                         <div class="vy-unit-cover"><img src="{{ $u['cover'] }}" alt="{{ $u['name'] }}" loading="lazy"></div>
                     @endif

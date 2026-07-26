@@ -6,7 +6,7 @@
 
     <div class="vy-eyebrow" style="margin-bottom:10px">Upcoming</div>
     @forelse ($upcoming as $trip)
-        @include('guest.partials.trip-card', ['trip' => $trip])
+        @include('guest.partials.trip-card', ['trip' => $trip, 'tappable' => true])
     @empty
         <div class="vy-card vy-empty" style="margin-bottom:26px">No upcoming stays. When you book, they’ll appear here.</div>
     @endforelse
@@ -14,7 +14,7 @@
     @if (! empty($past))
         <div class="vy-eyebrow" style="margin:26px 0 10px">Past &amp; cancelled</div>
         @foreach ($past as $trip)
-            @include('guest.partials.trip-card', ['trip' => $trip])
+            @include('guest.partials.trip-card', ['trip' => $trip, 'tappable' => true])
         @endforeach
     @endif
 </x-guest.shell>

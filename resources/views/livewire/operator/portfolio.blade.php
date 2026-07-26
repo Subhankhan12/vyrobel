@@ -66,7 +66,7 @@
         @else
             <div class="vy-portfolio-grid vy-fade">
                 @foreach ($cards as $p)
-                    <div class="vy-prop-card @if ($p['is_current']) is-current @endif">
+                    <div class="vy-prop-card vy-card--tappable @if ($p['is_current']) is-current @endif">
                         <div class="vy-prop-head">
                             <span class="vy-prop-mark">{{ $p['initial'] }}</span>
                             <div class="vy-prop-id">

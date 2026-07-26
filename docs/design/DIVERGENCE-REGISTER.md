@@ -34,6 +34,15 @@ routes/permissions. Suite 924+ / PHPStan L5 / Pint green after every page-commit
 > billing-checkout / insights / portfolio notices — untinted). Presentation-only; these pages' structural
 > classifications below are unchanged.
 
+> **Polish Batch 2 (2026-07-26) — hover feedback on tap-targets (`docs/POLISH-SWEEP.md` M2).** The guest portal + storefront
+> + several operator/owner card-grids felt inert (clickable cards/rows had no hover). A shared **`.vy-card--tappable`** (lift +
+> elevated shadow, prototype-matched) + a guest **`.vy-row--tappable`** (warm tint) + a scoped **`a.vy-owner-row:hover`** were
+> added once to the four design systems and applied **opt-in to interactive tap-targets only**: guest **Trips** cards +
+> **Messages** rows, storefront **Browse** room cards, owner **My Units** cards, operator **Portfolio** property cards +
+> **Owners** rows. Static/placeholder cards (the owner "List a new property · Soon" card, the trip-card reused as a
+> Reservation-detail header) deliberately get NO hover — no misleading clickability. Presentation-only; classifications below
+> unchanged.
+
 ---
 
 ## Operator app

@@ -8,7 +8,7 @@
     <section class="vy-card" style="margin-bottom:14px">
         <div class="vy-eyebrow" style="margin-bottom:10px">Your conversations</div>
         @forelse ($threads as $thread)
-            <a href="{{ route('guest.messages.show', $thread['id']) }}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--vy-hairline);text-decoration:none">
+            <a href="{{ route('guest.messages.show', $thread['id']) }}" class="vy-row--tappable" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 10px;margin:0 -10px;border-bottom:1px solid var(--vy-hairline);text-decoration:none">
                 <div style="display:flex;align-items:center;gap:9px">
                     @if ($thread['unread'])<span style="flex:none;width:8px;height:8px;border-radius:50%;background:var(--vy-accent)"></span>@endif
                     <span style="font-size:14px;color:var(--vy-ink)">{{ $thread['subject'] }}</span>

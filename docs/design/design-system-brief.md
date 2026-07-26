@@ -63,6 +63,11 @@ These are the named `--vy-*` tokens and `.vy-*` classes the app implements the a
 - **`.vy-field` / `.vy-field-label`** — a form field wrapper + its uppercase, letter-spaced, faint label (7px-below, `--vy-faint`).
 - **`.vy-flash`** — a notice/toast banner: a neutral glass base tone by default; `.is-ok` (green) / `.is-err` (amber/terracotta) modifiers for success/error.
 
+**Hover / tap-target feedback (Polish Batch 2, 2026-07-26)** — interactive cards/rows respond on hover so nothing feels inert; **applied opt-in to genuinely-clickable elements only** (a static/placeholder card must never get a misleading hover):
+- **`.vy-card--tappable`** — mark an interactive card. Adds `cursor: pointer` + on `:hover` a lift `transform: translateY(-2px)` and an elevated shadow `0 18px 44px rgba(150,90,50,.18)` (guest uses a slightly softer `0 16px 40px rgba(150,90,50,.16)`). Prototype-matched (the prototype's card hover is a small lift + soft elevated shadow). Used on: guest trip cards, storefront room cards, owner unit cards, operator property cards.
+- **`.vy-row--tappable`** — mark an interactive list row. On `:hover` a subtle warm tint `background: rgba(120,70,40,.05)` + `border-radius`. Used on the guest message-list rows.
+- Clickable rows that are anchors are scoped by tag where the class is shared with a static variant, e.g. `a.vy-owner-row:hover { background: rgba(255,255,255,.5) }` (the static `<div>` owner rows are untouched).
+
 ---
 
 ## Components to define

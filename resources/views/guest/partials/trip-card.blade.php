@@ -1,7 +1,7 @@
 {{-- One guest trip card (Phase 4b) — shared by Trips (and reused as the header on the Reservation detail).
      Expects $trip (an App\Support\Guest\GuestTrip::card array). RAW-BLADE RULE: every `@` follows a space,
      newline or tag. --}}
-<div class="vy-card" style="margin-bottom:12px">
+<div class="vy-card @if ($tappable ?? false) vy-card--tappable @endif" style="margin-bottom:12px">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
         <div>
             <div style="font-family:var(--vy-display);font-size:16.5px;font-weight:600;color:var(--vy-ink)">{{ $trip['property'] }}</div>
