@@ -4051,3 +4051,52 @@ limits are shown + editable, not yet enforced. **Build 2 = Security & activity l
 `PlanController`, `EnsurePlanFeature`, `admin/{dashboard,customers,plans}` + `billing/feature-locked` views, the admin
 shell tokens, `tests/Support/admin_helpers.php`, 3 test files (16 tests); additive edits: `routes/web.php`,
 `BillingService::catalog()`, the admin shell nav (Customers/Plans live).
+
+### 2026-07-26 — SUPER ADMIN · BUILD 2 — Security & Activity Log + Integrations — THE PANEL IS COMPLETE
+
+The final two areas, completing the founder's platform console. **ADDITIVE ONLY — the existing 1013 tests all stay
+green** (suite now **1029/1029** = 1013 + 16 new Build-2 tests); PHPStan L5 (0); Pint clean; `migrate:fresh --seed`
+clean. **🔒 Every cross-tenant read via the audited `PlatformQuery::read()`; every admin action audited.** Invariants
+#1–52.
+
+**GATE 1 — Security & Activity Log (`21eeaf6`), privacy-built-in.** Auth events are not domain events, so login
+capture is done by ADDING listeners on the FRAMEWORK auth events — **the tenant login/auth flow is NOT modified**:
+- `login_activity` table + `LoginActivity` model + `RecordAuthActivity` listener registered on `Login` / `Failed` /
+  `Lockout` (AppServiceProvider, additive). Captures successful logins (all realms), failed attempts, and lockouts
+  (the repeated-failure probing signal). **The write can NEVER break auth** (swallowed on failure — the "a mail failure
+  never rolls back the txn" discipline). Operator/owner login uses `Auth::validate` (fires no per-attempt `Failed`), so
+  their signal is the `Lockout`; guest uses `attempt` (fires `Failed`); the admin realm additionally dispatches `Failed`
+  from its OWN request (own code) to capture admin failures granularly.
+- **🔒 PRIVACY BUILT IN FROM THE FIRST COMMIT (GDPR):** a 90-day RETENTION prune (`platform:prune-activity`, scheduled
+  daily) purges rows — the IP and all; purpose = SECURITY MONITORING (documented, legitimate-interest); security-events-
+  only, NOT ambient tracking; access = the /admin realm only. **🔒 #28** — a guest's encrypted email is NEVER persisted
+  plaintext (identifier null for the guest realm; captured by id); passwords never stored.
+- `PlatformActivity` reader + `ActivityController` + view: recent sign-in activity (login/failed/lockout + IP + realm),
+  a 24h failure summary, and a cross-tenant account-events slice (from the tenant `audit_events` ledger via
+  `PlatformQuery::read` — audited). Per-customer audit slice added to the customer detail. The privacy posture is
+  surfaced in the UI. Browser-verified (real admin login + real account events + the privacy note); existing auth suite
+  green (listeners don't regress the flow).
+
+**GATE 2 — Integrations (this commit).** The founder's MASTER platform credentials for the booking channels
+(Channex/OTAs):
+- `platform_integrations` table + model with `credentials` as **`encrypted:array`** — the SAME at-rest encryption as the
+  owner IBAN / guest PII (#28); the ciphertext is what lands on disk (mutation-proven: the raw DB column does NOT contain
+  the plaintext). A fixed channel catalog (Channex / Booking.com / Airbnb / Expedia).
+- `IntegrationController`: index (catalog + status) · edit/update (add/ROTATE the credential — **write-only / masked;
+  the stored secret is NEVER echoed back**, proven; a blank field keeps the existing value) · a **test-connection STUB**
+  (honest — "a live test runs once the {channel} account is connected", account-gated). Managing is an AUDITED admin
+  action; **the audit records WHICH channel, NEVER the value** (#28 discipline).
+- **🔒 The real channel SYNC is account-gated** (needs the real Channex/OTA accounts) — this ships the page + encrypted
+  store + connection model + the stub; the sync is deferred honestly (labelled). **The customer-self-connect model**
+  (a tenant later connecting THEIR own channel account on top) is DOCUMENTED in the UI + here, built later.
+
+**NEW INVARIANTS: #51** — login/auth SECURITY SIGNALS are captured by ADDED listeners (the tenant auth flow is never
+modified; the capture never breaks auth) with privacy built in (90-day retention, security purpose, /admin-only, no
+guest PII). **#52** — platform integration credentials are ENCRYPTED at rest, admin-managed, and NEVER echoed after
+saving. **THE SUPER ADMIN PANEL IS COMPLETE** (Gate 0 + Build 1 + Build 2). **Deferred tails (all account-gated or
+documented follow-ups):** Stripe billing sync · impersonation · suspension access-enforcement · per-feature-limit
+enforcement · the real channel sync · customer-self-connect. Files: `login_activity` + `platform_integrations`
+migrations/models, `RecordAuthActivity`, `PrunePlatformActivity`, `PlatformActivity`, `ActivityController` +
+`IntegrationController`, `admin/{activity,integrations}` views, 2 test files (16 tests); additive edits:
+`AppServiceProvider` (listeners), `routes/console.php` (prune schedule), `routes/web.php`, `AdminLoginRequest` (dispatch
+Failed), the customer detail (activity slice), the admin shell nav (all 5 areas live).

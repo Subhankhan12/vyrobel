@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Auth\AdminTwoFactorChallengeController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\IntegrationController as AdminIntegrationController;
 use App\Http\Controllers\Admin\PlanController as AdminPlanController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
@@ -909,6 +910,13 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
             // Build 2 · Gate 1 — Security & activity. Login-activity (platform table) read directly; the
             // cross-tenant audit slice via PlatformQuery::read (audited). Privacy: 90-day retention.
             Route::get('activity', [AdminActivityController::class, 'index'])->name('activity.index');
+
+            // Build 2 · Gate 2 — Integrations. Master channel credentials, ENCRYPTED at rest, write-only/masked;
+            // managing is audited. The test-connection is a stub (real sync account-gated).
+            Route::get('integrations', [AdminIntegrationController::class, 'index'])->name('integrations.index');
+            Route::get('integrations/{channel}', [AdminIntegrationController::class, 'edit'])->name('integrations.edit');
+            Route::put('integrations/{channel}', [AdminIntegrationController::class, 'update'])->middleware('throttle:30,1')->name('integrations.update');
+            Route::post('integrations/{channel}/test', [AdminIntegrationController::class, 'test'])->middleware('throttle:30,1')->name('integrations.test');
         });
     });
 });

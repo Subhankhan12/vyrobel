@@ -63,6 +63,24 @@ conflicts with the repo, **trust the repo** and fix this file.
 > (granting = unchanged behaviour, excluding = a clean gated state; every admin cross-tenant op via the audited
 > PlatformQuery). See `DECISIONS.md` 2026-07-26. **Build 2 = Security & activity log + Integrations. Invariants #1–50.**
 >
+> **Then SUPER ADMIN · BUILD 2 (2026-07-26) — the final two areas → THE PANEL IS COMPLETE.** ADDITIVE ONLY — **the
+> existing 1013 tests all stay green** (suite now **1029/1029** = 1013 + 16 new). **Security & Activity Log
+> (privacy-built-in):** auth signals (login/failed/lockout) captured by ADDED listeners on the framework auth events —
+> **the tenant login flow is NOT modified** (the capture can never break auth); operator/owner use `Auth::validate` (no
+> per-attempt Failed) so their signal is the Lockout, guest fires Failed, the admin realm dispatches its own Failed. **🔒
+> PRIVACY BUILT IN FROM COMMIT 1 (GDPR):** a 90-day retention prune (`platform:prune-activity`, scheduled), security-
+> monitoring purpose (documented), /admin-only, **#28 — no guest email persisted plaintext**. The view = recent sign-ins
+> + a 24h failure summary + a cross-tenant account-events slice (audit ledger via `PlatformQuery::read`, audited) +
+> per-customer slice. **Integrations:** the founder's master channel credentials (Channex/OTAs) in `platform_integrations`,
+> **`encrypted:array` at rest** (like the owner IBAN, #28 — proven the plaintext never lands on disk), **write-only /
+> masked (never echoed after save)**, managed via an audited action (records WHICH channel, never the value), a
+> test-connection STUB (real sync account-gated, labelled honestly); the customer-self-connect model documented, built
+> later. **NEW INVARIANTS #51** (auth signals captured by added-listeners — tenant flow unmodified; privacy-retained) **+
+> #52** (platform credentials encrypted-at-rest + admin-managed + never-echoed). **THE SUPER ADMIN PANEL IS COMPLETE
+> (Gate 0 + Build 1 + Build 2). Deferred tails (account-gated / documented follow-ups): Stripe billing sync,
+> impersonation, suspension access-enforcement, per-feature-limit enforcement, the real channel sync, customer-self-connect.**
+> See `DECISIONS.md` 2026-07-26. **Invariants #1–52.**
+>
 > **THE ENTIRE BUILDABLE PRODUCT IS COMPLETE (Phases 0–7), and Phase 8's two OBTAINABLE integrations are LIT UP.**
 > Three full user-facing apps — operator back office (`/app`), owner portal (`/owner`), guest portal (`/guest`) —
 > plus a public storefront (`/book/{slug}`) and public self-signup (`/signup`) that atomically provisions a new

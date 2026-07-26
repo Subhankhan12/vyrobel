@@ -13,7 +13,7 @@
         ['customers', 'Customers', route('admin.customers.index'), true],
         ['plans', 'Plans', route('admin.plans.index'), true],
         ['activity', 'Security & activity', route('admin.activity.index'), true],
-        ['integrations', 'Integrations', null, false],
+        ['integrations', 'Integrations', route('admin.integrations.index'), true],
     ];
 @endphp
 <!DOCTYPE html>

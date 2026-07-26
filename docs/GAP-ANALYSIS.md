@@ -382,6 +382,18 @@ and DRIVING feature-gating additively (`Organization::planAllows` + a reusable `
 Stripe billing sync deferred (the go-live seam). **INVARIANT #50.** **Build 2 NEXT = Security & activity log + Integrations
 (platform channel credentials).** The live channel sync + live Stripe charge remain account-gated.
 
+**✅✅ SUPER ADMIN PANEL — COMPLETE (2026-07-26): Build 2 = Security & Activity Log + Integrations.** Additive (existing
+1013 tests green → suite 1029/1029). **Security & activity:** auth signals (login/failed/lockout) captured by ADDED
+listeners on the framework auth events (tenant login flow UNMODIFIED; capture can't break auth); privacy built in — a
+90-day retention prune (`platform:prune-activity`), security-monitoring purpose, /admin-only, #28 no-guest-PII; the view
+shows sign-ins + a failure summary + a cross-tenant audit slice (via `PlatformQuery::read`). **Integrations:** master
+channel credentials (Channex/OTAs) `encrypted:array` at rest (proven plaintext-never-on-disk), write-only/masked
+(never echoed), audited management (records the channel, not the value), a test-connection stub; customer-self-connect
+documented, built later. **INVARIANTS #51 (auth-signal capture + privacy) + #52 (encrypted platform credentials).**
+**THE PANEL IS COMPLETE (Gate 0 + Build 1 + Build 2).** **Deferred tails (all account-gated or documented follow-ups):**
+Stripe billing sync · impersonation · suspension access-enforcement · per-feature-limit enforcement · the real channel
+sync · customer-self-connect. Invariants #1–52.
+
 **PHASE 7b — SUBSCRIPTION BILLING** *(✅ DONE — 2026-07-22, 3 gated sub-gates `4a3b5cd` → `5a52696` → this gate)*
 The free-trial model: plans/tiers (placeholder prices) + `SubscriptionStatus` + the real trial (from 7a
 provisioning) + the Paywall + Checkout (company/VAT, period toggle) + access-gating (`EnsureSubscriptionActive`:
