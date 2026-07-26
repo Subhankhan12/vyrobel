@@ -4157,3 +4157,52 @@ end-to-end. Files: the `pending_email` migration, `PlatformAdmin` (+fillable/pro
 `AdminEmailChangeMail` + email view, `admin/account/index` view, `PlatformTwoFactorService::regenerateRecoveryCodes`,
 the account routes (+ the signed verify route), the shell user-chip link, `PlatformAccountTest` (9). **Invariants
 #1–53.**
+
+### 2026-07-27 — SUPER ADMIN PANEL — completeness review (`docs/SUPERADMIN-COMPLETENESS.md`), no code
+
+A read-only review — not "does what's built work?" (that audit is done: 0 critical / 0 P1) but "what does a platform
+admin running this SaaS genuinely NEED that isn't there yet?" — producing a prioritized report for the founder to
+choose from. **No code changed** (`4605826`, report only). Findings, in short:
+
+- **The panel is operationally sufficient to LAUNCH a free-trial / early-access product as-is.** There is no
+  launch-blocking hole in the panel itself. A paid launch depends only on the already-scoped **Stripe billing
+  go-live** + **suspension enforcement** (a suspend today is a status flag, not an access block).
+- **Genuinely-missing (all after-launch, none blocking), ranked:** suspension enforcement · Stripe billing sync +
+  revenue/invoices/refunds · **queue/failed-jobs visibility** (the founder currently CANNOT reach Horizon in
+  production — its gate is bound to the unassignable global `Super Admin` role; re-point it to the `admin` guard,
+  small + high-value) · multi-admin/team + roles · GDPR data request (export/erase a customer) · manual customer
+  create + trial adjust/cancel · admin alerting · impersonation (read-only, heavy-audit) · usage analytics ·
+  audit-log search/export. Plus nice-to-haves (admin session mgmt · feature flags/maintenance mode · DB-editable
+  settings · CSV export · customer comms).
+- **Already-deferred, confirmed CORRECT (not re-flagged):** Stripe billing sync · impersonation · suspension
+  enforcement · per-feature-limit enforcement · real channel sync · customer-self-connect — restated with their real
+  priority so they can be sequenced.
+- **Roadmap:** Phase 0 launch (free-trial now; paid = Stripe go-live + suspension enforcement) → Phase 1 first-paying
+  (the billing/revenue cluster · re-point the Horizon gate · support ergonomics) → Phase 2 scale (multi-admin ·
+  alerting · GDPR · impersonation) → Phase 3 polish.
+
+The completeness lens confirmed the existing deferrals are honest and correctly presented — no honesty finding. This
+CLOSES the Super Admin panel work: **Gate 0 → Build 1 → Build 2 → deep audit → account page → completeness review.**
+
+### 2026-07-27 — TOTAL-RECALL DOCUMENTATION CONSOLIDATION (docs only)
+
+A documentation-consolidation pass so a fresh session inherits the FULL context. **No feature code — git shows only
+docs.** Verified every claim against the repo: **suite re-run green 1040/1040 (8046 assertions, exit 0)**; PHPStan L5 =
+0; Pint clean; `migrate:fresh --seed` clean; the demo/admin creds confirmed against the seeders; the Super Admin realm
+surface confirmed against the routes/controllers/views/models. Changes:
+
+- **`docs/PROJECT-STATE.md`** — prepended an authoritative 2026-07-27 CURRENT-STATE block (what Vyrobel is · the full
+  phase-by-phase build status incl. the complete Super Admin panel + the completeness review · the verified quality
+  state · the honest deferrals with real priority · what's left + the launch roadmap · the resume creds) that
+  supersedes every earlier block; and **extended the canonical numbered Invariants list from #41 to #53** (it had
+  lagged the prose — #42 owner sub-tenancy · #43 team schedule · #44 production email · #45 live Stripe · #46 owner
+  account area · #47 analytics depth · #48 operator money-write idempotency · #49 the isolated admin realm · #50
+  DB-backed plans/gating · #51 auth-signal capture + privacy · #52 encrypted platform credentials · #53 admin account
+  discipline), retitling the section "#1–53".
+- **`docs/RESUME.md`** — NEW fresh-session orientation index: read-order, one-paragraph state, stack, run/demo, the
+  login table, the next action (launch decision + deployment), and the working discipline. This is the "START HERE".
+- **`docs/DECISIONS.md`** — this entry + the completeness-review entry above.
+
+Confirmed: a fresh session reading `docs/RESUME.md` → `docs/PROJECT-STATE.md` now inherits the complete context —
+what Vyrobel is, everything built (Phases 0–8 + the Super Admin panel), the current quality state, the honest
+deferrals, what's left, the creds, and the exact next action. **Invariants #1–53.**

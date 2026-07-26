@@ -6,6 +6,73 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐ **CURRENT STATE — 2026-07-27 TOTAL-RECALL CONSOLIDATION. This block SUPERSEDES every block below it (all kept
+> as historical detail). For the fresh-session read-order + one-paragraph summary + creds + next action, start at
+> `docs/RESUME.md`.** Documentation-only consolidation — **no feature code changed** since the account page; HEAD on
+> `main`, tree clean after the docs commit.
+>
+> **WHAT VYROBEL IS.** A multi-tenant, AI-native **hotel / apartment-management SaaS**, in three layers: the TENANT
+> PRODUCT (operator back office `/app` · owner portal `/owner` · guest portal `/guest` · public storefront + booking
+> engine `/book/{slug}`), the SaaS LAYER (public self-signup `/signup` → atomic tenant provisioning · subscription
+> billing on a free-trial model · owner sub-tenancy · staff rostering), and the **SUPER ADMIN platform panel `/admin`**
+> (the founder's console — a separate hardened realm). **Stack:** Laravel 13 / PHP 8.4 · MySQL 8 / InnoDB ·
+> Livewire 4 + Blade + Tailwind 4 · Redis + Horizon · ULID PKs · spatie **teams-mode** RBAC · shared-DB multi-tenancy
+> via `organization_id` + the `OrganizationScope` global scope (`runAsSuperAdmin` = the ONE sanctioned bypass).
+>
+> **BUILD STATUS — EVERYTHING BUILDABLE IS COMPLETE.**
+> - **Tenant product (Phases 0–7): COMPLETE** — harden · operator app · owner portal · notifications + transactional
+>   emails · guest auth + portal · reviews · multi-property (`PropertyContext`) · REAL analytics (`PerformanceMetrics`,
+>   RevPAR = ADR × occupancy) · atomic tenant provisioning · subscription billing (free-trial) · owner team · team schedule.
+> - **Phase 8 account-gated integrations — the two OBTAINABLE ones are LIT UP (test-mode / code-complete):**
+>   PRODUCTION EMAIL (Postmark + `MailSafetyGuard`; `docs/EMAIL-PRODUCTION.md`) · LIVE STRIPE across all three seams
+>   (subscription · guest card · owner payout/Connect — `StripeSafetyGuard`, webhook-source-of-truth, multi-layer
+>   idempotency, payout double-transfer-guarded; `docs/STRIPE-PRODUCTION.md`). The live cutovers (email DNS + token;
+>   Stripe live-key flip) are the founder's remaining NON-CODE steps. Still account-gated: Channex live sync ·
+>   WhatsApp/OTA inbox · SMS · guest ID/KYC.
+> - **Design-fidelity pass (76 surfaces, `docs/design/DIVERGENCE-REGISTER.md`): COMPLETE (all 4 gates).** Owner account
+>   rebuild + notification-panel rebuild: COMPLETE. Batch A (cheap wins) + B (analytics depth) + C (operator
+>   operations): COMPLETE. The comprehensive polish sweep (`docs/POLISH-SWEEP.md`, all 4 dimensions, Batches 1–6 + P3
+>   tails): FULLY CLEARED. Add-charge server idempotency (the last money-path correctness item): CLOSED.
+> - **⭐ THE SUPER ADMIN PANEL: COMPLETE + AUDITED + PRODUCTION-READY.** Gate 0 (hardened isolated `/admin` realm —
+>   separate `platform_admins` table + `admin` guard, mandatory 2FA, the audited `PlatformQuery::read()/mutate()`
+>   wrapping `runAsSuperAdmin`, noindex + robots, seeded-not-signup) → Build 1 (Dashboard · Customers
+>   [list/detail/suspend/reactivate/assign-plan] · Plans [DB-backed CRUD + feature-gating, additive]) → Build 2
+>   (Security & Activity Log [login capture, 90-day-retention privacy, audit slice] · Integrations [encrypted channel
+>   credentials + management + test-stub]) → deep Playwright audit (`docs/SUPERADMIN-AUDIT.md` — 0 critical / 0 P1;
+>   UX/polish/honesty fixes) → Profile & Account page (profile · email re-verify · password · 2FA recovery) →
+>   **completeness review (`docs/SUPERADMIN-COMPLETENESS.md`)**.
+>
+> **QUALITY STATE (verified against the repo):** suite **1040 tests green** — the admin work was strictly ADDITIVE, the
+> tenant suite never regressed (981 → 997 → 1013 → 1029 → 1031 → 1040); PHPStan **L5 = 0**; Pint clean;
+> `migrate:fresh --seed` clean. **Invariants #1–53** — the full canonical numbered list below was extended in THIS pass
+> from #41 to #53 (it had lagged the prose).
+>
+> **HONEST DEFERRALS (all correctly deferred — real priority from `docs/SUPERADMIN-COMPLETENESS.md`; NONE block a
+> launch):** Stripe billing sync (the paid-launch dependency) · suspension access-enforcement (a status flag today —
+> needed to actually cut off a non-payer) · impersonation (high-risk; a support tool) · per-feature-limit enforcement ·
+> real channel sync + customer-self-connect (need the channel accounts) · **the Horizon queue is unreachable in
+> production** (its gate is bound to the unassignable global `Super Admin` role — re-point it to the `admin` guard;
+> small + high-value) · the residual global-`Super Admin` assignability · the remaining P3 polish tails.
+>
+> **WHAT'S LEFT (path to launch, from the completeness review):** the panel is **operationally launch-ready** — a
+> **free-trial / early-access launch needs nothing more**; a **paid launch** needs only the already-scoped **Stripe
+> go-live + suspension enforcement**. Then **DEPLOYMENT** (production hosting / domain / HTTPS / MySQL / Redis-Horizon)
+> + the founder's email + Stripe cutovers. **Roadmap:** Phase 0 launch → 1 first-paying (billing sync · real
+> revenue/invoices/refunds · suspension enforcement · re-point the Horizon gate · trial-adjust/cancel/manual-create) →
+> 2 scale (multi-admin + roles · admin alerting · GDPR export/erase · impersonation · usage analytics) → 3 polish.
+>
+> **RESUME CREDENTIALS** (all password `password`; `php artisan migrate:fresh --seed` recreates them): operator
+> **`demo-admin@vyrobel-demo.test`** (Property Owner / org admin) or `demo-staff@vyrobel-demo.test` (Hotel Manager) at
+> `/app`; owner **`demo-owner@vyrobel-demo.test`** at `/owner`; guest **`demo.traveller@vyrobel-demo.test`** at
+> `/guest/login`; **PLATFORM ADMIN `admin@vyrobel-demo.test`** at `/admin` (forced 2FA enrolment on first login).
+> Public storefront (no login) `/book/vyrobel-demo`; self-signup `/signup`.
+>
+> **THE NEXT ACTION for a fresh session:** there is NO outstanding build. The next decision is the founder's — **choose
+> the launch model** (free-trial now vs paid after the Stripe go-live + suspension enforcement), then **deploy**. If
+> building, take the next item from the `docs/SUPERADMIN-COMPLETENESS.md` roadmap (Phase 1). Read `docs/RESUME.md` first.
+>
+> ---
+
 > ⭐ **CURRENT STATE — 2026-07-23 total-recall save (HEAD `cace277`, `main`, local == origin, tree clean).
 > This block supersedes any earlier "next is Phase 7c" / "Rates next" prose below (kept as historical detail).**
 >
@@ -599,7 +666,7 @@ conflicts with the repo, **trust the repo** and fix this file.
   comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–46 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–53 (the full guarantee stack)
 
 > **All 45, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
@@ -1103,6 +1170,98 @@ conflicts with the repo, **trust the repo** and fix this file.
     the guest card charge + owner payout rail). Company/VAT are the org's own business identity (not card data).
     Billing is tenant-scoped + `billing.manage`-gated (founder/Property Owner, not Front Desk). Mutation-proven.
     (Phase 7b.)
+
+42. **OWNER SUB-TENANCY (Owner Team) — nested isolation, COMPOSED not invented.** A sub-user ⊆ their owner ⊆ their
+    org: the nesting COMPOSES the existing `OwnerScope` (owner boundary) + tenant scope (org boundary) — NO new scope.
+    The 3 fixed owner-team roles (co-owner / accountant / view-only) gate the portal by a capability MATRIX
+    (`EnsureOwnerCapability` route gate + `@ownercan` UI, both reading the ONE `OwnerTeamRole` matrix — not a privilege
+    chain); the **payout account / IBAN is co-owner-ONLY** (money-security, #28). Team management is held by NO role —
+    gated on `isPrimaryOwner()` (`EnsurePrimaryOwner`), so `canAssign()` refuses every sub-user and self-escalation is
+    STRUCTURALLY impossible. The owner-realm invite reuses the hardened token discipline (sha256, single-use, expiring,
+    no-enumeration) and is OWNER-SCOPED (can only land a sub-user under the invite's own `owner_id`); a removed
+    sub-user's orphaned login is disabled. The capability gate COMPOSES with — never masks — the owner-scope
+    fail-closed (it only 403s users WITH owner access). (Phase 7c.)
+43. **TEAM SCHEDULE (rostering) — tenant + property scoped over REAL staff.** A shift lands on the SELECTED property
+    (`PropertyContext::id()`, never `->first()`, never cross-property/org) and only on a real staff member
+    (`StaffRoster` = active `Membership` ∩ a back-office role; owners/guests/fabricated names excluded). Managing the
+    roster is manager-gated (`schedule.manage`, NOT Front Desk); viewing is broad (`schedule.view`). Time-off is a
+    request→approval SEPARATION (a staff member requests their OWN; only a manager approves) and **self-approval is
+    impossible** (`LeaveService` throws if actor == subject). A shift-on-approved-leave is a REAL computed conflict
+    (assign-on-leave refused; a pre-existing clash flagged), never fabricated. The schedule PDF renders from the SAME
+    `RosterWeek` builder as the grid, so it RECONCILES and is property-scoped. Shift-swap / labor-cost / coverage-AI
+    are OUT of scope (deferred honestly, never faked).
+44. **PRODUCTION EMAIL (Phase 8) — a real email NEVER sends from a non-production environment.** `MailSafetyGuard`
+    refuses a real-sending transport outside `production` (downgrades to `log` at boot), so even `MAIL_MAILER=postmark`
+    in a dev/CI `.env` can't reach a real person; the suite runs on a non-sending (`array`) transport. The Phase-3
+    boundary HOLDS with the real transport — a provider send failure is caught + logged (never the address, #28) and
+    NEVER rolls back the booking/notification (best-effort). Mail goes only to the correct OWN recipient. Provider
+    secrets live in ENV only. The DNS records + the one controlled real send are the founder's cutover.
+45. **LIVE STRIPE (money paths, test-mode-first) — built so it CANNOT charge wrong.** A real charge can NEVER happen
+    outside `production` — a live `sk_live_` key is refused by `StripeSafetyGuard` (the fake client is bound in CI).
+    The card NEVER touches the server (hosted Checkout — PCI SAQ A, no raw PAN). Every money path FULFILS ON THE
+    WEBHOOK, never the redirect; every webhook is SIGNATURE-VERIFIED against the raw body (the account + Connect
+    endpoints have SEPARATE secrets) and idempotent on `webhook_events(source,event.id)`. Double-money is impossible by
+    MULTIPLE layers (a deterministic sending-side Idempotency-Key + the `event.id` unique index + `firstOrCreate`);
+    **the owner payout CANNOT double-transfer** (unique Idempotency-Key + a `lockForUpdate` row-lock, re-checked
+    pending inside the lock — proven twice WITHOUT and once WITH) and a transfer only ever goes to ITS OWN owner's
+    connected account. The ledgers stay append-only / correct-by-reversal / integer money (#17, #27), reconciling. The
+    LIVE-KEY FLIP is the founder's documented go-live step, never done in the build.
+46. **THE OWNER ACCOUNT AREA (Profile & account + Security) — per-user, self-resolved.** The owner self-profile
+    (name / login-email / avatar / language / password / 2FA / sessions / data-export) is PER-USER — resolved from
+    `auth()`, NEVER a request id — so every owner-realm user incl. accountant / view-only SUB-USERS manages their OWN
+    account. The owner-party / business details + payout links + team + DEACTIVATE are PRIMARY-OWNER-ONLY
+    (`EnsurePrimaryOwner`, #42). A login-email change RE-VERIFIES the new address (a signed `temporarySignedRoute`,
+    `{hash}` = `sha1(pending_email)`) BEFORE it switches. DEACTIVATE is a REVERSIBLE, NON-DESTRUCTIVE `users.status`
+    flag (login is active-only; financials STAY; PII erasure remains the #28 `anonymize()` path). Sessions are the REAL
+    `sessions` table (sign-out-others password-gated + rotates the remember-token). The protection checklist is DERIVED
+    from true state, NEVER a fabricated score. All writes are controller POSTs (never `/livewire/update`).
+47. **ANALYTICS DEPTH IS REAL (Batch B) — no fabricated LY / pricing / recommendations.** The per-unit + by-unit +
+    booking-cadence analytics are REAL aggregates: the owner Statement **by-unit split** reconciles to the net to the
+    cent (#17, owner-scoped #28); **per-unit analytics** (revenue · nightly rate · best-performer · 6-mo NET · 12-mo
+    occupancy · channel mix · a real attention feed) run through the shared `OwnerUnitAnalytics`; operator + owner
+    **Insights booking cadence** (lead-time distribution + median · day-of-week occupancy · on-the-books) runs through
+    ONE shared `App\Support\Analytics\BookingCadence` (anti-drift). A flagged, demo-only backdated seed gives shape; the
+    runtime computes real aggregates from real rows (proven by `BookingCadenceTest`). REFUSED: the recommendation /
+    pricing engine + the "vs last year" deltas (no fabricated LY). Extends #39.
+48. **OPERATOR MONEY-WRITES ARE IDEMPOTENT + GO THROUGH GUARDED SERVICES (Batch C).** On-desk operations wire EXISTING
+    guarded services, never raw writes: housekeeping assign (`HousekeepingService::assign`), reservation move
+    (`AssignmentService::assignUnit` — lock + no-overlap), add-charge (`FolioService::postCharge`, #17). BOTH
+    money-write routes (the on-desk payment + add-charge) carry a per-submit server nonce backed by a nullable-UNIQUE
+    `idempotency_key` (+ a pre-check + catch-the-race), so a duplicate — even two CONCURRENT POSTs bypassing the UI
+    disable — records ONCE (mutation- + browser-proven). Tax & fees editing is bounded + `properties.manage`-gated.
+49. **THE SUPER ADMIN PANEL IS A SEPARATE, ISOLATED REALM (the deferred Phase-7a item, resolved properly).** `/admin`
+    runs on a NEW `admin` session guard over a separate `platform_admins` table (NO `organization_id`, NO spatie role)
+    — a platform admin is NOT a tenant `User`, so tenant guards never resolve it and it never resolves a tenant user
+    (the `guest`-realm discipline). `/admin` has NO ambient tenant context, so a stray tenant query there fails CLOSED.
+    Every cross-tenant READ goes via `PlatformQuery::read()`, every tenant-scoped WRITE via `PlatformQuery::mutate()` —
+    both admin-guard-gated + audited + wrapping `runAsSuperAdmin` with the scope restored in `finally` (never leaks; no
+    new bypass). MANDATORY 2FA (TOTP), hardened rate-limited login, actions audited to `platform_admin_actions`, noindex
+    + robots-disallow (path not subdomain), NO public sign-up (seeded via `php artisan admin:create`). Confirmed: there
+    was never an `is_super_admin` flag on `users` (a test asserts its absence).
+50. **PLANS ARE DB-BACKED + DRIVE FEATURE-GATING ADDITIVELY.** The `plans` / `plan_features` catalog is
+    ADMIN-authoritative — CRUD (integer money #17) — and drives feature-gating via the existing
+    `Organization::planAllows` (fail-open) + a reusable `EnsurePlanFeature` middleware: a GRANTING plan behaves EXACTLY
+    as before (additive — no regression), only an EXCLUDING plan gates (a clean "not in your plan" page).
+    Assign-a-plan-to-a-customer is audited + drives features. `BillingService::catalog()` reads features from the DB.
+    Stripe billing sync (the `stripe_price_id` / subscription sync) is the deferred go-live seam.
+51. **AUTH SIGNALS ARE CAPTURED BY ADDED LISTENERS — the tenant flow is NOT modified; privacy is built in.**
+    Login / failed / lockout are captured by listeners ADDED on the framework auth events (`RecordAuthActivity` →
+    `login_activity`) — the tenant login flow is untouched, so the capture can never break auth (operator/owner use
+    `Auth::validate`, so their signal is the Lockout; guest fires Failed; the admin realm dispatches its own Failed).
+    Privacy from commit 1 (GDPR): a 90-day retention prune (`platform:prune-activity`, scheduled), security-monitoring
+    purpose, /admin-only, **no guest email persisted plaintext (#28)**.
+52. **PLATFORM INTEGRATION CREDENTIALS ARE ENCRYPTED-AT-REST + ADMIN-MANAGED + NEVER ECHOED.** The founder's master
+    channel credentials (Channex / OTAs) live in `platform_integrations`, cast `encrypted:array` (like the owner IBAN,
+    #28 — the plaintext never lands on disk), write-only / masked (never echoed after save), managed via an audited
+    action that records WHICH channel, never the value. The test-connection is an honest STUB (real sync account-gated,
+    labelled honestly); the customer-self-connect model is documented, built later.
+53. **A PLATFORM ADMIN'S ACCOUNT MANAGEMENT IS SELF-ONLY, RE-AUTHED, EMAIL-RE-VERIFIED, AUDITED.** Every action
+    resolves `Auth::guard('admin')->user()`, never a request id. Password + email + recovery-code changes require the
+    CURRENT password (`current_password:admin`). An email change is parked in `platform_admins.pending_email` and
+    switched ONLY when a SIGNED, expiring link (`sha1(pending_email)`-bound) opened from the NEW inbox confirms it — the
+    OLD email stays the login and the PENDING email CANNOT log in until verified (fail-closed on bad-signature /
+    stale-hash / taken-email). 2FA recovery-code regeneration requires the current password. Every change is audited to
+    `platform_admin_actions` (which field, never the value). Mirrors the tenant discipline, never weaker.
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 

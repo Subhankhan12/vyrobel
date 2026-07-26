@@ -400,6 +400,14 @@ account-rebuild discipline for the admin realm: current-password re-auth for pas
 re-verified (signed link, pending-until-confirmed, old stays login, pending can't log in), all audited. Additive;
 existing 1031 tests green (suite 1040/1040). **INVARIANT #53.** Invariants #1–53.
 
+**✅ SUPER ADMIN · deep audit + completeness review — DONE (2026-07-27).** A deep Playwright audit
+(`docs/SUPERADMIN-AUDIT.md`) found **0 critical / 0 P1** (UX/polish/honesty fixes only); then a read-only completeness
+review (`docs/SUPERADMIN-COMPLETENESS.md`) mapped what a platform admin running this SaaS still needs. **Verdict: the
+panel is operationally LAUNCH-READY** — free-trial/early-access as-is; a paid launch depends only on the already-scoped
+**Stripe billing go-live + suspension enforcement**. The forward roadmap for the panel (before-launch → soon → later)
+lives in `docs/SUPERADMIN-COMPLETENESS.md`; notable genuinely-missing item = the Horizon queue is unreachable in
+production (re-point its gate to the `admin` guard — small, high-value). This CLOSES the Super Admin panel build.
+
 **PHASE 7b — SUBSCRIPTION BILLING** *(✅ DONE — 2026-07-22, 3 gated sub-gates `4a3b5cd` → `5a52696` → this gate)*
 The free-trial model: plans/tiers (placeholder prices) + `SubscriptionStatus` + the real trial (from 7a
 provisioning) + the Paywall + Checkout (company/VAT, period toggle) + access-gating (`EnsureSubscriptionActive`:
