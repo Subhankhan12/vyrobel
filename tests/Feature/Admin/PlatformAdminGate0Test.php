@@ -189,7 +189,10 @@ it('the cross-tenant read on the console is AUDITED to the platform action ledge
 
     $this->actingAs($admin, 'admin')->get('/admin')->assertOk();
 
-    $action = PlatformAdminAction::query()->where('action', 'platform.count_organizations')->first();
+    // The console's cross-tenant read is audited. (Build 1 · Gate 1 grew the Overview from a trivial org count
+    // to the full metrics read — same audited PlatformQuery::read(), now under the accurate `platform.dashboard`
+    // action. The isolation guarantee is unchanged: the read IS audited to the platform ledger.)
+    $action = PlatformAdminAction::query()->where('action', 'platform.dashboard')->first();
     expect($action)->not->toBeNull();
     expect($action->platform_admin_id)->toBe($admin->id);
 })->group('security');

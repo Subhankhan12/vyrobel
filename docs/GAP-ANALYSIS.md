@@ -374,6 +374,14 @@ existing `runAsSuperAdmin`, noindex, seeded-not-signup) — additive, the 981 ex
 Plans (DB-backed CRUD over the existing `plans`/`plan_features` catalog + feature-gating) · Security & activity log ·
 Integrations (platform channel credentials). The live channel sync + live Stripe charge remain account-gated.
 
+**✅ SUPER ADMIN PANEL — BUILD 1 DONE (2026-07-26): Dashboard + Customers + Plans.** The core console, additive (existing
+997 tests green → suite 1013/1013). Dashboard = real cross-org metrics via the audited `PlatformQuery::read()`.
+Customers = list + detail of every org (#28 operational-facts-only) + audited suspend/reactivate via `PlatformQuery::mutate()`;
+impersonation deferred. Plans = the `plans`/`plan_features` catalog made admin-authoritative (CRUD, integer money #17)
+and DRIVING feature-gating additively (`Organization::planAllows` + a reusable `EnsurePlanFeature` + assign-a-plan);
+Stripe billing sync deferred (the go-live seam). **INVARIANT #50.** **Build 2 NEXT = Security & activity log + Integrations
+(platform channel credentials).** The live channel sync + live Stripe charge remain account-gated.
+
 **PHASE 7b — SUBSCRIPTION BILLING** *(✅ DONE — 2026-07-22, 3 gated sub-gates `4a3b5cd` → `5a52696` → this gate)*
 The free-trial model: plans/tiers (placeholder prices) + `SubscriptionStatus` + the real trial (from 7a
 provisioning) + the Paywall + Checkout (company/VAT, period toggle) + access-gating (`EnsureSubscriptionActive`:

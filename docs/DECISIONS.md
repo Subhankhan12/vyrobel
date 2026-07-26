@@ -3996,3 +3996,58 @@ byte-preserved otherwise):** `config/auth.php` (+`admin` guard/provider), `route
 `bootstrap/app.php` (+`admin/*` redirect arm), `public/robots.txt` (+disallow), `database/seeders/DatabaseSeeder.php`
 (+seeder call). **NEXT: the feature gates (Dashboard · Customers · Plans · Security & activity · Integrations) on this
 proven, isolated foundation.**
+
+### 2026-07-26 — SUPER ADMIN · BUILD 1 — Dashboard + Customers + Plans (the core console) on the proven Gate-0 foundation
+
+The founder's operating console, three gated areas on the isolated /admin realm. **ADDITIVE ONLY — the existing 997
+tests (981 original + 16 Gate-0) all stay green** (suite now **1013/1013** = 997 + 16 new Build-1 tests); PHPStan L5
+(0); Pint clean; `migrate:fresh --seed` clean. **🔒 EVERY cross-tenant read via the EXISTING audited
+`PlatformQuery::read()` (runAsSuperAdmin — scope-restored, admin-guard-gated, audited); every tenant-scoped WRITE via
+the new sibling `PlatformQuery::mutate()` (same envelope). No new bypass; no tenant read/write outside the closure.**
+Real data only (#39); integer money (#17). Invariants #1–49 intact.
+
+**GATE 1 — Dashboard (`0aa7f9d`).** Real cross-org metrics computed inside ONE `PlatformQuery::read('platform.dashboard')`
+per load: total customers + by-status (active/trialing/suspended/cancelled), active subscriptions + on-trial, properties
++ reservations platform-wide, plan distribution, a 6-month signups series, and a recurring PLAN VALUE (Σ active/trialing
+subs' plan prices, yearly ÷12) — labelled honestly as *contracted, not-yet-billed* (live charging is account-gated).
+`PlatformMetrics` service. Honest zero/empty states. Control-room KPI band + a real signups chart + status/plan
+breakdown (new admin design tokens). Browser-verified (demo org: 1 customer, €49.00/mo, 2 properties, 24 reservations).
+
+**GATE 2 — Customers (`ec7db1c`).** See + inspect every org: `PlatformCustomers` reader → the list (all orgs + plan +
+status + property/staff counts, searchable + status-filterable, no N+1) and a detail (facts + subscription/plan +
+footprint). **🔒 #28-judicious** — operational facts ONLY, never end-guests' contact PII. `CustomerController` reads via
+`read`; **suspend + reactivate via `mutate`** (audited, real `organizations.status` change, rate-limited, confirm
+dialog). **🔒 Impersonation / view-as-tenant is DELIBERATELY NOT built** (high-risk — deferred; a test asserts no such
+route). **Suspend is a real audited status marker; ENFORCING it (locking a suspended org out across realms) touches
+tenant auth middleware and is a documented follow-up, not done here.** Browser-verified (real demo customer + detail).
+
+**GATE 3 — Plans (this commit).** The `plans` + `plan_features` tables (Phase 7b — a GLOBAL first-party catalog) become
+ADMIN-AUTHORITATIVE:
+- **Plan CRUD** (`PlanController`): edit name, price (integer minor, #17), active, and the feature toggles/limits
+  (analytics/channels/team). Global tables → no bypass needed; every write AUDITED. **🔒 Stripe billing sync DEFERRED
+  (Q4)** — editing sets price + features (display + gating); it does NOT create/update a Stripe Price/subscription; the
+  `stripe_price_id` column is the untouched seam.
+- **Feature-gating (the key SaaS mechanism, wired ADDITIVELY).** The existing `Organization::planAllows()` (reads
+  `plan_features`, FAILS OPEN on no-subscription/unknown-key) is the gate. New reusable `EnsurePlanFeature` route
+  middleware (`plan.feature:channels`) + a clean `billing.feature-locked` "not in your plan" page — **fail-open by
+  construction so applying it NEVER changes behaviour for an org whose plan grants (or doesn't mention) the feature;
+  only a plan that EXPLICITLY excludes it gates.** No new tenant-route gate was applied (the existing Pro-only channels
+  gate in the operator shell is the live example) — the middleware is the proven, ready tool. **Mutation-proven:**
+  editing a plan's `channels` feature flips `planAllows('channels')` for orgs on that plan; `EnsurePlanFeature` passes a
+  granted feature / 403s an excluded one / fails open with no context.
+- **Assign a plan to a customer** (`CustomerController::assignPlan`, from the customer detail): sets the org's
+  subscription `plan_id` (via `mutate` — Subscription is tenant-scoped), which DRIVES its features. Audited. **🔒 Stripe
+  untouched** (`stripe_subscription_id` stays null). **Browser-proven end-to-end:** assigning the demo org Essential→Pro
+  flipped `planAllows('channels')` false→TRUE.
+- **config→DB (the careful edit).** `BillingService::catalog()` now reads feature `enabled`/`limit` from the DB
+  `plan_features` (admin-authoritative), label from config (display copy) — byte-identical today (DB seeded from config,
+  so the Paywall tests stay green), but an admin feature edit now flows to the Paywall, not just the gate. config remains
+  the SEED + the marketing blurb source (the full DB-drives-marketing move is the later marketing-site work).
+
+**Deferred (noted honestly):** Stripe billing sync (plan Prices / subscription lifecycle) — the go-live step;
+impersonation; suspension access-enforcement across realms; per-feature LIMIT enforcement (creation-blocking) — the
+limits are shown + editable, not yet enforced. **Build 2 = Security & activity log + Integrations.** Files: new
+`PlatformMetrics`/`PlatformCustomers`, `PlatformQuery::mutate()`, `DashboardController` (expanded), `CustomerController`,
+`PlanController`, `EnsurePlanFeature`, `admin/{dashboard,customers,plans}` + `billing/feature-locked` views, the admin
+shell tokens, `tests/Support/admin_helpers.php`, 3 test files (16 tests); additive edits: `routes/web.php`,
+`BillingService::catalog()`, the admin shell nav (Customers/Plans live).

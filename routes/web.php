@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\Auth\AdminTwoFactorChallengeController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\PlanController as AdminPlanController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -895,6 +896,14 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
             Route::get('customers/{organization}', [AdminCustomerController::class, 'show'])->name('customers.show');
             Route::post('customers/{organization}/suspend', [AdminCustomerController::class, 'suspend'])->middleware('throttle:20,1')->name('customers.suspend');
             Route::post('customers/{organization}/reactivate', [AdminCustomerController::class, 'reactivate'])->middleware('throttle:20,1')->name('customers.reactivate');
+            Route::post('customers/{organization}/plan', [AdminCustomerController::class, 'assignPlan'])->middleware('throttle:20,1')->name('customers.assign-plan');
+
+            // Build 1 · Gate 3 — Plans (DB-backed catalog; feature toggles drive real gating). Global tables (no
+            // tenant bypass needed); every write audited. Stripe billing sync DEFERRED (the stripe_price_id seam).
+            Route::get('plans', [AdminPlanController::class, 'index'])->name('plans.index');
+            Route::get('plans/{plan}/edit', [AdminPlanController::class, 'edit'])->name('plans.edit');
+            Route::put('plans/{plan}', [AdminPlanController::class, 'update'])->middleware('throttle:30,1')->name('plans.update');
+            Route::post('plans/{plan}/toggle', [AdminPlanController::class, 'toggle'])->middleware('throttle:30,1')->name('plans.toggle');
         });
     });
 });

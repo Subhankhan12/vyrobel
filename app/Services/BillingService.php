@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Organization;
 use App\Models\Plan;
+use App\Models\PlanFeature;
 use App\Models\Subscription;
 use App\Payments\Stripe\StripeCheckoutSession;
 use App\Payments\Stripe\StripeClientInterface;
@@ -128,13 +129,18 @@ final class BillingService
             $monthly = Plan::query()->where('code', $code.'_monthly')->firstOrFail();
             $yearly = Plan::query()->where('code', $code.'_yearly')->firstOrFail();
 
+            // Build 1 · Gate 3 — the DB `plan_features` are AUTHORITATIVE for enabled/limit (the platform admin
+            // edits them); config supplies only the human LABEL (display copy). Seeded from config, so this is
+            // byte-identical today — but an admin feature edit now flows to the Paywall, not just the gate.
+            $dbFeatures = PlanFeature::query()->where('plan_id', $monthly->id)->get()->keyBy('key');
             $features = [];
             foreach ($tier['features'] as $key => $feature) {
+                $dbFeature = $dbFeatures->get($key);
                 $features[] = [
                     'key' => $key,
                     'label' => (string) $feature['label'],
-                    'enabled' => (bool) ($feature['enabled'] ?? true),
-                    'limit' => $feature['limit'] ?? null,
+                    'enabled' => $dbFeature !== null ? (bool) $dbFeature->enabled : (bool) ($feature['enabled'] ?? true),
+                    'limit' => $dbFeature !== null ? $dbFeature->limit : ($feature['limit'] ?? null),
                 ];
             }
 

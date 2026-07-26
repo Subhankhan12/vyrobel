@@ -9,6 +9,7 @@ use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Models\Subscription;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -28,7 +29,7 @@ class PlatformCustomers
      * The customer list — every org with its plan, status and key operational counts.
      *
      * @param  array{search?: ?string, status?: ?string}  $filters
-     * @return list<array{id: string, name: string, slug: string, status: string, plan: ?string, properties: int, members: int, created_at: ?\Carbon\Carbon}>
+     * @return list<array{id: string, name: string, slug: string, status: string, plan: ?string, properties: int, members: int, created_at: ?Carbon}>
      */
     public function list(array $filters = []): array
     {

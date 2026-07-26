@@ -11,7 +11,7 @@
     $nav = [
         ['overview', 'Overview', route('admin.dashboard'), true],
         ['customers', 'Customers', route('admin.customers.index'), true],
-        ['plans', 'Plans', null, false],
+        ['plans', 'Plans', route('admin.plans.index'), true],
         ['activity', 'Security & activity', null, false],
         ['integrations', 'Integrations', null, false],
     ];
@@ -131,6 +131,12 @@
         .ad-btn--sm { padding: 7px 13px; font-size: 12.5px; }
         /* Flash notice */
         .ad-flash { padding: 11px 15px; border-radius: 10px; background: rgba(110,231,183,.10); border: 1px solid rgba(110,231,183,.32); color: #A7F3D0; font-size: 13px; font-weight: 500; margin-bottom: 18px; }
+        /* Form fields (control-room) */
+        .ad-label { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ad-muted); margin-bottom: 7px; }
+        .ad-input { width: 100%; padding: 11px 13px; border-radius: 9px; border: 1px solid var(--ad-border); background: rgba(9,14,24,.55); color: var(--ad-ink); font-family: var(--ad-sans); font-size: 14px; transition: border-color .15s ease, box-shadow .15s ease; }
+        .ad-input:focus { outline: none; border-color: var(--ad-accent); box-shadow: 0 0 0 3px var(--ad-accent-soft); }
+        .ad-input:focus-visible, input[type=checkbox]:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+        input[type=checkbox] { accent-color: var(--ad-accent-2); width: 16px; height: 16px; }
         /* Detail (definition list) */
         .ad-back { display: inline-flex; align-items: center; gap: 6px; color: var(--ad-muted); text-decoration: none; font-size: 13px; margin-bottom: 14px; }
         .ad-back:hover { color: var(--ad-ink); }

@@ -45,6 +45,24 @@ conflicts with the repo, **trust the repo** and fix this file.
 > PROPERLY** — platform admin ≠ org `User` ≠ the unassignable global spatie role (and STEP 0 confirmed there was never an
 > `is_super_admin` flag on `users` to move; a test asserts its absence). See `DECISIONS.md` 2026-07-26. **Invariants #1–49.**
 >
+> **Then SUPER ADMIN · BUILD 1 (2026-07-26) — the core console: Dashboard + Customers + Plans** on the proven Gate-0
+> foundation. ADDITIVE ONLY — **the existing 997 tests all stay green** (suite now **1013/1013** = 997 + 16 new). **🔒
+> EVERY cross-tenant READ via the audited `PlatformQuery::read()`; every tenant-scoped WRITE via the new sibling
+> `PlatformQuery::mutate()`** (both runAsSuperAdmin — scope-restored, admin-guard-gated, audited; no new bypass). **Dashboard:**
+> real cross-org metrics (customers/status/subscriptions/properties/reservations/plan-mix/6-mo signups + a recurring
+> PLAN VALUE labelled honestly as contracted-not-billed since charging is account-gated) — real (#39), honest zeros.
+> **Customers:** list + detail of every org (operational facts only, **#28 — no end-guest PII**), + audited
+> suspend/reactivate (`mutate`); **impersonation DELIBERATELY deferred** (a test asserts no such route). **Plans:** the
+> Phase-7b `plans`/`plan_features` catalog is now ADMIN-authoritative — CRUD (integer money #17), and **plans DRIVE
+> FEATURE-GATING** via the existing `Organization::planAllows` (fail-open): a reusable `EnsurePlanFeature` middleware +
+> clean "not in your plan" page (additive — a granting plan behaves EXACTLY as today; only an excluding plan gates),
+> assign-a-plan-to-a-customer (audited, drives features). **🔒 Stripe billing sync DEFERRED** (plan mgmt + gating +
+> assignment now; the `stripe_price_id`/subscription sync is the go-live seam). `BillingService::catalog()` re-pointed to
+> read features from the DB (config = seed + blurb). **Mutation- + browser-proven** (assigning demo Essential→Pro flipped
+> `planAllows('channels')` false→true). **NEW INVARIANT #50 — plans are DB-backed + drive feature-gating ADDITIVELY**
+> (granting = unchanged behaviour, excluding = a clean gated state; every admin cross-tenant op via the audited
+> PlatformQuery). See `DECISIONS.md` 2026-07-26. **Build 2 = Security & activity log + Integrations. Invariants #1–50.**
+>
 > **THE ENTIRE BUILDABLE PRODUCT IS COMPLETE (Phases 0–7), and Phase 8's two OBTAINABLE integrations are LIT UP.**
 > Three full user-facing apps — operator back office (`/app`), owner portal (`/owner`), guest portal (`/guest`) —
 > plus a public storefront (`/book/{slug}`) and public self-signup (`/signup`) that atomically provisions a new

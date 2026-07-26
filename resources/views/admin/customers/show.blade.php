@@ -67,6 +67,19 @@
             <h2 class="ad-panel-title" style="margin-top: 22px;">Footprint</h2>
             <div class="ad-row"><span class="ad-row-k">Properties</span><span class="ad-row-v">{{ number_format($d['properties']) }}</span></div>
             <div class="ad-row"><span class="ad-row-k">Staff members</span><span class="ad-row-v">{{ number_format($d['members']) }}</span></div>
+
+            {{-- Assign a plan (Gate 3) — sets the plan + features; Stripe billing is a separate go-live step. --}}
+            <h2 class="ad-panel-title" style="margin-top: 22px;">Assign a plan</h2>
+            <form method="POST" action="{{ route('admin.customers.assign-plan', $org->id) }}" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                @csrf
+                <select name="plan_id" class="ad-input" style="flex: 1; min-width: 200px;" required>
+                    @foreach ($plans as $plan)
+                        <option value="{{ $plan->id }}" @selected($sub && $sub->plan_id === $plan->id)>{{ $plan->name }} · {{ ucfirst($plan->interval) }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="ad-btn ad-btn--sm">Assign</button>
+            </form>
+            <p class="ad-stat-sub" style="margin-top: 10px;">Sets the customer's plan &amp; features immediately. Billing (Stripe) is connected separately at go-live.</p>
         </div>
     </div>
 </x-admin.shell>

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\Plan;
+use App\Models\Subscription;
 use App\Support\Platform\PlatformCustomers;
 use App\Support\Platform\PlatformQuery;
 use Illuminate\Contracts\View\View;
@@ -74,6 +75,48 @@ class CustomerController extends Controller
         );
 
         return redirect()->route('admin.customers.show', $organization)->with('admin_notice', 'Customer suspended.');
+    }
+
+    /**
+     * Assign a plan to a customer (Gate 3) — sets the org's subscription plan, which DRIVES its feature-gating
+     * (`Organization::planAllows` reads the plan's `plan_features`). Audited, via mutate (Subscription is
+     * tenant-scoped, so the write runs inside the scope-restored bypass with an explicit organization_id).
+     *
+     * 🔒 STRIPE DEFERRED (Q4): this sets the plan + features ONLY — it does NOT create/sync a Stripe Price or
+     * subscription. `stripe_subscription_id` is left exactly as-is; live billing is a separate go-live step.
+     */
+    public function assignPlan(Request $request, string $organization): RedirectResponse
+    {
+        $validated = $request->validate(['plan_id' => ['required', 'string', 'exists:plans,id']]);
+        $planId = (string) $validated['plan_id'];
+
+        $this->platform->mutate(
+            'platform.customer.assign_plan',
+            function () use ($organization, $planId): void {
+                $subscription = Subscription::withoutGlobalScopes()
+                    ->where('organization_id', $organization)
+                    ->latest()
+                    ->first();
+
+                if ($subscription !== null) {
+                    $subscription->update(['plan_id' => $planId]);   // plan only — Stripe untouched (deferred)
+
+                    return;
+                }
+
+                // No subscription yet → create one on this plan (active, no Stripe — the seam stays null).
+                Subscription::create([
+                    'organization_id' => $organization,
+                    'plan_id' => $planId,
+                    'status' => 'active',
+                ]);
+            },
+            ['plan_id' => $planId],
+            'organization',
+            $organization,
+        );
+
+        return redirect()->route('admin.customers.show', $organization)->with('admin_notice', 'Plan assigned. The customer\'s features update immediately; billing (Stripe) is a separate step.');
     }
 
     /** Reactivate a suspended customer. */
