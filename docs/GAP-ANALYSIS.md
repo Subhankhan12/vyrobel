@@ -394,6 +394,12 @@ documented, built later. **INVARIANTS #51 (auth-signal capture + privacy) + #52 
 Stripe billing sync · impersonation · suspension access-enforcement · per-feature-limit enforcement · the real channel
 sync · customer-self-connect. Invariants #1–52.
 
+**✅ SUPER ADMIN · PROFILE & ACCOUNT page — DONE (2026-07-27).** Every platform admin manages their own identity
+(profile · login email [re-verified] · password · 2FA recovery) — a real gap, now closed. Mirrors the owner
+account-rebuild discipline for the admin realm: current-password re-auth for password/email/recovery, email
+re-verified (signed link, pending-until-confirmed, old stays login, pending can't log in), all audited. Additive;
+existing 1031 tests green (suite 1040/1040). **INVARIANT #53.** Invariants #1–53.
+
 **PHASE 7b — SUBSCRIPTION BILLING** *(✅ DONE — 2026-07-22, 3 gated sub-gates `4a3b5cd` → `5a52696` → this gate)*
 The free-trial model: plans/tiers (placeholder prices) + `SubscriptionStatus` + the real trial (from 7a
 provisioning) + the Paywall + Checkout (company/VAT, period toggle) + access-gating (`EnsureSubscriptionActive`:

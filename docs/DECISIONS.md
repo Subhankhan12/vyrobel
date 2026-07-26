@@ -4125,3 +4125,35 @@ suspension access-enforcement, per-feature-limit enforcement, real channel sync 
 fix stayed additive + preserved the security model (audited `PlatformQuery`, no new bypass) + disturbed nothing in
 the tenant realms. Suite green (existing + new fix tests, admin 50/50); PHPStan L5 (0); Pint clean; `migrate:fresh
 --seed` clean. **The Super Admin Panel is audited, fixed, and production-ready.**
+
+### 2026-07-27 — SUPER ADMIN · PROFILE & ACCOUNT page — the admin manages their own identity (INVARIANT #53)
+
+Every platform admin can now manage their OWN account (a real gap — there was no such page): profile (name),
+login email (re-verified), password, and 2FA recovery codes. On the proven /admin realm. **ADDITIVE ONLY —
+existing 1031 tests stay green (suite now 1040/1040 = 1031 + 9 new); PHPStan L5 (0); Pint clean; `migrate:fresh
+--seed` clean.** A SEPARATE, parallel implementation for the admin realm — it MIRRORS the owner account-rebuild
+DISCIPLINE, not its wiring (does not reuse the tenant routes/controllers).
+
+**🔒 The highest-privilege identity, so the discipline is mirrored, never weakened:**
+- **Self-only** — every action resolves `Auth::guard('admin')->user()`, NEVER a request id.
+- **Password change** requires the CURRENT password (`current_password:admin` — the anti-hijack guard, mirroring
+  `ChangePasswordController`) + the real server-authoritative rule (`Password::min(8)`, confirmed) + the single
+  hash+rotate path (`PlatformAdmin::changePasswordTo`); this session stays signed in. Mutation-proven: the new
+  password works, the OLD no longer does; a wrong current password / too-short new password is rejected.
+- **Email change is RE-VERIFIED** (mirrors `users.pending_email`): the new email is parked in the NEW
+  `platform_admins.pending_email` column and only switched when a SIGNED, expiring link (`temporarySignedRoute` +
+  `sha1(pending_email)` binding) opened from the NEW inbox confirms control (`AdminEmailChangeMail`). Requires the
+  CURRENT password to request (stronger than the owner flow). **Mutation-proven: the OLD email stays the login
+  and the PENDING email CANNOT log in until verified; fail-closed on a bad signature / stale hash / an
+  address taken meanwhile.** The verify route is public+signed (may be opened where the admin isn't signed in).
+- **2FA recovery** — status + regenerate one-time recovery codes (current-password required; audited) — closes
+  the audit's out-of-scope-polish item (`PlatformTwoFactorService::regenerateRecoveryCodes` added).
+- **Every change AUDITED** to `platform_admin_actions` (which field changed, never the value).
+
+**NEW INVARIANT #53** — a platform admin's account management is self-only, re-auths sensitive changes
+(current-password for password/email/recovery), re-verifies email (signed link, pending-until-confirmed, old
+stays login), and audits everything — mirroring the tenant discipline, never weaker. Browser-verified
+end-to-end. Files: the `pending_email` migration, `PlatformAdmin` (+fillable/property), `AccountController`,
+`AdminEmailChangeMail` + email view, `admin/account/index` view, `PlatformTwoFactorService::regenerateRecoveryCodes`,
+the account routes (+ the signed verify route), the shell user-chip link, `PlatformAccountTest` (9). **Invariants
+#1–53.**

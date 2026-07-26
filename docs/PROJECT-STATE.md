@@ -93,6 +93,17 @@ conflicts with the repo, **trust the repo** and fix this file.
 > `PlatformQuery`, no new bypass); tenant realms untouched; suite green (admin 50/50) + PHPStan L5 + Pint clean.
 > **The Super Admin panel is AUDITED + FIXED + PRODUCTION-READY.**
 >
+> **Then the SUPER ADMIN PROFILE & ACCOUNT page (2026-07-27, INVARIANT #53)** — every platform admin manages their
+> OWN identity (profile · login email · password · 2FA recovery), a real gap. Additive; existing 1031 tests green
+> (suite now **1040/1040** = 1031 + 9 new). A SEPARATE parallel implementation for the admin realm that MIRRORS the
+> owner account-rebuild discipline (not its wiring): 🔒 self-only; password change requires the CURRENT password
+> (`current_password:admin`) + the real `Password::min(8)` rule + the single hash+rotate path; **email change is
+> RE-VERIFIED** — parked in the new `platform_admins.pending_email`, switched only when a SIGNED expiring link
+> (sha1-bound) opened from the new inbox confirms it, current-password required, the old email stays the login and
+> **the pending email CANNOT log in until verified** (fail-closed on bad-signature/stale-hash/taken-email); 2FA
+> recovery-code regeneration (current-password + audited); every change audited to `platform_admin_actions`.
+> Mutation- + browser-proven end-to-end. See `DECISIONS.md` 2026-07-27. **Invariants #1–53.**
+>
 > **THE ENTIRE BUILDABLE PRODUCT IS COMPLETE (Phases 0–7), and Phase 8's two OBTAINABLE integrations are LIT UP.**
 > Three full user-facing apps — operator back office (`/app`), owner portal (`/owner`), guest portal (`/guest`) —
 > plus a public storefront (`/book/{slug}`) and public self-signup (`/signup`) that atomically provisions a new

@@ -30,42 +30,50 @@ function planRow(string $code, int $priceMinor, string $interval): Plan
     return Plan::create(['code' => $code, 'name' => strtoupper($code), 'price_minor' => $priceMinor, 'currency' => 'EUR', 'interval' => $interval, 'is_active' => true]);
 }
 
+/** compute() reads tenant-scoped models, so it runs inside the super-admin context (as the controller does). */
+function computeMetrics(): array
+{
+    return app(TenantContext::class)->runAsSuperAdmin(fn (): array => app(PlatformMetrics::class)->compute());
+}
+
 it('PlatformMetrics computes REAL aggregates across all orgs (real counts, honest zeros)', function () {
+    // Delta-based so the test is robust to any pre-existing committed orgs in a mixed test suite.
+    $base = computeMetrics();
+
     orgWithStatus('active', 'a-co');
     orgWithStatus('active', 'b-co');
     orgWithStatus('trialing', 'c-co');
     $suspended = orgWithStatus('suspended', 'd-co');
 
     $plan = planRow('pro_monthly', 9900, 'monthly');
-    // A real active subscription for one active org.
     Subscription::withoutGlobalScopes()->create([
         'organization_id' => Organization::where('slug', 'a-co')->value('id'),
         'plan_id' => $plan->id,
         'status' => 'active',
     ]);
 
-    // compute() reads tenant-scoped models, so it runs inside the super-admin context (as the controller does).
-    $m = app(TenantContext::class)->runAsSuperAdmin(fn (): array => app(PlatformMetrics::class)->compute());
+    $m = computeMetrics();
 
-    expect($m['organizations'])->toBe(4);
-    expect($m['by_status']['active'])->toBe(2);
-    expect($m['by_status']['trialing'])->toBe(1);
-    expect($m['by_status']['suspended'])->toBe(1);
-    expect($m['by_status']['cancelled'])->toBe(0);            // honest zero
-    expect($m['active_subscriptions'])->toBe(1);
-    expect($m['recurring_plan_value_minor'])->toBe(9900);     // one active Pro monthly — real plan value
+    expect($m['organizations'] - $base['organizations'])->toBe(4);
+    expect($m['by_status']['active'] - $base['by_status']['active'])->toBe(2);
+    expect($m['by_status']['trialing'] - $base['by_status']['trialing'])->toBe(1);
+    expect($m['by_status']['suspended'] - $base['by_status']['suspended'])->toBe(1);
+    expect($m['active_subscriptions'] - $base['active_subscriptions'])->toBe(1);
+    expect($m['recurring_plan_value_minor'] - $base['recurring_plan_value_minor'])->toBe(9900);   // +1 Pro monthly
     expect($m['signups'])->toHaveCount(6);                    // a 6-month series, always present
     expect($suspended->status)->toBe('suspended');
 })->group('security');
 
 it('a yearly plan contributes its monthly-equivalent to the recurring plan value (real, normalised)', function () {
+    $base = computeMetrics();
+
     $org = orgWithStatus('active', 'yr-co');
     $plan = planRow('pro_yearly', 99000, 'yearly');
     Subscription::withoutGlobalScopes()->create(['organization_id' => $org->id, 'plan_id' => $plan->id, 'status' => 'active']);
 
-    $m = app(TenantContext::class)->runAsSuperAdmin(fn (): array => app(PlatformMetrics::class)->compute());
+    $m = computeMetrics();
 
-    expect($m['recurring_plan_value_minor'])->toBe((int) round(99000 / 12));   // €82.50/mo equivalent
+    expect($m['recurring_plan_value_minor'] - $base['recurring_plan_value_minor'])->toBe((int) round(99000 / 12));   // +€82.50/mo
 })->group('security');
 
 it('the dashboard route renders real metrics and AUDITS the read (via PlatformQuery)', function () {

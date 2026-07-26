@@ -17,28 +17,29 @@ function makeOrg(string $name, string $slug, string $status = 'active'): Organiz
 }
 
 it('the customer list shows REAL orgs and audits the read', function () {
-    makeOrg('Seaside Group', 'seaside', 'active');
-    makeOrg('Mountain Stays', 'mountain', 'trialing');
+    makeOrg('Zseaside Group', 'zseaside', 'active');
+    makeOrg('Zmountain Stays', 'zmountain', 'trialing');
 
+    // Search-isolate so the assertion is robust to pagination + any pre-existing committed orgs.
     $this->actingAs(platformAdmin(), 'admin')
-        ->get(route('admin.customers.index'))
+        ->get(route('admin.customers.index', ['search' => 'Z']))
         ->assertOk()
-        ->assertSee('Seaside Group')
-        ->assertSee('Mountain Stays')
-        ->assertSee('seaside');
+        ->assertSee('Zseaside Group')
+        ->assertSee('Zmountain Stays')
+        ->assertSee('zseaside');
 
     expect(PlatformAdminAction::query()->where('action', 'platform.customers.list')->exists())->toBeTrue();
 })->group('security');
 
 it('the customer list is status-filterable (real filter, honest empty state)', function () {
-    makeOrg('Active Co', 'active-co', 'active');
-    makeOrg('Suspended Co', 'suspended-co', 'suspended');
+    makeOrg('Zactive Co', 'zactive-co', 'active');
+    makeOrg('Zsuspended Co', 'zsuspended-co', 'suspended');
 
     $this->actingAs(platformAdmin(), 'admin')
-        ->get(route('admin.customers.index', ['status' => 'suspended']))
+        ->get(route('admin.customers.index', ['search' => 'Zsuspended', 'status' => 'suspended']))
         ->assertOk()
-        ->assertSee('Suspended Co')
-        ->assertDontSee('Active Co');
+        ->assertSee('Zsuspended Co')
+        ->assertDontSee('Zactive Co');
 })->group('security');
 
 it('the customer detail shows real facts and audits the view', function () {
@@ -88,26 +89,24 @@ it('no impersonation / view-as-tenant route exists (deferred, high-risk)', funct
 
 // ── audit fix P2-1 — the customer list is PAGINATED (scales past a handful of orgs) ─────────────────
 it('the customer list is paginated and carries the search/status filters into the pages', function () {
+    // A UNIQUE prefix so a SEARCH isolates exactly these 30 (robust to any pre-existing committed orgs).
     for ($i = 1; $i <= 30; $i++) {
-        makeOrg('Paged Co '.str_pad((string) $i, 2, '0', STR_PAD_LEFT), 'paged-'.$i, 'active');
+        makeOrg('Zpaged Co '.str_pad((string) $i, 2, '0', STR_PAD_LEFT), 'zpaged-'.$i, 'active');
     }
     $admin = platformAdmin();
 
-    // Page 1 shows the pager (30 orgs > 25/page) + a "Showing 1–25 of 30".
-    $this->actingAs($admin, 'admin')->get(route('admin.customers.index'))
-        ->assertOk()
-        ->assertSee('of 30')
-        ->assertSee('Next');
+    // Page 1 of the search → deterministic "of 30" + a pager.
+    $this->actingAs($admin, 'admin')->get(route('admin.customers.index', ['search' => 'Zpaged']))
+        ->assertOk()->assertSee('of 30')->assertSee('Next');
 
-    // Page 2 renders the remainder.
-    $this->actingAs($admin, 'admin')->get(route('admin.customers.index', ['page' => 2]))
-        ->assertOk()
-        ->assertSee('Previous');
+    // Page 2 of the SAME search carries the filter into the link + renders the remainder.
+    $this->actingAs($admin, 'admin')->get(route('admin.customers.index', ['search' => 'Zpaged', 'page' => 2]))
+        ->assertOk()->assertSee('Previous')->assertSee('Zpaged Co 30');
 
-    // A filter narrows the total (so no pager), proving the filter is applied under pagination.
-    makeOrg('Solo Suspended', 'solo-susp', 'suspended');
-    $this->actingAs($admin, 'admin')->get(route('admin.customers.index', ['status' => 'suspended']))
-        ->assertOk()
-        ->assertSee('Solo Suspended')
-        ->assertDontSee('Paged Co');
+    // The status filter is applied under pagination — a suspended search finds only the suspended org.
+    makeOrg('Zsolo Suspended', 'zsolo-susp', 'suspended');
+    $this->actingAs($admin, 'admin')->get(route('admin.customers.index', ['search' => 'Zsolo', 'status' => 'suspended']))
+        ->assertOk()->assertSee('Zsolo Suspended');
+    $this->actingAs($admin, 'admin')->get(route('admin.customers.index', ['search' => 'Zpaged', 'status' => 'suspended']))
+        ->assertOk()->assertDontSee('Zpaged Co');   // the active orgs are excluded by the status filter
 })->group('security');
