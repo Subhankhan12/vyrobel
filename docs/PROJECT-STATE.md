@@ -22,7 +22,13 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **ADD-CHARGE SERVER IDEMPOTENCY**: `postCharge` now carries a per-submit server nonce mirroring the on-desk payment gate
 > exactly (nullable-unique `folio_items.idempotency_key`; a `charge_nonce`), so a duplicate — even two concurrent POSTs
 > bypassing the UI disable — records the charge ONCE (mutation- + browser-proven; extends **#48** to both money-write routes).
-> Suite **981/981**; PHPStan L5 = 0; Pint clean.
+> Suite **981/981**; PHPStan L5 = 0; Pint clean. **Then the POLISH SWEEP's P3 tails cleared → the sweep is now FULLY CLEARED
+> (P1·P2·P3):** signup step cross-fade (I4) + guest-portal keyboard focus rings (M5) + the password-strength meter on
+> set-password & signup (D14 — a client-side VISUAL AID; the `Password::min(8)` server rules UNCHANGED + authoritative,
+> 76 password-enforcement tests green) — all browser-proven; D10 chart consolidation re-assessed vs the prototype and
+> **finally deferred by decision** (interactive Alpine chart vs pure-static shared component + a per-bar-label regression).
+> Presentation + one client-side meter only; money/auth/isolation + invariants #1–48 UNTOUCHED; suite 981/981, PHPStan L5 = 0,
+> Pint clean.
 >
 > **THE ENTIRE BUILDABLE PRODUCT IS COMPLETE (Phases 0–7), and Phase 8's two OBTAINABLE integrations are LIT UP.**
 > Three full user-facing apps — operator back office (`/app`), owner portal (`/owner`), guest portal (`/guest`) —

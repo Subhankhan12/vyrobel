@@ -53,6 +53,16 @@
         .vy-input { width: 100%; padding: 12px 14px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.8); font-family: var(--vy-sans); font-size: 14.5px; color: var(--vy-ink); }
         .vy-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px rgba(232,112,58,.16); }
         .vy-two { display: flex; gap: 10px; } .vy-two > .vy-field { flex: 1; }
+        /* Strength meter (presentational) — same treatment as reset/set-password (D14 auth uniformity). A VISUAL
+           AID only: the floor reflects the real server rule (Password::min(8)); higher bars are advice, never a gate. */
+        .vy-meter { display: flex; gap: 5px; margin-top: 2px; margin-bottom: 14px; }
+        .vy-meter span { height: 4px; flex: 1; border-radius: 3px; background: rgba(120,70,40,.14); transition: background .2s ease; }
+        .vy-meter.s1 span:nth-child(1) { background: #D9663A; }
+        .vy-meter.s2 span:nth-child(-n+2) { background: #D9663A; }
+        .vy-meter.s3 span:nth-child(-n+3) { background: var(--vy-accent); }
+        .vy-meter.s4 span { background: var(--vy-accent); }
+        .vy-strength { display: flex; justify-content: space-between; font-size: 11px; margin: -8px 0 14px; color: var(--vy-faint); }
+        .vy-strength b { color: var(--vy-accent); font-weight: 600; }
         .vy-error { display: flex; align-items: center; gap: 9px; margin-bottom: 16px; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(224,146,30,.12); border: 1px solid rgba(224,146,30,.4); border-left: 3px solid var(--vy-amber); font-size: 13px; font-weight: 500; }
         .vy-error svg { color: var(--vy-amber); flex: none; }
         .vy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 30px; font-family: var(--vy-sans); font-size: 14px; font-weight: 600; color: #fff; background: var(--vy-grad); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); transition: transform .15s ease; }
@@ -147,6 +157,9 @@
                         <input class="vy-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
                     </div>
                 </div>
+                {{-- Presentational strength meter (D14) — a VISUAL AID; the server enforces Password::min(8). --}}
+                <div class="vy-meter" id="meter"><span></span><span></span><span></span><span></span></div>
+                <div class="vy-strength"><span>At least 8 characters</span><b id="strength"></b></div>
                 <div class="vy-actions" data-nav>
                     <button type="button" class="vy-btn vy-btn--ghost" data-back>Back</button>
                     <button type="button" class="vy-btn" data-next>Continue</button>
@@ -208,6 +221,20 @@
                     if (btn) { btn.disabled = true; btn.textContent = 'Creating your account…'; }
                 });
             }
+
+            // Polish P3 (D14) — presentational strength meter. A VISUAL AID only: the server enforces the real
+            // minimum (Password::min(8)); this reflects the floor (8 chars) + advises on strength. Never a gate.
+            var pw = document.getElementById('password'), meter = document.getElementById('meter'), sLabel = document.getElementById('strength');
+            var words = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+            pw && meter && pw.addEventListener('input', function () {
+                var v = pw.value, s = 0;
+                if (v.length >= 8) s++;
+                if (/[a-z]/.test(v) && /[A-Z]/.test(v)) s++;
+                if (/[0-9]/.test(v) || /[^A-Za-z0-9]/.test(v)) s++;
+                if (v.length >= 12) s++;
+                meter.className = 'vy-meter' + (v ? ' s' + s : '');
+                sLabel.textContent = v ? words[s] : '';
+            });
 
             show(0);
         })();

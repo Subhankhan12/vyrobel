@@ -3880,3 +3880,50 @@ logic UNCHANGED — idempotency ADDED on top, not a rewrite.**
   `app/Livewire/ReservationDetail.php` (`charge_nonce`); `resources/views/livewire/reservation-detail.blade.php` (hidden field);
   the 3 existing add-charge route tests updated for the now-required nonce + the 3 new mutation-proof tests. Closes
   **POLISH-SWEEP I3's flag**. Suite **981/981 green** (7792 assertions); PHPStan L5 (0); Pint clean; `migrate` clean.
+
+### 2026-07-26 — POLISH P3 TAILS — the sweep is now FULLY CLEARED (P1 · P2 · P3); presentation + one client-side visual aid
+
+The last four deferred P3 tails from `docs/POLISH-SWEEP.md`, cleared in two gates. **All presentation-only EXCEPT the
+strength meter, which is a small CLIENT-side visual aid — the server-side password policy stays authoritative + UNCHANGED.
+No money/auth/isolation LOGIC touched; invariants #1–48 intact; suite 981/981; PHPStan L5 (0); Pint clean throughout.**
+
+**GATE 1 (`d5695ff`) — signup step cross-fade (I4) + guest-portal focus rings (M5).** Pure CSS in two blade views.
+- **I4:** the signup wizard changed steps as a hard cut. Each step's content now **fades up, staggered**, on activation,
+  matching the prototype's EXACT step progression — rendered the raw prototype (`docs/design/raw`, port :8899) and observed
+  it: `vyFadeUp` 0.45s, staggered ~60ms. Implemented CSS-only via `[data-step].on > *` (the animation re-fires each activation
+  as display flips none→block), keyed purely off the `.on` class the wizard JS already toggles — **the signup
+  LOGIC/validation/provisioning is unchanged**; no-JS shows all steps un-animated; reduced-motion honoured. Browser-proven
+  (step 0→1, step-2 content runs vyFadeUp 0.45s staggered 0/.06/.12/.18s).
+- **M5:** the guest portal pages use **inline-styled** inputs (not `.vy-input`), so `.vy-input:focus` never reached them, and
+  nav/buttons/links/textareas had no keyboard ring. Added a consistent **`:focus-visible`** ring (`2px solid var(--vy-accent)`,
+  offset 2px — the app's EXACT idiom from operator/owner/auth) across the portal via **broad element selectors**
+  (`.vy-wrap a/button/input/select/textarea`, `.vy-top a/button`) so the inline-styled inputs are covered. Keyboard-only (never
+  a mouse-click halo). The prototype ships zero focus rules → this is an a11y/internal-consistency nicety, not a prototype-match.
+  Browser-proven (tabbing the messages page: the ring shows on the header nav, the inline Subject input, the message textarea,
+  the Send button, and links — `focus-visible:true`, `2px rgb(194,65,12)`).
+
+**GATE 2 — set-password strength meter (D14) + D10 decision + consolidation.**
+- **D14 — the strength meter (a VISUAL AID, NOT a gate).** `reset-password` already had the meter; it's now on **`set-password`
+  AND the signup wizard** (onboarding step 2), so the whole auth family is uniform. Ported reset's EXACT treatment (`.vy-meter`
+  4-bar + `.vy-strength` label + a length/case/digit heuristic). 🔒 **The meter is client-side guidance only — it does NOT
+  change the server-side password validation.** Its floor ("At least 8 characters") reflects the **real** rule (`Password::min(8)`,
+  uniform across every password path — signup/invite/reset/change/guest); the higher bars are advisory strength. **Proven the
+  server still enforces:** only 2 blade views changed (no controller), and the 76 password-enforcement tests / 507 assertions
+  (Onboard/Invite/PasswordReset/ChangePassword/Claim) stay green. Browser-proven the meter reacts to typing (8-lower→Weak,
+  +case→Fair, +digit→Good, 13-char mix→Strong; below the 8-char floor → no fill) on both set-password (via a generated invite
+  token, then cleaned up) and the signup wizard.
+- **D10 — RE-ASSESSED against the rendered prototype → FINALLY DEFERRED by decision (NOT consolidated; no code change).** The
+  only remaining hand-rolled chart, the owner **Dashboard** earnings chart, is the ONE **interactive** chart (`x-data`, a
+  3M/6M/12M toggle, a per-bar `x-show` windowing expression) and it **faithfully matches the prototype** — whose dashboard chart
+  also has the 3M/6M/12M toggle and shows a single highlighted-month callout + a "€9k goal" line, **not** a persistent € value
+  under every bar. The shared `<x-charts.bars>` is a **pure-static** component (5 static consumers) that renders a **bold € value
+  under EVERY bar**. Consolidating would need (a) injecting Alpine `x-data` + a per-bar `x-show` windowing semantic into the
+  shared component (coupling it to Alpine + a rule its static consumers don't want) and (b) a value-label-suppression prop to
+  avoid a **per-bar-label visual regression vs the prototype**. High coupling + real regression risk for low anti-drift benefit
+  (the static month charts are already unified) → the "risky, un-verifiable swap" the task says to avoid. Kept bespoke, finally,
+  by decision — recorded here and in POLISH-SWEEP D10.
+
+**Files (all views):** `auth/onboarding.blade.php` (step cross-fade + meter), `auth/set-password.blade.php` (meter),
+`components/guest/shell.blade.php` (focus rings). Docs: POLISH-SWEEP (I4/M5/D14 DONE, D10 finally-deferred, sweep FULLY
+cleared), this entry, `design/design-system-brief.md` (the meter + focus conventions), `design/DIVERGENCE-REGISTER.md` (rows).
+**The polish sweep is now FULLY CLEARED — every P1/P2/P3 finding is actioned or finally-decided.**

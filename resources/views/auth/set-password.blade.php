@@ -50,6 +50,17 @@
         .vy-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px rgba(232,112,58,.16); }
         .vy-eye { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; display: grid; place-items: center; border: none; background: transparent; color: var(--vy-muted); cursor: pointer; }
         .vy-hint { font-size: 11px; color: var(--vy-faint); margin-top: 6px; }
+        /* Strength meter (presentational) — mirrors reset-password, so the whole auth family is uniform (D14).
+           The floor ("At least 8 characters") IS the real server rule (Password::min(8)); the higher bars are
+           advisory guidance only — a VISUAL AID, never a gate (the server stays authoritative). */
+        .vy-meter { display: flex; gap: 5px; margin-top: 9px; }
+        .vy-meter span { height: 4px; flex: 1; border-radius: 3px; background: rgba(120,70,40,.14); transition: background .2s ease; }
+        .vy-meter.s1 span:nth-child(1) { background: #D9663A; }
+        .vy-meter.s2 span:nth-child(-n+2) { background: #D9663A; }
+        .vy-meter.s3 span:nth-child(-n+3) { background: var(--vy-accent); }
+        .vy-meter.s4 span { background: var(--vy-accent); }
+        .vy-strength { display: flex; justify-content: space-between; font-size: 11px; margin-top: 6px; color: var(--vy-faint); }
+        .vy-strength b { color: var(--vy-accent); font-weight: 600; }
         .vy-error { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(224,146,30,.12); border: 1px solid rgba(224,146,30,.4); border-left: 3px solid var(--vy-amber); font-size: 13px; font-weight: 500; }
         .vy-error svg { color: var(--vy-amber); flex: none; }
         .vy-btn { width: 100%; margin-top: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 30px; font-family: var(--vy-sans); font-size: 14px; font-weight: 600; color:#fff; background: var(--vy-grad); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); transition: transform .15s ease; }
@@ -83,7 +94,8 @@
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                 </div>
-                <div class="vy-hint">At least 8 characters.</div>
+                <div class="vy-meter" id="meter"><span></span><span></span><span></span><span></span></div>
+                <div class="vy-strength"><span>At least 8 characters</span><b id="strength"></b></div>
             </div>
             <div class="vy-field">
                 <label class="vy-label" for="password_confirmation">Confirm password</label>
@@ -106,6 +118,19 @@
                 var input = document.getElementById(btn.getAttribute('data-toggle'));
                 input.type = input.type === 'password' ? 'text' : 'password';
             });
+        });
+        // Presentational strength hint only — a VISUAL AID, not a gate. The server enforces the real
+        // minimum (Password::min(8)); this only reflects it (8 chars = the floor) + advises on strength.
+        var pw = document.getElementById('password'), meter = document.getElementById('meter'), label = document.getElementById('strength');
+        var words = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+        pw && pw.addEventListener('input', function () {
+            var v = pw.value, s = 0;
+            if (v.length >= 8) s++;
+            if (/[a-z]/.test(v) && /[A-Z]/.test(v)) s++;
+            if (/[0-9]/.test(v) || /[^A-Za-z0-9]/.test(v)) s++;
+            if (v.length >= 12) s++;
+            meter.className = 'vy-meter' + (v ? ' s' + s : '');
+            label.textContent = v ? words[s] : '';
         });
     </script>
 </body>

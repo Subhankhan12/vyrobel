@@ -70,6 +70,20 @@ routes/permissions. Suite 924+ / PHPStan L5 / Pint green after every page-commit
 > `<x-charts.bars>`; the rest (an interactive earnings chart + per-bar-label differences) are a P3 design follow-up. Real
 > figures/data UNCHANGED; presentation-only; classifications below unchanged.
 
+> **Polish P3 tails (2026-07-26) — the sweep is now FULLY CLEARED (`docs/POLISH-SWEEP.md` I4/M5/D14/D10).** The **Signup
+> wizard** (`/signup`) now cross-fades between steps (each step's content fades up staggered — the prototype's exact `vyFadeUp`
+> progression; CSS-only, signup logic unchanged, I4) and its password field gained the **strength meter** (D14). **Set-password**
+> (`/invite/{token}` · `/reset-password/{token}`) gained the same **strength meter** as reset-password, so the auth family is
+> uniform — 🔒 a client-side **VISUAL AID** whose floor reflects the real `Password::min(8)`; the server-side password rules are
+> UNCHANGED + authoritative (proven: only blade views changed, 76 password-enforcement tests green). The **guest portal**
+> (Manage Booking / Wallet / Messages / thread / Saved / Review / Account) gained a consistent **keyboard focus ring**
+> (`:focus-visible`, the app's `2px --vy-accent` idiom, covering the inline-styled inputs too — an a11y/consistency nicety, the
+> prototype ships none, M5). **D10** was re-assessed against the rendered prototype and **finally deferred by decision** (the
+> owner Dashboard earnings chart is the ONE interactive 3M/6M/12M Alpine chart, faithfully matching the prototype; the shared
+> `<x-charts.bars>` is pure-static + renders per-bar € labels the prototype omits → consolidating = Alpine-coupling + a per-bar
+> label regression, not a clean/verifiable swap). NO money/auth/isolation logic changed; the password server-rules UNTOUCHED;
+> presentation + one client-side meter only; classifications below unchanged.
+
 ---
 
 ## Operator app
