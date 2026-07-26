@@ -23,12 +23,17 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
         ]);
 
-        // Unauthenticated web requests to guarded routes redirect to the correct realm's login form: the GUEST
-        // portal (/guest/*) bounces to the guest login, everything else (/app, /owner) to the operator/owner
-        // login. Realm separation extends to the redirect target — a guest is never sent to the operator login.
-        $middleware->redirectGuestsTo(fn (Request $request): string => $request->is('guest/*')
-            ? route('guest.login')
-            : route('login'));
+        // Unauthenticated web requests to guarded routes redirect to the correct realm's login form: the PLATFORM
+        // admin (/admin*) bounces to the admin login, the GUEST portal (/guest/*) to the guest login, everything
+        // else (/app, /owner) to the operator/owner login. Realm separation extends to the redirect target — a
+        // guest is never sent to the operator login, and a platform admin never to a tenant login.
+        $middleware->redirectGuestsTo(function (Request $request): string {
+            if ($request->is('admin') || $request->is('admin/*')) {
+                return route('admin.login');
+            }
+
+            return $request->is('guest/*') ? route('guest.login') : route('login');
+        });
 
         // Inbound provider webhooks are stateless and signature-authenticated, not session/form
         // posts — exempt them from CSRF (there is no token to send). The public booking-engine JSON

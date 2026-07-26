@@ -361,6 +361,18 @@ RBAC defect #1; (b) the founder holds the ASSIGNABLE `Property Owner` (org admin
 RBAC defect #2. Mutation-proven (rollback, isolation, RBAC state). **Residual, re-scoped as a SEPARATE deferred
 platform item:** the global `Super Admin` stays unassignable (spatie `model_has_roles` PK rework; MySQL forbids NULL
 in a PK) — affects only the Horizon/platform-admin gate, never a tenant founder. See `docs/DECISIONS.md` 2026-07-21.
+**✅ RESOLVED PROPERLY (2026-07-26, Super Admin · Gate 0):** platform administration is now its own hardened realm —
+a separate `platform_admins` table + `admin` guard (a platform admin is NOT a tenant `User` and holds NO spatie role),
+NOT the unassignable global `Super Admin` role. So the spatie-PK rework is **no longer needed for platform admin** (the
+dormant role is left untouched, still fail-closed). STEP 0 also confirmed there was never an `is_super_admin` flag on
+`users` (the escalation surface was only the dormant spatie role). See `docs/DECISIONS.md` 2026-07-26 (INVARIANT #49).
+
+**⬅ SUPER ADMIN PANEL — GATE 0 DONE (the isolated foundation); FEATURES NEXT.** Gate 0 built ONLY the hardened,
+mutation-proven-isolated `/admin` realm (separate table/guard, mandatory 2FA, audited cross-tenant reads via the
+existing `runAsSuperAdmin`, noindex, seeded-not-signup) — additive, the 981 existing tests still green (suite 997/997).
+**Feature gates NEXT, on this proven base:** Dashboard (real cross-org metrics) · Customers (all orgs + drill-in) ·
+Plans (DB-backed CRUD over the existing `plans`/`plan_features` catalog + feature-gating) · Security & activity log ·
+Integrations (platform channel credentials). The live channel sync + live Stripe charge remain account-gated.
 
 **PHASE 7b — SUBSCRIPTION BILLING** *(✅ DONE — 2026-07-22, 3 gated sub-gates `4a3b5cd` → `5a52696` → this gate)*
 The free-trial model: plans/tiers (placeholder prices) + `SubscriptionStatus` + the real trial (from 7a

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Guest;
+use App\Models\PlatformAdmin;
 use App\Models\User;
 
 return [
@@ -52,6 +53,16 @@ return [
             'driver' => 'session',
             'provider' => 'guests',
         ],
+
+        // Super Admin · Gate 0 — the PLATFORM-ADMIN realm. A SEPARATE session guard over the `platform_admins`
+        // table (NOT `users`), so a tenant user can never authenticate here and a platform admin is never a tenant
+        // user — the same by-construction realm separation the `guest` guard uses. It sits ABOVE the tenancy: a
+        // platform admin has NO organization_id and NO spatie role, so `/app`/`/owner`/`/guest` never resolve it.
+        // Do NOT point any tenant route at this guard.
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'platform_admins',
+        ],
     ],
 
     /*
@@ -84,6 +95,13 @@ return [
         'guests' => [
             'driver' => 'guest-eloquent',
             'model' => Guest::class,
+        ],
+
+        // Super Admin · Gate 0 — the PLATFORM-ADMIN provider. A STANDARD eloquent provider (email is plaintext,
+        // unlike the guest blind-index), over the separate PlatformAdmin model. No custom driver needed.
+        'platform_admins' => [
+            'driver' => 'eloquent',
+            'model' => PlatformAdmin::class,
         ],
     ],
 

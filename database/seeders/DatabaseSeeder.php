@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             RoleCatalogSeeder::class,
             BillingPlanSeeder::class,   // the placeholder plan catalog (Phase 7b) — before the demo org's trial
             DemoSeeder::class,
+            PlatformAdminSeeder::class, // Super Admin · Gate 0 — the demo platform admin (separate realm, above tenancy)
         ]);
 
         // Dev convenience only: a global platform user (not tenant data).

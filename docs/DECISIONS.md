@@ -3927,3 +3927,72 @@ No money/auth/isolation LOGIC touched; invariants #1–48 intact; suite 981/981;
 `components/guest/shell.blade.php` (focus rings). Docs: POLISH-SWEEP (I4/M5/D14 DONE, D10 finally-deferred, sweep FULLY
 cleared), this entry, `design/design-system-brief.md` (the meter + focus conventions), `design/DIVERGENCE-REGISTER.md` (rows).
 **The polish sweep is now FULLY CLEARED — every P1/P2/P3 finding is actioned or finally-decided.**
+
+### 2026-07-26 — SUPER ADMIN · GATE 0 — the hardened, ISOLATED /admin platform realm (INVARIANT #49); the deferred Phase-7a platform-admin item RESOLVED PROPERLY
+
+The founder's platform console, built foundation-first: **ONLY the realm + auth + security + the safe cross-tenant
+read + the isolation proofs — NO features** (Dashboard/Customers/Plans/etc. come in later gates on this proven base).
+**ADDITIVE ONLY — nothing existing disturbed: the whole prior suite stays green** (997 tests / 7844 assertions =
+the existing **981 all still green** + **16 new Gate-0 isolation proofs**); PHPStan L5 (0); Pint clean;
+`migrate:fresh --seed` clean (a seeded demo admin). **Invariants #1–49.**
+
+**STEP 0 correction (honesty, not a guess).** The build brief assumed an `is_super_admin` flag on `users` to "move
+off". **There is NO such column** (grep-proven; a test asserts `users` has neither `is_super_admin` nor `is_admin`).
+The only `isSuperAdmin()` in the repo is the method on the `TenantContext` request singleton (the bypass state), not
+a user flag. The REAL latent escalation surface is the one Phase 1 found: the seeded global spatie `Super Admin` role
+(`team_id = null`, `['*']`), which is **structurally unassignable** (`model_has_roles` PK includes the non-null
+`organization_id`) — fail-closed, zero assignments. **A separate realm SUPERSEDES it** (below); the dormant spatie
+role is left untouched (touching it — RoleCatalogSeeder/HorizonServiceProvider — would disturb existing behaviour for
+no security gain, since it already fails closed). Recorded, not fabricated-migrated.
+
+**THE REALM (separate, above tenancy).** A NEW `platform_admins` table (ULID; NO `organization_id`; 2FA columns
+mirroring `users`) + a NEW `PlatformAdmin` model (`Authenticatable`, **no `HasRoles`, no tenant relations**) + a NEW
+`admin` session guard over a standard eloquent `platform_admins` provider (`config/auth.php`, additive — `web`/`guest`
+byte-unchanged). A platform admin is **NOT a tenant `User`**, so — exactly like the `guest` realm vs `web` — the
+tenant guards can never resolve it and it can never resolve a tenant user. **This is the proper resolution of the
+deferred Phase-7a platform-admin item: platform admin ≠ org `User` ≠ the (unassignable) global spatie role.**
+
+**THE SAFE CROSS-TENANT READ (the crux — the EXISTING closure, not a new bypass).** `App\Support\Platform\PlatformQuery::read()`
+is the ONE cross-tenant path: it (1) is **admin-guard-gated** — throws unless `Auth::guard('admin')->check()`, so the
+bypass can never fire from a tenant realm; (2) wraps the EXISTING, tested `TenantContext::runAsSuperAdmin()` (suspends
+the `OrganizationScope`, runs, **restores context in a `finally`**); (3) **audits** every read. **Non-leak proven:**
+`/admin` requests carry NO ambient tenant context (`SetTenantForWebRequest` no-ops for a non-`web`-`User`), so a stray
+tenant query there FAILS CLOSED (throws) rather than leaking — and a test proves that after an admin read, the scope is
+restored (a subsequent context-less tenant query still throws). Gate 0 exercises it once (the Overview org count) — not
+a feature.
+
+**HARDENING.** MANDATORY 2FA (`EnsurePlatformAdminTwoFactor` — an un-enrolled admin is trapped at setup, reaches
+nothing else; TOTP via the same google2fa/bacon primitives, a self-contained `PlatformTwoFactorService` so the tenant
+2FA path is byte-untouched) · admin login rate-limited + lockout on a dedicated `admin|` throttle namespace, generic
+no-enumeration errors, session-regenerate on every auth transition · the admin's OWN actions AUDITED to a separate
+immutable `platform_admin_actions` ledger (kept OUT of the tenant `audit_events` so nothing there is disturbed) ·
+**noindex** (an `X-Robots-Tag` middleware on the whole group + `<meta robots>` in the shell + `Disallow: /admin` in
+robots.txt; on a PATH not a subdomain → main-domain SEO untouched) · **NO public sign-up** — the first admin is seeded
+ONLY via `php artisan admin:create` (hidden password prompt, `Password::min(12)->mixedCase()->numbers()`); a demo admin
+(`admin@vyrobel-demo.test` / `password`, no 2FA → forced to enrol) for `--seed`.
+
+**THE DESIGN (built well from the start).** A cohesive "control-room" admin design system — deep-slate + indigo,
+deliberately DISTINCT from the warm tenant glass but as polished — shared `<x-admin.auth>` + `<x-admin.shell>`
+components (login/challenge/setup/recovery + the console shell), ready for the feature gates. Gate 0 ships only the
+shell + an honest empty Overview (feature areas shown as "Soon", never faked).
+
+**🔒 ISOLATION PROOFS (mutation-proven, `tests/Feature/Admin/PlatformAdminGate0Test.php`, 16 tests):** a tenant
+operator/owner/guest is REFUSED `/admin` (bounced to the admin login) and cannot authenticate into the admin guard;
+a platform admin is refused the tenant realms (defense-in-depth: even presented to `/app`, `EnsureBackOfficeAccess`
+403s a non-`User`); the bypass is admin-guard-gated + restores scope (no leak); mandatory 2FA enforced (no-2FA → setup,
+correct-password-for-an-enrolled-admin does NOT log in but challenges); no public sign-up route; admin actions audited;
+noindex header + robots. **Browser-verified end-to-end:** login → forced 2FA enrolment → the console (the audited
+cross-tenant org count) → sign-out; an authenticated operator hitting `/admin` lands on the admin login, never the
+console.
+
+**Files (all NEW except the additive edits):** migrations `2026_08_02_000000_create_platform_admins_table` +
+`…_000100_create_platform_admin_actions_table`; models `PlatformAdmin` + `PlatformAdminAction` (+ factory);
+`App\Support\Platform\{PlatformQuery,PlatformAuditLogger}`; `App\Support\TwoFactor\PlatformTwoFactorService`;
+middleware `NoIndex` + `EnsurePlatformAdminTwoFactor` + `RequirePlatformAdminTwoFactorPending`; controllers under
+`App\Http\Controllers\Admin\{Auth\AdminLoginController,Auth\AdminTwoFactorChallengeController,Auth\AdminTwoFactorController,DashboardController}`
++ `App\Http\Requests\Admin\AdminLoginRequest`; views under `resources/views/admin/**` + `components/admin/{auth,shell}`;
+`App\Console\Commands\CreatePlatformAdminCommand`; `Database\Seeders\PlatformAdminSeeder`. **Additive edits (existing
+byte-preserved otherwise):** `config/auth.php` (+`admin` guard/provider), `routes/web.php` (+`/admin` group + imports),
+`bootstrap/app.php` (+`admin/*` redirect arm), `public/robots.txt` (+disallow), `database/seeders/DatabaseSeeder.php`
+(+seeder call). **NEXT: the feature gates (Dashboard · Customers · Plans · Security & activity · Integrations) on this
+proven, isolated foundation.**

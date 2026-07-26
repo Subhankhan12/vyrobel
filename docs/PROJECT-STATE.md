@@ -30,6 +30,21 @@ conflicts with the repo, **trust the repo** and fix this file.
 > Presentation + one client-side meter only; money/auth/isolation + invariants #1–48 UNTOUCHED; suite 981/981, PHPStan L5 = 0,
 > Pint clean.
 >
+> **Then SUPER ADMIN · GATE 0 (2026-07-26) — the hardened, ISOLATED `/admin` platform realm (INVARIANT #49; features NOT
+> built yet).** A NEW parallel realm ADDED ALONGSIDE the tenant realms, ADDITIVE ONLY — **the prior 981 tests all stay
+> green** (suite now **997/997**: 981 existing + 16 new Gate-0 isolation proofs); PHPStan L5 = 0; Pint clean;
+> `migrate:fresh --seed` clean (seeded demo admin). A separate `platform_admins` table + `PlatformAdmin` model (NO
+> `organization_id`, NO spatie role) + a NEW `admin` session guard — a platform admin is NOT a tenant `User`, so tenant
+> guards never resolve it and it never resolves a tenant user (the `guest`-realm discipline). **Cross-tenant reads use the
+> EXISTING `TenantContext::runAsSuperAdmin()` via `PlatformQuery` — admin-guard-gated + audited + scope-restored (never
+> leaks; `/admin` has no ambient tenant context, so a stray tenant query there fails CLOSED).** MANDATORY 2FA (TOTP),
+> hardened rate-limited login, admin actions audited to a SEPARATE `platform_admin_actions` ledger, noindex + robots
+> disallow (path not subdomain — SEO untouched), NO public sign-up (seeded via `php artisan admin:create`). A cohesive
+> "control-room" admin design (distinct from the warm tenant glass). **Mutation-proven isolated + browser-verified**
+> (login → forced 2FA → console; operator refused at `/admin`). **The deferred Phase-7a platform-admin item is RESOLVED
+> PROPERLY** — platform admin ≠ org `User` ≠ the unassignable global spatie role (and STEP 0 confirmed there was never an
+> `is_super_admin` flag on `users` to move; a test asserts its absence). See `DECISIONS.md` 2026-07-26. **Invariants #1–49.**
+>
 > **THE ENTIRE BUILDABLE PRODUCT IS COMPLETE (Phases 0–7), and Phase 8's two OBTAINABLE integrations are LIT UP.**
 > Three full user-facing apps — operator back office (`/app`), owner portal (`/owner`), guest portal (`/guest`) —
 > plus a public storefront (`/book/{slug}`) and public self-signup (`/signup`) that atomically provisions a new

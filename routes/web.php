@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\Auth\AdminLoginController;
+use App\Http\Controllers\Admin\Auth\AdminTwoFactorChallengeController;
+use App\Http\Controllers\Admin\Auth\AdminTwoFactorController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -74,8 +78,11 @@ use App\Http\Controllers\StripeConnectWebhookController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Http\Middleware\EnsureOwnerCapability;
+use App\Http\Middleware\EnsurePlatformAdminTwoFactor;
 use App\Http\Middleware\EnsurePrimaryOwner;
 use App\Http\Middleware\EnsureSubscriptionActive;
+use App\Http\Middleware\NoIndex;
+use App\Http\Middleware\RequirePlatformAdminTwoFactorPending;
 use App\Http\Middleware\RequireTwoFactorPending;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetCurrentPropertyForWebRequest;
@@ -845,3 +852,41 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
 Route::get('/owner/account/email/verify/{user}/{hash}', [OwnerAccountController::class, 'verifyEmailChange'])
     ->middleware(['signed', 'throttle:6,1'])
     ->name('owner.account.email.verify');
+
+/*
+|--------------------------------------------------------------------------
+| SUPER ADMIN · GATE 0 — the PLATFORM-ADMIN realm (/admin)
+|--------------------------------------------------------------------------
+| A SEPARATE, hardened realm on the `admin` guard (platform_admins table) — NOT the operator/owner/guest
+| realms. It sits ABOVE the tenancy: it uses NEITHER SetTenantForWebRequest's outcome (a platform admin is not
+| a `web` User, so no tenant context is ever set here — tenant-scoped queries fail closed unless deliberately
+| wrapped in the audited PlatformQuery/runAsSuperAdmin) NOR EnsureBackOfficeAccess (a tenant-scoped gate). Every
+| /admin response is noindexed. 2FA is MANDATORY behind EnsurePlatformAdminTwoFactor. There is NO public
+| sign-up — the first admin is seeded via `php artisan admin:create`.
+*/
+Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(function () {
+    // Unauthenticated — the login form + the hardened, rate-limited attempt (throttle lives in AdminLoginRequest).
+    Route::get('login', [AdminLoginController::class, 'create'])->name('login');
+    Route::post('login', [AdminLoginController::class, 'store'])->name('login.store');
+
+    // The 2FA login CHALLENGE — reachable ONLY while a pending state exists (RequirePlatformAdminTwoFactorPending).
+    Route::middleware(RequirePlatformAdminTwoFactorPending::class)->group(function () {
+        Route::get('two-factor', [AdminTwoFactorChallengeController::class, 'create'])->name('2fa.challenge');
+        Route::post('two-factor', [AdminTwoFactorChallengeController::class, 'store'])->name('2fa.challenge.store');
+    });
+
+    // Authenticated on the `admin` guard.
+    Route::middleware('auth:admin')->group(function () {
+        Route::post('logout', [AdminLoginController::class, 'destroy'])->name('logout');
+
+        // MANDATORY 2FA ENROLLMENT — deliberately EXEMPT from the mandatory-2FA gate (this is where you enrol),
+        // so an un-enrolled admin can complete setup without a redirect loop; nothing else is reachable first.
+        Route::get('two-factor/setup', [AdminTwoFactorController::class, 'create'])->name('2fa.setup');
+        Route::post('two-factor/setup', [AdminTwoFactorController::class, 'store'])->name('2fa.setup.store');
+
+        // The console — behind MANDATORY 2FA. Gate 0 ships ONLY the isolated landing (no features yet).
+        Route::middleware(EnsurePlatformAdminTwoFactor::class)->group(function () {
+            Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        });
+    });
+});

@@ -1,0 +1,128 @@
+{{-- SUPER ADMIN · GATE 0 — the authenticated PLATFORM console shell (sidebar + topbar + content). The cohesive
+     "control-room" design (deep slate + indigo), distinct from the warm tenant portals, ready for the feature
+     gates to fill. Gate 0 ships the shell + an honest empty landing — NO features yet. The viewer is resolved
+     from the `admin` guard only. noindex. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+@props(['active' => 'overview', 'title' => 'Overview'])
+@php
+    $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+    $adminName = $admin?->name ?? 'Platform admin';
+    $initials = \Illuminate\Support\Str::of($adminName)->explode(' ')->take(2)->map(fn ($p) => \Illuminate\Support\Str::substr($p, 0, 1))->implode('');
+    // The nav — Overview is live in Gate 0; the feature areas arrive in later gates (honest "Soon", not fake links).
+    $nav = [
+        ['overview', 'Overview', route('admin.dashboard'), true],
+        ['customers', 'Customers', null, false],
+        ['plans', 'Plans', null, false],
+        ['activity', 'Security & activity', null, false],
+        ['integrations', 'Integrations', null, false],
+    ];
+@endphp
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>{{ $title }} · Vyrobel Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ad-bg-0: #0C1322; --ad-bg-1: #111B2E; --ad-bg-2: #16223A;
+            --ad-ink: #E8EDF6; --ad-muted: #94A3B8; --ad-faint: #64748B;
+            --ad-accent: #818CF8; --ad-accent-2: #6366F1; --ad-accent-soft: rgba(129, 140, 248, 0.16);
+            --ad-glass: rgba(255, 255, 255, 0.045); --ad-glass-2: rgba(255, 255, 255, 0.07);
+            --ad-border: rgba(148, 163, 184, 0.18); --ad-border-strong: rgba(148, 163, 184, 0.30);
+            --ad-grad: linear-gradient(135deg, #818CF8, #6366F1);
+            --ad-r-lg: 18px; --ad-r-md: 12px; --ad-r-sm: 9px;
+            --ad-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --ad-display: 'Sora', 'Inter', ui-sans-serif, system-ui, sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: var(--ad-sans); color: var(--ad-ink); font-size: 15px; line-height: 1.5; min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            background:
+                radial-gradient(circle at 88% 2%, rgba(99, 102, 241, 0.12), transparent 46%),
+                linear-gradient(160deg, var(--ad-bg-0) 0%, var(--ad-bg-1) 62%, var(--ad-bg-2) 100%);
+            background-attachment: fixed;
+        }
+        @keyframes adFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+        .ad-layout { display: grid; grid-template-columns: 236px 1fr; min-height: 100vh; }
+        .ad-side { border-right: 1px solid var(--ad-border); padding: 22px 16px; display: flex; flex-direction: column; gap: 22px; background: rgba(8, 12, 20, 0.4); backdrop-filter: blur(8px); }
+        .ad-brand { display: flex; align-items: center; gap: 10px; padding: 0 6px; }
+        .ad-brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--ad-grad); color: #fff; font-family: var(--ad-display); font-weight: 700; font-size: 18px; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4); }
+        .ad-brand-name { font-family: var(--ad-display); font-weight: 600; font-size: 15.5px; }
+        .ad-brand-tag { font-size: 9.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ad-accent); }
+        .ad-nav { display: flex; flex-direction: column; gap: 3px; }
+        .ad-nav-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-faint); padding: 0 10px; margin-bottom: 6px; }
+        .ad-nav a, .ad-nav .ad-soon { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13.5px; font-weight: 500; color: var(--ad-muted); text-decoration: none; padding: 9px 11px; border-radius: 10px; transition: background .14s ease, color .14s ease; }
+        .ad-nav a:hover { color: var(--ad-ink); background: var(--ad-glass); }
+        .ad-nav a.is-active { color: #fff; background: var(--ad-accent-soft); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(129,140,248,.28); }
+        .ad-nav a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+        .ad-nav .ad-soon { cursor: default; color: var(--ad-faint); }
+        .ad-soon-tag { font-size: 8.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ad-faint); border: 1px dashed var(--ad-border-strong); border-radius: 6px; padding: 1px 6px; }
+        .ad-main { display: flex; flex-direction: column; min-width: 0; }
+        .ad-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 30px; border-bottom: 1px solid var(--ad-border); }
+        .ad-top-title { font-family: var(--ad-display); font-weight: 600; font-size: 15px; }
+        .ad-user { display: flex; align-items: center; gap: 12px; }
+        .ad-chip { display: flex; align-items: center; gap: 9px; padding: 6px 8px 6px 6px; border-radius: 30px; border: 1px solid var(--ad-border); background: var(--ad-glass); }
+        .ad-ava { width: 28px; height: 28px; border-radius: 50%; background: var(--ad-grad); color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center; }
+        .ad-chip-name { font-size: 12.5px; font-weight: 500; padding-right: 4px; }
+        .ad-signout { background: none; border: 1px solid var(--ad-border); color: var(--ad-muted); font-family: var(--ad-sans); font-size: 12.5px; font-weight: 500; cursor: pointer; padding: 7px 13px; border-radius: 9px; transition: color .14s ease, border-color .14s ease; }
+        .ad-signout:hover { color: var(--ad-ink); border-color: var(--ad-border-strong); }
+        .ad-signout:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+        .ad-content { padding: 30px; max-width: 1180px; width: 100%; animation: adFadeUp .5s cubic-bezier(.2,.7,.2,1) both; }
+        .ad-h1 { font-family: var(--ad-display); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; margin: 0 0 4px; }
+        .ad-lead { color: var(--ad-muted); font-size: 14px; margin: 0 0 24px; }
+        .ad-card { background: var(--ad-glass); border: 1px solid var(--ad-border); border-radius: var(--ad-r-lg); padding: 22px 24px; backdrop-filter: blur(10px); }
+        .ad-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ad-accent); }
+        .ad-stat { font-family: var(--ad-display); font-weight: 700; font-size: 40px; letter-spacing: -0.02em; margin: 8px 0 2px; }
+        .ad-stat-sub { color: var(--ad-muted); font-size: 13px; }
+        @media (max-width: 820px) { .ad-layout { grid-template-columns: 1fr; } .ad-side { flex-direction: row; overflow-x: auto; align-items: center; } .ad-nav { flex-direction: row; } .ad-nav-label { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="ad-layout">
+        <aside class="ad-side">
+            <div class="ad-brand">
+                <span class="ad-brand-mark">V</span>
+                <span>
+                    <div class="ad-brand-name">Vyrobel</div>
+                    <div class="ad-brand-tag">Platform</div>
+                </span>
+            </div>
+            <nav class="ad-nav">
+                <div class="ad-nav-label">Console</div>
+                @foreach ($nav as [$key, $label, $url, $live])
+                    @if ($live)
+                        <a href="{{ $url }}" class="{{ $key === $active ? 'is-active' : '' }}">{{ $label }}</a>
+                    @else
+                        <span class="ad-soon">{{ $label }} <span class="ad-soon-tag">Soon</span></span>
+                    @endif
+                @endforeach
+            </nav>
+        </aside>
+        <div class="ad-main">
+            <header class="ad-top">
+                <div class="ad-top-title">{{ $title }}</div>
+                <div class="ad-user">
+                    <div class="ad-chip">
+                        <span class="ad-ava">{{ $initials }}</span>
+                        <span class="ad-chip-name">{{ $adminName }}</span>
+                    </div>
+                    <form method="POST" action="{{ route('admin.logout') }}" style="margin: 0;">
+                        @csrf
+                        <button type="submit" class="ad-signout">Sign out</button>
+                    </form>
+                </div>
+            </header>
+            <main class="ad-content">
+                {{ $slot }}
+            </main>
+        </div>
+    </div>
+</body>
+</html>
