@@ -9,8 +9,8 @@ use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Models\Subscription;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * SUPER ADMIN · BUILD 1 · GATE 2 — REAL customer (organization) reads for the platform console.
@@ -25,13 +25,18 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class PlatformCustomers
 {
+    /** Customers per page (audit fix P2-1 — the list is paginated so it scales past a handful of orgs). */
+    public const PER_PAGE = 25;
+
     /**
-     * The customer list — every org with its plan, status and key operational counts.
+     * The customer list — every org with its plan, status and key operational counts, PAGINATED (search/status
+     * carried into the page links). Each page's counts are computed for just that page's org ids (no N+1).
+     *
+     * Each page item is a row array: {id, name, slug, status, plan, properties, members, created_at}.
      *
      * @param  array{search?: ?string, status?: ?string}  $filters
-     * @return list<array{id: string, name: string, slug: string, status: string, plan: ?string, properties: int, members: int, created_at: ?Carbon}>
      */
-    public function list(array $filters = []): array
+    public function list(array $filters = []): LengthAwarePaginator
     {
         $query = Organization::query()->orderBy('name');
 
@@ -47,28 +52,23 @@ class PlatformCustomers
             $query->where('status', $status);
         }
 
-        $orgs = $query->get(['id', 'name', 'slug', 'status', 'created_at']);
-        $ids = $orgs->pluck('id')->all();
+        $paginator = $query->paginate(self::PER_PAGE, ['id', 'name', 'slug', 'status', 'created_at'])->withQueryString();
 
+        $ids = collect($paginator->items())->pluck('id')->all();
         $propertyCounts = $this->countByOrg(Property::query(), $ids);
         $memberCounts = $this->countByOrg(Membership::query()->where('status', 'active'), $ids);
         $plans = $this->currentPlanNames($ids);
 
-        $rows = [];
-        foreach ($orgs as $org) {
-            $rows[] = [
-                'id' => (string) $org->id,
-                'name' => (string) $org->name,
-                'slug' => (string) $org->slug,
-                'status' => (string) $org->status,
-                'plan' => $plans[$org->id] ?? null,
-                'properties' => (int) ($propertyCounts[$org->id] ?? 0),
-                'members' => (int) ($memberCounts[$org->id] ?? 0),
-                'created_at' => $org->created_at,
-            ];
-        }
-
-        return $rows;
+        return $paginator->through(fn (Organization $org) => [
+            'id' => (string) $org->id,
+            'name' => (string) $org->name,
+            'slug' => (string) $org->slug,
+            'status' => (string) $org->status,
+            'plan' => $plans[$org->id] ?? null,
+            'properties' => (int) ($propertyCounts[$org->id] ?? 0),
+            'members' => (int) ($memberCounts[$org->id] ?? 0),
+            'created_at' => $org->created_at,
+        ]);
     }
 
     /**

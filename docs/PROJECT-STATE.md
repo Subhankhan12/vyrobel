@@ -81,6 +81,18 @@ conflicts with the repo, **trust the repo** and fix this file.
 > impersonation, suspension access-enforcement, per-feature-limit enforcement, the real channel sync, customer-self-connect.**
 > See `DECISIONS.md` 2026-07-26. **Invariants #1–52.**
 >
+> **Then a DEEP END-TO-END AUDIT of the whole Super Admin panel (2026-07-27, `docs/SUPERADMIN-AUDIT.md`) — a full
+> Playwright walk of every area/page/form/action, audited as hard on security as on UI. ZERO CRITICAL + ZERO P1;
+> every high-stakes property re-verified LIVE (isolation, no cross-tenant leak [context-less tenant query throws
+> after an admin read], every action audited, no credential plaintext leak, mandatory 2FA, no enumeration, #28 no
+> guest PII, money #17). Genuine findings were all UX/polish/honesty, fixed additively:** customer-list PAGINATION
+> (25/page, filters carried); SUSPENSION HONESTY (it's a status flag, not yet an access block — presentation fix,
+> enforcement still deferred); a plans-catalog honesty note; the admin double-submit guard; the wired `plans.toggle`
+> button; an admin favicon. Honest deferrals (Stripe sync, impersonation, suspension enforcement, per-feature limits,
+> real channel sync, self-connect) confirmed correct + untouched. Additive; the security model preserved (audited
+> `PlatformQuery`, no new bypass); tenant realms untouched; suite green (admin 50/50) + PHPStan L5 + Pint clean.
+> **The Super Admin panel is AUDITED + FIXED + PRODUCTION-READY.**
+>
 > **THE ENTIRE BUILDABLE PRODUCT IS COMPLETE (Phases 0–7), and Phase 8's two OBTAINABLE integrations are LIT UP.**
 > Three full user-facing apps — operator back office (`/app`), owner portal (`/owner`), guest portal (`/guest`) —
 > plus a public storefront (`/book/{slug}`) and public self-signup (`/signup`) that atomically provisions a new

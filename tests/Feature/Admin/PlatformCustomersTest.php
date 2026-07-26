@@ -85,3 +85,29 @@ it('no impersonation / view-as-tenant route exists (deferred, high-risk)', funct
     expect(Route::has('admin.customers.impersonate'))->toBeFalse();
     expect(Route::has('admin.impersonate'))->toBeFalse();
 })->group('security');
+
+// ── audit fix P2-1 — the customer list is PAGINATED (scales past a handful of orgs) ─────────────────
+it('the customer list is paginated and carries the search/status filters into the pages', function () {
+    for ($i = 1; $i <= 30; $i++) {
+        makeOrg('Paged Co '.str_pad((string) $i, 2, '0', STR_PAD_LEFT), 'paged-'.$i, 'active');
+    }
+    $admin = platformAdmin();
+
+    // Page 1 shows the pager (30 orgs > 25/page) + a "Showing 1–25 of 30".
+    $this->actingAs($admin, 'admin')->get(route('admin.customers.index'))
+        ->assertOk()
+        ->assertSee('of 30')
+        ->assertSee('Next');
+
+    // Page 2 renders the remainder.
+    $this->actingAs($admin, 'admin')->get(route('admin.customers.index', ['page' => 2]))
+        ->assertOk()
+        ->assertSee('Previous');
+
+    // A filter narrows the total (so no pager), proving the filter is applied under pagination.
+    makeOrg('Solo Suspended', 'solo-susp', 'suspended');
+    $this->actingAs($admin, 'admin')->get(route('admin.customers.index', ['status' => 'suspended']))
+        ->assertOk()
+        ->assertSee('Solo Suspended')
+        ->assertDontSee('Paged Co');
+})->group('security');

@@ -17,18 +17,20 @@
                 <span style="color: var(--ad-faint); margin-left: 8px;">{{ $org->slug }}</span>
             </p>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
             @if ($org->status === 'suspended')
-                <form method="POST" action="{{ route('admin.customers.reactivate', $org->id) }}">
+                <form method="POST" action="{{ route('admin.customers.reactivate', $org->id) }}" data-guard-submit>
                     @csrf
                     <button type="submit" class="ad-btn">Reactivate customer</button>
                 </form>
             @else
-                <form method="POST" action="{{ route('admin.customers.suspend', $org->id) }}" onsubmit="return confirm('Suspend {{ $org->name }}? This flags the account as suspended on the platform.');">
+                <form method="POST" action="{{ route('admin.customers.suspend', $org->id) }}" onsubmit="return confirm('Suspend {{ $org->name }}? This flags the account as suspended on the platform (it does not yet block their access).');" data-guard-submit>
                     @csrf
                     <button type="submit" class="ad-btn ad-btn--danger">Suspend customer</button>
                 </form>
             @endif
+            {{-- Audit fix P2-2 — honest about enforcement: suspension is a lifecycle FLAG today, not an access lock. --}}
+            <span style="color: var(--ad-faint); font-size: 11.5px; max-width: 230px; text-align: right;">Suspension is a status flag. Blocking the customer's access is a planned follow-up — it doesn't lock them out yet.</span>
         </div>
     </div>
 
@@ -70,7 +72,7 @@
 
             {{-- Assign a plan (Gate 3) — sets the plan + features; Stripe billing is a separate go-live step. --}}
             <h2 class="ad-panel-title" style="margin-top: 22px;">Assign a plan</h2>
-            <form method="POST" action="{{ route('admin.customers.assign-plan', $org->id) }}" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <form method="POST" action="{{ route('admin.customers.assign-plan', $org->id) }}" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;" data-guard-submit>
                 @csrf
                 <select name="plan_id" class="ad-input" style="flex: 1; min-width: 200px;" required>
                     @foreach ($plans as $plan)

@@ -43,12 +43,28 @@
                                 <span class="ad-pill ad-pill--cancelled">Inactive</span>
                             @endif
                         </td>
-                        <td style="text-align: right;">
+                        <td style="text-align: right; white-space: nowrap;">
+                            {{-- Audit fix P3 — wire the quick activate/deactivate toggle (was a dead route). --}}
+                            <form method="POST" action="{{ route('admin.plans.toggle', $plan->id) }}" style="display: inline;" data-guard-submit>
+                                @csrf
+                                <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm">{{ $plan->is_active ? 'Deactivate' : 'Activate' }}</button>
+                            </form>
                             <a href="{{ route('admin.plans.edit', $plan->id) }}" class="ad-btn ad-btn--ghost ad-btn--sm">Edit</a>
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
+    </div>
+
+    {{-- Audit fix P2-3 — honest about the catalog scope: the tiers are fixed + editable; new tiers are a follow-up. --}}
+    <div class="ad-card" style="margin-top: 18px;">
+        <h2 class="ad-panel-title">About the catalog</h2>
+        <p class="ad-stat-sub" style="line-height: 1.65;">
+            These are the current subscription tiers (Essential &amp; Pro, monthly &amp; yearly). You can edit each
+            one's price and feature entitlements here, and assign any plan to a customer from their profile. Adding a
+            brand-new tier is a planned follow-up — a new tier also needs its place on the public pricing page, which
+            arrives with the marketing site.
+        </p>
     </div>
 </x-admin.shell>

@@ -3,6 +3,21 @@
 A full Playwright/MCP walk of every area, page, form, CRUD op, and action of the platform `/admin` panel —
 audited as hard on **security/isolation** as on UI/UX/design. Read-only Phase A; findings + fix plan below.
 
+> **✅ PHASE B COMPLETE (2026-07-27) — every genuine finding resolved or accepted-with-reason.** No CRITICAL/P1
+> existed, so nothing was launch-blocking. **P2 fixed:** (P2-1) the customer list is now **paginated** (25/page,
+> search/status carried into the links — test + browser proven); (P2-2) the suspend action is now **honest about
+> enforcement** (a note + confirm copy: "a status flag … does not yet block their access" — enforcement stays a
+> documented follow-up, NOT built); (P2-3) the Plans page now carries an **honest "About the catalog" note** (the
+> tiers are fixed + editable; a brand-new tier is a follow-up tied to the marketing pricing page). **P3 fixed:** the
+> admin state-changing forms now use the shared **double-submit guard**; the previously-dead **`plans.toggle` route
+> is wired** to an Activate/Deactivate button (audited); an **admin favicon** was added. **P3 accepted (no change,
+> documented):** `reactivate()` → `active` is the correct reactivation target (the real billing state derives from
+> the subscription, not `organizations.status`); admin recovery-code **regeneration** is out-of-scope polish —
+> recover via the `admin:create` command / DB. All fixes stayed additive, preserved the security model (audited
+> `PlatformQuery`; no new bypass), disturbed nothing in the tenant realms, and respected every honest deferral.
+> **The panel is audited, fixed, and production-ready** (the only open items are the pre-existing account-gated /
+> documented deferrals).
+
 **Method:** logged in as the platform admin (forced 2FA enrol → console), seeded 4 extra orgs with varied
 statuses (active/trialing/suspended/cancelled) on varied plans so the list/dashboard/distribution were
 representative, then drove every page + action (click/fill/submit/search/filter/suspend/assign/edit/rotate/test)

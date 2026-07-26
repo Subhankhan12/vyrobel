@@ -17,7 +17,7 @@
     </form>
 
     <div class="ad-card" style="padding: 8px 10px;">
-        @if (count($rows) > 0)
+        @if ($rows->total() > 0)
             <table class="ad-table">
                 <thead>
                     <tr>
@@ -45,6 +45,27 @@
                     @endforeach
                 </tbody>
             </table>
+
+            {{-- Pager (audit fix P2-1) — control-room styled; the search/status filters are carried in the links. --}}
+            @if ($rows->hasPages())
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--ad-border);">
+                    <span style="color: var(--ad-faint); font-size: 12.5px;">
+                        Showing {{ $rows->firstItem() }}–{{ $rows->lastItem() }} of {{ number_format($rows->total()) }}
+                    </span>
+                    <span style="display: flex; gap: 8px;">
+                        @if ($rows->onFirstPage())
+                            <span class="ad-btn ad-btn--ghost ad-btn--sm" style="opacity: .4; cursor: default;">Previous</span>
+                        @else
+                            <a href="{{ $rows->previousPageUrl() }}" class="ad-btn ad-btn--ghost ad-btn--sm">Previous</a>
+                        @endif
+                        @if ($rows->hasMorePages())
+                            <a href="{{ $rows->nextPageUrl() }}" class="ad-btn ad-btn--ghost ad-btn--sm">Next</a>
+                        @else
+                            <span class="ad-btn ad-btn--ghost ad-btn--sm" style="opacity: .4; cursor: default;">Next</span>
+                        @endif
+                    </span>
+                </div>
+            @endif
         @else
             <div class="ad-empty" style="padding: 30px 14px;">No customers match — {{ ($filters['search'] !== '' || $filters['status'] !== '') ? 'try clearing the filters.' : 'no organizations on the platform yet.' }}</div>
         @endif

@@ -4100,3 +4100,28 @@ migrations/models, `RecordAuthActivity`, `PrunePlatformActivity`, `PlatformActiv
 `IntegrationController`, `admin/{activity,integrations}` views, 2 test files (16 tests); additive edits:
 `AppServiceProvider` (listeners), `routes/console.php` (prune schedule), `routes/web.php`, `AdminLoginRequest` (dispatch
 Failed), the customer detail (activity slice), the admin shell nav (all 5 areas live).
+
+### 2026-07-27 — SUPER ADMIN PANEL — deep end-to-end audit + fixes (`docs/SUPERADMIN-AUDIT.md`)
+
+A full Playwright walk of every /admin area/page/form/CRUD/action, audited as hard on security/isolation as on UI.
+**Result: ZERO CRITICAL + ZERO P1** — the panel is production-ready on security; every high-stakes property was
+re-verified LIVE (not just by tests): realm isolation, **no cross-tenant leak** (a context-less tenant query throws
+after an admin read — scope restored), every admin action audited, **no credential plaintext leak** (encrypted at
+rest, masked, audit records channel-only), mandatory 2FA, no login enumeration, #28 (no guest PII on admin surfaces),
+money #17. **Genuine findings were all UX/polish/honesty**, fixed additively (Phase B):
+- **P2-1 pagination** — `PlatformCustomers::list()` now returns a paginator (25/page, `withQueryString()`); a
+  control-room pager; test (30 orgs → 2 pages, filter carried) + browser proven.
+- **P2-2 suspension honesty** — the suspend confirm + a detail note now state suspension is a status FLAG that does
+  NOT yet block access (enforcement stays a documented follow-up — NOT built; the honest-presentation fix).
+- **P2-3 plans-catalog honesty** — an "About the catalog" note (tiers fixed + editable; a new tier is a follow-up
+  tied to the marketing pricing page).
+- **P3** — the shared double-submit guard on the admin state-changing forms (reused `partials/submit-guard`); the
+  previously-dead `plans.toggle` route wired to an Activate/Deactivate button (audited); an admin favicon.
+- **P3 accepted (documented, no change):** `reactivate()`→active is the correct target (billing state derives from
+  the subscription); admin recovery-code regeneration is out-of-scope polish (recover via `admin:create`/DB).
+
+**Honest deferrals CONFIRMED correct (not findings, not touched):** Stripe billing sync, impersonation (no route),
+suspension access-enforcement, per-feature-limit enforcement, real channel sync (stub), customer-self-connect. Every
+fix stayed additive + preserved the security model (audited `PlatformQuery`, no new bypass) + disturbed nothing in
+the tenant realms. Suite green (existing + new fix tests, admin 50/50); PHPStan L5 (0); Pint clean; `migrate:fresh
+--seed` clean. **The Super Admin Panel is audited, fixed, and production-ready.**

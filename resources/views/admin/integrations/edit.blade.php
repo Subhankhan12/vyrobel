@@ -17,7 +17,7 @@
         <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ $errors->first() }}</div>
     @endif
 
-    <form method="POST" action="{{ route('admin.integrations.update', $channel) }}" style="max-width: 560px;">
+    <form method="POST" action="{{ route('admin.integrations.update', $channel) }}" style="max-width: 560px;" data-guard-submit>
         @csrf
         @method('PUT')
         <div class="ad-card">
@@ -47,7 +47,7 @@
 
     @if ($configured)
         {{-- Separate form so it POSTs (not the update form's PUT). The real channel API is account-gated. --}}
-        <form method="POST" action="{{ route('admin.integrations.test', $channel) }}" style="max-width: 560px; margin-top: 12px;">
+        <form method="POST" action="{{ route('admin.integrations.test', $channel) }}" style="max-width: 560px; margin-top: 12px;" data-guard-submit>
             @csrf
             <button type="submit" class="ad-btn ad-btn--ghost">Test connection</button>
             <span class="ad-stat-sub" style="margin-left: 8px;">Verifies a credential is present; the live test runs when the {{ $label }} account is connected.</span>

@@ -42,7 +42,7 @@ class CustomerController extends Controller
 
         $rows = $this->platform->read(
             'platform.customers.list',
-            fn (): array => $this->customers->list($filters),
+            fn () => $this->customers->list($filters),
             ['filters' => array_filter($filters)],
         );
 

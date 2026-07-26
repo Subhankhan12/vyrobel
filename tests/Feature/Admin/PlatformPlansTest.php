@@ -114,6 +114,19 @@ it('EnsurePlanFeature gates additively — granted plan passes, excluding plan g
     app(TenantContext::class)->forget();
 })->group('security');
 
+// ── audit fix P3 — the quick activate/deactivate toggle is wired + audited ─────────────────────────
+it('toggling a plan active/inactive works and is audited', function () {
+    $plan = planWithFeatures();   // is_active = true
+    $admin = platformAdmin();
+
+    $this->actingAs($admin, 'admin')->post(route('admin.plans.toggle', $plan->id))->assertRedirect(route('admin.plans.index'));
+    expect($plan->fresh()->is_active)->toBeFalse();
+    expect(PlatformAdminAction::query()->where('action', 'platform.plan.toggled')->exists())->toBeTrue();
+
+    $this->actingAs($admin, 'admin')->post(route('admin.plans.toggle', $plan->id))->assertRedirect();
+    expect($plan->fresh()->is_active)->toBeTrue();
+})->group('security');
+
 // ── ASSIGN A PLAN (drives features; Stripe deferred) ───────────────────────────────────────────────
 it('assigning a plan to a customer changes its features + is AUDITED; Stripe stays untouched (deferred)', function () {
     $essential = planWithFeatures('essential_monthly', ['analytics' => true, 'channels' => false, 'team' => true]);

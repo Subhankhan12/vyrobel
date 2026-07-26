@@ -15,7 +15,7 @@
         <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ $errors->first() }}</div>
     @endif
 
-    <form method="POST" action="{{ route('admin.plans.update', $plan->id) }}" style="max-width: 640px;">
+    <form method="POST" action="{{ route('admin.plans.update', $plan->id) }}" style="max-width: 640px;" data-guard-submit>
         @csrf
         @method('PUT')
 
