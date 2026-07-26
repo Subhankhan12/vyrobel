@@ -1,0 +1,177 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Mail\AdminEmailChangeMail;
+use App\Models\PlatformAdmin;
+use App\Support\Platform\PlatformAuditLogger;
+use App\Support\TwoFactor\PlatformTwoFactorService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password as PasswordRule;
+
+/**
+ * SUPER ADMIN · ACCOUNT — the platform admin manages their OWN identity (name · password · login email · 2FA
+ * recovery). The highest-privilege identity, so the tenant account-rebuild discipline is MIRRORED, not weakened:
+ *
+ *   🔒 SELF-ONLY — every action resolves the subject from `Auth::guard('admin')->user()`, NEVER a request id.
+ *   🔒 SENSITIVE CHANGES RE-AUTH — the password change, recovery-code regeneration, AND the email-change
+ *      request each require the CURRENT password (`current_password:admin`) before anything happens (anti-hijack
+ *      of a left-open console session).
+ *   🔒 EMAIL RE-VERIFIES — a new login email is parked in `pending_email` and only switched when a signed,
+ *      expiring link opened from the NEW inbox confirms control (the `users.pending_email` pattern). The live
+ *      email stays the login until then.
+ *   🔒 EVERY change is AUDITED to the platform action ledger (WHICH field changed, never the value).
+ *
+ * A SEPARATE, parallel implementation for the admin realm — it does not reuse the tenant routes/controllers.
+ */
+class AccountController extends Controller
+{
+    public function __construct(private readonly PlatformAuditLogger $audit) {}
+
+    /** The account page. Shows one-time recovery codes if they were just regenerated (flashed). */
+    public function edit(): View
+    {
+        return view('admin.account.index', [
+            'admin' => $this->admin(),
+            'recoveryCodes' => session('admin_recovery_codes'),
+        ]);
+    }
+
+    /** Edit the always-safe profile fields (name). Audited. */
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        $admin = $this->admin();
+
+        $data = $request->validate(['name' => ['required', 'string', 'max:120']]);
+        $admin->forceFill($data)->save();
+
+        $this->audit->record('platform.account.profile_updated', ['fields' => array_keys($data)]);
+
+        return redirect()->route('admin.account.edit')->with('admin_notice', 'Your profile is saved.');
+    }
+
+    /**
+     * Change the password. 🔒 CURRENT password required (anti-hijack) + the real server-authoritative rule
+     * (Password::min(8), confirmed) + the single hash+rotate path. This session stays signed in (no re-login).
+     */
+    public function changePassword(Request $request): RedirectResponse
+    {
+        $admin = $this->admin();
+
+        $request->validate([
+            'current_password' => ['required', 'current_password:admin'],
+            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+        ]);
+
+        $admin->changePasswordTo((string) $request->string('password'));
+
+        $this->audit->record('platform.account.password_changed');
+
+        return redirect()->route('admin.account.edit')->with('admin_notice', 'Your password has been changed.');
+    }
+
+    /** Regenerate the 2FA recovery codes (shown ONCE). 🔒 CURRENT password required; audited. */
+    public function regenerateRecoveryCodes(Request $request, PlatformTwoFactorService $twoFactor): RedirectResponse
+    {
+        $admin = $this->admin();
+        $request->validate(['current_password' => ['required', 'current_password:admin']]);
+
+        if (! $admin->hasTwoFactorEnabled()) {
+            return redirect()->route('admin.account.edit')->with('admin_notice', 'Two-factor is not active yet.');
+        }
+
+        $codes = $twoFactor->regenerateRecoveryCodes($admin);
+        $this->audit->record('platform.account.recovery_codes_regenerated');
+
+        return redirect()->route('admin.account.edit')->with('admin_recovery_codes', $codes)->with('admin_notice', 'New recovery codes generated — save them now.');
+    }
+
+    /**
+     * Step 1 of an email change: park the new address + mail a signed verify link TO IT. 🔒 CURRENT password
+     * required; NO switch yet — the live email stays the login until the link is opened. Audited.
+     */
+    public function requestEmailChange(Request $request): RedirectResponse
+    {
+        $admin = $this->admin();
+
+        $data = $request->validate([
+            'current_password' => ['required', 'current_password:admin'],
+            'email' => [
+                'required', 'email', 'max:255',
+                Rule::unique('platform_admins', 'email')->ignore($admin->getKey()),
+                Rule::notIn([(string) $admin->email]),
+            ],
+        ], [], ['email' => 'email address']);
+
+        $newEmail = (string) $data['email'];
+        $admin->forceFill(['pending_email' => $newEmail])->save();
+
+        // Signed, expiring, bound to the parked address (a later change auto-invalidates any older link).
+        $url = URL::temporarySignedRoute('admin.account.email.verify', now()->addHour(), [
+            'admin' => $admin->getKey(),
+            'hash' => sha1($newEmail),
+        ]);
+        Mail::to($newEmail)->send(new AdminEmailChangeMail((string) $admin->name, $newEmail, $url));
+
+        $this->audit->record('platform.account.email_change_requested', ['fields' => ['email']]);
+
+        return redirect()->route('admin.account.edit')->with('admin_notice', 'Check your new inbox — we emailed a link to confirm the change. Your email stays the same until you open it.');
+    }
+
+    /** Cancel a pending email change (clears the parked address; any outstanding link then no longer matches). */
+    public function cancelEmailChange(): RedirectResponse
+    {
+        $this->admin()->forceFill(['pending_email' => null])->save();
+
+        return redirect()->route('admin.account.edit')->with('admin_notice', 'The email change was cancelled.');
+    }
+
+    /**
+     * Step 2: the signed link is opened from the NEW inbox — verify + switch. Signed (no auth: it may be opened
+     * on a device where the admin isn't signed in); the security is the HMAC signature + the pending-email hash
+     * binding + the current-password re-auth already required at request time.
+     */
+    public function verifyEmailChange(Request $request, string $admin, string $hash): RedirectResponse
+    {
+        $model = PlatformAdmin::query()->find($admin);
+        if ($model === null) {
+            return redirect()->route('admin.login')->with('status', 'That email-change link is no longer valid. Please request a new one.');
+        }
+
+        $pending = (string) ($model->pending_email ?? '');
+        if ($pending === '' || ! hash_equals(sha1($pending), $hash)) {
+            return redirect()->route('admin.login')->with('status', 'That email-change link is no longer valid. Please request a new one.');
+        }
+
+        // Someone else may have taken the address since it was requested — fail closed, keep the old email.
+        if (PlatformAdmin::query()->where('email', $pending)->whereKeyNot($model->getKey())->exists()) {
+            $model->forceFill(['pending_email' => null])->save();
+
+            return redirect()->route('admin.login')->with('status', 'That email address is already in use. Your email was not changed.');
+        }
+
+        $model->forceFill(['email' => $pending, 'pending_email' => null])->save();
+
+        $this->audit->record('platform.account.email_changed', ['fields' => ['email']], actor: $model);
+
+        return redirect()->route('admin.login')->with('status', 'Your email address has been updated. Please sign in with your new address.');
+    }
+
+    /** The current authenticated platform admin (self-resolved from the guard, never a request id). */
+    private function admin(): PlatformAdmin
+    {
+        $admin = Auth::guard('admin')->user();
+        abort_unless($admin instanceof PlatformAdmin, 403);
+
+        return $admin;
+    }
+}

@@ -70,7 +70,10 @@
         .ad-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 30px; border-bottom: 1px solid var(--ad-border); }
         .ad-top-title { font-family: var(--ad-display); font-weight: 600; font-size: 15px; }
         .ad-user { display: flex; align-items: center; gap: 12px; }
-        .ad-chip { display: flex; align-items: center; gap: 9px; padding: 6px 8px 6px 6px; border-radius: 30px; border: 1px solid var(--ad-border); background: var(--ad-glass); }
+        .ad-chip { display: flex; align-items: center; gap: 9px; padding: 6px 8px 6px 6px; border-radius: 30px; border: 1px solid var(--ad-border); background: var(--ad-glass); transition: border-color .14s ease, background .14s ease; }
+        a.ad-chip:hover { border-color: var(--ad-border-strong); background: var(--ad-glass-2); }
+        a.ad-chip.is-active { border-color: var(--ad-accent); }
+        a.ad-chip:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
         .ad-ava { width: 28px; height: 28px; border-radius: 50%; background: var(--ad-grad); color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center; }
         .ad-chip-name { font-size: 12.5px; font-weight: 500; padding-right: 4px; }
         .ad-signout { background: none; border: 1px solid var(--ad-border); color: var(--ad-muted); font-family: var(--ad-sans); font-size: 12.5px; font-weight: 500; cursor: pointer; padding: 7px 13px; border-radius: 9px; transition: color .14s ease, border-color .14s ease; }
@@ -173,10 +176,11 @@
             <header class="ad-top">
                 <div class="ad-top-title">{{ $title }}</div>
                 <div class="ad-user">
-                    <div class="ad-chip">
+                    {{-- The user chip links to the admin's own account page (profile · email · password · 2FA). --}}
+                    <a class="ad-chip {{ $active === 'account' ? 'is-active' : '' }}" href="{{ route('admin.account.edit') }}" style="text-decoration: none; color: inherit;">
                         <span class="ad-ava">{{ $initials }}</span>
                         <span class="ad-chip-name">{{ $adminName }}</span>
-                    </div>
+                    </a>
                     <form method="POST" action="{{ route('admin.logout') }}" style="margin: 0;">
                         @csrf
                         <button type="submit" class="ad-signout">Sign out</button>

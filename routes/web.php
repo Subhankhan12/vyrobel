@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
 use App\Http\Controllers\Admin\Auth\AdminLoginController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorChallengeController;
@@ -917,6 +918,23 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
             Route::get('integrations/{channel}', [AdminIntegrationController::class, 'edit'])->name('integrations.edit');
             Route::put('integrations/{channel}', [AdminIntegrationController::class, 'update'])->middleware('throttle:30,1')->name('integrations.update');
             Route::post('integrations/{channel}/test', [AdminIntegrationController::class, 'test'])->middleware('throttle:30,1')->name('integrations.test');
+
+            // SUPER ADMIN · ACCOUNT — the admin manages their OWN identity. Self-only; sensitive changes re-auth
+            // (current_password:admin); email change is re-verified; all audited. Mirrors the owner account discipline.
+            Route::get('account', [AdminAccountController::class, 'edit'])->name('account.edit');
+            Route::put('account/profile', [AdminAccountController::class, 'updateProfile'])->middleware('throttle:20,1')->name('account.profile');
+            Route::put('account/password', [AdminAccountController::class, 'changePassword'])->middleware('throttle:6,1')->name('account.password');
+            Route::post('account/recovery-codes', [AdminAccountController::class, 'regenerateRecoveryCodes'])->middleware('throttle:6,1')->name('account.recovery-codes');
+            Route::post('account/email', [AdminAccountController::class, 'requestEmailChange'])->middleware('throttle:6,1')->name('account.email.request');
+            Route::delete('account/email', [AdminAccountController::class, 'cancelEmailChange'])->middleware('throttle:20,1')->name('account.email.cancel');
         });
     });
+
+    // SUPER ADMIN · ACCOUNT — email-change VERIFY. PUBLIC + `signed` (the link may be opened on a device where
+    // the admin isn't signed in). Security = the HMAC signature + the `sha1(pending_email)` binding (a later
+    // change invalidates an older link) + the current-password re-auth already required at request time. The
+    // OLD email stays the login until this is opened. Rate-limited.
+    Route::get('account/email/verify/{admin}/{hash}', [AdminAccountController::class, 'verifyEmailChange'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('account.email.verify');
 });

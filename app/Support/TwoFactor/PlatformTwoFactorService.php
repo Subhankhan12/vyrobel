@@ -92,6 +92,20 @@ class PlatformTwoFactorService
         return $codes;
     }
 
+    /**
+     * Replace the recovery codes (invalidating the old set), returning the new PLAINTEXT codes to show once.
+     * Only meaningful once 2FA is active; the caller re-authenticates (current password) before calling.
+     *
+     * @return list<string>
+     */
+    public function regenerateRecoveryCodes(PlatformAdmin $admin): array
+    {
+        $codes = $this->newRecoveryCodes();
+        $admin->forceFill(['two_factor_recovery_codes' => $this->wrapCodes($codes)])->save();
+
+        return $codes;
+    }
+
     /** Verify a TOTP code against a secret (the library's ±1 window tolerance). */
     public function verify(string $secret, string $code): bool
     {

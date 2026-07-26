@@ -29,9 +29,10 @@ use Illuminate\Support\Str;
  * casts mirror the proven {@see User} 2FA discipline (secret + confirmation + encrypted recovery codes).
  *
  * @property Carbon|null $last_login_at
+ * @property string|null $pending_email a new login email parked here until a signed verify link confirms it
  * @property list<array{code: string, used_at: string|null}>|null $two_factor_recovery_codes
  */
-#[Fillable(['name', 'email', 'password', 'status', 'two_factor_enabled', 'last_login_at'])]
+#[Fillable(['name', 'email', 'pending_email', 'password', 'status', 'two_factor_enabled', 'last_login_at'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class PlatformAdmin extends Authenticatable
 {
