@@ -68,6 +68,9 @@ These are the named `--vy-*` tokens and `.vy-*` classes the app implements the a
 - **`.vy-row--tappable`** — mark an interactive list row. On `:hover` a subtle warm tint `background: rgba(120,70,40,.05)` + `border-radius`. Used on the guest message-list rows.
 - Clickable rows that are anchors are scoped by tag where the class is shared with a static variant, e.g. `a.vy-owner-row:hover { background: rgba(255,255,255,.5) }` (the static `<div>` owner rows are untouched).
 
+**Dark hero panel = `.vy-card vy-card--dark` (Polish Batch 3 reuse)** — the ONE dark-panel treatment (the "Dark hero panel" above: `background: var(--vy-grad-dark)` = `linear-gradient(160deg,#3A2E27,#251C17)`, white text, `box-shadow: var(--vy-shadow-dark)`). Reused for every dark surface — owner Dashboard/Payouts next-payout panels, **Booking-Detail NET-TO-YOU rail**, **Tax-Center "About your tax"** — never a bespoke dark style. Shared child overrides keep content legible on dark: `.vy-card--dark .vy-eyebrow` (white 55%), `.vy-card--dark .vy-line-sub` (white 60%), `.vy-card--dark .vy-card-title` (white); `.vy-hero-figure` has no own colour so it inherits the panel's white. Dividers inside a dark panel use `rgba(255,255,255,.14)`.
+**Token discipline (Batch 3)** — inline colours must use the `--vy-*` tokens where one exists (`#2B2320`=`--vy-ink`, `#8A8079`=`--vy-muted`, `#A69A92`=`--vy-faint`, `#E8703A`=`--vy-accent-3`, `#C2410C`=`--vy-accent`, `#F6EBE2`=`--vy-wash`); an error tone uses `--vy-accent` (operator) / `--vy-amber` (owner) — no off-palette brick-red. Bespoke semantic status tints without a token (e.g. the roster's leave/conflict colours) are a known gap for a future status-token set.
+
 ---
 
 ## Components to define

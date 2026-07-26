@@ -172,6 +172,12 @@
             border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: var(--vy-shadow-dark);
         }
         .vy-card--dark .vy-eyebrow { color: rgba(255, 255, 255, 0.55); }
+        /* Polish Batch 3 — child overrides so ANY .vy-card--dark styles its content for the dark surface (anti-drift:
+           the Booking-Detail NET-TO-YOU rail + the Tax-Center "About your tax" panel reuse this, not a bespoke dark style).
+           .vy-hero-figure has no own color so it inherits the panel's white; these set the muted/title text light. */
+        .vy-card--dark .vy-line-sub { color: rgba(255, 255, 255, 0.6); }
+        .vy-card--dark .vy-card-title { color: #fff; }
+        .vy-card--dark .vy-hr { border-color: rgba(255, 255, 255, 0.14); }
 
         .vy-eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-card-title { font-family: var(--vy-display); font-size: 15px; font-weight: 600; margin: 0; }

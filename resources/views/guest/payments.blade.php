@@ -9,7 +9,7 @@
         <div class="vy-card" style="margin-bottom:12px;border-left:3px solid var(--vy-accent)"><div style="font-size:13px;color:var(--vy-ink)">{{ session('pay_notice') }}</div></div>
     @endif
     @if (session('pay_error'))
-        <div class="vy-card" style="margin-bottom:12px;border-left:3px solid #C2453A"><div style="font-size:13px;color:#8A2F27">{{ session('pay_error') }}</div></div>
+        <div class="vy-card" style="margin-bottom:12px;border-left:3px solid var(--vy-accent)"><div style="font-size:13px;color:var(--vy-accent)">{{ session('pay_error') }}</div></div>
     @endif
 
     {{-- Summary --}}

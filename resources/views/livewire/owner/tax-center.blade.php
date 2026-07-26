@@ -27,11 +27,17 @@
     @else
         {{-- Held-payout banner — REAL: the owner's actual pending payouts, held until a tax ID is on file --}}
         @if ($held !== [])
-            <div class="vy-card vy-card--accent vy-fade" style="margin-bottom:18px">
-                <div style="font-family:var(--vy-display);font-weight:700;font-size:15px">Add your tax details to release held payouts</div>
-                <div class="vy-line-sub" style="margin-top:6px;font-size:13px">
-                    @foreach ($held as $h){{ $h['display'] }}@if (! $loop->last) · @endif @endforeach
-                    is on hold until we have a valid tax ID on file. It takes about a minute — just complete the form below.
+            {{-- Polish Batch 3 — the prototype leads this banner with a warning icon in a filled accent circle. --}}
+            <div class="vy-card vy-card--accent vy-fade" style="margin-bottom:18px;display:flex;align-items:flex-start;gap:14px">
+                <span aria-hidden="true" style="flex:none;width:40px;height:40px;border-radius:50%;background:var(--vy-grad);color:#fff;display:grid;place-items:center;box-shadow:var(--vy-shadow-accent)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+                </span>
+                <div>
+                    <div style="font-family:var(--vy-display);font-weight:700;font-size:15px">Add your tax details to release held payouts</div>
+                    <div class="vy-line-sub" style="margin-top:6px;font-size:13px">
+                        @foreach ($held as $h){{ $h['display'] }}@if (! $loop->last) · @endif @endforeach
+                        is on hold until we have a valid tax ID on file. It takes about a minute — just complete the form below.
+                    </div>
                 </div>
             </div>
         @elseif ($complete)
@@ -123,7 +129,12 @@
                     @endforelse
                 </section>
 
-                <section class="vy-card vy-fade" style="animation-delay:.06s">
+                {{-- Polish Batch 3 — the prototype renders "About your tax" as a DARK panel led by an info icon;
+                     reuse the shared .vy-card--dark treatment. Copy UNCHANGED. --}}
+                <section class="vy-card vy-card--dark vy-fade" style="animation-delay:.06s">
+                    <span aria-hidden="true" style="display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.10);color:#fff;margin-bottom:10px">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    </span>
                     <div class="vy-eyebrow">About your tax</div>
                     <p class="vy-line-sub" style="font-size:12px;margin-top:6px">Vyrobel keeps records of your rental income and fees, but we don’t file taxes for you. Share your annual summary with a qualified accountant — nothing here is tax advice.</p>
                 </section>

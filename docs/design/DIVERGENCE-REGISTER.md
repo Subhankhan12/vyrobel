@@ -43,6 +43,15 @@ routes/permissions. Suite 924+ / PHPStan L5 / Pint green after every page-commit
 > Reservation-detail header) deliberately get NO hover — no misleading clickability. Presentation-only; classifications below
 > unchanged.
 
+> **Polish Batch 3 (2026-07-26) — dark-panel swaps + tokenize (`docs/POLISH-SWEEP.md` D7/D8/D9).** Two owner panels the
+> prototype renders DARK were light: the **Booking-Detail NET-TO-YOU rail** and the **Tax-Center "About your tax"** panel now
+> reuse the shared **`.vy-card--dark`** treatment (grad-dark bg + white text + `--vy-shadow-dark`, prototype-matched) — with
+> shared child overrides so content stays legible on dark; the held-payout banner gained its **warning icon** and the About
+> panel a **info icon**. Flagged pages were **tokenized** (public Room exact-match hexes → tokens, zero visual change; guest
+> pay-error + Schedule error-red → `--vy-accent`; Schedule wash → `--vy-wash`) — the roster's bespoke leave/conflict status
+> tints (no exact palette token) left as documented semantic colours. Content/figures untouched (#17/#39). Presentation-only;
+> classifications below unchanged.
+
 ---
 
 ## Operator app

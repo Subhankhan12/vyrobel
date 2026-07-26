@@ -106,18 +106,20 @@
         {{-- RIGHT — net headline, payout status, actions --}}
         <div class="vy-stack" style="display:flex;flex-direction:column;gap:18px">
 
-            <section class="vy-card vy-card--accent vy-fade">
+            {{-- Polish Batch 3 — the prototype renders this NET-TO-YOU rail as a DARK panel; reuse the shared
+                 .vy-card--dark treatment (grad-dark bg + white text + --vy-shadow-dark). Content/figures UNCHANGED (#17). --}}
+            <section class="vy-card vy-card--dark vy-fade">
                 <span class="vy-eyebrow">Net to you</span>
                 @if ($attributed)
                     @foreach ($earnings as $block)
                         <div class="vy-hero-figure" style="font-size:{{ count($earnings) === 1 ? '38px' : '28px' }}">{{ $block['net_display'] }}@if (count($earnings) > 1) <span class="vy-line-sub" style="font-size:11px">{{ $block['currency'] }}</span>@endif</div>
                     @endforeach
                 @else
-                    <div class="vy-hero-figure" style="font-size:38px;color:var(--vy-faint)">—</div>
+                    <div class="vy-hero-figure" style="font-size:38px;color:rgba(255,255,255,.4)">—</div>
                 @endif
                 <div class="vy-line-sub" style="margin-top:6px">for this {{ $booking['nights'] }}-night stay</div>
 
-                <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--vy-hairline)">
+                <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14)">
                     <span class="vy-status vy-status--{{ $payout['tone'] }}"><span class="vy-dot"></span>{{ $payout['label'] }}</span>
                     <div class="vy-line-sub" style="margin-top:8px;font-size:12px">{{ $payout['note'] }}</div>
                 </div>

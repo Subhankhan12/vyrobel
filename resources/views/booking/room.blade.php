@@ -41,9 +41,9 @@
 
             {{-- REAL derived rating (published reviews only) — never a hard-coded number (Phase 5). --}}
             @if ($rating['has_reviews'])
-                <div style="margin-top:7px;font-size:14px;color:#2B2320"><span style="color:#E8703A">★</span> <strong>{{ $rating['average'] }}</strong> <span style="color:#8A8079">· {{ $rating['count'] }} {{ \Illuminate\Support\Str::plural('review', $rating['count']) }}</span></div>
+                <div style="margin-top:7px;font-size:14px;color:var(--vy-ink)"><span style="color:var(--vy-accent-3)">★</span> <strong>{{ $rating['average'] }}</strong> <span style="color:var(--vy-muted)">· {{ $rating['count'] }} {{ \Illuminate\Support\Str::plural('review', $rating['count']) }}</span></div>
             @else
-                <div style="margin-top:7px;font-size:13px;color:#8A8079">No reviews yet</div>
+                <div style="margin-top:7px;font-size:13px;color:var(--vy-muted)">No reviews yet</div>
             @endif
 
             {{-- Save to wishlist — shown only to a signed-in guest (Phase 4c · SG4). A real POST to the guest's
@@ -52,7 +52,7 @@
                 <form method="POST" action="{{ route('guest.saved.wishlist.add') }}" style="margin-top:12px">
                     @csrf
                     <input type="hidden" name="room_type_id" value="{{ $room['id'] }}">
-                    <button type="submit" style="display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:22px;border:1px solid rgba(120,70,40,.18);background:#fff;color:#C2410C;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">♥ Save to wishlist</button>
+                    <button type="submit" style="display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:22px;border:1px solid rgba(120,70,40,.18);background:#fff;color:var(--vy-accent);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer">♥ Save to wishlist</button>
                 </form>
             @endif
 
@@ -88,9 +88,9 @@
             <h2 class="vy-section-title">Guest reviews</h2>
             @forelse ($reviews as $review)
                 <div style="padding:12px 0;border-bottom:1px solid rgba(120,70,40,.10)">
-                    <div><span style="color:#E8703A;letter-spacing:2px">{{ $review['stars'] }}</span><span style="font-size:12.5px;color:#2B2320;font-weight:600;margin-left:7px">{{ $review['byline'] }}</span>@if ($review['at'] !== '')<span style="font-size:11px;color:#A69A92"> · {{ $review['at'] }}</span>@endif</div>
+                    <div><span style="color:var(--vy-accent-3);letter-spacing:2px">{{ $review['stars'] }}</span><span style="font-size:12.5px;color:var(--vy-ink);font-weight:600;margin-left:7px">{{ $review['byline'] }}</span>@if ($review['at'] !== '')<span style="font-size:11px;color:var(--vy-faint)"> · {{ $review['at'] }}</span>@endif</div>
                     @if ($review['body'] !== '')<div style="font-size:13px;color:#4A4038;margin-top:6px;line-height:1.5">{{ $review['body'] }}</div>@endif
-                    @if ($review['response'] !== '')<div style="margin-top:8px;padding:8px 11px;border-radius:9px;background:#F6EBE2;font-size:12.5px;color:#6b6b6b"><strong style="color:#2B2320">Response:</strong> {{ $review['response'] }}</div>@endif
+                    @if ($review['response'] !== '')<div style="margin-top:8px;padding:8px 11px;border-radius:var(--vy-r-sm);background:var(--vy-wash);font-size:12.5px;color:#6b6b6b"><strong style="color:var(--vy-ink)">Response:</strong> {{ $review['response'] }}</div>@endif
                 </div>
             @empty
                 <div class="vy-deferred-note">No reviews yet — be the first to stay and share your experience.</div>

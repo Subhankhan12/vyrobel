@@ -11,7 +11,7 @@
             <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:14px"><div style="font-size:13.5px;color:var(--vy-ink)">{{ session('schedule_status') }}</div></div>
         @endif
         @if (session('schedule_error'))
-            <div class="vy-card vy-fade" style="border-left:3px solid #C2453A;margin-bottom:14px"><div style="font-size:13.5px;color:#8A2F27">{{ session('schedule_error') }}</div></div>
+            <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:14px"><div style="font-size:13.5px;color:var(--vy-accent)">{{ session('schedule_error') }}</div></div>
         @endif
 
         @if ($property === null)
@@ -65,7 +65,7 @@
                                 <tr style="border-bottom:1px solid var(--vy-hairline)">
                                     <td style="padding:10px 14px;position:sticky;left:0;background:var(--vy-card,#fff)">
                                         <div style="display:flex;align-items:center;gap:9px">
-                                            <span style="width:28px;height:28px;border-radius:50%;background:var(--vy-wash,#F6EBE2);display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--vy-muted)">{{ $row['staff']['initials'] }}</span>
+                                            <span style="width:28px;height:28px;border-radius:50%;background:var(--vy-wash,var(--vy-wash));display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--vy-muted)">{{ $row['staff']['initials'] }}</span>
                                             <div>
                                                 <div style="font-weight:600;color:var(--vy-ink)">{{ $row['staff']['name'] }}</div>
                                                 <div style="font-size:11px;color:var(--vy-faint)">{{ $row['staff']['role_label'] }}</div>
@@ -96,7 +96,7 @@
                                             @elseif ($cell['on_leave'])
                                                 <span style="display:inline-block;padding:4px 10px;border-radius:12px;background:#F4E7CC;font-size:11.5px;font-weight:600;color:#8A6E2F" title="Approved leave">On leave</span>
                                             @elseif ($cell['working'])
-                                                <span style="display:inline-block;padding:4px 10px;border-radius:12px;background:var(--vy-wash,#F6EBE2);font-size:11.5px;font-weight:600;color:var(--vy-accent)" title="{{ $cell['hours'] }}">{{ $cell['label'] }}</span>
+                                                <span style="display:inline-block;padding:4px 10px;border-radius:12px;background:var(--vy-wash,var(--vy-wash));font-size:11.5px;font-weight:600;color:var(--vy-accent)" title="{{ $cell['hours'] }}">{{ $cell['label'] }}</span>
                                             @else
                                                 <span style="font-size:12px;color:var(--vy-faint)">—</span>
                                             @endif

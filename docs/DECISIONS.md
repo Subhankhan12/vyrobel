@@ -3706,3 +3706,36 @@ behaviour/logic/money/auth/isolation; invariants #1–48 untouched.
   `0 18px 44px`); **owner** unit-card modifier + `cursor:pointer` + `:hover` rule confirmed; **public** uses the byte-identical
   rule (the demo storefront wasn't reachable on this seed — a slug/config detail unrelated to this change). Closes
   **POLISH-SWEEP M2**. Suite green; PHPStan L5 (0); Pint clean.
+
+### 2026-07-26 — POLISH BATCH 3 — dark-panel swaps + tokenize (`docs/POLISH-SWEEP.md` D7/D8/D9)
+
+**Presentation-only.** Two owner panels the prototype renders DARK were light in the app; a Tax-Center banner icon was missing;
+and a few flagged pages carried hardcoded hex / off-token radii. **CONTENT/figures UNTOUCHED (#17/#39); invariants #1–48
+untouched.**
+
+- **Dark-panel swaps — REUSE the shared `.vy-card--dark`** (grad-dark bg + white text + `--vy-shadow-dark`; = the design
+  brief's "Dark hero panel", the same treatment as the owner Dashboard/Payouts next-payout panels), not a one-off:
+  - **Owner Booking-Detail NET-TO-YOU rail** (`booking-detail.blade.php`): `.vy-card--accent` → `.vy-card--dark`; the inline
+    divider → `rgba(255,255,255,.14)`; the "—" fallback → `rgba(255,255,255,.4)`. The real net figure renders white on dark
+    (`.vy-hero-figure` has no own colour → inherits the panel's white). Browser-verified: €442.80 white on the dark rail.
+  - **Owner Tax-Center "About your tax"** (`tax-center.blade.php`): `.vy-card` → `.vy-card--dark` + a leading info icon
+    (circle-i tile). Copy unchanged.
+  - **Anti-drift:** added shared child overrides to the owner layout so ANY `.vy-card--dark` styles its content —
+    `.vy-card--dark .vy-line-sub { color: rgba(255,255,255,.6) }` + `.vy-card-title { color:#fff }` (the `.vy-eyebrow`
+    override already existed). So the two panels reuse ONE dark treatment; future dark panels inherit it.
+- **Tax-Center held-payout banner icon** — added the prototype's warning icon (triangle-exclamation in a filled `--vy-grad`
+  circle + `--vy-shadow-accent`) leading the banner; content unchanged. Browser-verified.
+- **Tokenize (D9, the flagged pages):**
+  - **public Room** (`booking/room.blade.php`) — the hexes that EQUAL a token replaced 1:1 (zero visual change):
+    `#2B2320→--vy-ink`, `#8A8079→--vy-muted`, `#A69A92→--vy-faint`, `#E8703A→--vy-accent-3`, `#C2410C→--vy-accent`,
+    `#F6EBE2→--vy-wash`; `border-radius:9px→--vy-r-sm`.
+  - **guest pay-error** (`guest/payments.blade.php`) + **operator Schedule** error banner — the off-palette brick-red
+    (`#C2453A`/`#8A2F27`) → `--vy-accent` (a minor on-palette correction, matching the operator `.vy-flash.is-err` convention);
+    Schedule `#F6EBE2→--vy-wash`.
+  - **Left intentionally** (noted, not drift): the roster's **bespoke leave/conflict status tints** (`#B0322A`, `#FBE9E7`,
+    `#FBF3E4`, `#F4E7CC`, `#8A6E2F`) — semantic status colours with no exact palette token (a candidate for a future
+    status-token set); and the Room one-offs `#4A4038`/`#6b6b6b`/`22px` (no exact token). Browser-verified the Schedule
+    renders on the tokens (`--vy-wash` → the identical `rgb(246,235,226)`; 0 raw tokenized-hex left).
+- **Files (6, presentation-only):** `layouts/owner.blade.php`, `livewire/owner/booking-detail.blade.php`,
+  `livewire/owner/tax-center.blade.php`, `booking/room.blade.php`, `guest/payments.blade.php`,
+  `livewire/operator/schedule.blade.php`. Closes **POLISH-SWEEP D7/D8/D9**. Suite **977/977**; PHPStan L5 (0); Pint clean.
