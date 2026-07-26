@@ -17,6 +17,12 @@ conflicts with the repo, **trust the repo** and fix this file.
 > proto bell is static, recorded honestly) via the ONE shared `NotificationFeed::recentForUser()` + `<x-notifications.bell>`
 > + `<x-notifications.category-icon>`; the full pages gained two parity deltas (square tile + unread wash). REAL-only (fake
 > "Channels"/"Housekeeping" pills REFUSED), self-only #28/#26, existing self-only POST mark-read routes. Suite **977/977**.
+> Then a **presentation POLISH SWEEP** (`docs/POLISH-SWEEP.md`, Batches 1–6: CSS tokens · hover states · dark-panel/tokenize ·
+> the framework-free double-submit-disable · count-up · owner Expenses bars) and — closing that sweep's last money-path flag —
+> **ADD-CHARGE SERVER IDEMPOTENCY**: `postCharge` now carries a per-submit server nonce mirroring the on-desk payment gate
+> exactly (nullable-unique `folio_items.idempotency_key`; a `charge_nonce`), so a duplicate — even two concurrent POSTs
+> bypassing the UI disable — records the charge ONCE (mutation- + browser-proven; extends **#48** to both money-write routes).
+> Suite **981/981**; PHPStan L5 = 0; Pint clean.
 >
 > **THE ENTIRE BUILDABLE PRODUCT IS COMPLETE (Phases 0–7), and Phase 8's two OBTAINABLE integrations are LIT UP.**
 > Three full user-facing apps — operator back office (`/app`), owner portal (`/owner`), guest portal (`/guest`) —
@@ -104,6 +110,13 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   **Tax & fees editing** now real (bounded, `properties.manage`); **Invoice-numbering + Branding** scoped to a
 >   focused follow-up (honest "Soon" — no invoice-series store yet; branding logo is a larger media surface);
 >   Notification routing stays "Soon". **INVARIANT #48.** Suite green; PHPStan L5 = 0; Pint clean.
+>   **↳ FOLLOW-UP (2026-07-26): add-charge now ALSO carries a per-submit server nonce** — #48 money-idempotency
+>   now covers BOTH money-write routes. Batch-4's UI double-submit-disable was the ONLY guard on `postCharge`;
+>   it now mirrors the payment path exactly (nullable-unique `folio_items.idempotency_key` + pre-check +
+>   catch-`UniqueConstraintViolationException`; a `charge_nonce` hidden field). A duplicate — even two
+>   **concurrent** POSTs bypassing the UI disable — records the charge ONCE. Mutation-proven (same key → 1, no
+>   key → 2, distinct → 2) + browser-proven (2 concurrent same-nonce POSTs → 1 `folio_item`). Closes
+>   POLISH-SWEEP I3's flag; DECISIONS.md 2026-07-26. Suite **981/981**; PHPStan L5 = 0; Pint clean.
 > - **ACCOUNT-GATED remaining** (each a focused prompt as the account lands): Channex live OTA sync · WhatsApp/OTA
 >   inbox channels · SMS (waitlist/notifications) · guest ID verification / KYC. (Email + Stripe are DONE — pending
 >   only Subhan's cutovers.)

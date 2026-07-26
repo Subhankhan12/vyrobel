@@ -36,6 +36,7 @@ class FolioItem extends Model
         'service_date',
         'posted_by',
         'posted_at',
+        'idempotency_key',
     ];
 
     /**

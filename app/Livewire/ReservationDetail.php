@@ -178,6 +178,9 @@ class ReservationDetail extends Component
             // SAME rendered form submits the SAME key → recorded ONCE; a genuine second payment is a new
             // render → a new key → recorded again. Deterministic per request (Str::uuid), never fabricated data.
             'payment_nonce' => (string) Str::uuid(),
+            // The SAME per-render nonce discipline for the add-charge form (its own key so a payment + a charge from
+            // the same page don't collide) — a duplicate add-charge submission records ONCE, a fresh render a new line.
+            'charge_nonce' => (string) Str::uuid(),
             'folio' => $folio,
         ]);
     }

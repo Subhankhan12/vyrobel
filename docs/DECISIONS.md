@@ -3838,3 +3838,45 @@ fabricated (#39); reconciling (#17); owner-scoped (#28). Invariants #1–48 inta
 - **Sweep status: the ACTIONABLE items are cleared** across Batches 1–6 (all P1/P2 + the actionable P3: M1 count-up, F1 bars;
   M3 skeletons resolved honestly). **Deferred P3 tails (small, tracked):** signup step cross-fade (I4), set-password strength
   meter (D14), remaining guest-portal focus rings (M5), D10 chart consolidation (a per-bar-label design decision).
+
+### 2026-07-26 — ADD-CHARGE SERVER IDEMPOTENCY — closed the last money-path gap flagged by Polish Batch 4 (I3)
+
+Batch 4's double-submit-disable is a **UI** guard; it flagged that `add-charge` (`FolioService::postCharge`) — unlike the
+on-desk payment path (Batch C) — had **no server idempotency**, so a determined double-submit (a scripted POST bypassing the
+disable, a network retry, a double-click racing it) could **double-POST a charge** to a folio. This closes that gap by
+**mirroring the existing on-desk payment idempotency EXACTLY** — the same per-submit nonce / pre-check / unique-index / catch
+mechanism (`recordPayment`), not a new one. **Money-path change: maximum care. Invariants #1–48 intact; money/auth/isolation
+logic UNCHANGED — idempotency ADDED on top, not a rewrite.**
+
+- **The mechanism (mirror of `recordPayment`).** New nullable-unique `folio_items.idempotency_key`
+  (`2026_08_01_000000_add_idempotency_key_to_folio_items`, `after('posted_at')`; on `FolioItem::$fillable`). `postCharge`
+  gained a trailing `?string $idempotencyKey = null`: **pre-check** `FolioItem::where('idempotency_key',$key)->first()` returns
+  the original line BEFORE the domain event fires (a duplicate → the original, once, no re-fired `folio.charge_posted`); the
+  `DB::transaction` stores the key on the `FolioItem::create`; a `catch (UniqueConstraintViolationException)` around the txn
+  returns the winner's row on a **concurrent** race (the pre-check misses when two requests both `SELECT` empty). **The
+  ordering is load-bearing** (pre-check → write → catch-race), identical to the payment path.
+- **Opt-in — every existing caller preserved.** A **null** key = no idempotency = unchanged behaviour, so `postAddOn` /
+  `applyTax` / `applyFee` and the room posting each still write a **distinct** line (they SHOULD — two taxes are two lines).
+  Only the on-desk route opts in. A **separate** `charge_nonce` (distinct from `payment_nonce`) so a payment + a charge from
+  the same rendered page never collide on the key.
+- **The route wiring.** `ReservationDetail::render()` emits a fresh `charge_nonce = (string) Str::uuid()` per render; the
+  add-charge form carries it as a hidden `idempotency_key` (alongside the Batch-4 `data-guard-submit`);
+  `ReservationFolioActionController::addCharge` validates it `required|string|max:64` and passes
+  `idempotencyKey: $validated['idempotency_key']`. A **fresh render = a fresh token = a new charge** — only a DUPLICATE of the
+  SAME submission is deduped (no over-dedup).
+- **Money guards STAY** (all pre-existing, unchanged): integer minor units (#17), append-only ledger (a new line, never an
+  edit), correct-folio tenant-404, the `folios.manage` route gate, domain + audit events inside the service.
+- **Mutation-proven** (`tests/Feature/OperatorReservationDetailViewTest.php`, +3 tests, `@group security`): a double-submit
+  with the **same nonce → ONE** `folio_item` (+ folio `total_minor` reflects one €25, not two); two **different** nonces →
+  **TWO** (the guard is keyed, no over-dedup); and the load-bearing proof — two `postCharge` with **no key → TWO** rows
+  (guard-off doubles), the **same key → ONE** (the second returns the original `->id`). Proves the KEY, not some other
+  invariant, is what dedupes.
+- **Browser-proven** (operator, live server): the add-charge form renders the hidden `idempotency_key` nonce; **two CONCURRENT
+  POSTs with the same nonce** (fired via `Promise.all`, bypassing the UI disable entirely) recorded the €17.50 charge **ONCE**
+  server-side (verified in the DB: exactly 1 `folio_item`, keyed by the nonce). The injected test line was then removed (demo
+  data left clean).
+- **Files:** the migration; `app/Models/FolioItem.php` (`$fillable`); `app/Services/FolioService.php` (`postCharge`
+  idempotency); `app/Http/Controllers/ReservationFolioActionController.php` (`addCharge` validate + pass);
+  `app/Livewire/ReservationDetail.php` (`charge_nonce`); `resources/views/livewire/reservation-detail.blade.php` (hidden field);
+  the 3 existing add-charge route tests updated for the now-required nonce + the 3 new mutation-proof tests. Closes
+  **POLISH-SWEEP I3's flag**. Suite **981/981 green** (7792 assertions); PHPStan L5 (0); Pint clean; `migrate` clean.

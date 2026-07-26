@@ -76,6 +76,9 @@ class ReservationFolioActionController extends Controller
             'type' => ['required', Rule::in(['add_on', 'product', 'fee', 'manual'])],
             'description' => ['required', 'string', 'max:120'],
             'amount' => ['required'],
+            // The per-submit idempotency nonce — a double-click / re-submit / raced retry records the charge ONCE
+            // (mirrors the on-desk payment idempotency; the money guard holds even if the UI disable is bypassed).
+            'idempotency_key' => ['required', 'string', 'max:64'],
         ]);
 
         $minor = $this->parseAmountMinor($validated['amount']);
@@ -84,7 +87,13 @@ class ReservationFolioActionController extends Controller
         }
 
         $folio = $folios->openFolio($model);
-        $folios->postCharge($folio, (string) $validated['type'], (string) $validated['description'], new Money($minor, (string) $model->currency));
+        $folios->postCharge(
+            $folio,
+            (string) $validated['type'],
+            (string) $validated['description'],
+            new Money($minor, (string) $model->currency),
+            idempotencyKey: (string) $validated['idempotency_key'],
+        );
 
         return $this->back($model->id, 'Charge added.');
     }

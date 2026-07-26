@@ -274,6 +274,8 @@
                         <form method="POST" action="{{ route('app.reservations.charge', $reservation['id']) }}" style="margin-top: 14px;"
                               data-guard-submit>
                             @csrf
+                            {{-- Server-side idempotency: a duplicate submission (double-click / raced retry) records ONCE. --}}
+                            <input type="hidden" name="idempotency_key" value="{{ $charge_nonce }}">
                             <label class="vy-field-label">Add a charge</label>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
                                 <select name="type" class="vy-input" style="flex: 0 0 auto;" aria-label="Charge type">

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\FolioItem;
 use App\Models\Membership;
 use App\Models\Payment;
 use App\Models\User;
@@ -163,7 +164,7 @@ it('adds a folio charge through postCharge (integer money, append-only)', functi
 
     $this->actingAs(detailMember($s))
         ->post(route('app.reservations.charge', $res->id), [
-            'type' => 'add_on', 'description' => 'Late checkout', 'amount' => '25.00',
+            'type' => 'add_on', 'description' => 'Late checkout', 'amount' => '25.00', 'idempotency_key' => 'charge-nonce-1',
         ])->assertRedirect(route('app.reservations.show', $res->id));
 
     $this->assertDatabaseHas('folio_items', ['description' => 'Late checkout', 'amount_minor' => 2500, 'type' => 'add_on']);
@@ -174,7 +175,7 @@ it('refuses a ≤0 charge — no zero/negative folio line', function () {
     $res = book($s, ['unit_id' => $s['units'][0]->id]);
 
     $this->actingAs(detailMember($s))
-        ->post(route('app.reservations.charge', $res->id), ['type' => 'add_on', 'description' => 'ZeroCharge', 'amount' => '0']);
+        ->post(route('app.reservations.charge', $res->id), ['type' => 'add_on', 'description' => 'ZeroCharge', 'amount' => '0', 'idempotency_key' => 'charge-nonce-zero']);
 
     $this->assertDatabaseMissing('folio_items', ['description' => 'ZeroCharge']);
 });
@@ -185,10 +186,62 @@ it('gates add-charge on folios.manage — a role without it is refused (403)', f
 
     // Housekeeping is back-office but does NOT hold folios.manage → the route gate 403s.
     $this->actingAs(operatorUser($s, [], 'Housekeeping'))
-        ->post(route('app.reservations.charge', $res->id), ['type' => 'add_on', 'description' => 'NopeCharge', 'amount' => '10'])
+        ->post(route('app.reservations.charge', $res->id), ['type' => 'add_on', 'description' => 'NopeCharge', 'amount' => '10', 'idempotency_key' => 'charge-nonce-nope'])
         ->assertForbidden();
 
     $this->assertDatabaseMissing('folio_items', ['description' => 'NopeCharge']);
+})->group('security');
+
+// ── ADD-CHARGE server idempotency (mirrors the on-desk payment gate): a raced double-submit → ONE line ──
+it('adds a folio charge ONCE on a double-submit with the same idempotency key (money gate)', function () {
+    $s = seedScenario(1);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $member = detailMember($s);
+
+    // A double-click / raced retry of the SAME rendered form → the SAME per-submit nonce, twice.
+    $payload = ['type' => 'add_on', 'description' => 'Minibar', 'amount' => '25.00', 'idempotency_key' => 'charge-same-nonce'];
+    $this->actingAs($member)->post(route('app.reservations.charge', $res->id), $payload)->assertRedirect();
+    $this->actingAs($member)->post(route('app.reservations.charge', $res->id), $payload)->assertRedirect();
+
+    // Exactly ONE charge line — the server guard held even if the UI double-submit-disable is bypassed.
+    expect(FolioItem::query()->where('description', 'Minibar')->count())->toBe(1);
+    // And the folio total reflects ONE €25 charge, not two (reconciles to SUM(folio_items.amount_minor) #17).
+    $folio = app(FolioService::class)->openFolio($res->fresh());
+    expect((int) $folio->total_minor)->toBe(2500);
+});
+
+it('records TWO charges for two DIFFERENT nonces — the guard is keyed, no over-dedup (mutation proof)', function () {
+    $s = seedScenario(1);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $member = detailMember($s);
+
+    // Two genuine add-charges (two renders → two fresh nonces) BOTH land — the guard dedups a DUPLICATE
+    // submission, never two deliberate charges, even when they happen to describe the same thing.
+    $this->actingAs($member)->post(route('app.reservations.charge', $res->id),
+        ['type' => 'add_on', 'description' => 'Minibar', 'amount' => '25.00', 'idempotency_key' => 'charge-nonce-x'])->assertRedirect();
+    $this->actingAs($member)->post(route('app.reservations.charge', $res->id),
+        ['type' => 'add_on', 'description' => 'Minibar', 'amount' => '25.00', 'idempotency_key' => 'charge-nonce-y'])->assertRedirect();
+
+    expect(FolioItem::query()->where('description', 'Minibar')->count())->toBe(2);
+})->group('security');
+
+it('proves the KEY is load-bearing: same key → ONE line, no key → TWO (guard-off doubles)', function () {
+    $s = seedScenario(1);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $folios = app(FolioService::class);
+    $folio = $folios->openFolio($res);
+
+    // WITHOUT a key (every pre-existing caller — postAddOn/applyTax/applyFee) each write is DISTINCT → doubling
+    // is the un-guarded baseline, proving the guard (not some other invariant) is what dedupes the route path.
+    $folios->postCharge($folio, 'add_on', 'Unkeyed', Money::of(1000, 'EUR'));
+    $folios->postCharge($folio, 'add_on', 'Unkeyed', Money::of(1000, 'EUR'));
+    expect(FolioItem::query()->where('description', 'Unkeyed')->count())->toBe(2);
+
+    // WITH the same key, the second call returns the ORIGINAL line — one row, no re-fired event.
+    $first = $folios->postCharge($folio, 'add_on', 'Keyed', Money::of(1000, 'EUR'), idempotencyKey: 'k-1');
+    $again = $folios->postCharge($folio, 'add_on', 'Keyed', Money::of(1000, 'EUR'), idempotencyKey: 'k-1');
+    expect($again->id)->toBe($first->id);
+    expect(FolioItem::query()->where('description', 'Keyed')->count())->toBe(1);
 })->group('security');
 
 // ── Batch C · GATE 3 — THE MONEY GATE: on-desk payment idempotency + method selector ──────────────

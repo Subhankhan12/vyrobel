@@ -61,30 +61,55 @@ class FolioService
         ?Money $tax = null,
         ?Model $reference = null,
         ?string $serviceDate = null,
+        ?string $idempotencyKey = null,
     ): FolioItem {
         $amount = $unitAmount->multiply($quantity);
 
-        $item = DB::transaction(function () use ($folio, $type, $description, $unitAmount, $quantity, $amount, $tax, $reference, $serviceDate): FolioItem {
-            $item = FolioItem::create([
-                'folio_id' => $folio->getKey(),
-                'type' => $type,
-                'description' => $description,
-                'unit_amount' => $unitAmount,
-                'quantity' => $quantity,
-                'amount' => $amount,
-                'tax' => $tax,
-                'currency' => $folio->currency,
-                'reference_type' => $reference?->getMorphClass(),
-                'reference_id' => $reference?->getKey(),
-                'service_date' => $serviceDate,
-                'posted_by' => Auth::id(),
-                'posted_at' => now(),
-            ]);
+        // 🔒 IDEMPOTENT (mirrors recordPayment / the guest-charge firstOrCreate) when a key is given — a re-submit /
+        // double-click of the SAME add-charge (same per-submit nonce) records ONCE: pre-checked here, and backed by
+        // the UNIQUE index on `idempotency_key` (the concurrent-race backstop). A null key preserves EVERY existing
+        // caller (postAddOn / applyTax / applyFee, the room posting) — each still writes a distinct line as before.
+        if ($idempotencyKey !== null) {
+            $existing = FolioItem::query()->where('idempotency_key', $idempotencyKey)->first();
+            if ($existing instanceof FolioItem) {
+                return $existing;   // a duplicate submission → the ORIGINAL line, once (no second row, no re-fired event)
+            }
+        }
 
-            $this->recompute($folio);
+        try {
+            $item = DB::transaction(function () use ($folio, $type, $description, $unitAmount, $quantity, $amount, $tax, $reference, $serviceDate, $idempotencyKey): FolioItem {
+                $item = FolioItem::create([
+                    'folio_id' => $folio->getKey(),
+                    'type' => $type,
+                    'description' => $description,
+                    'unit_amount' => $unitAmount,
+                    'quantity' => $quantity,
+                    'amount' => $amount,
+                    'tax' => $tax,
+                    'currency' => $folio->currency,
+                    'reference_type' => $reference?->getMorphClass(),
+                    'reference_id' => $reference?->getKey(),
+                    'service_date' => $serviceDate,
+                    'posted_by' => Auth::id(),
+                    'posted_at' => now(),
+                    'idempotency_key' => $idempotencyKey,
+                ]);
 
-            return $item;
-        });
+                $this->recompute($folio);
+
+                return $item;
+            });
+        } catch (UniqueConstraintViolationException $e) {
+            // A near-simultaneous double-submit: the other request won the unique key. Return ITS line so the caller
+            // sees exactly one charge (the folio total is unchanged — the same single line either way).
+            $existing = $idempotencyKey !== null
+                ? FolioItem::query()->where('idempotency_key', $idempotencyKey)->first()
+                : null;
+            if ($existing instanceof FolioItem) {
+                return $existing;
+            }
+            throw $e;
+        }
 
         $this->domainEvents->record('folio.charge_posted', $item, [
             'type' => $type,
