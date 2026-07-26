@@ -107,5 +107,6 @@
     <main class="vy-wrap">
         {{ $slot }}
     </main>
+    @include('partials.submit-guard')   {{-- Polish Batch 4 — double-submit guard (this portal has no Alpine) --}}
 </body>
 </html>

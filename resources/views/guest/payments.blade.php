@@ -41,9 +41,10 @@
                     <div style="font-size:14px;font-weight:600;color:{{ $booking['balance_due'] ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">{{ $booking['balance_due'] ? $booking['balance'] : 'Paid' }}</div>
                     @if ($booking['balance_due'])
                         {{-- 🔒 Pay by card — hosted Stripe Checkout (card never touches Vyrobel); settles on the webhook. --}}
-                        <form method="POST" action="{{ route('guest.payments.pay', $booking['id']) }}" style="margin:4px 0 0">
+                        <form method="POST" action="{{ route('guest.payments.pay', $booking['id']) }}" style="margin:4px 0 0"
+                              data-guard-submit>
                             @csrf
-                            <button type="submit" class="vy-btn vy-btn--accent" style="padding:5px 12px;font-size:12px">Pay by card</button>
+                            <x-busy-btn class="vy-btn vy-btn--accent" style="padding:5px 12px;font-size:12px" busy-label="Redirecting…">Pay by card</x-busy-btn>
                         </form>
                     @endif
                     <a class="vy-link" href="{{ route('guest.receipt', $booking['id']) }}" style="font-size:12px;color:var(--vy-accent);text-decoration:none">Receipt →</a>

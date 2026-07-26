@@ -919,5 +919,6 @@
         {{ $slot }}
     </main>
     @livewireScripts
+    @include('partials.submit-guard')   {{-- Polish Batch 4 — double-submit guard for the operator money/inventory writes --}}
 </body>
 </html>

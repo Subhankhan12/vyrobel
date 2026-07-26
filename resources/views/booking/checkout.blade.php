@@ -36,7 +36,8 @@
             {{-- Guest details → CSRF-protected POST that books through AssignmentService --}}
             <div class="vy-card">
                 <span class="vy-eyebrow">Guest details</span>
-                <form method="POST" action="{{ route('booking.reserve', $property['slug']) }}" style="margin-top:14px;">
+                <form method="POST" action="{{ route('booking.reserve', $property['slug']) }}" style="margin-top:14px;"
+                      data-guard-submit>
                     @csrf
                     <input type="hidden" name="room_type_id" value="{{ $offer['room_type_id'] }}">
                     <input type="hidden" name="rate_plan_id" value="{{ $offer['rate_plan_id'] }}">
@@ -58,7 +59,7 @@
                         <span>Reserve now and settle at the property. Secure card payment is coming soon — no card is collected here.</span>
                     </div>
 
-                    <button type="submit" class="vy-btn vy-btn--accent" style="width:100%; margin-top:16px;">Confirm reservation</button>
+                    <x-busy-btn class="vy-btn vy-btn--accent" style="width:100%; margin-top:16px;" busy-label="Reserving…">Confirm reservation</x-busy-btn>
                     <div class="vy-deferred-note" style="margin-top:10px;">Your room is only reserved once you confirm — availability is re-checked at that moment.</div>
                 </form>
             </div>

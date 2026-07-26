@@ -218,7 +218,8 @@
                     {{-- WIRED: posts through FolioService::recordPayment (append-only, integer #17). Batch C ·
                          GATE 3 — a per-submit idempotency nonce records a double-click ONCE; a method selector
                          (Cash / Bank transfer = real manual now · Card = the Stripe test-mode seam, deferred). --}}
-                    <form method="POST" action="{{ route('app.reservations.payment', $reservation['id']) }}" style="margin-top: 12px;">
+                    <form method="POST" action="{{ route('app.reservations.payment', $reservation['id']) }}" style="margin-top: 12px;"
+                          data-guard-submit>
                         @csrf
                         <input type="hidden" name="idempotency_key" value="{{ $payment_nonce }}">
                         <label class="vy-field-label" for="pay_method">Method</label>
@@ -230,7 +231,7 @@
                         <label class="vy-field-label" for="amount">Amount ({{ $reservation['currency'] }})</label>
                         <div class="vy-input-group">
                             <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" id="amount" placeholder="0.00">
-                            <button type="submit" class="vy-btn vy-btn--accent">Record</button>
+                            <x-busy-btn class="vy-btn vy-btn--accent" busy-label="Recording…">Record</x-busy-btn>
                         </div>
                     </form>
                     <div class="vy-recon" style="margin-top: 12px;">Cash &amp; bank transfer record now (offline / manual). Card is charged via Stripe (test-mode) — available at the live-key flip.</div>
@@ -247,7 +248,8 @@
                     @if ($can_move)
                         @foreach ($units as $u)
                             @if ($u['status'] === 'active' && count($u['move_targets']) > 0)
-                                <form method="POST" action="{{ route('app.reservations.move', $reservation['id']) }}" style="margin-top: 12px;">
+                                <form method="POST" action="{{ route('app.reservations.move', $reservation['id']) }}" style="margin-top: 12px;"
+                                      data-guard-submit>
                                     @csrf
                                     <input type="hidden" name="reservation_unit_id" value="{{ $u['id'] }}">
                                     <label class="vy-field-label">Move {{ $u['unit'] ? 'unit '.$u['unit'] : $u['room_type'] }}</label>
@@ -257,7 +259,7 @@
                                                 <option value="{{ $t['id'] }}">Unit {{ $t['code'] }}</option>
                                             @endforeach
                                         </select>
-                                        <button type="submit" class="vy-btn vy-btn--ghost">Move room</button>
+                                        <x-busy-btn class="vy-btn vy-btn--ghost" busy-label="Moving…">Move room</x-busy-btn>
                                     </div>
                                 </form>
                             @elseif ($u['status'] === 'active')
@@ -269,7 +271,8 @@
                     {{-- Batch C · GATE 2 — ADD CHARGE: a new folio line via FolioService::postCharge (#17
                          integer, append-only). Gated `folios.manage`. --}}
                     @can('folios.manage')
-                        <form method="POST" action="{{ route('app.reservations.charge', $reservation['id']) }}" style="margin-top: 14px;">
+                        <form method="POST" action="{{ route('app.reservations.charge', $reservation['id']) }}" style="margin-top: 14px;"
+                              data-guard-submit>
                             @csrf
                             <label class="vy-field-label">Add a charge</label>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
@@ -280,7 +283,7 @@
                                 </select>
                                 <input class="vy-input" type="text" name="description" maxlength="120" placeholder="Description" style="flex: 1 1 110px;">
                                 <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" placeholder="0.00" style="flex: 0 0 88px;">
-                                <button type="submit" class="vy-btn vy-btn--ghost">Add</button>
+                                <x-busy-btn class="vy-btn vy-btn--ghost" busy-label="Adding…">Add</x-busy-btn>
                             </div>
                         </form>
                     @endcan

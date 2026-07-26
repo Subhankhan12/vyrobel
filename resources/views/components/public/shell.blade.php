@@ -243,5 +243,6 @@
     </main>
 
     <footer class="vy-store-footer">Powered by Vyrobel</footer>
+    @include('partials.submit-guard')   {{-- Polish Batch 4 — double-submit guard (public storefront has no Alpine) --}}
 </body>
 </html>

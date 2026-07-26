@@ -180,6 +180,20 @@
             document.querySelectorAll('[data-back]').forEach(function (b) {
                 b.addEventListener('click', function () { show(i - 1); });
             });
+
+            // Polish Batch 4 · GATE 1 — double-submit guard (this page has no Alpine, so a vanilla one).
+            // Provisioning an org is SLOW + state-changing; a second submit before navigation is blocked → fires ONCE.
+            // Front-line UX guard ON TOP of the server's rate-limit + atomic provisioning (not a replacement).
+            var form = document.getElementById('signup');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    if (form.dataset.submitting) { e.preventDefault(); return; }
+                    form.dataset.submitting = '1';
+                    var btn = form.querySelector('button[type="submit"]');
+                    if (btn) { btn.disabled = true; btn.textContent = 'Creating your account…'; }
+                });
+            }
+
             show(0);
         })();
     </script>

@@ -63,16 +63,18 @@
                                     {{-- FULL = the REMAINING. Posts no `amount`, so the controller takes its
                                          full-remaining path — the same call the inline detail button makes. --}}
                                     <form method="POST" action="{{ route('app.reservations.refund', $reservation['id']) }}" style="margin-top: 14px;"
+                                        data-guard-submit
                                         onsubmit="return confirm('Refund {{ $payment['remaining'] }} — the whole remaining amount of this payment? A refund cannot be reversed.');">
                                         @csrf
                                         <input type="hidden" name="payment" value="{{ $payment['id'] }}">
-                                        <button type="submit" class="vy-act vy-act--accent">Refund the remaining {{ $payment['remaining'] }}</button>
+                                        <x-busy-btn class="vy-act vy-act--accent" busy-label="Refunding…">Refund the remaining {{ $payment['remaining'] }}</x-busy-btn>
                                     </form>
 
                                     {{-- PARTIAL — capped at the remaining. The cap is a courtesy for the
                                          operator; FolioService is the guard, and it rejects an over-refund
                                          outright rather than quietly clamping it. --}}
                                     <form method="POST" action="{{ route('app.reservations.refund', $reservation['id']) }}" style="margin-top: 14px;"
+                                        data-guard-submit
                                         onsubmit="return confirm('Issue this partial refund? A refund cannot be reversed.');">
                                         @csrf
                                         <input type="hidden" name="payment" value="{{ $payment['id'] }}">
@@ -81,7 +83,7 @@
                                             <input class="vy-input" type="number" inputmode="decimal" step="0.01"
                                                 min="0.01" max="{{ $payment['max_input'] }}"
                                                 name="amount" id="amount-{{ $payment['id'] }}" placeholder="0.00">
-                                            <button type="submit" class="vy-act vy-act--ghost">Refund</button>
+                                            <x-busy-btn class="vy-act vy-act--ghost" busy-label="Refunding…">Refund</x-busy-btn>
                                         </div>
                                     </form>
                                     <div class="vy-recon" style="margin-top: 8px;">Up to {{ $payment['remaining'] }} is still refundable against this payment. Anything above that is refused, not trimmed to fit.</div>
