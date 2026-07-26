@@ -920,5 +920,6 @@
     </main>
     @livewireScripts
     @include('partials.submit-guard')   {{-- Polish Batch 4 — double-submit guard for the operator money/inventory writes --}}
+    @include('partials.count-up')       {{-- Polish Batch 5 — KPI/hero count-up (lands on the exact real figure) --}}
 </body>
 </html>

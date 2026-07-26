@@ -273,32 +273,3 @@
         @endif
     </section>
 </x-owner.shell>
-
-@script
-<script>
-    (function () {
-        function fmt(minor, symbol) {
-            var neg = minor < 0, v = Math.abs(minor) / 100;
-            var s = v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            return (neg ? '−' : '') + symbol + s;
-        }
-        function run() {
-            var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            document.querySelectorAll('[data-countup]').forEach(function (el) {
-                if (el.dataset.cuDone) return;
-                el.dataset.cuDone = '1';
-                var target = parseInt(el.dataset.countup, 10), symbol = el.dataset.symbol || '';
-                if (reduce || isNaN(target)) return;   // real value is already rendered server-side
-                var dur = 900, start = null;
-                (function frame(ts) {
-                    if (!start) start = ts;
-                    var p = Math.min((ts - start) / dur, 1), eased = 1 - Math.pow(1 - p, 3);
-                    el.textContent = fmt(Math.round(target * eased), symbol);
-                    if (p < 1) requestAnimationFrame(frame); else el.textContent = fmt(target, symbol);
-                })(performance.now());
-            });
-        }
-        run();
-    })();
-</script>
-@endscript

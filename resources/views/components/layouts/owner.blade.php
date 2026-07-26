@@ -431,5 +431,6 @@
         {{ $slot }}
     </main>
     @livewireScripts
+    @include('partials.count-up')   {{-- Polish Batch 5 — the ONE shared KPI/hero count-up (replaces the per-view @script duplicates) --}}
 </body>
 </html>

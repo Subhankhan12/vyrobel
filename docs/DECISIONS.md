@@ -3778,3 +3778,37 @@ untouched; invariants #1–48 intact.**
   `guest/payments`, `guest/account`, `guest/reservation`, `guest/receipt`, `auth/onboarding`, `auth/invite-invalid`,
   `livewire/reservation-detail`, `livewire/operator/reservation-refund`, `components/guest/shell`, `components/public/shell`,
   `components/layouts/operator`. Presentation/interaction-only. Suite **977/977**; PHPStan L5 (0); Pint clean.
+
+### 2026-07-26 — POLISH BATCH 5 — the micro-interaction "feel" pass (`docs/POLISH-SWEEP.md` M1/M3/D10)
+
+Presentation-only (CSS/JS micro-interactions). **The real figures/data are UNCHANGED — only their animation-in.**
+Invariants #1–48 intact.
+
+- **STEP 1 — KPI/hero count-up (M1).** The prototype animates KPI numbers counting up (~800ms cubic ease-out); the app
+  rendered them statically (operator: none; owner: only 4 hero figures, via **4 duplicated `@script` blocks** — drift).
+  - **ONE shared mechanism** (`resources/views/partials/count-up.blade.php`, `@once`), included in the operator + owner
+    layouts; the **4 owner `@script` duplicates were removed** (dashboard / statement / payouts / archive). Anti-drift.
+  - **Parse-from-text:** it reads the number out of the already-rendered string (handling €, %, thousands, decimals, a
+    leading sign), animates a cosmetic 0→value over 800ms cubic ease-out, then **restores the original `innerHTML` on the
+    final frame** — so the figure is authoritative, never an approximation. 🔒 **#17** money lands on the exact cent; **#39**
+    no fabricated value. Targets the shared KPI/hero classes (`.vy-dk-val`, `.vy-kpi-val`, `.vy-hero-figure`,
+    `.vy-dark-figure`, `[data-countup]`) so **no per-page markup change** is needed; **skips** `.is-deferred`, non-numeric
+    ("Nothing due"/"—") and zero values. 🔒 **Graceful:** JS-off / reduced-motion → the real number is already in the DOM.
+  - **Browser-verified:** operator Insights money KPI counts up **€46.97 → €116.84** (lands exactly); owner dashboard hero
+    **€337.88 → €885.60** (lands exactly); the deferred "—" tile is correctly NOT animated. Handles money, %, "2.4 nights",
+    "42 days", grouped "€6,660.00".
+- **STEP 2 — loading skeletons (M3): RESOLVED HONESTLY, no fake skeleton added.** The busy-state half was already fixed in
+  Batch 4 (submit-disable + "Processing…"). For a *loading* skeleton: the app is **fully server-rendered** — no
+  `wire:loading`, no `#[Lazy]`, no `wire:navigate` (confirmed) — so there is **no genuine in-page async gap** to attach a
+  content skeleton to (page-nav loading = the NProgress bar; form submits = the Batch-4 busy state). The existing
+  `.vy-skeleton` usages are **deferred "not yet available" placeholders** (occupancy) — animating them would be a **fake
+  perpetual shimmer** that falsely implies loading (#39), so they stay **static**. `vyShimmer` remains a reserved decorative
+  keyframe (unused). Per the task's own honesty rule, **no fake skeleton was added** — the correct honest resolution.
+- **STEP 3 — chart consolidation (D10): assessed, deferred.** Most charts already use the shared `<x-charts.bars>`
+  (unit-detail, operator + owner Insights "nights that fill first", operator Insights). The remaining hand-rolled charts
+  aren't clean drop-ins — the owner **Dashboard** earnings chart is an **interactive 3M/6M/12M** variant (the component is
+  static), and the component renders **per-bar value labels** the hand-rolled month charts omit — so a swap changes the look
+  and needs a focused design decision. Left as a **P3 design-consolidation follow-up** rather than a risky visual change.
+- **Files:** new `partials/count-up.blade.php`; edited `components/layouts/operator` + `owner` (the includes), and removed the
+  4 `@script` blocks from `livewire/owner/{dashboard,statement,payouts,archive}`. Closes **POLISH-SWEEP M1** (M3 resolved
+  honestly, D10 deferred). Suite **977/977**; PHPStan L5 (0); Pint clean.

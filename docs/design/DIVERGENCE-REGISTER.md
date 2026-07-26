@@ -61,6 +61,15 @@ routes/permissions. Suite 924+ / PHPStan L5 / Pint green after every page-commit
 > gained the auth family's button-lift/card-fade/drift (D14, partial). NO money/auth/isolation logic changed. Presentation/
 > interaction-only; classifications below unchanged.
 
+> **Polish Batch 5 (2026-07-26) — micro-interaction "feel" pass (`docs/POLISH-SWEEP.md` M1/M3/D10).** ONE shared **count-up**
+> (`partials/count-up`, 800ms cubic ease-out) now animates every KPI/hero number across the operator + owner realms,
+> consolidating the 4 duplicated owner `@script` blocks and **landing on the exact server-rendered figure** (money to the
+> cent #17; no fabrication #39; graceful without JS; deferred/zero values skipped). **Skeletons (M3):** resolved honestly —
+> the app is server-rendered with no genuine in-page async load, so NO fake skeleton was added (nav = NProgress, submits =
+> the Batch-4 busy state, deferred `.vy-skeleton` placeholders stay static). **Charts (D10):** most already use the shared
+> `<x-charts.bars>`; the rest (an interactive earnings chart + per-bar-label differences) are a P3 design follow-up. Real
+> figures/data UNCHANGED; presentation-only; classifications below unchanged.
+
 ---
 
 ## Operator app
