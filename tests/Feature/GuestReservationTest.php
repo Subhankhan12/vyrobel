@@ -64,8 +64,11 @@ it('404s when a guest opens another guest’s booking', function () {
     $this->actingAs($a, 'guest')->get(route('guest.reservation', $bRes->getKey()))->assertNotFound();   // foreign → 404
 });
 
-// ── Payment deferred honestly: the balance is shown, "Settle" is stubbed, nothing is faked ────────
-it('shows an outstanding balance but stubs payment (no faked pay)', function () {
+// ── Payment: the balance is shown + a link to the REAL pay flow (no faked pay, no coming-soon contradiction) ──
+// Polish Batch 4 · I2 — the old "Settle · Soon" stub CONTRADICTED the live "Pay by card" on the Payments hub for
+// the same booking. Resolved to ONE honest truth: the balance links to the Payments hub (where card payment is
+// wired), never a fabricated card UI and never a coming-soon claim that the hub disproves.
+it('shows an outstanding balance and links to the real pay flow (no faked pay)', function () {
     $s = seedScenario(1);
     $a = resvGuest($s['guest'], 'ada@example.test');
     $reservation = bookLedBy($s, $a);
@@ -74,7 +77,9 @@ it('shows an outstanding balance but stubs payment (no faked pay)', function () 
 
     $this->actingAs($a, 'guest')->get(route('guest.reservation', $reservation->getKey()))
         ->assertOk()
-        ->assertSee('€200.00')                 // the real folio balance
-        ->assertSee('Settle your stay · Soon') // payment is 4c — stubbed, not a real pay action
-        ->assertDontSee('Pay with Apple Pay'); // the design's account-gated pay is not faked
+        ->assertSee('€200.00')                    // the real folio balance
+        ->assertSee('Pay your balance')           // links to the Payments hub's live card payment
+        ->assertSee(route('guest.payments'))      // the one honest truth: pay on the Payments hub
+        ->assertDontSee('Settle your stay · Soon')// the old contradictory coming-soon stub is gone
+        ->assertDontSee('Pay with Apple Pay');    // the design's account-gated card UI is not faked
 });

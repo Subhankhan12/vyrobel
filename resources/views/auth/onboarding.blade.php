@@ -32,8 +32,11 @@
                 linear-gradient(180deg, #FBF3EC 0%, #F6EBE2 100%); background-attachment: fixed;
         }
         @keyframes vyFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
-        .vy-card { position: relative; width: 100%; max-width: 460px; background: var(--vy-glass);
+        /* Polish Batch 4 — match the sibling auth screens (drift blob + button lift). */
+        @keyframes vyDrift { 0% { transform: translate(0, 0); } 50% { transform: translate(40px, 24px); } 100% { transform: translate(0, 0); } }
+        body::before { content: ""; position: fixed; inset: -20% -10% auto auto; width: 44vw; height: 44vw; background: radial-gradient(circle, rgba(255, 210, 170, .45), transparent 70%); filter: blur(10px); z-index: 0; pointer-events: none; animation: vyDrift 28s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+        .vy-card { position: relative; z-index: 1; width: 100%; max-width: 460px; background: var(--vy-glass);
             backdrop-filter: blur(24px) saturate(1.18); -webkit-backdrop-filter: blur(24px) saturate(1.18);
             border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow);
             padding: 34px 32px; animation: vyFadeUp .6s cubic-bezier(.2,.7,.2,1) both; }
@@ -52,7 +55,8 @@
         .vy-two { display: flex; gap: 10px; } .vy-two > .vy-field { flex: 1; }
         .vy-error { display: flex; align-items: center; gap: 9px; margin-bottom: 16px; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(224,146,30,.12); border: 1px solid rgba(224,146,30,.4); border-left: 3px solid var(--vy-amber); font-size: 13px; font-weight: 500; }
         .vy-error svg { color: var(--vy-amber); flex: none; }
-        .vy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 30px; font-family: var(--vy-sans); font-size: 14px; font-weight: 600; color: #fff; background: var(--vy-grad); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); }
+        .vy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 30px; font-family: var(--vy-sans); font-size: 14px; font-weight: 600; color: #fff; background: var(--vy-grad); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); transition: transform .15s ease; }
+        .vy-btn:hover { transform: translateY(-1px); }
         .vy-btn--ghost { background: rgba(255,255,255,.7); color: var(--vy-ink); border: 1px solid var(--vy-glass-border); box-shadow: none; }
         .vy-actions { display: flex; gap: 10px; margin-top: 8px; } .vy-actions .vy-btn { flex: 1; }
         .vy-note { font-size: 12px; color: var(--vy-muted); margin-top: 12px; }

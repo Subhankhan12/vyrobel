@@ -3739,3 +3739,42 @@ untouched.**
 - **Files (6, presentation-only):** `layouts/owner.blade.php`, `livewire/owner/booking-detail.blade.php`,
   `livewire/owner/tax-center.blade.php`, `booking/room.blade.php`, `guest/payments.blade.php`,
   `livewire/operator/schedule.blade.php`. Closes **POLISH-SWEEP D7/D8/D9**. Suite **977/977**; PHPStan L5 (0); Pint clean.
+
+### 2026-07-26 — POLISH BATCH 4 — interaction fixes + the double-submit-disable (`docs/POLISH-SWEEP.md` I1/I2/I3/D14)
+
+Two gates. **No money/auth/isolation LOGIC changed — the fixes are UI/interaction/layout; the services/guards/routes are
+untouched; invariants #1–48 intact.**
+
+- **GATE 1 — the double-submit-disable (a REAL correctness fix, its own gate; same class as the Batch-C payment
+  double-record).** A slow, state-changing submit with no disable-on-click invites a double-click → a double-execute.
+  - **Mechanism — framework-free (the guest portal + public storefront + the standalone auth pages load NO Alpine/Livewire,
+    so an Alpine guard is inert there):** a shared delegated vanilla script `partials/submit-guard.blade.php` (`@once`,
+    self-guarded) guards every `<form data-guard-submit>` — the FIRST submit disables the submit button + swaps its label
+    (via `<x-busy-btn data-busy-label>`); a rapid SECOND submit is `preventDefault`'d. It runs in the BUBBLE phase AFTER any
+    inline `onsubmit="return confirm(…)"`, and short-circuits on `defaultPrevented`, so a CANCELLED confirm never sticks the
+    button disabled. Included in the guest shell + public shell + operator layout; the standalone signup page keeps its own
+    equivalent vanilla guard. Reuses no new dependency.
+  - **Guarded (slow / money / inventory / provisioning writes):** public checkout Confirm (writes inventory), signup
+    Create-account (provisions an org), guest Pay-by-card (Stripe redirect), operator record-payment / add-charge / move-room,
+    operator refund (full + partial), + the guest Account writes.
+  - **🔒 DEFENSE-IN-DEPTH — the server guards are UNTOUCHED.** The disable is the front-line UX guard ON TOP of the payment
+    idempotency nonce (Batch C — verified still present), the guest-charge `firstOrCreate`, and the atomic provisioning +
+    rate-limit. **Browser-PROVEN fires-once:** guest Pay-by-card (label→"Redirecting…", 2nd+3rd submit blocked), signup
+    ("Creating your account…"), operator record-payment ("Recording…"); a simulated cancelled-confirm does NOT lock the
+    button. **FLAGGED:** `add-charge` (`postCharge`) has NO server-side idempotency — the UI guard is the front line; a server
+    nonce (like the payment) is a warranted follow-up.
+- **GATE 2 — interaction/consistency:**
+  - **Account-in-shell (I1):** `guest/account.blade.php` rendered in the narrow auth card (`@extends('guest.auth.layout')`)
+    → a guest on Account was stranded with no portal nav. Now renders in `<x-guest.shell active="account">` (nav present,
+    760px, "Account" active). Added shared `.vy-field`/`.vy-label`/`.vy-input`(+`:focus` ring)/`.vy-error`/`.vy-link` to the
+    guest shell so its forms render styled. No auth-logic change (same authed page, right shell). Browser-verified.
+  - **Settle-stub (I2):** the guest Reservation + Receipt pages showed a disabled **"Settle · Soon"** while the Payments hub
+    offers a LIVE "Pay by card" for the same booking — a contradiction. Resolved to ONE honest truth: a live **"Pay your
+    balance →"** link to `guest.payments`. Browser-verified (no "Soon", links to the hub).
+  - **Auth uniformity (D14, partial):** `onboarding` + `invite-invalid` lacked the auth family's button-lift + card fade +
+    drift blob → added, matching login/reset/etc. **Deferred (noted):** the signup step cross-fade (I4) and the set-password
+    strength meter (a feature-add, not a uniformity bug).
+- **Files:** new `components/busy-btn.blade.php` + `partials/submit-guard.blade.php`; edited `booking/checkout`,
+  `guest/payments`, `guest/account`, `guest/reservation`, `guest/receipt`, `auth/onboarding`, `auth/invite-invalid`,
+  `livewire/reservation-detail`, `livewire/operator/reservation-refund`, `components/guest/shell`, `components/public/shell`,
+  `components/layouts/operator`. Presentation/interaction-only. Suite **977/977**; PHPStan L5 (0); Pint clean.

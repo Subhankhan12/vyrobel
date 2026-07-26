@@ -43,9 +43,11 @@
         </div>
 
         @if ($folio['balance_due'])
+            {{-- Polish Batch 4 — resolve the "Settle · Soon" contradiction: card payment IS live on the Payments
+                 hub, so link there rather than claim it's coming soon. One honest truth about paying this balance. --}}
             <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <span class="vy-btn" style="opacity:.55;cursor:not-allowed" title="Coming soon">Settle your stay · Soon</span>
-                <span style="font-size:11.5px;color:var(--vy-faint)">Online payment is coming — for now, settle on arrival or reply to your confirmation.</span>
+                <a class="vy-btn" href="{{ route('guest.payments') }}">Pay your balance →</a>
+                <span style="font-size:11.5px;color:var(--vy-faint)">Pay by card from your Payments page — securely on Stripe; your card details never touch Vyrobel.</span>
             </div>
         @endif
 

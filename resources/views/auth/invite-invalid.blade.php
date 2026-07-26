@@ -29,11 +29,17 @@
                 radial-gradient(circle at 12% 92%, rgba(255,224,200,.45), transparent 58%),
                 linear-gradient(180deg, #FBF3EC 0%, #F6EBE2 100%);
         }
-        .vy-card { width: 100%; max-width: 400px; text-align: center; background: var(--vy-glass); backdrop-filter: blur(24px) saturate(1.18); -webkit-backdrop-filter: blur(24px) saturate(1.18); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); padding: 40px 32px; }
+        .vy-card { position: relative; z-index: 1; width: 100%; max-width: 400px; text-align: center; background: var(--vy-glass); backdrop-filter: blur(24px) saturate(1.18); -webkit-backdrop-filter: blur(24px) saturate(1.18); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); padding: 40px 32px; animation: vyFadeUp .6s cubic-bezier(.2, .7, .2, 1) both; }
         .vy-ico { width: 56px; height: 56px; border-radius: 50%; background: rgba(224,146,30,.14); color: var(--vy-amber); display: grid; place-items: center; margin: 0 auto 18px; }
         .vy-title { font-family: var(--vy-display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; margin: 0; }
         .vy-sub { color: var(--vy-muted); font-size: 13.5px; margin: 10px 0 22px; }
-        .vy-btn { display: inline-flex; align-items: center; justify-content: center; padding: 11px 22px; border-radius: 30px; font-size: 14px; font-weight: 600; color:#fff; background: var(--vy-grad); box-shadow: var(--vy-shadow-accent); }
+        .vy-btn { display: inline-flex; align-items: center; justify-content: center; padding: 11px 22px; border-radius: 30px; font-size: 14px; font-weight: 600; color:#fff; background: var(--vy-grad); box-shadow: var(--vy-shadow-accent); transition: transform .15s ease; }
+        /* Polish Batch 4 — match the sibling auth screens (fade-in card, drift blob, button lift). */
+        .vy-btn:hover { transform: translateY(-1px); }
+        @keyframes vyFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes vyDrift { 0% { transform: translate(0, 0); } 50% { transform: translate(40px, 24px); } 100% { transform: translate(0, 0); } }
+        body::before { content: ""; position: fixed; inset: -20% -10% auto auto; width: 44vw; height: 44vw; background: radial-gradient(circle, rgba(255, 210, 170, .45), transparent 70%); filter: blur(10px); z-index: 0; pointer-events: none; animation: vyDrift 28s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
     </style>
 </head>
 <body>

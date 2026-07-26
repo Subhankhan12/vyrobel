@@ -52,6 +52,15 @@ routes/permissions. Suite 924+ / PHPStan L5 / Pint green after every page-commit
 > tints (no exact palette token) left as documented semantic colours. Content/figures untouched (#17/#39). Presentation-only;
 > classifications below unchanged.
 
+> **Polish Batch 4 (2026-07-26) — interaction fixes + double-submit-disable (`docs/POLISH-SWEEP.md` I1/I2/I3/D14).** A
+> framework-free **double-submit guard** (`partials/submit-guard` + `<x-busy-btn>` + `data-guard-submit`) now fires the slow
+> state-changing writes ONCE (checkout, signup, guest Pay-by-card, operator record-payment/add-charge/move/refund) —
+> browser-proven, defense-in-depth ON TOP of the untouched server idempotency/atomicity. The guest **Account** page moved from
+> the narrow auth card into the **portal shell** (nav restored, I1); the guest Reservation/Receipt **"Settle · Soon"**
+> contradiction resolved to a live **"Pay your balance →"** link to the Payments hub (I2); **onboarding + invite-invalid**
+> gained the auth family's button-lift/card-fade/drift (D14, partial). NO money/auth/isolation logic changed. Presentation/
+> interaction-only; classifications below unchanged.
+
 ---
 
 ## Operator app

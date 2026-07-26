@@ -83,6 +83,16 @@
         .vy-btn--ghost { background: none; color: var(--vy-accent); border: 1px solid var(--vy-glass-border); box-shadow: none; }
         .vy-btn:hover { transform: translateY(-1px); }
         .vy-empty { text-align: center; color: var(--vy-muted); font-size: 14px; padding: 30px 10px; }
+        /* Polish Batch 4 — shared portal form classes (so the Account page can render IN this shell, with the nav,
+           instead of the narrow auth card). Reusable across the portal's forms; inputs get a real focus ring. */
+        .vy-field { margin-bottom: 14px; }
+        .vy-label { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 7px; }
+        .vy-input { width: 100%; padding: 11px 13px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, .8); font-family: var(--vy-sans); font-size: 14px; color: var(--vy-ink); transition: border-color .15s ease, box-shadow .15s ease; }
+        .vy-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px rgba(232, 112, 58, .16); }
+        .vy-input:disabled { opacity: .6; }
+        .vy-error { display: flex; align-items: center; gap: 9px; margin-bottom: 16px; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(224, 146, 30, .12); border: 1px solid rgba(224, 146, 30, .4); border-left: 3px solid var(--vy-amber); font-size: 13px; font-weight: 500; }
+        .vy-link { color: var(--vy-accent); text-decoration: none; font-weight: 500; }
+        .vy-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>

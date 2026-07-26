@@ -31,9 +31,10 @@
         </div>
 
         @if ($folio['balance_due'])
+            {{-- Polish Batch 4 — resolve the "Settle · Soon" contradiction: link to the live card-payment on the Payments hub. --}}
             <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <span class="vy-btn" style="opacity:.55;cursor:not-allowed" title="Coming soon">Settle · Soon</span>
-                <span style="font-size:11.5px;color:var(--vy-faint)">Online payment is coming — for now, settle on arrival.</span>
+                <a class="vy-btn" href="{{ route('guest.payments') }}">Pay your balance →</a>
+                <span style="font-size:11.5px;color:var(--vy-faint)">Pay by card from your Payments page — securely on Stripe.</span>
             </div>
         @endif
     </section>
