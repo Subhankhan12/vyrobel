@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
 use App\Http\Controllers\Admin\Auth\AdminLoginController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorChallengeController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorController;
@@ -904,6 +905,10 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
             Route::get('plans/{plan}/edit', [AdminPlanController::class, 'edit'])->name('plans.edit');
             Route::put('plans/{plan}', [AdminPlanController::class, 'update'])->middleware('throttle:30,1')->name('plans.update');
             Route::post('plans/{plan}/toggle', [AdminPlanController::class, 'toggle'])->middleware('throttle:30,1')->name('plans.toggle');
+
+            // Build 2 · Gate 1 — Security & activity. Login-activity (platform table) read directly; the
+            // cross-tenant audit slice via PlatformQuery::read (audited). Privacy: 90-day retention.
+            Route::get('activity', [AdminActivityController::class, 'index'])->name('activity.index');
         });
     });
 });

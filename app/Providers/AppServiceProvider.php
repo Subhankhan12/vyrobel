@@ -8,6 +8,7 @@ use App\Listeners\DispatchNotificationsForDomainEvent;
 use App\Listeners\EnqueueAriPushOnInventoryChange;
 use App\Listeners\GenerateDepartureCleanTask;
 use App\Listeners\RecomputeAvailabilityOnInventoryChange;
+use App\Listeners\RecordAuthActivity;
 use App\Listeners\SendGuestTransactionalEmails;
 use App\Models\AddOn;
 use App\Models\Amenity;
@@ -73,6 +74,9 @@ use App\Support\Mail\MailSafetyGuard;
 use App\Support\Owner\OwnerContext;
 use App\Support\Property\PropertyContext;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Lockout;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
@@ -262,6 +266,14 @@ class AppServiceProvider extends ServiceProvider
         // Phase 3 · Sub-gate 4 — the GUEST transactional emails on their real events (booking confirmed /
         // cancelled / refunded). Same bus, same one-directional discipline; a mail failure never breaks the event.
         Event::listen(DomainEventRecorded::class, SendGuestTransactionalEmails::class);
+
+        // Super Admin · Build 2 · Gate 1 — capture auth SECURITY SIGNALS (login / failed / lockout) for the
+        // platform activity log. ADDED onto the framework auth events (the tenant login flow is NOT modified);
+        // the write can never break auth (swallowed on failure). Privacy: 90-day retention, security purpose,
+        // /admin-only access, no guest PII persisted (see RecordAuthActivity + the login_activity migration).
+        Event::listen(Login::class, [RecordAuthActivity::class, 'login']);
+        Event::listen(Failed::class, [RecordAuthActivity::class, 'failed']);
+        Event::listen(Lockout::class, [RecordAuthActivity::class, 'lockout']);
 
         // Rate limiter for the public booking engine (Step 7) — per-IP, protects search/quote/book
         // from scraping/abuse. Limit is config-driven so it can be tightened per environment.

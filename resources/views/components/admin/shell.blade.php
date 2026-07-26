@@ -12,7 +12,7 @@
         ['overview', 'Overview', route('admin.dashboard'), true],
         ['customers', 'Customers', route('admin.customers.index'), true],
         ['plans', 'Plans', route('admin.plans.index'), true],
-        ['activity', 'Security & activity', null, false],
+        ['activity', 'Security & activity', route('admin.activity.index'), true],
         ['integrations', 'Integrations', null, false],
     ];
 @endphp

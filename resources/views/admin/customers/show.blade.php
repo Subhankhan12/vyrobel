@@ -82,4 +82,17 @@
             <p class="ad-stat-sub" style="margin-top: 10px;">Sets the customer's plan &amp; features immediately. Billing (Stripe) is connected separately at go-live.</p>
         </div>
     </div>
+
+    {{-- Recent activity for this customer — business/audit events (#28: not guest PII), via the audited read. --}}
+    <div class="ad-card" style="margin-top: 18px;">
+        <h2 class="ad-panel-title">Recent activity</h2>
+        @forelse ($recentActivity as $event)
+            <div class="ad-row">
+                <span class="ad-row-k" style="font-weight: 600; color: var(--ad-ink);">{{ $event['action'] }}</span>
+                <span class="ad-row-v" style="color: var(--ad-muted); font-weight: 400;">{{ ucfirst($event['actor_type']) }} · {{ $event['created_at']?->diffForHumans() ?? '—' }}</span>
+            </div>
+        @empty
+            <div class="ad-empty">No recorded activity for this customer yet.</div>
+        @endforelse
+    </div>
 </x-admin.shell>

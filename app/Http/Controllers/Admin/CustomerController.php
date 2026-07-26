@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Support\Platform\PlatformActivity;
 use App\Support\Platform\PlatformCustomers;
 use App\Support\Platform\PlatformQuery;
 use Illuminate\Contracts\View\View;
@@ -48,19 +49,22 @@ class CustomerController extends Controller
         return view('admin.customers.index', ['rows' => $rows, 'filters' => $filters]);
     }
 
-    /** One customer's detail — org facts + subscription/plan + counts. Read-only. */
-    public function show(string $organization): View
+    /** One customer's detail — org facts + subscription/plan + counts + a recent audit slice. Read-only. */
+    public function show(string $organization, PlatformActivity $activity): View
     {
-        $detail = $this->platform->read(
+        [$detail, $recentActivity] = $this->platform->read(
             'platform.customers.view',
-            fn (): array => $this->customers->detail($this->resolveOrg($organization)),
+            fn (): array => [
+                $this->customers->detail($this->resolveOrg($organization)),
+                $activity->auditSliceForOrg($organization),   // #28 — business events, not guest PII
+            ],
             [],
         );
 
         // Plans offered for the "assign a plan" control (Gate 3) — the global catalog, no tenant data.
         $plans = Plan::query()->where('is_active', true)->orderBy('price_minor')->get();
 
-        return view('admin.customers.show', ['d' => $detail, 'plans' => $plans]);
+        return view('admin.customers.show', ['d' => $detail, 'plans' => $plans, 'recentActivity' => $recentActivity]);
     }
 
     /** Suspend a customer — a real, audited platform-lifecycle status change. */

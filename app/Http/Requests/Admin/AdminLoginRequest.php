@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -52,6 +53,10 @@ class AdminLoginRequest extends FormRequest
 
         if (! $ok) {
             RateLimiter::hit($this->throttleKey());
+
+            // Build 2 · Gate 1 — the admin realm captures its OWN failed attempts (highest-privilege surface):
+            // `Auth::validate` fires no `Failed` event, so we dispatch it here (own code) → RecordAuthActivity.
+            event(new Failed('admin', null, ['email' => (string) $this->string('email')]));
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
