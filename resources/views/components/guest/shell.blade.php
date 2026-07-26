@@ -93,6 +93,16 @@
         .vy-error { display: flex; align-items: center; gap: 9px; margin-bottom: 16px; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(224, 146, 30, .12); border: 1px solid rgba(224, 146, 30, .4); border-left: 3px solid var(--vy-amber); font-size: 13px; font-weight: 500; }
         .vy-link { color: var(--vy-accent); text-decoration: none; font-weight: 500; }
         .vy-link:hover { text-decoration: underline; }
+        /* Polish P3 (M5) — a consistent KEYBOARD focus ring across the whole portal, matching the app's other
+           realms (operator/owner/auth all ship the same `2px --vy-accent` outline; the prototype ships none, so
+           this is an internal-consistency + a11y nicety, not a prototype-match). `:focus-visible` = keyboard only,
+           never a mouse-click halo. Broad element selectors so the inline-styled inputs/textareas on
+           manage/wallet/messages/thread/saved/review are covered too (they don't all use `.vy-input`). */
+        .vy-wrap a:focus-visible, .vy-wrap button:focus-visible, .vy-wrap input:focus-visible,
+        .vy-wrap select:focus-visible, .vy-wrap textarea:focus-visible,
+        .vy-top a:focus-visible, .vy-top button:focus-visible {
+            outline: 2px solid var(--vy-accent); outline-offset: 2px;
+        }
     </style>
 </head>
 <body>

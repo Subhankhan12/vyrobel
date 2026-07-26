@@ -64,7 +64,18 @@
         .vy-foot { text-align: center; color: var(--vy-faint); font-size: 11.5px; margin-top: 18px; }
         .vy-foot a { color: var(--vy-accent); text-decoration: none; font-weight: 500; }
         [data-step] { display: none; } [data-step].on { display: block; }
+        /* Polish P3 (I4) — step cross-fade: when a step becomes active its content fades up, staggered,
+           matching the prototype's exact step progression (vyFadeUp ~0.45s, staggered ~60ms). CSS-only,
+           driven purely by the `.on` class toggle — the wizard's step LOGIC/validation/provisioning is
+           unchanged. Re-fires each activation (display:none → block re-applies the animation). */
+        [data-step].on > * { animation: vyFadeUp .45s cubic-bezier(.2,.7,.2,1) both; }
+        [data-step].on > *:nth-child(2) { animation-delay: .06s; }
+        [data-step].on > *:nth-child(3) { animation-delay: .12s; }
+        [data-step].on > *:nth-child(4) { animation-delay: .18s; }
+        [data-step].on > *:nth-child(n+5) { animation-delay: .22s; }
         .no-js [data-step] { display: block; } .no-js .vy-steps, .no-js [data-nav] { display: none; }
+        /* No-JS: all steps shown at once — no per-step animation (nothing toggles `.on`). */
+        .no-js [data-step] > * { animation: none; }
     </style>
 </head>
 <body class="no-js">
