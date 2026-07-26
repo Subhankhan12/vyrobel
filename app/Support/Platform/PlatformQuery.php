@@ -54,4 +54,27 @@ class PlatformQuery
         // The EXISTING runAsSuperAdmin closure: suspends the org scope, runs, and RESTORES context in a finally.
         return $this->tenant->runAsSuperAdmin($callback);
     }
+
+    /**
+     * Run an audited cross-tenant WRITE (e.g. suspend a customer, assign a plan). Semantically distinct from
+     * {@see read()} but the SAME security envelope: admin-guard-gated, wrapped in the existing
+     * `runAsSuperAdmin` closure (scope suspended + restored in a `finally`), and audited. Use this for every
+     * platform mutation that touches a tenant-scoped row so the bypass is never opened outside the admin realm.
+     *
+     * @template TReturn
+     *
+     * @param  Closure():TReturn  $callback
+     * @param  array<string, mixed>  $meta
+     * @return TReturn
+     */
+    public function mutate(string $action, Closure $callback, array $meta = [], ?string $targetType = null, ?string $targetId = null): mixed
+    {
+        if (! Auth::guard('admin')->check()) {
+            throw new RuntimeException('PlatformQuery::mutate() is available only to an authenticated platform admin.');
+        }
+
+        $this->audit->record($action, $meta, $targetType, $targetId);
+
+        return $this->tenant->runAsSuperAdmin($callback);
+    }
 }

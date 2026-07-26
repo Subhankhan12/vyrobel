@@ -81,6 +81,34 @@
         .ad-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ad-accent); }
         .ad-stat { font-family: var(--ad-display); font-weight: 700; font-size: 40px; letter-spacing: -0.02em; margin: 8px 0 2px; }
         .ad-stat-sub { color: var(--ad-muted); font-size: 13px; }
+        /* Metrics / KPIs (Build 1 · Gate 1) */
+        .ad-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .ad-kpi { background: var(--ad-glass); border: 1px solid var(--ad-border); border-radius: 16px; padding: 18px 20px; backdrop-filter: blur(10px); }
+        .ad-kpi-label { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ad-muted); }
+        .ad-kpi-val { font-family: var(--ad-display); font-weight: 700; font-size: 30px; letter-spacing: -0.02em; margin: 9px 0 2px; }
+        .ad-kpi-sub { color: var(--ad-faint); font-size: 12.5px; }
+        .ad-grid-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; margin-top: 18px; }
+        @media (max-width: 900px) { .ad-grid-2 { grid-template-columns: 1fr; } }
+        .ad-panel-title { font-family: var(--ad-display); font-weight: 600; font-size: 14.5px; margin: 0 0 16px; }
+        /* Mini bar chart — thin indigo bars, the peak in the accent gradient (the control-room take on a chart) */
+        .ad-chart { display: flex; align-items: flex-end; gap: 10px; height: 130px; }
+        .ad-chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+        .ad-bar { width: 100%; max-width: 34px; border-radius: 6px 6px 3px 3px; background: rgba(129,140,248,.32); transition: background .2s ease; min-height: 4px; }
+        .ad-bar.is-peak { background: var(--ad-grad); }
+        .ad-bar-label { font-size: 10.5px; color: var(--ad-faint); }
+        .ad-bar-val { font-size: 11px; font-weight: 600; color: var(--ad-ink); }
+        /* Distribution / breakdown rows */
+        .ad-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--ad-border); font-size: 13.5px; }
+        .ad-row:first-child { border-top: none; }
+        .ad-row-k { color: var(--ad-muted); }
+        .ad-row-v { font-weight: 600; }
+        /* Status pills */
+        .ad-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; padding: 3px 11px; border-radius: 20px; }
+        .ad-pill--active { background: rgba(110,231,183,.14); color: #6EE7B7; }
+        .ad-pill--trialing { background: rgba(129,140,248,.16); color: var(--ad-accent); }
+        .ad-pill--suspended { background: rgba(245,158,158,.14); color: var(--ad-danger); }
+        .ad-pill--cancelled { background: rgba(148,163,184,.16); color: var(--ad-muted); }
+        .ad-empty { color: var(--ad-faint); font-size: 13px; padding: 20px 2px; }
         @media (max-width: 820px) { .ad-layout { grid-template-columns: 1fr; } .ad-side { flex-direction: row; overflow-x: auto; align-items: center; } .ad-nav { flex-direction: row; } .ad-nav-label { display: none; } }
     </style>
 </head>
