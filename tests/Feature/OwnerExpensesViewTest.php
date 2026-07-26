@@ -164,7 +164,32 @@ it('renders real expenses with the deductible tri-state, badges voided rows out 
         // The per-currency note renders as prose, never as raw Blade (see assertNoRawBlade).
         ->assertSee('Totals exclude voided expenses.');
 
+    // ── Polish Batch 6 — the "By category" PROPORTIONAL BARS (shared .vy-track). Each category's bar width is
+    // its SHARE of the block total (÷total, the same basis as the statement by-unit split), over the REAL rows:
+    // cleaning €75 + other €33 + maintenance €120 = €228 → 33% + 14% + 53%. Deterministic + reconciles to 100%.
+    $response
+        ->assertSee('vy-track')             // the shared proportional-bar component, not a one-off
+        ->assertSee('width:53%', false)     // Maintenance €120 / €228 — the largest share → widest bar
+        ->assertSee('width:33%', false)     // Cleaning €75 / €228
+        ->assertSee('width:14%', false)     // Other €33 / €228
+        ->assertSee('53% of total');        // the human-readable proportion note
+
     assertNoRawBlade($response);
+});
+
+// ── Polish Batch 6 — a category with no real expense does NOT appear (#39), and a lone category is a full bar ──
+it('shows only categories with real expenses (no €0.00 filler) and renders a lone category as a full-width bar', function () {
+    $s = seedScenario(1);
+    $a = expensesScreenOwner($s, 0, 'Amara Okafor');
+
+    // ONE real category only — maintenance. Cleaning and Other have NO rows for this owner.
+    recordExpenseVia((string) $a['unit']->id, 'maintenance', 'Boiler service', 10000, '2026-09-03');
+
+    $this->actingAs($a['user'])->get('/owner/expenses')
+        ->assertOk()
+        ->assertSee('width:100%', false)        // the lone category is the whole total → full bar (reconciles)
+        ->assertSee('100% of total')
+        ->assertDontSee('0 expenses');          // #39 — the empty categories (cleaning/other) render no "0 expenses" filler row
 });
 
 // ── 2. Owner isolation — A sees only A's expenses; a non-linked user fails closed ─────────────────

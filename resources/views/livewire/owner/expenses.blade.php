@@ -134,13 +134,18 @@
                         @if ($multiCurrency)
                             <div class="vy-eyebrow" style="display:block;margin-bottom:2px">{{ $block['currency'] }}</div>
                         @endif
+                        {{-- Polish Batch 6 — each REAL category as a proportional bar (share of the block total),
+                             via the SHARED .vy-track (same treatment + ÷total basis as the statement by-unit split). --}}
                         @foreach ($block['categories'] as $cat)
-                            <div class="vy-list-row">
-                                <span>
-                                    <span style="font-size:13px;font-weight:500">{{ $cat['label'] }}</span>
-                                    <span class="vy-line-sub" style="display:block">{{ $cat['count'] }} {{ \Illuminate\Support\Str::plural('expense', $cat['count']) }}</span>
-                                </span>
-                                <span style="font-family:var(--vy-display);font-weight:600;font-variant-numeric:tabular-nums">{{ $cat['total_display'] }}</span>
+                            <div style="margin-top:12px">
+                                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+                                    <span>
+                                        <span style="font-size:13px;font-weight:500">{{ $cat['label'] }}</span>
+                                        <span class="vy-line-sub" style="display:block">{{ $cat['count'] }} {{ \Illuminate\Support\Str::plural('expense', $cat['count']) }} · {{ $cat['bar_width'] }}% of total</span>
+                                    </span>
+                                    <span style="font-family:var(--vy-display);font-weight:600;font-variant-numeric:tabular-nums">{{ $cat['total_display'] }}</span>
+                                </div>
+                                <div class="vy-track" style="margin-top:8px"><span style="width:{{ $cat['bar_width'] }}%"></span></div>
                             </div>
                         @endforeach
                         <div class="vy-list-row" style="border-top:1.5px solid rgba(120,70,40,.16)">

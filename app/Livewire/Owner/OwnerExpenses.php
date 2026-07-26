@@ -194,7 +194,7 @@ class OwnerExpenses extends Component
      *
      * @param  Collection<int, OwnerExpense>  $expenses
      * @param  list<string>  $currencies
-     * @return list<array{currency: string, categories: list<array{label: string, total_display: string, count: int}>, total_display: string, count: int}>
+     * @return list<array{currency: string, categories: list<array{label: string, total_minor: int, total_display: string, count: int, bar_width: int}>, total_display: string, count: int}>
      */
     private function byCurrency(Collection $expenses, array $currencies): array
     {
@@ -203,21 +203,32 @@ class OwnerExpenses extends Component
 
         foreach ($currencies as $currency) {
             $rows = $live->filter(fn (OwnerExpense $e): bool => (string) $e->currency === $currency);
+            $blockTotal = $this->sumMinor($rows);
 
             $categories = [];
             foreach (self::CATEGORIES as $key => $label) {
                 $set = $rows->filter(fn (OwnerExpense $e): bool => (string) $e->category === $key);
+                $count = $set->count();
+                if ($count === 0) {
+                    continue;   // #39 — a category with no real expense doesn't appear (no €0.00 filler row/bar)
+                }
+                $catTotal = $this->sumMinor($set);
                 $categories[] = [
                     'label' => $label,
-                    'total_display' => $this->money($this->sumMinor($set), $currency),
-                    'count' => $set->count(),
+                    'total_minor' => $catTotal,
+                    'total_display' => $this->money($catTotal, $currency),
+                    'count' => $count,
+                    // Polish Batch 6 — the proportional-bar width: this category's SHARE of the block total
+                    // (true proportion; the shown categories reconcile to 100% of the block total, #17). The
+                    // same ÷total basis as the statement by-unit split's bar_width (anti-drift), over REAL rows.
+                    'bar_width' => $blockTotal > 0 ? (int) round($catTotal / $blockTotal * 100) : 0,
                 ];
             }
 
             $out[] = [
                 'currency' => $currency,
                 'categories' => $categories,
-                'total_display' => $this->money($this->sumMinor($rows), $currency),
+                'total_display' => $this->money($blockTotal, $currency),
                 'count' => $rows->count(),
             ];
         }

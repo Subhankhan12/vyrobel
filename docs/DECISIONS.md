@@ -3812,3 +3812,29 @@ Invariants #1–48 intact.
 - **Files:** new `partials/count-up.blade.php`; edited `components/layouts/operator` + `owner` (the includes), and removed the
   4 `@script` blocks from `livewire/owner/{dashboard,statement,payouts,archive}`. Closes **POLISH-SWEEP M1** (M3 resolved
   honestly, D10 deferred). Suite **977/977**; PHPStan L5 (0); Pint clean.
+
+### 2026-07-26 — POLISH BATCH 6 — owner Expenses proportional bars (`docs/POLISH-SWEEP.md` F1); sweep actionable items cleared
+
+The last actionable sweep item. **Real aggregate + presentation; the amounts are the owner's REAL expense figures — never
+fabricated (#39); reconciling (#17); owner-scoped (#28). Invariants #1–48 intact.**
+
+- **The bars.** The owner Expenses "By category" was a plain list. Each REAL category now renders a **proportional bar** via
+  the **shared `.vy-track`** (7px track + peach-gradient fill — the SAME treatment the statement by-unit split uses, not a
+  one-off). The bar's basis is **÷total** (share of the block total, the same as the by-unit split's `bar_width` — the
+  prototype draws a comparative ÷max bar, but the task + the by-unit precedent specify the reconciling ÷total share, and for
+  the demo's single category the two are identical).
+- **Real aggregate (deterministic, reconciling).** `OwnerExpenses::byCurrency()` gained a per-category `total_minor` +
+  `bar_width` = `round(catTotal / blockTotal × 100)`. The category totals are Σ of the owner's REAL non-voided
+  `owner_expenses` rows, so the shown categories **reconcile to the block total** (#17). **#39:** a category with **no real
+  expense is filtered out** (no €0.00 filler row/bar). **#28:** the query is already owner-scoped (the component reads the
+  authed owner's own expenses only). No service/ledger/money logic changed — a pure derived proportion over existing rows.
+- **Verified.** Browser: the demo owner's lone Maintenance €180 renders a **full 100% bar** and reconciles to the €180 total;
+  cleaning/other are filtered (no filler). Test (`OwnerExpensesViewTest`, +1 test / assertions): a 3-category owner (cleaning
+  €75 + other €33 + maintenance €120 = €228) renders bars **33% / 14% / 53%** (deterministic, proportional to the real
+  amounts) via the shared `.vy-track`, and a lone-category owner renders a **100%** bar with no "0 expenses" filler (#39).
+- **Files:** `app/Livewire/Owner/OwnerExpenses.php` (the `bar_width` aggregate + zero-filter), `livewire/owner/expenses.blade.php`
+  (the `.vy-track` bars), `tests/Feature/OwnerExpensesViewTest.php` (+ proportion/reconcile/#39 assertions). Closes
+  **POLISH-SWEEP F1**. Suite green; PHPStan L5 (0); Pint clean.
+- **Sweep status: the ACTIONABLE items are cleared** across Batches 1–6 (all P1/P2 + the actionable P3: M1 count-up, F1 bars;
+  M3 skeletons resolved honestly). **Deferred P3 tails (small, tracked):** signup step cross-fade (I4), set-password strength
+  meter (D14), remaining guest-portal focus rings (M5), D10 chart consolidation (a per-bar-label design decision).
