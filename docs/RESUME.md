@@ -1,6 +1,6 @@
 # RESUME — START HERE (fresh-session orientation index)
 
-*Last consolidated 2026-07-27. This is the 60-second orientation for a new agent/session. It is a pointer, not a
+*Last consolidated 2026-07-28. This is the 60-second orientation for a new agent/session. It is a pointer, not a
 copy — follow the links. If anything here conflicts with the repo, **trust the repo** and fix the docs.*
 
 ---
@@ -9,11 +9,12 @@ copy — follow the links. If anything here conflicts with the repo, **trust the
 
 1. **THIS file** — orientation, creds, next action.
 2. **`docs/PROJECT-STATE.md`** — the primary resume doc. The top "CURRENT STATE" block is authoritative; the
-   **Invariants #1–53** list is the "what's proven" ledger; the "Deferred / outstanding register" is what NOT to
+   **Invariants #1–55** list is the "what's proven" ledger; the "Deferred / outstanding register" is what NOT to
    build ad hoc.
 3. **`docs/DECISIONS.md`** — the append-only dated "why" behind every major decision (newest entries at the end).
 4. **`docs/SUPERADMIN-COMPLETENESS.md`** — the Super Admin roadmap (before-launch / soon / nice-to-have + phased plan).
 5. **On demand:** `docs/GAP-ANALYSIS.md` (tenant-product roadmap) · `docs/GAP-SWEEP.md` · `docs/POLISH-SWEEP.md` ·
+   the owner exact-match audits `docs/OWNER-OVERVIEW-AUDIT.md` / `OWNER-UNITS-AUDIT.md` / `OWNER-BOOKINGS-AUDIT.md` ·
    `docs/SUPERADMIN-AUDIT.md` · `docs/design/DIVERGENCE-REGISTER.md` (prototype↔app design classification) ·
    `docs/EMAIL-PRODUCTION.md` + `docs/STRIPE-PRODUCTION.md` (the founder's cutover checklists) · `CLAUDE.md` (the
    working discipline). Per-area specs live under `docs/` and `docs/schema/` — read the relevant one before building.
@@ -25,9 +26,11 @@ tenant apps (operator `/app` · owner `/owner` · guest `/guest`) + a public sto
 (`/signup`) on a certified multi-tenant backend, plus the **Super Admin platform panel (`/admin`)** — all built,
 styled, and browser-verified. Phases 0–7 (the whole tenant product) are done; Phase 8's two obtainable integrations
 (**production email** + **live Stripe**, all three seams) are lit up in test-mode/code-complete, needing only the
-founder's non-code cutovers. **Suite 1040 tests green · PHPStan L5 = 0 · Pint clean · `migrate:fresh --seed` clean ·
-Invariants #1–53.** There is **no outstanding build** — the product is demo-ready end-to-end and the Super Admin panel
-is audited (0 critical/0 P1) + production-ready.
+founder's non-code cutovers. **Suite 1050 tests / 8149 assertions green · PHPStan L5 = 0 · Pint clean · `migrate:fresh --seed` clean ·
+Invariants #1–55.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super Admin panel is
+audited (0 critical/0 P1) + production-ready. The active hands-on track is **owner-page wireframe-exact-match polish**:
+Overview + My Units + Add Unit are done + pushed; **Owner Bookings + the Booking-Summary PDF are next** (PHASE-1 audit
+complete in `docs/OWNER-BOOKINGS-AUDIT.md`, GATE build pending).
 
 ## 3. Stack (locked)
 
@@ -60,7 +63,16 @@ Public storefront (no login): `/book/vyrobel-demo`. Self-signup (provisions a ne
 
 ## 6. The next action
 
-**There is no outstanding build.** The next decision is the founder's:
+**No launch-blocking build remains.** The active hands-on task is the **owner-page exact-match track** — the next page
+is **Owner Bookings (`/owner/bookings`) + the Booking-Summary PDF**. The PHASE-1 read-only audit is DONE
+(`docs/OWNER-BOOKINGS-AUDIT.md`), so the next step is **GATE 1 (the page — breadcrumb · GUESTS stat · "Bookings over
+time" chart + goal ring · Status/date-range filters · sortable table · pagination · Export CSV) then GATE 2 (the PDF —
+letterhead company/VAT/country · BS-YYYY-MM ref · 4-cell KPI incl. occupancy · by-unit occupancy · by-channel
+commission · guest-name-only)** per §4 of that audit — all on real owner-scoped data (guest name-only #28, net
+reconciling to the cent #17, owner writes on controller routes #20, the PDF CAP_EXPORTS-gated). *(A GATE-1 build may
+already be in progress in a parallel session — check `git status` before starting.)*
+
+The founder's strategic decisions stand in parallel:
 
 1. **Choose the launch model** — *free-trial / early-access* is launch-ready with the panel as-is; a *paid* launch
    needs only the already-scoped **Stripe go-live** + **suspension enforcement** (both in `docs/SUPERADMIN-COMPLETENESS.md`).
@@ -68,7 +80,7 @@ Public storefront (no login): `/book/vyrobel-demo`. Self-signup (provisions a ne
 3. **The founder's cutovers** — email DNS + Postmark token (`docs/EMAIL-PRODUCTION.md`); the Stripe live-key flip
    (`docs/STRIPE-PRODUCTION.md`).
 
-If building further, take the next item from the **`docs/SUPERADMIN-COMPLETENESS.md` roadmap** (Phase 1: billing sync ·
+If building the platform instead, take the next item from the **`docs/SUPERADMIN-COMPLETENESS.md` roadmap** (Phase 1: billing sync ·
 real revenue/invoices/refunds · suspension enforcement · re-point the Horizon gate to the `admin` guard ·
 trial-adjust / cancel / manual customer create).
 

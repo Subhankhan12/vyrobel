@@ -4330,3 +4330,42 @@ nothing fabricated (#39 — a proposed request is badged "Pending review", never
 real agreement rate or an honest line; amenities are the real catalog; location is an honest text field). An owner
 Add-Unit request creates NO inventory — it is a rich intake the operator reviews (and sees in full) before creating the
 real unit. **Invariants #1-55.**
+
+---
+
+## 2026-07-28 — Owner **My Units** calendar-heat fix · Owner **Bookings** PHASE-1 audit · total-recall consolidation (docs)
+
+Three closely-related owner items, then a docs-only total-recall pass. **The consolidation commit is scoped to docs by
+explicit path** — an unrelated Owner Bookings GATE-1 build was in progress in a parallel session at the time, and its
+in-flight feature code (new controllers/model/migration/reader + modified `routes/web.php`/`FormatsOwnerData`/
+`MoneyFormatter`) was left UNTOUCHED (never `git add -A`).
+
+- **Owner My Units — calendar heat recolor (`4a3d538`).** The `/owner/units` occupancy heat-grid was recolored to the
+  wireframe's SOLID terracotta scale (`#F2D7C4` → `#C2410C`), replacing a translucent dusty-salmon wash; shared
+  `$heatBg`/`$heatFg` closures in `units.blade.php` keep the grid + legend swatches from drifting. Browser-verified
+  (Sep 2026 shows the full ramp — free days a warm pale peach, a single-booked day mid-salmon with dark numerals).
+  Presentation-only; suite unchanged (**1050/8149**).
+- **Owner Bookings — PHASE-1 audit (`docs/OWNER-BOOKINGS-AUDIT.md`, read-only; awaiting GATE-1 approval).** Decoded both
+  `dc-runtime` wireframes (the Bookings app page + the Booking-Summary PDF) and audited the two LIVE surfaces — the page
+  `App\Livewire\Owner\OwnerBookings` and the PDF `OwnerBookingSummaryDocument` (route `owner.statements.bookings`,
+  `resources/views/pdfs/owner-booking-summary.blade.php`) — which ALREADY run on real owner-scoped data; the founder's
+  bar is an EXACT-match upgrade with "prior deferrals in scope". Decisive data-availability finding: every wireframe
+  figure has an honest owner-scoped source, so the two items once refused as fabrication become REAL — the **"Bookings
+  over time" chart** (real per-check-in-month `reservations.status` counts + net via `OwnerLedgerAttribution` + a **goal
+  line backed by a NEW owner-set `owner_monthly_target`** — a value the OWNER supplies, never invented) and the **PDF
+  occupancy / per-channel commission / guest-name-only column** (the old PDF-docblock refusals are STALE —
+  `OwnerOccupancy`/`PerformanceMetrics` back occupancy, `owner_ledger.ota_cost` backs commission, guest name-only is an
+  established owner-surface precedent, #28). The ONE standing refusal: the OTA **brand** split (Booking.com vs Airbnb —
+  unmodelled; render the real `source` enum). Build plan in §4 (GATE 1 = the page; GATE 2 = the PDF); honesty unchanged
+  (#39 / #28 / #17 / #20; the PDF stays CAP_EXPORTS-gated).
+- **Total-recall consolidation (docs only).** Re-verified against the repo THIS pass: `php artisan test` re-run
+  **1050/8149 green** (exit 0), PHPStan **L5 = 0**, Pint clean. Corrected the recorded stack to **Laravel 13**
+  (`composer.json` `laravel/framework ^13.8`). Prepended an authoritative **2026-07-28 CURRENT-STATE block** to
+  `docs/PROJECT-STATE.md` (what Vyrobel is · the full phase-by-phase build status incl. the Super Admin panel + the
+  owner-page exact-match track + the Bookings audit · the decode method · the quality state · the honest deferrals · the
+  path to launch · the creds · the next action) that supersedes every earlier block; and **reconciled the canonical
+  numbered Invariants list to #1–55** — it had lagged at #53 (added **#54** owner Overview exact-match + **#55** owner My
+  Units + Add Unit exact-match; commit `93587b6` had introduced #55 in prose without extending the list). Updated
+  `docs/RESUME.md` (date · invariant range · suite count · the next action = Owner Bookings + Booking-Summary PDF).
+  Confirmed a fresh session reading `docs/RESUME.md` → `docs/PROJECT-STATE.md` inherits the complete context. **Invariants
+  #1–55.**

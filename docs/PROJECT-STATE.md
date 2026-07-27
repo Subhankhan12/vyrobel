@@ -6,6 +6,123 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 · TOTAL-RECALL CONSOLIDATION + owner My Units/Add Unit exact-match (#55) +
+> owner Bookings PHASE-1 audit. This block SUPERSEDES every block below it (all kept as historical detail). For the
+> fresh-session read-order + one-paragraph summary + creds + next action, start at `docs/RESUME.md`.** Re-verified
+> against the repo THIS pass: **suite re-run green `1050` tests / `8149` assertions (`php artisan test`, exit 0)** ·
+> PHPStan **L5 = 0** · Pint clean · `migrate:fresh --seed` clean (per the 2026-07-28 build; not re-run here — it wipes
+> demo data, and the suite's own migrations pass) · **Invariants #1–55**. HEAD `4a3d538` on `main` (== origin); the
+> only non-doc work since the last consolidation was the owner-page exact-match commits + a presentation calendar
+> fix — **this consolidation pass itself is docs-only.**
+>
+> **WHAT VYROBEL IS.** A multi-tenant, AI-native **hotel / apartment-management SaaS**, in three layers: the TENANT
+> PRODUCT (operator back office `/app` · owner portal `/owner` · guest portal `/guest` · public storefront + booking
+> engine `/book/{slug}`), the SaaS LAYER (public self-signup `/signup` → atomic tenant provisioning · subscription
+> billing on a free-trial model · owner sub-tenancy · staff rostering), and the **SUPER ADMIN platform panel `/admin`**
+> (the founder's console — a separate hardened realm). **Stack (verified against `composer.json`):** **Laravel 13**
+> (`laravel/framework ^13.8`) / PHP 8.4 · MySQL 8 / InnoDB · Livewire 4 + Blade + Tailwind 4 · Redis + Horizon · ULID
+> PKs · spatie **teams-mode** RBAC · shared-DB multi-tenancy via `organization_id` + the `OrganizationScope` global
+> scope (`runAsSuperAdmin` = the ONE sanctioned bypass). Integer minor-unit money (`*_minor` + `Money`).
+>
+> **BUILD STATUS — EVERYTHING BUILDABLE IS COMPLETE; the active hands-on track is owner-page wireframe-exact-match
+> polish (not launch-blocking).**
+> - **Tenant product (Phases 0–7): COMPLETE** — harden · operator app · owner portal · notifications + transactional
+>   emails · guest auth + portal · reviews · multi-property (`PropertyContext`) · REAL analytics (`PerformanceMetrics`,
+>   RevPAR = ADR × occupancy) · atomic tenant provisioning · subscription billing (free-trial) · owner team · schedule.
+> - **Phase 8 (account-gated integrations) — the two OBTAINABLE ones LIT UP (test-mode / code-complete):** production
+>   email (Postmark + `MailSafetyGuard`; `docs/EMAIL-PRODUCTION.md`) · LIVE STRIPE across all three seams (subscription ·
+>   guest card · owner payout/Connect — `StripeSafetyGuard`, webhook-source-of-truth, multi-layer idempotency, payout
+>   double-transfer-guarded; `docs/STRIPE-PRODUCTION.md`). The live cutovers (email DNS + token; Stripe live-key flip)
+>   are the founder's remaining NON-CODE steps. Still account-gated: Channex live sync · WhatsApp/OTA inbox · SMS · KYC.
+> - **Design-fidelity pass (76 surfaces) + owner account rebuild + notification-panel rebuild + Batches A/B/C + the
+>   comprehensive polish sweep (`docs/POLISH-SWEEP.md`, Batches 1–6 + P3 tails, FULLY CLEARED) + add-charge server
+>   idempotency: ALL COMPLETE.**
+> - **⭐ SUPER ADMIN PANEL: COMPLETE + AUDITED + PRODUCTION-READY.** Gate 0 (hardened isolated `/admin` realm —
+>   separate `platform_admins` table + `admin` guard, mandatory 2FA, the audited `PlatformQuery::read()/mutate()`
+>   wrapping `runAsSuperAdmin`, noindex, seeded-not-signup; **#49**) → Build 1 (Dashboard · Customers
+>   [list/detail/suspend/reactivate/assign-plan] · Plans [DB-backed CRUD + feature-gating; **#50**]) → Build 2
+>   (Security & Activity Log [login capture, 90-day-retention privacy; **#51**] · Integrations [encrypted channel
+>   credentials + management + test-stub; **#52**]) → deep Playwright audit (`docs/SUPERADMIN-AUDIT.md` — 0 critical /
+>   0 P1) → Profile & Account page (profile · email re-verify · password · 2FA recovery; **#53**) → completeness review
+>   (`docs/SUPERADMIN-COMPLETENESS.md` — launch-ready + the roadmap).
+> - **⭐ OWNER-PAGE WIREFRAME-EXACT-MATCH WORK (the recent track — every live owner page matched to its decoded
+>   design-component wireframe: EXACT design + REAL owner-scoped backends, one gated page at a time):**
+>   - **Owner OVERVIEW** (`/owner`) — exact match + real backends via the shared owner chrome + shared `OwnerAttention` /
+>     `OwnerUpcomingStays` / `OwnerOccupancy` / `OwnerLedgerAttribution`. **COMPLETE + pushed** (`d80abdf` design /
+>     `f267e2c` backends; **INVARIANT #54**).
+>   - **Owner MY UNITS** (`/owner/units`) — exact design + real card/calendar actions (edit-pricing via `OwnerRateService`
+>     per-room-type [honest-disabled for shared inventory] · message-relay to the operator [name-only #28] · block-dates
+>     via `OwnerBlockService` · month-occupancy CSV export [counts-only #28]; action-center snooze/day-detail honestly
+>     deferred) + the calendar heat-grid recolored to the wireframe terracotta scale (`4a3d538`). **COMPLETE + pushed**
+>     (`0be1363` / `33e2475`; **INVARIANT #55**).
+>   - **Owner ADD UNIT** (`/owner/add-unit`) — the exact **4-step wizard** (basics · space & capacity · photos · rate &
+>     terms) + sticky Live preview + Done, on a **rich, real, pending `UnitRequest`** (schema additive; amenities via the
+>     shared `amenitiables` pivot; photos via the shared `media` collection, ULID filenames); the write is ONE gated
+>     controller POST (never `/livewire/update`, #20); commission is the owner's REAL agreement rate (honest line if
+>     none). Proven end-to-end in the browser (a real "Casa Verde Retreat" request filed + surfaced read-only on the
+>     operator `unit-requests` screen; a demo artifact `migrate:fresh --seed` clears). **COMPLETE + pushed** (`2193840`;
+>     **INVARIANT #55**). Decisions **D1** (action-center = real items + honest-empty; no owner approve/decline entity
+>     exists) · **D2** (message-guest = relay to the operator team, name-only; no owner→guest channel, #28) · **D3**
+>     (add-unit = a rich real `UnitRequest`, the live `Unit` stays operator-made) — all recorded in `DECISIONS.md`.
+>   - **⬅ NEXT (active): Owner BOOKINGS page + Owner BOOKING-SUMMARY PDF.** **PHASE-1 read-only audit is COMPLETE
+>     (`docs/OWNER-BOOKINGS-AUDIT.md`, 2026-07-28) — awaiting GATE-1 approval.** Both live surfaces ALREADY exist on real
+>     owner-scoped data (the page `App\Livewire\Owner\OwnerBookings`; the PDF **`OwnerBookingSummaryDocument`** via
+>     `owner.statements.bookings` + `resources/views/pdfs/owner-booking-summary.blade.php`) — the work is an EXACT-MATCH
+>     upgrade, "prior deferrals in scope". The audit's decisive finding: every wireframe figure has an honest owner-scoped
+>     source, so the two items once refused as fabrication become REAL — the **"Bookings over time" chart** (real
+>     per-check-in-month status counts + net via `OwnerLedgerAttribution` + a **goal line backed by a NEW owner-set
+>     `owner_monthly_target`**, owner-supplied not invented) and the **PDF occupancy / per-channel commission /
+>     guest-name-only column** (the old PDF-docblock refusals are STALE — `OwnerOccupancy`/`PerformanceMetrics` +
+>     `owner_ledger.ota_cost` now back them; guest name-only is an established owner-surface precedent, #28). The ONLY
+>     standing refusal is the OTA **brand** split (Booking.com vs Airbnb — unmodelled; rendered as the real `source`
+>     enum). GATE 1 = the page (breadcrumb · GUESTS stat · chart + goal ring · Status/date-range filters · sortable
+>     table · pagination · Export CSV); GATE 2 = the PDF (letterhead billing_company/VAT/country · BS-YYYY-MM ref ·
+>     4-cell KPI incl. occupancy · by-unit occupancy · by-channel commission · guest-name-only · callout footer). See §4
+>     of the audit for the full build plan.
+>
+> **THE DECODE METHOD (owner wireframes).** The attached `docs/design/raw/*.html` are **`dc-runtime` `__bundler`
+> bundles**, not plain HTML — the real markup is `JSON.parse(<script type="__bundler/template">)` → the `<x-dc>` body
+> (inline-style design tokens + `{{ }}` placeholders); a `<script type="text/x-dc">` DCLogic model holds the sample
+> data. **Decode before matching.** Reuse/extend the shared **warm-glass owner chrome** (`<x-owner.shell>`, frosted
+> sidebar/topbar) + the `--vy-*` tokens (accent `linear-gradient(140deg,#E8703A,#C2410C)`; peach→grey diagonal page bg;
+> Inter + Sora; vyFadeUp/vyDrift/vyShimmer) — never one-offs. A PDF wireframe (white letterhead, no app shell) is a
+> DIFFERENT deliverable — match the print document's own design.
+>
+> **QUALITY STATE (re-verified against the repo THIS pass):** suite **1050 tests / 8149 assertions green** (exit 0);
+> PHPStan **L5 = 0**; Pint **clean**; `migrate:fresh --seed` clean. **Invariants #1–55** — the canonical numbered list
+> below is now reconciled to #55 (it had lagged: #54 owner Overview, #55 owner My Units + Add Unit added this pass).
+>
+> **HONEST DEFERRALS (all correctly deferred — NONE block a launch):** Stripe billing sync (the paid-launch
+> dependency) · impersonation (high-risk support tool) · suspension access-ENFORCEMENT (today a status flag; needed to
+> actually cut off a non-payer) · per-feature-limit enforcement · the real channel sync + customer-self-connect (need
+> the channel accounts) · **the Horizon queue gate is unreachable in production** (bound to the unassignable global
+> `Super Admin` role — re-point it to the `admin` guard; small + high-value) · the My Units action-center snooze/dismiss
+> persistence + a richer calendar day-detail · the operator review/approve→create-live-`Unit` flow · the remaining
+> owner pages not yet exact-matched (Bookings/PDF audited-not-built; others further out) · the P3 polish tails.
+>
+> **WHAT'S LEFT (path to launch).** The product + the Super Admin panel are launch-ready — a **free-trial /
+> early-access launch needs nothing more**; a **paid launch** needs only the already-scoped **Stripe go-live +
+> suspension enforcement**. Then **DEPLOYMENT** (production hosting / domain / HTTPS / MySQL / Redis-Horizon) + the
+> founder's email + Stripe cutovers. The owner-page exact-match work (Bookings + PDF next) is ongoing polish, not
+> launch-blocking. **Roadmap:** Phase 0 launch → 1 first-paying (billing sync · real revenue/invoices/refunds ·
+> suspension enforcement · re-point the Horizon gate · trial-adjust/cancel/manual-create) → 2 scale (multi-admin +
+> roles · alerting · GDPR export/erase · impersonation · usage analytics) → 3 polish.
+>
+> **RESUME CREDENTIALS** (all password `password`; `php artisan migrate:fresh --seed` recreates them): operator
+> **`demo-admin@vyrobel-demo.test`** (Property Owner / org admin) or `demo-staff@vyrobel-demo.test` (Hotel Manager) at
+> `/app`; owner **`demo-owner@vyrobel-demo.test`** at `/owner`; guest **`demo.traveller@vyrobel-demo.test`** at
+> `/guest/login`; **PLATFORM ADMIN `admin@vyrobel-demo.test`** at `/admin` (forced 2FA enrolment on first login).
+> Public storefront (no login) `/book/vyrobel-demo`; self-signup `/signup`.
+>
+> **THE NEXT ACTION.** No launch-blocking build remains. The active hands-on task is the **owner-page exact-match
+> track: Owner Bookings page + Booking-Summary PDF** — the PHASE-1 audit is done (`docs/OWNER-BOOKINGS-AUDIT.md`), so
+> the next step is **GATE 1 (the page) then GATE 2 (the PDF)** per §4 of that audit (both on real data; guest name-only
+> #28; net reconciling #17; owner writes on controller routes #20; the PDF stays CAP_EXPORTS-gated). In parallel, the
+> founder's strategic decisions stand: **choose the launch model** (free-trial now vs paid after Stripe go-live +
+> suspension enforcement), then **deploy**. Read `docs/RESUME.md` first.
+>
+> ---
+>
 > ⭐⭐⭐ **CURRENT STATE — 2026-07-27 · OWNER OVERVIEW exact-match + real backends (INVARIANT #54).** The owner
 > Overview (`/owner`) was rebuilt to the decoded `docs/design/raw/Owner Dashboard.html` wireframe EXACTLY **and**
 > wired so every section is operational on REAL owner-scoped data (no stubs, no fabrication). Two gates: **GATE 1**
@@ -686,9 +803,9 @@ conflicts with the repo, **trust the repo** and fix this file.
   comparison, owner analytics) · `assertNoRawBlade()` (the Blade-safety
   guard). **Before adding a computed figure to a second screen, extract the definition and prove it's shared.**
 
-## INVARIANTS THAT MUST NEVER BREAK — #1–53 (the full guarantee stack)
+## INVARIANTS THAT MUST NEVER BREAK — #1–55 (the full guarantee stack)
 
-> **All 45, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
+> **All 55, grouped below.** #1–14 Phase 1 core (single write path · no double-booking · append-only ledger ·
 > money in integer minor units · encrypted PII · tenant scoping · event discipline) · #15–18 Owner Accounting
 > (attribution · append-only `owner_ledger` · period-locked statements · **never a cross-currency sum**) ·
 > #19–20 the design pass (the honesty rule · scoped-render + guarded-mutation) · #21 Auth · #22 Maintenance ·
@@ -765,6 +882,12 @@ conflicts with the repo, **trust the repo** and fix this file.
 > active sessions are the REAL `sessions` table (sign-out-others password-gated + rotates the remember-token);
 > the account-protection checklist is DERIVED from true state (password set · 2FA on/off · unused recovery
 > codes) — NEVER a fabricated score; all writes are controller POSTs (never `/livewire/update`).
+>
+> **Owner-page + platform cluster (added since the summary above was written):** · **#47** analytics depth (Batch B,
+> no fabricated LY/pricing) · **#48** operator money-write idempotency (Batch C) · **#49–53** the SUPER ADMIN platform
+> panel (isolated `/admin` realm · DB-backed plans + feature-gating · auth-signal capture + privacy · encrypted platform
+> credentials · admin account discipline) · **#54** the owner Overview exact-match + real backends · **#55** the owner
+> My Units + Add Unit exact-match + real backends.
 >
 > ⚠️ **#26–30 each closed a live hole that the fully-green suite never noticed** (#26 an owner reading every other
 > owner's financials · #27 a €369 payment taking €1,107 in refunds · #29 a duplicate OTA webhook rewriting a
@@ -1282,6 +1405,28 @@ conflicts with the repo, **trust the repo** and fix this file.
     OLD email stays the login and the PENDING email CANNOT log in until verified (fail-closed on bad-signature /
     stale-hash / taken-email). 2FA recovery-code regeneration requires the current password. Every change is audited to
     `platform_admin_actions` (which field, never the value). Mirrors the tenant discipline, never weaker.
+54. **THE OWNER OVERVIEW (`/owner`) MATCHES ITS WIREFRAME EXACTLY + IS FULLY OPERATIONAL ON REAL OWNER-SCOPED DATA.**
+    Rebuilt to the decoded `Owner Dashboard.html` on the shared owner chrome, with every section wired through the
+    SHARED owner derivations (anti-drift — the Overview cannot drift from My Units / Bookings): occupancy
+    (`OwnerOccupancy::forMonth`, per PHYSICAL unit — the old "room-type-wide" deferral superseded), the attention feed
+    (shared `OwnerAttention`), next-30-days upcoming stays (shared `OwnerUpcomingStays` — guest NAME-only #28, owner NET
+    via `OwnerLedgerAttribution`, "Not yet attributed" never a fake €0), the masked IBAN + tax-hold paused rail. The
+    interactive Source/Status filters are CLIENT-SIDE (Alpine) over server-rendered rows — a Livewire round-trip would
+    bypass `SetOwnerScopeForPortal` and leak. Honest empties; no fabricated goal / estimated-date / occupancy (#39).
+    Decision D2: the 5 extra REAL nav items the wireframe omits are KEPT (shared shell — no functional regression).
+    Mutation-/render-proven (`OwnerUpcomingStaysTest` + `OwnerDashboardViewTest`; `assertNoRawBlade`).
+55. **THE OWNER MY UNITS (`/owner/units`) + ADD UNIT (`/owner/add-unit`) MATCH THEIR WIREFRAMES EXACTLY + ARE FULLY
+    OPERATIONAL ON REAL OWNER-SCOPED DATA.** My Units: real card/calendar actions, each on a gated controller route —
+    edit-pricing via `OwnerRateService`/`RateAndRestrictionService` (per-ROOM-TYPE, exclusive-owned only; a shared type
+    is honestly non-editable, no fake save; browser-proven 180→185 persisted), message-relay to the operator
+    (`owner.messages.start`, name-only #28), block-dates via `OwnerBlockService`, month-occupancy CSV export (counts-only
+    #28, `exports`-gated); the calendar heat-grid uses the wireframe terracotta scale. Add Unit: the exact 4-step wizard
+    + Live preview + Done, on a rich real pending `UnitRequest` (amenities via the shared `amenitiables` pivot, photos
+    via the shared `media` collection with ULID filenames), the write ONE controller POST (never `/livewire/update`,
+    #20), commission the owner's REAL agreement rate (an honest line if none); a request creates NO inventory — the
+    operator reviews it (and sees the rich detail) before creating the real unit. Integer money (#17), guest
+    name-/counts-only (#28), nothing fabricated — a proposed request is badged "Pending review", never a live/priced
+    unit (#39). Proven end-to-end in the browser; `OwnerMyUnitsViewTest` + `OwnerUnitRequestTest` (6→12).
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 
