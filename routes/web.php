@@ -66,6 +66,8 @@ use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerAccountController;
 use App\Http\Controllers\Owner\OwnerBlockController;
+use App\Http\Controllers\Owner\OwnerBookingsExportController;
+use App\Http\Controllers\Owner\OwnerBookingsTargetController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerConnectController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
@@ -734,6 +736,15 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // {booking} is REJECTED (404) unless it touches one this owner owns (never trusts the request id). Read-only;
     // guest NAME only (no contact — invariant #28). Filters ride GET so the owner middleware re-runs.
     Route::get('/bookings', OwnerBookings::class)->middleware($capCalendar)->name('bookings');
+    // GATE 1 (Owner Bookings exact-match) — the CSV export + the monthly-goal target write. Both are static
+    // segments registered BEFORE `/bookings/{booking}` so "export"/"target" are never captured as a booking id.
+    // EXPORT: read-only CSV of the SAME owner-scoped rows the page shows (via the shared OwnerBookingsReader),
+    // gated `exports` (co-owner + accountant) like the other owner downloads; name-only, no contact PII (#28).
+    Route::get('/bookings/export', [OwnerBookingsExportController::class, 'download'])->middleware($capExports)->name('bookings.export');
+    // TARGET: sets the owner's real monthly NET goal behind the "Monthly goal" ring (#39 — no fabricated goal).
+    // A WRITE on a controller ROUTE (#20/#30), gated `actions` (co-owner only) — a view-only sub-user sees the
+    // ring but can't change the shared target; owner-scoped, fail-closed for a non-linked user.
+    Route::post('/bookings/target', [OwnerBookingsTargetController::class, 'store'])->middleware($capActions)->name('bookings.target');
     Route::get('/bookings/{booking}', OwnerBookingDetail::class)->middleware($capCalendar)->name('bookings.show');
     // Phase 2 · Sub-gate 2 — the owner Block Calendar. Reads are owner-scoped through the unit; the WRITES go
     // through OwnerBlockService → the certified AssignmentService (single inventory write path). The unit is

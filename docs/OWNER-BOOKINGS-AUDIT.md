@@ -213,3 +213,38 @@ is fabricating channel **brands**.
 **Bottom line:** the founder's "exact match, deferrals in scope" is achievable **without a single fabricated figure** —
 the two items previously blocked as fabrication are now backed by real data (chart/commission/occupancy) or by a value
 the owner sets themselves (the goal). The one thing we still refuse to invent is a channel brand the system doesn't model.
+
+---
+
+## 6. BUILD LOG — GATE 1 (Owner Bookings page) ✅ COMPLETE
+
+Shipped exactly to §4's plan, honesty held (§5):
+
+- **Real goal backing** — `owner_monthly_targets` (owner+currency+minor, unique) + model; `POST owner.bookings.target`
+  (`$capActions`, co-owner only — #20/#30). The currency is **derived server-side** from the owner's ledger
+  (`OwnerBookingsReader::primaryCurrency`), never trusted from the form, so ring + stored target can't disagree and a
+  tampered POST can't inject a junk currency. Idempotent upsert.
+- **Export** — `GET owner.bookings.export` (`$capExports`) → CSV of the SAME rows via the shared reader; guest name-only,
+  no contact (#28). Registered before `/bookings/{booking}`.
+- **Shared reader** — `App\Support\Owner\OwnerBookingsReader` is the ONE owner-scoped booking-set builder for the page
+  AND the export (anti-drift; net via `OwnerLedgerAttribution`). The `FormatsOwnerData` source/label helpers delegate to it.
+- **Component** — GUESTS distinct count, Status filter (+counts), date-range presets+custom, sortable columns, pagination,
+  the chart series (per-check-in-month status stacks + real net line + goal line), the goal ring — all server-side over
+  the owner-scoped set (GET, so the scope middleware re-runs).
+- **View + page-scoped CSS + opt-in shell breadcrumb** — wireframe-exact; the Bookings CSS is page-scoped (kept OUT of the
+  shared owner layout, so its class names never trip other pages' `assertDontSee` isolation guards).
+- **Demo** — a flagged DEMO-ONLY €6,000 monthly target so the ring + goal line render on a fresh seed (a real owner
+  *setting*, not a fabricated figure — the ring still divides real net by it → honest low % early in the month).
+
+**Verification:** suite **1059 green** (`OwnerBookingsTest` now **15**, 9 new: isolation · name-only+no-contact export · capability
+gates [view-only/accountant/co-owner] · idempotent target · real-% reconciliation · status column · filters · the two
+regression tests below) · PHPStan L5 (0) · Pint clean · `migrate:fresh --seed` clean · browser-verified vs the wireframe
+(chart, honest goal ring, filters, sort, pagination) with data reconciling (Sep €886 = the two real €442.80 bookings).
+
+**Adversarial review (2 agents) — verified + fixed:** all isolation/PII/capability/honesty/money invariants HOLD. Real
+bugs found & fixed: (#1) `Carbon::subMonth()` overflow made "Last month" collapse into the current month on a 31st →
+start-of-month before subtracting; (#2) a tab-DEFAULT sort direction became "sticky" across tabs → only an EXPLICIT
+sort/dir is preserved on links (`preservedQuery`); (#3) the chart legend counted the full set against an 8-month-truncated
+chart → legend now sums the DISPLAYED months (reconciles with the bars); (#4) net-sort now sinks a booking with no net in
+the portfolio currency. Both bugs got dedicated regression tests. Left as documented/inherent: single-axis multi-currency
+folding (#17), compact-rounding cosmetics.

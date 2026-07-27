@@ -814,6 +814,12 @@
         .vy-au-done-actions .vy-au-cta--ghost:hover { background: rgba(255,255,255,.85); color: var(--vy-ink); }
         @media (max-width: 640px) { .vy-au-drops { grid-template-columns: 1fr; } }
 
+        /* NOTE — the Owner Bookings page's exact-match components (breadcrumb, "over time" chart, the
+           target ring, filters, sortable headers, pagination) are PAGE-SCOPED in
+           resources/views/livewire/owner/bookings.blade.php, NOT here: their class names/comments must not
+           leak into every owner page's <style>, where owner-isolation tests assert the ABSENCE of certain
+           words on the Balance/Dashboard pages (shared-layout CSS would otherwise trip those substrings). */
+
         /* ---- Motion & accessibility floor ---------------------------------------------------- */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }

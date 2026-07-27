@@ -14,6 +14,7 @@
     'title' => '',
     'subtitle' => '',
     'titleLg' => false,   // Owner-Overview exact-match — render the <h1> at the wireframe's 30px greeting size.
+    'breadcrumb' => [],   // opt-in (like $subtitle): list<array{label:string,url:?string}> above the title.
     'viewer' => ['name' => 'Owner', 'initials' => 'O'],
 ])
 @php
@@ -104,6 +105,19 @@
     <div class="vy-main">
         <div class="vy-topbar">
             <div>
+                {{-- Opt-in breadcrumb (rendered only when given, so the screens that pass none are unchanged). --}}
+                @if ($breadcrumb !== [])
+                    <nav class="vy-crumbs" aria-label="Breadcrumb">
+                        @foreach ($breadcrumb as $i => $crumb)
+                            @if ($i > 0)<span class="vy-crumb-sep" aria-hidden="true">/</span>@endif
+                            @if (($crumb['url'] ?? null) !== null)
+                                <a class="vy-crumb" href="{{ $crumb['url'] }}">{{ $i === 0 ? '‹ ' : '' }}{{ $crumb['label'] }}</a>
+                            @else
+                                <span class="vy-crumb is-current" aria-current="page">{{ $crumb['label'] }}</span>
+                            @endif
+                        @endforeach
+                    </nav>
+                @endif
                 <h1 @class(['is-greeting' => $titleLg])>{{ $title }}</h1>
                 {{-- Wave 3 — the owner shell gained a subtitle to match <x-operator.shell>'s. Rendered only
                      when given, so the ten screens that pass none are byte-for-byte unchanged. --}}

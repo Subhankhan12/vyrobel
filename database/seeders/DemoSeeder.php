@@ -16,6 +16,7 @@ use App\Models\Media;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Owner;
+use App\Models\OwnerMonthlyTarget;
 use App\Models\OwnerTeamInvite;
 use App\Models\OwnerUser;
 use App\Models\Plan;
@@ -377,6 +378,15 @@ class DemoSeeder extends Seeder
         // Real + coherent: attribution reads the folios, the statement is a pure ledger projection,
         // the payout is created from the finalized statement. Nothing fabricated.
         $ownerParty = $this->seedOwnerAccounting($owner, $property, $apartment, $aptRate, $aptUnits, $vat, $walkIn);
+
+        // DEMO ONLY — the owner's monthly NET goal, so the Bookings page's "Monthly goal" ring + the chart's
+        // goal line render on a fresh demo. This is a real owner SETTING (a value the owner would type), not a
+        // fabricated figure: the ring still divides the REAL current-month net by it, so early in the month it
+        // honestly reads a low %, not a staged 123%.
+        OwnerMonthlyTarget::updateOrCreate(
+            ['owner_id' => $ownerParty->id, 'currency' => 'EUR'],
+            ['organization_id' => $org->id, 'target_minor' => 600000],   // €6,000 / month
+        );
 
         // --- Owner ↔ operator messages (Wave 3) — real threads via the real InboxService, so the owner
         // Messages screen (and the operator's inbox) demo on genuine data.

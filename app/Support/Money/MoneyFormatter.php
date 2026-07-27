@@ -32,4 +32,28 @@ final class MoneyFormatter
             default => strtoupper($currency).' ',
         };
     }
+
+    /**
+     * A COMPACT display of a real figure for tight chart/ring labels — €7,352.00 → "€7.4k", €6,000 → "€6k",
+     * €920 → "€920". Presentation only: it abbreviates the SAME real minor amount {@see display()} shows in
+     * full elsewhere (never a different or invented number). Thousands use one decimal, trailing ".0" trimmed;
+     * millions use "m". The U+2212 minus / optional "+" match {@see display()}.
+     */
+    public static function compact(int $minor, string $currency, bool $signed = false): string
+    {
+        $symbol = self::symbol($currency);
+        $sign = $minor < 0 ? '−' : ($signed ? '+' : '');
+        $units = abs($minor) / 100;
+
+        if ($units >= 1_000_000) {
+            $body = rtrim(rtrim(number_format($units / 1_000_000, 1, '.', ''), '0'), '.').'m';
+        } elseif ($units >= 1_000) {
+            $body = rtrim(rtrim(number_format($units / 1_000, 1, '.', ''), '0'), '.').'k';
+        } else {
+            // Sub-thousand: whole euros (no cents) to stay tight, e.g. "€920".
+            $body = number_format($units, 0, '.', ',');
+        }
+
+        return "{$sign}{$symbol}{$body}";
+    }
 }

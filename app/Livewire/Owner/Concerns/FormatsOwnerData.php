@@ -6,6 +6,7 @@ namespace App\Livewire\Owner\Concerns;
 
 use App\Models\User;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Owner\OwnerBookingsReader;
 use App\Support\Reservations\ReservationStage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -106,29 +107,21 @@ trait FormatsOwnerData
     }
 
     /**
-     * reservations.source enum → an owner-facing label. The seven arms ARE the enum (Phase 0 keeps it clean).
-     * ⚠️ There is NO 'booking_com'/'airbnb': the OTA BRAND IS NOT MODELLED, so a brand can never be rendered —
-     * an OTA booking is "OTA", nothing more specific. Shared by every owner surface that shows a stay's source.
+     * reservations.source enum → an owner-facing label. Delegates to the ONE owner source-of-truth
+     * {@see OwnerBookingsReader::sourceLabel()} so the Bookings page, its CSV export and every
+     * other owner surface can never disagree. ⚠️ There is NO 'booking_com'/'airbnb': the OTA BRAND IS NOT
+     * MODELLED — an OTA booking is "OTA", nothing more specific.
      */
     protected function sourceLabel(string $source): string
     {
-        return match ($source) {
-            'direct' => 'Direct',
-            'walk_in' => 'Walk-in',
-            'ota' => 'OTA',
-            'corporate' => 'Corporate',
-            'group' => 'Group',
-            'agent' => 'Agent',
-            'manual' => 'Manual',
-            default => ucfirst(str_replace('_', ' ', $source)),
-        };
+        return OwnerBookingsReader::sourceLabel($source);
     }
 
     /**
      * A reservation's LIFECYCLE STAGE → owner badge (label + owner-portal tone). The LABEL comes from the ONE
      * shared {@see ReservationStage} vocabulary (In-house / Upcoming / Past / Arrival due / Tentative /
      * Cancelled), so the owner Bookings surfaces can never disagree with the operator's on what stage a stay is
-     * in. The TONE maps onto the owner design system's three badge tones (paid / pending / draft).
+     * in. The TONE maps onto the owner design system's badge tones.
      *
      * @return array{label: string, tone: string}
      */
