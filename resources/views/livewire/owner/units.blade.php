@@ -269,6 +269,26 @@
                 </div>
             </div>
 
+            @php
+                // Occupancy HEAT — matches the wireframe's calendar exactly: a SOLID terracotta ramp (never a
+                // translucent wash), free = a warm pale peach, deepening to the deep accent #C2410C at full
+                // occupancy; numerals flip to white once a cell is dark enough for contrast. ONE definition, used
+                // by both the day cells and the legend swatches so they can't drift.
+                $heatBg = function (int $count, int $total): string {
+                    if ($count <= 0) {
+                        return '#F1E4DB';                                   // free — warm pale peach
+                    }
+                    $t = $total > 0 ? min(1.0, $count / $total) : 1.0;      // 0 < t ≤ 1 as more units book
+                    $lerp = fn (int $a, int $b): int => (int) round($a + ($b - $a) * $t);
+                    return sprintf('rgb(%d,%d,%d)', $lerp(242, 194), $lerp(215, 65), $lerp(196, 12));  // #F2D7C4 → #C2410C
+                };
+                $heatFg = function (int $count, int $total): string {
+                    $t = $total > 0 ? $count / $total : ($count > 0 ? 1 : 0);
+
+                    return $t >= 0.6 ? '#fff' : '#7A2E08';                  // white numerals only on the deep cells
+                };
+            @endphp
+
             <div class="vy-mu-calgrid" style="margin-bottom:6px">
                 @foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $wd)
                     <div class="vy-mu-calhead">{{ $wd }}</div>
@@ -281,9 +301,8 @@
                 @for ($dom = 1; $dom <= $occupancy['days']; $dom++)
                     @php
                         $count = $occupancy['heat'][$dom] ?? 0;
-                        $level = $occupancy['unit_count'] > 0 ? $count / $occupancy['unit_count'] : 0;
-                        $bg = $count === 0 ? 'rgba(120,70,40,.05)' : 'rgba(194,65,12,'.number_format(0.15 + 0.7 * $level, 2).')';
-                        $fg = $level > 0.55 ? '#fff' : 'var(--vy-ink)';
+                        $bg = $heatBg($count, $occupancy['unit_count']);
+                        $fg = $heatFg($count, $occupancy['unit_count']);
                         $lbl = $count === 0 ? 'Free — no units booked' : $count.' of '.$occupancy['unit_count'].' booked';
                     @endphp
                     <div class="vy-mu-day" style="background:{{ $bg }};color:{{ $fg }}" title="{{ $lbl }}"
@@ -299,8 +318,8 @@
                         <span style="font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--vy-faint)">Booked</span>
                         <div style="display:inline-flex;gap:4px">
                             @for ($n = 0; $n <= min($occupancy['unit_count'], 4); $n++)
-                                @php $lvl = $occupancy['unit_count'] > 0 ? $n / $occupancy['unit_count'] : 0; $sw = $n === 0 ? 'rgba(120,70,40,.05)' : 'rgba(194,65,12,'.number_format(0.15 + 0.7 * $lvl, 2).')'; @endphp
-                                <span style="display:inline-flex;flex-direction:column;align-items:center;gap:4px"><span style="width:22px;height:11px;border-radius:3px;background:{{ $sw }}"></span><span style="font-size:9.5px;color:var(--vy-faint)">{{ $n }}</span></span>
+                                @php $sw = $heatBg($n, $occupancy['unit_count']); @endphp
+                                <span style="display:inline-flex;flex-direction:column;align-items:center;gap:4px"><span style="width:22px;height:11px;border-radius:3px;background:{{ $sw }};border:{{ $n === 0 ? '1px solid rgba(120,70,40,.12)' : 'none' }};box-sizing:border-box"></span><span style="font-size:9.5px;color:var(--vy-faint)">{{ $n }}</span></span>
                             @endfor
                         </div>
                         <span style="font-size:10px;color:var(--vy-faint)">of {{ $occupancy['unit_count'] }} units</span>
