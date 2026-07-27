@@ -9,6 +9,12 @@
 --}}
 <x-owner.shell active="units" title="My units" :title-lg="true" :viewer="$viewer">
 
+    @if (session('rate_notice'))
+        <div class="vy-flash is-ok" style="margin-bottom:16px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>{{ session('rate_notice') }}</div>
+    @elseif (session('rate_error'))
+        <div class="vy-flash is-err" style="margin-bottom:16px">{{ session('rate_error') }}</div>
+    @endif
+
     {{-- Header: the real "Add unit" link (co-owner only — never invites a 403) --}}
     <div class="vy-mu-top vy-fade" style="animation-delay:.02s">
         <span></span>
@@ -112,7 +118,7 @@
     </div>
     <div class="vy-mu-grid">
         @forelse ($units as $i => $u)
-            <div class="vy-mu-card vy-fade" style="animation-delay:{{ 0.16 + $i * 0.05 }}s">
+            <div class="vy-mu-card vy-fade" style="animation-delay:{{ 0.16 + $i * 0.05 }}s" x-data="{ panel: null, rate: {{ $u['rate_units'] ?? 0 }} }">
                 <div class="vy-mu-thumb">
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
                 </div>
@@ -148,15 +154,74 @@
                             <span style="font-family:var(--vy-display);font-weight:500;font-size:15px;font-variant-numeric:tabular-nums">{{ $u['nightly_rate'] ?? '—' }}</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:11px">
-                            {{-- GATE 2 wires: Edit pricing → owner.rates.apply · Message guest → operator relay --}}
-                            <button type="button" class="vy-mu-cardbtn" title="Edit pricing">
+                            <button type="button" class="vy-mu-cardbtn" title="Edit pricing" @click="panel = panel === 'price' ? null : 'price'">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.1" fill="currentColor"/></svg>
                                 Edit pricing
                             </button>
-                            <button type="button" class="vy-mu-cardbtn" title="Message the team about this unit">
+                            <button type="button" class="vy-mu-cardbtn" title="Message the team about this unit" @click="panel = panel === 'msg' ? null : 'msg'">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 7 9 6 9-6"/></svg>
                                 Message guest
                             </button>
+                        </div>
+
+                        {{-- Edit pricing — REAL rate change via OwnerRateService (per-room-type, exclusive-owned only,
+                             CAP_ACTIONS, integer money #17). A shared room type is honestly non-editable. --}}
+                        <div x-show="panel === 'price'" x-cloak class="vy-mu-panel" style="margin-top:12px">
+                            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                @if ($u['rate_editable'])
+                                    <form method="POST" action="{{ route('owner.rates.apply') }}" data-guard-submit>
+                                        @csrf
+                                        <input type="hidden" name="room_type_id" value="{{ $u['room_type_id'] }}">
+                                        <input type="hidden" name="redirect" value="units">
+                                        <input type="hidden" name="start_date" value="{{ \Carbon\CarbonImmutable::today()->toDateString() }}">
+                                        <input type="hidden" name="end_date" value="{{ \Carbon\CarbonImmutable::today()->addDays(179)->toDateString() }}">
+                                        <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#9C9089;margin-bottom:9px">Set nightly rate</div>
+                                        <div style="display:flex;align-items:center;gap:8px">
+                                            <button type="button" class="vy-mu-step" aria-label="Decrease rate" @click="rate = Math.max(0, rate - 5)">−</button>
+                                            <div class="vy-mu-rate-input">
+                                                <span style="font-family:var(--vy-display);font-weight:500;font-size:16px;color:#9C9089">{{ $currencySymbol }}</span>
+                                                <input type="text" inputmode="numeric" name="rate" x-model="rate">
+                                                <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap">/ night</span>
+                                            </div>
+                                            <button type="button" class="vy-mu-step" aria-label="Increase rate" @click="rate = rate + 5">+</button>
+                                        </div>
+                                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px">
+                                            <button type="button" @click="rate = {{ $u['rate_units'] }}" style="background:none;border:none;padding:0;color:var(--vy-muted);font-family:var(--vy-sans);font-size:12px;cursor:pointer;text-decoration:underline;text-underline-offset:2px">Reset to {{ $u['base_display'] }}</button>
+                                            <div style="display:flex;align-items:center;gap:8px">
+                                                <button type="button" @click="panel = null" style="padding:7px 14px;border-radius:var(--vy-r-pill);background:transparent;border:1px solid rgba(120,70,40,.16);color:#6B5D54;font-family:var(--vy-sans);font-size:12.5px;font-weight:500;cursor:pointer">Cancel</button>
+                                                <button type="submit" class="vy-btn vy-btn--accent" style="padding:7px 16px;font-size:12.5px">Save</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                @else
+                                    <div style="font-size:12.5px;color:#6E635C;line-height:1.5">This unit shares a room type with other inventory, so its rate is managed by your team. <a href="{{ route('owner.rates') }}" style="color:var(--vy-accent);font-weight:500">Open Rates →</a></div>
+                                @endif
+                            @else
+                                <div style="font-size:12.5px;color:#6E635C;line-height:1.5">Rate changes are made by the account owner.</div>
+                            @endownercan
+                        </div>
+
+                        {{-- Message guest — REAL relay to the operator team (D2): owner↔operator channel, name-only
+                             (#28), NEVER owner→guest directly. --}}
+                        <div x-show="panel === 'msg'" x-cloak class="vy-mu-panel" style="margin-top:12px">
+                            <form method="POST" action="{{ route('owner.messages.start') }}" data-guard-submit>
+                                @csrf
+                                <input type="hidden" name="subject" value="About {{ $u['name'] }}">
+                                <div style="font-size:12.5px;line-height:1.5;color:#6E635C;margin-bottom:11px">Message your management team about <strong style="color:var(--vy-ink);font-weight:600">{{ $u['name'] }}</strong> — they'll relay anything to the current or upcoming guest. (Guests are contacted through your team, never directly.)</div>
+                                <textarea name="body" rows="3" required x-ref="mbody{{ $i }}" placeholder="Message your management team about {{ $u['name'] }}…" style="width:100%;box-sizing:border-box;resize:none;border:1px solid rgba(217,102,46,.28);border-radius:11px;background:#fff;padding:10px 12px;font-family:var(--vy-sans);font-size:12.5px;line-height:1.5;color:var(--vy-ink);outline:none"></textarea>
+                                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px">
+                                    @foreach (['Please share an update on this unit', 'Is everything okay with the current stay?', 'Can we schedule a visit?'] as $chip)
+                                        <button type="button" @click="$refs.mbody{{ $i }}.value = @js($chip)" style="padding:5px 10px;border-radius:var(--vy-r-pill);background:rgba(255,255,255,.7);border:1px solid rgba(120,70,40,.16);color:#7A2E08;font-family:var(--vy-sans);font-size:11px;font-weight:500;cursor:pointer">{{ $chip }}</button>
+                                    @endforeach
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px">
+                                    <button type="button" @click="panel = null" style="padding:7px 14px;border-radius:var(--vy-r-pill);background:transparent;border:1px solid rgba(120,70,40,.16);color:#6B5D54;font-family:var(--vy-sans);font-size:12.5px;font-weight:500;cursor:pointer">Cancel</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent" style="padding:7px 16px;font-size:12.5px;gap:6px">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
+                                        Send
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
@@ -194,11 +259,13 @@
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M15 15l-4 4"/><path d="M11 15l4 4"/></svg>
                         Block dates
                     </a>
-                    {{-- Export → real owner-scoped month CSV (the controller route is wired in GATE 2) --}}
-                    <button type="button" class="vy-mu-calbtn" title="Export this month to CSV">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-                        Export
-                    </button>
+                    {{-- Export → REAL owner-scoped month occupancy CSV (co-owner + accountant; counts only, #28) --}}
+                    @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
+                        <a class="vy-mu-calbtn" href="{{ route('owner.units.export', array_filter(['month' => request('month')])) }}" title="Export this month to CSV">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                            Export
+                        </a>
+                    @endownercan
                 </div>
             </div>
 

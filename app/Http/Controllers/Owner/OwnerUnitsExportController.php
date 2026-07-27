@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Owner;
+
+use App\Http\Controllers\Controller;
+use App\Services\OwnerPortalService;
+use App\Support\Owner\OwnerOccupancy;
+use Illuminate\Support\Carbon;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+/**
+ * Owner My Units — month occupancy CSV export (My Units · GATE 2). A REAL, owner-scoped download: one row per
+ * day of the month with how many of the OWNER's OWN units were booked, from the shared {@see OwnerOccupancy}
+ * derivation (physical-unit-scoped — a non-owner unit in the same room type is excluded, #28). Guest COUNTS
+ * only — no guest names/PII in the export. Gated `exports` (co-owner + accountant); a non-linked owner's export
+ * is an empty (headers-only) file — fail-closed, never all owners.
+ */
+class OwnerUnitsExportController extends Controller
+{
+    public function download(OwnerPortalService $portal): StreamedResponse
+    {
+        $param = request()->query('month');
+        $month = is_string($param) && preg_match('/^\d{4}-\d{2}$/', $param) === 1
+            ? Carbon::parse($param.'-01')->startOfMonth()
+            : Carbon::now()->startOfMonth();
+
+        $unitIds = array_map('strval', $portal->units()->pluck('id')->all());
+        $occ = OwnerOccupancy::forMonth($unitIds, $month);
+
+        $filename = 'my-units-occupancy-'.$month->format('Y-m').'.csv';
+
+        return response()->streamDownload(function () use ($occ, $month): void {
+            $out = fopen('php://output', 'wb');
+            fputcsv($out, ['Date', 'Units booked', 'Total units', 'Booked %']);
+
+            for ($d = 1; $d <= $occ['days']; $d++) {
+                $count = $occ['heat'][$d] ?? 0;
+                $pct = $occ['unit_count'] > 0 ? (int) round($count / $occ['unit_count'] * 100) : 0;
+                fputcsv($out, [
+                    $month->copy()->day($d)->toDateString(),
+                    $count,
+                    $occ['unit_count'],
+                    $pct.'%',
+                ]);
+            }
+
+            fputcsv($out, []);
+            fputcsv($out, ['Month total', $occ['nights'].' nights', $occ['unit_count'].' units', $occ['pct'].'%']);
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Cache-Control' => 'no-store, no-cache',
+        ]);
+    }
+}

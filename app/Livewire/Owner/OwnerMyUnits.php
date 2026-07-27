@@ -6,10 +6,12 @@ namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\OwnerLedgerEntry;
+use App\Models\RateCalendar;
 use App\Models\ReservationUnit;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Services\OwnerRateService;
 use App\Support\Owner\OwnerAttention;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
@@ -36,14 +38,17 @@ use Livewire\Component;
  * is excluded. This is the fix for the room-type-wide `availabilityRange` trap flagged on the dashboard:
  * the number shown is genuinely THIS owner's occupancy.
  *
- * Honesty triage (rule locked in DECISIONS.md 2026-07-11):
- *   • REAL     — unit list + count, per-unit name/type/status, per-unit + portfolio occupancy, nights
- *                sold, and the occupancy calendar heatmap (all owner-scoped).
- *   • DEFERRED — per-unit revenue + nightly rate + best-performer: derivable but not built this pass →
- *                stubbed "not yet available".
- *   • NO BACKEND — "Add unit", edit-pricing / message-guest, block-dates, export, the "Needs attention"
- *                approvals: disabled "Soon".
- *   • Guest PII — the calendar shows booking COUNTS only; no guest names anywhere.
+ * Honesty triage (updated 2026-07-27 · My Units GATE 2 — the wireframe-exact rebuild wired the real actions):
+ *   • REAL     — unit list + count, per-unit name/type/status/occupancy/nights/revenue/ADR, the occupancy
+ *                calendar heatmap, the best performer, the "Needs your attention" items (OwnerAttention),
+ *                the "Add unit" link (owner.add-unit), and the CARD/CALENDAR write actions: EDIT PRICING
+ *                ({@see editableRates} → owner.rates.apply, per-ROOM-TYPE exclusive-owned only), MESSAGE
+ *                GUEST (the owner↔operator relay, owner.messages.start — never owner→guest, #28), BLOCK
+ *                DATES (owner.calendar), and EXPORT (owner.units.export CSV, counts only). All owner-scoped.
+ *   • HONEST-EMPTY — a unit sharing its room type with foreign inventory is NOT rate-editable (no fake save);
+ *                the action-center's approve/decline DECISIONS have no real owner entity → not fabricated (#39).
+ *   • Guest PII — booking COUNTS only in the calendar; NO guest names on this page (#28; the message relay
+ *                is framed around the UNIT, to the team, never the guest).
  */
 #[Layout('components.layouts.owner')]
 class OwnerMyUnits extends Component
@@ -64,16 +69,18 @@ class OwnerMyUnits extends Component
         $unitIds = array_map('strval', $units->pluck('id')->all());
         $perUnit = OwnerUnitAnalytics::perUnitMonth($unitIds, $month, $currency);
         $bestUnitId = OwnerUnitAnalytics::bestUnitId($perUnit);
+        $editableRates = $this->editableRates($currency);
 
         return view('livewire.owner.units', [
             'viewer' => $this->viewer(),
             'unitsCount' => $units->count(),
-            'units' => $this->unitCards($units, $occupancy, $perUnit, $currency, $bestUnitId),
+            'units' => $this->unitCards($units, $occupancy, $perUnit, $currency, $bestUnitId, $editableRates),
             'occupancy' => $occupancy,
             'occDelta' => $this->occDelta($unitIds, $month, $occupancy['pct']),
             'earned' => $this->earnedThisMonth($month, $currency),
             'best' => $this->bestPerformer($units, $perUnit, $bestUnitId, $month, $currency),
             'attention' => $this->attentionItems(),
+            'currencySymbol' => $this->currencySymbol($currency),
             'month' => [
                 'label' => $month->format('F Y'),
                 'label_short' => $month->format('M'),
@@ -148,14 +155,16 @@ class OwnerMyUnits extends Component
      * @param  array<string, array{gross_minor: int, adr_minor: int, occupancy_pct: int, nights: int}>  $perUnit
      * @return list<array<string, mixed>>
      */
-    private function unitCards(Collection $units, array $occupancy, array $perUnit, string $currency, ?string $bestUnitId): array
+    private function unitCards(Collection $units, array $occupancy, array $perUnit, string $currency, ?string $bestUnitId, array $editableRates): array
     {
         $days = $occupancy['days'];
 
-        return $units->map(function (Unit $u) use ($occupancy, $days, $perUnit, $currency, $bestUnitId): array {
+        return $units->map(function (Unit $u) use ($occupancy, $days, $perUnit, $currency, $bestUnitId, $editableRates): array {
             $id = (string) $u->id;
+            $roomTypeId = (string) $u->room_type_id;
             $nights = $occupancy['per_unit'][$id] ?? 0;
             $m = $perUnit[$id] ?? ['gross_minor' => 0, 'adr_minor' => 0, 'nights' => 0];
+            $rate = $editableRates[$roomTypeId] ?? null;   // present only for an EXCLUSIVELY-owned room type
 
             return [
                 'id' => $u->id,
@@ -172,8 +181,51 @@ class OwnerMyUnits extends Component
                 'is_best' => $bestUnitId !== null && $id === $bestUnitId,
                 // Cover derives from the room-type (the sellable entity); null → gradient fallback.
                 'cover' => $u->roomType->coverPhoto()?->url,
+                // Edit pricing (GATE 2) — REAL, per-room-type, exclusive-owned only (OwnerRateService). A unit
+                // sharing its room type with foreign inventory is NOT editable → honest, no fake save.
+                'rate_editable' => $rate !== null && $rate['rate_minor'] !== null,
+                'room_type_id' => $roomTypeId,
+                'rate_minor' => $rate['rate_minor'] ?? null,
+                'rate_units' => $rate !== null && $rate['rate_minor'] !== null ? (int) round($rate['rate_minor'] / 100) : null,
+                'base_display' => $rate['display'] ?? null,
             ];
         })->values()->all();
+    }
+
+    /**
+     * The REAL current nightly rate (integer minor + display) for each room type the owner may EDIT (exclusive
+     * ownership, via {@see OwnerRateService::editableRoomTypes()}). Keyed by room_type_id; a room type shared with
+     * foreign inventory is absent → the card's Edit-pricing is honestly disabled. The rate is read from
+     * `rate_calendar` for today on the room type's primary plan (the same source the Rates screen reads).
+     *
+     * @return array<string, array{rate_minor: int|null, display: string|null}>
+     */
+    private function editableRates(string $currency): array
+    {
+        $out = [];
+        $today = Carbon::today()->toDateString();
+
+        foreach (app(OwnerRateService::class)->editableRoomTypes() as $roomType) {
+            $plan = $roomType->primaryRatePlan();
+            $rateMinor = null;
+            $display = null;
+
+            if ($plan !== null) {
+                $row = RateCalendar::query()
+                    ->where('rate_plan_id', $plan->id)
+                    ->whereDate('date', '>=', $today)
+                    ->orderBy('date')
+                    ->first();
+                if ($row !== null) {
+                    $rateMinor = (int) $row->price_minor;
+                    $display = $this->money($rateMinor, (string) $row->currency);
+                }
+            }
+
+            $out[(string) $roomType->id] = ['rate_minor' => $rateMinor, 'display' => $display];
+        }
+
+        return $out;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 use App\Models\Membership;
 use App\Models\Owner;
+use App\Models\RateCalendar;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -96,4 +97,29 @@ it('shows an honest empty best performer when nothing has earned (#39)', functio
         ->assertSee('IDLEUNIT')
         ->assertSee('No bookings yet this month')   // honest empty best-performer state
         ->assertSee('€0.00');                       // earned-this-month is a clean real zero, not fabricated
+});
+
+// ── GATE 2 — the real card/calendar actions are wired (never faked) ──────────────────────────────
+it('renders the real edit-pricing stepper for an exclusively-owned room type + a unit-scoped message relay', function () {
+    $s = seedScenario(1);   // one unit, one room type → the owner owns it EXCLUSIVELY → editable
+    $s['guest']->update(['first_name' => 'Zephyrina', 'last_name' => 'Quibblewick']);   // PII tripwire
+    $a = linkUnitOwner($s, 0, 'SOLOUNIT');
+    RateCalendar::create(['rate_plan_id' => $s['ratePlan']->id, 'date' => now()->toDateString(), 'price_minor' => 15000, 'currency' => 'EUR']);
+
+    $this->actingAs($a['user'])->get('/owner/units')
+        ->assertOk()
+        ->assertSee('Set nightly rate')                     // the REAL rate stepper (exclusive room type)
+        ->assertSee(route('owner.rates.apply'), false)      // posts to the certified rate service
+        ->assertSee('Message your management team about')   // the D2 relay (owner↔operator, never owner→guest)
+        ->assertSee(route('owner.messages.start'), false)
+        ->assertDontSee('Quibblewick');                     // #28 — no guest name on My Units
+});
+
+it('exports the month occupancy as an owner-scoped CSV (counts only, #28)', function () {
+    $s = seedScenario(1);
+    $a = linkUnitOwner($s, 0, 'SOLOUNIT');
+
+    $response = $this->actingAs($a['user'])->get('/owner/units/export');
+    $response->assertOk();
+    expect($response->streamedContent())->toContain('Units booked')->toContain('Month total');
 });

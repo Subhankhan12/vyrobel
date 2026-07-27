@@ -78,6 +78,7 @@ use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\Owner\OwnerTaxController;
 use App\Http\Controllers\Owner\OwnerTeamController;
 use App\Http\Controllers\Owner\OwnerUnitRequestController;
+use App\Http\Controllers\Owner\OwnerUnitsExportController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeConnectWebhookController;
 use App\Http\Controllers\StripeWebhookController;
@@ -717,6 +718,7 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // Design pass · Screen 4 — owner units + owner-scoped occupancy calendar (new owner-scoped page).
     // 🔒 SG2 — "Calendar & bookings" capability: co-owner + view-only (an accountant is refused).
     Route::get('/units', OwnerMyUnits::class)->middleware($capCalendar)->name('units');
+    Route::get('/units/export', [OwnerUnitsExportController::class, 'download'])->middleware($capExports)->name('units.export');
     // Phase 5 — Owner Reviews (read-only): published reviews for the owner's OWN units (owner-scoped).
     Route::get('/reviews', OwnerReviews::class)->name('reviews');
     // Phase 6b · Analytics — owner Insights + Reports over the SG1 metric layer, scoped to the owner's OWN
