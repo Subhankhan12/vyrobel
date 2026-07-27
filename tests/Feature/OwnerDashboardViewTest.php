@@ -54,7 +54,7 @@ it('renders real dashboard data with no guest PII and disabled no-backend afford
         ->assertSee('Earned YTD')
         ->assertSee('data-countup="17000"', false)             // count-up animates the REAL value
         ->assertSee('Not yet available')                       // occupancy deferred, not fabricated
-        ->assertSee('Guest personal details stay private')     // upcoming-stays honest stub
+        ->assertSee('Your upcoming arrivals will appear here')  // upcoming-stays honest empty (GATE 2 wires real stays)
         ->assertDontSee('Quibblewick')                         // ⚠️ guest PII never exposed
         ->assertSee('Soon');                                   // no-backend affordance disabled, not faked
 

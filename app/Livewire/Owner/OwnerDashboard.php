@@ -51,6 +51,7 @@ class OwnerDashboard extends Component
 
         return view('livewire.owner.dashboard', [
             'viewer' => $this->viewer(),
+            'greeting' => $this->greeting(),
             'unitsCount' => $units->count(),
             'units' => $this->unitList($units),
             'statements' => $this->recentStatements($statements),
@@ -60,6 +61,25 @@ class OwnerDashboard extends Component
             'currency' => $currency,
             'currencySymbol' => $this->currencySymbol($currency),
         ]);
+    }
+
+    /**
+     * A real, time-aware greeting + the owner's first name (e.g. "Good morning, Amara"). Time-of-day from the
+     * app clock; the name from the authenticated user (never invented — falls back to a plain greeting).
+     */
+    private function greeting(): string
+    {
+        $hour = (int) now()->format('G');
+        $part = match (true) {
+            $hour < 12 => 'Good morning',
+            $hour < 18 => 'Good afternoon',
+            default => 'Good evening',
+        };
+
+        $name = trim($this->viewer()['name']);
+        $first = $name === '' ? '' : (string) preg_split('/\s+/', $name)[0];
+
+        return $first === '' || $first === 'Owner' ? $part : $part.', '.$first;
     }
 
     /**

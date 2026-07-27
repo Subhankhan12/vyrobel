@@ -42,6 +42,10 @@
             --vy-glass-border: rgba(255, 255, 255, 0.75);
             --vy-accent-border: rgba(232, 112, 58, 0.28);
             --vy-wash: #F6EBE2;                   /* Polish Batch 1 — the faint warm-cream tint (review/team tag chips, washes). Resolves the previously-fallback-only token. */
+            --vy-bg: linear-gradient(135deg, #F6C89B 0%, #F1B896 32%, #EBD9CF 62%, #D9D6D2 100%);  /* Owner-Overview exact-match — the decoded wireframe's warm peach→grey diagonal page background. */
+            --vy-orb-1: #E8703A;                 /* the three ambient color orbs behind the frosted glass (decoded from the wireframe) */
+            --vy-orb-2: #F0A57A;
+            --vy-orb-3: #FBE3CE;
 
             --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
             --vy-grad-peach: linear-gradient(90deg, #F0A57A, #C2410C);
@@ -74,27 +78,23 @@
             -webkit-font-smoothing: antialiased;
             text-rendering: optimizeLegibility;
             min-height: 100vh;
-            background:
-                radial-gradient(circle at 82% 8%, rgba(255, 255, 255, 0.35), transparent 68%),
-                radial-gradient(circle at 12% 92%, rgba(255, 224, 200, 0.4), transparent 60%),
-                linear-gradient(120deg, rgba(255, 240, 220, 0.5), transparent 55%),
-                linear-gradient(180deg, #FBF3EC 0%, #F6EBE2 100%);
+            background: var(--vy-bg);
             background-attachment: fixed;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        /* Ambient drifting highlight behind everything */
-        body.vy-body::before {
-            content: "";
-            position: fixed;
-            inset: -20% -10% auto auto;
-            width: 46vw;
-            height: 46vw;
-            background: radial-gradient(circle, rgba(255, 210, 170, 0.5), transparent 70%);
-            filter: blur(10px);
-            z-index: 0;
-            pointer-events: none;
-            animation: vyDrift 26s ease-in-out infinite;
-        }
+        /* Ambient light streaks + floating color orbs (decoded from the wireframe) — behind everything,
+           they make the frosted glass visible. z-index 0; content sits at z-index 1. The animated ones are
+           stilled by the reduced-motion floor below. */
+        .vy-amb { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .vy-amb > div { position: absolute; pointer-events: none; }
+        .vy-amb-streak1 { top: -180px; right: -120px; width: 640px; height: 640px; background: radial-gradient(circle, rgba(255, 255, 255, .35), transparent 68%); filter: blur(10px); }
+        .vy-amb-streak2 { top: 22%; left: -10%; width: 70%; height: 260px; background: linear-gradient(120deg, rgba(255, 240, 220, .5), transparent); transform: rotate(28deg); filter: blur(24px); animation: vyShimmer 9s ease-in-out infinite; }
+        .vy-amb-orb { width: 380px; height: 380px; border-radius: 50%; filter: blur(70px); opacity: .55; }
+        .vy-amb-orb1 { top: 80px; left: 24%; width: 380px; height: 380px; background: var(--vy-orb-1); border-radius: 50%; filter: blur(70px); opacity: .55; animation: vyDrift 14s ease-in-out infinite; }
+        .vy-amb-orb2 { top: 470px; left: 36%; width: 320px; height: 320px; background: var(--vy-orb-2); border-radius: 50%; filter: blur(70px); opacity: .55; }
+        .vy-amb-orb3 { top: 220px; right: 4%; width: 300px; height: 300px; background: var(--vy-orb-3); border-radius: 50%; filter: blur(70px); opacity: .55; }
 
         main { position: relative; z-index: 1; }
 
@@ -108,51 +108,89 @@
         @keyframes vySwapPrev { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 
         /* ---- App shell ----------------------------------------------------------------------- */
-        .vy-shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
+        .vy-shell { display: grid; grid-template-columns: 200px minmax(0, 1fr); min-height: 100vh; }
 
-        /* Sidebar */
+        /* Sidebar — the frosted nav floats directly on the gradient (no panel bg / border), exact-match. */
         .vy-side {
             position: sticky; top: 0; align-self: start; height: 100vh;
-            padding: 22px 16px; display: flex; flex-direction: column; gap: 20px;
-            border-right: 1px solid var(--vy-hairline);
-            background: rgba(255, 253, 250, 0.5);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            padding: 26px 16px; display: flex; flex-direction: column; gap: 26px;
             overflow-y: auto;
+            animation: vyFadeUp .45s cubic-bezier(.22, .61, .36, 1) both;
         }
-        .vy-brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 8px; }
+        .vy-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
         .vy-brand-mark {
-            width: 34px; height: 34px; border-radius: var(--vy-r-md); background: var(--vy-grad);
-            color: #fff; font-family: var(--vy-display); font-weight: 700; font-size: 18px;
+            width: 34px; height: 34px; border-radius: var(--vy-r-sm); background: var(--vy-grad);
+            color: #fff; font-family: var(--vy-display); font-weight: 600; font-size: 17px;
             display: grid; place-items: center; box-shadow: var(--vy-shadow-accent);
         }
-        .vy-brand-name { font-family: var(--vy-display); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
-        .vy-nav-group { display: flex; flex-direction: column; gap: 2px; }
-        .vy-nav-label { font-size: 9.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--vy-faint); padding: 8px 10px 4px; }
+        .vy-brand-name { font-family: var(--vy-display); font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
+        .vy-nav { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; min-height: 0; }
+        .vy-nav-group { display: flex; flex-direction: column; gap: 3px; }
+        .vy-nav-label { font-size: 10.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #9C9089; padding: 0 12px 6px; }
         .vy-nav-item {
-            display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--vy-r-sm);
-            font-size: 13.5px; font-weight: 500; color: var(--vy-muted); cursor: pointer;
-            transition: background .18s ease, color .18s ease;
+            display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--vy-r-md);
+            font-size: 13.5px; font-weight: 500; color: #8A8079; cursor: pointer;
+            transition: background .16s ease, color .16s ease;
         }
-        .vy-nav-item .vy-ico { width: 15px; height: 15px; flex: none; opacity: .8; }
-        .vy-nav-item:hover { background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); }
+        .vy-nav-item .vy-ico { width: 16px; height: 16px; flex: none; }
+        .vy-nav-item:hover { background: rgba(255, 255, 255, 0.35); }
         .vy-nav-item.is-active {
-            background: rgba(255, 255, 255, 0.9); color: var(--vy-ink); font-weight: 600;
-            box-shadow: var(--vy-shadow-sm); border: 1px solid var(--vy-glass-border);
+            background: rgba(255, 255, 255, 0.72); color: var(--vy-accent); font-weight: 500;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 14px rgba(150, 90, 50, 0.14); border: 1px solid rgba(255, 255, 255, 0.8);
         }
         .vy-nav-item[aria-disabled="true"] { cursor: default; opacity: .55; }
-        .vy-nav-item[aria-disabled="true"]:hover { background: transparent; color: var(--vy-muted); }
+        .vy-nav-item[aria-disabled="true"]:hover { background: transparent; color: #8A8079; }
 
         /* Main column */
-        .vy-main { padding: 22px 30px 60px; max-width: 1320px; }
-        .vy-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+        .vy-main { padding: 30px 34px 40px 22px; max-width: 1314px; }
+        .vy-topbar { position: relative; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; animation: vyFadeUp .45s cubic-bezier(.22, .61, .36, 1) .06s both; }
         .vy-topbar h1 { font-family: var(--vy-display); font-weight: 600; font-size: 24px; letter-spacing: -0.02em; margin: 0; }
-        .vy-topbar-actions { display: flex; align-items: center; gap: 12px; }
+        .vy-topbar h1.is-greeting { font-size: 30px; }
+        .vy-topbar-actions { display: flex; align-items: center; gap: 10px; }
 
-        .vy-bell { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
-        .vy-bell .vy-badge { position: absolute; top: -3px; right: -3px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 50%; background: var(--vy-accent); color: #fff; font-size: 10.5px; font-weight: 600; display: grid; place-items: center; }
+        /* Notification bell — 42px frosted glass (exact-match). Scoped to the owner topbar; the `!important`
+           beats the shared bell component's inline background:none/border:none (operator shell is a separate file). */
+        .vy-topbar .vy-bell {
+            width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+            background: rgba(255, 252, 248, 0.62) !important; border: 1px solid rgba(255, 255, 255, 0.75) !important;
+            box-shadow: 0 14px 40px rgba(150, 90, 50, .12), inset 0 1px 0 rgba(255, 255, 255, .65);
+            backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            color: var(--vy-ink); transition: transform .14s ease;
+        }
+        .vy-topbar .vy-bell:hover { transform: translateY(-1px); }
+
+        /* Account menu — a dropdown (avatar + name + chevron → Profile / Security / Sign out), exact-match. */
+        .vy-acct { position: relative; }
+        .vy-acct-btn {
+            display: inline-flex; align-items: center; gap: 9px; padding: 5px 10px 5px 14px; border-radius: var(--vy-r-pill);
+            background: rgba(255, 252, 248, 0.62); border: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: 0 8px 24px rgba(150, 90, 50, .10), inset 0 1px 0 rgba(255, 255, 255, .6);
+            backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            color: var(--vy-ink); font-family: var(--vy-sans); cursor: pointer; transition: transform .14s ease;
+        }
+        .vy-acct-btn:hover { transform: translateY(-1px); }
+        .vy-acct-name { font-size: 13px; font-weight: 500; }
+        .vy-acct-btn .vy-avatar { width: 30px; height: 30px; }
+        .vy-acct-chev { width: 15px; height: 15px; color: var(--vy-faint); transition: transform .18s ease; }
+        .vy-acct-btn[aria-expanded="true"] .vy-acct-chev { transform: rotate(180deg); }
+        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
+        .vy-acct-menu {
+            position: absolute; top: calc(100% + 10px); right: 0; z-index: 70; min-width: 210px; padding: 6px;
+            background: rgba(255, 252, 248, 0.97); border: 1px solid rgba(255, 255, 255, 0.85); border-radius: var(--vy-r-md);
+            box-shadow: 0 24px 60px rgba(60, 30, 10, .22), inset 0 1px 0 rgba(255, 255, 255, .75);
+            backdrop-filter: blur(30px) saturate(1.15); -webkit-backdrop-filter: blur(30px) saturate(1.15);
+        }
+        .vy-acct-head { padding: 9px 11px 8px; border-bottom: 1px solid var(--vy-hairline); margin-bottom: 5px; }
+        .vy-acct-head .n { font-family: var(--vy-display); font-weight: 600; font-size: 13.5px; }
+        .vy-acct-head .r { font-size: 11px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-acct-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 11px; border: none; background: transparent; border-radius: var(--vy-r-sm); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); text-decoration: none; text-align: left; cursor: pointer; transition: background .14s ease; }
+        .vy-acct-item:hover { background: rgba(120, 70, 40, .06); }
+        .vy-acct-item svg { width: 16px; height: 16px; color: var(--vy-muted); flex: none; }
+        .vy-acct-item.is-danger { color: var(--vy-accent); }
+        .vy-acct-item.is-danger svg { color: var(--vy-accent); }
+        .vy-acct-sep { height: 1px; background: var(--vy-hairline); margin: 5px 6px; }
         .vy-chip { display: flex; align-items: center; gap: 9px; padding: 5px 12px 5px 6px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
-        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; }
         .vy-chip-name { font-size: 13px; font-weight: 500; }
 
         /* ---- Reusable surfaces --------------------------------------------------------------- */
@@ -311,6 +349,149 @@
         .vy-list-row:last-child { border-bottom: none; }
         .vy-list-row:hover .vy-row-month { color: var(--vy-accent); }
 
+        /* ============================================================================================
+           OWNER OVERVIEW — exact-match components (decoded from docs/design/raw/Owner Dashboard.html).
+           Scoped `.vy-ov-*` so they apply ONLY to the Overview; the shared .vy-card / .vy-card--dark /
+           .vy-eyebrow / .vy-hero-figure / .vy-dark-figure / .vy-track / .vy-status are reused as-is (they
+           already match the wireframe glass surfaces exactly). .vy-delta is Overview-only (restyled below).
+           ============================================================================================ */
+        .vy-ov-cols { display: grid; grid-template-columns: minmax(0, 1fr) 232px; gap: 20px; align-items: start; }
+        .vy-ov-stack { display: flex; flex-direction: column; gap: 20px; }
+        @media (max-width: 1100px) { .vy-ov-cols { grid-template-columns: minmax(0, 1fr); } }
+
+        /* Hero delta pill (Overview-only) — the wireframe's terracotta "+8% vs …" accent for a positive MoM. */
+        .vy-delta--up { background: rgba(217, 102, 46, .13); color: #B4400F; }
+        .vy-delta--down { background: rgba(143, 49, 16, .09); color: #8F3110; }
+
+        /* Quick actions — 4 frosted glass pill buttons with a terracotta icon. */
+        .vy-ov-qa { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+        .vy-ov-qa-btn {
+            display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--vy-r-pill);
+            background: rgba(255, 252, 248, .62); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            border: 1px solid rgba(255, 255, 255, .75); box-shadow: 0 8px 24px rgba(150, 90, 50, .10), inset 0 1px 0 rgba(255, 255, 255, .6);
+            color: #4A3F38; font-family: var(--vy-sans); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap;
+            cursor: pointer; transition: transform .14s ease, box-shadow .14s ease;
+        }
+        .vy-ov-qa-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(150, 90, 50, .16), inset 0 1px 0 rgba(255, 255, 255, .6); }
+        .vy-ov-qa-btn svg { color: var(--vy-accent); flex: none; }
+
+        /* Needs-your-attention bar. */
+        .vy-ov-attn {
+            position: relative; background: rgba(255, 252, 248, .6); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            border: 1px solid var(--vy-accent-border); border-radius: var(--vy-r-lg);
+            box-shadow: 0 14px 40px rgba(150, 90, 50, .14), inset 0 1px 0 rgba(255, 255, 255, .65); padding: 18px 20px; margin-bottom: 20px;
+        }
+        .vy-ov-attn-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .vy-ov-attn-head.has-chips { margin-bottom: 14px; }
+        .vy-ov-attn-l { display: flex; align-items: center; gap: 12px; }
+        .vy-ov-attn-icon { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: var(--vy-r-md); background: var(--vy-grad); box-shadow: 0 5px 14px rgba(194, 65, 12, .30); flex: none; color: #fff; }
+        .vy-ov-attn-t { display: flex; align-items: center; gap: 9px; }
+        .vy-ov-attn-t h2 { margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 16.5px; letter-spacing: -.01em; }
+        .vy-ov-attn-count { min-width: 21px; height: 21px; padding: 0 6px; box-sizing: border-box; border-radius: 20px; background: var(--vy-grad); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+        .vy-ov-attn-sub { font-size: 12.5px; color: var(--vy-faint); margin-top: 2px; }
+        .vy-ov-attn-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--vy-accent); text-decoration: none; flex: none; transition: gap .14s ease; }
+        .vy-ov-attn-link:hover { gap: 8px; }
+        .vy-ov-chips { display: flex; gap: 12px; flex-wrap: wrap; }
+        .vy-ov-chip { flex: 1; min-width: 240px; display: flex; align-items: center; gap: 11px; padding: 12px 13px; border-radius: 14px; background: rgba(255, 255, 255, .5); border: 1px solid rgba(255, 255, 255, .72); text-decoration: none; color: var(--vy-ink); transition: transform .14s ease, box-shadow .14s ease, background .14s ease; }
+        .vy-ov-chip:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(150, 90, 50, .14); background: rgba(255, 255, 255, .72); }
+        .vy-ov-chip-ic { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: var(--vy-r-sm); flex: none; }
+        .vy-ov-chip-main { min-width: 0; flex: 1; }
+        .vy-ov-chip-title { display: block; font-size: 13px; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vy-ov-chip-sub { display: block; font-size: 11.5px; color: var(--vy-faint); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vy-ov-chip-tag { flex: none; padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 600; }
+        .vy-ov-chip.is-warn .vy-ov-chip-ic { background: rgba(224, 146, 30, .15); color: var(--vy-amber); }
+        .vy-ov-chip.is-warn .vy-ov-chip-tag { background: rgba(224, 146, 30, .15); color: var(--vy-amber); }
+        .vy-ov-chip.is-info .vy-ov-chip-ic { background: rgba(232, 112, 58, .13); color: var(--vy-accent); }
+        .vy-ov-chip.is-info .vy-ov-chip-tag { background: rgba(232, 112, 58, .13); color: var(--vy-accent); }
+
+        /* Metric row — 3 glass link-cards with a ↗ corner + optional occupancy sparkline. */
+        .vy-ov-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        @media (max-width: 640px) { .vy-ov-metrics { grid-template-columns: 1fr; } }
+        .vy-ov-metric {
+            display: block; text-decoration: none; color: inherit; background: var(--vy-glass);
+            backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow);
+            padding: 18px 20px; transition: transform .14s ease, box-shadow .14s ease;
+        }
+        .vy-ov-metric:hover { transform: translateY(-2px); box-shadow: 0 18px 48px rgba(150, 90, 50, .22), inset 0 1px 0 rgba(255, 255, 255, .65); }
+        .vy-ov-metric-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+        .vy-ov-metric-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; }
+        .vy-ov-metric-arrow { color: #C0B3A9; flex: none; }
+        .vy-ov-metric-val { font-family: var(--vy-display); font-weight: 600; font-size: 32px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+        .vy-ov-metric-val.is-deferred { color: var(--vy-faint); }
+        .vy-ov-occ { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+        .vy-ov-occ-fig { display: flex; align-items: baseline; gap: 8px; }
+        .vy-ov-occ-delta { font-size: 13px; font-weight: 500; color: var(--vy-accent); }
+
+        /* Section title (Recent statements / Earnings) — Sora 500 16. */
+        .vy-ov-sec-title { font-family: var(--vy-display); font-weight: 500; font-size: 16px; margin: 0; }
+
+        /* Earnings chart — segmented period toggle + full-width bars + a dark hover tooltip. */
+        .vy-ov-seg { display: inline-flex; align-items: center; gap: 3px; padding: 3px; border-radius: var(--vy-r-pill); background: rgba(120, 70, 40, .06); border: 1px solid var(--vy-glass-border); }
+        .vy-ov-seg-btn { padding: 5px 13px; border: none; border-radius: var(--vy-r-pill); cursor: pointer; font-family: var(--vy-sans); font-size: 11.5px; font-weight: 500; color: var(--vy-muted); background: transparent; box-shadow: none; transition: color .16s, background .16s, box-shadow .16s; }
+        .vy-ov-seg-btn.is-active { font-weight: 600; color: var(--vy-ink); background: #fff; box-shadow: var(--vy-shadow-sm); }
+        .vy-ov-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; position: relative; }
+        .vy-ov-barcol { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; text-decoration: none; cursor: pointer; }
+        .vy-ov-bar { position: relative; width: 100%; border-radius: 6px 6px 0 0; background: var(--vy-grad-peach); transition: opacity .16s ease, filter .16s ease; }
+        .vy-ov-bar.is-last { background: var(--vy-grad); }
+        .vy-ov-barcol:hover .vy-ov-bar { filter: brightness(1.04); }
+        .vy-ov-bar-month { font-size: 11px; color: var(--vy-faint); }
+        .vy-ov-tip { position: absolute; left: 50%; bottom: calc(100% + 9px); transform: translateX(-50%) translateY(4px); opacity: 0; transition: opacity .16s ease, transform .16s ease; pointer-events: none; white-space: nowrap; z-index: 20; }
+        .vy-ov-barcol:hover .vy-ov-tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .vy-ov-tip-inner { position: relative; background: #2A211C; border-radius: 10px; padding: 7px 11px; box-shadow: 0 8px 22px rgba(60, 30, 10, .30); }
+        .vy-ov-tip-inner::after { content: ""; position: absolute; left: 50%; top: 100%; width: 9px; height: 9px; background: #2A211C; transform: translateX(-50%) translateY(-50%) rotate(45deg); }
+        .vy-ov-tip-m { font-size: 9.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #C9B8AC; }
+        .vy-ov-tip-v { font-size: 13.5px; font-weight: 600; color: #fff; font-variant-numeric: tabular-nums; margin-top: 1px; }
+
+        /* Dark next-payout rail — halo glow + masked bank-account pill + paused/resume branch. */
+        .vy-ov-payout { position: relative; }
+        .vy-ov-payout-halo { position: absolute; top: -28px; left: -30px; right: -30px; bottom: -34px; background: radial-gradient(ellipse at 50% 55%, rgba(232, 112, 58, .38), transparent 70%); filter: blur(26px); pointer-events: none; }
+        .vy-ov-payout .vy-card { position: relative; padding: 20px; }
+        .vy-ov-iban { display: inline-flex; align-items: center; gap: 7px; margin-top: 16px; padding: 7px 12px; border-radius: var(--vy-r-pill); background: var(--vy-grad); color: #fff; font-size: 12px; font-weight: 500; box-shadow: 0 4px 12px rgba(194, 65, 12, .35); }
+        .vy-ov-payout-est { font-size: 13px; color: #B9ABA0; margin-top: 5px; }
+        .vy-ov-pause-row { display: flex; align-items: center; gap: 11px; }
+        .vy-ov-pause-ic { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 11px; background: rgba(232, 112, 58, .18); flex: none; color: var(--vy-peach); }
+        .vy-ov-pause-fig { font-family: var(--vy-display); font-weight: 600; font-size: 26px; letter-spacing: -.02em; color: #fff; }
+        .vy-ov-resume { display: inline-flex; align-items: center; gap: 6px; margin-top: 15px; padding: 8px 14px; border-radius: var(--vy-r-pill); background: var(--vy-grad); color: #fff; font-size: 12px; font-weight: 500; text-decoration: none; box-shadow: 0 4px 12px rgba(194, 65, 12, .35); }
+
+        /* My units rail. */
+        .vy-ov-units { display: flex; flex-direction: column; gap: 14px; }
+        .vy-ov-unit-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+        .vy-ov-unit-name { font-size: 13px; font-weight: 500; }
+        .vy-ov-unit-pct { font-size: 12.5px; font-weight: 500; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
+
+        /* Upcoming stays rail. */
+        .vy-ov-stays-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
+        .vy-ov-ctrl { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 9px; border: 1px solid rgba(120, 70, 40, .16); background: rgba(255, 252, 248, .6); color: #6B615A; font-family: var(--vy-sans); font-size: 11.5px; font-weight: 500; cursor: pointer; transition: background .12s ease; }
+        .vy-ov-ctrl:hover { background: rgba(255, 252, 248, .95); }
+        .vy-ov-ctrl-count { display: inline-flex; align-items: center; justify-content: center; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 20px; background: var(--vy-accent); color: #fff; font-size: 9.5px; font-weight: 700; }
+        .vy-ov-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 31; min-width: 178px; padding: 5px; border-radius: var(--vy-r-md); background: rgba(255, 252, 248, .98); backdrop-filter: blur(20px) saturate(1.2); -webkit-backdrop-filter: blur(20px) saturate(1.2); border: 1px solid rgba(255, 255, 255, .85); box-shadow: 0 16px 44px rgba(120, 70, 40, .24); }
+        .vy-ov-menu-h { padding: 6px 9px 4px; font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #B0A49C; }
+        .vy-ov-menu-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px; border: none; background: transparent; border-radius: var(--vy-r-sm); font-family: var(--vy-sans); font-size: 12px; color: var(--vy-ink); cursor: pointer; text-align: left; transition: background .12s ease; }
+        .vy-ov-menu-item:hover { background: rgba(120, 70, 40, .06); }
+        .vy-ov-menu-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+        .vy-ov-menu-sep { height: 1px; background: rgba(120, 70, 40, .1); margin: 5px 6px; }
+        .vy-ov-stays { display: flex; flex-direction: column; gap: 15px; }
+        .vy-ov-stay { display: block; text-decoration: none; color: inherit; margin: 0 -8px; padding: 7px 8px; border-radius: var(--vy-r-sm); transition: background .15s ease; }
+        .vy-ov-stay:hover { background: rgba(120, 70, 40, .05); }
+        .vy-ov-stay-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .vy-ov-stay-guest { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+        .vy-ov-stay-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+        .vy-ov-stay-name { font-size: 13.5px; font-weight: 500; color: var(--vy-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vy-ov-stay-val { font-size: 13px; font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; flex: none; }
+        .vy-ov-stay-bot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 3px; }
+        .vy-ov-stay-detail { font-size: 11.5px; color: var(--vy-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vy-ov-stay-meta { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+        .vy-ov-stay-status { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 600; }
+        .vy-ov-stay-date { font-size: 11.5px; color: var(--vy-faint); }
+        .vy-ov-stays-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(120, 70, 40, .09); }
+        .vy-ov-stays-foot-l { font-size: 10.5px; color: #9C9089; letter-spacing: .01em; }
+        .vy-ov-viewall { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 500; color: var(--vy-accent); text-decoration: none; flex: none; }
+
+        /* Download-statements pill (bottom of the right rail). */
+        .vy-ov-dl { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow); color: var(--vy-ink); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 500; cursor: pointer; text-decoration: none; transition: transform .14s ease, box-shadow .14s ease; }
+        .vy-ov-dl:hover { transform: translateY(-2px); box-shadow: 0 18px 48px rgba(150, 90, 50, .22), inset 0 1px 0 rgba(255, 255, 255, .65); }
+
         /* ---- Messages (Wave 3) — the owner portal's first FORM + first transcript ---------------
            Built on the OWNER tokens above, not copied from the operator layout: the two design systems
            are deliberately separate files (the owner one is the warmer, calmer of the two). The shapes
@@ -427,6 +608,13 @@
     </style>
 </head>
 <body class="vy-body">
+    <div class="vy-amb" aria-hidden="true">
+        <div class="vy-amb-streak1"></div>
+        <div class="vy-amb-streak2"></div>
+        <div class="vy-amb-orb1"></div>
+        <div class="vy-amb-orb2"></div>
+        <div class="vy-amb-orb3"></div>
+    </div>
     <main>
         {{ $slot }}
     </main>

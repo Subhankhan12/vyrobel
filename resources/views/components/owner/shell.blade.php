@@ -13,6 +13,7 @@
     'active' => '',
     'title' => '',
     'subtitle' => '',
+    'titleLg' => false,   // Owner-Overview exact-match — render the <h1> at the wireframe's 30px greeting size.
     'viewer' => ['name' => 'Owner', 'initials' => 'O'],
 ])
 @php
@@ -72,36 +73,38 @@
             <span class="vy-brand-name">Vyrobel</span>
         </div>
 
-        @foreach ($navGroups as [$group, $items])
-            <nav class="vy-nav-group" aria-label="{{ $group }}">
-                <span class="vy-nav-label">{{ $group }}</span>
-                @foreach ($items as [$key, $label, $icon, $href, $cap])
-                    @php $isActive = $key === $active; @endphp
-                    @if ($isActive)
-                        <span class="vy-nav-item is-active" aria-current="page">
-                            <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
-                            {{ $label }}
-                        </span>
-                    @elseif ($href)
-                        <a class="vy-nav-item" href="{{ $href }}">
-                            <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
-                            {{ $label }}
-                        </a>
-                    @else
-                        <span class="vy-nav-item" aria-disabled="true" title="Coming soon">
-                            <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
-                            {{ $label }}
-                        </span>
-                    @endif
-                @endforeach
-            </nav>
-        @endforeach
+        <div class="vy-nav">
+            @foreach ($navGroups as [$group, $items])
+                <nav class="vy-nav-group" aria-label="{{ $group }}">
+                    <span class="vy-nav-label">{{ $group }}</span>
+                    @foreach ($items as [$key, $label, $icon, $href, $cap])
+                        @php $isActive = $key === $active; @endphp
+                        @if ($isActive)
+                            <span class="vy-nav-item is-active" aria-current="page">
+                                <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
+                                {{ $label }}
+                            </span>
+                        @elseif ($href)
+                            <a class="vy-nav-item" href="{{ $href }}">
+                                <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
+                                {{ $label }}
+                            </a>
+                        @else
+                            <span class="vy-nav-item" aria-disabled="true" title="Coming soon">
+                                <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
+                                {{ $label }}
+                            </span>
+                        @endif
+                    @endforeach
+                </nav>
+            @endforeach
+        </div>
     </aside>
 
     <div class="vy-main">
         <div class="vy-topbar">
             <div>
-                <h1>{{ $title }}</h1>
+                <h1 @class(['is-greeting' => $titleLg])>{{ $title }}</h1>
                 {{-- Wave 3 — the owner shell gained a subtitle to match <x-operator.shell>'s. Rendered only
                      when given, so the ten screens that pass none are byte-for-byte unchanged. --}}
                 @if ($subtitle !== '')
@@ -110,16 +113,39 @@
             </div>
             <div class="vy-topbar-actions">
                 <x-notifications.bell :open-all-url="route('owner.notifications')" />
-                <span class="vy-chip">
-                    <span class="vy-avatar">{{ $viewer['initials'] }}</span>
-                    <span class="vy-chip-name">{{ $viewer['name'] }}</span>
-                </span>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="vy-icobtn" title="Sign out" aria-label="Sign out">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+
+                {{-- Account menu — a dropdown (Profile / Security / Sign out), replacing the static chip +
+                     separate logout icon. Sign-out is preserved inside the menu (no capability lost). Alpine
+                     popover (the Livewire-4 Alpine already loaded — no new dependency), mirrors the bell. --}}
+                <div class="vy-acct" x-data="{ open: false }" @keydown.escape.window="open = false">
+                    <button type="button" class="vy-acct-btn" @click="open = !open" :aria-expanded="open ? 'true' : 'false'" aria-haspopup="true" aria-label="Account menu">
+                        <span class="vy-acct-name">{{ $viewer['name'] }}</span>
+                        <span class="vy-avatar">{{ $viewer['initials'] }}</span>
+                        <svg class="vy-acct-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
-                </form>
+                    <div x-cloak x-show="open" x-transition.opacity.duration.150ms @click.outside="open = false" class="vy-acct-menu" role="menu" aria-label="Account">
+                        <div class="vy-acct-head">
+                            <div class="n">{{ $viewer['name'] }}</div>
+                            <div class="r">Owner portal</div>
+                        </div>
+                        <a class="vy-acct-item" href="{{ route('owner.settings') }}" role="menuitem">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+                            Profile &amp; account
+                        </a>
+                        <a class="vy-acct-item" href="{{ route('owner.security') }}" role="menuitem">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg>
+                            Security
+                        </a>
+                        <div class="vy-acct-sep"></div>
+                        <form method="POST" action="{{ route('logout') }}" style="margin:0">
+                            @csrf
+                            <button type="submit" class="vy-acct-item is-danger" role="menuitem">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                                Sign out
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 
