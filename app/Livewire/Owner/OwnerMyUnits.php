@@ -70,16 +70,34 @@ class OwnerMyUnits extends Component
             'unitsCount' => $units->count(),
             'units' => $this->unitCards($units, $occupancy, $perUnit, $currency, $bestUnitId),
             'occupancy' => $occupancy,
+            'occDelta' => $this->occDelta($unitIds, $month, $occupancy['pct']),
             'earned' => $this->earnedThisMonth($month, $currency),
             'best' => $this->bestPerformer($units, $perUnit, $bestUnitId, $month, $currency),
             'attention' => $this->attentionItems(),
             'month' => [
                 'label' => $month->format('F Y'),
+                'label_short' => $month->format('M'),
                 'first_weekday' => $month->copy()->startOfMonth()->dayOfWeekIso,   // 1=Mon … 7=Sun
                 'prev' => $month->copy()->subMonthNoOverflow()->format('Y-m'),
                 'next' => $month->copy()->addMonthNoOverflow()->format('Y-m'),
             ],
         ]);
+    }
+
+    /**
+     * A REAL month-over-month occupancy delta for the stats band — this month's owner-unit occupancy % vs the
+     * previous month's (both via the shared {@see OwnerOccupancy}). null when there is no prior signal (never a
+     * fabricated trend, #39).
+     *
+     * @param  list<string>  $unitIds
+     * @return array{label: string, positive: bool}|null
+     */
+    private function occDelta(array $unitIds, Carbon $month, int $currentPct): ?array
+    {
+        $prevPct = OwnerOccupancy::forMonth($unitIds, $month->copy()->subMonthNoOverflow())['pct'];
+        $diff = $currentPct - $prevPct;
+
+        return $diff === 0 ? null : ['label' => ($diff > 0 ? '+' : '−').abs($diff).'%', 'positive' => $diff > 0];
     }
 
     /** The display currency — the units' property currency (matches OwnerInsights); EUR fallback. */

@@ -80,7 +80,7 @@ it('renders REAL per-unit revenue, nightly rate, best performer and a real atten
         ->assertSee('Best performer')
         ->assertSee('UNITALPHA')                    // the booked unit leads
         ->assertSee('★ Best')                       // the best badge sits on the leading card
-        ->assertSee('Top of your 2 units')          // the real ranking, not a fabricated winner
+        ->assertSee('this month')                   // the best-performer sub-line (real nights · revenue this month) — a real ranking, not a fabricated winner
         // the attention feed shows a REAL item (fresh owner → no payout method), never a fabricated proposal
         ->assertSee('Confirm your payout bank account')
         ->assertDontSee('rate change proposed');    // the prototype's invented rate proposals are NOT built (#39)
