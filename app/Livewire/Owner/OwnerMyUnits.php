@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
-use App\Models\ManagementAgreement;
-use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
-use App\Models\OwnerStatement;
-use App\Models\PayoutMethod;
 use App\Models\ReservationUnit;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Support\Owner\OwnerAttention;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Owner\OwnerOccupancy;
@@ -21,7 +18,6 @@ use App\Support\Owner\OwnerUnitAnalytics;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -216,66 +212,14 @@ class OwnerMyUnits extends Component
     }
 
     /**
-     * "Needs your attention" — REAL items only (Batch B · Q5): a genuine payout hold (finalized statements
-     * but no tax details on file), a missing payout method, and an agreement renewing within 30 days. The
-     * prototype's fabricated rate-change "proposals" are NOT built (#39). Owner-resolved via OwnerContext,
-     * so only the viewer's OWN owner rows are read (#28). No real item → the view shows an honest "caught up".
+     * "Needs your attention" — REAL items only, via the ONE shared {@see OwnerAttention} feed (extracted so
+     * this screen and the owner Overview cannot drift on what needs the owner). Owner-resolved via
+     * OwnerContext (#28); no real item → the view shows an honest "caught up".
      *
      * @return list<array{tone: string, title: string, body: string, cta: array{label: string, route: string}}>
      */
     private function attentionItems(): array
     {
-        $context = app(OwnerContext::class);
-        if (! $context->active() || $context->ownerIds() === []) {
-            return [];
-        }
-
-        $items = [];
-        $today = Carbon::today();
-
-        foreach (Owner::query()->whereIn('id', $context->ownerIds())->get() as $owner) {
-            $ownerId = (string) $owner->id;
-
-            // A GENUINE payout hold: the owner has finalized statements but no tax details on file.
-            $hasFinalized = OwnerStatement::query()->where('owner_id', $ownerId)->whereNotNull('finalized_at')->exists();
-            if ($hasFinalized && ! $owner->hasTaxDetails()) {
-                $items[] = [
-                    'tone' => 'warn',
-                    'title' => 'Add tax details to release payout',
-                    'body' => 'Your payout is on hold until your tax details are on file.',
-                    'cta' => ['label' => 'Add tax details', 'route' => route('owner.tax')],
-                ];
-            }
-
-            // No payout method on record → we cannot send earnings.
-            if (! PayoutMethod::query()->where('owner_id', $ownerId)->exists()) {
-                $items[] = [
-                    'tone' => 'warn',
-                    'title' => 'Confirm your payout bank account',
-                    'body' => 'Add a payout method so we can send your earnings.',
-                    'cta' => ['label' => 'Payout method', 'route' => route('owner.payout-method')],
-                ];
-            }
-
-            // A management agreement genuinely renewing within 30 days (real effective_to).
-            $agreement = ManagementAgreement::query()
-                ->where('owner_id', $ownerId)
-                ->whereNotNull('effective_to')
-                ->whereDate('effective_to', '>=', $today->toDateString())
-                ->whereDate('effective_to', '<=', $today->copy()->addDays(30)->toDateString())
-                ->orderBy('effective_to')
-                ->first();
-            if ($agreement instanceof ManagementAgreement && $agreement->effective_to !== null) {
-                $days = (int) $today->diffInDays($agreement->effective_to);
-                $items[] = [
-                    'tone' => 'info',
-                    'title' => 'Management agreement renews soon',
-                    'body' => 'Your agreement ends in '.$days.' '.Str::plural('day', $days).' — review the terms.',
-                    'cta' => ['label' => 'Review agreement', 'route' => route('owner.agreement')],
-                ];
-            }
-        }
-
-        return $items;
+        return OwnerAttention::items(app(OwnerContext::class));
     }
 }

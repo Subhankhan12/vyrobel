@@ -6,6 +6,26 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐ **CURRENT STATE — 2026-07-27 · OWNER OVERVIEW exact-match + real backends (INVARIANT #54).** The owner
+> Overview (`/owner`) was rebuilt to the decoded `docs/design/raw/Owner Dashboard.html` wireframe EXACTLY **and**
+> wired so every section is operational on REAL owner-scoped data (no stubs, no fabrication). Two gates: **GATE 1**
+> (design, `d80abdf`) — peach-diagonal background + ambient orbs/streaks, frosted **terracotta-active** sidebar,
+> greeting header + account-menu dropdown, 42px bell, attention bar, glass quick actions, 52px hero + terracotta
+> delta, ↗ metric link-cards, segmented earnings toggle, halo dark rail (shared owner chrome extended, not
+> one-offs; the 5 extra real nav items KEPT — D2). **GATE 2** (real backends) — occupancy KPI + per-unit bars +
+> delta + sparkline (`OwnerOccupancy`), the attention feed (new shared `OwnerAttention`), the next-30-days upcoming
+> stays (new shared `OwnerUpcomingStays` — **guest NAME only #28** + owner NET via `OwnerLedgerAttribution` +
+> client-side Alpine Source/Status filters — a Livewire round-trip would bypass the owner scope), the masked IBAN +
+> tax-hold paused-state, the time-aware greeting, and the 4 quick actions (real routes, capability-gated). Honesty
+> held (#39): no earnings goal, no estimated payout date, no invented occupancy (the demo shows a real LOW
+> occupancy, never a fake 78%); honest empty states. Mutation-/render-proven (`OwnerUpcomingStaysTest` +
+> `OwnerDashboardViewTest` — 30-day clip · name-only · net-reconcile · honesty · `assertNoRawBlade`); browser-
+> verified (real data + working filter dropdown + paused rail + account dropdown). Suite **1042**; PHPStan L5 = 0;
+> Pint clean; `migrate:fresh --seed` clean. Docs: `docs/OWNER-OVERVIEW-AUDIT.md`, DECISIONS.md 2026-07-27,
+> `design/DIVERGENCE-REGISTER.md` (owner Overview → RESTRUCTURED-exact + operational). **Invariants #1–54.**
+>
+> ---
+>
 > ⭐⭐ **CURRENT STATE — 2026-07-27 TOTAL-RECALL CONSOLIDATION. This block SUPERSEDES every block below it (all kept
 > as historical detail). For the fresh-session read-order + one-paragraph summary + creds + next action, start at
 > `docs/RESUME.md`.** Documentation-only consolidation — **no feature code changed** since the account page; HEAD on

@@ -4206,3 +4206,65 @@ surface confirmed against the routes/controllers/views/models. Changes:
 Confirmed: a fresh session reading `docs/RESUME.md` → `docs/PROJECT-STATE.md` now inherits the complete context —
 what Vyrobel is, everything built (Phases 0–8 + the Super Admin panel), the current quality state, the honest
 deferrals, what's left, the creds, and the exact next action. **Invariants #1–53.**
+
+### 2026-07-27 — OWNER OVERVIEW — exact wireframe match + real backends (INVARIANT #54); two gates
+
+The owner Overview (`/owner`, `App\Livewire\Owner\OwnerDashboard`) rebuilt to the decoded
+`docs/design/raw/Owner Dashboard.html` wireframe EXACTLY **and** wired so every section is operational with REAL
+owner-scoped data — no stubs, no fabrication. Read-only Phase 1 audit (`docs/OWNER-OVERVIEW-AUDIT.md`) → two gated
+builds. Suite **1040 → 1042** (2 new `OwnerUpcomingStaysTest`; `OwnerDashboardViewTest` updated in place);
+PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean. The rest of the app + the tenant system untouched.
+
+**PHASE 0 — decoded the wireframe** (a `dc-runtime` bundle, not plain HTML): `JSON.parse` the
+`<script type="__bundler/template">` → the real `<x-dc>` markup (inline-style design tokens) + the `{{ }}` data
+placeholders; the manifest's gzip/base64 assets = the Inter/Sora fonts + runtime. Confirmed the palette
+(warm-glass, `#C2410C`, dark rail). Rendered live at `:8899` for the side-by-side.
+
+**GATE 1 — exact design match (presentation; `d80abdf`).** Shared owner chrome (all owner pages inherit — the "one
+system" outcome the founder chose): the peach→grey diagonal background (`--vy-bg`) + the wireframe's ambient color
+orbs + light streaks (reduced-motion honoured); the frosted sidebar exact-match (200px, no panel bg/border,
+**terracotta-active item** `#C2410C` — was `--vy-ink`, the notable fix); the greeting `<h1>` (30px, opt-in
+`.is-greeting`), a 42px frosted bell, and a real **account-menu dropdown** (Profile / Security / Sign out —
+sign-out preserved) replacing the static chip + logout icon. **Decision D2:** the 5 extra REAL nav items
+(Bookings / Add a unit / Payout method / Documents / Notifications) the wireframe omits are **KEPT** — the shell is
+shared, so removing them would strand those pages on every owner screen; the visual treatment matches, the
+functionality doesn't regress. Overview body via scoped `.vy-ov-*` (the shared `.vy-card` / `--dark` /
+`.vy-hero-figure` / `.vy-track` already match the wireframe glass surfaces). Suite 1040/1040.
+
+**GATE 2 — real backends (operational).** Every section wired to REAL owner-scoped data through the SHARED owner
+derivations (anti-drift — the Overview cannot drift from My Units / Bookings):
+- **Occupancy KPI + per-unit bars + MoM delta + trend sparkline** — `OwnerOccupancy::forMonth` (owner-unit-scoped,
+  keyed by physical unit id; the old "room-type-wide" deferral is superseded). The demo shows a REAL low occupancy
+  (3% / A1 6% / A2 0%), never a fabricated 78% (#39).
+- **Attention feed** — extracted `OwnerMyUnits::attentionItems()` into a shared `App\Support\Owner\OwnerAttention`
+  read by BOTH surfaces: real tax-hold / missing-payout-method / agreement-renewal chips; empty → honest "caught
+  up". The fabricated "rate-change proposal" chip stays REFUSED (#39).
+- **Upcoming stays** — new shared `App\Support\Owner\OwnerUpcomingStays`: the owner's REAL next-30-days arrivals,
+  **guest NAME only (#28** — never email/phone; **Decision D1**, within the existing owner Bookings perimeter, which
+  reversed the dashboard's old "never shown" copy + updated its test), owner **NET** via the shared
+  `OwnerLedgerAttribution` (reconciles; a future unattributed stay shows "Not yet attributed", never a fake €0),
+  real source/status. The Source/Status **filters + sort are CLIENT-SIDE (Alpine)** over the server-rendered rows —
+  a Livewire round-trip would bypass `SetOwnerScopeForPortal` and leak (the discipline OwnerBookings documents).
+- **Next-payout rail** — real masked **IBAN** (`Iban::masked`, shown only to a payout-capable role — CAP_PAYOUT) +
+  the **tax-hold paused-state** (a pending payout AND an owner with no tax details — the ONLY real "paused"). No
+  estimated date, no "Scheduled/On hold" state (no backing field — #39).
+- **Greeting** (real time-aware + owner first name) + the four quick actions wired to real routes (calendar /
+  messages / statement-PDF / help, capability-gated so the UI never invites a 403).
+
+**Mutation-/render-proven:** `OwnerUpcomingStaysTest` — the 30-day clip (a beyond-30d + a past booking excluded),
+guest **name-only** (email/phone never in the feed), the owner NET reconciles to the cent (€170.00), real
+source/status counts, and fail-closed on an empty/foreign unit set. `OwnerDashboardViewTest` — the render shows the
+guest NAME but NOT email/phone (#28 at the render boundary), a real attention chip, occupancy no longer stubbed, no
+fabricated goal/estimated-date, `assertNoRawBlade` (the `word@directive` trap — hit once during the build, on
+`attention@else`, and fixed). Browser-verified end-to-end (real data in every section; the filter dropdown narrows
+by source/status with real counts; the paused rail; the account dropdown).
+
+**NEW INVARIANT #54** — the owner Overview matches the wireframe exactly AND is fully operational on REAL
+owner-scoped aggregates (occupancy / attention / upcoming stays / payout), through the SHARED owner derivations
+(`OwnerOccupancy` / `OwnerAttention` / `OwnerUpcomingStays` / `OwnerLedgerAttribution` — anti-drift), guest
+NAME-only (#28), integer money (#17), honest empty states, nothing fabricated (#39); its interactive filters are
+client-side (never a Livewire round-trip that would bypass the owner scope). Files: `OwnerAttention` +
+`OwnerUpcomingStays` (new shared), `OwnerDashboard` (occupancy/attention/upcoming/payout/greeting), `OwnerMyUnits`
+(delegates attention), `dashboard.blade.php` (full rebuild), `layouts/owner` + `owner/shell` (chrome), the 2 test
+files. Docs: `OWNER-OVERVIEW-AUDIT.md` (gaps → fixed), this entry, `design/DIVERGENCE-REGISTER.md` (the owner
+Overview row → RESTRUCTURED-exact + operational), `PROJECT-STATE.md`. **Invariants #1–54.**

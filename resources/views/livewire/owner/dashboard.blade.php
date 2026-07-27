@@ -1,28 +1,42 @@
 {{--
     Owner Dashboard / Overview — rebuilt to the decoded `docs/design/raw/Owner Dashboard.html` wireframe (exact
-    design match). GATE 1 = the visual layer, built to RECEIVE real data: the already-wired data (this-month
-    earnings hero + MoM delta, total units, earned YTD, recent statements, earnings chart, next-payout amount,
-    unit codes) renders in the new design; the sections whose real backends are wired in GATE 2 (occupancy KPI +
-    sparkline, per-unit occupancy, the attention feed, upcoming stays, masked IBAN + paused-state) show an HONEST
-    empty state in the exact design — NEVER a fabricated figure (#39). Guest names (name-only, #28) arrive with
-    upcoming stays in GATE 2. Owner-scoped throughout (OwnerScope / OwnerContext, #28); integer money (#17).
+    design match) AND wired to LIVE, owner-scoped data end-to-end. Every figure is a REAL owner aggregate (#39):
+    the this-month earnings hero + MoM delta, total units, earned YTD, recent statements, the earnings chart, the
+    OCCUPANCY KPI + per-unit occupancy (OwnerOccupancy), the attention feed (OwnerAttention), the next-30-days
+    upcoming stays (OwnerUpcomingStays — guest NAME only, #28) with client-side Source/Status filters, and the
+    masked payout IBAN + tax-hold paused-state. Nothing is fabricated — no earnings goal line, no estimated
+    payout date, no invented occupancy; thin/empty data shows an honest empty state. Owner-scoped throughout
+    (OwnerScope / OwnerContext, #28); integer money (#17). See App\Livewire\Owner\OwnerDashboard.
 
     Shell chrome (peach background, ambient orbs, frosted sidebar, greeting header, account menu) is the shared
     <x-owner.shell> + layouts/owner — see those files. This view is the Overview body only.
 --}}
 <x-owner.shell active="overview" :title="$greeting" :title-lg="true" :viewer="$viewer">
 
-    {{-- ── Needs your attention (GATE 1: honest "caught up"; GATE 2 wires the real tax-hold / payout-method /
-         agreement-renewal signals as chips) ── --}}
+    {{-- ── Needs your attention — REAL items via the shared OwnerAttention feed (tax-hold / payout-method /
+         agreement-renewal); empty → an honest "caught up". Never a fabricated signal (#39). ── --}}
+    @php
+        $attnCount = count($attention);
+        $attnSub = $attnCount > 0
+            ? $attnCount.' '.\Illuminate\Support\Str::plural('item', $attnCount).' need your attention'
+            : "You're all caught up — nothing needs you right now.";
+    @endphp
     <section class="vy-ov-attn vy-fade" style="animation-delay:.02s">
-        <div class="vy-ov-attn-head">
+        <div class="vy-ov-attn-head @if ($attnCount > 0) has-chips @endif">
             <div class="vy-ov-attn-l">
                 <span class="vy-ov-attn-icon">
-                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    @if ($attnCount > 0)
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+                    @else
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    @endif
                 </span>
                 <div>
-                    <div class="vy-ov-attn-t"><h2>Needs your attention</h2></div>
-                    <div class="vy-ov-attn-sub">You're all caught up — nothing needs you right now.</div>
+                    <div class="vy-ov-attn-t">
+                        <h2>Needs your attention</h2>
+                        @if ($attnCount > 0)<span class="vy-ov-attn-count">{{ $attnCount }}</span>@endif
+                    </div>
+                    <div class="vy-ov-attn-sub">{{ $attnSub }}</div>
                 </div>
             </div>
             <a class="vy-ov-attn-link" href="{{ route('owner.notifications') }}">
@@ -30,6 +44,26 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
             </a>
         </div>
+        @if ($attnCount > 0)
+            <div class="vy-ov-chips">
+                @foreach ($attention as $item)
+                    <a class="vy-ov-chip {{ $item['tone'] === 'warn' ? 'is-warn' : 'is-info' }}" href="{{ $item['cta']['route'] }}">
+                        <span class="vy-ov-chip-ic">
+                            @if ($item['tone'] === 'warn')
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+                            @else
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg>
+                            @endif
+                        </span>
+                        <span class="vy-ov-chip-main">
+                            <span class="vy-ov-chip-title">{{ $item['title'] }}</span>
+                            <span class="vy-ov-chip-sub">{{ $item['body'] }}</span>
+                        </span>
+                        <span class="vy-ov-chip-tag">{{ $item['tone'] === 'warn' ? 'Action' : 'Review' }}</span>
+                    </a>
+                @endforeach
+            </div>
+        @endif
     </section>
 
     {{-- ── Quick actions — real links; capability-gated controls hidden so the UI never invites a 403 (#30) ── --}}
@@ -99,8 +133,26 @@
                         <span class="vy-ov-metric-label">Occupancy</span>
                         <svg class="vy-ov-metric-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
                     </div>
-                    {{-- GATE 2 replaces with the real owner-unit occupancy % + delta + sparkline (OwnerOccupancy). --}}
-                    <div class="vy-ov-metric-val is-deferred">—</div>
+                    {{-- REAL owner-unit occupancy for the current month (OwnerOccupancy) + MoM delta + trend. --}}
+                    @if ($occupancy['has_data'])
+                        <div class="vy-ov-occ">
+                            <div class="vy-ov-occ-fig">
+                                <span class="vy-ov-metric-val">{{ $occupancy['pct_display'] }}</span>
+                                @if ($occupancy['delta'])
+                                    <span class="vy-ov-occ-delta" @unless ($occupancy['delta']['positive']) style="color:var(--vy-muted)" @endunless>{{ $occupancy['delta']['label'] }}</span>
+                                @endif
+                            </div>
+                            @if ($occupancy['spark']['has'])
+                                <svg width="94" height="32" viewBox="0 0 100 34" fill="none" style="flex-shrink:0;overflow:visible">
+                                    <path d="{{ $occupancy['spark']['area'] }}" fill="rgba(232,112,58,0.13)"></path>
+                                    <path d="{{ $occupancy['spark']['line'] }}" stroke="#E8703A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <circle cx="{{ $occupancy['spark']['last_x'] }}" cy="{{ $occupancy['spark']['last_y'] }}" r="2.6" fill="#C2410C" stroke="#FFF8F1" stroke-width="1.5"></circle>
+                                </svg>
+                            @endif
+                        </div>
+                    @else
+                        <div class="vy-ov-metric-val">{{ $occupancy['pct_display'] }}</div>
+                    @endif
                 </a>
                 <a class="vy-ov-metric" href="{{ route('owner.reports') }}">
                     <div class="vy-ov-metric-head">
@@ -171,31 +223,50 @@
         {{-- ══ RIGHT column ══ --}}
         <div class="vy-ov-stack">
 
-            {{-- Next payout — REAL amount; halo glow + dark panel. GATE 2 adds the masked IBAN + paused/resume. --}}
+            {{-- Next payout — REAL amount + masked IBAN (payout-capable role only) + the tax-hold paused-state;
+                 halo glow + dark panel. No estimated date (no scheduled-date field — #39). --}}
             <div class="vy-ov-payout vy-fade" style="animation-delay:.16s">
                 <div class="vy-ov-payout-halo"></div>
                 <section class="vy-card vy-card--dark">
                     <span class="vy-eyebrow">Next payout</span>
-                    <div class="vy-dark-figure">{{ $hero['next_payout_display'] }}</div>
-                    <span class="vy-status vy-status--{{ $hero['next_payout_status']['tone'] }}" style="margin-top:6px"><span class="vy-dot"></span>{{ $hero['next_payout_status']['label'] }}</span>
-                    <div style="margin-top:14px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.6">Your payout account will show here once it's confirmed.</div>
+                    @if ($payout['paused'])
+                        <div class="vy-ov-pause-row" style="margin-top:12px">
+                            <span class="vy-ov-pause-ic">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+                            </span>
+                            <span class="vy-ov-pause-fig">Paused</span>
+                        </div>
+                        <div style="font-size:12.5px;color:rgba(255,255,255,.6);margin-top:11px;line-height:1.5">Earnings are holding in your balance until your tax details are on file.</div>
+                        <a href="{{ route('owner.tax') }}" class="vy-ov-resume">
+                            Add tax details
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                        </a>
+                    @else
+                        <div class="vy-dark-figure">{{ $hero['next_payout_display'] }}</div>
+                        <span class="vy-status vy-status--{{ $hero['next_payout_status']['tone'] }}" style="margin-top:6px"><span class="vy-dot"></span>{{ $hero['next_payout_status']['label'] }}</span>
+                        @if ($payout['iban_masked'])
+                            <div class="vy-ov-iban">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 4l9 5.5"/><path d="M5 10v8"/><path d="M9.5 10v8"/><path d="M14.5 10v8"/><path d="M19 10v8"/><path d="M3 19.5h18"/></svg>
+                                IBAN {{ $payout['iban_masked'] }}
+                            </div>
+                        @endif
+                    @endif
                 </section>
             </div>
 
-            {{-- My units — REAL codes. GATE 2 fills each unit's real occupancy % + bar (OwnerOccupancy). --}}
+            {{-- My units — REAL codes + each unit's REAL current-month occupancy % (owner-scoped OwnerOccupancy). --}}
             <section class="vy-card vy-fade" style="animation-delay:.22s">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                <div style="margin-bottom:14px">
                     <span class="vy-eyebrow">My units</span>
-                    <span class="vy-soon-tag">Occupancy soon</span>
                 </div>
                 <div class="vy-ov-units">
                     @forelse ($units as $u)
                         <div>
                             <div class="vy-ov-unit-head">
                                 <span class="vy-ov-unit-name">{{ $u['code'] }}</span>
-                                <span class="vy-ov-unit-pct">—</span>
+                                <span class="vy-ov-unit-pct">{{ $u['occupancy_pct'] }}%</span>
                             </div>
-                            <div class="vy-track"><span style="width:0%"></span></div>
+                            <div class="vy-track"><span style="width:{{ $u['occupancy_pct'] }}%"></span></div>
                         </div>
                     @empty
                         <div class="vy-empty">No units yet.</div>
@@ -203,20 +274,117 @@
                 </div>
             </section>
 
-            {{-- Upcoming stays — GATE 2 wires the real next-30-days bookings (guest name-only #28 + owner-net
-                 value + status + date) and the working Source/Status filters. --}}
-            <section class="vy-card vy-fade" style="animation-delay:.28s">
-                <div class="vy-ov-stays-head">
-                    <div>
-                        <div class="vy-eyebrow">Upcoming stays</div>
-                        <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">Next 30 days</div>
+            {{-- Upcoming stays — REAL next-30-days arrivals on the owner's units (OwnerUpcomingStays): guest
+                 NAME only (#28) + owner NET + real status/source/date. Filters + sort are CLIENT-SIDE (Alpine)
+                 over the server-rendered real rows — a Livewire round-trip would bypass the owner scope. --}}
+            @if ($upcoming['count'] > 0)
+                <section class="vy-card vy-fade" style="animation-delay:.28s"
+                    x-data="{
+                        src: 'all', status: 'all', sortDesc: false, fOpen: false,
+                        rows: [@foreach ($upcoming['rows'] as $r){s:'{{ $r['source_key'] }}',st:'{{ $r['status_key'] }}'},@endforeach],
+                        match(r){ return (this.src==='all'||this.src===r.s) && (this.status==='all'||this.status===r.st); },
+                        get anyVisible(){ return this.rows.some(r => this.match(r)); },
+                        get activeCount(){ return (this.src!=='all'?1:0)+(this.status!=='all'?1:0); }
+                    }"
+                    @keydown.escape.window="fOpen = false">
+                    <div class="vy-ov-stays-head">
+                        <div>
+                            <div class="vy-eyebrow">Upcoming stays</div>
+                            <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">Next 30 days</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                            <button type="button" class="vy-ov-ctrl" @click="sortDesc = !sortDesc" :title="sortDesc ? 'Latest first' : 'Earliest first'" :aria-label="sortDesc ? 'Latest first' : 'Earliest first'">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" :style="sortDesc ? 'transform:rotate(180deg)' : ''"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+                                <span x-text="sortDesc ? 'Latest' : 'Earliest'"></span>
+                            </button>
+                            <div style="position:relative">
+                                <button type="button" class="vy-ov-ctrl" @click="fOpen = !fOpen" :aria-expanded="fOpen ? 'true' : 'false'">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+                                    Filter
+                                    <span x-show="activeCount > 0" x-cloak class="vy-ov-ctrl-count" x-text="activeCount"></span>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                </button>
+                                <div x-show="fOpen" x-cloak @click.outside="fOpen = false" class="vy-ov-menu">
+                                    <div class="vy-ov-menu-h">Source</div>
+                                    <button type="button" class="vy-ov-menu-item" @click="src = 'all'">
+                                        <span class="vy-ov-menu-dot" style="background:var(--vy-faint)"></span>
+                                        <span style="flex:1;text-align:left;white-space:nowrap">All sources</span>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x-show="src === 'all'"><path d="M20 6 9 17l-5-5"/></svg>
+                                    </button>
+                                    @foreach ($upcoming['sources'] as $o)
+                                        <button type="button" class="vy-ov-menu-item" @click="src = '{{ $o['key'] }}'">
+                                            <span class="vy-ov-menu-dot" style="background:{{ $o['dot'] }}"></span>
+                                            <span style="flex:1;text-align:left;white-space:nowrap">{{ $o['label'] }}</span>
+                                            <span style="font-size:10.5px;color:var(--vy-faint)">{{ $o['count'] }}</span>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x-show="src === '{{ $o['key'] }}'"><path d="M20 6 9 17l-5-5"/></svg>
+                                        </button>
+                                    @endforeach
+                                    <div class="vy-ov-menu-sep"></div>
+                                    <div class="vy-ov-menu-h">Status</div>
+                                    <button type="button" class="vy-ov-menu-item" @click="status = 'all'">
+                                        <span class="vy-ov-menu-dot" style="background:var(--vy-faint)"></span>
+                                        <span style="flex:1;text-align:left;white-space:nowrap">All statuses</span>
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x-show="status === 'all'"><path d="M20 6 9 17l-5-5"/></svg>
+                                    </button>
+                                    @foreach ($upcoming['statuses'] as $o)
+                                        <button type="button" class="vy-ov-menu-item" @click="status = '{{ $o['key'] }}'">
+                                            <span class="vy-ov-menu-dot" style="background:{{ $o['key'] === 'confirmed' ? 'var(--vy-green)' : 'var(--vy-amber-2)' }}"></span>
+                                            <span style="flex:1;text-align:left;white-space:nowrap">{{ $o['label'] }}</span>
+                                            <span style="font-size:10.5px;color:var(--vy-faint)">{{ $o['count'] }}</span>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x-show="status === '{{ $o['key'] }}'"><path d="M20 6 9 17l-5-5"/></svg>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="vy-deferred">
-                    <span class="vy-eyebrow">Not yet available</span>
-                    Your upcoming arrivals will appear here.
-                </div>
-            </section>
+                    <div class="vy-ov-stays" :style="sortDesc ? 'flex-direction:column-reverse' : ''">
+                        @foreach ($upcoming['rows'] as $i => $r)
+                            @php $confirmed = $r['status_tone'] === 'confirmed'; @endphp
+                            <a href="{{ $r['href'] }}" class="vy-ov-stay" x-show="match(rows[{{ $i }}])" x-cloak>
+                                <div class="vy-ov-stay-top">
+                                    <span class="vy-ov-stay-guest">
+                                        <span class="vy-ov-stay-dot" style="background:{{ $r['source_dot'] }}"></span>
+                                        <span class="vy-ov-stay-name">{{ $r['guest'] ?? 'Guest' }}</span>
+                                    </span>
+                                    <span class="vy-ov-stay-val">{{ $r['value_display'] }}</span>
+                                </div>
+                                <div class="vy-ov-stay-bot">
+                                    <span class="vy-ov-stay-detail">{{ $r['detail'] }}</span>
+                                    <span class="vy-ov-stay-meta">
+                                        <span class="vy-ov-stay-status" style="background:{{ $confirmed ? 'rgba(31,122,90,.13)' : 'rgba(224,146,30,.14)' }};color:{{ $confirmed ? 'var(--vy-green)' : 'var(--vy-amber)' }}">
+                                            <span style="width:5px;height:5px;border-radius:50%;background:{{ $confirmed ? 'var(--vy-green)' : 'var(--vy-amber-2)' }}"></span>{{ $r['status_label'] }}
+                                        </span>
+                                        <span class="vy-ov-stay-date">{{ $r['date'] }}</span>
+                                    </span>
+                                </div>
+                            </a>
+                        @endforeach
+                        <div x-show="!anyVisible" x-cloak style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:22px 8px 18px;text-align:center">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C4B8AF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+                            <div style="font-size:12.5px;color:var(--vy-muted)">No stays match these filters</div>
+                            <button type="button" @click="src = 'all'; status = 'all'" style="margin-top:2px;padding:5px 12px;border-radius:8px;border:1px solid rgba(120,70,40,.16);background:rgba(255,252,248,.6);color:var(--vy-accent);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">Clear filters</button>
+                        </div>
+                    </div>
+                    <div class="vy-ov-stays-foot">
+                        <span class="vy-ov-stays-foot-l">Net to you · {{ $upcoming['net_total_display'] }}</span>
+                        <a class="vy-ov-viewall" href="{{ route('owner.bookings') }}">View all bookings<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+                    </div>
+                </section>
+            @else
+                <section class="vy-card vy-fade" style="animation-delay:.28s">
+                    <div class="vy-ov-stays-head">
+                        <div>
+                            <div class="vy-eyebrow">Upcoming stays</div>
+                            <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">Next 30 days</div>
+                        </div>
+                    </div>
+                    <div class="vy-deferred">
+                        <span class="vy-eyebrow">No upcoming stays</span>
+                        No arrivals on your units in the next 30 days.
+                    </div>
+                </section>
+            @endif
 
             {{-- Download statements (bottom of the rail) — the full statement archive --}}
             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)

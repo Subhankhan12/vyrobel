@@ -258,4 +258,28 @@ docs (this file → gaps-fixed, DECISIONS.md, DIVERGENCE-REGISTER.md row, PROJEC
 
 ---
 
-*Phase 1 complete — no code changed. Awaiting the go / the D1+D2 calls before the GATE 1 build.*
+---
+
+## 9. OUTCOME — ✅ COMPLETE (2026-07-27, INVARIANT #54)
+
+Both gates shipped. Decisions taken: **D1 = name-only** (guest name + owner NET on upcoming stays; email/phone
+never; reversed the dashboard's old "never shown" copy + updated its test) · **D2 = match the style exactly, keep
+the 5 extra real nav items**.
+
+- **GATE 1 (design, `d80abdf`)** — the live Overview matches the wireframe exactly (background, orbs/streaks,
+  frosted terracotta-active sidebar, greeting + account-menu dropdown, 42px bell, attention bar, glass quick
+  actions, 52px hero + terracotta delta, ↗ metric link-cards, segmented earnings toggle, halo dark rail). Shared
+  chrome extended (not one-offs): `--vy-bg`, the ambient orb/streak layer, the `.vy-ov-*` Overview components.
+  Reduced-motion honoured. Suite 1040/1040; PHPStan L5 = 0; Pint clean.
+- **GATE 2 (real backends)** — every section operational on REAL owner-scoped aggregates via the shared derivations
+  (`OwnerOccupancy` · new `OwnerAttention` · new `OwnerUpcomingStays` · `OwnerLedgerAttribution` — anti-drift):
+  occupancy KPI + per-unit bars + delta + sparkline, the attention feed, the next-30-days upcoming stays (guest
+  **name-only #28** + owner NET + client-side Source/Status filters), the masked IBAN + tax-hold paused-state, the
+  time-aware greeting, and the four quick actions (real routes, capability-gated). **Honesty held (#39):** no
+  earnings goal, no estimated payout date, no invented occupancy — honest empty states throughout; the demo shows a
+  real low occupancy, never a fake 78%. Mutation-/render-proven (`OwnerUpcomingStaysTest` + `OwnerDashboardViewTest`
+  — 30-day clip, name-only, net-reconcile, honesty, `assertNoRawBlade`); browser-verified end-to-end. Suite
+  **1042**; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean.
+
+**The owner Overview matches the wireframe EXACTLY and is fully operational on real data.** Every design gap in
+§1–§3 is fixed; every operational gap is wired to a real owner-scoped backend; the honesty guardrails in §6 hold.
