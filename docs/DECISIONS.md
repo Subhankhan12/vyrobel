@@ -4268,3 +4268,65 @@ client-side (never a Livewire round-trip that would bypass the owner scope). Fil
 (delegates attention), `dashboard.blade.php` (full rebuild), `layouts/owner` + `owner/shell` (chrome), the 2 test
 files. Docs: `OWNER-OVERVIEW-AUDIT.md` (gaps → fixed), this entry, `design/DIVERGENCE-REGISTER.md` (the owner
 Overview row → RESTRUCTURED-exact + operational), `PROJECT-STATE.md`. **Invariants #1–54.**
+
+---
+
+## 2026-07-28 — Owner **My Units** + **Add Unit** rebuilt wireframe-exact + fully operational (real backends)
+
+Two owner surfaces rebuilt to their prototypes (`Owner My Units.html` / `Owner Add Unit.html`) EXACTLY and wired to
+REAL, owner-scoped backends — gated per page. Everything on-screen is real (#39); money is integer minor (#17); the
+owner-scope boundary holds (every write a controller POST, never `/livewire/update`, #20); guest data is name-only /
+counts-only (#28). Suite **1050/8149** green; PHPStan L5 (0) + Pint clean; browser-proven end-to-end.
+
+**My Units (`/owner/units`) — GATE 1 (design) + GATE 2 (real actions):**
+- **GATE 1 (`0be1363`)** — a wireframe-exact rebuild on the shared owner chrome, scoped `.vy-mu-*` (3-tile stats · a
+  collapsible action-center · gradient unit cards with occupancy bars + Active/star-Best badges · the calendar heat-grid ·
+  the dark best-performer panel).
+- **GATE 2 (`33e2475`)** — real card/calendar actions, each on a gated controller route: **Edit pricing** to the
+  certified `OwnerRateService`/`RateAndRestrictionService` (per-ROOM-TYPE, **exclusive-owned only** — a unit sharing
+  its type with foreign inventory is honestly non-editable, no fake save; browser-proven 180->185 persisted to
+  `rate_calendar`); **Message guest** to the real owner-operator relay (`owner.messages.start`), unit-scoped, **no guest
+  name** (#28); **Block dates** to `OwnerBlockService`; **Export** to a new `owner.units.export` month-occupancy CSV
+  (counts-only #28, gated `exports`). Client-side Alpine for the collapse/heat-grid/day-count. Deferred honestly (not
+  faked): the action-center snooze/dismiss store + a richer day-detail — both already function as real links / real
+  counts. `OwnerMyUnits::editableRates()` + `occDelta()`; `OwnerUnitsExportController`; `OwnerMyUnitsViewTest` +2.
+
+**Add Unit (`/owner/add-unit`) — GATE 3 (wizard + rich real request) + GATE 4 (prove it):** *supersedes the old
+INTENTIONAL-DIVERGENCE (a 3-field request form).* The page is now the wireframe's **4-step wizard** (The basics ·
+Space & capacity · Photos · Rate & terms) + a sticky **Live preview** + a **Done** state, exactly (scoped `.vy-au-*`),
+fully operational on a **rich, real, pending `UnitRequest`**:
+- **Schema** (additive migration) — `location` · `street_address` · `bedrooms`/`bathrooms`/`sleeps` · a **PROPOSED**
+  `requested_rate_minor`/`cleaning_fee_minor` + `min_nights` + `currency` (#17). Amenities attach through the shared
+  **`amenitiables`** pivot (reuse `HasAmenities`); photos through the shared **`media`** collection (reuse
+  `HasPhotos`). `UnitRequest` gained a morph alias (`unit_request`) — it is now a morph parent + audit subject.
+- **Write** — ONE controller POST (`OwnerUnitRequestController`, never `/livewire/update`, #20). Server-authoritative:
+  kind in the real unit enum, amenity ids `exists` in the catalog (a fabricated id is rejected), money via `MoneyInput`
+  (a present-but-unparseable amount is an error, not a silent drop), photos content-validated (image mimes, capped),
+  the STORED filename a generated **ULID** (never the client's, so no traversal), on the `public` disk. First photo =
+  cover. PRG to the Done state (read back **owner-scoped** from the DB, so it only ever confirms the owner's OWN request).
+- **Honesty (#39), resolved not faked** — the "Live preview" reflects the owner's **own entered values** badged
+  **"Pending review"** (a proposed request, never a live/priced unit); the dark panel shows the owner's **REAL**
+  commission % from their active agreement (no agreement -> an honest "your team confirms it" line, never a fabricated
+  %) and a live-computed net/night. The amenity chips render the **real global catalog** (extended with a common real
+  vocabulary — legitimate shared *reference* data, not fabricated business data — so the step is usable). **Location is
+  an honest text field** (no real town vocabulary exists, so chips would be KIND-2 fabrication). A request creates
+  **NO** unit — the operator reviews it and creates the real unit as their own action (the existing policy); the
+  operator `unit-requests` screen now **surfaces the captured rich detail** (read-only summary: location · capacity ·
+  proposed rate · amenity/photo counts) so the reviewer can actually see what was submitted.
+- **GATE 4 — proven end-to-end (browser):** the demo owner drove all four steps (name/type/town, capacity + real
+  amenities, a real photo upload mirrored into the live preview, a 220 rate with the **real 18% commission -> "you keep
+  ~180"**) -> Submit -> the Done confirmation. Verified the real pending `UnitRequest` in the DB (Casa Verde Retreat ·
+  villa · Hvar · 3bd · 220/60 minor · WiFi+Pool via the pivot · a photo on disk with a ULID name) and its appearance on
+  the operator `unit-requests` screen (owner · name · Villa · Pending · the rich detail).
+- Tests: `OwnerUnitRequestTest` grew from 6 to 12 (rich submission + amenity pivot + photo `media` + the ULID filename ·
+  MoneyInput reject · fabricated-amenity reject · non-image reject · the wizard renders on real data with the real
+  commission + real catalog · the honest no-agreement line · the operator sees the rich detail).
+
+**NEW INVARIANT #55** — the owner **My Units** and **Add Unit** pages match their wireframes exactly AND are fully
+operational on REAL owner-scoped data through the SHARED services/pivots (`OwnerRateService` · `OwnerBlockService` ·
+`OwnerOccupancy`/`OwnerUnitAnalytics` · `amenitiables`/`HasAmenities` · `media`/`HasPhotos` · `MoneyInput`), with
+integer money (#17), guest name-/counts-only (#28), every write a controller POST (never `/livewire/update`, #20), and
+nothing fabricated (#39 — a proposed request is badged "Pending review", never a live unit; commission is the owner's
+real agreement rate or an honest line; amenities are the real catalog; location is an honest text field). An owner
+Add-Unit request creates NO inventory — it is a rich intake the operator reviews (and sees in full) before creating the
+real unit. **Invariants #1-55.**

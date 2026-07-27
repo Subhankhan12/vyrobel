@@ -185,3 +185,27 @@ disabled stubs), (4) the **interactive block calendar** (day-detail, per-unit fi
 ---
 
 *Phase 1 complete — no code changed. Awaiting the go + the D1/D2/D3 calls before GATE 1.*
+
+---
+
+## ✅ RESOLUTION (2026-07-28) — all four gates complete, wireframe-exact + real backends
+
+Both pages were rebuilt to their wireframes EXACTLY and made fully operational on real, owner-scoped backends.
+
+- **GATE 1 — My Units design** (`0be1363`): wireframe-exact rebuild, scoped `.vy-mu-*` on the shared owner chrome.
+- **GATE 2 — My Units real actions** (`33e2475`): Edit pricing (`OwnerRateService`, exclusive-owned only, browser-proven
+  180→185 persisted) · Message guest (owner↔operator relay, name-free #28) · Block dates (`OwnerBlockService`) · Export
+  CSV (`owner.units.export`, counts-only #28). Deferred honestly: the action-center snooze store + richer day-detail.
+- **GATE 3 — Add Unit wizard + rich request**: the exact 4-step wizard (`.vy-au-*`) + live preview + Done state, on a
+  rich real pending `UnitRequest` (extended schema · amenities via the shared pivot · photos via the shared media
+  collection, hardened upload). Honesty resolved (not faked): preview badged "Pending review"; the dark panel shows the
+  owner's REAL commission % (or an honest line); location an honest text field. Operator `unit-requests` now surfaces
+  the captured rich detail (read-only).
+- **GATE 4 — proven end-to-end** (browser): the demo owner added a real unit (Casa Verde Retreat) through the wizard —
+  confirmed in the DB (rich fields + amenities + a photo on disk with a ULID name) and on the operator screen.
+
+**The three decisions were honored:** D1 (action-center = real fix-it links + honest, no fabricated approve/decline) ·
+D2 (message = the operator relay, name-only) · D3 (Add Unit = a rich real `UnitRequest` + real photo upload; the live
+`Unit` stays the operator's manual creation).
+
+Suite 1050/8149 green; PHPStan L5 (0) + Pint clean. Full dated detail in `DECISIONS.md` (2026-07-28); **new invariant #55**.
