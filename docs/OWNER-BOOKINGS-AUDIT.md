@@ -248,3 +248,28 @@ sort/dir is preserved on links (`preservedQuery`); (#3) the chart legend counted
 chart → legend now sums the DISPLAYED months (reconciles with the bars); (#4) net-sort now sinks a booking with no net in
 the portfolio currency. Both bugs got dedicated regression tests. Left as documented/inherent: single-axis multi-currency
 folding (#17), compact-rounding cosmetics.
+
+## 7. BUILD LOG — GATE 2 (Booking-Summary PDF) ✅ COMPLETE
+
+Shipped to §2c/§4's plan; the old PDF-docblock refusals were STALE and are now REAL, honesty held:
+
+- **Occupancy** (headline + per-unit) — REAL, owner-scoped via `PerformanceMetrics::forOwnerUnits()` (keyed by physical
+  unit id, never room-type-wide; period `[start, end)` with the last day included; denominator = the earning units, so
+  the headline stays consistent with the rows shown). Never feeds the money totals.
+- **Guest NAME column** — name-only via the shared `GuestName` (#28), the same name the page shows; contact NEVER loaded
+  or rendered; an anonymized guest renders "Guest".
+- **Per-channel commission** — Σ real `owner_ledger.ota_cost` (a debit shown as magnitude); €0 → honest "no commission",
+  never a fabricated figure. The OTA **brand** stays refused (grouped by the real `source` enum).
+- **Letterhead** — real `billing_company` + `billing_vat_id` + `country` (VAT only when set; street/city not modelled) +
+  a period-derived **BS-YYYY-MM** doc ref; the statement is cross-referenced by its REAL `sequence_no`.
+- **Full list kept** (your call) with the wireframe's callout styling; the two-column identity/period footer. The
+  Σ(rows)===gross reconciliation is UNCHANGED. Composed strings were moved into the builder (a top-of-file blade `@php`
+  block was dropping the `<head>` at compile time — the fix keeps the PDF view logic-free).
+- **Demo** — flagged DEMO-only `billing_company` + `billing_vat_id` on the demo org so the letterhead renders on a fresh
+  seed (real business identity, not a fabricated figure).
+
+**Verification:** suite **1060 / 8207 green** (`OwnerBookingSummaryPdfTest` now 8) · PHPStan L5 (0) · Pint clean ·
+`migrate:fresh --seed` clean · rendered-document compared to the wireframe (real 13% occupancy, per-unit 10%/17%,
+guest names, real VAT letterhead, reconciling to €1,080). **Adversarial review: CLEAN — no critical/high; all 7
+invariants HOLD.** Two LOW notes accepted: N+1 occupancy queries (kept for arbitrary-period correctness on an infrequent
+PDF), a multi-currency commission-label edge (informational, mirrors the existing per-row simplification).

@@ -4369,3 +4369,50 @@ in-flight feature code (new controllers/model/migration/reader + modified `route
   `docs/RESUME.md` (date · invariant range · suite count · the next action = Owner Bookings + Booking-Summary PDF).
   Confirmed a fresh session reading `docs/RESUME.md` → `docs/PROJECT-STATE.md` inherits the complete context. **Invariants
   #1–55.**
+- **Owner Bookings — EXACT-MATCH BUILD, both gates ✅ (2026-07-28; `docs/OWNER-BOOKINGS-AUDIT.md`; commits per gate).**
+  The founder's "prior deferrals in scope" upgrade, done as two gated deliverables, honesty unchanged (#39/#28/#17/#20).
+  - **GATE 1 — the Bookings PAGE (`/owner/bookings`), wireframe-exact + real backends.** The two items once REFUSED as
+    fabrication (DIVERGENCE row 127) are now REAL: the **"Bookings over time" chart** (segmented `reservations.status`
+    stacks per check-in month + the real net line via `OwnerLedgerAttribution` + a real goal line) and the **"Monthly
+    goal" ring** (real current-month net ÷ the owner's OWN target — a value they set, honest "no target" state when
+    unset). New backing: `owner_monthly_targets` (owner+currency, unique) + `POST owner.bookings.target` (`$capActions`,
+    co-owner only; **currency DERIVED server-side** from the owner ledger via the new `OwnerBookingsReader::primaryCurrency`,
+    never trusted from the form; idempotent upsert). New `GET owner.bookings.export` (`$capExports`) → CSV of the SAME
+    rows via the ONE shared `App\Support\Owner\OwnerBookingsReader` (page + export can't drift; guest name-only, no
+    contact — #28). The component gained GUESTS distinct count, a Status filter, date-range presets+custom, sortable
+    columns, pagination — all server-side over the owner-scoped set (GET, so the scope middleware re-runs; **no Livewire
+    mutation** — #20). Page-scoped CSS (kept OUT of the shared owner layout so its class names can't trip other pages'
+    `assertDontSee` isolation guards) + an opt-in shell breadcrumb. Flagged DEMO-only €6,000 target so the ring renders
+    on a fresh seed. **Adversarial review (2 agents): all isolation/PII/capability/honesty/money invariants HOLD; fixed 4
+    real bugs** — `Carbon::subMonth()` overflow made "Last month" collapse into the current month on a 31st; a tab-DEFAULT
+    sort direction became sticky across tabs (now only an EXPLICIT sort/dir persists); the chart legend counted the full
+    set against an 8-month-truncated chart (now sums the displayed months); net-sort now sinks a booking with no net in
+    the portfolio currency — each with a regression test. `OwnerBookingsTest` 15 (9 new).
+  - **GATE 2 — the Booking-Summary PDF (`OwnerBookingSummaryDocument` + `pdfs/owner-booking-summary.blade.php`),
+    wireframe-exact + real data.** The old PDF-docblock refusals were STALE and are now REAL: **occupancy** (headline +
+    per-unit) via the shared `PerformanceMetrics::forOwnerUnits()` (keyed by physical unit id — owner-scoped, never
+    room-type-wide; period `[start, end)` with the last day included; denominator = earning units, consistent with the
+    rows shown), the **guest NAME column** (name-only via the shared `GuestName`, #28 — never contact), and the per-channel
+    **commission** (Σ real `owner_ledger.ota_cost`; €0 → honest "no commission"). Real **letterhead** (`billing_company` +
+    `billing_vat_id` + `country`; VAT shown only when set; street/city not modelled) + a period-derived **BS-YYYY-MM** doc
+    ref (the statement it accompanies is cross-referenced by its REAL `sequence_no`, never the design's "OS-…"). The full
+    booking list is kept (founder's call) with the wireframe's callout styling. **STILL REFUSED (#39):** the OTA **brand**
+    split (Booking.com/Airbnb) — unmodelled; grouped by the real `source` enum. The Σ(rows)===gross reconciliation is
+    UNCHANGED (occupancy/commission are additive presentation, never summed into money). Composed strings moved into the
+    builder (so the PDF view is logic-free — a top-of-file `@php` block was dropping the `<head>` at compile time). Flagged
+    DEMO-only `billing_company`/`billing_vat_id` on the demo org so the letterhead renders on a fresh seed. **Adversarial
+    review: CLEAN — no critical/high; all 7 invariants HOLD (reconciliation, owner-scoped occupancy with correct bounds,
+    guest name-only, real commission, graceful letterhead, PDF-safe + isolated, blade correct); 2 LOW notes accepted (N+1
+    occupancy queries — kept for arbitrary-period correctness on an infrequent PDF; a multi-currency commission-label
+    edge — informational).** PDF test 8 (updated to the GATE-2 honesty stance: name-only shown, occupancy real, commission
+    real, contact NEVER, OTA brand still refused; Σ===gross still asserted).
+  - **Verification (both gates):** suite **1060 / 8207 green** · PHPStan **L5 = 0** · Pint clean · `migrate:fresh --seed`
+    clean · browser-verified page + rendered-document vs the two wireframes (data reconciling: page Sep €886 = the two
+    real €442.80 bookings = €885.60 net; PDF €1,080 gross = Σ by-unit = Σ by-channel = Σ bookings, real 13% occupancy).
+  - **Invariant #56 — Owner Bookings exact-match (page + PDF):** the "Bookings over time" chart + "Monthly goal" ring are
+    REAL (status counts + `OwnerLedgerAttribution` net + an owner-SET `owner_monthly_target`, never a fabricated goal); the
+    page + CSV export read the ONE `OwnerBookingsReader` (can't drift; name-only, no contact — #28; the target write is a
+    `$capActions` CONTROLLER route with a server-derived currency — #20/#30); the PDF shows REAL owner-scoped occupancy
+    (`PerformanceMetrics::forOwnerUnits`, physical-unit-keyed), the guest NAME-only (`GuestName`), the real channel
+    commission (`ota_cost`) and the real letterhead VAT — the OTA **brand** stays refused (unmodelled); Σ(rows)===gross
+    to the cent is preserved. **Invariants #1–56.**

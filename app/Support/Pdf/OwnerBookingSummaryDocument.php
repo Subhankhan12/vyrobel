@@ -11,10 +11,13 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Services\OwnerStatementService;
+use App\Support\Analytics\PerformanceMetrics;
+use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Builds the OWNER BOOKING SUMMARY PDF view data — the REAL bookings behind ONE finalized statement's
@@ -41,27 +44,23 @@ use Illuminate\Support\Collection;
  *    from the tables and the KPIs (counting its nights would inflate Nights against zero revenue), and
  *    disclosed as a real count instead. Either way the total still reconciles, since it adds zero.
  *
- * REAL / DERIVED / OMITTED (honesty rule, invariant #19 — in a document there is no "Soon"):
- *  - REAL     — the operator + owner names, the period, `sequence_no`, every revenue figure (attributed
- *               `owner_ledger` room_revenue), `reservations.reference`, the `source` enum, and the nights
- *               + dates read from `reservation_units`.
- *  - DERIVED  — the Bookings / Nights / Gross KPIs, and the per-unit + per-source groupings: all folded
- *               from the real figures above, never estimated.
- *  - OMITTED  — **Occupancy**: the design shows a per-unit 78%/82%, but occupancy is NOT an attributed
- *               value, and the only real occupancy read (OwnerPortalService::occupancy) is ROOM-TYPE-wide
- *               — rendering it on an owner document would leak non-owner units' numbers, exactly what the
- *               My Units precedent forbids. There is no honest owner-scoped occupancy to show, so it
- *               appears nowhere.
- *             — **The Guest column**: owner surfaces show NO guest names (locked precedent — the owner
- *               calendar shows booking COUNTS only). No guest field is loaded or rendered; the footer
- *               states this as a fact.
- *             — **OTA brands**: the design's "Booking.com"/"Airbnb" split cannot be rendered honestly —
- *               the brand is NOT modelled (`reservations.source` is a 7-value enum, and
- *               `channels.provider` only has 'channex'). Grouping is by the REAL source enum only.
- *             — the design's "BS-2025-09"/"OS-2025-09" reference formats (the real reference is
- *               `sequence_no`), its "Seaside Villas Lda"/VAT/postal address, its "Showing 8 of 18"
- *               truncation (every row is listed), and any per-booking commission split the engine did not
- *               compute.
+ * REAL / DERIVED / OMITTED (honesty rule, invariant #19 — in a document there is no "Soon"). GATE 2 raised the
+ * bar to a wireframe-exact match; the items the FIRST cut deferred are now REAL (their backends shipped later):
+ *  - REAL     — the operator's registered identity (`billing_company`/`billing_vat_id`/`country` — VAT shown
+ *               only when set; the wireframe's city is not modelled), the owner name, the period, `sequence_no`,
+ *               every revenue figure (attributed `owner_ledger` room_revenue), `reservations.reference`, the
+ *               `source` enum, the nights + dates from `reservation_units`, the GUEST NAME (name-only — #28, via
+ *               the shared {@see GuestName}, the same name the owner Bookings page shows), OCCUPANCY (headline +
+ *               per-unit — a real owner-scoped read via {@see PerformanceMetrics::forOwnerUnits()}, keyed by
+ *               physical unit id so a non-owner unit in the same room type is excluded), and the per-source
+ *               channel COMMISSION (Σ real `ota_cost`; €0 → honest "no commission").
+ *  - DERIVED  — the Bookings / Nights / Occupancy / Gross KPIs, the per-unit + per-source groupings, the
+ *               `BS-YYYY-MM` document reference (period-derived): all folded from the real figures above.
+ *  - OMITTED  — **OTA brands**: the design's "Booking.com"/"Airbnb" split still cannot be rendered honestly —
+ *               the brand is NOT modelled (`reservations.source` is a 7-value enum; `channels.provider` only has
+ *               'channex'). Grouping stays by the REAL source enum. Also omitted: the design's "Showing 8 of 18"
+ *               truncation (every row is listed) and the letterhead street/city (not modelled). The statement it
+ *               accompanies is cross-referenced by its REAL `sequence_no`, never the design's "OS-YYYY-MM".
  *
  * CURRENCY (invariant #17 — never a silent FX): totals are stated in the statement's `source_currency`,
  * which is the real currency of `gross_minor`; the payout `currency` may differ and converting here would
@@ -69,7 +68,7 @@ use Illuminate\Support\Collection;
  * show as a fact rather than be silently summed away.
  *
  * @phpstan-type NettedBooking array{reservation_id: string, unit_id: string, currency: string, service_date: Carbon, net_minor: int}
- * @phpstan-type BookingRow array{reservation_id: string, unit_id: string, reference: string, unit_code: string, unit_name: string|null, source: string|null, source_label: string, nights: int, dates: string|null, sort_key: int, net_minor: int, revenue_display: string}
+ * @phpstan-type BookingRow array{reservation_id: string, unit_id: string, reference: string, guest: string, unit_code: string, unit_name: string|null, source: string|null, source_label: string, nights: int, dates: string|null, sort_key: int, net_minor: int, revenue_display: string}
  */
 final class OwnerBookingSummaryDocument
 {
@@ -100,25 +99,82 @@ final class OwnerBookingSummaryDocument
         $totalMinor = (int) array_sum(array_column($rows, 'net_minor'));
         $totalNights = (int) array_sum(array_column($rows, 'nights'));
 
-        return [
-            'operator' => (string) (Organization::query()->whereKey($statement->organization_id)->value('name') ?? 'Vyrobel'),
-            'owner_name' => (string) ($statement->owner->name ?? 'Owner'),
-            'sequence_no' => $statement->sequence_no,
-            'period_label' => $statement->period_start->format('F Y'),
-            'period_range' => $statement->period_start->format('j M Y').' – '.$statement->period_end->format('j M Y'),
-            'currency' => $totalCurrency,
+        // The channel commission (ota_cost) this statement claimed, per reservation — the REAL channel cost the
+        // owner bore (a direct stay has none). €0 when no channel fee was posted (→ honest "no commission").
+        $otaByReservation = self::otaCostByReservation($statement);
 
-            // KPI band — REAL counts + DERIVED folds. No occupancy: there is no honest owner-scoped read.
+        // OCCUPANCY over the statement period, for the owner's EARNING units only — a real owner-scoped read via
+        // the shared PerformanceMetrics (keyed by physical unit id, never room-type-wide, so no non-owner leak).
+        // Half-open [start, end): the period's last day is included. Occupancy is a separate metric from the
+        // revenue reconciliation (Σ still === gross); it never touches the ledger totals.
+        $occStart = CarbonImmutable::parse($periodStart);
+        $occEnd = CarbonImmutable::parse($statement->period_end->toDateString())->addDay();
+        $byUnit = self::byUnit($rows, $totalCurrency, $occStart, $occEnd);
+        /** @var list<string> $unitIds */
+        $unitIds = array_values(array_unique(array_column($rows, 'unit_id')));
+        $headlineOcc = $unitIds === [] ? 0 : PerformanceMetrics::forOwnerUnits($unitIds, $occStart, $occEnd, $totalCurrency)->occupancyPct();
+
+        // Letterhead — the operator's REAL registered identity from the org billing profile. VAT is shown ONLY
+        // when set; the street/city (the wireframe's "Faro") is not modelled, so only the country is rendered.
+        $org = Organization::query()->whereKey($statement->organization_id)->firstOrNew(['id' => $statement->organization_id]);
+        $operator = (string) ($org->name ?? 'Vyrobel');
+        $operatorCompany = (string) ($org->billing_company ?? $org->name ?? 'Vyrobel');
+        $operatorVat = ($org->billing_vat_id ?? '') !== '' ? (string) $org->billing_vat_id : null;
+        $operatorCountry = self::countryName(is_string($org->country) ? $org->country : null);
+
+        $ownerName = (string) ($statement->owner->name ?? 'Owner');
+        $periodLabel = $statement->period_start->format('F Y');
+        $unitCount = count($byUnit);
+        $grossDisplay = MoneyFormatter::display($totalMinor, $totalCurrency);
+        $sequenceNo = $statement->sequence_no;
+
+        // Composed presentation strings — built here (not in the Blade) so the PDF view stays logic-free and no
+        // top-of-file @php block is needed. Only REAL parts (country / VAT) are appended to the letterhead.
+        $addr = 'Managing agent';
+        if ($operatorCountry !== null) {
+            $addr .= ' · '.$operatorCountry;
+        }
+        if ($operatorVat !== null) {
+            $addr .= ' · VAT '.$operatorVat;
+        }
+
+        $reconcile = "This booking summary lists the reservations that generated {$periodLabel}'s gross room revenue of {$grossDisplay}.";
+        $reconcile .= $sequenceNo
+            ? " It accompanies statement #{$sequenceNo}; deductions and your net payout are detailed there."
+            : ' Deductions and your net payout are detailed on the statement for this period.';
+
+        return [
+            'operator' => $operator,
+            'operator_company' => $operatorCompany,
+            'operator_vat' => $operatorVat,
+            'operator_country' => $operatorCountry,
+            'letterhead_addr' => $addr,
+            'owner_name' => $ownerName,
+            'sequence_no' => $sequenceNo,
+            // A period-derived DOCUMENT reference (this period's booking summary). The REAL statement it
+            // accompanies is cross-referenced by its actual sequence_no below — never a fabricated number.
+            'doc_ref' => 'BS-'.$statement->period_start->format('Y-m'),
+            'period_label' => $periodLabel,
+            'period_range' => $statement->period_start->format('j M Y').' – '.$statement->period_end->format('j M Y'),
+            'subtitle' => $periodLabel.' · '.$ownerName.' · '.$unitCount.' '.Str::plural('unit', $unitCount),
+            'reconcile_note' => $reconcile,
+            'footer_left' => $operatorVat !== null ? $operatorCompany.' · VAT '.$operatorVat : $operatorCompany,
+            'currency' => $totalCurrency,
+            'unit_count' => $unitCount,
+
+            // KPI band — REAL counts + DERIVED folds + REAL owner-scoped occupancy.
             'bookings_count' => self::countReservations($rows),
             'nights_total' => $totalNights,
-            'gross_display' => MoneyFormatter::display($totalMinor, $totalCurrency),
+            'occupancy_pct' => $headlineOcc,
+            'gross_display' => $grossDisplay,
 
-            'by_unit' => self::byUnit($rows, $totalCurrency),
-            'by_source' => self::bySource($rows, $totalCurrency),
+            'by_unit' => $byUnit,
+            'by_source' => self::bySource($rows, $totalCurrency, $otaByReservation),
             'bookings' => $rows,
 
             'total_nights_display' => $totalNights,
             'total_display' => MoneyFormatter::display($totalMinor, $totalCurrency),
+            'total_occupancy_pct' => $headlineOcc,
             'total_bookings_in_units' => count($rows),
 
             // Bookings this statement claimed whose room revenue nets to zero and which therefore appear
@@ -206,7 +262,7 @@ final class OwnerBookingSummaryDocument
         // NOTE: `reservations` / `reservation_units` are tenant-scoped but not owner-scoped — they are
         // reached ONLY by ids taken from the owner-scoped ledger rows above, so no other owner's data
         // is reachable through them.
-        $reservations = Reservation::query()->whereKey($reservationIds)->get()->keyBy('id');
+        $reservations = Reservation::query()->whereKey($reservationIds)->with('leadGuest')->get()->keyBy('id');
         $units = Unit::query()->whereKey($unitIds)->get()->keyBy('id');
 
         $stays = ReservationUnit::query()
@@ -233,6 +289,10 @@ final class OwnerBookingSummaryDocument
                 // The REAL human booking code. A row whose reservation is unreachable keeps its real
                 // revenue and shows an em-dash — never a fabricated reference.
                 'reference' => $reservation !== null ? (string) $reservation->reference : '—',
+                // Guest NAME only (name-only — invariant #28; NO contact ever), via the ONE shared GuestName
+                // rule — the same name the owner Bookings page + Booking Detail already show. An anonymized
+                // (GDPR-erased) guest renders the neutral "Guest".
+                'guest' => GuestName::display($reservation?->leadGuest),
                 'unit_code' => $unit !== null ? (string) $unit->code : '—',
                 'unit_name' => $name !== '' ? $name : null,
                 'source' => $source,
@@ -291,12 +351,14 @@ final class OwnerBookingSummaryDocument
     /**
      * Per-unit fold. Each (reservation, unit) pair is one stay in that unit, so the Bookings column
      * counts stays in that unit; the KPI counts DISTINCT reservations (a booking spanning two owned
-     * units is one booking but two unit-stays). Revenue always reconciles to the gross.
+     * units is one booking but two unit-stays). Revenue always reconciles to the gross. OCCUPANCY per unit is a
+     * REAL owner-scoped read via {@see PerformanceMetrics::forOwnerUnits()} (keyed by THIS physical unit id, so
+     * a non-owner unit in the same room type is excluded — no leak); it is independent of the revenue total.
      *
      * @param  list<BookingRow>  $rows
      * @return list<array<string, mixed>>
      */
-    private static function byUnit(array $rows, string $currency): array
+    private static function byUnit(array $rows, string $currency, CarbonImmutable $occStart, CarbonImmutable $occEnd): array
     {
         /** @var array<string, list<BookingRow>> $groups */
         $groups = [];
@@ -305,14 +367,16 @@ final class OwnerBookingSummaryDocument
         }
 
         $out = [];
-        foreach ($groups as $group) {
+        foreach ($groups as $unitId => $group) {
             $revenue = (int) array_sum(array_column($group, 'net_minor'));
 
             $out[] = [
+                'unit_id' => (string) $unitId,
                 'unit_code' => $group[0]['unit_code'],
                 'unit_name' => $group[0]['unit_name'],
                 'bookings' => count($group),
                 'nights' => (int) array_sum(array_column($group, 'nights')),
+                'occupancy_pct' => PerformanceMetrics::forOwnerUnits([(string) $unitId], $occStart, $occEnd, $currency)->occupancyPct(),
                 'revenue_minor' => $revenue,
                 'revenue_display' => MoneyFormatter::display($revenue, $currency),
             ];
@@ -326,12 +390,15 @@ final class OwnerBookingSummaryDocument
     /**
      * Per-source fold over the REAL `reservations.source` enum. The OTA BRAND IS NOT MODELLED, so a
      * channel-brand split (the design's Booking.com / Airbnb) is impossible to render honestly and is
-     * not attempted. Bookings counts DISTINCT reservations per source.
+     * not attempted — grouping is by the real source. Bookings counts DISTINCT reservations per source. The
+     * COMMISSION note is the REAL channel cost (Σ `ota_cost`) those reservations bore — €0 (a direct stay, or
+     * no channel fee posted) reads as an honest "no commission", never an invented figure.
      *
      * @param  list<BookingRow>  $rows
+     * @param  array<string, int>  $otaByReservation  reservation_id → absolute channel-cost minor
      * @return list<array<string, mixed>>
      */
-    private static function bySource(array $rows, string $currency): array
+    private static function bySource(array $rows, string $currency, array $otaByReservation): array
     {
         /** @var array<string, list<BookingRow>> $groups */
         $groups = [];
@@ -343,9 +410,19 @@ final class OwnerBookingSummaryDocument
         foreach ($groups as $label => $group) {
             $revenue = (int) array_sum(array_column($group, 'net_minor'));
 
+            // Channel commission for this source = Σ ota_cost over its DISTINCT reservations.
+            $commission = 0;
+            foreach (array_values(array_unique(array_column($group, 'reservation_id'))) as $rid) {
+                $commission += $otaByReservation[$rid] ?? 0;
+            }
+
             $out[] = [
                 'label' => $label,
                 'bookings' => self::countReservations($group),
+                'commission_minor' => $commission,
+                'commission_note' => $commission > 0
+                    ? MoneyFormatter::display($commission, $currency).' commission'
+                    : 'no commission',
                 'revenue_minor' => $revenue,
                 'revenue_display' => MoneyFormatter::display($revenue, $currency),
             ];
@@ -354,6 +431,49 @@ final class OwnerBookingSummaryDocument
         usort($out, fn (array $a, array $b): int => $b['revenue_minor'] <=> $a['revenue_minor']);
 
         return $out;
+    }
+
+    /**
+     * The channel commission (`ota_cost`) this statement claimed, netted per reservation as an ABSOLUTE minor
+     * (a cost is a debit; we show its magnitude). Currency-agnostic key: a reservation's channel cost is in its
+     * own booking currency, matched to the same reservation's revenue elsewhere.
+     *
+     * @return array<string, int>
+     */
+    private static function otaCostByReservation(OwnerStatement $statement): array
+    {
+        /** @var Collection<int, OwnerLedgerEntry> $entries */
+        $entries = OwnerLedgerEntry::query()
+            ->where('statement_id', $statement->getKey())
+            ->where('entry_type', 'ota_cost')
+            ->get();
+
+        $out = [];
+        foreach ($entries->groupBy(fn (OwnerLedgerEntry $e): string => (string) $e->reservation_id) as $rid => $group) {
+            $out[(string) $rid] = abs($group->reduce(fn (int $carry, OwnerLedgerEntry $e): int => $carry + $e->signedMinor(), 0));
+        }
+
+        return $out;
+    }
+
+    /**
+     * ISO-3166 alpha-2 → a display country name for the letterhead (reference data, not fabrication). An
+     * unmapped code renders as-is; null/empty → null (the line is omitted). The street/city is not modelled.
+     */
+    private static function countryName(?string $code): ?string
+    {
+        if ($code === null || $code === '') {
+            return null;
+        }
+
+        $code = strtoupper($code);
+
+        return [
+            'PT' => 'Portugal', 'ES' => 'Spain', 'GB' => 'United Kingdom', 'FR' => 'France', 'DE' => 'Germany',
+            'IT' => 'Italy', 'NL' => 'Netherlands', 'IE' => 'Ireland', 'BE' => 'Belgium', 'CH' => 'Switzerland',
+            'AT' => 'Austria', 'GR' => 'Greece', 'SE' => 'Sweden', 'DK' => 'Denmark', 'PL' => 'Poland',
+            'US' => 'United States', 'CA' => 'Canada',
+        ][$code] ?? $code;
     }
 
     /**

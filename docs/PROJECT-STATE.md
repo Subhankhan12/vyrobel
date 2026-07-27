@@ -6,14 +6,22 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 · TOTAL-RECALL CONSOLIDATION + owner My Units/Add Unit exact-match (#55) +
-> owner Bookings PHASE-1 audit. This block SUPERSEDES every block below it (all kept as historical detail). For the
-> fresh-session read-order + one-paragraph summary + creds + next action, start at `docs/RESUME.md`.** Re-verified
-> against the repo THIS pass: **suite re-run green `1050` tests / `8149` assertions (`php artisan test`, exit 0)** ·
-> PHPStan **L5 = 0** · Pint clean · `migrate:fresh --seed` clean (per the 2026-07-28 build; not re-run here — it wipes
-> demo data, and the suite's own migrations pass) · **Invariants #1–55**. HEAD `4a3d538` on `main` (== origin); the
-> only non-doc work since the last consolidation was the owner-page exact-match commits + a presentation calendar
-> fix — **this consolidation pass itself is docs-only.**
+> ⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 · owner Bookings EXACT-MATCH BUILD complete (page + PDF, #56) on top of the
+> total-recall consolidation + owner My Units/Add Unit exact-match (#55). This block SUPERSEDES every block below it
+> (all kept as historical detail). For the fresh-session read-order + one-paragraph summary + creds + next action, start
+> at `docs/RESUME.md`.** Re-verified against the repo THIS pass: **suite green `1060` tests / `8207` assertions
+> (`php artisan test`, exit 0)** · PHPStan **L5 = 0** · Pint clean · `migrate:fresh --seed` clean · **Invariants #1–56**.
+> **Owner Bookings (`docs/OWNER-BOOKINGS-AUDIT.md`, invariant #56):** the LIVE page `/owner/bookings` + the Booking-Summary
+> PDF are now WIREFRAME-EXACT on REAL owner-scoped data, built as two gated deliverables. The two items once refused as
+> fabrication are REAL (never faked): the page's **"Bookings over time" chart** (`reservations.status` stacks + net via
+> `OwnerLedgerAttribution` + a real goal line) and **"Monthly goal" ring** (real net ÷ an owner-SET `owner_monthly_target`;
+> honest "no target" when unset) — plus a Status filter, date-range, sortable columns, pagination, a name-only CSV Export,
+> and the `$capActions` target-write (controller route, currency derived server-side, #20/#30) — page + export share the
+> ONE `OwnerBookingsReader`. The **PDF** gained REAL owner-scoped occupancy (`PerformanceMetrics::forOwnerUnits`,
+> physical-unit-keyed), the guest NAME-only column (`GuestName`, #28), the real channel commission (`ota_cost`), and a real
+> letterhead VAT/country — Σ(rows)===gross unchanged; the OTA **brand** split stays refused (unmodelled). Two adversarial-
+> review passes (GATE 1 fixed 4 real bugs — subMonth overflow, sticky sort-dir, chart-legend-vs-truncation, net-sort; GATE
+> 2 clean). HEAD on `main`; the only non-doc work since the last consolidation was these two exact-match gates.
 >
 > **WHAT VYROBEL IS.** A multi-tenant, AI-native **hotel / apartment-management SaaS**, in three layers: the TENANT
 > PRODUCT (operator back office `/app` · owner portal `/owner` · guest portal `/guest` · public storefront + booking

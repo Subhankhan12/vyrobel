@@ -97,6 +97,10 @@ class DemoSeeder extends Seeder
                 'country' => 'PT',
                 'status' => 'active',
                 'billing_email' => 'billing@vyrobel-demo.test',
+                // DEMO ONLY — the managing agent's registered identity, so the owner Booking-Summary PDF
+                // letterhead (real billing_company + VAT + country) renders on a fresh demo. Clearly demo data.
+                'billing_company' => 'Vyrobel Demo Hospitality, Lda',
+                'billing_vat_id' => 'PT 512 034 776',
             ],
         ));
 

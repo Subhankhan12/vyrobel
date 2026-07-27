@@ -8,15 +8,18 @@ use App\Models\OwnerLedgerEntry;
 use App\Models\User;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerStatementService;
+use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Pdf\OwnerBookingSummaryDocument;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-// Wave 1 · Sub-gate 2 — branded owner BOOKING SUMMARY PDF: the real bookings behind ONE finalized
-// statement's gross. Real owner_ledger figures; reconciles to statement.gross_minor to the cent; NO
-// occupancy, NO guest names, NO OTA brands; OWNER-scoped download (cross-owner 404).
+// Wave 1 · Sub-gate 2 → GATE 2 — branded owner BOOKING SUMMARY PDF: the real bookings behind ONE finalized
+// statement's gross. Real owner_ledger figures; reconciles to statement.gross_minor to the cent. GATE 2 added
+// REAL occupancy (owner-unit-scoped), the guest NAME (name-only, #28 — never contact), and the real per-channel
+// commission (ota_cost); the OTA BRAND stays refused (not modelled). OWNER-scoped download (cross-owner 404).
 
 /**
  * A linked owner with one booking per owned unit, all folded into one finalized statement.
@@ -32,8 +35,12 @@ function bookingSummaryOwner(array $s, array $unitIndexes, array $roomMinors, st
     $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
     ManagementAgreement::factory()->create(['owner_id' => $owner->id, 'commission_pct' => 15.00, 'effective_from' => '2026-01-01']);
 
-    // A distinctively-named lead guest — so the PII assertion below cannot pass by accident.
-    $s['guest'] = Guest::create(['first_name' => $first, 'last_name' => $last]);
+    // A distinctively-named lead guest WITH contact — so the name-only assertion (name shown, contact never)
+    // cannot pass by accident.
+    $s['guest'] = Guest::create([
+        'first_name' => $first, 'last_name' => $last,
+        'email' => 'pdf.guest@icloud.test', 'phone' => '+351911223344',
+    ]);
 
     $units = [];
     $reservations = [];
@@ -122,42 +129,72 @@ it('breaks a two-unit owner down per unit, reconciling to the gross', function (
     expect($html)->toContain('€200.00')->toContain('€300.00');
 });
 
-// ── HONESTY: real reference + source; NO guest PII, NO occupancy, NO OTA brand, no truncation ────
-it('renders the real reference and source, and never a guest name, occupancy or an OTA brand', function () {
+// ── HONESTY (GATE 2): real ref + source; guest NAME-only (never contact); OTA brand still refused ─
+it('renders the guest name-only and never contact, and never an OTA brand or a truncation fiction', function () {
     $s = seedScenario(2);
     $a = bookingSummaryOwner($s, [0], [20000], first: 'Zephyrina', last: 'Quillfeather');
 
     $data = OwnerBookingSummaryDocument::data($a['statement']);
     $html = view('pdfs.owner-booking-summary', $data)->render();
 
-    // NOTE: asserted on the rendered HTML rather than the compressed PDF byte stream — dompdf deflates
-    // its text objects, so a `not->toContain` over raw bytes would pass vacuously. This is the same
-    // approach OwnerStatementPdfTest uses, and is the stronger assertion.
+    // NOTE: asserted on the rendered HTML rather than the compressed PDF byte stream — dompdf deflates its text
+    // objects, so a `not->toContain` over raw bytes would pass vacuously. Same approach as OwnerStatementPdfTest.
     expect($html)
-        // REAL — the human booking code the engine generated, and the real `source` enum's label
+        // REAL — the human booking code the engine generated, the real `source` enum's label, the real revenue
         ->toContain((string) $a['reservations'][0]->reference)
         ->and($html)->toContain('Direct')
         ->and($html)->toContain('€200.00')
-        // PII — owner surfaces show NO guest names (locked precedent)
-        ->and($html)->not->toContain('Zephyrina')
-        ->and($html)->not->toContain('Quillfeather')
-        // OMITTED — occupancy is not an attributed value; the only real read is room-type-wide and
-        // would leak non-owner units' numbers, so it appears nowhere.
-        ->and(strtolower($html))->not->toContain('occupancy')
-        // OMITTED — the OTA BRAND IS NOT MODELLED (source is a 7-value enum; provider only has 'channex')
+        // NEW REAL — the guest NAME (name-only, #28), the same name the owner Bookings page shows
+        ->and($html)->toContain('Zephyrina Quillfeather')
+        // CONTACT — NEVER, on any owner surface (#28)
+        ->and($html)->not->toContain('pdf.guest@icloud.test')
+        ->and($html)->not->toContain('+351911223344')
+        // STILL REFUSED — the OTA BRAND IS NOT MODELLED (source is a 7-value enum; provider only has 'channex')
         ->and($html)->not->toContain('Booking.com')
         ->and($html)->not->toContain('Airbnb')
-        // OMITTED — the design's fabricated reference formats and its truncation fiction
+        // STILL REFUSED — the design's fabricated reference formats and its truncation fiction
         ->and($html)->not->toContain('BS-2025-09')
         ->and($html)->not->toContain('OS-2025-09')
         ->and(strtolower($html))->not->toContain('showing 8 of 18')
         // the document lists EVERY row, so it never claims to be showing a subset
         ->and(strtolower($html))->not->toContain('showing');
 
-    // The document loads no guest field at all — the data array carries no guest anywhere.
+    // The data array carries the guest NAME (name-only) but loads NO contact field anywhere.
     $json = (string) json_encode($data);
-    expect($json)->not->toContain('Zephyrina')
-        ->and($json)->not->toContain('Quillfeather');
+    expect($json)->toContain('Zephyrina Quillfeather')
+        ->and($json)->not->toContain('pdf.guest@icloud.test')
+        ->and($json)->not->toContain('+351911223344');
+});
+
+// ── GATE 2: occupancy is a REAL owner-unit-scoped read; the channel commission is the real ota_cost ─
+it('shows a real owner-scoped occupancy and a real channel commission, never a fabricated figure', function () {
+    $s = seedScenario(2);
+    $a = bookingSummaryOwner($s, [0], [20000]);   // 1 owned unit, 1 booking
+
+    $data = OwnerBookingSummaryDocument::data($a['statement']);
+
+    // Occupancy is the SAME real PerformanceMetrics read the rest of the app uses, owner-UNIT-scoped (keyed by
+    // physical unit id, never room-type-wide, never a fabricated 78%). Headline == the single unit's value.
+    $expected = PerformanceMetrics::forOwnerUnits(
+        [(string) $a['units'][0]->id],
+        CarbonImmutable::parse('2026-09-01'),
+        CarbonImmutable::parse('2026-10-01'),
+        'EUR',
+    )->occupancyPct();
+
+    expect($data['occupancy_pct'])->toBe($expected)
+        ->and($data['by_unit'][0]['occupancy_pct'])->toBe($expected)
+        ->and($data['occupancy_pct'])->toBeGreaterThanOrEqual(0)
+        ->and($data['occupancy_pct'])->toBeLessThanOrEqual(100);
+
+    // The channel commission is REAL — a direct stay bears no channel cost → honest "no commission", not €0-faked.
+    expect($data['by_source'][0]['commission_minor'])->toBe(0)
+        ->and($data['by_source'][0]['commission_note'])->toBe('no commission');
+
+    // Both render.
+    $html = view('pdfs.owner-booking-summary', $data)->render();
+    expect(strtolower($html))->toContain('occupancy')
+        ->and($html)->toContain('no commission');
 });
 
 // ── PDF-SAFE: dompdf renders HTML4/CSS2.1 — bundled Unicode font, no frosted glass ───────────────
