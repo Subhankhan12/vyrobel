@@ -35,7 +35,7 @@
                                         <span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;color:{{ $tone }};background:color-mix(in srgb, {{ $tone }} 12%, transparent)">{{ ucfirst($r['status']) }}</span>
                                     </td>
                                     <td style="white-space:nowrap">{{ $r['when'] }}</td>
-                                    <td style="max-width:320px;color:var(--vy-muted);font-size:12.5px">{{ $r['notes'] !== '' ? $r['notes'] : '—' }}</td>
+                                    <td style="max-width:340px;color:var(--vy-muted);font-size:12.5px">{{ $r['details'] }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

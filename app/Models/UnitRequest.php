@@ -6,6 +6,8 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\BelongsToOwner;
+use App\Models\Concerns\HasAmenities;
+use App\Models\Concerns\HasPhotos;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,19 +15,34 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * An owner's REQUEST to add a unit (Phase 2 · Sub-gate 6). Owner-scoped via {@see BelongsToOwner} — an owner
- * sees/creates only their OWN requests; the operator (owner scope inactive) sees them tenant-scoped. This is an
- * INTAKE record: it never creates a unit. The operator reviews it and creates the real unit as their own action.
+ * An owner's REQUEST to add a unit (Phase 2 · Sub-gate 6; enriched by the Add-Unit WIZARD, My Units · GATE 3).
+ * Owner-scoped via {@see BelongsToOwner} — an owner sees/creates only their OWN requests; the operator (owner
+ * scope inactive) sees them tenant-scoped. This is an INTAKE record: it never creates a unit. The operator
+ * reviews it and creates the real unit as their own action.
+ *
+ * The wizard fields (location · size/capacity · a PROPOSED rate/cleaning fee + min stay) are the owner's proposed
+ * values on a still-pending request — NOT live inventory and NOT a rate write (#39). Amenities attach through the
+ * shared {@see HasAmenities} pivot and photos through the shared {@see HasPhotos} media collection — reuse, never
+ * a parallel structure. Money is integer minor units + currency (#17).
  */
 class UnitRequest extends Model
 {
-    use BelongsToOrganization, BelongsToOwner, HasFactory, HasUlids, SoftDeletes;
+    use BelongsToOrganization, BelongsToOwner, HasAmenities, HasFactory, HasPhotos, HasUlids, SoftDeletes;
 
     protected $fillable = [
         'organization_id',
         'owner_id',
         'requested_name',
         'requested_kind',
+        'location',
+        'street_address',
+        'bedrooms',
+        'bathrooms',
+        'sleeps',
+        'requested_rate_minor',
+        'cleaning_fee_minor',
+        'min_nights',
+        'currency',
         'notes',
         'status',
         'reviewed_by',
@@ -38,6 +55,12 @@ class UnitRequest extends Model
     protected function casts(): array
     {
         return [
+            'bedrooms' => 'integer',
+            'bathrooms' => 'integer',
+            'sleeps' => 'integer',
+            'requested_rate_minor' => 'integer',
+            'cleaning_fee_minor' => 'integer',
+            'min_nights' => 'integer',
             'reviewed_at' => 'datetime',
         ];
     }

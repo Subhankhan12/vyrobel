@@ -216,6 +216,21 @@ class DemoSeeder extends Seeder
 
         $wifi = Amenity::firstOrCreate(['name' => 'WiFi'], ['icon' => 'wifi', 'category' => 'connectivity']);
         $pool = Amenity::firstOrCreate(['name' => 'Pool'], ['icon' => 'pool', 'category' => 'leisure']);
+        // The `amenities` table is a GLOBAL shared reference catalog (reused across tenants, no organization_id) —
+        // seeding a common real vocabulary here is reference data, not fabricated business data. It gives the owner
+        // Add-Unit wizard's amenity chips a usable set; the `icon` slug is mapped to an SVG in the view.
+        foreach ([
+            ['Kitchen', 'kitchen', 'cooking'],
+            ['Air conditioning', 'ac', 'climate'],
+            ['Heating', 'heating', 'climate'],
+            ['Free parking', 'parking', 'parking'],
+            ['Washer', 'washer', 'laundry'],
+            ['TV', 'tv', 'entertainment'],
+            ['Balcony', 'balcony', 'outdoor'],
+            ['Pet-friendly', 'pets', 'policy'],
+        ] as [$name, $icon, $category]) {
+            Amenity::firstOrCreate(['name' => $name], ['icon' => $icon, 'category' => $category]);
+        }
 
         // Hotel room type + apartment unit type under ONE property.
         $doubleRoom = RoomType::create([

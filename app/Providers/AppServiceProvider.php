@@ -55,6 +55,7 @@ use App\Models\Shift;
 use App\Models\Tag;
 use App\Models\Tax;
 use App\Models\Unit;
+use App\Models\UnitRequest;
 use App\Models\User;
 use App\Models\WebhookEvent;
 use App\Payments\Contracts\PaymentGateway;
@@ -230,6 +231,10 @@ class AppServiceProvider extends ServiceProvider
             'webhook_event' => WebhookEvent::class,
             'booking_quote' => BookingQuote::class,
             'owner' => Owner::class,
+            // My Units · GATE 3 — the Add-Unit wizard makes UnitRequest a morph PARENT (photos in `media`,
+            // amenities in `amenitiables`) and an audit subject (`owner.unit_requested` calls getMorphClass()),
+            // and enforceMorphMap THROWS on an unregistered model — so it needs an alias.
+            'unit_request' => UnitRequest::class,
             'management_agreement' => ManagementAgreement::class,
             'owner_ledger' => OwnerLedgerEntry::class,
             'owner_expense' => OwnerExpense::class,

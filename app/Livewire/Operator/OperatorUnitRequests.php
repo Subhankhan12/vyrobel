@@ -24,7 +24,7 @@ class OperatorUnitRequests extends Component
 
     public function render(): View
     {
-        $requests = UnitRequest::query()->with('owner')->orderByDesc('created_at')->get();
+        $requests = UnitRequest::query()->with('owner', 'amenities', 'photos')->orderByDesc('created_at')->get();
 
         return view('livewire.operator.unit-requests', [
             'viewer' => $this->viewer(),
@@ -33,10 +33,59 @@ class OperatorUnitRequests extends Component
                 'owner' => (string) ($r->owner->name ?? '—'),
                 'name' => (string) $r->requested_name,
                 'kind' => OwnerUnitRequestService::KINDS[$r->requested_kind],
-                'notes' => (string) ($r->notes ?? ''),
+                'details' => $this->detailSummary($r),
                 'status' => (string) $r->status,
                 'when' => $r->created_at?->format('j M Y'),
             ])->all(),
         ]);
+    }
+
+    /**
+     * A compact, read-only summary of what the owner submitted through the Add-Unit wizard — location · capacity ·
+     * the PROPOSED rate · amenity + photo counts · any note. Every part is a REAL captured value (#39), rendered
+     * only when present (honest — an old 3-field request just shows what it has), so the operator can review the
+     * request before creating the real unit. Money is the stored integer minor units, formatted (#17).
+     */
+    private function detailSummary(UnitRequest $r): string
+    {
+        $parts = [];
+
+        if (($r->location ?? '') !== '') {
+            $parts[] = (string) $r->location;
+        }
+
+        $capacity = [];
+        if ($r->bedrooms > 0) {
+            $capacity[] = $r->bedrooms.' bd';
+        }
+        if ($r->bathrooms > 0) {
+            $capacity[] = $r->bathrooms.' ba';
+        }
+        if ($r->sleeps > 0) {
+            $capacity[] = 'sleeps '.$r->sleeps;
+        }
+        if ($capacity !== []) {
+            $parts[] = implode(' · ', $capacity);
+        }
+
+        if ($r->requested_rate_minor !== null) {
+            $parts[] = $this->money($r->requested_rate_minor, (string) ($r->currency ?? 'EUR')).'/night';
+        }
+
+        $amenities = $r->amenities->count();
+        if ($amenities > 0) {
+            $parts[] = $amenities.' '.($amenities === 1 ? 'amenity' : 'amenities');
+        }
+
+        $photos = $r->photos->count();
+        if ($photos > 0) {
+            $parts[] = $photos.' '.($photos === 1 ? 'photo' : 'photos');
+        }
+
+        if (($r->notes ?? '') !== '') {
+            $parts[] = (string) $r->notes;
+        }
+
+        return $parts === [] ? '—' : implode(' · ', $parts);
     }
 }
