@@ -306,13 +306,13 @@
                                 </button>
                                 <div x-show="fOpen" x-cloak @click.outside="fOpen = false" class="vy-ov-menu">
                                     <div class="vy-ov-menu-h">Source</div>
-                                    <button type="button" class="vy-ov-menu-item" @click="src = 'all'">
+                                    <button type="button" class="vy-ov-menu-item" @click="src = 'all'; fOpen = false">
                                         <span class="vy-ov-menu-dot" style="background:var(--vy-faint)"></span>
                                         <span style="flex:1;text-align:left;white-space:nowrap">All sources</span>
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x-show="src === 'all'"><path d="M20 6 9 17l-5-5"/></svg>
                                     </button>
                                     @foreach ($upcoming['sources'] as $o)
-                                        <button type="button" class="vy-ov-menu-item" @click="src = '{{ $o['key'] }}'">
+                                        <button type="button" class="vy-ov-menu-item" @click="src = '{{ $o['key'] }}'; fOpen = false">
                                             <span class="vy-ov-menu-dot" style="background:{{ $o['dot'] }}"></span>
                                             <span style="flex:1;text-align:left;white-space:nowrap">{{ $o['label'] }}</span>
                                             <span style="font-size:10.5px;color:var(--vy-faint)">{{ $o['count'] }}</span>
@@ -321,13 +321,13 @@
                                     @endforeach
                                     <div class="vy-ov-menu-sep"></div>
                                     <div class="vy-ov-menu-h">Status</div>
-                                    <button type="button" class="vy-ov-menu-item" @click="status = 'all'">
+                                    <button type="button" class="vy-ov-menu-item" @click="status = 'all'; fOpen = false">
                                         <span class="vy-ov-menu-dot" style="background:var(--vy-faint)"></span>
                                         <span style="flex:1;text-align:left;white-space:nowrap">All statuses</span>
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" x-show="status === 'all'"><path d="M20 6 9 17l-5-5"/></svg>
                                     </button>
                                     @foreach ($upcoming['statuses'] as $o)
-                                        <button type="button" class="vy-ov-menu-item" @click="status = '{{ $o['key'] }}'">
+                                        <button type="button" class="vy-ov-menu-item" @click="status = '{{ $o['key'] }}'; fOpen = false">
                                             <span class="vy-ov-menu-dot" style="background:{{ $o['key'] === 'confirmed' ? 'var(--vy-green)' : 'var(--vy-amber-2)' }}"></span>
                                             <span style="flex:1;text-align:left;white-space:nowrap">{{ $o['label'] }}</span>
                                             <span style="font-size:10.5px;color:var(--vy-faint)">{{ $o['count'] }}</span>
