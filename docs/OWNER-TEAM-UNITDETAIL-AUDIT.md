@@ -1,6 +1,6 @@
 # Owner Team & access + Unit Detail — wireframe-EXACT-match audit
 
-**Date:** 2026-07-28 · **Author:** build session · **Status:** 🔎 **PHASE 1 COMPLETE — read-only audit; awaiting go for PHASE 2 (gated per page: Team → Unit Detail).**
+**Date:** 2026-07-28 · **Author:** build session · **Status:** ✅ **BUILT — invariant #65** (GATE 1 Team `e5d1a1f` · GATE 2 Unit Detail). Both pages match their wireframes on REAL owner-scoped data, honest where not modelled. Team: real matrix (from `OwnerTeamRole::CAPABILITIES`) + truthful activity + a NEW real resend + honest security note (no watermark claim). Unit Detail: the Wave-1 STALE refusals are now REAL — tap-to-block (`OwnerBlockService`, mutation-proven in the browser), nightly-rate + min-stay edit (`OwnerRateService`, browser-proven €180→€185 + returns to the unit), reviews (`ReviewRating`/`ReviewList`), and the name-free owner↔operator relay; weekend-uplift / cleaning / OTA-sync / snooze / per-unit-payout / "Direct saved you" stay honest. Suite green; PHPStan L5 (0); Pint clean; browser-verified. *(The PHASE-1 analysis below is preserved as the audit of record.)*
 **Pages:** `/owner/team` (`OwnerTeam` + `team.blade.php`) · `/owner/units/{unit}` (`OwnerUnitDetail` + `unit-detail.blade.php`).
 **Wireframes:** `docs/design/raw/Owner Team.html` · `docs/design/raw/Owner Unit Detail.html` (decoded → `/tmp/owner_team_decoded.txt`, `/tmp/owner_unitdetail_decoded.txt`).
 

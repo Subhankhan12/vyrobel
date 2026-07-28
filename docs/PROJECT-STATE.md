@@ -6,6 +6,40 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v12) · owner TEAM & ACCESS + UNIT DETAIL exact-match (#65). This block SUPERSEDES
+> every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
+> `docs/DECISIONS.md`.**
+>
+> **Two owner pages matched to their wireframes, gated per page (`docs/OWNER-TEAM-UNITDETAIL-AUDIT.md`, DECISIONS
+> 2026-07-28 #65, DIVERGENCE Owner-Team + Owner-Unit-Detail rows).**
+> - **GATE 1 — Team & access (`e5d1a1f`):** rebuilt `/owner/team` on the REAL owner-team feature (REUSED — members /
+>   role change / remove / invite / pending revoke, all `EnsurePrimaryOwner`-gated POSTs, #20). Added: the **"what each
+>   role can see" matrix REAL from `OwnerTeamRole::CAPABILITIES`** (the SAME grid the gates read — anti-drift); a
+>   **TRUTHFUL recent-activity** (real sign-ins + invites, never a fabricated log); a **NEW real RESEND**
+>   (`owner.team.invites.resend`); and an **HONEST security note** — the wireframe's "exports are **watermarked** with who
+>   downloaded them" claim was FALSE (no watermark is applied) → softened to the true claim (#39).
+> - **GATE 2 — Unit Detail:** rebuilt `/owner/units/{unit}` — an AGGREGATION page. **The Wave-1 "no backend" refusals were
+>   STALE** (backends shipped later); re-verified + now BUILT REAL: **day-blocking** (tap-to-block → `OwnerBlockService`,
+>   browser-proven), **nightly-rate + min-stay edit** (`OwnerRateService`, browser-proven €180→€185 + returns to the unit),
+>   **reviews** (`ReviewRating`/`ReviewList`, byline first-name+initial #28), and **guest-messages → the owner↔operator
+>   relay** (`owner.messages.start`, name-free #28, never owner→guest). **Weekend uplift** honest "Not available";
+>   **snooze / OTA-sync / cleaning-schedule / per-unit-payout-timeline / "Direct saved you"** stay honest/refused (#39).
+>   The existing real sections (KPIs / occupancy / revenue / attribution-deductions [reconciles #17] / stays [name-only
+>   #28] / channel-mix / commission / best-badge) were restyled to the wireframe, unchanged in data.
+> - **Verified:** `OwnerTeamInviteTest` 6→8 + `OwnerUnitDetailViewTest` 8→10 (the stale Wave-1 fiction test updated for
+>   the now-real features). Suite **1095 / 8626 GREEN**; PHPStan **L5 = 0**; Pint clean; `migrate:fresh --seed` clean;
+>   browser-proven (Team: matrix = 11 real grants, resend works, no watermark; Unit Detail: rate edit + tap-to-block
+>   mutate real data, view-only sub-user gets no write control). One additive `OwnerRateController` redirect branch;
+>   nothing else disturbed. **Invariants #1–65.**
+>
+> Owner exact-match track shipped: Overview (#54) · My Units + Add Unit (#55) · Bookings + PDF (#56) · Statement + PDF
+> (#57) · Payouts + Payout Method (#58) · Balance + Expenses (#59) · Block Calendar + Documents (#60) · Reports + Insights
+> (#61) · Settings hub (#62) · Reports deepened (#63) · Tax Center (#64) · **Team & access + Unit Detail (#65)**. Remaining
+> built-but-not-yet-exact-matched: MANAGE — Rates/Reviews/Agreement/Messages · ACCOUNT — Security · Help. No launch-blocking
+> build remains.
+>
+> ---
+>
 > ⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v11) · owner TAX CENTER exact-match (#64). This block SUPERSEDES every block
 > below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block → `docs/DECISIONS.md`.**
 >

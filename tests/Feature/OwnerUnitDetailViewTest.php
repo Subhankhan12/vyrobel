@@ -8,6 +8,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\OwnerAttributionService;
 use App\Support\Owner\OwnerOccupancy;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 
@@ -191,29 +192,24 @@ it('renders none of the design\'s fictions', function () {
     $a = unitDetailOwner($s, 0);
     attributedStay($s, $a['unit'], 20000);
 
+    // NOTE (#65 exact-match): the Wave-1 refusals for pricing (nightly + min-stay), day-blocking, reviews and
+    // the message relay are now BUILT REAL (their backends shipped later — OwnerRateService / OwnerBlockService /
+    // Phase-5 reviews / the owner↔operator relay); those are covered by their own tests below + the service
+    // suites. What remains REFUSED are the genuinely-unmodelled fictions asserted here.
     $this->actingAs($a['user'])->get('/owner/units/'.$a['unit']->id)
         ->assertOk()
-        // Owner-editable pricing — no owner write path, and `units` carries NO rate/fee column at all
-        // (the design's €140 base rate / €45 cleaning fee / minimum stay are literals).
-        ->assertDontSee('Weekend uplift')
-        ->assertDontSee('Nightly rate')
-        ->assertDontSee('Minimum stay')
-        ->assertDontSee('Save changes')
-        // No owner-facing sync, day-blocking, housekeeping, messaging or reviews backend exists.
-        ->assertDontSee('Sync calendars')
-        ->assertDontSee('Tap a day to block')
-        ->assertDontSee('Blocked')             // the design fabricates the blocked split from a constant
-        ->assertDontSee('Schedule a cleaning')
-        ->assertDontSee('Cleaning schedule')
-        ->assertDontSee('Guest messages')
-        // ⚠️ The reviews panel is asserted via 'Cleanliness' (its category bar), NOT via 'Reviews': the
-        // shared owner SHELL nav legitimately renders a disabled "Reviews" placeholder on EVERY owner
-        // screen, so assertDontSee('Reviews') would fail for a reason unrelated to this screen.
-        // 'Cleanliness' appears only if the (schema-less) reviews panel were ever built.
-        ->assertDontSee('Cleanliness')
-        ->assertDontSee('Best performer')      // cross-unit ranking — already deferred on My Units
-        ->assertDontSee('Payout timeline')     // payouts are per-statement/per-owner, never per-unit
-        ->assertDontSee('All bookings')        // no owner bookings list exists (Wave 2)
+        // Weekend uplift is NOT modelled — shown as an honest "Not available", never a fabricated figure.
+        ->assertDontSee('Weekend uplift · ')
+        // No owner-facing OTA sync, housekeeping, guest-messaging or review-category backend exists.
+        ->assertDontSee('Sync calendars')          // OTA channel sync is account-gated (honest note only)
+        ->assertDontSee('Schedule a cleaning')     // no owner cleaning scheduler
+        ->assertDontSee('Cleaning schedule')       // no fake cleaner/schedule (honest "managed by your team")
+        ->assertDontSee('Guest messages')          // guest threads / owner→guest forbidden (#28) — a name-free relay instead
+        ->assertDontSee('Cleanliness')             // review category bars are not modelled
+        ->assertDontSee('Best performer')          // single-unit owner → no cross-unit ranking claim
+        ->assertDontSee('Payout timeline')         // payouts are per-statement/per-owner, never per-unit
+        ->assertDontSee('saved you')               // the fabricated "Direct saved you €X" (directRev × 0.15)
+        ->assertDontSee('All bookings')            // no owner bookings list on this screen
         // The OTA BRAND IS NOT MODELLED — `reservations.source` is direct|walk_in|ota|corporate|group|
         // agent|manual — so a brand can never be rendered, on this screen or any other.
         ->assertDontSee('Booking.com')
@@ -230,7 +226,7 @@ it('renders the real 6-month revenue trend, 12-month occupancy trend, channel mi
     $this->actingAs($a['user'])->get('/owner/units/'.$a['unit']->id)
         ->assertOk()
         ->assertSee('Revenue · 6 months')                  // the NET revenue trend (shared bar component)
-        ->assertSee('net to you')
+        ->assertSee('Net to you')
         ->assertSee('Occupancy · 12 months')               // the occupancy trend (trailing 12 months)
         ->assertSee('Channel mix')                         // this unit's real source mix
         ->assertSee('room-nights by booking source')       // by the real source enum, never an OTA brand (#39)
@@ -247,4 +243,40 @@ it('shows no best-performer badge for a single-unit owner', function () {
         ->assertOk()
         ->assertSee('Revenue · 6 months')
         ->assertDontSee('Best performer of your');   // no cross-unit claim with a single unit
+});
+
+// ── Exact-match pass (#65) — the aggregated real sections + HONEST states (no fabrication) ───────────
+it('renders real pricing (honest weekend uplift), reviews, and honest cleaning/relay/payout — no fabrication', function () {
+    $s = seedScenario(1);
+    $o = unitDetailOwner($s, 0);
+
+    $res = $this->actingAs($o['user'])->get('/owner/units/'.$o['unit']->id)->assertOk()
+        ->assertSee('Pricing & availability')
+        ->assertSee('Weekend uplift')->assertSee('Not available')      // honest — weekend uplift is NOT modelled
+        ->assertSee('Reviews & rating')->assertSee('No published reviews')   // honest-empty (none seeded)
+        ->assertSee('coordinated by your management team')             // honest cleaning — never a fake cleaner
+        ->assertSee('Message your management team')                    // the owner↔operator relay (name-free #28)
+        ->assertSee('per statement across your whole portfolio')       // honest — payouts are not per-unit
+        // ⚠️ never the wireframe's fabrications (#39)
+        ->assertDontSee('saved you')
+        ->assertDontSee('SparkleCare')->assertDontSee('Ana Ruiz')->assertDontSee('CoastClean');
+
+    assertNoRawBlade($res);
+});
+
+it('gates the block + edit-pricing writes to CAP_ACTIONS — a view-only sub-user gets neither control', function () {
+    $s = seedScenario(1);
+    $o = unitDetailOwner($s, 0);
+    $ownerId = (string) $o['owner']->id;
+
+    // The primary owner (co-owner data access) gets the real write controls.
+    $this->actingAs($o['user'])->get('/owner/units/'.$o['unit']->id)->assertOk()
+        ->assertSee('owner/rates/apply')      // the edit-pricing form action (real OwnerRateService write)
+        ->assertSee('owner/calendar/block');  // the tap-to-block form action (real OwnerBlockService write)
+
+    // A view-only sub-user may VIEW the unit but gets NO write controls (#20/#30 — gate the control too).
+    $viewer = ownerSubUser($s, $ownerId, OwnerTeamRole::VIEW_ONLY);
+    $this->actingAs($viewer)->get('/owner/units/'.$o['unit']->id)->assertOk()
+        ->assertDontSee('owner/rates/apply')
+        ->assertDontSee('owner/calendar/block');
 });

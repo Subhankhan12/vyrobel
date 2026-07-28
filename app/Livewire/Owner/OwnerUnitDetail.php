@@ -5,20 +5,27 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\InventoryBlock;
 use App\Models\ManagementAgreement;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
+use App\Models\RateCalendar;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
+use App\Models\Restriction;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\AvailabilityService;
+use App\Services\OwnerBlockService;
 use App\Services\OwnerPortalService;
+use App\Services\OwnerRateService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Owner\OwnerOccupancy;
 use App\Support\Owner\OwnerUnitAnalytics;
+use App\Support\Reviews\ReviewList;
+use App\Support\Reviews\ReviewRating;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -63,27 +70,30 @@ use Livewire\Component;
  *   • GUEST PII — NO guest name/email/phone anywhere. The guest relation is never loaded (locked owner
  *                precedent); the stays table identifies a booking by its REAL `reference` only.
  *
- * OMITTED ENTIRELY — rendered NOWHERE, not even disabled, because each would imply state with no schema
- * behind it (this gate's standing order; precedent: the owner approve/query workflow in Sub-gate 1):
- *   • Owner-editable pricing (Nightly rate / Weekend uplift / Minimum stay + Save) — there is no owner
- *     write path, and owner-editable rates are an explicit product-policy deferral. Verified: `units` has
- *     NO rate/fee column at all, so the design's €140 base rate + €45 cleaning fee are literals.
- *   • Day-blocking ("Tap a day to block") — AssignmentService::blockInventory exists but is NOT wired for
- *     owner use; an owner inventory-write path is a product decision, out of scope for a presentation
- *     gate. The calendar is READ-ONLY, and it renders Booked / No booking — never the design's "Blocked"
- *     split, which it fabricates from a seasonal blockShare constant.
- *   • Live/Snoozed toggle — a write to units.is_active with product implications. The REAL state renders
- *     read-only; the TOGGLE does not exist.
- *   • Calendar sync / "Sync calendars" / "Last synced" — no owner-facing sync backend.
- *   • Reviews & rating (score, stars, the Cleanliness/Accuracy/Check-in/Location/Value bars, review
- *     text) — NO schema at all.
- *   • Cleaning schedule / cleaner name / rating / "Schedule a cleaning" / "Message" — no owner-facing
- *     housekeeping surface and no cleaner ratings. `units.housekeeping_status` is a REAL column but is
- *     deliberately not surfaced: it is an operator-ops signal (clean/dirty/inspected), not owner-facing.
- *   • Guest messages panel + composer + quick replies — no owner messaging surface, and it would render
- *     guest PII.
- *   • "Direct bookings saved you €X in commission" — the design computes it as directRev × 0.15, a
- *     fabricated assumption about OTA commission. Still omitted.
+ * WIRED REAL in the exact-match pass (#65) — the Wave-1 refusals below were STALE; the backends shipped
+ * later (My Units #55, Block Calendar #60, Phase-5 reviews, the owner↔operator relay #55), re-verified here:
+ *   • Owner pricing — the REAL current nightly rate + minimum stay ({@see pricing()}), editable via
+ *     {@see OwnerRateService} ONLY when the owner owns the room type exclusively (honest read-only when
+ *     shared; a real controller write to `owner.rates.apply`). WEEKEND UPLIFT stays omitted — no column.
+ *   • Day-blocking — the calendar now renders booked / blocked / open ({@see calendarDays()}) and blocking
+ *     goes through the certified {@see OwnerBlockService} (`owner.calendar.block`), the SAME path as the
+ *     Block Calendar; non-overlap enforced. Guest data name-only / counts-only (#28).
+ *   • Reviews & rating — the derived overall rating + the real review list ({@see reviews()}; byline is
+ *     first name + initial only, #28). Category bars omitted (not modelled).
+ *   • Guest messages → the owner↔operator RELAY (`owner.messages.start`) — name-free (#28), NEVER a
+ *     guest thread and NEVER owner→guest. Rendered in the blade as an honest "message your management team".
+ *
+ * OMITTED / HONEST — still rendered as an honest state, never fabricated (#39):
+ *   • Live/Snoozed TOGGLE — a write to `units.is_active` with no owner path; the REAL state renders
+ *     read-only, no toggle.
+ *   • Calendar SYNC / "Sync calendars" — no owner-facing sync backend (account-gated Channex); honest.
+ *   • WEEKEND UPLIFT — no column; the pricing card shows an honest "not available".
+ *   • Cleaning schedule / cleaner / rating — no owner-facing housekeeping surface; the design's cleaner is
+ *     fabricated. Rendered as an honest "coordinated by your management team". `units.housekeeping_status`
+ *     stays an operator-ops signal, not owner-facing.
+ *   • Per-unit PAYOUT TIMELINE — payouts are per-STATEMENT/per-OWNER, so a per-unit timeline is a fabricated
+ *     attribution; the rail links the real Payouts instead.
+ *   • "Direct bookings saved you €X in commission" — a fabricated directRev × 0.15; still omitted.
  *
  * BUILT REAL in Batch B (GATE 2) — with real aggregates, NEVER the design's fabricated prior years:
  *   • The 6-month NET revenue trend ({@see revenueTrend()}) — Σ signedMinor of this unit's ledger rows per
@@ -166,7 +176,147 @@ class OwnerUnitDetail extends Component
             'occupancyTrend' => $this->occupancyTrend($unit, $month),
             'channelMix' => $this->channelMix($unit, $month, $currency),
             'bestBadge' => $this->bestBadge($unit, $month, $currency),
+            // Exact-match pass (#65) — stale refusals now REAL (the backends shipped after Wave 1):
+            'calendar' => $this->calendarDays($unit, $monthStart, $monthEnd),   // booked/blocked/open + counts
+            'pricing' => $this->pricing($unit, $currency),                       // nightly + min-stay (OwnerRateService)
+            'reviews' => $this->reviews($unit),                                  // ReviewRating + ReviewList
+            'blockReasons' => OwnerBlockService::REASONS,
         ]);
+    }
+
+    /**
+     * The month's calendar day-states — the SAME derivation the Block Calendar uses (past → booked → blocked →
+     * open), so the two surfaces can never disagree. Booked from active {@see ReservationUnit} lines, blocked
+     * from {@see InventoryBlock} rows, both on THIS (owner-scoped) unit. Guest data name-only elsewhere; the
+     * calendar carries COUNTS only (#28).
+     *
+     * @return array{first_weekday: int, days: list<array{day: int, date: string, state: string, block_id: ?string}>, booked: int, blocked: int, open: int}
+     */
+    private function calendarDays(Unit $unit, Carbon $monthStart, Carbon $monthEnd): array
+    {
+        $today = Carbon::today();
+
+        // Booked nights (a night is [check_in, check_out)).
+        $booked = [];
+        foreach (ReservationUnit::query()
+            ->where('unit_id', $unit->id)->where('status', 'active')
+            ->whereDate('check_in', '<', $monthEnd->toDateString())
+            ->whereDate('check_out', '>', $monthStart->toDateString())
+            ->get(['check_in', 'check_out']) as $line) {
+            $c = Carbon::parse($line->check_in);
+            $end = Carbon::parse($line->check_out);
+            for (; $c->lt($end); $c->addDay()) {
+                $booked[$c->toDateString()] = true;
+            }
+        }
+
+        // Blocked nights (half-open [start_date, end_date)); keep a block id for the release affordance.
+        $blocked = [];
+        foreach (InventoryBlock::query()
+            ->where('unit_id', $unit->id)
+            ->whereDate('start_date', '<', $monthEnd->toDateString())
+            ->whereDate('end_date', '>', $monthStart->toDateString())
+            ->get(['id', 'start_date', 'end_date']) as $block) {
+            $c = Carbon::parse($block->start_date);
+            $end = Carbon::parse($block->end_date);
+            for (; $c->lt($end); $c->addDay()) {
+                $blocked[$c->toDateString()] = (string) $block->id;
+            }
+        }
+
+        $days = [];
+        $bookedCount = $blockedCount = $openCount = 0;
+        $cursor = $monthStart->copy();
+        while ($cursor->lt($monthEnd)) {
+            $key = $cursor->toDateString();
+            $state = match (true) {
+                $cursor->lt($today) => 'past',
+                isset($booked[$key]) => 'booked',
+                isset($blocked[$key]) => 'blocked',
+                default => 'open',
+            };
+            match ($state) {
+                'booked' => $bookedCount++,
+                'blocked' => $blockedCount++,
+                'open' => $openCount++,
+                default => null,
+            };
+            $days[] = ['day' => (int) $cursor->day, 'date' => $key, 'state' => $state, 'block_id' => $blocked[$key] ?? null];
+            $cursor->addDay();
+        }
+
+        return [
+            'first_weekday' => $monthStart->copy()->dayOfWeekIso,
+            'days' => $days,
+            'booked' => $bookedCount,
+            'blocked' => $blockedCount,
+            'open' => $openCount,
+        ];
+    }
+
+    /**
+     * The unit's REAL pricing — the current nightly rate + minimum stay for its room type, editable ONLY when
+     * the owner owns that room type EXCLUSIVELY (via {@see OwnerRateService::editableRoomTypes()} — the SAME
+     * rule as My Units; a shared room type is honestly read-only, never a fake save). Weekend uplift is NOT
+     * modelled (no column) → the caller shows an honest "not available", never a fabricated figure (#39).
+     *
+     * @return array{editable: bool, room_type_id: ?string, rate_display: ?string, rate_units: ?int, min_stay: ?int}
+     */
+    private function pricing(Unit $unit, string $currency): array
+    {
+        $roomTypeId = (string) $unit->room_type_id;
+        $editable = app(OwnerRateService::class)->editableRoomTypes()
+            ->contains(fn ($rt): bool => (string) $rt->id === $roomTypeId);
+
+        $rateDisplay = null;
+        $rateUnits = null;
+        $minStay = null;
+
+        $plan = $unit->roomType->primaryRatePlan();
+        if ($plan !== null) {
+            $today = Carbon::today()->toDateString();
+            $row = RateCalendar::query()
+                ->where('rate_plan_id', $plan->id)->whereDate('date', '>=', $today)
+                ->orderBy('date')->first();
+            if ($row !== null) {
+                $rateDisplay = $this->money((int) $row->price_minor, (string) $row->currency);
+                $rateUnits = (int) round((int) $row->price_minor / 100);
+            }
+
+            $restriction = Restriction::query()
+                ->where('rate_plan_id', $plan->id)->whereDate('date', '>=', $today)
+                ->whereNotNull('min_stay')->orderBy('date')->first();
+            if ($restriction !== null) {
+                $minStay = (int) $restriction->min_stay;
+            }
+        }
+
+        return [
+            'editable' => $editable,
+            'room_type_id' => $roomTypeId,
+            'rate_display' => $rateDisplay,
+            'rate_units' => $rateUnits,
+            'min_stay' => $minStay,
+        ];
+    }
+
+    /**
+     * This unit's REAL reviews — the derived overall rating (published + public only, via the shared
+     * {@see ReviewRating}) and the review list (via {@see ReviewList}, the guest byline is first name + initial
+     * only, #28). Honest empty when the unit has no public reviews; category scores are NOT modelled → omitted.
+     *
+     * @return array{has_reviews: bool, average: ?float, count: int, list: list<array<string, mixed>>}
+     */
+    private function reviews(Unit $unit): array
+    {
+        $rating = ReviewRating::forUnit((string) $unit->id);
+
+        return [
+            'has_reviews' => (bool) $rating['has_reviews'],
+            'average' => $rating['average'] ?? null,
+            'count' => (int) $rating['count'],
+            'list' => array_slice(ReviewList::forUnits([(string) $unit->id]), 0, 4),
+        ];
     }
 
     /**

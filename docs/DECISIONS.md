@@ -4805,3 +4805,51 @@ encrypted number; honest withholding — never "treaty rate"/"withheld on payout
 suite green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. Browser-proven: save→hold released (+ cleared on
 Payouts, anti-drift), VAT toggle reveals the number field, annual PDF 200. Additive column only — DISTURB NOTHING (the
 green suite is the proof). **Invariants #1–64.**
+
+## 2026-07-28 — Owner TEAM & ACCESS + UNIT DETAIL exact-match (#65)
+
+Two owner pages matched to their decoded wireframes (`Owner Team.html`, `Owner Unit Detail.html`), gated per page
+(`docs/OWNER-TEAM-UNITDETAIL-AUDIT.md`, DIVERGENCE rows).
+
+**GATE 1 — Team & access (`e5d1a1f`).** Rebuilt `/owner/team` on the REAL owner-team feature (REUSED, not rebuilt):
+members / role change / remove / invite / pending revoke — every mutation a controller POST behind `EnsurePrimaryOwner`
+(#20). Additions:
+- **"What each role can see" matrix — REAL**, derived verbatim from `OwnerTeamRole::CAPABILITIES` (the SAME grid the
+  route gates + `@ownercan` read) — anti-drift, never a fabricated table.
+- **Recent activity — TRUTHFUL**: real member sign-ins + invites sent only (team actions aren't audited → no fabricated
+  event log).
+- **D-TEAM-1 — a NEW real RESEND** (`owner.team.invites.resend`): mints a fresh token + extends expiry + re-emails,
+  primary-owner-gated + throttled. The proto's Resend was a no-op toast; now it works.
+- **D-TEAM-2 — the security note's "financial exports are watermarked with who downloaded them" claim is FALSE** (no
+  watermark is applied, and downloads aren't audit-logged) → SOFTENED to the true claim ("separate sign-ins, role-scoped
+  access, 2-step"). Never claim a control that isn't implemented (#39).
+- Kept the real inline role-change editor (the wireframe shows a display-only pill — retaining the real feature).
+
+**GATE 2 — Unit Detail.** Rebuilt `/owner/units/{unit}` to the wireframe. This page AGGREGATES built features; the build
+REUSED them (anti-drift). **The headline: the Wave-1 component's "omitted, no backend" refusals were STALE** — the
+backends shipped later — so, per the stale-refusal re-verification rule, they are now BUILT REAL:
+- **D-UD-1 — day-blocking is REAL** (`calendarDays()` renders booked/blocked/open via the SAME derivation as the Block
+  Calendar; tap an open day → `OwnerBlockService` via `owner.calendar.block`, `$capActions`, non-overlap enforced).
+  Browser-proven: blocking 2026-10-01 flipped the day to blocked ("1 blocked").
+- **D-UD-2 — pricing edit is REAL** (`pricing()` reads the current nightly rate + min-stay; edit → `OwnerRateService`
+  via `owner.rates.apply` with a new `redirect=unit` branch returning to the unit). Per-room-type, exclusive-owned only
+  (honest read-only for a shared room type). Browser-proven €180→€185, live + returned to the unit. **Weekend uplift is
+  NOT modelled → honest "Not available"** (never a fake save, #39).
+- **D-UD-3 — reviews are REAL** (`ReviewRating::forUnit` + `ReviewList::forUnits`; byline first-name+initial only, #28;
+  honest-empty; no category bars — unmodelled).
+- **D-UD-4 — guest messages → the owner↔operator RELAY** (`owner.messages.start`) — name-free (#28), NEVER a guest thread
+  or owner→guest.
+- **HONEST / still refused (#39):** the snooze toggle (no owner `is_active` write → read-only status), OTA sync
+  (account-gated → honest note), cleaning schedule (not owner-facing → "coordinated by your management team", never a fake
+  cleaner), the per-unit payout timeline (payouts are per-statement → the real Payouts link), and "Direct saved you €X"
+  (fabricated ×0.15). The real condition-status notice (Out of order / Out of service) is retained. All existing real
+  sections (KPIs / occupancy / revenue / attribution-deductions [reconciles #17] / stays [name-only #28] / channel-mix /
+  commission / best-badge) were restyled to the wireframe, unchanged in data.
+
+**Verified:** `OwnerTeamInviteTest` 6→8 + `OwnerUnitDetailViewTest` 8→10 (the stale Wave-1 fiction-refusal test updated —
+the now-real features are covered; the genuinely-unmodelled fictions still refused). Full suite green; PHPStan L5 (0);
+Pint clean; `migrate:fresh --seed` clean. Browser-proven: Team (matrix = 11 real grants, resend re-sends, no watermark);
+Unit Detail (rate €180→€185 persisted + returns to the unit; tap-to-block created a real block; all sections render;
+view-only sub-user gets no write control). Guards: #28 owner-scoped + guest name-only, #17 reconcile, #20 controller
+writes + audited, #39 nothing fabricated. One additive redirect branch on `OwnerRateController`; nothing else disturbed.
+**Invariants #1–65.**

@@ -36,11 +36,16 @@ class OwnerRateController extends Controller
         $to = $this->dateString($request->input('end_date'));
         $roomTypeId = (string) $request->input('room_type_id', '');
 
-        // The inline "Edit pricing" stepper on My Units posts redirect=units so the owner returns there (with the
-        // flash) instead of the full Rates screen. Any other value → the Rates screen (the default write path).
-        $back = $request->input('redirect') === 'units'
-            ? route('owner.units')
-            : route('owner.rates', ['room_type' => $roomTypeId, 'from' => $from]);
+        // The inline "Edit pricing" steppers post a redirect hint so the owner returns to the surface they edited
+        // from (with the flash): `units` → My Units, `unit` (+ a `unit` id) → that Unit Detail page. Any other
+        // value → the full Rates screen (the default write path).
+        $redirect = $request->input('redirect');
+        $unitId = (string) $request->input('unit', '');
+        $back = match (true) {
+            $redirect === 'units' => route('owner.units'),
+            $redirect === 'unit' && $unitId !== '' => route('owner.units.show', $unitId),
+            default => route('owner.rates', ['room_type' => $roomTypeId, 'from' => $from]),
+        };
 
         if ($from === null || $to === null) {
             return redirect()->to($back)->with('rate_error', 'Choose valid start and end dates.');

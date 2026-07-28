@@ -1,382 +1,365 @@
-{{--
-    Owner Unit Detail (Wave 1 · Sub-gate 3) — ONE of the owner's units, styled from the catalogued
-    "Owner Unit Detail" design and wired to LIVE owner-scoped data. Shell from <x-owner.shell>.
+{{-- Owner Unit Detail (exact-match pass · invariant #65) — rebuilt to the decoded "Owner Unit Detail" wireframe on
+     REAL owner-scoped data. This page AGGREGATES already-built features (anti-drift, REUSED not rebuilt): the
+     Batch-B analytics (KPIs/occupancy/revenue/channel-mix/best-badge), OwnerLedgerAttribution (deductions, reconciles
+     #17), name-only stays (#28), OwnerBlockService (tap-to-block · owner.calendar.block), OwnerRateService (nightly +
+     min-stay · owner.rates.apply), the reviews feature (ReviewRating/ReviewList, first-name+initial byline #28), and
+     the owner↔operator relay (owner.messages.start — name-free, never owner→guest). HONEST where not modelled (#39):
+     weekend uplift, cleaning schedule, OTA sync, the snooze toggle, a per-unit payout timeline, "Direct saved you €X".
+     See App\Livewire\Owner\OwnerUnitDetail + docs/OWNER-TEAM-UNITDETAIL-AUDIT.md.
+     RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click passes through to Alpine). --}}
+<x-owner.shell active="units" :title="$unit['name']" :viewer="$viewer" :breadcrumb="[['label' => 'My units', 'url' => route('owner.units')], ['label' => $unit['name']]]">
+    <style>
+        .vy-ud-head { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+        .vy-ud-status { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:30px; font-size:11.5px; font-weight:500; }
+        .vy-ud-status--live { background:rgba(217,102,46,.13); color:#B4400F; }
+        .vy-ud-status--off { background:rgba(120,70,40,.1); color:var(--vy-muted); }
+        .vy-ud-status .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+        .vy-ud-hbtn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:12px; cursor:pointer; font-family:var(--vy-sans); font-size:13px; font-weight:500; text-decoration:none; }
+        .vy-ud-sync { margin-left:auto; font-size:11.5px; color:var(--vy-faint); }
 
-    HONESTY MAP (rule locked in DECISIONS.md 2026-07-11; see App\Livewire\Owner\OwnerUnitDetail, whose
-    docblock carries the full triage + every omission and why):
-      • REAL      — name / code / room type / unit_kind / Sleeps (max_occupancy) / listing state /
-                    condition_status; the owner_ledger rows for THIS unit; each stay's reference, dates,
-                    source and status (the REAL enums only); the effective agreement's commission_pct;
-                    the statements this unit's rows landed on.
-      • DERIVED   — occupancy nights + pct for THIS UNIT (OwnerOccupancy — never the room-type-wide read,
-                    which is shared with hotel rooms and other owners' units); the per-entry_type nets;
-                    the month net; each stay's attributed net. Credited + Deductions = Net, to the cent.
-      • CURRENCY  — every figure is per currency; nothing is summed or converted across currencies.
-      • NULLS     — no commission → "Not set", NEVER "0%". No effective agreement → no card. A stay with
-                    no ledger rows → "Not yet attributed", never a zero dressed up as a figure.
-      • GUEST PII — none. A stay is identified by its REAL reference only; no guest field is even loaded.
-      • READ-ONLY — this screen writes NOTHING: no pricing form, no day-blocking, no status toggle.
-      • REAL (Batch B) — the 6-month NET revenue trend + the trailing-12-month occupancy trend (both from
-                    the real ledger / OwnerOccupancy, NEVER the design's fabricated prior years), the
-                    best-performer badge (the real cross-unit ranking), and the channel mix (the real
-                    reservations.source enum — NOT an OTA brand, which the model does not carry).
-      • OMITTED   — owner-editable pricing (nightly rate / weekend uplift / min stay), day-blocking + the
-                    fabricated "Blocked" split, the Live/Snoozed toggle, calendar sync, reviews & rating,
-                    the cleaning schedule, guest messages, "Direct bookings saved you €X" (the design
-                    computes it as a fabricated directRev×0.15), the per-unit payout timeline (payouts are
-                    per-STATEMENT, never per-unit — the rail links the real Payouts screen instead), base
-                    rate / cleaning fee (no such column — the design's €140/€45 are literals). Each is
-                    dropped, NOT stubbed: rendering them even disabled would imply state that has no schema.
---}}
-<x-owner.shell active="units" :title="$unit['name']" :viewer="$viewer">
-    <div style="margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <a href="{{ route('owner.units') }}" style="color:var(--vy-muted);font-size:12.5px;font-weight:500;text-decoration:none">← My units</a>
-        {{-- Best performer — REAL (Batch B): shown only when this unit genuinely leads the owner's units. --}}
-        @if ($bestBadge)
-            <span class="vy-pill" style="background:var(--vy-accent);color:#fff;font-weight:600" title="Your best-performing unit this month by revenue">★ Best performer of your {{ $bestBadge['count'] }} units · {{ $bestBadge['month'] }}</span>
-        @endif
-    </div>
+        .vy-ud-kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
+        .vy-ud-kpi-k { font-size:11px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--vy-faint); margin-bottom:5px; }
+        .vy-ud-kpi-v { font-family:var(--vy-display); font-weight:600; font-size:26px; letter-spacing:-.02em; }
+        .vy-ud-kpi-s { font-size:11.5px; color:var(--vy-faint); margin-top:3px; }
 
-    {{-- Condition — REAL (units.condition_status). Rendered only when the unit is NOT in service; the
-         consequence stated is a certified AvailabilityService fact, not a guess. No cause/ETA/ticket:
-         none of those live on `units`. --}}
-    @if ($unit['condition'])
-        <section class="vy-card vy-card--accent vy-fade" style="margin-bottom:22px;display:flex;align-items:center;gap:12px">
-            <span class="vy-brand-mark" style="border-radius:12px">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-            </span>
-            <div>
-                <div style="font-family:var(--vy-display);font-weight:600;font-size:14.5px">{{ $unit['condition']['label'] }}</div>
-                <div class="vy-line-sub">Your operator has marked this unit {{ \Illuminate\Support\Str::lower($unit['condition']['label']) }}. It is not being offered for new bookings while that lasts.</div>
-            </div>
-        </section>
+        .vy-ud-top { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:18px; align-items:start; margin-bottom:18px; }
+        @media (max-width:960px){ .vy-ud-top { grid-template-columns:1fr; } }
+        .vy-ud-cols { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:18px; align-items:start; }
+        @media (max-width:960px){ .vy-ud-cols { grid-template-columns:1fr; } }
+        .vy-ud-stack { display:flex; flex-direction:column; gap:18px; min-width:0; }
+
+        .vy-ud-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+        .vy-ud-dow { text-align:center; font-size:10px; font-weight:600; letter-spacing:.06em; color:var(--vy-faint); }
+        .vy-ud-day { aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:9px; font-size:12.5px; font-variant-numeric:tabular-nums; }
+        .vy-ud-day--open { background:rgba(255,255,255,.5); border:1px solid rgba(120,70,40,.1); color:var(--vy-ink); cursor:pointer; }
+        .vy-ud-day--open:hover { background:rgba(217,102,46,.1); }
+        .vy-ud-day--open.is-sel { background:var(--vy-grad); color:#fff; }
+        .vy-ud-day--booked { background:rgba(232,112,58,.16); border:1px solid rgba(232,112,58,.28); color:#8A3410; }
+        .vy-ud-day--blocked { background:#3A2E27; color:#F3E7DD; }
+        .vy-ud-day--past { background:transparent; color:var(--vy-faint); opacity:.5; }
+        .vy-ud-legend { display:flex; align-items:center; gap:16px; margin-top:16px; flex-wrap:wrap; font-size:11.5px; color:var(--vy-muted); }
+        .vy-ud-legend .sw { width:11px; height:11px; border-radius:4px; }
+
+        .vy-ud-prow { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 0; border-top:1px solid rgba(120,70,40,.08); font-size:12.5px; }
+        .vy-ud-prow .k { color:var(--vy-muted); }
+        .vy-ud-prow .v { font-weight:500; font-variant-numeric:tabular-nums; }
+
+        .vy-ud-rev-chart { display:flex; align-items:flex-end; gap:10px; height:120px; }
+        .vy-ud-bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; justify-content:flex-end; height:100%; }
+        .vy-ud-bar { width:100%; max-width:30px; border-radius:6px 6px 0 0; background:var(--vy-grad); }
+        .vy-ud-bar--occ { background:var(--vy-grad-peach); }
+
+        .vy-ud-reviews-score { font-family:var(--vy-display); font-weight:700; font-size:32px; letter-spacing:-.02em; }
+        .vy-ud-review { padding:12px 0; border-top:1px solid var(--vy-hairline); }
+        .vy-ud-rail-card { padding:20px; }
+        .vy-ud-honest { background:rgba(255,252,248,.5); border:1px dashed rgba(120,70,40,.22); }
+    </style>
+
+    @if (session('rate_notice') || session('block_notice'))
+        <div class="vy-card vy-fade" style="margin-bottom:14px;border-left:3px solid var(--vy-accent);padding:12px 16px;font-size:13.5px;color:var(--vy-ink)">{{ session('rate_notice') ?? session('block_notice') }}</div>
+    @endif
+    @if (session('rate_error') || session('block_error'))
+        <div class="vy-card vy-fade" style="margin-bottom:14px;border-left:3px solid #C2453A;padding:12px 16px;font-size:13px;color:#8A2F27">{{ session('rate_error') ?? session('block_error') }}</div>
     @endif
 
-    {{-- KPIs — occupancy + nights DERIVED for THIS unit; net DERIVED from this unit's real ledger rows --}}
-    <div class="vy-kpi-grid vy-fade" style="animation-delay:.02s">
-        <div class="vy-kpi">
-            <div class="vy-kpi-label">Occupancy</div>
-            <div class="vy-kpi-val">{{ $occupancy['pct'] }}%</div>
-            <div class="vy-kpi-sub">{{ $month['label'] }}</div>
-        </div>
-        <div class="vy-kpi">
-            <div class="vy-kpi-label">Nights sold</div>
-            <div class="vy-kpi-val">{{ $occupancy['nights'] }}</div>
-            <div class="vy-kpi-sub">{{ $month['label'] }}</div>
-        </div>
-        <div class="vy-kpi">
-            <div class="vy-kpi-label">Net attributed</div>
-            @if ($attribution)
-                <div class="vy-kpi-val">{{ $attribution[0]['net_display'] }}</div>
-                <div class="vy-kpi-sub">{{ $month['label'] }} · {{ $attribution[0]['currency'] }}</div>
-            @else
-                <div class="vy-kpi-val">—</div>
-                <div class="vy-kpi-sub">No attributed activity · {{ $month['label'] }}</div>
-            @endif
-        </div>
+    {{-- ── Header: status + edit-pricing + honest sync/share ── --}}
+    <div class="vy-ud-head">
+        @if ($unit['active'])
+            <span class="vy-ud-status vy-ud-status--live"><span class="dot"></span>Active</span>
+        @else
+            <span class="vy-ud-status vy-ud-status--off"><span class="dot"></span>Not listed</span>
+        @endif
+        @if ($unit['condition'] !== null)
+            <span class="vy-ud-status vy-ud-status--off" style="background:rgba(190,32,28,.1);color:#B01E1E">{{ $unit['condition']['label'] }}</span>
+        @endif
+        @if ($bestBadge !== null)
+            <span class="vy-ud-status" style="background:var(--vy-grad-dark);color:#F7D9C4">★ Best performer of your {{ $bestBadge['count'] }} units · {{ $bestBadge['month'] }}</span>
+        @endif
+        <a href="#vy-ud-pricing" class="vy-ud-hbtn vy-btn--accent" style="text-decoration:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+            Edit pricing
+        </a>
+        {{-- Sync/share — HONEST: OTA channel sync is account-gated; no fake "synced" state (#37/#39). --}}
+        <span class="vy-ud-sync">Channel sync is managed by your operator</span>
     </div>
 
-    <div class="vy-cols" style="margin-top:22px">
-        {{-- ── Main ── --}}
-        <div class="vy-stack">
-            {{-- Occupancy calendar — READ-ONLY, THIS unit only. Booked / No booking are the only two
-                 states this screen can honestly know: a day with no booking is NOT necessarily
-                 "available" (the unit may be out of service or the room type blocked), so that word is
-                 deliberately not used. Month paging is a plain GET link, never a wire-action. --}}
-            <section class="vy-card vy-fade" style="animation-delay:.04s">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
-                    <h2 class="vy-card-title">Occupancy calendar</h2>
-                    <div style="display:flex;align-items:center;gap:8px">
-                        <a class="vy-period-btn" href="{{ route('owner.units.show', ['unit' => $unit['id'], 'month' => $month['prev']]) }}" aria-label="Previous month"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></a>
-                        <span class="vy-period-cur">{{ $month['label'] }}</span>
-                        <a class="vy-period-btn" href="{{ route('owner.units.show', ['unit' => $unit['id'], 'month' => $month['next']]) }}" aria-label="Next month"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
-                    </div>
-                </div>
+    {{-- ── KPIs — REAL per-unit ── --}}
+    <div class="vy-ud-kpis vy-fade">
+        <div class="vy-card" style="padding:16px 18px"><div class="vy-ud-kpi-k">Occupancy</div><div class="vy-ud-kpi-v">{{ $occupancy['pct'] }}%</div><div class="vy-ud-kpi-s">{{ $month['label'] }}</div></div>
+        <div class="vy-card" style="padding:16px 18px"><div class="vy-ud-kpi-k">Nights sold</div><div class="vy-ud-kpi-v">{{ $occupancy['nights'] }}</div><div class="vy-ud-kpi-s">{{ $month['label'] }}</div></div>
+        <div class="vy-card" style="padding:16px 18px"><div class="vy-ud-kpi-k">Net · {{ $month['label'] }}</div><div class="vy-ud-kpi-v">{{ $attribution[0]['net_display'] ?? '—' }}</div><div class="vy-ud-kpi-s">Attributed to you</div></div>
+    </div>
 
-                <div class="vy-cal-grid" style="margin-bottom:6px">
-                    @foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $wd)
-                        <div class="vy-cal-head">{{ $wd }}</div>
+    {{-- ── Top: availability calendar (tap-to-block) + pricing ── --}}
+    <div class="vy-ud-top">
+        {{-- Availability calendar — REAL booked/blocked/open; tap an OPEN day → block via OwnerBlockService --}}
+        <section class="vy-card vy-fade" x-data="{ sel: null }">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px">
+                <h2 class="vy-card-title" style="font-size:16px">Availability · {{ $month['label'] }}</h2>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <a href="{{ route('owner.units.show', ['unit' => $unit['id'], 'month' => $month['prev']]) }}" class="vy-line-sub" style="text-decoration:none;font-size:15px">‹</a>
+                    <a href="{{ route('owner.units.show', ['unit' => $unit['id'], 'month' => $month['next']]) }}" class="vy-line-sub" style="text-decoration:none;font-size:15px">›</a>
+                    <span style="font-size:11.5px;color:var(--vy-faint)">Tap an open day to block</span>
+                </div>
+            </div>
+            <div style="font-size:12px;color:var(--vy-muted);margin-bottom:16px;font-variant-numeric:tabular-nums">{{ $calendar['booked'] }} booked · {{ $calendar['blocked'] }} blocked · {{ $calendar['open'] }} open</div>
+            <div class="vy-ud-cal" style="margin-bottom:6px">
+                @foreach (['MON','TUE','WED','THU','FRI','SAT','SUN'] as $d)<div class="vy-ud-dow">{{ $d }}</div>@endforeach
+            </div>
+            <div class="vy-ud-cal">
+                @for ($i = 1; $i < $calendar['first_weekday']; $i++)<div></div>@endfor
+                @foreach ($calendar['days'] as $c)
+                    @if ($c['state'] === 'open')
+                        <div class="vy-ud-day vy-ud-day--open" :class="sel === @js($c['date']) ? 'is-sel' : ''" @click="sel = (sel === @js($c['date']) ? null : @js($c['date']))" title="Open — tap to block">{{ $c['day'] }}</div>
+                    @else
+                        <div class="vy-ud-day vy-ud-day--{{ $c['state'] }}" title="{{ ucfirst($c['state']) }}">{{ $c['day'] }}</div>
+                    @endif
+                @endforeach
+            </div>
+            <div class="vy-ud-legend">
+                <span style="display:inline-flex;align-items:center;gap:6px"><span class="sw" style="background:rgba(232,112,58,.16);border:1px solid rgba(232,112,58,.28)"></span>Booked</span>
+                <span style="display:inline-flex;align-items:center;gap:6px"><span class="sw" style="background:rgba(255,255,255,.5);border:1px solid rgba(120,70,40,.1)"></span>Open</span>
+                <span style="display:inline-flex;align-items:center;gap:6px"><span class="sw" style="background:#3A2E27"></span>Blocked</span>
+            </div>
+            {{-- Block composer — appears when an open day is selected; a REAL block (OwnerBlockService, $capActions #20) --}}
+            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                <form method="POST" action="{{ route('owner.calendar.block') }}" x-show="sel" x-cloak style="margin-top:16px;padding-top:16px;border-top:1px solid var(--vy-hairline);display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                    @csrf
+                    <input type="hidden" name="unit_id" value="{{ $unit['id'] }}">
+                    <input type="hidden" name="first_night" :value="sel">
+                    <input type="hidden" name="last_night" :value="sel">
+                    <span style="font-size:12.5px;color:var(--vy-muted)">Block <strong x-text="sel"></strong> as</span>
+                    <select name="reason" class="vy-input" style="padding:6px 10px;font-size:12.5px;flex:0 1 auto">
+                        @foreach ($blockReasons as $r)<option value="{{ $r }}">{{ $r }}</option>@endforeach
+                    </select>
+                    <button type="submit" class="vy-btn vy-btn--accent" style="padding:7px 15px;font-size:12.5px">Block day</button>
+                    <button type="button" class="vy-btn vy-btn--ghost" style="padding:7px 13px;font-size:12.5px" @click="sel = null">Cancel</button>
+                </form>
+            @endownercan
+            <p class="vy-line-sub" style="font-size:11px;margin-top:12px">Blocked days hold the unit off-sale. Manage all blocks on your <a href="{{ route('owner.calendar', ['unit' => $unit['id']]) }}" style="color:var(--vy-accent)">Calendar</a>.</p>
+        </section>
+
+        {{-- Pricing & availability — REAL nightly + min-stay (OwnerRateService); weekend uplift honest-omitted --}}
+        <section class="vy-card vy-fade" id="vy-ud-pricing" style="padding:20px" x-data="{ editing: false }">
+            <div class="vy-eyebrow" style="margin-bottom:12px">Pricing &amp; availability</div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.42);border:1px solid rgba(120,70,40,.08);margin-bottom:14px">
+                <div style="min-width:0">
+                    <div style="font-size:13.5px;font-weight:500">{{ $unit['active'] ? 'Listing active' : 'Not listed' }}</div>
+                    <div style="font-size:11.5px;color:var(--vy-faint);margin-top:2px">Your operator manages listing status.</div>
+                </div>
+                <span class="vy-ud-status {{ $unit['active'] ? 'vy-ud-status--live' : 'vy-ud-status--off' }}"><span class="dot"></span>{{ $unit['active'] ? 'Active' : 'Off' }}</span>
+            </div>
+
+            <div x-show="! editing">
+                <div class="vy-ud-prow"><span class="k">Nightly rate</span><span class="v">{{ $pricing['rate_display'] ?? 'Not set' }}</span></div>
+                <div class="vy-ud-prow"><span class="k">Weekend uplift</span><span class="v" style="color:var(--vy-faint)">Not available</span></div>
+                <div class="vy-ud-prow"><span class="k">Minimum stay</span><span class="v">{{ $pricing['min_stay'] !== null ? $pricing['min_stay'].' '.\Illuminate\Support\Str::plural('night', $pricing['min_stay']) : 'None' }}</span></div>
+                @if (! $pricing['editable'])
+                    <p class="vy-line-sub" style="font-size:11.5px;margin-top:12px">This room type is shared with other inventory, so its rate is managed by your operator.</p>
+                @endif
+            </div>
+
+            {{-- Edit — REAL: nightly + min-stay → owner.rates.apply (returns here); weekend uplift NOT offered
+                 (unmodelled). The whole edit affordance is CAP_ACTIONS-gated (co-owner only) + editable-only, so a
+                 view-only sub-user or a shared room type never gets a write control (#20/#30 — gate the control). --}}
+            @if ($pricing['editable'])
+                @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                    <button type="button" x-show="! editing" class="vy-btn vy-btn--ghost" style="margin-top:14px;padding:8px 14px;font-size:12.5px" @click="editing = true">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                        Edit pricing
+                    </button>
+                    <form x-show="editing" x-cloak method="POST" action="{{ route('owner.rates.apply') }}">
+                        @csrf
+                        <input type="hidden" name="room_type_id" value="{{ $pricing['room_type_id'] }}">
+                        <input type="hidden" name="redirect" value="unit">
+                        <input type="hidden" name="unit" value="{{ $unit['id'] }}">
+                        <input type="hidden" name="start_date" value="{{ now()->toDateString() }}">
+                        <input type="hidden" name="end_date" value="{{ now()->addYear()->subDay()->toDateString() }}">
+                        <label class="vy-field-label" for="ud_rate">Nightly rate (€)</label>
+                        <input id="ud_rate" type="number" name="rate" step="0.01" min="0" value="{{ $pricing['rate_units'] }}" class="vy-input" style="width:100%;margin-bottom:11px" required>
+                        <label class="vy-field-label" for="ud_min">Minimum stay (nights)</label>
+                        <input id="ud_min" type="number" name="min_stay" min="1" max="365" value="{{ $pricing['min_stay'] }}" class="vy-input" style="width:100%;margin-bottom:8px" placeholder="Optional">
+                        <p class="vy-line-sub" style="font-size:11px;margin:0 0 12px">Applies from today across the next year. It’s live immediately.</p>
+                        <div style="display:flex;gap:9px">
+                            <button type="button" class="vy-btn vy-btn--ghost" style="flex:1;justify-content:center" @click="editing = false">Cancel</button>
+                            <button type="submit" class="vy-btn vy-btn--accent" style="flex:1;justify-content:center">Save changes</button>
+                        </div>
+                    </form>
+                @endownercan
+            @endif
+        </section>
+    </div>
+
+    {{-- ── Main + rail ── --}}
+    <div class="vy-ud-cols">
+        <div class="vy-ud-stack">
+            {{-- Revenue · 6 months (real net) --}}
+            <section class="vy-card vy-fade">
+                <h2 class="vy-card-title" style="font-size:16px;margin-bottom:4px">Revenue · 6 months</h2>
+                <div class="vy-line-sub" style="margin-bottom:16px">Net to you, per month</div>
+                @if ($revenueTrend['has_data'])
+                    <div class="vy-ud-rev-chart">
+                        @foreach ($revenueTrend['bars'] as $b)
+                            <div class="vy-ud-bar-col" title="{{ $b['label'] }} · {{ $b['display'] }}">
+                                <span style="font-size:9.5px;color:var(--vy-faint)">{{ $b['display'] }}</span>
+                                <div class="vy-ud-bar" style="height:{{ max(2, $b['pct']) }}%"></div>
+                                <span style="font-size:10px;color:var(--vy-faint)">{{ $b['label'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="vy-empty">No revenue in the last 6 months yet.</div>
+                @endif
+            </section>
+
+            {{-- Occupancy · 12 months (real) --}}
+            <section class="vy-card vy-fade">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px">
+                    <h2 class="vy-card-title" style="font-size:16px">Occupancy · 12 months</h2>
+                    <span class="vy-line-sub">avg {{ $occupancyTrend['avg'] }}% · peak {{ $occupancyTrend['peak_pct'] }}% in {{ $occupancyTrend['peak_label'] }}</span>
+                </div>
+                <div class="vy-ud-rev-chart">
+                    @foreach ($occupancyTrend['bars'] as $b)
+                        <div class="vy-ud-bar-col" title="{{ $b['label'] }} · {{ $b['display'] }}">
+                            <div class="vy-ud-bar vy-ud-bar--occ" style="height:{{ max(2, $b['pct']) }}%"></div>
+                            <span style="font-size:10px;color:var(--vy-faint)">{{ $b['label'] }}</span>
+                        </div>
                     @endforeach
                 </div>
-                <div class="vy-cal-grid">
-                    @for ($i = 1; $i < $month['first_weekday']; $i++)
-                        <div class="vy-cal-empty"></div>
-                    @endfor
-                    @for ($dom = 1; $dom <= $occupancy['days']; $dom++)
-                        @php $booked = ($occupancy['heat'][$dom] ?? 0) > 0; @endphp
-                        <div class="vy-cal-cell"
-                             style="background:{{ $booked ? 'rgba(194,65,12,.85)' : 'rgba(120,70,40,.05)' }};color:{{ $booked ? '#fff' : 'var(--vy-ink)' }}"
-                             title="{{ $booked ? 'Booked' : 'No booking' }}">{{ $dom }}</div>
-                    @endfor
-                </div>
-
-                <div class="vy-cal-legend">
-                    <span class="vy-cal-swatch" style="background:rgba(194,65,12,.85)"></span><span>Booked</span>
-                    <span class="vy-cal-swatch" style="background:rgba(120,70,40,.05)"></span><span>No booking</span>
-                </div>
-
-                <div class="vy-line-sub" style="margin-top:12px;font-size:13px">
-                    <strong style="color:var(--vy-ink)">{{ $occupancy['nights'] }} nights</strong> · {{ $occupancy['pct'] }}% occupancy · {{ $month['label'] }}
-                </div>
-                <div class="vy-line-sub" style="margin-top:6px">This calendar is read-only — your operator manages bookings and availability.</div>
             </section>
 
-            {{-- Revenue · 6 months — REAL (Batch B): this unit's NET "to you" per month, straight from the
-                 owner ledger (Σ signedMinor by month). Shared bar component. No fabricated prior years (#39):
-                 an empty month is an honest zero and a unit with no earnings shows an honest empty state. --}}
-            <section class="vy-card vy-fade" style="animation-delay:.05s">
-                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px">
-                    <h2 class="vy-card-title">Revenue · 6 months</h2>
-                    <span class="vy-line-sub">net to you</span>
-                </div>
-                @if ($revenueTrend['has_data'])
-                    <x-charts.bars :bars="$revenueTrend['bars']" height="130px" />
-                @else
-                    <div class="vy-deferred" style="margin-top:6px"><span class="vy-eyebrow">No revenue yet</span>This unit's monthly net will chart here once it has attributed earnings.</div>
-                @endif
-            </section>
-
-            {{-- Occupancy · 12 months — REAL (Batch B): THIS unit's occupancy per month over the trailing
-                 year, via the SHARED OwnerOccupancy (unit-scoped, never room-type-wide), with the real
-                 average + peak. Shared bar component. --}}
-            <section class="vy-card vy-fade" style="animation-delay:.06s">
-                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px">
-                    <h2 class="vy-card-title">Occupancy · 12 months</h2>
-                    @if ($occupancyTrend['has_data'])
-                        <span class="vy-line-sub">avg {{ $occupancyTrend['avg'] }}% · peak {{ $occupancyTrend['peak_pct'] }}% in {{ $occupancyTrend['peak_label'] }}</span>
-                    @endif
-                </div>
-                @if ($occupancyTrend['has_data'])
-                    <x-charts.bars :bars="$occupancyTrend['bars']" height="130px" />
-                @else
-                    <div class="vy-deferred" style="margin-top:6px"><span class="vy-eyebrow">No bookings yet</span>This unit's monthly occupancy will chart here once it has bookings.</div>
-                @endif
-            </section>
-
-            {{-- Attribution — every ledger row for THIS unit in the month, bucketed by entry_type and
-                 summed signed. Credited + Deductions = Net exactly (see the component docblock). --}}
-            <section class="vy-card vy-fade" style="animation-delay:.06s">
-                <h2 class="vy-card-title">Attribution · {{ $month['label'] }}</h2>
-                <div class="vy-line-sub">What this unit earned you, and what was deducted.</div>
-
-                @forelse ($attribution as $block)
-                    <div style="margin-top:14px">
-                        @if (count($attribution) > 1)
-                            <span class="vy-eyebrow">{{ $block['currency'] }}</span>
-                        @endif
-                        <div style="overflow-x:auto">
-                            <table class="vy-table">
-                                <tbody>
-                                    @foreach ($block['credits'] as $row)
-                                        <tr>
-                                            <td>{{ $row['label'] }}</td>
-                                            <td class="vy-num vy-mono">{{ $row['display'] }}</td>
-                                        </tr>
-                                    @endforeach
-                                    <tr>
-                                        <td class="vy-row-month">Credited</td>
-                                        <td class="vy-num vy-mono vy-row-month">{{ $block['credited_display'] }}</td>
-                                    </tr>
-                                    @foreach ($block['deductions'] as $row)
-                                        <tr>
-                                            <td>{{ $row['label'] }}</td>
-                                            <td class="vy-num vy-mono vy-net">{{ $row['display'] }}</td>
-                                        </tr>
-                                    @endforeach
-                                    <tr>
-                                        <td class="vy-row-month">Deductions</td>
-                                        <td class="vy-num vy-mono vy-net vy-row-month">{{ $block['deducted_display'] }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="border-top:1.5px solid rgba(120,70,40,.16)"><strong style="font-family:var(--vy-display);font-size:14.5px">Net</strong></td>
-                                        <td class="vy-num vy-mono" style="border-top:1.5px solid rgba(120,70,40,.16);font-size:15px">{{ $block['net_display'] }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            {{-- Attribution / deductions · month (real, reconciles #17) --}}
+            <section class="vy-card vy-fade">
+                <h2 class="vy-card-title" style="font-size:16px;margin-bottom:4px">Attribution · {{ $month['label'] }}</h2>
+                <div class="vy-line-sub" style="margin-bottom:8px">What this unit earned you, and what was deducted.</div>
+                @forelse ($attribution as $group)
+                    <table class="vy-table" style="width:100%">
+                        <tbody>
+                            @foreach ($group['credits'] as $line)<tr><td>{{ $line['label'] }}</td><td class="vy-num vy-mono">{{ $line['display'] }}</td></tr>@endforeach
+                            @foreach ($group['deductions'] as $line)<tr><td>{{ $line['label'] }}</td><td class="vy-num vy-mono">{{ $line['display'] }}</td></tr>@endforeach
+                            <tr><td><strong>Net</strong></td><td class="vy-num vy-mono" style="color:var(--vy-accent)">{{ $group['net_display'] }}</td></tr>
+                        </tbody>
+                    </table>
                 @empty
-                    <div class="vy-deferred" style="margin-top:10px">No attributed activity for this unit in {{ $month['label'] }}.</div>
+                    <div class="vy-empty">No activity attributed this month yet.</div>
                 @endforelse
-
-                @if (count($attribution) > 1)
-                    <div class="vy-fx-note">Each currency is totalled separately — nothing is converted.</div>
-                @endif
             </section>
 
-            {{-- Stays — REAL reservation_units lines on this unit touching the month, joined to the real
-                 reservation. Reference / source / status are the REAL enums. NO guest name, ever. --}}
-            <section class="vy-card vy-fade" style="animation-delay:.08s">
-                <h2 class="vy-card-title">Stays · {{ $month['label'] }}</h2>
-                <div class="vy-line-sub">Bookings on this unit that touch this month</div>
-
-                <div style="overflow-x:auto;margin-top:10px">
+            {{-- Stays · month (real, name-only #28) --}}
+            <section class="vy-card vy-fade">
+                <h2 class="vy-card-title" style="font-size:16px;margin-bottom:4px">Stays · {{ $month['label'] }}</h2>
+                <div class="vy-line-sub" style="margin-bottom:8px">Bookings on this unit that touch this month</div>
+                <div style="overflow-x:auto">
                     <table class="vy-table">
-                        <thead>
-                            <tr>
-                                <th>Reference</th>
-                                <th>Stay</th>
-                                <th class="vy-num">Nights</th>
-                                <th>Source</th>
-                                <th>Status</th>
-                                <th class="vy-num">Your net</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Reference</th><th>Stay</th><th class="vy-num">Nights</th><th>Source</th><th>Status</th><th class="vy-num">Your net</th></tr></thead>
                         <tbody>
                             @forelse ($bookings as $b)
                                 <tr>
-                                    <td class="vy-row-month vy-mono">
-                                        @if ($b['reference'])
-                                            {{ $b['reference'] }}
-                                        @else
-                                            <span class="vy-muted">—</span>
-                                        @endif
-                                    </td>
-                                    <td style="white-space:nowrap">{{ $b['stay'] }}</td>
-                                    <td class="vy-num vy-mono">{{ $b['nights'] }}</td>
-                                    <td>
-                                        @if ($b['source_label'])
-                                            <span class="vy-pill">{{ $b['source_label'] }}</span>
-                                        @else
-                                            <span class="vy-muted">—</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if ($b['status_meta'])
-                                            <span class="vy-status vy-status--{{ $b['status_meta']['tone'] }}">{{ $b['status_meta']['label'] }}</span>
-                                        @else
-                                            <span class="vy-muted">—</span>
-                                        @endif
-                                    </td>
-                                    <td class="vy-num vy-mono">
-                                        @forelse ($b['net_displays'] as $display)
-                                            <div>{{ $display }}</div>
-                                        @empty
-                                            <span class="vy-muted" style="font-size:11.5px">Not yet attributed</span>
-                                        @endforelse
-                                    </td>
+                                    <td class="vy-mono">{{ $b['reference'] ?? '—' }}</td>
+                                    <td>{{ $b['stay'] }}</td>
+                                    <td class="vy-num">{{ $b['nights'] }}</td>
+                                    <td>{{ $b['source_label'] ?? '—' }}</td>
+                                    <td>@if ($b['status_meta'])<span class="vy-status vy-status--{{ $b['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $b['status_meta']['label'] }}</span>@else — @endif</td>
+                                    <td class="vy-num vy-mono">{{ $b['net_displays'] === [] ? 'Not yet attributed' : implode(' · ', $b['net_displays']) }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6"><div class="vy-empty">No stays on this unit in {{ $month['label'] }}.</div></td></tr>
+                                <tr><td colspan="6"><div class="vy-empty">No stays touch this month.</div></td></tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+            </section>
 
-                <div class="vy-line-sub" style="margin-top:10px">
-                    “Your net” covers each whole stay, so a stay that runs past {{ $month['label'] }} is counted in full here.
-                </div>
+            {{-- Reviews & rating — REAL (rating + list; byline first-name+initial #28; no category bars — unmodelled) --}}
+            <section class="vy-card vy-fade">
+                <h2 class="vy-card-title" style="font-size:16px;margin-bottom:8px">Reviews &amp; rating</h2>
+                @if ($reviews['has_reviews'])
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+                        <span class="vy-ud-reviews-score">{{ number_format((float) $reviews['average'], 1) }}</span>
+                        <div>
+                            <div style="color:#E8A24A;font-size:15px">{{ str_repeat('★', (int) round((float) $reviews['average'])) }}{{ str_repeat('☆', 5 - (int) round((float) $reviews['average'])) }}</div>
+                            <div class="vy-line-sub">{{ $reviews['count'] }} {{ \Illuminate\Support\Str::plural('review', $reviews['count']) }} · published</div>
+                        </div>
+                    </div>
+                    @foreach ($reviews['list'] as $r)
+                        <div class="vy-ud-review">
+                            <div style="display:flex;justify-content:space-between;gap:10px"><span style="font-size:13px;font-weight:600">{{ $r['byline'] }}</span><span style="color:#E8A24A;font-size:12px">{{ $r['stars'] }}</span></div>
+                            @if ($r['body'])<div class="vy-line-sub" style="font-size:12.5px;margin-top:4px;line-height:1.5">{{ $r['body'] }}</div>@endif
+                            <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">{{ $r['at'] }}</div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="vy-empty">No published reviews for this unit yet.</div>
+                @endif
             </section>
         </div>
 
-        {{-- ── Right rail ── --}}
-        <div class="vy-stack">
-            {{-- Unit details — the unit's REAL columns only. There is NO per-unit base rate or cleaning
-                 fee column in the schema, so neither is rendered (the design's figures are literals). --}}
-            <section class="vy-card vy-fade" style="animation-delay:.05s">
+        {{-- RIGHT RAIL --}}
+        <div class="vy-ud-stack">
+            {{-- Unit details (real) --}}
+            <section class="vy-card vy-fade vy-ud-rail-card">
                 <span class="vy-eyebrow">Unit details</span>
-                <div class="vy-list-row">
-                    <span class="vy-muted">Code</span>
-                    <span class="vy-mono" style="font-weight:500">{{ $unit['code'] }}</span>
-                </div>
-                <div class="vy-list-row">
-                    <span class="vy-muted">Room type</span>
-                    <span style="font-weight:500">{{ $unit['type'] }}</span>
-                </div>
-                <div class="vy-list-row">
-                    <span class="vy-muted">Type</span>
-                    <span style="font-weight:500">{{ $unit['kind_label'] }}</span>
-                </div>
-                <div class="vy-list-row">
-                    <span class="vy-muted">Sleeps</span>
-                    <span style="font-weight:500">{{ $unit['max_occupancy'] }}</span>
-                </div>
-                <div class="vy-list-row">
-                    <span class="vy-muted">Listing</span>
-                    <span class="vy-unit-badge">{{ $unit['active'] ? 'Active' : 'Inactive' }}</span>
-                </div>
-                @if ($unit['condition'])
-                    <div class="vy-list-row">
-                        <span class="vy-muted">Condition</span>
-                        <span style="font-weight:500">{{ $unit['condition']['label'] }}</span>
-                    </div>
-                @endif
+                <div class="vy-ud-prow"><span class="k">Code</span><span class="v">{{ $unit['code'] }}</span></div>
+                <div class="vy-ud-prow"><span class="k">Room type</span><span class="v">{{ $unit['type'] }}</span></div>
+                <div class="vy-ud-prow"><span class="k">Type</span><span class="v">{{ $unit['kind_label'] }}</span></div>
+                <div class="vy-ud-prow"><span class="k">Sleeps</span><span class="v">{{ $unit['max_occupancy'] }}</span></div>
+                <div class="vy-ud-prow"><span class="k">Listing</span><span class="v">{{ $unit['active'] ? 'Active' : 'Off' }}</span></div>
             </section>
 
-            {{-- Commission — the REAL commission_pct on the agreement governing THIS unit today. The card
-                 is absent entirely when no agreement is in effect; a null pct says "Not set", never "0%". --}}
-            @if ($commission)
-                <section class="vy-card vy-fade" style="animation-delay:.07s">
+            {{-- Commission (real) --}}
+            @if ($commission !== null)
+                <section class="vy-card vy-fade vy-ud-rail-card">
                     <span class="vy-eyebrow">Commission</span>
-                    <div class="vy-list-row">
-                        <span style="font-size:20px;font-family:var(--vy-display);font-weight:600">
-                            @if ($commission['display'])
-                                {{ $commission['display'] }}
-                            @else
-                                <span class="vy-muted" style="font-size:13.5px">Not set</span>
-                            @endif
-                        </span>
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:8px">
+                        <span style="font-family:var(--vy-display);font-weight:600;font-size:20px">{{ $commission['display'] ?? 'Not set' }}</span>
                         <a href="{{ route('owner.agreement') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Agreement →</a>
                     </div>
-                    <div class="vy-line-sub">{{ $commission['scope_label'] }}, in effect today.</div>
+                    <div class="vy-line-sub" style="font-size:11.5px;margin-top:4px">{{ $commission['scope_label'] }}, in effect today.</div>
                 </section>
             @endif
 
-            {{-- Channel mix — REAL (Batch B): this month's room-nights by the real reservations.source enum
-                 (Direct / OTA / Corporate …), NOT an OTA brand — the model carries no brand, so none is
-                 invented (#39). Share is of this unit's own room-nights. Absent when no bookings this month. --}}
-            @if ($channelMix['has_data'])
-                <section class="vy-card vy-fade" style="animation-delay:.1s">
-                    <span class="vy-eyebrow">Channel mix · {{ $month['label'] }}</span>
-                    <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
-                        @foreach ($channelMix['rows'] as $row)
-                            <div>
-                                <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px">
-                                    <span style="font-weight:500">{{ $row['label'] }}</span>
-                                    <span class="vy-muted">{{ $row['nights'] }} {{ \Illuminate\Support\Str::plural('night', $row['nights']) }} · {{ $row['pct'] }}%</span>
-                                </div>
-                                <div class="vy-track"><span style="width:{{ $row['pct'] }}%"></span></div>
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="vy-line-sub" style="margin-top:10px">Share of this unit's room-nights by booking source.</div>
-                </section>
-            @endif
-
-            {{-- Statements — the REAL statements this unit's rows for the month landed on. --}}
-            <section class="vy-card vy-fade" style="animation-delay:.09s">
-                <span class="vy-eyebrow">On your statements</span>
-                @forelse ($statements as $s)
-                    <a class="vy-list-row vy-row-link" href="{{ route('owner.statements.show', $s['id']) }}">
-                        <span>
-                            <span style="font-size:13px;font-weight:500">{{ $s['period'] }}</span>
-                            <span class="vy-status vy-status--{{ $s['status_meta']['tone'] }}" style="margin-left:8px">{{ $s['status_meta']['label'] }}</span>
-                        </span>
-                        <span style="color:var(--vy-accent);font-size:12.5px;font-weight:600">View →</span>
-                    </a>
-                @empty
-                    <div class="vy-line-sub" style="margin-top:8px">None of this month's activity is on a statement yet.</div>
-                @endforelse
-
-                @if ($statements && $unstatemented > 0)
-                    <div class="vy-line-sub" style="margin-top:8px">
-                        {{ $unstatemented }} {{ \Illuminate\Support\Str::plural('entry', $unstatemented) }} from {{ $month['label'] }} {{ $unstatemented === 1 ? 'is' : 'are' }} not on a statement yet.
-                    </div>
+            {{-- Channel mix (real; "Direct saved you €X" refused #39) --}}
+            <section class="vy-card vy-fade vy-ud-rail-card">
+                <span class="vy-eyebrow">Channel mix · {{ $month['label'] }}</span>
+                @if ($channelMix['has_data'])
+                    @foreach ($channelMix['rows'] as $c)
+                        <div style="margin-top:12px">
+                            <div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="font-weight:500">{{ $c['label'] }}</span><span class="vy-muted">{{ $c['nights'] }} {{ \Illuminate\Support\Str::plural('night', $c['nights']) }} · {{ $c['pct'] }}%</span></div>
+                            <div class="vy-track" style="margin-top:5px"><span style="width:{{ $c['pct'] }}%"></span></div>
+                        </div>
+                    @endforeach
+                    <p class="vy-line-sub" style="font-size:11px;margin-top:12px">Share of this unit's room-nights by booking source.</p>
+                @else
+                    <div class="vy-empty" style="padding:16px 0">No bookings this month.</div>
                 @endif
             </section>
 
-            {{-- Real links only — every destination below is a built, owner-scoped screen. --}}
-            <section class="vy-card vy-fade" style="animation-delay:.11s">
+            {{-- Cleaning — HONEST (not owner-facing; never a fabricated cleaner/schedule #39) --}}
+            <section class="vy-card vy-fade vy-ud-honest vy-ud-rail-card">
+                <span class="vy-eyebrow">Cleaning</span>
+                <p class="vy-line-sub" style="font-size:12.5px;margin-top:8px;line-height:1.55">Cleaning and turnovers are coordinated by your management team. Need something arranged? Message them below.</p>
+            </section>
+
+            {{-- Guest messages → the owner↔operator RELAY (name-free #28; never owner→guest) --}}
+            <section class="vy-card vy-fade vy-ud-rail-card">
+                <span class="vy-eyebrow">Message your management team</span>
+                <p class="vy-line-sub" style="font-size:11.5px;margin:6px 0 10px">About this unit — bookings and guest contact stay with your operator.</p>
+                <form method="POST" action="{{ route('owner.messages.start') }}">
+                    @csrf
+                    <input type="hidden" name="subject" value="About {{ $unit['name'] }}">
+                    <textarea name="body" rows="3" class="vy-input" style="width:100%;resize:vertical" placeholder="Ask your management team about this unit…" required></textarea>
+                    <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:10px">Send message</button>
+                </form>
+                <a href="{{ route('owner.messages') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600;display:inline-block;margin-top:10px">Open inbox →</a>
+            </section>
+
+            {{-- Your money — payouts are per-statement, not per-unit (honest; no fabricated per-unit timeline #39) --}}
+            <section class="vy-card vy-fade vy-ud-rail-card">
                 <span class="vy-eyebrow">Your money</span>
-                <a class="vy-list-row vy-row-link" href="{{ route('owner.balance') }}">
-                    <span style="font-size:13px;font-weight:500">Balance</span>
-                    <span style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Open →</span>
-                </a>
-                <a class="vy-list-row vy-row-link" href="{{ route('owner.payouts') }}">
-                    <span style="font-size:13px;font-weight:500">Payouts</span>
-                    <span style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Open →</span>
-                </a>
-                <div class="vy-line-sub" style="margin-top:8px">Payouts are made per statement across your whole portfolio, not per unit.</div>
+                <a href="{{ route('owner.balance') }}" style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--vy-hairline);text-decoration:none;color:var(--vy-ink);font-size:13px;margin-top:6px"><span>Balance</span><span style="color:var(--vy-accent)">Open →</span></a>
+                <a href="{{ route('owner.payouts') }}" style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--vy-hairline);text-decoration:none;color:var(--vy-ink);font-size:13px"><span>Payouts</span><span style="color:var(--vy-accent)">Open →</span></a>
+                <p class="vy-line-sub" style="font-size:11px;margin-top:8px">Payouts are made per statement across your whole portfolio, not per unit.</p>
             </section>
         </div>
     </div>
