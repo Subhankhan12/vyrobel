@@ -56,7 +56,7 @@
             ? $attnCount.' '.\Illuminate\Support\Str::plural('item', $attnCount).' need you — tap to review'
             : "You're all caught up — nothing needs you right now";
     @endphp
-    <section class="vy-mu-ac vy-fade" style="animation-delay:.1s" x-data="{ open: {{ $attnCount > 0 ? 'true' : 'false' }} }">
+    <section class="vy-mu-ac vy-fade" style="animation-delay:.1s" x-data="{ open: {{ $attnCount > 0 ? 'true' : 'false' }}, filter: 'all' }">
         <div class="vy-mu-ac-head" @click="open = !open">
             <span class="vy-mu-ac-icon">
                 @if ($attnCount > 0)<span class="vy-mu-ac-ping"></span>@endif
@@ -80,10 +80,33 @@
         <div class="vy-mu-ac-reveal" :class="open ? 'is-open' : ''">
             <div>
                 @if ($attnCount > 0)
+                    {{-- Wave-B: Status filter chips (client-side, over the REAL items by tone) + BULK actions (mark-all-read /
+                         snooze-all — real store writes, CAP_ACTIONS). There is no per-UNIT attention signal (the real signals
+                         are account-level: tax hold, payout method, agreement renewal), so a Unit filter is honestly omitted —
+                         only a Status filter maps to real data (#39). --}}
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px">
+                        <div style="display:flex;gap:6px">
+                            @foreach (['all' => 'All', 'warn' => 'Action', 'info' => 'Review'] as $val => $lbl)
+                                <button type="button" @click="filter = '{{ $val }}'" :style="filter === '{{ $val }}' ? 'background:var(--vy-grad);color:#fff;border-color:transparent' : ''" style="padding:5px 12px;border-radius:var(--vy-r-pill);border:1px solid var(--vy-hairline);background:rgba(255,255,255,.6);color:var(--vy-muted);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">{{ $lbl }}</button>
+                            @endforeach
+                        </div>
+                        @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                            <div style="display:flex;gap:6px">
+                                <form method="POST" action="{{ route('owner.attention.read-all') }}" style="margin:0">
+                                    @csrf
+                                    <button type="submit" style="padding:5px 11px;border-radius:var(--vy-r-pill);border:1px solid var(--vy-hairline);background:rgba(255,255,255,.6);color:var(--vy-muted);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">Mark all read</button>
+                                </form>
+                                <form method="POST" action="{{ route('owner.attention.snooze-all') }}" style="margin:0">
+                                    @csrf
+                                    <button type="submit" style="padding:5px 11px;border-radius:var(--vy-r-pill);border:1px solid var(--vy-hairline);background:rgba(255,255,255,.6);color:var(--vy-muted);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">Snooze all</button>
+                                </form>
+                            </div>
+                        @endownercan
+                    </div>
                     <div style="margin-top:8px">
                         @foreach ($attention as $item)
                             @php $warn = $item['tone'] === 'warn'; @endphp
-                            <div class="vy-mu-item">
+                            <div class="vy-mu-item" x-show="filter === 'all' || filter === '{{ $item['tone'] }}'"{!! $item['read'] ? ' style="opacity:.62"' : '' !!}>
                                 <span class="vy-mu-item-ic">
                                     @if ($warn)
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
@@ -95,6 +118,7 @@
                                     <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
                                         <span class="vy-mu-item-title">{{ $item['title'] }}</span>
                                         <span class="vy-mu-item-tag" style="background:{{ $warn ? 'rgba(224,146,30,.15)' : 'rgba(232,112,58,.13)' }};color:{{ $warn ? 'var(--vy-amber)' : 'var(--vy-accent)' }}">{{ $warn ? 'Action' : 'Review' }}</span>
+                                        @if ($item['read'])<span class="vy-mu-item-tag" style="background:rgba(90,120,80,.13);color:#4a7a3d">Read</span>@endif
                                     </div>
                                     <div class="vy-mu-item-sub">{{ $item['body'] }}</div>
                                 </div>
@@ -117,6 +141,13 @@
                                                     </form>
                                                 @endforeach
                                                 <div style="border-top:1px solid var(--vy-hairline);margin:5px 4px"></div>
+                                                @unless ($item['read'])
+                                                    <form method="POST" action="{{ route('owner.attention.read') }}" style="margin:0">
+                                                        @csrf
+                                                        <input type="hidden" name="attention_key" value="{{ $item['key'] }}">
+                                                        <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 9px;border:none;background:none;border-radius:8px;font:inherit;font-size:12.5px;color:var(--vy-ink);cursor:pointer" onmouseover="this.style.background='rgba(217,102,46,.08)'" onmouseout="this.style.background='none'">Mark read</button>
+                                                    </form>
+                                                @endunless
                                                 <form method="POST" action="{{ route('owner.attention.dismiss') }}" style="margin:0">
                                                     @csrf
                                                     <input type="hidden" name="attention_key" value="{{ $item['key'] }}">
@@ -167,7 +198,7 @@
     </div>
     <div class="vy-mu-grid">
         @forelse ($units as $i => $u)
-            <div class="vy-mu-card vy-fade" style="animation-delay:{{ 0.16 + $i * 0.05 }}s" x-data="{ panel: null, rate: {{ $u['rate_units'] ?? 0 }} }">
+            <div class="vy-mu-card vy-fade" style="animation-delay:{{ 0.16 + $i * 0.05 }}s" x-data="{ panel: null, rate: {{ $u['rate_units'] ?? 0 }}, weekend: {{ $u['weekend_pct'] !== null ? (float) $u['weekend_pct'] : 0 }}, minstay: {{ $u['min_stay'] ?? 1 }} }">
                 <div class="vy-mu-thumb">
                     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
                 </div>
@@ -234,8 +265,32 @@
                                             </div>
                                             <button type="button" class="vy-mu-step" aria-label="Increase rate" @click="rate = rate + 5">+</button>
                                         </div>
+
+                                        {{-- Wave-B: WEEKEND UPLIFT + MIN STAY (consume OwnerRateService::setRateWeekendAware). The uplift
+                                             writes the higher price onto Fri/Sat nights — a real change, not a flag (#39). --}}
+                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+                                            <div>
+                                                <label style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#9C9089;display:block;margin-bottom:6px">Weekend uplift</label>
+                                                <div class="vy-mu-rate-input" style="padding:6px 10px">
+                                                    <input type="text" inputmode="numeric" name="weekend_uplift" x-model="weekend" style="width:100%;border:none;background:none;outline:none;font-family:var(--vy-display);font-weight:500;font-size:15px;color:var(--vy-ink)">
+                                                    <span style="font-size:12px;color:var(--vy-faint)">%</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#9C9089;display:block;margin-bottom:6px">Min stay</label>
+                                                <div class="vy-mu-rate-input" style="padding:6px 10px">
+                                                    <input type="text" inputmode="numeric" name="min_stay" x-model="minstay" style="width:100%;border:none;background:none;outline:none;font-family:var(--vy-display);font-weight:500;font-size:15px;color:var(--vy-ink)">
+                                                    <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap">nights</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- Live preview — a real derived figure (base × (1 + uplift%)) so the owner sees the Fri/Sat price before saving --}}
+                                        <div x-show="weekend > 0" x-cloak style="margin-top:9px;font-size:12px;color:#6E635C">
+                                            Fri &amp; Sat nights become <strong style="color:var(--vy-accent)" x-text="'{{ $currencySymbol }}' + Math.round(rate * (1 + weekend/100))"></strong> / night · weekdays stay <span x-text="'{{ $currencySymbol }}' + rate"></span>.
+                                        </div>
+
                                         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px">
-                                            <button type="button" @click="rate = {{ $u['rate_units'] }}" style="background:none;border:none;padding:0;color:var(--vy-muted);font-family:var(--vy-sans);font-size:12px;cursor:pointer;text-decoration:underline;text-underline-offset:2px">Reset to {{ $u['base_display'] }}</button>
+                                            <button type="button" @click="rate = {{ $u['rate_units'] }}; weekend = {{ $u['weekend_pct'] !== null ? (float) $u['weekend_pct'] : 0 }}; minstay = {{ $u['min_stay'] ?? 1 }}" style="background:none;border:none;padding:0;color:var(--vy-muted);font-family:var(--vy-sans);font-size:12px;cursor:pointer;text-decoration:underline;text-underline-offset:2px">Reset to {{ $u['base_display'] }}</button>
                                             <div style="display:flex;align-items:center;gap:8px">
                                                 <button type="button" @click="panel = null" style="padding:7px 14px;border-radius:var(--vy-r-pill);background:transparent;border:1px solid rgba(120,70,40,.16);color:#6B5D54;font-family:var(--vy-sans);font-size:12.5px;font-weight:500;cursor:pointer">Cancel</button>
                                                 <button type="submit" class="vy-btn vy-btn--accent" style="padding:7px 16px;font-size:12.5px">Save</button>

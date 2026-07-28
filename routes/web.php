@@ -785,6 +785,9 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::post('/attention/dismiss', [OwnerAttentionController::class, 'dismiss'])->middleware($capActions)->name('attention.dismiss');
     Route::post('/attention/read', [OwnerAttentionController::class, 'read'])->middleware($capActions)->name('attention.read');
     Route::post('/attention/restore', [OwnerAttentionController::class, 'restore'])->middleware($capActions)->name('attention.restore');
+    // Wave B · 💡 — BULK actions over the currently-raised signals (mark-all-read / snooze-all-for-a-week).
+    Route::post('/attention/read-all', [OwnerAttentionController::class, 'readAll'])->middleware($capActions)->name('attention.read-all');
+    Route::post('/attention/snooze-all', [OwnerAttentionController::class, 'snoozeAll'])->middleware($capActions)->name('attention.snooze-all');
     // Phase 2 · Sub-gate 3 — Owner Rates (the highest-risk gate: an owner-scoped MONEY write). The owner sets
     // nightly rates DIRECTLY on their OWN room types via the certified RateAndRestrictionService. The write is
     // guarded in OwnerRateService: a room type is editable ONLY if the owner owns it EXCLUSIVELY (every unit is

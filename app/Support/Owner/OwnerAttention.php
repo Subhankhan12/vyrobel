@@ -103,6 +103,20 @@ final class OwnerAttention
     }
 
     /**
+     * ALL currently-raised signals as {owner_id, key} pairs — for BULK actions (mark-all-read / snooze-all).
+     * The controller applies a state to each, so a bulk action can only ever touch genuine current signals.
+     *
+     * @return list<array{owner_id: string, key: string}>
+     */
+    public static function currentSignals(OwnerContext $context): array
+    {
+        return array_map(
+            fn (array $s): array => ['owner_id' => $s['owner_id'], 'key' => $s['key']],
+            self::rawSignals($context),
+        );
+    }
+
+    /**
      * The raw, unfiltered signals — the genuine account-state alerts, each with its owner_id + stable key.
      * The ONE place the signal set is defined (items/snoozed/signalFor all read it).
      *

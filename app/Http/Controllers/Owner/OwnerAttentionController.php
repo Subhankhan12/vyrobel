@@ -85,6 +85,29 @@ class OwnerAttentionController extends Controller
         return back()->with('owner_notice', 'Restored to your attention list.');
     }
 
+    /** BULK — mark EVERY currently-raised item read (Wave B · 💡). Only ever touches genuine current signals. */
+    public function readAll(OwnerContext $context): RedirectResponse
+    {
+        $signals = OwnerAttention::currentSignals($context);
+        foreach ($signals as $signal) {
+            $this->apply($signal, ['read_at' => Carbon::now()], 'owner.attention_read');
+        }
+
+        return back()->with('owner_notice', count($signals) === 0 ? 'Nothing to mark read.' : 'Marked all read.');
+    }
+
+    /** BULK — snooze EVERY currently-raised item for a week (Wave B · 💡). Genuine current signals only. */
+    public function snoozeAll(OwnerContext $context): RedirectResponse
+    {
+        $until = Carbon::now()->addWeek();
+        $signals = OwnerAttention::currentSignals($context);
+        foreach ($signals as $signal) {
+            $this->apply($signal, ['snoozed_until' => $until, 'dismissed_at' => null], 'owner.attention_snoozed');
+        }
+
+        return back()->with('owner_notice', count($signals) === 0 ? 'Nothing to snooze.' : 'Snoozed everything — back in a week.');
+    }
+
     /**
      * @return array{owner_id: string, key: string}|null
      */

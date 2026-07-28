@@ -8,6 +8,7 @@ use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\OwnerLedgerEntry;
 use App\Models\RateCalendar;
 use App\Models\ReservationUnit;
+use App\Models\Restriction;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
@@ -189,6 +190,9 @@ class OwnerMyUnits extends Component
                 'rate_minor' => $rate['rate_minor'] ?? null,
                 'rate_units' => $rate !== null && $rate['rate_minor'] !== null ? (int) round($rate['rate_minor'] / 100) : null,
                 'base_display' => $rate['display'] ?? null,
+                // Wave-B: the current weekend-uplift % + min-stay, to prefill the editor (null when unset).
+                'weekend_pct' => $rate['weekend_pct'] ?? null,
+                'min_stay' => $rate['min_stay'] ?? null,
             ];
         })->values()->all();
     }
@@ -199,7 +203,7 @@ class OwnerMyUnits extends Component
      * foreign inventory is absent → the card's Edit-pricing is honestly disabled. The rate is read from
      * `rate_calendar` for today on the room type's primary plan (the same source the Rates screen reads).
      *
-     * @return array<string, array{rate_minor: int|null, display: string|null}>
+     * @return array<string, array{rate_minor: int|null, display: string|null, weekend_pct: float|null, min_stay: int|null}>
      */
     private function editableRates(string $currency): array
     {
@@ -223,7 +227,22 @@ class OwnerMyUnits extends Component
                 }
             }
 
-            $out[(string) $roomType->id] = ['rate_minor' => $rateMinor, 'display' => $display];
+            // Prefill the Wave-A weekend-uplift POLICY (on the plan) + the current min-stay (the soonest
+            // upcoming restriction row) so the editor opens on the owner's real current values.
+            $weekendPct = $plan?->weekend_uplift_pct !== null ? (float) $plan->weekend_uplift_pct : null;
+            $minStay = Restriction::query()
+                ->where('room_type_id', $roomType->id)
+                ->whereDate('date', '>=', $today)
+                ->whereNotNull('min_stay')
+                ->orderBy('date')
+                ->value('min_stay');
+
+            $out[(string) $roomType->id] = [
+                'rate_minor' => $rateMinor,
+                'display' => $display,
+                'weekend_pct' => $weekendPct,
+                'min_stay' => $minStay !== null ? (int) $minStay : null,
+            ];
         }
 
         return $out;

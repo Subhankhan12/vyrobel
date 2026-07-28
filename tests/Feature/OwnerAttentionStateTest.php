@@ -61,6 +61,42 @@ it('is owner-scoped + tamper-safe — a key that is not a real current signal is
     $this->actingAs($user)->get('/owner/units')->assertSee('Confirm your payout bank account');
 });
 
+it('BULK marks every raised item read (Wave B) — a real state row per current signal', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+    $ownerId = (string) $s['units'][0]->fresh()->owner_id;
+
+    // A fresh owner has one real signal (payout_method) → mark-all-read writes exactly its read_at.
+    $this->actingAs($user)->post('/owner/attention/read-all')->assertRedirect();
+    $state = OwnerAttentionState::query()->where('owner_id', $ownerId)->where('attention_key', 'payout_method')->firstOrFail();
+    expect($state->read_at)->not->toBeNull();
+
+    // The bulk read-all touches only genuine current signals — no junk rows appear.
+    expect(OwnerAttentionState::query()->count())->toBe(1);
+});
+
+it('BULK snoozes every raised item for a week (Wave B) — mutation-proven, then hidden', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+
+    $this->actingAs($user)->post('/owner/attention/snooze-all')->assertRedirect();
+    expect(OwnerAttentionState::query()->where('attention_key', 'payout_method')->value('snoozed_until'))->not->toBeNull();
+
+    // The active feed no longer shows it (it's snoozed) — it lands in the Snoozed panel instead.
+    $this->actingAs($user)->get('/owner')->assertOk()->assertDontSee('Confirm your payout bank account');
+});
+
+it('gates the bulk actions to CAP_ACTIONS — a view-only sub-user is refused', function () {
+    $s = seedScenario(1);
+    ownerRoleUser($s, 0);
+    $ownerId = (string) $s['units'][0]->fresh()->owner_id;
+    $viewer = ownerSubUser($s, $ownerId, OwnerTeamRole::VIEW_ONLY);
+
+    $this->actingAs($viewer)->post('/owner/attention/read-all')->assertForbidden();
+    $this->actingAs($viewer)->post('/owner/attention/snooze-all')->assertForbidden();
+    expect(OwnerAttentionState::query()->exists())->toBeFalse();
+});
+
 it('gates attention writes to CAP_ACTIONS — a view-only sub-user may SEE the feed but cannot snooze', function () {
     $s = seedScenario(1);
     ownerRoleUser($s, 0);

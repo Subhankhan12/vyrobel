@@ -178,6 +178,24 @@ it('writes a flat rate across the range when no weekend uplift is given', functi
         ->and($a['plan']->fresh()->weekend_uplift_pct)->toBeNull();
 })->group('owner-rates');
 
+// ── 7c. WAVE B — the My Units Edit-pricing card exposes the weekend-uplift + min-stay editor ───────
+it('renders the weekend-uplift and min-stay editor on My Units for an editable room type', function () {
+    $s = seedScenario(1);
+    $a = exclusiveOwner($s, 'Azure');
+
+    // Seed a current weekend-uplift policy + min-stay so the editor prefills real values.
+    $this->actingAs($a['user'])->post('/owner/rates/apply', [
+        'room_type_id' => $a['roomType']->id, 'start_date' => '2026-10-01', 'end_date' => '2026-10-31',
+        'rate' => '180', 'weekend_uplift' => '20', 'min_stay' => '2', 'redirect' => 'units',
+    ])->assertRedirect();
+
+    $this->actingAs($a['user'])->get('/owner/units')->assertOk()
+        ->assertSee('Weekend uplift')
+        ->assertSee('Min stay')
+        ->assertSee('name="weekend_uplift"', false)
+        ->assertSee('name="min_stay"', false);
+});
+
 // ── 7. Owner-portal-gated — a non-linked user fails closed (nothing to price) ─────────────────────
 it('fails closed for a non-linked user', function () {
     $s = seedScenario(1);
