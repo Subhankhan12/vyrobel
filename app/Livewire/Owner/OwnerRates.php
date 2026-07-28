@@ -7,6 +7,7 @@ namespace App\Livewire\Owner;
 use App\Http\Controllers\Owner\OwnerRateController;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\RateCalendar;
+use App\Models\Restriction;
 use App\Models\RoomType;
 use App\Models\Unit;
 use App\Services\OwnerRateService;
@@ -30,9 +31,14 @@ use Livewire\Component;
  *
  * ⚠️ DIVERGENCE (recorded): the "Owner Rates" design is an approval/guardrails model (the manager proposes,
  * the owner signs off, floor/ceiling guardrails). The decision is FULL DIRECT edit — the owner sets the rate
- * and it is live. The design's Proposed-changes, Guardrails, comp-set and Base/Weekend/Peak tiers have NO
- * backing schema and are NOT rendered as real (no fake "pending sign-off"); the schema stores ONE rate per
- * night, so a single nightly rate is what the owner edits.
+ * and it is live. The design's Proposed-changes, Guardrails, comp-set and the Peak tier have NO backing schema
+ * and are NOT rendered as real (no fake "pending sign-off").
+ *
+ * Wave-B (owner completeness sweep · GATE 3): the design's BASE + WEEKEND tiers are now REAL — the editor sets
+ * the nightly (weekday) rate, a WEEKEND UPLIFT % (writes the higher price onto Fri/Sat via the Wave-A
+ * {@see OwnerRateService::setRateWeekendAware}), and the min-stay; the current-rates table surfaces all three
+ * per room type (the owner's pricing home), with a real derived Fri/Sat preview before saving. Still one stored
+ * rate per night underneath — the weekend price IS a real per-night rate, not a separate tier entity.
  */
 #[Layout('components.layouts.owner')]
 class OwnerRates extends Component
@@ -79,13 +85,35 @@ class OwnerRates extends Component
             ->whereDate('date', $from)
             ->first();
 
+        // Wave-B: surface the real weekend-uplift POLICY (on the plan) + the current min-stay (soonest upcoming
+        // restriction) alongside the nightly rate — the owner's pricing home in one manage view.
+        $today = Carbon::today()->toDateString();
+        $weekendPct = $plan?->weekend_uplift_pct !== null ? (float) $plan->weekend_uplift_pct : null;
+        // Owner-set restrictions are keyed by room_type_id (OwnerRateService::apply → setRestriction), rate_plan_id
+        // null — so read by room_type_id, the same key they were written under.
+        $minStay = Restriction::query()
+            ->where('room_type_id', $rt->getKey())
+            ->whereDate('date', '>=', $today)
+            ->whereNotNull('min_stay')
+            ->orderBy('date')
+            ->value('min_stay');
+
+        $rateMinor = $rate === null ? null : (int) $rate->price_minor;
+
         return [
             'id' => (string) $rt->id,
             'name' => (string) $rt->name,
             'units' => $rt->units->map(fn (Unit $u): string => (string) ($u->name ?? $u->code))->values()->all(),
             'currency' => (string) ($plan->currency ?? 'EUR'),
             'has_plan' => $plan !== null,
-            'rate_display' => $rate === null ? null : $this->money((int) $rate->price_minor, (string) $rate->currency),
+            'rate_display' => $rate === null ? null : $this->money($rateMinor, (string) $rate->currency),
+            'rate_units' => $rateMinor !== null ? (int) round($rateMinor / 100) : null,
+            'weekend_pct' => $weekendPct,
+            // The derived Fri/Sat price at the current uplift — a real figure for the manage view (never fabricated).
+            'weekend_display' => ($rateMinor !== null && $weekendPct !== null && $weekendPct > 0)
+                ? $this->money((int) round($rateMinor * (1 + $weekendPct / 100)), (string) $rate->currency)
+                : null,
+            'min_stay' => $minStay !== null ? (int) $minStay : null,
         ];
     }
 

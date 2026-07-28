@@ -421,8 +421,9 @@ class OwnerUnitDetail extends Component
                 $rateUnits = (int) round((int) $row->price_minor / 100);
             }
 
+            // Owner-set restrictions are keyed by room_type_id (OwnerRateService::apply), rate_plan_id null.
             $restriction = Restriction::query()
-                ->where('rate_plan_id', $plan->id)->whereDate('date', '>=', $today)
+                ->where('room_type_id', $unit->room_type_id)->whereDate('date', '>=', $today)
                 ->whereNotNull('min_stay')->orderBy('date')->first();
             if ($restriction !== null) {
                 $minStay = (int) $restriction->min_stay;

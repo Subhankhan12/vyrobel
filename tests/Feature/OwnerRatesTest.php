@@ -196,6 +196,30 @@ it('renders the weekend-uplift and min-stay editor on My Units for an editable r
         ->assertSee('name="min_stay"', false);
 });
 
+// ── 7d. WAVE B — the Rates page surfaces nightly + weekend uplift + min-stay in one manage view ────
+it('shows the weekend-uplift and min-stay controls on the Rates page and reflects a real uplift', function () {
+    $s = seedScenario(1);
+    $a = exclusiveOwner($s, 'Azure');
+
+    // Apply a real rate with a weekend uplift + min-stay via the certified path.
+    $this->actingAs($a['user'])->post('/owner/rates/apply', [
+        'room_type_id' => $a['roomType']->id, 'start_date' => '2026-10-01', 'end_date' => '2026-10-31',
+        'rate' => '200', 'weekend_uplift' => '25', 'min_stay' => '3',
+    ])->assertRedirect();
+
+    $this->actingAs($a['user'])->get('/owner/rates?from=2026-10-01')->assertOk()
+        // the manage table now carries Weekend + Min stay columns…
+        ->assertSee('Weekend')
+        ->assertSee('Min stay')
+        // …with the real derived Fri/Sat price (200 × 1.25 = €250.00) + the uplift % + the min-stay
+        ->assertSee('€250.00')
+        ->assertSee('+25%')
+        ->assertSee('3n')
+        // the editor exposes the weekend-uplift control (posts to the Wave-A backend)
+        ->assertSee('name="weekend_uplift"', false)
+        ->assertSee('Weekend uplift (%)');
+});
+
 // ── 7. Owner-portal-gated — a non-linked user fails closed (nothing to price) ─────────────────────
 it('fails closed for a non-linked user', function () {
     $s = seedScenario(1);
