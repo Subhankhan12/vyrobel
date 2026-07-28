@@ -76,7 +76,7 @@ use Livewire\Component;
  * later (My Units #55, Block Calendar #60, Phase-5 reviews, the owner↔operator relay #55), re-verified here:
  *   • Owner pricing — the REAL current nightly rate + minimum stay ({@see pricing()}), editable via
  *     {@see OwnerRateService} ONLY when the owner owns the room type exclusively (honest read-only when
- *     shared; a real controller write to `owner.rates.apply`). WEEKEND UPLIFT stays omitted — no column.
+ *     shared; a real controller write to `owner.rates.apply`). WEEKEND UPLIFT is now REAL (Wave B, below).
  *   • Day-blocking — the calendar now renders booked / blocked / open ({@see calendarDays()}) and blocking
  *     goes through the certified {@see OwnerBlockService} (`owner.calendar.block`), the SAME path as the
  *     Block Calendar; non-overlap enforced. Guest data name-only / counts-only (#28).
@@ -93,9 +93,13 @@ use Livewire\Component;
  *   • CLEANING SCHEDULE — {@see cleanings()} shows the unit's real {@see HousekeepingTask} rows READ-ONLY (date /
  *     type / status); the owner sees but does not manage (honest); never a fabricated cleaner (#39).
  *
+ * WIRED REAL in Wave C (owner completeness sweep · GATE 3):
+ *   • PAUSE / RESUME TOGGLE — now REAL. The listing card writes `units.is_active` via the owner-scoped,
+ *     CAP_ACTIONS-gated `owner.units.toggle-status` (App\Services\OwnerUnitStatusService); a pause removes
+ *     the unit's capacity through the certified availability recompute, so it GENUINELY stops taking new
+ *     bookings (mutation-proven in tests/Feature/OwnerUnitStatusTest.php), not a label.
+ *
  * OMITTED / HONEST — still rendered as an honest state, never fabricated (#39):
- *   • Live/Snoozed TOGGLE — a write to `units.is_active` with no owner path; the REAL state renders
- *     read-only, no toggle (owner-controlled pause is a Wave C product decision).
  *   • Calendar SYNC / "Sync calendars" — no owner-facing sync backend (account-gated Channex); honest.
  *   • Per-unit PAYOUT TIMELINE — payouts are per-STATEMENT/per-OWNER, so a per-unit timeline is a fabricated
  *     attribution; the rail links the real Payouts instead.

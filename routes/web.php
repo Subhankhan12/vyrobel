@@ -93,6 +93,7 @@ use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\Owner\OwnerTaxController;
 use App\Http\Controllers\Owner\OwnerTeamController;
 use App\Http\Controllers\Owner\OwnerUnitRequestController;
+use App\Http\Controllers\Owner\OwnerUnitStatusController;
 use App\Http\Controllers\Owner\OwnerUnitsExportController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeConnectWebhookController;
@@ -835,6 +836,10 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // the payout/ledger, reducing net) or QUERIES it (held out of net + opens the relay). CAP_ACTIONS; owner-scoped.
     Route::post('/expenses/{expense}/approve', [OwnerExpenseApprovalController::class, 'approve'])->middleware($capActions)->name('expenses.approve');
     Route::post('/expenses/{expense}/query', [OwnerExpenseApprovalController::class, 'query'])->middleware($capActions)->name('expenses.query');
+
+    // UNIT STATUS (Wave C · GATE 3 · ⚠️ availability) — the owner PAUSES / RESUMES one of their OWN units (a paused
+    // unit's capacity is removed via the certified availability recompute → no new bookings). CAP_ACTIONS; owner-scoped.
+    Route::post('/units/{unit}/toggle-status', [OwnerUnitStatusController::class, 'toggle'])->middleware($capActions)->name('units.toggle-status');
     // Phase 2 · Sub-gate 3 — Owner Rates (the highest-risk gate: an owner-scoped MONEY write). The owner sets
     // nightly rates DIRECTLY on their OWN room types via the certified RateAndRestrictionService. The write is
     // guarded in OwnerRateService: a room type is editable ONLY if the owner owns it EXCLUSIVELY (every unit is

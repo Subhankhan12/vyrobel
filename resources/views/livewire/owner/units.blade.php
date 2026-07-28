@@ -221,7 +221,14 @@
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
                             @if ($u['is_best'])<span class="vy-mu-badge vy-mu-badge--best" title="Your best-performing unit this month">★ Best</span>@endif
-                            <span class="vy-mu-badge">{{ $u['active'] ? 'Active' : 'Inactive' }}</span>
+                            <span class="vy-mu-badge">{{ $u['active'] ? 'Active' : 'Paused' }}</span>
+                            {{-- Wave C · GATE 3 — REAL owner pause/resume (removes/restores capacity via the certified recompute) --}}
+                            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                <form method="POST" action="{{ route('owner.units.toggle-status', $u['id']) }}" data-guard-submit style="margin:0">
+                                    @csrf
+                                    <button type="submit" title="{{ $u['active'] ? 'Pause this unit' : 'Resume this unit' }}" style="border:1px solid var(--vy-hairline);background:rgba(255,255,255,.6);color:var(--vy-muted);border-radius:8px;padding:2px 8px;font-size:11px;font-weight:600;cursor:pointer">{{ $u['active'] ? 'Pause' : 'Resume' }}</button>
+                                </form>
+                            @endownercan
                         </div>
                     </div>
 

@@ -166,12 +166,22 @@
         <section class="vy-card vy-fade" id="vy-ud-pricing" style="padding:20px" x-data="{ editing: false, rate: {{ $pricing['rate_units'] ?? 0 }}, weekend: {{ $pricing['weekend_pct'] !== null ? (float) $pricing['weekend_pct'] : 0 }} }">
             <div class="vy-eyebrow" style="margin-bottom:12px">Pricing &amp; availability</div>
 
+            {{-- Wave C · GATE 3 — a REAL owner pause/resume. Pausing removes the unit's capacity (certified availability
+                 recompute) so it takes no new bookings; existing stays are kept. CAP_ACTIONS-gated. --}}
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.42);border:1px solid rgba(120,70,40,.08);margin-bottom:14px">
                 <div style="min-width:0">
-                    <div style="font-size:13.5px;font-weight:500">{{ $unit['active'] ? 'Listing active' : 'Not listed' }}</div>
-                    <div style="font-size:11.5px;color:var(--vy-faint);margin-top:2px">Your operator manages listing status.</div>
+                    <div style="font-size:13.5px;font-weight:500">{{ $unit['active'] ? 'Open for bookings' : 'Paused' }}</div>
+                    <div style="font-size:11.5px;color:var(--vy-faint);margin-top:2px">{{ $unit['active'] ? 'Pause to stop taking new bookings — your existing stays are kept.' : 'This unit isn’t taking new bookings. Resume when you’re ready.' }}</div>
                 </div>
-                <span class="vy-ud-status {{ $unit['active'] ? 'vy-ud-status--live' : 'vy-ud-status--off' }}"><span class="dot"></span>{{ $unit['active'] ? 'Active' : 'Off' }}</span>
+                <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+                    <span class="vy-ud-status {{ $unit['active'] ? 'vy-ud-status--live' : 'vy-ud-status--off' }}"><span class="dot"></span>{{ $unit['active'] ? 'Active' : 'Paused' }}</span>
+                    @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                        <form method="POST" action="{{ route('owner.units.toggle-status', $unit['id']) }}" style="margin:0">
+                            @csrf
+                            <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12px">{{ $unit['active'] ? 'Pause' : 'Resume' }}</button>
+                        </form>
+                    @endownercan
+                </div>
             </div>
 
             <div x-show="! editing">
