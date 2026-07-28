@@ -110,6 +110,9 @@ class OwnerReports extends Component
             'payout' => $this->payoutSummary($currency),
             'documents' => $this->recentDocuments(),
             'exportItems' => $this->exportItems($range),
+            // The owner's REAL stored tax country (plain string; NOT the encrypted VAT number) — an honest context
+            // chip on the deferred VAT card, omitted when unset. Vyrobel computes no VAT, so no figure is derived.
+            'taxCountry' => $units->first()?->owner?->tax_country,
             'notifications' => $user !== null ? NotificationFeed::recentForUser($user, 4) : ['items' => [], 'unread' => 0],
         ]);
     }

@@ -1,6 +1,6 @@
 # Owner Reports — wireframe-EXACT-match audit (deeper pass)
 
-**Date:** 2026-07-28 · **Author:** build session · **Status:** 🔎 **PHASE 1 COMPLETE — read-only audit; awaiting go for PHASE 2 (gated build).**
+**Date:** 2026-07-28 · **Author:** build session · **Status:** ✅ **BUILT — invariant #63** (GATE 1 `f05a9b8` analytics exact-match + REAL net-by-channel + real year/date-range/export · GATE 2 VAT honest-deferred design + docs). The page now matches the full decoded wireframe on REAL owner-scoped analytics; the commission rate is the REAL 18% agreement rate; net-by-channel is real & reconciles (Σ channels == period net); the prior-year comparison is honest-omitted (no data); the Tax & VAT block is honest-deferred in the wireframe's card chrome (no fabricated figure / filing toggle / VAT-return CSV, #39); exports CAP_EXPORTS-gated. Suite green; PHPStan L5 (0); Pint clean; browser-verified (year dropdown, custom range, export menu, 3 real exports 200, honest VAT). *(The PHASE-1 analysis below is preserved as the audit of record.)*
 **Page:** `/owner/reports` · **Component:** `App\Livewire\Owner\OwnerReports` + `resources/views/livewire/owner/reports.blade.php`
 **Wireframe:** `docs/design/raw/Owner Reports.html` (decoded via the dc-runtime bundle → `/tmp/owner_reports_decoded.txt`, 817 lines of `<x-dc>` body + a `Component` JS block).
 

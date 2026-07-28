@@ -6,6 +6,40 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐ **CURRENT STATE — 2026-07-28 (v10) · owner REPORTS exact-match DEEPENED to the full wireframe (#63). This block
+> SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
+> `docs/DECISIONS.md`.**
+>
+> **The owner Reports page (`/owner/reports`) — built at #61 with the honest data right — was deepened to the FULL decoded
+> `Owner Reports.html` (design + behaviour) on REAL owner-scoped analytics (`docs/OWNER-REPORTS-AUDIT.md`, DECISIONS 2026-07-28
+> #63, DIVERGENCE Owner-Reports row). Read-only: year / date-range / export are GETs → no write to gate (#20 has nothing to
+> guard here).**
+> - **GATE 1 (`f05a9b8`) — analytics exact-match + two real data upgrades:** the reporting-year dropdown driven by the owner's
+>   REAL statement years (never the wireframe's fabricated 2024/2023) + a custom From/To date-range (real GET clip) + a richer
+>   CAP_EXPORTS-gated Export menu (real PDF/CSV/spreadsheet/annual-tax/all-statements; PDF-pack + Email honest-"Soon"); KPIs
+>   (YoY Δ **honest-omitted** — no prior-year data, #39); net-by-month chart (peak bubble; prior-year series omitted); per-unit
+>   grid (ADR/RevPAR header + share bars + All-units total); **Booking sources = NET by channel** (NEW REAL — ledger×
+>   `reservations.source` via the SHARED `OwnerBookingsReader` labels; **Σ channels == period net EXACTLY**, #17 — replaced
+>   nights-by-channel, a stale-refusal re-verification win); gross-to-net keeps the **REAL 18% agreement rate** (`OwnerCommissionRate`,
+>   never 15%), reconciles; dark hero (YoY badge omitted); payout card (masked IBAN CAP_PAYOUT-only #28); real Documents;
+>   notifications = the shared shell bell (redundant right-rail card dropped).
+> - **GATE 2 — Tax & VAT summary honest-deferred in the wireframe's card chrome.** The wireframe's Output/Input/**Net VAT due ·
+>   payable to [authority]**/per-quarter/**Mark-filed**/numbers-bearing VAT-return CSV is a KIND-2 fabrication — Vyrobel models
+>   **no VAT** (only a stored encrypted `vat_number`). REFUSED the figures; styled the honest deferred state (icon + header +
+>   "Not yet available" chip + real tax-country when set + real annual-tax PDF/Tax-Center links; no figure/toggle/return, #39).
+> - **Verified:** `OwnerAnalyticsTest` 7→10 (net-by-channel reconciles; real year dropdown; custom range clips; honest VAT).
+>   Suite **1089 / 8541 GREEN**; PHPStan **L5 = 0**; Pint clean; `migrate:fresh --seed` clean; browser-verified (year dropdown
+>   "2026 · 6 statements YTD", custom range Aug–Oct €2,750.80, 3 real exports 200, net-by-channel Direct €4,460.80 + Walk-in
+>   €442.80 + Other −€250.00 = €4,653.60, honest VAT). No schema change, no new writes. **Invariants #1–63.**
+>
+> Owner exact-match track shipped: Overview (#54) · My Units + Add Unit (#55) · Bookings + PDF (#56) · Statement + PDF (#57) ·
+> Payouts + Payout Method (#58) · Balance + Expenses (#59) · Block Calendar + Documents (#60) · Reports + Insights (#61) ·
+> Settings hub (#62) · **Reports deepened to full wireframe (#63)**. Remaining built-but-not-yet-exact-matched: EARNINGS —
+> Tax-center · MANAGE — Rates/Reviews/Agreement/Messages · ACCOUNT — Security/Team · Help. Everything else below is current; no
+> launch-blocking build remains.
+>
+> ---
+>
 > ⭐ **CURRENT STATE — 2026-07-28 (v9 · TOTAL-RECALL CONSOLIDATION, verified against the repo: `git log`, `composer.json`,
 > `php artisan test`, `route:list`). This block SUPERSEDES every block below it (all kept as historical detail).
 > Fresh-session entry point: `docs/RESUME.md` → this block → `docs/DECISIONS.md`. HEAD `d2091b4` on `main` (== origin,

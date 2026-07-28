@@ -402,19 +402,30 @@
         </div>
     </div>
 
-    {{-- ── Tax & VAT summary — full-width; HONEST-DEFER (Vyrobel does not compute VAT; no fabricated figure, #39).
-         GATE 2 matches the wireframe's fuller design without materialising any VAT figure / filing toggle. ── --}}
+    {{-- ── Tax & VAT summary — full-width; the wireframe's fabricated VAT COMPUTATION (Output/Input/Net VAT,
+         "payable to [authority]", Mark-filed, per-quarter, numbers-bearing VAT-return CSV) is a KIND-2 fabrication:
+         Vyrobel models NO VAT (only a stored VAT number). We REFUSE the figures and style the HONEST deferred state
+         in the wireframe's card chrome — icon + header + a clear "Not yet available" chip + (real) country context +
+         the REAL annual tax summary PDF. No fabricated figure, no filing toggle, no VAT return with invented numbers
+         (an owner could file on it — dangerous even "for information only"). #39. --}}
     <section class="vy-card vy-rep-vat vy-fade" style="animation-delay:.17s">
-        <div style="display:flex;align-items:center;gap:8px">
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-            <h2 class="vy-card-title">Tax &amp; VAT summary</h2>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+            <div style="display:flex;align-items:center;gap:9px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+                <div>
+                    <h2 class="vy-card-title">Tax &amp; VAT summary</h2>
+                    <div class="vy-line-sub">{{ 'Your earnings figures for your accountant'.($taxCountry ? ' · '.$taxCountry : '') }}</div>
+                </div>
+            </div>
+            <span class="vy-soon-tag" style="flex-shrink:0">Not yet available</span>
         </div>
-        <div style="margin-top:10px;font-size:12.5px;color:var(--vy-muted);line-height:1.7;max-width:680px">
-            Vyrobel doesn't compute or file your VAT — the rates and bases depend on your jurisdiction and registration.
-            Your <strong style="color:var(--vy-ink)">annual tax summary</strong> gives your accountant the real earnings
-            figures for the year; VAT is filed by you or your accountant.
+        <div style="margin-top:14px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.5);border:1px solid var(--vy-hairline);font-size:12.5px;color:var(--vy-muted);line-height:1.7;max-width:720px">
+            Vyrobel doesn't compute or file your VAT — the rates and bases depend on your jurisdiction and registration,
+            so no Output, Input or Net VAT figure is shown here. Your
+            <strong style="color:var(--vy-ink)">annual tax summary</strong> gives your accountant the real earnings
+            figures for the year; VAT is calculated and filed by you or your accountant.
         </div>
-        <div style="display:flex;align-items:center;gap:16px;margin-top:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:18px;margin-top:14px;flex-wrap:wrap">
             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                 <a href="{{ route('owner.tax.annual', (int) $activeRange['start']->year) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px">Annual tax summary · PDF</a>
             @endownercan

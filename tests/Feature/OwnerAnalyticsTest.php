@@ -135,9 +135,12 @@ it('reports gross-to-net at the REAL agreement commission rate and never fabrica
         ->assertSee('€234.00')
         // ⚠️ HONEST VAT — the design's VAT computation + filing workflow are NOT modelled → never fabricated
         ->assertSee('compute or file your VAT')
+        ->assertSee('Not yet available')            // the honest deferred chip (GATE 2 design)
         ->assertDontSee('Output VAT')
         ->assertDontSee('Net VAT due')
-        ->assertDontSee('Mark filed');
+        ->assertDontSee('Mark filed')
+        ->assertDontSee('payable to')               // no "Net VAT due · payable to [authority]" (an owner could file on it)
+        ->assertDontSee('VAT return');              // no numbers-bearing VAT-return CSV
 
     assertNoRawBlade($res);
 });

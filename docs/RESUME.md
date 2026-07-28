@@ -28,14 +28,15 @@ tenant apps (operator `/app` · owner `/owner` · guest `/guest`) + a public sto
 (`/signup`) on a certified multi-tenant backend, plus the **Super Admin platform panel (`/admin`)** — all built,
 styled, and browser-verified. Phases 0–7 (the whole tenant product) are done; Phase 8's two obtainable integrations
 (**production email** + **live Stripe**, all three seams) are lit up in test-mode/code-complete, needing only the
-founder's non-code cutovers. **Suite 1086 tests / 8497 assertions green · PHPStan L5 = 0 · Pint clean · `migrate:fresh
---seed` clean · Invariants #1–62.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super
+founder's non-code cutovers. **Suite 1089 tests / 8541 assertions green · PHPStan L5 = 0 · Pint clean · `migrate:fresh
+--seed` clean · Invariants #1–63.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super
 Admin panel is audited (0 critical/0 P1) + production-ready. The active hands-on track is **owner-page wireframe-exact-
 match polish** (match each live owner page to its decoded `dc-runtime` wireframe — exact design + REAL backends, honest
-where account-gated). **DONE + pushed, `#54`–`#62`:** Overview · My Units + Add Unit · Bookings + Booking-Summary PDF ·
+where account-gated). **DONE + pushed, `#54`–`#63`:** Overview · My Units + Add Unit · Bookings + Booking-Summary PDF ·
 Statement + Statement PDF · **Payouts + Payout Method** (⚠️ real money/banking — real IBAN collection [encrypted, mod-97]
 + Connect test-mode; the automated payout EXECUTION engine deferred) · Balance + Expenses · Block Calendar + Documents ·
-Reports + Insights · **Settings hub**. **Remaining, built + at-parity but not yet exact-matched:** EARNINGS — Tax center ·
+Reports + Insights · **Settings hub** · **Reports deepened to the full wireframe (`#63`** — real net-by-channel [Σ==net],
+real year dropdown/date-range/export, VAT honest-deferred). **Remaining, built + at-parity but not yet exact-matched:** EARNINGS — Tax center ·
 MANAGE — Rates / Reviews / Agreement / Messages · ACCOUNT — Security / Team · Help. The audits repeatedly find the
 wireframes describe MORE product than exists (approval / rate-proposal / VAT-filing / channel-sync / the payout engine —
 all honestly deferred or refused), so real usage should drive which deferred capability to actually build.

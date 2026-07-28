@@ -4720,3 +4720,45 @@ IBAN until a certified disbursement pipeline exists, on a compliance basis), tha
 `PayoutMethod` add-path + the Connect onboarding, and reduce the Payout Method page to an honest summary + a "banking
 connects with the live payout engine" deferral. The current build is the fuller "collect-now (encrypted), disburse-later"
 design. No code was changed for this consolidation (docs-only); flagged for the founder to decide.
+
+## 2026-07-28 — Owner REPORTS exact-match, DEEPENED to the full wireframe (#63)
+
+The owner Reports page (`/owner/reports`) — already built at #61 with the honest data right — was **deepened to the full
+decoded `Owner Reports.html`** (design + behaviour) on REAL owner-scoped analytics, honest where account-gated
+(`docs/OWNER-REPORTS-AUDIT.md`). The page stays **read-only** (year / date-range / export are GETs → no write to gate, #20).
+
+**GATE 1 (`f05a9b8`) — analytics exact-match + the two data upgrades:**
+- **Reporting-year dropdown** driven by the owner's REAL statement years (never the wireframe's fabricated 2024/2023) +
+  "Earlier years live in Documents"; YTD / Last-6-months range options; a **custom From/To date-range** popover (a real GET
+  clipping the owner ledger).
+- **Richer Export menu** wired to REAL routes (PDF report → statement-history PDF · CSV · spreadsheet(=CSV) · annual tax PDF ·
+  all-statements → Documents), honest **"Soon"** for PDF-pack + Email-to-me; CAP_EXPORTS-gated (#42).
+- **D-REP-1 — NET-by-channel is REAL (stale-refusal re-verification win).** The prior page showed nights-by-channel; the
+  wireframe wants **net** by channel. It IS computable: each owner-ledger entry is attributed to its reservation's REAL
+  `source` (via a keyed `reservations.source` lookup) or an honest **"Other"** bucket for non-reservation rows, summed by
+  `signedMinor()`. **Σ(channels) == the period net EXACTLY** (a decomposition of the same net, not a parallel figure, #17).
+  Uses the SHARED `OwnerBookingsReader::sourceLabel` (anti-drift — the same labels as Bookings; `ota` → "OTA", never a brand #39).
+- **D-REP-2 — prior-year comparison HONEST-OMITTED.** The wireframe's chart dashed prior-year bars + KPI "+Δ" + hero YoY badge
+  have **no real basis** (the demo owner ledger is 100% the current year; zero prior-year rows) → omitted, never fabricated
+  (#39). The series/delta appear only when real prior-year data exists (`hasPrior*` / `yoyDelta()` guards).
+- Gross-to-net keeps the **REAL agreement commission rate (18%, `OwnerCommissionRate`, never 15%)**, reconciles (#17); per-unit
+  grid (ADR/RevPAR header + share bars + All-units total); dark hero (YoY badge omitted → real nights·units); payout card
+  (masked IBAN CAP_PAYOUT-only, #28); real Documents. Notifications = the shared shell bell (the redundant right-rail card dropped).
+
+**GATE 2 — Tax & VAT summary: HONEST-DEFERRED in the wireframe's card chrome.**
+- **D-REP-3 — the VAT block is a KIND-2 fabrication → REFUSE the figures, style the honest state.** The wireframe's Output VAT /
+  Deductible input VAT / **Net VAT due · payable to Autoridade Tributária** / per-quarter chips / **Mark-filed** toggles /
+  numbers-bearing **VAT-return CSV** assert a VAT COMPUTATION Vyrobel does not model (grep-confirmed: only a stored encrypted
+  `vat_number` string — no rate/base/filing store anywhere). A "Net VAT due" figure is one an owner could **file a real return
+  on** → unacceptable to fabricate even "for information only" (#39). The block is rendered in the wireframe's card chrome
+  (icon + header + a clear **"Not yet available"** chip + the owner's REAL stored tax country when set) as an **honest deferred
+  state** — NO figure, NO "payable to", NO filing toggle, NO VAT-return-with-numbers — linking the REAL annual tax summary PDF +
+  Tax Center. Re-confirms the founder-approved #61 VAT decision. "Email to me" stays honest-"Soon" (no report Mailable).
+
+**Verified:** `OwnerAnalyticsTest` 7→10 (net-by-channel reconciles to the cent; real reporting-year dropdown, no fabricated
+prior years; custom date-range clips; VAT honest — no Output/Net-VAT/Mark-filed/"payable to"/VAT-return). Full suite green;
+PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. Browser-verified: year dropdown (real "2026 · 6 statements YTD"),
+custom range (Aug–Oct €2,750.80), export menu (3 real exports 200 — CSV/PDF/annual), net-by-channel reconciles (Direct
+€4,460.80 + Walk-in €442.80 + Other −€250.00 = €4,653.60), honest VAT. Reuses `<x-owner.shell>` + `--vy-*` +
+`OwnerLedgerAttribution`/`PerformanceMetrics`/`OwnerNextPayout`/`OwnerCommissionRate`/`OwnerBookingsReader` (anti-drift). No
+new writes, no schema change. **Invariants #1–63.**
