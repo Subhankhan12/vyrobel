@@ -9,7 +9,7 @@ copy — follow the links. If anything here conflicts with the repo, **trust the
 
 1. **THIS file** — orientation, creds, next action.
 2. **`docs/PROJECT-STATE.md`** — the primary resume doc. The top "CURRENT STATE" block is authoritative; the
-   **Invariants #1–55** list is the "what's proven" ledger; the "Deferred / outstanding register" is what NOT to
+   **Invariants #1–56** list is the "what's proven" ledger; the "Deferred / outstanding register" is what NOT to
    build ad hoc.
 3. **`docs/DECISIONS.md`** — the append-only dated "why" behind every major decision (newest entries at the end).
 4. **`docs/SUPERADMIN-COMPLETENESS.md`** — the Super Admin roadmap (before-launch / soon / nice-to-have + phased plan).
@@ -26,11 +26,13 @@ tenant apps (operator `/app` · owner `/owner` · guest `/guest`) + a public sto
 (`/signup`) on a certified multi-tenant backend, plus the **Super Admin platform panel (`/admin`)** — all built,
 styled, and browser-verified. Phases 0–7 (the whole tenant product) are done; Phase 8's two obtainable integrations
 (**production email** + **live Stripe**, all three seams) are lit up in test-mode/code-complete, needing only the
-founder's non-code cutovers. **Suite 1050 tests / 8149 assertions green · PHPStan L5 = 0 · Pint clean · `migrate:fresh --seed` clean ·
-Invariants #1–55.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super Admin panel is
+founder's non-code cutovers. **Suite 1060 tests / 8207 assertions green · PHPStan L5 = 0 · Pint clean · `migrate:fresh --seed` clean ·
+Invariants #1–56.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super Admin panel is
 audited (0 critical/0 P1) + production-ready. The active hands-on track is **owner-page wireframe-exact-match polish**:
-Overview + My Units + Add Unit are done + pushed; **Owner Bookings + the Booking-Summary PDF are next** (PHASE-1 audit
-complete in `docs/OWNER-BOOKINGS-AUDIT.md`, GATE build pending).
+Overview + My Units + Add Unit **and now the Bookings page + Booking-Summary PDF are DONE + pushed** (`#54`/`#55`/`#56`;
+`docs/OWNER-BOOKINGS-AUDIT.md`, commits `b571555`+`f9da60d`). The remaining owner pages (Statements/Payouts/Balance/
+Expenses/Tax-center · Reports/Insights/Rates/Reviews/Agreement/Messages · Settings/Security/Team) are built + at-parity
+but **not yet exact-matched** — they are the next candidates if the founder continues this optional polish track.
 
 ## 3. Stack (locked)
 
@@ -63,16 +65,19 @@ Public storefront (no login): `/book/vyrobel-demo`. Self-signup (provisions a ne
 
 ## 6. The next action
 
-**No launch-blocking build remains.** The active hands-on task is the **owner-page exact-match track** — the next page
-is **Owner Bookings (`/owner/bookings`) + the Booking-Summary PDF**. The PHASE-1 read-only audit is DONE
-(`docs/OWNER-BOOKINGS-AUDIT.md`), so the next step is **GATE 1 (the page — breadcrumb · GUESTS stat · "Bookings over
-time" chart + goal ring · Status/date-range filters · sortable table · pagination · Export CSV) then GATE 2 (the PDF —
-letterhead company/VAT/country · BS-YYYY-MM ref · 4-cell KPI incl. occupancy · by-unit occupancy · by-channel
-commission · guest-name-only)** per §4 of that audit — all on real owner-scoped data (guest name-only #28, net
-reconciling to the cent #17, owner writes on controller routes #20, the PDF CAP_EXPORTS-gated). *(A GATE-1 build may
-already be in progress in a parallel session — check `git status` before starting.)*
+**No launch-blocking build remains.** The owner **Bookings page + Booking-Summary PDF exact-match is DONE + pushed**
+(`#56`, commits `b571555`+`f9da60d`; `docs/OWNER-BOOKINGS-AUDIT.md`). So the founder now chooses between two tracks:
 
-The founder's strategic decisions stand in parallel:
+**A) Continue the owner-page exact-match polish** (optional, NOT launch-blocking) — pick the next owner page and run the
+same discipline (decode the `dc-runtime` wireframe → GATE 1 design + real backends → GATE 2 any doc twin, per-gate commit,
+suite + PHPStan + Pint + browser-verify). Remaining, built-but-not-yet-exact-matched: **EARNINGS** —
+Statements/Payouts/Balance/Expenses/Tax-center · **MANAGE** — Reports/Insights/Rates/Reviews/Agreement/Messages ·
+**ACCOUNT** — Settings(Profile)/Security/Team. Reuse the shared `<x-owner.shell>` + `--vy-*` tokens; all writes are
+`can:`-gated controller POSTs (never `/livewire/update`, #20); real data only (#39), guest name-only (#28), reconcile to
+the cent (#17). Prior "refused as fabrication" items are re-buildable REAL if a backend now makes them computable
+(the **stale-refusal re-verification** rule — see the Bookings audit).
+
+**B) Turn to LAUNCH** (the higher-leverage path):
 
 1. **Choose the launch model** — *free-trial / early-access* is launch-ready with the panel as-is; a *paid* launch
    needs only the already-scoped **Stripe go-live** + **suspension enforcement** (both in `docs/SUPERADMIN-COMPLETENESS.md`).
