@@ -176,6 +176,27 @@
             @endif
         </div>
 
+        {{-- ══ Login approval (Wave B · GATE 4) — REAL email approval for new devices; toggle re-auths ══ --}}
+        <div class="vy-card vy-fade" style="margin-bottom:16px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div style="max-width:60ch;">
+                    <h2 style="{{ $h2 }}">Login approval for new devices</h2>
+                    <p style="{{ $sub }}">When on, signing in from a device you haven’t trusted is held until you approve it from a link we email you. A trusted device skips this, and you can turn it off here — so it can’t lock you out.</p>
+                </div>
+                <span style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:20px;padding:4px 11px;{{ $loginApprovalOn ? 'color:#227a3c;background:rgba(34,120,60,.12);' : 'color:var(--vy-faint);background:rgba(0,0,0,.04);' }}">{{ $loginApprovalOn ? 'On' : 'Off' }}</span>
+            </div>
+            <form method="POST" action="{{ route('owner.security.login-approval') }}" style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                @csrf
+                <input type="hidden" name="enabled" value="{{ $loginApprovalOn ? '0' : '1' }}">
+                <div>
+                    <label style="{{ $lbl }}" for="la_pw">Confirm your password to {{ $loginApprovalOn ? 'turn off' : 'turn on' }}</label>
+                    <input id="la_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" style="max-width:240px;">
+                    @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
+                </div>
+                <button type="submit" class="vy-btn" style="{{ $loginApprovalOn ? $ghost : '' }}margin-top:26px;">{{ $loginApprovalOn ? 'Turn off' : 'Turn on login approval' }}</button>
+            </form>
+        </div>
+
         {{-- ══ Your data — a REAL owner-scoped export ══════════════════════════════════════════════════ --}}
         <div class="vy-card vy-fade" style="margin-bottom:16px;">
             <h2 style="{{ $h2 }}">Your data</h2>
@@ -187,7 +208,7 @@
         <div class="vy-card vy-fade" style="margin-bottom:16px;">
             <h2 style="{{ $h2 }}margin-bottom:12px;">Coming soon</h2>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
-                @foreach (['Passkeys (Face / Touch ID)', 'Login approval for new devices', 'New-device email alerts', 'Connected apps', 'Full sign-in history', 'Session timeout'] as $soon)
+                @foreach (['Passkeys (Face / Touch ID)', 'New-device email alerts', 'Connected apps', 'Full sign-in history', 'Session timeout'] as $soon)
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;border:1px solid var(--vy-hairline);border-radius:10px;">
                         <span style="font-size:12.5px;color:var(--vy-muted);">{{ $soon }}</span>
                         <span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--vy-faint);background:rgba(0,0,0,.04);padding:3px 9px;border-radius:20px;">Soon</span>

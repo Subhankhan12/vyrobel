@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PlanController as AdminPlanController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\Auth\LoginApprovalController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -213,6 +214,18 @@ Route::middleware('auth')->group(function () {
 Route::middleware(RequireTwoFactorPending::class)->group(function () {
     Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'create'])->name('two-factor.challenge');
     Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])->name('two-factor.login');
+});
+
+/*
+ * LOGIN APPROVAL for new devices (Wave B · GATE 4) — the pending "approve this new device by email" flow. The
+ * pending browser holds a plain session key (NOT the auth guard, so /app + /owner reject it); `approve` is the
+ * emailed SIGNED link (verified by the `signed` middleware, may be opened on any device); `complete` finishes the
+ * sign-in only once the request is approved (single-use). CSRF-protected (web group), rate-limited.
+ */
+Route::middleware('throttle:12,1')->group(function () {
+    Route::get('/login-approval', [LoginApprovalController::class, 'show'])->name('login-approval.show');
+    Route::post('/login-approval/continue', [LoginApprovalController::class, 'complete'])->name('login-approval.complete');
+    Route::get('/login-approval/approve/{approval}', [LoginApprovalController::class, 'approve'])->middleware('signed')->name('login-approval.approve');
 });
 
 /*
@@ -881,6 +894,8 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::post('/security/sessions/sign-out-others', [OwnerSecurityController::class, 'signOutOtherSessions'])->middleware('throttle:6,1')->name('security.sessions.signout');
     // Trusted devices (Wave B · GATE 4) — remove one (self-only, re-auth). A trust lets a browser skip 2FA.
     Route::post('/security/trusted-devices/revoke', [OwnerSecurityController::class, 'revokeTrustedDevice'])->middleware('throttle:10,1')->name('security.trusted-devices.revoke');
+    // Login approval (Wave B · GATE 4) — turn the new-device email-approval requirement on/off (self-only, re-auth).
+    Route::post('/security/login-approval', [OwnerSecurityController::class, 'setLoginApproval'])->middleware('throttle:10,1')->name('security.login-approval');
     // Real owner-scoped data export ("Request my data").
     Route::get('/security/export', [OwnerSecurityController::class, 'exportData'])->middleware('throttle:6,1')->name('security.export');
     // DEACTIVATE (pause) — 🔒 PRIMARY-OWNER-ONLY (#42), re-auth with the password, reversible + non-destructive.

@@ -78,6 +78,7 @@ class OwnerSecurity extends Component
             ],
             'lastLogin' => $user->last_login_at instanceof Carbon ? $user->last_login_at : null,
             'sessions' => $sessions,
+            'loginApprovalOn' => $user->requiresLoginApproval(),
             // Trusted devices (Wave B · GATE 4) — the REAL live trusts for this user (skip-2FA), self-only.
             'trustedDevices' => app(TrustedDeviceService::class)->forUser($user, request())
                 ->map(fn ($d): array => [

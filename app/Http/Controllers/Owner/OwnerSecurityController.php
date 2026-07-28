@@ -97,6 +97,30 @@ class OwnerSecurityController extends Controller
     }
 
     /**
+     * Turn LOGIN APPROVAL on/off (Wave B · GATE 4) — self-only + re-auth. When on, a sign-in from an untrusted
+     * new device is held pending until the emailed link is clicked. Opt-in; a trusted device (or turning this
+     * back off) is the recovery path, so it cannot lock the user out permanently.
+     */
+    public function setLoginApproval(Request $request, AuditEventRecorder $audit): RedirectResponse
+    {
+        $user = $request->user();
+        abort_if($user === null, 403);
+
+        $request->validate([
+            'enabled' => ['required', 'boolean'],
+            'current_password' => ['required', 'current_password'],
+        ]);
+
+        $enabled = $request->boolean('enabled');
+        $user->forceFill(['require_login_approval' => $enabled])->save();
+        $audit->record('owner.login_approval_changed', $user, null, ['enabled' => $enabled]);
+
+        return back()->with('owner_notice', $enabled
+            ? 'Login approval is on — a new device must be approved by email before it can sign in.'
+            : 'Login approval is off.');
+    }
+
+    /**
      * "Request my data" — a real OWNER-SCOPED export (#28): the acting user's profile plus the statements,
      * payouts and units their owner access covers (the OwnerScope is already active in the /owner portal, so
      * these queries only ever return this owner's rows). Streamed as a JSON download — no external service.

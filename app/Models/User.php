@@ -34,7 +34,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $avatar_path relative path on the `public` disk of the user's own avatar
  * @property string|null $pending_email a login-email change parked here until the signed verify link is opened
  */
-#[Fillable(['name', 'email', 'password', 'locale', 'avatar_path', 'status', 'two_factor_enabled', 'last_login_at'])]
+#[Fillable(['name', 'email', 'password', 'locale', 'avatar_path', 'status', 'two_factor_enabled', 'require_login_approval', 'last_login_at'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {
@@ -50,6 +50,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
+            'require_login_approval' => 'boolean',
             // Secret + recovery codes are ENCRYPTED at rest (convention #5). The secret existed as PLAINTEXT
             // text before 2FA was wired; the cast fixes that latent exposure. `encrypted:array` stores the
             // recovery codes as encrypted JSON ([{code, used_at}]).
@@ -97,6 +98,12 @@ class User extends Authenticatable
     public function hasTwoFactorEnabled(): bool
     {
         return $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
+    }
+
+    /** Login-approval opt-in (Wave B · GATE 4) — an untrusted new device must be approved by email first. */
+    public function requiresLoginApproval(): bool
+    {
+        return (bool) $this->require_login_approval;
     }
 
     /**
