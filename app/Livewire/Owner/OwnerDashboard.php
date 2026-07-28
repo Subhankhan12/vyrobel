@@ -5,19 +5,16 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
-use App\Models\Owner;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
-use App\Models\PayoutMethod;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
 use App\Support\Owner\OwnerAttention;
 use App\Support\Owner\OwnerContext;
-use App\Support\Owner\OwnerOccupancy;
-use App\Support\Owner\OwnerTeamRole;
+use App\Support\Owner\OwnerNextPayout;
+use App\Support\Owner\OwnerOccupancyTrend;
 use App\Support\Owner\OwnerUpcomingStays;
-use App\Support\Payouts\Iban;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -114,80 +111,17 @@ class OwnerDashboard extends Component
     }
 
     /**
-     * REAL owner-scoped occupancy: the current calendar month's portfolio % + per-unit % (via the shared
-     * {@see OwnerOccupancy}, keyed by the owner's OWN physical unit ids — a non-owner unit in the same room
-     * type is excluded by construction), a month-over-month delta, and a 6-month trend sparkline. Thin/no data
-     * → an honest zero + no delta (never a fabricated 78%).
+     * REAL owner-scoped occupancy: the current calendar month's portfolio % + per-unit % + a month-over-month
+     * delta + a 6-month trend sparkline, via the ONE shared {@see OwnerOccupancyTrend} (keyed by the owner's OWN
+     * physical unit ids — a non-owner unit in the same room type is excluded by construction). Thin/no data → an
+     * honest zero + no delta (never a fabricated 78%). The Statement page occupancy card reads the SAME helper.
      *
      * @param  list<string>  $unitIds
      * @return array{has_data: bool, pct: int, pct_display: string, delta: array{label: string, positive: bool}|null, spark: array<string, mixed>, per_unit_pct: array<string, int>}
      */
     private function occupancy(array $unitIds): array
     {
-        $now = Carbon::now()->startOfMonth();
-
-        /** @var list<Carbon> $months */
-        $months = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $months[] = $now->copy()->subMonthsNoOverflow($i);
-        }
-
-        $results = array_map(fn (Carbon $m): array => OwnerOccupancy::forMonth($unitIds, $m), $months);
-        $pcts = array_map(fn (array $r): int => $r['pct'], $results);
-        $current = $results[count($results) - 1];
-
-        $days = $current['days'];
-        $perUnitPct = [];
-        foreach ($current['per_unit'] as $id => $nights) {
-            $perUnitPct[(string) $id] = $days > 0 ? (int) round($nights / $days * 100) : 0;
-        }
-
-        $pct = $current['pct'];
-        $prevPct = $pcts[count($pcts) - 2] ?? 0;
-        $diff = $pct - $prevPct;
-        $delta = $diff !== 0
-            ? ['label' => ($diff > 0 ? '+' : '−').abs($diff).'%', 'positive' => $diff > 0]
-            : null;
-
-        return [
-            'has_data' => array_sum($pcts) > 0,
-            'pct' => $pct,
-            'pct_display' => $pct.'%',
-            'delta' => $delta,
-            'spark' => $this->sparkline($pcts),
-            'per_unit_pct' => $perUnitPct,
-        ];
-    }
-
-    /**
-     * A monthly-occupancy trend as an SVG path over a 0 0 100 34 viewBox (the wireframe's sparkline). `has`
-     * is false when every month is 0 → the card shows the % alone rather than a flat line at the floor.
-     *
-     * @param  list<int>  $pcts  oldest → newest
-     * @return array{has: bool, line: string, area: string, last_x: float, last_y: float}
-     */
-    private function sparkline(array $pcts): array
-    {
-        $n = count($pcts);
-        $points = [];
-        for ($i = 0; $i < $n; $i++) {
-            $x = $n <= 1 ? 96.0 : round(2 + ($i / ($n - 1)) * 94, 1);
-            $v = max(0, min(100, $pcts[$i]));
-            $y = round(30 - $v / 100 * 26, 1);
-            $points[] = [$x, $y];
-        }
-
-        $line = 'M'.implode(' L', array_map(fn (array $p): string => $p[0].','.$p[1], $points));
-        $first = $points[0];
-        $last = $points[$n - 1];
-
-        return [
-            'has' => $pcts !== [] && max($pcts) > 0,
-            'line' => $line,
-            'area' => $line.' L'.$last[0].',34 L'.$first[0].',34 Z',
-            'last_x' => $last[0],
-            'last_y' => $last[1],
-        ];
+        return OwnerOccupancyTrend::ending($unitIds, Carbon::now());
     }
 
     /**
@@ -202,30 +136,15 @@ class OwnerDashboard extends Component
     }
 
     /**
-     * The next-payout rail's REAL data: the masked IBAN of the owner's default payout method (owner-scoped;
-     * shown only to a payout-capable role — CAP_PAYOUT, co-owner) and the tax-hold paused-state (a pending
-     * payout AND an owner with no tax details on file — the ONLY real "paused"). No estimated date (no field).
+     * The next-payout rail's REAL data: the masked IBAN of the owner's default payout method (payout-capable role
+     * only — CAP_PAYOUT) + the tax-hold paused-state — via the ONE shared {@see OwnerNextPayout} (the Statement
+     * page's dark rail reads the SAME helper, so the two can't disagree). No estimated date (no field, #39).
      *
      * @return array{iban_masked: string|null, paused: bool}
      */
     private function payoutRail(): array
     {
-        $context = app(OwnerContext::class);
-
-        $method = PayoutMethod::query()->orderByDesc('is_default')->first();
-        $ibanMasked = ($context->can(OwnerTeamRole::CAP_PAYOUT) && $method instanceof PayoutMethod)
-            ? Iban::masked((string) $method->iban_last4)
-            : null;
-
-        $paused = false;
-        if ($context->active() && $context->ownerIds() !== []) {
-            $hasPending = Payout::query()->where('status', 'pending')->exists();
-            $missingTax = Owner::query()->whereIn('id', $context->ownerIds())->get()
-                ->contains(fn (Owner $o): bool => ! $o->hasTaxDetails());
-            $paused = $hasPending && $missingTax;
-        }
-
-        return ['iban_masked' => $ibanMasked, 'paused' => $paused];
+        return OwnerNextPayout::rail(app(OwnerContext::class));
     }
 
     /**

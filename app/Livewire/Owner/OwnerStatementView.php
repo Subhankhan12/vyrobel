@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
-use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
 use App\Models\Payout;
 use App\Services\OwnerPortalService;
-use App\Support\Analytics\PerformanceMetrics;
-use App\Support\Owner\OwnerLedgerAttribution;
-use Carbon\CarbonImmutable;
+use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerNextPayout;
+use App\Support\Owner\OwnerOccupancyTrend;
+use App\Support\Owner\OwnerStatementBreakdown;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -58,110 +59,67 @@ class OwnerStatementView extends Component
 
         $portal = app(OwnerPortalService::class);
         $allStatements = $portal->statements();          // owner-scoped, most recent first
+        $units = $portal->units();
         $symbol = $this->currencySymbol($statement->currency);
+        $unitIds = array_map('strval', $units->pluck('id')->all());
+
+        // The REAL per-unit split (net/gross/occupancy), via the ONE shared helper the PDF reuses too — it
+        // reconciles to the statement net (page) / gross (PDF) to the cent (#17), owner's own units only (#28).
+        $byUnit = OwnerStatementBreakdown::forStatement($statement);
+        // The occupancy card + sparkline for the statement's OWN month (the same shared trend the Overview uses).
+        $occupancy = OwnerOccupancyTrend::ending($unitIds, Carbon::parse($statement->period_start->toDateString()));
 
         return view('livewire.owner.statement', [
             'statement' => $this->statementPayload($statement, $symbol),
-            'lines' => $this->linePayload($statement),
+            'lines' => $this->linePayload($statement, $this->grossSublabel($byUnit, $units->count())),
             'history' => $this->historyPayload($allStatements, $statement->id),
             'years' => $this->years($allStatements),
             'totals' => $this->totals($allStatements),
             'nav' => $this->navigation($allStatements, $statement),
+            'monthOptions' => $this->monthOptions($allStatements, $statement->id),
             'payout' => $this->payoutPayload($portal->payouts(), $statement, $symbol),
-            'unitsCount' => $portal->units()->count(),
-            'byUnit' => $this->byUnitPayload($statement),
+            'rail' => OwnerNextPayout::rail(app(OwnerContext::class)),
+            'occupancy' => $occupancy,
+            'unitsCount' => $units->count(),
+            'byUnit' => $byUnit,
             'viewer' => $this->viewer(),
         ]);
     }
 
     /**
-     * The REAL per-unit split of this statement (Batch B · GATE 1) — pure ledger arithmetic, so it
-     * reconciles to the statement net BY CONSTRUCTION (invariant #17): the split reads the exact ledger
-     * lines this statement CLAIMED (`owner_ledger.statement_id`, stamped at finalize), groups them by
-     * `unit_id`, and nets each group through the shared {@see OwnerLedgerAttribution} primitive — so
-     * Σ(per-unit net) + (unattributed net) == Σ signedMinor == the statement's net_source, to the cent.
-     * Per-unit gross = the unit's `room_revenue` credits; occupancy/nights come from the SHARED
-     * {@see PerformanceMetrics} over the statement's own period (owner-scoped — the owner's own units only,
-     * #28). A DRAFT has no stamped lines yet → an honest "available once finalized" state, never a fake split.
+     * The gross line's REAL "N nights · M units" sublabel (the wireframe's gross detail) — nights = the room-nights
+     * this statement's units sold in the period (the shared breakdown's total), units = the owner's unit count.
+     * Null for a draft (no split yet) so the gross line simply carries no sublabel.
      *
-     * Everything is in the ledger's SOURCE currency and reconciles to `net_source_minor`; for a same-currency
-     * statement (the common case) that equals the payout-currency net the hero shows.
-     *
-     * @return array<string, mixed>
+     * @param  array<string, mixed>  $byUnit
      */
-    private function byUnitPayload(OwnerStatement $s): array
+    private function grossSublabel(array $byUnit, int $unitsCount): ?string
     {
-        $currency = (string) $s->source_currency;
-        $symbol = $this->currencySymbol($currency);
-
-        // The exact lines this statement claims (stamped at finalize). Owner-scoped by the global scope.
-        $entries = OwnerLedgerEntry::query()
-            ->where('statement_id', $s->id)
-            ->with('unit')
-            ->get();
-
-        if ($entries->isEmpty()) {
-            // A draft (nothing stamped yet) — the by-unit split is a property of the sealed statement.
-            return ['available' => false, 'units' => [], 'unattributed' => null, 'total_net_display' => null];
+        if (($byUnit['available'] ?? false) !== true) {
+            return null;
         }
 
-        $totalNet = (int) $entries->sum(fn (OwnerLedgerEntry $e): int => $e->signedMinor());
+        $nights = (int) ($byUnit['total_nights'] ?? 0);
 
-        // Half-open [period_start, period_end + 1 day) so the last day of the period is included.
-        $start = CarbonImmutable::parse($s->period_start->toDateString());
-        $end = CarbonImmutable::parse($s->period_end->toDateString())->addDay();
+        return $nights.' '.Str::plural('night', $nights)
+            .' · '.$unitsCount.' '.Str::plural('unit', $unitsCount);
+    }
 
-        $units = [];
-        $unattributed = null;
-
-        foreach ($entries->groupBy(fn (OwnerLedgerEntry $e): string => (string) ($e->unit_id ?? '')) as $unitId => $rows) {
-            // Net via the SHARED primitive (single currency here → one entry keyed by $currency).
-            $net = OwnerLedgerAttribution::netPerCurrency($rows)[$currency] ?? 0;
-            $pct = $totalNet !== 0 ? (int) round($net / $totalNet * 100) : 0;
-
-            if ((string) $unitId === '') {
-                // Unit-less lines (e.g. a flat management fee): an honest remainder so the split still
-                // reconciles to the whole. Absent whenever every line is unit-attributed (the demo case).
-                $unattributed = [
-                    'net_minor' => $net,
-                    'net_display' => $this->money($net, $currency),
-                    'pct' => $pct,
-                ];
-
-                continue;
-            }
-
-            // Per-unit gross = the unit's room_revenue credits; occupancy/nights from the shared metric layer.
-            $gross = (int) $rows->where('entry_type', 'room_revenue')->sum(fn (OwnerLedgerEntry $e): int => $e->signedMinor());
-            $metrics = PerformanceMetrics::forOwnerUnits([(string) $unitId], $start, $end, $currency);
-            // unit_id is set here (else-branch) and the FK is nullOnDelete, so the unit row exists.
-            $unit = $rows->first()->unit;
-
-            $units[] = [
-                'name' => (string) ($unit->name ?? $unit->code ?? 'Unit'),
-                'nights' => $metrics->roomNightsSold,
-                'occupancy_pct' => $metrics->occupancyPct(),
-                'net_minor' => $net,
-                'net_display' => $this->money($net, $currency),
-                'gross_display' => $this->money($gross, $currency),
-                'pct_of_net' => $pct,
-                'bar_width' => max(0, min(100, $pct)),
-            ];
-        }
-
-        // Best-earning unit first — the wireframe's order.
-        usort($units, fn (array $a, array $b): int => $b['net_minor'] <=> $a['net_minor']);
-
-        return [
-            'available' => true,
-            'currency_symbol' => $symbol,
-            'unit_count' => count($units),
-            'period_label' => $s->period_start->format('F Y'),
-            'units' => $units,
-            'unattributed' => $unattributed,
-            'total_net_minor' => $totalNet,
-            'total_net_display' => $this->money($totalNet, $currency),
-        ];
+    /**
+     * The "jump to month" option list for the header switcher — the owner's REAL statements (id · month label ·
+     * net figure), most recent first, each a link to that statement. Never invents a period.
+     *
+     * @param  Collection<int, OwnerStatement>  $statements
+     * @return list<array{id: string, label: string, net_display: string, is_current: bool}>
+     */
+    private function monthOptions(Collection $statements, string $currentId): array
+    {
+        return $statements->map(fn (OwnerStatement $s): array => [
+            'id' => $s->id,
+            'label' => $s->period_start->format('F Y'),
+            'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
+            'is_current' => $s->id === $currentId,
+        ])->values()->all();
     }
 
     /**
@@ -198,7 +156,7 @@ class OwnerStatementView extends Component
      *
      * @return list<array<string, mixed>>
      */
-    private function linePayload(OwnerStatement $s): array
+    private function linePayload(OwnerStatement $s, ?string $grossSub): array
     {
         $gross = (int) $s->gross_minor;
 
@@ -206,14 +164,14 @@ class OwnerStatementView extends Component
             ->where('owner_statement_id', $s->id)
             ->orderBy('sort_order')
             ->get()
-            ->map(function (OwnerStatementLine $l) use ($gross): array {
+            ->map(function (OwnerStatementLine $l) use ($gross, $grossSub): array {
                 $amount = (int) $l->amount_minor;
                 $isNet = $l->line_type === 'net';
 
                 return [
                     'line_type' => $l->line_type,
                     'description' => $l->description,
-                    'sublabel' => $this->lineSublabel((string) $l->line_type, $amount, $gross),
+                    'sublabel' => $this->lineSublabel((string) $l->line_type, $amount, $gross, $grossSub),
                     'amount_minor' => $amount,
                     'amount_display' => $this->money($amount, (string) $l->currency, signed: ! $isNet),
                     'is_negative' => $amount < 0,
@@ -225,11 +183,16 @@ class OwnerStatementView extends Component
     }
 
     /**
-     * A truthful "% of gross" sublabel for proportional deductions, derived from the statement's own
-     * real gross/commission figures. Returns null for fixed or non-proportional lines.
+     * The line's REAL sublabel: for GROSS, the "N nights · M units" detail (or null on a draft); for the
+     * proportional deductions (commission / OTA), a truthful "% of gross" derived from the statement's own real
+     * figures. Null for fixed or non-proportional lines. Never a stored or invented value.
      */
-    private function lineSublabel(string $lineType, int $amount, int $gross): ?string
+    private function lineSublabel(string $lineType, int $amount, int $gross, ?string $grossSub = null): ?string
     {
+        if ($lineType === 'gross') {
+            return $grossSub;
+        }
+
         if ($gross === 0 || ! in_array($lineType, ['commission', 'ota_cost'], true)) {
             return null;
         }

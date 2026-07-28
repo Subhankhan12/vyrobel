@@ -76,6 +76,7 @@ use App\Http\Controllers\Owner\OwnerProfileController;
 use App\Http\Controllers\Owner\OwnerRateController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerSecurityController;
+use App\Http\Controllers\Owner\OwnerStatementHistoryExportController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
 use App\Http\Controllers\Owner\OwnerTaxController;
 use App\Http\Controllers\Owner\OwnerTeamController;
@@ -714,6 +715,12 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         // PdfService + the shared MoneyFormatter, so they reconcile to the screens to the cent.
         Route::get('/statements/{statement}/bookings', [OwnerBookingSummaryPdfController::class, 'download'])->name('statements.bookings');
         Route::get('/payouts/{payout}/remittance', [OwnerRemittancePdfController::class, 'download'])->name('payouts.remittance');
+        // Owner Statement exact-match — the statement-HISTORY exports (CSV + a per-year summary PDF), owner-scoped
+        // over the finalized statements (OwnerScope → cross-owner rows never appear; fail-closed for non-linked).
+        // A DISTINCT path prefix (not /statements/…) so the exports can't be shadowed by /statements/{statement}/pdf
+        // (which would resolve {statement}="history" → a 404). Optional ?year= clips the set (never widens it).
+        Route::get('/statement-history/csv', [OwnerStatementHistoryExportController::class, 'csv'])->name('statements.history.csv');
+        Route::get('/statement-history/pdf', [OwnerStatementHistoryExportController::class, 'pdf'])->name('statements.history.pdf');
     });
     // Design pass · Screen 3 — owner payouts (owner-scoped; new page for the certified Payout backend).
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');

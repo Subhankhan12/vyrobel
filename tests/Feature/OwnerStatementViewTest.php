@@ -5,6 +5,7 @@ use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatementLine;
+use App\Models\PayoutMethod;
 use App\Models\User;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerPayoutService;
@@ -98,11 +99,16 @@ it('renders the real statement with a to-the-cent breakdown and never an invente
         ->assertDontSee('Payment & ops fees')
         ->assertDontSee('Card processing')
         ->assertDontSee('card-processing')
-        // Deferred regions are honestly stubbed, never faked; the history CSV/PDF export stays deferred.
-        ->assertSee('Not yet available')             // by-unit / occupancy deferred
-        ->assertSee('Export CSV')                    // the history CSV/PDF export is still a disabled "Soon"
-        // The booking-summary + remittance PDFs are REAL exports now (were "Soon" tags). This statement has
-        // a matched payout, so the remittance links to that payout's real advice (not the "once paid" state).
+        // The occupancy card is now REAL (the "Not yet available" stub is gone — exact-match pass), and the
+        // statement-history CSV/PDF exports are now REAL links (were disabled "Soon").
+        ->assertDontSee('Not yet available')
+        ->assertDontSee('Per-period occupancy trend')
+        ->assertSee('Occupancy')                     // the real occupancy card (eyebrow)
+        ->assertSee('Export CSV')                    // now a real export link…
+        ->assertSee(route('owner.statements.history.csv'))   // …to the real owner-scoped history CSV route
+        ->assertSee(route('owner.statements.history.pdf'))
+        // The booking-summary + remittance PDFs are REAL exports (were "Soon" tags). This statement has a
+        // matched payout, so the remittance links to that payout's real advice (not the "once paid" state).
         ->assertSee(route('owner.statements.bookings', $a['statement']->id))
         ->assertSee(route('owner.payouts.remittance', $a['payout']->id));
 
@@ -190,4 +196,90 @@ it('shows only the acting owner’s own units in the by-unit split (#28)', funct
         ->assertSee('By unit')
         ->assertDontSee('Zzz Secret Villa')   // B's unit name never leaks into A's split
         ->assertDontSee('€425.00');           // nor B's figure
+});
+
+// ── 5. The occupancy card is REAL + the month switcher + gross sublabel render (exact-match pass) ──
+it('renders the real occupancy card, the month switcher and the gross nights·units sublabel', function () {
+    $s = seedScenario(1);
+    $a = statementOwner($s, 0, 20000);
+
+    $response = $this->actingAs($a['user'])->get("/owner/statements/{$a['statement']->id}");
+
+    $response->assertOk()
+        ->assertSee('Occupancy')          // the real card (the "Not yet available" stub is gone — asserted in #1)
+        ->assertSee('Jump to month')      // the header month switcher popover
+        ->assertSee('nights ·')           // the gross line's real "N nights · M units" sublabel
+        ->assertSee('% occupancy');       // the by-unit real occupancy sublabel
+
+    assertNoRawBlade($response);          // the word@directive trap — no raw Blade leaked (CLAUDE.md)
+});
+
+// ── 6. The masked payout IBAN shows ONLY to a payout-capable role (CAP_PAYOUT = co-owner) ──────────
+it('shows the masked payout IBAN only to a payout-capable role (CAP_PAYOUT)', function () {
+    $s = seedScenario(2);
+    $a = statementOwner($s, 0, 20000);
+
+    PayoutMethod::create([
+        'organization_id' => $s['org']->id,
+        'owner_id' => $a['owner']->id,
+        'account_holder' => 'Demo Owner',
+        'iban' => 'GB29NWBK60161331926819',
+        'iban_last4' => '6819',
+        'iban_country' => 'GB',
+        'currency' => 'EUR',
+        'is_default' => true,
+    ]);
+
+    // The PRIMARY owner (co-owner caps, incl. CAP_PAYOUT) sees the masked IBAN — never the full number.
+    $this->actingAs($a['user'])->get("/owner/statements/{$a['statement']->id}")
+        ->assertOk()
+        ->assertSee('···· 6819')
+        ->assertDontSee('GB29NWBK60161331926819');
+
+    // An ACCOUNTANT (CAP_EXPORTS but NOT CAP_PAYOUT) and a VIEW-ONLY sub-user must NOT see the IBAN.
+    foreach (['accountant', 'view_only'] as $role) {
+        $sub = ownerSubUser($s, $a['owner']->id, $role);
+        $this->actingAs($sub)->get("/owner/statements/{$a['statement']->id}")
+            ->assertOk()
+            ->assertDontSee('···· 6819');
+    }
+});
+
+// ── 7. Statement-history CSV — owner-scoped, EXPORTS-gated, reconciling, NO guest data ─────────────
+it('exports the statement-history CSV owner-scoped and EXPORTS-gated, never another owner’s figures', function () {
+    $s = seedScenario(2);
+    $a = statementOwner($s, 0, 20000);   // A → net €170.00
+    statementOwner($s, 1, 50000);        // B → net €425.00 (distinctive)
+
+    // A's export = A's rows only; B's distinctive figure never appears (owner scope IS the boundary).
+    $csv = $this->actingAs($a['user'])->get(route('owner.statements.history.csv'))
+        ->assertOk()
+        ->assertHeader('content-type', 'text/csv; charset=utf-8')
+        ->streamedContent();
+
+    expect($csv)->toContain('Net payable')     // header row
+        ->toContain('€170.00')                 // A's real net
+        ->not->toContain('€425.00');           // never B's
+
+    // A year with no statements → an owner-scoped, headers-only file (the filter clips, never widens).
+    $empty = $this->actingAs($a['user'])->get(route('owner.statements.history.csv', ['year' => 2020]))
+        ->assertOk()->streamedContent();
+    expect($empty)->toContain('Month')->not->toContain('€170.00');
+
+    // EXPORTS capability: accountant may download; view-only may NOT (co-owner + accountant only).
+    $this->actingAs(ownerSubUser($s, $a['owner']->id, 'accountant'))->get(route('owner.statements.history.csv'))->assertOk();
+    $this->actingAs(ownerSubUser($s, $a['owner']->id, 'view_only'))->get(route('owner.statements.history.csv'))->assertForbidden();
+});
+
+// ── 8. Statement-history PDF — generates (application/pdf) + EXPORTS-gated ─────────────────────────
+it('exports the statement-history PDF and is EXPORTS-gated', function () {
+    $s = seedScenario(1);
+    $a = statementOwner($s, 0, 20000);
+
+    $this->actingAs($a['user'])->get(route('owner.statements.history.pdf'))
+        ->assertOk()
+        ->assertHeader('content-type', 'application/pdf');
+
+    $this->actingAs(ownerSubUser($s, $a['owner']->id, 'view_only'))
+        ->get(route('owner.statements.history.pdf'))->assertForbidden();
 });

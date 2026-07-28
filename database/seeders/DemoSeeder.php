@@ -699,6 +699,14 @@ class DemoSeeder extends Seeder
         $attribution->attributeReservation($walkIn);
         $attribution->attributeReservation($aptStay);
 
+        // DEMO ONLY — a spread of PAST months (Apr–Aug 2026) of finalized+paid statements so the Statement
+        // page's history table / year filter / occupancy trend + the Overview earnings chart demo on a real,
+        // meaningful shape. Each month is a REAL apartment stay → attribution → statement projection (finalized
+        // in period ORDER so each claims only its own lines); the ONLY demo affordances are seeding a past-month
+        // rate calendar and marking the past payouts paid (like Batch B backdates created_at). Runs BEFORE the
+        // September finalize so September still claims ONLY its own lines (net €885.60 unchanged). Nothing faked.
+        $this->seedOwnerStatementHistory($ownerParty, $property, $apartment, $aptRate, $aptUnits, $aptGuest, $vat);
+
         // September statement = pure projection of the ledger; finalize (locks), then create the payout,
         // left PENDING — the common "statement finalized, payout not yet sent" state the portal showcases.
         $statements = app(OwnerStatementService::class);
@@ -712,6 +720,66 @@ class DemoSeeder extends Seeder
         $this->seedOwnerTeam($ownerParty);
 
         return $ownerParty;
+    }
+
+    /**
+     * DEMO ONLY — past-month owner statements (Apr–Aug 2026) so the Statement page's history table / year filter /
+     * occupancy trend and the Overview earnings chart demo on a real, meaningful shape. Each month is a REAL
+     * apartment stay (createDemoStay → folio → attribution) whose month's statement is a real projection of the
+     * ledger; they are finalized in period ORDER so each claims only its own lines, and the caller's September
+     * finalize (which runs AFTER this) still claims only September's lines (net €885.60 unchanged). The only demo
+     * affordances are seeding a past-month rate calendar and marking the past payouts paid — never a fabricated
+     * figure (#39): every net is the real gross − the real 18% commission.
+     *
+     * @param  Collection<int, Unit>  $aptUnits
+     */
+    private function seedOwnerStatementHistory(
+        Owner $owner,
+        Property $property,
+        RoomType $apartment,
+        RatePlan $aptRate,
+        Collection $aptUnits,
+        Guest $guest,
+        Tax $vat,
+    ): void {
+        $availability = app(AvailabilityService::class);
+        $statements = app(OwnerStatementService::class);
+        $payouts = app(OwnerPayoutService::class);
+
+        // month · nightly (minor) · check-in day · nights — deterministic, varied nets; alternating apartment,
+        // well within the month and clear of the (future-dated) analytics-history window, so no collision.
+        $plan = [
+            ['2026-04', 18000, 6, 3],
+            ['2026-05', 20000, 9, 4],
+            ['2026-06', 19000, 12, 3],
+            ['2026-07', 21000, 5, 3],
+            ['2026-08', 22000, 14, 4],
+        ];
+
+        foreach ($plan as $i => [$ym, $nightly, $day, $nights]) {
+            $checkIn = CarbonImmutable::parse($ym.'-'.str_pad((string) $day, 2, '0', STR_PAD_LEFT));
+            $checkOut = $checkIn->addDays($nights);
+            $unit = $aptUnits[$i % $aptUnits->count()];
+            $periodEnd = CarbonImmutable::parse($ym.'-01')->endOfMonth()->toDateString();
+
+            // Seed the past-month rate calendar + availability so the real booking has a real nightly price
+            // (the demo calendar only spans today→+180d, so past months need their own window).
+            $this->seedCalendarRange($aptRate, $nightly, $checkIn->toDateString(), $checkOut->toDateString());
+            $availability->recompute($apartment->id, $checkIn->toDateString(), $checkOut->toDateString());
+
+            $stay = $this->createDemoStay('direct', $property, $apartment, $aptRate, $unit, $guest, $checkIn->toDateString(), $checkOut->toDateString(), $vat, fullyPaid: true);
+            app(OwnerAttributionService::class)->attributeReservation($stay);
+
+            // Finalize THIS month (claims only its own unstamped lines — earlier months are already stamped).
+            $finalized = $statements->finalize($statements->generateDraft($owner->id, $ym.'-01', $periodEnd));
+
+            // DEMO ONLY — mark the PAST payout paid so history reads "Paid" (the current September one stays
+            // pending). A real pay() requires tax details on file (the demo owner deliberately has none → the
+            // honest "paused" hold); this direct mark is a demo affordance, never the product bypassing that gate.
+            $payout = $payouts->createFromStatement($finalized);
+            $payout->update(['status' => 'paid', 'paid_at' => $checkOut->addDays(5)->toDateTimeString()]);
+            $finalized->update(['status' => 'paid']);
+        }
     }
 
     /**
