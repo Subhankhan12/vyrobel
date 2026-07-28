@@ -6,11 +6,35 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v14) · OWNER COMPLETENESS SWEEP · WAVES A + B COMPLETE. This block SUPERSEDES
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v15) · OWNER COMPLETENESS SWEEP · WAVES A + B + C COMPLETE. This block SUPERSEDES
 > every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
 > `docs/DECISIONS.md` → `docs/OWNER-COMPLETENESS-SWEEP.md`.**
 >
-> The owner completeness sweep built what earlier owner-page exact-matches had deferred/refused/simplified.
+> **Wave C (🟠 founder-approved product-decision features — ⚠️ REAL money, full money-path discipline; Invariants #67–70):**
+> **GATE 1 RATE-PROPOSALS (#67)** — real operator→owner `rate_proposals` (exclusive-owned; pending→approved|declined|
+> withdrawn); operator PROPOSES (`rates.manage`) → owner APPROVES (CAP_ACTIONS) applies via the **certified
+> `OwnerRateService`** (rate really changes, mutation-proven) / DECLINES / operator WITHDRAWS; pending = a real Approve/
+> Decline attention item (extended `OwnerAttention.actions`, ONE shared feed for proposals + expenses on My Units +
+> Overview) + a real Insights link. `RateProposalService` / `Owner|Operator RateProposalController` / `RateProposalTest` (6).
+> **GATE 2 EXPENSES-APPROVAL (#68 ⚠️ deduction model)** — `owner_expenses.approval_state` pending→approved|queried; an
+> expense is CREATED **pending + NOT charged** (no ledger line → net unchanged), owner APPROVES → the debit posts → net
+> drops → **reconciles #17**, QUERY → nothing charged + opens the owner↔operator relay (name-only #28); **#17 proven
+> BOTH states** (`ExpenseApprovalTest` 5); maintenance-sourced costs stay auto-charged (certified path intact); no
+> auto-approve timer (#39). **GATE 3 OWNER UNIT PAUSE/RESUME (#69)** — `OwnerUnitStatusService` toggles `units.is_active`
+> + recomputes availability (certified `AvailabilityService`, 365d) so a paused unit **genuinely stops taking new
+> bookings** — mutation-proven (`OwnerUnitStatusTest`: booking throws `InsufficientAvailabilityException` while paused,
+> succeeds on resume; existing stays kept #7); owner-scoped + CAP_ACTIONS POST + audited; toggle on My Units + Unit
+> Detail. **GATE 4 STATEMENT "Payment & ops fees" bucket (#70)** — new `payment_fee` ledger entry_type +
+> `owner_statements.payment_fee_minor` + statement line (signed sum of payment/ops fee lines, in `net_source_minor` by
+> construction → gross − commission − fees − refund == net to the cent, page + PDF); **NEVER fabricated (#39)** — no
+> writer posts fees yet (deferred live-payment seam) → genuine €0 → line omitted; proven both states
+> (`OwnerStatementTest`); `OwnerTaxService.annualSummary` includes it; **Sep demo net €885.60 unchanged**. Suite
+> **1161/8989** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean; pause/resume + statement breakdown
+> browser-verified. **Invariants #1–70.**
+>
+> ---
+>
+> **Wave A + B (2026-07-29):** the owner completeness sweep built what earlier owner-page exact-matches had deferred/refused/simplified.
 > **Wave A** (shared backends, anti-drift): `owner_attention_states` store · REAL weekend-uplift pricing
 > (`setRateWeekendAware`) · modelling adds (owner address → statement letterhead, expense vendor) · quick wins
 > (Email-to-me Mailable, Overview goal line, Insights vs-last-year). **Wave B** (per-page, consumes Wave A):

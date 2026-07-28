@@ -1,6 +1,16 @@
 # Owner Pages — COMPLETENESS SWEEP (PHASE 0: authoritative gap audit)
 
-**Date:** 2026-07-28 · **Status:** ✅ **PHASE 0 COMPLETE.** · **✅ WAVE A (shared backends) + ✅ WAVE B (per-page completeness) BUILT & SHIPPED (2026-07-29).**
+**Date:** 2026-07-28 · **Status:** ✅ **PHASE 0 COMPLETE.** · **✅ WAVE A (shared backends) + ✅ WAVE B (per-page completeness) + ✅ WAVE C (🟠 founder-approved product features) BUILT & SHIPPED (2026-07-29).**
+
+## ✅ WAVE C — BUILT (2026-07-29), the 🟠 founder-approved product-decision features (⚠️ REAL money — full money-path discipline; Invariants #67–70)
+- **GATE 1 — RATE-PROPOSALS state machine (#67)** (`445e81b`): real operator→owner `rate_proposals` (exclusive-owned only; pending→approved|declined|withdrawn). Operator PROPOSES (`rates.manage`) → owner APPROVES (CAP_ACTIONS) applies via the certified `OwnerRateService` (rate really changes, mutation-proven) / DECLINES (unchanged) / operator WITHDRAWS. Pending = a real Approve/Decline attention item (extended `OwnerAttention.actions`, ONE shared feed) on My Units + Overview; Insights link real. `RateProposalTest` (6).
+- **GATE 2 — EXPENSES-APPROVAL state machine (#68 ⚠️ deduction model)** (`565fd58`): `owner_expenses.approval_state` pending→approved|queried. An expense is CREATED pending + NOT charged (no ledger line → net unchanged); owner APPROVES → the debit posts → net drops → **reconciles #17**; QUERY → nothing charged + opens the owner↔operator relay (name-only #28). **#17 proven BOTH states.** Real "Needs your approval" section + KPIs. Maintenance-sourced costs stay auto-charged. `ExpenseApprovalTest` (5); 13 test files updated for the new default.
+- **GATE 3 — OWNER UNIT PAUSE/RESUME (#69)** (`90e80c5`): `OwnerUnitStatusService` toggles `units.is_active` + recomputes availability (certified `AvailabilityService`, 365d) so a paused unit **genuinely stops taking new bookings** — mutation-proven (`OwnerUnitStatusTest`: booking throws `InsufficientAvailabilityException` while paused, succeeds on resume; existing stays kept #7). Owner-scoped, CAP_ACTIONS POST + audited. Toggle on My Units + Unit Detail. Owner weekend-uplift confirmed already first-class (Wave A/B).
+- **GATE 4 — STATEMENT "Payment & ops fees" bucket (#70)** (`30d3ae3`): new `payment_fee` ledger entry_type + `owner_statements.payment_fee_minor` + statement line — signed sum of payment/ops fee lines, in `net_source_minor` by construction so gross − commission − fees − refund == net to the cent (page + PDF). **NEVER fabricated (#39):** no writer posts fees yet (deferred live-payment seam) → genuine €0 → line omitted. Proven both states (`OwnerStatementTest`). `OwnerTaxService.annualSummary` includes it. Sep demo net €885.60 unchanged.
+
+**Wave C honesty holds (refusals, not stubs):** no auto-approve countdown · no fabricated fee/proposal/approval · the pause is a real availability effect, not a label. Suite **1161/8989** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.
+
+---
 
 ## ✅ WAVE B — BUILT (2026-07-29), each page consumes the Wave-A backends + its 🟢 items
 - **GATE 1 — My Units** (`cc48d53`): action-center consumes `owner_attention_states` (mark-read + BULK mark-all-read/snooze-all + status filter); weekend-uplift + min-stay editor (consume `setRateWeekendAware`) with live preview.
@@ -170,11 +180,11 @@
 6. **Support AI** ("Ask Vyrobel") — a real support-AI (honest FAQ is what's built).
 
 ## THE 🟠 PRODUCT-DECISION LIST (buildable, but needs your call on whether it's how the business works)
-1. **Rate-PROPOSAL entity** (operator→owner proposals, approve/decline → OwnerRateService) — one feature, 3 surfaces. *Recommend building if your ops model uses proposals.*
-2. **Expenses APPROVAL** state machine — changes the money model (audit: "not recommended"). *Recommend keeping agreement-governed unless owners truly approve expenses.*
-3. **Owner-controlled unit status** (pause own units) + **owner-controlled weekend-uplift/min-stay** — owner vs operator control.
-4. **Statement "Payment & ops fees" bucket** + a projected payout date — modelling additions.
-5. **Per-user currency/timezone** · **Owner address / letterhead street-city** · **expense vendor** — small modelling additions.
+1. ✅ **BUILT (Wave C GATE 1, #67)** — **Rate-PROPOSAL entity** (operator→owner proposals, approve/decline → OwnerRateService) — one feature, 3 surfaces.
+2. ✅ **BUILT (Wave C GATE 2, #68)** — **Expenses APPROVAL** state machine (pending→approved|queried; pending not charged; #17 both states). *Founder chose to build; maintenance-sourced costs stay auto-charged.*
+3. ✅ **BUILT (Wave C GATE 3, #69)** — **Owner-controlled unit status** (pause own units, real availability effect) + owner-controlled weekend-uplift/min-stay (already first-class from Wave A/B).
+4. ✅ **BUILT (Wave C GATE 4, #70)** — **Statement "Payment & ops fees" bucket** (real reconciling; €0/omitted; never fabricated). *A projected payout date stays refused (no field, #39).*
+5. ✅ **BUILT (Wave A GATE 3)** — **Owner address / letterhead** + **expense vendor**. **Per-user currency/timezone = HONEST HOLD** (no FX / inert here).
 
 ---
 
@@ -188,8 +198,8 @@
 **Wave B — per-page 🟢 completeness (consume Wave A):**
 5. My Units (snooze/dismiss/day-detail) · 6. Unit Detail (weekend-uplift + cleaning read-only) · 7. Security (trusted-locations + login-approval + passkeys) · 8. Team (export watermark) · 9. Settings (quiet-hours + theme) · 10. Onboarding (thin flow).
 
-**Wave C — 🟠 product-decision features (only the ones you approve):**
-11. Rate-proposal entity (My Units + Insights) · 12. any of: expenses-approval · owner unit-status · fees-bucket · small modelling additions.
+**Wave C — 🟠 product-decision features — ✅ ALL FOUR BUILT (2026-07-29, #67–70):**
+11. ✅ Rate-proposal entity (My Units + Overview + Insights) · 12. ✅ expenses-approval · ✅ owner unit-status · ✅ fees-bucket. *(small modelling additions built in Wave A.)*
 
 **Wave D — 🔴 (separate scope conversations, one at a time):** payout engine · VAT/withholding · OAuth · OTA sync · SMS/push · support-AI.
 
@@ -198,6 +208,6 @@ Each Wave-A/B/C phase: audit-first → gated build → per-page commit → suite
 ---
 
 ## ⏸️ AWAITING YOUR DECISIONS
-1. **Wave A + B (all 🟢)** — proceed to build all? (The default per your mandate.)
-2. **Wave C (🟠)** — which to build: rate-proposals? expenses-approval? owner unit-status? weekend-uplift owner-control? fees-bucket? the small modelling additions (address/street-city/vendor/per-user currency)?
-3. **Wave D (🔴)** — which to schedule as real initiatives (esp. the **payout engine** — a real fintech scope conversation)?
+1. ✅ **Wave A + B (all 🟢)** — BUILT & SHIPPED (2026-07-29).
+2. ✅ **Wave C (🟠)** — ALL FOUR BUILT & SHIPPED (2026-07-29, #67–70): rate-proposals · expenses-approval · owner unit-status · fees-bucket (+ weekend-uplift owner-control from Wave A/B; small modelling additions from Wave A).
+3. **Wave D (🔴)** — ⬅ **REMAINING**: which to schedule as real initiatives (esp. the **payout engine** — a real fintech scope conversation), VAT/withholding, OAuth, live OTA sync, SMS/push, support-AI. One scope conversation at a time.
