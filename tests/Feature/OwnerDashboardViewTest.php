@@ -3,6 +3,7 @@
 use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
+use App\Models\OwnerMonthlyTarget;
 use App\Models\OwnerStatement;
 use App\Models\User;
 use App\Services\OwnerAttributionService;
@@ -37,6 +38,23 @@ function dashboardOwner(array $s, int $unitIndex, int $roomMinor): array
 
     return compact('user', 'owner', 'unit', 'statement');
 }
+
+// ── 1z. GATE 4 — the earnings chart's goal line is the REAL monthly target, only when set ─────────
+it('draws the earnings goal line from the real monthly target only when the owner has set one', function () {
+    $s = seedScenario(1);
+    $a = dashboardOwner($s, 0, 20000);
+
+    // No target set → no goal line, no fabricated goal (#39).
+    $this->actingAs($a['user'])->get('/owner')->assertOk()->assertDontSee('Goal €');
+
+    // Set a REAL monthly target (the same model the Bookings ring uses) → the goal line renders.
+    OwnerMonthlyTarget::updateOrCreate(
+        ['owner_id' => $a['owner']->id, 'currency' => 'EUR'],
+        ['organization_id' => $s['org']->id, 'target_minor' => 500000],   // €5,000
+    );
+
+    $this->actingAs($a['user'])->get('/owner')->assertOk()->assertSee('Goal €5,000.00');
+});
 
 // ── 1. Real data renders + reconciles; upcoming stays name-only (#28); no fabrication ────────────
 it('renders real dashboard data, shows upcoming stays name-only, and fabricates nothing', function () {

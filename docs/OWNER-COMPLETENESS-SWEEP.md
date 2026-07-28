@@ -1,6 +1,18 @@
 # Owner Pages — COMPLETENESS SWEEP (PHASE 0: authoritative gap audit)
 
-**Date:** 2026-07-28 · **Status:** ✅ **PHASE 0 COMPLETE — read-only. Awaiting your build decisions (🟠 items) before PHASE 1+.**
+**Date:** 2026-07-28 · **Status:** ✅ **PHASE 0 COMPLETE.** · **✅ WAVE A (shared backends) BUILT & SHIPPED (2026-07-29).**
+
+## ✅ WAVE A — BUILT (2026-07-29), the shared backends every later wave reuses
+- **GATE 1 — `owner_attention_states` store** (`b0f09cc`): the shared snooze/dismiss/mark-read/undo backbone behind My Units' action-center AND the Overview attention feed (one store, both surfaces). Owner-scoped (#28), controller-routed (#20) + audited, CAP_ACTIONS-gated, tamper-safe (`signalFor` resolves a posted key to a REAL current signal), mutation-proven (`OwnerAttentionStateTest`).
+- **GATE 2 — REAL weekend-uplift pricing** (`a354a81`): additive `rate_plans.weekend_uplift_pct` + `RateAndRestrictionService::setRateWeekendAware` (writes the uplifted price onto Fri/Sat nights — NOT an inert flag, #39) + `OwnerRateService::apply(?float $weekendUpliftPct)` (backward-compatible) + `weekendUpliftFor()` reader + controller validation. Owner-scoped exclusive-owned only (same guard as the nightly rate); `OwnerRatesTest` +2. *(UI editors land in Wave B.)*
+- **GATE 3 — modelling additions** (`bd9fabf`): owner registered **address** (settings form → `Owner.address` JSON → statement-PDF "Prepared for" letterhead block, only when set) · expense **vendor** (`owner_expenses.vendor` → page column + CSV, honest "—", demo-seeded suppliers). **Per-user currency/timezone = HONEST HOLD, not a fake column** (money has no FX so a personal currency misstates amounts #39; a personal timezone applied nowhere in this portal is an inert store) — both stay property-derived read-only.
+- **GATE 4 — quick wins** (`this commit`): "**Email to me**" is REAL — a queued `OwnerReportMail` attaching the owner's latest finalized statement PDF to their OWN inbox (CAP_EXPORTS, self-only, MailSafetyGuard) · Overview earnings-chart **goal line** reusing `owner_monthly_target` (#56, shown only when set) · Insights **vs-last-year** occupancy delta (real per-month, shown only where prior-year data exists) + a bounded prior-year demo seed (apt occupancy only, **NOT** ledger-attributed, so demo Balance/statements are unchanged).
+
+**Wave A honesty holds (documented refusals, NOT faked):** per-user display currency (no FX) · per-user timezone (inert here) · the Reports **PDF pack** (bundling deferred) — all left honest rather than stubbed.
+
+---
+
+**Original PHASE 0 status:** ✅ **COMPLETE — read-only. Awaiting your build decisions (🟠 items) before PHASE 1+.**
 **Method:** every `docs/OWNER-*-AUDIT.md` (13 docs) extracted for DEFERRED / HONEST-OMITTED / REFUSED (#39) / SIMPLIFIED items, then **each candidate verified against the real repo** (tables/services/routes). Items already built in a later resolution pass are marked *CLOSED* (not gaps).
 
 ## Legend

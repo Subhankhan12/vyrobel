@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\OwnerMonthlyTarget;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
@@ -34,7 +35,7 @@ use Livewire\Component;
  *                occupancy ({@see OwnerOccupancy} — owner-unit-scoped, the room-type-wide trap fixed), the
  *                attention feed ({@see OwnerAttention}), the upcoming-stays feed ({@see OwnerUpcomingStays} —
  *                guest NAME only, #28), and the masked payout IBAN + tax-hold paused-state.
- *   • OMITTED  — an earnings goal line (no goal column), a next-payout ESTIMATED DATE (no scheduled-date
+ *   • OMITTED  — the earnings goal line is now the owner's REAL monthly target (OwnerMonthlyTarget, #56/GATE 4, shown only when set); a next-payout ESTIMATED DATE (no scheduled-date
  *                field), any "Scheduled/On hold" payout state (only the real tax-hold is "paused"): rendered
  *                NOWHERE, never faked.
  *   • Guest PII — upcoming stays show the guest NAME only (invariant #28) + owner NET; never email/phone.
@@ -63,7 +64,7 @@ class OwnerDashboard extends Component
             'statements' => $this->recentStatements($statements),
             'hero' => $this->hero($statements, $payouts, $currency),
             'metrics' => $this->metrics($statements, $payouts, $currency),
-            'series' => $this->earningsSeries($statements),
+            'series' => $this->earningsSeries($statements, $currency),
             'occupancy' => $occupancy,
             'attention' => $this->attention(),
             'upcoming' => OwnerUpcomingStays::forOwnerUnits($unitIds, $currency),
@@ -239,25 +240,39 @@ class OwnerDashboard extends Component
      * The monthly earnings series for the chart — the owner's REAL finalized statements (last 12,
      * chronological), each bar scaled against the series max. No fabricated series.
      *
+     * The GOAL LINE (GATE 4) is the owner's REAL monthly net target, reused from the SAME
+     * {@see OwnerMonthlyTarget} the Bookings "Monthly goal" ring reads (#56) — never a fabricated goal. It is
+     * included in the scale so it's always visible, and rendered ONLY when the owner has actually set a target
+     * (in the chart's currency); otherwise the series carries `goal => null` and the view draws no line.
+     *
      * @param  Collection<int, OwnerStatement>  $statements
-     * @return array{bars: list<array{label: string, net_display: string, pct: int}>, count: int}
+     * @return array{bars: list<array{label: string, net_display: string, pct: int}>, count: int, goal: array{pct: int, display: string}|null}
      */
-    private function earningsSeries(Collection $statements): array
+    private function earningsSeries(Collection $statements, string $currency): array
     {
         $chrono = $statements
             ->sortBy(fn (OwnerStatement $s): string => $s->period_start->toDateString())
             ->values()
             ->take(-12);
 
-        $max = (int) $chrono->max(fn (OwnerStatement $s): int => max(0, (int) $s->net_payable_minor));
-        $max = $max > 0 ? $max : 1;
+        // The owner's REAL monthly target in the chart's currency, if set (OwnerScope on /owner → own rows only).
+        $goalMinor = (int) (OwnerMonthlyTarget::query()->where('currency', $currency)->max('target_minor') ?? 0);
+
+        $maxNet = (int) $chrono->max(fn (OwnerStatement $s): int => max(0, (int) $s->net_payable_minor));
+        // Scale bars AND the goal line against the same max so the goal is always visible above/among the bars.
+        $scale = max($maxNet, $goalMinor);
+        $scale = $scale > 0 ? $scale : 1;
 
         $bars = $chrono->map(fn (OwnerStatement $s): array => [
             'label' => $s->period_start->format('M'),
             'net_display' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
-            'pct' => (int) round(max(0, (int) $s->net_payable_minor) / $max * 100),
+            'pct' => (int) round(max(0, (int) $s->net_payable_minor) / $scale * 100),
         ])->values()->all();
 
-        return ['bars' => $bars, 'count' => count($bars)];
+        $goal = $goalMinor > 0
+            ? ['pct' => (int) round($goalMinor / $scale * 100), 'display' => $this->money($goalMinor, $currency)]
+            : null;
+
+        return ['bars' => $bars, 'count' => count($bars), 'goal' => $goal];
     }
 }

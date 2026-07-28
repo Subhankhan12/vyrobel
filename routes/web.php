@@ -80,6 +80,7 @@ use App\Http\Controllers\Owner\OwnerPayoutsExportController;
 use App\Http\Controllers\Owner\OwnerProfileController;
 use App\Http\Controllers\Owner\OwnerRateController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
+use App\Http\Controllers\Owner\OwnerReportEmailController;
 use App\Http\Controllers\Owner\OwnerSecurityController;
 use App\Http\Controllers\Owner\OwnerStatementHistoryExportController;
 use App\Http\Controllers\Owner\OwnerStatementPdfController;
@@ -730,8 +731,11 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         Route::get('/payouts/export', [OwnerPayoutsExportController::class, 'download'])->name('payouts.export');
         // Owner Balance exact-match — the balance-activity CSV (owner-scoped; the real ledger + running balance).
         Route::get('/balance/export', [OwnerBalanceExportController::class, 'download'])->name('balance.export');
-        // Owner Expenses exact-match — the expense-history CSV (owner-scoped; the deductible tri-state, no vendor).
+        // Owner Expenses exact-match — the expense-history CSV (owner-scoped; the deductible tri-state + real vendor).
         Route::get('/expenses/export', [OwnerExpensesExportController::class, 'download'])->name('expenses.export');
+        // "Email to me" (completeness sweep · Wave A · GATE 4) — queues the owner's latest finalized statement PDF
+        // to their OWN inbox (self-only; no recipient in the request). Throttled — a mail action, not a page load.
+        Route::post('/reports/email', [OwnerReportEmailController::class, 'send'])->middleware('throttle:6,1')->name('reports.email');
     });
     // Design pass · Screen 3 — owner payouts (owner-scoped; new page for the certified Payout backend).
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');

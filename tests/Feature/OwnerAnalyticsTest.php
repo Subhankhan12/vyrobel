@@ -6,6 +6,8 @@ use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Services\AssignmentService;
+use App\Services\AvailabilityService;
 use App\Support\Owner\OwnerLedgerAttribution;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -28,6 +30,15 @@ function ledgerEntry(string $ownerId, string $unitId, string $type, string $dire
         'currency' => 'EUR',
         'service_date' => $serviceDate,
     ]);
+}
+
+/** A real stay on a specific unit over explicit dates (header + line dates match — for prior-year fixtures). */
+function twoNightStay(array $s, string $unitId, string $checkIn, string $checkOut): Reservation
+{
+    return app(AssignmentService::class)->createBooking(
+        ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => $checkIn, 'check_out' => $checkOut, 'lead_guest_id' => $s['guest']->id, 'source' => 'direct'],
+        [['room_type_id' => $s['roomType']->id, 'unit_id' => $unitId, 'rate_plan_id' => $s['ratePlan']->id, 'check_in' => $checkIn, 'check_out' => $checkOut, 'price_minor' => 18000, 'currency' => 'EUR']],
+    );
 }
 
 // ── 1. 🔒 OWNER ISOLATION — owner A sees their unit's analytics; owner B never sees A's ─────────────
@@ -177,6 +188,25 @@ it('shows Insights with real derived observations and an honest rates link — n
         ->assertDontSee('rate proposals');
 
     assertNoRawBlade($res);
+});
+
+// ── 7b. INSIGHTS — the vs-last-year occupancy delta is REAL, shown ONLY when prior-year data exists ──
+it('shows a real vs-last-year occupancy delta only when the owner has prior-year data', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+    $unit = $s['units'][0];
+
+    // A this-year stay with NO prior-year counterpart → the vs-last-year caption is honestly absent (#39).
+    app(AvailabilityService::class)->recompute($s['roomType']->id, '2026-03-01', '2026-03-12');
+    twoNightStay($s, $unit->id, '2026-03-04', '2026-03-07');
+    $this->actingAs($user)->get('/owner/insights?range=this-year')->assertOk()
+        ->assertDontSee('versus the same month last year');
+
+    // Add a REAL stay in the SAME month one year earlier → the delta + caption now render (own history).
+    app(AvailabilityService::class)->recompute($s['roomType']->id, '2025-03-01', '2025-03-12');
+    twoNightStay($s, $unit->id, '2025-03-04', '2025-03-07');
+    $this->actingAs($user)->get('/owner/insights?range=this-year')->assertOk()
+        ->assertSee('versus the same month last year');
 });
 
 // ── 8. ✅ NET-BY-CHANNEL is REAL (ledger × reservation.source) and Σ(channels) == the period net (#17) ──

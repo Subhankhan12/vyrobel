@@ -8,7 +8,8 @@
       • REAL — KPIs (occupancy / avg nightly / next-90-days / median lead), occupancy-by-month (this year +
         on-the-books), rate-performance (occupancy + ADR per unit), lead-time distribution, day-of-week occupancy
         (+ a REAL derived caption), and "Worth a look" REAL DERIVED observations (decisions stay yours).
-      • HONEST-OMIT — the design's "vs last year" series/deltas (no prior-year data → refused, #39).
+      • REAL — the design's "vs last year" deltas are now shown per month WHERE prior-year data genuinely
+                exists (GATE 4); omitted (never fabricated) for a month with no prior-year history (#39).
       • REFUSED — the design's "N rate proposals waiting / Review proposals / proposed −8%" (no proposal entity,
         refused in the My Units audit) → an honest "open your Rates" link instead (no fabricated proposal count).
     RAW-BLADE RULE: every `@` follows a space, newline or tag.
@@ -65,7 +66,11 @@
                     @if ($occupancyByMonth['has_data'])
                         <div class="vy-ins-occ">
                             @foreach ($occupancyByMonth['months'] as $m)
-                                <div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end" title="{{ $m['label'] }} · {{ $m['occ_pct'] }}%{{ $m['forward'] ? ' (on the books)' : '' }}">
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end" title="{{ $m['label'] }} · {{ $m['occ_pct'] }}%{{ $m['forward'] ? ' (on the books)' : '' }}{{ $m['ly_pct'] !== null ? ' · last year '.$m['ly_pct'].'%' : '' }}">
+                                    {{-- REAL "vs last year" delta (GATE 4) — only where prior-year data exists, never fabricated (#39) --}}
+                                    @if ($m['delta_pts'] !== null)
+                                        <span style="font-size:9.5px;font-weight:700;color:{{ $m['delta_pts'] >= 0 ? '#15803d' : '#b91c1c' }}">{{ $m['delta_pts'] >= 0 ? '▲' : '▼' }}{{ abs($m['delta_pts']) }}</span>
+                                    @endif
                                     <div class="bar" style="height:{{ max(2, $m['occ_pct']) }}%;background:{{ $m['forward'] ? 'rgba(232,112,58,.35)' : 'var(--vy-grad)' }}"></div>
                                     <span style="font-size:10px;color:var(--vy-muted)">{{ $m['label'] }}</span>
                                 </div>
@@ -73,6 +78,9 @@
                         </div>
                     @else
                         <div class="vy-empty" style="margin-top:12px">No occupancy in this period yet.</div>
+                    @endif
+                    @if ($occupancyByMonth['has_ly'])
+                        <div class="vy-line-sub" style="margin-top:10px;font-size:11px">▲/▼ shows the change in points versus the same month last year — real, from your own history.</div>
                     @endif
                 </section>
 

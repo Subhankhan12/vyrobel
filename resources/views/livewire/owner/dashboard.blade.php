@@ -187,7 +187,8 @@
             </section>
 
             {{-- Earnings chart — REAL monthly series (finalized statements), segmented 3M/6M/12M toggle, hover
-                 tooltip. No goal line (no goal backend — #39). --}}
+                 tooltip. The goal line is the owner's REAL monthly target (OwnerMonthlyTarget, #56/GATE 4),
+                 shown only when set — never a fabricated goal (#39). --}}
             <section class="vy-card vy-fade" style="animation-delay:.30s" x-data="{ range: 6 }">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
                     <h2 class="vy-ov-sec-title">Earnings</h2>
@@ -200,7 +201,14 @@
                     @endif
                 </div>
                 @if ($series['count'] > 0)
-                    <div class="vy-ov-chart">
+                    <div class="vy-ov-chart" style="position:relative">
+                        {{-- REAL monthly-target goal line (GATE 4) — same OwnerMonthlyTarget the Bookings ring reads (#56);
+                             shown only when the owner has set a target, never a fabricated goal (#39). --}}
+                        @if ($series['goal'])
+                            <div title="Monthly goal · {{ $series['goal']['display'] }}" style="position:absolute;left:0;right:0;bottom:{{ min(99, max(1, $series['goal']['pct'])) }}%;height:0;border-top:1.5px dashed var(--vy-accent);z-index:2;pointer-events:none">
+                                <span style="position:absolute;right:0;top:-16px;font-size:10.5px;font-weight:600;color:var(--vy-accent);background:var(--vy-surface,#fff);padding:0 4px;border-radius:4px">Goal {{ $series['goal']['display'] }}</span>
+                            </div>
+                        @endif
                         @foreach ($series['bars'] as $i => $bar)
                             <a class="vy-ov-barcol" href="{{ route('owner.archive') }}" x-show="{{ $i }} >= {{ $series['count'] }} - range">
                                 <div class="vy-ov-tip">

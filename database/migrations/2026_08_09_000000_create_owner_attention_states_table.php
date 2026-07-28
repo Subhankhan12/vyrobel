@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\Owner\OwnerAttention;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Owner completeness sweep · Wave A · GATE 1 — the SHARED attention-state store.
  *
- * The owner "Needs your attention" feed ({@see App\Support\Owner\OwnerAttention}) derives REAL signals (payout
+ * The owner "Needs your attention" feed ({@see OwnerAttention}) derives REAL signals (payout
  * tax-hold · missing payout method · agreement renewal). This table records the owner's per-signal STATE —
  * snoozed-until / dismissed / read — so the My Units action-center and the Overview feed share ONE truth
  * (a snoozed item hides on both until its date; a dismissed item stays hidden; undo restores).

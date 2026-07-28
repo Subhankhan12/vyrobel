@@ -118,6 +118,12 @@
         .vy-rep-vat { background:rgba(255,252,248,.5); border:1px dashed rgba(120,70,40,.28); margin-top:20px; }
     </style>
 
+    @if (session('owner_notice'))
+        <div class="vy-card vy-fade" role="status" style="margin-bottom:14px;border-color:var(--vy-accent-border);padding:14px 18px;font-size:13px;color:var(--vy-ink)">
+            {{ session('owner_notice') }}
+        </div>
+    @endif
+
     @if ($unitsCount === 0)
         <div class="vy-card vy-fade"><div class="vy-empty">No units linked to your account yet.</div></div>
     @else
@@ -188,7 +194,18 @@
                 <div x-show="open" x-cloak x-transition.opacity.duration.150ms @click.outside="open = false" class="vy-rep-menu vy-rep-menu--right">
                     <div class="vy-rep-menu-head">Export · {{ $activeRange['label'] }} earnings</div>
                     @foreach ($exportItems as $ex)
-                        @if ($ex['soon'])
+                        @if (($ex['post'] ?? null))
+                            {{-- REAL "Email to me" — a POST that queues the owner's latest statement PDF (GATE 4) --}}
+                            <form method="POST" action="{{ $ex['post'] }}" style="margin:0">
+                                @csrf
+                                <button type="submit" class="vy-rep-exitem" style="width:100%;border:0;background:none;text-align:left;cursor:pointer">
+                                    <span class="vy-rep-exicon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 8l9 6 9-6"/></svg>
+                                    </span>
+                                    <span style="flex:1;min-width:0"><span class="vy-rep-exttl">{{ $ex['title'] }}</span><span class="vy-rep-exsub">{{ $ex['sub'] }}</span></span>
+                                </button>
+                            </form>
+                        @elseif ($ex['soon'])
                             <span class="vy-rep-exitem is-soon">
                                 <span class="vy-rep-exicon is-muted">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 8l9 6 9-6"/></svg>

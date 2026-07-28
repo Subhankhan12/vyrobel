@@ -1104,6 +1104,40 @@ class DemoSeeder extends Seeder
                 continue;   // a collision with an existing demo stay on this unit — skip, keep the rest
             }
         }
+
+        // PRIOR-YEAR occupancy (GATE 4) — a handful of REAL apartment stays ~one year back, so the owner Insights
+        // "vs last year" occupancy delta has genuine prior-year data to compare against (never a fabricated delta,
+        // #39). DELIBERATELY NOT ATTRIBUTED to the owner ledger: occupancy is computed from reservation_units, so
+        // these give real prior-year occupancy WITHOUT adding 2025 ledger entries that would move the demo Balance.
+        // Apartment (owner) units only, in the same months as this year's forward apt stays (Aug–Nov).
+        $priorYear = [
+            [0, -353, 2], [1, -327, 3], [0, -292, 2], [1, -262, 2],
+        ];
+        foreach ($priorYear as [$idx, $offset, $nights]) {
+            if (! isset($aptUnits[$idx])) {
+                continue;
+            }
+            $checkIn = $today->addDays($offset);
+            $checkOut = $checkIn->addDays($nights);
+            $this->seedCalendarRange($aptRate, 14000, $checkIn->toDateString(), $checkOut->toDateString());
+            $availability->recompute($apartment->id, $checkIn->toDateString(), $checkOut->toDateString());
+
+            try {
+                $roomMinor = (int) RateCalendar::query()
+                    ->where('rate_plan_id', $aptRate->id)
+                    ->whereDate('date', '>=', $checkIn->toDateString())
+                    ->whereDate('date', '<', $checkOut->toDateString())
+                    ->sum('price_minor');
+
+                app(AssignmentService::class)->createBooking(
+                    ['property_id' => $property->id, 'currency' => 'EUR', 'check_in' => $checkIn->toDateString(), 'check_out' => $checkOut->toDateString(), 'adults' => 2, 'lead_guest_id' => $guest->id, 'source' => 'direct'],
+                    [['room_type_id' => $apartment->id, 'unit_id' => $aptUnits[$idx]->id, 'rate_plan_id' => $aptRate->id, 'check_in' => $checkIn->toDateString(), 'check_out' => $checkOut->toDateString(), 'adults' => 2, 'price_minor' => $roomMinor, 'currency' => 'EUR']],
+                );
+                // NO OwnerAttributionService call — see the note above (keeps the demo Balance/statements unchanged).
+            } catch (\Throwable) {
+                continue;
+            }
+        }
     }
 
     private function createDemoStay(

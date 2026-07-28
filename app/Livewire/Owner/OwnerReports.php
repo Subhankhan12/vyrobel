@@ -47,7 +47,7 @@ use Livewire\Component;
  *     demo owner ledger has NO prior-year data, so no comparison is fabricated (#39); the series appears only
  *     when real prior-year data exists. The year dropdown lists the owner's REAL statement years, never the
  *     wireframe's hardcoded 2024/2023.
- *   • HONEST-DEFER — "Email to me" (no report Mailable) is a "Soon", never a fake send; the design's **Tax & VAT
+ *   • HONEST-DEFER — "Email to me" now queues the owner's latest STATEMENT PDF to their own inbox (GATE 4); the design's **Tax & VAT
  *     summary** is NOT computed by Vyrobel (no VAT model — only a stored VAT number), so it renders as an honest
  *     deferred card (no fabricated Output/Input/Net VAT figure, no "Mark filed" #39). GATE 2 matches its design.
  */
@@ -446,7 +446,8 @@ class OwnerReports extends Component
             ['key' => 'tax', 'title' => 'Annual tax summary', 'sub' => $year.' · for your accountant', 'href' => route('owner.tax.annual', $year), 'soon' => false],
             ['key' => 'all', 'title' => 'All statements', 'sub' => 'Open your Documents', 'href' => route('owner.documents'), 'soon' => false],
             ['key' => 'pack', 'title' => 'PDF pack', 'sub' => 'Bundled statements', 'href' => null, 'soon' => true],
-            ['key' => 'email', 'title' => 'Email to me', 'sub' => 'Send the report to my inbox', 'href' => null, 'soon' => true],
+            // "Email to me" is REAL now (GATE 4) — a POST that queues the owner's latest statement PDF to their inbox.
+            ['key' => 'email', 'title' => 'Email to me', 'sub' => 'Send my latest statement to my inbox', 'href' => null, 'post' => route('owner.reports.email'), 'soon' => false],
         ];
     }
 

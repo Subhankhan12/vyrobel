@@ -42,6 +42,9 @@ class OwnerInsights extends Component
 
         $metrics = PerformanceMetrics::forOwnerUnits($unitIds, $range['start'], $range['end'], $currency);
         $trend = PerformanceMetrics::monthlyTrendForOwnerUnits($unitIds, $range['start'], $range['end'], $currency);
+        // The SAME window one year earlier — the REAL "vs last year" comparison. Shown per month ONLY where prior-year
+        // data genuinely exists (never a fabricated delta against an empty year, #39).
+        $lyTrend = PerformanceMetrics::monthlyTrendForOwnerUnits($unitIds, $range['start']->subYear(), $range['end']->subYear(), $currency);
 
         // Batch B — REAL booking cadence via the SHARED BookingCadence (identical to operator Insights).
         $today = CarbonImmutable::today();
@@ -56,7 +59,7 @@ class OwnerInsights extends Component
             'activeRange' => $range,
             'cards' => $this->cards($metrics, $currency, $leadTime, $onTheBooks),
             'trend' => $this->trend($trend, $currency),
-            'occupancyByMonth' => $this->occupancyByMonth($trend),
+            'occupancyByMonth' => $this->occupancyByMonth($trend, $lyTrend),
             'ratePerformance' => $this->ratePerformance($units, $range, $currency),
             'leadTime' => $leadTime,
             'weekday' => $weekday,
@@ -68,31 +71,55 @@ class OwnerInsights extends Component
     /**
      * Occupancy by month — the REAL per-month occupancy from the owner metric layer, each flagged `forward`
      * when the month starts after today (so the view can draw it as "on the books" rather than achieved).
-     * There is NO "last year" series: the demo/most owners have no prior-year data, so a fabricated comparison
-     * is refused (#39) — the chart honestly shows only this-year + on-the-books.
+     *
+     * The "vs last year" delta (GATE 4) is the SAME month one calendar year earlier, matched by month-of-year,
+     * attached ONLY where the prior-year month genuinely had occupancy — never a fabricated delta against an
+     * empty year (#39). Most single-year owners simply see no delta; a second-year owner sees a real one.
      *
      * @param  list<array{month: string, label: string, metrics: MetricSet}>  $rows
-     * @return array{has_data: bool, months: list<array{label: string, occ_pct: int, forward: bool}>}
+     * @param  list<array{month: string, label: string, metrics: MetricSet}>  $lyRows
+     * @return array{has_data: bool, has_ly: bool, months: list<array{label: string, occ_pct: int, forward: bool, ly_pct: int|null, delta_pts: int|null}>}
      */
-    private function occupancyByMonth(array $rows): array
+    private function occupancyByMonth(array $rows, array $lyRows): array
     {
         $thisMonth = CarbonImmutable::today()->startOfMonth();
+
+        // Prior-year occupancy keyed by its own 'YYYY-MM'; only months that actually had occupancy count as data.
+        $lyByMonth = [];
+        foreach ($lyRows as $lyRow) {
+            $lyOcc = $lyRow['metrics']->occupancyPct();
+            if ($lyOcc > 0) {
+                $lyByMonth[$lyRow['month']] = $lyOcc;
+            }
+        }
+
         $months = [];
         $withData = 0;
+        $withLy = 0;
 
         foreach ($rows as $row) {
             $occ = $row['metrics']->occupancyPct();
             if ($occ > 0) {
                 $withData++;
             }
+
+            // The matching prior-year month (same month-of-year, one year back).
+            $lyKey = CarbonImmutable::parse($row['month'].'-01')->subYear()->format('Y-m');
+            $lyPct = $lyByMonth[$lyKey] ?? null;
+            if ($lyPct !== null) {
+                $withLy++;
+            }
+
             $months[] = [
                 'label' => $row['label'],
                 'occ_pct' => $occ,
                 'forward' => CarbonImmutable::parse($row['month'].'-01')->greaterThan($thisMonth),
+                'ly_pct' => $lyPct,
+                'delta_pts' => $lyPct !== null ? $occ - $lyPct : null,
             ];
         }
 
-        return ['has_data' => $withData > 0, 'months' => $months];
+        return ['has_data' => $withData > 0, 'has_ly' => $withLy > 0, 'months' => $months];
     }
 
     /**
