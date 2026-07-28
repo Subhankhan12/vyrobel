@@ -12,10 +12,12 @@ use App\Models\OwnerInvite;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
+use App\Models\RateProposal;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\OwnerInviteService;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Payouts\RailLabel;
 use DateTimeInterface;
 use Illuminate\Contracts\View\View;
@@ -222,6 +224,15 @@ class OperatorOwnerDetail extends Component
                 'units' => $units->count(),
             ],
             'units' => $this->unitRows($units),
+            'ownerId' => $ownerId,
+            // Wave C · GATE 1 — the owner's distinct room types (for the propose-a-rate-change form) + this owner's
+            // rate proposals (pending are withdrawable). The service refuses a room type the owner doesn't own
+            // exclusively, so listing all is safe.
+            'roomTypes' => $units->map(fn (Unit $u): array => [
+                'id' => (string) $u->room_type_id,
+                'name' => (string) ($u->roomType->name ?? 'Room type'),
+            ])->unique('id')->values()->all(),
+            'proposals' => $this->proposalRows($ownerId),
             'agreement' => $primary instanceof ManagementAgreement
                 ? $this->agreementCard($primary, $unitLabels, $payoutCurrency)
                 : null,
@@ -310,6 +321,36 @@ class OperatorOwnerDetail extends Component
      * @param  Collection<int, Unit>  $units
      * @return list<array<string, mixed>>
      */
+    /**
+     * This owner's rate proposals (Wave C · GATE 1) — a truthful before/after + state; a pending one is
+     * withdrawable by the operator. Explicit owner_id filter (OwnerScope is inactive on /app).
+     *
+     * @return list<array{id: string, room_type: string, summary: string, state: string, pending: bool}>
+     */
+    private function proposalRows(string $ownerId): array
+    {
+        return RateProposal::query()
+            ->where('owner_id', $ownerId)
+            ->with('roomType')
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get()
+            ->map(function (RateProposal $p): array {
+                $currency = (string) $p->currency;
+                $from = $p->current_rate_minor !== null ? MoneyFormatter::display((int) $p->current_rate_minor, $currency) : '—';
+                $to = MoneyFormatter::display((int) $p->proposed_rate_minor, $currency);
+
+                return [
+                    'id' => (string) $p->id,
+                    'room_type' => (string) ($p->roomType->name ?? 'Room type'),
+                    'summary' => $from.' → '.$to.' / night',
+                    'state' => (string) $p->state,
+                    'pending' => $p->isPending(),
+                ];
+            })
+            ->all();
+    }
+
     private function unitRows(Collection $units): array
     {
         return $units->map(fn (Unit $u): array => [

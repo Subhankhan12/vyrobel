@@ -47,20 +47,38 @@
         @if ($attnCount > 0)
             <div class="vy-ov-chips">
                 @foreach ($attention as $item)
-                    <a class="vy-ov-chip {{ $item['tone'] === 'warn' ? 'is-warn' : 'is-info' }}" href="{{ $item['cta']['route'] }}">
-                        <span class="vy-ov-chip-ic">
-                            @if ($item['tone'] === 'warn')
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-                            @else
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg>
-                            @endif
-                        </span>
-                        <span class="vy-ov-chip-main">
-                            <span class="vy-ov-chip-title">{{ $item['title'] }}</span>
-                            <span class="vy-ov-chip-sub">{{ $item['body'] }}</span>
-                        </span>
-                        <span class="vy-ov-chip-tag">{{ $item['tone'] === 'warn' ? 'Action' : 'Review' }}</span>
-                    </a>
+                    @php $icon = $item['tone'] === 'warn'
+                        ? '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>'
+                        : '<circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/>'; @endphp
+                    @if (! empty($item['actions']))
+                        {{-- Wave C — a rate-proposal decision surfaces here as a REAL chip with Approve/Decline (POST), CAP_ACTIONS. --}}
+                        <div class="vy-ov-chip {{ $item['tone'] === 'warn' ? 'is-warn' : 'is-info' }}" style="cursor:default">
+                            <span class="vy-ov-chip-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">{!! $icon !!}</svg></span>
+                            <span class="vy-ov-chip-main">
+                                <span class="vy-ov-chip-title">{{ $item['title'] }}</span>
+                                <span class="vy-ov-chip-sub">{{ $item['body'] }}</span>
+                            </span>
+                            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                <span style="display:flex;gap:6px;flex-shrink:0">
+                                    @foreach ($item['actions'] as $action)
+                                        <form method="POST" action="{{ $action['route'] }}" style="margin:0">
+                                            @csrf
+                                            <button type="submit" class="{{ $action['primary'] ? 'vy-btn vy-btn--accent' : 'vy-btn vy-btn--ghost' }}" style="padding:5px 11px;font-size:11.5px">{{ $action['label'] }}</button>
+                                        </form>
+                                    @endforeach
+                                </span>
+                            @endownercan
+                        </div>
+                    @else
+                        <a class="vy-ov-chip {{ $item['tone'] === 'warn' ? 'is-warn' : 'is-info' }}" href="{{ $item['cta']['route'] }}">
+                            <span class="vy-ov-chip-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">{!! $icon !!}</svg></span>
+                            <span class="vy-ov-chip-main">
+                                <span class="vy-ov-chip-title">{{ $item['title'] }}</span>
+                                <span class="vy-ov-chip-sub">{{ $item['body'] }}</span>
+                            </span>
+                            <span class="vy-ov-chip-tag">{{ $item['tone'] === 'warn' ? 'Action' : 'Review' }}</span>
+                        </a>
+                    @endif
                 @endforeach
             </div>
         @endif

@@ -10,8 +10,8 @@
         (+ a REAL derived caption), and "Worth a look" REAL DERIVED observations (decisions stay yours).
       • REAL — the design's "vs last year" deltas are now shown per month WHERE prior-year data genuinely
                 exists (GATE 4); omitted (never fabricated) for a month with no prior-year history (#39).
-      • REFUSED — the design's "N rate proposals waiting / Review proposals / proposed −8%" (no proposal entity,
-        refused in the My Units audit) → an honest "open your Rates" link instead (no fabricated proposal count).
+      • REAL (Wave C · GATE 1) — the design's "N rate proposals waiting / Review proposals" is now REAL: a live
+        count of pending RateProposal rows (owner-scoped) linking to the attention items where they're decided.
     RAW-BLADE RULE: every `@` follows a space, newline or tag.
 --}}
 <x-owner.shell active="insights" title="Occupancy & pricing insights" :subtitle="'How your villas are filling, what your rates are earning, and where the headroom is.'" :viewer="$viewer">
@@ -185,6 +185,10 @@
                         <h2 class="vy-card-title" style="color:#fff">Turn insight into rate</h2>
                     </div>
                     <div style="margin-top:8px;font-size:12.5px;color:rgba(255,255,255,.75);line-height:1.6">Your rates are yours to set. When a pattern here is worth acting on, open your Rates page and adjust — the change flows straight to your live availability.</div>
+                    {{-- Wave C — REAL pending rate proposals awaiting your approval (never a fabricated count) --}}
+                    @if ($pendingProposals > 0)
+                        <a href="{{ route('owner.units') }}" class="vy-btn vy-btn--accent" style="margin-top:12px;display:inline-flex">{{ $pendingProposals }} rate {{ \Illuminate\Support\Str::plural('proposal', $pendingProposals) }} awaiting your approval →</a>
+                    @endif
                     <a href="{{ route('owner.rates') }}" class="vy-btn vy-btn--ghost" style="margin-top:12px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff">Open your Rates</a>
                 </section>
             </div>

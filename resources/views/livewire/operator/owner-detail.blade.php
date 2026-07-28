@@ -103,6 +103,56 @@
                     @endforelse
                 </div>
 
+                {{-- Rate proposals (Wave C · GATE 1) — propose a rate change to the owner (they approve/decline in
+                     their portal). rates.manage-gated; the owner must own the room type exclusively (the service refuses
+                     a shared one). Money parsed server-side (#17). --}}
+                @can('rates.manage')
+                    <div class="vy-card vy-fade" style="margin-top:16px" x-data="{ open: false }">
+                        <div class="vy-detail-head">
+                            <h2 class="vy-card-title">Rate proposals</h2>
+                            @if (count($roomTypes) > 0)<button type="button" class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12px" @click="open = !open">Propose a change</button>@endif
+                        </div>
+                        @if (session('rate_notice'))<div class="vy-empty" style="border-left:3px solid var(--vy-accent);text-align:left;padding:10px 14px;margin-bottom:10px">{{ session('rate_notice') }}</div>@endif
+                        @if (session('rate_error'))<div class="vy-empty" style="border-left:3px solid #b8860b;text-align:left;padding:10px 14px;margin-bottom:10px">{{ session('rate_error') }}</div>@endif
+
+                        @if (count($roomTypes) > 0)
+                            <form x-show="open" x-cloak method="POST" action="{{ route('app.rate-proposals.store') }}" style="border:1px solid var(--vy-hairline);border-radius:12px;padding:14px;margin-bottom:12px">
+                                @csrf
+                                <input type="hidden" name="owner_id" value="{{ $ownerId }}">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                                    <label style="font-size:12px;color:var(--vy-muted)">Room type
+                                        <select name="room_type_id" class="vy-input" required>@foreach ($roomTypes as $rt)<option value="{{ $rt['id'] }}">{{ $rt['name'] }}</option>@endforeach</select>
+                                    </label>
+                                    <label style="font-size:12px;color:var(--vy-muted)">Proposed nightly rate (€)<input type="text" name="rate" class="vy-input" placeholder="185" required></label>
+                                    <label style="font-size:12px;color:var(--vy-muted)">Weekend uplift %<input type="text" name="weekend_uplift" class="vy-input" placeholder="optional"></label>
+                                    <label style="font-size:12px;color:var(--vy-muted)">Min stay<input type="text" name="min_stay" class="vy-input" placeholder="optional"></label>
+                                    <label style="font-size:12px;color:var(--vy-muted)">From<input type="date" name="from_date" class="vy-input" value="{{ now()->toDateString() }}" required></label>
+                                    <label style="font-size:12px;color:var(--vy-muted)">To<input type="date" name="to_date" class="vy-input" value="{{ now()->addYear()->subDay()->toDateString() }}" required></label>
+                                </div>
+                                <label style="font-size:12px;color:var(--vy-muted);display:block;margin-top:10px">Note to owner (optional)<input type="text" name="note" class="vy-input" maxlength="500"></label>
+                                <div style="text-align:right;margin-top:12px"><button type="submit" class="vy-btn vy-btn--accent" style="padding:7px 16px;font-size:12.5px">Send proposal</button></div>
+                            </form>
+                        @endif
+
+                        @forelse ($proposals as $p)
+                            <div class="vy-unit-row">
+                                <div>
+                                    <div class="vy-um-name">{{ $p['room_type'] }} · {{ $p['summary'] }}</div>
+                                    <div class="vy-um-sub">Status: {{ ucfirst($p['state']) }}</div>
+                                </div>
+                                @if ($p['pending'])
+                                    <form method="POST" action="{{ route('app.rate-proposals.withdraw', $p['id']) }}" style="margin:0">
+                                        @csrf
+                                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding:5px 11px;font-size:11.5px">Withdraw</button>
+                                    </form>
+                                @endif
+                            </div>
+                        @empty
+                            <div class="vy-empty" style="font-size:12.5px">No rate proposals yet.</div>
+                        @endforelse
+                    </div>
+                @endcan
+
                 {{-- Management agreement — the REAL terms in effect today (via the certified effectiveOn
                      scope). Honest nulls throughout: "Not set", never "0%". --}}
                 <div class="vy-card vy-fade">

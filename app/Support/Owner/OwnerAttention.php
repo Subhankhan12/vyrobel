@@ -9,6 +9,8 @@ use App\Models\Owner;
 use App\Models\OwnerAttentionState;
 use App\Models\OwnerStatement;
 use App\Models\PayoutMethod;
+use App\Models\RateProposal;
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -33,7 +35,7 @@ final class OwnerAttention
      * The VISIBLE attention items — real signals the owner has not dismissed or snoozed past. Each carries its
      * stable `key` + a `read` flag; ordered holds first, then renewals.
      *
-     * @return list<array{key: string, tone: string, title: string, body: string, read: bool, cta: array{label: string, route: string}}>
+     * @return list<array{key: string, tone: string, title: string, body: string, read: bool, cta: array{label: string, route: string}, actions: list<array{label: string, route: string, primary: bool}>}>
      */
     public static function items(OwnerContext $context): array
     {
@@ -52,6 +54,9 @@ final class OwnerAttention
                 'body' => $s['body'],
                 'read' => $state?->read_at !== null,
                 'cta' => $s['cta'],
+                // Optional inline decision actions (Wave C — rate proposals / expense approvals surface as REAL
+                // Approve/Decline POST forms in the feed). Generic signals carry none.
+                'actions' => $s['actions'] ?? [],
             ];
         }
 
@@ -120,7 +125,7 @@ final class OwnerAttention
      * The raw, unfiltered signals — the genuine account-state alerts, each with its owner_id + stable key.
      * The ONE place the signal set is defined (items/snoozed/signalFor all read it).
      *
-     * @return list<array{owner_id: string, key: string, tone: string, title: string, body: string, cta: array{label: string, route: string}}>
+     * @return list<array{owner_id: string, key: string, tone: string, title: string, body: string, cta: array{label: string, route: string}, actions?: list<array{label: string, route: string, primary: bool}>}>
      */
     private static function rawSignals(OwnerContext $context): array
     {
@@ -172,9 +177,51 @@ final class OwnerAttention
                     'cta' => ['label' => 'Review agreement', 'route' => route('owner.agreement')],
                 ];
             }
+
+            // RATE PROPOSALS (Wave C · GATE 1) — a pending operator proposal is a REAL decision the owner acts on
+            // right here: Approve (applies the change) or Decline (unchanged). The before/after is a truthful
+            // snapshot (#17). Owner-scoped by the owner_id filter (RateProposal is BelongsToOwner too).
+            foreach (RateProposal::query()
+                ->where('owner_id', $ownerId)
+                ->where('state', RateProposal::STATE_PENDING)
+                ->with('roomType')
+                ->orderBy('created_at')
+                ->get() as $proposal) {
+                $items[] = [
+                    'owner_id' => $ownerId, 'key' => 'rate_proposal:'.$proposal->id, 'tone' => 'info',
+                    'title' => 'Rate change to approve',
+                    'body' => self::proposalSummary($proposal),
+                    'cta' => ['label' => 'Open Rates', 'route' => route('owner.rates')],
+                    'actions' => [
+                        ['label' => 'Approve', 'route' => route('owner.rate-proposals.approve', $proposal->id), 'primary' => true],
+                        ['label' => 'Decline', 'route' => route('owner.rate-proposals.decline', $proposal->id), 'primary' => false],
+                    ],
+                ];
+            }
         }
 
         return $items;
+    }
+
+    /** A truthful before/after summary for a rate proposal — the real snapshot figures (#17), never invented. */
+    private static function proposalSummary(RateProposal $proposal): string
+    {
+        $currency = (string) $proposal->currency;
+        $roomType = (string) ($proposal->roomType->name ?? 'Room type');
+        $from = $proposal->current_rate_minor !== null
+            ? MoneyFormatter::display((int) $proposal->current_rate_minor, $currency)
+            : 'no rate set';
+        $to = MoneyFormatter::display((int) $proposal->proposed_rate_minor, $currency);
+
+        $extra = [];
+        if ($proposal->proposed_weekend_pct !== null && (float) $proposal->proposed_weekend_pct > 0) {
+            $extra[] = '+'.rtrim(rtrim(number_format((float) $proposal->proposed_weekend_pct, 2), '0'), '.').'% weekends';
+        }
+        if ($proposal->proposed_min_stay !== null) {
+            $extra[] = 'min stay '.(int) $proposal->proposed_min_stay.'n';
+        }
+
+        return $roomType.': '.$from.' → '.$to.' / night'.($extra !== [] ? ' ('.implode(' · ', $extra).')' : '');
     }
 
     /**

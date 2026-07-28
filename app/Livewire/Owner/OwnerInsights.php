@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\RateProposal;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
@@ -65,6 +66,9 @@ class OwnerInsights extends Component
             'weekday' => $weekday,
             'observation' => $this->busiestWeekday($unitIds, $range),
             'insights' => $this->worthALook($metrics, $leadTime, $weekday, $onTheBooks, $currency),
+            // Wave C · GATE 1 — REAL pending rate proposals awaiting the owner (owner-scoped; RateProposal is
+            // BelongsToOwner). The "review proposals" callout is now real, never a fabricated count (#39).
+            'pendingProposals' => RateProposal::query()->where('state', RateProposal::STATE_PENDING)->count(),
         ]);
     }
 
@@ -144,9 +148,9 @@ class OwnerInsights extends Component
 
     /**
      * "Worth a look" — REAL DERIVED observations computed from the owner's own numbers (decisions stay theirs).
-     * Each is a genuine fact with an honest CTA to a real page (Rates / Calendar) — NEVER a fabricated "rate
-     * proposal" (there is no proposal entity; refused in the My Units audit) and never invented advice (#39). An
-     * observation is included only when the data genuinely supports it.
+     * Each is a genuine fact with an honest CTA to a real page (Rates / Calendar) — never invented advice (#39).
+     * (Rate PROPOSALS are a separate real entity now, Wave C · GATE 1 — surfaced via the attention feed + the
+     * pending-proposals count; these observations never fabricate one.) Included only when the data supports it.
      *
      * @param  array{has_data: bool, median_days: int|null}  $leadTime
      * @param  array{has_data: bool, weekdays: list<array{label: string, pct: int, display: string}>}  $weekday

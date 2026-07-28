@@ -48,6 +48,7 @@ use App\Models\Payout;
 use App\Models\PromoCode;
 use App\Models\Property;
 use App\Models\RatePlan;
+use App\Models\RateProposal;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Review;
@@ -240,6 +241,7 @@ class AppServiceProvider extends ServiceProvider
             'owner_ledger' => OwnerLedgerEntry::class,
             'owner_expense' => OwnerExpense::class,
             'owner_attention_state' => OwnerAttentionState::class,
+            'rate_proposal' => RateProposal::class,
             'owner_statement' => OwnerStatement::class,
             'owner_statement_line' => OwnerStatementLine::class,
             'payout' => Payout::class,

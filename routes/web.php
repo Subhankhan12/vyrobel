@@ -56,6 +56,7 @@ use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\MaintenanceSettingsController;
 use App\Http\Controllers\Operator\OperatorProfileController;
+use App\Http\Controllers\Operator\OperatorRateProposalController;
 use App\Http\Controllers\Operator\OperatorReviewsController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\PropertyController;
@@ -82,6 +83,7 @@ use App\Http\Controllers\Owner\OwnerPayoutPreferenceController;
 use App\Http\Controllers\Owner\OwnerPayoutsExportController;
 use App\Http\Controllers\Owner\OwnerProfileController;
 use App\Http\Controllers\Owner\OwnerRateController;
+use App\Http\Controllers\Owner\OwnerRateProposalController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
 use App\Http\Controllers\Owner\OwnerReportEmailController;
 use App\Http\Controllers\Owner\OwnerSecurityController;
@@ -492,6 +494,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::get('/rates', RatesGrid::class)->middleware('can:rates.view')->name('rates');
     Route::post('/rates', [RateActionController::class, 'apply'])->middleware('can:rates.manage')->name('rates.update');
 
+    // RATE PROPOSALS (Wave C · GATE 1) — the operator proposes a rate change to an owner (who approves/declines in
+    // their portal) + may withdraw a pending one. `rates.manage` (#30, NOT Front Desk); integer money server-side.
+    Route::post('/rate-proposals', [OperatorRateProposalController::class, 'store'])->middleware(['throttle:20,1', 'can:rates.manage'])->name('rate-proposals.store');
+    Route::post('/rate-proposals/{proposal}/withdraw', [OperatorRateProposalController::class, 'withdraw'])->middleware('can:rates.manage')->name('rate-proposals.withdraw');
+
     // Settings (Wave 4) — ONE coherent settings surface (Operator + Property settings de-conflicted). Only
     // the BACKED columns are written (properties / property_policies / organizations); unbacked design fields
     // are stubbed "Soon", never a fake save. The page + property/policy writers are gated `properties.manage`
@@ -816,6 +823,12 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // Wave B · 💡 — BULK actions over the currently-raised signals (mark-all-read / snooze-all-for-a-week).
     Route::post('/attention/read-all', [OwnerAttentionController::class, 'readAll'])->middleware($capActions)->name('attention.read-all');
     Route::post('/attention/snooze-all', [OwnerAttentionController::class, 'snoozeAll'])->middleware($capActions)->name('attention.snooze-all');
+
+    // RATE PROPOSALS (Wave C · GATE 1 · ⚠️ REAL MONEY) — the owner APPROVES (applied via the certified rate path,
+    // the rate really changes) or DECLINES (unchanged) a pending operator proposal. CAP_ACTIONS (co-owner only);
+    // owner-scoped (RateProposal is BelongsToOwner → cross-owner 404); every decision audited.
+    Route::post('/rate-proposals/{proposal}/approve', [OwnerRateProposalController::class, 'approve'])->middleware($capActions)->name('rate-proposals.approve');
+    Route::post('/rate-proposals/{proposal}/decline', [OwnerRateProposalController::class, 'decline'])->middleware($capActions)->name('rate-proposals.decline');
     // Phase 2 · Sub-gate 3 — Owner Rates (the highest-risk gate: an owner-scoped MONEY write). The owner sets
     // nightly rates DIRECTLY on their OWN room types via the certified RateAndRestrictionService. The write is
     // guarded in OwnerRateService: a room type is editable ONLY if the owner owns it EXCLUSIVELY (every unit is

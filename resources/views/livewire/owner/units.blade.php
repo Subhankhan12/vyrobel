@@ -123,6 +123,17 @@
                                     <div class="vy-mu-item-sub">{{ $item['body'] }}</div>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                                    {{-- Wave C — inline DECISION actions (Approve/Decline a rate proposal): REAL POST forms, CAP_ACTIONS-gated. --}}
+                                    @if (! empty($item['actions']))
+                                        @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                            @foreach ($item['actions'] as $action)
+                                                <form method="POST" action="{{ $action['route'] }}" data-guard-submit style="margin:0">
+                                                    @csrf
+                                                    <button type="submit" class="{{ $action['primary'] ? 'vy-btn vy-btn--accent' : 'vy-btn vy-btn--ghost' }}" style="padding:6px 13px;font-size:12px">{{ $action['label'] }}</button>
+                                                </form>
+                                            @endforeach
+                                        @endownercan
+                                    @endif
                                     <a class="vy-mu-item-link" href="{{ $item['cta']['route'] }}">{{ $item['cta']['label'] }}</a>
                                     {{-- Snooze / dismiss — REAL (owner_attention_states), CAP_ACTIONS-gated (a view-only sub-user sees the feed but can't act) --}}
                                     @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
