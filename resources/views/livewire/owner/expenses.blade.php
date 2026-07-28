@@ -15,7 +15,8 @@
                     owner↔operator channel, owner.messages.start — the same path as My Units).
       • REFUSED   — the design's owner APPROVE / QUERY workflow + "Awaiting your approval" (no backend, #39)
                     → the honest analog is the REAL "Pending review" count + a read-only list + the
-                    "How expenses work" explainer. Vendor is refused (unmodelled) — source shown instead.
+                    "How expenses work" explainer. Vendor is now a REAL column (owner_expenses.vendor) — the
+                    supplier a cost was paid to, shown when captured, honestly "—" otherwise.
 
     RAW-BLADE RULE: every `@` follows a space, newline or tag; inline conditions are ternaries in {{ }}.
 --}}
@@ -104,6 +105,7 @@
                             <tr>
                                 <th>Date</th>
                                 <th>Description</th>
+                                <th>Vendor</th>
                                 <th>Unit</th>
                                 <th class="vy-num">Amount</th>
                                 <th>Status</th>
@@ -123,6 +125,7 @@
                                             <span class="vy-status vy-status--draft" data-voided="1" style="margin-top:4px"><span class="vy-dot"></span>Voided</span>
                                         @endif
                                     </td>
+                                    <td style="white-space:nowrap">@if ($e['vendor']){{ $e['vendor'] }}@else<span class="vy-muted">—</span>@endif</td>
                                     <td style="white-space:nowrap">{{ $e['unit']['name'] }}</td>
                                     <td class="vy-num vy-mono">{{ $e['amount_display'] }}</td>
                                     <td>
@@ -138,7 +141,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5"><div class="vy-empty">No expenses yet.</div></td></tr>
+                                <tr><td colspan="6"><div class="vy-empty">No expenses yet.</div></td></tr>
                             @endforelse
                         </tbody>
                     </table>

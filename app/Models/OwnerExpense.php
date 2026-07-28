@@ -29,6 +29,7 @@ class OwnerExpense extends Model
         'unit_id',
         'category',
         'description',
+        'vendor',
         'amount_minor',
         'currency',
         'expense_date',

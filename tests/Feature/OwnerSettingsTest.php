@@ -34,6 +34,28 @@ it('lets an owner update their own name, email and phone', function () {
         ->and((string) $owner->phone)->toBe('+353 87 555 0101');
 });
 
+// ── 1b. GATE 3 — the owner's registered ADDRESS persists into the `address` JSON, and clears when blank ─
+it('persists the owner registered address and clears it when all parts are blank', function () {
+    $s = seedScenario(1);
+    $a = inboxOwner($s, 'Amara Okafor', 0);
+
+    $this->actingAs($a['user'])->post('/owner/settings', [
+        'name' => 'Amara Okafor',
+        'address_street' => '12 Rua da Liberdade',
+        'address_city' => 'Lisbon',
+        'address_postcode' => '1250-096',
+        'address_country' => 'Portugal',
+    ])->assertRedirect(route('owner.settings'))->assertSessionHas('owner_notice');
+
+    expect($a['owner']->fresh()->address)->toEqual([
+        'street' => '12 Rua da Liberdade', 'city' => 'Lisbon', 'postcode' => '1250-096', 'country' => 'Portugal',
+    ]);
+
+    // Re-submitting with all address parts blank clears it back to null (no empty letterhead block).
+    $this->actingAs($a['user'])->post('/owner/settings', ['name' => 'Amara Okafor'])->assertRedirect();
+    expect($a['owner']->fresh()->address)->toBeNull();
+});
+
 // ── 2. ⚠️ THE user_id GUARD — an owner can edit ONLY their own row, never another's ──────────────
 it('never lets one owner’s edit touch another owner’s record', function () {
     $s = seedScenario(2);

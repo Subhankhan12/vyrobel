@@ -90,6 +90,11 @@ class OwnerSettings extends Component
                 'legal_name' => (string) ($ownerParty->legal_name ?? ''),
                 'tax_country' => (string) ($ownerParty->tax_country ?? ''),
                 'vat_number' => (string) ($ownerParty->vat_number ?? ''),
+                // The owner's registered address (GATE 3) — the statement letterhead recipient block.
+                'address_street' => (string) (is_array($ownerParty->address) ? ($ownerParty->address['street'] ?? '') : ''),
+                'address_city' => (string) (is_array($ownerParty->address) ? ($ownerParty->address['city'] ?? '') : ''),
+                'address_postcode' => (string) (is_array($ownerParty->address) ? ($ownerParty->address['postcode'] ?? '') : ''),
+                'address_country' => (string) (is_array($ownerParty->address) ? ($ownerParty->address['country'] ?? '') : ''),
                 'has_tax_id' => $hasTaxId,
             ] : null,
             // Billing = the REAL management fee (never an owner card / subscription — the owner has neither).

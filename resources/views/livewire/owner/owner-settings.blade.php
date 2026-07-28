@@ -160,6 +160,29 @@
                                 @error('phone') <span style="{{ $err }}">{{ $message }}</span> @enderror
                             </div>
                         </div>
+                        {{-- Registered address (GATE 3) — appears as the "Prepared for" block on your statement letterhead --}}
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:16px">
+                            <div style="grid-column:1/-1">
+                                <label style="{{ $lbl }}" for="o_street">Street address <span style="text-transform:none;font-weight:500;color:var(--vy-faint)">· optional</span></label>
+                                <input id="o_street" type="text" name="address_street" class="vy-input" value="{{ old('address_street', $ownerParty['address_street']) }}" placeholder="123 Rua da Liberdade">
+                                @error('address_street') <span style="{{ $err }}">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label style="{{ $lbl }}" for="o_city">City</label>
+                                <input id="o_city" type="text" name="address_city" class="vy-input" value="{{ old('address_city', $ownerParty['address_city']) }}">
+                                @error('address_city') <span style="{{ $err }}">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label style="{{ $lbl }}" for="o_postcode">Postcode</label>
+                                <input id="o_postcode" type="text" name="address_postcode" class="vy-input" value="{{ old('address_postcode', $ownerParty['address_postcode']) }}">
+                                @error('address_postcode') <span style="{{ $err }}">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label style="{{ $lbl }}" for="o_country">Country</label>
+                                <input id="o_country" type="text" name="address_country" class="vy-input" value="{{ old('address_country', $ownerParty['address_country']) }}">
+                                @error('address_country') <span style="{{ $err }}">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
                         <div style="margin-top:14px;display:flex;justify-content:flex-end">
                             <button type="submit" class="vy-btn" style="{{ $btn }}">Save business details</button>
                         </div>

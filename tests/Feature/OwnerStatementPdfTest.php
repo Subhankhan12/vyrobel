@@ -164,6 +164,30 @@ it('shows the masked payout IBAN on the PDF only for a payout-capable exporter',
         ->and($withoutPayout)->not->toContain('···· 6819');
 });
 
+// ── GATE 3: the owner's REAL registered address renders as the "Prepared for" block, only when set ─
+it('renders the owner registered address on the statement letterhead only when set', function () {
+    $s = seedScenario(2);
+    $a = pdfStatementOwner($s, 0, 20000);
+
+    // With no address on file, no recipient block + no fabricated line (#39).
+    $bare = view('pdfs.owner-statement', OwnerStatementDocument::data($a['statement']))->render();
+    expect($bare)->not->toContain('Prepared for');
+
+    // Set a real address → it renders as printable lines under "Prepared for".
+    $a['owner']->update(['address' => [
+        'street' => '12 Rua da Liberdade', 'city' => 'Lisbon', 'postcode' => '1250-096', 'country' => 'Portugal',
+    ]]);
+
+    $data = OwnerStatementDocument::data($a['statement']->fresh());
+    expect($data['owner_address_lines'])->toBe(['12 Rua da Liberdade', '1250-096 Lisbon', 'Portugal']);
+
+    $html = view('pdfs.owner-statement', $data)->render();
+    expect($html)->toContain('Prepared for')
+        ->and($html)->toContain('12 Rua da Liberdade')
+        ->and($html)->toContain('1250-096 Lisbon')
+        ->and($html)->toContain('Portugal');
+});
+
 // ── Owner isolation: an owner cannot download another owner's statement (cross-owner 404) ────────
 it('404s a cross-owner statement PDF', function () {
     $s = seedScenario(2);

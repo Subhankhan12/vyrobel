@@ -71,6 +71,17 @@
         <h1>{{ $period_label }}</h1>
         <div class="sub">{{ $owner_name }} · {{ $company }} · {{ $unit_count }} {{ \Illuminate\Support\Str::plural('unit', $unit_count) }} · issued {{ $issued }}</div>
 
+        {{-- Recipient block — the owner's REAL registered address (GATE 3), shown only when set (never fabricated) --}}
+        @if (! empty($owner_address_lines))
+            <div class="muted" style="margin-top:8px; font-size:11px; line-height:1.5;">
+                <div class="eyebrow">Prepared for</div>
+                <div style="font-weight:bold; color:#111;">{{ $owner_name }}</div>
+                @foreach ($owner_address_lines as $line)
+                    <div>{{ $line }}</div>
+                @endforeach
+            </div>
+        @endif
+
         {{-- Net-payable headline band --}}
         <table class="band">
             <tr>

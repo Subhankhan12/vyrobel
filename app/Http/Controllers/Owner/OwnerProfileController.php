@@ -35,11 +35,39 @@ class OwnerProfileController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
+            // The owner's registered ADDRESS (GATE 3) — the recipient block on their statement letterhead.
+            'address_street' => ['nullable', 'string', 'max:200'],
+            'address_city' => ['nullable', 'string', 'max:120'],
+            'address_postcode' => ['nullable', 'string', 'max:40'],
+            'address_country' => ['nullable', 'string', 'max:60'],
         ]);
 
-        $owner->update($data);
+        // Compose the four address parts into the existing `address` JSON column (array cast). An all-blank
+        // submission clears it back to null so the letterhead shows no empty recipient block.
+        $address = array_filter([
+            'street' => trim((string) ($data['address_street'] ?? '')),
+            'city' => trim((string) ($data['address_city'] ?? '')),
+            'postcode' => trim((string) ($data['address_postcode'] ?? '')),
+            'country' => trim((string) ($data['address_country'] ?? '')),
+        ], fn (string $v): bool => $v !== '');
 
-        $audit->record('owner.profile_updated', $owner, null, ['fields' => array_keys($data)]);
+        $update = [
+            'name' => $data['name'],
+            'address' => $address === [] ? null : $address,
+        ];
+
+        // Only touch email/phone when the form actually submitted them — an address-only save must not
+        // overwrite the existing contact (owners.email is NOT NULL, so a stray null would be rejected).
+        if ($request->has('email')) {
+            $update['email'] = $data['email'] ?? null;
+        }
+        if ($request->has('phone')) {
+            $update['phone'] = $data['phone'] ?? null;
+        }
+
+        $owner->update($update);
+
+        $audit->record('owner.profile_updated', $owner, null, ['fields' => array_keys($update)]);
 
         return redirect()->to(route('owner.settings'))->with('owner_notice', 'Your details are saved.');
     }

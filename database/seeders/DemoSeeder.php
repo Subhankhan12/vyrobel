@@ -867,20 +867,22 @@ class DemoSeeder extends Seeder
         $a1 = $aptUnits[0]->id;
         $a2 = $aptUnits[1]->id;
 
-        // unit · category · description · minor · date. Cleaning/maintenance = deductible; 'other' = the
-        // operator's cost (non-deductible, no ledger); the 2025 row predates the agreement → NULL (pending).
+        // unit · category · description · vendor · minor · date. Cleaning/maintenance = deductible; 'other' = the
+        // operator's cost (non-deductible, no ledger); the 2025 row predates the agreement → NULL (pending). The
+        // vendor is the REAL supplier a cost was paid to (owner_expenses.vendor, GATE 3) — flagged demo data.
         $rows = [
-            [$a1, 'cleaning', 'Deep clean after a long stay', 7000, '2026-09-16'],
-            [$a1, 'other', 'Welcome supplies restock', 9500, '2026-08-14'],
-            [$a2, 'other', 'Garden & pool upkeep', 28000, '2026-09-02'],
-            [$a2, 'cleaning', 'Deep clean (pre-agreement period)', 12000, '2025-12-20'],
+            [$a1, 'cleaning', 'Deep clean after a long stay', 'SparkleCo Cleaning', 7000, '2026-09-16'],
+            [$a1, 'other', 'Welcome supplies restock', 'Lisbon Supplies Ltd', 9500, '2026-08-14'],
+            [$a2, 'other', 'Garden & pool upkeep', 'GreenLeaf Grounds', 28000, '2026-09-02'],
+            [$a2, 'cleaning', 'Deep clean (pre-agreement period)', null, 12000, '2025-12-20'],
         ];
 
-        foreach ($rows as [$unitId, $category, $description, $minor, $date]) {
+        foreach ($rows as [$unitId, $category, $description, $vendor, $minor, $date]) {
             $expenses->recordExpense([
                 'unit_id' => $unitId,
                 'category' => $category,
                 'description' => $description,
+                'vendor' => $vendor,
                 'amount_minor' => $minor,
                 'currency' => 'EUR',
                 'expense_date' => $date,

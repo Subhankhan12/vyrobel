@@ -41,8 +41,9 @@ use Livewire\Component;
  *                longer stands — but the row itself is still shown, badged "Voided"). Money totals are
  *                PER CURRENCY and never summed across currencies (no silent FX — invariant #17).
  *   • UNIT     — each row + a filter carry the REAL unit (owner_expenses.unit_id → Unit, name ?? code,
- *                owner-scoped). Vendor is REFUSED — there is no vendor column on owner_expenses (#39);
- *                the polymorphic source (maintenance ticket / housekeeping task) is shown when present.
+ *                owner-scoped). VENDOR is now REAL (owner_expenses.vendor) — the supplier a cost was paid
+ *                to, shown when captured + honestly "—" when unknown; the polymorphic source (maintenance
+ *                ticket / housekeeping task) is still shown when present.
  *   • REAL     — Export (CSV) is a real owner-scoped, CAP_EXPORTS-gated download. "Need something
  *                fixed?" is a REAL relay into the owner↔operator message channel (owner.messages.start)
  *                — the same hardened path as My Units, not a fake form.
@@ -114,6 +115,9 @@ class OwnerExpenses extends Component
                 'category' => (string) $e->category,
                 'category_label' => $this->categoryLabel((string) $e->category),
                 'description' => (string) $e->description,
+                // REAL: the supplier/contractor the cost was paid to (owner_expenses.vendor), when captured;
+                // honestly "—" when unknown (e.g. a maintenance-sourced cost with no vendor on the ticket).
+                'vendor' => filled($e->vendor) ? (string) $e->vendor : null,
                 // REAL: the unit this cost belongs to (owner_expenses.unit_id → Unit, owner-scoped). The label
                 // reuses the My-Units rule (name ?? code). A manual expense with no unit reads honestly "—".
                 'unit' => $this->unitMeta($e),

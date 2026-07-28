@@ -16,8 +16,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * (the certified history), owner-scoped by the active {@see OwnerScope} on the `/owner`
  * routes → a non-linked user fails closed (headers-only) and no cross-owner row appears. GATED `exports`
  * (co-owner + accountant). The `deductible` TRI-STATE is exported honestly (deductible / not deductible /
- * pending review — NULL never coerced); a voided row is flagged, not dropped. No vendor column (unmodelled,
- * #39); integer money throughout (#17). No guest data.
+ * pending review — NULL never coerced); a voided row is flagged, not dropped. Vendor is a REAL column now
+ * (owner_expenses.vendor), exported when captured + blank when unknown; integer money throughout (#17). No guest data.
  */
 class OwnerExpensesExportController extends Controller
 {
@@ -33,7 +33,7 @@ class OwnerExpensesExportController extends Controller
 
         return response()->streamDownload(function () use ($expenses): void {
             $out = fopen('php://output', 'wb');
-            fputcsv($out, ['Date', 'Unit', 'Category', 'Description', 'Amount', 'Deductible', 'Voided']);
+            fputcsv($out, ['Date', 'Unit', 'Category', 'Description', 'Vendor', 'Amount', 'Deductible', 'Voided']);
 
             foreach ($expenses as $e) {
                 $unit = $e->unit;
@@ -43,6 +43,7 @@ class OwnerExpensesExportController extends Controller
                     $unit === null ? 'Unassigned' : (string) ($unit->name ?? $unit->code),
                     ucfirst((string) $e->category),
                     (string) $e->description,
+                    (string) ($e->vendor ?? ''),
                     MoneyFormatter::display((int) $e->amount_minor, (string) $e->currency),
                     match ($e->deductible) {
                         null => 'pending review',

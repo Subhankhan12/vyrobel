@@ -34,7 +34,7 @@ class OwnerExpenseService
      * governing agreement, and deductibility; posts a ledger deduction line when deductible; flags
      * when it cannot be attributed.
      *
-     * @param  array{unit_id?: string|null, owner_id?: string|null, category: string, description: string, amount_minor: int, currency: string, expense_date: string, source?: Model|null, created_by?: string|null}  $data
+     * @param  array{unit_id?: string|null, owner_id?: string|null, category: string, description: string, vendor?: string|null, amount_minor: int, currency: string, expense_date: string, source?: Model|null, created_by?: string|null}  $data
      */
     public function recordExpense(array $data): OwnerExpense
     {
@@ -67,6 +67,7 @@ class OwnerExpenseService
             'unit_id' => $unit?->id,
             'category' => $data['category'],
             'description' => $data['description'],
+            'vendor' => $data['vendor'] ?? null,
             'amount_minor' => $data['amount_minor'],
             'currency' => $data['currency'],
             'expense_date' => $data['expense_date'],

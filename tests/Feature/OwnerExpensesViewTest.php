@@ -16,7 +16,7 @@ uses(RefreshDatabase::class);
 // backend. Locks its PRESENTATION guarantees: live expense data renders; the `deductible` TRI-STATE
 // (true / false / NULL) renders as three honest states and NULL is never coerced to false; a voided
 // expense is shown but excluded from the totals; a maintenance-sourced expense shows its real source; the
-// REAL unit column + filter render (vendor REFUSED — unmodelled); the KPIs ("Spent this year" / "Pending
+// REAL unit column + filter render (vendor now a REAL column too); the KPIs ("Spent this year" / "Pending
 // review" / "Charged to payouts") are Σ of the real rows ("Spent" year-scoped); the DERIVED category total
 // reconciles TO THE CENT; the CSV export is owner-scoped + CAP_EXPORTS-gated; "Need something fixed?" is a
 // REAL relay into the owner↔operator channel (never an expense write); the design's owner approve/query
@@ -125,7 +125,7 @@ it('renders real expenses with the deductible tri-state, badges voided rows out 
         // the statement an attributed line landed on + the honest "not there yet" for an unattributed one
         ->assertSee('September 2026')
         ->assertSee('Not yet on a statement')
-        // the REAL unit column + filter (owner_expenses.unit_id → name ?? code), never a fabricated vendor
+        // the REAL unit column + filter (owner_expenses.unit_id → name ?? code)
         ->assertSee('Unit')
         ->assertSee('All units')
         ->assertSee((string) ($a['unit']->name ?? $a['unit']->code))
@@ -210,6 +210,29 @@ it('shows only categories with real expenses (no €0.00 filler) and renders a l
         ->assertSee('width:100%', false)        // the lone category is the whole total → full bar (reconciles)
         ->assertSee('100% of total')
         ->assertDontSee('0 expenses');          // #39 — the empty categories (cleaning/other) render no "0 expenses" filler row
+});
+
+// ── 1c. VENDOR (GATE 3) is a REAL column — shown when captured, honest "—" when not, exported too ──
+it('renders the real expense vendor when captured and an honest dash when not, and exports it', function () {
+    $s = seedScenario(1);
+    $a = expensesScreenOwner($s, 0, 'Amara Okafor');
+    $unitId = (string) $a['unit']->id;
+
+    // One cost WITH a vendor, one WITHOUT (vendor stays null → honest "—", never fabricated #39).
+    app(OwnerExpenseService::class)->recordExpense([
+        'unit_id' => $unitId, 'category' => 'cleaning', 'description' => 'Turnover clean',
+        'vendor' => 'SparkleCo Cleaning', 'amount_minor' => 5000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',
+    ]);
+    recordExpenseVia($unitId, 'other', 'Welcome basket', 3300, '2026-09-05');   // no vendor
+
+    $this->actingAs($a['user'])->get('/owner/expenses')
+        ->assertOk()
+        ->assertSee('Vendor')                 // the real column header
+        ->assertSee('SparkleCo Cleaning');    // the captured supplier
+
+    // The CSV carries a Vendor column with the captured value (owner-scoped, EXPORTS-gated elsewhere).
+    $csv = $this->actingAs($a['user'])->get(route('owner.expenses.export'))->assertOk()->streamedContent();
+    expect($csv)->toContain('Vendor')->toContain('SparkleCo Cleaning');
 });
 
 // ── 2. Owner isolation — A sees only A's expenses; a non-linked user fails closed ─────────────────

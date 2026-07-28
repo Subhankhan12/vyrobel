@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * receives periodic payouts. Org-scoped, optionally linked to a `User` for owner-portal login via
  * the Phase 1 External Owner role. PII (`email`/`phone`/`tax_id`) is encrypted at rest (convention
  * #5). `payout_currency` is the currency the owner is PAID in (may differ from booking currency).
+ *
+ * @property array<string, mixed>|null $address
  */
 class Owner extends Model
 {

@@ -90,6 +90,9 @@ final class OwnerStatementDocument
             // Title / subtitle
             'period_label' => $statement->period_start->format('F Y'),
             'owner_name' => (string) ($statement->owner->name ?? 'Owner'),
+            // The owner's REAL registered address (GATE 3) — the recipient block. Empty parts are dropped, so an
+            // owner who hasn't set an address simply shows none (never a fabricated line, #39).
+            'owner_address_lines' => self::addressLines(is_array($statement->owner?->address) ? $statement->owner->address : []),
             'unit_count' => (int) $breakdown['unit_count'],
             'issued' => $issued,
 
@@ -120,6 +123,22 @@ final class OwnerStatementDocument
                 ? ['source' => (string) $statement->source_currency, 'rate' => (string) $statement->fx_rate, 'src' => (string) $statement->fx_source]
                 : null,
         ];
+    }
+
+    /**
+     * The owner's registered address as printable lines: "street" then "postcode city" then "country". Blank
+     * parts are dropped; an empty address yields no lines. Presentation only — never summed into money.
+     *
+     * @param  array<string, mixed>  $address
+     * @return list<string>
+     */
+    private static function addressLines(array $address): array
+    {
+        $street = trim((string) ($address['street'] ?? ''));
+        $cityLine = trim(trim((string) ($address['postcode'] ?? '')).' '.trim((string) ($address['city'] ?? '')));
+        $country = trim((string) ($address['country'] ?? ''));
+
+        return array_values(array_filter([$street, $cityLine, $country], fn (string $v): bool => $v !== ''));
     }
 
     /**
