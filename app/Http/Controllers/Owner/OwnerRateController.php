@@ -80,8 +80,19 @@ class OwnerRateController extends Controller
             $minStay = (int) $rawMinStay;
         }
 
+        // Optional weekend uplift %: a number 0–200, or blank for none (0 clears it). Fri/Sat nights get
+        // base × (1 + uplift%) — a REAL price change, applied by OwnerRateService (#39, never an inert store).
+        $weekendUplift = null;
+        $rawUplift = trim((string) $request->input('weekend_uplift', ''));
+        if ($rawUplift !== '') {
+            if (! is_numeric($rawUplift) || (float) $rawUplift < 0 || (float) $rawUplift > 200) {
+                return redirect()->to($back)->with('rate_error', 'A weekend uplift must be a percentage between 0 and 200, or blank.');
+            }
+            $weekendUplift = round((float) $rawUplift, 2);
+        }
+
         try {
-            $stored = $rates->apply($roomTypeId, $start->toDateString(), $endExclusive->toDateString(), $priceMinor, $minStay, null);
+            $stored = $rates->apply($roomTypeId, $start->toDateString(), $endExclusive->toDateString(), $priceMinor, $minStay, null, $weekendUplift);
         } catch (OwnerRateException) {
             abort(403);   // a room type the owner may not edit — tampering, not a normal outcome
         }

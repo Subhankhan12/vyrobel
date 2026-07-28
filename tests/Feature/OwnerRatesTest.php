@@ -8,6 +8,7 @@ use App\Models\Restriction;
 use App\Models\RoomType;
 use App\Models\Unit;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 
@@ -141,6 +142,41 @@ it('rejects an invalid rate without writing', function () {
 
     expect(storedRateMinor((string) $a['plan']->id, '2026-10-01'))->toBeNull();
 });
+
+// ── 7a. WEEKEND UPLIFT is REAL — Fri/Sat nights get the uplifted price, the rest the base (#39) ────
+it('applies a weekend uplift as a real price change on Fri/Sat nights only', function () {
+    $s = seedScenario(1);
+    $a = exclusiveOwner($s, 'Azure');
+
+    // A full week that contains every weekday plus a Fri + Sat. Base €200 → 20000; +25% weekend → 25000.
+    $this->actingAs($a['user'])->post('/owner/rates/apply', [
+        'room_type_id' => $a['roomType']->id, 'start_date' => '2026-10-05', 'end_date' => '2026-10-11',
+        'rate' => '200', 'weekend_uplift' => '25',
+    ])->assertRedirect()->assertSessionHas('rate_notice');
+
+    foreach (['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11'] as $date) {
+        $isWeekend = in_array(CarbonImmutable::parse($date)->dayOfWeekIso, [5, 6], true);
+        expect(storedRateMinor((string) $a['plan']->id, $date))->toBe($isWeekend ? 25000 : 20000);
+    }
+
+    // The uplift POLICY persists on the plan so the editor can prefill it.
+    expect((float) $a['plan']->fresh()->weekend_uplift_pct)->toBe(25.0);
+})->group('owner-rates');
+
+// ── 7b. No uplift → a flat rate on every night (the weekend-aware path is opt-in) ─────────────────
+it('writes a flat rate across the range when no weekend uplift is given', function () {
+    $s = seedScenario(1);
+    $a = exclusiveOwner($s, 'Azure');
+
+    $this->actingAs($a['user'])->post('/owner/rates/apply', [
+        'room_type_id' => $a['roomType']->id, 'start_date' => '2026-10-09', 'end_date' => '2026-10-10', 'rate' => '180',
+    ])->assertRedirect()->assertSessionHas('rate_notice');
+
+    // 2026-10-09 is a Friday, -10 a Saturday — both flat at the base because no uplift was requested.
+    expect(storedRateMinor((string) $a['plan']->id, '2026-10-09'))->toBe(18000)
+        ->and(storedRateMinor((string) $a['plan']->id, '2026-10-10'))->toBe(18000)
+        ->and($a['plan']->fresh()->weekend_uplift_pct)->toBeNull();
+})->group('owner-rates');
 
 // ── 7. Owner-portal-gated — a non-linked user fails closed (nothing to price) ─────────────────────
 it('fails closed for a non-linked user', function () {

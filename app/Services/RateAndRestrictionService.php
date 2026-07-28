@@ -63,6 +63,40 @@ class RateAndRestrictionService
     }
 
     /**
+     * Set a WEEKEND-AWARE nightly rate over [startDate, endDate): the weekday price on Mon–Thu + Sun nights, and
+     * the (higher) weekend price on Fri + Sat nights. One transaction + ONE `rate_calendar.updated` event for the
+     * range (never per-day event spam). Powers the owner's weekend-uplift policy — real prices, not an inert flag.
+     */
+    public function setRateWeekendAware(RatePlan $ratePlan, CarbonInterface|string $startDate, CarbonInterface|string $endDate, Money $weekday, Money $weekend): void
+    {
+        $start = CarbonImmutable::parse($startDate)->startOfDay();
+        $end = CarbonImmutable::parse($endDate)->startOfDay();
+
+        DB::transaction(function () use ($ratePlan, $start, $end, $weekday, $weekend): void {
+            for ($date = $start; $date->lt($end); $date = $date->addDay()) {
+                $isWeekend = in_array($date->dayOfWeekIso, [5, 6], true);   // Fri = 5, Sat = 6 (check-in night)
+                RateCalendar::query()->updateOrCreate(
+                    ['rate_plan_id' => $ratePlan->getKey(), 'date' => $date->toDateString()],
+                    ['price' => $isWeekend ? $weekend : $weekday],
+                );
+            }
+        });
+
+        $payload = [
+            'room_type_id' => $ratePlan->room_type_id,
+            'start_date' => $start->toDateString(),
+            'end_date' => $end->toDateString(),
+        ];
+
+        $this->domainEvents->record('rate_calendar.updated', $ratePlan, $payload);
+        $this->audit->record('rate_calendar.updated', $ratePlan, null, $payload + [
+            'price_minor' => $weekday->amountMinor(),
+            'weekend_price_minor' => $weekend->amountMinor(),
+            'currency' => $weekday->currency,
+        ]);
+    }
+
+    /**
      * Upsert the same restriction flags for every night in [startDate, endDate), scoped to a
      * room_type and/or a rate_plan (at least one required — matches the `restrictions` schema).
      *

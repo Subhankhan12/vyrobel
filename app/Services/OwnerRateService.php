@@ -116,18 +116,27 @@ class OwnerRateService
      * the currency is the plan's, never the request's. Returns false only when a rate was asked for but the
      * room type has no rate plan to store it on.
      */
-    public function apply(string $roomTypeId, string $from, string $toExclusive, ?int $priceMinor, ?int $minStay, ?bool $stopSell): bool
+    public function apply(string $roomTypeId, string $from, string $toExclusive, ?int $priceMinor, ?int $minStay, ?bool $stopSell, ?float $weekendUpliftPct = null): bool
     {
         $roomType = $this->editableRoomTypeOrFail($roomTypeId);   // ← owner-scope guard on the money write
         $rateStored = true;
+        $plan = $roomType->primaryRatePlan();
 
         if ($priceMinor !== null) {
-            $plan = $roomType->primaryRatePlan();
             if ($plan === null) {
                 $rateStored = false;
+            } elseif ($weekendUpliftPct !== null && $weekendUpliftPct > 0) {
+                // REAL weekend pricing — Fri/Sat nights get base × (1 + uplift%), the rest get base (#39: no inert flag).
+                $weekendMinor = (int) round($priceMinor * (1 + $weekendUpliftPct / 100));
+                $this->rates->setRateWeekendAware($plan, $from, $toExclusive, Money::of($priceMinor, (string) $plan->currency), Money::of($weekendMinor, (string) $plan->currency));
             } else {
                 $this->rates->setRate($plan, $from, $toExclusive, Money::of($priceMinor, (string) $plan->currency));
             }
+        }
+
+        // Persist the owner's weekend-uplift POLICY on the plan (so the editor prefills it), when provided.
+        if ($weekendUpliftPct !== null && $plan !== null) {
+            $plan->forceFill(['weekend_uplift_pct' => $weekendUpliftPct])->save();
         }
 
         if ($minStay !== null || $stopSell !== null) {
@@ -142,5 +151,17 @@ class OwnerRateService
         }
 
         return $rateStored;
+    }
+
+    /**
+     * The owner's current WEEKEND-UPLIFT % for a room type they may edit (the editor prefills it), or null when
+     * unset. Owner-scoped via {@see editableRoomTypeOrFail} — a room type the owner may not edit throws (403),
+     * the same guard as the write.
+     */
+    public function weekendUpliftFor(string $roomTypeId): ?float
+    {
+        $plan = $this->editableRoomTypeOrFail($roomTypeId)->primaryRatePlan();
+
+        return $plan?->weekend_uplift_pct !== null ? (float) $plan->weekend_uplift_pct : null;
     }
 }

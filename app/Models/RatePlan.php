@@ -29,6 +29,7 @@ class RatePlan extends Model
         'cancellation_policy',
         'derived_from_rate_plan_id',
         'adjustment',
+        'weekend_uplift_pct',
         'is_active',
     ];
 
@@ -41,6 +42,7 @@ class RatePlan extends Model
             'is_refundable' => 'boolean',
             'cancellation_policy' => 'array',
             'adjustment' => 'array',
+            'weekend_uplift_pct' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }
