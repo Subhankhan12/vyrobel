@@ -6,6 +6,36 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v13) · owner SECURITY + HELP exact-match (#66); Onboarding DEFERRED. This block
+> SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this
+> block → `docs/DECISIONS.md`.**
+>
+> **Two owner account pages matched to their wireframes; a third (Onboarding) deferred (`docs/OWNER-SECURITY-ONBOARDING-HELP-AUDIT.md`,
+> DECISIONS 2026-07-28 #66, DIVERGENCE Security/Help rows). Both were already built honestly (#46 + the static Help
+> surface); this pass matched their design while keeping every honest call.**
+> - **GATE 1 — Security (`aa041f9`):** `/owner/security` matched to the wireframe on the REAL backend (REUSED —
+>   password/2FA/sessions/export-JSON/deactivate). The hero **score card** now renders a **REAL DERIVED score** (Password
+>   40 + 2FA 40 + Recovery codes 20 = /100; tier Basic/Good/Strong; 4 real stat cards; "Boost your score" links the real
+>   2FA control) — never a fabricated number (#39). Trusted-locations / connected-apps / login-approval / passkeys stay
+>   honest **"Coming soon"**.
+> - **GATE 3 — Help:** `/owner/help` matched HONESTLY — an **FAQ-search hero** (no fake "Ask Vyrobel" AI), the real
+>   **message relay** + honest contact (NO invented phone/email/WhatsApp numbers), **messaging as the tracked channel**
+>   (no fake ticket queue), a **static "All systems operational"** line (no live health check), and the real FAQ.
+> - **GATE 2 — Onboarding DEFERRED (founder decision):** net-new, not launch-blocking, and its centerpiece (**IBAN
+>   capture + "micro-deposits on the way"**) is un-buildable-honestly — the real banking path is the certified
+>   `owner.payout-method` page. If built later: an honest thin flow (profile confirm + real 18% units + a hand-off to
+>   Payout Method + notification prefs), NO IBAN capture, NO fake micro-deposit.
+> - **Verified:** `OwnerSecurityTest` 6/6 (the derived score reflects true state — 1/3 protections + Basic tier + the 2FA
+>   nudge) + a new `OwnerHelpTest` (real relay + FAQ; no fake AI/ticket/status/number). Suite **1096 / 8653 GREEN**; PHPStan
+>   **L5 = 0**; Pint clean; `migrate:fresh --seed` clean; both browser-verified (Security score ring + real controls; Help
+>   FAQ search filters, honest states). No schema change, no new writes. **Invariants #1–66.**
+>
+> Owner exact-match track shipped: Overview (#54) … Tax Center (#64) · Team & access + Unit Detail (#65) · **Security +
+> Help (#66)**. Remaining built-but-not-yet-exact-matched: MANAGE — Rates / Reviews / Agreement / Messages · **Onboarding**
+> (deferred net-new). No launch-blocking build remains.
+>
+> ---
+>
 > ⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v12) · owner TEAM & ACCESS + UNIT DETAIL exact-match (#65). This block SUPERSEDES
 > every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
 > `docs/DECISIONS.md`.**

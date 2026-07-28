@@ -4853,3 +4853,45 @@ Unit Detail (rate €180→€185 persisted + returns to the unit; tap-to-block 
 view-only sub-user gets no write control). Guards: #28 owner-scoped + guest name-only, #17 reconcile, #20 controller
 writes + audited, #39 nothing fabricated. One additive redirect branch on `OwnerRateController`; nothing else disturbed.
 **Invariants #1–65.**
+
+## 2026-07-28 — Owner SECURITY + HELP exact-match (#66) · Onboarding DEFERRED
+
+Two owner account pages matched to their decoded wireframes (`Owner Security.html`, `Owner Help.html`); the third
+wireframe (`Owner Onboarding.html`) is **DEFERRED** (founder decision). `docs/OWNER-SECURITY-ONBOARDING-HELP-AUDIT.md`,
+DIVERGENCE rows. Security + Help were ALREADY built honestly (the account rebuild #46 + the static Help surface); this
+pass matched their design while keeping every honest call.
+
+**GATE 1 — Security (`aa041f9`).** Rebuilt `/owner/security` to the wireframe on the REAL security backend, REUSED:
+Change-password (`owner.security.password`, current-pw + rules, audited #20), 2FA (`owner.security.2fa.*`), Active
+sessions + sign-out-others (real `sessions` table, re-auth), "Request my data" (a REAL owner-scoped streamed JSON export
+— not a fake emailed link), Deactivate (reversible, primary-owner-only #42).
+- **D-SEC-1 — the gamified SECURITY SCORE is REAL, DERIVED (never fabricated).** The wireframe's n/100 score is rendered as
+  a deterministic function of the TRUE protections: **Password set 40 + Two-factor 40 + Recovery codes 20 = /100**; tier
+  Basic/Good/Strong from the real number; the 4 stat cards are all real (Protections on n/3 · Points to full · Active
+  sessions count · Two-factor On/Off); "Boost your score" lists the REAL remaining protections, each "Enable" jumping to
+  the real 2FA control. No fabricated point economy (#39).
+- **D-SEC-2 — trusted locations / connected apps / login approval / passkeys / sign-in history = HONEST "Coming soon"**
+  (unmodelled — never a fake toggle/location/app/approval).
+
+**GATE 3 — Help.** Rebuilt `/owner/help` to the wireframe, HONEST throughout.
+- **D-HELP-1 — the "Ask Vyrobel" AI Q&A is REFUSED** (no support AI) → the hero is an **FAQ search** (client-side over the
+  real FAQ) + the real message relay, never a fabricated instant answer.
+- **D-HELP-2 — the support-TICKET queue is REFUSED** (no ticket store) → **messaging IS the tracked channel** (the
+  owner↔operator inbox, with full history); the honest copy says "no separate ticket queue".
+- **D-HELP-3 — the live SYSTEM-STATUS board is REFUSED** → an honest **static "All systems operational"** line (not a
+  fabricated live health check).
+- **D-HELP-4 — the fabricated owner-desk phone/email/WhatsApp numbers are NOT invented** → the real channel is the relay;
+  an honest note points to the welcome pack / statement for any direct line. The FAQ content is real (linking real owner
+  screens).
+
+**D-ONB-1 — ONBOARDING DEFERRED (net-new).** The welcome wizard is net-new, NOT launch-blocking, and its centerpiece — an
+**IBAN capture + "two micro-deposits on the way"** — is un-buildable-honestly (no certified micro-deposit pipeline; the
+real banking path is the certified `owner.payout-method` page, which owns IBAN collection). Rather than build a thin
+re-presentation of existing surfaces, the founder deferred it. **If built later:** honest thin flow (profile confirm +
+real 18% units + a hand-off link to the real Payout Method + notification prefs), NO fresh IBAN capture, NO fake
+micro-deposit, real commission rate.
+
+**Verified:** `OwnerSecurityTest` 6/6 (the derived score reflects true state — a fresh owner shows 1/3 protections + Basic
+tier + the 2FA nudge; no fabricated events) + a new `OwnerHelpTest` (real relay + FAQ; no fake AI/ticket/status/number).
+Full suite green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean; both browser-verified (Security score ring +
+real controls; Help FAQ search filters, honest states). No schema change, no new writes. **Invariants #1–66.**

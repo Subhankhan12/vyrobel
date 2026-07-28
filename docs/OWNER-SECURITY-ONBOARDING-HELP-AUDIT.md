@@ -1,6 +1,6 @@
 # Owner Security + Onboarding + Help — wireframe-EXACT-match audit
 
-**Date:** 2026-07-28 · **Author:** build session · **Status:** 🔎 **PHASE 1 COMPLETE — read-only audit; PAUSED for approval (several account-gated bits + the Onboarding IBAN sensitivity).**
+**Date:** 2026-07-28 · **Author:** build session · **Status:** ✅ **BUILT — invariant #66** (GATE 1 Security `aa041f9` · GATE 3 Help). **GATE 2 Onboarding DEFERRED** (founder decision — net-new, not launch-blocking, its IBAN/micro-deposit centerpiece is un-buildable-honestly). Security: the wireframe's score card rebuilt with a **REAL DERIVED score** (password 40 + 2FA 40 + recovery 20 = /100) + real reuse (password/2FA/sessions/export/deactivate) + honest "Coming soon". Help: matched the design HONESTLY — FAQ-search hero (no fake AI), the real message relay + honest contact (no fabricated numbers), messaging as the tracked channel (no fake tickets), static "all systems operational" (no live health check). Suite green; PHPStan L5 (0); Pint clean; browser-verified. *(The PHASE-1 analysis below is preserved as the audit of record.)*
 **Pages:** `/owner/security` (`OwnerSecurity` + `OwnerSecurityController`) · **Onboarding** (NET-NEW, no route) · `/owner/help` (`OwnerHelp`, static).
 **Wireframes:** `docs/design/raw/Owner Security.html` · `Owner Onboarding.html` · `Owner Help.html` (decoded → `/tmp/owner_*_decoded.txt`).
 
