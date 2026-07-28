@@ -4,6 +4,7 @@ use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
+use App\Models\Reservation;
 use App\Models\User;
 use App\Support\Owner\OwnerLedgerAttribution;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,15 +16,17 @@ uses(RefreshDatabase::class);
 // mutation-proven (owner A never sees owner B's unit analytics).
 
 /** A ledger credit/debit on an owner's unit. */
-function ledgerEntry(string $ownerId, string $unitId, string $type, string $direction, int $minor): OwnerLedgerEntry
+function ledgerEntry(string $ownerId, string $unitId, string $type, string $direction, int $minor, ?string $reservationId = null, string $serviceDate = '2026-09-01'): OwnerLedgerEntry
 {
     return OwnerLedgerEntry::factory()->create([
         'owner_id' => $ownerId,
         'unit_id' => $unitId,
+        'reservation_id' => $reservationId,
         'entry_type' => $type,
         'direction' => $direction,
         'amount_minor' => $minor,
         'currency' => 'EUR',
+        'service_date' => $serviceDate,
     ]);
 }
 
@@ -171,4 +174,73 @@ it('shows Insights with real derived observations and an honest rates link — n
         ->assertDontSee('rate proposals');
 
     assertNoRawBlade($res);
+});
+
+// ── 8. ✅ NET-BY-CHANNEL is REAL (ledger × reservation.source) and Σ(channels) == the period net (#17) ──
+it('shows REAL net-by-channel that reconciles to the period net — never nights-only', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+    $ownerId = (string) $s['units'][0]->fresh()->owner_id;
+
+    // Two real reservations on the owner's unit — two distinct channels (source is the REAL enum, not a brand).
+    $direct = book($s, ['unit_id' => $s['units'][0]->id]);       // source=direct (the helper default)
+    $ota = Reservation::create([
+        'organization_id' => $s['property']->organization_id,
+        'property_id' => $s['property']->id,
+        'reference' => 'RES-OTA-TEST',
+        'source' => 'ota',
+        'status' => 'confirmed',
+        'check_in' => '2026-09-10',
+        'check_out' => '2026-09-12',
+        'currency' => 'EUR',
+        'lead_guest_id' => $s['guest']->id,
+    ]);
+
+    // Direct net €240.00 (300 − 60) · OTA net €160.00 (200 − 40) → period net €400.00.
+    ledgerEntry($ownerId, $s['units'][0]->id, 'room_revenue', 'credit', 30000, (string) $direct->id);
+    ledgerEntry($ownerId, $s['units'][0]->id, 'commission', 'debit', 6000, (string) $direct->id);
+    ledgerEntry($ownerId, $s['units'][0]->id, 'room_revenue', 'credit', 20000, (string) $ota->id);
+    ledgerEntry($ownerId, $s['units'][0]->id, 'commission', 'debit', 4000, (string) $ota->id);
+
+    $res = $this->actingAs($user)->get('/owner/reports?range=this-year')->assertOk()
+        ->assertSee('net by channel')                // NET, not "room-nights by channel"
+        ->assertSee('Direct')
+        ->assertSee('OTA')                           // the SHARED source label (OwnerBookingsReader) — never an OTA brand (#39)
+        ->assertSee('€240.00')                       // direct channel net
+        ->assertSee('€160.00')                       // ota channel net
+        ->assertSee('€400.00');                      // period net — Σ(channels) reconciles to the cent (#17)
+
+    assertNoRawBlade($res);
+});
+
+// ── 9. ✅ The REPORTING-YEAR dropdown lists REAL statement years — never the wireframe's fabricated 2024/2023 ──
+it('shows the real reporting-year dropdown, not fabricated prior years', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+
+    $res = $this->actingAs($user)->get('/owner/reports')->assertOk()
+        ->assertSee('Reporting year')
+        ->assertSee('Earlier years live in Documents')
+        // the current year is always offered (even before its first statement); the fabricated years are gone
+        ->assertSee((string) now()->year)
+        ->assertSee('Year to date')
+        ->assertSee('Last 6 months');
+
+    assertNoRawBlade($res);
+});
+
+// ── 10. ✅ The custom From/To date range clips the owner ledger to the window (a real GET, no write) ──
+it('clips the report to a real custom date range', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+    $ownerId = (string) $s['units'][0]->fresh()->owner_id;
+
+    // Sep net €300.00 (in the window) and Jun net €999.00 (outside it).
+    ledgerEntry($ownerId, $s['units'][0]->id, 'room_revenue', 'credit', 30000, null, '2026-09-01');
+    ledgerEntry($ownerId, $s['units'][0]->id, 'room_revenue', 'credit', 99900, null, '2026-06-01');
+
+    $this->actingAs($user)->get('/owner/reports?from=2026-09&to=2026-09')->assertOk()
+        ->assertSee('Sep 2026')          // the range label reflects the window
+        ->assertSee('€300.00')           // September is inside the window
+        ->assertDontSee('€999.00');      // June is clipped out
 });

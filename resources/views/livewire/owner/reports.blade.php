@@ -1,90 +1,275 @@
 {{--
-    Owner Reports (exact-match pass · invariant #61) — the owner's REAL analytics for their OWN units, rebuilt to
-    the decoded "Owner Reports" wireframe. Shell from <x-owner.shell active="reports">. All figures reconcile to
-    the owner ledger/statements (#17); owner-scoped (#28); nothing fabricated (#39).
+    Owner Reports (exact-match pass · invariant #63) — the owner's REAL analytics for their OWN units, rebuilt to
+    the decoded "Owner Reports" wireframe (design + behaviour). Shell from <x-owner.shell active="reports">; the
+    notification popover is the shared shell bell (not a page-local card). All figures reconcile to the owner
+    ledger/statements (#17); owner-scoped (#28); nothing fabricated (#39). Read-only (year/date-range/export are
+    GETs — no write to gate, #20).
 
-    HONESTY MAP (see App\Livewire\Owner\OwnerReports):
-      • REAL — KPIs, net-by-month, per-unit (ADR/RevPAR/nights/occ/net/share), by-channel (real source enum),
-        gross-to-net (reconciles #17, REAL agreement commission rate — never 15%), payout summary, real Documents
-        + exports (CAP_EXPORTS-gated), Notifications (the self-scoped feed).
-      • HONEST-DEFER — "Email to me" (no report Mailable) = a "Soon"; the Tax & VAT summary is NOT computed by
-        Vyrobel (no VAT model) → an honest deferred card, no fabricated VAT figure / "Mark filed" (#39).
-    RAW-BLADE RULE: every `@` follows a space, newline or tag.
+    HONESTY MAP (see App\Livewire\Owner\OwnerReports + docs/OWNER-REPORTS-AUDIT.md):
+      • REAL — KPIs, net-by-month, per-unit (ADR/RevPAR/nights/occ/net/share), NET-by-channel (ledger×reservation
+        source; Σ channels == period net), gross-to-net (reconciles #17, REAL agreement rate — never 15%), payout
+        (masked IBAN CAP_PAYOUT-only), real Documents + exports (CAP_EXPORTS-gated).
+      • HONEST-OMIT — the prior-year comparison (chart dashed bars + KPI Δ + hero badge): no prior-year data → not
+        fabricated; the year dropdown lists REAL statement years, never fabricated 2024/2023.
+      • HONEST-DEFER — "Email to me" / "PDF pack" = "Soon"; the Tax & VAT summary is NOT computed by Vyrobel (no
+        VAT model) → an honest deferred card, no fabricated VAT figure / "Mark filed" (#39). [GATE 2 refines design.]
+    RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click/@keydown pass through to Alpine).
 --}}
 <x-owner.shell active="reports" title="Reports" :subtitle="'Your real performance — earnings, occupancy and where it comes from.'" :viewer="$viewer">
     <style>
-        .vy-rep-top { display:flex; align-items:center; justify-content:space-between; gap:14px 20px; flex-wrap:wrap; margin-bottom:18px; }
-        .vy-rep-pills { display:flex; gap:8px; flex-wrap:wrap; }
-        .vy-rep-pill { padding:7px 15px; border-radius:var(--vy-r-pill); border:1px solid rgba(120,70,40,.16); background:rgba(255,255,255,.6); color:var(--vy-ink); font-family:var(--vy-sans); font-size:13px; font-weight:500; text-decoration:none; }
-        .vy-rep-pill.is-active { background:var(--vy-grad); color:#fff; border-color:transparent; box-shadow:var(--vy-shadow-accent); }
-        .vy-rep-hero { background:var(--vy-grad-dark); color:#fff; }
-        .vy-rep-gtn-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-top:1px solid rgba(120,70,40,.1); font-size:13px; }
-        .vy-rep-gtn-row:first-of-type { border-top:none; }
-        .vy-rep-gtn-net { border-top:1.5px solid rgba(120,70,40,.18); margin-top:4px; padding-top:11px; font-weight:600; }
-        .vy-rep-vat { background:rgba(255,252,248,.5); border:1px dashed rgba(120,70,40,.28); }
-        .vy-rep-doc { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-top:1px solid rgba(120,70,40,.1); }
-        .vy-rep-doc:first-of-type { border-top:none; }
-        .vy-rep-note { display:flex; align-items:flex-start; gap:9px; padding:10px 0; border-top:1px solid rgba(120,70,40,.1); font-size:12.5px; }
-        .vy-rep-note:first-of-type { border-top:none; }
+        .vy-rep-top { display:flex; align-items:center; justify-content:space-between; gap:14px 16px; flex-wrap:wrap; margin-bottom:20px; }
+        .vy-rep-selectors { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .vy-rep-pop { position:relative; }
+        .vy-rep-selbtn { display:inline-flex; align-items:center; gap:9px; padding:9px 15px; border-radius:var(--vy-r-pill); border:1px solid var(--vy-glass-border); background:rgba(255,255,255,.6); color:var(--vy-ink); font-family:var(--vy-sans); font-size:13px; font-weight:600; cursor:pointer; box-shadow:var(--vy-shadow-sm); }
+        .vy-rep-selbtn:hover { background:rgba(255,255,255,.85); }
+        .vy-rep-selbtn svg { width:11px; height:11px; color:var(--vy-faint); }
+        .vy-rep-menu { position:absolute; top:calc(100% + 8px); left:0; z-index:41; width:236px; background:rgba(255,252,248,.96); backdrop-filter:blur(30px) saturate(1.15); border:1px solid var(--vy-glass-border); border-radius:16px; box-shadow:0 20px 50px rgba(60,30,10,.28), inset 0 1px 0 rgba(255,255,255,.75); padding:8px; box-sizing:border-box; }
+        .vy-rep-menu--range { width:340px; }
+        .vy-rep-menu--right { left:auto; right:0; width:250px; }
+        .vy-rep-menu-head { font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--vy-faint); padding:8px 12px 6px; }
+        .vy-rep-menu-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px; border-radius:11px; text-decoration:none; color:var(--vy-ink); font-size:13px; font-weight:500; }
+        .vy-rep-menu-item .sub { font-size:11px; color:var(--vy-faint); font-weight:500; }
+        .vy-rep-menu-item:hover { background:rgba(217,102,46,.08); }
+        .vy-rep-menu-item.is-active { background:var(--vy-grad); color:#fff; }
+        .vy-rep-menu-item.is-active .sub { color:rgba(255,255,255,.8); }
+        .vy-rep-menu-sep { border-top:1px solid var(--vy-hairline); margin:6px 4px; }
+        .vy-rep-menu-foot { font-size:11px; color:var(--vy-faint); padding:8px 12px 4px; border-top:1px solid var(--vy-hairline); margin-top:6px; }
+        .vy-rep-range-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:2px; }
+        .vy-rep-range-grid .lbl { font-size:11px; font-weight:600; color:var(--vy-muted); margin-bottom:6px; padding-left:2px; }
+        .vy-rep-monthlist { max-height:188px; overflow-y:auto; display:flex; flex-direction:column; gap:1px; border:1px solid var(--vy-hairline); border-radius:10px; padding:4px; background:rgba(255,255,255,.4); }
+        .vy-rep-month { text-align:left; padding:6px 9px; border:none; background:transparent; border-radius:7px; font-family:var(--vy-sans); font-size:12px; color:var(--vy-ink); cursor:pointer; }
+        .vy-rep-month:hover { background:rgba(217,102,46,.08); }
+        .vy-rep-month.is-sel { background:var(--vy-grad); color:#fff; font-weight:600; }
+        .vy-rep-range-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; padding-top:10px; border-top:1px solid var(--vy-hairline); }
+        .vy-rep-exitem { display:flex; align-items:center; gap:11px; width:100%; text-align:left; padding:9px 10px; border-radius:11px; background:transparent; border:none; cursor:pointer; text-decoration:none; color:var(--vy-ink); }
+        .vy-rep-exitem:hover { background:rgba(217,102,46,.08); }
+        .vy-rep-exitem.is-soon { cursor:default; }
+        .vy-rep-exicon { width:32px; height:32px; border-radius:9px; background:rgba(217,102,46,.13); color:#B4400F; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .vy-rep-exicon.is-muted { background:rgba(120,70,40,.08); color:var(--vy-muted); }
+        .vy-rep-exttl { font-size:13px; font-weight:500; }
+        .vy-rep-exsub { font-size:11px; color:var(--vy-faint); margin-top:1px; }
+
+        .vy-rep-kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:20px; }
+        .vy-rep-kpi-val { font-family:var(--vy-display); font-weight:600; font-size:30px; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+        .vy-rep-kpi-delta { font-size:13px; font-weight:500; color:var(--vy-accent); }
+        .vy-rep-kpi-note { font-size:12px; color:var(--vy-faint); }
+
+        .vy-rep-cols { display:grid; grid-template-columns:minmax(0,1fr) 232px; gap:20px; align-items:start; }
+        @media (max-width:1040px) { .vy-rep-cols { grid-template-columns:1fr; } }
+
+        .vy-rep-chart { display:flex; align-items:flex-end; gap:10px; height:164px; margin-top:6px; }
+        .vy-rep-bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+        .vy-rep-bar-area { position:relative; width:100%; height:120px; }
+        .vy-rep-bar-prior { position:absolute; left:8%; right:8%; bottom:0; border-radius:6px 6px 0 0; background:rgba(120,70,40,.07); border:1px dashed rgba(120,70,40,.32); border-bottom:none; }
+        .vy-rep-bar { position:absolute; left:21%; right:21%; bottom:0; border-radius:6px 6px 3px 3px; background:var(--vy-grad); transition:filter .14s; }
+        .vy-rep-bar-col:hover .vy-rep-bar { filter:brightness(1.07); }
+        .vy-rep-bar-val { position:absolute; left:0; right:0; display:flex; justify-content:center; padding-bottom:4px; }
+        .vy-rep-bar-val .txt { font-size:9.5px; color:var(--vy-faint); font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
+        .vy-rep-bar-val .peak { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:20px; background:var(--vy-grad); color:#fff; font-size:9.5px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; box-shadow:0 3px 9px rgba(194,65,12,.34); }
+        .vy-rep-bar-label { font-size:10.5px; color:var(--vy-faint); }
+        .vy-rep-legend { display:flex; align-items:center; gap:12px; font-size:11px; color:var(--vy-muted); }
+        .vy-rep-legend .sw { width:9px; height:9px; border-radius:2px; }
+
+        .vy-rep-perf-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:6px; }
+        .vy-rep-perf-stats { display:flex; gap:22px; }
+        .vy-rep-perf-stat { text-align:right; }
+        .vy-rep-perf-stat .k { font-size:10px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--vy-faint); }
+        .vy-rep-perf-stat .v { font-family:var(--vy-display); font-weight:600; font-size:15px; font-variant-numeric:tabular-nums; margin-top:2px; }
+        .vy-rep-urow { display:grid; grid-template-columns:1.5fr .8fr .9fr 1fr 1.1fr; align-items:center; gap:14px; padding:12px 10px; margin:0 -10px; border-top:1px solid var(--vy-hairline); font-size:13px; }
+        .vy-rep-urow.head { border-top:none; padding-bottom:8px; font-size:10px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--vy-faint); }
+        .vy-rep-urow .rt { text-align:right; font-variant-numeric:tabular-nums; }
+        .vy-rep-uname { font-size:13.5px; font-weight:500; }
+        .vy-rep-usub { font-size:11.5px; color:var(--vy-faint); margin-top:1px; }
+        .vy-rep-share { display:flex; align-items:center; gap:8px; }
+        .vy-rep-share-bar { flex:1; height:6px; border-radius:4px; background:rgba(120,70,40,.1); overflow:hidden; }
+        .vy-rep-share-bar > span { display:block; height:100%; border-radius:4px; background:var(--vy-grad-peach); }
+        .vy-rep-share .p { font-size:11px; color:var(--vy-muted); font-variant-numeric:tabular-nums; width:32px; text-align:right; }
+        .vy-rep-uall { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0 2px; border-top:1px solid rgba(120,70,40,.16); margin-top:2px; }
+        .vy-rep-uall .k { font-family:var(--vy-display); font-weight:600; font-size:14px; }
+        .vy-rep-uall .v { font-family:var(--vy-display); font-weight:600; font-size:16px; color:var(--vy-accent); letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+
+        .vy-rep-chan-bar { height:22px; border-radius:7px; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(120,70,40,.08); }
+        .vy-rep-chan-legend { display:flex; flex-wrap:wrap; gap:10px 24px; margin-top:14px; }
+        .vy-rep-chan-item { display:flex; align-items:center; gap:8px; }
+        .vy-rep-chan-item .sw { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+        .vy-rep-chan-item .nm { font-size:13px; font-weight:500; }
+        .vy-rep-chan-item .pc { font-size:12px; color:var(--vy-faint); font-variant-numeric:tabular-nums; }
+        .vy-rep-chan-item .amt { font-size:12.5px; color:#6B6058; font-weight:500; font-variant-numeric:tabular-nums; }
+
+        .vy-rep-gtn-row { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; color:var(--vy-muted); }
+        .vy-rep-gtn-row .amt { font-size:12.5px; font-variant-numeric:tabular-nums; }
+        .vy-rep-gtn-net { padding-top:10px; margin-top:2px; border-top:1px solid rgba(120,70,40,.16); }
+        .vy-rep-gtn-net .lbl { font-size:12.5px; font-weight:500; color:var(--vy-ink); }
+        .vy-rep-gtn-net .amt { font-family:var(--vy-display); font-weight:600; font-size:14px; color:var(--vy-accent); }
+
+        .vy-rep-hero { position:relative; }
+        .vy-rep-hero-glow { position:absolute; inset:-30px -28px -34px; background:radial-gradient(ellipse at 50% 55%, rgba(232,112,58,.38), transparent 70%); filter:blur(26px); pointer-events:none; }
+        .vy-rep-hero-card { position:relative; background:var(--vy-grad-dark); border-radius:20px; box-shadow:var(--vy-shadow-dark); padding:20px; color:#fff; }
+        .vy-rep-hero-eyebrow { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#B9ABA0; margin-bottom:12px; }
+        .vy-rep-hero-fig { font-family:var(--vy-display); font-weight:600; font-size:28px; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+        .vy-rep-hero-sub { font-size:13px; color:#B9ABA0; margin-top:5px; }
+        .vy-rep-hero-badge { display:inline-flex; align-items:center; gap:6px; margin-top:14px; padding:6px 12px; border-radius:var(--vy-r-pill); background:var(--vy-grad); color:#fff; font-size:12px; font-weight:500; box-shadow:0 4px 12px rgba(194,65,12,.35); }
+
+        .vy-rep-doc { display:flex; align-items:center; gap:10px; padding:9px 10px; margin:0 -10px; border-radius:12px; text-decoration:none; color:var(--vy-ink); }
+        .vy-rep-doc:hover { background:rgba(255,255,255,.55); }
+        .vy-rep-doc-ic { width:30px; height:30px; border-radius:50%; background:rgba(217,102,46,.13); color:#B4400F; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .vy-rep-payout-line { display:flex; align-items:center; gap:9px; font-size:12.5px; color:#4A403A; }
+
+        .vy-rep-vat { background:rgba(255,252,248,.5); border:1px dashed rgba(120,70,40,.28); margin-top:20px; }
     </style>
 
     @if ($unitsCount === 0)
         <div class="vy-card vy-fade"><div class="vy-empty">No units linked to your account yet.</div></div>
     @else
-    {{-- ── Top row: reporting period + exports ── --}}
+    {{-- ── Top control row: reporting-year dropdown + custom date range + Export (bell/account are in the shell) ── --}}
     <div class="vy-rep-top">
-        <div class="vy-rep-pills">
-            @foreach ($ranges as $r)
-                <a class="vy-rep-pill {{ $r['active'] ? 'is-active' : '' }}" href="{{ route('owner.reports', ['range' => $r['key']]) }}">{{ $r['label'] }}</a>
-            @endforeach
-        </div>
-        @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
-            <div style="position:relative" x-data="{ open: false }">
-                <button type="button" class="vy-btn vy-btn--ghost" @click="open = !open" style="gap:7px">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
-                    Export
+        <div class="vy-rep-selectors">
+            {{-- Reporting year (real statement years, never fabricated 2024/2023) --}}
+            <div class="vy-rep-pop" x-data="{ open: false }" @keydown.escape.window="open = false">
+                <button type="button" class="vy-rep-selbtn" @click="open = !open" :aria-expanded="open ? 'true' : 'false'">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--vy-accent)"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+                    <span>{{ $activeRange['label'] }}</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
-                <div x-show="open" x-cloak @click.outside="open = false" style="position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:#fff;border:1px solid var(--vy-glass-border);border-radius:var(--vy-r-md);box-shadow:0 14px 40px rgba(150,90,50,.2);padding:6px;min-width:230px">
-                    <a href="{{ route('owner.statements.history.csv') }}" style="display:block;padding:9px 11px;border-radius:8px;text-decoration:none;color:var(--vy-ink);font-size:13px">Statement history · CSV</a>
-                    <a href="{{ route('owner.tax.annual', (int) now()->year) }}" style="display:block;padding:9px 11px;border-radius:8px;text-decoration:none;color:var(--vy-ink);font-size:13px">Annual tax summary · PDF</a>
-                    <span style="display:flex;justify-content:space-between;align-items:center;padding:9px 11px;color:var(--vy-muted);font-size:13px">Email to me <span class="vy-soon-tag">Soon</span></span>
+                <div x-show="open" x-cloak x-transition.opacity.duration.150ms @click.outside="open = false" class="vy-rep-menu">
+                    <div class="vy-rep-menu-head">Reporting year</div>
+                    @foreach ($yearOptions as $y)
+                        <a href="{{ $y['href'] }}" class="vy-rep-menu-item {{ $y['active'] ? 'is-active' : '' }}"><span>{{ $y['label'] }}</span><span class="sub">{{ $y['sub'] }}</span></a>
+                    @endforeach
+                    <div class="vy-rep-menu-sep"></div>
+                    @foreach ($rangeOptions as $r)
+                        <a href="{{ $r['href'] }}" class="vy-rep-menu-item {{ $r['active'] ? 'is-active' : '' }}"><span>{{ $r['label'] }}</span></a>
+                    @endforeach
+                    <div class="vy-rep-menu-foot">Earlier years live in Documents · archived PDFs</div>
+                </div>
+            </div>
+
+            {{-- Custom date range — a real GET over the owner ledger (Apply builds the ?from=&to= URL) --}}
+            <div class="vy-rep-pop" x-data="{ open: false, from: @js($activeRange['from']), to: @js($activeRange['to']) }" @keydown.escape.window="open = false">
+                <button type="button" class="vy-rep-selbtn" @click="open = !open" :aria-expanded="open ? 'true' : 'false'">
+                    <span>{{ $activeRange['custom'] ? 'Custom range' : 'Custom range' }}</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div x-show="open" x-cloak x-transition.opacity.duration.150ms @click.outside="open = false" class="vy-rep-menu vy-rep-menu--range">
+                    <div class="vy-rep-menu-head">Custom date range</div>
+                    <div class="vy-rep-range-grid">
+                        <div>
+                            <div class="lbl">From</div>
+                            <div class="vy-rep-monthlist">
+                                @foreach ($monthOptions as $mo)
+                                    <button type="button" class="vy-rep-month" :class="from === @js($mo['value']) ? 'is-sel' : ''" @click="from = @js($mo['value'])">{{ $mo['label'] }}</button>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div>
+                            <div class="lbl">To</div>
+                            <div class="vy-rep-monthlist">
+                                @foreach ($monthOptions as $mo)
+                                    <button type="button" class="vy-rep-month" :class="to === @js($mo['value']) ? 'is-sel' : ''" @click="to = @js($mo['value'])">{{ $mo['label'] }}</button>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <div class="vy-rep-range-foot">
+                        <a class="vy-btn vy-btn--ghost" href="{{ route('owner.reports') }}" style="padding:6px 13px;font-size:12.5px">Clear</a>
+                        <button type="button" class="vy-btn vy-btn--accent" style="padding:6px 15px;font-size:12.5px" :style="(!from || !to) ? 'opacity:.5;cursor:not-allowed' : ''" @click="if (from && to) window.location = @js(route('owner.reports')) + '?from=' + from + '&to=' + to">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
+            <div class="vy-rep-pop" x-data="{ open: false }" @keydown.escape.window="open = false">
+                <button type="button" class="vy-btn vy-btn--accent" @click="open = !open" style="gap:7px" :aria-expanded="open ? 'true' : 'false'">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+                    Export
+                    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div x-show="open" x-cloak x-transition.opacity.duration.150ms @click.outside="open = false" class="vy-rep-menu vy-rep-menu--right">
+                    <div class="vy-rep-menu-head">Export · {{ $activeRange['label'] }} earnings</div>
+                    @foreach ($exportItems as $ex)
+                        @if ($ex['soon'])
+                            <span class="vy-rep-exitem is-soon">
+                                <span class="vy-rep-exicon is-muted">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 8l9 6 9-6"/></svg>
+                                </span>
+                                <span style="flex:1;min-width:0"><span class="vy-rep-exttl">{{ $ex['title'] }}</span><span class="vy-rep-exsub">{{ $ex['sub'] }}</span></span>
+                                <span class="vy-soon-tag">Soon</span>
+                            </span>
+                        @else
+                            <a href="{{ $ex['href'] }}" class="vy-rep-exitem">
+                                <span class="vy-rep-exicon {{ in_array($ex['key'], ['csv', 'xls'], true) ? 'is-muted' : '' }}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+                                </span>
+                                <span style="flex:1;min-width:0"><span class="vy-rep-exttl">{{ $ex['title'] }}</span><span class="vy-rep-exsub">{{ $ex['sub'] }}</span></span>
+                            </a>
+                        @endif
+                    @endforeach
                 </div>
             </div>
         @endownercan
     </div>
 
-    {{-- ── KPIs — REAL (net reconciles to statements; occupancy + nights from the metric layer) ── --}}
-    <div class="vy-kpi-grid vy-fade" style="animation-delay:.02s">
-        <div class="vy-kpi">
+    {{-- ── KPIs — REAL (net reconciles to statements; occupancy + nights from the metric layer; Δ honest-omitted) ── --}}
+    <div class="vy-rep-kpis vy-fade" style="animation-delay:.02s">
+        <div class="vy-card" style="padding:18px 20px">
             <div class="vy-kpi-label">Net earned · {{ $kpis['net_period'] }}</div>
-            <div class="vy-kpi-val">{{ $kpis['net'] }}</div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
+                <span class="vy-rep-kpi-val">{{ $kpis['net'] }}</span>
+                @if ($kpis['net_delta'])<span class="vy-rep-kpi-delta">{{ $kpis['net_delta'] }}</span>@endif
+            </div>
             <div class="vy-kpi-sub">Reconciles to your statements</div>
         </div>
-        <div class="vy-kpi">
+        <div class="vy-card" style="padding:18px 20px">
             <div class="vy-kpi-label">Avg occupancy</div>
-            <div class="vy-kpi-val">{{ $kpis['occupancy'] }}</div>
+            <div class="vy-rep-kpi-val" style="margin-top:8px">{{ $kpis['occupancy'] }}</div>
             <div class="vy-kpi-sub">Across {{ $unitsCount }} {{ \Illuminate\Support\Str::plural('unit', $unitsCount) }}</div>
         </div>
-        <div class="vy-kpi">
+        <div class="vy-card" style="padding:18px 20px">
             <div class="vy-kpi-label">Nights sold</div>
-            <div class="vy-kpi-val">{{ $kpis['nights'] }}</div>
-            <div class="vy-kpi-sub">Room-nights in the period</div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
+                <span class="vy-rep-kpi-val">{{ $kpis['nights'] }}</span>
+                <span class="vy-rep-kpi-note">room-nights</span>
+            </div>
+            <div class="vy-kpi-sub">In the period</div>
         </div>
     </div>
 
-    <div class="vy-cols" style="margin-top:18px">
+    <div class="vy-rep-cols">
         {{-- ── LEFT ── --}}
         <div class="vy-stack">
             {{-- Net earnings by month --}}
             <section class="vy-card vy-fade" style="animation-delay:.05s">
-                <h2 class="vy-card-title">Net earnings by month</h2>
-                <div class="vy-line-sub">{{ $activeRange['label'] }} · your ledger, per month</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px">
+                    <h2 class="vy-card-title">Net earnings by month</h2>
+                    <div style="display:flex;align-items:center;gap:14px">
+                        @if ($netByMonth['has_prior'])
+                            <div class="vy-rep-legend">
+                                <span style="display:inline-flex;align-items:center;gap:5px"><span class="sw" style="background:var(--vy-grad)"></span>This year</span>
+                                <span style="display:inline-flex;align-items:center;gap:5px"><span class="sw" style="border:1px dashed rgba(120,70,40,.5);background:rgba(120,70,40,.07)"></span>{{ $netByMonth['prior_year_label'] }}</span>
+                            </div>
+                        @endif
+                        <span style="font-size:12px;color:var(--vy-faint)">{{ $netByMonth['chart_range'] }}</span>
+                    </div>
+                </div>
                 @if ($netByMonth['has_data'])
-                    <div style="display:grid;grid-template-columns:repeat({{ count($netByMonth['months']) }},1fr);gap:6px;align-items:end;height:150px;margin-top:16px">
+                    <div class="vy-rep-chart">
                         @foreach ($netByMonth['months'] as $m)
-                            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end" title="{{ $m['label'] }} · {{ $m['net_display'] }}">
-                                <div style="width:100%;max-width:26px;height:{{ max(2, $m['pct']) }}%;border-radius:6px 6px 0 0;background:var(--vy-grad)"></div>
-                                <span style="font-size:10px;color:var(--vy-muted)">{{ $m['label'] }}</span>
+                            <div class="vy-rep-bar-col" title="{{ $m['label'] }} · {{ $m['net_display'] }}">
+                                <div class="vy-rep-bar-area">
+                                    @if ($netByMonth['has_prior'] && $m['prior_pct'] > 0)
+                                        <div class="vy-rep-bar-prior" style="height:{{ $m['prior_pct'] }}%"></div>
+                                    @endif
+                                    <div class="vy-rep-bar" style="height:{{ max(2, $m['pct']) }}%"></div>
+                                    <div class="vy-rep-bar-val" style="bottom:{{ max(2, $m['pct']) }}%">
+                                        @if ($m['is_peak'])
+                                            <span class="peak"><svg viewBox="0 0 24 24" fill="currentColor" style="width:8px;height:8px"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 18.5 5.8 21.2l1.6-7L2 9.5l7.1-.6z"/></svg>{{ $m['net_display'] }}</span>
+                                        @else
+                                            <span class="txt">{{ $m['net_display'] }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <span class="vy-rep-bar-label">{{ $m['label'] }}</span>
                             </div>
                         @endforeach
                     </div>
@@ -95,154 +280,146 @@
 
             {{-- Performance by unit --}}
             <section class="vy-card vy-fade" style="animation-delay:.08s">
-                <h2 class="vy-card-title">Performance by unit</h2>
-                <div style="overflow-x:auto;margin-top:10px">
-                    <table class="vy-table">
-                        <thead>
-                            <tr>
-                                <th>Unit</th>
-                                <th class="vy-num">ADR</th>
-                                <th class="vy-num">RevPAR</th>
-                                <th class="vy-num">Nights</th>
-                                <th class="vy-num">Occ.</th>
-                                <th class="vy-num">Net earned</th>
-                                <th class="vy-num">Share</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($perUnit as $u)
-                                <tr>
-                                    <td class="vy-row-month">{{ $u['name'] }}</td>
-                                    <td class="vy-num vy-mono">{{ $u['adr'] }}</td>
-                                    <td class="vy-num vy-mono">{{ $u['revpar'] }}</td>
-                                    <td class="vy-num">{{ $u['nights'] }}</td>
-                                    <td class="vy-num">{{ $u['occupancy_pct'] }}%</td>
-                                    <td class="vy-num vy-mono">{{ $u['net'] }}</td>
-                                    <td class="vy-num">{{ $u['share_pct'] }}%</td>
-                                </tr>
-                            @empty
-                                <tr><td colspan="7"><div class="vy-empty">No units yet.</div></td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <div class="vy-rep-perf-head">
+                    <h2 class="vy-card-title">Performance by unit</h2>
+                    <div class="vy-rep-perf-stats">
+                        <div class="vy-rep-perf-stat" title="Average daily rate · revenue ÷ nights sold"><div class="k">ADR</div><div class="v">{{ $perfHeader['adr'] }}</div></div>
+                        <div class="vy-rep-perf-stat" title="Revenue per available night · ADR × occupancy"><div class="k">RevPAR</div><div class="v">{{ $perfHeader['revpar'] }}</div></div>
+                    </div>
                 </div>
+                <div class="vy-rep-urow head">
+                    <span>Unit</span><span class="rt">Nights</span><span class="rt">Occupancy</span><span class="rt">Net earned</span><span>Share</span>
+                </div>
+                @forelse ($perUnit as $u)
+                    <div class="vy-rep-urow">
+                        <span><span class="vy-rep-uname">{{ $u['name'] }}</span>@if ($u['sub'])<span class="vy-rep-usub">{{ $u['sub'] }}</span>@endif</span>
+                        <span class="rt">{{ $u['nights'] }}</span>
+                        <span class="rt">{{ $u['occupancy_pct'] }}%</span>
+                        <span class="rt" style="font-family:var(--vy-display);font-weight:500">{{ $u['net'] }}</span>
+                        <span class="vy-rep-share"><span class="vy-rep-share-bar"><span style="width:{{ $u['share_pct'] }}%"></span></span><span class="p">{{ $u['share_pct'] }}%</span></span>
+                    </div>
+                @empty
+                    <div class="vy-empty">No units yet.</div>
+                @endforelse
+                <div class="vy-rep-uall"><span class="k">All units</span><span class="v">{{ $allUnitsNet }}</span></div>
                 <div class="vy-fx-note">ADR = revenue per night sold · RevPAR = revenue per available night · Share = of your net.</div>
             </section>
 
-            {{-- Booking sources by channel --}}
+            {{-- Booking sources — NET by channel (real; Σ channels == period net) --}}
             <section class="vy-card vy-fade" style="animation-delay:.11s">
-                <h2 class="vy-card-title">Booking sources</h2>
-                <div class="vy-line-sub">Room-nights by channel · {{ $activeRange['label'] }}</div>
-                @forelse ($byChannel as $c)
-                    <div style="margin-top:12px">
-                        <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px">
-                            <span style="font-weight:500">{{ $c['label'] }}</span>
-                            <span class="vy-muted">{{ $c['nights'] }} {{ \Illuminate\Support\Str::plural('night', $c['nights']) }} · {{ $c['pct'] }}%</span>
-                        </div>
-                        <div class="vy-track" style="margin-top:6px"><span style="width:{{ $c['pct'] }}%"></span></div>
+                <div class="vy-rep-perf-head">
+                    <h2 class="vy-card-title">Booking sources</h2>
+                    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--vy-faint)">net by channel · {{ $activeRange['label'] }}</div>
+                </div>
+                @if ($byChannel['has_data'])
+                    <div class="vy-rep-chan-bar" style="background:{{ $byChannel['gradient'] }};margin-top:6px"></div>
+                    <div class="vy-rep-chan-legend">
+                        @foreach ($byChannel['rows'] as $c)
+                            <div class="vy-rep-chan-item">
+                                <span class="sw" style="background:{{ $c['color'] }}"></span>
+                                <span class="nm">{{ $c['label'] }}</span>
+                                <span class="pc">{{ $c['pct'] }}%</span>
+                                <span class="amt">{{ $c['amount'] }}</span>
+                            </div>
+                        @endforeach
                     </div>
-                @empty
+                @else
                     <div class="vy-empty" style="margin-top:12px">No bookings in this period yet.</div>
-                @endforelse
+                @endif
             </section>
         </div>
 
-        {{-- ── RIGHT ── --}}
+        {{-- ── RIGHT (232px rail) ── --}}
         <div class="vy-stack">
-            {{-- Dark hero: the period net --}}
-            <section class="vy-card vy-rep-hero vy-fade" style="animation-delay:.05s">
-                <span class="vy-eyebrow" style="color:var(--vy-peach)">{{ $activeRange['label'] }} so far</span>
-                <div style="font-family:var(--vy-display);font-weight:600;font-size:30px;letter-spacing:-.02em;margin-top:4px">{{ $kpis['net'] }}</div>
-                <div style="font-size:12.5px;color:rgba(255,255,255,.72);margin-top:4px">Net earned · reconciles to your statements</div>
-                <a href="{{ route('owner.archive') }}" class="vy-btn vy-btn--ghost" style="margin-top:14px;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff">View statements</a>
-            </section>
+            {{-- Dark hero: the period net (YoY badge honest-omitted → real nights·units sub) --}}
+            <div class="vy-rep-hero vy-fade" style="animation-delay:.05s">
+                <div class="vy-rep-hero-glow"></div>
+                <div class="vy-rep-hero-card">
+                    <div class="vy-rep-hero-eyebrow">{{ $hero['eyebrow'] }}</div>
+                    <div class="vy-rep-hero-fig">{{ $hero['net'] }}</div>
+                    <div class="vy-rep-hero-sub">Net earned · reconciles to your statements</div>
+                    @if ($hero['sub'] !== '')<div class="vy-rep-hero-badge">{{ $hero['sub'] }}</div>@endif
+                </div>
+            </div>
 
             {{-- Gross to net — reconciles (#17), REAL commission rate --}}
-            <section class="vy-card vy-fade" style="animation-delay:.08s">
-                <h2 class="vy-card-title">Gross to net</h2>
-                <div style="margin-top:8px">
-                    <div class="vy-rep-gtn-row"><span>Gross revenue</span><span class="vy-mono">{{ $grossToNet['gross'] }}</span></div>
-                    <div class="vy-rep-gtn-row"><span>{{ $commissionLabel }}</span><span class="vy-mono">{{ $grossToNet['commission'] }}</span></div>
-                    <div class="vy-rep-gtn-row"><span>Fees &amp; OTA</span><span class="vy-mono">{{ $grossToNet['fees'] }}</span></div>
+            <section class="vy-card vy-fade" style="animation-delay:.08s;padding:20px">
+                <div class="vy-eyebrow" style="margin-bottom:12px">Gross to net</div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                    <div class="vy-rep-gtn-row"><span>Gross revenue</span><span class="amt" style="color:var(--vy-ink);font-weight:500">{{ $grossToNet['gross'] }}</span></div>
+                    <div class="vy-rep-gtn-row"><span>{{ $commissionLabel }}</span><span class="amt">{{ $grossToNet['commission'] }}</span></div>
+                    <div class="vy-rep-gtn-row"><span>Fees &amp; OTA</span><span class="amt">{{ $grossToNet['fees'] }}</span></div>
                     @if ($grossToNet['has_adjustments'])
-                        <div class="vy-rep-gtn-row"><span>Costs &amp; adjustments</span><span class="vy-mono">{{ $grossToNet['adjustments'] }}</span></div>
+                        <div class="vy-rep-gtn-row"><span>Costs &amp; adjustments</span><span class="amt">{{ $grossToNet['adjustments'] }}</span></div>
                     @endif
-                    <div class="vy-rep-gtn-row vy-rep-gtn-net"><span>Net earned</span><span class="vy-mono" style="color:var(--vy-accent)">{{ $grossToNet['net'] }}</span></div>
+                    <div class="vy-rep-gtn-row vy-rep-gtn-net"><span class="lbl">Net to you</span><span class="amt">{{ $grossToNet['net'] }}</span></div>
                 </div>
             </section>
 
-            {{-- Payout summary --}}
-            <section class="vy-card vy-fade" style="animation-delay:.11s">
-                <span class="vy-eyebrow">Payouts</span>
-                @if ($payout['latest_display'])
-                    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:8px">
-                        <div style="font-family:var(--vy-display);font-weight:600;font-size:24px">{{ $payout['latest_display'] }}</div>
-                        <span class="vy-status vy-status--{{ $payout['status'] === 'Paid' ? 'paid' : 'pending' }}"><span class="vy-dot"></span>{{ $payout['status'] }}</span>
+            {{-- Next payout / latest payout --}}
+            <a href="{{ route('owner.payouts') }}" class="vy-card vy-card--tappable vy-fade" style="animation-delay:.11s;padding:20px;display:block;text-decoration:none;color:inherit">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+                    <span class="vy-eyebrow">Latest payout</span>
+                    @if ($payout['status'])
+                        <span class="vy-status vy-status--{{ $payout['status_key'] }}"><span class="vy-dot"></span>{{ $payout['status'] }}</span>
+                    @endif
+                </div>
+                @if ($payout['amount'])
+                    <div style="font-family:var(--vy-display);font-weight:600;font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ $payout['amount'] }}</div>
+                    <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ $payout['paid_year'] }} paid this year</div>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--vy-hairline)">
+                        @if ($payout['date'])
+                            <div class="vy-rep-payout-line"><svg viewBox="0 0 24 24" fill="none" stroke="#B4400F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>{{ $payout['date'] }}</div>
+                        @endif
+                        @if ($payout['method_masked'])
+                            <div class="vy-rep-payout-line" style="color:var(--vy-muted)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>{{ $payout['method_masked'] }}</div>
+                        @endif
                     </div>
-                    <div class="vy-line-sub" style="margin-top:6px">Most recent payout · {{ $payout['paid_year_display'] }} paid this year</div>
                 @else
-                    <div class="vy-empty" style="margin-top:8px">No payouts yet.</div>
+                    <div class="vy-empty" style="padding:20px 0">No payouts yet.</div>
                 @endif
-                <a href="{{ route('owner.payouts') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600;display:inline-block;margin-top:10px">All payouts →</a>
-            </section>
+            </a>
 
             {{-- Documents (real PDFs) --}}
-            <section class="vy-card vy-fade" style="animation-delay:.14s">
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                    <h2 class="vy-card-title">Documents</h2>
+            <section class="vy-card vy-fade" style="animation-delay:.14s;padding:20px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <span class="vy-eyebrow">Documents</span>
                     <a href="{{ route('owner.documents') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">All →</a>
                 </div>
                 @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                     @forelse ($documents as $d)
-                        <div class="vy-rep-doc">
-                            <span style="font-size:13px">{{ $d['label'] }}</span>
-                            <a href="{{ $d['href'] }}" class="vy-btn vy-btn--ghost" style="padding:4px 10px;font-size:12px">PDF</a>
-                        </div>
+                        <a href="{{ $d['href'] }}" class="vy-rep-doc">
+                            <span class="vy-rep-doc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></span>
+                            <span style="flex:1;min-width:0"><span style="display:block;font-size:12.5px;font-weight:500">{{ $d['name'] }}</span><span style="display:block;font-size:10.5px;color:var(--vy-faint);margin-top:1px">{{ $d['sub'] }}</span></span>
+                        </a>
                     @empty
-                        <div class="vy-empty" style="margin-top:10px">No documents yet.</div>
+                        <div class="vy-empty" style="padding:20px 0">No documents yet.</div>
                     @endforelse
                 @else
-                    <div class="vy-line-sub" style="margin-top:10px">Your co-owner or accountant can download statement PDFs here.</div>
+                    <div class="vy-line-sub">Your co-owner or accountant can download statement PDFs here.</div>
                 @endownercan
-            </section>
-
-            {{-- Tax & VAT summary — HONEST-DEFER (Vyrobel does not compute VAT; no fabricated figure, #39) --}}
-            <section class="vy-card vy-rep-vat vy-fade" style="animation-delay:.17s">
-                <div style="display:flex;align-items:center;gap:8px">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-                    <h2 class="vy-card-title">Tax &amp; VAT summary</h2>
-                </div>
-                <div style="margin-top:10px;font-size:12.5px;color:var(--vy-muted);line-height:1.7">
-                    Vyrobel doesn't compute or file your VAT — the rates and bases depend on your jurisdiction and registration.
-                    Your <strong style="color:var(--vy-ink)">annual tax summary</strong> gives your accountant the real earnings
-                    figures for the year; VAT is filed by you or your accountant.
-                </div>
-                @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
-                    <a href="{{ route('owner.tax.annual', (int) now()->year) }}" class="vy-btn vy-btn--ghost" style="margin-top:12px;padding:6px 13px;font-size:12.5px">Annual tax summary · PDF</a>
-                @endownercan
-                <a href="{{ route('owner.tax') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600;display:inline-block;margin-top:10px">Tax center →</a>
-            </section>
-
-            {{-- Notifications — the REAL self-scoped feed (never fabricated rows) --}}
-            <section class="vy-card vy-fade" style="animation-delay:.2s">
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                    <span class="vy-eyebrow">Notifications</span>
-                    <a href="{{ route('owner.notifications') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">All →</a>
-                </div>
-                @forelse ($notifications['items'] as $n)
-                    <div class="vy-rep-note">
-                        <span style="flex:none;width:7px;height:7px;border-radius:50%;background:{{ $n['read'] ? 'rgba(120,70,40,.2)' : 'var(--vy-accent)' }};margin-top:5px"></span>
-                        <div>
-                            <div style="font-weight:600">{{ $n['title'] }}</div>
-                            @if ($n['context'])<div class="vy-line-sub">{{ $n['context'] }}</div>@endif
-                            @if ($n['when'])<div style="font-size:11px;color:#A69A92;margin-top:2px">{{ $n['when'] }}</div>@endif
-                        </div>
-                    </div>
-                @empty
-                    <div class="vy-empty" style="margin-top:10px">You're all caught up.</div>
-                @endforelse
             </section>
         </div>
     </div>
+
+    {{-- ── Tax & VAT summary — full-width; HONEST-DEFER (Vyrobel does not compute VAT; no fabricated figure, #39).
+         GATE 2 matches the wireframe's fuller design without materialising any VAT figure / filing toggle. ── --}}
+    <section class="vy-card vy-rep-vat vy-fade" style="animation-delay:.17s">
+        <div style="display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+            <h2 class="vy-card-title">Tax &amp; VAT summary</h2>
+        </div>
+        <div style="margin-top:10px;font-size:12.5px;color:var(--vy-muted);line-height:1.7;max-width:680px">
+            Vyrobel doesn't compute or file your VAT — the rates and bases depend on your jurisdiction and registration.
+            Your <strong style="color:var(--vy-ink)">annual tax summary</strong> gives your accountant the real earnings
+            figures for the year; VAT is filed by you or your accountant.
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;margin-top:12px;flex-wrap:wrap">
+            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
+                <a href="{{ route('owner.tax.annual', (int) $activeRange['start']->year) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px">Annual tax summary · PDF</a>
+            @endownercan
+            <a href="{{ route('owner.tax') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Tax center →</a>
+        </div>
+    </section>
     @endif
 </x-owner.shell>
