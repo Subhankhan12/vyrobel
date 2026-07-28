@@ -5,11 +5,17 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
 use App\Models\Payout;
+use App\Models\PayoutMethod;
 use App\Models\Scopes\OwnerScope;
 use App\Services\OwnerPortalService;
+use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerNextPayout;
+use App\Support\Owner\OwnerTeamRole;
+use App\Support\Payouts\Iban;
 use App\Support\Payouts\RailLabel;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -56,6 +62,9 @@ class OwnerPayouts extends Component
         $byId = $statements->keyBy('id');
         $focus = $payouts->first(fn (Payout $p): bool => $p->status === 'pending') ?? $payouts->first();
 
+        $ctx = app(OwnerContext::class);
+        $rail = OwnerNextPayout::rail($ctx);   // {iban_masked (CAP_PAYOUT only), paused (the real tax-hold)}
+
         return view('livewire.owner.payouts', [
             'viewer' => $this->viewer(),
             'currency' => $currency,
@@ -66,7 +75,82 @@ class OwnerPayouts extends Component
             'lifecycle' => $this->lifecycle($focus),
             'statuses' => $payouts->map(fn (Payout $p): string => (string) $p->status)->unique()->sort()->values()->all(),
             'years' => $this->distinctYears($payouts),
+            // Exact-match additions — all REAL / honest (never a fabricated hold, IBAN, or schedule).
+            'hold' => $this->holdBanner($rail, $focus),
+            'payoutAccount' => $this->payoutAccountCard($ctx, $rail),
+            'preferences' => $this->preferences($ctx, $currency),
+            'canManagePayout' => $ctx->can(OwnerTeamRole::CAP_PAYOUT),
         ]);
+    }
+
+    /**
+     * The on-hold banner reflects the ONLY real hold: a PENDING payout held by the tax-hold (no tax details on
+     * file). The wireframe's "verification pending" bank-verification hold is account-gated + NOT modelled, so it
+     * is never faked — the banner shows only the real reason, or nothing. Null → no banner (no real hold).
+     *
+     * @param  array{iban_masked: string|null, paused: bool}  $rail
+     * @return array<string, string>|null
+     */
+    private function holdBanner(array $rail, ?Payout $focus): ?array
+    {
+        if (! $rail['paused'] || ! $focus instanceof Payout || $focus->status !== 'pending') {
+            return null;
+        }
+
+        return [
+            'amount_display' => $this->money((int) $focus->amount_minor, (string) $focus->currency),
+            'reason' => 'We’re holding this payout until your tax details are on file.',
+            'cta_label' => 'Add tax details',
+            'cta_route' => route('owner.tax'),
+        ];
+    }
+
+    /**
+     * The payout-account card — the owner's REAL default bank account. The IBAN is CO-OWNER ONLY (#28): a
+     * non-payout role (accountant / view-only) sees a generic "Bank transfer" with NO account number. No method
+     * yet → an honest "add an account" state (never a fabricated account).
+     *
+     * @param  array{iban_masked: string|null, paused: bool}  $rail
+     * @return array<string, mixed>
+     */
+    private function payoutAccountCard(OwnerContext $ctx, array $rail): array
+    {
+        $canManage = $ctx->can(OwnerTeamRole::CAP_PAYOUT);
+        $method = $canManage ? PayoutMethod::query()->orderByDesc('is_default')->first() : null;
+
+        return [
+            'can_manage' => $canManage,
+            'has_method' => $method instanceof PayoutMethod,
+            'label' => $method instanceof PayoutMethod
+                ? (((string) $method->label) !== '' ? (string) $method->label : 'Bank account')
+                : null,
+            'iban_masked' => $rail['iban_masked'],   // masked or null, by capability (#28)
+            'country' => $method instanceof PayoutMethod ? Iban::nameForCode((string) $method->iban_country) : null,
+        ];
+    }
+
+    /**
+     * The owner's REAL payout preferences (or the honest defaults when none is set yet — no row is written until
+     * the owner saves). A PREFERENCE, not a schedule: the view labels it so and never promises a date (#39).
+     *
+     * @return array<string, mixed>
+     */
+    private function preferences(OwnerContext $ctx, string $currency): array
+    {
+        $pref = OwnerPayoutPreference::query()->first();   // owner-scoped; null → defaults
+        $data = $pref instanceof OwnerPayoutPreference
+            ? ['frequency' => $pref->frequency, 'payout_day' => $pref->payout_day, 'minimum_minor' => $pref->minimum_minor, 'paused' => $pref->paused]
+            : OwnerPayoutPreference::defaults();
+
+        return [
+            'can_manage' => $ctx->can(OwnerTeamRole::CAP_PAYOUT),
+            'frequency' => $data['frequency'],
+            'frequency_label' => OwnerPayoutPreference::frequencyLabel($data['frequency']),
+            'payout_day' => $data['payout_day'],
+            'minimum_minor' => $data['minimum_minor'],
+            'minimum_display' => $data['minimum_minor'] > 0 ? $this->money($data['minimum_minor'], $currency) : 'None',
+            'paused' => $data['paused'],
+        ];
     }
 
     /**

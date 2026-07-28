@@ -72,6 +72,8 @@ use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerConnectController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerPayoutMethodController;
+use App\Http\Controllers\Owner\OwnerPayoutPreferenceController;
+use App\Http\Controllers\Owner\OwnerPayoutsExportController;
 use App\Http\Controllers\Owner\OwnerProfileController;
 use App\Http\Controllers\Owner\OwnerRateController;
 use App\Http\Controllers\Owner\OwnerRemittancePdfController;
@@ -721,6 +723,8 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         // (which would resolve {statement}="history" → a 404). Optional ?year= clips the set (never widens it).
         Route::get('/statement-history/csv', [OwnerStatementHistoryExportController::class, 'csv'])->name('statements.history.csv');
         Route::get('/statement-history/pdf', [OwnerStatementHistoryExportController::class, 'pdf'])->name('statements.history.pdf');
+        // Owner Payouts exact-match — the payout-history CSV (owner-scoped; no guest data; real payout states).
+        Route::get('/payouts/export', [OwnerPayoutsExportController::class, 'download'])->name('payouts.export');
     });
     // Design pass · Screen 3 — owner payouts (owner-scoped; new page for the certified Payout backend).
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');
@@ -792,6 +796,9 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         Route::post('/payout-method', [OwnerPayoutMethodController::class, 'store'])->name('payout-method.add');
         Route::post('/payout-method/{method}/default', [OwnerPayoutMethodController::class, 'setDefault'])->name('payout-method.default');
         Route::delete('/payout-method/{method}', [OwnerPayoutMethodController::class, 'destroy'])->name('payout-method.remove');
+        // Owner Payouts exact-match — the STATED payout preferences (frequency · day · minimum · pause). CO-OWNER
+        // ONLY ($capPayout, #28/#42), a controller route (#20). A PREFERENCE, never a schedule/money-movement (#39).
+        Route::post('/payouts/preferences', [OwnerPayoutPreferenceController::class, 'save'])->name('payouts.preferences');
     });
     // Phase 2 · Sub-gate 6 — Add a unit is an owner REQUEST (self-only, owner-scoped), NOT direct creation: a new
     // unit changes the operator's billable inventory, so the operator reviews the request and creates the real

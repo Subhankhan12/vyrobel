@@ -19,6 +19,7 @@ use App\Models\Owner;
 use App\Models\OwnerMonthlyTarget;
 use App\Models\OwnerTeamInvite;
 use App\Models\OwnerUser;
+use App\Models\PayoutMethod;
 use App\Models\Plan;
 use App\Models\PromoCode;
 use App\Models\Property;
@@ -688,6 +689,22 @@ class DemoSeeder extends Seeder
             'effective_from' => '2026-01-01',
             'effective_to' => null,
             'status' => 'active',
+        ]);
+
+        // DEMO ONLY — a real, valid default payout account (so the Payouts / Payout-Method / Statement pages demo
+        // a real masked IBAN — #28, never the full number). A genuine mod-97-valid IBAN, encrypted at rest; the
+        // display only ever shows ···1000. NO tax details are seeded (below), so the tax-hold "Paused" + the
+        // "Add tax details" attention stay — only the "Confirm your payout bank account" attention resolves.
+        PayoutMethod::create([
+            'organization_id' => $ownerParty->organization_id,
+            'owner_id' => $ownerParty->id,
+            'label' => 'Revolut Business',
+            'account_holder' => 'Demo Owner',
+            'iban' => 'LT121000011101001000',
+            'iban_last4' => '1000',
+            'iban_country' => 'LT',
+            'currency' => 'EUR',
+            'is_default' => true,
         ]);
 
         // A second apartment stay so the statement aggregates more than one booking (real, via services).
