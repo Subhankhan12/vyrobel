@@ -6,6 +6,36 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v8) · owner SETTINGS HUB exact-match (#62). This block SUPERSEDES every
+> block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
+> `docs/DECISIONS.md`.**
+>
+> **The owner-page exact-match track reached its largest surface: the owner Settings HUB (`/owner/settings`) — the
+> 1,136-line wireframe's 13 sections (`docs/OWNER-SETTINGS-AUDIT.md`, DECISIONS 2026-07-28 #62, DIVERGENCE row 144).**
+> A HUB: MOST sections REUSE features already built (anti-drift, not rebuilt); honest where account-gated. Built in two
+> gated section-groups.
+> - **GATE 1 — identity & money (`7981030`):** Hero (derived completeness + real stats) · Profile (`OwnerAccountController`)
+>   · Business & tax (`owner.settings.update` + the ONE `owner.tax.save`) · **Billing** (the REAL management-fee rate via a
+>   new shared `OwnerCommissionRate` — 18%, NEVER the wireframe's 15%; the owner has no card/subscription → honest fee view,
+>   no fabricated card) · Payout account (real masked IBAN, `OwnerNextPayout`, CAP_PAYOUT #28) · Profile completeness
+>   (derived). `OwnerReports` refactored onto the shared `OwnerCommissionRate` (one definition, two surfaces).
+> - **GATE 2 — preferences & access:** Language & region (locale real; currency/timezone the property's, read-only) ·
+>   Notifications (reuse `owner.notification-preferences` — **in-app + email real; SMS + push honest-pending**, no provider)
+>   · Connected channels (**Direct live; OTA honest-Pending**, never a fake "Connected") · Team access (summary + the reused
+>   `owner.team`) · Appearance & motion (**real reduce-motion**; theme soon) · Data export (real CAP_EXPORTS exports #28).
+> - **Verified:** `OwnerSettingsTest` 5→7 + `OwnerAccountProfileTest` updated; PHPStan **L5 = 0**; Pint clean; the whole
+>   13-section hub browser-verified (18% fee, ···· 1000 IBAN, OTA Pending, SMS/Push soon, real team/exports, no raw Blade).
+>   🔒 masked IBAN never full + CAP_PAYOUT #28, real fee rate #17, controller-route writes #20, exports #42, nothing
+>   fabricated (no fake channel-sync / SMS / push / card) #39/#37. **Invariants #1–62.**
+>
+> **Owner exact-match track shipped: Overview (#54) · My Units + Add Unit (#55) · Bookings + PDF (#56) · Statement + PDF
+> (#57) · Payouts + Payout Method (#58) · Balance + Expenses (#59) · Block Calendar + Documents (#60) · Reports + Insights
+> (#61) · Settings hub (#62).** Remaining built-but-not-yet-exact-matched: EARNINGS — Tax-center · MANAGE —
+> Rates/Reviews/Agreement/Messages · ACCOUNT — Security/Team (their dedicated pages) · Help. Everything else below is
+> current; no launch-blocking build remains.
+>
+> ---
+>
 > ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v7) · owner REPORTS + INSIGHTS exact-match (#61). This block SUPERSEDES
 > every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
 > `docs/DECISIONS.md`.**

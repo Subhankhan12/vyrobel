@@ -12,6 +12,8 @@ use App\Models\Owner;
 use App\Models\OwnerStatement;
 use App\Models\OwnerUser;
 use App\Models\PayoutMethod;
+use App\Models\Unit;
+use App\Services\OwnerPortalService;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
@@ -106,7 +108,89 @@ class OwnerSettings extends Component
                 'invoices' => OwnerStatement::query()->whereIn('status', ['finalized', 'paid'])->count(),
             ],
             'completeness' => $completeness['items'],
+            // ── GATE 2 (preferences & access) ──
+            'region' => $this->region(),
+            'notif' => [
+                // The REAL notification channels are in-app + email; SMS + Push are NOT built (no provider) →
+                // labelled honest-pending, never a fake toggle that notifies via an unwired channel (#39).
+                'real' => ['In-app', 'Email'],
+                'pending' => ['SMS', 'Push'],
+            ],
+            'channels' => [
+                // Direct is the ONE real, always-on channel. OTA sync is ACCOUNT-GATED (Channex stub) → the
+                // rows are honest-labelled "pending", NEVER a fake "Connected" that syncs nothing (#37/#39).
+                ['name' => 'Direct · Vyrobel', 'desc' => 'Your Vyrobel booking page & widget', 'status' => 'live'],
+                ['name' => 'Airbnb', 'desc' => 'Sync listings, rates & bookings', 'status' => 'pending'],
+                ['name' => 'Booking.com', 'desc' => 'Sync listings, rates & bookings', 'status' => 'pending'],
+                ['name' => 'Vrbo', 'desc' => 'Sync listings, rates & bookings', 'status' => 'pending'],
+            ],
+            'team' => [
+                'count' => $this->teamCount($ownerCtx),
+                'members' => $this->teamMembers($ownerCtx, $user),
+                'can_manage' => $isPrimaryOwner,
+            ],
+            'exports' => $canPayout || $ownerCtx->can(OwnerTeamRole::CAP_EXPORTS) ? [
+                ['label' => 'Bookings (CSV)', 'href' => route('owner.bookings.export')],
+                ['label' => 'Statement history (CSV)', 'href' => route('owner.statements.history.csv')],
+                ['label' => 'Full account data (JSON)', 'href' => route('owner.security.export')],
+            ] : [],
         ]);
+    }
+
+    /**
+     * Language & region — the ONE real, per-user editable field is `locale` (saved via owner.account.update).
+     * Currency + timezone are the PROPERTY's real values (read-only here — set by the operator, not per-owner);
+     * date format follows the locale. Nothing is a fake writable control (#39).
+     *
+     * @return list<array{label: string, value: string, editable: bool}>
+     */
+    private function region(): array
+    {
+        /** @var ?Unit $unit */
+        $unit = app(OwnerPortalService::class)->units()->first();
+        $property = $unit?->property;
+
+        return [
+            ['label' => 'Currency', 'value' => $property !== null ? (string) $property->currency : 'EUR', 'editable' => false],
+            ['label' => 'Timezone', 'value' => $property !== null ? (string) $property->timezone : 'Europe/Lisbon', 'editable' => false],
+        ];
+    }
+
+    /**
+     * A read-only summary of the owner team (active sub-users + the primary owner) for the Settings hub — the
+     * full invite/role management lives on the dedicated {@see OwnerTeam} page (reused, anti-drift). Name-only.
+     *
+     * @return list<array{initials: string, name: string, role: string, you: bool}>
+     */
+    private function teamMembers(OwnerContext $ownerCtx, mixed $user): array
+    {
+        if (! $ownerCtx->active() || $ownerCtx->ownerIds() === []) {
+            return [];
+        }
+
+        $out = [[
+            'initials' => $this->viewer()['initials'],
+            'name' => (string) $user->name,
+            'role' => 'Account owner',
+            'you' => true,
+        ]];
+
+        OwnerUser::query()
+            ->whereIn('owner_id', $ownerCtx->ownerIds())
+            ->where('status', 'active')
+            ->with('user')
+            ->get()
+            ->each(function (OwnerUser $m) use (&$out, $user): void {
+                $name = (string) $m->user->name;   // active members always have a user (with('user') loaded)
+                $out[] = [
+                    'initials' => mb_strtoupper(mb_substr($name, 0, 1)),
+                    'name' => $name,
+                    'role' => OwnerTeamRole::label((string) $m->role),
+                    'you' => (string) $m->user->getKey() === (string) $user->getKey(),
+                ];
+            });
+
+        return $out;
     }
 
     /**

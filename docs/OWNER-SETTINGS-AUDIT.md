@@ -1,6 +1,6 @@
 # Owner Settings — wireframe-fidelity audit (the settings HUB)
 
-**Date:** 2026-07-28 · **Author:** build session · **Status:** PHASE 1 (read-only) complete → proceeding to the gated build.
+**Date:** 2026-07-28 · **Author:** build session · **Status:** ✅ **BUILT — invariant #62** (GATE 1 identity & money `7981030` + GATE 2 preferences & access). The full 13-section hub shipped wireframe-exact, each section REUSING its real backend (anti-drift) or presented honestly: Profile / Business & tax / Team / Notifications / Data export / Security / Payout-IBAN all reuse existing features; billing shows the REAL management-fee rate (18%, via the shared `OwnerCommissionRate` — never 15%) with no owner card; Connected channels = Direct live + OTA honest-pending (no fake "Connected"); Notifications = in-app + email real + SMS/Push honest-pending; Language/region + Appearance honest. Suite green; PHPStan L5 (0); Pint clean; browser-verified. See DECISIONS 2026-07-28 #62 + DIVERGENCE row 144. (The PHASE-1 analysis below is preserved as the audit of record.)
 
 Founder brief: make the LIVE owner **Settings** (`/owner/settings`) match the decoded `Owner Settings.html` EXACTLY as a
 HUB aggregating the many already-real owner features, HONEST where account-gated. The largest owner page (~13 sections);

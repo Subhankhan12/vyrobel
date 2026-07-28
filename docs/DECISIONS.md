@@ -4667,3 +4667,39 @@ data. **D-RI-4** — the proposals callout is an honest Rates link, not a fake p
 the stateful/unbacked bits are HONEST (VAT deferred, vs-LY omitted, proposals → a real Rates link) with NOTHING fabricated
 (#39). `OwnerAnalyticsTest` 4→7 (gross-to-net at a distinctive real 22% rate; honest VAT; export gating; real insights +
 honest rates link). Suite **1084/8446** green; PHPStan L5 (0); Pint clean; both browser-verified. **Invariants #1–61.**
+
+## 2026-07-28 — Owner-page exact-match: **Settings HUB** (invariant #62)
+
+The owner-page exact-match track reached the largest page: the Settings HUB (`docs/OWNER-SETTINGS-AUDIT.md` = the PHASE 1
+per-section classification + reuse map). The 1,136-line wireframe's 13 sections were rebuilt EXACTLY — **most REUSE
+features already built (anti-drift), none rebuilt** — HONEST where account-gated. Built in two gated section-groups.
+
+**GATE 1 — Identity & money (`7981030`).** Hero (DERIVED completeness ring + real stats channels/team/invoices) · Profile
+(reuse `OwnerAccountController` — avatar/name/locale/email-verify, works for sub-users) · Business & tax (reuse
+`owner.settings.update` [primary-owner #42] + an inline `owner.tax.save` form — anti-drift, the same store as Tax Center +
+the remittance PDF) · Billing & invoices · Payout account (real masked IBAN, `OwnerNextPayout`, CAP_PAYOUT #28) · Profile
+completeness (a DERIVED checklist).
+- **⚠️ FEE RATE (D-SET-1):** the wireframe hardcodes "15%"; a new shared `App\Support\Owner\OwnerCommissionRate` reads the
+  REAL agreement rate (18% in the demo) — used by BOTH the Settings billing card and Reports' gross-to-net (one definition,
+  can't drift). `OwnerReports::commissionLabel()` refactored onto it.
+- **⚠️ BILLING (D-SET-2):** the OWNER has no Vyrobel card/subscription (that's the operator's Phase-7b billing) → an
+  honest management-fee view (the real rate, billed via statements) + the real statement PDFs as fee documents. NO
+  fabricated card/invoice (#39/#41).
+
+**GATE 2 — Preferences & access.** Language & region (locale real via Profile; currency/timezone the property's,
+read-only) · Notifications (reuse `owner.notification-preferences` — in-app + email are the REAL channels; **SMS + Push are
+honest-pending**, no provider #39) · Connected channels (**Direct is the one live channel; OTA is honest-labelled Pending**
+— never a fake "Connected" that syncs nothing #37/#39) · Team access (a real summary + link to the reused `owner.team`) ·
+Appearance & motion (**Reduce motion is REAL** — the layout honors `prefers-reduced-motion`; theme honest-soon) · Data
+export (the real CAP_EXPORTS-gated exports #28).
+
+**Decisions (founder-guidance-aligned; no new prompts needed).** **D-SET-1** — render the REAL agreement commission rate,
+never the wireframe's 15% (shared helper). **D-SET-2** — billing is the honest management fee, no owner card. **D-SET-3** —
+SMS/Push notifications honest-pending (no provider). **D-SET-4** — OTA channels honest-Pending, Direct live, never a fake
+"Connected". **D-SET-5** — Team / Notifications management REUSE the dedicated pages (summary + link, anti-drift).
+
+**Invariant #62 — Owner Settings hub exact-match:** the 13-section hub matches the wireframe, each section REUSING its real
+backend (Profile/tax/team/exports/security/payout-IBAN/notifications) or HONEST where gated (OTA channels / SMS / push /
+owner card / theme — labelled, never faked #39/#37); the REAL fee rate (shared `OwnerCommissionRate`, #17); masked IBAN
+never full + CAP_PAYOUT (#28); every write a guarded controller POST (#20). `OwnerSettingsTest` 5→7 + `OwnerAccountProfileTest`
+updated. Suite **1086/8497** green; PHPStan L5 (0); Pint clean; browser-verified. **Invariants #1–62.**

@@ -123,6 +123,36 @@ it('shows the REAL management-fee rate, a masked payout IBAN, and no fabricated 
     assertNoRawBlade($res);
 });
 
+// ── 7. GATE 2 — preferences & access wired honestly (no fake channel-sync / SMS / push) ──────────
+it('renders the preferences & access sections honestly and reuses the real backends', function () {
+    $s = seedScenario(1);
+    $a = inboxOwner($s, 'Amara Okafor', 0);   // primary owner → CAP_EXPORTS / CAP_PAYOUT
+
+    $res = $this->actingAs($a['user'])->get('/owner/settings')->assertOk()
+        // Connected channels — Direct is REAL/always-on; OTA is honest-pending, NEVER a fake "Connected"
+        ->assertSee('Connected channels')
+        ->assertSee('Always on')
+        ->assertSee('Pending')
+        ->assertSee('never show a channel as connected')
+        ->assertDontSee('Disconnect')                              // no fake connect/disconnect that syncs nothing
+        // Notifications — in-app + email are REAL; SMS + push honest-pending (no provider); reuse the real page
+        ->assertSee('Notifications')
+        ->assertSee('SMS · soon')
+        ->assertSee('Push · soon')
+        ->assertSee(route('owner.notification-preferences'), false)
+        // Team access — a real summary + link to the dedicated owner-team page (reused, anti-drift)
+        ->assertSee('Team access')
+        ->assertSee(route('owner.team'), false)
+        // Data export — the REAL CAP_EXPORTS-gated exports (owner-scoped #28)
+        ->assertSee('Data export')
+        ->assertSee(route('owner.bookings.export'), false)
+        ->assertSee(route('owner.security.export'), false)
+        // Appearance & motion — reduce-motion is REAL (respects the device)
+        ->assertSee('Follows your device');
+
+    assertNoRawBlade($res);
+});
+
 // ── 5. #42 — the owner-party write is PRIMARY-OWNER-ONLY; a non-primary-owner is refused ─────────
 it('forbids the owner-party (business) write to a user who is not the primary owner', function () {
     $s = seedScenario(1);

@@ -224,6 +224,82 @@
                     <a href="{{ route('owner.agreement') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">Your agreement →</a>
                 </div>
             </div>
+
+            {{-- Language & region — locale is editable in Profile; currency/timezone are the property's (honest) --}}
+            <div class="vy-card vy-fade">
+                <h2 class="vy-set-h2">Language &amp; region</h2>
+                <p class="vy-set-sub">Your display preferences.</p>
+                <div class="vy-set-fee">
+                    <span>Language</span>
+                    <span style="font-weight:600">{{ $localeOptions[$account['locale']] ?? 'English' }}</span>
+                </div>
+                @foreach ($region as $r)
+                    <div class="vy-set-fee">
+                        <span>{{ $r['label'] }}</span>
+                        <span class="vy-muted">{{ $r['value'] }}</span>
+                    </div>
+                @endforeach
+                <p style="font-size:11px;color:var(--vy-faint);margin:12px 0 0">Change your language in Profile above · currency &amp; timezone follow your property.</p>
+            </div>
+
+            {{-- Notifications — REAL in-app + email; SMS + Push honest-pending (no provider). Full per-event
+                 control lives on the dedicated prefs page (reused — one store, anti-drift). --}}
+            <div class="vy-card vy-fade">
+                <h2 class="vy-set-h2">Notifications</h2>
+                <p class="vy-set-sub">How you're notified for each event.</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+                    @foreach ($notif['real'] as $ch)
+                        <span class="vy-status vy-status--paid"><span class="vy-dot"></span>{{ $ch }}</span>
+                    @endforeach
+                    @foreach ($notif['pending'] as $ch)
+                        <span class="vy-status vy-status--draft"><span class="vy-dot"></span>{{ $ch }} · soon</span>
+                    @endforeach
+                </div>
+                <p style="font-size:12px;color:var(--vy-muted);margin:0 0 12px">In-app and email are live per event. SMS and push arrive with a messaging provider.</p>
+                <a href="{{ route('owner.notification-preferences') }}" class="vy-btn" style="{{ $ghost }}">Manage notifications</a>
+            </div>
+
+            {{-- Connected channels — Direct is REAL/always-on; OTA sync is account-gated → honest-pending,
+                 never a fake "Connected" that syncs nothing (#37/#39). --}}
+            <div class="vy-card vy-fade">
+                <h2 class="vy-set-h2">Connected channels</h2>
+                <p class="vy-set-sub">Where your units are listed.</p>
+                @foreach ($channels as $c)
+                    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--vy-hairline)">
+                        <span style="flex:none;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:{{ $c['status'] === 'live' ? 'var(--vy-grad)' : 'rgba(120,70,40,.1)' }};color:{{ $c['status'] === 'live' ? '#fff' : 'var(--vy-muted)' }};font-family:var(--vy-display);font-weight:600;font-size:14px">{{ mb_substr($c['name'], 0, 1) }}</span>
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:13.5px;font-weight:600">{{ $c['name'] }}</div>
+                            <div class="vy-line-sub">{{ $c['desc'] }}</div>
+                        </div>
+                        @if ($c['status'] === 'live')
+                            <span class="vy-status vy-status--paid"><span class="vy-dot"></span>Always on</span>
+                        @else
+                            <span class="vy-status vy-status--draft"><span class="vy-dot"></span>Pending</span>
+                        @endif
+                    </div>
+                @endforeach
+                <p style="font-size:11px;color:var(--vy-faint);margin:12px 0 0">Direct bookings are always on. OTA sync activates with the channel integration — we’ll never show a channel as connected until it truly syncs.</p>
+            </div>
+
+            {{-- Team access — a read-only summary; full invite/role management on the dedicated page (reused) --}}
+            <div class="vy-card vy-fade">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                    <h2 class="vy-set-h2" style="margin:0">Team access <span style="color:var(--vy-faint);font-weight:500">· {{ $team['count'] }}</span></h2>
+                    @if ($team['can_manage'])
+                        <a href="{{ route('owner.team') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">Manage team →</a>
+                    @endif
+                </div>
+                <p class="vy-set-sub">People who can access this owner account. Each role sees only what it needs.</p>
+                @foreach ($team['members'] as $m)
+                    <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid var(--vy-hairline)">
+                        <span style="flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(140deg,#F0A57A,#D9662E);color:#fff;font-size:12px;font-weight:600">{{ $m['initials'] }}</span>
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:13px;font-weight:600">{{ $m['name'] }}@if ($m['you'])<span style="color:var(--vy-faint);font-weight:500"> · You</span>@endif</div>
+                        </div>
+                        <span class="vy-muted" style="font-size:12px">{{ $m['role'] }}</span>
+                    </div>
+                @endforeach
+            </div>
         </div>
 
         {{-- ══ RIGHT ══ --}}
@@ -244,6 +320,36 @@
                 @endif
                 @if ($canPayout)
                     <a href="{{ route('owner.payout-method') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none;display:inline-block;margin-top:12px">Manage in Payouts →</a>
+                @endif
+            </div>
+
+            {{-- Appearance & motion — Reduce motion is REAL (the layout honors prefers-reduced-motion) --}}
+            <div class="vy-card vy-fade">
+                <h2 class="vy-set-h2">Appearance &amp; motion</h2>
+                <div class="vy-set-fee">
+                    <span>Theme</span>
+                    <span class="vy-muted">Light · dark theme soon</span>
+                </div>
+                <div class="vy-set-fee">
+                    <span>Reduce motion</span>
+                    <span class="vy-muted">Follows your device</span>
+                </div>
+                <p style="font-size:11px;color:var(--vy-faint);margin:12px 0 0">Animations pause automatically when your device asks to reduce motion.</p>
+            </div>
+
+            {{-- Data export — the REAL CAP_EXPORTS-gated exports (owner-scoped #28) --}}
+            <div class="vy-card vy-fade">
+                <h2 class="vy-set-h2">Data export</h2>
+                @if ($exports !== [])
+                    <p class="vy-set-sub">Download your own data — owner-scoped, no other party's.</p>
+                    @foreach ($exports as $x)
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--vy-hairline)">
+                            <span style="font-size:13px">{{ $x['label'] }}</span>
+                            <a href="{{ $x['href'] }}" class="vy-btn vy-btn--ghost" style="padding:4px 12px;font-size:12px">Download</a>
+                        </div>
+                    @endforeach
+                @else
+                    <p class="vy-set-sub" style="margin:0">Exports are available to the account owner and accountant.</p>
                 @endif
             </div>
 
