@@ -6,6 +6,39 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v3) · owner STATEMENT exact-match (page + PDF, #57). This block SUPERSEDES every
+> block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
+> `docs/DECISIONS.md`.**
+>
+> **The owner-page wireframe-exact-match track added its 4th surface: the owner Statement page + the downloadable
+> Statement PDF (`docs/OWNER-STATEMENT-AUDIT.md`, `DECISIONS.md` 2026-07-28, DIVERGENCE row 132 → RESTRUCTURED-exact).**
+> Both were rebuilt to their two decoded wireframes (`Owner Statement.html` = the app page; `Owner Statement PDF.html` =
+> the print document) EXACTLY, on REAL owner-scoped, reconciling data. **Two page refusals were STALE and are now REAL**
+> (their backends shipped in Overview #54 on a sibling surface): the **occupancy card + mini bar chart** (shared
+> `OwnerOccupancyTrend`) and the **masked payout IBAN** (shared `OwnerNextPayout`, CAP_PAYOUT-only). Also: the month
+> "jump to month" switcher, the plain-glass hero, the gross "N nights · M units" sublabel, a standalone Download-statement,
+> a **Statement-history Export CSV + a per-year Export PDF + a per-row PDF** (`owner.statements.history.*`, owner-scoped +
+> CAP_EXPORTS, `?year=` clips), and by-unit unit-name links. The **PDF** became the wireframe's letterhead statement —
+> real `billing_company`/`country` letterhead + OS-YYYY-MM ref + a net-payable dark headline + real **Occupancy/Nights/ADR**
+> stats + a 3-column breakdown + a **Performance-by-unit** table + a payout-note callout (IBAN CAP_PAYOUT-gated) + an
+> identity/email footer. **Anti-drift:** three shared helpers extracted — `OwnerNextPayout` + `OwnerOccupancyTrend` (from
+> `OwnerDashboard` #54, which now delegates) + `OwnerStatementBreakdown` (page + PDF share ONE per-unit split). **Honesty
+> held:** breakdown Σ==net + by-unit Σ==net (page)/gross (PDF) to the cent (#17); NO guest data on either surface (#28);
+> exports are CAP_EXPORTS controller routes, no `/livewire/update` (#20); the IBAN CAP_PAYOUT-only (#30); no "payment & ops
+> fees" line and no estimated payout date invented (#39). A **flagged demo statement history** (Apr–Aug 2026, real stays →
+> attribution → statements finalized in period order → paid) makes the page/Overview demo on a real shape; **September's
+> statement is unchanged (net €885.60)**. **Verified:** suite **1066 tests green** (`OwnerStatementViewTest` 5→9 +
+> `OwnerStatementPdfTest` 5→7); PHPStan **L5 = 0**; Pint clean; `migrate:fresh --seed` clean; browser-verified page + rendered
+> document vs the two wireframes; adversarial review on the full diff. **Invariants #1–57.**
+>
+> **The rest of the state below is current** — everything buildable is COMPLETE (tenant Phases 0–7 + polish; email + live
+> Stripe test-mode-proven; the Super Admin panel complete + audited). The owner-page exact-match track has now shipped
+> **Overview (#54) · My Units + Add Unit (#55) · Bookings + Booking-Summary PDF (#56) · Statement + Statement PDF (#57)**;
+> the remaining owner pages (EARNINGS — Payouts/Balance/Expenses/Tax-center · MANAGE — Reports/Insights/Rates/Reviews/
+> Agreement/Messages · ACCOUNT — Settings/Security/Team) are built + at-parity, the next candidates if the founder continues.
+>
+> ---
+>
 > ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v2, TOTAL-RECALL). This block SUPERSEDES every block below it (all kept as
 > historical detail). Fresh-session entry point: `docs/RESUME.md` → this block → `docs/DECISIONS.md`.**
 >

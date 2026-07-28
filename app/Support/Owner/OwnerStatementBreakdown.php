@@ -68,11 +68,14 @@ final class OwnerStatementBreakdown
             ];
         }
 
-        $totalNet = (int) $entries->sum(fn (OwnerLedgerEntry $e): int => $e->signedMinor());
+        // Net in the ledger's SOURCE currency — the same per-currency basis the per-unit nets use (a statement is
+        // single-currency by construction, so for the real case this equals Σ signedMinor / net_source_minor).
+        $totalNet = OwnerLedgerAttribution::netPerCurrency($entries)[$currency] ?? 0;
 
         // Half-open [period_start, period_end + 1 day) so the last day of the period is included.
         $start = CarbonImmutable::parse($s->period_start->toDateString());
         $end = CarbonImmutable::parse($s->period_end->toDateString())->addDay();
+        $periodStart = $s->period_start->toDateString();
 
         $units = [];
         $unattributed = null;
@@ -96,8 +99,14 @@ final class OwnerStatementBreakdown
 
             $unitIds[] = (string) $unitId;
 
-            // Per-unit gross = the unit's room_revenue credits; occupancy/nights from the shared metric layer.
-            $gross = (int) $rows->where('entry_type', 'room_revenue')->sum(fn (OwnerLedgerEntry $e): int => $e->signedMinor());
+            // Per-unit gross = the unit's IN-PERIOD room_revenue credits; occupancy/nights from the shared metric
+            // layer. A room_revenue line dated before period_start (or flagged prior_period_adjustment) is a
+            // carry-forward the engine buckets into ADJUSTMENTS, not gross — exclude it here too, so Σ per-unit
+            // gross == the statement's gross_minor by construction, even with a straggler.
+            $gross = (int) $rows
+                ->where('entry_type', 'room_revenue')
+                ->reject(fn (OwnerLedgerEntry $e): bool => $e->prior_period_adjustment === true || $e->service_date->toDateString() < $periodStart)
+                ->sum(fn (OwnerLedgerEntry $e): int => $e->signedMinor());
             $metrics = PerformanceMetrics::forOwnerUnits([(string) $unitId], $start, $end, $currency);
             // unit_id is set here (else-branch) and the FK is nullOnDelete, so the unit row exists.
             $unit = $rows->first()->unit;

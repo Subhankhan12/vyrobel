@@ -26,13 +26,13 @@ tenant apps (operator `/app` · owner `/owner` · guest `/guest`) + a public sto
 (`/signup`) on a certified multi-tenant backend, plus the **Super Admin platform panel (`/admin`)** — all built,
 styled, and browser-verified. Phases 0–7 (the whole tenant product) are done; Phase 8's two obtainable integrations
 (**production email** + **live Stripe**, all three seams) are lit up in test-mode/code-complete, needing only the
-founder's non-code cutovers. **Suite 1060 tests / 8207 assertions green · PHPStan L5 = 0 · Pint clean · `migrate:fresh --seed` clean ·
-Invariants #1–56.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super Admin panel is
+founder's non-code cutovers. **Suite 1066 tests green · PHPStan L5 = 0 · Pint clean · `migrate:fresh --seed` clean ·
+Invariants #1–57.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super Admin panel is
 audited (0 critical/0 P1) + production-ready. The active hands-on track is **owner-page wireframe-exact-match polish**:
-Overview + My Units + Add Unit **and now the Bookings page + Booking-Summary PDF are DONE + pushed** (`#54`/`#55`/`#56`;
-`docs/OWNER-BOOKINGS-AUDIT.md`, commits `b571555`+`f9da60d`). The remaining owner pages (Statements/Payouts/Balance/
-Expenses/Tax-center · Reports/Insights/Rates/Reviews/Agreement/Messages · Settings/Security/Team) are built + at-parity
-but **not yet exact-matched** — they are the next candidates if the founder continues this optional polish track.
+Overview + My Units + Add Unit + the Bookings page + Booking-Summary PDF **and now the Statement page + Statement PDF are
+DONE + pushed** (`#54`/`#55`/`#56`/`#57`; `docs/OWNER-STATEMENT-AUDIT.md`). The remaining owner pages (EARNINGS —
+Payouts/Balance/Expenses/Tax-center · MANAGE — Reports/Insights/Rates/Reviews/Agreement/Messages · ACCOUNT —
+Settings/Security/Team) are built + at-parity but **not yet exact-matched** — the next candidates if the founder continues.
 
 ## 3. Stack (locked)
 
@@ -65,17 +65,18 @@ Public storefront (no login): `/book/vyrobel-demo`. Self-signup (provisions a ne
 
 ## 6. The next action
 
-**No launch-blocking build remains.** The owner **Bookings page + Booking-Summary PDF exact-match is DONE + pushed**
-(`#56`, commits `b571555`+`f9da60d`; `docs/OWNER-BOOKINGS-AUDIT.md`). So the founder now chooses between two tracks:
+**No launch-blocking build remains.** The owner **Statement page + Statement PDF exact-match is DONE + pushed**
+(`#57`, `docs/OWNER-STATEMENT-AUDIT.md`; the 4th owner exact-match surface after Overview #54 / My Units + Add Unit #55 /
+Bookings + Booking-Summary PDF #56). So the founder now chooses between two tracks:
 
 **A) Continue the owner-page exact-match polish** (optional, NOT launch-blocking) — pick the next owner page and run the
 same discipline (decode the `dc-runtime` wireframe → GATE 1 design + real backends → GATE 2 any doc twin, per-gate commit,
 suite + PHPStan + Pint + browser-verify). Remaining, built-but-not-yet-exact-matched: **EARNINGS** —
-Statements/Payouts/Balance/Expenses/Tax-center · **MANAGE** — Reports/Insights/Rates/Reviews/Agreement/Messages ·
+Payouts/Balance/Expenses/Tax-center · **MANAGE** — Reports/Insights/Rates/Reviews/Agreement/Messages ·
 **ACCOUNT** — Settings(Profile)/Security/Team. Reuse the shared `<x-owner.shell>` + `--vy-*` tokens; all writes are
 `can:`-gated controller POSTs (never `/livewire/update`, #20); real data only (#39), guest name-only (#28), reconcile to
 the cent (#17). Prior "refused as fabrication" items are re-buildable REAL if a backend now makes them computable
-(the **stale-refusal re-verification** rule — see the Bookings audit).
+(the **stale-refusal re-verification** rule — the Statement gate reused it: occupancy + IBAN were stale refusals from #54).
 
 **B) Turn to LAUNCH** (the higher-leverage path):
 

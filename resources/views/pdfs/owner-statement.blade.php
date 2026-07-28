@@ -1,7 +1,10 @@
-{{-- Owner statement PDF (Demo-readiness · Part B · Step B1). PDF-SAFE: dompdf renders HTML4/CSS2.1, so
-     this is a table-based, inline-CSS branded document (NOT the app's frosted glass). DejaVu Sans is
-     dompdf's bundled Unicode font — it renders € and the U+2212 minus correctly. Every figure comes from
-     the real owner_statement_lines (which sum to the net) — no invented lines, reconciles to the cent. --}}
+{{-- Owner statement PDF (exact-match pass). PDF-SAFE: dompdf renders HTML4/CSS2.1, so this is a table-based,
+     inline-CSS branded LETTERHEAD document (NOT the app's frosted glass). DejaVu Sans renders € + the U+2212 minus.
+     Every figure comes from the real owner_statement_lines (which sum to the net) + the shared OwnerStatementBreakdown
+     (Σ per-unit gross == the statement gross) — reconciles to the cent (#17). No guest data (#28); no invented
+     "payment & ops fees" line (#39). The masked IBAN appears only when the exporter is payout-capable (set upstream).
+     Logic-free by design — all strings are composed in OwnerStatementDocument (a top-of-file @php once dropped the
+     <head> at compile time). --}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,78 +12,142 @@
     <style>
         * { font-family: 'DejaVu Sans', sans-serif; }
         body { margin: 0; color: #2B2320; font-size: 12px; }
-        .wrap { padding: 36px 40px; }
+        .wrap { padding: 34px 40px; }
         .brand-mark { display: inline-block; width: 30px; height: 30px; background-color: #C2410C; color: #fff; text-align: center; font-size: 18px; font-weight: bold; border-radius: 7px; }
         .muted { color: #8A8079; }
         .eyebrow { color: #C2410C; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
-        h1 { font-size: 20px; margin: 2px 0 0; }
+        h1 { font-size: 26px; margin: 14px 0 0; letter-spacing: -0.5px; }
+        .sub { color: #8A8079; margin-top: 5px; font-size: 11.5px; }
         .hdr td { vertical-align: top; }
-        .meta { width: 100%; border-collapse: collapse; margin: 24px 0 6px; }
-        .meta td { padding: 4px 0; font-size: 12px; }
-        .meta .k { color: #8A8079; width: 120px; }
-        .prov { display: inline-block; font-size: 8.5px; font-weight: bold; text-transform: uppercase; color: #B26A08; background-color: #FBEFD8; border-radius: 8px; padding: 1px 7px; }
-        table.lines { width: 100%; border-collapse: collapse; margin-top: 14px; }
-        table.lines th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #8A8079; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
-        table.lines th.r, table.lines td.r { text-align: right; }
-        table.lines td { padding: 9px 4px; font-size: 12.5px; border-bottom: 1px solid #F2E9E1; }
-        table.lines tr.net td { border-top: 2px solid #C2410C; border-bottom: none; font-weight: bold; font-size: 14px; padding-top: 12px; }
+
+        /* Net-payable headline band (dark left + light-peach stats right) */
+        .band { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; }
+        .band .dark { background-color: #2A211C; color: #fff; padding: 18px 20px; border-radius: 12px 0 0 12px; width: 56%; vertical-align: top; }
+        .band .dark .k { color: #C9B8AC; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        .band .dark .v { font-size: 27px; font-weight: bold; margin: 5px 0 6px; }
+        .band .dark .m { color: #B9ABA0; font-size: 10.5px; }
+        .band .stats { background-color: #FCF3EC; padding: 14px 20px; border-radius: 0 12px 12px 0; vertical-align: middle; }
+        .band .stats table { width: 100%; border-collapse: collapse; }
+        .band .stats td { padding: 5px 0; font-size: 12px; }
+        .band .stats td.r { text-align: right; font-weight: bold; }
+
+        h2 { font-size: 14px; margin: 26px 0 0; }
+        table.grid { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        table.grid th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #8A8079; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
+        table.grid th.r, table.grid td.r { text-align: right; }
+        table.grid td { padding: 9px 4px; font-size: 12.5px; border-bottom: 1px solid #F2E9E1; }
+        table.grid td .d { color: #8A8079; }
+        table.grid tr.net td { border-top: 2px solid #C2410C; border-bottom: none; font-weight: bold; font-size: 14px; padding-top: 12px; }
+        table.grid tr.net td.r { color: #C2410C; }
+        table.grid tr.tot td { border-top: 1.5px solid #E4D6CB; border-bottom: none; font-weight: bold; padding-top: 11px; }
         .neg { color: #8A8079; }
-        .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #A69A92; }
-        .reconcile { margin-top: 6px; font-size: 11px; color: #4A4038; }
+        .u-name { font-weight: bold; }
+        .u-kind { color: #8A8079; font-weight: normal; }
+
+        .callout { margin-top: 24px; background-color: #FBF0E8; border-left: 3px solid #C2410C; border-radius: 0 10px 10px 0; padding: 13px 16px; font-size: 11.5px; color: #5A4A40; line-height: 1.6; }
+        .callout b { color: #C2410C; }
+        .foot { margin-top: 22px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #A69A92; }
+        .foot td { font-size: 10px; color: #A69A92; }
     </style>
 </head>
 <body>
     <div class="wrap">
-        {{-- Brand / title header --}}
+        {{-- Letterhead --}}
         <table class="hdr" width="100%">
             <tr>
                 <td>
                     <span class="brand-mark">V</span>
-                    <span style="font-size:16px; font-weight:bold; padding-left:6px;">Vyrobel</span>
-                    <div class="muted" style="margin-top:6px; font-size:11px;">{{ $operator }}</div>
+                    <span style="font-size:16px; font-weight:bold; padding-left:6px;">{{ $company }}</span>
+                    <div class="muted" style="margin-top:6px; font-size:11px;">@if ($country){{ $country }} · @endif managed with Vyrobel</div>
                 </td>
                 <td style="text-align:right;">
                     <div class="eyebrow">Owner statement</div>
-                    <h1>{{ $period_label }}</h1>
-                    <div class="muted" style="margin-top:4px; font-size:11px;">Statement #{{ $sequence_no }} · {{ ucfirst($status) }}</div>
+                    <div style="font-size:13px; font-weight:bold; margin-top:3px;">{{ $doc_ref }}</div>
                 </td>
             </tr>
         </table>
 
-        {{-- Statement meta --}}
-        <table class="meta">
-            <tr><td class="k">Owner</td><td>{{ $owner_name }}</td></tr>
-            <tr><td class="k">Period</td><td>{{ $period_range }}</td></tr>
-            <tr><td class="k">Currency</td><td>{{ $currency }}</td></tr>
-            @if ($fx)
-                <tr><td class="k">FX</td><td>1 {{ $fx['source'] }} = {{ $fx['rate'] }} {{ $currency }} <span class="muted">(source: {{ $fx['src'] }})</span></td></tr>
-            @endif
+        {{-- Title + subtitle --}}
+        <h1>{{ $period_label }}</h1>
+        <div class="sub">{{ $owner_name }} · {{ $company }} · {{ $unit_count }} {{ \Illuminate\Support\Str::plural('unit', $unit_count) }} · issued {{ $issued }}</div>
+
+        {{-- Net-payable headline band --}}
+        <table class="band">
+            <tr>
+                <td class="dark">
+                    <div class="k">Net payable to owner</div>
+                    <div class="v">{{ $net_display }}</div>
+                    <div class="m">{{ $status_label }}@if ($iban_masked) · IBAN {{ $iban_masked }}@endif</div>
+                </td>
+                <td class="stats">
+                    <table>
+                        <tr><td>Occupancy</td><td class="r">{{ $occupancy_pct }}%</td></tr>
+                        <tr><td>Nights sold</td><td class="r">{{ $nights }}</td></tr>
+                        <tr><td>Avg. nightly rate</td><td class="r">{{ $adr_display }}</td></tr>
+                    </table>
+                </td>
+            </tr>
         </table>
 
-        {{-- The REAL reconciling breakdown — only engine-computed lines; the net = sum of components --}}
-        <table class="lines">
+        {{-- Breakdown --}}
+        <h2>Breakdown</h2>
+        <table class="grid">
             <thead>
-                <tr><th>Breakdown</th><th class="r">Amount</th></tr>
+                <tr><th>Item</th><th>Detail</th><th class="r">Amount</th></tr>
             </thead>
             <tbody>
                 @foreach ($lines as $line)
                     <tr class="{{ $line['is_net'] ? 'net' : '' }}">
-                        <td>
-                            {{ $line['description'] }}
-                            @if ($line['unverified'])<span class="prov">Provisional</span>@endif
-                        </td>
+                        <td>{{ $line['description'] }}@if ($line['unverified']) <span class="d">(provisional)</span>@endif</td>
+                        <td class="d">{{ $line['detail'] }}</td>
                         <td class="r {{ $line['is_negative'] ? 'neg' : '' }}">{{ $line['amount_display'] }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
 
-        <div class="reconcile">Net payable to owner: <strong>{{ $net_display }}</strong>@if ($has_unverified) <span class="muted">— includes provisional lines pending verification.</span>@endif</div>
+        {{-- Performance by unit — REAL, reconciles to the statement gross --}}
+        @if ($units !== [])
+            <h2>Performance by unit</h2>
+            <table class="grid">
+                <thead>
+                    <tr><th>Unit</th><th class="r">Nights</th><th class="r">Occupancy</th><th class="r">Revenue</th></tr>
+                </thead>
+                <tbody>
+                    @foreach ($units as $u)
+                        <tr>
+                            <td><span class="u-name">{{ $u['name'] }}</span>@if ($u['kind']) <span class="u-kind">· {{ $u['kind'] }}</span>@endif</td>
+                            <td class="r">{{ $u['nights'] }}</td>
+                            <td class="r">{{ $u['occupancy_pct'] }}%</td>
+                            <td class="r">{{ $u['gross_display'] }}</td>
+                        </tr>
+                    @endforeach
+                    <tr class="tot">
+                        <td>Total gross room revenue</td>
+                        <td class="r">{{ $unit_total['nights'] }}</td>
+                        <td class="r">{{ $unit_total['occupancy_pct'] }}%</td>
+                        <td class="r">{{ $unit_total['gross_display'] }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
 
-        <div class="foot">
-            This statement is generated from Vyrobel's owner ledger and reconciles to the figures shown in the owner portal.
-            Vyrobel · {{ $operator }}.
+        {{-- Payout note --}}
+        <div class="callout">
+            <b>Payout.</b> The net amount of {{ $net_display }} settles by bank transfer{{ $iban_masked ? ' to IBAN '.$iban_masked : '' }}.
+            @if ($commission_pct !== null)Management commission is charged at {{ $commission_pct }}% of gross room revenue; @endif
+            payment and platform fees are passed through at cost. All amounts are in {{ $currency }} and include applicable taxes collected on your behalf.
+            @if ($fx) Converted from {{ $fx['source'] }} at {{ $fx['rate'] }} (source: {{ $fx['src'] }}).@endif
+            @if ($has_unverified) Some lines are provisional, pending channel reconciliation.@endif
         </div>
+
+        {{-- Footer --}}
+        <table class="foot" width="100%">
+            <tr>
+                <td>{{ $company }} · statement {{ $doc_ref }}@if ($sequence_no) · no. {{ $sequence_no }}@endif · generated {{ $issued }}</td>
+                <td style="text-align:right;">@if ($billing_email)Questions? {{ $billing_email }}@endif</td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>

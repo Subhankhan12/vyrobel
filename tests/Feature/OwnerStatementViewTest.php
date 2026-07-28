@@ -245,6 +245,22 @@ it('shows the masked payout IBAN only to a payout-capable role (CAP_PAYOUT)', fu
     }
 });
 
+// ── 6b. The by-unit name links to Unit Detail ONLY for a CALENDAR-capable role (never a 403 invite) ──
+it('links a by-unit name to Unit Detail only for a CALENDAR-capable role (#30 gate-the-control)', function () {
+    $s = seedScenario(2);
+    $a = statementOwner($s, 0, 20000);
+    $unitShow = route('owner.units.show', $a['unit']->id);
+
+    // The PRIMARY owner (co-owner, has CAP_CALENDAR) gets the real Unit-Detail link.
+    $this->actingAs($a['user'])->get("/owner/statements/{$a['statement']->id}")
+        ->assertOk()->assertSee($unitShow);
+
+    // An ACCOUNTANT can VIEW the statement but lacks CAP_CALENDAR → the unit name is plain text, NOT a link that
+    // would 403 (CLAUDE.md #30 "gate the control too, so the UI never invites a 403"). The by-unit section still renders.
+    $this->actingAs(ownerSubUser($s, $a['owner']->id, 'accountant'))->get("/owner/statements/{$a['statement']->id}")
+        ->assertOk()->assertSee('By unit')->assertDontSee($unitShow);
+});
+
 // ── 7. Statement-history CSV — owner-scoped, EXPORTS-gated, reconciling, NO guest data ─────────────
 it('exports the statement-history CSV owner-scoped and EXPORTS-gated, never another owner’s figures', function () {
     $s = seedScenario(2);

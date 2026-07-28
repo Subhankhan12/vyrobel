@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  *
  * @property Carbon $period_start
  * @property Carbon $period_end
+ * @property ?Carbon $finalized_at
  */
 class OwnerStatement extends Model
 {

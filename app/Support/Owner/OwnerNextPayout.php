@@ -34,7 +34,8 @@ final class OwnerNextPayout
     public static function rail(OwnerContext $context): array
     {
         $method = PayoutMethod::query()->orderByDesc('is_default')->first();
-        $ibanMasked = ($context->can(OwnerTeamRole::CAP_PAYOUT) && $method instanceof PayoutMethod)
+        // Guard the last4 (a method persisted without it would otherwise mask to an empty "···· ").
+        $ibanMasked = ($context->can(OwnerTeamRole::CAP_PAYOUT) && $method instanceof PayoutMethod && filled($method->iban_last4))
             ? Iban::masked((string) $method->iban_last4)
             : null;
 

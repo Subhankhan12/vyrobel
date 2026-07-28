@@ -13,6 +13,7 @@ use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
 use App\Support\Owner\OwnerOccupancyTrend;
 use App\Support\Owner\OwnerStatementBreakdown;
+use App\Support\Pdf\OwnerStatementHistoryDocument;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -71,7 +72,7 @@ class OwnerStatementView extends Component
 
         return view('livewire.owner.statement', [
             'statement' => $this->statementPayload($statement, $symbol),
-            'lines' => $this->linePayload($statement, $this->grossSublabel($byUnit, $units->count())),
+            'lines' => $this->linePayload($statement, $this->grossSublabel($byUnit)),
             'history' => $this->historyPayload($allStatements, $statement->id),
             'years' => $this->years($allStatements),
             'totals' => $this->totals($allStatements),
@@ -87,22 +88,23 @@ class OwnerStatementView extends Component
     }
 
     /**
-     * The gross line's REAL "N nights · M units" sublabel (the wireframe's gross detail) — nights = the room-nights
-     * this statement's units sold in the period (the shared breakdown's total), units = the owner's unit count.
-     * Null for a draft (no split yet) so the gross line simply carries no sublabel.
+     * The gross line's REAL "N nights · M units" sublabel (the wireframe's gross detail) — nights + units both from
+     * the shared breakdown (the units that EARNED this statement), so the PAGE gross line and the PDF's gross detail
+     * carry the SAME count (anti-drift). Null for a draft (no split yet) → the gross line carries no sublabel.
      *
      * @param  array<string, mixed>  $byUnit
      */
-    private function grossSublabel(array $byUnit, int $unitsCount): ?string
+    private function grossSublabel(array $byUnit): ?string
     {
         if (($byUnit['available'] ?? false) !== true) {
             return null;
         }
 
         $nights = (int) ($byUnit['total_nights'] ?? 0);
+        $units = (int) ($byUnit['unit_count'] ?? 0);
 
         return $nights.' '.Str::plural('night', $nights)
-            .' · '.$unitsCount.' '.Str::plural('unit', $unitsCount);
+            .' · '.$units.' '.Str::plural('unit', $units);
     }
 
     /**
@@ -236,18 +238,28 @@ class OwnerStatementView extends Component
     }
 
     /**
+     * The history net total — Σ `net_payable_minor` grouped by PAYOUT currency, rendered per currency (never a
+     * cross-currency sum: that would be a silent FX the backend never made, #17 — the same discipline as
+     * {@see OwnerStatementHistoryDocument} and OwnerArchive). Single-currency owners (the common
+     * case) get one figure exactly as before.
+     *
      * @param  Collection<int, OwnerStatement>  $statements
      * @return array{count: int, net_total_display: string}
      */
     private function totals(Collection $statements): array
     {
-        $first = $statements->first();
-        $currency = $first !== null ? (string) $first->currency : 'EUR';
-        $sum = (int) $statements->sum(fn (OwnerStatement $s): int => (int) $s->net_payable_minor);
+        $perCurrency = $statements
+            ->groupBy(fn (OwnerStatement $s): string => (string) $s->currency)
+            ->map(fn (Collection $group, string $currency): string => $this->money(
+                (int) $group->sum(fn (OwnerStatement $s): int => (int) $s->net_payable_minor),
+                $currency,
+            ))
+            ->values()
+            ->all();
 
         return [
             'count' => $statements->count(),
-            'net_total_display' => $this->money($sum, $currency),
+            'net_total_display' => $perCurrency === [] ? $this->money(0, 'EUR') : implode(' · ', $perCurrency),
         ];
     }
 

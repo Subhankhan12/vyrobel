@@ -292,10 +292,17 @@
                     <div>
                         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
                             <div>
-                                <a class="vy-line-label" style="font-weight:600;display:inline-flex;align-items:center;gap:5px" href="{{ route('owner.units.show', $u['unit_id']) }}">
-                                    {{ $u['name'] }}
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="color:var(--vy-faint)"><path d="M9 6l6 6-6 6"/></svg>
-                                </a>
+                                {{-- The unit name links to Unit Detail ONLY for a role that can reach it (CAP_CALENDAR:
+                                     co-owner + view-only). An accountant can view this statement but not Unit Detail, so
+                                     they get the name as plain text — never a link that 403s (#30 "gate the control too"). --}}
+                                @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_CALENDAR)
+                                    <a class="vy-line-label" style="font-weight:600;display:inline-flex;align-items:center;gap:5px" href="{{ route('owner.units.show', $u['unit_id']) }}">
+                                        {{ $u['name'] }}
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="color:var(--vy-faint)"><path d="M9 6l6 6-6 6"/></svg>
+                                    </a>
+                                @else
+                                    <div class="vy-line-label" style="font-weight:600">{{ $u['name'] }}</div>
+                                @endownercan
                                 <div class="vy-line-sub">{{ $u['nights'] }} {{ \Illuminate\Support\Str::plural('night', $u['nights']) }} · {{ $u['occupancy_pct'] }}% occupancy</div>
                             </div>
                             <div style="text-align:right">

@@ -4,6 +4,7 @@ use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\OwnerStatementLine;
+use App\Models\PayoutMethod;
 use App\Models\User;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerPayoutService;
@@ -37,6 +38,28 @@ function pdfStatementOwner(array $s, int $unitIndex, int $roomMinor): array
     app(OwnerPayoutService::class)->createFromStatement($statement);
 
     return compact('user', 'owner', 'unit', 'statement');
+}
+
+/** A linked owner who owns TWO units, both attributed into ONE finalized statement — for the by-unit table. */
+function twoUnitPdfStatement(array $s): array
+{
+    $user = User::factory()->create();
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+    $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
+    ManagementAgreement::factory()->create(['owner_id' => $owner->id, 'commission_pct' => 18.00, 'effective_from' => '2026-01-01']);
+
+    foreach ([[0, 20000], [1, 15000]] as [$idx, $roomMinor]) {
+        $unit = $s['units'][$idx];
+        $unit->update(['owner_id' => $owner->id]);
+        $reservation = book($s, ['unit_id' => $unit->id]);
+        postRoom($reservation, $roomMinor);
+        app(OwnerAttributionService::class)->attributeReservation($reservation);
+    }
+
+    $svc = app(OwnerStatementService::class);
+    $statement = $svc->finalize($svc->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
+
+    return compact('user', 'owner', 'statement');
 }
 
 // ── The owner downloads their statement PDF (application/pdf, filename, real %PDF bytes) ──────────
@@ -92,6 +115,53 @@ it('renders only real ledger lines — no invented card-processing fee', functio
         ->and($html)->not->toContain('backdrop-filter')
         ->and($html)->not->toContain('display:flex')
         ->and($html)->not->toContain('display: flex');
+});
+
+// ── GATE 2: REAL occupancy/nights/ADR + a by-unit table that RECONCILES to the statement gross ────
+it('shows real occupancy/nights/ADR and a by-unit table reconciling to the statement gross', function () {
+    $s = seedScenario(2);
+    $a = twoUnitPdfStatement($s);       // one owner, two units, both in one finalized statement
+    $data = OwnerStatementDocument::data($a['statement']);
+
+    // #17 — Σ per-unit gross == the statement gross; the Total-gross row echoes it to the character.
+    $unitGross = array_sum(array_map(fn (array $u): int => $u['gross_minor'], $data['units']));
+    expect($unitGross)->toBe((int) $a['statement']->gross_minor)
+        ->and($data['unit_total']['gross_display'])->toBe(MoneyFormatter::display((int) $a['statement']->gross_minor, 'EUR'));
+
+    // Real stats (present + non-negative); ADR is gross ÷ nights, so it is 0 only when nights is 0.
+    expect($data['nights'])->toBeGreaterThan(0)
+        ->and($data['occupancy_pct'])->toBeGreaterThanOrEqual(0)
+        ->and(count($data['units']))->toBe(2);
+
+    // The rendered document shows the by-unit heading + the real total (no guest data anywhere, #28).
+    $html = view('pdfs.owner-statement', $data)->render();
+    expect($html)->toContain('Performance by unit')
+        ->and($html)->toContain('Total gross room revenue');
+});
+
+// ── GATE 2: the masked payout IBAN appears ONLY for a payout-capable exporter (CAP_PAYOUT), #28 ────
+it('shows the masked payout IBAN on the PDF only for a payout-capable exporter', function () {
+    $s = seedScenario(2);
+    $a = pdfStatementOwner($s, 0, 20000);
+
+    PayoutMethod::create([
+        'organization_id' => $s['org']->id,
+        'owner_id' => $a['owner']->id,
+        'account_holder' => 'Owner',
+        'iban' => 'GB29NWBK60161331926819',
+        'iban_last4' => '6819',
+        'iban_country' => 'GB',
+        'currency' => 'EUR',
+        'is_default' => true,
+    ]);
+
+    // Payout-capable (co-owner) → the masked IBAN renders; a non-payout export (e.g. accountant) omits it.
+    $withPayout = view('pdfs.owner-statement', OwnerStatementDocument::data($a['statement'], true))->render();
+    $withoutPayout = view('pdfs.owner-statement', OwnerStatementDocument::data($a['statement'], false))->render();
+
+    expect($withPayout)->toContain('···· 6819')
+        ->and($withPayout)->not->toContain('GB29NWBK60161331926819')   // never the full number
+        ->and($withoutPayout)->not->toContain('···· 6819');
 });
 
 // ── Owner isolation: an owner cannot download another owner's statement (cross-owner 404) ────────

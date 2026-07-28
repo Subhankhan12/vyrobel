@@ -260,3 +260,58 @@ wireframe figure has a real owner-scoped source, two of the page's old refusals 
 backends already shipped in #54), and the PDF's rich content reuses the exact `PerformanceMetrics`/letterhead machinery
 #56 already proved. The only things we still refuse to invent are the "payment & ops fees" line (no engine bucket) and the
 estimated payout date (no field).
+
+---
+
+## 7. BUILD LOG — GATE 1 (Owner Statement page) ✅ COMPLETE (commit `ddf1f55`)
+
+Shipped exactly to §6's plan; honesty held (§5). The two stale refusals are now REAL:
+- **Occupancy card + mini bar chart** (was a "Not yet available" stub) via the shared **`OwnerOccupancyTrend`** (real
+  `OwnerOccupancy` over the statement's month + a 6-month trend). **Masked IBAN chip** on the dark rail via the shared
+  **`OwnerNextPayout`** — CAP_PAYOUT only (an accountant/view-only sub-user never sees it); the estimated payout **date**
+  stays refused (no field, #39).
+- Month **"jump to month"** switcher (real statements + net); **plain-glass hero**; the gross line's real **"N nights · M
+  units"** sublabel; a standalone **Download statement** + a **More documents** card; **Statement history** with a real
+  **Export CSV** + a per-year **Export PDF** + a per-row statement PDF (all `owner.statements.history.*`, owner-scoped +
+  **CAP_EXPORTS**, `?year=` clips never widens; a distinct `/statement-history/*` path so `/statements/{statement}/pdf`
+  can't shadow it); by-unit **unit-name links**. The by-unit split still reconciles Σ per-unit net == the statement net
+  (#17); owner's own units only (#28); no `/livewire/update` mutation (#20); no invented "Payment & ops fees" line (#39).
+- **Anti-drift (D-STMT-4):** extracted `OwnerNextPayout` + `OwnerOccupancyTrend` from `OwnerDashboard` (#54, which now
+  delegates) + `OwnerStatementBreakdown` from `OwnerStatementView` (reused by the GATE-2 PDF). Fixed a `word@directive`
+  raw-Blade trap (`transfer@endif`).
+- **Demo (D-STMT-1):** a flagged demo statement history (Apr–Aug 2026 — real stays → attribution → statements finalized
+  IN PERIOD ORDER, marked paid) so the page/Overview demo on a real shape; **September still claims only its own lines
+  (net €885.60 unchanged)**. Every net = real gross − the real 18% commission.
+- **Verification:** suite **1064 / 8250** green; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean (6 statements,
+  Sep €885.60 preserved); browser-verified vs the wireframe (month picker with 6 real months, occupancy 13% + bars, history
+  €3,690 net reconciling, by-unit → €885.60). Tests: `OwnerStatementViewTest` 5 → 9 (occupancy/switcher/gross sublabel +
+  IBAN CAP_PAYOUT gating + history CSV owner-scoped/EXPORTS-gated/year-clip + history PDF EXPORTS-gated + `assertNoRawBlade`).
+
+## 8. BUILD LOG — GATE 2 (Owner Statement PDF) ✅ COMPLETE
+
+Shipped to §2c/§6's plan; the old PDF was a generic branded doc → now the wireframe's letterhead statement, all REAL:
+- **Letterhead** — real `billing_company` (fallback `name`) + `country` + "managed with Vyrobel" (street/city not modelled,
+  omitted); the **OS-YYYY-MM** doc ref; the subtitle (owner · company · N units · issued {finalized_at}).
+- **Net-payable dark headline** + a light stats panel — **Occupancy · Nights sold · Avg. nightly rate**, all real via the
+  shared `OwnerStatementBreakdown` (occupancy == the by-unit Total row; ADR = gross ÷ nights, divide-by-zero-safe). The
+  masked **IBAN** shows only for a **CAP_PAYOUT** exporter (`$canSeePayout` from `OwnerContext` in the controller); an
+  accountant export omits it (#28). No estimated date (#39).
+- **3-column breakdown** (Item · Detail · Amount) — the real engine lines + truthful detail (gross "N nights · M units",
+  commission "18% of gross room revenue"); no invented fee line. **Performance by unit** (nights · occupancy · revenue) via
+  the shared helper + a **Total gross room revenue** row — Σ per-unit gross == the statement gross (#17). A **payout-note
+  callout** (net + rail + IBAN-if-payout-capable + the 18% commission note + EUR/taxes) and a two-part identity/email footer.
+- The breakdown lines still sum to the net line; occupancy/nights/ADR are presentation, never summed into money. NO guest
+  data on the document (#28). PDF-safe (dompdf HTML4/CSS2.1, DejaVu Sans, table-based); the view is logic-free (composed in
+  `OwnerStatementDocument`) — the #56 "top-of-file @php dropped the &lt;head&gt;" lesson; a second `word@directive` trap
+  (`transfer@if`) fixed.
+- **Verification:** the rendered document was browser-verified against `Owner Statement PDF.html` — real Sep 2026 data:
+  Occupancy 13% · Nights 8 · ADR €135.00, breakdown €1,080 − €194.40 = €885.60, by-unit €540 + €540 = €1,080, OS-2026-09,
+  the payout callout, the `billing@vyrobel-demo.test` footer. `OwnerStatementPdfTest` 5 → 7 (real occupancy/ADR + by-unit
+  Σ==gross + IBAN CAP_PAYOUT gating; the existing reconciliation/isolation/no-invented-line/no-guest tests unchanged).
+
+**Invariant #57 — Owner Statement exact-match (page + PDF):** the page + PDF match their wireframes exactly on REAL,
+owner-scoped, reconciling data — the occupancy card/stats + masked IBAN (CAP_PAYOUT) are REAL (stale refusals, backed by
+`OwnerOccupancyTrend`/`OwnerNextPayout`); the breakdown sums to net and the by-unit split sums to net (page) / gross (PDF)
+to the cent (#17); the page + PDF share the ONE `OwnerStatementBreakdown` (can't drift); guest data absent (#28); exports
+are CAP_EXPORTS controller routes, the IBAN CAP_PAYOUT-only; no "payment & ops fees" line and no estimated payout date are
+invented (#39).
