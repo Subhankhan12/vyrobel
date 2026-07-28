@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\Concerns\RedirectsByRole;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\RequireTwoFactorPending;
 use App\Models\User;
+use App\Support\Auth\TrustedDeviceService;
 use App\Support\TwoFactor\TwoFactorService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -67,7 +68,16 @@ class TwoFactorChallengeController extends Controller
         $request->session()->regenerate();
         $user->forceFill(['last_login_at' => now()])->saveQuietly();
 
-        return redirect()->to($this->homeFor($user) ?? route('login'));
+        $response = redirect()->to($this->homeFor($user) ?? route('login'));
+
+        // TRUSTED DEVICE (Wave B · GATE 4) — if the user ticked "trust this device", remember this browser so it
+        // can skip the challenge next time (bounded by expiry + revocation, self-only). The cookie carries a
+        // random token; only its hash is stored.
+        if ($request->boolean('trust_device')) {
+            $response->withCookie(app(TrustedDeviceService::class)->issue($user, $request));
+        }
+
+        return $response;
     }
 
     /** The pending user — still active AND still 2FA-enabled, else null. */

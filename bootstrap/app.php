@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTenantForWebRequest;
+use App\Support\Auth\TrustedDeviceService;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -45,6 +46,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhooks/*',
             'book/*/quote',
             'book/*/book',
+        ]);
+
+        // The trusted-device cookie (Wave B · GATE 4) is a RANDOM bearer token, verified server-side by its
+        // SHA-256 hash ({@see App\Support\Auth\TrustedDeviceService}). It is httpOnly + secure and carries no
+        // readable data, so it is exempt from cookie encryption (like a remember-token) — encrypting it would
+        // add nothing (the value is already unguessable + hash-checked) and only complicate reading it back.
+        $middleware->encryptCookies(except: [
+            TrustedDeviceService::COOKIE,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

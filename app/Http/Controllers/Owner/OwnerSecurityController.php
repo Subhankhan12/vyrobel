@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\Unit;
+use App\Support\Auth\TrustedDeviceService;
 use App\Support\Events\AuditEventRecorder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -70,6 +71,29 @@ class OwnerSecurityController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login')->with('status', 'Your account is paused — you’re signed out and won’t be able to sign in until it’s reactivated. Your statements and payout history are kept. Contact your management team to reactivate.');
+    }
+
+    /**
+     * Revoke ONE trusted device (Wave B · GATE 4) — self-only + re-auth (a trust bypasses 2FA, so removing one
+     * is a sensitive change). {@see TrustedDeviceService::revoke} scopes to the user's own rows (a cross-user id
+     * is a no-op); if the revoked device is THIS browser, its cookie is forgotten too so it must pass 2FA again.
+     */
+    public function revokeTrustedDevice(Request $request, TrustedDeviceService $devices, AuditEventRecorder $audit): RedirectResponse
+    {
+        $user = $request->user();
+        abort_if($user === null, 403);
+
+        $data = $request->validate([
+            'device_id' => ['required', 'string'],
+            'current_password' => ['required', 'current_password'],
+        ]);
+
+        $wasCurrent = $devices->revoke($user, (string) $data['device_id'], $request);
+        $audit->record('owner.trusted_device_revoked', $user, null, ['device_id' => (string) $data['device_id']]);
+
+        $response = back()->with('owner_notice', 'That device was removed — it’ll need a 2FA code next time.');
+
+        return $wasCurrent !== null ? $response->withCookie($devices->forgetCookie()) : $response;
     }
 
     /**

@@ -143,6 +143,39 @@
             </form>
         </div>
 
+        {{-- ══ Trusted devices (Wave B · GATE 4) — REAL skip-2FA devices; remove re-auths with the password ══ --}}
+        <div class="vy-card vy-fade" style="margin-bottom:16px;">
+            <h2 style="{{ $h2 }}">Trusted devices</h2>
+            <p style="{{ $sub }}">Browsers you’ve chosen to trust skip the two-factor code at sign-in. Remove any you don’t recognise — it’ll need a code again next time. Tick “Trust this device” at the code screen to add the one you’re on.</p>
+            @if (count($trustedDevices) > 0)
+                <div style="display:flex;flex-direction:column;gap:2px;margin-top:6px;">
+                    @foreach ($trustedDevices as $d)
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--vy-hairline);">
+                            <div>
+                                <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink);">
+                                    {{ $d['label'] }}
+                                    @if ($d['current']) <span style="font-size:10.5px;font-weight:600;color:#227a3c;background:rgba(34,120,60,.12);border-radius:20px;padding:2px 9px;margin-left:6px;">This device</span> @endif
+                                </div>
+                                <div style="font-size:11.5px;color:var(--vy-muted);">@if ($d['ip']){{ $d['ip'] }} · @endif last used {{ $d['last_used'] }} · trust expires {{ $d['expires'] }}</div>
+                            </div>
+                            <form method="POST" action="{{ route('owner.security.trusted-devices.revoke') }}" x-data="{ open: false }" style="flex-shrink:0;">
+                                @csrf
+                                <input type="hidden" name="device_id" value="{{ $d['id'] }}">
+                                <button type="button" @click="open = !open" class="vy-btn" style="{{ $ghost }}font-size:12px;padding:6px 12px;">Remove</button>
+                                <div x-show="open" x-cloak style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                                    <input type="password" name="current_password" class="vy-input" autocomplete="current-password" placeholder="Your password" style="max-width:180px;font-size:12.5px;">
+                                    <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12px;padding:6px 12px;">Confirm</button>
+                                </div>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+                @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
+            @else
+                <div style="font-size:13px;color:var(--vy-muted);margin-top:6px;">No trusted devices — every sign-in asks for a two-factor code.</div>
+            @endif
+        </div>
+
         {{-- ══ Your data — a REAL owner-scoped export ══════════════════════════════════════════════════ --}}
         <div class="vy-card vy-fade" style="margin-bottom:16px;">
             <h2 style="{{ $h2 }}">Your data</h2>
@@ -154,7 +187,7 @@
         <div class="vy-card vy-fade" style="margin-bottom:16px;">
             <h2 style="{{ $h2 }}margin-bottom:12px;">Coming soon</h2>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
-                @foreach (['Passkeys (Face / Touch ID)', 'Trusted locations & login approval', 'Connected apps', 'Full sign-in history', 'New-device email alerts', 'Session timeout & theme'] as $soon)
+                @foreach (['Passkeys (Face / Touch ID)', 'Login approval for new devices', 'New-device email alerts', 'Connected apps', 'Full sign-in history', 'Session timeout'] as $soon)
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;border:1px solid var(--vy-hairline);border-radius:10px;">
                         <span style="font-size:12.5px;color:var(--vy-muted);">{{ $soon }}</span>
                         <span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--vy-faint);background:rgba(0,0,0,.04);padding:3px 9px;border-radius:20px;">Soon</span>

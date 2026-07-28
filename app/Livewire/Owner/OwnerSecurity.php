@@ -6,6 +6,7 @@ namespace App\Livewire\Owner;
 
 use App\Livewire\Concerns\PreparesTwoFactor;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Support\Auth\TrustedDeviceService;
 use App\Support\Owner\OwnerContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -77,6 +78,16 @@ class OwnerSecurity extends Component
             ],
             'lastLogin' => $user->last_login_at instanceof Carbon ? $user->last_login_at : null,
             'sessions' => $sessions,
+            // Trusted devices (Wave B · GATE 4) — the REAL live trusts for this user (skip-2FA), self-only.
+            'trustedDevices' => app(TrustedDeviceService::class)->forUser($user, request())
+                ->map(fn ($d): array => [
+                    'id' => (string) $d->id,
+                    'label' => (string) ($d->label ?? 'Trusted device'),
+                    'ip' => (string) ($d->ip ?? ''),
+                    'last_used' => $d->last_used_at instanceof Carbon ? $d->last_used_at->diffForHumans() : '—',
+                    'expires' => $d->expires_at instanceof Carbon ? $d->expires_at->diffForHumans() : '—',
+                    'current' => (bool) $d->getAttribute('is_current'),
+                ])->all(),
         ]);
     }
 

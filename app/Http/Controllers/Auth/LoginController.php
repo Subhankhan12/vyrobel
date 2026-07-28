@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\Concerns\RedirectsByRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use App\Support\Auth\TrustedDeviceService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,7 +69,11 @@ class LoginController extends Controller
         // plain session key, NEVER the auth guard) and are challenged. That state grants no authenticated
         // access by construction: /app + /owner sit behind `auth`, which a not-logged-in user fails. The
         // session id is regenerated for fixation protection on this transition.
-        if ($user->hasTwoFactorEnabled()) {
+        //
+        // TRUSTED DEVICE (Wave B · GATE 4) — a browser the user previously chose to trust (a live `vy_td`
+        // cookie hash) may SKIP the challenge. The password was already verified above, so this is the standard
+        // "remember this device for 2FA" pattern; the trust is bounded (expiry + revocation) + self-only.
+        if ($user->hasTwoFactorEnabled() && ! app(TrustedDeviceService::class)->recognizes($user, $request)) {
             $request->session()->put('login.2fa.user_id', (string) $user->getKey());
             $request->session()->regenerate();
 

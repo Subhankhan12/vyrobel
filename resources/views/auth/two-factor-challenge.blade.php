@@ -109,6 +109,11 @@
                 <input class="vy-input" type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" autofocus required>
             </div>
 
+            {{-- Trusted device (Wave B · GATE 4) — skip 2FA on THIS browser next time; bounded (30 days) + revocable --}}
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#4A4038;margin:4px 0 14px;cursor:pointer">
+                <input type="checkbox" name="trust_device" value="1"> Trust this device for 30 days (skip codes here)
+            </label>
+
             <button type="submit" class="vy-btn">Verify</button>
         </form>
 

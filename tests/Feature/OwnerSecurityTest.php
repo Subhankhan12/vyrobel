@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Owner;
+use App\Models\TrustedDevice;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,27 @@ function securityCast(): array
         'scenario' => $s,
     ];
 }
+
+// ── Wave B — the Security page lists the user's real trusted devices (skip-2FA), self-only ─────────
+it('lists the owner\'s real trusted devices on the Security page', function () {
+    $c = securityCast();
+    $owner = $c['owner'];
+
+    // A real live trust + a revoked one (the revoked must NOT appear).
+    TrustedDevice::create([
+        'user_id' => (string) $owner->getKey(), 'token_hash' => hash('sha256', 'live-tok'),
+        'label' => 'Chrome on macOS', 'expires_at' => now()->addDays(20), 'last_used_at' => now(),
+    ]);
+    TrustedDevice::create([
+        'user_id' => (string) $owner->getKey(), 'token_hash' => hash('sha256', 'dead-tok'),
+        'label' => 'Firefox on Linux', 'expires_at' => now()->addDays(20), 'revoked_at' => now(),
+    ]);
+
+    $this->actingAs($owner)->get('/owner/security')->assertOk()
+        ->assertSee('Trusted devices')
+        ->assertSee('Chrome on macOS')       // the live trust shows
+        ->assertDontSee('Firefox on Linux'); // the revoked one does not
+});
 
 // ── 1. The page renders for owner AND sub-user; deactivate is primary-owner-only ─────────────────────
 it('renders Security for the owner and a sub-user; deactivate only for the primary owner', function () {
