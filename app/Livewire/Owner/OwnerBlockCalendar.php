@@ -13,6 +13,7 @@ use App\Models\Unit;
 use App\Services\AssignmentService;
 use App\Services\OwnerBlockService;
 use App\Services\OwnerPortalService;
+use App\Support\Guest\GuestName;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -54,7 +55,9 @@ class OwnerBlockCalendar extends Component
                 'grid' => [],
                 'blocks' => [],
                 'reasons' => OwnerBlockService::REASONS,
-                'blockedThisMonth' => 0,
+                'frequencies' => OwnerBlockService::FREQUENCIES,
+                'maxOccurrences' => OwnerBlockService::MAX_OCCURRENCES,
+                'statLine' => '',
             ]);
         }
 
@@ -85,8 +88,22 @@ class OwnerBlockCalendar extends Component
             'grid' => $grid,
             'blocks' => $this->blocksList($unit),
             'reasons' => OwnerBlockService::REASONS,
-            'blockedThisMonth' => count(array_filter($grid, fn (array $d): bool => $d['state'] === 'blocked')),
+            'frequencies' => OwnerBlockService::FREQUENCIES,
+            'maxOccurrences' => OwnerBlockService::MAX_OCCURRENCES,
+            'statLine' => $this->statLine($grid),
         ]);
+    }
+
+    /**
+     * The legend's stat line — real counts for the month grid (open / booked / held), never a fabricated figure.
+     *
+     * @param  list<array<string, mixed>>  $grid
+     */
+    private function statLine(array $grid): string
+    {
+        $count = fn (string $state): int => count(array_filter($grid, fn (array $d): bool => $d['state'] === $state));
+
+        return $count('blocked').' held · '.$count('booked').' booked · '.$count('open').' open';
     }
 
     /**
@@ -122,10 +139,12 @@ class OwnerBlockCalendar extends Component
     }
 
     /**
-     * The set of 'Y-m-d' days in the month occupied by an ACTIVE reservation on this unit — half-open
-     * `[check_in, check_out)`, clipped to the month. Reached THROUGH the owner-scoped unit id.
+     * Day → the booking guest's NAME for each 'Y-m-d' in the month occupied by an ACTIVE reservation on this
+     * unit — half-open `[check_in, check_out)`, clipped to the month. Reached THROUGH the owner-scoped unit id.
+     * NAME ONLY (#28): the guest's display name, never any contact detail; an owner sees who holds the date, as
+     * on the owner Bookings PDF. An anonymized/unknown guest resolves to the neutral "Guest".
      *
-     * @return array<string, true>
+     * @return array<string, string>
      */
     private function bookedDays(Unit $unit, Carbon $monthStart, Carbon $monthEnd): array
     {
@@ -136,9 +155,15 @@ class OwnerBlockCalendar extends Component
             ->where('status', 'active')
             ->whereDate('check_in', '<', $monthEnd->toDateString())
             ->whereDate('check_out', '>', $monthStart->toDateString())
-            ->get(['check_in', 'check_out'])
+            ->with('reservation.leadGuest')
+            ->get()
             ->each(function (ReservationUnit $line) use (&$days, $monthStart, $monthEnd): void {
-                $this->markRange($days, Carbon::parse($line->check_in), Carbon::parse($line->check_out), $monthStart, $monthEnd);
+                $name = GuestName::display($line->reservation?->leadGuest);
+                $marked = [];
+                $this->markRange($marked, Carbon::parse($line->check_in), Carbon::parse($line->check_out), $monthStart, $monthEnd);
+                foreach (array_keys($marked) as $day) {
+                    $days[$day] = $name;
+                }
             });
 
         return $days;
@@ -185,18 +210,25 @@ class OwnerBlockCalendar extends Component
     }
 
     /**
-     * The month grid: one entry per day with its state (past / booked / blocked / open) + the block id when
-     * blocked. Precedence: past first (nothing to do), then booked (a real reservation), then blocked, else open.
+     * The month grid: leading blank cells to align day 1 under its weekday (MON-based), then one entry per day
+     * with its state (past / booked / blocked / open), the guest NAME on a booked day (#28), and the block id
+     * when blocked. Precedence: past first (nothing to do), then booked (a real reservation), then blocked, else
+     * open.
      *
-     * @param  array<string, true>  $bookedDays
-     * @param  array<string, string>  $blockDays
-     * @return list<array{day: int, date: string, state: string, block_id: ?string}>
+     * @param  array<string, string>  $bookedDays  day → guest name
+     * @param  array<string, string>  $blockDays  day → block id
+     * @return list<array{day: ?int, date: ?string, state: string, block_id: ?string, guest: ?string}>
      */
     private function grid(Carbon $monthStart, array $bookedDays, array $blockDays): array
     {
         $today = Carbon::today();
         $days = (int) $monthStart->daysInMonth;
         $out = [];
+
+        // Leading blanks so day 1 sits under its real weekday (dayOfWeekIso: 1=Mon … 7=Sun).
+        for ($b = 1; $b < $monthStart->dayOfWeekIso; $b++) {
+            $out[] = ['day' => null, 'date' => null, 'state' => 'blank', 'block_id' => null, 'guest' => null];
+        }
 
         for ($n = 1; $n <= $days; $n++) {
             $date = $monthStart->copy()->day($n);
@@ -214,6 +246,7 @@ class OwnerBlockCalendar extends Component
                 'date' => $key,
                 'state' => $state,
                 'block_id' => $state === 'blocked' ? $blockDays[$key] : null,
+                'guest' => $state === 'booked' ? $bookedDays[$key] : null,
             ];
         }
 
@@ -221,9 +254,12 @@ class OwnerBlockCalendar extends Component
     }
 
     /**
-     * The scheduled blocks on this unit (soft-deleted ones excluded by the model), most recent first.
+     * The scheduled blocks on this unit (soft-deleted ones excluded by the model), most recent first. Blocks
+     * that share a `series_id` (a repeat) collapse into ONE row spanning the whole series — real, derived from
+     * the real member blocks, never a fabricated parent — so the list badges "Series · N" and Remove releases
+     * them together. A standalone block is its own row. The reason (+ optional note) is split back out of `notes`.
      *
-     * @return list<array{id: string, range: string, nights: int, reason: string}>
+     * @return list<array{is_series: bool, series_id: ?string, block_id: ?string, count: int, range: string, nights: int, reason: string, note: ?string}>
      */
     private function blocksList(Unit $unit): array
     {
@@ -231,19 +267,55 @@ class OwnerBlockCalendar extends Component
             ->where('unit_id', $unit->id)
             ->orderByDesc('start_date')
             ->get()
-            ->map(function (InventoryBlock $block): array {
-                $start = Carbon::parse($block->start_date);
-                $end = Carbon::parse($block->end_date);   // exclusive
-                $lastNight = $end->copy()->subDay();
+            ->groupBy(fn (InventoryBlock $b): string => $b->series_id !== null ? 'series:'.$b->series_id : 'block:'.$b->id)
+            ->map(function (Collection $group): array {
+                /** @var InventoryBlock $first */
+                $first = $group->sortBy('start_date')->first();
+                /** @var InventoryBlock $last */
+                $last = $group->sortByDesc('start_date')->first();
+                $isSeries = $first->series_id !== null;
+
+                $start = Carbon::parse($first->start_date);
+                $lastNight = Carbon::parse($last->end_date)->subDay();   // end_date is exclusive
+                $nights = (int) $group->sum(fn (InventoryBlock $b): int => (int) Carbon::parse($b->start_date)->diffInDays(Carbon::parse($b->end_date)));
+
+                [$reason, $note] = $this->splitNote((string) ($first->notes ?? 'Owner hold'));
 
                 return [
-                    'id' => (string) $block->id,
+                    'is_series' => $isSeries,
+                    'series_id' => $isSeries ? (string) $first->series_id : null,
+                    'block_id' => $isSeries ? null : (string) $first->id,
+                    'count' => $group->count(),
                     'range' => $start->format('j M').' – '.$lastNight->format('j M Y'),
-                    'nights' => (int) $start->diffInDays($end),
-                    'reason' => (string) ($block->notes ?? 'Owner hold'),
+                    'nights' => $nights,
+                    'reason' => $reason,
+                    'note' => $note,
+                    'first_start' => $start->toDateString(),
                 ];
             })
+            ->sortByDesc('first_start')
             ->values()
+            ->map(function (array $row): array {
+                unset($row['first_start']);   // internal sort key only
+
+                return $row;
+            })
             ->all();
+    }
+
+    /**
+     * Split a stored `notes` value back into its reason (before ' — ') and optional free note (after).
+     *
+     * @return array{0: string, 1: string|null}
+     */
+    private function splitNote(string $notes): array
+    {
+        if (! str_contains($notes, ' — ')) {
+            return [$notes, null];
+        }
+
+        [$reason, $note] = explode(' — ', $notes, 2);
+
+        return [$reason, $note];
     }
 }

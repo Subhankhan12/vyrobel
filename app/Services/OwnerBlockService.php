@@ -10,6 +10,7 @@ use App\Models\InventoryBlock;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * Owner BLOCK-CALENDAR write path (Phase 2 · Sub-gate 2) — the owner holds / releases dates on their OWN units
@@ -27,13 +28,19 @@ use Illuminate\Support\Carbon;
 class OwnerBlockService
 {
     /**
-     * The granular block reasons the owner picks. These are stored in the block's `notes` — the `reason` COLUMN
-     * is always the real enum value `'owner'` (an owner hold), never an invented enum. Booking-side maintenance
-     * blocks are the maintenance module's, not the owner's.
+     * The granular block reasons the owner picks (the three the wireframe offers). Stored in the block's `notes`
+     * — the `reason` COLUMN is always the real enum value `'owner'` (an owner hold), never an invented enum.
+     * Booking-side maintenance blocks are the maintenance module's, not the owner's.
      *
      * @var list<string>
      */
-    public const REASONS = ['Owner stay', 'Family visit', 'Personal stay', 'Seasonal hold', 'Boiler service', 'Deep clean'];
+    public const REASONS = ['Personal stay', 'Maintenance', 'Seasonal hold'];
+
+    /** The recurrence frequencies a REPEAT block expands over — each occurrence becomes a REAL individual block. */
+    public const FREQUENCIES = ['weekly', 'fortnightly', 'monthly'];
+
+    /** A repeat series is bounded (the first block + up to this many more) — never an unbounded generator. */
+    public const MAX_OCCURRENCES = 12;
 
     public function __construct(
         private AssignmentService $assignment,
@@ -45,7 +52,7 @@ class OwnerBlockService
      * half-open `[start, end)` the schema uses. blockInventory throws {@see UnitUnavailableException}
      * if any night is already booked or blocked (the real rule, not a reinvented check).
      */
-    public function block(User $user, string $unitId, string $firstNight, string $lastNight, string $reasonNote): InventoryBlock
+    public function block(User $user, string $unitId, string $firstNight, string $lastNight, string $reasonNote, ?string $seriesId = null): InventoryBlock
     {
         $unit = $this->ownedUnitOrFail($unitId);   // ← owner-scope guard: never trusts the request id
 
@@ -59,9 +66,67 @@ class OwnerBlockService
             'start_date' => $start->toDateString(),
             'end_date' => $end->toDateString(),
             'reason' => 'owner',
+            'series_id' => $seriesId,
             'notes' => $reasonNote,
             'created_by' => $user->getKey(),
         ]);
+    }
+
+    /**
+     * A REPEAT block: expand the recurrence (weekly / fortnightly / monthly × occurrences, including the first)
+     * into REAL individual blocks — each a genuine {@see InventoryBlock} through the same guarded {@see block()},
+     * sharing one `series_id`. This is the honest recurring block: NOT a fake "scheduled series" that creates
+     * nothing (#39). An occurrence whose nights are already booked/blocked is SKIPPED (the real non-overlap rule)
+     * and counted, so the caller can report "N of M nights blocked" truthfully rather than silently swallowing it.
+     *
+     * @return array{series_id: string, created: int, skipped: int}
+     */
+    public function blockSeries(User $user, string $unitId, string $firstNight, string $lastNight, string $reasonNote, string $freq, int $count): array
+    {
+        $this->ownedUnitOrFail($unitId);   // guard once up front (each block() re-guards too — cheap + safe)
+
+        $count = max(2, min(self::MAX_OCCURRENCES, $count));
+        $seriesId = (string) Str::ulid();
+        $first = Carbon::parse($firstNight)->startOfDay();
+        $last = Carbon::parse($lastNight)->startOfDay();
+
+        $created = 0;
+        $skipped = 0;
+
+        for ($i = 0; $i < $count; $i++) {
+            [$fn, $ln] = $this->shiftOccurrence($first, $last, $freq, $i);
+
+            try {
+                $this->block($user, $unitId, $fn->toDateString(), $ln->toDateString(), $reasonNote, $seriesId);
+                $created++;
+            } catch (UnitUnavailableException) {
+                $skipped++;   // this occurrence collides with a booking/block — a REAL outcome, reported honestly
+            }
+        }
+
+        return ['series_id' => $seriesId, 'created' => $created, 'skipped' => $skipped];
+    }
+
+    /** Shift the first occurrence's [first, last] nights forward by the frequency × the occurrence index. */
+    private function shiftOccurrence(Carbon $first, Carbon $last, string $freq, int $i): array
+    {
+        $fn = $first->copy();
+        $ln = $last->copy();
+
+        if ($i === 0) {
+            return [$fn, $ln];
+        }
+
+        if ($freq === 'monthly') {
+            $fn->addMonthsNoOverflow($i);
+            $ln->addMonthsNoOverflow($i);
+        } else {
+            $weeks = $freq === 'fortnightly' ? 2 * $i : $i;
+            $fn->addWeeks($weeks);
+            $ln->addWeeks($weeks);
+        }
+
+        return [$fn, $ln];
     }
 
     /**
@@ -74,6 +139,21 @@ class OwnerBlockService
         $this->ownedUnitOrFail((string) $block->unit_id);         // ← owner-scope guard on the block's unit
 
         $this->assignment->releaseInventoryBlock($block);
+    }
+
+    /**
+     * Release EVERY block in one series (the Undo of a just-created repeat, and a whole-series remove). Each
+     * block goes through the SAME owner-scope guard, so a foreign series id releases nothing it shouldn't.
+     */
+    public function releaseSeries(string $seriesId): void
+    {
+        InventoryBlock::query()
+            ->where('series_id', $seriesId)
+            ->get()
+            ->each(function (InventoryBlock $block): void {
+                $this->ownedUnitOrFail((string) $block->unit_id);
+                $this->assignment->releaseInventoryBlock($block);
+            });
     }
 
     /**

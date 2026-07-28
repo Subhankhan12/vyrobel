@@ -25,6 +25,7 @@ class InventoryBlock extends Model
         'start_date',
         'end_date',
         'reason',
+        'series_id',
         'notes',
         'created_by',
     ];

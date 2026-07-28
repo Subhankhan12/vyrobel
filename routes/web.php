@@ -772,6 +772,7 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/calendar', OwnerBlockCalendar::class)->middleware($capCalendar)->name('calendar');
     Route::post('/calendar/block', [OwnerBlockController::class, 'store'])->middleware($capActions)->name('calendar.block');
     Route::delete('/calendar/blocks/{block}', [OwnerBlockController::class, 'destroy'])->middleware($capActions)->name('calendar.release');
+    Route::delete('/calendar/series/{series}', [OwnerBlockController::class, 'destroySeries'])->middleware($capActions)->name('calendar.release-series');
     // Phase 2 · Sub-gate 3 — Owner Rates (the highest-risk gate: an owner-scoped MONEY write). The owner sets
     // nightly rates DIRECTLY on their OWN room types via the certified RateAndRestrictionService. The write is
     // guarded in OwnerRateService: a room type is editable ONLY if the owner owns it EXCLUSIVELY (every unit is
