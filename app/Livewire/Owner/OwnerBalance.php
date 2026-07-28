@@ -10,46 +10,50 @@ use App\Models\OwnerLedgerEntry;
 use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerNextPayout;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Owner Balance (Wave 1 · Sub-gate 1) — the owner's append-only `owner_ledger` as a running-balance
- * view, styled from the catalogued "Owner Balance" design and wired to LIVE data. Presentation only:
- * NO change to the ledger/statement/payout services, schema, or guarantees. Owner isolation
- * ({@see OwnerScope}) makes every read the owner's own rows; a non-linked user fails closed. No
- * route-model-bound props — all reads happen in render() under the active owner+tenant scope.
+ * Owner Balance (exact-match pass, invariant #59) — the owner's append-only `owner_ledger` presented as
+ * the decoded "Owner Balance" wireframe's CLEARING view, wired to LIVE data. Presentation only: NO change
+ * to the ledger/statement/payout services, schema, or guarantees. Owner isolation ({@see OwnerScope}) makes
+ * every read the owner's own rows; a non-linked user fails closed. No route-model-bound props — all reads
+ * happen in render() under the active owner+tenant scope.
  *
- * Honesty triage (rule locked in DECISIONS.md 2026-07-11):
- *   • REAL      — the ledger rows themselves (service_date, description, entry_type, direction +
- *                 amount_minor, currency, statement_id link, prior_period_adjustment, unverified);
- *                 "In transit" = Σ payouts.status='pending'; "Paid to date" = Σ payouts.status='paid'
- *                 ('pending'/'paid' are real Payout enum values); the auto-payout cadence, read from
- *                 the owner's CURRENT ManagementAgreement.payout_schedule.
- *   • DERIVED   — "Net position" = Σ OwnerLedgerEntry::signedMinor() over ALL the owner's rows, and
- *                 the per-row RUNNING BALANCE = the same cumulative sum taken in chronological order.
- *                 Both reconcile to the cent against the source rows. Reversal rows are ORDINARY rows
- *                 in the sum (a reversed pair nets to 0) — never filtered out, per invariant #16.
- *   • CURRENCY  — owner_ledger carries the BOOKING currency, payouts the PAYOUT currency. Totals and
- *                 the running balance accumulate PER CURRENCY and are rendered per currency; nothing
- *                 is ever summed or converted across currencies (invariant #17 — no silent FX).
- *   • NO BACKEND— "Withdraw early": there is NO owner-initiated payout rail (StripeConnectPayoutRail
- *                 ::send() throws; ManualPayoutRail is operator-run), so the control is a disabled
- *                 "Soon" + an honest note. NO IBAN, NO ETA, NO estimated arrival date — those have no
- *                 backing field. Export (CSV) is the standing deferral → disabled "Soon".
- *   • OMITTED   — the design's "Available / On hold / In transit" CLEARING state machine, the tax-ID
- *                 hold explainer, "Add tax details" and "How money clears": no such concept exists in
- *                 the backend (a ledger row is posted, not "cleared"), so rendering them would imply
- *                 state that does not exist. They are dropped, not stubbed.
+ * ⚠️ REAL MONEY. Honesty triage:
+ *   • REAL clearing model — the reconciling identity `Available + On hold + In transit + Paid == Net
+ *                 position`, per currency, to the cent (#17), derived entirely from the REAL ledger +
+ *                 payouts + the REAL tax-hold:
+ *                   – Available  = Σ signedMinor() over UNSTAMPED rows (statement_id === null) — cleared
+ *                                  this period, flowing into the next payout.
+ *                   – On hold    = Σ pending payouts WHEN the owner tax-hold is on (no tax ID on file).
+ *                   – In transit = Σ pending payouts when NOT held (released) — €0 while held.
+ *                   – Paid       = Σ payouts.status='paid'. ('pending'/'paid' are real Payout enum values.)
+ *                 The per-row state chip takes the same real states (Available / Paid out / On hold /
+ *                 In transit / Cleared). No fabricated "cleared" state — a row is Available until it is
+ *                 stamped onto a finalised statement, then it takes its statement's real payout status.
+ *   • DERIVED   — "Net position" = Σ signedMinor() over ALL rows, and the per-row RUNNING BALANCE = the
+ *                 same cumulative sum taken chronologically. Both reconcile to the cent. Reversal rows are
+ *                 ORDINARY rows in the sum (a reversed pair nets to 0) — never filtered out (#16).
+ *   • CURRENCY  — owner_ledger carries the BOOKING currency, payouts the PAYOUT currency. Every total and
+ *                 the running balance accumulate PER CURRENCY; nothing is summed or converted across
+ *                 currencies (#17 — no silent FX). The masked IBAN is CAP_PAYOUT-only (#28).
+ *   • REAL HOLD — the "Why is X held?" card + "Add tax details" render ONLY on a genuine tax-hold; the
+ *                 auto-payout cadence is the owner's CURRENT ManagementAgreement.payout_schedule.
+ *   • ACCOUNT-GATED — "Withdraw early" is instant money-movement; there is NO owner-initiated payout rail
+ *                 (StripeConnectPayoutRail::send() throws; ManualPayoutRail is operator-run), so the button
+ *                 is honestly DISABLED with a note that automated month-end payout is how funds move. NEVER
+ *                 a fake withdrawal / transfer / "in transit" (#39). Export (CSV) is REAL, CAP_EXPORTS-gated.
  *
  * Honest compromises (documented rather than papered over):
- *   • owner_ledger.note holds an INTERNAL token ('ota_unverified', 'no_agreement') — not owner-facing
- *     copy — so it is not rendered; `description` already carries the human sentence and the
- *     Unverified badge carries the signal.
- *   • The cadence card renders only when the owner's current agreements agree on ONE payout_schedule.
- *     None current, or a genuinely ambiguous set, renders nothing rather than picking a value.
+ *   • owner_ledger.note holds an INTERNAL token ('ota_unverified', 'no_agreement') — not owner-facing copy
+ *     — so it is not rendered; `description` already carries the human sentence and the Unverified badge
+ *     carries the signal.
+ *   • The cadence card renders only when the owner's current agreements agree on ONE payout_schedule. None
+ *     current, or a genuinely ambiguous set, renders nothing rather than picking a value.
  */
 #[Layout('components.layouts.owner')]
 class OwnerBalance extends Component
@@ -71,19 +75,69 @@ class OwnerBalance extends Component
 
         $currency = $this->portfolioCurrency($descending, $payouts);
 
+        $ctx = app(OwnerContext::class);
+        $rail = OwnerNextPayout::rail($ctx);   // iban_masked (CAP_PAYOUT), paused (the REAL tax-hold)
+
         $net = $this->netPosition($descending, $currency);
-        $inTransit = $this->payoutTotal($payouts->filter(fn (Payout $p): bool => $p->status === 'pending'), $currency);
         $paid = $this->payoutTotal($payouts->filter(fn (Payout $p): bool => $p->status === 'paid'), $currency);
+
+        // The reconciling CLEARING model (exact-match). REAL states, derived from the real ledger + payouts + the
+        // real tax-hold. Identity: Available + On hold + In transit + Paid == Net position, per currency, to the
+        // cent (#17). NOTHING here is a money-movement — the withdraw stays account-gated (never faked, #39).
+        //   • Available  = unstamped ledger net (cleared this period, not yet in a finalised statement).
+        //   • On hold    = pending payouts held by the tax-hold (owner has no tax ID on file).
+        //   • In transit = pending payouts NOT held (released, on their way per the schedule) — €0 while held.
+        $pending = $payouts->filter(fn (Payout $p): bool => $p->status === 'pending');
+        $unstamped = $descending->filter(fn (OwnerLedgerEntry $e): bool => $e->statement_id === null)->values();
+        $available = $this->netPosition($unstamped, $currency);
+        $onHold = $this->payoutTotal($rail['paused'] ? $pending : collect(), $currency);
+        $inTransit = $this->payoutTotal($rail['paused'] ? collect() : $pending, $currency);
+
+        // statement_id → its payout status, for the activity feed's per-row state chip. Only real pending/paid
+        // payouts drive a chip (createFromStatement holds one such per statement); a statement whose only payout
+        // failed falls through to "Cleared" (finalised, not yet successfully paid) — never a fabricated state.
+        $payoutStatusByStatement = $payouts
+            ->whereIn('status', ['pending', 'paid'])
+            ->mapWithKeys(fn (Payout $p): array => [(string) $p->owner_statement_id => (string) $p->status])
+            ->all();
 
         return view('livewire.owner.balance', [
             'viewer' => $this->viewer(),
-            'net' => $net,
+            'available' => $available,
+            'onHold' => $onHold,
             'inTransit' => $inTransit,
             'paid' => $paid,
+            'net' => $net,
+            // The held explainer + the masked IBAN (CAP_PAYOUT only, #28) — shown only when there is a REAL hold.
+            'held' => $onHold['minor'] !== 0 ? ['display' => $onHold['display']] : null,
+            'ibanMasked' => $rail['iban_masked'],
             'byCurrency' => $this->byCurrency($net['currencies'], $inTransit['currencies'], $paid['currencies']),
-            'entries' => $this->activityRows($ascending),
+            'entries' => $this->activityRows($ascending, (bool) $rail['paused'], $payoutStatusByStatement),
             'schedule' => $this->payoutSchedule(),
         ]);
+    }
+
+    /**
+     * The per-row balance state (the wireframe's chip), derived from the REAL entry: an unstamped row is still
+     * Available (accruing to the next payout); a stamped row takes its statement's payout status — Paid out /
+     * On hold (tax-held) / In transit (released) / Cleared (finalised, no payout yet). No fabricated state.
+     *
+     * @param  array<string, string>  $payoutStatusByStatement
+     * @return array{label: string, tone: string}
+     */
+    private function rowState(OwnerLedgerEntry $entry, bool $paused, array $payoutStatusByStatement): array
+    {
+        if ($entry->statement_id === null) {
+            return ['label' => 'Available', 'tone' => 'paid'];
+        }
+
+        $status = $payoutStatusByStatement[(string) $entry->statement_id] ?? null;
+
+        return match ($status) {
+            'paid' => ['label' => 'Paid out', 'tone' => 'paid'],
+            'pending' => $paused ? ['label' => 'On hold', 'tone' => 'pending'] : ['label' => 'In transit', 'tone' => 'pending'],
+            default => ['label' => 'Cleared', 'tone' => 'draft'],
+        };
     }
 
     /**
@@ -187,9 +241,10 @@ class OwnerBalance extends Component
      * cross-currency running balance would be a silent FX sum.
      *
      * @param  Collection<int, OwnerLedgerEntry>  $ascending  oldest-first
+     * @param  array<string, string>  $payoutStatusByStatement
      * @return list<array<string, mixed>>
      */
-    private function activityRows(Collection $ascending): array
+    private function activityRows(Collection $ascending, bool $paused, array $payoutStatusByStatement): array
     {
         /** @var array<string, int> $running */
         $running = [];
@@ -210,6 +265,7 @@ class OwnerBalance extends Component
                 'running_display' => $this->money($running[$currency], $currency),
                 'currency' => $currency,
                 'statement_id' => $entry->statement_id !== null ? (string) $entry->statement_id : null,
+                'state' => $this->rowState($entry, $paused, $payoutStatusByStatement),
                 'prior_period' => (bool) $entry->prior_period_adjustment,
                 'unverified' => (bool) $entry->unverified,
             ];

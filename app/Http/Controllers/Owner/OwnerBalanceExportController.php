@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Owner;
+
+use App\Http\Controllers\Controller;
+use App\Models\OwnerLedgerEntry;
+use App\Models\Scopes\OwnerScope;
+use App\Support\Money\MoneyFormatter;
+use Illuminate\Support\Carbon;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+/**
+ * Owner Balance activity — CSV export. A REAL, owner-scoped download of the SAME `owner_ledger` rows the page
+ * shows, with the DERIVED running balance (per currency, oldest→newest — exactly the page's math). Owner-scoped
+ * by the active {@see OwnerScope} on the `/owner` routes → a non-linked user fails closed
+ * (headers-only) and no cross-owner row appears. GATED `exports` (co-owner + accountant). No guest data; integer
+ * money throughout (#17); nothing fabricated (#39).
+ */
+class OwnerBalanceExportController extends Controller
+{
+    public function download(): StreamedResponse
+    {
+        // Oldest→newest so the running balance accumulates correctly (per currency), like the page.
+        $entries = OwnerLedgerEntry::query()
+            ->orderBy('service_date')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
+        $filename = 'balance-activity-'.Carbon::now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($entries): void {
+            $out = fopen('php://output', 'wb');
+            fputcsv($out, ['Date', 'Activity', 'Type', 'Amount', 'Running balance', 'On a statement']);
+
+            /** @var array<string, int> $running */
+            $running = [];
+
+            foreach ($entries as $e) {
+                $currency = (string) $e->currency;
+                $signed = $e->signedMinor();
+                $running[$currency] = ($running[$currency] ?? 0) + $signed;
+
+                fputcsv($out, [
+                    $e->service_date->format('Y-m-d'),
+                    (string) $e->description,
+                    (string) $e->entry_type,
+                    MoneyFormatter::display($signed, $currency, signed: true),
+                    MoneyFormatter::display($running[$currency], $currency),
+                    $e->statement_id !== null ? 'yes' : 'not yet',
+                ]);
+            }
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Cache-Control' => 'no-store, no-cache',
+        ]);
+    }
+}

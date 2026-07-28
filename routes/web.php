@@ -66,6 +66,7 @@ use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerAccountController;
 use App\Http\Controllers\Owner\OwnerBlockController;
+use App\Http\Controllers\Owner\OwnerBalanceExportController;
 use App\Http\Controllers\Owner\OwnerBookingsExportController;
 use App\Http\Controllers\Owner\OwnerBookingsTargetController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
@@ -725,6 +726,8 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         Route::get('/statement-history/pdf', [OwnerStatementHistoryExportController::class, 'pdf'])->name('statements.history.pdf');
         // Owner Payouts exact-match — the payout-history CSV (owner-scoped; no guest data; real payout states).
         Route::get('/payouts/export', [OwnerPayoutsExportController::class, 'download'])->name('payouts.export');
+        // Owner Balance exact-match — the balance-activity CSV (owner-scoped; the real ledger + running balance).
+        Route::get('/balance/export', [OwnerBalanceExportController::class, 'download'])->name('balance.export');
     });
     // Design pass · Screen 3 — owner payouts (owner-scoped; new page for the certified Payout backend).
     Route::get('/payouts', OwnerPayouts::class)->name('payouts');

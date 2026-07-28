@@ -731,6 +731,12 @@ class DemoSeeder extends Seeder
         $finalized = $statements->finalize($draft);
         app(OwnerPayoutService::class)->createFromStatement($finalized);
 
+        // DEMO ONLY — a little current-period (October) revenue attributed to the ledger but NOT yet finalised
+        // into a statement, so the Balance page's "Available" (unstamped ledger net) is a real positive figure
+        // (cleared this period, flows into the next payout). Runs AFTER the September finalize, so it is never
+        // swept into September; it is a REAL booking → attribution (no statement), never a fabricated balance.
+        $this->seedOwnerBalanceAccrual($property, $apartment, $aptRate, $aptUnits, $aptGuest, $vat);
+
         // Phase 7c — the OWNER TEAM: two real sub-users under the demo owner (accountant + view-only) plus a
         // pending invite, so the Owner Team screen demos on real state. Each mirrors what the invite flow
         // produces: an active login + Membership + owner_users pivot + the owner-only `External Owner` role.
@@ -796,6 +802,43 @@ class DemoSeeder extends Seeder
             $payout = $payouts->createFromStatement($finalized);
             $payout->update(['status' => 'paid', 'paid_at' => $checkOut->addDays(5)->toDateTimeString()]);
             $finalized->update(['status' => 'paid']);
+        }
+    }
+
+    /**
+     * DEMO ONLY — a little current-period (October) revenue attributed to the owner ledger but NOT finalised into
+     * a statement. This is what the Balance page reports as "Available" (the unstamped-ledger net) — a REAL figure
+     * flowing into the next payout, so the demo shows a live positive balance instead of only the (past) €180
+     * expense. These are REAL bookings → REAL attribution (no statement), never a fabricated balance. It runs
+     * AFTER the September finalize, so nothing here is swept into September.
+     */
+    private function seedOwnerBalanceAccrual(
+        Property $property,
+        RoomType $apartment,
+        RatePlan $aptRate,
+        Collection $aptUnits,
+        Guest $guest,
+        Tax $vat,
+    ): void {
+        $availability = app(AvailabilityService::class);
+        $attribution = app(OwnerAttributionService::class);
+
+        // nightly (minor) · check-in day · nights · apartment index — October, clear of every other demo stay.
+        $plan = [
+            [20000, 4, 3, 0],
+            [22000, 18, 4, 1],
+        ];
+
+        foreach ($plan as [$nightly, $day, $nights, $idx]) {
+            $checkIn = CarbonImmutable::parse('2026-10-'.str_pad((string) $day, 2, '0', STR_PAD_LEFT));
+            $checkOut = $checkIn->addDays($nights);
+            $unit = $aptUnits[$idx % $aptUnits->count()];
+
+            $this->seedCalendarRange($aptRate, $nightly, $checkIn->toDateString(), $checkOut->toDateString());
+            $availability->recompute($apartment->id, $checkIn->toDateString(), $checkOut->toDateString());
+
+            $stay = $this->createDemoStay('direct', $property, $apartment, $aptRate, $unit, $guest, $checkIn->toDateString(), $checkOut->toDateString(), $vat, fullyPaid: true);
+            $attribution->attributeReservation($stay);
         }
     }
 
