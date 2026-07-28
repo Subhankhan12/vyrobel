@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\HousekeepingTask;
 use App\Models\InventoryBlock;
 use App\Models\ManagementAgreement;
 use App\Models\OwnerLedgerEntry;
@@ -20,6 +21,7 @@ use App\Services\OwnerBlockService;
 use App\Services\OwnerPortalService;
 use App\Services\OwnerRateService;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\Guest\GuestName;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Owner\OwnerOccupancy;
@@ -83,14 +85,18 @@ use Livewire\Component;
  *   • Guest messages → the owner↔operator RELAY (`owner.messages.start`) — name-free (#28), NEVER a
  *     guest thread and NEVER owner→guest. Rendered in the blade as an honest "message your management team".
  *
+ * WIRED REAL in Wave B (owner completeness sweep · GATE 2):
+ *   • WEEKEND UPLIFT — now REAL ({@see pricing()} reads the plan's `weekend_uplift_pct`; the editor writes it via
+ *     the Wave-A `OwnerRateService::setRateWeekendAware`), consistent with My Units. No longer "not available".
+ *   • RICHER DAY-DETAIL — {@see dayDetails()} attaches the stay (guest NAME-only #28 via {@see GuestName}, dates,
+ *     owner net) to a booked day + the reason to a blocked day, for the calendar popover.
+ *   • CLEANING SCHEDULE — {@see cleanings()} shows the unit's real {@see HousekeepingTask} rows READ-ONLY (date /
+ *     type / status); the owner sees but does not manage (honest); never a fabricated cleaner (#39).
+ *
  * OMITTED / HONEST — still rendered as an honest state, never fabricated (#39):
  *   • Live/Snoozed TOGGLE — a write to `units.is_active` with no owner path; the REAL state renders
- *     read-only, no toggle.
+ *     read-only, no toggle (owner-controlled pause is a Wave C product decision).
  *   • Calendar SYNC / "Sync calendars" — no owner-facing sync backend (account-gated Channex); honest.
- *   • WEEKEND UPLIFT — no column; the pricing card shows an honest "not available".
- *   • Cleaning schedule / cleaner / rating — no owner-facing housekeeping surface; the design's cleaner is
- *     fabricated. Rendered as an honest "coordinated by your management team". `units.housekeeping_status`
- *     stays an operator-ops signal, not owner-facing.
  *   • Per-unit PAYOUT TIMELINE — payouts are per-STATEMENT/per-OWNER, so a per-unit timeline is a fabricated
  *     attribution; the rail links the real Payouts instead.
  *   • "Direct bookings saved you €X in commission" — a fabricated directRev × 0.15; still omitted.
@@ -178,8 +184,10 @@ class OwnerUnitDetail extends Component
             'bestBadge' => $this->bestBadge($unit, $month, $currency),
             // Exact-match pass (#65) — stale refusals now REAL (the backends shipped after Wave 1):
             'calendar' => $this->calendarDays($unit, $monthStart, $monthEnd),   // booked/blocked/open + counts
-            'pricing' => $this->pricing($unit, $currency),                       // nightly + min-stay (OwnerRateService)
+            'dayDetails' => $this->dayDetails($unit, $monthStart, $monthEnd, $currency),   // Wave-B richer day-detail
+            'pricing' => $this->pricing($unit, $currency),                       // nightly + min-stay + weekend uplift
             'reviews' => $this->reviews($unit),                                  // ReviewRating + ReviewList
+            'cleanings' => $this->cleanings($unit),                              // Wave-B real HousekeepingTask (read-only)
             'blockReasons' => OwnerBlockService::REASONS,
         ]);
     }
@@ -255,12 +263,141 @@ class OwnerUnitDetail extends Component
     }
 
     /**
+     * Wave-B RICHER DAY-DETAIL — a map `date → detail` for the calendar popover. A booked day carries the stay's
+     * guest NAME-ONLY ({@see GuestName}, #28 — the same name-only rule the owner Block Calendar/Bookings already
+     * use), reference, dates and the owner NET on this unit; a blocked day carries its reason. Open/past days
+     * have no detail. Owner-scoped: reached only through this owner-scoped unit; NO guest email/phone ever (#28).
+     *
+     * @return array<string, array{type: string, guest?: string, reference?: ?string, stay?: string, nights?: int, net?: list<string>, reason?: string}>
+     */
+    private function dayDetails(Unit $unit, Carbon $monthStart, Carbon $monthEnd, string $currency): array
+    {
+        $out = [];
+
+        $lines = ReservationUnit::query()
+            ->where('unit_id', $unit->id)->where('status', 'active')
+            ->whereDate('check_in', '<', $monthEnd->toDateString())
+            ->whereDate('check_out', '>', $monthStart->toDateString())
+            ->with('reservation.leadGuest')
+            ->get();
+
+        $nets = $this->netByReservation(
+            $unit,
+            $lines->map(fn (ReservationUnit $l): string => (string) $l->reservation_id)->unique()->values()->all(),
+        );
+
+        foreach ($lines as $line) {
+            $reservation = $line->reservation;
+            $checkIn = Carbon::parse($line->check_in);
+            $checkOut = Carbon::parse($line->check_out);
+            $detail = [
+                'type' => 'booked',
+                'guest' => $reservation instanceof Reservation ? GuestName::display($reservation->leadGuest) : 'Guest',
+                'reference' => $reservation instanceof Reservation ? (string) $reservation->reference : null,
+                'stay' => $checkIn->format('j M').' – '.$checkOut->format('j M Y'),
+                'nights' => (int) $checkIn->diffInDays($checkOut),
+                'net' => $nets[(string) $line->reservation_id] ?? [],
+            ];
+
+            // Paint the detail onto each in-month night of the stay (half-open).
+            $cursor = $checkIn->greaterThan($monthStart) ? $checkIn->copy() : $monthStart->copy();
+            $stop = $checkOut->lessThan($monthEnd) ? $checkOut : $monthEnd;
+            for (; $cursor->lt($stop); $cursor->addDay()) {
+                $out[$cursor->toDateString()] = $detail;
+            }
+        }
+
+        // Blocked days — the reason from the InventoryBlock (a real owner-set/managed block).
+        foreach (InventoryBlock::query()
+            ->where('unit_id', $unit->id)
+            ->whereDate('start_date', '<', $monthEnd->toDateString())
+            ->whereDate('end_date', '>', $monthStart->toDateString())
+            ->get(['start_date', 'end_date', 'reason']) as $block) {
+            $cursor = Carbon::parse($block->start_date);
+            $end = Carbon::parse($block->end_date);
+            for (; $cursor->lt($end); $cursor->addDay()) {
+                $key = $cursor->toDateString();
+                if (! isset($out[$key])) {
+                    $out[$key] = ['type' => 'blocked', 'reason' => $this->blockReasonLabel((string) ($block->reason ?? ''))];
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /** A human label for an InventoryBlock reason (the real OwnerBlockService reasons + a plain fallback). */
+    private function blockReasonLabel(string $reason): string
+    {
+        return OwnerBlockService::REASONS[$reason] ?? ($reason === '' ? 'Blocked' : ucfirst(str_replace('_', ' ', $reason)));
+    }
+
+    /**
+     * Wave-B CLEANING SCHEDULE (READ-ONLY) — the unit's real {@see HousekeepingTask} rows (departure/stayover/
+     * deep/arrival_prep, generated operator-side on checkout). The owner SEES them (date + type + status) but does
+     * NOT manage them — managing housekeeping is the operator's job (honest). Owner-scoped: the unit already passed
+     * OwnerScope and the tasks are pinned to its unit_id; no guest data (a cleaning carries none, #28). Recent +
+     * upcoming, newest-relevant first; an honest empty when the unit has no cleanings on record.
+     *
+     * @return array{has_data: bool, rows: list<array{date: string, type: string, status: string, tone: string, upcoming: bool}>}
+     */
+    private function cleanings(Unit $unit): array
+    {
+        $today = Carbon::today();
+
+        $tasks = HousekeepingTask::query()
+            ->where('unit_id', $unit->id)
+            ->whereDate('date', '>=', $today->copy()->subDays(30)->toDateString())
+            ->orderBy('date')
+            ->limit(12)
+            ->get(['date', 'type', 'status']);
+
+        $rows = $tasks->map(fn (HousekeepingTask $t): array => [
+            'date' => Carbon::parse($t->date)->format('j M Y'),
+            'type' => $this->cleaningTypeLabel((string) $t->type),
+            'status' => $this->cleaningStatusMeta((string) $t->status)['label'],
+            'tone' => $this->cleaningStatusMeta((string) $t->status)['tone'],
+            'upcoming' => Carbon::parse($t->date)->greaterThanOrEqualTo($today),
+        ])->values()->all();
+
+        return ['has_data' => $rows !== [], 'rows' => $rows];
+    }
+
+    /** housekeeping_tasks.type enum ∈ departure|stayover|deep|arrival_prep. */
+    private function cleaningTypeLabel(string $type): string
+    {
+        return match ($type) {
+            'departure' => 'Departure clean',
+            'stayover' => 'Stayover service',
+            'deep' => 'Deep clean',
+            'arrival_prep' => 'Arrival prep',
+            default => ucfirst(str_replace('_', ' ', $type)),
+        };
+    }
+
+    /**
+     * housekeeping_tasks.status enum ∈ pending|in_progress|clean|inspected.
+     *
+     * @return array{label: string, tone: string}
+     */
+    private function cleaningStatusMeta(string $status): array
+    {
+        return match ($status) {
+            'pending' => ['label' => 'Scheduled', 'tone' => 'pending'],
+            'in_progress' => ['label' => 'In progress', 'tone' => 'pending'],
+            'clean' => ['label' => 'Cleaned', 'tone' => 'paid'],
+            'inspected' => ['label' => 'Inspected', 'tone' => 'paid'],
+            default => ['label' => ucfirst(str_replace('_', ' ', $status)), 'tone' => 'draft'],
+        };
+    }
+
+    /**
      * The unit's REAL pricing — the current nightly rate + minimum stay for its room type, editable ONLY when
      * the owner owns that room type EXCLUSIVELY (via {@see OwnerRateService::editableRoomTypes()} — the SAME
      * rule as My Units; a shared room type is honestly read-only, never a fake save). Weekend uplift is NOT
      * modelled (no column) → the caller shows an honest "not available", never a fabricated figure (#39).
      *
-     * @return array{editable: bool, room_type_id: ?string, rate_display: ?string, rate_units: ?int, min_stay: ?int}
+     * @return array{editable: bool, room_type_id: ?string, rate_display: ?string, rate_units: ?int, min_stay: ?int, weekend_pct: float|null}
      */
     private function pricing(Unit $unit, string $currency): array
     {
@@ -271,6 +408,7 @@ class OwnerUnitDetail extends Component
         $rateDisplay = null;
         $rateUnits = null;
         $minStay = null;
+        $weekendPct = null;
 
         $plan = $unit->roomType->primaryRatePlan();
         if ($plan !== null) {
@@ -289,6 +427,9 @@ class OwnerUnitDetail extends Component
             if ($restriction !== null) {
                 $minStay = (int) $restriction->min_stay;
             }
+
+            // Wave-B: the real weekend-uplift POLICY on the plan (Wave-A weekend_uplift_pct), for the editor prefill.
+            $weekendPct = $plan->weekend_uplift_pct !== null ? (float) $plan->weekend_uplift_pct : null;
         }
 
         return [
@@ -297,6 +438,7 @@ class OwnerUnitDetail extends Component
             'rate_display' => $rateDisplay,
             'rate_units' => $rateUnits,
             'min_stay' => $minStay,
+            'weekend_pct' => $weekendPct,
         ];
     }
 

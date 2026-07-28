@@ -2,9 +2,10 @@
      REAL owner-scoped data. This page AGGREGATES already-built features (anti-drift, REUSED not rebuilt): the
      Batch-B analytics (KPIs/occupancy/revenue/channel-mix/best-badge), OwnerLedgerAttribution (deductions, reconciles
      #17), name-only stays (#28), OwnerBlockService (tap-to-block · owner.calendar.block), OwnerRateService (nightly +
-     min-stay · owner.rates.apply), the reviews feature (ReviewRating/ReviewList, first-name+initial byline #28), and
-     the owner↔operator relay (owner.messages.start — name-free, never owner→guest). HONEST where not modelled (#39):
-     weekend uplift, cleaning schedule, OTA sync, the snooze toggle, a per-unit payout timeline, "Direct saved you €X".
+     min-stay + WEEKEND UPLIFT · owner.rates.apply), the reviews feature (ReviewRating/ReviewList, first-name+initial
+     byline #28), and the owner↔operator relay (owner.messages.start — name-free, never owner→guest). Wave-B added the
+     REAL richer day-detail (guest name-only #28) + the READ-ONLY cleaning schedule (real HousekeepingTask). HONEST
+     where not modelled (#39): OTA sync, the snooze toggle, a per-unit payout timeline, "Direct saved you €X".
      See App\Livewire\Owner\OwnerUnitDetail + docs/OWNER-TEAM-UNITDETAIL-AUDIT.md.
      RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click passes through to Alpine). --}}
 <x-owner.shell active="units" :title="$unit['name']" :viewer="$viewer" :breadcrumb="[['label' => 'My units', 'url' => route('owner.units')], ['label' => $unit['name']]]">
@@ -92,8 +93,8 @@
 
     {{-- ── Top: availability calendar (tap-to-block) + pricing ── --}}
     <div class="vy-ud-top">
-        {{-- Availability calendar — REAL booked/blocked/open; tap an OPEN day → block via OwnerBlockService --}}
-        <section class="vy-card vy-fade" x-data="{ sel: null }">
+        {{-- Availability calendar — REAL booked/blocked/open; tap an OPEN day → block; tap a BOOKED/BLOCKED day → detail --}}
+        <section class="vy-card vy-fade" x-data="{ sel: null, detail: null, details: @js($dayDetails) }">
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px">
                 <h2 class="vy-card-title" style="font-size:16px">Availability · {{ $month['label'] }}</h2>
                 <div style="display:flex;align-items:center;gap:10px">
@@ -110,7 +111,9 @@
                 @for ($i = 1; $i < $calendar['first_weekday']; $i++)<div></div>@endfor
                 @foreach ($calendar['days'] as $c)
                     @if ($c['state'] === 'open')
-                        <div class="vy-ud-day vy-ud-day--open" :class="sel === @js($c['date']) ? 'is-sel' : ''" @click="sel = (sel === @js($c['date']) ? null : @js($c['date']))" title="Open — tap to block">{{ $c['day'] }}</div>
+                        <div class="vy-ud-day vy-ud-day--open" :class="sel === @js($c['date']) ? 'is-sel' : ''" @click="sel = (sel === @js($c['date']) ? null : @js($c['date'])); detail = null" title="Open — tap to block">{{ $c['day'] }}</div>
+                    @elseif ($c['state'] === 'booked' || $c['state'] === 'blocked')
+                        <div class="vy-ud-day vy-ud-day--{{ $c['state'] }}" style="cursor:pointer" @click="detail = (detail && detail.date === @js($c['date'])) ? null : Object.assign({date: @js($c['date'])}, details[@js($c['date'])] || {}); sel = null" title="Tap for detail">{{ $c['day'] }}</div>
                     @else
                         <div class="vy-ud-day vy-ud-day--{{ $c['state'] }}" title="{{ ucfirst($c['state']) }}">{{ $c['day'] }}</div>
                     @endif
@@ -121,6 +124,26 @@
                 <span style="display:inline-flex;align-items:center;gap:6px"><span class="sw" style="background:rgba(255,255,255,.5);border:1px solid rgba(120,70,40,.1)"></span>Open</span>
                 <span style="display:inline-flex;align-items:center;gap:6px"><span class="sw" style="background:#3A2E27"></span>Blocked</span>
             </div>
+            {{-- Wave-B RICHER DAY-DETAIL — a booked day shows the stay (guest NAME-only #28, dates, your net); a blocked
+                 day shows its reason. Real data from dayDetails; no guest contact ever. --}}
+            <div x-show="detail" x-cloak style="margin-top:16px;padding:14px 16px;border-top:1px solid var(--vy-hairline);background:rgba(255,255,255,.45);border-radius:12px">
+                <template x-if="detail && detail.type === 'booked'">
+                    <div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                            <span style="font-weight:600;font-size:13.5px" x-text="detail.guest"></span>
+                            <span style="font-size:11.5px;color:var(--vy-faint)" x-text="detail.reference ? ('Ref ' + detail.reference) : ''"></span>
+                        </div>
+                        <div style="font-size:12px;color:var(--vy-muted);margin-top:4px"><span x-text="detail.stay"></span> · <span x-text="detail.nights + (detail.nights === 1 ? ' night' : ' nights')"></span></div>
+                        <template x-if="detail.net && detail.net.length">
+                            <div style="font-size:12px;color:var(--vy-ink);margin-top:6px">Your net: <strong x-text="detail.net.join(' · ')"></strong></div>
+                        </template>
+                    </div>
+                </template>
+                <template x-if="detail && detail.type === 'blocked'">
+                    <div style="font-size:13px;color:var(--vy-ink)">Blocked · <span x-text="detail.reason"></span></div>
+                </template>
+            </div>
+
             {{-- Block composer — appears when an open day is selected; a REAL block (OwnerBlockService, $capActions #20) --}}
             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
                 <form method="POST" action="{{ route('owner.calendar.block') }}" x-show="sel" x-cloak style="margin-top:16px;padding-top:16px;border-top:1px solid var(--vy-hairline);display:flex;gap:10px;flex-wrap:wrap;align-items:center">
@@ -139,8 +162,8 @@
             <p class="vy-line-sub" style="font-size:11px;margin-top:12px">Blocked days hold the unit off-sale. Manage all blocks on your <a href="{{ route('owner.calendar', ['unit' => $unit['id']]) }}" style="color:var(--vy-accent)">Calendar</a>.</p>
         </section>
 
-        {{-- Pricing & availability — REAL nightly + min-stay (OwnerRateService); weekend uplift honest-omitted --}}
-        <section class="vy-card vy-fade" id="vy-ud-pricing" style="padding:20px" x-data="{ editing: false }">
+        {{-- Pricing & availability — REAL nightly + min-stay + weekend uplift (OwnerRateService, Wave-A/B) --}}
+        <section class="vy-card vy-fade" id="vy-ud-pricing" style="padding:20px" x-data="{ editing: false, rate: {{ $pricing['rate_units'] ?? 0 }}, weekend: {{ $pricing['weekend_pct'] !== null ? (float) $pricing['weekend_pct'] : 0 }} }">
             <div class="vy-eyebrow" style="margin-bottom:12px">Pricing &amp; availability</div>
 
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.42);border:1px solid rgba(120,70,40,.08);margin-bottom:14px">
@@ -153,7 +176,7 @@
 
             <div x-show="! editing">
                 <div class="vy-ud-prow"><span class="k">Nightly rate</span><span class="v">{{ $pricing['rate_display'] ?? 'Not set' }}</span></div>
-                <div class="vy-ud-prow"><span class="k">Weekend uplift</span><span class="v" style="color:var(--vy-faint)">Not available</span></div>
+                <div class="vy-ud-prow"><span class="k">Weekend uplift</span><span class="v">{{ $pricing['weekend_pct'] !== null && (float) $pricing['weekend_pct'] > 0 ? rtrim(rtrim(number_format((float) $pricing['weekend_pct'], 2), '0'), '.').'%' : 'None' }}</span></div>
                 <div class="vy-ud-prow"><span class="k">Minimum stay</span><span class="v">{{ $pricing['min_stay'] !== null ? $pricing['min_stay'].' '.\Illuminate\Support\Str::plural('night', $pricing['min_stay']) : 'None' }}</span></div>
                 @if (! $pricing['editable'])
                     <p class="vy-line-sub" style="font-size:11.5px;margin-top:12px">This room type is shared with other inventory, so its rate is managed by your operator.</p>
@@ -177,9 +200,13 @@
                         <input type="hidden" name="start_date" value="{{ now()->toDateString() }}">
                         <input type="hidden" name="end_date" value="{{ now()->addYear()->subDay()->toDateString() }}">
                         <label class="vy-field-label" for="ud_rate">Nightly rate (€)</label>
-                        <input id="ud_rate" type="number" name="rate" step="0.01" min="0" value="{{ $pricing['rate_units'] }}" class="vy-input" style="width:100%;margin-bottom:11px" required>
+                        <input id="ud_rate" type="number" name="rate" step="0.01" min="0" x-model="rate" class="vy-input" style="width:100%;margin-bottom:11px" required>
+                        <label class="vy-field-label" for="ud_weekend">Weekend uplift (%)</label>
+                        <input id="ud_weekend" type="number" name="weekend_uplift" step="1" min="0" max="200" x-model="weekend" class="vy-input" style="width:100%;margin-bottom:11px" placeholder="Optional — e.g. 20">
                         <label class="vy-field-label" for="ud_min">Minimum stay (nights)</label>
                         <input id="ud_min" type="number" name="min_stay" min="1" max="365" value="{{ $pricing['min_stay'] }}" class="vy-input" style="width:100%;margin-bottom:8px" placeholder="Optional">
+                        {{-- Live preview — the derived Fri/Sat price (base × (1 + uplift%)) before saving --}}
+                        <p x-show="weekend > 0" x-cloak class="vy-line-sub" style="font-size:11.5px;margin:0 0 8px;color:var(--vy-ink)">Fri &amp; Sat nights become <strong style="color:var(--vy-accent)" x-text="'€' + Math.round(rate * (1 + weekend/100))"></strong> / night; weekdays stay <span x-text="'€' + rate"></span>.</p>
                         <p class="vy-line-sub" style="font-size:11px;margin:0 0 12px">Applies from today across the next year. It’s live immediately.</p>
                         <div style="display:flex;gap:9px">
                             <button type="button" class="vy-btn vy-btn--ghost" style="flex:1;justify-content:center" @click="editing = false">Cancel</button>
@@ -335,10 +362,26 @@
                 @endif
             </section>
 
-            {{-- Cleaning — HONEST (not owner-facing; never a fabricated cleaner/schedule #39) --}}
-            <section class="vy-card vy-fade vy-ud-honest vy-ud-rail-card">
-                <span class="vy-eyebrow">Cleaning</span>
-                <p class="vy-line-sub" style="font-size:12.5px;margin-top:8px;line-height:1.55">Cleaning and turnovers are coordinated by your management team. Need something arranged? Message them below.</p>
+            {{-- Cleaning — Wave-B: the REAL HousekeepingTask rows (read-only), owner-scoped. The owner SEES the
+                 schedule but managing it is the operator's job (honest); never a fabricated cleaner (#39). --}}
+            <section class="vy-card vy-fade vy-ud-rail-card">
+                <span class="vy-eyebrow">Cleaning schedule</span>
+                @if ($cleanings['has_data'])
+                    <div style="margin-top:10px">
+                        @foreach ($cleanings['rows'] as $cl)
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--vy-hairline)">
+                                <div style="min-width:0">
+                                    <div style="font-size:12.5px;font-weight:500;color:var(--vy-ink)">{{ $cl['type'] }}</div>
+                                    <div style="font-size:11px;color:var(--vy-faint)">{{ $cl['date'] }}{{ $cl['upcoming'] ? ' · upcoming' : '' }}</div>
+                                </div>
+                                <span class="vy-status vy-status--{{ $cl['tone'] }}" style="flex-shrink:0"><span class="vy-dot"></span>{{ $cl['status'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                    <p class="vy-line-sub" style="font-size:11px;margin-top:10px">Coordinated by your management team — message them below to arrange anything.</p>
+                @else
+                    <p class="vy-line-sub" style="font-size:12.5px;margin-top:8px;line-height:1.55">No cleanings on record for this unit yet. Turnovers are coordinated by your management team — message them below to arrange anything.</p>
+                @endif
             </section>
 
             {{-- Guest messages → the owner↔operator RELAY (name-free #28; never owner→guest) --}}

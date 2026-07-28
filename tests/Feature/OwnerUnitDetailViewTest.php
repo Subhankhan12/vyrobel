@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\HousekeepingTask;
 use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
@@ -172,9 +173,11 @@ it('404s another owner\'s unit and fails closed for a non-linked user', function
 });
 
 // ── 5. NO GUEST PII — a booking is identified by its reference, never by a person ────────────────
-it('never renders guest PII', function () {
+it('renders the guest name only (#28) on a booked day — never contact PII', function () {
     $s = seedScenario(1);
-    $s['guest']->update(['first_name' => 'Zephyrina', 'last_name' => 'Quillfeather']);
+    // Wave-B: the richer day-detail shows the guest NAME-only (the same rule the owner Block Calendar/Bookings use);
+    // contact PII (email/phone) must NEVER appear on an owner surface.
+    $s['guest']->update(['first_name' => 'Zephyrina', 'last_name' => 'Quillfeather', 'email' => 'zeph@quill.test', 'phone' => '+3197000111222']);
     $a = unitDetailOwner($s, 0);
 
     $reservation = attributedStay($s, $a['unit'], 20000);
@@ -182,8 +185,41 @@ it('never renders guest PII', function () {
     $this->actingAs($a['user'])->get('/owner/units/'.$a['unit']->id)
         ->assertOk()
         ->assertSee($reservation->reference)   // the stay IS identified — by its REAL reference
-        ->assertDontSee('Zephyrina')
-        ->assertDontSee('Quillfeather');
+        ->assertSee('Zephyrina Quillfeather')  // guest NAME is allowed on an owner surface (name-only, #28)
+        ->assertDontSee('zeph@quill.test')     // ⚠️ contact PII (email) is NEVER shown
+        ->assertDontSee('+3197000111222');     // ⚠️ contact PII (phone) is NEVER shown
+});
+
+// ── Wave B — the REAL read-only cleaning schedule (HousekeepingTask) renders, owner-scoped ─────────
+it('renders the unit\'s real cleaning schedule read-only (HousekeepingTask), never a fabricated cleaner', function () {
+    $s = seedScenario(1);
+    $a = unitDetailOwner($s, 0);
+
+    // A real departure clean on the unit — the owner should SEE it (read-only), typed + status'd honestly.
+    HousekeepingTask::create([
+        'property_id' => $s['property']->id,
+        'unit_id' => $a['unit']->id,
+        'date' => Carbon::today()->addDay()->toDateString(),
+        'type' => 'departure',
+        'status' => 'pending',
+    ]);
+
+    $this->actingAs($a['user'])->get('/owner/units/'.$a['unit']->id)->assertOk()
+        ->assertSee('Cleaning schedule')
+        ->assertSee('Departure clean')     // the real type label
+        ->assertSee('Scheduled')           // the real status label (pending → Scheduled)
+        // ⚠️ never a fabricated cleaner name/company (#39)
+        ->assertDontSee('SparkleCare')->assertDontSee('Ana Ruiz');
+});
+
+// ── Wave B — the weekend-uplift editor renders for an editable unit (consumes Wave-A pricing) ──────
+it('renders the weekend-uplift editor on an editable unit', function () {
+    $s = seedScenario(1);
+    $a = unitDetailOwner($s, 0);
+
+    $this->actingAs($a['user'])->get('/owner/units/'.$a['unit']->id)->assertOk()
+        ->assertSee('Weekend uplift (%)')                  // the editor field label
+        ->assertSee('name="weekend_uplift"', false);       // posts to the Wave-A owner.rates.apply backend
 });
 
 // ── 6. None of the design's fictions are rendered ────────────────────────────────────────────────
@@ -198,12 +234,9 @@ it('renders none of the design\'s fictions', function () {
     // suites. What remains REFUSED are the genuinely-unmodelled fictions asserted here.
     $this->actingAs($a['user'])->get('/owner/units/'.$a['unit']->id)
         ->assertOk()
-        // Weekend uplift is NOT modelled — shown as an honest "Not available", never a fabricated figure.
-        ->assertDontSee('Weekend uplift · ')
-        // No owner-facing OTA sync, housekeeping, guest-messaging or review-category backend exists.
+        // No owner-facing OTA sync, guest-messaging or review-category backend exists.
         ->assertDontSee('Sync calendars')          // OTA channel sync is account-gated (honest note only)
-        ->assertDontSee('Schedule a cleaning')     // no owner cleaning scheduler
-        ->assertDontSee('Cleaning schedule')       // no fake cleaner/schedule (honest "managed by your team")
+        ->assertDontSee('Schedule a cleaning')     // the owner cannot SCHEDULE cleanings (read-only view only)
         ->assertDontSee('Guest messages')          // guest threads / owner→guest forbidden (#28) — a name-free relay instead
         ->assertDontSee('Cleanliness')             // review category bars are not modelled
         ->assertDontSee('Best performer')          // single-unit owner → no cross-unit ranking claim
@@ -246,17 +279,18 @@ it('shows no best-performer badge for a single-unit owner', function () {
 });
 
 // ── Exact-match pass (#65) — the aggregated real sections + HONEST states (no fabrication) ───────────
-it('renders real pricing (honest weekend uplift), reviews, and honest cleaning/relay/payout — no fabrication', function () {
+it('renders real pricing (weekend uplift), reviews, and the real read-only cleaning schedule — no fabrication', function () {
     $s = seedScenario(1);
     $o = unitDetailOwner($s, 0);
 
     $res = $this->actingAs($o['user'])->get('/owner/units/'.$o['unit']->id)->assertOk()
         ->assertSee('Pricing & availability')
-        ->assertSee('Weekend uplift')->assertSee('Not available')      // honest — weekend uplift is NOT modelled
+        ->assertSee('Weekend uplift')->assertSee('None')              // REAL now (Wave B) — "None" when unset, never fabricated
         ->assertSee('Reviews & rating')->assertSee('No published reviews')   // honest-empty (none seeded)
-        ->assertSee('coordinated by your management team')             // honest cleaning — never a fake cleaner
-        ->assertSee('Message your management team')                    // the owner↔operator relay (name-free #28)
-        ->assertSee('per statement across your whole portfolio')       // honest — payouts are not per-unit
+        ->assertSee('Cleaning schedule')                             // REAL read-only HousekeepingTask view (Wave B)
+        ->assertSee('coordinated by your management team')            // honest — the owner sees but does not manage
+        ->assertSee('Message your management team')                   // the owner↔operator relay (name-free #28)
+        ->assertSee('per statement across your whole portfolio')      // honest — payouts are not per-unit
         // ⚠️ never the wireframe's fabrications (#39)
         ->assertDontSee('saved you')
         ->assertDontSee('SparkleCare')->assertDontSee('Ana Ruiz')->assertDontSee('CoastClean');
