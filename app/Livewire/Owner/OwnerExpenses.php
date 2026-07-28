@@ -35,19 +35,23 @@ use Livewire\Component;
  *                Rendered as three distinct states — Deductible / Not deductible / Pending review.
  *                NULL is NEVER coerced to false; the tone reads resolution (confirmed / not-the-owner's
  *                / unresolved), not a value judgement.
- *   • DERIVED  — the "By category" totals and the total/deductible KPIs are Σ of the REAL rows above,
- *                EXCLUDING voided rows (a void is an append-only reversal, so its money no longer
- *                stands — but the row itself is still shown, badged "Voided"). Totals are computed
+ *   • DERIVED  — the "By category" totals + the KPIs ("Spent this year", "Charged to payouts" = Σ
+ *                deductible-this-year, "Pending review" = COUNT of NULL-deductible) are Σ of the REAL
+ *                rows above, EXCLUDING voided rows (a void is an append-only reversal, so its money no
+ *                longer stands — but the row itself is still shown, badged "Voided"). Money totals are
  *                PER CURRENCY and never summed across currencies (no silent FX — invariant #17).
- *   • NO BACKEND — CSV export and the owner-side repair request have no backend → disabled "Soon",
- *                never a fake download or a form that posts nowhere.
- *   • OMITTED  — the design's owner APPROVE / QUERY workflow ("Needs your approval", "Approve",
- *                "Query", "Approved · charged to next payout", "Query sent · awaiting reply") is NOT
- *                rendered at all — not even disabled. There is no owner-approval state machine, no
- *                approval columns, and no query channel; `deductible` is resolved from the management
- *                agreement by the service, not by the owner. Drawing that UI — even greyed out — would
- *                assert that an expense is *awaiting the owner's decision*, which is a state that does
- *                not exist. A disabled button implies "soon"; this implies "wrong". So it is omitted.
+ *   • UNIT     — each row + a filter carry the REAL unit (owner_expenses.unit_id → Unit, name ?? code,
+ *                owner-scoped). Vendor is REFUSED — there is no vendor column on owner_expenses (#39);
+ *                the polymorphic source (maintenance ticket / housekeeping task) is shown when present.
+ *   • REAL     — Export (CSV) is a real owner-scoped, CAP_EXPORTS-gated download. "Need something
+ *                fixed?" is a REAL relay into the owner↔operator message channel (owner.messages.start)
+ *                — the same hardened path as My Units, not a fake form.
+ *   • REFUSED  — the design's owner APPROVE / QUERY workflow ("Awaiting your approval", "Needs your
+ *                approval", "Approve", "Query", "charged to next payout") is NOT rendered — there is no
+ *                owner-approval state machine, no approval columns, no query channel; `deductible` is
+ *                resolved from the management agreement by the service, not by the owner. Drawing that
+ *                UI would assert a state that does not exist. The honest analog is the REAL "Pending
+ *                review" count + a read-only list (no action) + the "How expenses work" explainer.
  */
 #[Layout('components.layouts.owner')]
 class OwnerExpenses extends Component
@@ -65,21 +69,30 @@ class OwnerExpenses extends Component
     {
         /** @var Collection<int, OwnerExpense> $expenses */
         $expenses = OwnerExpense::query()
+            ->with('unit')
             ->orderByDesc('expense_date')
             ->orderByDesc('created_at')
             ->get();
 
         $currency = $this->portfolioCurrency($expenses, $expenses);
         $currencies = $this->currencies($expenses);
+        $rows = $this->historyRows($expenses, $this->statementLabels($expenses));
 
         return view('livewire.owner.expenses', [
             'viewer' => $this->viewer(),
             'currency' => $currency,
-            'expenses' => $this->historyRows($expenses, $this->statementLabels($expenses)),
+            'expenses' => $rows,
+            // The pending-review rows (real NULL-deductible, non-voided) — surfaced honestly in the wireframe's
+            // "needs attention" slot with NO owner action (deductibility is resolved from the agreement, #39).
+            'pendingRows' => array_values(array_filter(
+                $rows,
+                fn (array $r): bool => $r['deductible']['key'] === 'pending' && $r['voided'] === false
+            )),
             'metrics' => $this->metrics($expenses, $currency),
             'byCurrency' => $this->byCurrency($expenses, $currencies),
             'multiCurrency' => count($currencies) > 1,
             'categories' => self::CATEGORIES,
+            'units' => $this->unitFilter($expenses),
         ]);
     }
 
@@ -101,6 +114,9 @@ class OwnerExpenses extends Component
                 'category' => (string) $e->category,
                 'category_label' => $this->categoryLabel((string) $e->category),
                 'description' => (string) $e->description,
+                // REAL: the unit this cost belongs to (owner_expenses.unit_id → Unit, owner-scoped). The label
+                // reuses the My-Units rule (name ?? code). A manual expense with no unit reads honestly "—".
+                'unit' => $this->unitMeta($e),
                 'source_label' => $this->sourceLabel($this->sourceType($e)),
                 'amount_display' => $this->money((int) $e->amount_minor, (string) $e->currency),
                 'deductible' => $this->deductibleMeta($this->deductibleState($e)),
@@ -165,26 +181,67 @@ class OwnerExpenses extends Component
     }
 
     /**
-     * DERIVED headline figures — Σ of the REAL rows, voided excluded. The money KPIs are scoped to the
-     * display currency (never a cross-currency sum); the pending-review KPI is a COUNT, so it is
-     * currency-free and spans the whole portfolio.
+     * DERIVED headline figures (the wireframe's three KPIs) — Σ of the REAL rows, voided excluded:
+     *   • "Spent this year"     = Σ live rows dated in the CURRENT calendar year (display currency).
+     *   • "Charged to payouts"  = Σ live DEDUCTIBLE rows this year — the costs that reach the owner ledger.
+     *   • "Pending review"      = COUNT of live NULL-deductible rows (currency-free; deductibility unresolved).
+     * The money KPIs are display-currency only (never a cross-currency sum, #17); "Awaiting your approval" is
+     * REFUSED — there is no owner-approval workflow (#39), so the honest analog is "Pending review".
      *
      * @param  Collection<int, OwnerExpense>  $expenses
      * @return array<string, mixed>
      */
     private function metrics(Collection $expenses, string $currency): array
     {
+        $year = (int) now()->year;
         $live = $expenses->filter(fn (OwnerExpense $e): bool => $e->voided_at === null);
-        $inCurrency = $live->filter(fn (OwnerExpense $e): bool => (string) $e->currency === $currency);
-        $deductible = $inCurrency->filter(fn (OwnerExpense $e): bool => $this->deductibleState($e) === true);
+        $thisYear = $live->filter(
+            fn (OwnerExpense $e): bool => (string) $e->currency === $currency && (int) Carbon::parse($e->expense_date)->year === $year
+        );
+        $charged = $thisYear->filter(fn (OwnerExpense $e): bool => $this->deductibleState($e) === true);
 
         return [
-            'total_display' => $this->money($this->sumMinor($inCurrency), $currency),
-            'total_count' => $inCurrency->count(),
-            'deductible_display' => $this->money($this->sumMinor($deductible), $currency),
+            'spent_display' => $this->money($this->sumMinor($thisYear), $currency),
+            'spent_count' => $thisYear->count(),
+            'charged_display' => $this->money($this->sumMinor($charged), $currency),
             'pending_count' => $live->filter(fn (OwnerExpense $e): bool => $this->deductibleState($e) === null)->count(),
             'voided_count' => $expenses->count() - $live->count(),
+            'year' => $year,
         ];
+    }
+
+    /**
+     * The unit-filter list — every unit that has at least one of the owner's expenses (owner-scoped by the
+     * OwnerScope already applied to the query). A manual expense with no unit is grouped under "Unassigned".
+     *
+     * @param  Collection<int, OwnerExpense>  $expenses
+     * @return list<array{id: string, name: string}>
+     */
+    private function unitFilter(Collection $expenses): array
+    {
+        return $expenses
+            ->map(fn (OwnerExpense $e): array => $this->unitMeta($e))
+            ->unique('id')
+            ->sortBy('name')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * A REAL unit label for an expense: name ?? code (the same rule as My Units), owner-scoped via the eager
+     * `unit` relation. A manual, unit-less expense reads "Unassigned" with a stable sentinel id (never faked).
+     *
+     * @return array{id: string, name: string}
+     */
+    private function unitMeta(OwnerExpense $expense): array
+    {
+        $unit = $expense->unit;
+
+        if ($unit === null) {
+            return ['id' => 'none', 'name' => 'Unassigned'];
+        }
+
+        return ['id' => (string) $unit->id, 'name' => (string) ($unit->name ?? $unit->code)];
     }
 
     /**

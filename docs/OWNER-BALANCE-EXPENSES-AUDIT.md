@@ -1,6 +1,6 @@
 # Owner Balance + Expenses — wireframe-fidelity audit (⚠️ Balance touches real-money movement)
 
-**Date:** 2026-07-28 · **Author:** build session · **Status:** PHASE 1 (read-only) complete — **awaiting approval before build.**
+**Date:** 2026-07-28 · **Author:** build session · **Status:** ✅ **BUILT — invariant #59** (GATE 1 Balance `a096a89` + GATE 2 Expenses). Both pages shipped wireframe-exact on REAL/honest data; the decisions below (D-BE-1..5) were founder-approved and implemented as written. The reconciling clearing model, the stale-refusal rebuild, the honest (never-faked) withdrawal, and the honest-approval Expenses page all landed. Suite 1077/8370 green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean; browser-verified. See DECISIONS 2026-07-28 #59 + DIVERGENCE rows 129/147. (The PHASE-1 analysis below is preserved as the audit of record.)
 
 Founder brief: make the LIVE owner **Balance** (`/owner/balance`) and **Expenses** (`/owner/expenses`) pages match their
 decoded wireframes (`Owner Balance.html`, `Owner Expenses.html`) EXACTLY — design + behaviour — with REAL data + actions

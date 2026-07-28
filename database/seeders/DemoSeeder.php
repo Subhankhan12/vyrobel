@@ -43,6 +43,7 @@ use App\Services\InboxService;
 use App\Services\LeaveService;
 use App\Services\MaintenanceService;
 use App\Services\OwnerAttributionService;
+use App\Services\OwnerExpenseService;
 use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
 use App\Services\ReviewService;
@@ -679,7 +680,9 @@ class DemoSeeder extends Seeder
         // The owner owns the two apartments; the hotel rooms stay operator-owned.
         $aptUnits->each(fn (Unit $u) => $u->update(['owner_id' => $ownerParty->id]));
 
-        // A real, open-ended management agreement (18% commission, owner-wide).
+        // A real, open-ended management agreement (18% commission, owner-wide). The 'other' category is the
+        // operator's cost (non-deductible) — so incidental supplies show on the Expenses page as "Not deductible"
+        // and never touch the owner ledger; cleaning/maintenance stay deductible (charged to the owner).
         ManagementAgreement::create([
             'owner_id' => $ownerParty->id,
             'unit_id' => null,
@@ -689,6 +692,7 @@ class DemoSeeder extends Seeder
             'effective_from' => '2026-01-01',
             'effective_to' => null,
             'status' => 'active',
+            'attribution_rules' => ['non_deductible_categories' => ['other']],
         ]);
 
         // DEMO ONLY — a real, valid default payout account (so the Payouts / Payout-Method / Statement pages demo
@@ -736,6 +740,12 @@ class DemoSeeder extends Seeder
         // (cleared this period, flows into the next payout). Runs AFTER the September finalize, so it is never
         // swept into September; it is a REAL booking → attribution (no statement), never a fabricated balance.
         $this->seedOwnerBalanceAccrual($property, $apartment, $aptRate, $aptUnits, $aptGuest, $vat);
+
+        // DEMO ONLY — a small, flagged spread of owner expenses across BOTH apartments + all three real
+        // categories + the deductible tri-state (deductible / not-deductible / pending review), so the Expenses
+        // page shows a real, meaningful shape. Recorded through the CERTIFIED OwnerExpenseService (the agreement
+        // resolves deductibility) — never a raw insert, nothing fabricated.
+        $this->seedOwnerExpenses($aptUnits);
 
         // Phase 7c — the OWNER TEAM: two real sub-users under the demo owner (accountant + view-only) plus a
         // pending invite, so the Owner Team screen demos on real state. Each mirrors what the invite flow
@@ -839,6 +849,42 @@ class DemoSeeder extends Seeder
 
             $stay = $this->createDemoStay('direct', $property, $apartment, $aptRate, $unit, $guest, $checkIn->toDateString(), $checkOut->toDateString(), $vat, fullyPaid: true);
             $attribution->attributeReservation($stay);
+        }
+    }
+
+    /**
+     * DEMO ONLY — a flagged spread of owner expenses across both apartments, all three real categories, and the
+     * deductible tri-state, so the Owner Expenses page demos a real shape. Recorded through the CERTIFIED
+     * {@see OwnerExpenseService} (the agreement resolves deductibility — 'other' is the operator's non-deductible
+     * cost, so those never touch the owner ledger; the pre-agreement December row resolves to NULL = "Pending
+     * review"). Only the small cleaning row is deductible, so the Balance "Available" stays comfortably positive.
+     *
+     * @param  Collection<int, Unit>  $aptUnits  owner-owned apartments [A1, A2]
+     */
+    private function seedOwnerExpenses(Collection $aptUnits): void
+    {
+        $expenses = app(OwnerExpenseService::class);
+        $a1 = $aptUnits[0]->id;
+        $a2 = $aptUnits[1]->id;
+
+        // unit · category · description · minor · date. Cleaning/maintenance = deductible; 'other' = the
+        // operator's cost (non-deductible, no ledger); the 2025 row predates the agreement → NULL (pending).
+        $rows = [
+            [$a1, 'cleaning', 'Deep clean after a long stay', 7000, '2026-09-16'],
+            [$a1, 'other', 'Welcome supplies restock', 9500, '2026-08-14'],
+            [$a2, 'other', 'Garden & pool upkeep', 28000, '2026-09-02'],
+            [$a2, 'cleaning', 'Deep clean (pre-agreement period)', 12000, '2025-12-20'],
+        ];
+
+        foreach ($rows as [$unitId, $category, $description, $minor, $date]) {
+            $expenses->recordExpense([
+                'unit_id' => $unitId,
+                'category' => $category,
+                'description' => $description,
+                'amount_minor' => $minor,
+                'currency' => 'EUR',
+                'expense_date' => $date,
+            ]);
         }
     }
 

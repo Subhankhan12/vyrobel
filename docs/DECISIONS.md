@@ -4537,3 +4537,51 @@ a real preferences store + inline tax details via the shared write); the account
 transfer / SEPA / 48h-hold) is reproduced EXACTLY, labelled pending-live, and **NEVER faked** (no fake verify/deposit/
 payout/schedule); writes are `$capPayout`/`$capActions` controller routes (#20/#28/#42), IBAN masked never full (#28),
 reconciling to the cent (#17), nothing fabricated (#39). **Invariants #1–58.**
+
+## 2026-07-28 — Owner-page exact-match: **Balance + Expenses** (invariant #59)
+
+The owner-page exact-match track continued to the last two Earnings pages (`docs/OWNER-BALANCE-EXPENSES-AUDIT.md` =
+the PHASE 1 per-element audit). Both pages match their decoded wireframes on REAL / honest data. **⚠️ Balance is
+real money** — the money-movement posture inverts (build so it CANNOT move money wrongly).
+
+**GATE 1 — Balance (`/owner/balance`).** Rebuilt to the wireframe as a **reconciling clearing model**: the KPI band is
+**Available** (Σ unstamped `owner_ledger` net) / **On hold** (Σ pending payouts held by the REAL tax-hold) / **In transit**
+(Σ released pending), with the identity **Available + On hold + In transit + Paid == Net position** holding per currency
+**to the cent** (#17). The Balance-activity ledger keeps its real rows + derived running balance and gained a per-row
+**state chip** (Available / Paid out / On hold / In transit / Cleared) + an inline statement link; the **"Why is €X held?"**
+card + **Add tax details** render ONLY on a genuine tax-hold; the masked payout **IBAN** is CAP_PAYOUT-only (#28); the
+**auto-payout cadence** + **"How money clears"** explainer; a real **balance-activity CSV** (`owner.balance.export`,
+CAP_EXPORTS). **MONEY-SAFETY (D-BE-1):** "Withdraw early" is honestly **disabled** — there is NO owner-initiated transfer
+rail (the Payouts investigation established this), so it NEVER fakes a withdrawal / transfer / "in transit" (#39); "In
+transit" is a real figure (€0 while held), never a staged movement. The two prior refusals (the active Withdraw button;
+the Why-held / How-clears cards) were **stale** — derivable + reconciling now that the tax-hold is real (#58) — so they are
+now REAL (D-BE-2). Component docblock rewritten to match. `OwnerBalanceViewTest` rewritten (6 tests): the reconciling
+identity, tax-hold real-only, In-transit €0-while-held vs released, masked-IBAN CAP_PAYOUT, export owner-scoped + gated,
+no raw Blade. Committed `a096a89`.
+
+**GATE 2 — Expenses (`/owner/expenses`).** Rebuilt to **"Expenses & maintenance"**. KPIs: **Spent this year** (Σ live
+current-year) / **Pending review** (COUNT of NULL-deductible) / **Charged to payouts** (Σ deductible-this-year). The
+history table gained a REAL **Unit** column + unit filter (name ?? code) — **vendor REFUSED** (no such column, #39); the
+polymorphic source shown instead; the tri-state deductible chip + inline statement/flag as a **Status** column; a real
+**Export CSV** (`owner.expenses.export`, CAP_EXPORTS). "Need something fixed?" is now a REAL **relay** into the
+owner↔operator channel (`owner.messages.start` — same hardened path as My Units; writes NO expense). A read-only
+**"Pending review"** callout (real NULL-deductible rows) fills the wireframe's attention slot honestly. **REFUSED (D-BE-3,
+#39):** the **"Awaiting your approval"** KPI + the **"Needs your approval"** Approve/Query workflow — there is no
+owner-approval state machine (deductibility is resolved by the **management agreement**, not owner-approved). By-category
+**proportional bars** retained (Batch B). `OwnerExpensesViewTest` updated (5 tests, +export/relay/unit; "Spent this year"
+year-scoped).
+
+**Decisions (founder-approved).** **D-BE-1** — the "Withdraw early" instant transfer is honestly account-gated (exact
+design, disabled, labelled pending the live payments connection); NEVER a fake movement. **D-BE-2** — the reconciling
+clearing model is derivable + reconciles now that the tax-hold is real, so the previously-refused clearing states are
+built REAL. **D-BE-3** — expense approval is NOT a real workflow → the honest analog (Pending-review count + read-only
+list + explainer), never a fake approve/query. **D-BE-5** — a flagged demo seed (`seedOwnerBalanceAccrual` un-statemented
+October revenue → a real positive Available €963.60; `seedOwnerExpenses` a flagged spread across both apartments + all
+three categories + the tri-state; the demo agreement marks `other` non-deductible so incidental supplies stay off the
+owner ledger).
+
+**Invariant #59 — Owner Balance + Expenses exact-match:** both pages match their wireframes on REAL / honest data;
+Balance's clearing model reconciles to the cent (#17) and its withdrawal is honestly account-gated (never a fake
+movement, #39); Expenses' KPIs/history/unit/export/by-category are real and its repair path is a real owner→operator
+relay; expense approval + vendor are REFUSED (#39); masked IBAN never full (#28); exports CAP_EXPORTS-gated (#42). Suite
+**1077/8370** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean; browser-verified. **Invariants #1–59.**

@@ -6,6 +6,45 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v5) · owner BALANCE + EXPENSES exact-match (#59; ⚠️ Balance is real money).
+> This block SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md`
+> → this block → `docs/DECISIONS.md`.**
+>
+> **The owner-page exact-match track added its 7th + 8th surfaces: the owner Balance (`/owner/balance`) + Expenses
+> (`/owner/expenses`) pages (`docs/OWNER-BALANCE-EXPENSES-AUDIT.md`, DECISIONS 2026-07-28 #59, DIVERGENCE rows 129/147).**
+> A read-only PHASE-1 audit classified EVERY element REAL-NOW / ACCOUNT-GATED / NOT-BUILT (load-bearing — Balance's
+> "Withdraw early" is instant real-money movement), founder-approved, then two gated builds.
+> - **Balance (GATE 1, `a096a89`) — REAL clearing model:** the KPI band is **Available** (Σ unstamped `owner_ledger` net) /
+>   **On hold** (Σ pending payouts held by the REAL tax-hold) / **In transit** (Σ released pending), with the identity
+>   **Available + On hold + In transit + Paid == Net position** holding per currency **to the cent** (#17). The
+>   Balance-activity ledger keeps its real rows + running balance + a per-row **state chip**; the **"Why is €X held?"** card
+>   + **Add tax details** render ONLY on a real tax-hold; the masked **IBAN** is CAP_PAYOUT-only (#28); the auto-payout
+>   cadence + **"How money clears"**; a real balance-activity **Export CSV** (CAP_EXPORTS). **⚠️ MONEY-SAFETY:** "Withdraw
+>   early" is honestly **disabled** — there is NO owner-initiated transfer rail, so it NEVER fakes a withdrawal / transfer /
+>   "in transit" (#39); "In transit" is a real figure (€0 while held). Two prior refusals (Withdraw button, Why-held /
+>   How-clears cards) were **stale** and are now built REAL (reconciling now the tax-hold is real, #58).
+> - **Expenses (GATE 2) — real, honest:** KPIs **Spent this year** / **Pending review** (count) / **Charged to payouts**; a
+>   REAL **Unit** column + unit filter (**vendor REFUSED** — unmodelled, #39); a real **Export CSV** (CAP_EXPORTS); the
+>   "Need something fixed?" deferral is now a REAL **relay** into the owner↔operator channel (`owner.messages.start`, writes
+>   no expense); a read-only **"Pending review"** callout fills the wireframe's attention slot honestly. **REFUSED (#39):**
+>   the **"Awaiting your approval"** KPI + the **Approve/Query** workflow (no owner-approval state machine — deductibility is
+>   set by the management agreement). By-category proportional bars retained (Batch B).
+> - **Demo (D-BE-5):** `seedOwnerBalanceAccrual` (un-statemented October revenue → a real positive Available **€963.60**) +
+>   `seedOwnerExpenses` (a flagged spread across both apartments + all three categories + the deductible tri-state; the demo
+>   agreement marks `other` non-deductible so incidental supplies stay off the owner ledger).
+> - **Verified:** suite **1077 tests / 8370 assertions green** (`OwnerBalanceViewTest` 6, `OwnerExpensesViewTest` 5);
+>   PHPStan **L5 = 0**; Pint clean; `migrate:fresh --seed` clean; both pages browser-verified. 🔒 reconciling to the cent
+>   (#17), IBAN masked never full (#28), exports CAP_EXPORTS-gated (#42), nothing fabricated / no money-movement (#39).
+>   **Invariants #1–59.**
+>
+> **Owner exact-match track shipped: Overview (#54) · My Units + Add Unit (#55) · Bookings + PDF (#56) · Statement + PDF
+> (#57) · Payouts + Payout Method (#58) · Balance + Expenses (#59).** Remaining built-but-not-yet-exact-matched: EARNINGS —
+> Tax-center · MANAGE — Reports/Insights/Rates/Reviews/Agreement/Messages · ACCOUNT — Settings/Security/Team. Everything
+> else below is current (tenant Phases 0–7 + polish COMPLETE; email + live Stripe test-mode-proven; Super Admin panel
+> complete + audited). No launch-blocking build remains.
+>
+> ---
+>
 > ⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v4) · owner PAYOUTS + PAYOUT METHOD exact-match (#58; ⚠️ real money + real
 > banking). This block SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point:
 > `docs/RESUME.md` → this block → `docs/DECISIONS.md`.**

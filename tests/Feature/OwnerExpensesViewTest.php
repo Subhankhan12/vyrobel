@@ -12,13 +12,16 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-// Wave 1 · sub-gate 1 (Owner Expenses) — a NEW owner-scoped page over the CERTIFIED owner-expense
+// Owner Expenses (exact-match pass · invariant #59) — the owner-scoped view of the CERTIFIED owner-expense
 // backend. Locks its PRESENTATION guarantees: live expense data renders; the `deductible` TRI-STATE
 // (true / false / NULL) renders as three honest states and NULL is never coerced to false; a voided
-// expense is shown but excluded from the totals; a maintenance-sourced expense shows its real source;
-// the DERIVED category total reconciles TO THE CENT against the real rows; the design's owner
-// approve/query workflow (which has NO backend) is never rendered; owner isolation holds (another
-// owner's expenses invisible, a non-linked user fails closed).
+// expense is shown but excluded from the totals; a maintenance-sourced expense shows its real source; the
+// REAL unit column + filter render (vendor REFUSED — unmodelled); the KPIs ("Spent this year" / "Pending
+// review" / "Charged to payouts") are Σ of the real rows ("Spent" year-scoped); the DERIVED category total
+// reconciles TO THE CENT; the CSV export is owner-scoped + CAP_EXPORTS-gated; "Need something fixed?" is a
+// REAL relay into the owner↔operator channel (never an expense write); the design's owner approve/query
+// workflow (NO backend) is never rendered; owner isolation holds (another owner's expenses invisible, a
+// non-linked user fails closed).
 
 /**
  * A linked owner on a unit, with the agreement that GOVERNS deductibility:
@@ -122,8 +125,15 @@ it('renders real expenses with the deductible tri-state, badges voided rows out 
         // the statement an attributed line landed on + the honest "not there yet" for an unattributed one
         ->assertSee('September 2026')
         ->assertSee('Not yet on a statement')
+        // the REAL unit column + filter (owner_expenses.unit_id → name ?? code), never a fabricated vendor
+        ->assertSee('Unit')
+        ->assertSee('All units')
+        ->assertSee((string) ($a['unit']->name ?? $a['unit']->code))
+        // the exact-match KPIs — "Spent this year" + "Charged to payouts" (no "Total expenses")
+        ->assertSee('Spent this year')
+        ->assertSee('Charged to payouts')
         // ⚠️ the design's owner APPROVE / QUERY workflow has NO backend (no approval state machine, no
-        // approval columns, no query channel) — it is never rendered, not even disabled.
+        // approval columns, no query channel) — REFUSED, never rendered. "Awaiting your approval" too.
         ->assertDontSee('Approve')
         ->assertDontSee('Needs your approval')
         ->assertDontSee('Awaiting your approval')
@@ -153,14 +163,24 @@ it('renders real expenses with the deductible tri-state, badges voided rows out 
         ->whereNull('voided_at')
         ->sum('amount_minor');
 
+    // "Spent this year" scopes to the current calendar year → the 2025 Deep clean (€25.00) is excluded:
+    // Turnover €50 + Welcome basket €33 + Boiler €120 = €203.00 (Duplicate €99 voided is out of every total).
+    $spentThisYearMinor = (int) OwnerExpense::query()
+        ->where('owner_id', $a['owner']->id)
+        ->whereNull('voided_at')
+        ->whereYear('expense_date', (int) now()->year)
+        ->sum('amount_minor');
+
     expect($cleaningMinor)->toBe(7500)
         ->and($deductibleMinor)->toBe(17000)
-        ->and($totalMinor)->toBe(22800);
+        ->and($totalMinor)->toBe(22800)
+        ->and($spentThisYearMinor)->toBe(20300);
 
     $response
-        ->assertSee('€75.00')     // Cleaning total — 9900 voided excluded to the cent
-        ->assertSee('€170.00')    // Deductible KPI
-        ->assertSee('€228.00')    // Total expenses KPI
+        ->assertSee('€75.00')     // Cleaning by-category total — 9900 voided excluded to the cent
+        ->assertSee('€170.00')    // "Charged to payouts" KPI = Σ deductible this year
+        ->assertSee('€203.00')    // "Spent this year" KPI = Σ live 2026 rows (2025 Deep clean excluded)
+        ->assertSee('€228.00')    // by-category block TOTAL (all-time, not year-scoped)
         // The per-currency note renders as prose, never as raw Blade (see assertNoRawBlade).
         ->assertSee('Totals exclude voided expenses.');
 
@@ -219,4 +239,49 @@ it('scopes expenses to the owner, hides other owners, and fails closed for a non
         ->assertDontSee('Chimney sweep')
         ->assertDontSee('€50.00')
         ->assertDontSee('€444.00');
+});
+
+// ── 3. Expense CSV — owner-scoped, EXPORTS-gated, never another owner's rows ───────────────────────
+it('exports the expense CSV owner-scoped and EXPORTS-gated', function () {
+    $s = seedScenario(2);
+    $a = expensesScreenOwner($s, 0, 'Amara Okafor');
+    $b = expensesScreenOwner($s, 1, 'Bruno Castellani');
+
+    recordExpenseVia((string) $a['unit']->id, 'cleaning', 'Turnover clean', 5000, '2026-09-03');    // A
+    recordExpenseVia((string) $b['unit']->id, 'cleaning', 'Chimney sweep', 44400, '2026-09-04');    // B (distinctive)
+
+    $csv = $this->actingAs($a['user'])->get(route('owner.expenses.export'))
+        ->assertOk()
+        ->assertHeader('content-type', 'text/csv; charset=utf-8')
+        ->streamedContent();
+
+    expect($csv)->toContain('Deductible')       // header column (the tri-state, exported honestly)
+        ->toContain('Turnover clean')           // A's real row
+        ->not->toContain('Chimney sweep');      // never B's
+
+    // EXPORTS capability: accountant may download; view-only may NOT.
+    $this->actingAs(ownerSubUser($s, $a['owner']->id, 'accountant'))->get(route('owner.expenses.export'))->assertOk();
+    $this->actingAs(ownerSubUser($s, $a['owner']->id, 'view_only'))->get(route('owner.expenses.export'))->assertForbidden();
+});
+
+// ── 4. "Need something fixed?" is a REAL relay (owner→operator message), never a fake expense write ──
+it('offers a real repair relay into the owner→operator channel and writes no expense', function () {
+    $s = seedScenario(1);
+    $a = expensesScreenOwner($s, 0, 'Amara Okafor');
+
+    // The page exposes a REAL relay endpoint (not a disabled "Soon" stub).
+    $this->actingAs($a['user'])->get('/owner/expenses')
+        ->assertOk()
+        ->assertSee(route('owner.messages.start'))
+        ->assertSee('Request a repair');
+
+    $before = OwnerExpense::query()->count();
+
+    // Posting it opens a real owner↔operator thread and writes NO owner expense (#39 — never a fake charge).
+    $this->actingAs($a['user'])->post(route('owner.messages.start'), [
+        'subject' => 'Repair request',
+        'body' => 'The dishwasher is leaking in the apartment.',
+    ])->assertRedirect();
+
+    expect(OwnerExpense::query()->count())->toBe($before);
 });
