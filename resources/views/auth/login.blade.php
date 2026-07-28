@@ -120,7 +120,39 @@
             <button type="submit" class="vy-btn">Sign in</button>
         </form>
 
+        {{-- Passkey sign-in (Wave B · GATE 4) — passwordless WebAuthn; only shown where the browser supports it --}}
+        <button type="button" id="vy-passkey-btn" class="vy-btn" style="display:none;margin-top:10px;background:transparent;color:var(--vy-accent);border:1px solid var(--vy-accent);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Sign in with a passkey
+        </button>
+        <p id="vy-passkey-msg" style="display:none;font-size:12px;color:var(--vy-muted);margin-top:8px;text-align:center;"></p>
+
         <div class="vy-foot">New to Vyrobel? <a class="vy-forgot" href="{{ route('signup') }}">Create an account</a></div>
     </main>
+    <script>
+        (function () {
+            if (!window.PublicKeyCredential) return;
+            var btn = document.getElementById('vy-passkey-btn');
+            var msg = document.getElementById('vy-passkey-msg');
+            var token = document.querySelector('input[name="_token"]')?.value;
+            btn.style.display = '';
+            btn.addEventListener('click', async function () {
+                btn.disabled = true; msg.style.display = 'none';
+                try {
+                    var optRes = await fetch('{{ route('passkeys.login.options') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' } });
+                    if (!optRes.ok) throw new Error('options');
+                    var options = PublicKeyCredential.parseRequestOptionsFromJSON(await optRes.json());
+                    var assertion = await navigator.credentials.get({ publicKey: options });
+                    var res = await fetch('{{ route('passkeys.login') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': token, 'Content-Type': 'application/json' }, body: JSON.stringify(assertion.toJSON()) });
+                    var data = await res.json();
+                    if (data.ok && data.redirect) { location.href = data.redirect; return; }
+                    msg.textContent = data.message || 'Passkey sign-in failed.'; msg.style.display = '';
+                } catch (e) {
+                    msg.textContent = 'Passkey sign-in was cancelled or not available.'; msg.style.display = '';
+                }
+                btn.disabled = false;
+            });
+        })();
+    </script>
 </body>
 </html>

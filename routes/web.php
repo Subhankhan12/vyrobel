@@ -15,6 +15,8 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\LoginApprovalController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OnboardingController;
+use App\Http\Controllers\Auth\PasskeyController;
+use App\Http\Controllers\Auth\PasskeyLoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\TwoFactorController;
@@ -226,6 +228,16 @@ Route::middleware('throttle:12,1')->group(function () {
     Route::get('/login-approval', [LoginApprovalController::class, 'show'])->name('login-approval.show');
     Route::post('/login-approval/continue', [LoginApprovalController::class, 'complete'])->name('login-approval.complete');
     Route::get('/login-approval/approve/{approval}', [LoginApprovalController::class, 'approve'])->middleware('signed')->name('login-approval.approve');
+});
+
+/*
+ * PASSKEY SIGN-IN (Wave B · GATE 4) — passwordless WebAuthn login. The browser drives the ceremony; the assertion is
+ * verified server-side by the real web-auth/webauthn-lib validator, and only a genuine cryptographic success logs the
+ * matched user in. Guest-accessible (there is no session user yet), CSRF-protected (web group), rate-limited.
+ */
+Route::middleware('throttle:20,1')->group(function () {
+    Route::post('/passkeys/login/options', [PasskeyLoginController::class, 'options'])->name('passkeys.login.options');
+    Route::post('/passkeys/login', [PasskeyLoginController::class, 'login'])->name('passkeys.login');
 });
 
 /*
@@ -896,6 +908,10 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::post('/security/trusted-devices/revoke', [OwnerSecurityController::class, 'revokeTrustedDevice'])->middleware('throttle:10,1')->name('security.trusted-devices.revoke');
     // Login approval (Wave B · GATE 4) — turn the new-device email-approval requirement on/off (self-only, re-auth).
     Route::post('/security/login-approval', [OwnerSecurityController::class, 'setLoginApproval'])->middleware('throttle:10,1')->name('security.login-approval');
+    // Passkeys (Wave B · GATE 4) — register (2-step ceremony) + remove (re-auth), self-only via $request->user().
+    Route::post('/security/passkeys/options', [PasskeyController::class, 'options'])->middleware('throttle:20,1')->name('security.passkeys.options');
+    Route::post('/security/passkeys', [PasskeyController::class, 'store'])->middleware('throttle:20,1')->name('security.passkeys.store');
+    Route::post('/security/passkeys/{passkey}/remove', [PasskeyController::class, 'destroy'])->middleware('throttle:10,1')->name('security.passkeys.remove');
     // Real owner-scoped data export ("Request my data").
     Route::get('/security/export', [OwnerSecurityController::class, 'exportData'])->middleware('throttle:6,1')->name('security.export');
     // DEACTIVATE (pause) — 🔒 PRIMARY-OWNER-ONLY (#42), re-auth with the password, reversible + non-destructive.

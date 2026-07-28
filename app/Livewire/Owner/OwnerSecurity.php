@@ -6,6 +6,7 @@ namespace App\Livewire\Owner;
 
 use App\Livewire\Concerns\PreparesTwoFactor;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\Passkey;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Owner\OwnerContext;
 use Illuminate\Contracts\View\View;
@@ -79,6 +80,16 @@ class OwnerSecurity extends Component
             'lastLogin' => $user->last_login_at instanceof Carbon ? $user->last_login_at : null,
             'sessions' => $sessions,
             'loginApprovalOn' => $user->requiresLoginApproval(),
+            // Passkeys (Wave B · GATE 4) — the user's registered WebAuthn credentials, self-only.
+            'passkeys' => Passkey::query()
+                ->where('user_id', (string) $user->getKey())
+                ->orderByDesc('last_used_at')
+                ->get()
+                ->map(fn (Passkey $p): array => [
+                    'id' => (string) $p->id,
+                    'label' => (string) ($p->label ?? 'Passkey'),
+                    'last_used' => $p->last_used_at instanceof Carbon ? $p->last_used_at->diffForHumans() : 'not used yet',
+                ])->all(),
             // Trusted devices (Wave B · GATE 4) — the REAL live trusts for this user (skip-2FA), self-only.
             'trustedDevices' => app(TrustedDeviceService::class)->forUser($user, request())
                 ->map(fn ($d): array => [
