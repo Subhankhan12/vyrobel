@@ -28,15 +28,15 @@ tenant apps (operator `/app` · owner `/owner` · guest `/guest`) + a public sto
 (`/signup`) on a certified multi-tenant backend, plus the **Super Admin platform panel (`/admin`)** — all built,
 styled, and browser-verified. Phases 0–7 (the whole tenant product) are done; Phase 8's two obtainable integrations
 (**production email** + **live Stripe**, all three seams) are lit up in test-mode/code-complete, needing only the
-founder's non-code cutovers. **Suite 1089 tests / 8541 assertions green · PHPStan L5 = 0 · Pint clean · `migrate:fresh
---seed` clean · Invariants #1–63.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super
+founder's non-code cutovers. **Suite 1091 tests / 8570 assertions green · PHPStan L5 = 0 · Pint clean · `migrate:fresh
+--seed` clean · Invariants #1–64.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super
 Admin panel is audited (0 critical/0 P1) + production-ready. The active hands-on track is **owner-page wireframe-exact-
 match polish** (match each live owner page to its decoded `dc-runtime` wireframe — exact design + REAL backends, honest
-where account-gated). **DONE + pushed, `#54`–`#63`:** Overview · My Units + Add Unit · Bookings + Booking-Summary PDF ·
+where account-gated). **DONE + pushed, `#54`–`#64`:** Overview · My Units + Add Unit · Bookings + Booking-Summary PDF ·
 Statement + Statement PDF · **Payouts + Payout Method** (⚠️ real money/banking — real IBAN collection [encrypted, mod-97]
 + Connect test-mode; the automated payout EXECUTION engine deferred) · Balance + Expenses · Block Calendar + Documents ·
 Reports + Insights · **Settings hub** · **Reports deepened to the full wireframe (`#63`** — real net-by-channel [Σ==net],
-real year dropdown/date-range/export, VAT honest-deferred). **Remaining, built + at-parity but not yet exact-matched:** EARNINGS — Tax center ·
+real year dropdown/date-range/export, VAT honest-deferred) · **Tax center (`#64`** — reuses the real tax-hold/`owner.tax.save`/annual-PDF; honest "no withholding"; additive `vat_registered` flag). **Remaining, built + at-parity but not yet exact-matched:**
 MANAGE — Rates / Reviews / Agreement / Messages · ACCOUNT — Security / Team · Help. The audits repeatedly find the
 wireframes describe MORE product than exists (approval / rate-proposal / VAT-filing / channel-sync / the payout engine —
 all honestly deferred or refused), so real usage should drive which deferred capability to actually build.
@@ -72,16 +72,17 @@ Public storefront (no login): `/book/vyrobel-demo`. Self-signup (provisions a ne
 
 ## 6. The next action
 
-**No launch-blocking build remains.** The owner exact-match track is DONE + pushed through **`#62`** — Overview (#54) ·
+**No launch-blocking build remains.** The owner exact-match track is DONE + pushed through **`#64`** — Overview (#54) ·
 My Units + Add Unit (#55) · Bookings + PDF (#56) · Statement + PDF (#57) · Payouts + Payout Method (#58) · Balance +
-Expenses (#59) · Block Calendar + Documents (#60) · Reports + Insights (#61) · **Settings hub (#62)**. **The honest
+Expenses (#59) · Block Calendar + Documents (#60) · Reports + Insights (#61) · Settings hub (#62) · Reports deepened (#63) ·
+**Tax center (#64)**. **The honest
 recommendation: LAUNCH is the highest-leverage move** — the exact-match work is ongoing *polish*, not launch-blocking,
 and the audits keep finding the wireframes describe more product than exists. So the founder chooses between:
 
 **A) Continue the owner-page exact-match polish** (optional, NOT launch-blocking) — pick the next owner page and run the
 same discipline (decode the `dc-runtime` wireframe → GATE 1 design + real backends → GATE 2 any doc twin / 2nd
 section-group, per-gate commit, suite + PHPStan + Pint + browser-verify). Remaining, built-but-not-yet-exact-matched:
-**EARNINGS** — Tax center · **MANAGE** — Rates / Reviews / Agreement / Messages · **ACCOUNT** — Security / Team · **Help**.
+**MANAGE** — Rates / Reviews / Agreement / Messages · **ACCOUNT** — Security / Team · **Help**.
 Reuse the shared `<x-owner.shell>` + `--vy-*` tokens; all writes are `can:`/capability-gated controller POSTs (never
 `/livewire/update`, #20); real data only (#39), guest name-only (#28), reconcile to the cent (#17); the fee/commission
 rate is the REAL agreement rate (the shared `OwnerCommissionRate`), never a wireframe's hardcoded 15%. Prior "refused as

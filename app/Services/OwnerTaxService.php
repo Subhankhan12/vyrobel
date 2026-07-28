@@ -28,7 +28,7 @@ use Illuminate\Support\Collection;
 class OwnerTaxService
 {
     /** The tax-profile fields the owner may set. `tax_id` is the required one (it gates payouts). */
-    private const FIELDS = ['legal_name', 'type', 'tax_country', 'tax_id', 'vat_number'];
+    private const FIELDS = ['legal_name', 'type', 'tax_country', 'tax_id', 'vat_number', 'vat_registered'];
 
     public function __construct(private AuditEventRecorder $audit) {}
 

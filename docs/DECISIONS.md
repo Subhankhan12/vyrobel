@@ -4762,3 +4762,46 @@ custom range (Aug–Oct €2,750.80), export menu (3 real exports 200 — CSV/PD
 €4,460.80 + Walk-in €442.80 + Other −€250.00 = €4,653.60), honest VAT. Reuses `<x-owner.shell>` + `--vy-*` +
 `OwnerLedgerAttribution`/`PerformanceMetrics`/`OwnerNextPayout`/`OwnerCommissionRate`/`OwnerBookingsReader` (anti-drift). No
 new writes, no schema change. **Invariants #1–63.**
+
+## 2026-07-28 — Owner TAX CENTER exact-match (#64)
+
+The owner Tax Center (`/owner/tax`) — already one of the most-REAL owner pages — was matched to the full decoded
+`Owner Tax Center.html` (design + behaviour). This page GATHERS already-built features into one screen; the build
+REUSED them (anti-drift, not rebuilt) and added only one small additive column + an honest withholding state
+(`docs/OWNER-TAXCENTER-AUDIT.md`, DIVERGENCE Owner-Tax-center row).
+
+**The reuse map (every section wires to an ALREADY-BUILT feature — proven shared):**
+- **Tax-hold banner (2 states)** → `OwnerTaxService::heldTotalMinor` + `Owner::hasTaxDetails()` = the SAME hold as
+  Payouts/Balance (`OwnerPayoutService::pay` genuinely refuses without a tax ID). Browser-proven: saving a tax ID
+  released the real €885.60 hold AND cleared it on the Payouts page too.
+- **Tax profile store** → `owner.tax.save` (`OwnerTaxController` → `OwnerTaxService::saveTaxDetails`) = the SAME path
+  Settings "Business & tax" + Payouts write. Encrypted `tax_id`/`vat_number` (#28), audited, self-only (`user_id`,
+  never a request id), `$capActions` (#20). Saving a tax_id releases the hold.
+- **Annual summaries + PDF** → `owner.tax.annual` (`OwnerAnnualTaxDocument`) = the SAME PDF Documents offers,
+  reconciling (#17), `$capExports` (#42). **Documents** link → the real `owner.documents` archive.
+
+**D-TAX-1 — WITHHOLDING is NOT modelled → HONEST (never fabricated).** The wireframe's `Component` hardcodes a
+residency→rate map ("15% treaty rate withheld on payouts to Ireland", "20% non-resident") — but Vyrobel withholds
+NOTHING (grep-confirmed: no withholding engine; the only deductions are commission/ota_cost/expense). A "15%
+withheld" figure that reduces no payout is a fabrication (#39) and a dangerous one (an owner could under-report
+expecting a withholding credit never remitted). The Withholding card is rendered in the wireframe's design as an
+HONEST universal state: figure **"None"** + note "Vyrobel doesn't withhold tax from your payouts — you receive your
+full net earnings and declare your rental income in your own tax return." Same discipline as the Reports VAT block.
+
+**D-TAX-2 — the "VAT registered" toggle stores a REAL flag (one additive column), NOT a VAT computation.** The
+wireframe's toggle needs a registration boolean independent of the number; the store had only `vat_number`. Added an
+**additive `vat_registered` boolean** (default false) to `owners` + `Owner::$fillable`/casts + `OwnerTaxService::FIELDS`
++ the controller validation. The toggle gates the (encrypted) VAT number; de-registering (`vat_registered=0`) drops
+the number so no stale VAT id lingers on the letterhead (the flag is the source of truth). This is a REGISTRATION
+FLAG for the letterhead/invoices — NOT a VAT computation (unlike the Reports VAT block, correctly refused).
+
+**Design:** rebuilt `tax-center.blade.php` to the wireframe (page-scoped `.vy-tax-*` + shared `<x-owner.shell>` +
+`--vy-*`; the GREEN #4F7A46/#6FA764 "Tax details complete" state, the Registered-as segmented toggle, the VAT-registered
+toggle, the honest Withholding card, the annual-summary card-rows, the VAT-invoices/Documents link, the dark
+About-your-tax panel). The form still POSTs to `owner.tax.save` (a real controller write, #20 — NOT `/livewire/update`).
+
+**Verified:** `OwnerTaxCenterTest` 5→7 (`vat_registered` round-trips through the shared store + de-register drops the
+encrypted number; honest withholding — never "treaty rate"/"withheld on payouts"; the green complete state). Full
+suite green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. Browser-proven: save→hold released (+ cleared on
+Payouts, anti-drift), VAT toggle reveals the number field, annual PDF 200. Additive column only — DISTURB NOTHING (the
+green suite is the proof). **Invariants #1–64.**

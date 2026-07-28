@@ -30,7 +30,15 @@ class OwnerTaxController extends Controller
             'tax_country' => ['nullable', 'string', 'max:60'],
             'tax_id' => ['required', 'string', 'max:100'],
             'vat_number' => ['nullable', 'string', 'max:100'],
+            'vat_registered' => ['nullable', 'boolean'],
         ]);
+
+        // The checkbox/toggle only submits when on; normalise to an explicit boolean, and never keep a VAT
+        // number on file for an owner who isn't registered (the flag is the source of truth).
+        $data['vat_registered'] = $request->boolean('vat_registered');
+        if (! $data['vat_registered']) {
+            $data['vat_number'] = null;
+        }
 
         try {
             $tax->saveTaxDetails($request->user(), $data);

@@ -140,3 +140,50 @@ it('never lets one owner’s save affect another owner', function () {
         ->and($b['owner']->fresh()->hasTaxDetails())->toBeFalse()
         ->and($b['owner']->fresh()->tax_id)->toBeNull();
 });
+
+// ── 6. The VAT-registered FLAG round-trips through the SHARED store; de-registering drops the number ──
+it('stores the VAT-registered flag through the shared tax store and clears the number when off', function () {
+    $s = seedScenario(1);
+    $f = taxOwnerFull($s, 0, 20000, 'Amara Okafor', false);
+
+    // Register for VAT with a number (the same owner.tax.save path the whole app uses).
+    $this->actingAs($f['user'])->post('/owner/tax', [
+        'type' => 'company', 'tax_id' => '501234567', 'vat_registered' => '1', 'vat_number' => 'PT501234567',
+    ])->assertRedirect(route('owner.tax'));
+    $owner = $f['owner']->fresh();
+    expect($owner->vat_registered)->toBeTrue()
+        ->and((string) $owner->vat_number)->toBe('PT501234567');
+    // The VAT number is encrypted at rest, like the tax ID (#28).
+    $rawVat = (string) DB::table('owners')->where('id', $owner->id)->value('vat_number');
+    expect($rawVat)->not->toContain('PT501234567');
+
+    // De-register (the toggle off submits vat_registered=0): the flag goes false AND the number is dropped —
+    // the flag is the source of truth, so no stale VAT number lingers on the letterhead.
+    $this->actingAs($f['user'])->post('/owner/tax', [
+        'type' => 'company', 'tax_id' => '501234567', 'vat_registered' => '0', 'vat_number' => 'PT501234567',
+    ])->assertRedirect();
+    $owner = $f['owner']->fresh();
+    expect($owner->vat_registered)->toBeFalse()
+        ->and($owner->vat_number)->toBeNull();
+});
+
+// ── 7. WITHHOLDING is HONEST — the wireframe's residency-driven rates are NOT modelled → never fabricated ──
+it('renders an honest withholding state and never a fabricated rate', function () {
+    $s = seedScenario(1);
+    $f = taxOwnerFull($s, 0, 20000, 'Amara Okafor', true);   // complete → the green state, no hold
+
+    $res = $this->actingAs($f['user'])->get('/owner/tax')->assertOk()
+        // the green "complete" state is REAL (tax details on file)
+        ->assertSee('Tax details complete')
+        // the withholding section is HONEST — Vyrobel withholds nothing
+        ->assertSee('Withholding tax')
+        ->assertSee('None')
+        ->assertSee('withhold tax from your payouts')
+        ->assertSee('full net earnings')
+        // ⚠️ NEVER the wireframe's fabricated residency-driven withholding (#39)
+        ->assertDontSee('treaty rate')
+        ->assertDontSee('withheld on payouts')
+        ->assertDontSee('non-resident rate');
+
+    assertNoRawBlade($res);
+});

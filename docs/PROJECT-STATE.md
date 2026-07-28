@@ -6,6 +6,38 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v11) · owner TAX CENTER exact-match (#64). This block SUPERSEDES every block
+> below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block → `docs/DECISIONS.md`.**
+>
+> **The owner Tax Center (`/owner/tax`) — one of the most-REAL owner pages — was matched to the full decoded
+> `Owner Tax Center.html` (`docs/OWNER-TAXCENTER-AUDIT.md`, DECISIONS 2026-07-28 #64, DIVERGENCE Owner-Tax-center row).
+> This page GATHERS already-built features into one screen; the build REUSED them (anti-drift, proven shared) + added
+> one small additive column + an honest withholding state. Single gate.**
+> - **REUSE map (every section wires to a built feature):** the **2-state tax-hold banner** (accent *incomplete* with the
+>   real held amount + **GREEN** *complete*) = the SAME hold as Payouts/Balance (`OwnerTaxService::heldTotalMinor` +
+>   `Owner::hasTaxDetails`; `OwnerPayoutService::pay` refuses without a tax ID) — **browser-proven: saving a tax ID
+>   released the real €885.60 hold AND cleared it on Payouts too**; the **Tax profile** form → the ONE `owner.tax.save`
+>   store Settings/Payouts also write (encrypted #28, audited, self-only, `$capActions` #20); the **Annual summaries** +
+>   per-year **PDF** (`owner.tax.annual`, reconciling #17, `$capExports` #42); the **Documents** link (`owner.documents`).
+> - **D-TAX-1 — WITHHOLDING honest (NOT modelled).** The wireframe's residency-driven "15% treaty / 20% non-resident …
+>   withheld on payouts" is fabricated (Vyrobel withholds nothing) → rendered as an HONEST "None" card, never a fake rate
+>   (#39). Same discipline as the Reports VAT block.
+> - **D-TAX-2 — the "VAT registered" toggle stores a REAL flag.** One additive `vat_registered` boolean (a REGISTRATION
+>   FLAG for the letterhead — NOT a VAT computation); de-registering drops the encrypted number (the flag is the truth).
+> - **Verified:** `OwnerTaxCenterTest` 5→7 (`vat_registered` round-trips through the shared store + de-register drops the
+>   encrypted number; honest withholding — never "treaty rate"/"withheld on payouts"; the green complete state). Suite
+>   **1091 / 8570 GREEN**; PHPStan **L5 = 0**; Pint clean; `migrate:fresh --seed` clean; browser-verified (save→hold
+>   released + cleared on Payouts, VAT toggle reveals the number, annual PDF 200). Additive column only — nothing
+>   disturbed. **Invariants #1–64.**
+>
+> Owner exact-match track shipped: Overview (#54) · My Units + Add Unit (#55) · Bookings + PDF (#56) · Statement + PDF
+> (#57) · Payouts + Payout Method (#58) · Balance + Expenses (#59) · Block Calendar + Documents (#60) · Reports + Insights
+> (#61) · Settings hub (#62) · Reports deepened (#63) · **Tax Center (#64)**. Remaining built-but-not-yet-exact-matched:
+> MANAGE — Rates/Reviews/Agreement/Messages · ACCOUNT — Security/Team · Help. Everything else below is current; no
+> launch-blocking build remains.
+>
+> ---
+>
 > ⭐⭐ **CURRENT STATE — 2026-07-28 (v10) · owner REPORTS exact-match DEEPENED to the full wireframe (#63). This block
 > SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
 > `docs/DECISIONS.md`.**

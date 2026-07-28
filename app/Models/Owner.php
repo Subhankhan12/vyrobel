@@ -31,6 +31,7 @@ class Owner extends Model
         'tax_id',
         'tax_country',
         'vat_number',
+        'vat_registered',
         'address',
         'payout_currency',
         'user_id',
@@ -50,6 +51,7 @@ class Owner extends Model
             'phone' => 'encrypted',
             'tax_id' => 'encrypted',
             'vat_number' => 'encrypted',
+            'vat_registered' => 'boolean',
             'address' => 'array',
             'stripe_connect_payouts_enabled' => 'boolean',
         ];
