@@ -219,10 +219,19 @@ it('derives its counts and span from real rows and ports none of the design\'s f
         ->assertSee('6 documents')
         ->assertSee('since September 2026')
         ->assertSee('2026')                     // the real year section, derived from the real periods
-        // the full-archive ZIP is still a disabled "Soon" (no builder); the annual tax summary is now a
-        // REAL export — a per-year link + a latest-year shortcut, both to owner.tax.annual.
-        ->assertSee('Download ZIP')
+        // the full-archive ZIP is NOT ported (the wireframe has none) — dropped, not a dead "Soon"
+        ->assertDontSee('Download ZIP')
+        ->assertDontSee('Download everything')
+        // the annual tax summary is a REAL export — the dark card links owner.tax.annual for the real year
+        ->assertSee('annual tax summary')
+        ->assertSee('All 12 months')
         ->assertSee(route('owner.tax.annual', 2026));
+
+    // The annual card's "net X" is the REAL Σ net_source_minor for the year (the annual PDF's own basis),
+    // reconciling to that PDF to the cent (#17) — never a fabricated total.
+    $annualNet = (int) $x['sept']->fresh()->net_source_minor + (int) $x['oct']->fresh()->net_source_minor;
+    $this->actingAs($x['a']['user'])->get('/owner/documents')->assertOk()
+        ->assertSee(MoneyFormatter::display($annualNet, 'EUR'));
 });
 
 // ── 5. Owner isolation — A sees only A's documents; a non-linked user fails closed ────────────────

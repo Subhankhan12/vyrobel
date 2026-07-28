@@ -83,12 +83,14 @@ use Livewire\Component;
  *   • NO BACKEND — "Download the full archive (ZIP)" (there is no ZIP builder): a disabled "Soon" /
  *                `vy-soon-tag`, NEVER a fake download link.
  *   • NOT PORTED — the design's "OS-2025-09" / "RA-2025-09" / "BS-2025-09" reference formats, its
- *                "issued 1 Oct" and "18 bookings" metas, and its "net €98,710" tax figure are static
+ *                "issued 1 Oct" and "18 bookings" metas, and its FABRICATED "net €98,710" figure are static
  *                fiction with no backing row: the real reference is `sequence_no`, the real date is
- *                `finalized_at`, and no booking count or tax figure is claimed here. The design's year
- *                filter is inert (its groups are a fixed const) — it is rewired to the real years.
- *   • OMITTED  — CSV export (a standing deferral, and this screen is a PDF library) is not rendered at
- *                all rather than as a third dead "Soon" control.
+ *                `finalized_at`, and no booking count is claimed. The annual-tax card's "net X" IS shown, but
+ *                as the REAL Σ net_source_minor for the year (the annual PDF's own basis — reconciling, #17),
+ *                never the design's invented total. The design's year filter is inert (a fixed const) — it is
+ *                rewired to the real years.
+ *   • OMITTED  — the full-archive ZIP + CSV export (no backend / a standing deferral) are not rendered at
+ *                all rather than as dead "Soon" controls (the wireframe carries neither).
  */
 #[Layout('components.layouts.owner')]
 class OwnerDocuments extends Component
@@ -157,11 +159,19 @@ class OwnerDocuments extends Component
                     ->values()
                     ->all();
 
+                // The year's annual-tax net — Σ net_source_minor in the EARLIEST statement's source currency,
+                // the SAME basis as OwnerTaxService::annualSummary (which the annual PDF renders), so the card's
+                // figure reconciles to that PDF to the cent (#17). Nothing summed across currencies beyond what
+                // the existing annual summary already does.
+                $earliest = $group->sortBy(fn (OwnerStatement $s): string => $s->period_start->toDateString())->first();
+                $taxNetMinor = (int) $group->sum(fn (OwnerStatement $s): int => (int) $s->net_source_minor);
+
                 return [
                     'year' => (int) $year,
                     // DERIVED: how many documents this year genuinely generates.
                     'count' => array_sum(array_map(static fn (array $p): int => count($p['docs']), $periods)),
                     'periods' => $periods,
+                    'tax_net_display' => $this->money($taxNetMinor, (string) $earliest?->source_currency),
                 ];
             })
             ->sortKeysDesc()

@@ -1,6 +1,6 @@
 # Owner Block Calendar + Documents — wireframe-fidelity audit
 
-**Date:** 2026-07-28 · **Author:** build session · **Status:** PHASE 1 (read-only) complete → proceeding to the gated build.
+**Date:** 2026-07-28 · **Author:** build session · **Status:** ✅ **BUILT — invariant #60** (GATE 1 Block Calendar `ab4333b` + GATE 2 Documents). Both pages shipped wireframe-exact on the real backends; the two investigate points resolved as proposed (Calendar reason = real in `notes`; Calendar repeat/series = expanded into N REAL blocks sharing a `series_id`, never faked; Documents annual tax summary = the already-real `owner.tax.annual` PDF, now surfaced as the dark card with the REAL net). Suite 1081→ green; PHPStan L5 (0); Pint clean; browser-proven (a real drag-select block + release; real statement + annual-tax PDF downloads). See DECISIONS 2026-07-28 #60 + DIVERGENCE rows 141/148. (The PHASE-1 analysis below is preserved as the audit of record.)
 
 Founder brief: make the LIVE owner **Block Calendar** (`/owner/calendar`) and **Documents** (`/owner/documents`) pages match
 their decoded wireframes (`Owner Block Calendar.html`, `Owner Documents.html`) EXACTLY — design + behaviour — on real

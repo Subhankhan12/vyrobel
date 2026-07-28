@@ -6,6 +6,37 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v6) · owner BLOCK CALENDAR + DOCUMENTS exact-match (#60). This block
+> SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this
+> block → `docs/DECISIONS.md`.**
+>
+> **The owner-page exact-match track added its 9th + 10th surfaces: the owner Block Calendar (`/owner/calendar`) +
+> Documents (`/owner/documents`) pages (`docs/OWNER-CALENDAR-DOCS-AUDIT.md`, DECISIONS 2026-07-28 #60, DIVERGENCE rows
+> 141/148).** Both wireframes decoded; both rebuilt EXACTLY on their REAL owner-scoped backends (both were already real).
+> - **Block Calendar (GATE 1, `ab4333b`):** the interactive grid — **click a day or press-and-drag a range** (Alpine) →
+>   the Selected-range composer (reason **buttons** Personal stay / Maintenance / Seasonal hold + optional note + a
+>   **Repeat** section) → Confirm → a REAL block POST (`OwnerBlockService` → certified `AssignmentService`, non-overlap
+>   enforced, `$capActions` #20/#42, audited). **Click a blocked day → a REAL release.** 4-state legend + real stat line;
+>   booked cells show the guest **NAME** (name-only #28). **Series = REAL:** REPEAT expands into N REAL individual blocks
+>   sharing a new nullable `series_id` (never a fake series #39); an over-taken occurrence is skipped + reported; the
+>   Scheduled list collapses a series to one row + Remove; a toast + **Undo**. New: `calendar.release-series`,
+>   `OwnerBlockService::blockSeries/releaseSeries`, `InventoryBlock.series_id` (migration + fillable).
+> - **Documents (GATE 2):** a year-filter pill row + **one frosted card per real month** (period · No. · Net · STMT/BKG/RA
+>   rows + PDF) + a **DARK annual tax-summary card per year** with the **REAL net** (Σ `net_source_minor` = the annual
+>   PDF's basis, reconciling #17). The backend was already real (on-demand PDFs, `CAP_EXPORTS`-gated, owner-scoped #28);
+>   the fabricated multi-year history + "€98,710" stay refused; the not-in-wireframe ZIP stub is dropped.
+> - **Verified:** suite **1081/8394 green** (`OwnerBlockCalendarTest` 10 + `OwnerDocumentsViewTest` 6); PHPStan **L5 = 0**;
+>   Pint clean; `migrate` clean; both pages browser-proven (a real drag-select block → release; real statement +
+>   annual-tax PDF downloads, %PDF-). 🔒 owner-scoped #28 (guest name-only), controller-routed #20, exports #42,
+>   reconciling #17, nothing fabricated / no fake series #39. **Invariants #1–60.**
+>
+> **Owner exact-match track shipped: Overview (#54) · My Units + Add Unit (#55) · Bookings + PDF (#56) · Statement + PDF
+> (#57) · Payouts + Payout Method (#58) · Balance + Expenses (#59) · Block Calendar + Documents (#60).** Remaining
+> built-but-not-yet-exact-matched: EARNINGS — Tax-center · MANAGE — Reports/Insights/Rates/Reviews/Agreement/Messages ·
+> ACCOUNT — Settings/Security/Team. Everything else below is current; no launch-blocking build remains.
+>
+> ---
+>
 > ⭐⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v5) · owner BALANCE + EXPENSES exact-match (#59; ⚠️ Balance is real money).
 > This block SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md`
 > → this block → `docs/DECISIONS.md`.**

@@ -4585,3 +4585,46 @@ Balance's clearing model reconciles to the cent (#17) and its withdrawal is hone
 movement, #39); Expenses' KPIs/history/unit/export/by-category are real and its repair path is a real owner→operator
 relay; expense approval + vendor are REFUSED (#39); masked IBAN never full (#28); exports CAP_EXPORTS-gated (#42). Suite
 **1077/8370** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean; browser-verified. **Invariants #1–59.**
+
+## 2026-07-28 — Owner-page exact-match: **Block Calendar + Documents** (invariant #60)
+
+The owner-page exact-match track continued to the Calendar + Documents pages (`docs/OWNER-CALENDAR-DOCS-AUDIT.md` =
+the PHASE 1 per-element audit). Both wireframes decoded (dc-runtime bundles); both live pages rebuilt EXACTLY on their
+REAL owner-scoped backends. Both backends were already real (the block/release path; the on-demand PDFs).
+
+**GATE 1 — Block Calendar (`/owner/calendar`, `ab4333b`).** Rebuilt to the wireframe as an interactive grid: **click a
+day, or press-and-drag a range** (client-side Alpine) → the Selected-range composer → Confirm → a REAL block POST
+(`OwnerBlockController` → `OwnerBlockService` → the certified `AssignmentService`, non-overlap enforced, `$capActions`
+#20/#42, audited). **Click a blocked day → a REAL release.** The 4-state legend (Booked / Owner block / Selecting /
+Open) + a real stat line; booked cells now show the guest **NAME** (name-only, #28, via the shared `GuestName` —
+reversing the old page's tighter no-name choice, matching the owner Bookings-PDF precedent); reason **buttons**
+(Personal stay / Maintenance / Seasonal hold) + an optional note; the Scheduled-blocks list (a series collapses to one
+row, Remove releases it) + a **toast + Undo** (Undo releases what was just created).
+- **Investigate (a) REASON:** already real — stored in `InventoryBlock.notes` (the `reason` column stays the enum
+  `'owner'`). `OwnerBlockService::REASONS` aligned to the wireframe's three.
+- **Investigate (b) REPEAT/SERIES:** a REAL build — `OwnerBlockService::blockSeries()` expands the recurrence (weekly /
+  fortnightly / monthly × occurrences, capped at `MAX_OCCURRENCES` = 12) into **N REAL individual `InventoryBlock`s**
+  sharing a new nullable **`series_id`** (a small honest schema add), NEVER a fake "scheduled series" (#39). An
+  occurrence whose nights are already taken is **skipped and reported** ("N of M blocks created"). New:
+  `calendar.release-series`, `OwnerBlockService::releaseSeries()`.
+
+**GATE 2 — Documents (`/owner/documents`).** Rebuilt to the wireframe: a year-filter pill row + **one frosted card per
+real month** (statement period · No. · Net · the STMT/BKG/RA doc rows with real status + rail + PDF) + a **DARK annual
+tax-summary card per year** ("{year} annual tax summary · All 12 months · net {X} · one PDF for your accountant"). The
+whole backend was already real (an aggregation over the on-demand generators, `CAP_EXPORTS`-gated, owner-scoped #28).
+- **Investigate — ANNUAL TAX SUMMARY:** already exists (`owner.tax.annual` → `OwnerAnnualTaxDocument`); now surfaced as
+  the dark card with the **REAL net** = Σ `net_source_minor` for the year (the annual PDF's own basis via
+  `OwnerTaxService::annualSummary`), so the card reconciles to that PDF to the cent (#17). The design's fabricated
+  "net €98,710" stays refused; the not-in-wireframe "Download everything ZIP" stub is dropped (not stubbed).
+
+**Decisions (founder-approved by the brief).** **D-CAL-1** — the block reason is real (stored in `notes`); the three
+options match the wireframe. **D-CAL-2** — the repeat is a REAL series (N individual blocks + `series_id`), never faked;
+over-taken occurrences are skipped + reported. **D-DOC-1** — the annual tax summary is the existing real PDF, surfaced
+with the real reconciling net; the ZIP is dropped as not-in-wireframe.
+
+**Invariant #60 — Owner Block Calendar + Documents exact-match:** both pages match their wireframes; the Calendar's
+drag-select block/release/series are REAL (mutation-proven, owner-scoped #28 guest-name-only, controller-routed #20,
+audited, non-overlap enforced) with NO fabricated series (#39); the Documents archive is the real on-demand PDFs +
+the real annual-tax summary, `CAP_EXPORTS`-gated (#42), reconciling (#17). Suite **1081/8394** green; PHPStan L5 (0);
+Pint clean; `migrate` clean; browser-proven (a real drag block + release; real statement + annual-tax PDF downloads).
+**Invariants #1–60.**
