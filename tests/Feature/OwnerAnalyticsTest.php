@@ -150,3 +150,25 @@ it('gates the Reports export menu to CAP_EXPORTS', function () {
     // A view-only sub-user may VIEW Reports but gets NO export control (#42).
     $this->actingAs(ownerSubUser($s, $ownerId, 'view_only'))->get('/owner/reports')->assertOk()->assertDontSee('Export');
 });
+
+// ── 7. INSIGHTS — REAL derived observations + an HONEST rates link, never a fabricated rate proposal ──
+it('shows Insights with real derived observations and an honest rates link — never a fake proposal', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+    book($s, ['unit_id' => $s['units'][0]->id, 'price_minor' => 20000]);   // real bookings → real aggregates
+
+    $res = $this->actingAs($user)->get('/owner/insights?range=this-year')->assertOk()
+        ->assertSee('Occupancy by month')
+        ->assertSee('Rate performance')
+        ->assertSee('Worth a look')                 // REAL derived observations (decisions stay yours)
+        // the honest "act on it" path is a REAL link to the owner Rates page — not a fabricated workflow
+        ->assertSee('Turn insight into rate')
+        ->assertSee('Open your Rates')
+        ->assertSee(route('owner.rates'))
+        // ⚠️ the design's fabricated rate-proposal entity is REFUSED (#39) — no proposal count / approval flow
+        ->assertDontSee('proposals waiting')
+        ->assertDontSee('Review proposals')
+        ->assertDontSee('rate proposals');
+
+    assertNoRawBlade($res);
+});

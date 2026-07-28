@@ -1,6 +1,6 @@
 # Owner Reports + Insights — wireframe-fidelity audit
 
-**Date:** 2026-07-28 · **Author:** build session · **Status:** PHASE 1 (read-only) complete — **awaiting founder input on the VAT + proposals decisions before the gated build.**
+**Date:** 2026-07-28 · **Author:** build session · **Status:** ✅ **BUILT — invariant #61** (GATE 1 Reports `949ea93` + GATE 2 Insights). Founder confirmed both judgment calls: **VAT → honest-defer**; **rate proposals → honest link to Rates**. Both pages shipped wireframe-exact on the real Batch-B analytics; the commission rate is the REAL agreement rate (18%, read from the agreement — never the wireframe's 15%); the VAT block + "Email to me" are honest deferrals (no fabricated figure/send); the "Worth a look" insights are real derived observations; the proposals callout is an honest "Open your Rates" link (no fake proposal entity). Suite green; PHPStan L5 (0); Pint clean; both browser-verified (gross-to-net reconciles; real insights). See DECISIONS 2026-07-28 #61 + DIVERGENCE (Reports/Insights rows). (The PHASE-1 analysis below is preserved as the audit of record.)
 
 Founder brief: make the LIVE owner **Reports** (`/owner/reports`) and **Insights** (`/owner/insights`) match their decoded
 wireframes (`Owner Reports.html`, `Owner Insights.html`) EXACTLY — design + behaviour — on REAL owner-scoped analytics,

@@ -6,6 +6,38 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v7) · owner REPORTS + INSIGHTS exact-match (#61). This block SUPERSEDES
+> every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
+> `docs/DECISIONS.md`.**
+>
+> **The owner-page exact-match track added its 11th + 12th surfaces: the owner Reports (`/owner/reports`) + Insights
+> (`/owner/insights`) pages (`docs/OWNER-REPORTS-INSIGHTS-AUDIT.md`, DECISIONS 2026-07-28 #61, DIVERGENCE Reports/Insights
+> rows).** Both wireframes decoded; both rebuilt EXACTLY on the REAL Batch-B analytics (`PerformanceMetrics`,
+> `BookingCadence`, `OwnerLedgerAttribution` — reused, anti-drift). Two judgment calls founder-approved (VAT honest-defer;
+> proposals honest link).
+> - **Reports (GATE 1, `949ea93`):** 3 KPIs + Net-earnings-by-month + Performance-by-unit (ADR/RevPAR/nights/occ/net/share)
+>   + Booking-sources-by-channel (real `reservations.source`) + the **Gross-to-net** (reconciles to the cent #17 at the
+>   **REAL agreement commission rate 18%** — read from `ManagementAgreement`, NEVER the wireframe's hardcoded 15%) + payout
+>   summary + real Documents + CAP_EXPORTS-gated exports. **HONEST-DEFER:** the Tax & VAT summary is NOT modelled → an
+>   honest deferred card (no fabricated Output/Input/Net VAT figure or "Mark filed", #39); "Email to me" = honest Soon.
+>   Notifications = the real self-scoped feed.
+> - **Insights (GATE 2):** 2-column rebuild — Occupancy-by-month (this-year + on-the-books), Booking-pace, Rate-performance
+>   per unit, lead-time + day-of-week (+ a real derived caption), and **"Worth a look" REAL DERIVED observations**
+>   (hottest weekday / median booking window / forward revenue — decisions-stay-yours). **HONEST-OMIT** the "vs last year"
+>   series/deltas (no prior-year data, #39). **HONEST** the proposals callout → a real "Open your Rates" link (no fake
+>   proposal entity/workflow).
+> - **Verified:** suite green (`OwnerAnalyticsTest` 4→7 — gross-to-net at a distinctive real 22% rate, honest VAT, export
+>   gating, real insights + honest rates link); PHPStan **L5 = 0**; Pint clean; both browser-verified (gross €5,980 −
+>   commission €1,076.40 [18%] − costs €250 = net €4,653.60; real derived insights). 🔒 owner-scoped #28, reconciling #17
+>   at the real rate, exports #42, nothing fabricated (no fake VAT/proposal/advice) #39. **Invariants #1–61.**
+>
+> **Owner exact-match track shipped: Overview (#54) · My Units + Add Unit (#55) · Bookings + PDF (#56) · Statement + PDF
+> (#57) · Payouts + Payout Method (#58) · Balance + Expenses (#59) · Block Calendar + Documents (#60) · Reports + Insights
+> (#61).** Remaining built-but-not-yet-exact-matched: EARNINGS — Tax-center · MANAGE — Rates/Reviews/Agreement/Messages ·
+> ACCOUNT — Settings/Security/Team. Everything else below is current; no launch-blocking build remains.
+>
+> ---
+>
 > ⭐⭐⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v6) · owner BLOCK CALENDAR + DOCUMENTS exact-match (#60). This block
 > SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this
 > block → `docs/DECISIONS.md`.**

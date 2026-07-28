@@ -56,10 +56,119 @@ class OwnerInsights extends Component
             'activeRange' => $range,
             'cards' => $this->cards($metrics, $currency, $leadTime, $onTheBooks),
             'trend' => $this->trend($trend, $currency),
+            'occupancyByMonth' => $this->occupancyByMonth($trend),
+            'ratePerformance' => $this->ratePerformance($units, $range, $currency),
             'leadTime' => $leadTime,
             'weekday' => $weekday,
             'observation' => $this->busiestWeekday($unitIds, $range),
+            'insights' => $this->worthALook($metrics, $leadTime, $weekday, $onTheBooks, $currency),
         ]);
+    }
+
+    /**
+     * Occupancy by month — the REAL per-month occupancy from the owner metric layer, each flagged `forward`
+     * when the month starts after today (so the view can draw it as "on the books" rather than achieved).
+     * There is NO "last year" series: the demo/most owners have no prior-year data, so a fabricated comparison
+     * is refused (#39) — the chart honestly shows only this-year + on-the-books.
+     *
+     * @param  list<array{month: string, label: string, metrics: MetricSet}>  $rows
+     * @return array{has_data: bool, months: list<array{label: string, occ_pct: int, forward: bool}>}
+     */
+    private function occupancyByMonth(array $rows): array
+    {
+        $thisMonth = CarbonImmutable::today()->startOfMonth();
+        $months = [];
+        $withData = 0;
+
+        foreach ($rows as $row) {
+            $occ = $row['metrics']->occupancyPct();
+            if ($occ > 0) {
+                $withData++;
+            }
+            $months[] = [
+                'label' => $row['label'],
+                'occ_pct' => $occ,
+                'forward' => CarbonImmutable::parse($row['month'].'-01')->greaterThan($thisMonth),
+            ];
+        }
+
+        return ['has_data' => $withData > 0, 'months' => $months];
+    }
+
+    /**
+     * Rate performance per unit — REAL occupancy + achieved ADR for each of the owner's units. The design's
+     * "Δ vs last year" is OMITTED (no prior-year data → never a fabricated delta, #39).
+     *
+     * @param  Collection<int, Unit>  $units
+     * @return list<array{name: string, occ_pct: int, adr: string}>
+     */
+    private function ratePerformance(Collection $units, array $range, string $currency): array
+    {
+        return $units->map(function (Unit $unit) use ($range, $currency): array {
+            $m = PerformanceMetrics::forOwnerUnits([(string) $unit->id], $range['start'], $range['end'], $currency);
+
+            return [
+                'name' => $unit->name !== null ? (string) $unit->name : (string) $unit->code,
+                'occ_pct' => $m->occupancyPct(),
+                'adr' => $this->money($m->adrMinor(), $currency),
+            ];
+        })->all();
+    }
+
+    /**
+     * "Worth a look" — REAL DERIVED observations computed from the owner's own numbers (decisions stay theirs).
+     * Each is a genuine fact with an honest CTA to a real page (Rates / Calendar) — NEVER a fabricated "rate
+     * proposal" (there is no proposal entity; refused in the My Units audit) and never invented advice (#39). An
+     * observation is included only when the data genuinely supports it.
+     *
+     * @param  array{has_data: bool, median_days: int|null}  $leadTime
+     * @param  array{has_data: bool, weekdays: list<array{label: string, pct: int, display: string}>}  $weekday
+     * @return list<array{icon: string, title: string, body: string, cta: string, href: string}>
+     */
+    private function worthALook(MetricSet $m, array $leadTime, array $weekday, int $onTheBooks, string $currency): array
+    {
+        $out = [];
+
+        // 1. The hottest night of the week — a real fact from the day-of-week occupancy aggregate.
+        if ($weekday['has_data'] && $weekday['weekdays'] !== []) {
+            $days = collect($weekday['weekdays']);
+            $top = $days->sortByDesc('pct')->first();
+            $low = $days->sortBy('pct')->first();
+            if ($top !== null && (int) $top['pct'] > 0) {
+                $out[] = [
+                    'icon' => '📈',
+                    'title' => $top['label'].' runs hottest',
+                    'body' => $top['label'].' averages '.$top['pct'].'% occupancy while '.$low['label'].' trails at '.$low['pct'].'% — worth weighing a stronger '.$top['label'].' rate against a midweek nudge.',
+                    'cta' => 'Review your rates',
+                    'href' => route('owner.rates'),
+                ];
+            }
+        }
+
+        // 2. The booking window — the real median lead time.
+        if ($leadTime['has_data'] && $leadTime['median_days'] !== null) {
+            $days = $leadTime['median_days'];
+            $out[] = [
+                'icon' => '🗓️',
+                'title' => 'Guests book about '.$days.' '.($days === 1 ? 'day' : 'days').' ahead',
+                'body' => 'Your median booking window is '.$days.' '.($days === 1 ? 'day' : 'days').'. Rate changes land best before that window opens for the dates you want to move.',
+                'cta' => 'Open your calendar',
+                'href' => route('owner.calendar'),
+            ];
+        }
+
+        // 3. Forward revenue already secured — a real on-the-books figure.
+        if ($onTheBooks > 0) {
+            $out[] = [
+                'icon' => '💶',
+                'title' => $this->money($onTheBooks, $currency).' already on the books',
+                'body' => 'Room revenue booked for the next 90 days. Open dates in that window are where a rate tweak still has time to work.',
+                'cta' => 'Review your rates',
+                'href' => route('owner.rates'),
+            ];
+        }
+
+        return $out;
     }
 
     /**

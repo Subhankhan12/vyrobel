@@ -4628,3 +4628,42 @@ audited, non-overlap enforced) with NO fabricated series (#39); the Documents ar
 the real annual-tax summary, `CAP_EXPORTS`-gated (#42), reconciling (#17). Suite **1081/8394** green; PHPStan L5 (0);
 Pint clean; `migrate` clean; browser-proven (a real drag block + release; real statement + annual-tax PDF downloads).
 **Invariants #1–60.**
+
+## 2026-07-28 — Owner-page exact-match: **Reports + Insights** (invariant #61)
+
+The owner-page exact-match track continued to the analytics pages (`docs/OWNER-REPORTS-INSIGHTS-AUDIT.md` = the PHASE 1
+per-element audit). Both wireframes decoded; both rebuilt EXACTLY on the REAL Batch-B owner analytics (`PerformanceMetrics`,
+`BookingCadence`, `OwnerLedgerAttribution`) — reused, not duplicated (anti-drift). Two judgment calls were founder-approved
+(VAT honest-defer; proposals honest link).
+
+**GATE 1 — Reports (`/owner/reports`, `949ea93`).** Rebuilt from a minimal page to the full wireframe: 3 KPIs (Net earned /
+Avg occupancy / Nights sold), a **Net-earnings-by-month** chart, **Performance by unit** (ADR/RevPAR/nights/occupancy/net/
+share), **Booking sources** by the real `reservations.source` enum, the **Gross-to-net** breakdown, a payout summary, real
+Documents, a dark hero, and CAP_EXPORTS-gated exports.
+- **⚠️ COMMISSION RATE (D-RI-1):** the wireframe hardcodes "Commission · 15%"; the page now renders the **REAL agreement
+  rate** (18% in the demo) read from `ManagementAgreement.commission_pct` — never a hardcoded value. The gross-to-net
+  reconciles to the cent (#17): gross + commission + fees + adjustments == net, bucketed from the real owner ledger.
+- **⚠️ TAX & VAT (D-RI-2, founder-approved HONEST-DEFER):** VAT is NOT modelled (no VAT rates/bases — only a stored VAT
+  number). The Tax & VAT summary renders as an honest deferred card (points at the real annual tax summary + Tax Center),
+  with NO fabricated Output/Input/Net VAT figure and NO "Mark filed" (#39 — a VAT figure a tax authority could rely on is
+  never faked). "Email to me" = an honest "Soon" (no report Mailable). Notifications = the real self-scoped feed.
+
+**GATE 2 — Insights (`/owner/insights`).** Rebuilt to the 2-column wireframe: **Occupancy by month** (this-year achieved +
+on-the-books forward), **Booking pace** (real forward months), **Rate performance** per unit (occupancy + achieved ADR),
+the lead-time distribution + day-of-week occupancy (+ a real derived caption), and **"Worth a look"** = REAL DERIVED
+observations (hottest weekday, median booking window, forward revenue — each a real computed fact, decisions-stay-yours).
+- **⚠️ vs LAST YEAR (D-RI-3, HONEST-OMIT):** the design's "vs last year" series + deltas are omitted (no prior-year data →
+  never a fabricated comparison, #39).
+- **⚠️ RATE PROPOSALS (D-RI-4, founder-approved HONEST):** the "N rate proposals waiting / Review proposals / proposed −8%"
+  callout asserts a proposal entity that does not exist (refused in the My Units audit) → replaced with an honest "Turn
+  insight into rate → Open your Rates" link to the real owner Rates page, with NO fabricated proposal count/workflow.
+
+**Decisions (founder-approved).** **D-RI-1** — render the REAL agreement commission rate, never the wireframe's 15%.
+**D-RI-2** — VAT is honest-deferred (no fabricated figure/filing). **D-RI-3** — vs-LY comparisons omitted where no prior-year
+data. **D-RI-4** — the proposals callout is an honest Rates link, not a fake proposal workflow. (Email-a-report deferred.)
+
+**Invariant #61 — Owner Reports + Insights exact-match:** both pages match their wireframes on the REAL owner analytics
+(owner-scoped #28; gross-to-net reconciles to the cent #17 at the REAL commission rate; exports CAP_EXPORTS-gated #42);
+the stateful/unbacked bits are HONEST (VAT deferred, vs-LY omitted, proposals → a real Rates link) with NOTHING fabricated
+(#39). `OwnerAnalyticsTest` 4→7 (gross-to-net at a distinctive real 22% rate; honest VAT; export gating; real insights +
+honest rates link). Suite **1084/8446** green; PHPStan L5 (0); Pint clean; both browser-verified. **Invariants #1–61.**
