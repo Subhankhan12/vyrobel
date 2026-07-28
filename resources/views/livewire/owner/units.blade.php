@@ -47,8 +47,9 @@
         </div>
     </div>
 
-    {{-- Action center — REAL OwnerAttention items (fix-it links). Collapsible (client-side); the real
-         snooze/dismiss/mark-read land in GATE 2. No fabricated approvals (#39). --}}
+    {{-- Action center — REAL OwnerAttention items (fix-it links) with REAL snooze/dismiss/undo
+         (owner_attention_states, CAP_ACTIONS controller POSTs #20, shared with the Overview feed).
+         Collapsible (client-side). No fabricated approvals (#39). --}}
     @php
         $attnCount = count($attention);
         $acSub = $attnCount > 0
@@ -97,7 +98,34 @@
                                     </div>
                                     <div class="vy-mu-item-sub">{{ $item['body'] }}</div>
                                 </div>
-                                <a class="vy-mu-item-link" href="{{ $item['cta']['route'] }}">{{ $item['cta']['label'] }}</a>
+                                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                                    <a class="vy-mu-item-link" href="{{ $item['cta']['route'] }}">{{ $item['cta']['label'] }}</a>
+                                    {{-- Snooze / dismiss — REAL (owner_attention_states), CAP_ACTIONS-gated (a view-only sub-user sees the feed but can't act) --}}
+                                    @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                        <div style="position:relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+                                            <button type="button" @click="open = !open" aria-label="Snooze or dismiss" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--vy-hairline);background:rgba(255,255,255,.6);color:var(--vy-muted);cursor:pointer;display:grid;place-items:center">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+                                            </button>
+                                            <div x-show="open" x-cloak @click.outside="open = false" style="position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:#fff;border:1px solid var(--vy-glass-border);border-radius:var(--vy-r-md);box-shadow:0 14px 40px rgba(150,90,50,.2);padding:6px;min-width:170px">
+                                                <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);padding:6px 9px 4px">Snooze</div>
+                                                @foreach (['tomorrow' => 'Until tomorrow', 'week' => 'For a week'] as $dur => $lbl)
+                                                    <form method="POST" action="{{ route('owner.attention.snooze') }}" style="margin:0">
+                                                        @csrf
+                                                        <input type="hidden" name="attention_key" value="{{ $item['key'] }}">
+                                                        <input type="hidden" name="duration" value="{{ $dur }}">
+                                                        <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 9px;border:none;background:none;border-radius:8px;font:inherit;font-size:12.5px;color:var(--vy-ink);cursor:pointer" onmouseover="this.style.background='rgba(217,102,46,.08)'" onmouseout="this.style.background='none'">{{ $lbl }}</button>
+                                                    </form>
+                                                @endforeach
+                                                <div style="border-top:1px solid var(--vy-hairline);margin:5px 4px"></div>
+                                                <form method="POST" action="{{ route('owner.attention.dismiss') }}" style="margin:0">
+                                                    @csrf
+                                                    <input type="hidden" name="attention_key" value="{{ $item['key'] }}">
+                                                    <button type="submit" style="display:block;width:100%;text-align:left;padding:8px 9px;border:none;background:none;border-radius:8px;font:inherit;font-size:12.5px;color:#8A2F27;cursor:pointer" onmouseover="this.style.background='rgba(190,32,28,.07)'" onmouseout="this.style.background='none'">Dismiss</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endownercan
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -106,6 +134,27 @@
                         <span class="vy-mu-ac-empty-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
                         <div style="font-family:var(--vy-display);font-weight:600;font-size:15px">You're all caught up</div>
                         <div class="vy-line-sub">No payout holds, missing details or renewals need you right now.</div>
+                    </div>
+                @endif
+
+                {{-- Snoozed panel — REAL snoozed items + Undo (restore). Rendered regardless of the active count,
+                     so an all-snoozed feed still shows what's snoozed. --}}
+                @if (count($snoozedAttention) > 0)
+                    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--vy-hairline)">
+                        <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:8px">Snoozed</div>
+                        @foreach ($snoozedAttention as $sn)
+                            <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                                <span style="flex:1;min-width:0;font-size:12.5px;color:var(--vy-muted)">{{ $sn['title'] }} <span style="color:var(--vy-faint)">· back {{ $sn['until'] }}</span></span>
+                                @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                    <form method="POST" action="{{ route('owner.attention.restore') }}" style="margin:0">
+                                        @csrf
+                                        <input type="hidden" name="attention_key" value="{{ $sn['key'] }}">
+                                        <button type="submit" style="border:none;background:none;color:var(--vy-accent);font:inherit;font-size:12px;font-weight:600;cursor:pointer">Undo</button>
+                                    </form>
+                                @endownercan
+                            </div>
+                        @endforeach
                     </div>
                 @endif
             </div>

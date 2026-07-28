@@ -65,6 +65,7 @@ use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerAccountController;
+use App\Http\Controllers\Owner\OwnerAttentionController;
 use App\Http\Controllers\Owner\OwnerBalanceExportController;
 use App\Http\Controllers\Owner\OwnerBlockController;
 use App\Http\Controllers\Owner\OwnerBookingsExportController;
@@ -773,6 +774,13 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::post('/calendar/block', [OwnerBlockController::class, 'store'])->middleware($capActions)->name('calendar.block');
     Route::delete('/calendar/blocks/{block}', [OwnerBlockController::class, 'destroy'])->middleware($capActions)->name('calendar.release');
     Route::delete('/calendar/series/{series}', [OwnerBlockController::class, 'destroySeries'])->middleware($capActions)->name('calendar.release-series');
+    // Completeness sweep · Wave A · GATE 1 — the shared attention-state writes (snooze/dismiss/read/undo). The
+    // posted key is resolved back to a REAL signal (OwnerAttention::signalFor), owner-scoped; CAP_ACTIONS (a
+    // view-only sub-user SEES the feed but cannot act on it); every write audited.
+    Route::post('/attention/snooze', [OwnerAttentionController::class, 'snooze'])->middleware($capActions)->name('attention.snooze');
+    Route::post('/attention/dismiss', [OwnerAttentionController::class, 'dismiss'])->middleware($capActions)->name('attention.dismiss');
+    Route::post('/attention/read', [OwnerAttentionController::class, 'read'])->middleware($capActions)->name('attention.read');
+    Route::post('/attention/restore', [OwnerAttentionController::class, 'restore'])->middleware($capActions)->name('attention.restore');
     // Phase 2 · Sub-gate 3 — Owner Rates (the highest-risk gate: an owner-scoped MONEY write). The owner sets
     // nightly rates DIRECTLY on their OWN room types via the certified RateAndRestrictionService. The write is
     // guarded in OwnerRateService: a room type is editable ONLY if the owner owns it EXCLUSIVELY (every unit is

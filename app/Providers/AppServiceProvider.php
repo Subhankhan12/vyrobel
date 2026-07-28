@@ -37,6 +37,7 @@ use App\Models\Note;
 use App\Models\Organization;
 use App\Models\OverbookingConflict;
 use App\Models\Owner;
+use App\Models\OwnerAttentionState;
 use App\Models\OwnerExpense;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
@@ -238,6 +239,7 @@ class AppServiceProvider extends ServiceProvider
             'management_agreement' => ManagementAgreement::class,
             'owner_ledger' => OwnerLedgerEntry::class,
             'owner_expense' => OwnerExpense::class,
+            'owner_attention_state' => OwnerAttentionState::class,
             'owner_statement' => OwnerStatement::class,
             'owner_statement_line' => OwnerStatementLine::class,
             'payout' => Payout::class,

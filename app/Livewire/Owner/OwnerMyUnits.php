@@ -80,6 +80,7 @@ class OwnerMyUnits extends Component
             'earned' => $this->earnedThisMonth($month, $currency),
             'best' => $this->bestPerformer($units, $perUnit, $bestUnitId, $month, $currency),
             'attention' => $this->attentionItems(),
+            'snoozedAttention' => OwnerAttention::snoozed(app(OwnerContext::class)),
             'currencySymbol' => $this->currencySymbol($currency),
             'month' => [
                 'label' => $month->format('F Y'),
