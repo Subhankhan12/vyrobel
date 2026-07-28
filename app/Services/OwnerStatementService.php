@@ -34,11 +34,12 @@ class OwnerStatementService
         'management_fee' => 'management_fee',
         'expense' => 'expenses',
         'ota_cost' => 'ota_cost',
+        'payment_fee' => 'payment_fee',
         'adjustment' => 'adjustments',
     ];
 
     /** Presentation order for the component lines (net is appended last). */
-    private const LINE_ORDER = ['gross', 'other_revenue', 'commission', 'management_fee', 'expenses', 'ota_cost', 'adjustments'];
+    private const LINE_ORDER = ['gross', 'other_revenue', 'commission', 'management_fee', 'expenses', 'ota_cost', 'payment_fee', 'adjustments'];
 
     private const LINE_TYPE = [
         'gross' => 'gross',
@@ -47,6 +48,7 @@ class OwnerStatementService
         'management_fee' => 'management_fee',
         'expenses' => 'expense',
         'ota_cost' => 'ota_cost',
+        'payment_fee' => 'payment_fee',
         'adjustments' => 'prior_period_adjustment',
     ];
 
@@ -57,6 +59,7 @@ class OwnerStatementService
         'management_fee' => 'Management fee',
         'expenses' => 'Deductible expenses',
         'ota_cost' => 'OTA commission',
+        'payment_fee' => 'Payment & ops fees',
         'adjustments' => 'Prior-period adjustments',
     ];
 
@@ -181,6 +184,7 @@ class OwnerStatementService
         $statement->management_fee_minor = $buckets['management_fee'];
         $statement->expenses_minor = $buckets['expenses'];
         $statement->ota_cost_minor = $buckets['ota_cost'];
+        $statement->payment_fee_minor = $buckets['payment_fee'];
         $statement->adjustments_minor = $buckets['adjustments'];
         $statement->net_source_minor = $netSource;
         $statement->fx_rate = $sameCurrency ? null : (float) $fxRate;
@@ -198,7 +202,7 @@ class OwnerStatementService
      */
     private function buckets(Collection $claimed, string $periodStart): array
     {
-        $buckets = ['gross' => 0, 'other_revenue' => 0, 'commission' => 0, 'management_fee' => 0, 'expenses' => 0, 'ota_cost' => 0, 'adjustments' => 0];
+        $buckets = ['gross' => 0, 'other_revenue' => 0, 'commission' => 0, 'management_fee' => 0, 'expenses' => 0, 'ota_cost' => 0, 'payment_fee' => 0, 'adjustments' => 0];
 
         foreach ($claimed as $line) {
             $isPrior = $line->prior_period_adjustment === true

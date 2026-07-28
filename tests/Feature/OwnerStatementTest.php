@@ -56,6 +56,56 @@ it('projects the period ledger into gross → commission → expenses → net, r
     expect($otaLine)->not->toBeNull()->and($otaLine->unverified)->toBeTrue();
 });
 
+// ── 1b. WAVE C · GATE 4 — a real payment/ops fee projects into its bucket, reconciling to the cent ─
+it('projects a real payment & ops fee into the "Payment & ops fees" bucket, reconciling to the cent', function () {
+    $s = seedScenario(1);
+    $owner = ownUnit($s['units'][0]); // 15% commission
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    postRoom($reservation, 20000);
+    app(OwnerAttributionService::class)->attributeReservation($reservation); // gross 20000, commission −3000
+
+    // A REAL payment-processing fee posted to the owner ledger — what a live Stripe / channel fee writer
+    // emits. It is an ordinary signed ledger line, so it flows through the projection like every bucket.
+    OwnerLedgerEntry::create([
+        'organization_id' => $owner->organization_id,
+        'owner_id' => $owner->id,
+        'unit_id' => $s['units'][0]->id,
+        'entry_type' => 'payment_fee',
+        'direction' => 'debit',
+        'amount_minor' => 450,
+        'currency' => 'EUR',
+        'description' => 'Card processing fee',
+        'service_date' => '2026-09-10',
+    ]);
+
+    $statement = app(OwnerStatementService::class)->generateDraft($owner->id, '2026-09-01', '2026-09-30');
+
+    expect($statement->payment_fee_minor)->toBe(-450)
+        ->and($statement->net_source_minor)->toBe(16550)                  // 20000 − 3000 − 450
+        ->and($statement->net_source_minor)->toBe(ledgerNet($owner->id))  // == ledger net, to the cent
+        ->and(componentLinesSum($statement))->toBe(16550);                // component lines sum to net
+
+    // The real "Payment & ops fees" line surfaces with the fee.
+    $feeLine = $statement->lines()->where('line_type', 'payment_fee')->first();
+    expect($feeLine)->not->toBeNull()
+        ->and($feeLine->description)->toBe('Payment & ops fees')
+        ->and($feeLine->amount_minor)->toBe(-450);
+});
+
+// ── 1c. WAVE C · GATE 4 — no fee → the line is OMITTED (never a fabricated €0.00) ──────────────────
+it('omits the "Payment & ops fees" line when there is no real fee', function () {
+    $s = seedScenario(1);
+    $owner = ownUnit($s['units'][0]);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    postRoom($reservation, 20000);
+    app(OwnerAttributionService::class)->attributeReservation($reservation);
+
+    $statement = app(OwnerStatementService::class)->generateDraft($owner->id, '2026-09-01', '2026-09-30');
+
+    expect($statement->payment_fee_minor)->toBe(0)
+        ->and($statement->lines()->where('line_type', 'payment_fee')->exists())->toBeFalse();
+});
+
 // ── 2. Draft is idempotent (identical numbers); finalizing locks + stamps ───────────────────────
 it('regenerates a draft idempotently and locks + stamps on finalize', function () {
     $s = seedScenario(1);

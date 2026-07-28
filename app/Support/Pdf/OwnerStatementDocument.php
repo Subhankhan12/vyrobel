@@ -21,7 +21,8 @@ use App\Support\Payouts\Iban;
  * to the `net` line; the Performance-by-unit table comes from the ONE shared {@see OwnerStatementBreakdown} (which
  * the page uses too), so Σ(per-unit gross) == the statement `gross_minor` — the two surfaces cannot drift. Occupancy
  * / nights / ADR are presentation (never summed into money). NO guest data appears (a statement carries none, #28);
- * no "payment & ops fees" line is invented (no engine bucket, #39). The masked IBAN is shown ONLY when the exporter
+ * the "Payment & ops fees" line is a REAL engine bucket (Wave C · GATE 4) that flows through these same lines — €0
+ * and omitted until a live-payment writer posts a fee, never fabricated (#39). The masked IBAN is shown ONLY when the exporter
  * is a payout-capable role (CAP_PAYOUT) — an accountant export never leaks the account number; the estimated payout
  * DATE stays refused (no field).
  */

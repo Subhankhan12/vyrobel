@@ -38,8 +38,10 @@ use Livewire\Component;
  * when a payout is matched), each export-gated (CAP_EXPORTS) and reconciling to these figures.
  * DEFERRED (visually stubbed, honestly labelled — no fake data): by-unit split, occupancy chart, and
  * the history table's CSV export (no CSV builder yet).
- * There is NO invented "payment / card-processing fee" line — the breakdown only ever shows the real
- * components the engine computes.
+ * The "Payment & ops fees" line is a REAL reconciling bucket (Wave C · GATE 4) — the signed sum of the
+ * period's `payment_fee` ledger lines (card-processing / platform-ops fees), included in net by
+ * construction. It is NEVER fabricated: until a live-payment writer posts such a line the bucket is a
+ * genuine €0 and the line is omitted (the same omit-empty rule as every other component).
  */
 #[Layout('components.layouts.owner')]
 class OwnerStatementView extends Component
