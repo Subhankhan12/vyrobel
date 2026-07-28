@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationPreferenceController;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\User;
 use App\Services\NotificationPreferences;
+use App\Support\Notifications\QuietHours;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -31,6 +32,12 @@ class OwnerNotificationPreferences extends Component
             'viewer' => $this->viewer(),
             'groups' => app(NotificationPreferences::class)->groupedFor($user, 'owner'),
             'channels' => NotificationPreferences::CHANNELS,
+            // Quiet hours (Wave B · GATE 6) — the real held-EMAIL window, for the form to prefill.
+            'quiet' => [
+                'on' => QuietHours::configured($user),
+                'start' => (string) ($user->quiet_hours_start ?? '22:00'),
+                'end' => (string) ($user->quiet_hours_end ?? '07:00'),
+            ],
         ]);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Services\NotificationPreferences;
+use App\Support\Notifications\QuietHours;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -31,6 +32,17 @@ class NotificationPreferenceController extends Controller
         }
 
         $prefs->save($request->user(), $audience, $enabled);
+
+        // QUIET HOURS (Wave B · GATE 6) — the per-user held-EMAIL window, saved from the same form. Both endpoints
+        // must be valid "HH:MM" and the toggle on; anything else clears it (off). Self-only ($request->user()).
+        $user = $request->user();
+        $start = (string) $request->input('quiet_start', '');
+        $end = (string) $request->input('quiet_end', '');
+        $on = $request->boolean('quiet_hours_enabled') && QuietHours::valid($start) && QuietHours::valid($end);
+        $user?->forceFill([
+            'quiet_hours_start' => $on ? $start : null,
+            'quiet_hours_end' => $on ? $end : null,
+        ])->save();
 
         $route = $audience === 'operator' ? 'app.notification-preferences' : 'owner.notification-preferences';
 

@@ -34,7 +34,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $avatar_path relative path on the `public` disk of the user's own avatar
  * @property string|null $pending_email a login-email change parked here until the signed verify link is opened
  */
-#[Fillable(['name', 'email', 'password', 'locale', 'avatar_path', 'status', 'two_factor_enabled', 'require_login_approval', 'last_login_at'])]
+#[Fillable(['name', 'email', 'password', 'locale', 'avatar_path', 'status', 'two_factor_enabled', 'require_login_approval', 'quiet_hours_start', 'quiet_hours_end', 'last_login_at'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {

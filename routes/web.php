@@ -167,6 +167,7 @@ use App\Livewire\Owner\OwnerStatementView;
 use App\Livewire\Owner\OwnerTaxCenter;
 use App\Livewire\Owner\OwnerTeam;
 use App\Livewire\Owner\OwnerUnitDetail;
+use App\Livewire\Owner\OwnerWelcome;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
 use App\Livewire\UnitsList;
@@ -723,6 +724,8 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     $capPayout = EnsureOwnerCapability::class.':'.OwnerTeamRole::CAP_PAYOUT;       // co-owner only
 
     Route::get('/', OwnerDashboard::class)->name('dashboard');
+    // Welcome / onboarding (Wave B · GATE 6) — the honest thin flow (real units + rate + payout hand-off, NO IBAN).
+    Route::get('/welcome', OwnerWelcome::class)->name('welcome');
     // WAVE 3 — the OWNER INBOX (owner ↔ the operator's staff). OWNER-scoped by OwnerScope: MessageThread
     // gained `owner_id` + BelongsToOwner, so a cross-owner thread AND every operator↔guest thread
     // (owner_id NULL) 404 here — the two-inbox boundary falls out of the scope, not out of a predicate.

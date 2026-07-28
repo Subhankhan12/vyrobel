@@ -154,6 +154,12 @@ class NotificationPreferences
         return array_filter(self::CATALOG, fn (array $entry): bool => $entry['audience'] === $audience);
     }
 
+    /** Whether an event is ALWAYS-ON (security) — such events ignore quiet hours + can't be toggled off. */
+    public static function isAlwaysOn(string $eventKey): bool
+    {
+        return (bool) (self::CATALOG[$eventKey]['always_on'] ?? false);
+    }
+
     /**
      * The audience's events grouped by their UI group, each with its current on/off state — drives the
      * preferences screen.

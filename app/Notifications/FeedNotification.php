@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Models\User;
 use App\Services\NotificationPreferences;
+use App\Support\Notifications\QuietHours;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -55,7 +57,14 @@ abstract class FeedNotification extends Notification
             $channels[] = 'database';
         }
         if ($prefs->allows($notifiable, $this->eventKey(), 'email')) {
-            $channels[] = 'mail';
+            // QUIET HOURS (Wave B · GATE 6) — hold routine EMAIL during the user's quiet window; the in-app feed
+            // row above is unaffected (nothing is lost). Always-on (security) events ignore quiet hours entirely.
+            $held = $notifiable instanceof User
+                && ! NotificationPreferences::isAlwaysOn($this->eventKey())
+                && QuietHours::active($notifiable);
+            if (! $held) {
+                $channels[] = 'mail';
+            }
         }
 
         return $channels;
