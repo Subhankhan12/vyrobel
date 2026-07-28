@@ -45,11 +45,11 @@ it('renders Profile & account for a sub-user with a working My-profile (no 404)'
 
     $res->assertOk();
     assertNoRawBlade($res);
-    $res->assertSee('My profile');
+    $res->assertSee('Profile');   // the identity section (the #62 hub renamed "My profile" → "Profile")
     $res->assertSee((string) $c['accountant']->email);
-    // The owner-party form is NOT shown to a sub-user — only the honest note.
+    // The owner-party business/tax form is NOT shown to a sub-user (#42); payout is the account owner's.
     $res->assertDontSee('Save business details');
-    $res->assertSee('managed by the account owner');
+    $res->assertSee('Managed by the account owner');
 });
 
 it('lets a sub-user save their OWN name + language — the gap fix (previously a 404)', function () {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
-use App\Models\ManagementAgreement;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
@@ -15,6 +14,7 @@ use App\Support\Analytics\MetricSet;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Notifications\NotificationFeed;
+use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
 use Carbon\CarbonImmutable;
@@ -280,21 +280,9 @@ class OwnerReports extends Component
      */
     private function commissionLabel(): string
     {
-        $context = app(OwnerContext::class);
+        $percent = OwnerCommissionRate::percent(app(OwnerContext::class));
 
-        if (! $context->active() || $context->ownerIds() === []) {
-            return 'Commission';
-        }
-
-        $rates = ManagementAgreement::query()
-            ->whereIn('owner_id', $context->ownerIds())
-            ->effectiveOn(now()->toDateString())
-            ->pluck('commission_pct')
-            ->map(fn ($p): string => rtrim(rtrim(number_format((float) $p, 2), '0'), '.'))
-            ->unique()
-            ->values();
-
-        return $rates->count() === 1 ? 'Commission · '.$rates->first().'%' : 'Commission';
+        return $percent === null ? 'Commission' : 'Commission · '.$percent.'%';
     }
 
     /**

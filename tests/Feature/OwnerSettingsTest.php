@@ -1,6 +1,10 @@
 <?php
 
+use App\Models\ManagementAgreement;
+use App\Models\Membership;
 use App\Models\Owner;
+use App\Models\PayoutMethod;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -67,24 +71,56 @@ it('shows the owner their own details and not another owner’s', function () {
     assertNoRawBlade($response);
 });
 
-// ── 4. HONESTY — the old "Soon" stubs are now REAL links (owner account area · Gate 1) ───────────
-it('shows real links (no fake "Soon") for payout, notifications and team, plus the real two-factor panel', function () {
+// ── 4. THE HUB renders its sections wired to the REAL backends (exact-match · #62 · Gate 1) ───────
+it('renders the settings hub sections wired to the real backends', function () {
     $s = seedScenario(1);
     $a = inboxOwner($s, 'Amara Okafor', 0);
 
     $this->actingAs($a['user'])->get('/owner/settings')
         ->assertOk()
-        ->assertSee('My profile')
-        // The "More" row now LINKS to the real pages (these subsystems shipped) — no fake "Soon".
-        ->assertSee('Payout account & bank details')
-        ->assertSee('Notification preferences')
-        ->assertSee('Team & access')
-        ->assertDontSee('not wired yet')
-        // Password + two-factor now live on the dedicated Security page — linked, not on this page.
-        ->assertSee('Security')
+        ->assertSee('Profile')                          // the identity section
+        ->assertSee('Business & tax details')
+        ->assertSee('Save business details')            // primary-owner business form (owner.settings.update)
+        // the inline tax form posts to the ONE owner.tax.save path (anti-drift — same store as Tax Center)
+        ->assertSee('Save tax details')
+        ->assertSee(route('owner.tax.save'), false)
+        ->assertSee('Billing &amp; invoices', false)
+        ->assertSee('Management fee')
+        ->assertSee('no card needed')                   // honest — no fabricated owner card
+        ->assertSee('Profile completeness')
+        ->assertSee('Security &amp; privacy', false)
         ->assertSee(route('owner.security'), false)
-        // The primary owner sees the editable owner-party (business) form.
-        ->assertSee('Save business details');
+        ->assertDontSee('not wired yet');
+});
+
+// ── 6. THE REAL management-fee rate (not the wireframe's 15%) + masked payout IBAN + no fake card ──
+it('shows the REAL management-fee rate, a masked payout IBAN, and no fabricated card', function () {
+    $s = seedScenario(1);
+
+    // A DISTINCTIVE 20% agreement → proves the billing rate is READ from the agreement, not hardcoded 15%.
+    $user = User::factory()->create(['status' => 'active']);
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+    $owner = Owner::factory()->create(['user_id' => $user->id, 'name' => 'Rate Owner', 'payout_currency' => 'EUR', 'tax_id' => 'PT123456789']);
+    $s['units'][0]->update(['owner_id' => $owner->id]);
+    ManagementAgreement::factory()->create(['owner_id' => $owner->id, 'commission_pct' => 20.00, 'effective_from' => '2026-01-01']);
+
+    PayoutMethod::create([
+        'organization_id' => $s['org']->id, 'owner_id' => $owner->id,
+        'label' => 'Revolut Business', 'account_holder' => 'Rate Owner',
+        'iban' => 'LT121000011101001000', 'iban_last4' => '1000', 'iban_country' => 'LT',
+        'currency' => 'EUR', 'is_default' => true,
+    ]);
+
+    $res = $this->actingAs($user)->get('/owner/settings')->assertOk()
+        ->assertSee('20% of booking revenue')        // the REAL agreement rate, read live
+        ->assertDontSee('15% of booking revenue')
+        ->assertSee('no card needed')                // honest — the owner has NO Vyrobel card/subscription
+        ->assertDontSee('4242')                      // no fabricated card-on-file
+        // the masked payout IBAN (the primary owner has CAP_PAYOUT), never the full number (#28)
+        ->assertSee('···· 1000')
+        ->assertDontSee('LT121000011101001000');
+
+    assertNoRawBlade($res);
 });
 
 // ── 5. #42 — the owner-party write is PRIMARY-OWNER-ONLY; a non-primary-owner is refused ─────────
