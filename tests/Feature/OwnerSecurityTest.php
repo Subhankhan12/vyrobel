@@ -37,7 +37,7 @@ it('renders Security for the owner and a sub-user; deactivate only for the prima
         $res = $this->actingAs($c[$k])->get('/owner/security');
         $res->assertOk();
         assertNoRawBlade($res);
-        $res->assertSee('Account protection');
+        $res->assertSee('Account security');
         $res->assertSee('Change password');
         $res->assertSee('Two-factor authentication');
         $res->assertSee('Active sessions');
@@ -47,14 +47,18 @@ it('renders Security for the owner and a sub-user; deactivate only for the prima
     $this->actingAs($c['accountant'])->get('/owner/security')->assertDontSee('Deactivate account');
 });
 
-// ── 2. The protection checklist reflects TRUE state (no fake score) ──────────────────────────────────
-it('derives the protection checklist from real state (2FA off by default)', function () {
+// ── 2. The security SCORE is REAL — DERIVED from true protection state, never a fabricated number ─────
+it('shows a real derived security score from true state (2FA off by default)', function () {
     $c = securityCast();
 
+    // A fresh owner: only the password protection is on (2FA off) → score 40/100 = "Basic", 1 of 3 on.
     $this->actingAs($c['owner'])->get('/owner/security')
-        ->assertSee('Add a second layer beyond your password.') // 2FA is off → the honest nudge
-        ->assertDontSee('/100')                                  // never a fabricated score
-        ->assertDontSee('Suspicious login');
+        ->assertSee('Account security')
+        ->assertSee('1/3')                                       // Protections on — DERIVED (password only)
+        ->assertSee('Basic')                                     // score 40 (<60) → Basic tier, from real state
+        ->assertSee('Boost your score')
+        ->assertSee('Turn on two-factor to strengthen your account.')   // the honest nudge (2FA off)
+        ->assertDontSee('Suspicious login');                     // no fabricated security events
 });
 
 // ── 3. Active sessions — "sign out others" is password-gated + really deletes the rows ───────────────

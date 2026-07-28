@@ -20,12 +20,13 @@ use Livewire\Component;
  * Per-USER (auth-resolved), so accountant/view-only SUB-USERS manage their OWN password/2FA/sessions here.
  * The ONE primary-owner-only action is DEACTIVATE (route-gated by EnsurePrimaryOwner, #42).
  *
- * HONESTY: the "account protection" list is DERIVED FROM TRUE STATE (a password is set; whether 2FA is
- * confirmed-active; whether unused recovery codes exist) — NEVER a fabricated 0–100 score. Active sessions
- * are the REAL rows in the `sessions` table (database driver). "Last sign-in" is the real `last_login_at`.
- * Everything the wireframe draws over no backend — passkeys, login-approval / trusted-locations, connected
- * apps, full success/failed login history, login-alerts, session-timeout / password-expiry — is an honest
- * "Soon" card, never a fake toggle.
+ * HONESTY: the "account protection" list + the security SCORE are DERIVED FROM TRUE STATE (a password is set;
+ * whether 2FA is confirmed-active; whether unused recovery codes exist) — the score is a deterministic function
+ * of those real protections (password 40 + 2FA 40 + recovery codes 20 = /100), NOT a fabricated number, and the
+ * "Boost your score" items are the REAL remaining protections, each linking to its REAL control (never a fake
+ * point economy). Active sessions are the REAL rows in the `sessions` table. "Last sign-in" is the real
+ * `last_login_at`. Everything the wireframe draws over no backend — passkeys, login-approval / trusted-locations,
+ * connected apps, full sign-in history, login-alerts, session-timeout — is an honest "Soon" card, never a fake toggle.
  */
 #[Layout('components.layouts.owner')]
 class OwnerSecurity extends Component
@@ -41,17 +42,41 @@ class OwnerSecurity extends Component
         $codes = $user->two_factor_recovery_codes ?? [];
         $unusedCodes = collect($codes)->filter(fn ($c) => ($c['used_at'] ?? null) === null)->count();
 
+        // The 3 REAL protections + their weights → a deterministic derived score (not a fabricated number, #39).
+        $protections = [
+            ['label' => 'Password set', 'done' => true, 'pts' => 40, 'hint' => 'Change it below any time.', 'boost_desc' => 'A strong password is your baseline.'],
+            ['label' => 'Two-factor authentication', 'done' => $twoFactorOn, 'pts' => 40, 'hint' => $twoFactorOn ? 'On — a code is required at sign-in.' : 'Add a second layer beyond your password.', 'boost_desc' => 'Require a code from your phone at sign-in.'],
+            ['label' => 'Recovery codes saved', 'done' => $twoFactorOn && $unusedCodes > 0, 'pts' => 20, 'hint' => $twoFactorOn ? $unusedCodes.' unused code(s) — keep them somewhere safe.' : 'Available once two-factor is on.', 'boost_desc' => 'Back-up codes to get in if you lose your device.'],
+        ];
+        $score = array_sum(array_map(fn (array $p): int => $p['done'] ? $p['pts'] : 0, $protections));
+        $onCount = count(array_filter($protections, fn (array $p): bool => $p['done']));
+        // The remaining REAL protections to turn on (each links to its real control below) — never invented.
+        $boost = array_values(array_map(
+            fn (array $p): array => ['label' => $p['label'], 'desc' => $p['boost_desc'], 'pts' => '+'.$p['pts']],
+            array_filter($protections, fn (array $p): bool => ! $p['done']),
+        ));
+        $sessions = $this->activeSessions((string) $user->getKey());
+
         return view('livewire.owner.owner-security', [
             'viewer' => $this->viewer(),
             'twoFactor' => $this->twoFactorPanel('owner.security.2fa'),
             'isPrimaryOwner' => app(OwnerContext::class)->isPrimaryOwner(),
-            'checklist' => [
-                ['label' => 'Password set', 'done' => true, 'hint' => 'Change it below any time.'],
-                ['label' => 'Two-factor authentication', 'done' => $twoFactorOn, 'hint' => $twoFactorOn ? 'On — a code is required at sign-in.' : 'Add a second layer beyond your password.'],
-                ['label' => 'Recovery codes saved', 'done' => $twoFactorOn && $unusedCodes > 0, 'hint' => $twoFactorOn ? $unusedCodes.' unused code(s) — keep them somewhere safe.' : 'Available once two-factor is on.'],
+            'checklist' => array_map(fn (array $p): array => ['label' => $p['label'], 'done' => $p['done'], 'hint' => $p['hint']], $protections),
+            'score' => [
+                'num' => $score,
+                'tier' => $score >= 100 ? 'Strong' : ($score >= 60 ? 'Good' : 'Basic'),
+                'caption' => $score >= 100
+                    ? 'All protections are on — your account is fully secured.'
+                    : ($twoFactorOn ? 'Save your recovery codes to reach full protection.' : 'Turn on two-factor to strengthen your account.'),
+                'on' => $onCount,
+                'total' => count($protections),
+                'to_full' => 100 - $score,
+                'sessions' => count($sessions),
+                'two_factor' => $twoFactorOn,
+                'boost' => $boost,
             ],
             'lastLogin' => $user->last_login_at instanceof Carbon ? $user->last_login_at : null,
-            'sessions' => $this->activeSessions((string) $user->getKey()),
+            'sessions' => $sessions,
         ]);
     }
 

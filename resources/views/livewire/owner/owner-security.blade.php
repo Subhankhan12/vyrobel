@@ -24,25 +24,57 @@
             </div>
         @endif
 
-        {{-- ══ Account protection — a REAL checklist derived from true state (NOT a fabricated score) ═══ --}}
-        <div class="vy-card vy-fade" style="margin-bottom:16px;">
-            <h2 style="{{ $h2 }}">Account protection</h2>
-            <p style="{{ $sub }}">A quick, honest read of what’s protecting your account — no scores, just what’s on.</p>
-            <div style="display:flex;flex-direction:column;gap:12px;">
-                @foreach ($checklist as $item)
-                    <div style="display:flex;align-items:flex-start;gap:12px;">
-                        @if ($item['done'])
-                            <span style="flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:rgba(34,120,60,.12);color:#227a3c;font-size:13px;">✓</span>
-                        @else
-                            <span style="flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:rgba(224,146,30,.14);color:var(--vy-amber);font-size:13px;">!</span>
-                        @endif
-                        <div>
-                            <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink);">{{ $item['label'] }}</div>
-                            <div style="font-size:12px;color:var(--vy-muted);">{{ $item['hint'] }}</div>
-                        </div>
+        {{-- ══ Account security score — a REAL score DERIVED from true protections (password 40 + 2FA 40 +
+             recovery 20 = /100), never a fabricated number. The 4 stats + Boost are all real (#39). ═══════ --}}
+        @php $circ = 326.726; $ringOffset = $circ * (1 - min(100, max(0, $score['num'])) / 100); @endphp
+        <div class="vy-card vy-fade" style="margin-bottom:16px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:18px;flex:1;min-width:280px;">
+                <div style="position:relative;width:112px;height:112px;flex-shrink:0;">
+                    <svg width="112" height="112" viewBox="0 0 120 120">
+                        <defs><linearGradient id="vysecGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F0A57A"/><stop offset="1" stop-color="#C2410C"/></linearGradient></defs>
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(120,70,40,.12)" stroke-width="10"/>
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="url(#vysecGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="{{ $circ }}" stroke-dashoffset="{{ $ringOffset }}" transform="rotate(-90 60 60)"/>
+                    </svg>
+                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                        <span style="font-family:var(--vy-display);font-weight:600;font-size:29px;line-height:1;color:var(--vy-ink);font-variant-numeric:tabular-nums;">{{ $score['num'] }}</span>
+                        <span style="font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--vy-faint);margin-top:3px;">of 100</span>
                     </div>
-                @endforeach
+                </div>
+                <div style="min-width:0;">
+                    <div style="display:inline-flex;align-items:center;gap:7px;padding:3px 11px 3px 9px;border-radius:30px;background:rgba(217,102,46,.12);margin-bottom:8px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--vy-accent);box-shadow:0 0 0 3px rgba(232,112,58,.18);"></span><span style="font-size:11px;font-weight:600;color:#B4400F;">{{ $score['tier'] }}</span></div>
+                    <div style="font-family:var(--vy-display);font-weight:600;font-size:20px;letter-spacing:-.02em;line-height:1.15;">Account security</div>
+                    <div style="font-size:12.5px;color:var(--vy-muted);margin-top:3px;max-width:340px;line-height:1.45;">{{ $score['caption'] }}</div>
+                </div>
             </div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;flex:1.4;min-width:320px;">
+                @php $stat = 'display:flex;flex-direction:column;align-items:flex-start;padding:13px 14px;border-radius:15px;background:rgba(255,255,255,.55);border:1px solid var(--vy-hairline);box-sizing:border-box;'; $statv = 'font-family:var(--vy-display);font-weight:600;font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;'; $statl = 'font-size:11px;color:var(--vy-muted);margin-top:4px;'; @endphp
+                <div style="{{ $stat }}"><span style="{{ $statv }}">{{ $score['on'] }}/{{ $score['total'] }}</span><span style="{{ $statl }}">Protections on</span></div>
+                <div style="{{ $stat }}"><span style="{{ $statv }}">{{ $score['to_full'] }}</span><span style="{{ $statl }}">Points to full</span></div>
+                <div style="{{ $stat }}"><span style="{{ $statv }}">{{ $score['sessions'] }}</span><span style="{{ $statl }}">Active sessions</span></div>
+                <div style="{{ $stat }}"><span style="{{ $statv }}">{{ $score['two_factor'] ? 'On' : 'Off' }}</span><span style="{{ $statl }}">Two-factor</span></div>
+            </div>
+        </div>
+
+        {{-- ══ Boost your score — the REAL remaining protections; "Enable" jumps to the real control ══════ --}}
+        <div class="vy-card vy-fade" style="margin-bottom:16px;">
+            <h2 style="{{ $h2 }}">Boost your score</h2>
+            <p style="{{ $sub }}">{{ $score['on'] }} of {{ $score['total'] }} protections on.</p>
+            @if (count($score['boost']) > 0)
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    @foreach ($score['boost'] as $b)
+                        <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:14px;background:rgba(255,255,255,.5);border:1px solid var(--vy-glass-border);">
+                            <span style="flex:1;min-width:0;"><span style="display:block;font-size:13px;font-weight:500;color:var(--vy-ink);">{{ $b['label'] }}</span><span style="display:block;font-size:11.5px;color:var(--vy-muted);margin-top:1px;">{{ $b['desc'] }}</span></span>
+                            <span style="font-size:11.5px;font-weight:600;color:#B4400F;flex-shrink:0;">{{ $b['pts'] }}</span>
+                            <a href="#two-factor" class="vy-btn" style="{{ $btn }}padding:7px 14px;font-size:12px;text-decoration:none;flex-shrink:0;">Enable</a>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div style="padding:13px 16px;border-radius:14px;background:rgba(217,102,46,.1);border:1px solid rgba(232,112,58,.28);display:flex;align-items:center;gap:11px;">
+                    <span style="width:30px;height:30px;border-radius:50%;background:var(--vy-grad);color:#fff;display:grid;place-items:center;flex-shrink:0;">✓</span>
+                    <span style="font-size:13px;font-weight:500;color:#B4400F;">All protections are on — your account is fully secured.</span>
+                </div>
+            @endif
         </div>
 
         {{-- ══ Change password — self-only, current-password-verified ══════════════════════════════════ --}}
@@ -75,7 +107,9 @@
         </div>
 
         {{-- ══ Two-factor — REAL TOTP (shared panel; posts to owner.security.2fa.*) ═════════════════════ --}}
-        @include('livewire.partials.two-factor-panel')
+        <div id="two-factor">
+            @include('livewire.partials.two-factor-panel')
+        </div>
 
         {{-- ══ Active sessions — the REAL sessions table; "sign out others" re-auths with the password ══ --}}
         <div class="vy-card vy-fade" style="margin:16px 0;">
