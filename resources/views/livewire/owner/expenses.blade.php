@@ -39,16 +39,47 @@
                     <div class="vy-kpi-sub">{{ $metrics['spent_count'] }} {{ \Illuminate\Support\Str::plural('expense', $metrics['spent_count']) }} in {{ $metrics['year'] }}{{ $multiCurrency ? ' · '.$currency.' only' : '' }}</div>
                 </div>
                 <div class="vy-kpi">
-                    <div class="vy-kpi-label">Pending review</div>
-                    <div class="vy-kpi-val">{{ $metrics['pending_count'] }}</div>
-                    <div class="vy-kpi-sub">Deductibility being resolved</div>
+                    <div class="vy-kpi-label">Awaiting your approval</div>
+                    <div class="vy-kpi-val">{{ $metrics['awaiting_display'] }}</div>
+                    <div class="vy-kpi-sub">{{ $metrics['awaiting_count'] }} to approve · not charged until you do</div>
                 </div>
                 <div class="vy-kpi">
                     <div class="vy-kpi-label">Charged to payouts</div>
                     <div class="vy-kpi-val">{{ $metrics['charged_display'] }}</div>
-                    <div class="vy-kpi-sub">Deducted year-to-date</div>
+                    <div class="vy-kpi-sub">Approved &amp; deducted year-to-date</div>
                 </div>
             </div>
+
+            {{-- Needs your approval (Wave C · GATE 2) — REAL pending-approval expenses. Approve → charged to your
+                 payout (reduces net); Query → held out of net + opens the owner↔operator relay. CAP_ACTIONS. --}}
+            @if ($approvalRows)
+                <section class="vy-card vy-fade" style="animation-delay:.03s;border-left:3px solid var(--vy-amber)">
+                    <h2 class="vy-card-title">Needs your approval</h2>
+                    <div class="vy-line-sub" style="margin-bottom:8px">These deductible costs are not charged to your payout until you approve them. Approve to deduct, or query your team.</div>
+                    @foreach ($approvalRows as $a)
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--vy-hairline);flex-wrap:wrap">
+                            <div style="min-width:0">
+                                <div style="font-weight:600;font-size:13px">{{ $a['description'] }} <span class="vy-mono" style="color:var(--vy-accent)">{{ $a['amount_display'] }}</span></div>
+                                <div class="vy-row-sub">{{ $a['date_display'] }} · {{ $a['category_label'] }} · {{ $a['unit']['name'] }}@if ($a['vendor']) · {{ $a['vendor'] }}@endif</div>
+                            </div>
+                            @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
+                                <div style="display:flex;gap:8px;flex-shrink:0" x-data="{ q: false }">
+                                    <form method="POST" action="{{ route('owner.expenses.approve', $a['id']) }}" style="margin:0">
+                                        @csrf
+                                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:6px 14px;font-size:12px">Approve</button>
+                                    </form>
+                                    <button type="button" class="vy-btn vy-btn--ghost" style="padding:6px 14px;font-size:12px" @click="q = !q">Query</button>
+                                    <form method="POST" action="{{ route('owner.expenses.query', $a['id']) }}" x-show="q" x-cloak style="margin:0;display:flex;gap:6px;align-items:center">
+                                        @csrf
+                                        <input type="text" name="note" placeholder="What's your question?" maxlength="1000" class="vy-input" style="font-size:12px;max-width:220px">
+                                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12px">Send</button>
+                                    </form>
+                                </div>
+                            @endownercan
+                        </div>
+                    @endforeach
+                </section>
+            @endif
 
             {{-- Pending review — REAL null-deductible rows, read-only. The wireframe's "needs approval" slot,
                  honestly: deductibility is resolved from the agreement, NOT by the owner — so NO action here. --}}

@@ -23,6 +23,14 @@ class OwnerExpense extends Model
 {
     use BelongsToOrganization, BelongsToOwner, HasFactory, HasUlids, SoftDeletes;
 
+    // Approval state (Wave C · GATE 2). A DEDUCTIBLE expense is created `pending` and only reduces the owner's net
+    // once APPROVED (the ledger line posts then); QUERIED holds it out of the net. Non-deductible → `approved`.
+    public const APPROVAL_PENDING = 'pending';
+
+    public const APPROVAL_APPROVED = 'approved';
+
+    public const APPROVAL_QUERIED = 'queried';
+
     protected $fillable = [
         'organization_id',
         'owner_id',
@@ -34,6 +42,10 @@ class OwnerExpense extends Model
         'currency',
         'expense_date',
         'deductible',
+        'approval_state',
+        'decided_at',
+        'decided_by',
+        'queried_note',
         'source_type',
         'source_id',
         'attributed_ledger_id',
@@ -52,8 +64,15 @@ class OwnerExpense extends Model
             'amount' => MoneyCast::class.':amount_minor,currency',
             'expense_date' => 'date',
             'deductible' => 'boolean',
+            'decided_at' => 'datetime',
             'voided_at' => 'datetime',
         ];
+    }
+
+    /** Awaiting the owner's decision — a deductible expense that has NOT yet been charged to the ledger. */
+    public function isPendingApproval(): bool
+    {
+        return $this->approval_state === self::APPROVAL_PENDING;
     }
 
     /**

@@ -47,12 +47,14 @@ use Livewire\Component;
  *   • REAL     — Export (CSV) is a real owner-scoped, CAP_EXPORTS-gated download. "Need something
  *                fixed?" is a REAL relay into the owner↔operator message channel (owner.messages.start)
  *                — the same hardened path as My Units, not a fake form.
- *   • REFUSED  — the design's owner APPROVE / QUERY workflow ("Awaiting your approval", "Needs your
- *                approval", "Approve", "Query", "charged to next payout") is NOT rendered — there is no
- *                owner-approval state machine, no approval columns, no query channel; `deductible` is
- *                resolved from the management agreement by the service, not by the owner. Drawing that
- *                UI would assert a state that does not exist. The honest analog is the REAL "Pending
- *                review" count + a read-only list (no action) + the "How expenses work" explainer.
+ *   • REAL (Wave C · GATE 2) — the owner APPROVE / QUERY workflow is now a REAL state machine (owner_expenses
+ *                .approval_state pending→approved|queried). A DEDUCTIBLE expense is created PENDING and does NOT
+ *                reduce net until APPROVED (the ledger line posts then); QUERY holds it out of net + opens the
+ *                relay. The "Needs your approval" section + the "Awaiting your approval" KPI + the attention items
+ *                are real; "Charged to payouts" counts only APPROVED. Reconciles #17 in both states (net = Σ
+ *                ledger, and a pending expense has no ledger line). `deductible` (agreement-governed) is a
+ *                SEPARATE axis: only a deductible expense enters the approval flow; the honest "Pending review"
+ *                (deductibility unresolved) list stays as-is below it.
  */
 #[Layout('components.layouts.owner')]
 class OwnerExpenses extends Component
@@ -89,6 +91,11 @@ class OwnerExpenses extends Component
                 $rows,
                 fn (array $r): bool => $r['deductible']['key'] === 'pending' && $r['voided'] === false
             )),
+            // Wave C · GATE 2 — the REAL "Needs your approval" rows: pending-approval, non-voided (Approve/Query).
+            'approvalRows' => array_values(array_filter(
+                $rows,
+                fn (array $r): bool => $r['approval'] === 'pending' && $r['voided'] === false
+            )),
             'metrics' => $this->metrics($expenses, $currency),
             'byCurrency' => $this->byCurrency($expenses, $currencies),
             'multiCurrency' => count($currencies) > 1,
@@ -124,6 +131,9 @@ class OwnerExpenses extends Component
                 'source_label' => $this->sourceLabel($this->sourceType($e)),
                 'amount_display' => $this->money((int) $e->amount_minor, (string) $e->currency),
                 'deductible' => $this->deductibleMeta($this->deductibleState($e)),
+                // Wave C · GATE 2 — the approval state (pending / approved / queried). A pending deductible expense
+                // is NOT charged until the owner approves it.
+                'approval' => (string) $e->approval_state,
                 'flag_note' => $this->flagNote($e->flag === null ? null : (string) $e->flag),
                 'voided' => $e->voided_at !== null,
                 // Stamped at finalize only — a null here is honestly "not yet on a statement".
@@ -202,12 +212,21 @@ class OwnerExpenses extends Component
         $thisYear = $live->filter(
             fn (OwnerExpense $e): bool => (string) $e->currency === $currency && (int) Carbon::parse($e->expense_date)->year === $year
         );
-        $charged = $thisYear->filter(fn (OwnerExpense $e): bool => $this->deductibleState($e) === true);
+        // ⚠️ CHARGED = only APPROVED deductible (Wave C · GATE 2) — an approved deductible expense is the ONLY one
+        // that posts a ledger line + reduces net. A pending/queried one is NOT charged yet (#17 reconciles both).
+        $charged = $thisYear->filter(fn (OwnerExpense $e): bool => $this->deductibleState($e) === true && $e->approval_state === OwnerExpense::APPROVAL_APPROVED);
+
+        // AWAITING approval — live pending-approval expenses (deductible, not yet charged). The money total is
+        // display-currency only (#17); the count is currency-free.
+        $awaiting = $live->filter(fn (OwnerExpense $e): bool => $e->approval_state === OwnerExpense::APPROVAL_PENDING);
+        $awaitingThisCurrency = $awaiting->filter(fn (OwnerExpense $e): bool => (string) $e->currency === $currency);
 
         return [
             'spent_display' => $this->money($this->sumMinor($thisYear), $currency),
             'spent_count' => $thisYear->count(),
             'charged_display' => $this->money($this->sumMinor($charged), $currency),
+            'awaiting_count' => $awaiting->count(),
+            'awaiting_display' => $this->money($this->sumMinor($awaitingThisCurrency), $currency),
             'pending_count' => $live->filter(fn (OwnerExpense $e): bool => $this->deductibleState($e) === null)->count(),
             'voided_count' => $expenses->count() - $live->count(),
             'year' => $year,

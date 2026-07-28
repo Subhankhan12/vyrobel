@@ -867,17 +867,23 @@ class DemoSeeder extends Seeder
         $a1 = $aptUnits[0]->id;
         $a2 = $aptUnits[1]->id;
 
-        // unit · category · description · vendor · minor · date. Cleaning/maintenance = deductible; 'other' = the
-        // operator's cost (non-deductible, no ledger); the 2025 row predates the agreement → NULL (pending). The
-        // vendor is the REAL supplier a cost was paid to (owner_expenses.vendor, GATE 3) — flagged demo data.
+        // unit · category · description · vendor · minor · date · approve. Cleaning/maintenance = deductible;
+        // 'other' = the operator's cost (non-deductible, no ledger); the 2025 row predates the agreement → NULL
+        // (pending REVIEW — deductibility). The vendor is the REAL supplier (owner_expenses.vendor, GATE 3).
+        //
+        // Wave C · GATE 2: `approve = true` charges the cost immediately (approved), keeping the demo Balance
+        // stable; the LAST row is left PENDING APPROVAL (approve = false, deductible) so the demo shows a real
+        // "Needs your approval" decision + the matching attention item. Flagged demo data.
         $rows = [
-            [$a1, 'cleaning', 'Deep clean after a long stay', 'SparkleCo Cleaning', 7000, '2026-09-16'],
-            [$a1, 'other', 'Welcome supplies restock', 'Lisbon Supplies Ltd', 9500, '2026-08-14'],
-            [$a2, 'other', 'Garden & pool upkeep', 'GreenLeaf Grounds', 28000, '2026-09-02'],
-            [$a2, 'cleaning', 'Deep clean (pre-agreement period)', null, 12000, '2025-12-20'],
+            [$a1, 'cleaning', 'Deep clean after a long stay', 'SparkleCo Cleaning', 7000, '2026-09-16', true],
+            [$a1, 'other', 'Welcome supplies restock', 'Lisbon Supplies Ltd', 9500, '2026-08-14', true],
+            [$a2, 'other', 'Garden & pool upkeep', 'GreenLeaf Grounds', 28000, '2026-09-02', true],
+            [$a2, 'cleaning', 'Deep clean (pre-agreement period)', null, 12000, '2025-12-20', true],
+            // A REAL pending-approval expense (deductible, not yet charged) — the owner decides Approve/Query.
+            [$a1, 'maintenance', 'Dishwasher repair', 'FixIt Appliances', 8400, '2026-10-05', false],
         ];
 
-        foreach ($rows as [$unitId, $category, $description, $vendor, $minor, $date]) {
+        foreach ($rows as [$unitId, $category, $description, $vendor, $minor, $date, $approve]) {
             $expenses->recordExpense([
                 'unit_id' => $unitId,
                 'category' => $category,
@@ -886,6 +892,7 @@ class DemoSeeder extends Seeder
                 'amount_minor' => $minor,
                 'currency' => 'EUR',
                 'expense_date' => $date,
+                'approve_now' => $approve,
             ]);
         }
     }

@@ -34,7 +34,7 @@ class OwnerExpenseService
      * governing agreement, and deductibility; posts a ledger deduction line when deductible; flags
      * when it cannot be attributed.
      *
-     * @param  array{unit_id?: string|null, owner_id?: string|null, category: string, description: string, vendor?: string|null, amount_minor: int, currency: string, expense_date: string, source?: Model|null, created_by?: string|null}  $data
+     * @param  array{unit_id?: string|null, owner_id?: string|null, category: string, description: string, vendor?: string|null, amount_minor: int, currency: string, expense_date: string, source?: Model|null, created_by?: string|null, approve_now?: bool}  $data
      */
     public function recordExpense(array $data): OwnerExpense
     {
@@ -62,6 +62,14 @@ class OwnerExpenseService
         /** @var Model|null $source */
         $source = $data['source'] ?? null;
 
+        // APPROVAL STATE (Wave C · GATE 2) — a DEDUCTIBLE expense awaits the owner's approval before it is charged
+        // to the ledger (so it does NOT reduce net until approved, #17). A non-deductible / unattributable expense
+        // never posts a ledger line, so there is nothing to gate → `approved`. (A caller may force-approve via
+        // 'approve_now' — the demo seed uses it to reproduce historically-charged costs.)
+        $approvalState = ($deductible === true && ($data['approve_now'] ?? false) !== true)
+            ? OwnerExpense::APPROVAL_PENDING
+            : OwnerExpense::APPROVAL_APPROVED;
+
         $expense = OwnerExpense::create([
             'owner_id' => $ownerId,
             'unit_id' => $unit?->id,
@@ -72,6 +80,7 @@ class OwnerExpenseService
             'currency' => $data['currency'],
             'expense_date' => $data['expense_date'],
             'deductible' => $deductible,
+            'approval_state' => $approvalState,
             'source_type' => $source?->getMorphClass(),
             'source_id' => $source?->getKey(),
             'flag' => $flag,
@@ -81,13 +90,59 @@ class OwnerExpenseService
         $this->domainEvents->record('owner_expense.recorded', $expense, [
             'deductible' => $deductible,
             'flag' => $flag,
+            'approval_state' => $approvalState,
         ]);
 
-        if ($deductible === true) {
+        // Post the ledger deduction ONLY when it's deductible AND already approved (force-approved). A pending
+        // deductible expense posts NOTHING here — the owner's approval (below) is what charges it.
+        if ($deductible === true && $approvalState === OwnerExpense::APPROVAL_APPROVED) {
             $this->postExpense($expense);
         }
 
         return $expense->refresh();
+    }
+
+    /**
+     * OWNER APPROVES a pending deductible expense (Wave C · GATE 2) → it is NOW charged to the owner ledger (the
+     * deduction posts, reducing net — #17). Guards `pending` (a decided expense can't be re-decided). Idempotent:
+     * the ledger post is `firstOrCreate` on `expense:{id}`.
+     */
+    public function approve(OwnerExpense $expense, ?string $deciderId = null): void
+    {
+        if (! $expense->isPendingApproval()) {
+            throw new \RuntimeException('This expense has already been decided.');
+        }
+
+        $expense->forceFill([
+            'approval_state' => OwnerExpense::APPROVAL_APPROVED,
+            'decided_at' => now(),
+            'decided_by' => $deciderId,
+        ])->save();
+
+        // NOW post the deduction — this is the moment it reduces the owner's net.
+        $this->postExpense($expense);
+
+        $this->domainEvents->record('owner_expense.approved', $expense, []);
+    }
+
+    /**
+     * OWNER QUERIES a pending expense (Wave C · GATE 2) → it is held OUT of the net (no ledger line) pending a
+     * conversation with the operator (the caller opens the real owner↔operator relay). Guards `pending`.
+     */
+    public function query(OwnerExpense $expense, ?string $note = null, ?string $deciderId = null): void
+    {
+        if (! $expense->isPendingApproval()) {
+            throw new \RuntimeException('This expense has already been decided.');
+        }
+
+        $expense->forceFill([
+            'approval_state' => OwnerExpense::APPROVAL_QUERIED,
+            'decided_at' => now(),
+            'decided_by' => $deciderId,
+            'queried_note' => $note,
+        ])->save();
+
+        $this->domainEvents->record('owner_expense.queried', $expense, []);
     }
 
     /**

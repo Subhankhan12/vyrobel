@@ -80,6 +80,7 @@ function archiveScenario(): array
     app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'cleaning', 'description' => 'Clean',
         'amount_minor' => 4321, 'currency' => 'EUR', 'expense_date' => '2026-09-05',
+        'approve_now' => true,
     ]);
     $draft = $svc->generateDraft($a['owner']->id, '2026-11-01', '2026-11-30');
 

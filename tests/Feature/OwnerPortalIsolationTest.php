@@ -42,6 +42,7 @@ function linkedOwner(array $s, int $unitIndex, int $roomMinor): array
     app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $unit->id, 'category' => 'cleaning', 'description' => 'Clean',
         'amount_minor' => 3000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',
+        'approve_now' => true,
     ]);
 
     $stmtSvc = app(OwnerStatementService::class);

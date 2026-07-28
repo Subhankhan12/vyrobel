@@ -16,12 +16,12 @@ uses(RefreshDatabase::class);
 // backend. Locks its PRESENTATION guarantees: live expense data renders; the `deductible` TRI-STATE
 // (true / false / NULL) renders as three honest states and NULL is never coerced to false; a voided
 // expense is shown but excluded from the totals; a maintenance-sourced expense shows its real source; the
-// REAL unit column + filter render (vendor now a REAL column too); the KPIs ("Spent this year" / "Pending
-// review" / "Charged to payouts") are Σ of the real rows ("Spent" year-scoped); the DERIVED category total
+// REAL unit column + filter render (vendor now a REAL column too); the KPIs ("Spent this year" / "Awaiting your
+// approval" / "Charged to payouts") are Σ of the real rows ("Spent" year-scoped); the DERIVED category total
 // reconciles TO THE CENT; the CSV export is owner-scoped + CAP_EXPORTS-gated; "Need something fixed?" is a
-// REAL relay into the owner↔operator channel (never an expense write); the design's owner approve/query
-// workflow (NO backend) is never rendered; owner isolation holds (another owner's expenses invisible, a
-// non-linked user fails closed).
+// REAL relay into the owner↔operator channel (never an expense write); the owner approve/query workflow is now
+// REAL (Wave C · GATE 2, tested in ExpenseApprovalTest); owner isolation holds (another owner's expenses
+// invisible, a non-linked user fails closed).
 
 /**
  * A linked owner on a unit, with the agreement that GOVERNS deductibility:
@@ -59,6 +59,7 @@ function recordExpenseVia(string $unitId, string $category, string $description,
         'amount_minor' => $minor,
         'currency' => 'EUR',
         'expense_date' => $date,
+        'approve_now' => true,
     ]);
 }
 
@@ -132,11 +133,12 @@ it('renders real expenses with the deductible tri-state, badges voided rows out 
         // the exact-match KPIs — "Spent this year" + "Charged to payouts" (no "Total expenses")
         ->assertSee('Spent this year')
         ->assertSee('Charged to payouts')
-        // ⚠️ the design's owner APPROVE / QUERY workflow has NO backend (no approval state machine, no
-        // approval columns, no query channel) — REFUSED, never rendered. "Awaiting your approval" too.
-        ->assertDontSee('Approve')
-        ->assertDontSee('Needs your approval')
-        ->assertDontSee('Awaiting your approval')
+        // The owner APPROVE/QUERY workflow is now REAL (Wave C · GATE 2). In THIS fixture every expense was
+        // recorded approve_now → there are no PENDING-approval rows → the "Needs your approval" SECTION is absent
+        // (nothing to decide), though the KPI label always renders.
+        ->assertSee('Awaiting your approval')       // the real KPI label
+        ->assertDontSee('Needs your approval')      // …but no pending section here (all approved)
+        // still never the design's fabricated copy
         ->assertDontSee('Query sent')
         ->assertDontSee('awaiting reply')
         ->assertDontSee('charged to next payout');
@@ -222,6 +224,7 @@ it('renders the real expense vendor when captured and an honest dash when not, a
     app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $unitId, 'category' => 'cleaning', 'description' => 'Turnover clean',
         'vendor' => 'SparkleCo Cleaning', 'amount_minor' => 5000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',
+        'approve_now' => true,
     ]);
     recordExpenseVia($unitId, 'other', 'Welcome basket', 3300, '2026-09-05');   // no vendor
 

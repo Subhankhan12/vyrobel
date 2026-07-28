@@ -76,6 +76,7 @@ use App\Http\Controllers\Owner\OwnerBookingsExportController;
 use App\Http\Controllers\Owner\OwnerBookingsTargetController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerConnectController;
+use App\Http\Controllers\Owner\OwnerExpenseApprovalController;
 use App\Http\Controllers\Owner\OwnerExpensesExportController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerPayoutMethodController;
@@ -829,6 +830,11 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // owner-scoped (RateProposal is BelongsToOwner → cross-owner 404); every decision audited.
     Route::post('/rate-proposals/{proposal}/approve', [OwnerRateProposalController::class, 'approve'])->middleware($capActions)->name('rate-proposals.approve');
     Route::post('/rate-proposals/{proposal}/decline', [OwnerRateProposalController::class, 'decline'])->middleware($capActions)->name('rate-proposals.decline');
+
+    // EXPENSE APPROVAL (Wave C · GATE 2 · ⚠️ deduction model) — the owner APPROVES a pending expense (charged to
+    // the payout/ledger, reducing net) or QUERIES it (held out of net + opens the relay). CAP_ACTIONS; owner-scoped.
+    Route::post('/expenses/{expense}/approve', [OwnerExpenseApprovalController::class, 'approve'])->middleware($capActions)->name('expenses.approve');
+    Route::post('/expenses/{expense}/query', [OwnerExpenseApprovalController::class, 'query'])->middleware($capActions)->name('expenses.query');
     // Phase 2 · Sub-gate 3 — Owner Rates (the highest-risk gate: an owner-scoped MONEY write). The owner sets
     // nightly rates DIRECTLY on their OWN room types via the certified RateAndRestrictionService. The write is
     // guarded in OwnerRateService: a room type is editable ONLY if the owner owns it EXCLUSIVELY (every unit is

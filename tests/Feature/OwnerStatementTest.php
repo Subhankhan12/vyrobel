@@ -36,6 +36,7 @@ it('projects the period ledger into gross → commission → expenses → net, r
     app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'cleaning', 'description' => 'Clean',
         'amount_minor' => 5000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',
+        'approve_now' => true,
     ]);
 
     $statement = app(OwnerStatementService::class)->generateDraft($owner->id, '2026-09-01', '2026-09-30');

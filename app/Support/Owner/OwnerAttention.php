@@ -7,6 +7,7 @@ namespace App\Support\Owner;
 use App\Models\ManagementAgreement;
 use App\Models\Owner;
 use App\Models\OwnerAttentionState;
+use App\Models\OwnerExpense;
 use App\Models\OwnerStatement;
 use App\Models\PayoutMethod;
 use App\Models\RateProposal;
@@ -195,6 +196,27 @@ final class OwnerAttention
                     'actions' => [
                         ['label' => 'Approve', 'route' => route('owner.rate-proposals.approve', $proposal->id), 'primary' => true],
                         ['label' => 'Decline', 'route' => route('owner.rate-proposals.decline', $proposal->id), 'primary' => false],
+                    ],
+                ];
+            }
+
+            // EXPENSE APPROVALS (Wave C · GATE 2) — a pending expense is a REAL decision: Approve (it's charged to
+            // the payout) or Query (held out of net + opens the relay). The amount is a truthful figure (#17).
+            foreach (OwnerExpense::query()
+                ->where('owner_id', $ownerId)
+                ->where('approval_state', OwnerExpense::APPROVAL_PENDING)
+                ->whereNull('voided_at')
+                ->orderBy('expense_date')
+                ->get() as $expense) {
+                $amount = MoneyFormatter::display((int) $expense->amount_minor, (string) $expense->currency);
+                $items[] = [
+                    'owner_id' => $ownerId, 'key' => 'expense_approval:'.$expense->id, 'tone' => 'warn',
+                    'title' => 'Expense awaiting your approval',
+                    'body' => $expense->description.' — '.$amount.' (charged to your payout once approved)',
+                    'cta' => ['label' => 'Open Expenses', 'route' => route('owner.expenses')],
+                    'actions' => [
+                        ['label' => 'Approve', 'route' => route('owner.expenses.approve', $expense->id), 'primary' => true],
+                        ['label' => 'Query', 'route' => route('owner.expenses.query', $expense->id), 'primary' => false],
                     ],
                 ];
             }

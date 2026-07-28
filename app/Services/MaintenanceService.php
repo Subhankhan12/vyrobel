@@ -200,6 +200,10 @@ class MaintenanceService
             'expense_date' => ($ticket->resolved_at ?? CarbonImmutable::now())->toDateString(),
             'source' => $ticket,
             'created_by' => Auth::id(),
+            // Wave C · GATE 2 — an operator-RESOLVED maintenance ticket carries a real, actioned cost (the work is
+            // done), so it charges DIRECTLY (approved) rather than entering the owner-approval queue. The owner-
+            // approval gate governs general owner-facing expenses (recordExpense's default is pending).
+            'approve_now' => true,
         ]);
     }
 

@@ -23,6 +23,7 @@ it('posts a deductible cleaning expense (from a housekeeping task) to the right 
     $expense = app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'cleaning', 'description' => 'Turnover clean',
         'amount_minor' => 5000, 'currency' => 'EUR', 'expense_date' => '2026-09-03', 'source' => $task,
+        'approve_now' => true,
     ]);
 
     $line = lineFor($owner->id, 'expense');
@@ -45,6 +46,7 @@ it('attributes a maintenance expense to the correct owner and unit via its sourc
     $expense = app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'maintenance', 'description' => 'Boiler repair',
         'amount_minor' => 12000, 'currency' => 'EUR', 'expense_date' => '2026-09-05', 'source' => $s['units'][0],
+        'approve_now' => true,
     ]);
 
     $line = lineFor($owner->id, 'expense');
@@ -64,6 +66,7 @@ it('records a non-deductible expense without any owner-ledger line', function ()
     $expense = app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'maintenance', 'description' => 'Owner-excluded repair',
         'amount_minor' => 9000, 'currency' => 'EUR', 'expense_date' => '2026-09-05',
+        'approve_now' => true,
     ]);
 
     expect($expense->deductible)->toBeFalse()      // explicit operator cost, not omission
@@ -81,6 +84,7 @@ it('voids an expense by reversing its ledger line, append-only and idempotent', 
     $expense = $svc->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'cleaning', 'description' => 'Clean',
         'amount_minor' => 5000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',
+        'approve_now' => true,
     ]);
     $original = lineFor($owner->id, 'expense');
 
@@ -107,6 +111,7 @@ it('records and flags (never attributes) an expense on an owner-less unit', func
     $expense = app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'cleaning', 'description' => 'Clean',
         'amount_minor' => 5000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',
+        'approve_now' => true,
     ]);
 
     expect($expense->flag)->toBe('no_owner')
@@ -124,6 +129,7 @@ it('records and flags an expense when no governing agreement covers its date', f
     $expense = app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'cleaning', 'description' => 'Clean',
         'amount_minor' => 5000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',
+        'approve_now' => true,
     ]);
 
     expect($expense->flag)->toBe('no_agreement')
@@ -141,6 +147,7 @@ it('posts an expense idempotently', function () {
     $expense = $svc->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'cleaning', 'description' => 'Clean',
         'amount_minor' => 5000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',
+        'approve_now' => true,
     ]);
 
     $countAfterRecord = OwnerLedgerEntry::where('owner_id', $owner->id)->count();
