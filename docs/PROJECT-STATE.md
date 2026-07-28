@@ -6,6 +6,104 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐ **CURRENT STATE — 2026-07-28 (v9 · TOTAL-RECALL CONSOLIDATION, verified against the repo: `git log`, `composer.json`,
+> `php artisan test`, `route:list`). This block SUPERSEDES every block below it (all kept as historical detail).
+> Fresh-session entry point: `docs/RESUME.md` → this block → `docs/DECISIONS.md`. HEAD `d2091b4` on `main` (== origin,
+> tree clean).**
+>
+> **WHAT VYROBEL IS.** A multi-tenant, AI-native **hotel/apartment-management SaaS** — PMS + channel manager + booking
+> engine + operator/owner/guest apps + a public storefront + self-signup + a platform Super-Admin panel — for operators
+> running a MIX of hotels, aparthotels, serviced apartments, villas and multi-unit rentals.
+>
+> **STACK (locked — `docs/DECISIONS.md`).** **Laravel 13** (`^13.8`) on **PHP ^8.3** (composer floor; local runs 8.4) ·
+> **Livewire 4** + Blade + **Tailwind 4** (Vite) · **MySQL 8 / InnoDB** (genuine MySQL, not MariaDB) · queues on
+> **Redis + Horizon** · **ULID** PKs on tenant tables · **spatie/laravel-permission teams-mode** RBAC (team = org) ·
+> **shared-DB multi-tenancy** via `organization_id` + the `BelongsToOrganization`/`OrganizationScope` global scope
+> (`runAsSuperAdmin` = the ONE sanctioned bypass) · integer minor-unit money (`*_minor` + the `Money` cast) · Pest 4 /
+> PHPStan **L5** / Pint. Browser verification = the **Playwright MCP** driving `php artisan serve` (real, but NOT a
+> re-runnable suite).
+>
+> **VERIFIED THIS PASS (2026-07-28).** Suite **1086 tests / 8497 assertions GREEN** (`php artisan test`, exit 0) ·
+> PHPStan **L5 = 0** · Pint **clean** · `migrate:fresh --seed` clean · **Invariants #1–62** (the numbered ledger below
+> now reaches #62 — reconciled with the prose this pass). Requires a genuine MySQL 8 `vyrobel_test` DB + Redis.
+>
+> **BUILD STATUS — everything buildable is COMPLETE.**
+> - **Phases 0–7 DONE** (the whole tenant product): 0 fix/harden · 1 operator app · 2 owner portal · 3 notifications +
+>   transactional emails · 4a/b/c guest portal · 5 reviews · 6a multi-property + 6b analytics · 7a tenant provisioning /
+>   self-signup · 7b subscription billing (free-trial) · 7c owner sub-tenancy + owner team · 7d staff rostering.
+> - **Phase 8 (account-gated integrations): the two obtainable ones are LIT UP, test-mode / code-complete** — PRODUCTION
+>   EMAIL (Postmark; `MailSafetyGuard`; `docs/EMAIL-PRODUCTION.md`) + **LIVE STRIPE across all three seams** (subscription
+>   billing · guest card charge · owner payout rail) webhook-driven, signature-verified, multi-layer idempotent, no raw
+>   PAN (SAQ A), `StripeSafetyGuard` refuses a live key outside `production`; `docs/STRIPE-PRODUCTION.md`. **The live
+>   cutovers are the founder's** (email DNS+token; the Stripe live-key flip) — never done in the build.
+> - **Design-fidelity pass (all 4 gates) + polish sweep + gap-sweep Batches A/B/C + add-charge idempotency — DONE.**
+> - **THE SUPER ADMIN PANEL (`/admin`) — COMPLETE + AUDITED (invariants #49–53):** Gate 0 (isolated realm, seeded-not-
+>   signup, noindex) → Build 1 (Dashboard · Customers [suspend/reactivate/assign-plan] · Plans [DB-backed CRUD +
+>   additive feature-gating]) → Build 2 (Security & Activity Log · Integrations [encrypted channel credentials]) → deep
+>   Playwright audit (`docs/SUPERADMIN-AUDIT.md`, 0 critical / 0 P1) → Profile & Account page → completeness review
+>   (`docs/SUPERADMIN-COMPLETENESS.md`). Launch-ready.
+>
+> **THE OWNER-PAGE EXACT-MATCH TRACK — matching each LIVE owner page to its decoded wireframe (exact design + REAL
+> owner-scoped backends, HONEST where account-gated). DONE + PUSHED, `#54`–`#62`:**
+> Overview (**#54**) · My Units + Add Unit (**#55**) · Bookings page + Booking-Summary PDF (**#56**) · Statement page +
+> Statement PDF (**#57**) · **Payouts + Payout Method (#58)** · Balance + Expenses (**#59**) · Block Calendar + Documents
+> (**#60**) · Reports + Insights (**#61**) · **Settings hub (#62)**. Each was a PHASE-1 read-only audit
+> (`docs/OWNER-*-AUDIT.md`) → a gated build (GATE 1 design + real backends · GATE 2 doc twin / second section-group) →
+> per-gate commit → suite + PHPStan + Pint + browser-verify. **REMAINING owner pages (built + at-parity but NOT yet
+> exact-matched — the next candidates, NOT launch-blocking):** EARNINGS — **Tax center** · MANAGE — **Rates · Reviews ·
+> Agreement · Messages** · ACCOUNT — **Security · Team** (dedicated real pages) · **Help**. (`Reports + Insights` and
+> `Settings` were prompts-written earlier and are now BUILT — #61/#62.)
+>
+> **⚠️ #58 PAYOUTS — WHAT IT ACTUALLY IS (verified in the repo; note vs any "Option A / no-IBAN" framing).** Both pages
+> match their wireframes real-where-real + honest-where-account-gated. **REAL / built:** the payout **summary + history +
+> KPIs + reconciling breakdown + remittance PDF** (all statement-derived) · the masked payout **IBAN** (`OwnerNextPayout`,
+> CAP_PAYOUT-only #28) · the **bank-account CRUD** — `PayoutMethod` with an **ENCRYPTED `iban`** (+ `iban_last4`/country),
+> the add-route **ISO mod-97-validated** before storing, self-only · **Stripe Connect onboarding** (`OwnerConnectController`,
+> **test-mode**, + a signature-verified `webhooks.stripe.connect`). So the app **DOES collect (encrypted) bank details** —
+> it is NOT a no-IBAN honest-summary-only page. **DEFERRED = the automated payout EXECUTION/DISBURSEMENT ENGINE** (scheduled
+> payouts, micro-deposit/bank verification, SEPA tracing, the 48h hold, instant withdrawal) — a major fintech initiative
+> account-gated on live Stripe/banking + PSD2/PCI/GDPR; the pages show real statement-derived money and label these
+> pending-live, **never faked**. `ManualPayoutRail` is the real, tested disbursement path; the Balance page's "Withdraw
+> early" is honestly disabled (no owner-initiated transfer rail). **If the founder wants a true "Option A" (collect NO
+> IBAN until a certified pipeline exists), that is a CODE change — the repo currently collects encrypted IBANs.**
+>
+> **THE DECODE METHOD (owner wireframes are `dc-runtime` bundles).** `JSON.parse` the `<script type="__bundler/template">`
+> content → the `<x-dc>` body = the real markup + inline `style` tokens + `{{ placeholders }}`. Decoder used this pass:
+> `node /tmp/decode_wf.mjs "docs/design/raw/Owner X.html"`. Serve `docs/design/raw` over `php -S` to render (it self-
+> hydrates; looping animations block full-page screenshots — extract the DOM/tokens instead). **REUSE the shared owner
+> chrome** `<x-owner.shell active= title= subtitle= viewer=>` + the layout's warm-glass `--vy-*` tokens (`--vy-grad`,
+> `--vy-grad-dark`, `--vy-accent`, `--vy-card`, `--vy-kpi-grid` [`--2`/`--4`], `--vy-track`, `--vy-status`, animations
+> `vyFadeUp`/`vyShimmer`/`vyDrift`/`vyToastIn`/`vyCardIn`) — extend, never one-off. **Two live Blade traps:** a directive
+> whose `@` follows a word char is NOT compiled (`word@if` ships raw source); and a shell `title="A &amp; B"` DOUBLE-
+> escapes through `{{ $title }}` → pass a plain `&`.
+>
+> **THE HONEST DEFERRALS (do NOT build ad hoc; the register lower down is authoritative).** Stripe billing sync ·
+> operator impersonation · suspension enforcement · per-feature usage limits · **real channel sync** (Channex/OTA —
+> account-gated; the Settings "Connected channels" shows Direct live + OTA honest-**Pending**, never a fake "Connected") ·
+> customer self-connect · re-point the Horizon gate to the `admin` guard · the My-Units action-center snooze/day-detail ·
+> the operator approve→create-Unit flow (a `UnitRequest` is reviewed, never auto-created) · **⚠️ the automated PAYOUT
+> ENGINE** (above — deferred fintech) · **owner expense-APPROVAL + rate-PROPOSAL workflows** (no such entity — REFUSED as
+> fabrication; Expenses/Insights link the real Rates/Tax instead) · **VAT filing-status / VAT computation** (not modelled
+> — Reports' Tax&VAT card is honest-deferred) · **SMS + push notifications** (no provider — the real channels are in-app +
+> email; Settings labels SMS/Push "soon") · the remaining un-exact-matched owner pages · the Phase-3 tails.
+>
+> **WHAT'S LEFT.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super Admin panel is
+> production-ready. A **free-trial / early-access** launch works with the panel as-is; a **paid** launch needs only the
+> already-scoped **Stripe go-live** + **suspension enforcement**. Then **DEPLOYMENT** (production hosting / domain / HTTPS
+> / MySQL / Redis-Horizon) + the founder's **cutovers** (email DNS+token; Stripe live-key). The owner-page exact-match
+> work is ongoing **polish, NOT launch-blocking** — and the audits repeatedly find the wireframes describe MORE product
+> than exists (approval/proposal/VAT/channel-sync/payout-engine), so real usage should drive **which deferred capability
+> to actually build** rather than chasing every prototype affordance.
+>
+> **LOGIN CREDENTIALS** (all password `password`; `php artisan migrate:fresh --seed` recreates them):
+> operator back office `demo-staff@vyrobel-demo.test` (Hotel Manager) or `demo-admin@vyrobel-demo.test` (org admin) → `/app` ·
+> owner `demo-owner@vyrobel-demo.test` (External Owner, primary) → `/owner` · guest `demo.traveller@vyrobel-demo.test` →
+> `/guest/login` · **platform admin `admin@vyrobel-demo.test` → `/admin` (forced 2FA enrol on first login)**. Public
+> storefront `/book/vyrobel-demo`; self-signup `/signup`. (Also seeded: owner sub-users accountant/view-only; operator
+> accountant/housekeeper — `database/seeders/DemoSeeder.php` + `PlatformAdminSeeder.php`.)
+>
+> ---
+>
 > ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v8) · owner SETTINGS HUB exact-match (#62). This block SUPERSEDES every
 > block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
 > `docs/DECISIONS.md`.**
@@ -1744,6 +1842,71 @@ conflicts with the repo, **trust the repo** and fix this file.
     operator reviews it (and sees the rich detail) before creating the real unit. Integer money (#17), guest
     name-/counts-only (#28), nothing fabricated — a proposed request is badged "Pending review", never a live/priced
     unit (#39). Proven end-to-end in the browser; `OwnerMyUnitsViewTest` + `OwnerUnitRequestTest` (6→12).
+
+56. **OWNER BOOKINGS (`/owner/bookings`) + THE BOOKING-SUMMARY PDF MATCH THEIR WIREFRAMES EXACTLY ON REAL DATA.** The two
+    items once refused as fabrication are now REAL (stale-refusal re-verification): the "Bookings over time" chart (real
+    `reservations.status` stacks + net via `OwnerLedgerAttribution` + a goal line) and the "Monthly goal" ring (real net ÷
+    an owner-SET `owner_monthly_target`; honest "no target" when unset). Status filter, date-range, sortable columns,
+    pagination, a name-only CSV export, and the `$capActions` target-write (controller route, currency server-derived, #20)
+    — page + export share the ONE `OwnerBookingsReader`. The PDF gained real owner-scoped occupancy, the guest NAME-only
+    column (`GuestName`, #28), real channel commission (`ota_cost`), a VAT letterhead; Σ(rows)==gross. `OwnerBookings*`
+    tests; adversarial-reviewed.
+
+57. **OWNER STATEMENT (`/owner/statements/{id}`) + THE STATEMENT PDF MATCH THEIR WIREFRAMES EXACTLY ON RECONCILING DATA.**
+    Two stale refusals (predating #54) are now REAL: the occupancy card + mini bar chart (shared `OwnerOccupancyTrend`) and
+    the masked payout IBAN (shared `OwnerNextPayout`, CAP_PAYOUT-only #28). Month switcher, plain-glass hero, gross
+    "N nights · M units" sublabel, statement-history Export CSV + per-year/per-row PDF (`owner.statements.history.*`,
+    CAP_EXPORTS), by-unit unit links. The PDF is the letterhead statement (net-payable headline + Occupancy/Nights/ADR +
+    3-col breakdown + Performance-by-unit + payout callout). Page + PDF share the ONE `OwnerStatementBreakdown`; breakdown
+    Σ==net + by-unit Σ==net/gross to the cent (#17); NO guest data (#28); no invented fees/date (#39).
+
+58. **OWNER PAYOUTS + PAYOUT METHOD MATCH THEIR WIREFRAMES — REAL WHERE REAL, HONEST WHERE ACCOUNT-GATED (⚠️ real money).**
+    REAL: payout history/KPIs/reconciling breakdown/remittance PDF · the masked payout IBAN (`OwnerNextPayout`, #28,
+    CAP_PAYOUT-only) · the **bank-account CRUD** — `PayoutMethod` with an ENCRYPTED `iban`, ISO **mod-97-validated**,
+    self-only, `$capPayout` · **Stripe Connect** onboarding (`OwnerConnectController`, **test-mode**, + a signature-verified
+    Connect webhook) · a real payout-preferences store · payout-history Export CSV · inline Tax details via the ONE
+    `owner.tax.save`. **HONEST account-gated (exact design, labelled pending-live, NEVER faked):** micro-deposit
+    verification (no fake Verified/deposits), live transfer, SEPA trace, the 48h hold. **The automated payout
+    EXECUTION/DISBURSEMENT engine is DEFERRED** (account-gated fintech; `ManualPayoutRail` is the real tested path). NOTE:
+    the page DOES collect encrypted IBANs — it is not a no-IBAN honest-summary-only design.
+
+59. **OWNER BALANCE + EXPENSES MATCH THEIR WIREFRAMES ON REAL / HONEST DATA (⚠️ Balance is real money).** Balance is a REAL
+    reconciling **clearing model** — Available (unstamped `owner_ledger` net) + On hold (tax-held pending payouts) +
+    In transit (released pending) + Paid == Net position, per currency **to the cent (#17)** — with a per-row state chip,
+    the tax-hold "Why is €X held?" card, the masked IBAN (CAP_PAYOUT #28), a real Export CSV. **"Withdraw early" is honestly
+    DISABLED** (no owner-initiated transfer rail — never a fake movement/"in transit", #39). Expenses: real KPIs (Spent /
+    Pending review / Charged) + a real Unit column/filter (**vendor REFUSED — unmodelled**) + Export CSV + a real
+    repair-relay (`owner.messages.start`); the **approve/query workflow is REFUSED** (no owner-approval state machine —
+    deductibility is set by the agreement). By-category bars. `OwnerBalanceViewTest` (6) + `OwnerExpensesViewTest` (5).
+
+60. **OWNER BLOCK CALENDAR + DOCUMENTS MATCH THEIR WIREFRAMES ON THE REAL BACKENDS.** Calendar: the interactive grid —
+    click a day or press-and-drag a range (Alpine) → a REAL block POST (`OwnerBlockService` → the certified
+    `AssignmentService`, non-overlap enforced, `$capActions` #20, audited); click a blocked day → a REAL release; booked
+    cells show the guest NAME only (#28). **REPEAT/SERIES expands into N REAL individual blocks sharing a new nullable
+    `InventoryBlock.series_id`** (never a fake recurring rule, #39); an over-taken occurrence is skipped + reported; a
+    toast + Undo. Documents: month cards + year-filter + a DARK annual-tax card with the REAL net (Σ `net_source_minor` =
+    the annual PDF's basis, reconciling #17); the archive is the real on-demand PDFs, CAP_EXPORTS-gated. `OwnerBlockCalendarTest`
+    (10) + `OwnerDocumentsViewTest` (6); block/release/series mutation-proven + browser-proven.
+
+61. **OWNER REPORTS + INSIGHTS MATCH THEIR WIREFRAMES ON THE REAL BATCH-B ANALYTICS.** Reports: KPIs + net-by-month +
+    per-unit ADR/RevPAR/share + by-channel (real `reservations.source`) + the **Gross-to-net** breakdown (reconciles to the
+    cent #17 at the **REAL agreement commission rate — read from `ManagementAgreement` via the shared `OwnerCommissionRate`,
+    NEVER the wireframe's hardcoded 15%**) + payout summary + real Documents + CAP_EXPORTS exports; the **Tax & VAT summary
+    is HONEST-DEFERRED** (VAT not modelled — no fabricated figure/"Mark filed" #39). Insights (2-col): occupancy-by-month
+    (this-year + on-the-books; **vs-last-year honest-omitted** — no prior-year data) + booking-pace + rate-performance +
+    lead-time + day-of-week (+ a real derived caption) + **"Worth a look" REAL DERIVED observations**; the **"rate
+    proposals" callout is HONEST** — a real link to the Rates page, NO fake proposal entity/workflow. `OwnerAnalyticsTest` (7).
+
+62. **THE OWNER SETTINGS HUB (`/owner/settings`) MATCHES ITS WIREFRAME — 13 SECTIONS, EACH REUSING A REAL BACKEND (ANTI-
+    DRIFT) OR HONEST WHERE ACCOUNT-GATED.** REUSED: Profile (`OwnerAccountController`) · Business & tax (`owner.settings.update`
+    + the ONE `owner.tax.save`) · Payout account (real masked IBAN, CAP_PAYOUT #28) · Team (summary + the real `owner.team`) ·
+    Notifications (`owner.notification-preferences` — in-app + email are the REAL channels) · Data export (the CAP_EXPORTS
+    exports #28) · Security (→ `owner.security`) · Reduce-motion (the layout honors `prefers-reduced-motion`); Hero +
+    completeness are DERIVED. **HONEST-gated (never faked #39/#37):** Billing shows the REAL management-fee rate (shared
+    `OwnerCommissionRate`, 18% — never 15%) with NO owner card/subscription (that's the operator's); OTA channels are
+    honest-**Pending** (Direct is the one live channel); **SMS + push are honest-pending** (no provider); currency/timezone
+    are the property's (read-only). Every write is a guarded controller POST (#20). `OwnerSettingsTest` (7) +
+    `OwnerAccountProfileTest` updated.
 
 ## Deferred / outstanding register (do NOT build ad hoc; see DECISIONS.md)
 

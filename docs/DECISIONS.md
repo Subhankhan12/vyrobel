@@ -4703,3 +4703,20 @@ backend (Profile/tax/team/exports/security/payout-IBAN/notifications) or HONEST 
 owner card / theme — labelled, never faked #39/#37); the REAL fee rate (shared `OwnerCommissionRate`, #17); masked IBAN
 never full + CAP_PAYOUT (#28); every write a guarded controller POST (#20). `OwnerSettingsTest` 5→7 + `OwnerAccountProfileTest`
 updated. Suite **1086/8497** green; PHPStan L5 (0); Pint clean; browser-verified. **Invariants #1–62.**
+
+## 2026-07-28 — OPEN QUESTION (flagged, not decided): payout "Option A" vs the shipped #58 IBAN collection
+
+A docs-consolidation brief referred to Payouts (#58) as "Option A: honest payout-summary, the real payout ENGINE deferred,
+**NO IBAN-collection-without-a-certified-pipeline**." Verified against the repo, the SHIPPED #58 does NOT match that: it
+**collects real bank details** — `PayoutMethod` stores an **encrypted `iban`** (+ `iban_last4`/country), the
+`owner.payout-method.add` route **ISO mod-97-validates** the IBAN before storing (self-only, `$capPayout`), and
+`OwnerConnectController` runs **Stripe Connect onboarding (test-mode)** with a signature-verified Connect webhook. What is
+actually DEFERRED is the automated payout **EXECUTION/DISBURSEMENT engine** (scheduled payouts · micro-deposit/bank
+verification · SEPA tracing · the 48h hold · instant withdrawal), account-gated on live Stripe/banking + PSD2/PCI/GDPR;
+`ManualPayoutRail` is the real tested disbursement path, and the Balance "Withdraw early" is honestly disabled.
+
+**This mismatch is UNRESOLVED — recorded so it is not lost.** If the founder genuinely wants "Option A" (collect NO owner
+IBAN until a certified disbursement pipeline exists, on a compliance basis), that is a **code change** — remove or gate the
+`PayoutMethod` add-path + the Connect onboarding, and reduce the Payout Method page to an honest summary + a "banking
+connects with the live payout engine" deferral. The current build is the fuller "collect-now (encrypted), disburse-later"
+design. No code was changed for this consolidation (docs-only); flagged for the founder to decide.

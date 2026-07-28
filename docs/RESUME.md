@@ -8,14 +8,16 @@ copy — follow the links. If anything here conflicts with the repo, **trust the
 ## 1. Read order (stop when you have what you need)
 
 1. **THIS file** — orientation, creds, next action.
-2. **`docs/PROJECT-STATE.md`** — the primary resume doc. The top "CURRENT STATE" block is authoritative; the
-   **Invariants #1–56** list is the "what's proven" ledger; the "Deferred / outstanding register" is what NOT to
-   build ad hoc.
+2. **`docs/PROJECT-STATE.md`** — the primary resume doc. The top "CURRENT STATE (v9 · TOTAL-RECALL)" block is
+   authoritative; the **Invariants #1–62** list is the "what's proven" ledger; the "Deferred / outstanding register" is
+   what NOT to build ad hoc.
 3. **`docs/DECISIONS.md`** — the append-only dated "why" behind every major decision (newest entries at the end).
 4. **`docs/SUPERADMIN-COMPLETENESS.md`** — the Super Admin roadmap (before-launch / soon / nice-to-have + phased plan).
 5. **On demand:** `docs/GAP-ANALYSIS.md` (tenant-product roadmap) · `docs/GAP-SWEEP.md` · `docs/POLISH-SWEEP.md` ·
-   the owner exact-match audits `docs/OWNER-OVERVIEW-AUDIT.md` / `OWNER-UNITS-AUDIT.md` / `OWNER-BOOKINGS-AUDIT.md` ·
-   `docs/SUPERADMIN-AUDIT.md` · `docs/design/DIVERGENCE-REGISTER.md` (prototype↔app design classification) ·
+   the owner exact-match audits (`docs/OWNER-OVERVIEW-AUDIT.md` · `OWNER-UNITS-AUDIT.md` · `OWNER-BOOKINGS-AUDIT.md` ·
+   `OWNER-STATEMENT-AUDIT.md` · `OWNER-PAYOUTS-AUDIT.md` · `OWNER-BALANCE-EXPENSES-AUDIT.md` · `OWNER-CALENDAR-DOCS-AUDIT.md` ·
+   `OWNER-REPORTS-INSIGHTS-AUDIT.md` · `OWNER-SETTINGS-AUDIT.md`) · `docs/SUPERADMIN-AUDIT.md` ·
+   `docs/design/DIVERGENCE-REGISTER.md` (prototype↔app design classification) ·
    `docs/EMAIL-PRODUCTION.md` + `docs/STRIPE-PRODUCTION.md` (the founder's cutover checklists) · `CLAUDE.md` (the
    working discipline). Per-area specs live under `docs/` and `docs/schema/` — read the relevant one before building.
 
@@ -26,14 +28,17 @@ tenant apps (operator `/app` · owner `/owner` · guest `/guest`) + a public sto
 (`/signup`) on a certified multi-tenant backend, plus the **Super Admin platform panel (`/admin`)** — all built,
 styled, and browser-verified. Phases 0–7 (the whole tenant product) are done; Phase 8's two obtainable integrations
 (**production email** + **live Stripe**, all three seams) are lit up in test-mode/code-complete, needing only the
-founder's non-code cutovers. **Suite 1073 tests green · PHPStan L5 = 0 · Pint clean · `migrate:fresh --seed` clean ·
-Invariants #1–58.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super Admin panel is
-audited (0 critical/0 P1) + production-ready. The active hands-on track is **owner-page wireframe-exact-match polish**:
-Overview + My Units + Add Unit + Bookings + Booking-Summary PDF + Statement + Statement PDF **and now Payouts + Payout
-Method are DONE + pushed** (`#54`–`#58`; latest `docs/OWNER-PAYOUTS-AUDIT.md` — ⚠️ real money/banking, real-where-real +
-honest-where-account-gated, nothing faked). The remaining owner pages (EARNINGS — Balance/Expenses/Tax-center · MANAGE —
-Reports/Insights/Rates/Reviews/Agreement/Messages · ACCOUNT — Settings/Security/Team) are built + at-parity but **not yet
-exact-matched** — the next candidates if the founder continues.
+founder's non-code cutovers. **Suite 1086 tests / 8497 assertions green · PHPStan L5 = 0 · Pint clean · `migrate:fresh
+--seed` clean · Invariants #1–62.** No LAUNCH-BLOCKING build remains — the product is demo-ready end-to-end and the Super
+Admin panel is audited (0 critical/0 P1) + production-ready. The active hands-on track is **owner-page wireframe-exact-
+match polish** (match each live owner page to its decoded `dc-runtime` wireframe — exact design + REAL backends, honest
+where account-gated). **DONE + pushed, `#54`–`#62`:** Overview · My Units + Add Unit · Bookings + Booking-Summary PDF ·
+Statement + Statement PDF · **Payouts + Payout Method** (⚠️ real money/banking — real IBAN collection [encrypted, mod-97]
++ Connect test-mode; the automated payout EXECUTION engine deferred) · Balance + Expenses · Block Calendar + Documents ·
+Reports + Insights · **Settings hub**. **Remaining, built + at-parity but not yet exact-matched:** EARNINGS — Tax center ·
+MANAGE — Rates / Reviews / Agreement / Messages · ACCOUNT — Security / Team · Help. The audits repeatedly find the
+wireframes describe MORE product than exists (approval / rate-proposal / VAT-filing / channel-sync / the payout engine —
+all honestly deferred or refused), so real usage should drive which deferred capability to actually build.
 
 ## 3. Stack (locked)
 
@@ -66,23 +71,24 @@ Public storefront (no login): `/book/vyrobel-demo`. Self-signup (provisions a ne
 
 ## 6. The next action
 
-**No launch-blocking build remains.** The owner **Payouts + Payout Method exact-match is DONE + pushed**
-(`#58`, `docs/OWNER-PAYOUTS-AUDIT.md`; the 5th+6th owner exact-match surfaces after Overview #54 / My Units + Add Unit #55 /
-Bookings + Booking-Summary PDF #56 / Statement + Statement PDF #57). ⚠️ Those were REAL MONEY + REAL BANKING — the honest
-resolution was real-where-real (history/breakdown/masked-IBAN/bank-CRUD/Connect-test-mode/preferences/tax-details) +
-honest-where-account-gated (verification/live-transfer/SEPA/hold — exact design, labelled pending-live, never faked). So
-the founder now chooses between two tracks:
+**No launch-blocking build remains.** The owner exact-match track is DONE + pushed through **`#62`** — Overview (#54) ·
+My Units + Add Unit (#55) · Bookings + PDF (#56) · Statement + PDF (#57) · Payouts + Payout Method (#58) · Balance +
+Expenses (#59) · Block Calendar + Documents (#60) · Reports + Insights (#61) · **Settings hub (#62)**. **The honest
+recommendation: LAUNCH is the highest-leverage move** — the exact-match work is ongoing *polish*, not launch-blocking,
+and the audits keep finding the wireframes describe more product than exists. So the founder chooses between:
 
 **A) Continue the owner-page exact-match polish** (optional, NOT launch-blocking) — pick the next owner page and run the
-same discipline (decode the `dc-runtime` wireframe → GATE 1 design + real backends → GATE 2 any doc twin, per-gate commit,
-suite + PHPStan + Pint + browser-verify). Remaining, built-but-not-yet-exact-matched: **EARNINGS** —
-Balance/Expenses/Tax-center · **MANAGE** — Reports/Insights/Rates/Reviews/Agreement/Messages ·
-**ACCOUNT** — Settings(Profile)/Security/Team. Reuse the shared `<x-owner.shell>` + `--vy-*` tokens; all writes are
-`can:`-gated controller POSTs (never `/livewire/update`, #20); real data only (#39), guest name-only (#28), reconcile to
-the cent (#17). Prior "refused as fabrication" items are re-buildable REAL if a backend now makes them computable
-(the **stale-refusal re-verification** rule — the Statement gate reused it: occupancy + IBAN were stale refusals from #54).
+same discipline (decode the `dc-runtime` wireframe → GATE 1 design + real backends → GATE 2 any doc twin / 2nd
+section-group, per-gate commit, suite + PHPStan + Pint + browser-verify). Remaining, built-but-not-yet-exact-matched:
+**EARNINGS** — Tax center · **MANAGE** — Rates / Reviews / Agreement / Messages · **ACCOUNT** — Security / Team · **Help**.
+Reuse the shared `<x-owner.shell>` + `--vy-*` tokens; all writes are `can:`/capability-gated controller POSTs (never
+`/livewire/update`, #20); real data only (#39), guest name-only (#28), reconcile to the cent (#17); the fee/commission
+rate is the REAL agreement rate (the shared `OwnerCommissionRate`), never a wireframe's hardcoded 15%. Prior "refused as
+fabrication" items are re-buildable REAL if a backend now makes them computable (the **stale-refusal re-verification**
+rule); an approval/proposal/VAT-filing/channel-sync/payout-execution affordance with NO backing entity stays honestly
+deferred or refused, never faked.
 
-**B) Turn to LAUNCH** (the higher-leverage path):
+**B) Turn to LAUNCH** (the higher-leverage path — recommended):
 
 1. **Choose the launch model** — *free-trial / early-access* is launch-ready with the panel as-is; a *paid* launch
    needs only the already-scoped **Stripe go-live** + **suspension enforcement** (both in `docs/SUPERADMIN-COMPLETENESS.md`).
