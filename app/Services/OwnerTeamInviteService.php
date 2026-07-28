@@ -175,6 +175,29 @@ class OwnerTeamInviteService
     }
 
     /**
+     * Re-send a still-pending invite: mint a FRESH token (the old one can no longer be redeemed), extend the
+     * expiry, and email the set-password link again. A non-pending invite is a no-op. The invitee's greeting
+     * name comes from their (still-inactive) login, falling back to the email local part.
+     */
+    public function resend(OwnerTeamInvite $invite): void
+    {
+        if ($invite->status !== 'pending') {
+            return;
+        }
+
+        $plain = Str::random(64);
+        $invite->update([
+            'token_hash' => hash('sha256', $plain),
+            'expires_at' => now()->addDays(self::EXPIRY_DAYS),
+        ]);
+
+        $user = User::query()->where('email', $invite->email)->first();
+        $name = $user !== null ? (string) $user->name : Str::before((string) $invite->email, '@');
+
+        Mail::to((string) $invite->email)->send(new OwnerTeamInviteMail($invite, $plain, $name));
+    }
+
+    /**
      * Assign the owner-only {@see self::OWNER_ROLE} (`External Owner` — `owner_portal.view`, nothing else)
      * so the sub-user lands on /owner and is refused /app at the ROLE level too (defense-in-depth with
      * {@see EnsureBackOfficeAccess}). Not fail-by-throw: portal access comes from the

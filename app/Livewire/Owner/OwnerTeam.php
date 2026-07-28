@@ -81,7 +81,88 @@ class OwnerTeam extends Component
                 'label' => OwnerTeamRole::label($r),
                 'summary' => OwnerTeamRole::summary($r),
             ], OwnerTeamRole::ALL),
+            // The REAL "what each role can see" matrix — derived verbatim from OwnerTeamRole::CAPABILITIES (the
+            // SAME grid the route gates + @ownercan read), so it can never disagree with what a role grants (#39).
+            'matrix' => $this->matrix(),
+            // A TRUTHFUL recent-activity list from real signals only (member sign-ins + invites sent) — never a
+            // fabricated event log (owner-team actions are not audited): no invented "who did what when".
+            'activity' => $this->activity($ownerIds, $members),
         ]);
+    }
+
+    /**
+     * The capability matrix, row per area × the three roles — read straight from {@see OwnerTeamRole::allows}
+     * so it reflects the ACTUAL capabilities (anti-drift with the route gates), never a hand-kept table.
+     *
+     * @return list<array{label: string, co_owner: bool, accountant: bool, view_only: bool}>
+     */
+    private function matrix(): array
+    {
+        $rows = [
+            ['Earnings & statements', OwnerTeamRole::CAP_FINANCIALS],
+            ['Approvals (rates, expenses)', OwnerTeamRole::CAP_ACTIONS],
+            ['Documents & tax', OwnerTeamRole::CAP_DOCUMENTS],
+            ['Calendar & bookings', OwnerTeamRole::CAP_CALENDAR],
+            ['Exports (download PDFs)', OwnerTeamRole::CAP_EXPORTS],
+            ['Payout account & settings', OwnerTeamRole::CAP_PAYOUT],
+        ];
+
+        return array_map(fn (array $r): array => [
+            'label' => $r[0],
+            'co_owner' => OwnerTeamRole::allows(OwnerTeamRole::CO_OWNER, $r[1]),
+            'accountant' => OwnerTeamRole::allows(OwnerTeamRole::ACCOUNTANT, $r[1]),
+            'view_only' => OwnerTeamRole::allows(OwnerTeamRole::VIEW_ONLY, $r[1]),
+        ], $rows);
+    }
+
+    /**
+     * TRUTHFUL recent activity — the newest real signals only: each member's real last sign-in and each real
+     * pending invite (when it was sent). No audited team-event log exists, so nothing here is invented; a team
+     * with no sign-ins/invites yet gets an empty list (the caller shows an honest empty state).
+     *
+     * @param  list<string>  $ownerIds
+     * @param  list<array<string, mixed>>  $members
+     * @return list<array{who: string, what: string, when: string}>
+     */
+    private function activity(array $ownerIds, array $members): array
+    {
+        $events = [];
+
+        // Real sign-ins (only members who have actually signed in — never a fabricated "active now").
+        $logins = OwnerUser::query()
+            ->whereIn('owner_id', $ownerIds)
+            ->with('user:id,name,last_login_at')
+            ->get();
+        foreach ($logins as $m) {
+            $login = $m->user->last_login_at;
+            if ($login !== null) {
+                $events[] = ['who' => (string) $m->user->name, 'what' => 'signed in', 'when' => $login->diffForHumans(), 'ts' => $login];
+            }
+        }
+
+        // Real invites sent (pending) — a truthful "invited X as Role".
+        $sent = OwnerTeamInvite::query()
+            ->whereIn('owner_id', $ownerIds)
+            ->where('status', 'pending')
+            ->orderByDesc('created_at')
+            ->get();
+        foreach ($sent as $i) {
+            $events[] = [
+                'who' => 'You',
+                'what' => 'invited '.$i->email.' as '.OwnerTeamRole::label((string) $i->role),
+                'when' => $i->created_at?->diffForHumans() ?? '',
+                'ts' => $i->created_at ?? now(),
+            ];
+        }
+
+        usort($events, fn (array $a, array $b): int => $b['ts'] <=> $a['ts']);
+
+        return array_map(fn (array $e): array => [
+            'who' => $e['who'],
+            'initials' => $this->initials($e['who']),
+            'what' => $e['what'],
+            'when' => $e['when'],
+        ], array_slice($events, 0, 6));
     }
 
     /** A TRUTHFUL last-active label from the real `last_login_at` — never a fabricated relative time. */

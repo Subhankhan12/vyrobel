@@ -139,3 +139,49 @@ it('scopes team mutations to the primary owner’s own owner — a cross-owner m
     $this->actingAs($ownerA)->delete('/owner/team/members/'.$bRow->id)->assertNotFound();
     expect($bRow->fresh()->role)->toBe(OwnerTeamRole::VIEW_ONLY);   // untouched
 });
+
+// ── 7. RESEND — a pending invite re-sends with a FRESH token + extended expiry (primary-owner only) ───
+it('re-sends a pending invite with a fresh token and extended expiry', function () {
+    $s = seedScenario(1);
+    $owner = ownerRoleUser($s, 0);
+    $ownerId = (string) $s['units'][0]->fresh()->owner_id;
+    sendTeamInvite($owner, 'delegate@example.test', OwnerTeamRole::ACCOUNTANT);
+
+    $invite = OwnerTeamInvite::where('email', 'delegate@example.test')->firstOrFail();
+    $oldHash = (string) $invite->token_hash;
+    $invite->update(['expires_at' => now()->addDay()]);   // near expiry
+    $oldExpiry = $invite->fresh()->expires_at;
+
+    Mail::fake();
+    $this->actingAs($owner)->post('/owner/team/invites/'.$invite->id.'/resend')
+        ->assertRedirect()->assertSessionHas('team_status');
+
+    Mail::assertSent(OwnerTeamInviteMail::class);        // emailed again
+    $fresh = $invite->fresh();
+    expect((string) $fresh->token_hash)->not->toBe($oldHash)        // the old token can no longer be redeemed
+        ->and($fresh->expires_at->greaterThan($oldExpiry))->toBeTrue()   // expiry extended
+        ->and($fresh->status)->toBe('pending');
+
+    // 🔒 a sub-user (non-primary-owner) can NOT resend — EnsurePrimaryOwner refuses.
+    $sub = ownerSubUser($s, $ownerId, OwnerTeamRole::CO_OWNER);
+    $this->actingAs($sub)->post('/owner/team/invites/'.$invite->id.'/resend')->assertForbidden();
+});
+
+// ── 8. The role MATRIX is REAL (derived from OwnerTeamRole caps) + the security note makes NO false claim ─
+it('renders the real capability matrix and an honest security note — never a watermark claim', function () {
+    $s = seedScenario(1);
+    $owner = ownerRoleUser($s, 0);
+
+    $res = $this->actingAs($owner)->get('/owner/team')->assertOk()
+        // the matrix (the 6 real capability areas)
+        ->assertSee('What each role can see')
+        ->assertSee('Earnings & statements')
+        ->assertSee('Approvals (rates, expenses)')
+        ->assertSee('Payout account & settings')
+        // an honest security note — separate sign-ins + role scope + 2-step, NO fabricated watermark (#39)
+        ->assertSee('each person signs in with their own account')
+        ->assertSee('scoped to their role')
+        ->assertDontSee('watermark');
+
+    assertNoRawBlade($res);
+});

@@ -109,6 +109,17 @@ class OwnerTeamController extends Controller
         return back()->with('team_status', 'Invite revoked.');
     }
 
+    /** Re-send a pending invite — a fresh token + extended expiry, emailed again (owner-scoped, pending only). */
+    public function resendInvite(OwnerContext $context, string $invite): RedirectResponse
+    {
+        $ownerIds = $this->ownerIds($context);
+
+        $row = OwnerTeamInvite::query()->whereKey($invite)->whereIn('owner_id', $ownerIds)->where('status', 'pending')->firstOrFail();
+        $this->invites->resend($row);
+
+        return back()->with('team_status', 'Invite re-sent to '.$row->email.'.');
+    }
+
     /**
      * Disable a login that, after a removal, has NO remaining reason to sign in — no active owner-team
      * membership anywhere, is not a primary owner, and holds no other role. This makes "removed → can't log

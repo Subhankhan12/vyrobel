@@ -65,13 +65,13 @@ use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerAccountController;
-use App\Http\Controllers\Owner\OwnerBlockController;
 use App\Http\Controllers\Owner\OwnerBalanceExportController;
-use App\Http\Controllers\Owner\OwnerExpensesExportController;
+use App\Http\Controllers\Owner\OwnerBlockController;
 use App\Http\Controllers\Owner\OwnerBookingsExportController;
 use App\Http\Controllers\Owner\OwnerBookingsTargetController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerConnectController;
+use App\Http\Controllers\Owner\OwnerExpensesExportController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerPayoutMethodController;
 use App\Http\Controllers\Owner\OwnerPayoutPreferenceController;
@@ -881,6 +881,7 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         Route::patch('/team/members/{member}', [OwnerTeamController::class, 'updateRole'])->name('team.members.role');
         Route::delete('/team/members/{member}', [OwnerTeamController::class, 'remove'])->name('team.members.remove');
         Route::post('/team/invites/{invite}/revoke', [OwnerTeamController::class, 'revokeInvite'])->name('team.invites.revoke');
+        Route::post('/team/invites/{invite}/resend', [OwnerTeamController::class, 'resendInvite'])->middleware('throttle:10,1')->name('team.invites.resend');
     });
 });
 
