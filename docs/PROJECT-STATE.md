@@ -6,9 +6,29 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v13) · owner SECURITY + HELP exact-match (#66); Onboarding DEFERRED. This block
-> SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this
-> block → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v14) · OWNER COMPLETENESS SWEEP · WAVES A + B COMPLETE. This block SUPERSEDES
+> every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
+> `docs/DECISIONS.md` → `docs/OWNER-COMPLETENESS-SWEEP.md`.**
+>
+> The owner completeness sweep built what earlier owner-page exact-matches had deferred/refused/simplified.
+> **Wave A** (shared backends, anti-drift): `owner_attention_states` store · REAL weekend-uplift pricing
+> (`setRateWeekendAware`) · modelling adds (owner address → statement letterhead, expense vendor) · quick wins
+> (Email-to-me Mailable, Overview goal line, Insights vs-last-year). **Wave B** (per-page, consumes Wave A):
+> **My Units** (action-center store consumption + bulk + weekend-uplift editor) · **Unit Detail** (weekend uplift +
+> richer day-detail #28 + read-only cleaning schedule from real `HousekeepingTask`) · **Rates** (nightly + weekend +
+> min-stay manage view; fixed a latent min-stay read bug) · **Security** — 3 REAL features, all mutation-proven:
+> **trusted devices** (skip-2FA, `trusted_devices`, hash-only revocable cookie) · **login approval** (`login_approvals`,
+> opt-in, signed-link email, held-until-approved, single-use, chains to 2FA) · **passkeys/WebAuthn** on
+> **web-auth/webauthn-lib ^5.3** (`passkeys`; real register + usernameless sign-in **proven end-to-end in Chromium via a
+> CDP virtual authenticator**) · **Team** (`export_downloads` + `ExportAudit::stamp` → watermarked exports + a real
+> download log; the security note's claim now TRUE) · **Settings** (quiet-hours held-EMAIL window; theme kept honest —
+> no dark palette) · **Onboarding** (`/owner/welcome`, the IBAN-less thin flow). deps: web-auth/webauthn-lib (founder-
+> approved). Honesty held (no fake per-unit-attention/cleaner/trusted/approved/passkey/watermark-not-applied/IBAN/dark-
+> theme #39). Suite green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **Invariants #1–66.**
+>
+> ---
+>
+> ⭐ **PRIOR — 2026-07-28 (v13) · owner SECURITY + HELP exact-match (#66); Onboarding DEFERRED (now built in Wave B).**
 >
 > **Two owner account pages matched to their wireframes; a third (Onboarding) deferred (`docs/OWNER-SECURITY-ONBOARDING-HELP-AUDIT.md`,
 > DECISIONS 2026-07-28 #66, DIVERGENCE Security/Help rows). Both were already built honestly (#46 + the static Help

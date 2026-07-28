@@ -168,7 +168,7 @@ it('re-sends a pending invite with a fresh token and extended expiry', function 
 });
 
 // ── 8. The role MATRIX is REAL (derived from OwnerTeamRole caps) + the security note makes NO false claim ─
-it('renders the real capability matrix and an honest security note — never a watermark claim', function () {
+it('renders the real capability matrix and the now-TRUE watermark claim (Wave B · GATE 5)', function () {
     $s = seedScenario(1);
     $owner = ownerRoleUser($s, 0);
 
@@ -178,10 +178,13 @@ it('renders the real capability matrix and an honest security note — never a w
         ->assertSee('Earnings & statements')
         ->assertSee('Approvals (rates, expenses)')
         ->assertSee('Payout account & settings')
-        // an honest security note — separate sign-ins + role scope + 2-step, NO fabricated watermark (#39)
+        // the security note — separate sign-ins + role scope + 2-step
         ->assertSee('each person signs in with their own account')
         ->assertSee('scoped to their role')
-        ->assertDontSee('watermark');
+        // GATE 5 — the "watermarked exports" claim is now REAL (backed by ExportDownload + ExportAudit), so it
+        // is asserted PRESENT (was previously an honest DontSee while unimplemented) + the real download log shows.
+        ->assertSee('watermarked with who downloaded them')
+        ->assertSee('Export download log');
 
     assertNoRawBlade($res);
 });

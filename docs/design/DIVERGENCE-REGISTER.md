@@ -1,5 +1,16 @@
 # Vyrobel — Design-Fidelity Divergence Register
 
+> **2026-07-29 — OWNER COMPLETENESS SWEEP (Waves A+B) closed several prior owner-page divergences by BUILDING the
+> deferred backend** (`docs/OWNER-COMPLETENESS-SWEEP.md` + `DECISIONS.md`). Now REAL where they were once refused/
+> honest-omitted: **My Units** action-center snooze/dismiss/mark-read + bulk + weekend-uplift editor · **Unit Detail**
+> weekend uplift + richer day-detail (guest name-only #28) + read-only cleaning schedule · **Rates** weekend-uplift +
+> min-stay · **Security** trusted-devices + login-approval + passkeys (were honest "Soon") · **Team** watermarked
+> exports + download log (the softened claim, now true) · **Settings** quiet-hours · **Reports/Insights** Email-to-me +
+> vs-last-year · **Overview** goal line · **Statement PDF** owner address letterhead · **Expenses** vendor. Still
+> intentionally divergent (documented below, unchanged): dark theme (no palette), IBAN capture/micro-deposit
+> (certified pipeline only), rate-proposal entity, OTA brand/sync, VAT engine — all honest, none faked (#39).
+
+
 The deep per-page design pass classifies **every** app page against its `docs/design/raw/` prototype into one
 of three categories, and records the outcome here. This is a deliberate, honest artifact: it documents every
 place the app differs from the prototype **on purpose** — because the difference is real/sparse data (not the

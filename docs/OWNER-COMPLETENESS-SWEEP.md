@@ -1,6 +1,19 @@
 # Owner Pages — COMPLETENESS SWEEP (PHASE 0: authoritative gap audit)
 
-**Date:** 2026-07-28 · **Status:** ✅ **PHASE 0 COMPLETE.** · **✅ WAVE A (shared backends) BUILT & SHIPPED (2026-07-29).**
+**Date:** 2026-07-28 · **Status:** ✅ **PHASE 0 COMPLETE.** · **✅ WAVE A (shared backends) + ✅ WAVE B (per-page completeness) BUILT & SHIPPED (2026-07-29).**
+
+## ✅ WAVE B — BUILT (2026-07-29), each page consumes the Wave-A backends + its 🟢 items
+- **GATE 1 — My Units** (`cc48d53`): action-center consumes `owner_attention_states` (mark-read + BULK mark-all-read/snooze-all + status filter); weekend-uplift + min-stay editor (consume `setRateWeekendAware`) with live preview.
+- **GATE 2 — Unit Detail** (`0d8f70f`): weekend-uplift editor · richer day-detail popover (guest name-only #28) · READ-ONLY cleaning schedule (real `HousekeepingTask`, never a fake cleaner).
+- **GATE 3 — Rates page** (`9cd8b95`): nightly + weekend-uplift + min-stay in one manage view + Fri/Sat preview; **fixed** a latent min-stay read bug (room_type_id vs rate_plan_id) on Rates + Unit Detail.
+- **GATE 4 — Security** (`9efd507`/`b47f75b`/`2274367`): **trusted devices** (skip-2FA, hash-only cookie, revocable) · **login approval** (opt-in, signed-link email, held-until-approved, single-use) · **passkeys** (WebAuthn on web-auth/webauthn-lib — real register + usernameless sign-in, crypto **browser-proven via a CDP virtual authenticator**). All mutation-proven.
+- **GATE 5 — Team** (`7b4032f`): export **watermark + download audit-log** made TRUE — `ExportAudit::stamp()` records + stamps; 9 controllers wired; Team download-log surface.
+- **GATE 6 — Settings + Onboarding** (`27c37e1`): **quiet hours** (real — held EMAIL, in-app kept, always-on exempt); **theme** kept honest (no dark palette, deferred not faked); **onboarding** `/owner/welcome` (IBAN-less thin flow, real units + rate + payout hand-off).
+
+**Wave B honesty holds (documented, not faked):** per-unit attention filter (account-level signals only) · dark theme (no palette) · IBAN capture / micro-deposit (certified pipeline only). deps: web-auth/webauthn-lib ^5.3 (founder-approved).
+
+---
+
 
 ## ✅ WAVE A — BUILT (2026-07-29), the shared backends every later wave reuses
 - **GATE 1 — `owner_attention_states` store** (`b0f09cc`): the shared snooze/dismiss/mark-read/undo backbone behind My Units' action-center AND the Overview attention feed (one store, both surfaces). Owner-scoped (#28), controller-routed (#20) + audited, CAP_ACTIONS-gated, tamper-safe (`signalFor` resolves a posted key to a REAL current signal), mutation-proven (`OwnerAttentionStateTest`).
