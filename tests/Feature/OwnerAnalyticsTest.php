@@ -1,7 +1,10 @@
 <?php
 
+use App\Models\ManagementAgreement;
+use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
+use App\Models\User;
 use App\Support\Owner\OwnerLedgerAttribution;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -102,4 +105,48 @@ it('fails closed for a non-owner reaching owner analytics — empty, never someo
         ->assertOk()
         ->assertSee('No units linked to your account yet')
         ->assertDontSee('SOMEONES-UNIT');
+});
+
+// ── 5. ⚠️ GROSS-TO-NET reconciles with the REAL agreement commission rate — never the wireframe's 15% ──
+it('reports gross-to-net at the REAL agreement commission rate and never fabricates VAT', function () {
+    $s = seedScenario(1);
+
+    // An owner whose agreement commission is a DISTINCTIVE 22% — so "Commission · 22%" proves the rate is
+    // READ FROM THE AGREEMENT, not the wireframe's hardcoded 15%.
+    $user = User::factory()->create(['status' => 'active']);
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+    $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
+    $s['units'][0]->update(['owner_id' => $owner->id]);
+    ManagementAgreement::factory()->create(['owner_id' => $owner->id, 'commission_pct' => 22.00, 'effective_from' => '2026-01-01']);
+
+    // Gross €300.00 room revenue − €66.00 commission (22%) → net €234.00 (all dated in this year).
+    ledgerEntry($owner->id, $s['units'][0]->id, 'room_revenue', 'credit', 30000);
+    ledgerEntry($owner->id, $s['units'][0]->id, 'commission', 'debit', 6600);
+
+    $res = $this->actingAs($user)->get('/owner/reports?range=this-year')->assertOk()
+        // the REAL agreement rate — read from the agreement, never the wireframe's hardcoded 15%
+        ->assertSee('Commission · 22%')
+        ->assertDontSee('Commission · 15%')
+        // gross-to-net reconciles (#17): gross €300.00 − commission €66.00 = net €234.00
+        ->assertSee('€300.00')
+        ->assertSee('€234.00')
+        // ⚠️ HONEST VAT — the design's VAT computation + filing workflow are NOT modelled → never fabricated
+        ->assertSee('compute or file your VAT')
+        ->assertDontSee('Output VAT')
+        ->assertDontSee('Net VAT due')
+        ->assertDontSee('Mark filed');
+
+    assertNoRawBlade($res);
+});
+
+// ── 6. The Reports EXPORT menu is CAP_EXPORTS-gated (a view-only sub-user may view, but not export) ──
+it('gates the Reports export menu to CAP_EXPORTS', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);   // primary owner → CAP_EXPORTS
+    $ownerId = (string) $s['units'][0]->fresh()->owner_id;
+
+    $this->actingAs($user)->get('/owner/reports')->assertOk()->assertSee('Export');
+
+    // A view-only sub-user may VIEW Reports but gets NO export control (#42).
+    $this->actingAs(ownerSubUser($s, $ownerId, 'view_only'))->get('/owner/reports')->assertOk()->assertDontSee('Export');
 });
