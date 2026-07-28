@@ -6,6 +6,7 @@ namespace App\Livewire\Owner;
 
 use App\Http\Middleware\EnsurePrimaryOwner;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\ExportDownload;
 use App\Models\OwnerTeamInvite;
 use App\Models\OwnerUser;
 use App\Support\Owner\OwnerContext;
@@ -87,7 +88,36 @@ class OwnerTeam extends Component
             // A TRUTHFUL recent-activity list from real signals only (member sign-ins + invites sent) — never a
             // fabricated event log (owner-team actions are not audited): no invented "who did what when".
             'activity' => $this->activity($ownerIds, $members),
+            // Wave B · GATE 5 — the REAL financial-export download log (who downloaded what, when), owner-scoped.
+            'downloads' => $this->downloadLog($ownerIds),
         ]);
+    }
+
+    /**
+     * The REAL export DOWNLOAD LOG (Wave B · GATE 5) — recent financial exports downloaded by this owner's team,
+     * owner-scoped (the acting primary owner's owner ids). The SAME record whose identity is watermarked onto the
+     * file; nothing invented (an empty list is honest). Newest first, capped.
+     *
+     * @param  list<string>  $ownerIds
+     * @return list<array{who: string, what: string, when: string}>
+     */
+    private function downloadLog(array $ownerIds): array
+    {
+        if ($ownerIds === []) {
+            return [];
+        }
+
+        return ExportDownload::query()
+            ->whereIn('owner_id', $ownerIds)
+            ->orderByDesc('created_at')
+            ->limit(15)
+            ->get()
+            ->map(fn (ExportDownload $d): array => [
+                'who' => (string) ($d->downloader_name ?? 'Unknown user'),
+                'what' => (string) $d->label,
+                'when' => $d->created_at instanceof Carbon ? $d->created_at->diffForHumans() : '—',
+            ])
+            ->all();
     }
 
     /**

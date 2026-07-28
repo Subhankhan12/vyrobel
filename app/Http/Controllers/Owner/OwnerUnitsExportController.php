@@ -6,7 +6,9 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Services\OwnerPortalService;
+use App\Support\Exports\ExportAudit;
 use App\Support\Owner\OwnerOccupancy;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -19,9 +21,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class OwnerUnitsExportController extends Controller
 {
-    public function download(OwnerPortalService $portal): StreamedResponse
+    public function download(Request $request, OwnerPortalService $portal): StreamedResponse
     {
-        $param = request()->query('month');
+        $param = $request->query('month');
         $month = is_string($param) && preg_match('/^\d{4}-\d{2}$/', $param) === 1
             ? Carbon::parse($param.'-01')->startOfMonth()
             : Carbon::now()->startOfMonth();
@@ -31,8 +33,12 @@ class OwnerUnitsExportController extends Controller
 
         $filename = 'my-units-occupancy-'.$month->format('Y-m').'.csv';
 
-        return response()->streamDownload(function () use ($occ, $month): void {
+        // Wave B · GATE 5 — record + watermark the download (who / when); the SAME identity in the log + the file's comment row.
+        $watermark = app(ExportAudit::class)->stamp($request, 'units_csv', 'Units export');
+
+        return response()->streamDownload(function () use ($occ, $month, $watermark): void {
             $out = fopen('php://output', 'wb');
+            fputcsv($out, ['# '.$watermark]);
             fputcsv($out, ['Date', 'Units booked', 'Total units', 'Booked %']);
 
             for ($d = 1; $d <= $occ['days']; $d++) {

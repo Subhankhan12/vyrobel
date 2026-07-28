@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Services\OwnerTaxService;
 use App\Services\PdfService;
+use App\Support\Exports\ExportAudit;
 use App\Support\Pdf\OwnerAnnualTaxDocument;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
@@ -66,6 +67,9 @@ class OwnerTaxController extends Controller
             abort(404);   // no committed statements for that year — nothing to summarise
         }
 
-        return $pdf->download('pdfs.owner-annual-tax', OwnerAnnualTaxDocument::data($owner, $summary), 'vyrobel-annual-tax-'.$year.'.pdf');
+        // Wave B · GATE 5 — record + watermark the download (who / when), the SAME identity on the file + the log.
+        $watermark = app(ExportAudit::class)->stamp($request, 'annual_tax_pdf', 'Annual tax summary '.$year);
+
+        return $pdf->download('pdfs.owner-annual-tax', OwnerAnnualTaxDocument::data($owner, $summary), 'vyrobel-annual-tax-'.$year.'.pdf', $watermark);
     }
 }

@@ -7,7 +7,9 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\OwnerExpense;
 use App\Models\Scopes\OwnerScope;
+use App\Support\Exports\ExportAudit;
 use App\Support\Money\MoneyFormatter;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -21,7 +23,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class OwnerExpensesExportController extends Controller
 {
-    public function download(): StreamedResponse
+    public function download(Request $request): StreamedResponse
     {
         $expenses = OwnerExpense::query()
             ->with('unit')
@@ -31,8 +33,12 @@ class OwnerExpensesExportController extends Controller
 
         $filename = 'expenses-'.Carbon::now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($expenses): void {
+        // Wave B · GATE 5 — record + watermark the download (who / when); the SAME identity in the log + the file's comment row.
+        $watermark = app(ExportAudit::class)->stamp($request, 'expenses_csv', 'Expenses export');
+
+        return response()->streamDownload(function () use ($expenses, $watermark): void {
             $out = fopen('php://output', 'wb');
+            fputcsv($out, ['# '.$watermark]);
             fputcsv($out, ['Date', 'Unit', 'Category', 'Description', 'Vendor', 'Amount', 'Deductible', 'Voided']);
 
             foreach ($expenses as $e) {

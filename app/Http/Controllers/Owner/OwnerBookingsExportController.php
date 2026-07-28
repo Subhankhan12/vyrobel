@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Support\Exports\ExportAudit;
 use App\Support\Owner\OwnerBookingsReader;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -22,7 +24,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class OwnerBookingsExportController extends Controller
 {
-    public function download(OwnerBookingsReader $reader): StreamedResponse
+    public function download(Request $request, OwnerBookingsReader $reader): StreamedResponse
     {
         $rows = $reader->rows();
 
@@ -31,8 +33,12 @@ class OwnerBookingsExportController extends Controller
 
         $filename = 'my-bookings-'.Carbon::now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($rows): void {
+        // Wave B · GATE 5 — record + watermark the download (who / when); the SAME identity in the log + the file's comment row.
+        $watermark = app(ExportAudit::class)->stamp($request, 'bookings_csv', 'Bookings export');
+
+        return response()->streamDownload(function () use ($rows, $watermark): void {
             $out = fopen('php://output', 'wb');
+            fputcsv($out, ['# '.$watermark]);
             fputcsv($out, ['Guest', 'Reference', 'Unit', 'Check-in', 'Check-out', 'Nights', 'Source', 'Status', 'Net to you']);
 
             foreach ($rows as $row) {

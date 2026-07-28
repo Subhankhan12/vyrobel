@@ -9,6 +9,7 @@ use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\OwnerStatement;
 use App\Models\Scopes\OwnerScope;
 use App\Services\PdfService;
+use App\Support\Exports\ExportAudit;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Pdf\OwnerStatementHistoryDocument;
 use Illuminate\Http\Request;
@@ -36,8 +37,12 @@ class OwnerStatementHistoryExportController extends Controller
         $suffix = $year !== null ? (string) $year : 'all';
         $filename = 'statement-history-'.$suffix.'-'.Carbon::now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($rows): void {
+        // Wave B · GATE 5 — record + watermark the download (who / when); the SAME identity in the log + the file's comment row.
+        $watermark = app(ExportAudit::class)->stamp($request, 'statement_history_csv', 'Statement history (CSV)');
+
+        return response()->streamDownload(function () use ($rows, $watermark): void {
             $out = fopen('php://output', 'wb');
+            fputcsv($out, ['# '.$watermark]);
             fputcsv($out, ['Month', 'Period', 'Gross', 'Net payable', 'Status']);
 
             foreach ($rows as $s) {
@@ -64,10 +69,14 @@ class OwnerStatementHistoryExportController extends Controller
         $suffix = $year !== null ? (string) $year : 'all';
         $filename = 'statement-history-'.$suffix.'-'.Carbon::now()->format('Y-m-d').'.pdf';
 
+        // Wave B · GATE 5 — record + watermark the download (who / when), the SAME identity on the file + the log.
+        $watermark = app(ExportAudit::class)->stamp($request, 'statement_history_pdf', 'Statement history');
+
         return $pdf->download(
             'pdfs.owner-statement-history',
             OwnerStatementHistoryDocument::data($rows, $year),
             $filename,
+            $watermark,
         );
     }
 

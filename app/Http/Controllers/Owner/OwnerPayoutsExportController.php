@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
+use App\Support\Exports\ExportAudit;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Payouts\RailLabel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -22,7 +24,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class OwnerPayoutsExportController extends Controller
 {
-    public function download(): StreamedResponse
+    public function download(Request $request): StreamedResponse
     {
         $payouts = Payout::query()->orderByDesc('created_at')->get();
 
@@ -34,8 +36,12 @@ class OwnerPayoutsExportController extends Controller
 
         $filename = 'payout-history-'.Carbon::now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($payouts, $months): void {
+        // Wave B · GATE 5 — record + watermark the download (who / when); the SAME identity in the log + the file's comment row.
+        $watermark = app(ExportAudit::class)->stamp($request, 'payouts_csv', 'Payouts export');
+
+        return response()->streamDownload(function () use ($payouts, $months, $watermark): void {
             $out = fopen('php://output', 'wb');
+            fputcsv($out, ['# '.$watermark]);
             fputcsv($out, ['Month', 'Rail', 'Date', 'Status', 'Amount']);
 
             foreach ($payouts as $p) {

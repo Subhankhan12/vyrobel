@@ -7,7 +7,9 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\OwnerLedgerEntry;
 use App\Models\Scopes\OwnerScope;
+use App\Support\Exports\ExportAudit;
 use App\Support\Money\MoneyFormatter;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -20,7 +22,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class OwnerBalanceExportController extends Controller
 {
-    public function download(): StreamedResponse
+    public function download(Request $request): StreamedResponse
     {
         // Oldest→newest so the running balance accumulates correctly (per currency), like the page.
         $entries = OwnerLedgerEntry::query()
@@ -31,8 +33,12 @@ class OwnerBalanceExportController extends Controller
 
         $filename = 'balance-activity-'.Carbon::now()->format('Y-m-d').'.csv';
 
-        return response()->streamDownload(function () use ($entries): void {
+        // Wave B · GATE 5 — record + watermark the download (who / when); the SAME identity in the log + the file's comment row.
+        $watermark = app(ExportAudit::class)->stamp($request, 'balance_csv', 'Balance activity export');
+
+        return response()->streamDownload(function () use ($entries, $watermark): void {
             $out = fopen('php://output', 'wb');
+            fputcsv($out, ['# '.$watermark]);
             fputcsv($out, ['Date', 'Activity', 'Type', 'Amount', 'Running balance', 'On a statement']);
 
             /** @var array<string, int> $running */

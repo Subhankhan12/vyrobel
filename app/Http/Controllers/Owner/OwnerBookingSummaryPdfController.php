@@ -7,7 +7,9 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\OwnerStatement;
 use App\Services\PdfService;
+use App\Support\Exports\ExportAudit;
 use App\Support\Pdf\OwnerBookingSummaryDocument;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -20,12 +22,15 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class OwnerBookingSummaryPdfController extends Controller
 {
-    public function download(string $statement, PdfService $pdf): Response
+    public function download(Request $request, string $statement, PdfService $pdf): Response
     {
         $model = OwnerStatement::query()->findOrFail($statement);
 
         $filename = 'vyrobel-bookings-'.$model->sequence_no.'-'.$model->period_start->format('Y-m').'.pdf';
 
-        return $pdf->download('pdfs.owner-booking-summary', OwnerBookingSummaryDocument::data($model), $filename);
+        // Wave B · GATE 5 — record + watermark the download (who / when), the SAME identity on the file + the log.
+        $watermark = app(ExportAudit::class)->stamp($request, 'booking_summary_pdf', 'Booking summary '.$model->period_start->format('F Y'), (string) $model->id);
+
+        return $pdf->download('pdfs.owner-booking-summary', OwnerBookingSummaryDocument::data($model), $filename, $watermark);
     }
 }

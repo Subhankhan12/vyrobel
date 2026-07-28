@@ -3,7 +3,8 @@
      ({@see OwnerTeamInviteService}), pending revoke + a NEW real resend — every mutation a controller POST behind
      EnsurePrimaryOwner (so /livewire/update can't bypass the gate, #20). The "what each role can see" matrix is REAL
      from OwnerTeamRole::CAPABILITIES (anti-drift with the route gates). Recent activity is TRUTHFUL (real sign-ins +
-     invites, never a fabricated event log). The security note is HONEST — no "watermarked exports" claim (not
+     invites, never a fabricated event log). Wave B · GATE 5: the "watermarked exports" claim is now TRUE — every
+     financial export is stamped with the downloader + recorded in the real download log (ExportDownload). (Old note:
      implemented, #39). Shell from <x-owner.shell active="team">.
      RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click passes through to Alpine). --}}
 <x-owner.shell active="team" title="Team &amp; access" subtitle="Give a co-owner or your accountant their own sign-in — scoped to what they need." :viewer="$viewer">
@@ -205,12 +206,29 @@
                 @endforelse
             </section>
 
-            {{-- Security note — HONEST: no "watermarked exports" claim (not implemented). Separate sign-ins +
-                 role-scoped access + 2-step are all true. --}}
+            {{-- Download log (Wave B · GATE 5) — the REAL financial-export audit: who downloaded what, when. The
+                 SAME identity is watermarked onto every exported PDF/CSV, so the claim below is now TRUE. --}}
+            <section class="vy-card vy-fade" style="animation-delay:.06s">
+                <h2 class="vy-card-title">Export download log</h2>
+                <p class="vy-line-sub" style="font-size:12px;margin:2px 0 12px">Every statement, booking, payout or tax file your team downloads is stamped with who downloaded it — and recorded here.</p>
+                @forelse ($downloads as $d)
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--vy-hairline)">
+                        <div style="min-width:0">
+                            <div style="font-size:13px;font-weight:500;color:var(--vy-ink)">{{ $d['what'] }}</div>
+                            <div style="font-size:11px;color:var(--vy-faint)">{{ $d['who'] }}</div>
+                        </div>
+                        <span style="font-size:11.5px;color:var(--vy-muted);white-space:nowrap">{{ $d['when'] }}</span>
+                    </div>
+                @empty
+                    <div class="vy-empty" style="padding:18px 10px">No exports downloaded yet — they’ll appear here, stamped with who downloaded them.</div>
+                @endforelse
+            </section>
+
+            {{-- Security note — the "watermarked exports" claim is now TRUE (Wave B · GATE 5). --}}
             <section class="vy-tm-sec vy-fade" style="animation-delay:.08s">
                 <span class="vy-tm-sec-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#F7D9C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
                 <h2 class="vy-card-title" style="font-size:15px;color:#fff">Everyone gets their own key</h2>
-                <p style="font-size:12.5px;line-height:1.6;color:#D6C4B8;margin-top:8px">No shared passwords — each person signs in with their own account, and access is scoped to their role. For your own account, turn on 2-step verification.</p>
+                <p style="font-size:12.5px;line-height:1.6;color:#D6C4B8;margin-top:8px">No shared passwords — each person signs in with their own account, and access is scoped to their role. Financial exports are watermarked with who downloaded them and recorded in the log above. For your own account, turn on 2-step verification.</p>
                 <a href="{{ route('owner.security') }}" style="display:inline-flex;align-items:center;gap:7px;margin-top:15px;font-size:12.5px;font-weight:500;color:#F7B98E;text-decoration:none">Security settings<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
             </section>
         </div>
