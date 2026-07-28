@@ -7,6 +7,8 @@ namespace App\Livewire\Owner;
 use App\Http\Controllers\Owner\OwnerPayoutMethodController;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\Owner;
+use App\Models\OwnerPayoutPreference;
+use App\Models\Payout;
 use App\Models\PayoutMethod;
 use App\Services\OwnerPayoutMethodService;
 use App\Support\Payouts\Iban;
@@ -52,6 +54,10 @@ class OwnerPayoutMethod extends Component
             ]);
         }
 
+        // The owner's REAL next pending payout (owner-scoped) for the "Payouts go to" rail — amount only; there
+        // is no scheduled-DATE field, so no estimated date is shown (#39). Empty when nothing is pending.
+        $pending = Payout::query()->where('status', 'pending')->orderByDesc('created_at')->first();
+
         return view('livewire.owner.payout-method', [
             'viewer' => $this->viewer(),
             'linked' => true,
@@ -68,6 +74,22 @@ class OwnerPayoutMethod extends Component
             // Phase 8 · SG3 — the live Stripe Connect rail status.
             'connect_started' => is_string($owner->stripe_connect_account_id) && $owner->stripe_connect_account_id !== '',
             'connect_enabled' => (bool) $owner->stripe_connect_payouts_enabled,
+            // Exact-match additions (all REAL / honest):
+            'preferences' => OwnerPayoutPreference::resolve(),   // the ONE shared prefs resolve (the schedule panel)
+            'nextPayout' => $pending instanceof Payout
+                ? ['has' => true, 'amount_display' => $this->money((int) $pending->amount_minor, (string) $pending->currency)]
+                : ['has' => false, 'amount_display' => null],
+            // Tax & remittance details — the REAL Owner fields the Tax Center edits (one store, #28: tax_id +
+            // vat_number are encrypted at rest; shown to the owner themselves, self-only, co-owner-gated). The
+            // inline form writes them via the SAME owner.tax.save path (anti-drift + the real hold-release).
+            'tax' => [
+                'legal_name' => (string) ($owner->legal_name ?? $owner->name),
+                'type' => (string) ($owner->type ?? 'individual'),
+                'tax_country' => (string) ($owner->tax_country ?? ''),
+                'tax_id' => (string) ($owner->tax_id ?? ''),
+                'vat_number' => (string) ($owner->vat_number ?? ''),
+                'has_tax' => $owner->hasTaxDetails(),
+            ],
         ]);
     }
 }

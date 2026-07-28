@@ -137,10 +137,7 @@ class OwnerPayouts extends Component
      */
     private function preferences(OwnerContext $ctx, string $currency): array
     {
-        $pref = OwnerPayoutPreference::query()->first();   // owner-scoped; null → defaults
-        $data = $pref instanceof OwnerPayoutPreference
-            ? ['frequency' => $pref->frequency, 'payout_day' => $pref->payout_day, 'minimum_minor' => $pref->minimum_minor, 'paused' => $pref->paused]
-            : OwnerPayoutPreference::defaults();
+        $data = OwnerPayoutPreference::resolve();   // owner-scoped; null → defaults (the ONE shared resolve)
 
         return [
             'can_manage' => $ctx->can(OwnerTeamRole::CAP_PAYOUT),

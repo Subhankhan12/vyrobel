@@ -4483,3 +4483,57 @@ owner-scoped, reconciling data; occupancy card/stats + masked IBAN (CAP_PAYOUT) 
 breakdown Σ == net and by-unit Σ == net (page) / gross (PDF) to the cent (#17); page + PDF share the ONE
 `OwnerStatementBreakdown` (can't drift); NO guest data on either surface (#28); exports are CAP_EXPORTS controller routes,
 the IBAN CAP_PAYOUT-only (#30); no "payment & ops fees" line and no estimated payout date invented (#39). **Invariants #1–57.**
+
+---
+
+## 2026-07-28 — Owner **Payouts** + **Payout Method** rebuilt wireframe-exact — real where real, honest where account-gated (#58)
+
+⚠️ REAL MONEY + REAL BANKING. The owner **Payouts** (`/owner/payouts`, `OwnerPayouts`) and **Payout Method**
+(`/owner/payout-method`, `OwnerPayoutMethod`) pages rebuilt to their decoded wireframes (`Owner Payouts.html`,
+`Owner Payout Method.html`) EXACTLY — design + behaviour — with REAL payout data + real actions where they exist, and
+HONEST labelling of the account-gated banking. Read-only PHASE-1 audit first (`docs/OWNER-PAYOUTS-AUDIT.md`, with a per-
+element REAL-NOW / ACCOUNT-GATED / NOT-BUILT classification), founder-approved with four decisions, then two gated builds.
+The load-bearing rule here: **never fabricate a payout, a bank-account verification, a micro-deposit, or a bank detail** —
+a fake is dangerous, not just dishonest. Suite **1071 → 1073**; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean.
+
+**The decisive investigation (real vs account-gated).** Far more is REAL than the register's old "account-gated #45"
+implied: payout **history / KPIs / the reconciling next-payout breakdown (#17) / the lifecycle stepper (real states only) /
+the remittance PDF** are real; the whole **bank-account CRUD** (add/set-default/remove — IBAN **encrypted**, mod-97-validated,
+**masked** #28, self-only, `$capPayout` co-owner) is real; **Stripe Connect onboarding** is real **test-mode** (`OwnerConnectController`;
+`stripe_connect_payouts_enabled` flips on the `account.updated` webhook — the live-key flip is Subhan's). Genuinely
+account-gated (the live banking rail): micro-deposit **verification** (there is NO verification column — a "Verified"
+badge would be fabrication), the live **transfer** rail, **SEPA tracing**, the 48h default-**hold**. Not-built: payout
+**preferences** (no store) + the **projected** upcoming schedule (no forecast).
+
+**GATE 1 — the Payouts PAGE (`7c343a6`).** Wireframe-exact: the on-hold banner now surfaces the REAL **tax-hold** (a
+pending payout + no tax details → "Add tax details"), never a fabricated "verification pending"; the dark rail's **masked
+IBAN pill** (`OwnerNextPayout`, #28, CAP_PAYOUT only); the real **payout-account card** (default `PayoutMethod` + Manage);
+a real payout-history **Export CSV** (`owner.payouts.export`, CAP_EXPORTS); and a **NEW real preferences store** (D-PAY-2)
+— `owner_payout_preferences` (frequency · business-day · minimum · pause) via `owner.payouts.preferences` (a `$capPayout`
+controller route, #20; co-owner writes, others read-only), labelled honestly as a preference (never a fake schedule/date).
+The projections stay an honest "not yet available".
+
+**GATE 2 — the Payout Method PAGE.** Wireframe-exact: the account list (masked IBAN, default radio, set-default, remove),
+the Add-account form, the **Connect Stripe** banner (test-mode), the dark **PAYOUTS GO TO** rail (real default + next-payout
+amount, no fabricated date), the **Payout schedule** (the shared preferences store), and the **Tax & remittance details**
+inline (D-PAY-3) — real `Owner` fields (type · legal_name · tax_id · vat_number · tax_country) written via the ONE
+`owner.tax.save` path (anti-drift + the real hold-release; tax_id/vat encrypted #28). The account-gated banking
+(micro-deposit **verification**, **SEPA** tracing, the 48h **hold**) is the EXACT design labelled honestly pending the live
+banking connection — **never a fake Verified / deposit / trace**. The **remittance PDF** payee now prints the owner's
+registered `legal_name` when set (fed by the tax details), else the display name.
+
+**Decisions (founder-approved).** **D-PAY-1** — seed a flagged, mod-97-VALID demo payout method (Revolut Business · LT
+IBAN, encrypted, masked ···1000) so the pages demo a real masked IBAN, WITHOUT tax details (so the tax-hold "Paused" +
+"Add tax details" attention stay; only "confirm bank account" resolves). **D-PAY-2** — a real owner-scoped payout-preferences
+store (a preference, not a schedule engine — the actual cadence/execution is confirmed with the operator + the live rail).
+**D-PAY-3** — the tax & remittance details are editable inline on Payout Method but write via the ONE `owner.tax.save`
+path (ONE store, two entry points; feeds the remittance PDF; registered address stays omitted — not modelled). **D-PAY-4**
+— the account-gated banking is the EXACT design, honestly labelled pending the live connection, NEVER faked; the on-hold
+banner surfaces ONLY the real tax-hold.
+
+**Invariant #58 — Owner Payouts + Payout Method exact-match:** both pages match their wireframes on REAL / honest data;
+REAL wired (history/breakdown/remittance + masked IBAN [#28, CAP_PAYOUT] + bank-account CRUD + Stripe Connect [test-mode] +
+a real preferences store + inline tax details via the shared write); the account-gated banking (verification / live
+transfer / SEPA / 48h-hold) is reproduced EXACTLY, labelled pending-live, and **NEVER faked** (no fake verify/deposit/
+payout/schedule); writes are `$capPayout`/`$capActions` controller routes (#20/#28/#42), IBAN masked never full (#28),
+reconciling to the cent (#17), nothing fabricated (#39). **Invariants #1–58.**

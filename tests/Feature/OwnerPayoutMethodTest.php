@@ -149,14 +149,54 @@ it('fails closed for a non-linked user and defers the live rail honestly', funct
     $s = seedScenario(1);
     $a = pmOwner($s, 0, 'Amara Okafor');
 
-    // Phase 8 — the live Stripe Connect rail: a real "Connect Stripe" onboarding, NO fabricated verification state.
+    // Phase 8 — the live Stripe Connect rail: a real "Connect Stripe" onboarding. Verification is honestly
+    // labelled as pending the LIVE banking connection — NEVER a fabricated ACTIVE verification (no fake
+    // "Verified" badge, no "Verifying"/"deposits sent" micro-deposit flow).
     $this->actingAs($a['user'])->get('/owner/payout-method')
         ->assertOk()
         ->assertSee('Connect Stripe')
         ->assertSee(route('owner.payout-method.connect'), false)
-        ->assertDontSee('micro-deposit');
+        ->assertSee('live banking connection')       // the honest pending-live label
+        ->assertDontSee('Verifying')
+        ->assertDontSee('deposits sent');
 
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
     $this->actingAs($stranger)->get('/owner/payout-method')->assertOk()->assertSee('No owner account is linked');
+});
+
+// ── Exact-match: the rebuilt page renders the real account + schedule + tax form + payouts-go-to ───
+it('renders the real account (masked), the schedule, the tax form and the payouts-go-to rail', function () {
+    $s = seedScenario(1);
+    $a = pmOwner($s, 0, 'Amara Okafor');
+    addMethod($this, $a['user'], VALID_IBAN, 'Amara Okafor', 'Revolut Business');
+
+    $this->actingAs($a['user'])->get('/owner/payout-method')
+        ->assertOk()
+        ->assertSee('Revolut Business')
+        ->assertSee('···· 5432')                     // masked IBAN (#28)
+        ->assertDontSee(VALID_IBAN)                  // never the full number
+        ->assertSee('Payout schedule')               // the shared preferences store
+        ->assertSee('Tax &amp; remittance details', false)   // the inline tax form
+        ->assertSee(route('owner.payouts.preferences'))      // schedule → the real prefs route
+        ->assertSee(route('owner.tax.save'))                 // tax details → the shared write path
+        ->assertSee('Payouts go to');                // the dark default-account rail
+});
+
+// ── Exact-match: the inline tax form writes the REAL Owner fields via the shared owner.tax.save path ──
+it('saves tax & remittance details from the payout-method page via the shared write', function () {
+    $s = seedScenario(1);
+    $a = pmOwner($s, 0, 'Amara Okafor');
+
+    // The inline form's action is owner.tax.save (co-owner via $capActions); the co-owner can submit it.
+    $this->actingAs($a['user'])->post(route('owner.tax.save'), [
+        'type' => 'company', 'legal_name' => 'Seaside Group Ltd',
+        'tax_id' => '501234567', 'vat_number' => 'PT501234567', 'tax_country' => 'Portugal',
+    ])->assertRedirect();
+
+    $owner = $a['owner']->fresh();
+    expect((string) $owner->legal_name)->toBe('Seaside Group Ltd')
+        ->and((string) $owner->type)->toBe('company')
+        ->and((string) $owner->tax_id)->toBe('501234567')        // decrypts back (encrypted at rest, #28)
+        ->and($owner->hasTaxDetails())->toBeTrue();              // a valid tax ID releases the hold
 });

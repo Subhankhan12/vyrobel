@@ -6,6 +6,42 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
+> ⭐⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v4) · owner PAYOUTS + PAYOUT METHOD exact-match (#58; ⚠️ real money + real
+> banking). This block SUPERSEDES every block below it (all kept as historical detail). Fresh-session entry point:
+> `docs/RESUME.md` → this block → `docs/DECISIONS.md`.**
+>
+> **The owner-page wireframe-exact-match track added its 5th + 6th surfaces: the owner Payouts (`/owner/payouts`) + Payout
+> Method (`/owner/payout-method`) pages (`docs/OWNER-PAYOUTS-AUDIT.md`, DECISIONS 2026-07-28 #58, DIVERGENCE rows 130/136).**
+> A read-only PHASE-1 audit first classified EVERY element REAL-NOW / ACCOUNT-GATED / NOT-BUILT (load-bearing here — a fake
+> bank verification or payout is dangerous, not just dishonest), founder-approved with four decisions, then two gated
+> builds. **Both pages match their wireframes EXACTLY, real where real, honest where account-gated, nothing faked.**
+> - **REAL (wired):** payout **history / KPIs / the reconciling next-payout breakdown (#17) / the lifecycle stepper (real
+>   states only) / the remittance PDF**; the **masked payout IBAN** (`OwnerNextPayout`, #28, CAP_PAYOUT-only); the whole
+>   **bank-account CRUD** (add/set-default/remove — encrypted IBAN, mod-97-validated, self-only, `$capPayout`); **Stripe
+>   Connect onboarding** (`OwnerConnectController`, test-mode; live enablement flips on the `account.updated` webhook — the
+>   live-key flip is Subhan's); a NEW real **payout-preferences store** (`owner_payout_preferences` — frequency/day/minimum/
+>   pause via `owner.payouts.preferences`, a `$capPayout` controller route #20) shown on both pages; the **payout-history
+>   Export CSV**; and the **Tax & remittance details** inline on Payout Method (real `Owner` fields via the ONE
+>   `owner.tax.save` path — anti-drift + the real hold-release; feeds the remittance PDF, now printing `legal_name`).
+> - **HONEST account-gated (exact design, labelled pending the live banking connection, NEVER faked):** micro-deposit
+>   **verification** (no verification column → no fake "Verified"/"Verifying"/"deposits sent"), the live **transfer** rail,
+>   **SEPA** tracing, the 48h default-**hold**. The on-hold banner surfaces ONLY the real **tax-hold** (pending payout +
+>   no tax details), never a fabricated "verification pending". The projected upcoming schedule stays "not yet available".
+> - **Demo (D-PAY-1):** a flagged, mod-97-VALID default payout method (Revolut Business · LT IBAN, encrypted, masked
+>   ···1000) — WITHOUT tax details, so the tax-hold "Paused" + "Add tax details" attention demo stays intact.
+> - **Verified:** suite **1073 tests / 8324 assertions green** (`OwnerPayoutsViewTest` 2→6 + `OwnerPayoutMethodTest` 7→9);
+>   PHPStan **L5 = 0**; Pint clean; `migrate:fresh --seed` clean; both pages browser-verified; the preferences + inline-tax
+>   writes proven. 🔒 IBAN masked never full (#28), writes `$capPayout`/`$capActions` controller routes (#20/#42),
+>   reconciling to the cent (#17), nothing fabricated (#39). **Invariants #1–58.**
+>
+> **The owner-page exact-match track has now shipped Overview (#54) · My Units + Add Unit (#55) · Bookings + Booking-Summary
+> PDF (#56) · Statement + Statement PDF (#57) · Payouts + Payout Method (#58).** Remaining built-but-not-yet-exact-matched:
+> EARNINGS — Balance/Expenses/Tax-center · MANAGE — Reports/Insights/Rates/Reviews/Agreement/Messages · ACCOUNT —
+> Settings/Security/Team. Everything else below is current (tenant Phases 0–7 + polish COMPLETE; email + live Stripe
+> test-mode-proven; the Super Admin panel complete + audited). No launch-blocking build remains.
+>
+> ---
+>
 > ⭐⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-28 (v3) · owner STATEMENT exact-match (page + PDF, #57). This block SUPERSEDES every
 > block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
 > `docs/DECISIONS.md`.**

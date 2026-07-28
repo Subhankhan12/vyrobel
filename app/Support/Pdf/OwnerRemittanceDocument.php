@@ -62,7 +62,9 @@ final class OwnerRemittanceDocument
 
         return [
             'operator' => (string) (Organization::query()->whereKey($payout->organization_id)->value('name') ?? 'Vyrobel'),
-            'owner_name' => (string) ($payout->owner->name ?? 'Owner'),
+            // The payee is the owner's REGISTERED legal name when set (from the Tax & remittance details), else
+            // their display name — so the remittance advice prints the same payee the owner captured.
+            'owner_name' => (string) ($payout->owner?->legal_name ?: ($payout->owner->name ?? 'Owner')),
             'currency' => $currency,
 
             // ── The payout — REAL columns; the enums supply every word ──────────────────────────────

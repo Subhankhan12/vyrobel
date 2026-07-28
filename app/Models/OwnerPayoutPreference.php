@@ -60,6 +60,21 @@ class OwnerPayoutPreference extends Model
         return ['frequency' => 'monthly', 'payout_day' => 3, 'minimum_minor' => 0, 'paused' => false];
     }
 
+    /**
+     * The current owner's preference (owner-scoped by the global scope) as a plain array, or the defaults when
+     * none is set — the ONE resolve read by BOTH the Payouts page and the Payout Method schedule (anti-drift).
+     *
+     * @return array{frequency: string, payout_day: int, minimum_minor: int, paused: bool}
+     */
+    public static function resolve(): array
+    {
+        $pref = static::query()->first();
+
+        return $pref instanceof self
+            ? ['frequency' => $pref->frequency, 'payout_day' => $pref->payout_day, 'minimum_minor' => $pref->minimum_minor, 'paused' => $pref->paused]
+            : static::defaults();
+    }
+
     /** A human label for a frequency value. */
     public static function frequencyLabel(string $frequency): string
     {

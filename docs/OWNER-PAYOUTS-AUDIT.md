@@ -163,3 +163,52 @@ the whole bank-account CRUD + Stripe Connect (test-mode) are real; a small real 
 CSV, a preferences store, and inline tax details. The genuinely account-gated banking (micro-deposit **verification**, the
 live **transfer** rail, SEPA **tracing**, the 48h **hold**) is reproduced EXACTLY but labelled honestly pending the live
 connection — and **never faked**, because here a fake is dangerous.
+
+---
+
+## 7. BUILD LOG — GATE 1 (Payouts page) ✅ COMPLETE (commit `7c343a6`)
+Shipped to §6's plan; honesty held. The Payouts page (`/owner/payouts`) is wireframe-exact on REAL / honest data:
+- **REAL** — the on-hold banner now surfaces the REAL **tax-hold** (a pending payout + no tax details → "Add tax
+  details" → Tax Center), never a fabricated "verification pending"; the dark rail's **masked IBAN pill** (`Iban::masked`,
+  #28, CAP_PAYOUT only via the shared `OwnerNextPayout`); the **payout-account card** (real default `PayoutMethod` +
+  Manage → payout-method); a real payout-history **Export CSV** (`owner.payouts.export`, owner-scoped, CAP_EXPORTS); the
+  KPIs / history / lifecycle stepper / reconciling breakdown / remittance PDF (real, unchanged).
+- **NEW real store (D-PAY-2)** — `owner_payout_preferences` (frequency · business-day · minimum · pause) via an editable
+  form → `owner.payouts.preferences` (a `$capPayout` controller route, #20; co-owner only). Currency stays the real
+  `owner.payout_currency`. Labelled honestly as a PREFERENCE (the actual date/release is confirmed with the operator + the
+  live rail — never a fake schedule, #39). A non-payout role sees it read-only.
+- **HONEST** — the upcoming-schedule PROJECTIONS stay "not yet available" (no forecast engine).
+- **Demo (D-PAY-1)** — a flagged, mod-97-VALID default payout method (Revolut Business · LT IBAN, encrypted, masked
+  ···1000); NO tax details → the tax-hold "Paused" + "Add tax details" attention stay (only "confirm bank account" resolves).
+- **Verification:** suite **1071/8308**; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean; browser-verified (real
+  banner, IBAN ···1000, preferences save persisted `twice_monthly`). Tests: `OwnerPayoutsViewTest` 2→6 (tax-hold banner ·
+  masked-IBAN CAP_PAYOUT gating · preferences save + gating · export owner-scoped + CAP_EXPORTS). Fixed a page-scoped
+  CSS-comment word-leak ("On-hold" in a `/* */` comment tripped an isolation `assertDontSee`).
+
+## 8. BUILD LOG — GATE 2 (Payout Method page) ✅ COMPLETE
+Shipped to §6's plan; the account-gated banking is reproduced EXACTLY + honestly, never faked:
+- **REAL** — the bank-account list (masked IBAN #28, the default marked by a radio, set-default, remove), the **Add a
+  bank account** form (encrypted, mod-97-validated, self-only, $capPayout), the **Stripe Connect** onboarding banner
+  (test-mode; live enablement flips on the `account.updated` webhook — Subhan's cutover), the dark **PAYOUTS GO TO** rail
+  (real default account + real next-payout amount; NO fabricated date), the **Payout schedule** (the shared
+  `OwnerPayoutPreference` store), and the **Tax & remittance details** inline (D-PAY-3) — real `Owner` fields (type ·
+  legal_name · tax_id · vat_number · tax_country) written via the ONE `owner.tax.save` path (anti-drift + the real
+  hold-release; tax_id/vat encrypted #28).
+- **HONEST account-gated (exact design, labelled pending-live, NEVER faked)** — automated **micro-deposit verification**
+  ("activates with your live banking connection"; no fake "Verified"/"Verifying"/"deposits sent"), the **Protected
+  changes** security policy (micro-deposits + 48h default-hold — with the live rail), and **SEPA tracing** ("Payout not
+  arriving?" → Contact support, the real owner↔operator Messages).
+- **Remittance PDF** — its payee now prints the owner's registered `legal_name` when set (fed by the tax details), else
+  the display name (fallback preserves prior behaviour).
+- **Verification:** suite **1073/8324**; PHPStan L5 = 0; Pint clean; `migrate:fresh --seed` clean; browser-verified (real
+  account ···1000, schedule form, inline tax form, payouts-go-to €885.60, protected-changes). Tests: `OwnerPayoutMethodTest`
+  7→9 (renders real account/schedule/tax/payouts-go-to, never the full IBAN · inline tax save via the shared write) + the
+  live-rail-honesty test updated to assert the pending-live labelling (never a fake active verification).
+
+**Invariant #58 — Owner Payouts + Payout Method exact-match:** both pages match their wireframes on REAL / honest data;
+the REAL parts are wired (payout history/breakdown/remittance + masked IBAN [#28, CAP_PAYOUT] + the bank-account CRUD +
+Stripe Connect [test-mode] + a real payout-preferences store + inline tax details via the shared `owner.tax.save`); the
+account-gated banking (micro-deposit **verification**, the live **transfer** rail, **SEPA** tracing, the 48h **hold**) is
+the EXACT design labelled honestly pending the live connection and **NEVER faked** (no fake verify/deposit/payout/schedule);
+the on-hold banner surfaces ONLY the real tax-hold; writes are `$capPayout`/`$capActions` controller routes (#20/#28/#42),
+IBAN masked never full (#28), reconciling to the cent (#17), nothing fabricated (#39).
