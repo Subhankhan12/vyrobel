@@ -28,6 +28,7 @@ use App\Models\PropertyPolicy;
 use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Reservation;
+use App\Models\Review;
 use App\Models\RoomType;
 use App\Models\Subscription;
 use App\Models\Tag;
@@ -384,6 +385,11 @@ class DemoSeeder extends Seeder
         $reviews->respond($g1Review, 'Thank you so much — it was a pleasure hosting you. Come back soon!');
         $g2Review = $reviews->submit($guest2, $walkIn->fresh(), ['rating' => 4, 'tags' => ['Comfy beds'], 'body' => 'Comfortable and central. Check-in took a little while.']);
         $reviews->publish($g2Review);
+
+        // DEMO ONLY — a spread of REAL published reviews across BOTH owner apartments (A1/A2), most with the
+        // operator's real response + a couple awaiting, `published_at` backdated so the owner Reviews page shows a
+        // real distribution / by-villa / last-30 / response-rate + a real trend. All through the real ReviewService.
+        $this->seedOwnerReviews($property, $apartment, $aptRate, $aptUnits, $vat);
 
         // --- Owner accounting (the wedge) — the demo user IS a property owner of the apartments ---
         // Real + coherent: attribution reads the folios, the statement is a pure ledger projection,
@@ -1191,6 +1197,51 @@ class DemoSeeder extends Seeder
                 // NO OwnerAttributionService call — see the note above (keeps the demo Balance/statements unchanged).
             } catch (\Throwable) {
                 continue;
+            }
+        }
+    }
+
+    /**
+     * DEMO ONLY — a spread of REAL published reviews across BOTH owner apartments (A1/A2), so the owner Reviews
+     * page shows a real distribution / by-villa / last-30 / response-rate + a real trend. Each is a REAL completed
+     * stay reviewed through the certified {@see ReviewService} (submit → publish → optional respond); `published_at`
+     * (and `responded_at`) are backdated for a realistic spread. These stays are NEVER attributed to the owner
+     * ledger (seedOwnerAccounting attributes specific reservations only), so the owner's money figures are unchanged.
+     *
+     * @param  Collection<int, Unit>  $aptUnits
+     */
+    private function seedOwnerReviews(Property $property, RoomType $apartment, RatePlan $aptRate, Collection $aptUnits, Tax $vat): void
+    {
+        $reviews = app(ReviewService::class);
+        $checkout = app(CheckOutReservation::class);
+        $today = CarbonImmutable::today();
+
+        // Publish availability for the PAST window so the review-anchor stays (real completed stays) can be booked
+        // — the default recompute only covers today→+180d.
+        app(AvailabilityService::class)->recompute($apartment->id, $today->subDays(80)->toDateString(), $today->toDateString());
+
+        // [unitIdx, checkIn, checkOut, rating, tags, body, response|null, publishedDaysAgo, source, first, last]
+        $specs = [
+            [1, '2026-07-08', '2026-07-11', 5, ['Spotless', 'Great pool'], 'Immaculate apartment — even better than the photos, and check-in was seamless.', 'Thank you Sofia — it was a pleasure hosting you. Come back in the autumn!', 6, 'direct', 'Sofia', 'Marino'],
+            [0, '2026-07-01', '2026-07-04', 5, ['Perfect location'], 'Perfect base for exploring the coast. The welcome guide in the pack was a real highlight.', 'Obrigado Henrik — the guide gets a summer update. See you next year!', 12, 'ota', 'Henrik', 'Larsson'],
+            [1, '2026-06-20', '2026-06-23', 5, ['Lovely touch'], 'Spotless, stylish and quiet. The welcome basket was a lovely touch.', 'Thanks Marta — so glad the little details landed.', 22, 'direct', 'Marta', 'Ribeiro'],
+            [0, '2026-05-24', '2026-05-27', 3, ['Central'], 'Great location but the dishwasher was out of action during our stay, a hassle for a family of five.', 'We’re sorry about that, Colin — it has been fully replaced, and we’ve added a mid-stay appliance check.', 48, 'ota', 'Colin', 'Doyle'],
+            [1, '2026-07-16', '2026-07-19', 5, ['Best value'], 'Honestly the best value we’ve found on this coast — we’ll be back.', null, 3, 'direct', 'Anna', 'Keller'],
+        ];
+
+        foreach ($specs as $i => [$unitIdx, $checkIn, $checkOut, $rating, $tags, $body, $response, $daysAgo, $source, $first, $last]) {
+            $guest = Guest::create(['first_name' => $first, 'last_name' => $last]);
+            $stay = $this->createDemoStay($source, $property, $apartment, $aptRate, $aptUnits[$unitIdx], $guest, $checkIn, $checkOut, $vat, fullyPaid: true);
+            $checkout->handle($stay);   // → PAST → reviewable
+
+            $review = $reviews->submit($guest, $stay->fresh(), ['rating' => $rating, 'tags' => $tags, 'body' => $body]);
+            $reviews->publish($review);
+            $published = $today->subDays($daysAgo);
+            Review::withoutEvents(fn () => $review->forceFill(['published_at' => $published])->save());
+
+            if ($response !== null) {
+                $reviews->respond($review, $response);
+                Review::withoutEvents(fn () => $review->forceFill(['responded_at' => $published->addHours(3 + $i)])->save());
             }
         }
     }
