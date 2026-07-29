@@ -2,14 +2,26 @@
 
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
+use App\Models\OwnerPayoutPreference;
 use App\Models\Payout;
 use App\Models\PayoutRun;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerStatementService;
 use App\Services\PayoutRunService;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
+
+/** Set an owner's payout preference (engine scheduling fixtures). */
+function setPref(Owner $owner, array $attrs): void
+{
+    OwnerPayoutPreference::create(array_merge([
+        'organization_id' => $owner->organization_id,
+        'owner_id' => $owner->id,
+        'frequency' => 'monthly', 'payout_day' => 3, 'minimum_minor' => 0, 'paused' => false,
+    ], $attrs));
+}
 
 // THE AUTOMATED PAYOUT ENGINE — Phase 1 (run model + state machine, no Stripe; the manual rail).
 // ⚠️ TEST-MODE: nothing here moves real money (the manual rail records; PayoutEngineMode = 'test').
@@ -153,4 +165,71 @@ it('preserves the clearing identity per owner after a run', function () {
     // And the shape is what we expect: one paid, one held.
     expect(payoutSum($paidOwner->id, ['paid']))->toBe(ownerNet($paidOwner->id))
         ->and(payoutSum($heldOwner->id, ['held']))->toBe(ownerNet($heldOwner->id));
+});
+
+// ── 6. SCHEDULE — only owners DUE today are run; a non-due day pays no one ─────────────────────────
+it('runs only owners whose cadence is due today', function () {
+    $s = seedScenario(1);
+    $owner = ownUnit($s['units'][0]);
+    enginePayable($s, $owner);
+    setPref($owner, ['frequency' => 'monthly', 'payout_day' => 3]);   // due on the 3rd business day
+
+    // Not due (2026-09-04 is the 4th business day) → nobody selected, nothing paid.
+    $off = app(PayoutRunService::class)->runScheduled(CarbonImmutable::parse('2026-09-04'));
+    expect($off->owners_selected)->toBe(0)
+        ->and(Payout::query()->where('owner_id', $owner->id)->count())->toBe(0);
+
+    // Due (2026-09-03, the 3rd business day) → the owner is run + paid.
+    $on = app(PayoutRunService::class)->runScheduled(CarbonImmutable::parse('2026-09-03'));
+    expect($on->owners_selected)->toBe(1)
+        ->and($on->payouts_paid)->toBe(1)
+        ->and(Payout::query()->where('owner_id', $owner->id)->where('status', 'paid')->count())->toBe(1);
+});
+
+// ── 7. SCHEDULE — a PAUSED owner is skipped even when due ──────────────────────────────────────────
+it('skips a paused owner even on their due day', function () {
+    $s = seedScenario(1);
+    $owner = ownUnit($s['units'][0]);
+    enginePayable($s, $owner);
+    setPref($owner, ['frequency' => 'monthly', 'payout_day' => 3, 'paused' => true]);
+
+    $run = app(PayoutRunService::class)->runScheduled(CarbonImmutable::parse('2026-09-03'));
+
+    expect($run->owners_selected)->toBe(0)
+        ->and(Payout::query()->where('owner_id', $owner->id)->count())->toBe(0);
+});
+
+// ── 8. SCHEDULE — a below-minimum owner rolls forward; met later → paid ────────────────────────────
+it('skips a below-minimum owner (roll forward), then pays once the minimum is met', function () {
+    $s = seedScenario(1);
+    $owner = ownUnit($s['units'][0]);
+    enginePayable($s, $owner);   // net 17000
+    setPref($owner, ['frequency' => 'monthly', 'payout_day' => 3, 'minimum_minor' => 50000]);
+
+    // 17000 < 50000 → skipped, nothing created (rolls forward).
+    $run1 = app(PayoutRunService::class)->runScheduled(CarbonImmutable::parse('2026-09-03'), 'scheduled:below');
+    expect($run1->owners_selected)->toBe(0)
+        ->and(Payout::query()->where('owner_id', $owner->id)->count())->toBe(0);
+
+    // Owner lowers their minimum → now met → a later run pays.
+    OwnerPayoutPreference::query()->where('owner_id', $owner->id)->update(['minimum_minor' => 10000]);
+    $run2 = app(PayoutRunService::class)->runScheduled(CarbonImmutable::parse('2026-09-03'), 'scheduled:met');
+    expect($run2->payouts_paid)->toBe(1)
+        ->and(Payout::query()->where('owner_id', $owner->id)->where('status', 'paid')->count())->toBe(1);
+});
+
+// ── 9. SCHEDULE — the day's run_key is idempotent (a same-day re-run never double-pays) ────────────
+it('is idempotent per scheduled day — a same-day re-run creates no second payout', function () {
+    $s = seedScenario(1);
+    $owner = ownUnit($s['units'][0]);
+    enginePayable($s, $owner);
+    setPref($owner, ['frequency' => 'monthly', 'payout_day' => 3]);
+
+    $engine = app(PayoutRunService::class);
+    $r1 = $engine->runScheduled(CarbonImmutable::parse('2026-09-03'));
+    $r2 = $engine->runScheduled(CarbonImmutable::parse('2026-09-03'));   // same derived key scheduled:2026-09-03
+
+    expect($r2->id)->toBe($r1->id)
+        ->and($r1->run_key)->toBe('scheduled:2026-09-03')
+        ->and(Payout::query()->where('owner_id', $owner->id)->count())->toBe(1);
 });

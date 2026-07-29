@@ -6,13 +6,16 @@ namespace App\Services;
 
 use App\Exceptions\Owner\PayoutHeldException;
 use App\Models\Owner;
+use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\PayoutRun;
 use App\Payments\Stripe\StripeSafetyGuard;
 use App\Payouts\Contracts\PayoutRail;
 use App\Payouts\PayoutEngineMode;
+use App\Payouts\PayoutSchedule;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -44,8 +47,20 @@ class PayoutRunService
     ) {}
 
     /**
+     * The SCHEDULED entry point (payout engine · Phase 2) — select the owners DUE on `$today` per their
+     * {@see OwnerPayoutPreference} (frequency/business-day, not paused, meeting their minimum) and
+     * run them under the day's idempotency key `scheduled:YYYY-MM-DD` (so a same-day re-run never double-pays).
+     */
+    public function runScheduled(CarbonImmutable $today, ?string $runKey = null): PayoutRun
+    {
+        $dueIds = $this->tenant->runAsSuperAdmin(fn (): array => $this->dueOwnerIds($today));
+
+        return $this->run(PayoutRun::TRIGGER_SCHEDULED, $dueIds, $runKey ?? 'scheduled:'.$today->toDateString());
+    }
+
+    /**
      * Execute a run. Creates + disburses payouts for `$ownerIds` (or every owner with payable work when
-     * null). `$runKey` is the idempotency anchor (default a fresh per-invocation key; Phase 2 passes
+     * null). `$runKey` is the idempotency anchor (default a fresh per-invocation key; scheduled runs pass
      * `scheduled:YYYY-MM-DD`). Returns the completed {@see PayoutRun}.
      *
      * @param  list<string>|null  $ownerIds
@@ -185,5 +200,52 @@ class PayoutRunService
         $ids = $payable->merge($heldOwners)->filter()->unique()->values()->all();
 
         return $ids === [] ? new Collection : Owner::query()->whereIn('id', $ids)->get();
+    }
+
+    /**
+     * The owners DUE on `$today` (payout engine · Phase 2) — from those with payable work (a finalized+locked+
+     * positive statement) or a releasable hold, keep the ones whose {@see OwnerPayoutPreference}: is NOT paused,
+     * fires today per {@see PayoutSchedule::isDue}, and (when they have new payable statements) meets their
+     * `minimum_minor` — a below-minimum owner is SKIPPED and rolls forward to a later run (never a partial pay).
+     * An owner with only a held payout waiting to release is due whenever their cadence fires. Must run under
+     * super-admin (cross-tenant selection).
+     *
+     * @return list<string>
+     */
+    private function dueOwnerIds(CarbonImmutable $today): array
+    {
+        $payableByOwner = OwnerStatement::query()
+            ->where('status', 'finalized')->where('locked', true)->where('net_payable_minor', '>', 0)
+            ->get(['owner_id', 'net_payable_minor'])
+            ->groupBy('owner_id');
+
+        $heldOwnerIds = Payout::query()->where('status', 'held')->distinct()->pluck('owner_id');
+
+        $candidateIds = $payableByOwner->keys()->merge($heldOwnerIds)->filter()->unique();
+
+        $due = [];
+
+        foreach ($candidateIds as $ownerId) {
+            $ownerId = (string) $ownerId;
+            $pref = OwnerPayoutPreference::query()->where('owner_id', $ownerId)->first();
+            $prefs = $pref instanceof OwnerPayoutPreference
+                ? ['frequency' => $pref->frequency, 'payout_day' => $pref->payout_day, 'minimum_minor' => $pref->minimum_minor, 'paused' => $pref->paused]
+                : OwnerPayoutPreference::defaults();
+
+            if ($prefs['paused'] || ! PayoutSchedule::isDue($prefs, $today)) {
+                continue;
+            }
+
+            // Minimum threshold — Σ payable net (owner's single payout currency). A held-only owner has 0 new
+            // payable and is never blocked by the minimum (their existing hold is simply released + paid).
+            $payableSum = (int) ($payableByOwner->get($ownerId)?->sum('net_payable_minor') ?? 0);
+            if ($payableSum > 0 && $payableSum < (int) $prefs['minimum_minor']) {
+                continue;   // below minimum → roll forward
+            }
+
+            $due[] = $ownerId;
+        }
+
+        return $due;
     }
 }

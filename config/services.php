@@ -108,6 +108,12 @@ return [
     */
     'payouts' => [
         'rail' => env('PAYOUTS_RAIL', 'manual'),
+
+        // The automated payout ENGINE (scheduled runs). OFF by default: the scheduler entry is inert until
+        // deliberately enabled, so a fresh deploy never auto-pays. Enabling it runs in TEST MODE unless a live
+        // Stripe key + production are also configured (see PayoutEngineMode / StripeSafetyGuard). Turning it on
+        // for real money is the founder's documented go-live step (docs/STRIPE-PRODUCTION.md).
+        'engine_enabled' => env('PAYOUT_ENGINE_ENABLED', false),
     ],
 
     /*

@@ -19,3 +19,8 @@ Schedule::command('emails:send-payment-reminders')->dailyAt('09:00');
 // Super Admin · Build 2 · Gate 1 — PRIVACY RETENTION: purge login-activity security-signal rows (IP + all)
 // older than 90 days, daily (GDPR — security-monitoring purpose, limited retention). See PrunePlatformActivity.
 Schedule::command('platform:prune-activity')->daily();
+
+// Payout engine (Phase 2) — the automated owner payout run, daily. INERT unless PAYOUT_ENGINE_ENABLED is on
+// (the command self-guards), and TEST-MODE unless live keys + production. The command selects owners due today
+// per their payout preferences and disburses via the certified PayoutRunService. ⚠️ Real money only at go-live.
+Schedule::command('payouts:run')->dailyAt('06:00');
