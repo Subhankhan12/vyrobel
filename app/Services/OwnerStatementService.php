@@ -35,11 +35,12 @@ class OwnerStatementService
         'expense' => 'expenses',
         'ota_cost' => 'ota_cost',
         'payment_fee' => 'payment_fee',
+        'withholding' => 'withholding',
         'adjustment' => 'adjustments',
     ];
 
     /** Presentation order for the component lines (net is appended last). */
-    private const LINE_ORDER = ['gross', 'other_revenue', 'commission', 'management_fee', 'expenses', 'ota_cost', 'payment_fee', 'adjustments'];
+    private const LINE_ORDER = ['gross', 'other_revenue', 'commission', 'management_fee', 'expenses', 'ota_cost', 'payment_fee', 'withholding', 'adjustments'];
 
     private const LINE_TYPE = [
         'gross' => 'gross',
@@ -49,6 +50,7 @@ class OwnerStatementService
         'expenses' => 'expense',
         'ota_cost' => 'ota_cost',
         'payment_fee' => 'payment_fee',
+        'withholding' => 'withholding',
         'adjustments' => 'prior_period_adjustment',
     ];
 
@@ -60,6 +62,7 @@ class OwnerStatementService
         'expenses' => 'Deductible expenses',
         'ota_cost' => 'OTA commission',
         'payment_fee' => 'Payment & ops fees',
+        'withholding' => 'Withholding tax',
         'adjustments' => 'Prior-period adjustments',
     ];
 
@@ -108,6 +111,12 @@ class OwnerStatementService
         $owner = Owner::query()->findOrFail($statement->owner_id);
 
         return DB::transaction(function () use ($statement, $owner, $finalizedBy, $fxRate, $fxSource): OwnerStatement {
+            // Wave D · tax engine — post this owner's WITHHOLDING for the period (if a rate is configured) BEFORE
+            // claiming, so the certified projection claims it into the withholding bucket → net drops → the payout
+            // is genuinely smaller, reconciling (#17). No rate → nothing posted (genuine €0). Applied at finalize
+            // (the locked figure); the draft is a pre-withholding preview.
+            app(WithholdingService::class)->apply($owner, $statement->period_start->toDateString(), $statement->period_end->toDateString());
+
             $claimed = $this->claimable((string) $statement->owner_id, $statement->period_end->toDateString());
 
             $this->applyProjection(
@@ -185,6 +194,7 @@ class OwnerStatementService
         $statement->expenses_minor = $buckets['expenses'];
         $statement->ota_cost_minor = $buckets['ota_cost'];
         $statement->payment_fee_minor = $buckets['payment_fee'];
+        $statement->withholding_minor = $buckets['withholding'];
         $statement->adjustments_minor = $buckets['adjustments'];
         $statement->net_source_minor = $netSource;
         $statement->fx_rate = $sameCurrency ? null : (float) $fxRate;
@@ -202,7 +212,7 @@ class OwnerStatementService
      */
     private function buckets(Collection $claimed, string $periodStart): array
     {
-        $buckets = ['gross' => 0, 'other_revenue' => 0, 'commission' => 0, 'management_fee' => 0, 'expenses' => 0, 'ota_cost' => 0, 'payment_fee' => 0, 'adjustments' => 0];
+        $buckets = ['gross' => 0, 'other_revenue' => 0, 'commission' => 0, 'management_fee' => 0, 'expenses' => 0, 'ota_cost' => 0, 'payment_fee' => 0, 'withholding' => 0, 'adjustments' => 0];
 
         foreach ($claimed as $line) {
             $isPrior = $line->prior_period_adjustment === true

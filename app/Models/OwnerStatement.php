@@ -42,6 +42,7 @@ class OwnerStatement extends Model
         'expenses_minor',
         'ota_cost_minor',
         'payment_fee_minor',
+        'withholding_minor',
         'adjustments_minor',
         'net_source_minor',
         'fx_rate',

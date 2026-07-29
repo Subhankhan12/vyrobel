@@ -138,7 +138,7 @@ class OwnerTaxService
 
         $grossMinor = 0;
         $netMinor = 0;
-        $buckets = ['commission_minor' => 0, 'management_fee_minor' => 0, 'ota_cost_minor' => 0, 'payment_fee_minor' => 0, 'expenses_minor' => 0, 'adjustments_minor' => 0];
+        $buckets = ['commission_minor' => 0, 'management_fee_minor' => 0, 'ota_cost_minor' => 0, 'payment_fee_minor' => 0, 'withholding_minor' => 0, 'expenses_minor' => 0, 'adjustments_minor' => 0];
         $months = [];
 
         foreach ($statements as $statement) {
@@ -178,6 +178,7 @@ class OwnerTaxService
                 ['label' => 'Management fees', 'minor' => $buckets['management_fee_minor']],
                 ['label' => 'Channel / OTA commissions', 'minor' => $buckets['ota_cost_minor']],
                 ['label' => 'Payment & ops fees', 'minor' => $buckets['payment_fee_minor']],
+                ['label' => 'Withholding tax', 'minor' => $buckets['withholding_minor']],
                 ['label' => 'Expenses & cleaning', 'minor' => $buckets['expenses_minor']],
                 ['label' => 'Prior-period adjustments', 'minor' => $buckets['adjustments_minor']],
             ],
