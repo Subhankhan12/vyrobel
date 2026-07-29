@@ -15,6 +15,7 @@ use App\Services\InboxService;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -84,12 +85,40 @@ class OwnerMessages extends Component
         $filter = $this->resolveFilter();
         $search = $this->resolveQuery();
 
+        // Mark the opened thread read FIRST — an EXPLICIT open (?c=…), never the default preview — so the rail's
+        // per-row badge AND the unread count computed just below reflect it on THIS request, not one navigation
+        // late. The explicit id comes straight from the query (owner-scoped find → cross-owner/guest = null), so
+        // this needs no $rows. Only owner_last_read_at moves (never the operator's counter).
+        $explicitId = is_string(request()->query('c')) && request()->query('c') !== '' ? request()->query('c') : null;
+        $explicitThread = $explicitId !== null ? MessageThread::query()->find($explicitId) : null;
+        if ($explicitThread !== null) {
+            app(InboxService::class)->markReadByOwner($explicitThread);
+        }
+
         $rows = $this->rows($filter, $search);
 
         // The owner's TRUE total, ignoring filter + search — it distinguishes "no conversations" from "your
         // filter matched none", which are different empty states with different advice.
         $total = MessageThread::query()->count();
         $unread = $this->unreadThreadCount();
+
+        // The 3-pane layout (exact-match): the conversation rail + the ACTIVE thread pane. The active thread is
+        // ?c={id} (an explicit open) or the filtered-list default; ?compose={staffId} switches to a NEW conversation.
+        $staff = $this->staffDirectory();
+        $composeStaff = $this->resolveComposeStaff($staff);
+        $active = null;
+        $messages = [];
+        if ($composeStaff === null) {
+            // ?c wins; otherwise default the pane to the first thread IN THE FILTERED/SEARCHED list (never a
+            // globally-latest thread the current filter hid) — so the pane and the rail always agree.
+            $activeThread = $explicitThread ?? $this->resolveActiveThread($rows[0]['id'] ?? null);
+            if ($activeThread !== null) {
+                $msgs = Message::query()->where('thread_id', $activeThread->getKey())
+                    ->with('author')->orderBy('created_at')->orderBy('id')->get();
+                $active = $this->activeCard($activeThread);
+                $messages = $this->transcript($msgs);
+            }
+        }
 
         return view('livewire.owner.messages', [
             'viewer' => $this->viewer(),
@@ -99,8 +128,117 @@ class OwnerMessages extends Component
             'filter' => $filter,
             'query' => $search,
             'subtitle' => $this->subtitle($total, $unread),
-            'staff' => $this->staffDirectory(),
+            'staff' => $staff,
+            'active' => $active,
+            'messages' => $messages,
+            'composeStaff' => $composeStaff,
+            'quickReplies' => ['When is my next payout?', 'Can I block dates for personal use?', 'Send me the tax summary'],
         ]);
+    }
+
+    // ── The active thread pane (unified 3-pane) ──────────────────────────────────────────────────
+
+    /** The thread to show: ?c={id} (owner-scoped → cross-owner/guest 404s to null), else the filtered-list default. */
+    private function resolveActiveThread(?string $defaultId): ?MessageThread
+    {
+        $param = request()->query('c');
+        $id = is_string($param) && $param !== '' ? $param : $defaultId;
+
+        return $id !== null ? MessageThread::query()->find($id) : null;   // owner-scoped; null if not the owner's
+    }
+
+    /**
+     * ?compose={staffId} → the picked back-office staff (a NEW conversation), or null. NEVER a guest — the id
+     * must match a real back-office member of this org.
+     *
+     * @param  list<array{id: string, name: string, role: string, initials: string}>  $staff
+     * @return array{id: string, name: string, role: string, initials: string}|null
+     */
+    private function resolveComposeStaff(array $staff): ?array
+    {
+        $param = request()->query('compose');
+        if (! is_string($param) || $param === '') {
+            return null;
+        }
+
+        foreach ($staff as $member) {
+            if ($member['id'] === $param) {
+                return $member;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The active thread's header card — the REAL staff correspondent (name + back-office role), never a guest.
+     *
+     * @return array{id: string, name: string, role: string, initials: string, first_name: string, subject: string|null}
+     */
+    private function activeCard(MessageThread $thread): array
+    {
+        $correspondent = $this->correspondent($thread);
+
+        return [
+            'id' => (string) $thread->getKey(),
+            'name' => $correspondent['name'],
+            'role' => $correspondent['role'],
+            'initials' => $this->initials($correspondent['name']),
+            'first_name' => explode(' ', $correspondent['name'])[0],
+            'subject' => $thread->subject,
+        ];
+    }
+
+    /**
+     * The transcript, MIRRORED for the owner (inbound = the owner's own message) with day separators + the
+     * honest failed state. No fabricated read-receipt/presence here — GATE 2 adds the real reply/attachment/
+     * reaction/read/star/pin.
+     *
+     * @param  Collection<int, Message>  $messages
+     * @return list<array<string, mixed>>
+     */
+    private function transcript($messages): array
+    {
+        $rows = [];
+        $lastDay = null;
+
+        foreach ($messages as $message) {
+            $at = $message->created_at !== null ? CarbonImmutable::parse($message->created_at) : null;
+            $day = $at?->toDateString();
+
+            $rows[] = [
+                'id' => (string) $message->getKey(),
+                'mine' => $message->direction === 'inbound',   // MIRRORED: inbound = into the org = the OWNER
+                'body' => (string) $message->body,
+                'author' => $message->direction === 'inbound'
+                    ? 'You'
+                    : ($message->author instanceof User ? (string) $message->author->name : ((string) $message->sender_label ?: 'Your management team')),
+                'time' => $at?->format('H:i') ?? '',
+                'meta' => ($message->direction === 'inbound' ? 'You' : ($message->author instanceof User ? explode(' ', (string) $message->author->name)[0] : 'Team')).' · '.($at?->format('j M, H:i') ?? ''),
+                'day_label' => $day !== $lastDay && $at !== null ? $this->dayLabel($at) : null,
+                'failed' => $message->direction === 'inbound' && $message->delivery_status === 'failed',
+            ];
+
+            if ($at !== null) {
+                $lastDay = $day;
+            }
+        }
+
+        return $rows;
+    }
+
+    /** "Today" / "Yesterday" / "12 September" — the thread's day separator. */
+    private function dayLabel(CarbonImmutable $at): string
+    {
+        $today = CarbonImmutable::today();
+        if ($at->isSameDay($today)) {
+            return 'Today';
+        }
+        if ($at->isSameDay($today->subDay())) {
+            return 'Yesterday';
+        }
+
+        return $at->format('j F').($at->year !== $today->year ? ' '.$at->year : '');
     }
 
     // ── Request state ────────────────────────────────────────────────────────────────────────────
@@ -226,6 +364,17 @@ class OwnerMessages extends Component
         $author = $reply?->author;
 
         if ($author === null) {
+            // Nobody has replied yet. If the owner COMPOSED to a specific member, the thread is really
+            // `assigned_to` them — name that person (a real, allow-list-checked back-office user), so the header
+            // reflects who the owner addressed, matching the wireframe. Unassigned → honestly the whole team.
+            $assignee = $this->assignedStaff($thread);
+            if ($assignee !== null) {
+                return [
+                    'name' => (string) $assignee->name,
+                    'role' => $this->staffRole($assignee) ?? 'Awaiting a reply',
+                ];
+            }
+
             return ['name' => 'Your management team', 'role' => 'No one has replied yet'];
         }
 
@@ -235,6 +384,29 @@ class OwnerMessages extends Component
             // design invented as free text (there is no staff↔property assignment behind it).
             'role' => $this->staffRole($author) ?? 'Your management team',
         ];
+    }
+
+    /**
+     * The back-office member this thread is ASSIGNED to (the compose recipient), or null.
+     *
+     * Re-resolved through the tenant scope + the back-office allow-list — never trusted from the column alone —
+     * so a stale/foreign/de-roled `assigned_to` degrades to null (→ "Your management team"), never to a name
+     * the owner should not see. Same guard the compose controller applies when it writes `assigned_to`.
+     */
+    private function assignedStaff(MessageThread $thread): ?User
+    {
+        $assignedTo = $thread->assigned_to;
+        if (! is_string($assignedTo) || $assignedTo === '') {
+            return null;
+        }
+
+        $backOffice = (array) config('authorization.back_office_roles');
+        $user = User::query()
+            ->whereKey($assignedTo)
+            ->whereIn('id', Membership::query()->where('status', 'active')->pluck('user_id'))
+            ->first();
+
+        return $user !== null && $user->hasAnyRole($backOffice) ? $user : null;
     }
 
     /** A staff user's real spatie role in THIS org, or null. Team-scoped, so it cannot read another org's roles. */

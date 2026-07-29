@@ -158,7 +158,6 @@ use App\Livewire\Owner\OwnerExpenses;
 use App\Livewire\Owner\OwnerHelp;
 use App\Livewire\Owner\OwnerInsights;
 use App\Livewire\Owner\OwnerMessages;
-use App\Livewire\Owner\OwnerMessageThread;
 use App\Livewire\Owner\OwnerMyUnits;
 use App\Livewire\Owner\OwnerNotificationPreferences;
 use App\Livewire\Owner\OwnerNotifications;
@@ -177,6 +176,7 @@ use App\Livewire\Owner\OwnerWelcome;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
 use App\Livewire\UnitsList;
+use App\Models\MessageThread;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Support\Facades\Route;
 
@@ -743,7 +743,14 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // The reply is a REAL message via InboxService::postOwnerMessage() (inbound = into the org), never a
     // fake send. {thread} is a plain string resolved in the component/controller (never RMB).
     Route::get('/messages', OwnerMessages::class)->name('messages');
-    Route::get('/messages/{thread}', OwnerMessageThread::class)->name('messages.show');
+    // The thread is now a pane IN the unified 3-pane Messages page (exact-match) — a deep-link redirects to it.
+    // Resolve OWNER-SCOPED first (findOrFail under OwnerScope) so a cross-owner/guest thread 404s BEFORE the
+    // redirect — the two-inbox isolation contract is preserved, not weakened into an unconditional 302.
+    Route::get('/messages/{thread}', function (string $thread) {
+        $model = MessageThread::query()->findOrFail($thread);
+
+        return redirect()->route('owner.messages', ['c' => $model->getKey()]);
+    })->name('messages.show');
     Route::post('/messages', [OwnerMessageActionController::class, 'start'])->name('messages.start');
     Route::post('/messages/{thread}', [OwnerMessageActionController::class, 'reply'])->name('messages.reply');
     Route::get('/statements/{statement}', OwnerStatementView::class)->name('statements.show');

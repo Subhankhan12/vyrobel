@@ -65,7 +65,7 @@ it('mirrors the transcript: the owner’s own message is inbound to the org but 
         ->and((string) $theirs->direction)->toBe('outbound');
 
     // The SCREEN mirrors it: the owner sees their own words as "You", and Marco's as Marco's.
-    $response = $this->actingAs($a['user'])->get('/owner/messages/'.$thread->id);
+    $response = $this->actingAs($a['user'])->get('/owner/messages?c='.$thread->id);
 
     $response->assertOk()
         ->assertSeeInOrder(['Is the AC fixed?', 'You'])
@@ -85,7 +85,7 @@ it('sends a real message that persists and lands in the operator’s inbox', fun
     $response = $this->actingAs($a['user'])
         ->post('/owner/messages/'.$thread->id, ['body' => 'Could we raise the weekend rate?']);
 
-    $response->assertRedirect(route('owner.messages.show', $thread->id))->assertSessionHas('owner_notice');
+    $response->assertRedirect(route('owner.messages', ['c' => $thread->id]))->assertSessionHas('owner_notice');
 
     // It is a REAL row, inbound (into the org), authored by the owner.
     $message = Message::query()->where('thread_id', $thread->id)->latest('created_at')->firstOrFail();
@@ -122,7 +122,7 @@ it('derives the owner’s unread from their own read position, and never touches
     $this->actingAs($a['user'])->get('/owner/messages')->assertOk()->assertSee('1 unread');
 
     // Opening it marks it read FOR THE OWNER…
-    $this->actingAs($a['user'])->get('/owner/messages/'.$thread->id)->assertOk();
+    $this->actingAs($a['user'])->get('/owner/messages?c='.$thread->id)->assertOk();
 
     $fresh = $thread->fresh();
     expect($fresh->owner_last_read_at)->not->toBeNull()
@@ -190,7 +190,7 @@ it('renders none of the design’s invented status, metric, presence or vendor d
     $inbox->postOwnerMessage($thread, 'A question', $a['user']);
     $inbox->sendOutbound($thread, 'An answer', $marco);
 
-    $response = $this->actingAs($a['user'])->get('/owner/messages/'.$thread->id);
+    $response = $this->actingAs($a['user'])->get('/owner/messages?c='.$thread->id);
 
     $response->assertOk()
         // "read" is NOT in `messages.delivery_status` — the design invents it and defaults every message

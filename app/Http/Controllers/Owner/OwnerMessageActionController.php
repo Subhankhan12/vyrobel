@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Membership;
 use App\Models\MessageThread;
 use App\Models\Scopes\OwnerScope;
 use App\Models\User;
@@ -48,7 +49,7 @@ class OwnerMessageActionController extends Controller
 
         $inbox->postOwnerMessage($model, trim($validated['body']), $author instanceof User ? $author : null);
 
-        return redirect()->route('owner.messages.show', $model->id)->with('owner_notice', 'Message sent.');
+        return redirect()->route('owner.messages', ['c' => $model->id])->with('owner_notice', 'Message sent.');
     }
 
     /**
@@ -64,6 +65,9 @@ class OwnerMessageActionController extends Controller
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:5000'],
             'subject' => ['nullable', 'string', 'max:160'],
+            // The picked recipient (exact-match compose) — a REAL back-office staff member of this org, NEVER a
+            // guest. Re-resolved through the tenant scope + the back-office allow-list, never trusted from the body.
+            'staff_id' => ['nullable', 'string'],
         ]);
 
         $owner = $this->resolveOwnerId();
@@ -77,12 +81,34 @@ class OwnerMessageActionController extends Controller
             'channel' => 'manual',
             'subject' => $validated['subject'] ?? null,
             'owner_id' => $owner,
+            // Assign to the picked staff member IF they are a genuine back-office member (else unassigned — the
+            // team picks it up). A foreign / non-staff / guest id resolves to null, never assigned.
+            'assigned_to' => $this->resolveStaffAssignee($validated['staff_id'] ?? null),
         ]);
 
         $author = $request->user();
         $inbox->postOwnerMessage($thread, trim($validated['body']), $author instanceof User ? $author : null);
 
-        return redirect()->route('owner.messages.show', $thread->id)->with('owner_notice', 'Message sent.');
+        return redirect()->route('owner.messages', ['c' => $thread->id])->with('owner_notice', 'Message sent.');
+    }
+
+    /**
+     * A staff id → the assignee, ONLY if it is a real active back-office member of THIS org (tenant-scoped +
+     * the allow-list). A foreign, non-staff, or guest id → null (never assigned). Guards owner↔operator-only.
+     */
+    private function resolveStaffAssignee(?string $staffId): ?string
+    {
+        if ($staffId === null || $staffId === '') {
+            return null;
+        }
+
+        $backOffice = (array) config('authorization.back_office_roles');
+        $user = User::query()
+            ->whereKey($staffId)
+            ->whereIn('id', Membership::query()->where('status', 'active')->pluck('user_id'))
+            ->first();
+
+        return $user !== null && $user->hasAnyRole($backOffice) ? (string) $user->getKey() : null;
     }
 
     /**
