@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Auth\GuestUserProvider;
 use App\Events\DomainEventRecorded;
+use App\Listeners\AuditOAuthTokenGranted;
 use App\Listeners\DispatchNotificationsForDomainEvent;
 use App\Listeners\EnqueueAriPushOnInventoryChange;
 use App\Listeners\GenerateDepartureCleanTask;
@@ -90,6 +91,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Events\AccessTokenCreated;
 use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
@@ -203,6 +205,11 @@ class AppServiceProvider extends ServiceProvider
         Passport::tokensExpireIn(now()->addDays(15));
         Passport::refreshTokensExpireIn(now()->addDays(30));
         Passport::personalAccessTokensExpireIn(now()->addMonths(6));
+        // The BRANDED consent screen — the owner sees EXACTLY the requested scopes before authorizing.
+        Passport::authorizationView('oauth.consent');
+        // Audit every token issuance (#20) — the token exchange is session-less, so the listener resolves the
+        // actor + org itself (there is no auth()/TenantContext at /oauth/token).
+        Event::listen(AccessTokenCreated::class, AuditOAuthTokenGranted::class);
 
         // Stable morph aliases so polymorphic *_type columns (mediable_type, notable_type,
         // subject_type, owner_type, model_has_roles.model_type, …) store short, refactor-proof
