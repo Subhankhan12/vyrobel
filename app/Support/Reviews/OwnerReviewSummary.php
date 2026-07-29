@@ -33,7 +33,9 @@ final class OwnerReviewSummary
      *   response_rate: int|null, responded: int, avg_response_hours: int|null,
      *   last30_count: int, last30_average: float|null,
      *   by_villa: list<array{unit_id: string, name: string, count: int, rating: float, pct: int, trend: string, direction: string}>,
-     *   distribution: list<array{star: int, count: int, pct: int}>
+     *   distribution: list<array{star: int, count: int, pct: int}>,
+     *   categories: list<array{key: string, label: string, score: float, pct: int, softest: bool}>,
+     *   softest_label: string|null
      * }
      */
     public static function forUnits(array $unitIds): array
@@ -76,6 +78,14 @@ final class OwnerReviewSummary
         $last30Count = $recent->count();
         $last30Average = $last30Count > 0 ? round((float) $recent->avg('rating'), 1) : null;
 
+        $categories = self::categories($reviews);
+        $softest = null;
+        foreach ($categories as $c) {
+            if ($c['softest']) {
+                $softest = $c['label'];
+            }
+        }
+
         return [
             'has_reviews' => true,
             'count' => $count,
@@ -87,7 +97,43 @@ final class OwnerReviewSummary
             'last30_average' => $last30Average,
             'by_villa' => self::byVilla($reviews),
             'distribution' => self::distribution($reviews),
+            'categories' => $categories,
+            'softest_label' => $softest,
         ];
+    }
+
+    /**
+     * The per-category averages (Cleanliness/Communication/Location/Value) — DERIVED from the guest sub-ratings
+     * that are actually present (a category no guest rated is omitted; never a fabricated score, #39). The lowest
+     * scorer is flagged `softest` (drives the "Value is your softest score — rate changes factor this in" note).
+     *
+     * @param  Collection<int, Review>  $reviews
+     * @return list<array{key: string, label: string, score: float, pct: int, softest: bool}>
+     */
+    private static function categories(Collection $reviews): array
+    {
+        $rows = [];
+        foreach (Review::CATEGORIES as $key => $label) {
+            $rated = $reviews->filter(fn (Review $r): bool => $r->{$key} !== null);
+            if ($rated->isEmpty()) {
+                continue;
+            }
+            $score = round((float) $rated->avg($key), 1);
+            $rows[] = ['key' => $key, 'label' => $label, 'score' => $score, 'pct' => (int) round(($score / 5) * 100), 'softest' => false];
+        }
+
+        // Flag the single lowest-scoring category (ties → the first in the canonical order).
+        if ($rows !== []) {
+            $minScore = min(array_column($rows, 'score'));
+            foreach ($rows as $i => $row) {
+                if ($row['score'] === $minScore) {
+                    $rows[$i]['softest'] = true;
+                    break;
+                }
+            }
+        }
+
+        return $rows;
     }
 
     /**
@@ -171,7 +217,9 @@ final class OwnerReviewSummary
      *   response_rate: int|null, responded: int, avg_response_hours: int|null,
      *   last30_count: int, last30_average: float|null,
      *   by_villa: list<array{unit_id: string, name: string, count: int, rating: float, pct: int, trend: string, direction: string}>,
-     *   distribution: list<array{star: int, count: int, pct: int}>
+     *   distribution: list<array{star: int, count: int, pct: int}>,
+     *   categories: list<array{key: string, label: string, score: float, pct: int, softest: bool}>,
+     *   softest_label: string|null
      * }
      */
     private static function empty(): array
@@ -180,7 +228,7 @@ final class OwnerReviewSummary
             'has_reviews' => false, 'count' => 0, 'average' => null,
             'response_rate' => null, 'responded' => 0, 'avg_response_hours' => null,
             'last30_count' => 0, 'last30_average' => null,
-            'by_villa' => [], 'distribution' => [],
+            'by_villa' => [], 'distribution' => [], 'categories' => [], 'softest_label' => null,
         ];
     }
 }

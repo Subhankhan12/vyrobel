@@ -1,7 +1,9 @@
 # Owner Reviews — exact-match audit (PHASE 1, read-only)
 
 **Date:** 2026-07-30 · **Page:** `/owner/reviews` (`OwnerReviews` + `reviews.blade.php`) vs the decoded wireframe `docs/design/raw/Owner Reviews.html`.
-**Method:** decoded the dc-runtime bundle (JSON.parse the `__bundler/template` script → the `<x-dc>` body + the `Component` logic) + read the real reviews backend. **Nothing changed.**
+**Method:** decoded the dc-runtime bundle (JSON.parse the `__bundler/template` script → the `<x-dc>` body + the `Component` logic) + read the real reviews backend.
+
+> **✅ BUILT (2026-07-30, invariant #76).** GATE 1 (`79352c0`) — the exact-match page on real owner-scoped reviews + the new `OwnerReviewSummary` (overall / **real response rate + avg time** / last-30 / by-villa + trend / distribution), the extended `ReviewList` (initials / real source / when / villa / filter / honest "Awaiting a reply"), the operator responses read-only, and the honest "Handled for you" (OTA ingest account-gated, **no fabricated SLA**). GATE 2 (this commit) — the founder-approved **per-category sub-ratings** (schema + guest form + `OwnerReviewSummary::categories` + demo backfill) → the real "By category" card + the softest-category note **linking the real Wave-C rate-proposals (`owner.rates`)**. The agency-reply RESPONSE system was found to ALREADY EXIST (operator posts in-app, audited #20) — so it was surfaced, not rebuilt. ⚠️ A **raw-Blade trap** (`replied@endif`) was caught by browser-verification after compiling clean. Suite **1255/1255**; per-category sub-ratings persist; operator→owner flow mutation-proven. Section-by-section detail below is the as-built design.
 
 ---
 

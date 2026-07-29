@@ -48,6 +48,26 @@
                 </div>
             </section>
 
+            {{-- Optional per-category sub-ratings (Cleanliness/Communication/Location/Value) → the owner's
+                 "By category" averages. Optional — a blank category simply doesn't count (never fabricated). --}}
+            <section class="vy-card" style="margin-bottom:14px">
+                <div class="vy-eyebrow" style="margin-bottom:4px">Rate by category</div>
+                <div style="font-size:12px;color:var(--vy-muted);margin-bottom:12px">Optional — leave any blank.</div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                    @foreach (\App\Models\Review::CATEGORIES as $key => $label)
+                        <label style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13.5px;color:var(--vy-ink)">
+                            <span>{{ $label }}</span>
+                            <select name="{{ $key }}" style="padding:7px 10px;border-radius:10px;border:1px solid var(--vy-glass-border);font-family:var(--vy-sans);font-size:13.5px;background:#fff">
+                                <option value="">—</option>
+                                @foreach ([5, 4, 3, 2, 1] as $n)
+                                    <option value="{{ $n }}">{{ $n }} ★</option>
+                                @endforeach
+                            </select>
+                        </label>
+                    @endforeach
+                </div>
+            </section>
+
             <section class="vy-card" style="margin-bottom:14px">
                 <div class="vy-eyebrow" style="margin-bottom:10px">What stood out?</div>
                 <div>

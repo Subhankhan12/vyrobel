@@ -168,6 +168,28 @@
                 </div>
             </section>
 
+            {{-- By category — REAL per-category averages (guest sub-ratings); rendered only when guests rated them
+                 (never a fabricated score). The softest category links the REAL Wave-C rate-proposals (owner.rates). --}}
+            @if (count($summary['categories']) > 0)
+                <section class="vy-card vy-fade" style="padding:22px;animation-delay:.24s">
+                    <h2 class="vy-card-title" style="margin-bottom:15px">By category</h2>
+                    <div style="display:flex;flex-direction:column;gap:13px">
+                        @foreach ($summary['categories'] as $c)
+                            <div>
+                                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px">
+                                    <span style="font-size:12.5px;font-weight:500;color:var(--vy-ink)">{{ $c['label'] }}</span>
+                                    <span style="font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums">{{ number_format((float) $c['score'], 1) }}</span>
+                                </div>
+                                <div class="vy-rv-bar" style="height:7px"><span style="width:{{ $c['pct'] }}%"></span></div>
+                            </div>
+                        @endforeach
+                    </div>
+                    @if ($summary['softest_label'] !== null)
+                        <div style="font-size:11.5px;color:var(--vy-faint);line-height:1.5;margin-top:14px">{{ $summary['softest_label'] }} is your softest score — the proposed <a href="{{ route('owner.rates') }}" style="color:var(--vy-accent);text-decoration:none;font-weight:500">rate changes</a> factor this in.</div>
+                    @endif
+                </section>
+            @endif
+
             {{-- Handled for you — HONEST: real responses; OTA review INGEST + brand split account-gated; no fake SLA --}}
             <section class="vy-fade" style="background:linear-gradient(150deg,rgba(43,35,32,.92),rgba(60,40,30,.9));border-radius:20px;box-shadow:0 14px 40px rgba(60,30,10,.28),inset 0 1px 0 rgba(255,255,255,.12);padding:22px;color:#F3E7DD;animation-delay:.3s">
                 <div style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;margin-bottom:13px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F7D9C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg></div>

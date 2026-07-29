@@ -68,6 +68,10 @@ class GuestReviewController extends Controller
         $allTags = [...self::POSITIVE_TAGS, ...self::NEGATIVE_TAGS];
         $data = $request->validate([
             'rating' => ['required', 'integer', 'between:1,5'],
+            'rating_cleanliness' => ['nullable', 'integer', 'between:1,5'],
+            'rating_communication' => ['nullable', 'integer', 'between:1,5'],
+            'rating_location' => ['nullable', 'integer', 'between:1,5'],
+            'rating_value' => ['nullable', 'integer', 'between:1,5'],
             'tags' => ['sometimes', 'array'],
             'tags.*' => ['string', Rule::in($allTags)],
             'body' => ['nullable', 'string', 'max:5000'],
@@ -77,6 +81,12 @@ class GuestReviewController extends Controller
         try {
             $this->reviews->submit($this->guest(), $model, [
                 'rating' => (int) $data['rating'],
+                'categories' => array_filter([
+                    'rating_cleanliness' => $data['rating_cleanliness'] ?? null,
+                    'rating_communication' => $data['rating_communication'] ?? null,
+                    'rating_location' => $data['rating_location'] ?? null,
+                    'rating_value' => $data['rating_value'] ?? null,
+                ], fn ($v): bool => $v !== null),
                 'tags' => $data['tags'] ?? [],
                 'body' => $data['body'] ?? null,
                 'private' => $request->boolean('private'),

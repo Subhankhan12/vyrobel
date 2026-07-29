@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Reservations\CheckOutReservation;
 use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\Review;
@@ -17,8 +18,13 @@ uses(RefreshDatabase::class);
 // from real published reviews (#39). Guest byline is first-name + initial (#28). The pending state is the honest
 // "Awaiting a reply"; the OTA review INGEST is honestly account-gated; no fabricated SLA.
 
-/** A published review on $unit, optionally with the operator's response. Real reservation via AssignmentService. */
-function reviewOn(array $s, Unit $unit, int $rating, string $body, ?string $response, string $in, string $out): Review
+/**
+ * A published review on $unit, optionally with the operator's response + per-category sub-ratings
+ * [cleanliness, communication, location, value]. Real reservation via AssignmentService.
+ *
+ * @param  array<int, int>  $cats
+ */
+function reviewOn(array $s, Unit $unit, int $rating, string $body, ?string $response, string $in, string $out, array $cats = []): Review
 {
     $res = app(AssignmentService::class)->createBooking(
         ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => $in, 'check_out' => $out, 'lead_guest_id' => $s['guest']->getKey(), 'source' => 'direct'],
@@ -29,6 +35,8 @@ function reviewOn(array $s, Unit $unit, int $rating, string $body, ?string $resp
         'guest_id' => $s['guest']->getKey(), 'reservation_id' => $res->getKey(),
         'unit_id' => $unit->getKey(), 'room_type_id' => $unit->room_type_id,
         'rating' => $rating, 'tags' => [], 'body' => $body,
+        'rating_cleanliness' => $cats[0] ?? null, 'rating_communication' => $cats[1] ?? null,
+        'rating_location' => $cats[2] ?? null, 'rating_value' => $cats[3] ?? null,
         'visibility' => 'public', 'status' => 'published', 'published_at' => now(),
     ]);
 
@@ -37,6 +45,18 @@ function reviewOn(array $s, Unit $unit, int $rating, string $body, ?string $resp
     }
 
     return $review;
+}
+
+/** A linked owner + unit + a published (optionally category-rated) review. Returns [user, owner, unit]. */
+function reviewsOwner(array $s): array
+{
+    $user = User::factory()->create();
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+    $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
+    $s['units'][0]->update(['owner_id' => $owner->id]);
+    app(AvailabilityService::class)->recompute($s['roomType']->id, '2026-06-01', '2026-06-30');
+
+    return ['user' => $user, 'owner' => $owner, 'unit' => $s['units'][0]];
 }
 
 it('renders the exact-match Reviews page on REAL aggregates + the operator responses (read-only)', function () {
@@ -68,6 +88,61 @@ it('renders the exact-match Reviews page on REAL aggregates + the operator respo
         ->assertDontSee('within 24 hours');
 
     assertNoRawBlade($res);
+});
+
+it('renders REAL By-category averages + the softest-category note linking the real rate-proposals (owner.rates)', function () {
+    $s = seedScenario(1);
+    $c = reviewsOwner($s);
+
+    // Value scores lowest → it is the "softest" category. Cleanliness/Communication/Location all high.
+    reviewOn($s, $c['unit'], 5, 'Great.', null, '2026-06-01', '2026-06-04', [5, 5, 5, 4]);
+    reviewOn($s, $c['unit'], 5, 'Lovely.', null, '2026-06-06', '2026-06-09', [5, 5, 4, 3]);
+
+    $this->actingAs($c['user'])->get('/owner/reviews')->assertOk()
+        ->assertSee('By category')
+        ->assertSee('Cleanliness')->assertSee('Communication')->assertSee('Location')->assertSee('Value')
+        ->assertSee('5.0')   // Cleanliness avg (5+5)/2
+        ->assertSee('3.5')   // Value avg (4+3)/2 — the softest
+        ->assertSee('Value is your softest score', false)
+        ->assertSee(route('owner.rates'));   // the REAL Wave-C rate-proposals link (not a refusal)
+});
+
+it('surfaces an operator response on the owner page (operator writes → owner reads, end-to-end #20)', function () {
+    $s = seedScenario(1);
+    $c = reviewsOwner($s);
+    $review = reviewOn($s, $c['unit'], 4, 'Comfortable stay, AC struggled.', null, '2026-06-01', '2026-06-04');   // awaiting
+
+    // Before: the owner sees it awaiting, no response.
+    $this->actingAs($c['user'])->get('/owner/reviews')->assertOk()->assertSee('Awaiting a reply')->assertDontSee('We fixed the AC');
+
+    // The OPERATOR (reviews.manage) posts a response through the real controller route (#20, audited).
+    $manager = operatorUser($s, [], 'Hotel Manager');
+    $this->actingAs($manager, 'web')->post(route('app.reviews.respond', $review->getKey()), ['response' => 'Thanks — we fixed the AC that week.'])->assertRedirect();
+
+    // After: the owner sees the operator's response, read-only (no owner reply control).
+    $this->actingAs($c['user'])->get('/owner/reviews')->assertOk()
+        ->assertSee('Thanks — we fixed the AC that week.')
+        ->assertDontSee('Awaiting a reply');
+});
+
+it('persists the guest per-category sub-ratings through ReviewService::submit', function () {
+    $s = seedScenario(1);
+    $c = reviewsOwner($s);
+    $res = app(AssignmentService::class)->createBooking(
+        ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => '2026-06-01', 'check_out' => '2026-06-04', 'lead_guest_id' => $s['guest']->getKey(), 'source' => 'direct'],
+        [['room_type_id' => $s['roomType']->id, 'unit_id' => $c['unit']->id, 'rate_plan_id' => $s['ratePlan']->id, 'check_in' => '2026-06-01', 'check_out' => '2026-06-04', 'price_minor' => 10000, 'currency' => 'EUR']],
+    );
+    app(CheckOutReservation::class)->handle($res);   // → completed → reviewable
+
+    $review = app(ReviewService::class)->submit($s['guest'], $res->fresh(), [
+        'rating' => 5,
+        'categories' => ['rating_cleanliness' => 5, 'rating_communication' => 4, 'rating_value' => 2, 'rating_location' => null],
+    ]);
+
+    expect($review->rating_cleanliness)->toBe(5)
+        ->and($review->rating_communication)->toBe(4)
+        ->and($review->rating_value)->toBe(2)
+        ->and($review->rating_location)->toBeNull();   // a blank category is stored null, never fabricated
 });
 
 it('shows an honest empty state when the owner has no reviews', function () {

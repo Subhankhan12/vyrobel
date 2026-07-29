@@ -41,7 +41,7 @@ class ReviewService
     /**
      * Submit a guest's review of their OWN completed stay. Guards: the stay is completed AND not already reviewed.
      *
-     * @param  array{rating: int, tags?: array<int, string>, body?: ?string, private?: bool}  $data
+     * @param  array{rating: int, categories?: array<string, int|null>, tags?: array<int, string>, body?: ?string, private?: bool}  $data
      */
     public function submit(Guest $guest, Reservation $reservation, array $data): Review
     {
@@ -54,6 +54,13 @@ class ReviewService
 
         $unit = $reservation->reservationUnits->first()?->unit;
 
+        // Optional per-category sub-ratings (Cleanliness/Communication/Location/Value), each clamped 1–5 or null.
+        $categories = [];
+        foreach (array_keys(Review::CATEGORIES) as $key) {
+            $raw = $data['categories'][$key] ?? null;
+            $categories[$key] = $raw !== null ? max(1, min(5, (int) $raw)) : null;
+        }
+
         $review = Review::create([
             'guest_id' => $guest->getKey(),
             'reservation_id' => $reservation->getKey(),
@@ -61,6 +68,7 @@ class ReviewService
             'room_type_id' => $unit?->room_type_id,
             'rating' => max(1, min(5, (int) $data['rating'])),
             'tags' => array_values(array_map('strval', $data['tags'] ?? [])),
+            ...$categories,
             'body' => isset($data['body']) && trim((string) $data['body']) !== '' ? trim((string) $data['body']) : null,
             'visibility' => ($data['private'] ?? false) ? Review::VISIBILITY_PRIVATE : Review::VISIBILITY_PUBLIC,
             'status' => Review::STATUS_PENDING,

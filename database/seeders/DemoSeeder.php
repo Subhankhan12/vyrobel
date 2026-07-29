@@ -1220,21 +1220,24 @@ class DemoSeeder extends Seeder
         // — the default recompute only covers today→+180d.
         app(AvailabilityService::class)->recompute($apartment->id, $today->subDays(80)->toDateString(), $today->toDateString());
 
-        // [unitIdx, checkIn, checkOut, rating, tags, body, response|null, publishedDaysAgo, source, first, last]
+        // [unitIdx, checkIn, checkOut, rating, tags, body, response|null, publishedDaysAgo, source, first, last, categories]
+        // Category ratings [Cleanliness, Communication, Location, Value] — Value trends softest (the wireframe narrative).
         $specs = [
-            [1, '2026-07-08', '2026-07-11', 5, ['Spotless', 'Great pool'], 'Immaculate apartment — even better than the photos, and check-in was seamless.', 'Thank you Sofia — it was a pleasure hosting you. Come back in the autumn!', 6, 'direct', 'Sofia', 'Marino'],
-            [0, '2026-07-01', '2026-07-04', 5, ['Perfect location'], 'Perfect base for exploring the coast. The welcome guide in the pack was a real highlight.', 'Obrigado Henrik — the guide gets a summer update. See you next year!', 12, 'ota', 'Henrik', 'Larsson'],
-            [1, '2026-06-20', '2026-06-23', 5, ['Lovely touch'], 'Spotless, stylish and quiet. The welcome basket was a lovely touch.', 'Thanks Marta — so glad the little details landed.', 22, 'direct', 'Marta', 'Ribeiro'],
-            [0, '2026-05-24', '2026-05-27', 3, ['Central'], 'Great location but the dishwasher was out of action during our stay, a hassle for a family of five.', 'We’re sorry about that, Colin — it has been fully replaced, and we’ve added a mid-stay appliance check.', 48, 'ota', 'Colin', 'Doyle'],
-            [1, '2026-07-16', '2026-07-19', 5, ['Best value'], 'Honestly the best value we’ve found on this coast — we’ll be back.', null, 3, 'direct', 'Anna', 'Keller'],
+            [1, '2026-07-08', '2026-07-11', 5, ['Spotless', 'Great pool'], 'Immaculate apartment — even better than the photos, and check-in was seamless.', 'Thank you Sofia — it was a pleasure hosting you. Come back in the autumn!', 6, 'direct', 'Sofia', 'Marino', [5, 5, 5, 5]],
+            [0, '2026-07-01', '2026-07-04', 5, ['Perfect location'], 'Perfect base for exploring the coast. The welcome guide in the pack was a real highlight.', 'Obrigado Henrik — the guide gets a summer update. See you next year!', 12, 'ota', 'Henrik', 'Larsson', [5, 5, 5, 5]],
+            [1, '2026-06-20', '2026-06-23', 5, ['Lovely touch'], 'Spotless, stylish and quiet. The welcome basket was a lovely touch.', 'Thanks Marta — so glad the little details landed.', 22, 'direct', 'Marta', 'Ribeiro', [5, 5, 4, 4]],
+            [0, '2026-05-24', '2026-05-27', 3, ['Central'], 'Great location but the dishwasher was out of action during our stay, a hassle for a family of five.', 'We’re sorry about that, Colin — it has been fully replaced, and we’ve added a mid-stay appliance check.', 48, 'ota', 'Colin', 'Doyle', [4, 4, 5, 4]],
+            [1, '2026-07-16', '2026-07-19', 5, ['Best value'], 'Honestly the best value we’ve found on this coast — we’ll be back.', null, 3, 'direct', 'Anna', 'Keller', [5, 5, 5, 5]],
         ];
 
-        foreach ($specs as $i => [$unitIdx, $checkIn, $checkOut, $rating, $tags, $body, $response, $daysAgo, $source, $first, $last]) {
+        foreach ($specs as $i => [$unitIdx, $checkIn, $checkOut, $rating, $tags, $body, $response, $daysAgo, $source, $first, $last, $cats]) {
             $guest = Guest::create(['first_name' => $first, 'last_name' => $last]);
             $stay = $this->createDemoStay($source, $property, $apartment, $aptRate, $aptUnits[$unitIdx], $guest, $checkIn, $checkOut, $vat, fullyPaid: true);
             $checkout->handle($stay);   // → PAST → reviewable
 
-            $review = $reviews->submit($guest, $stay->fresh(), ['rating' => $rating, 'tags' => $tags, 'body' => $body]);
+            $review = $reviews->submit($guest, $stay->fresh(), ['rating' => $rating, 'tags' => $tags, 'body' => $body, 'categories' => [
+                'rating_cleanliness' => $cats[0], 'rating_communication' => $cats[1], 'rating_location' => $cats[2], 'rating_value' => $cats[3],
+            ]]);
             $reviews->publish($review);
             $published = $today->subDays($daysAgo);
             Review::withoutEvents(fn () => $review->forceFill(['published_at' => $published])->save());

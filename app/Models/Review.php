@@ -35,6 +35,14 @@ class Review extends Model
 
     public const STATUS_REJECTED = 'rejected';
 
+    /** The optional per-category sub-ratings (guest-set 1–5) → the owner "By category" averages. */
+    public const CATEGORIES = [
+        'rating_cleanliness' => 'Cleanliness',
+        'rating_communication' => 'Communication',
+        'rating_location' => 'Location',
+        'rating_value' => 'Value',
+    ];
+
     protected $fillable = [
         'organization_id',
         'guest_id',
@@ -42,6 +50,10 @@ class Review extends Model
         'unit_id',
         'room_type_id',
         'rating',
+        'rating_cleanliness',
+        'rating_communication',
+        'rating_location',
+        'rating_value',
         'tags',
         'body',
         'visibility',
@@ -58,6 +70,10 @@ class Review extends Model
     {
         return [
             'rating' => 'integer',
+            'rating_cleanliness' => 'integer',
+            'rating_communication' => 'integer',
+            'rating_location' => 'integer',
+            'rating_value' => 'integer',
             'tags' => 'array',
             'responded_at' => 'datetime',
             'published_at' => 'datetime',

@@ -6,9 +6,33 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v20) · OWNER-REALM AUDIT FIX PASS COMPLETE (⚠️ per-owner role security).
-> This block SUPERSEDES every block below it. Fresh-session entry point: this block →
-> `docs/OWNER-REALM-AUDIT-REPORT.md` → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v21) · OWNER REVIEWS & REPUTATION exact-match rebuild COMPLETE. This
+> block SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-REVIEWS-AUDIT.md` →
+> `docs/DECISIONS.md`.**
+>
+> **Owner Reviews (`/owner/reviews`, Invariant #76)** rebuilt to the decoded wireframe EXACTLY, on REAL
+> owner-scoped data. **The pivotal PHASE-1 finding:** the "agency-reply / response system" ALREADY EXISTED
+> (`Review.operator_response` + `responded_at`, `ReviewService::respond`, the operator route `reviews.respond`
+> `can:reviews.manage` audited #20, `ReviewList` surfacing it #28) — so it was SURFACED, not rebuilt. What was
+> built: the response ANALYTICS + the exact page + the (founder-approved) category ratings. **GATE 1** — a new
+> shared `OwnerReviewSummary` (overall / REAL response rate + avg time / last-30 / by-villa + trend / distribution,
+> all DERIVED #39), the extended shared `ReviewList` (initials / real reservation SOURCE / when / villa / filter /
+> honest "Awaiting a reply" pending), the exact `reviews.blade` (shell + `--vy-*` + `vyFadeUp`), the operator
+> responses READ-ONLY, and the HONEST "Handled for you" (OTA review-ingest + Airbnb/Booking.com brand split
+> account-gated, **NO fabricated 24h SLA**). **GATE 2** — the founder-approved **per-category sub-ratings**
+> (`rating_cleanliness/communication/location/value` nullable + the guest form + `OwnerReviewSummary::categories` +
+> demo backfill) → the real "By category" card + **the softest-category note linking the REAL Wave-C rate-proposals
+> (`owner.rates`)** — the old refusal is now a real observation + a real link. ⚠️ A **raw-Blade trap**
+> (`replied@endif`) swallowed 5 sections while compiling clean — caught by browser-verification (the "static checks
+> can't see a rendered page" lesson). 🔒 #28 owner-scoped + initial-only; #39 no fabricated rating/aggregate/
+> category/SLA; #20 the response-write stays the operator's audited controller route (owner surface read-only).
+> Mutation-proven (`OwnerReviewsPageTest`, 5 — incl. the operator→owner end-to-end flow + category persistence);
+> browser-verified. Suite **1255/9470** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.
+> **Invariants #1–76.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-29 (v20) · OWNER-REALM AUDIT FIX PASS COMPLETE (⚠️ per-owner role security).**
 >
 > **⚠️ SECURITY — per-owner role enforcement (Invariant #75).** A read-only comprehensive owner-realm audit
 > (`docs/OWNER-REALM-AUDIT-REPORT.md`) found ONE P1 + two P2s + doc-rot; all fixed in a triaged, per-gate pass,
