@@ -153,4 +153,26 @@ return [
         'fake' => env('STRIPE_FAKE', true),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | LLM (Ask Vyrobel support assistant — Wave D)
+    |--------------------------------------------------------------------------
+    |
+    | `fake` gates the LlmClient seam (AppServiceProvider): true -> FakeLlmClient
+    | (deterministic, no network, no cost — every dev/CI/demo run), false -> the real
+    | AnthropicLlmClient (requires `api_key`, production-only). Defaults true so a real
+    | LLM is NEVER called without an explicit opt-out AND a key AND production
+    | (LlmSafetyGuard). `daily_token_cap` caps per-owner/day spend (the cost ledger).
+    | The live flip is the founder's documented go-live step.
+    |
+    */
+    'llm' => [
+        'provider' => env('LLM_PROVIDER', 'anthropic'),
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('LLM_MODEL', 'claude-haiku-4-5-20251001'),
+        'max_output_tokens' => (int) env('LLM_MAX_OUTPUT_TOKENS', 400),
+        'daily_token_cap' => (int) env('LLM_DAILY_TOKEN_CAP', 20000),
+        'fake' => env('LLM_FAKE', true),
+    ],
+
 ];

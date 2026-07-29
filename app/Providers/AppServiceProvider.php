@@ -74,6 +74,11 @@ use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
+use App\Support\Llm\AnthropicLlmClient;
+use App\Support\Llm\FakeLlmClient;
+use App\Support\Llm\LlmClientInterface;
+use App\Support\Llm\LlmCostLedger;
+use App\Support\Llm\LlmSafetyGuard;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\OAuth\OAuthScopes;
 use App\Support\Owner\OwnerContext;
@@ -168,6 +173,34 @@ class AppServiceProvider extends ServiceProvider
                 (string) config('services.channex.api_key'),
             );
         });
+
+        // Config-gated LLM seam (services.llm.fake, default true): FakeLlmClient everywhere
+        // (deterministic, no network, no cost) until a real key is deliberately configured in production.
+        // 🔒 Ask Vyrobel spend guard: a real Anthropic call is REFUSED outside production (or with no key) —
+        // the fake is bound instead (LlmSafetyGuard), so a stray LLM_FAKE=false in a dev .env can never spend.
+        $this->app->singleton(LlmClientInterface::class, function ($app): LlmClientInterface {
+            $apiKey = (string) config('services.llm.api_key');
+            $forceFake = LlmSafetyGuard::forceFakeOutsideProduction(
+                $app->environment(),
+                (bool) config('services.llm.fake', true),
+                $apiKey,
+            );
+
+            if ($forceFake) {
+                if (! config('services.llm.fake', true)) {
+                    Log::warning('LlmSafetyGuard refused a real LLM key outside production — using the fake client.', [
+                        'environment' => $app->environment(),
+                    ]);
+                }
+
+                return new FakeLlmClient;
+            }
+
+            return new AnthropicLlmClient($apiKey, (string) config('services.llm.model'));
+        });
+
+        // The Ask-Vyrobel cost ledger (per-owner/day token cap) — resolved from config so the cap is one place.
+        $this->app->bind(LlmCostLedger::class, static fn (): LlmCostLedger => LlmCostLedger::fromConfig());
     }
 
     /**
