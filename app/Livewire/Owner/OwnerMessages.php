@@ -6,6 +6,7 @@ namespace App\Livewire\Owner;
 
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\Media;
 use App\Models\Membership;
 use App\Models\Message;
 use App\Models\MessageThread;
@@ -16,6 +17,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -108,15 +110,22 @@ class OwnerMessages extends Component
         $composeStaff = $this->resolveComposeStaff($staff);
         $active = null;
         $messages = [];
+        $pinned = null;
+        $starred = [];
+        $viewerId = (string) (auth()->id() ?? '');
         if ($composeStaff === null) {
             // ?c wins; otherwise default the pane to the first thread IN THE FILTERED/SEARCHED list (never a
             // globally-latest thread the current filter hid) — so the pane and the rail always agree.
             $activeThread = $explicitThread ?? $this->resolveActiveThread($rows[0]['id'] ?? null);
             if ($activeThread !== null) {
+                // Eager-load the rich relations in one pass (reactions/stars/media/quoted-parent) — no N+1.
                 $msgs = Message::query()->where('thread_id', $activeThread->getKey())
-                    ->with('author')->orderBy('created_at')->orderBy('id')->get();
+                    ->with(['author', 'reactions', 'stars', 'media', 'replyTo.author'])
+                    ->orderBy('created_at')->orderBy('id')->get();
                 $active = $this->activeCard($activeThread);
-                $messages = $this->transcript($msgs);
+                $messages = $this->transcript($msgs, $activeThread, $viewerId);
+                $pinned = $this->pinnedCard($activeThread, $msgs);
+                $starred = $this->starredList($msgs, $viewerId);
             }
         }
 
@@ -131,6 +140,9 @@ class OwnerMessages extends Component
             'staff' => $staff,
             'active' => $active,
             'messages' => $messages,
+            'pinned' => $pinned,
+            'starred' => $starred,
+            'reactionPalette' => InboxService::REACTIONS,
             'composeStaff' => $composeStaff,
             'quickReplies' => ['When is my next payout?', 'Can I block dates for personal use?', 'Send me the tax summary'],
         ]);
@@ -191,32 +203,42 @@ class OwnerMessages extends Component
 
     /**
      * The transcript, MIRRORED for the owner (inbound = the owner's own message) with day separators + the
-     * honest failed state. No fabricated read-receipt/presence here — GATE 2 adds the real reply/attachment/
-     * reaction/read/star/pin.
+     * honest failed state, plus the GATE 2 rich data per message: the quoted reply-to, attachments, grouped
+     * reactions (with the viewer's own tap flagged), the viewer's star, whether it is the pinned message, and
+     * the REAL read receipt on the owner's own messages (see {@see receiptLabel()}).
      *
      * @param  Collection<int, Message>  $messages
      * @return list<array<string, mixed>>
      */
-    private function transcript($messages): array
+    private function transcript($messages, MessageThread $thread, string $viewerId): array
     {
         $rows = [];
         $lastDay = null;
+        $pinnedId = (string) ($thread->pinned_message_id ?? '');
 
         foreach ($messages as $message) {
             $at = $message->created_at !== null ? CarbonImmutable::parse($message->created_at) : null;
             $day = $at?->toDateString();
+            $mine = $message->direction === 'inbound';   // MIRRORED: inbound = into the org = the OWNER
 
             $rows[] = [
                 'id' => (string) $message->getKey(),
-                'mine' => $message->direction === 'inbound',   // MIRRORED: inbound = into the org = the OWNER
+                'mine' => $mine,
                 'body' => (string) $message->body,
-                'author' => $message->direction === 'inbound'
+                'author' => $mine
                     ? 'You'
                     : ($message->author instanceof User ? (string) $message->author->name : ((string) $message->sender_label ?: 'Your management team')),
                 'time' => $at?->format('H:i') ?? '',
-                'meta' => ($message->direction === 'inbound' ? 'You' : ($message->author instanceof User ? explode(' ', (string) $message->author->name)[0] : 'Team')).' · '.($at?->format('j M, H:i') ?? ''),
+                'meta' => ($mine ? 'You' : ($message->author instanceof User ? explode(' ', (string) $message->author->name)[0] : 'Team')).' · '.($at?->format('j M, H:i') ?? ''),
                 'day_label' => $day !== $lastDay && $at !== null ? $this->dayLabel($at) : null,
-                'failed' => $message->direction === 'inbound' && $message->delivery_status === 'failed',
+                'failed' => $mine && $message->delivery_status === 'failed',
+                'reply_to' => $this->quoted($message),
+                'attachments' => $this->attachmentList($message),
+                'reactions' => $this->reactionSummary($message, $viewerId),
+                'starred' => $message->stars->contains(fn ($s): bool => (string) $s->user_id === $viewerId),
+                'pinned' => (string) $message->getKey() === $pinnedId,
+                // The REAL receipt (never a fabricated ✓✓) — only on the owner's OWN, non-failed messages.
+                'receipt' => $mine && $message->delivery_status !== 'failed' ? $this->receiptLabel($message, $thread) : null,
             ];
 
             if ($at !== null) {
@@ -225,6 +247,154 @@ class OwnerMessages extends Component
         }
 
         return $rows;
+    }
+
+    /**
+     * The quoted parent of a reply (GATE 2), or null. NAME + a short snippet — the same mirror rule (the
+     * owner's own quoted message reads "You").
+     *
+     * @return array{author: string, snippet: string}|null
+     */
+    private function quoted(Message $message): ?array
+    {
+        $parent = $message->replyTo;
+        if (! $parent instanceof Message) {
+            return null;
+        }
+
+        $author = $parent->direction === 'inbound'
+            ? 'You'
+            : ($parent->author instanceof User ? explode(' ', (string) $parent->author->name)[0] : 'Team');
+
+        return ['author' => $author, 'snippet' => Str::limit((string) $parent->body, 100)];
+    }
+
+    /**
+     * A message's attachments (GATE 2) — polymorphic Media in the `attachments` collection. Images render
+     * inline; everything else is a download chip with its original name + a human size.
+     *
+     * @return list<array{url: string, name: string, is_image: bool, size: string}>
+     */
+    private function attachmentList(Message $message): array
+    {
+        $out = [];
+        foreach ($message->media as $m) {
+            if (! $m instanceof Media || $m->collection !== 'attachments') {
+                continue;
+            }
+            $out[] = [
+                'url' => (string) $m->url,
+                'name' => (string) ($m->alt ?: 'Attachment'),
+                'is_image' => str_starts_with((string) $m->mime, 'image/'),
+                'size' => $this->humanSize((int) $m->size),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Reactions grouped by emoji (GATE 2), each with a count and whether the VIEWER is one of them (so the UI
+     * highlights the owner's own tap).
+     *
+     * @return list<array{emoji: string, count: int, mine: bool}>
+     */
+    private function reactionSummary(Message $message, string $viewerId): array
+    {
+        $grouped = [];
+        foreach ($message->reactions as $reaction) {
+            $emoji = (string) $reaction->emoji;
+            $grouped[$emoji] ??= ['emoji' => $emoji, 'count' => 0, 'mine' => false];
+            $grouped[$emoji]['count']++;
+            if ((string) $reaction->user_id === $viewerId) {
+                $grouped[$emoji]['mine'] = true;
+            }
+        }
+
+        return array_values($grouped);
+    }
+
+    /**
+     * The owner's message read state (GATE 2) — REAL, from `operator_last_read_at` (the mirror of the owner's
+     * own read position). No `read` delivery_status is faked: the message is "Read" once the operator's read
+     * position is at/after it, else "Delivered" (it is recorded the instant it is posted).
+     */
+    private function receiptLabel(Message $message, MessageThread $thread): string
+    {
+        $readAt = $thread->operator_last_read_at;
+        $sentAt = $message->created_at;
+
+        if ($readAt !== null && $sentAt !== null && $readAt->greaterThanOrEqualTo($sentAt)) {
+            return 'Read';
+        }
+
+        return 'Delivered';
+    }
+
+    /**
+     * The thread's pinned message (GATE 2) as a banner card, or null. Resolved from the eager-loaded set so it
+     * costs no extra query; a pin pointing at a vanished message simply yields null (honest — no ghost banner).
+     *
+     * @param  Collection<int, Message>  $messages
+     * @return array{id: string, author: string, snippet: string}|null
+     */
+    private function pinnedCard(MessageThread $thread, $messages): ?array
+    {
+        $pinnedId = (string) ($thread->pinned_message_id ?? '');
+        if ($pinnedId === '') {
+            return null;
+        }
+
+        $pinned = $messages->first(fn (Message $m): bool => (string) $m->getKey() === $pinnedId);
+        if (! $pinned instanceof Message) {
+            return null;
+        }
+
+        $author = $pinned->direction === 'inbound'
+            ? 'You'
+            : ($pinned->author instanceof User ? explode(' ', (string) $pinned->author->name)[0] : 'Team');
+
+        return ['id' => $pinnedId, 'author' => $author, 'snippet' => Str::limit((string) $pinned->body, 140)];
+    }
+
+    /**
+     * The viewer's starred messages on this thread (GATE 2) — private view-state, only the owner's own stars.
+     *
+     * @param  Collection<int, Message>  $messages
+     * @return list<array{id: string, author: string, snippet: string, time: string}>
+     */
+    private function starredList($messages, string $viewerId): array
+    {
+        return $messages
+            ->filter(fn (Message $m): bool => $m->stars->contains(fn ($s): bool => (string) $s->user_id === $viewerId))
+            ->map(function (Message $m): array {
+                $at = $m->created_at !== null ? CarbonImmutable::parse($m->created_at) : null;
+                $author = $m->direction === 'inbound'
+                    ? 'You'
+                    : ($m->author instanceof User ? explode(' ', (string) $m->author->name)[0] : 'Team');
+
+                return [
+                    'id' => (string) $m->getKey(),
+                    'author' => $author,
+                    'snippet' => Str::limit((string) $m->body, 90),
+                    'time' => $at?->format('j M') ?? '',
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /** A byte count as a compact human size (attachments). */
+    private function humanSize(int $bytes): string
+    {
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 1).' MB';
+        }
+        if ($bytes >= 1024) {
+            return round($bytes / 1024).' KB';
+        }
+
+        return $bytes.' B';
     }
 
     /** "Today" / "Yesterday" / "12 September" — the thread's day separator. */

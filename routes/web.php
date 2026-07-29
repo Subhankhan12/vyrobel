@@ -753,6 +753,11 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     })->name('messages.show');
     Route::post('/messages', [OwnerMessageActionController::class, 'start'])->name('messages.start');
     Route::post('/messages/{thread}', [OwnerMessageActionController::class, 'reply'])->name('messages.reply');
+    // GATE 2 — rich message actions, all OWNER-scoped (the {thread} findOrFail 404s a cross-owner/guest thread)
+    // + the message_id re-validated to belong to that thread. Real writes through InboxService (audited #20).
+    Route::post('/messages/{thread}/react', [OwnerMessageActionController::class, 'react'])->name('messages.react');
+    Route::post('/messages/{thread}/star', [OwnerMessageActionController::class, 'star'])->name('messages.star');
+    Route::post('/messages/{thread}/pin', [OwnerMessageActionController::class, 'pin'])->name('messages.pin');
     Route::get('/statements/{statement}', OwnerStatementView::class)->name('statements.show');
     // Demo-readiness · Part B — branded owner-statement PDF. OWNER-scoped (string id → findOrFail under
     // OwnerScope → cross-owner 404, fail-closed for non-linked). Real owner_ledger figures; reconciles to

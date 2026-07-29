@@ -180,8 +180,8 @@ it('starts a real thread for the authenticated owner', function () {
     expect(Message::query()->where('thread_id', $thread->id)->count())->toBe(1);
 });
 
-// ── 7. THE DESIGN'S FABRICATIONS ARE ABSENT ──────────────────────────────────────────────────────
-it('renders none of the design’s invented status, metric, presence or vendor desks', function () {
+// ── 7. THE DESIGN'S FABRICATIONS ARE ABSENT (and the receipt is REAL, not invented) ──────────────
+it('renders none of the design’s invented metric, presence or vendor desks — and an honest receipt', function () {
     $s = seedScenario(1);
     $a = inboxOwner($s, 'Amara Okafor', 0);
     $marco = inboxStaff($s);
@@ -193,8 +193,9 @@ it('renders none of the design’s invented status, metric, presence or vendor d
     $response = $this->actingAs($a['user'])->get('/owner/messages?c='.$thread->id);
 
     $response->assertOk()
-        // "read" is NOT in `messages.delivery_status` — the design invents it and defaults every message
-        // to it, asserting staff have read everything the owner ever sent.
+        // The receipt is REAL now (operator_last_read_at, GATE 2), NOT a ✓✓ defaulted onto every message: the
+        // operator has NOT opened this thread, so the owner's message reads "Delivered" — never "Read"/"✓✓".
+        ->assertSee('Delivered')
         ->assertDontSee('✓✓')
         ->assertDontSee('Read', false)
         // A response-time promise the app cannot measure (no first-response metric, no SLA, no presence).

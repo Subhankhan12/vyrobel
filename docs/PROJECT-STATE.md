@@ -6,9 +6,36 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v21) · OWNER REVIEWS & REPUTATION exact-match rebuild COMPLETE. This
-> block SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-REVIEWS-AUDIT.md` →
-> `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v22) · OWNER MESSAGES exact-match 3-pane rebuild + rich chat COMPLETE.
+> This block SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-MESSAGES-AUDIT.md`
+> → `docs/DECISIONS.md`.**
+>
+> **Owner Messages (`/owner/messages`, Invariant #77)** rebuilt to the decoded wireframe as a FULL messaging inbox
+> on the REAL owner↔OPERATOR relay (`InboxService`) — NEVER owner→guest; guest data name-only (#28). Founder
+> decisions: compose = per-staff/assign · read-status = BUILD the real receipt · presence/typing = honest-omit.
+> **GATE 1 (`c070913`)** — the wireframe's single-page **3-pane** (conversation rail + inline active thread pane),
+> replacing the old split list + `/{thread}` pages — **this CLOSES the KIND-3 "separate pages" divergence** in the
+> design register. Picking a conversation is a GET `?c=` (middleware runs, #20); `owner.messages.show` resolves
+> OWNER-SCOPED first (findOrFail → cross-owner/guest 404) then redirects (isolation preserved, not a bare 302). The
+> real core: threads (OwnerScope on `owner_id` → guest/cross-owner 404 by construction), the real staff
+> correspondent (compose recipients = the org's REAL back-office staff, the ASSIGNEE named until a reply lands),
+> owner_last_read_at unread (marked read on the explicit `?c` open BEFORE the rail is computed → same-request badge
+> clear), search, mirrored transcript, compose→assign, reply-send, quick-replies, honest empty states. Removed the
+> orphaned `OwnerMessageThread` component + view (one messaging concept). **GATE 2** — the six rich features, all
+> REAL + mutation-proven (`OwnerMessagesRichTest`): **reply-to** (`reply_to_message_id` self-FK + quote + composer
+> context), **attachments** (polymorphic `Media` via the Add-Unit upload pattern; image inline / file chip),
+> **reactions** (`message_reactions`, emoji allow-list, idempotent toggle, audited), **read-receipt**
+> (`operator_last_read_at` set in `InboxService::markRead` → real Delivered→Read, **never a defaulted ✓✓**),
+> **starred** (`message_stars`, per-user panel), **pinned** (`pinned_message_id` banner + toggle; audit + domain
+> event). Every write is a controller POST through `InboxService`, owner-scoped (the `{thread}` findOrFail 404s
+> cross-owner/guest; every `message_id`/`reply_to` re-validated against the thread). 🔒 #28 owner↔operator only +
+> name-only; #20 write discipline; #39 presence/typing/SLA + vendor desks stay honest-omitted/refused. Suite
+> **1262/9514** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean; all six browser-verified.
+> **Invariants #1–77.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v21) · OWNER REVIEWS & REPUTATION exact-match rebuild COMPLETE.**
 >
 > **Owner Reviews (`/owner/reviews`, Invariant #76)** rebuilt to the decoded wireframe EXACTLY, on REAL
 > owner-scoped data. **The pivotal PHASE-1 finding:** the "agency-reply / response system" ALREADY EXISTED

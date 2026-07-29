@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Media;
 use App\Models\Membership;
+use App\Models\Message;
 use App\Models\MessageThread;
 use App\Models\Scopes\OwnerScope;
 use App\Models\User;
@@ -13,6 +15,9 @@ use App\Services\InboxService;
 use App\Support\Owner\OwnerContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 /**
  * Owner-portal message WRITES (Wave 3) — a real message, through the real service, via the proven
@@ -29,27 +34,103 @@ use Illuminate\Http\Request;
  */
 class OwnerMessageActionController extends Controller
 {
+    /** Attachment limits — mirror the Add-Unit upload posture (generated ULID name, capped size + count). */
+    private const ATTACH_MAX_KB = 10240;   // 10 MB per file
+
+    private const ATTACH_MAX = 5;
+
+    private const ATTACH_DISK = 'public';
+
     /**
      * The owner's reply. Posted as `inbound` (into the org) by
      * {@see InboxService::postOwnerMessage()} — see that method for why it is not
      * `postInbound()` (the GuestMatcher would mint a spurious Guest for the owner) and not `sendOutbound()`
      * (which is the operator's direction and hard-codes the "Operator" sender label).
+     *
+     * GATE 2: may QUOTE an earlier message (`reply_to_message_id`, re-validated to belong to THIS thread) and
+     * carry ATTACHMENTS (stored as polymorphic Media on the created message, the Add-Unit upload pattern).
      */
     public function reply(Request $request, InboxService $inbox, string $thread): RedirectResponse
     {
         $model = MessageThread::query()->findOrFail($thread);   // owner-scoped → cross-owner/guest 404
 
-        // A closed conversation is not a write target. Reopening happens through the service when a message
-        // genuinely lands; refusing here is the clean, honest response rather than a silent no-op.
         $validated = $request->validate([
-            'body' => ['required', 'string', 'max:5000'],
+            // Body OR at least one attachment — a message can be a lone file. Guarded by the after-hook below.
+            'body' => ['nullable', 'string', 'max:5000'],
+            // The quoted message must be a REAL message on THIS thread (never a cross-thread/owner id).
+            'reply_to_message_id' => ['nullable', 'string', Rule::exists('messages', 'id')->where('thread_id', $model->getKey())],
+            'attachments' => ['nullable', 'array', 'max:'.self::ATTACH_MAX],
+            'attachments.*' => ['file', 'max:'.self::ATTACH_MAX_KB, 'mimes:jpeg,jpg,png,webp,gif,pdf,doc,docx,xls,xlsx,csv,txt'],
         ]);
+
+        $files = $request->file('attachments', []);
+        $body = trim((string) ($validated['body'] ?? ''));
+        if ($body === '' && $files === []) {
+            return back()->with('owner_error', 'Type a message or attach a file.');
+        }
 
         $author = $request->user();
 
-        $inbox->postOwnerMessage($model, trim($validated['body']), $author instanceof User ? $author : null);
+        $message = $inbox->postOwnerMessage(
+            $model,
+            $body,
+            $author instanceof User ? $author : null,
+            $validated['reply_to_message_id'] ?? null,
+        );
+        $this->storeAttachments($message, $files);
 
         return redirect()->route('owner.messages', ['c' => $model->id])->with('owner_notice', 'Message sent.');
+    }
+
+    /** Toggle an emoji reaction on a message in the owner's thread (GATE 2). Owner-scoped + allow-list. */
+    public function react(Request $request, InboxService $inbox, string $thread): RedirectResponse
+    {
+        $model = MessageThread::query()->findOrFail($thread);   // owner-scoped → cross-owner/guest 404
+
+        $validated = $request->validate([
+            'message_id' => ['required', 'string', Rule::exists('messages', 'id')->where('thread_id', $model->getKey())],
+            'emoji' => ['required', 'string', Rule::in(InboxService::REACTIONS)],
+        ]);
+
+        $message = Message::query()->where('thread_id', $model->getKey())->findOrFail($validated['message_id']);
+        $author = $request->user();
+        if ($author instanceof User) {
+            $inbox->toggleReaction($message, $author, $validated['emoji']);
+        }
+
+        return redirect()->route('owner.messages', ['c' => $model->id]);
+    }
+
+    /** Toggle the current user's star (private bookmark) on a message in the owner's thread (GATE 2). */
+    public function star(Request $request, InboxService $inbox, string $thread): RedirectResponse
+    {
+        $model = MessageThread::query()->findOrFail($thread);   // owner-scoped → cross-owner/guest 404
+
+        $validated = $request->validate([
+            'message_id' => ['required', 'string', Rule::exists('messages', 'id')->where('thread_id', $model->getKey())],
+        ]);
+
+        $message = Message::query()->where('thread_id', $model->getKey())->findOrFail($validated['message_id']);
+        $author = $request->user();
+        if ($author instanceof User) {
+            $inbox->toggleStar($message, $author);
+        }
+
+        return redirect()->route('owner.messages', ['c' => $model->id]);
+    }
+
+    /** Pin / unpin the one highlighted message of the owner's thread (GATE 2). */
+    public function pin(Request $request, InboxService $inbox, string $thread): RedirectResponse
+    {
+        $model = MessageThread::query()->findOrFail($thread);   // owner-scoped → cross-owner/guest 404
+
+        $validated = $request->validate([
+            'message_id' => ['required', 'string', Rule::exists('messages', 'id')->where('thread_id', $model->getKey())],
+        ]);
+
+        $inbox->setPin($model, $validated['message_id']);
+
+        return redirect()->route('owner.messages', ['c' => $model->id]);
     }
 
     /**
@@ -68,6 +149,8 @@ class OwnerMessageActionController extends Controller
             // The picked recipient (exact-match compose) — a REAL back-office staff member of this org, NEVER a
             // guest. Re-resolved through the tenant scope + the back-office allow-list, never trusted from the body.
             'staff_id' => ['nullable', 'string'],
+            'attachments' => ['nullable', 'array', 'max:'.self::ATTACH_MAX],
+            'attachments.*' => ['file', 'max:'.self::ATTACH_MAX_KB, 'mimes:jpeg,jpg,png,webp,gif,pdf,doc,docx,xls,xlsx,csv,txt'],
         ]);
 
         $owner = $this->resolveOwnerId();
@@ -87,9 +170,45 @@ class OwnerMessageActionController extends Controller
         ]);
 
         $author = $request->user();
-        $inbox->postOwnerMessage($thread, trim($validated['body']), $author instanceof User ? $author : null);
+        $message = $inbox->postOwnerMessage($thread, trim($validated['body']), $author instanceof User ? $author : null);
+        $this->storeAttachments($message, $request->file('attachments', []));
 
         return redirect()->route('owner.messages', ['c' => $thread->id])->with('owner_notice', 'Message sent.');
+    }
+
+    /**
+     * Store each uploaded file as a polymorphic `media` row on the message (GATE 2) — the Add-Unit upload
+     * security posture: a GENERATED ULID filename (never the client's → no path traversal), the extension
+     * from the validated file, on the `public` disk. organization_id is auto-filled by BelongsToOrganization.
+     *
+     * @param  array<int, UploadedFile|null>  $files
+     */
+    private function storeAttachments(Message $message, array $files): void
+    {
+        $order = 0;
+        foreach ($files as $file) {
+            if (! $file instanceof UploadedFile) {
+                continue;
+            }
+
+            $ext = $file->extension() ?: 'bin';
+            $name = (string) Str::ulid().'.'.$ext;
+            $path = $file->storeAs('message-attachments/'.$message->getKey(), $name, self::ATTACH_DISK);
+
+            Media::create([
+                'mediable_type' => $message->getMorphClass(),
+                'mediable_id' => $message->getKey(),
+                'collection' => 'attachments',
+                'disk' => self::ATTACH_DISK,
+                'path' => $path,
+                'mime' => (string) $file->getMimeType(),
+                'size' => (int) $file->getSize(),
+                'sort_order' => $order,
+                'is_cover' => false,
+                'alt' => (string) $file->getClientOriginalName(),
+            ]);
+            $order++;
+        }
     }
 
     /**

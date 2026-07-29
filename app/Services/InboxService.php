@@ -9,6 +9,8 @@ use App\Messaging\Contracts\MessageChannel;
 use App\Messaging\MessageChannelResolver;
 use App\Models\Guest;
 use App\Models\Message;
+use App\Models\MessageReaction;
+use App\Models\MessageStar;
 use App\Models\MessageThread;
 use App\Models\Reservation;
 use App\Models\SyncJob;
@@ -287,14 +289,18 @@ class InboxService
      *
      * It DOES bump `unread_count` — correctly. That counter is the OPERATOR's ("inbound since they last
      * read"), and an owner's message is exactly the thing that should light up their inbox.
+     *
+     * `$replyToMessageId` (GATE 2 · reply-to) QUOTES an earlier message — validated by the caller to belong to
+     * THIS thread, so the quote can never point across threads/owners. Null for a plain message.
      */
-    public function postOwnerMessage(MessageThread $thread, string $body, ?User $author = null): Message
+    public function postOwnerMessage(MessageThread $thread, string $body, ?User $author = null, ?string $replyToMessageId = null): Message
     {
         $message = Message::create([
             'thread_id' => $thread->id,
             'direction' => 'inbound',              // into the org — see the docblock
             'channel' => $thread->channel,
             'body' => $body,
+            'reply_to_message_id' => $replyToMessageId,
             'author_user_id' => $author?->id,
             // The owner's own name, not "Operator" (which sendOutbound() hard-codes for the other side).
             'sender_label' => $author instanceof User ? (string) $author->name : 'Owner',
@@ -330,6 +336,95 @@ class InboxService
     public function markReadByOwner(MessageThread $thread): MessageThread
     {
         $thread->forceFill(['owner_last_read_at' => now()])->save();
+
+        return $thread;
+    }
+
+    /** The emojis a reaction may be — a fixed allow-list, so no arbitrary payload can reach a rendered surface. */
+    public const REACTIONS = ['👍', '❤️', '😂', '🎉', '🙏', '👀'];
+
+    /**
+     * Toggle one user's emoji reaction on a message (GATE 2). Idempotent by the `unique(message_id, user_id,
+     * emoji)` index — a second tap of the same emoji REMOVES the row (returns false); a first tap adds it
+     * (returns true). The emoji is validated against {@see self::REACTIONS} first; anything else is a no-op.
+     *
+     * A reaction is a lightweight, operator-visible annotation → it records an AUDIT row (who did what) but no
+     * domain event: it is not an outbox-worthy business fact, and a domain_events row per emoji tap would be
+     * noise. Same pragmatism as read-position (which records neither).
+     */
+    public function toggleReaction(Message $message, User $user, string $emoji): bool
+    {
+        if (! in_array($emoji, self::REACTIONS, true)) {
+            return false;
+        }
+
+        $existing = MessageReaction::query()
+            ->where('message_id', $message->getKey())
+            ->where('user_id', $user->getKey())
+            ->where('emoji', $emoji)
+            ->first();
+
+        if ($existing !== null) {
+            $existing->delete();
+            $this->audit->record('inbox.reaction_removed', $message, ['emoji' => $emoji], null);
+
+            return false;
+        }
+
+        MessageReaction::create([
+            'message_id' => $message->getKey(),
+            'user_id' => $user->getKey(),
+            'emoji' => $emoji,
+        ]);
+        $this->audit->record('inbox.reaction_added', $message, null, ['emoji' => $emoji]);
+
+        return true;
+    }
+
+    /**
+     * Toggle one user's star (bookmark) on a message (GATE 2). Idempotent by `unique(message_id, user_id)`.
+     * A star is PRIVATE view-state (the viewer's own flag) — like a read position, it records no events.
+     */
+    public function toggleStar(Message $message, User $user): bool
+    {
+        $existing = MessageStar::query()
+            ->where('message_id', $message->getKey())
+            ->where('user_id', $user->getKey())
+            ->first();
+
+        if ($existing !== null) {
+            $existing->delete();
+
+            return false;
+        }
+
+        MessageStar::create([
+            'message_id' => $message->getKey(),
+            'user_id' => $user->getKey(),
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Pin (or unpin) the one message a thread highlights (GATE 2). Passing a message id that already IS the pin
+     * clears it (toggle); passing null clears it; passing a new id repins. The caller validates the message
+     * belongs to the thread, so a pin can never point across threads. A pin is SHARED thread state (both parties
+     * see the banner) → it records both an audit and a domain event.
+     */
+    public function setPin(MessageThread $thread, ?string $messageId): MessageThread
+    {
+        $from = $thread->pinned_message_id;
+        $to = ($messageId !== null && (string) $from === (string) $messageId) ? null : $messageId;
+
+        if ((string) $from === (string) $to) {
+            return $thread;   // no change
+        }
+
+        $thread->forceFill(['pinned_message_id' => $to])->save();
+
+        $this->domainEvents->record('inbox.thread_pin_changed', $thread, ['pinned_message_id' => $to]);
+        $this->audit->record('inbox.thread_pin_changed', $thread, ['pinned_message_id' => $from], ['pinned_message_id' => $to]);
 
         return $thread;
     }
@@ -386,11 +481,17 @@ class InboxService
 
     public function markRead(MessageThread $thread): MessageThread
     {
-        if ($thread->unread_count === 0) {
-            return $thread;
-        }
-
-        $thread->update(['unread_count' => 0]);
+        // Two things happen when an operator opens a thread, and they are distinct:
+        //   • zero `unread_count` — the OPERATOR's badge;
+        //   • advance `operator_last_read_at` — the operator's read POSITION, which drives the owner/guest-facing
+        //     "Delivered → Read" receipt (there is no `read` delivery_status to fake). The owner's message is Read
+        //     once this timestamp is at/after it.
+        // Always set the position (even when the badge is already 0) so a re-open after the operator's own last
+        // read still reflects "seen"; the write is one row.
+        $thread->forceFill([
+            'unread_count' => 0,
+            'operator_last_read_at' => now(),
+        ])->save();
 
         return $thread;
     }

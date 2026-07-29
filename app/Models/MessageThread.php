@@ -44,6 +44,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $last_message_at
  * @property Carbon|null $last_inbound_at
  * @property Carbon|null $owner_last_read_at
+ * @property Carbon|null $operator_last_read_at
+ * @property string|null $pinned_message_id
  * @property Carbon|null $snoozed_until
  * @property array<string, mixed>|null $meta
  */
@@ -87,6 +89,11 @@ class MessageThread extends Model
         // The GUEST's read position (Phase 4c · SG3) — same reasoning as owner_last_read_at: a guest-portal read
         // must never zero the OPERATOR's `unread_count`.
         'guest_last_read_at',
+        // The OPERATOR's read position (GATE 2 · read-receipts) — the mirror of the two above. It is what makes
+        // the owner-facing "Read" tick REAL: the owner's message is Read once this is at/after it.
+        'operator_last_read_at',
+        // The one pinned message per thread (GATE 2). A soft pointer — no FK; cleared in app code if it vanishes.
+        'pinned_message_id',
         'snoozed_until',
         'meta',
     ];
@@ -104,6 +111,7 @@ class MessageThread extends Model
             'last_inbound_at' => 'datetime',
             'owner_last_read_at' => 'datetime',
             'guest_last_read_at' => 'datetime',
+            'operator_last_read_at' => 'datetime',
             'snoozed_until' => 'datetime',
         ];
     }

@@ -1,9 +1,9 @@
-{{-- Owner portal · MESSAGES (Wave 3 → exact-match 3-pane rebuild) — the owner↔OPERATOR relay as a full inbox,
-     matched to the decoded "Owner Messages" wireframe on the REAL relay. See App\Livewire\Owner\OwnerMessages
-     for the REAL/DERIVED/OMITTED map. Shell + --vy-* tokens (warm glass, Sora/Inter, vyFadeUp).
+{{-- Owner portal · MESSAGES (Wave 3 → exact-match 3-pane rebuild, GATE 2 rich features) — the owner↔OPERATOR
+     relay as a full inbox, matched to the decoded "Owner Messages" wireframe on the REAL relay. See
+     App\Livewire\Owner\OwnerMessages for the REAL/DERIVED/OMITTED map.
      🔒 #28 owner↔operator ONLY (OwnerScope on owner_id → a guest/cross-owner thread 404s) + staff correspondents
-     named, NEVER owner→guest; #20 every write (send/compose) is a controller POST, audited; #39 honest — presence
-     + typing OMITTED (no real-time infra), never a fake "online". Reply/attach/react/read/star/pin = GATE 2.
+     named, NEVER owner→guest; #20 every write (send/compose/react/star/pin) is a controller POST, audited; #39
+     honest — presence + typing OMITTED (no real-time infra), read receipt is REAL (operator_last_read_at).
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-owner.shell active="messages" :title="'Messages'" :subtitle="$subtitle" :viewer="$viewer">
     <style>
@@ -21,19 +21,53 @@
         .vy-msg-conv:hover { background:rgba(255,255,255,.5); }
         .vy-msg-conv.is-active { background:rgba(255,255,255,.72); border-color:rgba(255,255,255,.85); box-shadow:0 4px 14px rgba(150,90,50,.12); }
         .vy-msg-av { border-radius:50%; background:var(--vy-grad); display:flex; align-items:center; justify-content:center; color:#fff; font-family:var(--vy-display); font-weight:500; flex-shrink:0; }
-        .vy-msg-thread { flex:1; min-height:0; overflow-y:auto; background:rgba(255,252,248,.5); backdrop-filter:blur(22px) saturate(1.15); border:1px solid rgba(255,255,255,.7); border-radius:20px; box-shadow:inset 0 1px 0 rgba(255,255,255,.6); padding:22px; display:flex; flex-direction:column; gap:14px; }
-        .vy-msg-bubble { max-width:100%; padding:11px 15px; border-radius:16px; font-size:13.5px; line-height:1.5; box-shadow:0 4px 14px rgba(150,90,50,.08); text-wrap:pretty; }
+        .vy-msg-thread { flex:1; min-height:0; overflow-y:auto; background:rgba(255,252,248,.5); backdrop-filter:blur(22px) saturate(1.15); border:1px solid rgba(255,255,255,.7); border-radius:20px; box-shadow:inset 0 1px 0 rgba(255,255,255,.6); padding:22px; display:flex; flex-direction:column; gap:6px; }
+        .vy-msg-item { display:flex; flex-direction:column; }
+        .vy-msg-row { display:flex; align-items:flex-end; gap:7px; }
+        .vy-msg-bubble { max-width:100%; padding:11px 15px; border-radius:16px; font-size:13.5px; line-height:1.5; box-shadow:0 4px 14px rgba(150,90,50,.08); text-wrap:pretty; white-space:pre-wrap; word-break:break-word; }
         .vy-msg-bubble--me { background:var(--vy-grad); color:#fff; border-radius:16px 16px 5px 16px; }
         .vy-msg-bubble--op { background:rgba(255,255,255,.85); color:var(--vy-ink); border:1px solid rgba(255,255,255,.8); border-radius:16px 16px 16px 5px; }
         .vy-msg-meta { font-size:10.5px; color:var(--vy-faint); margin-top:4px; display:flex; align-items:center; gap:6px; }
-        .vy-msg-daysep { display:flex; justify-content:center; margin:4px 0 2px; }
+        .vy-msg-daysep { display:flex; justify-content:center; margin:8px 0 4px; }
         .vy-msg-daysep span { font-size:10.5px; font-weight:600; letter-spacing:.04em; color:var(--vy-faint); background:rgba(255,255,255,.72); border:1px solid rgba(255,255,255,.8); padding:4px 12px; border-radius:20px; }
         .vy-msg-composer { flex-shrink:0; margin-top:14px; display:flex; align-items:center; gap:8px; border:1px solid rgba(120,70,40,.14); background:rgba(255,255,255,.72); border-radius:26px; padding:6px 6px 6px 14px; }
-        .vy-msg-composer input { flex:1; min-width:0; border:none; outline:none; background:transparent; font:inherit; font-size:13.5px; color:var(--vy-ink); padding:9px 0; }
+        .vy-msg-composer input[type=text] { flex:1; min-width:0; border:none; outline:none; background:transparent; font:inherit; font-size:13.5px; color:var(--vy-ink); padding:9px 0; }
         .vy-msg-send { width:40px; height:40px; border-radius:50%; background:var(--vy-grad); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 6px 16px rgba(194,65,12,.35); }
+        .vy-msg-attach { width:38px; height:38px; border-radius:50%; background:rgba(120,70,40,.08); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--vy-muted); }
+        .vy-msg-attach:hover { background:rgba(120,70,40,.14); }
         .vy-msg-chip { padding:7px 14px; border-radius:30px; background:rgba(255,255,255,.55); border:1px solid rgba(120,70,40,.12); color:var(--vy-muted); font:inherit; font-size:12px; font-weight:500; cursor:pointer; }
         .vy-msg-chip:hover { background:rgba(255,255,255,.85); }
         .vy-msg-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--vy-faint); gap:10px; padding:32px 18px; }
+        /* GATE 2 — reply quote */
+        .vy-msg-quote { border-left:2.5px solid rgba(217,102,46,.5); padding:3px 9px; margin-bottom:5px; border-radius:4px; background:rgba(120,70,40,.06); font-size:11.5px; line-height:1.4; }
+        .vy-msg-bubble--me .vy-msg-quote { border-left-color:rgba(255,255,255,.7); background:rgba(255,255,255,.16); color:rgba(255,255,255,.92); }
+        .vy-msg-quote b { font-weight:600; }
+        /* GATE 2 — attachments */
+        .vy-msg-att-img { display:block; max-width:230px; max-height:200px; border-radius:12px; margin-top:6px; border:1px solid rgba(255,255,255,.7); }
+        .vy-msg-att-file { display:inline-flex; align-items:center; gap:8px; margin-top:6px; padding:8px 12px; border-radius:11px; background:rgba(255,255,255,.7); border:1px solid rgba(120,70,40,.12); text-decoration:none; color:var(--vy-ink); font-size:12px; }
+        .vy-msg-bubble--me + * .vy-msg-att-file, .vy-msg-att-file:hover { background:rgba(255,255,255,.92); }
+        /* GATE 2 — reactions */
+        .vy-msg-reacts { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+        .vy-msg-react { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:20px; background:rgba(255,255,255,.7); border:1px solid rgba(120,70,40,.12); font-size:12px; cursor:pointer; color:var(--vy-muted); }
+        .vy-msg-react.is-mine { background:rgba(217,102,46,.14); border-color:rgba(217,102,46,.4); color:var(--vy-accent); font-weight:600; }
+        .vy-msg-react:hover { background:rgba(255,255,255,.95); }
+        .vy-react-pop { position:absolute; z-index:30; display:flex; gap:2px; padding:5px; border-radius:14px; background:rgba(255,252,248,.98); border:1px solid rgba(255,255,255,.85); box-shadow:0 14px 40px rgba(120,70,40,.24); }
+        .vy-react-pop button { border:none; background:transparent; font-size:17px; cursor:pointer; padding:4px 5px; border-radius:8px; line-height:1; }
+        .vy-react-pop button:hover { background:rgba(120,70,40,.1); }
+        /* GATE 2 — per-message actions (hover) */
+        .vy-msg-acts { display:flex; align-items:center; gap:2px; opacity:0; transition:opacity .12s; align-self:center; }
+        .vy-msg-item:hover .vy-msg-acts { opacity:1; }
+        .vy-msg-act { width:26px; height:26px; border-radius:50%; border:none; background:rgba(255,255,255,.7); color:var(--vy-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+        .vy-msg-act:hover { background:rgba(255,255,255,.98); color:var(--vy-accent); }
+        .vy-msg-act.is-on { color:var(--vy-accent); }
+        /* GATE 2 — receipt tick */
+        .vy-msg-receipt { display:inline-flex; align-items:center; gap:2px; }
+        /* GATE 2 — pinned banner */
+        .vy-pin-banner { flex-shrink:0; display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:9px 13px; border-radius:13px; background:rgba(217,102,46,.08); border:1px solid rgba(217,102,46,.2); font-size:12.5px; }
+        /* GATE 2 — starred panel */
+        .vy-star-panel { position:absolute; top:calc(100% + 8px); right:0; z-index:41; width:300px; max-height:340px; overflow-y:auto; padding:8px; border-radius:16px; background:rgba(255,252,248,.98); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,.85); box-shadow:0 20px 54px rgba(120,70,40,.26); }
+        .vy-star-row { display:flex; gap:9px; padding:9px 10px; border-radius:11px; text-decoration:none; color:inherit; }
+        .vy-star-row:hover { background:rgba(255,255,255,.7); }
     </style>
 
     @php
@@ -131,52 +165,174 @@
                         <div style="font-size:12.5px;max-width:260px">Send a message below — they'll reply in your inbox.</div>
                     </div>
                 </div>
-                <form method="POST" action="{{ route('owner.messages.start') }}" class="vy-msg-composer" style="margin-top:14px">
+                <form method="POST" action="{{ route('owner.messages.start') }}" enctype="multipart/form-data" class="vy-msg-composer" x-data="{ files: 0 }" style="margin-top:14px">
                     @csrf
                     <input type="hidden" name="staff_id" value="{{ $composeStaff['id'] }}">
+                    <button type="button" class="vy-msg-attach" title="Attach a file" aria-label="Attach a file" @click="$refs.file.click()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></button>
+                    <input type="file" name="attachments[]" multiple x-ref="file" class="sr-only" style="display:none" @change="files = $refs.file.files.length">
                     <input type="text" name="body" required maxlength="5000" placeholder="Message {{ explode(' ', $composeStaff['name'])[0] }}…" aria-label="Message">
+                    <span x-show="files > 0" x-cloak style="font-size:11.5px;color:var(--vy-accent);white-space:nowrap"><span x-text="files"></span> file(s)</span>
                     <button type="submit" class="vy-msg-send" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></button>
                 </form>
             @elseif ($active !== null)
-                {{-- Active thread header (staff correspondent — presence honestly omitted) --}}
-                <div style="display:flex;align-items:center;gap:13px;margin-bottom:14px;flex-shrink:0">
-                    <span class="vy-msg-av" style="width:46px;height:46px;font-size:15px">{{ $active['initials'] }}</span>
-                    <div><h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:20px">{{ $active['name'] }}</h2><div style="font-size:12.5px;color:var(--vy-faint);margin-top:2px">{{ $active['role'] }}</div></div>
-                </div>
-
-                {{-- Thread --}}
-                <div class="vy-msg-thread" id="own-thread">
-                    @forelse ($messages as $m)
-                        @if ($m['day_label'] !== null)<div class="vy-msg-daysep"><span>{{ $m['day_label'] }}</span></div>@endif
-                        <div style="display:flex;justify-content:{{ $m['mine'] ? 'flex-end' : 'flex-start' }}">
-                            <div style="max-width:74%">
-                                <div class="vy-msg-bubble {{ $m['mine'] ? 'vy-msg-bubble--me' : 'vy-msg-bubble--op' }}">{{ $m['body'] }}</div>
-                                <div class="vy-msg-meta" style="justify-content:{{ $m['mine'] ? 'flex-end' : 'flex-start' }}">
-                                    <span>{{ $m['meta'] }}</span>
-                                    @if ($m['failed'])<span style="color:#B4400F;font-weight:600">· Not delivered</span>@endif
-                                </div>
+                <div x-data="{ replyTo: null, star: false, reactFor: null, files: 0 }">
+                    {{-- Active thread header (staff correspondent — presence honestly omitted) + starred panel toggle --}}
+                    <div style="display:flex;align-items:center;gap:13px;margin-bottom:14px;flex-shrink:0">
+                        <span class="vy-msg-av" style="width:46px;height:46px;font-size:15px">{{ $active['initials'] }}</span>
+                        <div style="flex:1;min-width:0"><h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:20px">{{ $active['name'] }}</h2><div style="font-size:12.5px;color:var(--vy-faint);margin-top:2px">{{ $active['role'] }}</div></div>
+                        <div style="position:relative">
+                            <button type="button" @click="star = ! star" title="Starred messages" aria-label="Starred messages" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:11px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.6);cursor:pointer;font:inherit;font-size:12.5px;color:var(--vy-muted)">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="{{ count($starred) > 0 ? '#E8A63A' : 'none' }}" stroke="#C08A1E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                                {{ count($starred) }}
+                            </button>
+                            <div x-show="star" x-cloak @click.outside="star = false" class="vy-star-panel">
+                                <div style="padding:6px 10px 8px;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--vy-faint)">Starred</div>
+                                @forelse ($starred as $s)
+                                    <a href="#msg-{{ $s['id'] }}" @click="star = false" class="vy-star-row">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#E8A63A" stroke="#C08A1E" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                                        <span style="min-width:0"><span style="display:block;font-size:11px;color:var(--vy-faint)">{{ $s['author'] }} · {{ $s['time'] }}</span><span style="display:block;font-size:12.5px;color:var(--vy-ink)">{{ $s['snippet'] }}</span></span>
+                                    </a>
+                                @empty
+                                    <div style="padding:12px 10px;font-size:12.5px;color:var(--vy-faint)">No starred messages yet. Star a message to keep it here.</div>
+                                @endforelse
                             </div>
                         </div>
-                    @empty
-                        <div class="vy-msg-empty">
-                            <div style="width:52px;height:52px;border-radius:16px;background:rgba(217,102,46,.1);color:var(--vy-accent);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"/></svg></div>
-                            <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;color:#6B615A">Start of your conversation with {{ $active['first_name'] }}</div>
-                            <div style="font-size:12.5px;max-width:260px">Send a message below to start the conversation.</div>
-                        </div>
-                    @endforelse
-                </div>
+                    </div>
 
-                {{-- Composer --}}
-                <form method="POST" action="{{ route('owner.messages.reply', $active['id']) }}" class="vy-msg-composer" x-data="{ setDraft(t) { this.$refs.body.value = t; this.$refs.body.focus(); } }" x-ref="composer">
-                    @csrf
-                    <input type="text" name="body" x-ref="body" required maxlength="5000" placeholder="Message {{ $active['first_name'] }}…" aria-label="Message">
-                    <button type="submit" class="vy-msg-send" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></button>
-                </form>
-                {{-- Quick replies — seed the draft (a real send on submit) --}}
-                <div style="flex-shrink:0;display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-                    @foreach ($quickReplies as $chip)
-                        <button type="button" class="vy-msg-chip" @click="document.querySelector('form.vy-msg-composer input[name=body]').value = @js($chip); document.querySelector('form.vy-msg-composer input[name=body]').focus()">{{ $chip }}</button>
-                    @endforeach
+                    {{-- Pinned banner (real pinned_message_id) --}}
+                    @if ($pinned !== null)
+                        <div class="vy-pin-banner">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+                            <span style="flex:1;min-width:0"><span style="color:var(--vy-faint)">Pinned · {{ $pinned['author'] }} — </span>{{ $pinned['snippet'] }}</span>
+                            <form method="POST" action="{{ route('owner.messages.pin', $active['id']) }}" style="flex-shrink:0">
+                                @csrf
+                                <input type="hidden" name="message_id" value="{{ $pinned['id'] }}">
+                                <button type="submit" title="Unpin" aria-label="Unpin" style="border:none;background:transparent;color:var(--vy-muted);cursor:pointer;font-size:12px">Unpin</button>
+                            </form>
+                        </div>
+                    @endif
+
+                    {{-- Thread --}}
+                    <div class="vy-msg-thread" id="own-thread">
+                        @forelse ($messages as $m)
+                            @if ($m['day_label'] !== null)<div class="vy-msg-daysep"><span>{{ $m['day_label'] }}</span></div>@endif
+                            <div class="vy-msg-item" id="msg-{{ $m['id'] }}" style="align-items:{{ $m['mine'] ? 'flex-end' : 'flex-start' }}">
+                                <div class="vy-msg-row" style="flex-direction:{{ $m['mine'] ? 'row-reverse' : 'row' }};max-width:80%">
+                                    <div style="min-width:0">
+                                        {{-- reply-to quote --}}
+                                        @if ($m['reply_to'] !== null)
+                                            <div style="display:flex;justify-content:{{ $m['mine'] ? 'flex-end' : 'flex-start' }}">
+                                                <div class="vy-msg-quote" style="max-width:100%"><b>{{ $m['reply_to']['author'] }}</b> · {{ $m['reply_to']['snippet'] }}</div>
+                                            </div>
+                                        @endif
+                                        @if ($m['body'] !== '')
+                                            <div class="vy-msg-bubble {{ $m['mine'] ? 'vy-msg-bubble--me' : 'vy-msg-bubble--op' }}" style="{{ $m['mine'] ? 'margin-left:auto' : '' }}">{{ $m['body'] }}</div>
+                                        @endif
+                                        {{-- attachments --}}
+                                        @foreach ($m['attachments'] as $att)
+                                            <div style="display:flex;justify-content:{{ $m['mine'] ? 'flex-end' : 'flex-start' }}">
+                                                @if ($att['is_image'])
+                                                    <a href="{{ $att['url'] }}" target="_blank" rel="noopener"><img src="{{ $att['url'] }}" alt="{{ $att['name'] }}" class="vy-msg-att-img"></a>
+                                                @else
+                                                    <a href="{{ $att['url'] }}" target="_blank" rel="noopener" class="vy-msg-att-file">
+                                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                                                        <span style="min-width:0"><span style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px">{{ $att['name'] }}</span><span style="color:var(--vy-faint);font-size:10.5px">{{ $att['size'] }}</span></span>
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                        {{-- reactions --}}
+                                        @if (count($m['reactions']) > 0)
+                                            <div class="vy-msg-reacts" style="justify-content:{{ $m['mine'] ? 'flex-end' : 'flex-start' }}">
+                                                @foreach ($m['reactions'] as $r)
+                                                    <form method="POST" action="{{ route('owner.messages.react', $active['id']) }}">
+                                                        @csrf
+                                                        <input type="hidden" name="message_id" value="{{ $m['id'] }}">
+                                                        <input type="hidden" name="emoji" value="{{ $r['emoji'] }}">
+                                                        <button type="submit" class="vy-msg-react {{ $r['mine'] ? 'is-mine' : '' }}">{{ $r['emoji'] }} {{ $r['count'] }}</button>
+                                                    </form>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                        {{-- meta + receipt --}}
+                                        <div class="vy-msg-meta" style="justify-content:{{ $m['mine'] ? 'flex-end' : 'flex-start' }}">
+                                            <span>{{ $m['meta'] }}</span>
+                                            @if ($m['failed'])
+                                                <span style="color:#B4400F;font-weight:600">· Not delivered</span>
+                                            @elseif ($m['receipt'] !== null)
+                                                <span class="vy-msg-receipt" style="color:{{ $m['receipt'] === 'Read' ? 'var(--vy-accent)' : 'var(--vy-faint)' }}">· {{ $m['receipt'] === 'Read' ? '✓✓' : '✓' }} {{ $m['receipt'] }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- per-message actions (hover) --}}
+                                    <div class="vy-msg-acts" style="position:relative">
+                                        <button type="button" class="vy-msg-act" title="Reply" aria-label="Reply" @click="replyTo = { id: '{{ $m['id'] }}', author: @js($m['author']), snippet: @js(\Illuminate\Support\Str::limit($m['body'] ?: 'Attachment', 60)) }; $refs.body.focus()">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l-5-5 5-5"/><path d="M4 12h11a5 5 0 0 1 5 5v1"/></svg>
+                                        </button>
+                                        <button type="button" class="vy-msg-act" title="React" aria-label="React" @click="reactFor = (reactFor === '{{ $m['id'] }}' ? null : '{{ $m['id'] }}')">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                                        </button>
+                                        <form method="POST" action="{{ route('owner.messages.star', $active['id']) }}">
+                                            @csrf
+                                            <input type="hidden" name="message_id" value="{{ $m['id'] }}">
+                                            <button type="submit" class="vy-msg-act {{ $m['starred'] ? 'is-on' : '' }}" title="{{ $m['starred'] ? 'Unstar' : 'Star' }}" aria-label="Star">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="{{ $m['starred'] ? '#E8A63A' : 'none' }}" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('owner.messages.pin', $active['id']) }}">
+                                            @csrf
+                                            <input type="hidden" name="message_id" value="{{ $m['id'] }}">
+                                            <button type="submit" class="vy-msg-act {{ $m['pinned'] ? 'is-on' : '' }}" title="{{ $m['pinned'] ? 'Unpin' : 'Pin' }}" aria-label="Pin">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="{{ $m['pinned'] ? 'var(--vy-accent)' : 'none' }}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+                                            </button>
+                                        </form>
+                                        {{-- reaction palette --}}
+                                        <div x-show="reactFor === '{{ $m['id'] }}'" x-cloak @click.outside="reactFor = null" class="vy-react-pop" style="bottom:calc(100% + 6px);{{ $m['mine'] ? 'right:0' : 'left:0' }}">
+                                            @foreach ($reactionPalette as $emoji)
+                                                <form method="POST" action="{{ route('owner.messages.react', $active['id']) }}">
+                                                    @csrf
+                                                    <input type="hidden" name="message_id" value="{{ $m['id'] }}">
+                                                    <input type="hidden" name="emoji" value="{{ $emoji }}">
+                                                    <button type="submit">{{ $emoji }}</button>
+                                                </form>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="vy-msg-empty">
+                                <div style="width:52px;height:52px;border-radius:16px;background:rgba(217,102,46,.1);color:var(--vy-accent);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"/></svg></div>
+                                <div style="font-family:var(--vy-display);font-weight:600;font-size:15px;color:#6B615A">Start of your conversation with {{ $active['first_name'] }}</div>
+                                <div style="font-size:12.5px;max-width:260px">Send a message below to start the conversation.</div>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- reply-to context banner (Alpine) --}}
+                    <div x-show="replyTo" x-cloak style="flex-shrink:0;margin-top:10px;display:flex;align-items:center;gap:9px;padding:8px 13px;border-radius:12px;background:rgba(120,70,40,.06);border:1px solid rgba(120,70,40,.12)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 17l-5-5 5-5"/><path d="M4 12h11a5 5 0 0 1 5 5v1"/></svg>
+                        <span style="flex:1;min-width:0;font-size:12px;color:var(--vy-muted)">Replying to <b x-text="replyTo?.author"></b> · <span x-text="replyTo?.snippet"></span></span>
+                        <button type="button" @click="replyTo = null" title="Cancel reply" aria-label="Cancel reply" style="border:none;background:transparent;color:var(--vy-muted);cursor:pointer;font-size:15px;line-height:1">&times;</button>
+                    </div>
+
+                    {{-- Composer --}}
+                    <form method="POST" action="{{ route('owner.messages.reply', $active['id']) }}" enctype="multipart/form-data" class="vy-msg-composer">
+                        @csrf
+                        <input type="hidden" name="reply_to_message_id" :value="replyTo?.id ?? ''">
+                        <button type="button" class="vy-msg-attach" title="Attach a file" aria-label="Attach a file" @click="$refs.file.click()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></button>
+                        <input type="file" name="attachments[]" multiple x-ref="file" style="display:none" @change="files = $refs.file.files.length">
+                        <input type="text" name="body" x-ref="body" maxlength="5000" placeholder="Message {{ $active['first_name'] }}…" aria-label="Message">
+                        <span x-show="files > 0" x-cloak style="font-size:11.5px;color:var(--vy-accent);white-space:nowrap"><span x-text="files"></span> file(s)</span>
+                        <button type="submit" class="vy-msg-send" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></button>
+                    </form>
+                    {{-- Quick replies — seed the draft (a real send on submit) --}}
+                    <div style="flex-shrink:0;display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+                        @foreach ($quickReplies as $chip)
+                            <button type="button" class="vy-msg-chip" @click="$refs.body.value = @js($chip); $refs.body.focus()">{{ $chip }}</button>
+                        @endforeach
+                    </div>
                 </div>
             @else
                 {{-- No conversations at all --}}

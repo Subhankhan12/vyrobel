@@ -68,5 +68,32 @@ Everything else (reply-to · attachments · reactions · starred · pinned · co
 
 ---
 
+## ✅ RESOLUTION (built 2026-07-30 · invariant #77 · commits GATE 1 `c070913` + GATE 2)
+
+**GATE 1 (`c070913`)** — the unified 3-pane page on the REAL relay. `/owner/messages` is now ONE page: the
+conversation rail + the active thread pane (picking a conversation is a GET `?c=` so the middleware runs; the
+old `/{thread}` route redirects owner-scoped-first). The real core is wired: list · staff correspondent (real
+name + role; the compose recipients are the org's real back-office staff, the assignee named until a reply
+lands) · unread · search · mirrored transcript · compose (assign) · reply-send · quick-replies · honest empty
+states. Presence + typing OMITTED. `OwnerMessageThread` + its view removed (one messaging concept).
+
+**GATE 2** — the six rich features, all REAL, each mutation-proven (`OwnerMessagesRichTest`):
+
+| Feature | Backing | Proof |
+|---|---|---|
+| **Reply-to** | `messages.reply_to_message_id` (nullable self-FK) | persists; renders the quote; a cross-thread parent is REJECTED (validation). |
+| **Attachments** | polymorphic `Media` on `Message` (the Add-Unit upload pattern; `attachments` collection; ULID filename; `public` disk) | file stored + `Storage::assertExists`; image inline / file chip; a file-only message allowed; an empty message refused. |
+| **Reactions** | `message_reactions` (`unique(message_id, user_id, emoji)`; a fixed emoji allow-list) | toggle idempotent (add → remove); non-allow-list emoji rejected; owner-scoped (cross-owner 404). |
+| **Read-receipt** | `message_threads.operator_last_read_at` (set in `InboxService::markRead()` when an operator opens the thread — the mirror of `owner_last_read_at`) | owner's message "Delivered" until the operator opens, then "Read" — **REAL**, never a defaulted ✓✓. |
+| **Starred** | `message_stars` (`unique(message_id, user_id)`; private view-state) | per-user toggle; the panel lists only the viewer's stars. |
+| **Pinned** | `message_threads.pinned_message_id` (soft pointer) | pin sets the banner; toggling the same message unpins; owner-scoped. |
+
+Every write is a controller POST (`owner.messages.{reply,react,star,pin}` + `start`), routed through
+`InboxService` (audited for pin/reaction; pin also emits a domain event; star/receipt are per-user view-state,
+no events — the `markReadByOwner` precedent), owner-scoped (the `{thread}` findOrFail 404s cross-owner/guest,
+and every `message_id` is re-validated to belong to that thread). **NOT-BUILDABLE stayed honest-omitted:**
+presence dots + typing indicator (no real-time infra) — never a fake "online". Suite 1262/1262; PHPStan L5 (0);
+Pint clean; `migrate:fresh --seed` clean; all six browser-verified.
+
 ## 5. Guardrails held throughout
 🔒 **#28** owner↔OPERATOR only (the `OwnerScope` on `owner_id` makes a guest/cross-owner thread 404) + staff correspondents are named, guest data name-only, NEVER owner→guest · **#20** every write (compose · send · react · star · pin · attach · reply) is a controller route, audited (never a `/livewire/update` mutation) · **#39** no fabricated feature — no fake attachment/reaction/read-tick/star/pin/**presence**/typing; the read-receipt is a real `operator_last_read_at`; presence + typing are honestly omitted (real-time infra needed).

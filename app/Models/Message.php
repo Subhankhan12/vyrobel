@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\Models\Concerns\HasMedia;
 use App\Services\InboxService;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -33,10 +35,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $sent_at
  * @property Carbon|null $received_at
  * @property Carbon|null $failed_at
+ * @property string|null $reply_to_message_id
  */
 class Message extends Model
 {
-    use BelongsToOrganization, HasUlids, SoftDeletes;
+    use BelongsToOrganization, HasMedia, HasUlids, SoftDeletes;
 
     protected $fillable = [
         'organization_id',
@@ -45,6 +48,7 @@ class Message extends Model
         'channel',
         'external_message_id',
         'body',
+        'reply_to_message_id',
         'author_user_id',
         'sender_label',
         'delivery_status',
@@ -80,5 +84,31 @@ class Message extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_user_id');
+    }
+
+    /**
+     * The earlier message this one QUOTES (reply-to), or null — same thread, tenant-scoped like every read.
+     *
+     * @return BelongsTo<Message, $this>
+     */
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(Message::class, 'reply_to_message_id');
+    }
+
+    /**
+     * @return HasMany<MessageReaction, $this>
+     */
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(MessageReaction::class);
+    }
+
+    /**
+     * @return HasMany<MessageStar, $this>
+     */
+    public function stars(): HasMany
+    {
+        return $this->hasMany(MessageStar::class);
     }
 }
