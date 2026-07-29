@@ -29,8 +29,9 @@ use Livewire\Component;
  * of those real protections (password 40 + 2FA 40 + recovery codes 20 = /100), NOT a fabricated number, and the
  * "Boost your score" items are the REAL remaining protections, each linking to its REAL control (never a fake
  * point economy). Active sessions are the REAL rows in the `sessions` table. "Last sign-in" is the real
- * `last_login_at`. Everything the wireframe draws over no backend — passkeys, login-approval / trusted-locations,
- * connected apps, full sign-in history, login-alerts, session-timeout — is an honest "Soon" card, never a fake toggle.
+ * `last_login_at`. Passkeys/WebAuthn (Wave B), login-approval + trusted-devices (Wave B), and connected apps
+ * (OAuth #72) are now all REAL controls on this page. Only new-device email alerts, full sign-in history, and
+ * session-timeout remain an honest "Soon" card (no backend) — never a fake toggle.
  */
 #[Layout('components.layouts.owner')]
 class OwnerSecurity extends Component

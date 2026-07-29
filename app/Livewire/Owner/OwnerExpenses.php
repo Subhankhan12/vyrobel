@@ -199,8 +199,9 @@ class OwnerExpenses extends Component
      *   • "Spent this year"     = Σ live rows dated in the CURRENT calendar year (display currency).
      *   • "Charged to payouts"  = Σ live DEDUCTIBLE rows this year — the costs that reach the owner ledger.
      *   • "Pending review"      = COUNT of live NULL-deductible rows (currency-free; deductibility unresolved).
-     * The money KPIs are display-currency only (never a cross-currency sum, #17); "Awaiting your approval" is
-     * REFUSED — there is no owner-approval workflow (#39), so the honest analog is "Pending review".
+     * The money KPIs are display-currency only (never a cross-currency sum, #17). "Awaiting your approval" is
+     * REAL (Wave C · #68 — a pending deductible expense the owner approves/queries; `awaiting_count`/`awaiting_display`
+     * below); "Pending review" (the NULL-deductible tri-state) is a separate, agreement-governed axis.
      *
      * @param  Collection<int, OwnerExpense>  $expenses
      * @return array<string, mixed>

@@ -31,8 +31,9 @@ use Livewire\Component;
  *
  * ⚠️ DIVERGENCE (recorded): the "Owner Rates" design is an approval/guardrails model (the manager proposes,
  * the owner signs off, floor/ceiling guardrails). The decision is FULL DIRECT edit — the owner sets the rate
- * and it is live. The design's Proposed-changes, Guardrails, comp-set and the Peak tier have NO backing schema
- * and are NOT rendered as real (no fake "pending sign-off").
+ * and it is live. Operator→owner RATE PROPOSALS are now REAL (#67 — a `rate_proposal` entity the owner approves/
+ * declines), but surfaced in the ATTENTION feed (My Units / Overview / Insights), not on this Rates page. The
+ * design's Guardrails, comp-set and the Peak tier remain unmodelled → NOT rendered as real (no fake "pending sign-off").
  *
  * Wave-B (owner completeness sweep · GATE 3): the design's BASE + WEEKEND tiers are now REAL — the editor sets
  * the nightly (weekday) rate, a WEEKEND UPLIFT % (writes the higher price onto Fri/Sat via the Wave-A

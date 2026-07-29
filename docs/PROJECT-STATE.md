@@ -6,8 +6,37 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v19) · "ASK VYROBEL" SUPPORT AI COMPLETE. This block SUPERSEDES every
-> block below it. Fresh-session entry point: this block → `docs/SUPPORT-AI-DESIGN.md` → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v20) · OWNER-REALM AUDIT FIX PASS COMPLETE (⚠️ per-owner role security).
+> This block SUPERSEDES every block below it. Fresh-session entry point: this block →
+> `docs/OWNER-REALM-AUDIT-REPORT.md` → `docs/DECISIONS.md`.**
+>
+> **⚠️ SECURITY — per-owner role enforcement (Invariant #75).** A read-only comprehensive owner-realm audit
+> (`docs/OWNER-REALM-AUDIT-REPORT.md`) found ONE P1 + two P2s + doc-rot; all fixed in a triaged, per-gate pass,
+> every logic/security fix MUTATION-PROVEN (fails-before / holds-after). **P1-1 (the security priority):**
+> `SetOwnerScopeForPortal` resolved a portal user's owner-team role as the single HIGHEST role across the UNION of
+> ALL their owner memberships (and `isPrimaryOwner` as a GLOBAL boolean; the OAuth API inherited it) — so a user
+> who is co-owner/primary of Owner A + a lesser role on Owner B (same tenant) acted with **co-owner powers on B**
+> (approve B's expenses/rate-proposals, edit B's rates, read B's masked IBAN, manage B's team, read B via an OAuth
+> token — the blast radius was runtime-PROVEN then CLOSED). **Fix:** role is resolved and enforced **PER OWNER** —
+> `OwnerContext` holds a per-owner role map + `primaryOwnerIds`, with `canOn(ownerId,cap)` / `isPrimaryOwnerOf` /
+> `ownerIdsWithCapability` / `intersectOwners`; `can()`/`isPrimaryOwner()` remain COARSE first-filter route gates
+> (exact for the single-owner common case), backed by the authoritative per-owner check at each sensitive
+> write/read (expenses, rate-proposals, rates, IBAN, team, unit-pause, block, targets, payout method/prefs,
+> attention, statement-PDF/report-email payout visibility); the OAuth scope gate narrows a token to the owners its
+> per-owner role actually backs. `OwnerCrossOwnerRoleTest` (7) proves the leak closed both ways + legitimate access
+> preserved. **P2-1** Balance clearing identity now holds even after a post-lock refund (a "Carried forward" bucket
+> = stamped rows of statements with no active payout → `Available+On hold+In transit+Paid+Carried forward == Net`
+> to the cent; `OwnerBalanceReconciliationTest`). **P2-2** Reports "Gross to net" now includes payment_fee (#70) +
+> withholding (#73) — a real "Tax withheld" line matching the annual summary, the `reconciles` flag wired into the
+> view (`OwnerReportsReconciliationTest`). **P2-3** the My Units calendar day-detail was back-ported from Unit
+> Detail (guest name-only #28 + unit + stay + net, shared value rules; browser-verified). **P2-4 + P3 doc-rot:**
+> the stale "REFUSED / NO BACKEND" honesty-map comments swept to the shipped reality (comments only). No money
+> changed (the two reconciliation fixes correct the DISPLAY/breakdown); single-owner behaviour unchanged. Suite
+> **1250/9418** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **Invariants #1–75.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-29 (v19) · "ASK VYROBEL" SUPPORT AI COMPLETE.**
 >
 > **⚠️ A support-AI must NEVER fabricate (Invariant #74).** "Ask Vyrobel" is a REAL grounded (RAG-style) support
 > assistant on the owner Help page — and the honesty guarantee is **ARCHITECTURAL, not a trusted-model hope**:

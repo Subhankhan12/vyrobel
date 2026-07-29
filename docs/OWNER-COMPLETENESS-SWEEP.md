@@ -172,12 +172,15 @@
 ---
 
 ## THE 🔴 HARD-DEFER LIST (needs real external infra / a real scope decision — one at a time)
-1. **Automated PAYOUT ENGINE** (scheduled runs · micro-deposit verification · live transfer rail · SEPA trace · 48h hold · instant withdrawal · Verified state) — **the major fintech initiative** (live Stripe/banking + PSD2/PCI/GDPR). Powers: Payouts protected-changes, Balance "Withdraw early", Overview/Statement/Payouts est-date, Onboarding IBAN. **NO IBAN capture without the certified pipeline.**
-2. **VAT computation + Withholding** (real tax engines) — correctness/compliance; only if genuinely how the business works.
-3. **OAuth "connected apps"** — Vyrobel as an OAuth authorization server.
-4. **Real OTA channel sync** (Airbnb/Booking via Channex) — real channel accounts. Also unblocks the Bookings OTA brand split.
-5. **SMS + Push providers** — Settings SMS/push channels + phone-verify.
-6. **Support AI** ("Ask Vyrobel") — a real support-AI (honest FAQ is what's built).
+> **UPDATE (2026-07-29):** items 1–3 + 6 have since been **BUILT** (Wave D + the automated payout engine); the
+> genuine hard-defers remaining are the account-gated integrations (4, 5) + guest ID/KYC. Left below for history,
+> annotated ✅ where done.
+1. ✅ **DONE** — **Automated PAYOUT ENGINE** (invariant #71, TEST-MODE): scheduled runs + a persisted tax-hold + the certified Connect rail/webhook. Micro-deposit VERIFICATION / live transfer / SEPA trace / 48h hold / instant withdrawal stay honestly account-gated (the live cutover is the founder's step). NO IBAN capture without the certified pipeline (still true).
+2. ✅ **DONE** — **VAT + Withholding** (invariant #73): the ENGINE is code; the RATES are founder-configured per jurisdiction (never invented). VAT informational, withholding a real payout deduction (reconciles #17).
+3. ✅ **DONE** — **OAuth "connected apps"** (invariant #72): Vyrobel is an OAuth authorization server (Passport; scoped, owner-consented, tenant + per-owner-role isolated, revocable).
+4. 🔴 **Real OTA channel sync** (Airbnb/Booking via Channex) — real channel accounts. Also unblocks the Bookings OTA brand split. (Genuine hard-defer.)
+5. 🔴 **SMS + Push providers** — Settings SMS/push channels + phone-verify. (Genuine hard-defer.)
+6. ✅ **DONE** — **Support AI** ("Ask Vyrobel", invariant #74): a real GROUNDED assistant (RAG over the real Help KB; escalates to the relay; account-gated LLM, default fake).
 
 ## THE 🟠 PRODUCT-DECISION LIST (buildable, but needs your call on whether it's how the business works)
 1. ✅ **BUILT (Wave C GATE 1, #67)** — **Rate-PROPOSAL entity** (operator→owner proposals, approve/decline → OwnerRateService) — one feature, 3 surfaces.

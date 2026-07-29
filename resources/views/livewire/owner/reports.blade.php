@@ -11,8 +11,10 @@
         (masked IBAN CAP_PAYOUT-only), real Documents + exports (CAP_EXPORTS-gated).
       • HONEST-OMIT — the prior-year comparison (chart dashed bars + KPI Δ + hero badge): no prior-year data → not
         fabricated; the year dropdown lists REAL statement years, never fabricated 2024/2023.
-      • HONEST-DEFER — "Email to me" / "PDF pack" = "Soon"; the Tax & VAT summary is NOT computed by Vyrobel (no
-        VAT model) → an honest deferred card, no fabricated VAT figure / "Mark filed" (#39). [GATE 2 refines design.]
+      • REAL (Wave D) — "Email to me" queues the latest statement PDF to your own inbox (#73 track); the Tax & VAT
+        summary IS computed (OwnerVatService — output/input/net VAT from FOUNDER-CONFIGURED rates × real gross/
+        commission, reconciling #17), honestly labelled ("EXAMPLE rates — not for filing" / "not configured" /
+        "not registered"), never a fabricated figure or a "Mark filed" toggle (#39). "PDF pack" stays honest-"Soon".
     RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click/@keydown pass through to Alpine).
 --}}
 <x-owner.shell active="reports" title="Reports" :subtitle="'Your real performance — earnings, occupancy and where it comes from.'" :viewer="$viewer">
@@ -429,13 +431,8 @@
         </div>
     </div>
 
-    {{-- ── Tax & VAT summary — full-width; the wireframe's fabricated VAT COMPUTATION (Output/Input/Net VAT,
-         "payable to [authority]", Mark-filed, per-quarter, numbers-bearing VAT-return CSV) is a KIND-2 fabrication:
-         Vyrobel models NO VAT (only a stored VAT number). We REFUSE the figures and style the HONEST deferred state
-         in the wireframe's card chrome — icon + header + a clear "Not yet available" chip + (real) country context +
-         the REAL annual tax summary PDF. No fabricated figure, no filing toggle, no VAT return with invented numbers
-         (an owner could file on it — dangerous even "for information only"). #39. --}}
-    {{-- ── Tax & VAT summary — REAL (Wave D): computed from FOUNDER-CONFIGURED rates × real amounts (OwnerVatService).
+    {{-- ── Tax & VAT summary — REAL (Wave D · #73): computed from FOUNDER-CONFIGURED rates × real amounts (OwnerVatService).
+         (Superseded the earlier KIND-2 refusal — VAT is now a real engine, not a deferred card.)
          Honestly labelled; an EXAMPLE-rate figure is flagged "not for filing"; unconfigured/unregistered → the honest
          state (no figure). NEVER a fabricated figure an owner could file on (#39). --}}
     <section class="vy-card {{ $vat['available'] ? '' : 'vy-rep-vat' }} vy-fade" style="animation-delay:.17s">

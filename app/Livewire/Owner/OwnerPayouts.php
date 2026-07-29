@@ -45,9 +45,11 @@ use Livewire\Component;
  *   • REAL     — the per-payout REMITTANCE ADVICE PDF (Wave 1 · Sub-gate 2): each row links to
  *                `owner.payouts.remittance`, an owner-scoped download off the real payout + its source
  *                statement's real lines. (Was "Receipt · Soon" — no longer deferred.)
- *   • NO BACKEND — on-hold/verification banner, IBAN/payout-account, estimated dates, upcoming-schedule
- *                projections, bulk exports, and the payout-preference controls with no field
- *                (frequency/day/minimum/pause): omitted or disabled "Soon", never a fake action/IBAN/date.
+ *   • REAL (rebuild + payout engine #71) — the tax-HOLD banner (the real tax-hold), the masked IBAN/payout-account
+ *                card (CAP_PAYOUT #28), the real next-scheduled-payout DATE (PayoutSchedule::nextRunDate), the
+ *                Export CSV, and the full payout-preference editor (frequency/day/minimum) — all real, never faked.
+ *                TEST-MODE only (PayoutEngineMode) — no real money moves in the build. Micro-deposit bank
+ *                VERIFICATION / live SEPA trace stay honestly account-gated (never a fake "Verified").
  */
 #[Layout('components.layouts.owner')]
 class OwnerPayouts extends Component
@@ -268,8 +270,8 @@ class OwnerPayouts extends Component
     }
 
     /**
-     * The source statement's REAL component lines (same discipline as the statement screen — no invented
-     * "payment / card-processing fee" line).
+     * The source statement's REAL component lines (same discipline as the statement screen — renders the real
+     * "Payment & ops fees" (#70) + "Withholding tax" (#73) lines when present, €0 → omitted, never faked #39).
      *
      * @return list<array{label: string, amount_display: string, is_negative: bool, is_net: bool}>
      */

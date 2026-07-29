@@ -10,8 +10,10 @@
       • DERIVED   — the "% of gross" + "N nights · M units" sublabels, computed from the statement's own real figures.
       • REAL PDFs — statement · booking-summary · remittance-advice + the statement-history CSV/PDF, all reconciling
                     and all CAP_EXPORTS-gated (co-owner + accountant); the remittance offered only once a payout exists.
-    There is deliberately NO "payment / card-processing fee" line and NO estimated payout DATE — the engine computes
-    no such component and there is no scheduled-date field, so neither is ever faked (#39).
+    The breakdown renders whatever real lines the statement holds — including the "Payment & ops fees" (#70) and
+    "Withholding tax" (#73) lines when non-zero (both €0 today → omitted, never faked #39). There is NO estimated
+    payout DATE on this card (no scheduled-date field on the matched Payout) — the payout-engine schedule date
+    lives on the Payouts page, not invented here.
 
     Page-scoped CSS (.vy-st-*) lives in THIS file, NOT the shared owner layout — its class names/comments must not
     leak into every owner page's <style>, where owner-isolation tests assert the ABSENCE of certain words.

@@ -13,9 +13,12 @@
       • DERIVED   — "By category" = Σ real rows, voided excluded, per currency (no silent FX, #17).
       • REAL      — Export (CSV, CAP_EXPORTS-gated) + "Need something fixed?" (a REAL relay into the
                     owner↔operator channel, owner.messages.start — the same path as My Units).
-      • REFUSED   — the design's owner APPROVE / QUERY workflow + "Awaiting your approval" (no backend, #39)
-                    → the honest analog is the REAL "Pending review" count + a read-only list + the
-                    "How expenses work" explainer. Vendor is now a REAL column (owner_expenses.vendor) — the
+      • REAL (Wave C · #68) — the owner APPROVE / QUERY workflow + the "Awaiting your approval" section/KPI:
+                    a pending DEDUCTIBLE expense is NOT charged until you APPROVE (posts the real ledger
+                    deduction → net drops, reconciling #17) or QUERY (nothing charged + opens the relay),
+                    CAP_ACTIONS-gated + audited. The read-only "Pending review" count (the `deductible`
+                    tri-state — deductibility is set by the management agreement, not owner-approved) is a
+                    SEPARATE axis, shown alongside. Vendor is a REAL column (owner_expenses.vendor) — the
                     supplier a cost was paid to, shown when captured, honestly "—" otherwise.
 
     RAW-BLADE RULE: every `@` follows a space, newline or tag; inline conditions are ternaries in {{ }}.

@@ -1,6 +1,6 @@
 {{-- Owner "SECURITY" (owner account area · Gate 2). Per-USER (auth-resolved) — password, 2FA, real active
      sessions, data export; the ONE primary-owner-only action is Deactivate (#42). Real state only — the
-     protection list is DERIVED (no fake score); deferred items are honest "Soon". Writes are controller POSTs.
+     score + protection list are a REAL /100 DERIVED from true protections (never fabricated); deferred items are honest "Soon". Writes are controller POSTs.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @php
     $lbl = 'display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:7px;';

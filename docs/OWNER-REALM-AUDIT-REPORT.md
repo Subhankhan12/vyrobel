@@ -6,6 +6,20 @@
 
 ---
 
+## 0. ✅ RESOLUTION (2026-07-29 — the triaged fix pass, after this audit)
+
+The findings were fixed in severity order across three gated commits (suite **1250/1250** green · PHPStan L5 (0) · Pint clean · `migrate:fresh --seed` clean throughout):
+
+- **P1-1 · cross-owner union-role over-grant — FIXED & MUTATION-PROVEN** (`0dec9ad`, invariant **#75**). The blast radius was first *runtime-proven* (a co-owner/primary of A + view-only of B could approve B's expenses/rate-proposals, edit B's rates, read B's masked IBAN, manage B's team, and read B's data via the OAuth API — all leaked), then closed: **role is now resolved and enforced PER OWNER** (`OwnerContext` per-owner role map; `canOn`/`isPrimaryOwnerOf`/`ownerIdsWithCapability`; both portal + OAuth middleware build it; the API narrows to capable owners; every sensitive write/read enforces the target owner's role). `OwnerCrossOwnerRoleTest` (7): the leak is closed both ways; legitimate access on A preserved; single-owner behaviour unchanged.
+- **P2-1 · Balance clearing identity after a post-lock refund — FIXED & MUTATION-PROVEN** (`c65c856`). A "Carried forward" bucket (stamped rows of statements with no active payout) makes `Available + On hold + In transit + Paid + Carried forward == Net` hold to the cent even with a negative statement. `OwnerBalanceReconciliationTest` (2). Shown only when non-zero (hidden in the demo).
+- **P2-2 · Reports gross-to-net omitted payment_fee/withholding — FIXED & MUTATION-PROVEN** (`c65c856`). Both buckets now included (withholding as its own line, matching the annual summary); the `reconciles` flag wired into the view. `OwnerReportsReconciliationTest` (1) — reconciles with a configured 25% withholding rate.
+- **P2-3 · My Units richer day-detail — BACK-PORTED & BROWSER-VERIFIED** (`0067e36`). The occupancy calendar's day-detail now shows the booked units + guest NAME-only (#28) + stay + owner net, from the same shared value rules as Unit Detail (no drift).
+- **P2-4 + the P3 doc-rot cluster — CORRECTED** (this commit). The stale HONESTY-MAP comments that said "REFUSED / NO BACKEND / no invented line" for now-built features (expense approval, payment_fee/withholding lines, the payout engine, VAT, rate-proposals, passkeys/OAuth) were swept to match the shipped reality (no logic change).
+
+The P3 *consistency/edge* items (test-mode banner on Payout Method, next-run date on Balance/Statement, the `held` visual, the Agreement relay wire-up, a11y `aria-label`s, mobile decorative overflow, the FX/failed-payout edges) remain open as genuine polish — see §5.
+
+---
+
 ## 1. EXECUTIVE SUMMARY
 
 **The owner realm is solid, deep, and honest.** All 24 owner pages render (HTTP 200, no raw-Blade leak, no exception in server render), every detail page + all four PDFs + all six CSV exports produce correct content-types, the API is gated (401 without a token), and the full suite is **1240/1240 green · PHPStan L5 = 0 · Pint clean · `migrate:fresh --seed` clean**. Interactive mutations were exercised live and behave correctly with real, reconciling money effects (evidence below). The invariant guardrails (#17 reconcile, #28 owner-scope + name-only, #33 arrival secrets, #20 write discipline, #39 no-fabrication, the Wave-D isolations) **hold**, with one genuine cross-owner weakness and two latent reconciliation gaps found by reading.

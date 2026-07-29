@@ -188,7 +188,8 @@
                 </section>
             @endif
 
-            {{-- Auto-payout schedule — REAL (the current agreement's cadence). No fabricated "next run" date. --}}
+            {{-- Auto-payout schedule — REAL (the current agreement's cadence). The real next-scheduled-payout DATE
+                 (payout engine · PayoutSchedule) is shown on the Payouts page; this card states the cadence only. --}}
             @if ($schedule)
                 <section class="vy-card vy-fade" style="animation-delay:.09s">
                     <span class="vy-eyebrow">Auto-payout schedule</span>

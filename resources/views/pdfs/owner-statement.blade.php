@@ -1,8 +1,9 @@
 {{-- Owner statement PDF (exact-match pass). PDF-SAFE: dompdf renders HTML4/CSS2.1, so this is a table-based,
      inline-CSS branded LETTERHEAD document (NOT the app's frosted glass). DejaVu Sans renders € + the U+2212 minus.
      Every figure comes from the real owner_statement_lines (which sum to the net) + the shared OwnerStatementBreakdown
-     (Σ per-unit gross == the statement gross) — reconciles to the cent (#17). No guest data (#28); no invented
-     "payment & ops fees" line (#39). The masked IBAN appears only when the exporter is payout-capable (set upstream).
+     (Σ per-unit gross == the statement gross) — reconciles to the cent (#17). No guest data (#28); the real
+     "Payment & ops fees" (#70) + "Withholding tax" (#73) lines print when non-zero (€0 → omitted, never faked
+     #39). The masked IBAN appears only when the exporter is payout-capable (set upstream).
      Logic-free by design — all strings are composed in OwnerStatementDocument (a top-of-file @php once dropped the
      <head> at compile time). --}}
 <!DOCTYPE html>
