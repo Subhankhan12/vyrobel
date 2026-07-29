@@ -79,6 +79,7 @@ use App\Http\Controllers\Owner\OwnerConnectController;
 use App\Http\Controllers\Owner\OwnerConnectedAppController;
 use App\Http\Controllers\Owner\OwnerExpenseApprovalController;
 use App\Http\Controllers\Owner\OwnerExpensesExportController;
+use App\Http\Controllers\Owner\OwnerHelpAskController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerPayoutMethodController;
 use App\Http\Controllers\Owner\OwnerPayoutPreferenceController;
@@ -884,6 +885,10 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/add-unit', OwnerAddUnit::class)->middleware($capActions)->name('add-unit');
     Route::post('/add-unit', [OwnerUnitRequestController::class, 'store'])->middleware($capActions)->name('add-unit.submit');
     Route::get('/help', OwnerHelp::class)->name('help');
+    // "Ask Vyrobel" — the grounded support assistant (Wave D · support AI). A controller POST (a plain <form>),
+    // rate-limited; a READ over generic help content (no owner-data write). Grounding + guardrails + cost/circuit
+    // live in AskVyrobelService; an out-of-scope/account question escalates to the real relay, never fabricates.
+    Route::post('/help/ask', [OwnerHelpAskController::class, 'ask'])->middleware('throttle:15,1')->name('help.ask');
     // Phase 3 · Sub-gate 1 — the owner in-app notification feed (the owner's OWN notifications; per-user
     // Notifiable → never another user's, never another owner's).
     Route::get('/notifications', OwnerNotifications::class)->name('notifications');

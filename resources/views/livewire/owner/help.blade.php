@@ -20,6 +20,13 @@
         .vy-hlp-status .dot { width:9px; height:9px; border-radius:50%; background:var(--vy-green); box-shadow:0 0 0 4px rgba(31,122,90,.15); }
         .vy-hlp-faq { border-bottom:1px solid var(--vy-hairline); padding:10px 0; }
         .vy-hlp-faq summary { cursor:pointer; font-size:13.5px; font-weight:600; color:var(--vy-ink); list-style:none; }
+        .vy-hlp-ask-btn { flex-shrink:0; padding:10px 18px; border-radius:var(--vy-r-pill); border:none; background:var(--vy-grad); color:#fff; font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; box-shadow:var(--vy-shadow-accent); }
+        .vy-hlp-note { display:flex; align-items:flex-start; gap:7px; font-size:11.5px; color:var(--vy-faint); margin-top:12px; line-height:1.5; }
+        .vy-hlp-answer { border:1px solid var(--vy-accent-border); }
+        .vy-hlp-answer .ans { font-size:14.5px; line-height:1.6; color:var(--vy-ink); margin:6px 0 0; }
+        .vy-hlp-src { display:flex; flex-direction:column; gap:8px; margin-top:14px; padding-top:12px; border-top:1px solid var(--vy-hairline); }
+        .vy-hlp-src a { color:var(--vy-accent); font-size:13px; font-weight:600; text-decoration:none; }
+        .vy-hlp-src .body { color:var(--vy-muted); font-size:12.5px; line-height:1.5; margin-top:2px; }
     </style>
 
     @php
@@ -28,20 +35,79 @@
     @endphp
 
     <div x-data="{ q: '', faqs: {{ \Illuminate\Support\Js::from(collect($faqs)->map(fn ($f) => strtolower($f['question'].' '.$f['answer'].' '.$f['keywords']))->all()) }}, get anyMatch() { return this.faqs.some(t => t.includes(this.q.toLowerCase())); } }">
-        {{-- ── Hero: FAQ search (client-side) + suggestions — NOT an AI answer (#39) ── --}}
+        {{-- ── Hero: "Ask Vyrobel" — a REAL grounded assistant (Wave D). Typing also filters the FAQ below live
+             (x-model="q"); pressing Ask sends the question to the grounded service. GROUNDED + guard-railed:
+             answers only from real help, escalates to the real relay when unsure — never a fabricated answer. ── --}}
         <section class="vy-card vy-fade vy-hlp-hero">
-            <h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:28px;letter-spacing:-.02em">How can we help?</h2>
-            <p style="margin:11px 0 0;font-size:14px;color:var(--vy-muted)">Search our FAQs below, or message your management team for anything account-specific.</p>
-            <div class="vy-hlp-search">
+            <h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:28px;letter-spacing:-.02em">Ask Vyrobel</h2>
+            <p style="margin:11px 0 0;font-size:14px;color:var(--vy-muted)">Ask about using Vyrobel — grounded in our help. For anything specific to your account, message your management team.</p>
+            <form method="POST" action="{{ route('owner.help.ask') }}" class="vy-hlp-search">
+                @csrf
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-                <input type="text" x-model="q" placeholder="Search help — payouts, statements, tax…" aria-label="Search FAQs">
-            </div>
+                <input type="text" name="question" x-model="q" maxlength="500" required placeholder="Ask about payouts, statements, tax…" aria-label="Ask Vyrobel a question">
+                <button type="submit" class="vy-hlp-ask-btn">Ask</button>
+            </form>
             <div class="vy-hlp-pills">
-                @foreach (['payout', 'statement', 'tax', 'block'] as $s)
-                    <button type="button" class="vy-hlp-pill" @click="q = @js($s)">{{ ucfirst($s) }}s</button>
+                @foreach (['When will I get paid?', 'How do I read my statement?', 'What are my tax obligations?', 'Can I block dates?'] as $s)
+                    <button type="button" class="vy-hlp-pill" @click="q = @js($s)">{{ $s }}</button>
                 @endforeach
             </div>
+            <div class="vy-hlp-note" style="justify-content:center">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <span>Ask Vyrobel is an AI assistant — it answers from Vyrobel’s help. Verify important things, and message your team for anything account-specific.</span>
+            </div>
         </section>
+
+        {{-- ── The grounded answer (only after an ask) — honest on every path, always with sources + escalate ── --}}
+        @if (session('ask_result'))
+            @php
+                $ask = session('ask_result');            // primitive array (see OwnerHelpAskController)
+                $askQ = session('ask_question');
+                $answered = ($ask['outcome'] ?? '') === 'answered';
+                $escalate = ($ask['outcome'] ?? '') === 'escalate';
+                $citations = $ask['citations'] ?? [];
+                $fallbackNote = ($ask['reason'] ?? '') === 'cost_capped'
+                    ? 'You’ve reached today’s question limit. Here’s the relevant help — or message your team.'
+                    : 'I couldn’t generate a summary just now. Here’s the relevant help from Vyrobel — or message your team.';
+            @endphp
+            <section class="vy-card vy-fade vy-hlp-answer">
+                <div class="vy-eyebrow">Ask Vyrobel</div>
+                <p style="font-size:12.5px;color:var(--vy-faint);margin:8px 0 0">You asked: “{{ $askQ }}”</p>
+
+                @if ($answered)
+                    <p class="ans">{{ $ask['text'] }}</p>
+                @elseif ($escalate)
+                    <p class="ans">I don’t have that in Vyrobel’s help material. Your management team can help with this — message them below and they’ll pick it up in your inbox.</p>
+                @else
+                    <p class="ans">{{ $fallbackNote }}</p>
+                @endif
+
+                @if (! empty($citations))
+                    <div class="vy-hlp-src">
+                        <div class="vy-eyebrow">Sources</div>
+                        @foreach ($citations as $c)
+                            <div>
+                                <a href="{{ route($c['route']) }}">{{ $c['question'] }} → {{ $c['label'] }}</a>
+                                @unless ($answered)
+                                    <div class="body">{{ $c['answer'] }}</div>
+                                @endunless
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('owner.messages.start') }}" style="margin-top:16px">
+                    @csrf
+                    <input type="hidden" name="subject" value="Question from Help">
+                    <input type="hidden" name="body" value="{{ $askQ }}">
+                    <button type="submit" class="vy-btn vy-btn--accent" style="padding:9px 16px">Message your team about this</button>
+                </form>
+                <div class="vy-hlp-note">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    <span>AI assistant — verify important things; message the team for account help.</span>
+                </div>
+            </section>
+        @endif
 
         {{-- ── Contact channels — REAL relay + HONEST guidance (no fabricated numbers, #39) + honest status ── --}}
         <section class="vy-hlp-contact vy-fade" style="animation-delay:.04s">

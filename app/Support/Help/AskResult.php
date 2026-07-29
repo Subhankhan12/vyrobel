@@ -71,4 +71,20 @@ final class AskResult
     {
         return $this->citations !== [];
     }
+
+    /**
+     * Primitive shape for flashing to the session / passing to a view — never flash the object itself, because
+     * some session drivers (database) round-trip it back as a plain array. Blade reads these keys.
+     *
+     * @return array{outcome: string, text: string|null, citations: list<Citation>, reason: string}
+     */
+    public function toArray(): array
+    {
+        return [
+            'outcome' => $this->outcome,
+            'text' => $this->text,
+            'citations' => $this->citations,
+            'reason' => $this->reason,
+        ];
+    }
 }
