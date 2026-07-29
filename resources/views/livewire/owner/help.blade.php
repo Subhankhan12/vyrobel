@@ -23,18 +23,11 @@
     </style>
 
     @php
-        $faqs = [
-            ['pay', 'When and how do I get paid?', 'Payouts are created when your monthly statement is finalized and sent to your default bank account. Add or change that account on your Payout method page.', 'owner.payout-method', 'Payout method'],
-            ['statement', 'How do I read my statement?', 'Each statement breaks your gross revenue down to the net paid to you — room revenue, commission, fees and any adjustments. Open any statement from your archive.', 'owner.archive', 'Statements'],
-            ['fees', 'What does the management team charge?', 'Your commission and any fees are set in your management agreement. You can review the effective terms anytime.', 'owner.agreement', 'Agreement'],
-            ['tax', 'What are my tax and VAT obligations?', 'Add your tax ID (payouts are held until it’s on file) and download an annual summary for your accountant in the Tax Center. Nothing here is tax advice.', 'owner.tax', 'Tax center'],
-            ['block', 'Can I block dates for my own stay?', 'Yes — hold dates on any of your units from the Block calendar. Blocked nights won’t accept guest bookings.', 'owner.calendar', 'Block calendar'],
-            ['unit', 'How do I add another unit?', 'Send a request with the details and your management team will set it up — a new unit affects availability and billing, so it’s created on their side.', 'owner.add-unit', 'Add a unit'],
-            ['refund', 'A guest was refunded — how does that affect me?', 'A refund is attributed back through your ledger, so it shows on the statement for the period it happened. Your running position reflects it on your Balance.', 'owner.balance', 'Balance'],
-        ];
+        // The ONE shared Help knowledge base (anti-drift: the FAQ AND the grounded assistant read the SAME source).
+        $faqs = \App\Support\Help\HelpKnowledgeBase::articles();
     @endphp
 
-    <div x-data="{ q: '', faqs: {{ \Illuminate\Support\Js::from(collect($faqs)->map(fn ($f) => strtolower($f[1].' '.$f[2].' '.$f[0]))->all()) }}, get anyMatch() { return this.faqs.some(t => t.includes(this.q.toLowerCase())); } }">
+    <div x-data="{ q: '', faqs: {{ \Illuminate\Support\Js::from(collect($faqs)->map(fn ($f) => strtolower($f['question'].' '.$f['answer'].' '.$f['keywords']))->all()) }}, get anyMatch() { return this.faqs.some(t => t.includes(this.q.toLowerCase())); } }">
         {{-- ── Hero: FAQ search (client-side) + suggestions — NOT an AI answer (#39) ── --}}
         <section class="vy-card vy-fade vy-hlp-hero">
             <h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:28px;letter-spacing:-.02em">How can we help?</h2>
@@ -75,11 +68,11 @@
             <section class="vy-card vy-fade">
                 <h2 class="vy-card-title" style="margin-bottom:10px">Owner FAQs</h2>
                 @foreach ($faqs as $faq)
-                    <details class="vy-hlp-faq" x-show="q === '' || @js(strtolower($faq[1].' '.$faq[2].' '.$faq[0])).includes(q.toLowerCase())">
-                        <summary>{{ $faq[1] }}</summary>
+                    <details class="vy-hlp-faq" x-show="q === '' || @js(strtolower($faq['question'].' '.$faq['answer'].' '.$faq['keywords'])).includes(q.toLowerCase())">
+                        <summary>{{ $faq['question'] }}</summary>
                         <div class="vy-line-sub" style="font-size:12.5px;margin-top:8px;line-height:1.5">
-                            {{ $faq[2] }}
-                            <div style="margin-top:8px"><a href="{{ route($faq[3]) }}" style="color:var(--vy-accent);font-weight:600;font-size:12.5px">Go to {{ $faq[4] }} →</a></div>
+                            {{ $faq['answer'] }}
+                            <div style="margin-top:8px"><a href="{{ route($faq['route']) }}" style="color:var(--vy-accent);font-weight:600;font-size:12.5px">Go to {{ $faq['label'] }} →</a></div>
                         </div>
                     </details>
                 @endforeach
