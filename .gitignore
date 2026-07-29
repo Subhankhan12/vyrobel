@@ -37,3 +37,7 @@ CLAUDE.local.md
 # bundles, regeneratable) — they are referenced by path, not committed.
 /docs/design/raw/
 /docs/design/*.html
+
+# Laravel Passport OAuth signing keys — NEVER commit the private key
+/storage/oauth-private.key
+/storage/oauth-public.key

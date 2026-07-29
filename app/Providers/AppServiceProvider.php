@@ -74,6 +74,7 @@ use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
 use App\Support\Mail\MailSafetyGuard;
+use App\Support\OAuth\OAuthScopes;
 use App\Support\Owner\OwnerContext;
 use App\Support\Property\PropertyContext;
 use App\Support\Tenancy\TenantContext;
@@ -89,6 +90,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Passport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -190,6 +192,17 @@ class AppServiceProvider extends ServiceProvider
         Auth::provider('guest-eloquent', function ($app, array $config): GuestUserProvider {
             return new GuestUserProvider($app['hash'], (string) $config['model']);
         });
+
+        // Wave D · OAuth2 (Laravel Passport) — the third-party scoped API. ADDITIVE: only the `api` guard uses it.
+        //   • the LEAST-PRIVILEGE scope catalog (the ONE source, {@see OAuthScopes}) — drives the consent screen.
+        //   • bounded token lifetimes (short access token; a refresh token; capped personal-access).
+        // Clients are platform-admin-registered (no open self-serve); PKCE is per public client. Password grant
+        // is NOT enabled (all access is owner-consented via authorization-code). Client-secret hashing is set in
+        // config/passport.php (`hash_client_secrets`) rather than a runtime call in Passport 13.
+        Passport::tokensCan(OAuthScopes::catalog());
+        Passport::tokensExpireIn(now()->addDays(15));
+        Passport::refreshTokensExpireIn(now()->addDays(30));
+        Passport::personalAccessTokensExpireIn(now()->addMonths(6));
 
         // Stable morph aliases so polymorphic *_type columns (mediable_type, notable_type,
         // subject_type, owner_type, model_has_roles.model_type, …) store short, refactor-proof

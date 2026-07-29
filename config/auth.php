@@ -63,6 +63,15 @@ return [
             'driver' => 'session',
             'provider' => 'platform_admins',
         ],
+
+        // OAuth2 (Wave D · Passport) — a TOKEN guard for the scoped third-party API (/api/*). Additive: it is
+        // only ever invoked explicitly (`auth:api`), never a default, so the three session realms above are
+        // untouched. It resolves a Passport access token → the `users` provider (a token is bound to a User,
+        // whose owner+tenant context the API middleware re-establishes). NEVER point a web/owner route here.
+        'api' => [
+            'driver' => 'passport',
+            'provider' => 'users',
+        ],
     ],
 
     /*

@@ -43,6 +43,7 @@ use App\Services\GuestWishlistService;
 use App\Services\InboxService;
 use App\Services\LeaveService;
 use App\Services\MaintenanceService;
+use App\Services\OAuthClientRegistrar;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerExpenseService;
 use App\Services\OwnerPayoutService;
@@ -58,6 +59,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Passport\Client;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
@@ -438,6 +440,19 @@ class DemoSeeder extends Seeder
         // state ("finish setup"). Named so "Demo Seaside Property" still sorts first, keeping the demo's
         // default working property unchanged.
         $this->seedSecondProperty($org);
+
+        // Wave D · OAuth — a clearly-labelled EXAMPLE third-party client so the consent flow is demoable
+        // end-to-end. Registered under super-admin (Passport clients are platform-level, not tenant rows).
+        // A public (PKCE) client — no secret to leak in the seed. Idempotent on name.
+        app(TenantContext::class)->runAsSuperAdmin(function (): void {
+            if (! Client::query()->where('name', 'Example Insights (demo)')->exists()) {
+                app(OAuthClientRegistrar::class)->register(
+                    'Example Insights (demo)',
+                    ['https://example-insights.test/oauth/callback'],
+                    confidential: false,
+                );
+            }
+        });
     }
 
     /**
