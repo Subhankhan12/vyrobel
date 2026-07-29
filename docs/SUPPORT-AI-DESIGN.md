@@ -1,7 +1,17 @@
 # Vyrobel — "Ask Vyrobel" Support AI (grounded, guard-railed, cost-controlled) · DESIGN
 
-**Status:** PHASE 0 — investigation + design (read-only). Presented for approval before any build.
+**Status:** ✅ BUILT — all three phases shipped (2026-07-29, invariant #74). This doc is the as-built design.
 **Date:** 2026-07-29
+
+> **BUILT (commits `00ef644` P1 · `e128902` P2 · `d543cea` P3):** the grounding KB + deterministic retriever
+> (P1); the net-new config-gated LLM seam (`FakeLlmClient` default / `AnthropicLlmClient` prod-only behind
+> `LlmSafetyGuard`), `Prompts`, the `llm_usage` cost ledger, circuit breaker + rate limit, and `AskVyrobelService`
+> (P2); and the real grounded Help surface — `owner.help.ask` (controller `<form>`, rate-limited), answer +
+> real-source citations + always-present escalate to the real relay + the honest note (P3). Behaviour-proven
+> (24 assertions across `HelpRetrievalTest`/`AskVyrobelTest`/`OwnerHelpTest`) + browser-verified end-to-end
+> (in-scope → grounded answer + source link; out-of-scope → honest escalate + NO fabricated sources; escalate →
+> a REAL owner↔operator thread). Suite **1240/9392** green; PHPStan L5 (0); Pint clean. The live Anthropic flip
+> stays the founder's account-gated go-live (default `LLM_FAKE=true`).
 **⚠️ HONESTY:** a support-AI must NEVER fabricate. It answers ONLY from real Vyrobel help content (grounded), escalates honestly to the real message relay when unsure, and never invents a policy, number, commitment, or account-specific data.
 
 ---

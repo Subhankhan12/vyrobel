@@ -6,8 +6,37 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v18) · VAT + WITHHOLDING TAX ENGINE COMPLETE. This block SUPERSEDES every
-> block below it. Fresh-session entry point: this block → `docs/TAX-ENGINE-DESIGN.md` → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v19) · "ASK VYROBEL" SUPPORT AI COMPLETE. This block SUPERSEDES every
+> block below it. Fresh-session entry point: this block → `docs/SUPPORT-AI-DESIGN.md` → `docs/DECISIONS.md`.**
+>
+> **⚠️ A support-AI must NEVER fabricate (Invariant #74).** "Ask Vyrobel" is a REAL grounded (RAG-style) support
+> assistant on the owner Help page — and the honesty guarantee is **ARCHITECTURAL, not a trusted-model hope**:
+> ① retrieve over the real Help KB → **no relevant content ⇒ escalate to the real relay with NO LLM call** (so an
+> out-of-scope or account-specific question — "what's my payout" — can never be handed a figure to repeat, #39/#28);
+> ② daily token cap reached / ③ circuit breaker open ⇒ grounded fallback (show the real help + relay), no call;
+> ④ else the grounded call, and on ANY provider failure trip the breaker → fallback. Every answer carries
+> **citations to the real help screens** + an always-present **escalate-to-team** button (the real owner↔operator
+> relay) + the honest *"AI assistant — verify important things; message the team for account help"* note.
+> **⚠️ Load-bearing correction:** the prompt's "reuse the existing LlmManager (cost ledger, circuit breaker,
+> versioned prompts, Anthropic client)" was FALSE — none existed. The LLM layer is **NET-NEW**, built the
+> codebase's config-gated way (mirrors Stripe/Channex): `LlmClientInterface` → `FakeLlmClient` (deterministic,
+> default `LLM_FAKE=true`, dev reflects ONLY retrieved help) / `AnthropicLlmClient` (Http, **production-only**
+> behind `LlmSafetyGuard::forceFakeOutsideProduction` — a real key never fires outside production); versioned
+> `Prompts`; the `llm_usage` cost ledger (`LlmCostLedger`, per-owner/day cap); `AskVyrobelService` orchestrates.
+> **What's new:** `App\Support\Help\HelpKnowledgeBase` (the ONE shared FAQ KB — the FAQ page + the assistant read
+> it, anti-drift) + `HelpRetriever` (deterministic token-overlap, threshold→empty); the `App\Support\Llm\*` seam +
+> cost ledger + circuit breaker; `AskVyrobelService` + `AskResult`; `owner.help.ask` (a controller `<form>`,
+> rate-limited — every owner write stays a controller route, mutation boundary intact) + the rebuilt Help hero.
+> Behaviour-proven (`HelpRetrievalTest`/`AskVyrobelTest`/`OwnerHelpTest`): in-scope → grounded + citations (1 call);
+> out-of-scope/empty → escalate (0 calls); cost cap / provider failure → grounded fallback (0 / breaker-open);
+> ledger records; the guard forces fake outside production. Browser-verified end-to-end (grounded answer + source
+> link; honest escalate + NO fabricated sources; escalate → a REAL owner↔operator thread). The live Anthropic flip
+> is the founder's account-gated go-live. Suite **1240/9392**; PHPStan L5 (0); Pint clean; `migrate:fresh --seed`
+> clean. **Invariants #1–74.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-29 (v18) · VAT + WITHHOLDING TAX ENGINE COMPLETE.**
 >
 > **⚠️ Tax figures have legal consequences (Invariant #73).** A real VAT + withholding engine — but the ENGINE is
 > code and the RATES are CONFIGURED by the founder per jurisdiction: **the session NEVER invents/hardcodes/presents-
