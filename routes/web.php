@@ -76,6 +76,7 @@ use App\Http\Controllers\Owner\OwnerBookingsExportController;
 use App\Http\Controllers\Owner\OwnerBookingsTargetController;
 use App\Http\Controllers\Owner\OwnerBookingSummaryPdfController;
 use App\Http\Controllers\Owner\OwnerConnectController;
+use App\Http\Controllers\Owner\OwnerConnectedAppController;
 use App\Http\Controllers\Owner\OwnerExpenseApprovalController;
 use App\Http\Controllers\Owner\OwnerExpensesExportController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
@@ -935,6 +936,8 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::post('/security/trusted-devices/revoke', [OwnerSecurityController::class, 'revokeTrustedDevice'])->middleware('throttle:10,1')->name('security.trusted-devices.revoke');
     // Login approval (Wave B · GATE 4) — turn the new-device email-approval requirement on/off (self-only, re-auth).
     Route::post('/security/login-approval', [OwnerSecurityController::class, 'setLoginApproval'])->middleware('throttle:10,1')->name('security.login-approval');
+    // Connected apps (Wave D · OAuth) — revoke a third-party OAuth app (self-only, re-auth, audited; immediate).
+    Route::post('/security/connected-apps/revoke', [OwnerConnectedAppController::class, 'revoke'])->middleware('throttle:10,1')->name('security.connected-apps.revoke');
     // Passkeys (Wave B · GATE 4) — register (2-step ceremony) + remove (re-auth), self-only via $request->user().
     Route::post('/security/passkeys/options', [PasskeyController::class, 'options'])->middleware('throttle:20,1')->name('security.passkeys.options');
     Route::post('/security/passkeys', [PasskeyController::class, 'store'])->middleware('throttle:20,1')->name('security.passkeys.store');
