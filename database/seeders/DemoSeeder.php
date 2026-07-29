@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Actions\Authorization\OrganizationRoleProvisioner;
 use App\Actions\Reservations\CheckOutReservation;
+use App\Exceptions\Booking\BookingException;
 use App\Models\Amenity;
 use App\Models\Building;
 use App\Models\Channel;
@@ -840,15 +841,29 @@ class DemoSeeder extends Seeder
         ];
 
         foreach ($plan as [$nightly, $day, $nights, $idx]) {
-            $checkIn = CarbonImmutable::parse('2026-10-'.str_pad((string) $day, 2, '0', STR_PAD_LEFT));
-            $checkOut = $checkIn->addDays($nights);
             $unit = $aptUnits[$idx % $aptUnits->count()];
 
-            $this->seedCalendarRange($aptRate, $nightly, $checkIn->toDateString(), $checkOut->toDateString());
-            $availability->recompute($apartment->id, $checkIn->toDateString(), $checkOut->toDateString());
+            // ROBUST TO DATE-DRIFT: the today-relative analytics-history window (seedAnalyticsHistory) drifts
+            // forward as "today" advances and can land on a fixed October day, which would fatally collide here
+            // (this stay is essential — it is the REAL "Available" balance the Balance page shows, so it must
+            // succeed). Scan forward within October for the first range this unit is free. The economics
+            // (nightly × nights) — and thus the Available figure — are date-independent, so the shift is inert.
+            for ($d = $day; $d <= 27; $d++) {
+                $checkIn = CarbonImmutable::parse('2026-10-'.str_pad((string) $d, 2, '0', STR_PAD_LEFT));
+                $checkOut = $checkIn->addDays($nights);
 
-            $stay = $this->createDemoStay('direct', $property, $apartment, $aptRate, $unit, $guest, $checkIn->toDateString(), $checkOut->toDateString(), $vat, fullyPaid: true);
-            $attribution->attributeReservation($stay);
+                $this->seedCalendarRange($aptRate, $nightly, $checkIn->toDateString(), $checkOut->toDateString());
+                $availability->recompute($apartment->id, $checkIn->toDateString(), $checkOut->toDateString());
+
+                try {
+                    $stay = $this->createDemoStay('direct', $property, $apartment, $aptRate, $unit, $guest, $checkIn->toDateString(), $checkOut->toDateString(), $vat, fullyPaid: true);
+                } catch (BookingException) {
+                    continue;   // a drifted analytics stay took this range — try the next day
+                }
+
+                $attribution->attributeReservation($stay);
+                break;
+            }
         }
     }
 
