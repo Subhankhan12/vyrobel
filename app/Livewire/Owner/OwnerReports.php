@@ -355,8 +355,12 @@ class OwnerReports extends Component
 
         $gross = $sum(['room_revenue', 'addon']);
         $commission = $sum(['commission']);
-        $fees = $sum(['ota_cost', 'management_fee']);
+        // P2-2: the payment/ops-fee (#70) belongs in Fees; WITHHOLDING (#73) is a real tax deduction and gets its
+        // own line (matching OwnerTaxService::annualSummary — the two owner surfaces reconcile). WITHOUT these two
+        // types the sum silently dropped them the moment either was configured; now every entry_type is bucketed.
+        $fees = $sum(['ota_cost', 'management_fee', 'payment_fee']);
         $adjustments = $sum(['cleaning', 'expense', 'adjustment']);
+        $withholding = $sum(['withholding']);
         $net = (int) $inCurrency->reduce(fn (int $c, OwnerLedgerEntry $e): int => $c + $e->signedMinor(), 0);
 
         return [
@@ -365,9 +369,11 @@ class OwnerReports extends Component
             'fees' => MoneyFormatter::display($fees, $currency, true),
             'adjustments' => MoneyFormatter::display($adjustments, $currency, true),
             'has_adjustments' => $adjustments !== 0,
+            'withholding' => MoneyFormatter::display($withholding, $currency, true),
+            'has_withholding' => $withholding !== 0,
             'net' => MoneyFormatter::display($net, $currency),
-            // reconciliation guarantee: the four buckets sum to net (every entry_type is in exactly one bucket).
-            'reconciles' => $gross + $commission + $fees + $adjustments === $net,
+            // reconciliation guarantee: EVERY entry_type is in exactly one bucket, so the buckets sum to net.
+            'reconciles' => $gross + $commission + $fees + $adjustments + $withholding === $net,
         ];
     }
 

@@ -51,6 +51,17 @@
                 </div>
             </div>
 
+            {{-- Carried forward (#17 — P2-1): shown ONLY when a refunded/negative statement was carried into the
+                 next period (no payout). It's part of Net position, so the clearing identity stays exact. Hidden
+                 (€0) in the normal case — never a fabricated line. --}}
+            @if ($carriedForward['minor'] !== 0)
+                <section class="vy-card vy-fade" style="animation-delay:.03s">
+                    <div class="vy-eyebrow">Carried forward</div>
+                    <div class="vy-kpi-val" style="margin-top:6px">{{ $carriedForward['display'] }}</div>
+                    <p class="vy-line-sub" style="font-size:12.5px;margin-top:6px;max-width:480px">A refunded or negative statement is carried into your next payout period — it offsets a future payout instead of being charged back, and it’s already included in your Net position.</p>
+                </section>
+            @endif
+
             {{-- Withdraw early — ACCOUNT-GATED: no owner-initiated transfer rail exists, so this is honestly
                  disabled (never a fake withdrawal/transfer/in-transit). The masked IBAN is real (CAP_PAYOUT). --}}
             <section class="vy-card vy-fade" style="animation-delay:.05s">

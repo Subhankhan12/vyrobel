@@ -369,8 +369,18 @@
                     @if ($grossToNet['has_adjustments'])
                         <div class="vy-rep-gtn-row"><span>Costs &amp; adjustments</span><span class="amt">{{ $grossToNet['adjustments'] }}</span></div>
                     @endif
+                    {{-- Tax withheld (#73 · P2-2): a REAL withholding deduction, shown only when configured/non-zero
+                         (matches your Tax Center + annual summary). €0 → hidden, never a fabricated line (#39). --}}
+                    @if ($grossToNet['has_withholding'])
+                        <div class="vy-rep-gtn-row"><span>Tax withheld</span><span class="amt">{{ $grossToNet['withholding'] }}</span></div>
+                    @endif
                     <div class="vy-rep-gtn-row vy-rep-gtn-net"><span class="lbl">Net to you</span><span class="amt">{{ $grossToNet['net'] }}</span></div>
                 </div>
+                @unless ($grossToNet['reconciles'])
+                    {{-- Safety net: the buckets now cover every entry type, so this never shows — but if a figure
+                         ever failed to reconcile we say so honestly rather than print a total that doesn't add up. --}}
+                    <p class="vy-line-sub" style="font-size:11.5px;margin-top:10px;color:var(--vy-amber-ink,#92400e)">Some figures don’t fully reconcile here — please check with your management team.</p>
+                @endunless
             </section>
 
             {{-- Next payout / latest payout --}}

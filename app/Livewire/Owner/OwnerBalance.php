@@ -106,12 +106,22 @@ class OwnerBalance extends Component
             ->mapWithKeys(fn (Payout $p): array => [(string) $p->owner_statement_id => (string) $p->status])
             ->all();
 
+        // Carried forward (#17 — P2-1): the stamped rows of statements with NO active payout — a NEGATIVE
+        // (carried-forward) statement, or one whose only payout failed. These sit in Net but in none of the
+        // four payout-driven tiles, so WITHOUT this bucket the identity broke by exactly their sum once any
+        // negative statement existed. With it: Available + On hold + In transit + Paid + Carried forward == Net,
+        // to the cent, in every state. €0 (line hidden) whenever every finalised statement has an active payout.
+        $stampedWithoutPayout = $descending->filter(fn (OwnerLedgerEntry $e): bool => $e->statement_id !== null
+            && ! isset($payoutStatusByStatement[(string) $e->statement_id]))->values();
+        $carriedForward = $this->netPosition($stampedWithoutPayout, $currency);
+
         return view('livewire.owner.balance', [
             'viewer' => $this->viewer(),
             'available' => $available,
             'onHold' => $onHold,
             'inTransit' => $inTransit,
             'paid' => $paid,
+            'carriedForward' => $carriedForward,
             'net' => $net,
             // The held explainer + the masked IBAN (CAP_PAYOUT only, #28) — shown only when there is a REAL hold.
             'held' => $onHold['minor'] !== 0 ? ['display' => $onHold['display']] : null,
