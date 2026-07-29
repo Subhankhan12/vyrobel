@@ -68,6 +68,31 @@ real money moves. Everything above the flip is **code (done)**; the flip itself 
 
 ---
 
+## 3b. ⚠️ THE AUTOMATED PAYOUT ENGINE go-live (Subhan's step — NOT done in the build)
+
+The automated payout engine (`docs/PAYOUT-ENGINE-DESIGN.md`) is **built and TEST-MODE-proven**: a scheduled,
+preference-driven run selects owners due today and disburses through the Connect rail. It is **inert + test-mode**
+until deliberately switched on. Going live is a **separate, explicit** step on top of the §3 flip:
+
+1. **Do the §3 live-key flip first** (Connect enabled, both webhooks registered incl. `transfer.created`, live keys
+   in a `production` env). `PayoutEngineMode` reports `live` ONLY when the Stripe secret is a live key AND
+   `APP_ENV=production` — otherwise every run stays `test` and no funds move.
+2. **Owner onboarding + KYC (real):** each owner completes real Stripe Connect (Standard) onboarding; a payout is
+   REFUSED until `stripe_connect_payouts_enabled` flips true via the real `account.updated` webhook (never optimistic).
+3. **Compliance decisions (founder + counsel) — business/legal, not code:** PSD2/SCA, PCI (SAQ A — no raw PAN,
+   already held), GDPR (owner PII + retention), money-transmission / agent-of-payee posture, tax withholding/reporting.
+4. **Enable the engine:** set `PAYOUT_ENGINE_ENABLED=true` (+ `PAYOUTS_RAIL=stripe_connect`). The daily
+   `payouts:run` scheduler now fires; a dry-run (`php artisan payouts:run --force --date=…` in a staging/test-mode
+   env, or the fake client) should reconcile every run's totals to the source statements to the cent (#17) first.
+5. **Monitor the first live run.** The double-transfer guard (row-lock + re-check + deterministic idempotency key)
+   and webhook-replay idempotency are already proven — but watch the first real transfers land + confirm via webhook.
+
+Guarantees already in code (nothing to build at go-live): amount == reconciling statement net (#17); no double-pay
+(idempotent `run_key` + the transfer guards); owner-scoped (#28); every transition audited (#20); a tax-incomplete
+owner is HELD, never paid; the engine never fabricates a date/fee.
+
+---
+
 ## 4. What remains account-gated (still pending, as accounts land)
 
 Stripe is now lit (test-mode). Still deferred honestly: **Channex** live channel sync · **WhatsApp / OTA** inbox

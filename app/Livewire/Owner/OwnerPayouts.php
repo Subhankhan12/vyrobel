@@ -11,12 +11,15 @@ use App\Models\OwnerStatementLine;
 use App\Models\Payout;
 use App\Models\PayoutMethod;
 use App\Models\Scopes\OwnerScope;
+use App\Payouts\PayoutEngineMode;
+use App\Payouts\PayoutSchedule;
 use App\Services\OwnerPortalService;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
 use App\Support\Owner\OwnerTeamRole;
 use App\Support\Payouts\Iban;
 use App\Support\Payouts\RailLabel;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -80,7 +83,31 @@ class OwnerPayouts extends Component
             'payoutAccount' => $this->payoutAccountCard($ctx, $rail),
             'preferences' => $this->preferences($ctx, $currency),
             'canManagePayout' => $ctx->can(OwnerTeamRole::CAP_PAYOUT),
+            // The REAL automated schedule (the engine's next run date from the owner's own preferences) + the
+            // TEST-MODE boundary — the "Upcoming schedule" placeholder becomes real, honestly labelled.
+            'schedule' => $this->scheduleCard(),
+            'testMode' => PayoutEngineMode::isTest(),
         ]);
+    }
+
+    /**
+     * The REAL "next scheduled payout" — the payout engine's next run date for THIS owner, derived from their
+     * own preferences via the shared, deterministic {@see PayoutSchedule} (never a fabricated date, #39). Also
+     * reports whether the automated engine is switched on, so the copy is honest either way.
+     *
+     * @return array{engine_enabled: bool, frequency_label: string, next_date: string, paused: bool}
+     */
+    private function scheduleCard(): array
+    {
+        $prefs = OwnerPayoutPreference::resolve();   // owner-scoped (active on the /owner route)
+        $next = PayoutSchedule::nextRunDate($prefs, CarbonImmutable::today());
+
+        return [
+            'engine_enabled' => (bool) config('services.payouts.engine_enabled', false),
+            'frequency_label' => OwnerPayoutPreference::frequencyLabel((string) $prefs['frequency']),
+            'next_date' => $next->format('j M Y'),
+            'paused' => (bool) $prefs['paused'],
+        ];
     }
 
     /**
@@ -93,7 +120,14 @@ class OwnerPayouts extends Component
      */
     private function holdBanner(array $rail, ?Payout $focus): ?array
     {
-        if (! $rail['paused'] || ! $focus instanceof Payout || $focus->status !== 'pending') {
+        if (! $focus instanceof Payout) {
+            return null;
+        }
+
+        // The real tax-hold takes two shapes: the engine's PERSISTED `held` status, or (the manual path) a
+        // `pending` payout the tax-hold pauses. Either → the same honest "held until tax details" banner.
+        $held = $focus->status === 'held' || ($focus->status === 'pending' && $rail['paused']);
+        if (! $held) {
             return null;
         }
 

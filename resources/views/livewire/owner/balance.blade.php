@@ -26,6 +26,9 @@
         .vy-bl-clears { background: var(--vy-grad-dark); color: rgba(255,255,255,.9); }
     </style>
 
+    {{-- TEST-MODE boundary — the automated payout engine runs in test mode; never implies real money moves. --}}
+    <x-owner.payout-test-mode :show="$testMode" />
+
     <div class="vy-cols">
         {{-- ── Main ── --}}
         <div class="vy-stack">

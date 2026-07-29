@@ -1,8 +1,23 @@
 # Vyrobel — Automated Payout Engine (TEST-MODE) · DESIGN
 
-**Status:** PHASE 0 — investigation + design (read-only). Presented for approval before any build.
+**Status:** ✅ **BUILT & TEST-MODE-PROVEN (2026-07-29) — all four phases shipped.** (Invariant #71.)
 **Date:** 2026-07-29
-**⚠️ TEST-MODE ONLY.** Real money NEVER moves in this build. Going live (live keys, real transfers, PSD2/PCI/GDPR compliance) is a **separate founder cutover — documented here, not done.**
+**⚠️ TEST-MODE ONLY.** Real money NEVER moves in this build. Going live (live keys, real transfers, PSD2/PCI/GDPR compliance) is a **separate founder cutover — documented, not done** (`docs/STRIPE-PRODUCTION.md` §3b).
+
+> **Build summary (what shipped):**
+> - **Phase 1** (`a346d0d`) — `payout_runs` + `PayoutRun`; persisted `held` state + `payout_run_id`/`held_at`;
+>   `OwnerPayoutService::hold()/releaseHold()` + widened idempotency guard; `PayoutRunService` core; `PayoutEngineMode`.
+>   Proven: amount == reconciling net (#17); held → auto-release; idempotent; isolation; clearing identity.
+> - **Phase 2** (`22162e0`) — `PayoutSchedule` (pure cadence: Nth business day / weekly); `runScheduled` +
+>   `dueOwnerIds` (paused/minimum/due); `payouts:run` command (config-gated `PAYOUT_ENGINE_ENABLED`, TEST-MODE banner);
+>   daily scheduler. Proven: only due owners; paused skipped; below-min rolls forward; same-day key idempotent.
+> - **Phase 3** (`cf2bb83`) — the engine drives the certified Connect rail + webhook in TEST MODE (no code change;
+>   config-bound rail). Proven end-to-end: transfer → processing → webhook → paid; failure → retry; idempotent.
+> - **Phase 4** — Balance clearing model folds in `held`/`processing` (identity preserved #17); Payouts "Next
+>   scheduled payout" is the real `PayoutSchedule::nextRunDate`; shared TEST-MODE banner on both surfaces; withdraw
+>   stays disabled. Browser-verified as the demo owner (held state + banner + real next date).
+>
+> The design below is the as-built spec; the phase plan (§11) records what each phase delivered.
 
 ---
 

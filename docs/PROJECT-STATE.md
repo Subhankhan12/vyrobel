@@ -6,7 +6,30 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v15) · OWNER COMPLETENESS SWEEP · WAVES A + B + C COMPLETE. This block SUPERSEDES
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v16) · AUTOMATED PAYOUT ENGINE (TEST-MODE) COMPLETE. This block SUPERSEDES
+> every block below it. Fresh-session entry point: this block → `docs/PAYOUT-ENGINE-DESIGN.md` → `docs/DECISIONS.md`.**
+>
+> **⚠️ REAL-MONEY seam, built TEST-MODE-only (Invariant #71).** The automated payout engine (`docs/PAYOUT-ENGINE-DESIGN.md`)
+> replaces the honest "payouts handled by your agency" (Option A) with a REAL scheduled engine running in TEST MODE —
+> real money NEVER moves in the build (`PayoutEngineMode`='test'; the manual rail records / the fake Connect client
+> simulates; `StripeSafetyGuard` forbids a live key outside production). It ORCHESTRATES the certified
+> `OwnerPayoutService` + Connect rail + webhook (never reimplemented). **What's new:** `payout_runs` (platform-level
+> audit + idempotency) + `PayoutRun`; a persisted **`held`** payout status (the tax-hold is now real + auto-releasing)
+> + `payout_run_id`/`held_at`; `OwnerPayoutService::hold()/releaseHold()` + a widened idempotency guard;
+> `PayoutRunService` (super-admin owner selection → per-org create/pay/hold, idempotent on `run_key`); `PayoutSchedule`
+> (pure cadence — Nth business day / weekly, `isDue`/`nextRunDate`); `runScheduled`+`dueOwnerIds` (paused/minimum/due);
+> the `payouts:run` command (inert unless `PAYOUT_ENGINE_ENABLED`, TEST-MODE banner) + a daily scheduler; `PayoutEngineMode`.
+> **Surfaced (test-mode-labelled):** the Balance clearing model folds in `held`/`processing` so `Available + On hold +
+> In transit + Paid == Net` stays exact (#17); the Payouts "Next scheduled payout" is the real `nextRunDate`; a shared
+> `<x-owner.payout-test-mode>` banner on both surfaces; withdraw stays disabled. Mutation-proven across
+> `PayoutEngineTest` / `PayoutScheduleTest` / `RunScheduledPayoutsCommandTest` / `PayoutEngineStripeTest` /
+> `PayoutEngineSurfaceTest`; browser-verified as the demo owner (held + banner + real next date). Live cutover =
+> the founder's step (`STRIPE-PRODUCTION.md` §3b), documented not done. Suite **1183/9091**; PHPStan L5 (0); Pint
+> clean; `migrate:fresh --seed` clean. **Invariants #1–71.**
+>
+> ---
+>
+> ⭐ **PRIOR — 2026-07-29 (v15) · OWNER COMPLETENESS SWEEP · WAVES A + B + C COMPLETE. This block SUPERSEDES
 > every block below it (all kept as historical detail). Fresh-session entry point: `docs/RESUME.md` → this block →
 > `docs/DECISIONS.md` → `docs/OWNER-COMPLETENESS-SWEEP.md`.**
 >

@@ -9,6 +9,7 @@ use App\Models\ManagementAgreement;
 use App\Models\OwnerLedgerEntry;
 use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
+use App\Payouts\PayoutEngineMode;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
 use Illuminate\Contracts\View\View;
@@ -88,16 +89,20 @@ class OwnerBalance extends Component
         //   • On hold    = pending payouts held by the tax-hold (owner has no tax ID on file).
         //   • In transit = pending payouts NOT held (released, on their way per the schedule) — €0 while held.
         $pending = $payouts->filter(fn (Payout $p): bool => $p->status === 'pending');
+        $heldPayouts = $payouts->filter(fn (Payout $p): bool => $p->status === 'held');
+        $processingPayouts = $payouts->filter(fn (Payout $p): bool => $p->status === 'processing');
         $unstamped = $descending->filter(fn (OwnerLedgerEntry $e): bool => $e->statement_id === null)->values();
         $available = $this->netPosition($unstamped, $currency);
-        $onHold = $this->payoutTotal($rail['paused'] ? $pending : collect(), $currency);
-        $inTransit = $this->payoutTotal($rail['paused'] ? collect() : $pending, $currency);
+        // On hold  = the payout engine's persisted tax-HOLDS, plus a manual-path pending payout the tax-hold pauses.
+        // In transit = an INITIATED Connect transfer (processing, awaiting the webhook), plus a released pending one.
+        $onHold = $this->payoutTotal($heldPayouts->merge($rail['paused'] ? $pending : collect()), $currency);
+        $inTransit = $this->payoutTotal($processingPayouts->merge($rail['paused'] ? collect() : $pending), $currency);
 
-        // statement_id → its payout status, for the activity feed's per-row state chip. Only real pending/paid
+        // statement_id → its payout status, for the activity feed's per-row state chip. Only real in-flight/paid
         // payouts drive a chip (createFromStatement holds one such per statement); a statement whose only payout
         // failed falls through to "Cleared" (finalised, not yet successfully paid) — never a fabricated state.
         $payoutStatusByStatement = $payouts
-            ->whereIn('status', ['pending', 'paid'])
+            ->whereIn('status', ['pending', 'processing', 'held', 'paid'])
             ->mapWithKeys(fn (Payout $p): array => [(string) $p->owner_statement_id => (string) $p->status])
             ->all();
 
@@ -114,6 +119,8 @@ class OwnerBalance extends Component
             'byCurrency' => $this->byCurrency($net['currencies'], $inTransit['currencies'], $paid['currencies']),
             'entries' => $this->activityRows($ascending, (bool) $rail['paused'], $payoutStatusByStatement),
             'schedule' => $this->payoutSchedule(),
+            // TEST-MODE boundary — 'In transit'/'On hold' can reflect real engine state; never real money in this build.
+            'testMode' => PayoutEngineMode::isTest(),
         ]);
     }
 
@@ -135,6 +142,8 @@ class OwnerBalance extends Component
 
         return match ($status) {
             'paid' => ['label' => 'Paid out', 'tone' => 'paid'],
+            'processing' => ['label' => 'In transit', 'tone' => 'pending'],   // a Connect transfer awaiting the webhook
+            'held' => ['label' => 'On hold', 'tone' => 'pending'],            // the engine's persisted tax-hold
             'pending' => $paused ? ['label' => 'On hold', 'tone' => 'pending'] : ['label' => 'In transit', 'tone' => 'pending'],
             default => ['label' => 'Cleared', 'tone' => 'draft'],
         };

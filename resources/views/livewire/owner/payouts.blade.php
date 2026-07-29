@@ -53,6 +53,9 @@
         .vy-po-pref-ro .v { font-weight: 600; }
     </style>
 
+    {{-- TEST-MODE boundary — the automated payout engine runs in test mode; never implies real money moves. --}}
+    <x-owner.payout-test-mode :show="$testMode" />
+
     {{-- Flash --}}
     @if (session('payout_pref_notice'))
         <div class="vy-flash is-ok" style="margin-bottom:18px">
@@ -235,12 +238,27 @@
                 @endif
             </section>
 
-            {{-- Upcoming schedule — HONEST: no projection/forecast engine exists (#39). --}}
+            {{-- Upcoming schedule — REAL: the automated engine's next run date for THIS owner, from their own
+                 preferences via the shared PayoutSchedule (never a fabricated date, #39). TEST-MODE-labelled. --}}
             <section class="vy-card vy-fade" style="animation-delay:.12s">
-                <span class="vy-eyebrow">Upcoming schedule</span>
-                <div class="vy-deferred" style="margin-top:10px">
-                    <span class="vy-eyebrow">Not yet available</span>
-                    Projected future payouts will appear here once scheduling is wired.
+                <span class="vy-eyebrow">Next scheduled payout</span>
+                <div style="margin-top:10px">
+                    @if ($schedule['paused'])
+                        <div class="vy-deferred">
+                            <span class="vy-eyebrow">Paused</span>
+                            Automated payouts are paused in your preferences below. Resume them to schedule your next payout.
+                        </div>
+                    @else
+                        <div style="font-size:22px;font-weight:700;color:var(--vy-ink);letter-spacing:-.01em">{{ $schedule['next_date'] }}</div>
+                        <div style="font-size:12.5px;color:var(--vy-muted);margin-top:4px">
+                            {{ $schedule['frequency_label'] }} · runs automatically on the next payout day.
+                        </div>
+                        @unless ($schedule['engine_enabled'])
+                            <div style="font-size:11.5px;color:var(--vy-muted);margin-top:8px">
+                                The automated engine is not yet switched on — this is the date it will use once enabled.
+                            </div>
+                        @endunless
+                    @endif
                 </div>
             </section>
 
