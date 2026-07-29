@@ -259,6 +259,38 @@
             </form>
         </div>
 
+        {{-- ══ Connected apps — REAL (Wave D · OAuth): third-party apps you authorized + their scopes + revoke ══ --}}
+        <div class="vy-card vy-fade" style="margin-bottom:16px;">
+            <h2 style="{{ $h2 }}">Connected apps</h2>
+            <p style="{{ $sub }}">Third-party apps you’ve given read-only access to your account. Each can read only the data listed — never your guests’ contact details, door codes or Wi-Fi — and only your own. Revoke any anytime; access stops immediately.</p>
+
+            @forelse ($connectedApps as $app)
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--vy-hairline);">
+                    <div style="min-width:0;">
+                        <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink);">{{ $app['name'] }}</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 5px;">
+                            @foreach ($app['scopes'] as $i => $scopeId)
+                                <span title="{{ $app['scope_labels'][$i] ?? '' }}" style="font-size:10.5px;font-weight:600;color:var(--vy-accent);background:rgba(194,65,12,.08);border:1px solid var(--vy-accent-border,rgba(194,65,12,.2));border-radius:20px;padding:2px 9px;font-family:ui-monospace,monospace;">{{ $scopeId }}</span>
+                            @endforeach
+                        </div>
+                        <div style="font-size:11.5px;color:var(--vy-muted);">@if ($app['authorized_at']) Authorized {{ $app['authorized_at'] }} @else Authorized @endif</div>
+                    </div>
+                    <form method="POST" action="{{ route('owner.security.connected-apps.revoke') }}" x-data="{ open: false }" style="flex-shrink:0;">
+                        @csrf
+                        <input type="hidden" name="client_id" value="{{ $app['client_id'] }}">
+                        <button type="button" @click="open = !open" class="vy-btn" style="{{ $ghost }}font-size:12px;padding:6px 12px;">Revoke</button>
+                        <div x-show="open" x-cloak style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                            <input type="password" name="current_password" class="vy-input" autocomplete="current-password" placeholder="Your password" style="max-width:180px;font-size:12.5px;">
+                            <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12px;padding:6px 12px;">Confirm</button>
+                        </div>
+                    </form>
+                </div>
+            @empty
+                <div style="font-size:12.5px;color:var(--vy-muted);padding:6px 0;">No connected apps — third-party apps you authorize will appear here.</div>
+            @endforelse
+            @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
+        </div>
+
         {{-- ══ Your data — a REAL owner-scoped export ══════════════════════════════════════════════════ --}}
         <div class="vy-card vy-fade" style="margin-bottom:16px;">
             <h2 style="{{ $h2 }}">Your data</h2>
@@ -270,7 +302,7 @@
         <div class="vy-card vy-fade" style="margin-bottom:16px;">
             <h2 style="{{ $h2 }}margin-bottom:12px;">Coming soon</h2>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
-                @foreach (['New-device email alerts', 'Connected apps', 'Full sign-in history', 'Session timeout'] as $soon)
+                @foreach (['New-device email alerts', 'Full sign-in history', 'Session timeout'] as $soon)
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;border:1px solid var(--vy-hairline);border-radius:10px;">
                         <span style="font-size:12.5px;color:var(--vy-muted);">{{ $soon }}</span>
                         <span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--vy-faint);background:rgba(0,0,0,.04);padding:3px 9px;border-radius:20px;">Soon</span>

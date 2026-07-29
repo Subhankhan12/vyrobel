@@ -1,7 +1,23 @@
 # Vyrobel — OAuth2 Authorization Server (scoped, owner-authorized, tenant-isolated) · DESIGN
 
-**Status:** PHASE 0 — investigation + design (read-only). Presented for approval before any build.
+**Status:** ✅ **BUILT & SHIPPED (2026-07-29) — all four phases.** (Invariant #72.) Laravel Passport v13.7.5.
 **Date:** 2026-07-29
+
+> **Build summary (what shipped):**
+> - **P1** (`70c0864`) — Passport install (additive; ULID `user_id` migrations; keys gitignored); `api`/passport
+>   guard; `HasApiTokens`+`OAuthenticatable` on `User`; `OAuthScopes` (read:bookings/statements/units → owner-cap
+>   map); `OAuthClientRegistrar` + `oauth:register-client` (platform-admin); demo example client.
+> - **P2** (`234236c`) — branded consent screen (`Passport::authorizationView`, exact requested scopes);
+>   authorization-code + **PKCE**; every token issuance audited (`AuditOAuthTokenGranted`). Proven: deny→no token,
+>   approve→token with only requested scopes, PKCE enforced.
+> - **P3** (`05d70a8`) — `routes/api.php` triple-gated (`auth:api` → `ResolveApiOwnerContext` →
+>   `EnsureOwnerApiScope`); `OwnerApiController` (safe fields, name-only #28, no arrival secrets #33);
+>   `OAuthConnectionService` + `OwnerConnectedAppController` (self-only, re-auth, audited revoke). Proven: owner +
+>   scope isolation both ways, no over-grant, non-owner 403, immediate revoke.
+> - **P4** — Security "Connected apps" REAL (list + scopes + revoke; "Coming soon" removed); browser-verified
+>   end-to-end (consent screen shows exactly the requested scopes; connected app + revoke render live).
+>
+> The design below is the as-built spec.
 **⚠️ SECURITY feature.** A third-party token grants access to owner/tenant data. Non-negotiables: **scoped** (least-privilege, read-first) · **owner-consented** (a real consent screen showing exactly the requested scopes) · **revocable** (immediate) · **audited** (#20) · **tenant + owner double-gated** (a token sees ONLY that owner's data, ONLY the granted scope — proven both ways). A token can NEVER over-grant (exceed the owner's own capabilities) or cross tenants.
 
 ---

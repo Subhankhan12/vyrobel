@@ -7,7 +7,9 @@ namespace App\Livewire\Owner;
 use App\Livewire\Concerns\PreparesTwoFactor;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\Passkey;
+use App\Services\OAuthConnectionService;
 use App\Support\Auth\TrustedDeviceService;
+use App\Support\OAuth\OAuthScopes;
 use App\Support\Owner\OwnerContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -100,6 +102,15 @@ class OwnerSecurity extends Component
                     'expires' => $d->expires_at instanceof Carbon ? $d->expires_at->diffForHumans() : '—',
                     'current' => (bool) $d->getAttribute('is_current'),
                 ])->all(),
+            // Connected apps (Wave D · OAuth) — the REAL third-party apps THIS user authorized (self-only), each
+            // with the exact scopes granted + a real Revoke. Scope ids get their human descriptions for the UI.
+            'connectedApps' => array_map(fn (array $c): array => [
+                'client_id' => $c['client_id'],
+                'name' => $c['name'],
+                'scopes' => $c['scopes'],
+                'scope_labels' => array_map(fn (string $s): string => OAuthScopes::catalog()[$s] ?? $s, $c['scopes']),
+                'authorized_at' => $c['authorized_at'],
+            ], app(OAuthConnectionService::class)->connectionsFor($user)),
         ]);
     }
 

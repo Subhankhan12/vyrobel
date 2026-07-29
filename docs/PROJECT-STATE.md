@@ -6,7 +6,31 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v16) · AUTOMATED PAYOUT ENGINE (TEST-MODE) COMPLETE. This block SUPERSEDES
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v17) · OAuth2 AUTHORIZATION SERVER COMPLETE. This block SUPERSEDES every
+> block below it. Fresh-session entry point: this block → `docs/OAUTH-DESIGN.md` → `docs/DECISIONS.md`.**
+>
+> **⚠️ SECURITY feature (Invariant #72).** A real OAuth2 authorization server (**Laravel Passport v13.7.5**, clean
+> on Laravel 13) so third-party apps get SCOPED, owner-consented, tenant-isolated, revocable access — the owner
+> Security page's "Connected apps" ("Coming soon") is now REAL. **Fully additive** — the `api` (passport) guard is
+> only invoked explicitly (`auth:api`); the session realms + default `web` guard are untouched. It ADDS a third
+> gate (the token scope) on top of the certified `OwnerScope`/`OrganizationScope`/`OwnerTeamRole` — never a new
+> isolation mechanism. **What's new:** the `api` guard + `HasApiTokens`/`OAuthenticatable` on `User` (ULID `user_id`
+> migrations; keys gitignored); **`OAuthScopes`** (least-privilege read-first: read:bookings/statements/units →
+> owner-cap map); `OAuthClientRegistrar` + `oauth:register-client` (platform-admin, no self-serve); a **branded
+> consent screen** (`Passport::authorizationView`, exact requested scopes) + authorization-code + **PKCE** + audited
+> token issuance; **`routes/api.php` TRIPLE-GATED** (`auth:api` → `ResolveApiOwnerContext` [token→owner+org, fails
+> closed] → `EnsureOwnerApiScope` [scope + owner-cap, no over-grant]); `OwnerApiController` (safe fields, name-only
+> #28, no arrival secrets #33); `OAuthConnectionService` + `OwnerConnectedAppController` (self-only, re-auth, audited
+> revoke). **Mutation-proven** (`OAuthClientTest`/`OAuthConsentFlowTest`/`OAuthApiTest`/`OAuthConnectedAppsViewTest`):
+> owner + scope isolation both ways · no over-grant (accountant-role token can't carry read:bookings) · non-owner
+> 403 · deny→no token · approve→only-requested-scopes · PKCE enforced · **revoke immediate** (revoked → next request
+> 401). Browser-verified: consent shows exactly the requested scopes; connected app + revoke render live. **Note:**
+> `composer audit` flags 10 advisories on `dompdf/dompdf` (<3.1.6) — PRE-EXISTING, unrelated (a dompdf bump is
+> separate). Suite **1201/9162**; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **Invariants #1–72.**
+>
+> ---
+>
+> ⭐ **PRIOR — 2026-07-29 (v16) · AUTOMATED PAYOUT ENGINE (TEST-MODE) COMPLETE. This block SUPERSEDES
 > every block below it. Fresh-session entry point: this block → `docs/PAYOUT-ENGINE-DESIGN.md` → `docs/DECISIONS.md`.**
 >
 > **⚠️ REAL-MONEY seam, built TEST-MODE-only (Invariant #71).** The automated payout engine (`docs/PAYOUT-ENGINE-DESIGN.md`)
