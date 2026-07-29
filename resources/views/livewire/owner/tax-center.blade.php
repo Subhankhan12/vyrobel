@@ -174,16 +174,21 @@
                     <p class="vy-line-sub" style="font-size:11.5px;margin-top:12px">Your tax ID and VAT number are encrypted at rest. Saving them releases any held payouts.</p>
                 </section>
 
-                {{-- Withholding — HONEST: Vyrobel withholds nothing (the wireframe's residency rates are fabricated, #39) --}}
+                {{-- Withholding — REAL (Wave D): the withheld total from configured rates, or an honest "None" when
+                     no withholding rate is configured for your residency. Never a fabricated rate (#39). --}}
                 <section class="vy-card vy-fade" style="animation-delay:.08s">
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
                         <div style="flex:1;min-width:220px">
                             <h2 class="vy-card-title" style="font-size:16px;margin-bottom:4px">Withholding tax</h2>
-                            <p class="vy-line-sub" style="font-size:12.5px;line-height:1.55;margin:0">Vyrobel doesn’t withhold tax from your payouts — you receive your full net earnings and declare your rental income in your own tax return.</p>
+                            @if ($withholding['has'])
+                                <p class="vy-line-sub" style="font-size:12.5px;line-height:1.55;margin:0">Tax withheld from your payouts at the rate configured for your residency and remitted on your behalf. <strong>Verify with your accountant — this is not tax advice.</strong></p>
+                            @else
+                                <p class="vy-line-sub" style="font-size:12.5px;line-height:1.55;margin:0">No withholding is configured for your residency — you receive your full net earnings and declare your rental income in your own tax return.</p>
+                            @endif
                         </div>
                         <div style="text-align:right">
-                            <div class="vy-tax-with-fig">None</div>
-                            <div style="font-size:11px;color:var(--vy-faint);margin-top:4px">applied to payouts</div>
+                            <div class="vy-tax-with-fig">{{ $withholding['has'] ? $withholding['display'] : 'None' }}</div>
+                            <div style="font-size:11px;color:var(--vy-faint);margin-top:4px">withheld from payouts</div>
                         </div>
                     </div>
                 </section>

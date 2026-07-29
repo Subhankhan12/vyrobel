@@ -175,10 +175,10 @@ it('renders an honest withholding state and never a fabricated rate', function (
     $res = $this->actingAs($f['user'])->get('/owner/tax')->assertOk()
         // the green "complete" state is REAL (tax details on file)
         ->assertSee('Tax details complete')
-        // the withholding section is HONEST — Vyrobel withholds nothing
+        // the withholding section is HONEST — no rate configured for this owner → a genuine "None"
         ->assertSee('Withholding tax')
         ->assertSee('None')
-        ->assertSee('withhold tax from your payouts')
+        ->assertSee('No withholding is configured')
         ->assertSee('full net earnings')
         // ⚠️ NEVER the wireframe's fabricated residency-driven withholding (#39)
         ->assertDontSee('treaty rate')

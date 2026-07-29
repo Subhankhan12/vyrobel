@@ -1,7 +1,21 @@
 # Vyrobel — VAT + Withholding Tax Engine · DESIGN
 
-**Status:** PHASE 0 — investigation + design (read-only). Presented for approval before any build.
+**Status:** ✅ **BUILT & SHIPPED (2026-07-29) — all four phases.** (Invariant #73.)
 **Date:** 2026-07-29
+
+> **Build summary (what shipped):**
+> - **P1** (`8a6b2c9`) — `tax_rates` store (jurisdiction · rate_type · percent · effective dates · `is_example`) +
+>   `TaxRateService` (`rateFor` — real over example, or null) + `tax:set-rate` admin command + EXAMPLE PT VAT seeds.
+> - **P2** (`01a5f53`) — `OwnerVatService` (informational output/input/net VAT per quarter from configured rates ×
+>   real `gross`/`commission`, reconciling; honest not-registered/not-configured/example states).
+> - **P3** (`77e330a`) — the `withholding` ledger entry_type + statement bucket + `WithholdingService` (posts the
+>   computed line at finalize from the pre-withholding net → reduces `net_payable` → the payout, reconciling #17).
+> - **P4** — Reports "Tax & VAT summary" (honest-deferred → REAL computed, honestly labelled + example warning) +
+>   VAT-return CSV + Tax Center withholding card (real withheld figure) + the annual summary. Browser-verified.
+>
+> ⚠️ **The session configured the MECHANISM + clearly-labelled EXAMPLE rates ONLY.** The founder supplies the real,
+> authoritative rates via `tax:set-rate`. No rate is ever presented as authoritative unless the founder set it.
+> The design below is the as-built spec.
 **⚠️ TAX FIGURES HAVE LEGAL CONSEQUENCES — an owner may file on them.** The governing discipline of this whole build:
 
 > **The ENGINE is built in code. The RATES are CONFIGURED by the founder, per jurisdiction. The session NEVER invents, hardcodes, or presents-as-authoritative a tax rate.** It seeds ONLY clearly-labelled **EXAMPLE** rates the founder MUST replace. Every VAT/withholding output is honestly labelled *"computed from the rates configured for your jurisdiction — verify with your accountant; this is not tax advice."* Unconfigured jurisdiction → an honest **"not configured"** state, never a fabricated figure. The computation is deterministic, integer money (#17), and reconciles.

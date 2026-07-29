@@ -857,6 +857,8 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/tax', OwnerTaxCenter::class)->middleware($capDocuments)->name('tax');
     Route::post('/tax', [OwnerTaxController::class, 'save'])->middleware($capActions)->name('tax.save');
     Route::get('/tax/{year}/summary.pdf', [OwnerTaxController::class, 'downloadAnnual'])->middleware($capExports)->name('tax.annual');
+    // VAT return · CSV (Wave D · tax engine) — the REAL computed VAT from configured rates; CAP_EXPORTS, self-only.
+    Route::get('/tax/{year}/vat-return.csv', [OwnerTaxController::class, 'vatReturn'])->middleware($capExports)->name('tax.vat-return');
     // Phase 2 · Sub-gate 5 — Owner Payout Method. SELF-ONLY + owner-scoped: new methods attach to the owner
     // resolved by user_id (never a request id); set-default/remove resolve the method through the owner scope
     // (a cross-owner id 404s). The full IBAN is ENCRYPTED + never rendered (masked ···· last4). DATA CAPTURE

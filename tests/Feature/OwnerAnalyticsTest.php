@@ -144,9 +144,10 @@ it('reports gross-to-net at the REAL agreement commission rate and never fabrica
         // gross-to-net reconciles (#17): gross €300.00 − commission €66.00 = net €234.00
         ->assertSee('€300.00')
         ->assertSee('€234.00')
-        // ⚠️ HONEST VAT — the design's VAT computation + filing workflow are NOT modelled → never fabricated
-        ->assertSee('compute or file your VAT')
-        ->assertSee('Not yet available')            // the honest deferred chip (GATE 2 design)
+        // ⚠️ HONEST VAT — this owner isn't VAT-registered, so the real engine shows the honest state, no figure
+        // (the computation is proven in OwnerTaxSurfaceTest; here we prove nothing is fabricated for a non-reg owner)
+        ->assertSee('not marked VAT-registered')
+        ->assertSee('Not yet available')            // the honest chip (no computed figure)
         ->assertDontSee('Output VAT')
         ->assertDontSee('Net VAT due')
         ->assertDontSee('Mark filed')

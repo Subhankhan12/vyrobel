@@ -704,6 +704,11 @@ class DemoSeeder extends Seeder
             'payout_currency' => 'EUR',
             'user_id' => $user->id,
             'status' => 'active',
+            // Wave D · tax engine — jurisdiction + VAT-registered so the Reports VAT summary demos the REAL engine
+            // (computed from the seeded PT EXAMPLE rates → flagged "not for filing"). Deliberately NO tax_id, so the
+            // payout tax-hold "Paused" demo stays intact; and NO PT withholding rate → no withholding, net unchanged.
+            'tax_country' => 'PT',
+            'vat_registered' => true,
         ]);
 
         // The owner owns the two apartments; the hotel rooms stay operator-owned.

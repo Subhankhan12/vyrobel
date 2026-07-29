@@ -7,7 +7,11 @@ namespace App\Livewire\Owner;
 use App\Http\Controllers\Owner\OwnerTaxController;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\Owner;
+use App\Models\OwnerStatement;
+use App\Models\TaxRate;
 use App\Services\OwnerTaxService;
+use App\Services\TaxRateService;
+use App\Services\WithholdingService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
@@ -23,10 +27,10 @@ use Livewire\Component;
  * gets the fail-closed empty state. The held-payout amount is REAL — it comes from the owner's actual pending
  * payouts, which OwnerPayoutService::pay() genuinely refuses to disburse until a tax ID is on file.
  *
- * WITHHOLDING is NOT modelled (Vyrobel withholds nothing from payouts — the only deductions are the real
- * commission/fees). The wireframe's residency-driven "15%/20% withheld" is fabricated, so the Tax-center renders
- * an HONEST "no withholding" card (the truthful universal state) instead of a fake rate (#39). The OTA brand is
- * likewise never rendered.
+ * WITHHOLDING is now REAL (Wave D · tax engine): the card shows the owner's actual withheld total (Σ of the
+ * `withholding_minor` on their committed statements), computed at finalize from a FOUNDER-CONFIGURED rate for their
+ * residency ({@see WithholdingService}). Until a rate is configured it is a genuine "None" (nothing
+ * withheld) — never a fabricated residency rate (#39). The OTA brand is still never rendered.
  */
 #[Layout('components.layouts.owner')]
 class OwnerTaxCenter extends Component
@@ -78,7 +82,38 @@ class OwnerTaxCenter extends Component
             'profile' => $this->profile($owner),
             'held' => $held,
             'summaries' => $summaries,
+            // Wave D · tax engine — the REAL withheld total (Σ statement withholding), or an honest "None" when no
+            // withholding rate is configured for the owner's residency. Never a fabricated rate (#39).
+            'withholding' => $this->withholdingSummary($owner),
         ]);
+    }
+
+    /**
+     * The owner's REAL withholding — Σ of the `withholding_minor` on their committed statements (per currency), and
+     * whether a withholding rate is configured for their residency. €0/None until the founder configures a rate.
+     *
+     * @return array{has: bool, configured: bool, display: string|null}
+     */
+    private function withholdingSummary(Owner $owner): array
+    {
+        $byCurrency = [];
+        foreach (OwnerStatement::query()->where('owner_id', $owner->getKey())->whereIn('status', ['finalized', 'paid'])->get() as $statement) {
+            $minor = (int) $statement->withholding_minor;   // negative (a deduction)
+            if ($minor === 0) {
+                continue;
+            }
+            $currency = (string) $statement->source_currency;
+            $byCurrency[$currency] = ($byCurrency[$currency] ?? 0) + abs($minor);
+        }
+
+        $configured = app(TaxRateService::class)
+            ->rateFor((string) ($owner->tax_country ?? ''), TaxRate::TYPE_WITHHOLDING) !== null;
+
+        return [
+            'has' => $byCurrency !== [],
+            'configured' => $configured,
+            'display' => $byCurrency === [] ? null : implode(' · ', array_map(fn (string $c, int $m): string => $this->money($m, $c), array_keys($byCurrency), $byCurrency)),
+        ];
     }
 
     /**

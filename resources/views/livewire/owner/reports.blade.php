@@ -425,26 +425,78 @@
          in the wireframe's card chrome — icon + header + a clear "Not yet available" chip + (real) country context +
          the REAL annual tax summary PDF. No fabricated figure, no filing toggle, no VAT return with invented numbers
          (an owner could file on it — dangerous even "for information only"). #39. --}}
-    <section class="vy-card vy-rep-vat vy-fade" style="animation-delay:.17s">
+    {{-- ── Tax & VAT summary — REAL (Wave D): computed from FOUNDER-CONFIGURED rates × real amounts (OwnerVatService).
+         Honestly labelled; an EXAMPLE-rate figure is flagged "not for filing"; unconfigured/unregistered → the honest
+         state (no figure). NEVER a fabricated figure an owner could file on (#39). --}}
+    <section class="vy-card {{ $vat['available'] ? '' : 'vy-rep-vat' }} vy-fade" style="animation-delay:.17s">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
             <div style="display:flex;align-items:center;gap:9px">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
                 <div>
                     <h2 class="vy-card-title">Tax &amp; VAT summary</h2>
-                    <div class="vy-line-sub">{{ 'Your earnings figures for your accountant'.($taxCountry ? ' · '.$taxCountry : '') }}</div>
+                    <div class="vy-line-sub">{{ ($vat['available'] ? 'Output − input = net VAT, per quarter' : 'Your earnings figures for your accountant').($taxCountry ? ' · '.$taxCountry : '') }}</div>
                 </div>
             </div>
-            <span class="vy-soon-tag" style="flex-shrink:0">Not yet available</span>
+            @if ($vat['available'] && $vat['is_example'])
+                <span class="vy-soon-tag" style="flex-shrink:0;background:rgba(194,110,20,.14);color:#a65a10;border-color:rgba(194,110,20,.3)">Example rates</span>
+            @elseif ($vat['available'])
+                <span class="vy-soon-tag" style="flex-shrink:0;background:rgba(34,120,60,.12);color:#227a3c;border-color:rgba(34,120,60,.25)">Computed</span>
+            @else
+                <span class="vy-soon-tag" style="flex-shrink:0">Not yet available</span>
+            @endif
         </div>
-        <div style="margin-top:14px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.5);border:1px solid var(--vy-hairline);font-size:12.5px;color:var(--vy-muted);line-height:1.7;max-width:720px">
-            Vyrobel doesn't compute or file your VAT — the rates and bases depend on your jurisdiction and registration,
-            so no Output, Input or Net VAT figure is shown here. Your
-            <strong style="color:var(--vy-ink)">annual tax summary</strong> gives your accountant the real earnings
-            figures for the year; VAT is calculated and filed by you or your accountant.
-        </div>
+
+        @if ($vat['available'])
+            @if ($vat['is_example'])
+                <div style="margin-top:12px;padding:11px 14px;border-radius:12px;background:rgba(194,110,20,.1);border:1px solid rgba(194,110,20,.28);font-size:12px;color:#8a4c0e;line-height:1.55">
+                    <strong>Based on EXAMPLE rates.</strong> Real VAT rates for {{ $taxCountry }} haven’t been configured yet — these figures are illustrative only, <strong>not for filing</strong>.
+                </div>
+            @endif
+            <div style="overflow-x:auto;margin-top:14px">
+                <table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:460px">
+                    <thead><tr style="color:var(--vy-muted);text-align:right">
+                        <th style="text-align:left;padding:6px 8px;font-weight:600">Quarter</th>
+                        <th style="padding:6px 8px;font-weight:600">Output VAT</th>
+                        <th style="padding:6px 8px;font-weight:600">Input VAT</th>
+                        <th style="padding:6px 8px;font-weight:600">Net VAT</th>
+                    </tr></thead>
+                    <tbody>
+                        @foreach ($vat['quarters'] as $q)
+                            <tr style="border-top:1px solid var(--vy-hairline);text-align:right">
+                                <td style="text-align:left;padding:7px 8px;color:var(--vy-ink);font-weight:500">{{ $q['label'] }}</td>
+                                <td style="padding:7px 8px;font-variant-numeric:tabular-nums">{{ $q['output_display'] }}</td>
+                                <td style="padding:7px 8px;font-variant-numeric:tabular-nums;color:var(--vy-muted)">−{{ $q['input_display'] }}</td>
+                                <td style="padding:7px 8px;font-variant-numeric:tabular-nums;font-weight:600;color:var(--vy-ink)">{{ $q['net_display'] }}</td>
+                            </tr>
+                        @endforeach
+                        <tr style="border-top:2px solid var(--vy-hairline);text-align:right;font-weight:700">
+                            <td style="text-align:left;padding:8px;color:var(--vy-ink)">{{ $vat['year'] }} total</td>
+                            <td style="padding:8px;font-variant-numeric:tabular-nums">{{ $vat['annual']['output_display'] }}</td>
+                            <td style="padding:8px;font-variant-numeric:tabular-nums">−{{ $vat['annual']['input_display'] }}</td>
+                            <td style="padding:8px;font-variant-numeric:tabular-nums">{{ $vat['annual']['net_display'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top:12px;font-size:11.5px;color:var(--vy-muted);line-height:1.6;max-width:720px">
+                Computed from the VAT rates configured for {{ $taxCountry }} ({{ rtrim(rtrim(number_format((float) $vat['accommodation_rate'], 1), '0'), '.') }}% on rental income{{ $vat['service_rate'] !== null ? ', '.rtrim(rtrim(number_format((float) $vat['service_rate'], 1), '0'), '.').'% on the management fee' : '' }}) × your real figures. <strong>Verify with your accountant — this is not tax advice.</strong>
+            </div>
+        @else
+            <div style="margin-top:14px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.5);border:1px solid var(--vy-hairline);font-size:12.5px;color:var(--vy-muted);line-height:1.7;max-width:720px">
+                @if ($vat['status'] === 'not_registered')
+                    You’re not marked VAT-registered, so no Output, Input or Net VAT is computed. Turn on VAT registration in the <strong style="color:var(--vy-ink)">Tax center</strong> if you charge VAT on your rental income.
+                @else
+                    VAT rates aren’t configured for your jurisdiction{{ $taxCountry ? ' ('.$taxCountry.')' : '' }} yet, so no VAT figure is shown here — never a fabricated number. Your <strong style="color:var(--vy-ink)">annual tax summary</strong> gives your accountant the real earnings figures; VAT is filed by you or your accountant.
+                @endif
+            </div>
+        @endif
+
         <div style="display:flex;align-items:center;gap:18px;margin-top:14px;flex-wrap:wrap">
             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                 <a href="{{ route('owner.tax.annual', (int) $activeRange['start']->year) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px">Annual tax summary · PDF</a>
+                @if ($vat['available'])
+                    <a href="{{ route('owner.tax.vat-return', (int) $activeRange['start']->year) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px">VAT return · CSV</a>
+                @endif
             @endownercan
             <a href="{{ route('owner.tax') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Tax center →</a>
         </div>

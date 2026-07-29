@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Owner;
 use App\Services\OwnerTaxService;
+use App\Services\OwnerVatService;
 use App\Services\PdfService;
 use App\Support\Exports\ExportAudit;
 use App\Support\Pdf\OwnerAnnualTaxDocument;
@@ -14,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Owner Tax Center writes + downloads (Phase 2 · Sub-gate 4). SELF-ONLY throughout: {@see OwnerTaxService}
@@ -71,5 +74,53 @@ class OwnerTaxController extends Controller
         $watermark = app(ExportAudit::class)->stamp($request, 'annual_tax_pdf', 'Annual tax summary '.$year);
 
         return $pdf->download('pdfs.owner-annual-tax', OwnerAnnualTaxDocument::data($owner, $summary), 'vyrobel-annual-tax-'.$year.'.pdf', $watermark);
+    }
+
+    /**
+     * VAT return · CSV (Wave D · tax engine) — the REAL computed output/input/net VAT per quarter, from
+     * FOUNDER-CONFIGURED rates ({@see OwnerVatService}). Owner self-only + CAP_EXPORTS. 404s when VAT isn't
+     * available (not registered / no rate configured) — never a fabricated figure. Every file carries the honest
+     * "computed from your configured rates — verify with your accountant; not tax advice" header, and an EXAMPLE-
+     * rate file is loudly marked "NOT FOR FILING".
+     */
+    public function vatReturn(Request $request, string $year, OwnerVatService $vatService): StreamedResponse
+    {
+        if (preg_match('/^\d{4}$/', $year) !== 1) {
+            abort(404);
+        }
+
+        try {
+            $owner = $this->ownerFor($request);
+        } catch (ModelNotFoundException) {
+            abort(404);
+        }
+
+        $vat = $vatService->summary($owner, (int) $year);
+        if (($vat['available'] ?? false) !== true) {
+            abort(404);   // not registered / not configured — nothing to export, never a fabricated figure
+        }
+
+        $watermark = app(ExportAudit::class)->stamp($request, 'vat_return_csv', 'VAT return '.$year);
+
+        return response()->streamDownload(function () use ($vat, $watermark, $year): void {
+            $out = fopen('php://output', 'wb');
+            fputcsv($out, ['# '.$watermark]);
+            fputcsv($out, ['# Computed from the rates configured for '.$vat['jurisdiction'].' — verify with your accountant; this is not tax advice.']);
+            if (($vat['is_example'] ?? false) === true) {
+                fputcsv($out, ['# ⚠️ BASED ON EXAMPLE RATES — real rates are not configured for this jurisdiction. NOT FOR FILING.']);
+            }
+            fputcsv($out, ['Quarter', 'Rental income', 'Output VAT', 'Agency fee', 'Input VAT', 'Net VAT']);
+            foreach ($vat['quarters'] as $q) {
+                fputcsv($out, [$q['label'], $q['gross_display'], $q['output_display'], '', $q['input_display'], $q['net_display']]);
+            }
+            fputcsv($out, [$year.' total', '', $vat['annual']['output_display'], '', $vat['annual']['input_display'], $vat['annual']['net_display']]);
+            fclose($out);
+        }, 'vyrobel-vat-return-'.$year.'.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    /** Self-resolve the authenticated user's owner (fail closed) — the same rule as {@see downloadAnnual}. */
+    private function ownerFor(Request $request): Owner
+    {
+        return Owner::query()->where('user_id', $request->user()?->getKey())->firstOrFail();
     }
 }

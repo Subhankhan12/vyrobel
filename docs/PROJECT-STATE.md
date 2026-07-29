@@ -6,7 +6,29 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v17) · OAuth2 AUTHORIZATION SERVER COMPLETE. This block SUPERSEDES every
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-29 (v18) · VAT + WITHHOLDING TAX ENGINE COMPLETE. This block SUPERSEDES every
+> block below it. Fresh-session entry point: this block → `docs/TAX-ENGINE-DESIGN.md` → `docs/DECISIONS.md`.**
+>
+> **⚠️ Tax figures have legal consequences (Invariant #73).** A real VAT + withholding engine — but the ENGINE is
+> code and the RATES are CONFIGURED by the founder per jurisdiction: **the session NEVER invents/hardcodes/presents-
+> as-authoritative a tax rate**; it seeds only clearly-labelled EXAMPLE rates the founder MUST replace. Every output
+> is labelled *"computed from your configured rates — verify with your accountant; not tax advice"*; unconfigured →
+> honest "not configured", never a fabricated figure. Makes REAL what the Reports/Tax-Center audits correctly
+> refused. **The key split:** VAT is INFORMATIONAL (no payout effect); WITHHOLDING is a REAL payout deduction.
+> **What's new:** `tax_rates` store + `TaxRateService` (`rateFor` — real over example, or null) + `tax:set-rate`
+> admin command + EXAMPLE seeds; `OwnerVatService` (output/input/net VAT per quarter from configured rates × real
+> gross/commission, reconciling #17; honest states); the `withholding` ledger entry_type + statement bucket +
+> `WithholdingService` (posts the computed line at finalize from the pre-withholding net → reduces `net_payable` →
+> the payout, reconciling #17 — exactly the `payment_fee` pattern, so the payout engine is unchanged); the Reports
+> VAT summary (deferred → REAL, honestly labelled + example warning) + VAT-return CSV + the Tax Center withholding
+> card. Mutation-proven (`TaxRateConfigTest`/`OwnerVatTest`/`WithholdingTest`/`OwnerTaxSurfaceTest`): VAT reconciles
+> quarter→annual; withholding reduces the net correctly (#17 both states); unconfigured → honest; the demo net
+> €885.60 unchanged (no PT withholding rate). Browser-verified (Reports VAT computed + example-flagged + "not tax
+> advice"). Suite **1217/9225**; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **Invariants #1–73.**
+>
+> ---
+>
+> ⭐ **PRIOR — 2026-07-29 (v17) · OAuth2 AUTHORIZATION SERVER COMPLETE. This block SUPERSEDES every
 > block below it. Fresh-session entry point: this block → `docs/OAUTH-DESIGN.md` → `docs/DECISIONS.md`.**
 >
 > **⚠️ SECURITY feature (Invariant #72).** A real OAuth2 authorization server (**Laravel Passport v13.7.5**, clean

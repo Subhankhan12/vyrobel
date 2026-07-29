@@ -6,12 +6,14 @@ namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\ManagementAgreement;
+use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\Reservation;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
+use App\Services\OwnerVatService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Notifications\NotificationFeed;
@@ -47,9 +49,11 @@ use Livewire\Component;
  *     demo owner ledger has NO prior-year data, so no comparison is fabricated (#39); the series appears only
  *     when real prior-year data exists. The year dropdown lists the owner's REAL statement years, never the
  *     wireframe's hardcoded 2024/2023.
- *   • HONEST-DEFER — "Email to me" now queues the owner's latest STATEMENT PDF to their own inbox (GATE 4); the design's **Tax & VAT
- *     summary** is NOT computed by Vyrobel (no VAT model — only a stored VAT number), so it renders as an honest
- *     deferred card (no fabricated Output/Input/Net VAT figure, no "Mark filed" #39). GATE 2 matches its design.
+ *   • REAL (Wave D · tax engine) — the **Tax & VAT summary** is now COMPUTED (output/input/net VAT per quarter)
+ *     from FOUNDER-CONFIGURED rates × the owner's real gross/commission ({@see OwnerVatService}), honestly labelled
+ *     "computed from your configured rates — verify with your accountant; not tax advice". An EXAMPLE-rate figure is
+ *     flagged "not for filing"; a not-registered / not-configured owner gets the honest state (no fabricated figure,
+ *     #39). "Email to me" queues the owner's latest STATEMENT PDF to their own inbox (GATE 4).
  */
 #[Layout('components.layouts.owner')]
 class OwnerReports extends Component
@@ -110,9 +114,13 @@ class OwnerReports extends Component
             'payout' => $this->payoutSummary($currency),
             'documents' => $this->recentDocuments(),
             'exportItems' => $this->exportItems($range),
-            // The owner's REAL stored tax country (plain string; NOT the encrypted VAT number) — an honest context
-            // chip on the deferred VAT card, omitted when unset. Vyrobel computes no VAT, so no figure is derived.
+            // The owner's REAL stored tax country (plain string; NOT the encrypted VAT number).
             'taxCountry' => $units->first()?->owner?->tax_country,
+            // Wave D · tax engine — the REAL VAT summary, computed from FOUNDER-CONFIGURED rates × real amounts
+            // (OwnerVatService), or an honest not-registered/not-configured state. Never a fabricated figure (#39).
+            'vat' => ($vatOwner = $units->first()?->owner) instanceof Owner
+                ? app(OwnerVatService::class)->summary($vatOwner, (int) $range['start']->year)
+                : ['available' => false, 'status' => 'not_configured', 'quarters' => [], 'is_example' => false],
             'notifications' => $user !== null ? NotificationFeed::recentForUser($user, 4) : ['items' => [], 'unread' => 0],
         ]);
     }
