@@ -35,7 +35,9 @@ class OwnerTeam extends Component
     public function render(): View
     {
         $context = app(OwnerContext::class);
-        $ownerIds = $context->ownerIds();
+        // 🔒 P1-1: the team screen manages ONLY the teams of owners this user is the PRIMARY of — never an owner
+        // they are merely a sub-user of (the union). Matches OwnerTeamController's per-owner write scope.
+        $ownerIds = $context->primaryOwnerIds();
 
         $members = OwnerUser::query()
             ->whereIn('owner_id', $ownerIds)

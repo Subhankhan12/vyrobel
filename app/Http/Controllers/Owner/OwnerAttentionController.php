@@ -9,6 +9,7 @@ use App\Models\OwnerAttentionState;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Owner\OwnerAttention;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -88,7 +89,7 @@ class OwnerAttentionController extends Controller
     /** BULK — mark EVERY currently-raised item read (Wave B · 💡). Only ever touches genuine current signals. */
     public function readAll(OwnerContext $context): RedirectResponse
     {
-        $signals = OwnerAttention::currentSignals($context);
+        $signals = $this->actionableSignals($context);
         foreach ($signals as $signal) {
             $this->apply($signal, ['read_at' => Carbon::now()], 'owner.attention_read');
         }
@@ -100,12 +101,26 @@ class OwnerAttentionController extends Controller
     public function snoozeAll(OwnerContext $context): RedirectResponse
     {
         $until = Carbon::now()->addWeek();
-        $signals = OwnerAttention::currentSignals($context);
+        $signals = $this->actionableSignals($context);
         foreach ($signals as $signal) {
             $this->apply($signal, ['snoozed_until' => $until, 'dismissed_at' => null], 'owner.attention_snoozed');
         }
 
         return back()->with('owner_notice', count($signals) === 0 ? 'Nothing to snooze.' : 'Snoozed everything — back in a week.');
+    }
+
+    /**
+     * 🔒 P1-1: the current signals whose owner the acting user has CAP_ACTIONS on — bulk actions silently skip an
+     * owner the user is only a lesser role on (per-owner, never the union). The single-item paths 403 instead.
+     *
+     * @return list<array{owner_id: string, key: string}>
+     */
+    private function actionableSignals(OwnerContext $context): array
+    {
+        return array_values(array_filter(
+            OwnerAttention::currentSignals($context),
+            fn (array $signal): bool => $context->canOn((string) $signal['owner_id'], OwnerTeamRole::CAP_ACTIONS),
+        ));
     }
 
     /**
@@ -127,6 +142,10 @@ class OwnerAttentionController extends Controller
      */
     private function apply(array $signal, array $attrs, string $event): void
     {
+        // 🔒 P1-1: acting on an attention item is CAP_ACTIONS on THAT signal's owner (per-owner, not the union) —
+        // a co-owner of A + view-only of B may not snooze/dismiss/read B's items.
+        abort_unless(app(OwnerContext::class)->canOn((string) $signal['owner_id'], OwnerTeamRole::CAP_ACTIONS), 403);
+
         $state = OwnerAttentionState::updateOrCreate(
             ['owner_id' => $signal['owner_id'], 'attention_key' => $signal['key']],
             $attrs,

@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\PayoutMethod;
 use App\Services\OwnerPayoutMethodService;
+use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
 use App\Support\Payouts\Iban;
 use Closure;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -45,6 +48,7 @@ class OwnerPayoutMethodController extends Controller
 
     public function setDefault(Request $request, OwnerPayoutMethodService $methods, string $method): RedirectResponse
     {
+        $this->assertCanManagePayout($method);
         try {
             $methods->setDefault($method);
         } catch (ModelNotFoundException) {
@@ -56,6 +60,7 @@ class OwnerPayoutMethodController extends Controller
 
     public function destroy(Request $request, OwnerPayoutMethodService $methods, string $method): RedirectResponse
     {
+        $this->assertCanManagePayout($method);
         try {
             $methods->remove($method);
         } catch (ModelNotFoundException) {
@@ -63,5 +68,16 @@ class OwnerPayoutMethodController extends Controller
         }
 
         return redirect()->to(route('owner.payout-method'))->with('payout_method_notice', 'Bank account removed.');
+    }
+
+    /**
+     * 🔒 P1-1: mutating a stored bank account is CAP_PAYOUT ON THAT method's owner — resolve the method under the
+     * owner scope (cross-owner 404) then check the acting user's PER-OWNER payout role (never the union role, so a
+     * co-owner of A + view-only of B can never set-default/remove B's account).
+     */
+    private function assertCanManagePayout(string $method): void
+    {
+        $model = PayoutMethod::query()->findOrFail($method);   // owner-scoped
+        abort_unless(app(OwnerContext::class)->canOn((string) $model->owner_id, OwnerTeamRole::CAP_PAYOUT), 403);
     }
 }

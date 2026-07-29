@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\RateProposal;
 use App\Services\RateProposalService;
+use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -25,6 +27,7 @@ class OwnerRateProposalController extends Controller
     public function approve(Request $request, string $proposal): RedirectResponse
     {
         $model = RateProposal::query()->findOrFail($proposal);   // owner-scoped
+        abort_unless(app(OwnerContext::class)->canOn((string) $model->owner_id, OwnerTeamRole::CAP_ACTIONS), 403);   // 🔒 P1-1 per-owner
 
         try {
             $this->proposals->approve($model, $request->user());
@@ -38,6 +41,7 @@ class OwnerRateProposalController extends Controller
     public function decline(Request $request, string $proposal): RedirectResponse
     {
         $model = RateProposal::query()->findOrFail($proposal);
+        abort_unless(app(OwnerContext::class)->canOn((string) $model->owner_id, OwnerTeamRole::CAP_ACTIONS), 403);   // 🔒 P1-1 per-owner
 
         try {
             $this->proposals->decline($model, $request->user());

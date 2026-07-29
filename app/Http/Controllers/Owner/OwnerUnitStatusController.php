@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\Unit;
 use App\Services\OwnerUnitStatusService;
+use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -21,6 +23,7 @@ class OwnerUnitStatusController extends Controller
     public function toggle(Request $request, OwnerUnitStatusService $status, string $unit): RedirectResponse
     {
         $model = Unit::query()->findOrFail($unit);   // owner-scoped
+        abort_unless(app(OwnerContext::class)->canOn((string) $model->owner_id, OwnerTeamRole::CAP_ACTIONS), 403);   // 🔒 P1-1 per-owner
         $actorId = (string) $request->user()?->getKey();
 
         if ($model->is_active !== false) {

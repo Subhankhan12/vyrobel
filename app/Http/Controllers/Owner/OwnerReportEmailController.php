@@ -47,8 +47,9 @@ class OwnerReportEmailController extends Controller
             return back()->with('owner_notice', 'You don’t have a finalized statement to email yet — we’ll have one ready after your first payout period.');
         }
 
-        // Payout-capable role → the masked IBAN appears on the PDF; an accountant export omits it (#28).
-        $canSeePayout = $ownerContext->can(OwnerTeamRole::CAP_PAYOUT);
+        // Payout-capable role ON THIS statement's owner → the masked IBAN appears on the PDF; an accountant
+        // export omits it (#28). Per-owner (P1-1) — never the union role.
+        $canSeePayout = $ownerContext->canOn((string) $statement->owner_id, OwnerTeamRole::CAP_PAYOUT);
         $pdfBytes = $pdf->raw('pdfs.owner-statement', OwnerStatementDocument::data($statement, $canSeePayout));
         $filename = 'vyrobel-statement-'.$statement->sequence_no.'-'.$statement->period_start->format('Y-m').'.pdf';
 

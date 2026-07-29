@@ -7,7 +7,10 @@ namespace App\Http\Controllers\Owner;
 use App\Exceptions\Booking\UnitUnavailableException;
 use App\Exceptions\Owner\OwnerBlockException;
 use App\Http\Controllers\Controller;
+use App\Models\Unit;
 use App\Services\OwnerBlockService;
+use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,6 +38,15 @@ class OwnerBlockController extends Controller
             'repeat_freq' => ['nullable', Rule::in(OwnerBlockService::FREQUENCIES)],
             'repeat_count' => ['nullable', 'integer', 'min:2', 'max:'.OwnerBlockService::MAX_OCCURRENCES],
         ]);
+
+        // 🔒 P1-1: holding dates is a CAP_ACTIONS write — the unit's OWNER must be one the acting user has actions
+        // on (per-owner, not the union). If the unit is IN the owner scope but on an owner the user lacks actions
+        // on (e.g. a co-owner of A + view-only of B blocking B's unit), 403 here. A TRULY foreign unit resolves to
+        // null under the scope and falls through to the service's own OwnerBlockException → 403 (unchanged).
+        $unit = Unit::query()->find($data['unit_id']);   // owner-scoped; null when foreign
+        if ($unit !== null) {
+            abort_unless(app(OwnerContext::class)->canOn((string) $unit->owner_id, OwnerTeamRole::CAP_ACTIONS), 403);
+        }
 
         // The stored reason note = the picked reason, plus the optional free note (split back out for display).
         $note = trim((string) ($data['note'] ?? ''));

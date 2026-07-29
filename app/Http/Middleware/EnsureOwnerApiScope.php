@@ -35,11 +35,17 @@ class EnsureOwnerApiScope
             abort(403, 'The token does not carry the required scope: '.$scope.'.');
         }
 
-        // 2) The scope must map to a capability the owner's role holds (no over-grant beyond the owner).
+        // 2) The scope must map to a capability the owner's role holds (no over-grant beyond the owner). P1-1:
+        //    resolve this PER OWNER — the token may reach ONLY the owners whose role actually backs the scope's
+        //    capability, never the union. We then NARROW the active owner set to exactly those owners, so the
+        //    endpoint's reads (via the OwnerScope) can never return an owner the token's per-owner role can't.
         $capability = OAuthScopes::capabilityFor($scope);
-        if ($capability === null || ! app(OwnerContext::class)->can($capability)) {
+        $context = app(OwnerContext::class);
+        $capableOwnerIds = $capability !== null ? $context->ownerIdsWithCapability($capability) : [];
+        if ($capableOwnerIds === []) {
             abort(403, 'This owner’s role does not permit the scope: '.$scope.'.');
         }
+        $context->intersectOwners($capableOwnerIds);
 
         return $next($request);
     }

@@ -10,6 +10,7 @@ use App\Models\OwnerMonthlyTarget;
 use App\Support\Money\MoneyInput;
 use App\Support\Owner\OwnerBookingsReader;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -32,8 +33,9 @@ class OwnerBookingsTargetController extends Controller
 {
     public function store(Request $request, OwnerContext $ownerContext, OwnerBookingsReader $reader): RedirectResponse
     {
-        $ownerIds = $ownerContext->ownerIds();
-        // Fail closed: no resolved owner → no target write (never a request-supplied owner id).
+        // 🔒 P1-1: setting a target is a CAP_ACTIONS write — resolve the holder from the owners the acting user
+        // has ACTIONS on (per-owner), never the union. Fail closed when none (a view-only sub-user of every owner).
+        $ownerIds = $ownerContext->ownerIdsWithCapability(OwnerTeamRole::CAP_ACTIONS);
         if ($ownerIds === []) {
             abort(404);
         }

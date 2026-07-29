@@ -11,6 +11,7 @@ use App\Services\InboxService;
 use App\Services\OwnerExpenseService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,9 @@ class OwnerExpenseApprovalController extends Controller
     public function approve(Request $request, string $expense): RedirectResponse
     {
         $model = OwnerExpense::query()->findOrFail($expense);   // owner-scoped
+        // 🔒 P1-1: CAP_ACTIONS is per-owner — a user who only has actions on ANOTHER of their owners (the route
+        // gate's coarse pass) must not approve THIS expense's owner. Fails closed on the target owner's role.
+        abort_unless(app(OwnerContext::class)->canOn((string) $model->owner_id, OwnerTeamRole::CAP_ACTIONS), 403);
 
         try {
             $this->expenses->approve($model, (string) $request->user()?->getKey());
@@ -43,6 +47,7 @@ class OwnerExpenseApprovalController extends Controller
     {
         $data = $request->validate(['note' => ['nullable', 'string', 'max:1000']]);
         $model = OwnerExpense::query()->findOrFail($expense);
+        abort_unless(app(OwnerContext::class)->canOn((string) $model->owner_id, OwnerTeamRole::CAP_ACTIONS), 403);   // 🔒 P1-1 per-owner
 
         try {
             $this->expenses->query($model, $data['note'] ?? null, (string) $request->user()?->getKey());

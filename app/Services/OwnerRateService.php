@@ -10,6 +10,7 @@ use App\Models\Unit;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyInput;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Support\Collection;
 
 /**
@@ -55,14 +56,17 @@ class OwnerRateService
     public function editableRoomTypes(): Collection
     {
         $units = $this->portal->units();   // owner-scoped, fail-closed when empty
+        // 🔒 P1-1: rates are a CAP_ACTIONS money write — editable only for owners where the acting user's
+        // PER-OWNER role grants actions (a co-owner of A + view-only of B may not touch B's rates).
+        $ownerIds = $this->ownerContext->ownerIdsWithCapability(OwnerTeamRole::CAP_ACTIONS);
         $ownedUnitIds = $units->map(fn (Unit $u): string => (string) $u->id);
-        $ownerIds = $this->ownerContext->ownerIds();
 
         if ($ownedUnitIds->isEmpty() || $ownerIds === []) {
-            return collect();   // no owner context → nothing editable (fail closed)
+            return collect();   // no owner context / no actions capability → nothing editable (fail closed)
         }
 
         $exclusiveRoomTypeIds = $units
+            ->filter(fn (Unit $u): bool => in_array((string) $u->owner_id, $ownerIds, true))   // only actionable owners' units
             ->map(fn (Unit $u): string => (string) $u->room_type_id)
             ->unique()
             ->filter(fn (string $roomTypeId): bool => ! $this->hasForeignUnit($roomTypeId, $ownerIds))

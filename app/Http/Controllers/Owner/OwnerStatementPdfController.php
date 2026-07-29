@@ -30,7 +30,7 @@ class OwnerStatementPdfController extends Controller
         // 🔒 The masked payout IBAN appears on the document ONLY for a payout-capable role (CAP_PAYOUT = co-owner);
         // an accountant (who may export, CAP_EXPORTS) never leaks the account number (#28). The estimated payout
         // DATE stays refused (no field). All figures reconcile to the statement to the cent (#17).
-        $canSeePayout = app(OwnerContext::class)->can(OwnerTeamRole::CAP_PAYOUT);
+        $canSeePayout = app(OwnerContext::class)->canOn((string) $model->owner_id, OwnerTeamRole::CAP_PAYOUT);   // 🔒 P1-1 per-owner
 
         $filename = 'vyrobel-statement-'.$model->sequence_no.'-'.$model->period_start->format('Y-m').'.pdf';
 

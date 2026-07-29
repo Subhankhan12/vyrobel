@@ -153,14 +153,16 @@ class OwnerTeamController extends Controller
     }
 
     /**
-     * The owner ids the acting primary owner controls. EnsurePrimaryOwner guarantees isPrimaryOwner(), so
-     * this is non-empty; the abort is a belt-and-braces fail-closed.
+     * The owner ids the acting user may manage the TEAM of — ONLY the owners they are the PRIMARY of (P1-1).
+     * Team management is per-owner: a user who is primary of Owner A but merely a sub-user of Owner B can never
+     * touch B's team, even though EnsurePrimaryOwner (a coarse "primary of some owner" gate) let the route
+     * through. A {member}/{invite} outside this set resolves to a 404 (firstOrFail), fail-closed.
      *
      * @return list<string>
      */
     private function ownerIds(OwnerContext $context): array
     {
-        $ids = $context->ownerIds();
+        $ids = $context->primaryOwnerIds();
         if ($ids === []) {
             abort(403);
         }

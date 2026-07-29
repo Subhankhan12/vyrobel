@@ -42,8 +42,9 @@ class ResolveApiOwnerContext
 
         $tenant = app(TenantContext::class);
 
-        // Resolve the token user's owners + their org(s) cross-tenant (there is no request tenant yet).
-        [$ownerIds, $role, $isPrimary, $orgIds] = $tenant->runAsSuperAdmin(function () use ($user): array {
+        // Resolve the token user's owners + their org(s) cross-tenant (there is no request tenant yet). The role
+        // is recorded PER OWNER (P1-1) — a token inherits the user's real role on each owner, never a union role.
+        [$roles, $primaryOwnerIds, $orgIds] = $tenant->runAsSuperAdmin(function () use ($user): array {
             $primary = Owner::query()->where('user_id', $user->getKey())->get(['id', 'organization_id']);
             $subMemberships = OwnerUser::query()
                 ->where('user_id', $user->getKey())->where('status', 'active')->get(['owner_id', 'role']);
@@ -51,22 +52,27 @@ class ResolveApiOwnerContext
                 ? collect()
                 : Owner::query()->whereIn('id', $subMemberships->pluck('owner_id')->all())->get(['id', 'organization_id']);
 
-            $ownerIds = $primary->pluck('id')->merge($subOwners->pluck('id'))
-                ->map(fn ($id): string => (string) $id)->unique()->values()->all();
-
-            $isPrimaryOwner = $primary->isNotEmpty();
-            $role = $isPrimaryOwner
-                ? OwnerTeamRole::CO_OWNER
-                : $this->highestRole($subMemberships->pluck('role')->map(fn ($r): string => (string) $r)->all());
+            $roles = [];
+            $primaryOwnerIds = [];
+            foreach ($primary as $owner) {
+                $roles[(string) $owner->id] = OwnerTeamRole::CO_OWNER;
+                $primaryOwnerIds[] = (string) $owner->id;
+            }
+            foreach ($subMemberships as $membership) {
+                $ownerId = (string) $membership->owner_id;
+                if (! isset($roles[$ownerId])) {
+                    $roles[$ownerId] = (string) $membership->role;
+                }
+            }
 
             $orgIds = $primary->pluck('organization_id')->merge($subOwners->pluck('organization_id'))
                 ->map(fn ($id): string => (string) $id)->unique()->values()->all();
 
-            return [$ownerIds, $role, $isPrimaryOwner, $orgIds];
+            return [$roles, $primaryOwnerIds, $orgIds];
         });
 
         // ⛔ Fail closed: a non-owner token, or one straddling organizations, reaches no owner data.
-        if ($ownerIds === []) {
+        if ($roles === []) {
             abort(403, 'This token is not linked to an owner account.');
         }
         if (count($orgIds) !== 1) {
@@ -76,7 +82,7 @@ class ResolveApiOwnerContext
         $organizationId = $orgIds[0];
         $tenant->set($organizationId);
         app(PermissionRegistrar::class)->setPermissionsTeamId($organizationId);
-        app(OwnerContext::class)->activate($ownerIds, $role, $isPrimary);
+        app(OwnerContext::class)->activatePerOwner($roles, $primaryOwnerIds);
 
         return $next($request);
     }
@@ -85,21 +91,5 @@ class ResolveApiOwnerContext
     {
         app(OwnerContext::class)->deactivate();
         app(TenantContext::class)->forget();
-    }
-
-    /**
-     * The most-privileged role among a user's sub-user memberships (highest-first over the fixed order).
-     *
-     * @param  list<string>  $roles
-     */
-    private function highestRole(array $roles): ?string
-    {
-        foreach (OwnerTeamRole::ALL as $candidate) {
-            if (in_array($candidate, $roles, true)) {
-                return $candidate;
-            }
-        }
-
-        return null;
     }
 }

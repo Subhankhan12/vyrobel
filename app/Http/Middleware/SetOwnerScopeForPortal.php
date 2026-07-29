@@ -32,39 +32,36 @@ class SetOwnerScopeForPortal
         $context->deactivate(); // start clean
 
         $user = $request->user();
-        $ownerIds = [];
-        $role = null;
-        $isPrimaryOwner = false;
+        $roles = [];             // ownerId => the user's role ON THAT owner (P1-1: per-owner, never a union role)
+        $primaryOwnerIds = [];
 
         if ($user instanceof User) {
-            // ① Owners this user OWNS (the primary account holder) — the implicit Co-owner.
-            $primaryOwnerIds = Owner::query()->where('user_id', $user->getKey())->pluck('id')->all();
+            // ① Owners this user OWNS (the primary account holder) — the implicit Co-owner OF THAT owner.
+            $primaryOwnerIds = Owner::query()->where('user_id', $user->getKey())->pluck('id')
+                ->map(fn ($id): string => (string) $id)->all();
+            foreach ($primaryOwnerIds as $ownerId) {
+                $roles[$ownerId] = OwnerTeamRole::CO_OWNER;
+            }
 
             // ② Owners this user is a SUB-USER of (Phase 7c owner team) — active memberships only. Both queries
             //    are tenant-scoped, so a sub-user only ever resolves owners in the active org (the org boundary
             //    holds); OwnerScope then restricts to those owner ids (the owner boundary holds). Nesting:
-            //    sub-user ⊆ owner ⊆ org.
+            //    sub-user ⊆ owner ⊆ org. The role is recorded PER OWNER — a co-owner of A + view-only of B is
+            //    NEVER promoted to co-owner on B (the P1-1 over-grant). Primary ownership wins if both exist.
             $subMemberships = OwnerUser::query()
                 ->where('user_id', $user->getKey())
                 ->where('status', 'active')
                 ->get(['owner_id', 'role']);
-
-            $ownerIds = array_values(array_unique(array_merge(
-                $primaryOwnerIds,
-                $subMemberships->pluck('owner_id')->map(fn ($id): string => (string) $id)->all(),
-            )));
-
-            // The acting role: a primary owner is Co-owner; otherwise the most-privileged sub-user role.
-            $isPrimaryOwner = $primaryOwnerIds !== [];
-            if ($isPrimaryOwner) {
-                $role = OwnerTeamRole::CO_OWNER;
-            } elseif ($subMemberships->isNotEmpty()) {
-                $role = $this->highestRole($subMemberships->pluck('role')->map(fn ($r): string => (string) $r)->all());
+            foreach ($subMemberships as $membership) {
+                $ownerId = (string) $membership->owner_id;
+                if (! isset($roles[$ownerId])) {
+                    $roles[$ownerId] = (string) $membership->role;
+                }
             }
         }
 
         // Always activate on the portal — an empty set fails closed (sees nothing), never all owners.
-        $context->activate($ownerIds, $role, $isPrimaryOwner);
+        $context->activatePerOwner($roles, $primaryOwnerIds);
 
         return $next($request);
     }
@@ -72,22 +69,5 @@ class SetOwnerScopeForPortal
     public function terminate(Request $request, Response $response): void
     {
         app(OwnerContext::class)->deactivate();
-    }
-
-    /**
-     * The most-privileged role among a user's sub-user memberships (a user could be a sub-user of several
-     * owners at different roles; the acting role is the highest, in the fixed privilege order).
-     *
-     * @param  list<string>  $roles
-     */
-    private function highestRole(array $roles): ?string
-    {
-        foreach (OwnerTeamRole::ALL as $candidate) {   // highest-first
-            if (in_array($candidate, $roles, true)) {
-                return $candidate;
-            }
-        }
-
-        return null;
     }
 }

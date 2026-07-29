@@ -9,6 +9,7 @@ use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Models\OwnerPayoutPreference;
 use App\Support\Money\MoneyInput;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -30,8 +31,9 @@ class OwnerPayoutPreferenceController extends Controller
 {
     public function save(Request $request, OwnerContext $ownerContext): RedirectResponse
     {
-        $ownerIds = $ownerContext->ownerIds();
-        // Fail closed: no resolved owner → no write (never a request-supplied owner id).
+        // 🔒 P1-1: payout preferences are a CAP_PAYOUT write — resolve the holder from the owners the acting user
+        // has PAYOUT on (per-owner), never the union. Fail closed when none.
+        $ownerIds = $ownerContext->ownerIdsWithCapability(OwnerTeamRole::CAP_PAYOUT);
         if ($ownerIds === []) {
             abort(404);
         }

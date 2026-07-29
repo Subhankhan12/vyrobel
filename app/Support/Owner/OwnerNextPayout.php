@@ -33,9 +33,15 @@ final class OwnerNextPayout
      */
     public static function rail(OwnerContext $context): array
     {
-        $method = PayoutMethod::query()->orderByDesc('is_default')->first();
+        // 🔒 P1-1: the masked IBAN is the most sensitive owner field — return it ONLY for a payout method whose
+        // OWNER the acting user has CAP_PAYOUT on (per-owner). A co-owner of A + view-only of B never sees B's
+        // IBAN even though the union role once said "co_owner". An empty capable set → no method → null.
+        $payoutOwnerIds = $context->ownerIdsWithCapability(OwnerTeamRole::CAP_PAYOUT);
+        $method = $payoutOwnerIds === []
+            ? null
+            : PayoutMethod::query()->whereIn('owner_id', $payoutOwnerIds)->orderByDesc('is_default')->first();
         // Guard the last4 (a method persisted without it would otherwise mask to an empty "···· ").
-        $ibanMasked = ($context->can(OwnerTeamRole::CAP_PAYOUT) && $method instanceof PayoutMethod && filled($method->iban_last4))
+        $ibanMasked = ($method instanceof PayoutMethod && filled($method->iban_last4))
             ? Iban::masked((string) $method->iban_last4)
             : null;
 
