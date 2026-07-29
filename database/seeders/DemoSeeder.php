@@ -32,6 +32,7 @@ use App\Models\RoomType;
 use App\Models\Subscription;
 use App\Models\Tag;
 use App\Models\Tax;
+use App\Models\TaxRate;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\AssignmentService;
@@ -50,6 +51,7 @@ use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
 use App\Services\ReviewService;
 use App\Services\ShiftRosterService;
+use App\Services\TaxRateService;
 use App\Support\Media\PlaceholderImage;
 use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
@@ -453,6 +455,17 @@ class DemoSeeder extends Seeder
                 );
             }
         });
+
+        // Wave D · tax engine — ⚠️ EXAMPLE VAT rates ONLY (is_example=true, clearly labelled "replace"). NEVER
+        // authoritative; the surfaces flag them "not for filing". The founder sets REAL rates via `tax:set-rate`.
+        // DELIBERATELY NO withholding rate for PT → the demo owner withholds nothing → the demo statement net is
+        // unchanged. Idempotent on (jurisdiction, type).
+        $taxRates = app(TaxRateService::class);
+        foreach ([['accommodation_vat', 6.0], ['service_vat', 23.0]] as [$type, $pct]) {
+            if (! TaxRate::query()->where('jurisdiction', 'PT')->where('rate_type', $type)->exists()) {
+                $taxRates->setRate('PT', $type, $pct, '2026-01-01', isExample: true, note: 'EXAMPLE — replace with the real rate for Portugal.');
+            }
+        }
     }
 
     /**
