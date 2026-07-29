@@ -368,7 +368,7 @@
 
     {{-- Calendar + best performer --}}
     <div class="vy-mu-cols" style="margin-top:2px"
-         x-data="{ sel: null, selLabel: '', selCount: 0 }">
+         x-data="{ sel: null, selLabel: '', selCount: 0, dayDetails: {{ \Illuminate\Support\Js::from($dayDetails) }}, get selStays() { return this.sel !== null ? (this.dayDetails[this.sel] || []) : []; } }">
         <section class="vy-card vy-fade" style="animation-delay:.44s">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;gap:12px;flex-wrap:wrap">
                 <div style="display:inline-flex;align-items:center;gap:4px">
@@ -448,13 +448,33 @@
                     </div>
                     <div style="font-size:12.5px;color:#6B5F57;font-weight:500;font-variant-numeric:tabular-nums"><strong style="color:var(--vy-ink)">{{ $occupancy['nights'] }} nights</strong> · {{ $occupancy['pct'] }}% occupancy · {{ $month['label'] }}</div>
                 </div>
-                {{-- day detail (a day selected) — real booked-count (GATE 2 adds guest/revenue day-detail, name-only #28) --}}
-                <div x-show="sel !== null" x-cloak style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                    <div style="min-width:0">
-                        <div style="font-family:var(--vy-display);font-weight:600;font-size:14px" x-text="selLabel"></div>
-                        <div style="font-size:12px;color:var(--vy-muted);margin-top:2px"><span x-text="selCount"></span> of {{ $occupancy['unit_count'] }} units booked</div>
+                {{-- day detail (a day selected) — the RICHER day-detail (P2-3): the booked units that night, each
+                     with the guest NAME-ONLY (#28), the stay dates and the owner's net. Real data from dayDetails;
+                     no guest contact ever. Falls back to the count when a stay's detail isn't attributed. --}}
+                <div x-show="sel !== null" x-cloak>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                        <div style="min-width:0">
+                            <div style="font-family:var(--vy-display);font-weight:600;font-size:14px" x-text="selLabel"></div>
+                            <div style="font-size:12px;color:var(--vy-muted);margin-top:2px"><span x-text="selCount"></span> of {{ $occupancy['unit_count'] }} units booked</div>
+                        </div>
+                        <button type="button" @click="sel = null" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(120,70,40,.16);background:rgba(255,252,248,.6);color:var(--vy-accent);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">Clear</button>
                     </div>
-                    <button type="button" @click="sel = null" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(120,70,40,.16);background:rgba(255,252,248,.6);color:var(--vy-accent);font-family:var(--vy-sans);font-size:11.5px;font-weight:600;cursor:pointer">Clear</button>
+                    <template x-if="selStays.length">
+                        <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+                            <template x-for="(stay, i) in selStays" :key="i">
+                                <div style="padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.5);border:1px solid var(--vy-hairline)">
+                                    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                                        <span style="font-weight:600;font-size:13px" x-text="stay.guest"></span>
+                                        <span style="font-size:11px;color:var(--vy-faint)" x-text="stay.unit"></span>
+                                    </div>
+                                    <div style="font-size:11.5px;color:var(--vy-muted);margin-top:3px"><span x-text="stay.stay"></span> · <span x-text="stay.nights + (stay.nights === 1 ? ' night' : ' nights')"></span></div>
+                                    <template x-if="stay.net && stay.net.length">
+                                        <div style="font-size:11.5px;color:var(--vy-ink);margin-top:4px">Your net: <strong x-text="stay.net.join(' · ')"></strong></div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
                 </div>
             </div>
         </section>

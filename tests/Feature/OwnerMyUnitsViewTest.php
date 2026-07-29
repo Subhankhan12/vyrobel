@@ -28,7 +28,8 @@ function linkUnitOwner(array $s, int $index, string $code): array
 // ── 1. Occupancy is OWNER-SCOPED — a non-owner unit's booking in the same room type is excluded ──
 it('computes owner-scoped occupancy that excludes a non-owner unit in the same room type', function () {
     $s = seedScenario(2);   // U1, U2 in the SAME room type
-    $s['guest']->update(['first_name' => 'Zephyrina', 'last_name' => 'Quibblewick']);   // PII tripwire
+    // Guest name is NAME-ONLY on the P2-3 day-detail (like Unit Detail / Block Calendar); CONTACT is the tripwire.
+    $s['guest']->update(['first_name' => 'Zephyrina', 'last_name' => 'Quibblewick', 'email' => 'zephyrina@example.test', 'phone' => '+15550009999']);
 
     $a = linkUnitOwner($s, 0, 'OWNEDUNIT');          // owner A owns unit 0
     $foreign = $s['units'][1];
@@ -43,7 +44,9 @@ it('computes owner-scoped occupancy that excludes a non-owner unit in the same r
         ->assertDontSee('FOREIGNUNIT')                // non-owner unit hidden (isolation)
         ->assertSee('2 nights')                       // owner occupancy = the owner's unit ONLY (2 nights)
         ->assertDontSee('4 nights')                   // NOT U1+U2 → the room-type-wide count is excluded
-        ->assertDontSee('Quibblewick');               // guest PII never exposed
+        ->assertSee('Quibblewick')                    // P2-3 — the day-detail shows the guest NAME-only (#28 OK)
+        ->assertDontSee('zephyrina@example.test')     // …but NEVER contact PII (email)…
+        ->assertDontSee('+15550009999');              // …nor phone (#28 — name-only, contact stays on the CRM)
 });
 
 // ── 2. Owner isolation — A sees only A's units; a non-linked user fails closed ───────────────────

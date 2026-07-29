@@ -7,12 +7,14 @@ namespace App\Livewire\Owner;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\OwnerLedgerEntry;
 use App\Models\RateCalendar;
+use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Restriction;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerPortalService;
 use App\Services\OwnerRateService;
+use App\Support\Guest\GuestName;
 use App\Support\Owner\OwnerAttention;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
@@ -48,8 +50,10 @@ use Livewire\Component;
  *                DATES (owner.calendar), and EXPORT (owner.units.export CSV, counts only). All owner-scoped.
  *   • HONEST-EMPTY — a unit sharing its room type with foreign inventory is NOT rate-editable (no fake save);
  *                the action-center's approve/decline DECISIONS have no real owner entity → not fabricated (#39).
- *   • Guest PII — booking COUNTS only in the calendar; NO guest names on this page (#28; the message relay
- *                is framed around the UNIT, to the team, never the guest).
+ *   • Guest PII — the occupancy calendar's day-detail shows the guest NAME-ONLY (#28, via the shared GuestName —
+ *                the same name-only rule Unit Detail / Block Calendar / Bookings use; P2-3 back-port), NEVER
+ *                contact (email/phone stays on the Guests CRM); the message relay is framed around the UNIT, to
+ *                the team, never the guest.
  */
 #[Layout('components.layouts.owner')]
 class OwnerMyUnits extends Component
@@ -77,6 +81,7 @@ class OwnerMyUnits extends Component
             'unitsCount' => $units->count(),
             'units' => $this->unitCards($units, $occupancy, $perUnit, $currency, $bestUnitId, $editableRates),
             'occupancy' => $occupancy,
+            'dayDetails' => $this->dayDetails($units, $month, $currency),   // P2-3 — richer day-detail (name-only #28)
             'occDelta' => $this->occDelta($unitIds, $month, $occupancy['pct']),
             'earned' => $this->earnedThisMonth($month, $currency),
             'best' => $this->bestPerformer($units, $perUnit, $bestUnitId, $month, $currency),
@@ -149,6 +154,68 @@ class OwnerMyUnits extends Component
     private function occupancy(Collection $units, Carbon $month): array
     {
         return OwnerOccupancy::forMonth(array_map('strval', $units->pluck('id')->all()), $month);
+    }
+
+    /**
+     * P2-3 — the RICHER day-detail for the occupancy calendar (back-ported from Unit Detail; the bare count was
+     * the audit gap). For each day-of-month, the booked units that night — each with the guest NAME-ONLY (#28,
+     * via the shared {@see GuestName}), the stay dates and the owner's attributed NET on that unit (via the ONE
+     * shared {@see OwnerLedgerAttribution::netDisplays}, the SAME rule Unit Detail / Bookings use — no drift).
+     * Owner-scoped (units come pre-scoped); NO guest email/phone ever (#28).
+     *
+     * @param  Collection<int, Unit>  $units
+     * @return array<int, list<array{unit: string, guest: string, stay: string, nights: int, net: list<string>}>>
+     */
+    private function dayDetails(Collection $units, Carbon $month, string $currency): array
+    {
+        $monthStart = $month->copy()->startOfMonth();
+        $monthEnd = $monthStart->copy()->addMonth();
+        $unitIds = array_map('strval', $units->pluck('id')->all());
+
+        if ($unitIds === []) {
+            return [];
+        }
+
+        $lines = ReservationUnit::query()
+            ->whereIn('unit_id', $unitIds)->where('status', 'active')
+            ->whereDate('check_in', '<', $monthEnd->toDateString())
+            ->whereDate('check_out', '>', $monthStart->toDateString())
+            ->with('reservation.leadGuest')
+            ->get();
+
+        // Net per (unit, reservation) — grouped, then the ONE shared net rule per group (anti-drift with Unit Detail).
+        $nets = OwnerLedgerEntry::query()
+            ->whereIn('unit_id', $unitIds)
+            ->whereIn('reservation_id', $lines->pluck('reservation_id')->unique()->values()->all())
+            ->get()
+            ->groupBy(fn (OwnerLedgerEntry $r): string => $r->unit_id.'|'.$r->reservation_id)
+            ->map(fn (Collection $g): array => OwnerLedgerAttribution::netDisplays($g))
+            ->all();
+
+        $unitLabel = $units->mapWithKeys(fn (Unit $u): array => [(string) $u->id => (string) ($u->name ?? $u->code)])->all();
+
+        $out = [];
+        foreach ($lines as $line) {
+            $reservation = $line->reservation;
+            $checkIn = Carbon::parse($line->check_in);
+            $checkOut = Carbon::parse($line->check_out);
+            $detail = [
+                'unit' => $unitLabel[(string) $line->unit_id] ?? 'Unit',
+                'guest' => $reservation instanceof Reservation ? GuestName::display($reservation->leadGuest) : 'Guest',
+                'stay' => $checkIn->format('j M').' – '.$checkOut->format('j M Y'),
+                'nights' => (int) $checkIn->diffInDays($checkOut),
+                'net' => $nets[$line->unit_id.'|'.$line->reservation_id] ?? [],
+            ];
+
+            // Paint onto each in-month night of the stay (half-open), keyed by day-of-month for the calendar.
+            $cursor = $checkIn->greaterThan($monthStart) ? $checkIn->copy() : $monthStart->copy();
+            $stop = $checkOut->lessThan($monthEnd) ? $checkOut : $monthEnd;
+            for (; $cursor->lt($stop); $cursor->addDay()) {
+                $out[(int) $cursor->day][] = $detail;
+            }
+        }
+
+        return $out;
     }
 
     /**
