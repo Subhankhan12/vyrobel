@@ -38,17 +38,20 @@ class OwnerPayoutService
     /**
      * Create the payout for a finalized statement's net payable. Returns null when nothing is payable
      * (zero net), or when a negative net is carried forward instead. Idempotent: an existing
-     * pending/paid payout for the statement is returned as-is.
+     * pending/processing/held/paid payout for the statement is returned as-is (so an automated engine
+     * re-run never creates a SECOND payout for a statement already in flight). `$payoutRunId` links the
+     * created payout to the engine run that made it (null for a manual/operator-triggered payout).
      */
-    public function createFromStatement(OwnerStatement $statement): ?Payout
+    public function createFromStatement(OwnerStatement $statement, ?string $payoutRunId = null): ?Payout
     {
         if (! $statement->isLocked()) {
             throw new RuntimeException('A payout can only be created from a finalized (locked) statement, not a draft.');
         }
 
+        // Any non-terminal-or-successful payout already claims this statement — return it, never a second row.
         $existing = Payout::query()
             ->where('owner_statement_id', $statement->getKey())
-            ->whereIn('status', ['pending', 'paid'])
+            ->whereIn('status', ['pending', 'processing', 'held', 'paid'])
             ->first();
 
         if ($existing !== null) {
@@ -75,6 +78,7 @@ class OwnerPayoutService
             'currency' => $statement->currency,
             'rail' => $this->rail->name(),
             'status' => 'pending',
+            'payout_run_id' => $payoutRunId,
         ]);
 
         $this->domainEvents->record('payout.created', $payout, ['amount_minor' => $net]);
@@ -167,6 +171,46 @@ class OwnerPayoutService
 
         $this->domainEvents->record('payout.paid', $payout->refresh(), ['rail' => 'stripe_connect']);
         $this->audit->record('payout.paid', $payout, ['status' => 'processing'], ['status' => 'paid']);
+    }
+
+    /**
+     * HOLD a pending payout (the automated payout engine · Phase 1) — persist the tax-hold as a REAL,
+     * visible state instead of leaving the row `pending`. Called by the engine when {@see pay()} raises
+     * {@see PayoutHeldException} (owner has no tax details on file). NO money has moved — the guard in
+     * pay() runs BEFORE the rail — so this only records that the payout is waiting on tax details.
+     * Auto-releasable: {@see releaseHold()} returns it to `pending` once the owner completes their tax id.
+     */
+    public function hold(Payout $payout): Payout
+    {
+        if ($payout->status !== 'pending') {
+            throw new RuntimeException("Only a pending payout can be held (status: {$payout->status}).");
+        }
+
+        $payout->update(['status' => 'held', 'held_at' => now()]);
+
+        $this->domainEvents->record('payout.held', $payout->refresh(), ['reason' => 'missing_tax_details']);
+        $this->audit->record('payout.held', $payout, ['status' => 'pending'], ['status' => 'held']);
+
+        return $payout->refresh();
+    }
+
+    /**
+     * RELEASE a held payout back to `pending` (the engine · Phase 1) — the auto-release once the owner's
+     * tax details are on file. The next {@see pay()} then passes the tax-hold guard and disburses normally.
+     * Guarded: only a `held` payout can be released (a re-run is a no-op on an already-released row).
+     */
+    public function releaseHold(Payout $payout): Payout
+    {
+        if ($payout->status !== 'held') {
+            throw new RuntimeException("Only a held payout can be released (status: {$payout->status}).");
+        }
+
+        $payout->update(['status' => 'pending', 'held_at' => null]);
+
+        $this->domainEvents->record('payout.released', $payout->refresh(), []);
+        $this->audit->record('payout.released', $payout, ['status' => 'held'], ['status' => 'pending']);
+
+        return $payout->refresh();
     }
 
     /**

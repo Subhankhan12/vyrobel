@@ -9,11 +9,20 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * An owner payout (Phase 3 · Module 1 Step 5) — the disbursement of a finalized statement's net
  * payable. Append-only lifecycle: a failed/reversed payout is superseded by a NEW row
  * (`supersedes_id`), never edited away. `amount` is Money in the owner's payout currency.
+ *
+ * `status` spans the full lifecycle enum (`pending`/`processing`/`paid`/`failed`/`reversed`/`held` —
+ * the latter two added by raw ALTERs the static analyser can't read from the schema), so it is typed
+ * `string` here rather than the create-migration's narrower union.
+ *
+ * @property string $status
+ * @property string|null $payout_run_id
+ * @property Carbon|null $held_at
  */
 class Payout extends Model
 {
@@ -30,11 +39,13 @@ class Payout extends Model
         'external_ref',
         'connect_account_id',
         'supersedes_id',
+        'payout_run_id',
         'initiated_by',
         'failure_reason',
         'notes',
         'paid_at',
         'failed_at',
+        'held_at',
     ];
 
     /**
@@ -46,6 +57,7 @@ class Payout extends Model
             'amount' => MoneyCast::class.':amount_minor,currency',
             'paid_at' => 'datetime',
             'failed_at' => 'datetime',
+            'held_at' => 'datetime',
         ];
     }
 
@@ -73,5 +85,15 @@ class Payout extends Model
     public function supersedes(): BelongsTo
     {
         return $this->belongsTo(Payout::class, 'supersedes_id');
+    }
+
+    /**
+     * The automated engine run that created this payout (null for a manual/operator-triggered payout).
+     *
+     * @return BelongsTo<PayoutRun, $this>
+     */
+    public function payoutRun(): BelongsTo
+    {
+        return $this->belongsTo(PayoutRun::class, 'payout_run_id');
     }
 }

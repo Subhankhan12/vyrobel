@@ -271,7 +271,11 @@ class OwnerPayouts extends Component
 
             return match ($status) {
                 'paid' => 'done',
-                'pending' => match ($step) {
+                // A Stripe Connect transfer is initiated → awaiting the webhook confirmation.
+                'processing' => $step === 'Paid' ? 'active' : 'done',
+                // `held` (the engine tax-hold) reads as in-progress at Pending here; Phase 4 gives it a
+                // distinct "On hold" visual. Grouped with pending so the stepper stays honest, never invented.
+                'pending', 'held' => match ($step) {
                     'Finalized' => 'done', 'Pending' => 'active', default => 'todo'
                 },
                 'failed' => match ($step) {
@@ -280,7 +284,8 @@ class OwnerPayouts extends Component
                 'reversed' => match ($step) {
                     'Paid' => 'reversed', default => 'done'
                 },
-            };   // status is the payouts enum (pending/paid/failed/reversed) — exhaustive, no default
+                default => 'todo',   // total over string (status is cast to string) — never an UnhandledMatchError
+            };
         };
 
         $steps = array_map(
