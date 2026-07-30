@@ -7,9 +7,13 @@ namespace App\Livewire\Operator;
 use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\AddOn;
 use App\Models\Guest;
+use App\Models\Property;
+use App\Models\Tax;
 use App\Services\AssignmentService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Reservations\ReservationExtras;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -90,6 +94,10 @@ class NewReservation extends Component
                 ['value' => 'corporate', 'label' => 'Corporate'],
                 ['value' => 'agent', 'label' => 'Travel agent'],
             ],
+            // #90 — REAL extras (org-owned AddOns), the property's REAL taxes, and REAL house-rules config.
+            'extras' => $property !== null ? $this->extrasFor((string) $property->getKey()) : [],
+            'taxes' => $property !== null ? $this->taxesFor((string) $property->getKey()) : [],
+            'houseRules' => $property !== null ? $this->houseRules($property) : [],
         ]);
     }
 
@@ -116,6 +124,79 @@ class NewReservation extends Component
         $param = request()->query('q');
 
         return is_string($param) ? mb_substr(trim($param), 0, self::MAX_QUERY) : '';
+    }
+
+    /**
+     * The property's REAL active add-on extras (#90). The wizard renders these as toggles; a per-night / per-guest
+     * / per-leg BASIS drives the client estimate, and the controller posts the real reconciling line.
+     *
+     * @return list<array{id: string, name: string, price_minor: int, currency: string, taxable: bool, basis: string, basis_label: string, is_transfer: bool}>
+     */
+    private function extrasFor(string $propertyId): array
+    {
+        return AddOn::query()
+            ->where('property_id', $propertyId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(fn (AddOn $a): array => [
+                'id' => (string) $a->getKey(),
+                'name' => (string) $a->name,
+                'price_minor' => (int) $a->price_minor,
+                'currency' => (string) $a->currency,
+                'taxable' => (bool) $a->taxable,
+                'basis' => ReservationExtras::basisFor($a),
+                'basis_label' => ReservationExtras::basisLabel($a),
+                'is_transfer' => ReservationExtras::basisFor($a) === ReservationExtras::BASIS_PER_LEG,
+            ])
+            ->all();
+    }
+
+    /**
+     * The property's REAL taxes (#90) — the percentage rate / per-night amount the client estimate mirrors and
+     * the controller posts. No fabricated VAT: what the property has configured, nothing more.
+     *
+     * @return list<array{name: string, mode: string, rate: float, amount_minor: int}>
+     */
+    private function taxesFor(string $propertyId): array
+    {
+        return Tax::query()
+            ->where('property_id', $propertyId)
+            ->get()
+            ->map(fn (Tax $t): array => [
+                'name' => (string) $t->name,
+                'mode' => (string) $t->mode,
+                'rate' => (float) $t->rate,
+                'amount_minor' => (int) $t->amount_minor,
+            ])
+            ->all();
+    }
+
+    /**
+     * The property's REAL house rules (#90) — check-in/out times + the first policy's cancellation / pet /
+     * smoking / max-stay. Honest defaults where the property hasn't configured a value (never invented).
+     *
+     * @return array<string, string>
+     */
+    private function houseRules(Property $property): array
+    {
+        $policy = $property->policies()->first();
+        $cancellation = data_get($policy, 'cancellation');
+        $cancellationLabel = is_array($cancellation)
+            ? (string) ($cancellation['label'] ?? $cancellation['policy'] ?? 'As per booking terms')
+            : 'As per booking terms';
+        $pet = data_get($policy, 'pet');
+        $smoking = data_get($policy, 'smoking');
+        $minStay = data_get($policy, 'min_stay');
+
+        return [
+            'check_in' => $property->check_in_time !== null ? substr((string) $property->check_in_time, 0, 5) : '15:00',
+            'check_out' => $property->check_out_time !== null ? substr((string) $property->check_out_time, 0, 5) : '11:00',
+            'pet' => is_string($pet) && $pet !== '' ? $pet : 'Not permitted',
+            'smoking' => is_string($smoking) && $smoking !== '' ? $smoking : 'Not permitted',
+            'cancellation' => $cancellationLabel,
+            'min_stay' => is_numeric($minStay) ? (int) $minStay.' night min' : '—',
+        ];
     }
 
     /**

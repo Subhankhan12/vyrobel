@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Guest;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Schema;
  *  • `preferences`   — a structured set of stay preferences (sea_view/high_floor/late_checkout/quiet_room/…),
  *                     shown to the front desk + housekeeping. A JSON array of active keys from a fixed catalog.
  *
- * All three are personal data ABOUT the guest, so {@see \App\Models\Guest::anonymize()} nulls them on erasure
+ * All three are personal data ABOUT the guest, so {@see Guest::anonymize()} nulls them on erasure
  * (added in the same change) — never leave a residence/preference behind after a right-to-erasure request.
  */
 return new class extends Migration

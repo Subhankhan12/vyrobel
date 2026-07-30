@@ -7,17 +7,23 @@ namespace App\Http\Controllers\Operator;
 use App\Exceptions\Booking\BookingException;
 use App\Http\Controllers\Controller;
 use App\Livewire\Operator\NewReservation;
+use App\Models\AddOn;
+use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\RoomType;
+use App\Models\Tax;
 use App\Services\AssignmentService;
 use App\Services\FolioService;
+use App\Services\GuestWalletService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
+use App\Support\Reservations\ReservationExtras;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -171,7 +177,21 @@ class ReservationCreateController extends Controller
         $folio = $folios->openFolio($reservation);
         $folios->postCharge($folio, 'room', 'Room · '.$offered['room_type_name'], Money::of($roomChargeMinor, $currency));
 
+        // #90 — EXTRAS + TRANSFER + returning-guest CREDIT + property TAXES, all REAL folio lines. The folio
+        // recompute() derives the total from the append-only ledger, so room + extras + transfer − credit + tax
+        // reconciles by construction (#17). Every extra is a real org-owned AddOn; taxes are the property's real
+        // Tax records; the credit is the guest's REAL spendable wallet balance (never a fabricated figure).
+        $nights = (int) CarbonImmutable::parse($checkIn)->diffInDays(CarbonImmutable::parse($checkOut));
+        $taxableExtrasMinor = $this->postExtras($request, $folios, $folio, (string) $roomType->property_id, $adults + $children, $nights, $currency);
+        $creditMinor = $this->applyCreditIfRequested($request, app(GuestWalletService::class), $folio, $reservation, $guest, $currency);
+        // The percentage-tax base = room (taxable) + taxable extras − credit; per-night/per-person taxes ignore it.
+        $taxableBase = Money::of(max(0, $roomChargeMinor + $taxableExtrasMinor - $creditMinor), $currency);
+        $this->postTaxes($folios, $folio, (string) $roomType->property_id, $taxableBase, $nights, max(1, $adults + $children), $currency);
+
         $notice = 'Reservation '.$reservation->reference.' created.';
+        if ($creditMinor > 0) {
+            $notice .= ' '.MoneyFormatter::display($creditMinor, $currency).' credit applied.';
+        }
 
         // Optional MANUAL payment (no card data ever) via the real folio path.
         if ($paymentMinor !== null) {
@@ -183,9 +203,95 @@ class ReservationCreateController extends Controller
     }
 
     /**
+     * Post the selected EXTRAS + a transfer as REAL AddOn folio lines. Server-authoritative: the AddOn (price)
+     * is re-read tenant + property-scoped, and the quantity is derived from the stay via {@see ReservationExtras}
+     * — a client-sent price or quantity is never trusted. An id that isn't a real active AddOn of the property is
+     * silently skipped (honest — no fabricated line).
+     */
+    private function postExtras(Request $request, FolioService $folios, Folio $folio, string $propertyId, int $guests, int $nights, string $currency): int
+    {
+        $selected = $request->input('extras', []);
+        if (! is_array($selected) || $selected === []) {
+            return 0;
+        }
+
+        $legs = $request->input('transfer_trip') === 'return' ? 2 : 1;
+
+        $addOns = AddOn::query()
+            ->where('property_id', $propertyId)
+            ->where('is_active', true)
+            ->whereIn('id', array_values(array_filter($selected, 'is_string')))
+            ->get();
+
+        $taxableMinor = 0;
+        foreach ($addOns as $addOn) {
+            if ((string) $addOn->currency !== $currency) {
+                continue;   // never mix currencies on one folio
+            }
+            $quantity = ReservationExtras::quantityFor($addOn, $guests, $nights, $legs);
+            $folios->postAddOn($folio, $addOn, $quantity);
+            if ((bool) $addOn->taxable) {
+                $taxableMinor += (int) $addOn->price_minor * $quantity;
+            }
+        }
+
+        return $taxableMinor;
+    }
+
+    /**
+     * Apply the returning guest's REAL wallet credit if the operator asked for it — capped at the folio's current
+     * balance so it can never over-credit. Returns the minor amount actually applied (0 when none/declined).
+     */
+    private function applyCreditIfRequested(Request $request, GuestWalletService $wallet, Folio $folio, Reservation $reservation, Guest $guest, string $currency): int
+    {
+        if (! $request->boolean('apply_credit')) {
+            return 0;
+        }
+
+        $spendable = $wallet->spendableMinor($guest);
+        if ($spendable <= 0) {
+            return 0;   // no real balance — nothing applied (never a fabricated €50)
+        }
+
+        // Never credit more than what is currently owed on the folio.
+        $folio->refresh();
+        $balance = (int) $folio->balance_minor;
+        $apply = max(0, min($spendable, $balance));
+        if ($apply <= 0) {
+            return 0;
+        }
+
+        $wallet->applyToBooking($guest, $reservation, Money::of($apply, $currency));
+
+        return $apply;
+    }
+
+    /**
+     * Post the property's REAL taxes (VAT / city tax) as folio lines. The percentage taxes apply to the taxable
+     * base (room + taxable extras − any credit = the current folio balance before tax); the per-night / per-person
+     * taxes use the stay. No property tax configured → nothing posted (honest, no fabricated VAT).
+     */
+    private function postTaxes(FolioService $folios, Folio $folio, string $propertyId, Money $taxableBase, int $nights, int $persons, string $currency): void
+    {
+        $taxes = Tax::query()->where('property_id', $propertyId)->get();
+        if ($taxes->isEmpty()) {
+            return;
+        }
+
+        foreach ($taxes as $tax) {
+            if ($tax->currency !== null && (string) $tax->currency !== $currency) {
+                continue;
+            }
+            // A percentage tax (VAT) uses the taxable base; per-night / per-person taxes (city tax) use the stay.
+            $folios->applyTax($folio, $tax, $taxableBase, $nights, $persons);
+        }
+    }
+
+    /**
      * The lead guest: an existing tenant-scoped guest, or a newly-created one via the real path
      * (BookingEngineService::book()'s bare Guest::create). email/phone land in the ENCRYPTED columns and are
-     * never rendered back. Returns a RedirectResponse (already flashed) on a validation failure.
+     * never rendered back. VIP + marketing consent (#86) are captured on a NEW guest. Returns a RedirectResponse
+     * (already flashed) on a validation failure.
      */
     private function resolveGuest(Request $request): Guest|RedirectResponse
     {
@@ -217,6 +323,8 @@ class ReservationCreateController extends Controller
             'last_name' => $last,
             'email' => $email !== '' ? $email : null,
             'phone' => $phone !== '' ? $phone : null,
+            'is_vip' => $request->boolean('guest_vip'),
+            'marketing_consent' => $request->boolean('guest_marketing_consent'),
         ]);
     }
 

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Actions\Authorization\OrganizationRoleProvisioner;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Exceptions\Booking\BookingException;
+use App\Models\AddOn;
 use App\Models\AgreementAmendment;
 use App\Models\Amenity;
 use App\Models\Building;
@@ -325,6 +326,19 @@ class DemoSeeder extends Seeder
         $guest3->tags()->attach($corporateTag);
 
         $vat = Tax::create(['property_id' => $property->id, 'name' => 'VAT', 'kind' => 'vat', 'mode' => 'percentage', 'rate' => 23.0]);
+
+        // #90 · New-Reservation EXTRAS + city tax — clearly-flagged DEMO data so the wizard demos real,
+        // reconciling folio lines (the extras are real org-owned AddOns; the city tax a real per-person-night
+        // Tax). A founder configures their own; these are examples. (VAT above is the property's real 23%.)
+        Tax::create(['property_id' => $property->id, 'name' => 'City tax', 'kind' => 'city_tax', 'mode' => 'per_person_night', 'amount' => Money::of(250, 'EUR')]);
+        foreach ([
+            ['name' => 'Breakfast', 'price' => 1800, 'taxable' => true],
+            ['name' => 'Late checkout', 'price' => 4000, 'taxable' => true],
+            ['name' => 'Baby cot', 'price' => 1500, 'taxable' => false],
+            ['name' => 'Airport transfer', 'price' => 6500, 'taxable' => true],
+        ] as $extra) {
+            AddOn::create(['property_id' => $property->id, 'name' => $extra['name'], 'price' => Money::of($extra['price'], 'EUR'), 'taxable' => $extra['taxable'], 'is_active' => true]);
+        }
 
         // --- Reservations across multiple sources, all through AssignmentService ---
         $stay1 = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[0], $guest1, '2026-09-05', '2026-09-08', $vat, fullyPaid: true);
