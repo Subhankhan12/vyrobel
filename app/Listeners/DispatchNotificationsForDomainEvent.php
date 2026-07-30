@@ -21,6 +21,7 @@ use App\Models\User;
 use App\Notifications\FeedNotification;
 use App\Notifications\Operator\BalanceDueNotification;
 use App\Notifications\Operator\ChannelSyncErrorNotification;
+use App\Notifications\Operator\LowRatingNotification;
 use App\Notifications\Operator\NewBookingNotification;
 use App\Notifications\Operator\NewReviewNotification;
 use App\Notifications\Operator\OwnerPayoutSentNotification;
@@ -241,7 +242,10 @@ class DispatchNotificationsForDomainEvent
         $user->notify(new AccountSecurityNotification($change));
     }
 
-    /** A guest left a review → the org's operators (preference-gated on `new_review`). */
+    /**
+     * A guest left a review → the org's operators (preference-gated on `new_review`). #90: when the REAL rating is
+     * under 4★, ALSO fire the more-urgent `low_rating` alert (a real branch on the actual rating — never fabricated).
+     */
     private function newReview(DomainEvent $domainEvent, string $orgId): void
     {
         $review = Review::query()->find($domainEvent->subject_id);
@@ -250,6 +254,10 @@ class DispatchNotificationsForDomainEvent
         }
 
         $this->toOperators($orgId, new NewReviewNotification($review));
+
+        if ((int) $review->rating < 4) {
+            $this->toOperators($orgId, new LowRatingNotification($review));
+        }
     }
 
     /**

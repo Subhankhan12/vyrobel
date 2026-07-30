@@ -6,10 +6,46 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v34) · OPERATOR MAINTENANCE (board + costs + settings) exact-match
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v35) · OPERATOR MESSAGES + NEW RESERVATION + NOTIFICATION PREFERENCES
+> exact-match COMPLETE — the 3-pane operator↔guest inbox (assign-to-staff + real in-app notify + start-from-
+> template), the full 7-step reservation wizard on the certified engine (reconciling extras/transfer/tax/credit
+> folio, test-mode payment, localStorage draft), and the operator notification prefs on the reused #79 engine
+> (Email gates delivery; Push + SMS honest-gated; real `low_rating` alert). This block SUPERSEDES every block
+> below it. Fresh-session entry point: this block → `docs/OPERATOR-MESSAGES-NEWRES-NOTIFS-AUDIT.md` →
+> `docs/DECISIONS.md`.**
+>
+> **Operator Messages (`/app/inbox`) + New Reservation (`/app/reservations/create`) + Notification Preferences
+> (`/app/notification-preferences`) (invariants #90–92)** matched to their wireframes EXACTLY on REAL data,
+> reusing/extending existing engines (never rebuilt). Six founder decisions **Recommended** (A–F). **GATE 1 —
+> Messages (`7c37a13`, #90):** the unified 3-pane `OperatorInbox` on the SAME `MessageThread`/`Message` +
+> `InboxService` (the two-page inbox removed; `/app/inbox/{thread}` → `?c=`), FULL guest data (distinct from
+> owner↔operator name-only #77); Assign (real, `StaffRoster` picker, "guests never see this") firing a REAL
+> in-app `ThreadAssignedNotification` to the assignee (in-app only, no fake push; `inbox.thread_assigned`
+> dispatcher branch); New-message → start from a #83 template (`EmailTemplateResolver` → real outbound);
+> read-only guard added; suggested replies honest-omitted. **GATE 2 — New Reservation (`ce29db1`, #91):** the
+> 7-step wizard on the SAME certified `AssignmentService::createBooking` (non-overlap unchanged); the create
+> flow posts REAL reconciling folio lines — extras (`AddOn`) + transfer (per-leg) + property taxes (`Tax`) +
+> returning-guest wallet credit (`GuestWalletService`), room + extras + transfer − credit + tax reconciling
+> (#17, mutation-proven); VIP + consent (#86); card honest "Soon" (no PAN, test-mode #45); the shared
+> `ReservationExtras`; a live estimate summary + localStorage draft; house rules from real `Property`/
+> `PropertyPolicy`; door code guest-only (#33); demo AddOns + city tax seeded. **GATE 3 — Notification
+> Preferences (#92):** rebuilt on the SHARED `NotificationPreferences` engine + controller (audience operator);
+> Email real + gating delivery (mutation-proven); **Push + SMS HONEST-GATED** (zero infra — display-only, never
+> submitted #39); the real `in_app` preserved via hidden inputs; quiet hours real; daily digest honest
+> (`daily_summary`, not dispatched); the new real `low_rating` catalog key + `LowRatingNotification` fires only
+> on a real rating < 4. 🔒 operator-scoped; the certified `AssignmentService` reused; #17 the folio reconciles;
+> the #79 prefs engine reused (Email gates delivery); #33 door-code guest-only; #20 writes controller-routed +
+> audited; #39 no fabrication (assignment/charge/SMS/push/suggested-reply/low_rating all real-or-honest).
+> `OperatorInboxComposeTest` (5) + `OperatorNewReservationExtrasTest` (4) + `OperatorNotifPrefsGateTest` (5);
+> all three pages browser-verified. PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **Invariants
+> #1–92.**
+>
+> ---
+>
+> **PRIOR (v34) — 2026-07-31 · OPERATOR MAINTENANCE (board + costs + settings) exact-match
 > COMPLETE — real SLA breach, real labour/parts split tied to the owner-billed Expenses, real technicians +
-> auto-assign master toggle, real photos, mark-out-of-order genuinely blocks selling. This block SUPERSEDES
-> every block below it. Fresh-session entry point: this block → `docs/OPERATOR-MAINTENANCE-AUDIT.md` →
+> auto-assign master toggle, real photos, mark-out-of-order genuinely blocks selling.** Fresh-session entry
+> point (superseded): `docs/OPERATOR-MAINTENANCE-AUDIT.md` →
 > `docs/DECISIONS.md`.**
 >
 > **Operator Maintenance board (`/app/maintenance`) + Costs (`/app/maintenance/costs`) + Settings
