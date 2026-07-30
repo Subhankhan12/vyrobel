@@ -82,7 +82,7 @@ class GuestAccountService
             'hash' => sha1($email),
         ]);
 
-        Mail::to($email)->send(new VerifyEmailMail(GuestName::display($guest), $url, '1 hour', $email));
+        Mail::to($email)->send(new VerifyEmailMail(GuestName::display($guest), $url, '1 hour', $email, (string) $guest->organization_id));
     }
 
     /** Complete the claim: set the (hashed) password + mark the email verified → the account is active. */

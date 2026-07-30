@@ -6,6 +6,8 @@ namespace App\Mail;
 
 use App\Http\Controllers\Guest\GuestReviewController;
 use App\Models\Reservation;
+use App\Support\Email\EmailTemplateResolver;
+use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -32,7 +34,7 @@ class ReviewRequestMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'How was your stay? · '.((string) $this->reservation->reference));
+        return new Envelope(subject: $this->template()->subject());
     }
 
     public function content(): Content
@@ -41,6 +43,7 @@ class ReviewRequestMail extends Mailable
 
         $unit = $r->reservationUnits->first()?->unit;
         $unitName = $unit !== null ? trim((string) ($unit->name ?: $unit->code)) : '';
+        $unitName = $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit');
 
         $checkIn = Carbon::parse($r->check_in);
         $checkOut = Carbon::parse($r->check_out);
@@ -55,17 +58,43 @@ class ReviewRequestMail extends Mailable
             }
         }
 
+        $tpl = $this->template($unitName, $nights);
+
         return new Content(
             view: 'emails.review-request',
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
                 'propertyName' => (string) ($r->property->name ?? 'your stay'),
-                'unitName' => $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit'),
+                'unitName' => $unitName,
                 'reference' => (string) $r->reference,
                 'stay' => $checkIn->format('j').'–'.$checkOut->format('j M').' · '.$nights.' '.Str::plural('night', $nights),
                 'reviewUrl' => $this->reviewUrl,
                 'starUrls' => $starUrls,
+                // ── Operator-customizable template (#86) — the store drives these; default == the strings above ──
+                'heading' => $tpl->heading(),
+                'intro' => $tpl->message(),
+                'button' => $tpl->button(),
+                'blocks' => [
+                    'tap_a_star' => $tpl->block('tap_a_star'),
+                    'stay_recap' => $tpl->block('stay_recap'),
+                    'signature' => $tpl->block('signature'),
+                ],
             ],
         );
+    }
+
+    /** The resolved (store ?? default) customization for this email, with the real merge variables. */
+    private function template(?string $unitName = null, ?int $nights = null): ResolvedEmailTemplate
+    {
+        $r = $this->reservation;
+        $guest = $r->leadGuest;
+        $first = $guest !== null ? trim((string) $guest->first_name) : '';
+
+        return EmailTemplateResolver::for((string) $r->organization_id, 'review-request', [
+            'first_name' => $first !== '' ? $first : 'there',
+            'unit' => $unitName ?? (string) ($r->property->name ?? 'your unit'),
+            'nights' => $nights ?? '',
+            'reference' => (string) $r->reference,
+        ]);
     }
 }

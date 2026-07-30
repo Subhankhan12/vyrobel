@@ -9,10 +9,11 @@
 
 @section('content')
     <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#C2410C;">You’re nearly here</p>
-    <h1 style="margin:0 0 6px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">Your stay is ready — see you {{ \Illuminate\Support\Str::before($checkInLabel, ',') }}</h1>
-    <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">Everything’s set for your arrival at <strong style="color:#2B2320;">{{ $unitName }}</strong>. Here’s your self check-in — no need to stop by a desk. Save this email; you’ll want it on the day.</p>
+    <h1 style="margin:0 0 6px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">{{ $heading }}</h1>
+    <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">{{ $intro }}</p>
 
-    {{-- Door code hero — the guest's OWN access secret (real, timing-released) --}}
+    {{-- Door code hero — the guest's OWN access secret (real, timing-released; toggleable block #86) --}}
+    @if ($blocks['door_code'] ?? true)
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FBF1E9; border:1px solid #F0DFCF; border-radius:14px; margin:0 0 16px;">
         <tr>
             <td align="center" style="padding:22px 16px;">
@@ -27,9 +28,10 @@
         </tr>
     </table>
     <p style="margin:0 0 22px; text-align:center;"><a href="{{ $arrivalUrl }}" style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; font-weight:600; color:#C2410C; text-decoration:none;">Open directions &amp; check-in guide ›</a></p>
+    @endif
 
-    {{-- Getting there --}}
-    @if ($directions)
+    {{-- Getting there (toggleable block #86) --}}
+    @if ($directions && ($blocks['directions'] ?? true))
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 12px;">
             <tr>
                 <td style="padding:14px 16px;">
@@ -41,8 +43,8 @@
         </table>
     @endif
 
-    {{-- WiFi --}}
-    @if ($wifiSsid || $wifiPassword)
+    {{-- WiFi (toggleable block #86) --}}
+    @if (($wifiSsid || $wifiPassword) && ($blocks['wifi'] ?? true))
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 12px;">
             <tr>
                 <td style="padding:14px 16px;">
@@ -53,7 +55,8 @@
         </table>
     @endif
 
-    {{-- Check-in & out --}}
+    {{-- Check-in & out (toggleable block #86) --}}
+    @if ($blocks['checkin'] ?? true)
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
         <tr>
             <td style="padding:14px 16px;">
@@ -63,9 +66,10 @@
             </td>
         </tr>
     </table>
+    @endif
 
-    {{-- Balance due — real, only when money is genuinely owed --}}
-    @if ($balance)
+    {{-- Balance due — real, only when money is genuinely owed (toggleable block #86) --}}
+    @if ($balance && ($blocks['balance'] ?? true))
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px;">
             <tr>
                 <td align="center" style="padding:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#4A4038;"><strong style="color:#2B2320;">{{ $balance }}</strong> balance due at check-in — pay now to skip the desk.</td>
@@ -74,7 +78,7 @@
                 <td align="center">
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
                         <td align="center" bgcolor="#C2410C" style="background-color:#C2410C; border-radius:30px;">
-                            <a href="{{ $payUrl }}" target="_blank" style="display:inline-block; padding:13px 30px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:30px;">Pay {{ $balance }} now</a>
+                            <a href="{{ $payUrl }}" target="_blank" style="display:inline-block; padding:13px 30px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:30px;">{{ $button }}</a>
                         </td>
                     </tr></table>
                 </td>

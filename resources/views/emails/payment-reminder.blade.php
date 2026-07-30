@@ -8,10 +8,11 @@
 
 @section('content')
     <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#C2410C;">Before you arrive</p>
-    <h1 style="margin:0 0 14px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">Just one thing before you arrive</h1>
-    <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">We’re looking forward to welcoming you to <strong style="color:#2B2320;">{{ $unitName }}</strong>. There’s a small balance left on your booking — settling it now means you skip the desk and head straight in.</p>
+    <h1 style="margin:0 0 14px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">{{ $heading }}</h1>
+    <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">{{ $intro }}</p>
 
-    {{-- Total / Paid / Balance — the real FolioTotals figures --}}
+    {{-- Total / Paid / Balance — the real FolioTotals figures (toggleable block #86) --}}
+    @if ($blocks['totals'] ?? true)
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
         @if ($total !== null)
             <tr>
@@ -35,6 +36,7 @@
             </td>
         </tr>
     </table>
+    @endif
 
     {{-- Pay now --}}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px;">
@@ -42,7 +44,7 @@
             <td align="center">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
                     <td align="center" bgcolor="#C2410C" style="background-color:#C2410C; border-radius:30px;">
-                        <a href="{{ $payUrl }}" target="_blank" style="display:inline-block; padding:13px 32px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:30px;">Pay {{ $balance }} now · skip the desk</a>
+                        <a href="{{ $payUrl }}" target="_blank" style="display:inline-block; padding:13px 32px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:30px;">{{ $button }}</a>
                     </td>
                 </tr></table>
             </td>
@@ -52,7 +54,8 @@
         </tr>
     </table>
 
-    {{-- Booking detail --}}
+    {{-- Booking detail (toggleable block #86) --}}
+    @if ($blocks['booking_detail'] ?? true)
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:20px 0 20px;">
         <tr>
             <td style="padding:12px 16px; border-bottom:1px solid #F2E8DF;">
@@ -73,6 +76,7 @@
             </td>
         </tr>
     </table>
+    @endif
 
     <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">No rush — if you’d rather pay on arrival, that’s completely fine. Card and cash are both welcome at the desk. Questions about your balance? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a>.</p>
 @endsection

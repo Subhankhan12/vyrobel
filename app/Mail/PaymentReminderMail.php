@@ -7,6 +7,8 @@ namespace App\Mail;
 use App\Console\Commands\SendPaymentReminders;
 use App\Models\Folio;
 use App\Models\Reservation;
+use App\Support\Email\EmailTemplateResolver;
+use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Folio\FolioTotals;
 use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
@@ -32,7 +34,7 @@ class PaymentReminderMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'A balance is due before your stay · '.((string) $this->reservation->reference));
+        return new Envelope(subject: $this->template()->subject());
     }
 
     public function content(): Content
@@ -47,8 +49,10 @@ class PaymentReminderMail extends Mailable
 
         $unit = $r->reservationUnits->first()?->unit;
         $unitName = $unit !== null ? trim((string) ($unit->name ?: $unit->code)) : '';
+        $unitName = $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit');
 
         $balanceDisplay = MoneyFormatter::display($this->balanceMinor, $currency);
+        $tpl = $this->template($unitName, $balanceDisplay);
 
         return new Content(
             view: 'emails.payment-reminder',
@@ -56,14 +60,33 @@ class PaymentReminderMail extends Mailable
                 'guestName' => GuestName::display($r->leadGuest),
                 'reference' => (string) $r->reference,
                 'propertyName' => (string) ($r->property->name ?? 'your stay'),
-                'unitName' => $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit'),
+                'unitName' => $unitName,
                 'arriving' => Carbon::parse($r->check_in)->format('D, j M Y'),
                 'total' => $totals !== null ? MoneyFormatter::display($totals['charges_minor'], $currency) : null,
                 'paid' => $totals !== null ? MoneyFormatter::display($totals['paid_minor'], $currency) : null,
                 'balance' => $balanceDisplay,
                 'payUrl' => route('guest.payments'),
                 'messagesUrl' => route('guest.messages'),
+                // Operator-customizable template (#86)
+                'heading' => $tpl->heading(),
+                'intro' => $tpl->message(),
+                'button' => $tpl->button(),
+                'blocks' => ['totals' => $tpl->block('totals'), 'booking_detail' => $tpl->block('booking_detail')],
             ],
         );
+    }
+
+    private function template(?string $unitName = null, ?string $balance = null): ResolvedEmailTemplate
+    {
+        $r = $this->reservation;
+        $guest = $r->leadGuest;
+        $first = $guest !== null ? trim((string) $guest->first_name) : '';
+
+        return EmailTemplateResolver::for((string) $r->organization_id, 'payment-reminder', [
+            'first_name' => $first !== '' ? $first : 'there',
+            'unit' => $unitName ?? (string) ($r->property->name ?? 'your unit'),
+            'reference' => (string) $r->reference,
+            'balance' => $balance ?? MoneyFormatter::display($this->balanceMinor, (string) $r->currency),
+        ]);
     }
 }

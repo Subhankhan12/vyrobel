@@ -6,6 +6,8 @@ namespace App\Mail;
 
 use App\Models\Folio;
 use App\Models\Reservation;
+use App\Support\Email\EmailTemplateResolver;
+use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Folio\FolioTotals;
 use App\Support\Guest\ArrivalPack;
 use App\Support\Guest\GuestName;
@@ -40,7 +42,7 @@ class PreArrivalMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Your stay is ready · '.((string) $this->reservation->reference));
+        return new Envelope(subject: $this->template()->subject());
     }
 
     public function content(): Content
@@ -54,20 +56,24 @@ class PreArrivalMail extends Mailable
 
         $unit = $r->reservationUnits->first()?->unit;
         $unitName = $unit !== null ? trim((string) ($unit->name ?: $unit->code)) : '';
+        $unitName = $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit');
 
         // The REAL outstanding balance (shared FolioTotals) — the "pay now to skip the desk" line shows ONLY when
         // money is genuinely owed; never a fabricated figure.
         $folio = Folio::query()->where('reservation_id', $r->getKey())->first();
         $balanceMinor = $folio !== null ? FolioTotals::for($folio)['balance_minor'] : 0;
+        $balance = $balanceMinor > 0 ? MoneyFormatter::display($balanceMinor, (string) $r->currency) : null;
 
         $directions = $pack['directions'];
+        $nights = max(1, (int) $checkIn->diffInDays(Carbon::parse($r->check_out)));
+        $tpl = $this->template($unitName, $nights, $balance);
 
         return new Content(
             view: 'emails.pre-arrival',
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
                 'propertyName' => (string) ($r->property->name ?? 'your stay'),
-                'unitName' => $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit'),
+                'unitName' => $unitName,
                 'reference' => (string) $r->reference,
                 'checkInLabel' => $checkIn->format('D, j M'),
                 'checkOutLabel' => Carbon::parse($r->check_out)->format('D, j M'),
@@ -80,13 +86,39 @@ class PreArrivalMail extends Mailable
                 'wifiPassword' => $pack['wifi_password'],
                 'directions' => $directions,
                 'mapsUrl' => $directions !== null ? 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($directions) : null,
-                'balance' => $balanceMinor > 0 ? MoneyFormatter::display($balanceMinor, (string) $r->currency) : null,
+                'balance' => $balance,
                 'payUrl' => route('guest.payments'),
                 'arrivalUrl' => route('guest.arrival', $r->getKey()),
                 'checkinUrl' => route('guest.checkin', $r->getKey()),
                 'viewUrl' => route('guest.manage', $r->getKey()),
                 'messagesUrl' => route('guest.messages'),
+                // Operator-customizable template (#86)
+                'heading' => $tpl->heading(),
+                'intro' => $tpl->message(),
+                'button' => $tpl->button(),
+                'blocks' => [
+                    'door_code' => $tpl->block('door_code'),
+                    'directions' => $tpl->block('directions'),
+                    'wifi' => $tpl->block('wifi'),
+                    'checkin' => $tpl->block('checkin'),
+                    'balance' => $tpl->block('balance'),
+                ],
             ],
         );
+    }
+
+    private function template(?string $unitName = null, ?int $nights = null, ?string $balance = null): ResolvedEmailTemplate
+    {
+        $r = $this->reservation;
+        $guest = $r->leadGuest;
+        $first = $guest !== null ? trim((string) $guest->first_name) : '';
+
+        return EmailTemplateResolver::for((string) $r->organization_id, 'pre-arrival', [
+            'first_name' => $first !== '' ? $first : 'there',
+            'unit' => $unitName ?? (string) ($r->property->name ?? 'your unit'),
+            'nights' => $nights ?? '',
+            'reference' => (string) $r->reference,
+            'balance' => $balance ?? '',
+        ]);
     }
 }

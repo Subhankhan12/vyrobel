@@ -13,6 +13,7 @@ use App\Models\DomainEvent;
 use App\Models\Guest;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Support\Email\EmailTemplateResolver;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Log;
@@ -98,9 +99,14 @@ class SendGuestTransactionalEmails
     private function reviewRequest(DomainEvent $domainEvent): void
     {
         $reservation = Reservation::query()->with(['leadGuest', 'property'])->find($domainEvent->subject_id);
-        if ($reservation instanceof Reservation) {
-            $this->sendToGuest($reservation->leadGuest, new ReviewRequestMail($reservation, route('guest.review', $reservation->getKey())));
+        if (! $reservation instanceof Reservation) {
+            return;
         }
+        // #86 — the operator can disable this email per-org; OFF genuinely stops the send.
+        if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'review-request')) {
+            return;
+        }
+        $this->sendToGuest($reservation->leadGuest, new ReviewRequestMail($reservation, route('guest.review', $reservation->getKey())));
     }
 
     private function refundConfirmation(DomainEvent $domainEvent): void
@@ -108,6 +114,9 @@ class SendGuestTransactionalEmails
         $refund = Payment::query()->with(['folio.reservation.leadGuest'])->find($domainEvent->subject_id);
         if (! $refund instanceof Payment || (string) $refund->status !== 'succeeded') {
             return;   // only a genuinely successful refund emails the guest
+        }
+        if (! EmailTemplateResolver::enabled((string) $refund->organization_id, 'refund-confirmation')) {
+            return;   // #86 — disabled by the operator
         }
 
         $this->sendToGuest($refund->folio?->reservation?->leadGuest, new RefundConfirmationMail($refund));

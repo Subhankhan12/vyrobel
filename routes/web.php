@@ -46,6 +46,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Operator\BillingActionController;
 use App\Http\Controllers\Operator\EmailPreviewController;
+use App\Http\Controllers\Operator\EmailTemplateActionController;
 use App\Http\Controllers\Operator\EmailTemplateController;
 use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
@@ -132,6 +133,7 @@ use App\Livewire\Operator\OperatorBilling;
 use App\Livewire\Operator\OperatorBillingCheckout;
 use App\Livewire\Operator\OperatorChannels;
 use App\Livewire\Operator\OperatorDashboard;
+use App\Livewire\Operator\OperatorEmailEditor;
 use App\Livewire\Operator\OperatorInsights;
 use App\Livewire\Operator\OperatorMaintenanceCosts;
 use App\Livewire\Operator\OperatorMaintenanceSettings;
@@ -556,10 +558,16 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::get('/security', OperatorSecurity::class)->name('security');
     Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
 
-    // Phase 3 · Sub-gate 5 — Email Templates: the documented management view (subject / trigger / variables) for
-    // every transactional email; editing is honestly deferred. Sub-gate 4 · Email Previews render each email with
-    // real sample data (no send). Both behind the back-office gate (#26), like /security.
+    // #86 — Email Templates: the REAL customization MANAGER for the 5 guest emails (#83). The list + editor let an
+    // operator edit subject/heading/message/button + toggle content blocks + pause an email; the saved content is
+    // what the real Mailables render at send (mutation-proven). Reads behind #26; every WRITE carries
+    // `can:properties.manage` (#30) → EmailTemplateActionController → EmailTemplateService (audited). Sub-gate 4 ·
+    // Email Previews render each email with real sample data (no send).
     Route::get('/email-templates', [EmailTemplateController::class, 'index'])->name('email-templates');
+    Route::get('/email-templates/{key}/edit', OperatorEmailEditor::class)->name('email-templates.edit');
+    Route::post('/email-templates/{key}', [EmailTemplateActionController::class, 'save'])->middleware('can:properties.manage')->name('email-templates.save');
+    Route::post('/email-templates/{key}/toggle', [EmailTemplateActionController::class, 'toggle'])->middleware('can:properties.manage')->name('email-templates.toggle');
+    Route::post('/email-templates/{key}/test', [EmailTemplateActionController::class, 'testSend'])->middleware('can:properties.manage')->name('email-templates.test');
     Route::get('/email-previews', [EmailPreviewController::class, 'index'])->name('email-previews');
     Route::get('/email-previews/{key}', [EmailPreviewController::class, 'show'])->name('email-previews.show');
 

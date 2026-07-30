@@ -9,8 +9,8 @@
 
 @section('content')
     <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#1B6B48;">Refunded</p>
-    <h1 style="margin:0 0 14px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">Your refund is on the way</h1>
-    <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">Hi {{ $guestName }}, we’ve processed your refund for booking <strong style="color:#2B2320;">{{ $reference }}</strong>. It’s being returned to {{ $method }}.</p>
+    <h1 style="margin:0 0 14px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">{{ $heading }}</h1>
+    <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">{{ $intro }}</p>
 
     {{-- Amount --}}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 16px;">
@@ -23,7 +23,8 @@
         </tr>
     </table>
 
-    {{-- Detail rows --}}
+    {{-- Detail rows (toggleable block #86) --}}
+    @if ($blocks['detail_rows'] ?? true)
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
         @if ($reason)
             <tr>
@@ -46,8 +47,10 @@
             </td>
         </tr>
     </table>
+    @endif
 
-    {{-- Refund status timeline — Requested + Processed are real (today); Arriving is the honest range --}}
+    {{-- Refund status timeline (toggleable block #86) — Requested + Processed are real; Arriving is the honest range --}}
+    @if ($blocks['status_timeline'] ?? true)
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">
         <tr>
             <td style="padding:0 0 6px;"><span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#8A8079;">Refund status</span></td>
@@ -71,10 +74,11 @@
             </td>
         </tr>
     </table>
+    @endif
 
     <p style="margin:0 0 16px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#8A8079;">{{ $propertyName }}@if ($stay) · {{ $stay }}@endif</p>
 
-    <p style="margin:0 0 16px;"><a href="{{ $reservationUrl }}" style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; font-weight:600; color:#C2410C; text-decoration:none;">View your reservation ›</a></p>
+    <p style="margin:0 0 16px;"><a href="{{ $reservationUrl }}" style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; font-weight:600; color:#C2410C; text-decoration:none;">{{ $button }} ›</a></p>
 
     <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">Refunds are returned to your original payment method. Your bank may take a little longer to post it to your account. Questions? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a>.</p>
 @endsection

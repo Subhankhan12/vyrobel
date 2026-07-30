@@ -8,6 +8,7 @@ use App\Mail\PaymentReminderMail;
 use App\Models\Folio;
 use App\Models\Organization;
 use App\Models\Reservation;
+use App\Support\Email\EmailTemplateResolver;
 use App\Support\Folio\FolioTotals;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Console\Command;
@@ -59,6 +60,10 @@ class SendPaymentReminders extends Command
                     $email = $reservation->leadGuest?->email;   // encrypted cast → plaintext here
                     if (! is_string($email) || $email === '') {
                         continue;   // no address on file — nothing to send to
+                    }
+                    // #86 — the operator can disable this email per-org; OFF genuinely stops the send.
+                    if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'payment-reminder')) {
+                        continue;
                     }
 
                     Mail::to($email)->send(new PaymentReminderMail($reservation, $balance));

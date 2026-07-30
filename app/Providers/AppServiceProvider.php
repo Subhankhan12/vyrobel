@@ -18,6 +18,7 @@ use App\Models\BookingQuote;
 use App\Models\Building;
 use App\Models\Channel;
 use App\Models\ChannelMapping;
+use App\Models\EmailTemplate;
 use App\Models\Fee;
 use App\Models\Floor;
 use App\Models\Folio;
@@ -296,6 +297,9 @@ class AppServiceProvider extends ServiceProvider
             // (owner.agreement.amendment_acknowledged calls getMorphClass()); enforceMorphMap THROWS on an
             // unregistered model, so it needs an alias.
             'agreement_amendment' => AgreementAmendment::class,
+            // Operator Email Templates (#86) — the per-org email customization is an audit subject
+            // (email_template.updated calls getMorphClass()); enforceMorphMap THROWS on an unregistered model.
+            'email_template' => EmailTemplate::class,
             'owner_ledger' => OwnerLedgerEntry::class,
             'owner_expense' => OwnerExpense::class,
             'owner_attention_state' => OwnerAttentionState::class,

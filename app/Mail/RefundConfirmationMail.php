@@ -6,6 +6,8 @@ namespace App\Mail;
 
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Support\Email\EmailTemplateResolver;
+use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Bus\Queueable;
@@ -33,9 +35,7 @@ class RefundConfirmationMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $reference = (string) $this->reservation()->reference;
-
-        return new Envelope(subject: 'Your refund has been processed'.($reference !== '' ? ' · '.$reference : ''));
+        return new Envelope(subject: $this->template()->subject());
     }
 
     public function content(): Content
@@ -49,6 +49,8 @@ class RefundConfirmationMail extends Mailable
 
         // check_in / check_out are NOT NULL date columns on a reservation.
         $stay = Carbon::parse($reservation->check_in)->format('j M').' – '.Carbon::parse($reservation->check_out)->format('j M Y');
+
+        $tpl = $this->template();
 
         return new Content(
             view: 'emails.refund-confirmation',
@@ -66,6 +68,11 @@ class RefundConfirmationMail extends Mailable
                 'etaLabel' => '5–10 business days',
                 'reservationUrl' => route('guest.manage', $reservation->getKey()),
                 'messagesUrl' => route('guest.messages'),
+                // Operator-customizable template (#86)
+                'heading' => $tpl->heading(),
+                'intro' => $tpl->message(),
+                'button' => $tpl->button(),
+                'blocks' => ['status_timeline' => $tpl->block('status_timeline'), 'detail_rows' => $tpl->block('detail_rows')],
             ],
         );
     }
@@ -74,5 +81,17 @@ class RefundConfirmationMail extends Mailable
     private function reservation(): Reservation
     {
         return $this->refund->folio->reservation;
+    }
+
+    private function template(): ResolvedEmailTemplate
+    {
+        $r = $this->reservation();
+        $guest = $r->leadGuest;
+        $first = $guest !== null ? trim((string) $guest->first_name) : '';
+
+        return EmailTemplateResolver::for((string) $r->organization_id, 'refund-confirmation', [
+            'first_name' => $first !== '' ? $first : 'there',
+            'reference' => (string) $r->reference,
+        ]);
     }
 }

@@ -1,34 +1,64 @@
-{{-- Operator Email Templates (Phase 3 · Sub-gate 5) — the management view: subject, trigger status, and merge
-     variables for every transactional email, each linking to its live preview. Editing is honestly deferred.
+{{-- Operator Email Templates (#86) — the customization manager: the 5 real guest emails, each with its real
+     trigger, channel, an Active/off toggle (OFF genuinely stops the send), a Preview and an Edit link. No
+     fabricated open-rate (no send-tracking exists — honest status/trigger only).
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-layouts.operator title="Email templates">
-<x-operator.shell active="email-templates" title="Email templates" subtitle="The transactional emails Vyrobel sends">
+<x-layouts.operator title="Guest emails">
+<x-operator.shell active="email-templates" title="Guest emails" subtitle="Customize the emails your guests receive">
 
-    <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:16px">
-        <div style="font-size:13px;color:var(--vy-ink)">Templates are authored in code today — this is the reference view. <strong>Editing template content is coming</strong>; delivery, variables and triggers below are all live. Email sends via a provider in production (account-gated); in-app and email delivery honour each user’s notification preferences.</div>
+    @if (session('email_template_notice'))
+        <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-accent); margin-bottom: 16px;">
+            <div style="font-size: 13.5px; color: var(--vy-ink);">{{ session('email_template_notice') }}</div>
+        </div>
+    @endif
+
+    <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-accent); margin-bottom: 16px;">
+        <div style="font-size: 13px; color: var(--vy-ink);">These are the transactional emails Vyrobel sends your guests. Edit the wording, turn sections on or off, or pause an email entirely — <strong>your changes take effect on the next real send</strong>. Delivery goes through your email provider in production (account-gated); in dev it’s caught locally.</div>
     </div>
 
     <section class="vy-card vy-fade">
-        @foreach ($templates as $key => $tpl)
-            <div style="padding:14px 4px;border-bottom:1px solid var(--vy-hairline)">
-                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
-                    <span style="font-size:14.5px;font-weight:700;color:var(--vy-ink)">{{ $tpl['title'] }}</span>
-                    <a href="{{ route('app.email-previews.show', $key) }}" target="_blank" rel="noopener" style="flex:none;font-size:12px;font-weight:600;color:var(--vy-accent);text-decoration:none">Preview →</a>
+        @foreach ($templates as $tpl)
+            <div style="display: flex; align-items: center; gap: 14px; padding: 16px 4px; border-bottom: 1px solid var(--vy-hairline); flex-wrap: wrap;">
+
+                {{-- Status --}}
+                <div style="flex: none; width: 76px;">
+                    @if ($tpl['enabled'])
+                        <span style="font-size: 11px; font-weight: 700; color: #1B7F5C; background: #E7F5EE; border-radius: 999px; padding: 3px 10px;">● Active</span>
+                    @else
+                        <span style="font-size: 11px; font-weight: 700; color: var(--vy-muted); background: var(--vy-hairline); border-radius: 999px; padding: 3px 10px;">○ Off</span>
+                    @endif
                 </div>
-                <div style="font-size:12.5px;color:var(--vy-muted);margin-top:3px">Subject: <span style="color:var(--vy-ink)">{{ $tpl['subject'] }}</span></div>
-                <div style="font-size:11.5px;color:var(--vy-muted);margin-top:2px">{{ $tpl['trigger'] }}</div>
-                <div style="margin-top:7px;display:flex;gap:5px;flex-wrap:wrap">
-                    @foreach ($tpl['variables'] as $var)
-                        <span style="font-size:11px;color:var(--vy-ink);background:var(--vy-hairline);border-radius:5px;padding:2px 7px">{{ '{'.$var.'}' }}</span>
-                    @endforeach
+
+                {{-- Name + trigger --}}
+                <div style="flex: 1 1 240px; min-width: 200px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 14.5px; font-weight: 700; color: var(--vy-ink);">{{ $tpl['label'] }}</span>
+                        @if ($tpl['customized'])
+                            <span style="font-size: 10.5px; font-weight: 600; color: var(--vy-accent); background: var(--vy-hairline); border-radius: 5px; padding: 1px 7px;">Customized</span>
+                        @endif
+                    </div>
+                    <div style="font-size: 12.5px; color: var(--vy-muted); margin-top: 2px;">{{ $tpl['trigger'] }}</div>
+                </div>
+
+                {{-- Channel --}}
+                <div style="flex: none; font-size: 12px; color: var(--vy-muted);">{{ $tpl['channel'] }}</div>
+
+                {{-- Actions --}}
+                <div style="flex: none; display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                    <a href="{{ route('app.email-previews.show', $tpl['preview']) }}" target="_blank" rel="noopener" style="font-size: 12px; font-weight: 600; color: var(--vy-accent); text-decoration: none;">Preview →</a>
+
+                    @if ($canManage)
+                        <form method="POST" action="{{ route('app.email-templates.toggle', $tpl['key']) }}" style="display: inline;">
+                            @csrf
+                            <input type="hidden" name="enabled" value="{{ $tpl['enabled'] ? '0' : '1' }}">
+                            <button type="submit" class="vy-btn vy-btn--ghost" style="padding: 6px 12px; font-size: 12px;">{{ $tpl['enabled'] ? 'Turn off' : 'Turn on' }}</button>
+                        </form>
+                        <a href="{{ route('app.email-templates.edit', $tpl['key']) }}" class="vy-btn vy-btn--accent" style="padding: 6px 14px; font-size: 12px; text-decoration: none;">Edit</a>
+                    @endif
                 </div>
             </div>
         @endforeach
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap;gap:10px">
-            <span class="vy-line-sub" style="font-size:11.5px;color:var(--vy-muted)">Owner &amp; operator alerts also email through the same preference gate — see Notification preferences.</span>
-            <span class="vy-btn vy-btn--ghost" style="padding:8px 16px;opacity:.6;cursor:not-allowed" title="Coming soon">Edit templates · Soon</span>
-        </div>
+        <p class="vy-line-sub" style="font-size: 11.5px; color: var(--vy-muted); margin-top: 14px;">Owner &amp; operator alerts email through the same preference gate — see Notification preferences. Open/click tracking isn’t collected, so no engagement stats are shown.</p>
     </section>
 
 </x-operator.shell>

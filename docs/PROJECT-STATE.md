@@ -6,9 +6,41 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v30) · OPERATOR CHANNELS + BILLING exact-match COMPLETE. This block
-> SUPERSEDES every block below it. Fresh-session entry point: this block →
-> `docs/OPERATOR-CHANNELS-BILLING-AUDIT.md` → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v31) · OPERATOR EMAIL TEMPLATES + EDITOR exact-match COMPLETE — a REAL
+> customization store that drives the #83 guest sends. This block SUPERSEDES every block below it. Fresh-session
+> entry point: this block → `docs/OPERATOR-EMAIL-TEMPLATES-AUDIT.md` → `docs/DECISIONS.md`.**
+>
+> **Operator Guest-emails list (`/app/email-templates`) + a NEW single-template Editor (Invariant #86)** matched
+> to `Operator Email Templates.html` / `Operator Email Editor.html` EXACTLY — replacing the old static "Editing ·
+> Soon" catalog with a **real per-org `email_templates` store that GENUINELY drives the 5 #83 guest Mailables**
+> (mutation- + browser-proven end-to-end). `EmailTemplateCatalog` holds each template's DEFAULTS (= the #83
+> strings, with `{merge}` placeholders) + real trigger/channel/blocks/vars; `EmailTemplateResolver` →
+> `ResolvedEmailTemplate` (stored-override ?? default, merged) is threaded into all 5 Mailables' `envelope()` (subject)
+> + `content()` (`heading`/**`intro`**/`button`/`blocks` — `intro` NOT `message`, a real reserved-var bug fixed),
+> and every blade renders `{{ $heading/$intro/$button }}` + wraps each toggleable block in `@if ($blocks[…])`.
+> **Defaults render byte-faithfully → GuestEmailTest 15/15 unchanged.** The 3 real triggers
+> (`SendGuestTransactionalEmails`/`SendPreArrivalEmails`/`SendPaymentReminders`) skip a send when
+> `EmailTemplateResolver::enabled()` is false → **OFF genuinely stops that email.** **LIST:** real rows
+> (status/name/trigger/channel) + a real Active/off toggle POST + Preview + Edit; honest stat (status/trigger,
+> NO fabricated open-rate — decision A). **EDITOR (`OperatorEmailEditor`):** editable subject (+ real insert chips)
+> / heading / message / button / block toggles + a LIVE preview that renders the REAL `emails.{key}` blade + layout
+> via the shared `EmailPreviewSample` with the draft overlaid (**preview == send, can't drift**) + a real Test-send
+> to the operator's own inbox (decision B; MailSafetyGuard). SAVE = a native form POST (inputs carry BOTH
+> `wire:model.live` + `name=`) → `EmailTemplateActionController` → audited `EmailTemplateService`. 🔒 every write
+> `can:properties.manage` (#30 — the Settings tier; a Hotel Manager correctly gets a view-only list) → audited (#20);
+> tenant-scoped (`TenantContext`, never a request id); key whitelisted (foreign key 404s); #39 no fabrication (no
+> open-rate; the signature is the honest team line, never an invented person; nothing saves to nothing).
+> Mutation-proven (`OperatorEmailTemplatesTest`, 9: saved heading changes the real render · merge resolves ·
+> disabled block absent · OFF stops the real checkout trigger while ON sends · guarded+audited save · Front-Desk
+> 403 · toggle · list+editor render · unknown key 404) + browser-verified (edit→save→the INDEPENDENT real email
+> preview reflects the saved heading + omitted block; the verification temp user + demo row removed → demo back to
+> defaults). Anti-drift — reuse the 5 #83 Mailables + `emails/layout.blade.php` + `EmailPreviewController` render
+> path + `AuditEventRecorder` + `<x-operator.shell>`. Suite **1310/9774** green; PHPStan L5 (0); Pint clean;
+> raw-blade guard clean; `migrate:fresh --seed` clean. **Invariants #1–86.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v30) · OPERATOR CHANNELS + BILLING exact-match COMPLETE.**
 >
 > **Operator Channels (`/app/channels`, NEW) + Billing (`/app/billing`) (Invariant #85)** matched to their
 > wireframes — both heavily gated, nothing faked. **GATE 1 — Channels (`d286014`):** the whole page is OTA

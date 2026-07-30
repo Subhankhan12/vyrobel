@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Mail\PreArrivalMail;
 use App\Models\Organization;
 use App\Models\Reservation;
+use App\Support\Email\EmailTemplateResolver;
 use App\Support\Guest\ArrivalPack;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Console\Command;
@@ -47,6 +48,10 @@ class SendPreArrivalEmails extends Command
                     $email = $reservation->leadGuest?->email;   // encrypted cast → plaintext here; guest-only
                     if (! is_string($email) || $email === '') {
                         continue;   // no address on file — nothing to send to
+                    }
+                    // #86 — the operator can disable this email per-org; OFF genuinely stops the send.
+                    if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'pre-arrival')) {
+                        continue;
                     }
 
                     Mail::to($email)->send(new PreArrivalMail($reservation));
