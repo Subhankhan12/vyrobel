@@ -9,6 +9,7 @@ use App\Models\OwnerExpense;
 use App\Models\User;
 use App\Services\AvailabilityService;
 use App\Services\MaintenanceService;
+use App\Services\MaintenanceSettingsService;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Money\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -210,4 +211,67 @@ it('emails the costs report to the acting operator', function () {
     $this->actingAs($manager)->post(route('app.maintenance.costs.email'))->assertRedirect(route('app.maintenance.costs'));
 
     \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\MaintenanceCostReportMail::class, fn ($m) => $m->hasTo($manager->email));
+});
+
+// ═══ GATE 3 · SETTINGS ═══════════════════════════════════════════════════════════════════════════
+
+// ── The auto-assign master toggle + category map persist through the controller ───────────────────
+it('persists the auto-assign master toggle and category map via the settings controller', function () {
+    $s = seedScenario(1);
+    $tech = mtManager($s);
+
+    $this->actingAs($tech)->post(route('app.maintenance.settings.update'), [
+        'auto_assign_enabled' => '1',
+        'assignee_plumbing_id' => $tech->id,
+        'sla_urgent_hours' => 4,
+    ])->assertRedirect(route('app.maintenance.settings'));
+
+    $setting = MaintenanceSetting::query()->first();
+    expect((bool) $setting->auto_assign_enabled)->toBeTrue()
+        ->and((string) $setting->assignee_plumbing_id)->toBe((string) $tech->id)
+        ->and((int) $setting->sla_urgent_hours)->toBe(4);
+
+    // With the toggle ON, a new plumbing order really routes to the configured tech.
+    $ticket = app(MaintenanceService::class)->open(['unit_id' => $s['units'][0]->id, 'title' => 'Leak', 'category' => 'plumbing']);
+    expect((string) $ticket->assigned_to)->toBe((string) $tech->id);
+});
+
+// ── The master toggle OFF stops routing even with a configured assignee ───────────────────────────
+it('does not auto-assign when the master toggle is off', function () {
+    $s = seedScenario(1);
+    $tech = mtManager($s);
+
+    $this->actingAs($tech)->post(route('app.maintenance.settings.update'), [
+        'assignee_plumbing_id' => $tech->id,   // auto_assign_enabled absent → false
+    ])->assertRedirect();
+
+    expect((bool) MaintenanceSetting::query()->first()->auto_assign_enabled)->toBeFalse();
+
+    $ticket = app(MaintenanceService::class)->open(['unit_id' => $s['units'][0]->id, 'title' => 'Leak', 'category' => 'plumbing']);
+    expect($ticket->assigned_to)->toBeNull();
+});
+
+// ── The Technicians panel reports a REAL open-order load ──────────────────────────────────────────
+it('reports a real open-order load in the technicians panel', function () {
+    $s = seedScenario(1);
+    $tech = mtManager($s);
+    MaintenanceSetting::create(['organization_id' => $s['org']->id, 'assignee_plumbing_id' => $tech->id]);
+
+    $svc = app(MaintenanceService::class);
+    $svc->assign($svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'A'])->refresh(), $tech->id);
+    $svc->assign($svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'B'])->refresh(), $tech->id);
+
+    $panel = collect(app(MaintenanceSettingsService::class)->technicianPanel())->firstWhere('id', (string) $tech->id);
+    expect($panel)->not->toBeNull()
+        ->and($panel['load'])->toBe(2)
+        ->and($panel['categories'])->toContain('plumbing');
+});
+
+// ── Settings are gated on maintenance.manage ─────────────────────────────────────────────────────
+it('refuses the settings save without maintenance.manage', function () {
+    $s = seedScenario(1);
+    $frontDesk = operatorUser($s, [], 'Front Desk');
+
+    $this->actingAs($frontDesk)->post(route('app.maintenance.settings.update'), ['sla_urgent_hours' => 2])->assertForbidden();
+    expect(MaintenanceSetting::query()->where('sla_urgent_hours', 2)->exists())->toBeFalse();
 });

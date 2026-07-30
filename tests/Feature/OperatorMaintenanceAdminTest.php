@@ -65,12 +65,13 @@ it('shows an honest empty state and then real figures on the screen', function (
     $manager = operatorUser($s, [], 'Hotel Manager');   // has maintenance.manage
 
     $this->actingAs($manager)->get('/app/maintenance/costs')
-        ->assertOk()->assertSee('No resolved work orders')->assertSee('labour-vs-parts');   // the honest note
+        ->assertOk()->assertSee('No resolved work orders');   // honest empty state, not a fabricated €0.00
 
     resolvedTicket($s, 0, 'plumbing', 12345);
 
     $this->actingAs($manager)->get('/app/maintenance/costs')
-        ->assertOk()->assertSee('123.45')->assertDontSee('No resolved work orders');
+        ->assertOk()->assertSee('123.45')->assertSee('Labour vs parts')   // #89: the split is now REAL
+        ->assertDontSee('No resolved work orders');
 });
 
 // ── COSTS 3 — tenant-scoped + gated on maintenance.manage ─────────────────────────────────────────

@@ -12,15 +12,17 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Operator MAINTENANCE SETTINGS (Phase 1 · Sub-gate 4) — SLA targets, the category→technician map, the
- * out-of-order policy, and notification preferences. READ view; the save is a guarded POST →
- * {@see MaintenanceSettingsController} → {@see MaintenanceSettingsService}
- * (typed columns, real persistence — never toast-only). Gated on `maintenance.manage`.
+ * Operator MAINTENANCE SETTINGS (Phase 1 · Sub-gate 4; rebuilt to the wireframe in #89) — SLA resolution
+ * targets, the auto-assignment map + master toggle, the Technicians panel, the out-of-order policy, and
+ * notification preferences. READ view; the save is a guarded POST → {@see MaintenanceSettingsController} →
+ * {@see MaintenanceSettingsService} (typed columns, real persistence — never toast-only). Gated on
+ * `maintenance.manage`.
  *
- * ⚠️ Honesty: the SLA targets + category→technician map take effect on new work orders. The notification
- * toggles store the preference but the live dispatch waits on the Phase-3 notification subsystem; "require a
- * photo on resolve" is stored but its enforcement waits on ticket photos — both are shown as honest "not yet
- * live" in the UI, never faked.
+ * ⚠️ Honesty (#89): the SLA targets drive a REAL breach shown on the board, and when the auto-assignment master
+ * toggle is on a new order is REALLY routed to its category's technician. The notification toggles store the
+ * preference but maintenance does not dispatch an alert yet (no maintenance notifier is wired); "require a photo
+ * on resolve" is stored but resolve does not yet enforce it — both shown honestly, never faked. Inviting a
+ * technician links to the real staff-invite flow (no fabricated technician role).
  */
 #[Layout('components.layouts.operator')]
 class OperatorMaintenanceSettings extends Component
@@ -33,6 +35,7 @@ class OperatorMaintenanceSettings extends Component
             'viewer' => $this->viewer(),
             'settings' => $settings->forOrg(),
             'technicians' => $settings->technicians(),
+            'technicianPanel' => $settings->technicianPanel(),
             'categories' => MaintenanceSettingsService::CATEGORIES,
         ]);
     }

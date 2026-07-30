@@ -6,10 +6,46 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v33) · OPERATOR HOUSEKEEPING + INSIGHTS exact-match COMPLETE — real HK
-> management (assign-all, photos, real elapsed) + real-derived insights (Expedia honest). This block SUPERSEDES
-> every block below it. Fresh-session entry point: this block → `docs/OPERATOR-HOUSEKEEPING-INSIGHTS-AUDIT.md`
-> → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v34) · OPERATOR MAINTENANCE (board + costs + settings) exact-match
+> COMPLETE — real SLA breach, real labour/parts split tied to the owner-billed Expenses, real technicians +
+> auto-assign master toggle, real photos, mark-out-of-order genuinely blocks selling. This block SUPERSEDES
+> every block below it. Fresh-session entry point: this block → `docs/OPERATOR-MAINTENANCE-AUDIT.md` →
+> `docs/DECISIONS.md`.**
+>
+> **Operator Maintenance board (`/app/maintenance`) + Costs (`/app/maintenance/costs`) + Settings
+> (`/app/maintenance/settings`) (Invariant #89)** matched to their wireframes EXACTLY on REAL data, building
+> what was missing. The two hardest mandates were already certified and reused untouched (anti-drift):
+> **mark-out-of-order genuinely blocks selling** (certified `setUnitCondition('out_of_service')` → availability
+> `out_of_order` → `AssignmentService` guard — the owner-unit-pause #69 mechanism; **mutation-proven** it throws
+> `InsufficientAvailabilityException`) and **costs tie to the owner-billed Expenses** (`postExpenseIfOwned` →
+> `OwnerExpenseService::recordExpense`). Founder decisions **Recommended** (A/B/C/D). **GATE 1 — board:**
+> `HasMedia` + real photo upload/delete (`RoomTypePhotoController` pattern, `mt_photo`); migration
+> `labor_minor`/`parts_minor`/`awaiting_parts`/`part_name`/`part_eta`; the shared `MaintenanceSla` (a REAL breach
+> from `sla_*_hours`) drives the board SLA badge; the shared `RevenueOnHold` (reuses the Dashboard `onHoldMinor`);
+> auto-assign wired in `MaintenanceService::open()` (master-toggle-gated). `MaintenanceList` = the flat list + a
+> right rail that is now REAL (Technicians / Parts-on-order / OOO hero); detail drawer (pipeline, SLA, parts,
+> photos, activity, Start/Resolve[labor+parts]/photo); New-WO (photos + mark-OOO with the "check the rack"
+> warning); Assign modal. **GATE 2 — Costs (`cd371c8`):** `MaintenanceCostService` gains the REAL labour/parts
+> split (labour + parts === `cost_minor`, #17; legacy COALESCEs to all-labour) + `parts_on_order` + `billable()`;
+> the billable totals **tie to the owner_expense** (mutation-proven); real exports — PDF + CSV (both
+> `maintenance.manage`-gated + audited) + Email-to-me (PDF to the operator's OWN inbox), **Excel honestly
+> deferred**; page rewritten to the wireframe (KPIs, spend-by-category, billable table, dark spend hero,
+> labour-vs-parts, spend-by-month, top-units, Alpine export menu). **GATE 3 — Settings:** `auto_assign_enabled`
+> master toggle wired end-to-end (mutation-proven both ways); `technicianPanel()` (category assignees + anyone
+> holding an open order + a **real open-order load**); honest Invite = a "Manage team & roles →" link to
+> `app.roles`; honesty corrected (maintenance alerts **not dispatched yet**, require-photo **not enforced yet**).
+> 🔒 operator-scoped; the `MaintenanceTicket`/`MaintenanceService`/availability/owner-Expense path reused
+> (anti-drift — the Dashboard #84 + owner Expenses undisturbed); #17 costs reconcile; #20 every write
+> controller-routed + gated + audited; #39 no fabrication (Excel + require-photo + maintenance-alert dispatch
+> honestly deferred, not stubbed); category divergence documented (KIND-3 — the 5 real categories, not
+> HVAC/Furniture). `MaintenanceRebuildTest` 16 + `MaintenanceBoardViewTest` 7 + `MaintenanceModuleTest` 3 +
+> `OperatorMaintenanceAdminTest` 6 all green; full suite 1348 green; PHPStan L5 (0); Pint clean;
+> `migrate:fresh --seed` clean; all three pages browser-verified. **Invariants #1–89.**
+>
+> ---
+>
+> **PRIOR (v33) — 2026-07-30 · OPERATOR HOUSEKEEPING + INSIGHTS exact-match COMPLETE — real HK
+> management (assign-all, photos, real elapsed) + real-derived insights (Expedia honest).**
 >
 > **Operator Housekeeping (`/app/housekeeping`) + Insights (`/app/insights`) (Invariant #88)** matched to their
 > wireframes EXACTLY on REAL data — both had substantial real backends, so this is match-the-design + a few

@@ -28,7 +28,7 @@ class MaintenanceSettingsController extends Controller
         }
 
         foreach ([
-            'require_photo_on_resolve', 'block_room_from_sale', 'notify_front_desk',
+            'auto_assign_enabled', 'require_photo_on_resolve', 'block_room_from_sale', 'notify_front_desk',
             'notify_new_urgent', 'notify_out_of_service', 'notify_parts_arrive', 'notify_sla_breach', 'notify_daily_digest',
         ] as $field) {
             $input[$field] = $request->boolean($field);   // an unchecked box isn't submitted → false
