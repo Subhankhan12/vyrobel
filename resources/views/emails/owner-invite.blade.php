@@ -35,10 +35,35 @@
                     {{-- Card --}}
                     <tr>
                         <td style="background-color:#FFFDFB; border:1px solid #EFE3D9; border-radius:18px; padding:34px 34px 30px;">
-                            <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#C2410C;">You’re invited</p>
+                            <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#C2410C;">{{ $eyebrow }}</p>
+                            {{-- Invited by {operator} --}}
+                            <p style="margin:0 0 14px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#8A8079;">Invited by <strong style="color:#4A4038; font-weight:600;">{{ $operator }}</strong></p>
                             <h1 style="margin:0 0 14px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">{{ $headline }}</h1>
                             <p style="margin:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">Hi {{ $ownerName }},</p>
-                            <p style="margin:0 0 24px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">{{ $intro }}</p>
+                            <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">{{ $intro }}</p>
+
+                            {{-- Role-aware feature section (owner: "In your portal" · accountant: "What you can
+                                 access" · manager: "In the operator app") — honest descriptions, no per-account data. --}}
+                            <p style="margin:0 0 12px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:#9C9089;">{{ $sectionTitle }}</p>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px;">
+                                @foreach ($features as $feature)
+                                    <tr>
+                                        <td style="padding:0 0 12px;" valign="top">
+                                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                <tr>
+                                                    <td width="30" valign="top" style="width:30px;">
+                                                        <div style="width:22px; height:22px; background-color:#FBEDE4; border-radius:7px; text-align:center; line-height:22px; color:#C2410C; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:700;">&#10003;</div>
+                                                    </td>
+                                                    <td valign="top" style="padding-left:10px;">
+                                                        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13.5px; font-weight:600; color:#2B2320;">{{ $feature['title'] }}</p>
+                                                        <p style="margin:1px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.45; color:#8A8079;">{{ $feature['desc'] }}</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </table>
 
                             {{-- Bulletproof button (solid terracotta; padded anchor works across clients incl. Outlook) --}}
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -49,17 +74,17 @@
                                 </tr>
                             </table>
 
-                            <p style="margin:22px 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">This invitation is single-use and expires on <strong style="color:#4A4038;">{{ $expiresAt?->toFormattedDayDateString() }}</strong>.</p>
-                            <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">If the button doesn’t work, paste this link into your browser:</p>
-                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; word-break:break-all;"><a href="{{ $acceptUrl }}" style="color:#C2410C; text-decoration:underline;">{{ $acceptUrl }}</a></p>
+                            <p style="margin:20px 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">Or paste this link into your browser:</p>
+                            <p style="margin:0 0 16px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; word-break:break-all;"><a href="{{ $acceptUrl }}" style="color:#C2410C; text-decoration:underline;">{{ $acceptUrl }}</a></p>
+                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">This invite is single-use and expires on <strong style="color:#4A4038;">{{ $expiresAt?->toFormattedDayDateString() }}</strong>. If you didn’t expect this, you can safely ignore this email — <strong style="color:#4A4038;">no account is created until you set a password</strong>.</p>
                         </td>
                     </tr>
 
-                    {{-- Footer --}}
+                    {{-- Footer — the honest "why you got this" + the automatic-send note. --}}
                     <tr>
-                        <td align="center" style="padding:20px 8px;">
-                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#A69A92;">If you weren’t expecting this invitation, you can safely ignore this email.</p>
-                            <p style="margin:6px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#A69A92;">Powered by Vyrobel</p>
+                        <td align="center" style="padding:20px 12px;">
+                            <p style="margin:0 0 5px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A69A92;">Vyrobel · hospitality, warmly run · You’re receiving this because {{ $operator }} {{ $roleReason }}</p>
+                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A69A92;">Sent automatically when an operator invites someone to their organization.</p>
                         </td>
                     </tr>
                 </table>

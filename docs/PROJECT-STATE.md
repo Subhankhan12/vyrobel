@@ -6,9 +6,34 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v24) · OWNER NOTIFICATIONS exact-match rebuild COMPLETE. This block
-> SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-NOTIFICATIONS-AUDIT.md` →
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v25) · INVITE OWNER (form + email) exact-match COMPLETE. This block
+> SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/INVITE-OWNER-FLOW-AUDIT.md` →
 > `docs/DECISIONS.md`.**
+>
+> **Invite Owner — the operator "Invite owner" modal + the invite EMAIL (Invariant #80)** matched to their two
+> wireframes EXACTLY on the **REAL, certified invite flow** — no backend rebuild. The flow already existed + is
+> real: `POST /app/owners/invite` (`can:users.manage`, throttled, CSRF) → `OwnerInviteService` (name/email/role/
+> units/commission → a real pending `owner_invite` with a sha256 single-use 7-day token) → the real role-aware
+> `OwnerInviteMail` → `AcceptInviteController` (set password → activate → assign units + create the
+> `ManagementAgreement` at the chosen commission → spend the token → `/owner`). Role map: **owner → External
+> Owner** (portal), **manager → Hotel Manager**, **accountant → Accountant** (both operator staff). **GATE 1
+> (`0853092`) — the FORM:** the modal restyled to the exact warm-glass wireframe (header icon, segmented Role,
+> real unit chips, the 12/15/18/Set-up-later agreement picker defaulting to the REAL **18%**, the access-level
+> cards) + the in-modal **"Invite sent"** confirmation (real PRG flash: real email + real expiry + Pending +
+> resend + Preview) + a new operator-admin **email-preview route** (renders the real Mailable, never sends/writes).
+> **GATE 2 — the EMAIL:** `emails/owner-invite` matched exactly (email-safe: role-aware eyebrow, "Invited by
+> {operator}", the role-aware feature section, the bulletproof set-password button + REAL tokened link, real
+> expiry + "no account until you set a password", the exact footer); `OwnerInviteMail::copyFor()` extended (same
+> Postmark/`MailSafetyGuard` send path). 🔒 #20 operator-admin gated + audited; #39 no fabrication (real commission
+> → real agreement [never the mock's 15%], real invite/token/email/activation; units for the owner role only —
+> staff are org-wide); anti-drift (reuse `OwnerInviteService` + `OwnerInviteMail`; the preview renders the same
+> Mailable). `InviteOwnerFormTest` (3) + the certified invite suite green; browser-verified (owner/accountant
+> modals, the real send → real pending invite + queued email + the exact sent view; both email variants). Suite
+> **1271/9583** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **Invariants #1–80.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v24) · OWNER NOTIFICATIONS exact-match rebuild COMPLETE.**
 >
 > **Owner Notifications (`/owner/notification-preferences`, Invariant #79)** rebuilt to the decoded wireframe
 > EXACTLY on the REAL `NotificationPreferences` engine — **no schema/service/controller change** (the shared
