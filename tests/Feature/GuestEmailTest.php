@@ -148,9 +148,85 @@ it('renders every deferred-trigger email template', function () {
     emailGuest($s);
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
-    expect((new PreArrivalMail($reservation))->render())->toContain('Getting ready for your stay');
+    expect((new PreArrivalMail($reservation))->render())->toContain('Your stay is ready');
     expect((new ReviewRequestMail($reservation))->render())->toContain('How was your stay');
     expect((new WaitlistNotificationMail('Ada', 'Seaside', '12–15 Aug 2026'))->render())->toContain('just opened up');
     expect((new WinbackMail('Ada', 'Seaside'))->render())->toContain('welcome you back');
     expect((new VerifyEmailMail('Ada', 'https://vyrobel.test/verify/abc'))->render())->toContain('Confirm your email');
+});
+
+// ══ Transactional-emails exact-match · GATE 1 (guest stay) ══════════════════════════════════════════
+
+// ── Pre-arrival — the REAL scheduled trigger sends 48h out with the guest's OWN door code + wifi ───
+it('sends the pre-arrival email 48h before check-in with the real door code and wifi, guest-only', function () {
+    Carbon::setTestNow('2026-08-30');   // book() → 2026-09-01 check-in = 2 days out = the arrival window
+    Mail::fake();
+    $s = seedScenario(1);
+    emailGuest($s);
+    // The guest's OWN access secrets live on the assigned unit (encrypted at rest).
+    $s['units'][0]->update(['door_code' => '4821', 'wifi_ssid' => 'VillaNet', 'wifi_password' => 'sunset123']);
+
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    $this->artisan('emails:send-pre-arrival')->assertSuccessful();
+
+    Mail::assertSent(PreArrivalMail::class, function (PreArrivalMail $mail): bool {
+        return $mail->hasTo('ada@example.test')
+            && count($mail->to) === 1 && count($mail->cc) === 0 && count($mail->bcc) === 0;   // guest-only, #33 perimeter intact
+    });
+
+    // The rendered email carries the REAL secrets (released because we're inside the window).
+    $html = (new PreArrivalMail($reservation))->render();
+    expect($html)->toContain('4821')->toContain('VillaNet')->toContain('sunset123')->toContain((string) $reservation->reference);
+    Carbon::setTestNow();
+});
+
+it('withholds the door code in the pre-arrival email for a stay outside the arrival window', function () {
+    Carbon::setTestNow('2026-08-30');
+    $s = seedScenario(1);
+    emailGuest($s);
+    $s['units'][0]->update(['door_code' => '4821']);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    // Rendered "as of" a date well before the window → the code is NOT released (never fabricated).
+    $html = (new PreArrivalMail($reservation, Carbon::parse('2026-08-01')))->render();
+    expect($html)->not->toContain('4821')->toContain('share your access details');
+    Carbon::setTestNow();
+});
+
+// ── Payment reminder — Total / Paid / Balance reconcile (Total − Paid == Balance, #17) ────────────
+it('renders the payment reminder with a reconciling Total − Paid == Balance', function () {
+    $s = seedScenario(1);
+    emailGuest($s);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    $folio = app(FolioService::class)->openFolio($reservation);
+    app(FolioService::class)->postCharge($folio, 'room', 'Room', Money::of(20000, 'EUR'));
+    app(FolioService::class)->recordPayment($folio, Money::of(8000, 'EUR'));   // paid 80.00 → balance 120.00
+
+    $html = (new PaymentReminderMail($reservation, 12000))->render();
+
+    expect($html)
+        ->toContain(MoneyFormatter::display(20000, 'EUR'))   // Total
+        ->toContain(MoneyFormatter::display(8000, 'EUR'))    // Paid
+        ->toContain(MoneyFormatter::display(12000, 'EUR'))   // Balance == Total − Paid
+        ->toContain('Pay '.MoneyFormatter::display(12000, 'EUR').' now');
+});
+
+// ── Refund — real amount + HONEST "original payment method" (no fabricated card, #28/#39) ──────────
+it('renders the refund email with the real amount and an honest payment-method (no fabricated card)', function () {
+    $s = seedScenario(1);
+    emailGuest($s);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    $folio = app(FolioService::class)->openFolio($reservation);
+    app(FolioService::class)->postCharge($folio, 'room', 'Room', Money::of(20000, 'EUR'));
+    $payment = app(FolioService::class)->recordPayment($folio, Money::of(20000, 'EUR'));
+    $refund = app(FolioService::class)->refundPayment($payment, Money::of(5000, 'EUR'));
+
+    $html = (new RefundConfirmationMail($refund))->render();
+
+    expect($html)
+        ->toContain(MoneyFormatter::display(5000, 'EUR'))          // real refund amount
+        ->toContain('your original payment method')                // honest — no card_last4 stored
+        ->toContain('Requested')->toContain('Processed')           // the real status timeline
+        ->not->toContain('····');                                  // never a fabricated masked card
 });

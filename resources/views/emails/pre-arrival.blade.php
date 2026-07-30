@@ -1,38 +1,91 @@
-{{-- Guest pre-arrival (Phase 3 · Sub-gate 4). Real directions; access code only when a real one exists.
-     RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+{{-- Guest pre-arrival (transactional-emails exact-match). Matched to "Pre-arrival Email.html" — self check-in
+     with the guest's OWN door code + wifi (real, from ArrivalPack; guest-only delivery — the #33 owner-perimeter
+     is untouched). Email-safe: inline styles, table layout, bulletproof button. Every secret is real or omitted
+     honestly (never fabricated). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
 
-@section('title', 'Getting ready for your stay')
-@section('preheader', 'Directions and everything you need for your arrival at '.$propertyName.'.')
+@section('title', 'Your stay is ready')
+@section('preheader', 'Your self check-in for '.$unitName.' — door code, directions and wifi inside.')
 
 @section('content')
     <p style="margin:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#C2410C;">You’re nearly here</p>
-    <h1 style="margin:0 0 14px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">Getting ready for your stay</h1>
-    <p style="margin:0 0 20px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">Hi {{ $guestName }}, we can’t wait to welcome you to <strong style="color:#2B2320;">{{ $propertyName }}</strong> on {{ $checkIn }}. Here’s what you need for a smooth arrival.</p>
+    <h1 style="margin:0 0 6px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; line-height:1.25; color:#2B2320;">Your stay is ready — see you {{ \Illuminate\Support\Str::before($checkInLabel, ',') }}</h1>
+    <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; line-height:1.55; color:#4A4038;">Everything’s set for your arrival at <strong style="color:#2B2320;">{{ $unitName }}</strong>. Here’s your self check-in — no need to stop by a desk. Save this email; you’ll want it on the day.</p>
 
+    {{-- Door code hero — the guest's OWN access secret (real, timing-released) --}}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FBF1E9; border:1px solid #F0DFCF; border-radius:14px; margin:0 0 16px;">
+        <tr>
+            <td align="center" style="padding:22px 16px;">
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#B26A08;">Your door code</span><br>
+                @if ($doorCode)
+                    <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:34px; font-weight:700; letter-spacing:6px; color:#2B2320;">{{ $doorCode }}</span><br>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#8A7A6A;">Works from {{ $releasedFrom }} · same code all stay</span>
+                @else
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; color:#4A4038;">Your host will share your access details before you arrive.</span>
+                @endif
+            </td>
+        </tr>
+    </table>
+    <p style="margin:0 0 22px; text-align:center;"><a href="{{ $arrivalUrl }}" style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; font-weight:600; color:#C2410C; text-decoration:none;">Open directions &amp; check-in guide ›</a></p>
+
+    {{-- Getting there --}}
     @if ($directions)
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 14px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 12px;">
             <tr>
-                <td style="padding:16px;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Directions</span><br>
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; color:#2B2320;">{{ $directions }}</span>
+                <td style="padding:14px 16px;">
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Getting there</span><br>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; color:#2B2320;">{{ $directions }}</span>
+                    @if ($mapsUrl)<br><a href="{{ $mapsUrl }}" style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#C2410C; text-decoration:underline;">Open in Maps</a>@endif
                 </td>
             </tr>
         </table>
     @endif
 
+    {{-- WiFi --}}
+    @if ($wifiSsid || $wifiPassword)
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 12px;">
+            <tr>
+                <td style="padding:14px 16px;">
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">WiFi</span><br>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; color:#2B2320;">@if ($wifiSsid)Network <strong>{{ $wifiSsid }}</strong>@endif @if ($wifiPassword) · password <strong>{{ $wifiPassword }}</strong>@endif</span>
+                </td>
+            </tr>
+        </table>
+    @endif
+
+    {{-- Check-in & out --}}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
         <tr>
-            <td style="padding:16px;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Access</span><br>
-                @if ($accessCode)
-                    <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:20px; font-weight:700; letter-spacing:2px; color:#2B2320;">{{ $accessCode }}</span>
-                @else
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#4A4038;">Your access code will be sent closer to your arrival.</span>
-                @endif
+            <td style="padding:14px 16px;">
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Check-in &amp; out</span><br>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; color:#2B2320;">In from {{ $checkInTime ?? '15:00' }} {{ $checkInLabel }} · out by {{ $checkOutTime ?? '11:00' }} {{ $checkOutLabel }}.</span>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#8A8079;"> Arriving early? <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">Message us</a>.</span>
             </td>
         </tr>
     </table>
 
-    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">Travelling with questions? Just reply — we’re happy to help.</p>
+    {{-- Balance due — real, only when money is genuinely owed --}}
+    @if ($balance)
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px;">
+            <tr>
+                <td align="center" style="padding:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#4A4038;"><strong style="color:#2B2320;">{{ $balance }}</strong> balance due at check-in — pay now to skip the desk.</td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                        <td align="center" bgcolor="#C2410C" style="background-color:#C2410C; border-radius:30px;">
+                            <a href="{{ $payUrl }}" target="_blank" style="display:inline-block; padding:13px 30px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:30px;">Pay {{ $balance }} now</a>
+                        </td>
+                    </tr></table>
+                </td>
+            </tr>
+        </table>
+    @endif
+
+    {{-- Message us --}}
+    <p style="margin:22px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">Anything you need before you arrive? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a> — we’re happy to help.</p>
+
+    <hr style="border:none; border-top:1px solid #EFE3D9; margin:22px 0 14px;">
+    <p style="margin:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#8A8079;">Keep this email safe — your door code is inside. Reservation <strong style="color:#2B2320;">{{ $reference }}</strong>.</p>
+    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px;"><a href="{{ $viewUrl }}" style="color:#C2410C; text-decoration:none; font-weight:600;">View your booking</a> &nbsp;·&nbsp; <a href="{{ $checkinUrl }}" style="color:#C2410C; text-decoration:none; font-weight:600;">Online check-in</a></p>
 @endsection

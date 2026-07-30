@@ -16,6 +16,11 @@ Schedule::command('invites:prune-expired')->daily();
 // email is genuine via Mailpit in dev / a real provider in prod).
 Schedule::command('emails:send-payment-reminders')->dailyAt('09:00');
 
+// Transactional-emails exact-match — daily guest PRE-ARRIVAL self check-in emails, sent the day the arrival
+// window opens (48h before check-in), carrying the guest's OWN real door code + wifi (guest-only; the #33
+// owner-perimeter is untouched). The previously-deferred pre-arrival trigger, now real.
+Schedule::command('emails:send-pre-arrival')->dailyAt('09:00');
+
 // Super Admin · Build 2 · Gate 1 — PRIVACY RETENTION: purge login-activity security-signal rows (IP + all)
 // older than 90 days, daily (GDPR — security-monitoring purpose, limited retention). See PrunePlatformActivity.
 Schedule::command('platform:prune-activity')->daily();

@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Models\Folio;
 use App\Models\Reservation;
+use App\Support\Folio\FolioTotals;
 use App\Support\Guest\ArrivalPack;
 use App\Support\Guest\GuestName;
+use App\Support\Money\MoneyFormatter;
+use Carbon\CarbonInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -15,35 +19,73 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
 
 /**
- * Guest: pre-arrival info — directions & access (Phase 3 · Sub-gate 4). TEMPLATE BUILT; the TRIGGER (send N days
- * before check-in) is a scheduled command, deferred honestly (same shape as the payment-reminder command). The
- * directions are the property's REAL address. There is no unit access-code column yet, so `$accessCode` is null
- * unless a real one is passed — the email then says the code will follow, rather than fabricating one.
+ * Guest: pre-arrival info — self check-in with the guest's OWN door code + wifi (transactional-emails exact-match).
+ * Sent 48h before check-in by the `emails:send-pre-arrival` command (the real scheduled trigger).
+ *
+ * 🔒 The door code + wifi are the guest's OWN access secrets for their OWN stay — CORRECT to include here (#33
+ * forbids exposing arrival secrets to the OWNER, not to the guest). They come from the REAL assigned unit via the
+ * shared {@see ArrivalPack} (the SAME resolver the Arrival Info screen uses — no drift) and this email is delivered
+ * to the lead guest's OWN email only. The pack is TIMING-GATED: it releases the secrets only inside the arrival
+ * window (`LEAD_DAYS`=2 = 48h), which is exactly when this email is sent — so the code is real at send time and
+ * withheld (never fabricated) for a cancelled/out-of-window stay.
+ *
+ * `$asOf` is the moment the email represents; it DEFAULTS to the send window (check_in − LEAD_DAYS), so the
+ * operator preview renders the same released state the guest will receive — never a fake code.
  */
 class PreArrivalMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public readonly Reservation $reservation, public readonly ?string $accessCode = null) {}
+    public function __construct(public readonly Reservation $reservation, public readonly ?CarbonInterface $asOf = null) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Getting ready for your stay · '.((string) $this->reservation->reference));
+        return new Envelope(subject: 'Your stay is ready · '.((string) $this->reservation->reference));
     }
 
     public function content(): Content
     {
-        $r = $this->reservation;
+        $r = $this->reservation->loadMissing(['leadGuest', 'property', 'reservationUnits.unit']);
+
+        $checkIn = Carbon::parse($r->check_in);
+        // The email represents the 48h-before send moment, so the arrival pack always reflects the released state.
+        $asOf = $this->asOf ?? $checkIn->copy()->subDays(ArrivalPack::LEAD_DAYS);
+        $pack = ArrivalPack::for($r, $asOf);
+
+        $unit = $r->reservationUnits->first()?->unit;
+        $unitName = $unit !== null ? trim((string) ($unit->name ?: $unit->code)) : '';
+
+        // The REAL outstanding balance (shared FolioTotals) — the "pay now to skip the desk" line shows ONLY when
+        // money is genuinely owed; never a fabricated figure.
+        $folio = Folio::query()->where('reservation_id', $r->getKey())->first();
+        $balanceMinor = $folio !== null ? FolioTotals::for($folio)['balance_minor'] : 0;
+
+        $directions = $pack['directions'];
 
         return new Content(
             view: 'emails.pre-arrival',
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
                 'propertyName' => (string) ($r->property->name ?? 'your stay'),
-                'checkIn' => Carbon::parse($r->check_in)->format('D, j M Y'),
-                // SAME source as the guest Arrival Info screen — one directions rule, no drift.
-                'directions' => ArrivalPack::directions($r->property),
-                'accessCode' => $this->accessCode,
+                'unitName' => $unitName !== '' ? $unitName : (string) ($r->property->name ?? 'your unit'),
+                'reference' => (string) $r->reference,
+                'checkInLabel' => $checkIn->format('D, j M'),
+                'checkOutLabel' => Carbon::parse($r->check_out)->format('D, j M'),
+                'checkInTime' => $pack['check_in_time'],
+                'checkOutTime' => $pack['check_out_time'],
+                // The guest's OWN access secrets (released in-window; null before it opens → the template says when).
+                'doorCode' => $pack['door_code'],
+                'releasedFrom' => $pack['released_from'],
+                'wifiSsid' => $pack['wifi_ssid'],
+                'wifiPassword' => $pack['wifi_password'],
+                'directions' => $directions,
+                'mapsUrl' => $directions !== null ? 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($directions) : null,
+                'balance' => $balanceMinor > 0 ? MoneyFormatter::display($balanceMinor, (string) $r->currency) : null,
+                'payUrl' => route('guest.payments'),
+                'arrivalUrl' => route('guest.arrival', $r->getKey()),
+                'checkinUrl' => route('guest.checkin', $r->getKey()),
+                'viewUrl' => route('guest.manage', $r->getKey()),
+                'messagesUrl' => route('guest.messages'),
             ],
         );
     }
