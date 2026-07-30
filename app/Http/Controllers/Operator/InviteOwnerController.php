@@ -49,14 +49,20 @@ class InviteOwnerController extends Controller
         $commissionPct = $isOwner && isset($validated['commission_pct']) ? (float) $validated['commission_pct'] : null;
 
         try {
-            $invites->invite($validated['name'], $validated['email'], $unitIds, $commissionPct, $validated['role']);
+            $result = $invites->invite($validated['name'], $validated['email'], $unitIds, $commissionPct, $validated['role']);
         } catch (RuntimeException) {
             // e.g. the email already belongs to an active account, or an unmappable role — graceful, not a crash.
             return back()->withInput()->with('owners_error', 'That email can’t be invited — it may already have a Vyrobel account.');
         }
 
+        // Feed the exact-match "Invite sent" confirmation view (rendered on this PRG): the real invited email +
+        // the real 7-day expiry from the invite record. Structured flash (not derivable from owners_notice).
         return redirect()
             ->route('app.owners')
-            ->with('owners_notice', 'Invite sent to '.$validated['email'].'.');
+            ->with('owners_notice', 'Invite sent to '.$validated['email'].'.')
+            ->with('owner_invite_sent', [
+                'email' => $validated['email'],
+                'expires' => $result['invite']->expires_at?->format('j M Y'),
+            ]);
     }
 }

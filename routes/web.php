@@ -53,6 +53,7 @@ use App\Http\Controllers\Operator\GuestActionController;
 use App\Http\Controllers\Operator\GuestRequestAdminController;
 use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
+use App\Http\Controllers\Operator\InviteOwnerPreviewController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\MaintenanceSettingsController;
 use App\Http\Controllers\Operator\OperatorProfileController;
@@ -460,6 +461,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::get('/owners', OperatorOwners::class)->name('owners');
     Route::post('/owners/invite', [InviteOwnerController::class, 'store'])
         ->middleware(['throttle:10,1', 'can:users.manage'])->name('owners.invite');
+    // "Preview the invite email" (the invite modal) — renders the REAL OwnerInviteMail template (transient
+    // invite, placeholder token; never sends/writes). Operator-admin gated, exactly like the invite write.
+    Route::get('/owners/invite/preview', [InviteOwnerPreviewController::class, 'show'])
+        ->middleware('can:users.manage')->name('owners.invite.preview');
     // Wave 1 · Sub-gate 3 — the operator's TENANT-scoped lens on ONE owner (units/agreement/
     // statements/payouts/balance). NOT owner-scoped: OwnerScope is inactive off-portal, so this
     // deliberately reads the whole owner relationship the operator manages, within their own org
