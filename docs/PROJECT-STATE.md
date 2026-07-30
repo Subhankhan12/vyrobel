@@ -6,9 +6,29 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v23) · OWNER BOOKING DETAIL exact-match rebuild COMPLETE. This block
-> SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-BOOKINGDETAIL-AUDIT.md` →
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v24) · OWNER NOTIFICATIONS exact-match rebuild COMPLETE. This block
+> SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-NOTIFICATIONS-AUDIT.md` →
 > `docs/DECISIONS.md`.**
+>
+> **Owner Notifications (`/owner/notification-preferences`, Invariant #79)** rebuilt to the decoded wireframe
+> EXACTLY on the REAL `NotificationPreferences` engine — **no schema/service/controller change** (the shared
+> engine + the operator prefs page byte-unchanged; founder chose display-only SMS). The engine already existed +
+> is real: a typed per-user × per-event × per-channel store whose `allows()` genuinely gates delivery (via
+> `FeedNotification::via()`, mutation-proven), owner Mailables extend `FeedNotification`, and the wireframe's 5
+> events map EXACTLY to the real owner catalog. **⚠️ EMAIL is REAL** (per-event prefs stored + honored; an
+> email-off really stops the email; defaults correct). **⚠️ SMS is HONEST-GATED** — display-only, disabled,
+> "not active until SMS is set up", **no `name` → never submitted/stored** (no provider, a Wave-D hard-defer),
+> NEVER a toggle that implies a send (#39). **⚠️ The urgent-bypass guarantee is REAL — verbatim** (`account_security`
+> is `always_on` → can never be suppressed; no marketing event exists). The **In-app column is dropped** (portal
+> always records) but the in-app pref is **preserved** via hidden inputs (the feed is never silently off); the
+> owner's OWN email (auth user) + phone (`Owner.phone`) are shown (NOT guest #28); **quiet hours** kept as a
+> documented addition. Save = the existing self-only POST (#20) + the wireframe toast. `OwnerNotificationsPageTest`
+> (3) proves the sections + real-email-honored + in-app-preserved + no-sms-row + urgent-bypass. Suite **1268/9565**
+> green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **Invariants #1–79.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v23) · OWNER BOOKING DETAIL exact-match rebuild COMPLETE.**
 >
 > **Owner Booking Detail (`/owner/bookings/{booking}`, Invariant #78)** rebuilt to the decoded wireframe EXACTLY
 > on the already-correct owner-scoped backend (the page was ALREADY owner-scoped via the through-units 404 guard,
