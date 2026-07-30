@@ -32,11 +32,17 @@
             </div>
         </div>
 
-        {{-- All-properties KPI strip — REAL aggregates over the accessible set --}}
-        <div class="vy-dash-kpis vy-fade">
-            {{-- Uniform light tile (the prototype's Portfolio KPIs have no dark hero; matches the
-                 Rates/Insights precedent). The occupancy bar keeps a light-surface track bg so it stays
-                 visible off the dark panel (page-local override — the shared .vy-dk-track is untouched). --}}
+        @if (session('portfolio_notice')) <div class="vy-flash is-ok vy-fade">{{ session('portfolio_notice') }}</div> @endif
+        @if (session('portfolio_error')) <div class="vy-flash is-err vy-fade">{{ session('portfolio_error') }}</div> @endif
+
+        {{-- All-properties KPI strip — REAL aggregates over the accessible set (Revenue·month / Occupancy /
+             Arrivals / Needs-attention), matching the wireframe. Every figure REAL/DERIVED (#39). --}}
+        <div class="vy-dash-kpis vy-dash-kpis--4 vy-fade">
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">Revenue · month</div>
+                <div class="vy-dk-val">{{ $summary['revenue_month'] }}</div>
+                <div class="vy-dk-sub">room revenue · {{ $summary['properties'] }} {{ \Illuminate\Support\Str::plural('property', $summary['properties']) }}</div>
+            </div>
             <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Occupancy tonight</div>
                 <div class="vy-dk-val">{{ $summary['occupancy_pct'] }}<span class="vy-dk-unit">%</span></div>
@@ -44,19 +50,14 @@
                 <div class="vy-dk-sub">{{ $summary['rooms_sold'] }} of {{ $summary['rooms_total'] }} rooms sold</div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Properties</div>
-                <div class="vy-dk-val">{{ $summary['properties'] }}</div>
-                <div class="vy-dk-sub">{{ $summary['units'] }} units total</div>
-            </div>
-            <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Arrivals today</div>
                 <div class="vy-dk-val">{{ $summary['arrivals'] }}</div>
-                <div class="vy-dk-sub">across the portfolio</div>
+                <div class="vy-dk-sub">across {{ $summary['properties'] }} {{ \Illuminate\Support\Str::plural('property', $summary['properties']) }}</div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">ADR · {{ $comparisonYear }}</div>
-                <div class="vy-dk-val">{{ $comparison['total']['adr'] }}</div>
-                <div class="vy-dk-sub">RevPAR {{ $comparison['total']['revpar'] }}</div>
+                <div class="vy-dk-label">Needs attention</div>
+                <div class="vy-dk-val">{{ $summary['needs_attention'] }}</div>
+                <div class="vy-dk-sub">{{ $summary['needs_attention'] === 0 ? 'all good' : 'setup / sync' }}</div>
             </div>
         </div>
 
@@ -77,12 +78,20 @@
 
                         <div class="vy-prop-stats">
                             <div><span class="vy-ps-val">{{ $p['occupancy_pct'] }}%</span><span class="vy-ps-lab">Occupancy</span></div>
-                            <div><span class="vy-ps-val">{{ $p['units'] }}</span><span class="vy-ps-lab">Units</span></div>
-                            <div><span class="vy-ps-val">{{ $p['arrivals'] }}</span><span class="vy-ps-lab">Arrivals</span></div>
+                            <div><span class="vy-ps-val">{{ $p['adr'] }}</span><span class="vy-ps-lab">ADR</span></div>
+                            <div><span class="vy-ps-val">{{ $p['revenue'] }}</span><span class="vy-ps-lab">Revenue</span></div>
                         </div>
 
                         <div class="vy-prop-status vy-status-{{ $p['status']['tone'] }}">
                             <span class="vy-status-dot"></span>{{ $p['status']['label'] }}
+                        </div>
+
+                        {{-- Fix-sync — HONEST: the REAL channel status (never a fabricated "synced", #85/#39). --}}
+                        <div class="vy-prop-sync vy-status-{{ $p['sync']['tone'] }}" style="font-size: 11.5px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <span><span class="vy-status-dot"></span>{{ $p['sync']['label'] }}</span>
+                            @if ($p['sync']['needs_fix'])
+                                <a href="{{ route('app.channels') }}" style="color: var(--vy-accent); font-weight: 600;">Fix sync →</a>
+                            @endif
                         </div>
 
                         <div class="vy-prop-actions">
@@ -109,7 +118,7 @@
              year, all REAL via the SG1 metric layer. A property with no data shows honest zeros. --}}
         @if (count($comparison['rows']) > 0)
             <div class="vy-card vy-fade" style="margin-top: 14px;">
-                <div class="vy-card-head"><h3>This year, side by side</h3><span class="vy-card-note">occupancy · ADR · RevPAR · room revenue · {{ $comparisonYear }}</span></div>
+                <div class="vy-card-head"><h3>This month, side by side</h3><span class="vy-card-note">occupancy · ADR · RevPAR · room revenue</span></div>
                 <table class="vy-table">
                     <thead><tr><th>Property</th><th class="vy-num">Occupancy</th><th class="vy-num">ADR</th><th class="vy-num">RevPAR</th><th class="vy-num">Room revenue</th></tr></thead>
                     <tbody>

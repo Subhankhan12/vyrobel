@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Models\PropertyAssignment;
+use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,10 @@ class PropertyController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return redirect()->route('app.portfolio')->with('portfolio_error', 'Workspace paused — adding a property is read-only until '.app(OperatorWorkspace::class)->resumeLabel().'.');
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:'.implode(',', self::TYPES)],
@@ -78,6 +83,10 @@ class PropertyController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return redirect()->route('app.portfolio')->with('portfolio_error', 'Workspace paused — editing a property is read-only until '.app(OperatorWorkspace::class)->resumeLabel().'.');
+        }
+
         $data = $request->validate([
             'property_id' => ['required', 'string'],
             'name' => ['required', 'string', 'max:255'],

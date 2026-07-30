@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Livewire\Operator;
 
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\Channel;
 use App\Models\Property;
 use App\Services\FrontDeskService;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Property\PropertyOccupancy;
 use Carbon\CarbonImmutable;
@@ -23,11 +25,12 @@ use Livewire\Component;
  * entry point. The overview always spans the user's FULL accessible set (the property_user allow-list, or
  * the whole org when unpivoted) — independent of the topbar switcher's current selection.
  *
- * DESIGN vs REALITY (honesty rule): the prototype's side-by-side ADR / RevPAR / revenue comparison table
- * is ANALYTICS — deferred honestly to Phase 6b, never fabricated. Portfolio v1 shows only REAL/DERIVED
- * figures: unit counts, occupancy from the Availability spine, arrivals from the front-desk read, and a
- * status DERIVED from real inventory ("Finish setup to go live" when a property has no units yet — its
- * genuine pre-operational state, not a faked status).
+ * #96 exact-match: the KPI strip now carries Revenue·month + Needs-attention (real derived), the cards carry
+ * per-property ADR + room revenue (this month), and an HONEST Fix-sync affordance (the REAL `channels.status`
+ * — "Sync needs attention"/"Channels connected"/"No channels connected", NEVER a fabricated "synced N min ago",
+ * #85/#39). All figures REAL/DERIVED: occupancy from the Availability spine, arrivals from the front-desk read,
+ * ADR/RevPAR/revenue via the SG1 {@see PerformanceMetrics} (Group = Σ properties, reconciling #17), and a status
+ * DERIVED from real inventory ("Finish setup to go live" when a property has no units yet).
  *
  * TENANT-scoped (Property is BelongsToOrganization); `/app` behind EnsureBackOfficeAccess (#26); the route
  * carries `can:properties.view`. The Add/Edit affordances render only for `properties.manage` so the UI
@@ -55,6 +58,8 @@ class OperatorPortfolio extends Component
     public function render(FrontDeskService $desk): View
     {
         $today = CarbonImmutable::today()->toDateString();
+        $monthStart = CarbonImmutable::today()->startOfMonth();
+        $monthEnd = $monthStart->addMonth();
 
         /** @var Collection<int, Property> $properties */
         $properties = $this->accessibleIds === []
@@ -65,10 +70,30 @@ class OperatorPortfolio extends Component
                 ->orderBy('name')
                 ->get();
 
-        $cards = $properties->map(function (Property $property) use ($desk, $today): array {
+        // Real per-property channel status (#93/#85 honest — the fix-sync affordance reads the real
+        // `channels.status`/`last_synced_at`, NEVER a fabricated "synced"). One batched read.
+        $channelByProperty = Channel::query()
+            ->whereIn('property_id', $properties->pluck('id'))
+            ->get()
+            ->groupBy('property_id');
+
+        $needsAttention = 0;
+        $revenueMonthMinor = 0;
+        $revenueCurrency = (string) ($properties->first()->currency ?? 'EUR');
+
+        $cards = $properties->map(function (Property $property) use ($desk, $today, $monthStart, $monthEnd, $channelByProperty, &$needsAttention, &$revenueMonthMinor): array {
             $occ = PropertyOccupancy::forProperties([(string) $property->id], $today);
             $unitCount = (int) $property->units_count;
             $roomTypeCount = (int) $property->room_types_count;
+            $currency = (string) ($property->currency ?? 'EUR');
+            $m = PerformanceMetrics::forProperties([(string) $property->id], $monthStart, $monthEnd, $currency);
+            $revenueMonthMinor += $m->roomRevenueMinor;
+
+            $status = $this->statusFor($property, $unitCount, $roomTypeCount);
+            $sync = $this->channelStatus($channelByProperty->get($property->id));
+            if ($status['setup'] || $sync['needs_fix']) {
+                $needsAttention++;
+            }
 
             return [
                 'id' => (string) $property->id,
@@ -81,8 +106,11 @@ class OperatorPortfolio extends Component
                 'occupancy_pct' => $occ['pct'],
                 'rooms_sold' => $occ['sold'],
                 'rooms_total' => $occ['total'],
+                'adr' => $this->money($m->adrMinor(), $currency),
+                'revenue' => $this->money($m->roomRevenueMinor, $currency),
                 'arrivals' => $desk->arrivals((string) $property->id, $today)->count(),
-                'status' => $this->statusFor($property, $unitCount, $roomTypeCount),
+                'status' => $status,
+                'sync' => $sync,
                 'is_current' => (string) $property->id === $this->currentPropertyId,
                 'timezone' => (string) $property->timezone,
                 'type' => (string) $property->type,
@@ -104,11 +132,36 @@ class OperatorPortfolio extends Component
                 'rooms_sold' => $aggregate['sold'],
                 'rooms_total' => $aggregate['total'],
                 'arrivals' => $arrivalsToday,
+                'revenue_month' => $this->money($revenueMonthMinor, $revenueCurrency),
+                'needs_attention' => $needsAttention,
             ],
             'comparison' => $this->comparison($properties),
             'comparisonYear' => CarbonImmutable::today()->format('Y'),
             'canViewAnalytics' => (bool) auth()->user()?->can('reports.view'),
+            'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
         ]);
+    }
+
+    /**
+     * The property's REAL channel status (#85 honest) — read from `channels.status`, NEVER fabricated. Live
+     * two-way sync is account-gated, so `last_synced_at` is null and this never claims "synced N min ago".
+     *
+     * @param  Collection<int, Channel>|null  $channels
+     * @return array{label: string, tone: string, needs_fix: bool}
+     */
+    private function channelStatus($channels): array
+    {
+        if ($channels === null || $channels->isEmpty()) {
+            return ['label' => 'No channels connected', 'tone' => 'muted', 'needs_fix' => false];
+        }
+        if ($channels->contains(fn (Channel $c): bool => (string) $c->status === 'error')) {
+            return ['label' => 'Sync needs attention', 'tone' => 'warn', 'needs_fix' => true];
+        }
+        if ($channels->contains(fn (Channel $c): bool => (string) $c->status === 'connected')) {
+            return ['label' => 'Channels connected', 'tone' => 'ok', 'needs_fix' => false];
+        }
+
+        return ['label' => 'Channels disconnected', 'tone' => 'muted', 'needs_fix' => false];
     }
 
     /**
@@ -121,9 +174,10 @@ class OperatorPortfolio extends Component
      */
     private function comparison($properties): array
     {
-        $today = CarbonImmutable::today();
-        $start = $today->startOfYear();
-        $end = $start->addYear();
+        // #96 — "This month, side by side" (matches the wireframe + the month-scoped KPI/cards). Same
+        // PerformanceMetrics for a row [$id] and the Group ($accessibleIds) → Group = Σ reconciles (#17).
+        $start = CarbonImmutable::today()->startOfMonth();
+        $end = $start->addMonth();
 
         $rows = $properties->map(function (Property $property) use ($start, $end): array {
             $currency = (string) ($property->currency ?? 'EUR');
