@@ -21,26 +21,42 @@ use Illuminate\Support\Carbon;
  * HONESTY (invariant #19) — every element is a certified read or a value DERIVED from one; the design's
  * fiction is OMITTED, because a document has no "Soon": it states a real fact or stays silent.
  *   • REAL     — amount / currency / status / rail / paid_at / external_ref / failure_reason (payout);
- *                sequence_no / period / fx (statement); the statement's component + net lines.
- *   • DERIVED  — the amount LABEL and the rail/status words, from the real enums only.
- *   • OMITTED  — IBAN / bank-account details (Payout has NO such field; `connect_account_id` is the
- *                DEFERRED Connect rail and is never surfaced), estimated settlement dates, a
- *                "Scheduled" status (not in the enum), a "SEPA" claim (the rail is `manual`), invented
- *                RA-/OS- reference formats, and operator VAT/address (Organization carries neither —
- *                verified against the model + migration). Reference / Paid-on / Failure rows appear
- *                ONLY when the underlying field is genuinely set.
+ *                sequence_no / period / fx (statement); the statement's component + net lines (commission
+ *                at the REAL agreement rate — it IS the certified statement line, never a hardcoded %).
+ *   • DERIVED  — the amount LABEL and the rail/status words (from the real enums); the operator VAT/country
+ *                LETTERHEAD (real `billing_company`/`billing_vat_id`/`country`, shown only when set); the
+ *                masked payout IBAN (the owner's real `iban_last4` via the shared Iban::masked, passed in
+ *                CAP_PAYOUT-gated by the controller — #28, never the full number, omitted otherwise); the
+ *                `RA-YYYY-MM` reference (period-derived, like the booking-summary's BS-YYYY-MM).
+ *   • OMITTED  — an ESTIMATED settle date (there is no estimate field — `paid_on` shows ONLY once the payout
+ *                is genuinely paid, never a projection), a "Scheduled" status (not in the enum) and a "SEPA"
+ *                claim (the rail word comes from RailLabel). Reference / Paid-on / Failure / FX / IBAN rows
+ *                appear ONLY when the underlying field is genuinely set.
  *   • NO GUEST PII — owner surfaces show no guest names (locked precedent); statement lines are bucket
  *                labels, so no guest identity can reach this document.
  */
 final class OwnerRemittanceDocument
 {
     /**
+     * @param  string|null  $ibanMasked  the owner's masked payout IBAN — resolved CAP_PAYOUT-gated by the caller
+     *                                   ({@see OwnerNextPayout}); null for a non-payout-capable viewer (#28).
      * @return array<string, mixed>
      */
-    public static function data(Payout $payout): array
+    public static function data(Payout $payout, ?string $ibanMasked = null): array
     {
         $currency = (string) $payout->currency;
         $status = (string) $payout->status;
+
+        // Letterhead — the operator's REAL registered identity (same rule as the statement/booking-summary PDFs):
+        // VAT + country shown ONLY when set; the wireframe's street/city is not modelled, so only the country.
+        $org = Organization::query()->whereKey($payout->organization_id)->firstOrNew(['id' => $payout->organization_id]);
+        $addr = 'Managing agent';
+        if (($org->country ?? '') !== '') {
+            $addr .= ' · '.$org->country;
+        }
+        if (($org->billing_vat_id ?? '') !== '') {
+            $addr .= ' · VAT '.$org->billing_vat_id;
+        }
 
         // Owner-scoped relation off the already-scoped payout. `owner_statement_id` is a NOT NULL FK, so
         // this resolves for every payout the owner can see; still guarded, so a missing statement OMITS
@@ -61,7 +77,13 @@ final class OwnerRemittanceDocument
             ->all();
 
         return [
-            'operator' => (string) (Organization::query()->whereKey($payout->organization_id)->value('name') ?? 'Vyrobel'),
+            'operator' => (string) ($org->billing_company ?? $org->name ?? 'Vyrobel'),
+            'operator_addr' => $addr,
+            // A period-derived remittance reference (RA-YYYY-MM), like the booking-summary's BS-YYYY-MM — derived,
+            // never fabricated; the accompanied statement is cross-referenced by its REAL sequence_no.
+            'doc_ref' => $statement !== null ? 'RA-'.$statement->period_start->format('Y-m') : null,
+            // The owner's masked payout IBAN — passed in CAP_PAYOUT-gated; null → the row is omitted (#28). Never full.
+            'iban_masked' => $ibanMasked,
             // The payee is the owner's REGISTERED legal name when set (from the Tax & remittance details), else
             // their display name — so the remittance advice prints the same payee the owner captured.
             'owner_name' => (string) ($payout->owner?->legal_name ?: ($payout->owner->name ?? 'Owner')),

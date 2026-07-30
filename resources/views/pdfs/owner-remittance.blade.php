@@ -47,62 +47,39 @@
 </head>
 <body>
     <div class="wrap">
-        {{-- Letterhead — the Vyrobel brand-mark + the REAL operator organization name --}}
+        {{-- Letterhead — the Vyrobel brand-mark + the operator's REAL registered identity (company · country ·
+             VAT, when set) + the period-derived remittance reference --}}
         <table class="hdr" width="100%">
             <tr>
                 <td>
                     <span class="brand-mark">V</span>
-                    <span style="font-size:16px; font-weight:bold; padding-left:6px;">Vyrobel</span>
-                    <div class="muted" style="margin-top:6px; font-size:11px;">{{ $operator }}</div>
+                    <span style="font-size:16px; font-weight:bold; padding-left:6px;">{{ $operator }}</span>
+                    <div class="muted" style="margin-top:6px; font-size:10.5px;">{{ $operator_addr }}</div>
                 </td>
                 <td style="text-align:right;">
                     <div class="eyebrow">Remittance advice</div>
                     <h1>Payout remittance</h1>
-                    @if ($period_label)
-                        <div class="muted" style="margin-top:4px; font-size:11px;">{{ $period_label }}@if ($sequence_no) · Statement #{{ $sequence_no }}@endif</div>
-                    @endif
+                    @if ($doc_ref)<div style="font-size:13px; font-weight:bold; margin-top:3px;">{{ $doc_ref }}</div>@endif
+                    @if ($period_label)<div class="muted" style="margin-top:2px; font-size:11px;">{{ $period_label }}{{ $owner_name ? ' · '.$owner_name : '' }}</div>@endif
                 </td>
             </tr>
         </table>
 
-        {{-- Payout summary — the REAL amount, and the status word straight from the payouts enum --}}
+        {{-- Payout summary — the REAL amount + the status word straight from the payouts enum + the bank line
+             (masked IBAN, CAP_PAYOUT-gated; the settle date is real only once paid — never an estimate) --}}
         <table class="sum">
             <tr>
                 <td>
                     <div class="eyebrow">{{ $amount_label }}</div>
                     <div class="figure">{{ $amount_display }}</div>
+                    <div class="muted" style="margin-top:6px; font-size:10.5px;">{{ $method }}@if ($iban_masked) · IBAN {{ $iban_masked }}@endif@if ($paid_on) · paid {{ $paid_on }}@endif</div>
                 </td>
                 <td style="text-align:right;">
                     <span class="pill pill--{{ $status_tone }}">{{ $status_label }}</span>
-                    <div class="muted" style="margin-top:8px; font-size:11px;">{{ $method }}</div>
+                    @if ($sequence_no)<div class="muted" style="margin-top:8px; font-size:10.5px;">Statement #{{ $sequence_no }}</div>@endif
+                    @if ($period_range)<div class="muted" style="margin-top:2px; font-size:10.5px;">{{ $period_range }}</div>@endif
                 </td>
             </tr>
-        </table>
-
-        {{-- Payment details — every row is a real field; an unset field OMITS its row (no fake IBAN,
-             no estimated settlement date, no invented reference format) --}}
-        <table class="meta">
-            <tr><td class="k">Beneficiary</td><td>{{ $owner_name }}</td></tr>
-            @if ($period_range)
-                <tr><td class="k">Period</td><td>{{ $period_range }}</td></tr>
-            @endif
-            @if ($sequence_no)
-                <tr><td class="k">Statement</td><td>#{{ $sequence_no }}</td></tr>
-            @endif
-            <tr><td class="k">Method</td><td>{{ $method }}</td></tr>
-            @if ($paid_on)
-                <tr><td class="k">Paid on</td><td>{{ $paid_on }}</td></tr>
-            @endif
-            @if ($reference)
-                <tr><td class="k">Reference</td><td>{{ $reference }}</td></tr>
-            @endif
-            <tr><td class="k">Currency</td><td>{{ $currency }}</td></tr>
-            @if ($fx)
-                <tr><td class="k">FX</td><td>1 {{ $fx['source'] }} = {{ $fx['rate'] }} {{ $currency }} <span class="muted">(source: {{ $fx['src'] }})</span></td></tr>
-            @endif
-            @if ($failure_reason)
-                <tr><td class="k">Failure</td><td>{{ $failure_reason }}</td></tr>
-            @endif
         </table>
 
         {{-- How it's calculated — the source statement's REAL lines; the components sum to the net --}}
@@ -126,6 +103,30 @@
         @endif
 
         <div class="reconcile">{{ $amount_label }}: <strong>{{ $amount_display }}</strong>@if ($has_unverified) <span class="muted">— includes provisional lines pending verification.</span>@endif</div>
+
+        {{-- Payment details — every row is a real field; an unset field OMITS its row (no fake IBAN, no
+             estimated settlement date, no invented reference format). Masked IBAN only when CAP_PAYOUT (#28). --}}
+        <h2 style="font-size:12px; margin:24px 0 0; letter-spacing:.04em; text-transform:uppercase; color:#8A8079;">Payment details</h2>
+        <table class="meta">
+            <tr><td class="k">Beneficiary</td><td>{{ $owner_name }}</td></tr>
+            @if ($iban_masked)
+                <tr><td class="k">Account</td><td>IBAN {{ $iban_masked }}</td></tr>
+            @endif
+            <tr><td class="k">Method</td><td>{{ $method }}</td></tr>
+            @if ($paid_on)
+                <tr><td class="k">Paid on</td><td>{{ $paid_on }}</td></tr>
+            @endif
+            @if ($reference)
+                <tr><td class="k">Reference</td><td>{{ $reference }}</td></tr>
+            @endif
+            <tr><td class="k">Currency</td><td>{{ $currency }}</td></tr>
+            @if ($fx)
+                <tr><td class="k">FX</td><td>1 {{ $fx['source'] }} = {{ $fx['rate'] }} {{ $currency }} <span class="muted">(source: {{ $fx['src'] }})</span></td></tr>
+            @endif
+            @if ($failure_reason)
+                <tr><td class="k">Failure</td><td>{{ $failure_reason }}</td></tr>
+            @endif
+        </table>
 
         @if ($sequence_no)
             <div class="foot">

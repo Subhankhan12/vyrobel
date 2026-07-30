@@ -238,3 +238,29 @@ it('links the real remittance from the payouts screen', function () {
     // The link target is the owner's OWN payout — and it really streams.
     expect((string) Payout::query()->whereKey($a['payout']->id)->value('owner_id'))->toBe((string) $a['owner']->id);
 });
+
+// ── Exact-match (#81) — the VAT letterhead + masked IBAN + RA reference render when the data is REAL ──
+it('renders the operator VAT letterhead, the masked IBAN and the RA reference — reconciling', function () {
+    $s = seedScenario(1);
+    // Real operator identity on the letterhead (shown only when set).
+    $s['org']->update(['billing_company' => 'Coastal Stays Lda', 'billing_vat_id' => 'PT512034776', 'country' => 'PT']);
+    $r = remittanceOwner($s, 0, 60000, pay: true);   // €600 room → statement + paid payout
+
+    // The masked IBAN is passed in CAP_PAYOUT-gated by the controller — here we prove the DOCUMENT renders it.
+    $html = view('pdfs.owner-remittance', OwnerRemittanceDocument::data($r['payout'], '···· 4821'))->render();
+
+    expect($html)->toContain('Coastal Stays Lda')      // real billing company
+        ->toContain('VAT PT512034776')                 // real VAT (letterhead)
+        ->toContain('IBAN ···· 4821')                   // the masked IBAN (never the full number)
+        ->toContain('RA-2026-09')                       // the period-derived remittance ref
+        ->toContain('Payment details');                 // the payment-details section
+
+    // #28 — with no CAP_PAYOUT (null iban), the IBAN row is OMITTED entirely.
+    $noIban = view('pdfs.owner-remittance', OwnerRemittanceDocument::data($r['payout'], null))->render();
+    expect($noIban)->not->toContain('IBAN');
+
+    // #17 — the breakdown still reconciles: the net line equals the payout amount.
+    $netMinor = (int) OwnerStatementLine::query()->where('owner_statement_id', $r['statement']->id)->where('line_type', 'net')->value('amount_minor');
+    expect($html)->toContain(MoneyFormatter::display($netMinor, 'EUR'))
+        ->and((int) $r['payout']->amount_minor)->toBe($netMinor);
+});

@@ -6,9 +6,34 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v25) · INVITE OWNER (form + email) exact-match COMPLETE. This block
-> SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/INVITE-OWNER-FLOW-AUDIT.md` →
-> `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v26) · OWNER RATES + REMITTANCE PDF exact-match COMPLETE. This block
+> SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-RATES-REMITTANCE-AUDIT.md`
+> → `docs/DECISIONS.md`.**
+>
+> **Owner Rates (`/owner/rates`) + the Remittance Advice PDF (Invariant #81)** matched to their two wireframes on
+> REAL owner-scoped data, BUILDING the missing pieces. **GATE 1 — Rates (`e5d8adb`):** rebuilt to the wireframe's
+> four sections (keeping the shipped direct-edit as an "Adjust a rate directly" addition). Proposed rate changes
+> surfaces the REAL rate-proposals (#67) on the page. 🔨 **BUILT the COUNTER** — a real `countered` state (owner
+> counters → operator accepts, applying the owner's rate via the certified `OwnerRateService`; additive, audited).
+> 🔨 **BUILT the GUARDRAILS** — a per-owner `rate_guardrails` store (mode / auto-approve ±% / floor / ceiling) that
+> GENUINELY ENFORCES on operator proposals in `RateProposalService::propose()` (below floor/above ceiling
+> REJECTED · within ±% [dynamic] AUTO-APPLIED · else pending), gated on an explicit saved row so existing
+> proposals are undisturbed — mutation-proven, never inert. Current rates = Base/Weekend/Occ (Peak OMITTED — no
+> tier). Where you sit = the REAL average alone; the comp-set / "below market" OMITTED (no market feed —
+> honest "benchmarking coming", #39). `OwnerRateService::applyForExclusiveOwner()` lets the certified write run
+> owner-side AND operator-side without the owner scope (exclusive-ownership verified). **GATE 2 — the Remittance
+> PDF:** it already reconciled (renders the payout's REAL `owner_statement_lines` → the commission is already the
+> real **18%**); matched to the wireframe by adding the real VAT/country letterhead, the masked IBAN (CAP_PAYOUT,
+> never full, #28), the RA-YYYY-MM ref, and the Payment-details section; the est-date stays honest (paid-on only
+> once paid). 🔒 #28 masked IBAN + owner-scoped; #17 reconciles at the real 18%; #20 counter/guardrails
+> controller-routed + gated + audited; #42 PDF CAP_EXPORTS-gated; #39 no comp-set / fake-counter / inert-guardrail
+> / invented-Peak / fabricated est-date. `RateProposalTest` +6, `OwnerRemittancePdfTest` +1; browser-verified
+> (counter→countered, guardrails, remittance reconciling at 18%). Suite **1278/9620** green; PHPStan L5 (0); Pint
+> clean; `migrate:fresh --seed` clean. **Invariants #1–81.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v25) · INVITE OWNER (form + email) exact-match COMPLETE.**
 >
 > **Invite Owner — the operator "Invite owner" modal + the invite EMAIL (Invariant #80)** matched to their two
 > wireframes EXACTLY on the **REAL, certified invite flow** — no backend rebuild. The flow already existed + is
