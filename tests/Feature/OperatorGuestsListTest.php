@@ -243,24 +243,30 @@ it('excludes cancelled bookings from the stay count and badges the guest from th
     $response->assertSeeInOrder(['Ada Lovelace', '2']);
 });
 
-// ── 9. FILTERS — VIP / at-risk / tag, each a REAL column or the real catalog ─────────────────────
-it('filters by the real VIP, risk and tag columns, and preserves the search across chips', function () {
-    $s = seedScenario(1);
+// ── 9. FILTERS — All · In-house · Upcoming · VIP (#87), each a REAL column or the shared stay-state ─
+it('filters by the real VIP column and the shared in-house / upcoming stay-state, preserving search', function () {
+    $s = seedScenario(2);
     $vip = crmGuest('Vera', 'Vip', ['is_vip' => true]);
-    crmGuest('Rex', 'Rogue', ['risk_flag' => true]);
+    $inHouse = crmGuest('Ivan', 'Inhouse');
+    crmStay($s, 0, $inHouse, 'checked_in');                                       // in-house now (frozen 09-02)
+    $upcoming = crmGuest('Uma', 'Upcoming');
+    crmStay($s, 1, $upcoming, 'confirmed', '2026-09-20', '2026-09-22');           // future arrival
     crmGuest('Plain', 'Person');
-
-    $tag = Tag::create(['name' => 'Corporate', 'color' => '#8A6410']);
-    $vip->tags()->attach($tag);
 
     $operator = operatorUser($s);
 
     $this->actingAs($operator)->get('/app/guests?filter=vip')
-        ->assertOk()->assertSee('Vera Vip')->assertDontSee('Rex Rogue')->assertDontSee('Plain Person');
+        ->assertOk()->assertSee('Vera Vip')->assertDontSee('Plain Person');
 
-    $this->actingAs($operator)->get('/app/guests?filter=risk')
-        ->assertOk()->assertSee('Rex Rogue')->assertDontSee('Plain Person');
+    $this->actingAs($operator)->get('/app/guests?filter=in_house')
+        ->assertOk()->assertSee('Ivan Inhouse')->assertDontSee('Plain Person')->assertDontSee('Uma Upcoming');
 
+    $this->actingAs($operator)->get('/app/guests?filter=upcoming')
+        ->assertOk()->assertSee('Uma Upcoming')->assertDontSee('Plain Person')->assertDontSee('Ivan Inhouse');
+
+    // Tag filtering survives via the URL (the shared catalog), even though the chip row now shows the 4 tabs.
+    $tag = Tag::create(['name' => 'Corporate', 'color' => '#8A6410']);
+    $vip->tags()->attach($tag);
     $this->actingAs($operator)->get('/app/guests?tag='.$tag->id)
         ->assertOk()->assertSee('Vera Vip')->assertDontSee('Plain Person');
 
@@ -269,10 +275,10 @@ it('filters by the real VIP, risk and tag columns, and preserves the search acro
         ->assertOk()->assertSee('Plain Person');
 });
 
-// ── 10. SEARCH is name-only (decision 1) — and the page SAYS so rather than looking broken ───────
-it('searches names only, and states outright that encrypted contact detail cannot be searched', function () {
+// ── 10. SEARCH — name + city + EXACT email via the blind index (#87); partial email/phone cannot ─
+it('searches by name and city, matches an exact email via the blind index, and says what it cannot search', function () {
     $s = seedScenario(1);
-    crmGuest('Ada', 'Lovelace', ['email' => 'ada.lovelace@example.test']);
+    crmGuest('Ada', 'Lovelace', ['email' => 'ada.lovelace@example.test', 'city' => 'Dublin']);
     crmGuest('Rex', 'Rogue');
 
     $operator = operatorUser($s);
@@ -283,12 +289,19 @@ it('searches names only, and states outright that encrypted contact detail canno
     // A full name matches across the two plaintext columns (CONCAT_WS).
     $this->actingAs($operator)->get('/app/guests?q=Ada+Lovelace')->assertOk()->assertSee('Ada Lovelace');
 
-    // Searching the EMAIL matches nothing — encrypted TEXT is not indexed by value. The honest part is that
-    // the page never claimed it would, and says why in the footer.
+    // City is a real plaintext column — searchable.
+    $this->actingAs($operator)->get('/app/guests?q=Dublin')->assertOk()->assertSee('Ada Lovelace')->assertDontSee('Rex Rogue');
+
+    // An EXACT email address matches via the deterministic email_hash blind index (never the ciphertext).
     $this->actingAs($operator)->get('/app/guests?q=ada.lovelace@example.test')
+        ->assertOk()->assertSee('Ada Lovelace')->assertDontSee('Rex Rogue');
+
+    // A PARTIAL email matches nothing — the hash is exact, and the ciphertext is not indexed by value. The
+    // footer says outright what can and cannot be searched.
+    $this->actingAs($operator)->get('/app/guests?q=lovelace@')
         ->assertOk()
         ->assertDontSee('Ada Lovelace')
-        ->assertSee('email and phone are encrypted at rest, so they cannot be searched', false);
+        ->assertSee('phone and partial email are encrypted at rest, so they cannot be searched', false);
 });
 
 // ── 11. An ANONYMIZED guest degrades honestly — the GDPR row must still render ───────────────────
@@ -330,7 +343,7 @@ it('derives the stat tiles from real rows and refuses to invent a trend', functi
 
     $response->assertOk()
         ->assertSee('Guest profiles')
-        ->assertSee('In-house now')
+        ->assertSee('In-house tonight')
         // 1 of the 2 guests who have actually stayed came back. "Never Booked" is excluded from both sides —
         // they are not a one-time guest, they are not a guest yet. The denominator is on the tile's face.
         // (Asserted in fragments: the template wraps the sentence, so the rendered HTML carries newlines and

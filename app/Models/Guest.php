@@ -55,13 +55,34 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
         'last_name',
         'email',
         'phone',
+        'city',
         'nationality',
         'dob',
         'language',
+        'prefers_email',
         'is_vip',
         'risk_flag',
         'marketing_consent',
+        'preferences',
         'external_refs',
+    ];
+
+    /**
+     * The fixed catalog of stay PREFERENCES (#87) — key => label. Shown to the front desk + housekeeping so a
+     * cleaner/receptionist prepares the right room. A `guests.preferences` JSON array holds the ACTIVE keys;
+     * an unknown key is dropped on write, so the set can never drift from this catalog.
+     *
+     * @var array<string, string>
+     */
+    public const PREFERENCE_CATALOG = [
+        'sea_view' => 'Sea view',
+        'high_floor' => 'High floor',
+        'late_checkout' => 'Late checkout',
+        'quiet_room' => 'Quiet room',
+        'ground_floor' => 'Ground floor',
+        'early_checkin' => 'Early check-in',
+        'extra_towels' => 'Extra towels',
+        'crib' => 'Crib',
     ];
 
     /**
@@ -86,9 +107,11 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
             'password' => 'hashed',
             'email_verified_at' => 'datetime',
             'dob' => 'date',
+            'prefers_email' => 'boolean',
             'is_vip' => 'boolean',
             'risk_flag' => 'boolean',
             'marketing_consent' => 'boolean',
+            'preferences' => 'array',
             'external_refs' => 'array',
             'anonymized_at' => 'datetime',
         ];
@@ -213,9 +236,13 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
                 'last_name' => null,
                 'email' => null,
                 'phone' => null,
+                // #87 — a residence + stay preferences are personal data ABOUT the guest; erasure clears them too.
+                'city' => null,
+                'preferences' => null,
                 'nationality' => null,
                 'dob' => null,
                 'language' => null,
+                'prefers_email' => true,
                 'external_refs' => null,
                 'marketing_consent' => false,
                 // GDPR erase ALSO destroys any portal account — an anonymized guest can never log in again

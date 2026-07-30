@@ -51,6 +51,7 @@ use App\Http\Controllers\Operator\EmailTemplateController;
 use App\Http\Controllers\Operator\FolioPdfController;
 use App\Http\Controllers\Operator\GroupBookingController;
 use App\Http\Controllers\Operator\GuestActionController;
+use App\Http\Controllers\Operator\GuestBulkActionController;
 use App\Http\Controllers\Operator\GuestRequestAdminController;
 use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
@@ -665,6 +666,15 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // and persisted nothing; these POSTs go through GuestService (the single path that records the audit +
     // domain events). {guest} is a plain string resolved tenant-scoped in the component/controller (never
     // RMB) → cross-org 404. Contact fields are encrypted casts — the cast does the encrypting.
+    // #87 — Add guest (real create) + the list BULK actions (Message · Delete[erasure] · Export). Message/Export
+    // carry no extra gate (any back-office user on the CRM); the bulk DELETE is `guests.erase` (#30), like the
+    // single erase. All behind #26; every write re-resolves ids tenant-scoped + respects read-only (#84).
+    Route::post('/guests', [GuestActionController::class, 'store'])->name('guests.store');
+    Route::post('/guests-bulk/message', [GuestBulkActionController::class, 'message'])->name('guests.bulk.message');
+    Route::post('/guests-bulk/tag', [GuestBulkActionController::class, 'tag'])->name('guests.bulk.tag');
+    Route::post('/guests-bulk/export', [GuestBulkActionController::class, 'export'])->name('guests.bulk.export');
+    Route::post('/guests-bulk/anonymize', [GuestBulkActionController::class, 'anonymize'])
+        ->middleware('can:guests.erase')->name('guests.bulk.anonymize');
     Route::get('/guests/{guest}', GuestProfile::class)->name('guests.show');
     Route::post('/guests/{guest}', [GuestActionController::class, 'updateProfile'])->name('guests.update');
     Route::post('/guests/{guest}/notes', [GuestActionController::class, 'addNote'])->name('guests.notes.store');

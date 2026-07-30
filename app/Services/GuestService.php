@@ -38,7 +38,7 @@ use Illuminate\Support\Facades\DB;
 class GuestService
 {
     /** The profile fields an operator may edit. Anything not named here cannot be written through this path. */
-    public const EDITABLE = ['first_name', 'last_name', 'email', 'phone', 'is_vip', 'risk_flag', 'marketing_consent'];
+    public const EDITABLE = ['first_name', 'last_name', 'email', 'phone', 'city', 'nationality', 'prefers_email', 'is_vip', 'risk_flag', 'marketing_consent', 'preferences'];
 
     /** The subset whose VALUES must never reach the audit trail (encrypted at rest — see the class docblock). */
     public const SENSITIVE = ['email', 'phone'];
@@ -47,6 +47,51 @@ class GuestService
         private DomainEventRecorder $domainEvents,
         private AuditEventRecorder $audit,
     ) {}
+
+    /**
+     * Create a new guest profile (#87 — the list's "Add guest"). Only {@see EDITABLE} keys are honoured; the
+     * organization is auto-filled by BelongsToOrganization (never a request-supplied id). The email cast
+     * encrypts + the saving() hook writes the blind index. Audited + domain-evented, like every write here.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function create(array $attributes, ?User $by = null): Guest
+    {
+        $attributes = array_intersect_key($attributes, array_flip(self::EDITABLE));
+        if (array_key_exists('preferences', $attributes)) {
+            $attributes['preferences'] = self::normalizePreferences($attributes['preferences']);
+        }
+
+        $guest = DB::transaction(fn (): Guest => Guest::query()->create($attributes));
+
+        // WHICH fields were set — never the encrypted contact VALUES (audit/domain tables are plaintext and
+        // anonymize() does not clear them).
+        $fields = array_values(array_diff(array_keys($attributes), self::SENSITIVE));
+        $this->domainEvents->record('guest.created', $guest, ['fields' => $fields]);
+        $this->audit->record('guest.created', $guest, null, ['by' => (string) ($by?->getKey() ?? Auth::id() ?? '')]);
+
+        return $guest;
+    }
+
+    /**
+     * Keep only real {@see Guest::PREFERENCE_CATALOG} keys, in catalog order — a foreign key is dropped, so the
+     * stored set can never drift from the catalog, and the order is stable (so a no-op edit compares equal).
+     *
+     * @param  mixed  $raw
+     * @return list<string>
+     */
+    public static function normalizePreferences($raw): array
+    {
+        $selected = is_array($raw) ? $raw : [];
+        $out = [];
+        foreach (array_keys(Guest::PREFERENCE_CATALOG) as $key) {
+            if (in_array($key, $selected, true) || ($selected[$key] ?? false)) {
+                $out[] = $key;
+            }
+        }
+
+        return $out;
+    }
 
     /**
      * Update a guest's profile. Only {@see EDITABLE} keys are honoured; the caller has already validated
@@ -64,6 +109,10 @@ class GuestService
     public function updateProfile(Guest $guest, array $attributes, ?User $by = null): Guest
     {
         $attributes = array_intersect_key($attributes, array_flip(self::EDITABLE));
+        if (array_key_exists('preferences', $attributes)) {
+            // Whitelist against the catalog, in catalog order — so a re-submitted unchanged set compares equal.
+            $attributes['preferences'] = self::normalizePreferences($attributes['preferences']);
+        }
 
         // Compare BEFORE writing, so the event payload reports what actually moved. Loose-typed compare via
         // the model's own attribute (already cast: a bool column returns bool, an encrypted column returns

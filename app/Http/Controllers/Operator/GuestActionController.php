@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Guest;
 use App\Models\Tag;
 use App\Services\GuestService;
+use App\Support\Operator\OperatorWorkspace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -47,6 +48,10 @@ class GuestActionController extends Controller
     {
         $model = Guest::query()->findOrFail($guest);   // tenant-scoped → cross-org 404
 
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->back($model->id, 'guest_error', $this->pausedMessage());
+        }
+
         // An anonymized guest must not be re-populated with PII: the row is kept ONLY so the financial
         // history that references it stays intact, and writing a name back would quietly un-erase them.
         if ($model->isAnonymized()) {
@@ -60,27 +65,69 @@ class GuestActionController extends Controller
             'last_name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:64'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'nationality' => ['nullable', 'string', 'size:2'],
             'is_vip' => ['sometimes', 'boolean'],
             'risk_flag' => ['sometimes', 'boolean'],
+            'prefers_email' => ['sometimes', 'boolean'],
             'marketing_consent' => ['sometimes', 'boolean'],
+            'preferences' => ['sometimes', 'array'],
+            'preferences.*' => ['string'],
         ]);
 
         // An unchecked checkbox posts NOTHING, so a missing key means false — not "leave as-is". Without
         // this, a toggle could be switched on but never off: the classic checkbox bug, and on `risk_flag`
         // it would mean a flag an operator cannot clear.
-        foreach (['is_vip', 'risk_flag', 'marketing_consent'] as $flag) {
+        foreach (['is_vip', 'risk_flag', 'prefers_email', 'marketing_consent'] as $flag) {
             $validated[$flag] = $request->boolean($flag);
         }
+        // A form with no preference chips ticked posts no `preferences` key — read it as "clear them all".
+        $validated['preferences'] = (array) $request->input('preferences', []);
 
         $guests->updateProfile($model, $validated, $request->user());
 
         return $this->back($model->id, 'guest_notice', 'Profile updated.');
     }
 
+    /**
+     * Add a new guest (#87 — the list's "Add guest"). A real create through {@see GuestService::create}
+     * (audited); the org is auto-filled, never a request id. Read-only respected. Redirects to the new profile.
+     */
+    public function store(Request $request, GuestService $guests): RedirectResponse
+    {
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return redirect()->route('app.guests')->with('guest_error', $this->pausedMessage());
+        }
+
+        $validated = $request->validate([
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:64'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'nationality' => ['nullable', 'string', 'size:2'],
+            'is_vip' => ['sometimes', 'boolean'],
+            'prefers_email' => ['sometimes', 'boolean'],
+            'marketing_consent' => ['sometimes', 'boolean'],
+        ]);
+
+        foreach (['is_vip', 'prefers_email', 'marketing_consent'] as $flag) {
+            $validated[$flag] = $request->boolean($flag);
+        }
+
+        $guest = $guests->create($validated, $request->user());
+
+        return redirect()->route('app.guests.show', $guest->id)->with('guest_notice', 'Guest added.');
+    }
+
     /** Add an internal note — the first real writer of the shared polymorphic `notes` table. */
     public function addNote(Request $request, GuestService $guests, string $guest): RedirectResponse
     {
         $model = Guest::query()->findOrFail($guest);
+
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->back($model->id, 'guest_error', $this->pausedMessage());
+        }
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:2000'],
@@ -99,6 +146,10 @@ class GuestActionController extends Controller
     {
         $model = Guest::query()->findOrFail($guest);
 
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->back($model->id, 'guest_error', $this->pausedMessage());
+        }
+
         $validated = $request->validate([
             // `max:255` matches the real `tags.name` string column.
             'name' => ['required', 'string', 'max:255'],
@@ -113,6 +164,10 @@ class GuestActionController extends Controller
     public function removeTag(Request $request, GuestService $guests, string $guest): RedirectResponse
     {
         $model = Guest::query()->findOrFail($guest);
+
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->back($model->id, 'guest_error', $this->pausedMessage());
+        }
 
         // Re-resolved through the tenant scope rather than trusted from the body — a foreign tag id 404s.
         $tag = Tag::query()->findOrFail((string) $request->input('tag'));
@@ -146,6 +201,10 @@ class GuestActionController extends Controller
     {
         $model = Guest::query()->findOrFail($guest);   // tenant-scoped → cross-org 404
 
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->back($model->id, 'guest_error', $this->pausedMessage());
+        }
+
         // Idempotence with a clean flash, never a 500: re-erasing is harmless (the fields are already null)
         // but it would restamp `anonymized_at` and re-audit, implying a second erasure that did not happen.
         if ($model->isAnonymized()) {
@@ -171,5 +230,11 @@ class GuestActionController extends Controller
     private function back(string $guestId, string $key, string $message): RedirectResponse
     {
         return redirect()->route('app.guests.show', $guestId)->with($key, $message);
+    }
+
+    /** The read-only refusal message — the workspace is paused (#84), so no guest write lands. */
+    private function pausedMessage(): string
+    {
+        return 'Your workspace is paused (read-only) — changes are off until you resume. Resume from Billing.';
     }
 }

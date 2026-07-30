@@ -15,6 +15,7 @@ use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -117,8 +118,14 @@ class GuestsList extends Component
     /** Bound the search term: a LIKE pattern is not a place to accept unbounded user input. */
     private const MAX_QUERY = 100;
 
-    /** The flag filters this page offers, each backed by a REAL boolean column on `guests`. */
-    private const FLAG_FILTERS = ['vip' => 'is_vip', 'risk' => 'risk_flag'];
+    /**
+     * The segmented filters the list offers (#87, matching the wireframe): All · In-house · Upcoming · VIP.
+     * `in_house`/`upcoming` are REAL stay-state filters via the shared {@see ReservationStage::scope()} (never a
+     * re-derived predicate); `vip` is the real `is_vip` column.
+     *
+     * @var list<string>
+     */
+    private const FILTERS = ['in_house', 'upcoming', 'vip'];
 
     public function render(): View
     {
@@ -156,7 +163,7 @@ class GuestsList extends Component
     {
         $param = request()->query('filter');
 
-        return is_string($param) && array_key_exists($param, self::FLAG_FILTERS) ? $param : null;
+        return is_string($param) && in_array($param, self::FILTERS, true) ? $param : null;
     }
 
     /**
@@ -195,9 +202,14 @@ class GuestsList extends Component
     {
         $query = Guest::query();
 
-        if ($filter !== null) {
-            // A REAL boolean column, named in FLAG_FILTERS — never a user-supplied column name.
-            $query->where(self::FLAG_FILTERS[$filter], true);
+        $today = CarbonImmutable::today();
+        if ($filter === 'vip') {
+            $query->where('is_vip', true);   // a REAL boolean column
+        } elseif ($filter === 'in_house') {
+            // The SHARED stay-state resolver's own SQL — a guest with a checked-in stay right now.
+            $query->whereIn('id', ReservationStage::scope(Reservation::query(), ReservationStage::IN_HOUSE, $today)->select('lead_guest_id'));
+        } elseif ($filter === 'upcoming') {
+            $query->whereIn('id', ReservationStage::scope(Reservation::query(), ReservationStage::UPCOMING, $today)->select('lead_guest_id'));
         }
 
         if ($tag !== null) {
@@ -205,16 +217,21 @@ class GuestsList extends Component
         }
 
         if ($search !== '') {
-            // PLAINTEXT COLUMNS ONLY (decision 1). `email`/`phone` are encrypted casts — the ciphertext is
-            // not indexed by value, so a LIKE over them would match nothing while LOOKING like a working
-            // search. They are rendered on this page but never queried.
             // `%` and `_` are escaped so a term containing them searches for the literal character.
             $term = '%'.addcslashes($search, '%_\\').'%';
 
-            // CONCAT_WS over the two plaintext name columns so "Ada", "Lovelace" and "Ada Lovelace" all
-            // match one typed term. CONCAT_WS skips NULLs, so an anonymized guest (names nulled by
-            // Guest::anonymize()) never matches — it does not error.
-            $query->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", [$term]);
+            $query->where(function (Builder $q) use ($term, $search): void {
+                // CONCAT_WS over the two plaintext name columns so "Ada", "Lovelace" and "Ada Lovelace" all
+                // match one typed term. CONCAT_WS skips NULLs, so an anonymized guest never matches.
+                $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", [$term])
+                    ->orWhere('city', 'like', $term);
+
+                // ⚠️ email/phone are ENCRYPTED — not searchable by value. But the deterministic `email_hash`
+                // blind index lets an EXACT email match work: if the term is a full address, match its hash.
+                if (str_contains($search, '@')) {
+                    $q->orWhere('email_hash', Guest::emailHash(trim($search)));
+                }
+            });
         }
 
         return $query;
@@ -290,11 +307,48 @@ class GuestsList extends Component
             'stays' => GuestHistory::for($guest->reservations)['stays'],
             'stage' => $stage,
             'stage_meta' => $stage !== null ? ReservationStage::meta($stage) : null,
+            // The wireframe's "Last stay" cell — a live state (In house / Arrives today) or the real date.
+            'last_stay' => $this->lastStay($guest->reservations, $today),
             // Decision 1 (locked) — BILLED, with the open balance BESIDE it, never netted into it.
             // Per currency, never summed across (invariant #17).
             'billed' => $this->moneyLines($spend, 'billed_minor'),
             'balance' => $this->moneyLines($spend, 'balance_minor'),
         ];
+    }
+
+    /**
+     * The "Last stay" cell (#87) — the most relevant real state of this guest's most significant reservation:
+     * "In house" now, "Arrives today", an upcoming/past date, or null for a guest who has never booked. Derived
+     * from the SAME reservations + shared resolver as the badge, so the two cells never disagree.
+     *
+     * @param  Collection<int, Reservation>|iterable<Reservation>  $reservations
+     */
+    private function lastStay($reservations, CarbonImmutable $today): ?string
+    {
+        $stage = ReservationStage::mostSignificant($reservations, $today);
+        if ($stage === null) {
+            return null;
+        }
+        if ($stage === ReservationStage::IN_HOUSE) {
+            return 'In house';
+        }
+
+        // The reservation that most significantly represents this guest right now → its arrival (upcoming) or
+        // its departure (past). A cancelled booking is not a stay, so it never sources the label.
+        $relevant = collect($reservations)
+            ->reject(fn (Reservation $r): bool => in_array((string) $r->status, ReservationStage::CANCELLED_STATUSES, true))
+            ->sortByDesc(fn (Reservation $r): string => (string) $r->check_in)
+            ->first();
+        if ($relevant === null) {
+            return null;
+        }
+
+        $checkIn = CarbonImmutable::parse($relevant->check_in)->startOfDay();
+        if ($stage === ReservationStage::UPCOMING || $checkIn->greaterThan($today)) {
+            return $checkIn->isSameDay($today) ? 'Arrives today' : 'Arrives '.$checkIn->format('j M Y');
+        }
+
+        return CarbonImmutable::parse($relevant->check_out)->format('j M Y');
     }
 
     /**
@@ -349,43 +403,31 @@ class GuestsList extends Component
      * yet; `DemoSeeder` seeds a small real catalog so the demo shows the true feature, and the guest PROFILE
      * is where they will be attached.)
      *
-     * @return list<array{label: string, count: int, active: bool, href: string, tone: ?string}>
+     * @return list<array{label: string, count: int, active: bool, href: string}>
      */
     private function chips(?string $filter, ?string $tag, string $search): array
     {
-        $chips = [[
+        return [[
             'label' => 'All',
             'count' => $this->baseQuery(null, null, $search)->count(),
-            'active' => $filter === null && $tag === null,
+            'active' => $filter === null,
             'href' => $this->href(null, null, $search),
-            'tone' => null,
+        ], [
+            'label' => 'In-house',
+            'count' => $this->baseQuery('in_house', null, $search)->count(),
+            'active' => $filter === 'in_house',
+            'href' => $this->href('in_house', null, $search),
+        ], [
+            'label' => 'Upcoming',
+            'count' => $this->baseQuery('upcoming', null, $search)->count(),
+            'active' => $filter === 'upcoming',
+            'href' => $this->href('upcoming', null, $search),
         ], [
             'label' => 'VIP',
             'count' => $this->baseQuery('vip', null, $search)->count(),
             'active' => $filter === 'vip',
             'href' => $this->href('vip', null, $search),
-            'tone' => 'vip',
-        ], [
-            'label' => 'At risk',
-            'count' => $this->baseQuery('risk', null, $search)->count(),
-            'active' => $filter === 'risk',
-            'href' => $this->href('risk', null, $search),
-            'tone' => 'risk',
         ]];
-
-        foreach (Tag::query()->orderBy('name')->get() as $catalogTag) {
-            $id = (string) $catalogTag->getKey();
-
-            $chips[] = [
-                'label' => (string) $catalogTag->name,
-                'count' => $this->baseQuery(null, $id, $search)->count(),
-                'active' => $tag === $id,
-                'href' => $this->href(null, $id, $search),
-                'tone' => 'tag',
-            ];
-        }
-
-        return $chips;
     }
 
     /** A chip link that PRESERVES the active search — switching filter must not silently drop the term. */
@@ -491,6 +533,8 @@ class GuestsList extends Component
 
         $line = $parts === [] ? $line : $line.' · '.implode(' · ', $parts);
 
-        return $line.' · Search covers names only — email and phone are encrypted at rest, so they cannot be searched.';
+        // Search matches name, city, and an EXACT email address (via the blind index). Phone and a PARTIAL
+        // email are encrypted at rest and cannot be searched — said outright, not left looking broken.
+        return $line.' · Search matches name, city and an exact email address — phone and partial email are encrypted at rest, so they cannot be searched.';
     }
 }
