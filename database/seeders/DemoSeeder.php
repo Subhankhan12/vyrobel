@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Actions\Authorization\OrganizationRoleProvisioner;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Exceptions\Booking\BookingException;
+use App\Models\AgreementAmendment;
 use App\Models\Amenity;
 use App\Models\Building;
 use App\Models\Channel;
@@ -729,10 +730,30 @@ class DemoSeeder extends Seeder
             'commission_pct' => 18.00,
             'payout_currency' => 'EUR',
             'payout_schedule' => 'monthly',
+            // Real contractual terms (Owner Agreement exact-match #82) so the agreement page shows the real
+            // Term / Notice / Auto-renew rows rather than omitting them.
+            'term_months' => 12,
+            'notice_days' => 60,
+            'auto_renews' => true,
             'effective_from' => '2026-01-01',
             'effective_to' => null,
             'status' => 'active',
             'attribution_rules' => ['non_deductible_categories' => ['other']],
+        ]);
+
+        // DEMO ONLY (Owner Agreement exact-match #82) — a real PENDING amendment so the acknowledgment flow
+        // demos end-to-end. Effective in the future (no already-attributed night is touched) and it makes a
+        // REAL term change (18% → 17%), so acknowledging visibly supersedes the agreement via the certified
+        // effective-dating. Left unacknowledged in the seed so the demo owner sees "ready to acknowledge".
+        AgreementAmendment::create([
+            'organization_id' => $ownerParty->organization_id,
+            'owner_id' => $ownerParty->id,
+            'version' => '2026 rate-card',
+            'title' => '2026 rate-card & fee schedule',
+            'summary' => 'Updated management fee for the 2026 season.',
+            'effective_date' => '2026-10-01',
+            'new_terms' => ['commission_pct' => 17.00],
+            'status' => AgreementAmendment::STATUS_PUBLISHED,
         ]);
 
         // DEMO ONLY — a real, valid default payout account (so the Payouts / Payout-Method / Statement pages demo

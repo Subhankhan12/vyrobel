@@ -70,6 +70,8 @@ use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Owner\OwnerAccountController;
+use App\Http\Controllers\Owner\OwnerAgreementController;
+use App\Http\Controllers\Owner\OwnerAgreementPdfController;
 use App\Http\Controllers\Owner\OwnerAttentionController;
 use App\Http\Controllers\Owner\OwnerBalanceExportController;
 use App\Http\Controllers\Owner\OwnerBlockController;
@@ -798,6 +800,12 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         Route::get('/balance/export', [OwnerBalanceExportController::class, 'download'])->name('balance.export');
         // Owner Expenses exact-match — the expense-history CSV (owner-scoped; the deductible tri-state + real vendor).
         Route::get('/expenses/export', [OwnerExpensesExportController::class, 'download'])->name('expenses.export');
+        // Owner Agreement exact-match (#82) — the agreement + amendment PDFs. OWNER-scoped EXPLICITLY inside
+        // the controller (management_agreements / agreement_amendments carry no OwnerScope) — a cross-owner
+        // amendment id 404s; fail-closed for a non-linked user. The amendment path is 4 segments so it can't
+        // collide with the 2-segment acknowledge POST.
+        Route::get('/agreement/pdf', [OwnerAgreementPdfController::class, 'agreement'])->name('agreement.pdf');
+        Route::get('/agreement/amendments/{amendment}/pdf', [OwnerAgreementPdfController::class, 'amendment'])->name('agreement.amendments.pdf');
         // "Email to me" (completeness sweep · Wave A · GATE 4) — queues the owner's latest finalized statement PDF
         // to their OWN inbox (self-only; no recipient in the request). Throttled — a mail action, not a page load.
         Route::post('/reports/email', [OwnerReportEmailController::class, 'send'])->middleware('throttle:6,1')->name('reports.email');
@@ -931,6 +939,11 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     Route::get('/balance', OwnerBalance::class)->name('balance');
     Route::get('/expenses', OwnerExpenses::class)->name('expenses');
     Route::get('/agreement', OwnerAgreement::class)->name('agreement');
+    // Owner Agreement exact-match (#82) — acknowledge a published amendment. The REAL replacement for the
+    // wireframe's fake "Review & sign": a real, audited record of consent (#20) that applies the new terms
+    // via the certified effective-dating. $capActions (co-owner only — a money-class control); OWNER-scoped
+    // inside the controller (a cross-owner amendment 404s). An in-portal ACKNOWLEDGMENT, not an e-signature.
+    Route::post('/agreement/amendments/{amendment}/acknowledge', [OwnerAgreementController::class, 'acknowledge'])->middleware($capActions)->name('agreement.amendments.acknowledge');
     Route::get('/archive', OwnerArchive::class)->name('archive');
     // Wave 1 · Sub-gate 4 — the owner's document library: an owner-scoped aggregation over the REAL
     // generatable PDFs (statement · remittance · booking summary). No document is invented.

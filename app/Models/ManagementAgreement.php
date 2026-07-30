@@ -21,6 +21,11 @@ use Illuminate\Support\Carbon;
  * the documented default in the attribution engine (Step 2).
  *
  * @property array<string, mixed>|null $attribution_rules
+ * @property Carbon $effective_from
+ * @property Carbon|null $effective_to
+ * @property int|null $term_months
+ * @property int|null $notice_days
+ * @property bool|null $auto_renews
  */
 class ManagementAgreement extends Model
 {
@@ -36,6 +41,9 @@ class ManagementAgreement extends Model
         'management_fee_interval',
         'payout_currency',
         'payout_schedule',
+        'term_months',
+        'notice_days',
+        'auto_renews',
         'attribution_rules',
         'effective_from',
         'effective_to',
@@ -51,6 +59,9 @@ class ManagementAgreement extends Model
             'commission_pct' => 'decimal:2',
             'management_fee' => MoneyCast::class.':management_fee_minor,management_fee_currency',
             'attribution_rules' => 'array',
+            'term_months' => 'integer',
+            'notice_days' => 'integer',
+            'auto_renews' => 'boolean',
             'effective_from' => 'date',
             'effective_to' => 'date',
         ];

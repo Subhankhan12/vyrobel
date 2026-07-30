@@ -67,16 +67,12 @@ it('renders the real agreement in effect and never invents a signing flow', func
         ->assertSee('Quarterly')       // REAL payout_schedule (distinct from the fee interval)
         ->assertSee('Portfolio-wide')  // unit_id null = the whole portfolio
         ->assertSee('1 Jan 2026')      // REAL effective_from
-        ->assertSee('Open-ended')      // effective_to null — never a fabricated end date
         ->assertSee('EUR')             // REAL payout currency
         ->assertSee('Active')          // the REAL status enum
-        // ⚠️ there is NO e-signature backend, no amendment model and no signing state — a signing flow
-        // must not appear at all, not even disabled.
+        // ⚠️ the wireframe's FAKE e-signature copy is never used — the built flow says "acknowledge", and
+        // with no amendment on file no amendment card renders at all (#82).
         ->assertDontSee('Review & sign')
-        ->assertDontSee('Amendment')
-        ->assertDontSee('Preview')
-        ->assertDontSee('Auto-renews')
-        ->assertDontSee('ready to sign');
+        ->assertDontSee('ready to acknowledge');
 
     // The rendered terms are the stored row, to the cent / to the digit.
     $stored = ManagementAgreement::query()->find($a['agreement']->id);
@@ -131,7 +127,7 @@ it('renders unset terms as "Not set" and never as a zero figure', function () {
         ->assertOk()
         ->assertSee('Active agreement')
         ->assertSee('Not set')
-        ->assertSee('No commission rate is set on your agreement')
+        ->assertSee('no commission rate is set')
         // ⚠️ a null commission/fee must never be presented as an agreed zero.
         ->assertDontSee('0.00%')
         ->assertDontSee('€0.00');
@@ -201,10 +197,9 @@ it('renders a per-unit agreement against its real unit and lists only the stored
     $this->actingAs($a['user'])->get('/owner/agreement')
         ->assertOk()
         ->assertSee('Portfolio-wide')          // the portfolio-wide agreement headlines
-        ->assertSee('Also in effect')
-        ->assertSee($a['unit']->code)          // the per-unit row names its REAL owner-scoped unit
-        ->assertSee('12.25%')                  // the REAL per-unit commission
-        ->assertSee('2 agreements in effect today')
+        ->assertSee('Terms by villa')          // the wireframe's per-villa surface (#82)
+        ->assertSee($a['unit']->code)          // the per-villa row names its REAL owner-scoped unit
+        ->assertSee('12.25%')                  // the REAL per-unit commission (resolveFor — the same the engine uses)
         // the REAL stored override keys/values — and nothing else
         ->assertSee('OTA Cost Bearer')
         ->assertSee('Cleaning Fee Bearer')

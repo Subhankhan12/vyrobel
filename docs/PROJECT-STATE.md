@@ -6,9 +6,37 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v26) · OWNER RATES + REMITTANCE PDF exact-match COMPLETE. This block
-> SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-RATES-REMITTANCE-AUDIT.md`
-> → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v27) · OWNER AGREEMENT + AMENDMENT ACKNOWLEDGMENT exact-match COMPLETE.
+> This block SUPERSEDES every block below it. Fresh-session entry point: this block →
+> `docs/OWNER-AGREEMENT-AUDIT.md` → `docs/DECISIONS.md`.**
+>
+> **Owner Agreement (`/owner/agreement`) (Invariant #82)** matched to `Owner Agreement.html` on the REAL
+> `ManagementAgreement`, BUILDING the missing pieces (single gate). The wireframe's headline interaction —
+> "Amendment ready to sign" — is now REAL as an in-portal **ACKNOWLEDGMENT**: new `agreement_amendments` +
+> `agreement_amendment_acknowledgments`; the owner reviews (Preview shows the real changed terms) and
+> acknowledges (a real audited consent record — who/when/version, #20, CAP_ACTIONS via
+> `AgreementAmendmentService`), which APPLIES the new terms via the **certified effective-dating** (a
+> superseding effective-dated `ManagementAgreement` — history never rewritten; the change goes "in effect"
+> automatically when the date arrives). Framed "acknowledged in your portal", **NEVER a fake "signed"
+> badge**; a legally-binding e-signature is honest-deferred. Idempotent (unique + re-submit 404s). The
+> previously-refused richer terms are now BUILT: **Term/Notice/Auto-renew** (additive nullable columns,
+> honest when null), **"What your fee covers"** (descriptive standard-service copy + the REAL owner-billed
+> expense categories, reconciling with Expenses), **"Terms by villa"** (REAL per-unit commission via the
+> new shared `OwnerAgreementTerms` — the SAME `resolveFor` the attribution engine uses, #17; cleaning
+> honest "At cost"). **Download agreement** + per-amendment PDFs are REAL (`OwnerAgreementDocument`,
+> `$capExports`-gated #42, "summary not a signed contract"). **"Message your manager"** → the real
+> `owner.messages` relay (owner→operator). Commission = the real 18% (`OwnerCommissionRate`), reconciling.
+> 🔒 #28 owner-scoped explicitly (no OwnerScope on these tables — fail-closed), no guest data; #17 the
+> commission reconciles with the statements + the same `resolveFor` per villa; #20 acknowledgment
+> controller-routed + CAP_ACTIONS + audited; #42 PDFs CAP_EXPORTS-gated; #39 no fake signed-badge / invented
+> term / cleaning-rate / owner-stays / inclusion / e-signature claim. `OwnerAgreementViewTest` (7, updated)
+> + `OwnerAgreementAmendmentTest` (5, new); browser-verified (acknowledge → real record + the superseding
+> 17% agreement "Starts 1 Oct 2026", current stays 18%). Suite **1283/9649** green; PHPStan L5 (0); Pint
+> clean; `migrate:fresh --seed` clean. **Invariants #1–82.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v26) · OWNER RATES + REMITTANCE PDF exact-match COMPLETE.**
 >
 > **Owner Rates (`/owner/rates`) + the Remittance Advice PDF (Invariant #81)** matched to their two wireframes on
 > REAL owner-scoped data, BUILDING the missing pieces. **GATE 1 — Rates (`e5d8adb`):** rebuilt to the wireframe's

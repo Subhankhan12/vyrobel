@@ -5,12 +5,18 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\AgreementAmendment;
 use App\Models\ManagementAgreement;
+use App\Models\Organization;
 use App\Models\Owner;
+use App\Models\OwnerExpense;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerAttributionService;
+use App\Support\Owner\OwnerAgreementTerms;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
+use App\Support\Tenancy\TenantContext;
 use DateTimeInterface;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -102,6 +108,10 @@ class OwnerAgreement extends Component
         $owners = $this->ownerRecords($ownerIds);
         $multiOwner = count($ownerIds) > 1;
 
+        // The primary owner id for capability + per-owner reads (the headlined agreement's owner).
+        $primaryOwnerId = $primary instanceof ManagementAgreement ? (string) $primary->owner_id : ($ownerIds[0] ?? null);
+        $context = app(OwnerContext::class);
+
         return view('livewire.owner.agreement', [
             'viewer' => $this->viewer(),
             'active' => $primary instanceof ManagementAgreement ? $this->card($primary, $units, $owners, $multiOwner) : null,
@@ -115,7 +125,210 @@ class OwnerAgreement extends Component
                 $all->reject(fn (ManagementAgreement $a): bool => in_array((string) $a->id, $currentIds, true)),
                 $units, $owners, $multiOwner, $today,
             ),
+            // ── Owner Agreement exact-match (#82) ──────────────────────────────────────────────────
+            'operatorName' => $this->operatorName(),
+            'amendment' => $this->amendmentCard($ownerIds),
+            'feeCovers' => $primary instanceof ManagementAgreement ? $this->feeCovers($ownerIds, $primary) : null,
+            'villas' => OwnerAgreementTerms::perVilla($ownerIds, $today->toDateString()),
+            'keyTerms' => $primary instanceof ManagementAgreement ? $this->keyTerms($primary) : [],
+            'documents' => $this->documents($ownerIds),
+            // Capability flags — the acknowledgment is CAP_ACTIONS (co-owner); PDFs are CAP_EXPORTS.
+            'canAcknowledge' => $primaryOwnerId !== null && $context->canOn($primaryOwnerId, OwnerTeamRole::CAP_ACTIONS),
+            'canExport' => $primaryOwnerId !== null && $context->canOn($primaryOwnerId, OwnerTeamRole::CAP_EXPORTS),
         ]);
+    }
+
+    /** The operator/organisation name for the header copy ("Your terms with {operator}"). */
+    private function operatorName(): string
+    {
+        $id = app(TenantContext::class)->id();
+        $name = $id === null ? null : Organization::query()->whereKey($id)->value('name');
+
+        return is_string($name) && $name !== '' ? $name : 'your operator';
+    }
+
+    /**
+     * The single amendment to surface (the wireframe's toggling card): the PENDING one awaiting
+     * acknowledgment if any, else the most recently APPLIED one. Owner-scoped EXPLICITLY (the table
+     * carries no OwnerScope); null when the owner has no amendments.
+     *
+     * @param  list<string>  $ownerIds
+     * @return array<string, mixed>|null
+     */
+    private function amendmentCard(array $ownerIds): ?array
+    {
+        if ($ownerIds === []) {
+            return null;
+        }
+
+        $pending = AgreementAmendment::query()
+            ->whereIn('owner_id', $ownerIds)
+            ->where('status', AgreementAmendment::STATUS_PUBLISHED)
+            ->orderBy('effective_date')
+            ->first();
+
+        $amendment = $pending ?? AgreementAmendment::query()
+            ->whereIn('owner_id', $ownerIds)
+            ->where('status', AgreementAmendment::STATUS_APPLIED)
+            ->with('acknowledgment.acknowledgedBy')
+            ->orderByDesc('effective_date')
+            ->first();
+
+        if (! $amendment instanceof AgreementAmendment) {
+            return null;
+        }
+
+        $amendment->loadMissing('acknowledgment.acknowledgedBy');
+        $ack = $amendment->acknowledgment;
+
+        return [
+            'id' => (string) $amendment->id,
+            'needs' => $amendment->needsAcknowledgment(),
+            'version' => (string) $amendment->version,
+            'title' => (string) $amendment->title,
+            'summary' => $amendment->summary !== null ? (string) $amendment->summary : null,
+            'effective_display' => $amendment->effective_date->format('j M Y'),
+            'acknowledged_by' => $ack?->acknowledgedBy?->name,
+            'acknowledged_display' => $ack?->acknowledged_at?->format('j M Y'),
+            'changes' => $this->amendmentChanges(is_array($amendment->new_terms) ? $amendment->new_terms : []),
+        ];
+    }
+
+    /**
+     * Human rows for an amendment's `new_terms` (Preview) — real values only.
+     *
+     * @param  array<string, mixed>  $terms
+     * @return list<array{label: string, value: string}>
+     */
+    private function amendmentChanges(array $terms): array
+    {
+        $rows = [];
+
+        if (isset($terms['commission_pct'])) {
+            $rows[] = ['label' => 'Management fee', 'value' => $this->pct((float) $terms['commission_pct']).' of booking revenue'];
+        }
+        if (isset($terms['payout_schedule'])) {
+            $label = $this->intervalLabel($terms['payout_schedule']);
+            if ($label !== null) {
+                $rows[] = ['label' => 'Payout schedule', 'value' => $label];
+            }
+        }
+        if (isset($terms['term_months'])) {
+            $rows[] = ['label' => 'Term', 'value' => ((int) $terms['term_months']).' months'];
+        }
+        if (isset($terms['notice_days'])) {
+            $rows[] = ['label' => 'Notice period', 'value' => ((int) $terms['notice_days']).' days'];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * "What your fee covers" — INCLUDED is honest descriptive copy of what full-service management is (a
+     * generic service description, NOT a per-owner fabricated term). AT-COST is REAL: the distinct
+     * deductible expense categories that genuinely bill the owner (reconciling with the Expenses page);
+     * honest empty when none have been charged.
+     *
+     * @param  list<string>  $ownerIds
+     * @return array{included: list<string>, addons: list<string>}
+     */
+    private function feeCovers(array $ownerIds, ManagementAgreement $primary): array
+    {
+        $included = [
+            'Listing & channel distribution',
+            'Guest communications & support',
+            'Housekeeping coordination',
+            'Pricing & revenue management',
+            'Statements & payouts',
+            'Damage & incident handling',
+        ];
+
+        // REAL at-cost add-ons = the distinct categories of deductible expenses actually charged to this
+        // owner (the same rows the Expenses page shows). Never a fabricated "Professional photography".
+        $addons = $ownerIds === []
+            ? []
+            : OwnerExpense::query()
+                ->whereIn('owner_id', $ownerIds)
+                ->where('deductible', true)
+                ->pluck('category')
+                ->filter(fn ($c): bool => is_string($c) && $c !== '')
+                ->unique()
+                ->map(fn (string $c): string => Str::headline($c))
+                ->values()
+                ->all();
+
+        return ['included' => $included, 'addons' => $addons];
+    }
+
+    /**
+     * Key terms — the REAL fields of the agreement in effect, each rendered only when set. Owner-stays and
+     * cancellations are NOT modelled → never fabricated ("30 nights fee-free" / "per your policy" omitted).
+     *
+     * @return list<array{label: string, value: string}>
+     */
+    private function keyTerms(ManagementAgreement $a): array
+    {
+        $rows = [];
+
+        $schedule = $this->intervalLabel($a->payout_schedule);
+        if ($schedule !== null) {
+            $rows[] = ['label' => 'Payout schedule', 'value' => $schedule];
+        }
+        // A fixed periodic management fee is real data the wireframe has no slot for (its mock has none) —
+        // surfaced honestly when set, never fabricated when null.
+        $fee = $this->feeDisplay($a);
+        if ($fee !== null) {
+            $interval = $this->intervalLabel($a->management_fee_interval);
+            $rows[] = ['label' => 'Management fee', 'value' => $fee.($interval !== null ? ' · '.$interval : '')];
+        }
+        if ($a->notice_days !== null) {
+            $rows[] = ['label' => 'Notice period', 'value' => $a->notice_days.' days, either side'];
+        }
+        if ($a->term_months !== null) {
+            $rows[] = ['label' => 'Term', 'value' => $a->term_months.' months'];
+        }
+        if ($a->auto_renews !== null) {
+            $rows[] = ['label' => 'Renewal', 'value' => $a->auto_renews ? 'Auto-renewing' : 'Does not auto-renew'];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * The Documents list — the base agreement PDF + one row PER real amendment (with its real
+     * acknowledgment date, or "Awaiting acknowledgment"). Owner-scoped explicitly. The PDFs are
+     * CAP_EXPORTS-gated on the route; the links are shown to any viewer but 403 without the capability
+     * (the @if in the view hides them for a view-only sub-user).
+     *
+     * @param  list<string>  $ownerIds
+     * @return array<string, mixed>
+     */
+    private function documents(array $ownerIds): array
+    {
+        $amendments = $ownerIds === []
+            ? collect()
+            : AgreementAmendment::query()
+                ->whereIn('owner_id', $ownerIds)
+                ->visible()
+                ->with('acknowledgment')
+                ->orderByDesc('effective_date')
+                ->get()
+                ->map(fn (AgreementAmendment $m): array => [
+                    'id' => (string) $m->id,
+                    'label' => (string) $m->version.' amendment',
+                    'meta' => $m->acknowledgment !== null
+                        ? 'Acknowledged '.$m->acknowledgment->acknowledged_at?->format('j M Y')
+                        : 'Awaiting acknowledgment',
+                ])
+                ->all();
+
+        return ['amendments' => $amendments];
+    }
+
+    /** Trim a decimal percent to its shortest form: 18.00 → "18%". */
+    private function pct(float $value): string
+    {
+        return rtrim(rtrim(number_format($value, 2), '0'), '.').'%';
     }
 
     /**
@@ -157,7 +370,18 @@ class OwnerAgreement extends Component
             'to_display' => $this->dateDisplay($a->effective_to),
             'status_meta' => $this->agreementStatusMeta((string) $a->status),
             'owner_label' => $multiOwner && $owner instanceof Owner ? (string) $owner->name : null,
+            // Additive contractual terms (#82) — each honest: null → the row is omitted, never fabricated.
+            'term_display' => $a->term_months !== null ? $a->term_months.' months' : null,
+            'notice_display' => $a->notice_days !== null ? $a->notice_days.' days' : null,
+            'auto_renews' => $a->auto_renews,
+            'unit_count' => $this->ownerUnitCount((string) $a->owner_id),
         ];
+    }
+
+    /** The count of units this owner has under management — the real "manages N villas" figure. */
+    private function ownerUnitCount(string $ownerId): int
+    {
+        return Unit::query()->where('owner_id', $ownerId)->count();
     }
 
     /**

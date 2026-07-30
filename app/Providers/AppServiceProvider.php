@@ -12,6 +12,7 @@ use App\Listeners\RecomputeAvailabilityOnInventoryChange;
 use App\Listeners\RecordAuthActivity;
 use App\Listeners\SendGuestTransactionalEmails;
 use App\Models\AddOn;
+use App\Models\AgreementAmendment;
 use App\Models\Amenity;
 use App\Models\BookingQuote;
 use App\Models\Building;
@@ -291,6 +292,10 @@ class AppServiceProvider extends ServiceProvider
             // and enforceMorphMap THROWS on an unregistered model — so it needs an alias.
             'unit_request' => UnitRequest::class,
             'management_agreement' => ManagementAgreement::class,
+            // Owner Agreement exact-match (#82) — the amendment is an audit subject
+            // (owner.agreement.amendment_acknowledged calls getMorphClass()); enforceMorphMap THROWS on an
+            // unregistered model, so it needs an alias.
+            'agreement_amendment' => AgreementAmendment::class,
             'owner_ledger' => OwnerLedgerEntry::class,
             'owner_expense' => OwnerExpense::class,
             'owner_attention_state' => OwnerAttentionState::class,
