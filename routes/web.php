@@ -455,6 +455,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::get('/billing/checkout', OperatorBillingCheckout::class)->middleware('can:billing.manage')->name('billing.checkout');
     Route::post('/billing/company', [BillingActionController::class, 'saveCompany'])->middleware('can:billing.manage')->name('billing.company');
     Route::post('/billing/subscribe', [BillingActionController::class, 'subscribe'])->middleware('can:billing.manage')->name('billing.subscribe');
+    // Operator Billing exact-match (#85) — the REAL pause/cancel/resume state machine. Genuinely gates the
+    // workspace read-only (the shared gate the Dashboard/Calendar consume); no charge; audited.
+    Route::post('/billing/pause', [BillingActionController::class, 'pause'])->middleware('can:billing.manage')->name('billing.pause');
+    Route::post('/billing/cancel', [BillingActionController::class, 'cancel'])->middleware('can:billing.manage')->name('billing.cancel');
+    Route::post('/billing/resume', [BillingActionController::class, 'resume'])->middleware('can:billing.manage')->name('billing.resume');
     // Dev/test-only affordance to demo the access gate (404s outside local/testing) — never a real payment.
     Route::post('/billing/dev-expire', [BillingActionController::class, 'devExpireTrial'])->middleware('can:billing.manage')->name('billing.dev-expire');
 

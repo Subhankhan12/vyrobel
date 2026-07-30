@@ -110,5 +110,38 @@ outside production); tenant-scoped throughout; `billing.manage`-gated writes (#3
 - **(mandated, stated — not choices)** invoices + card **honest-gated** (no fabricated paid-invoice/card); the
   **pause/cancel state machine is REAL** and drives read-only (mutation-proven); no real charge until go-live.
 
-## RESOLUTION
-_(appended at GATE close)_
+## RESOLUTION (GATES closed 2026-07-30 — invariant #85)
+
+Both founder decisions taken **Recommended** (Channels honest-gated; Billing per-unit placeholder). Nothing
+faked; the read-only pause state machine is real + mutation-proven.
+
+**GATE 1 — Channels (`d286014`):** a new `OperatorChannels` component + blade + `app.channels` route
+(Pro-gated via `EnsurePlanFeature:channels` → Essential gets the honest feature-locked page); the nav flipped
+from the null placeholder to the live link for a Pro org. HONEST-GATED: the DIRECT channel is REAL (real
+`source='direct'` count, always live), a connected OTA channel's STATUS is real but live sync/import is
+honestly gated ("mapped & ready — live sync activates with your Channex account" — never a fabricated
+"Synced/imported/last sync 3 min ago"), the booking-mix + stats are REAL by `reservations.source`, and the
+wireframe's fabricated "Expedia disconnected · 3 bookings waiting" is replaced by the honest "Channel sync —
+setup required" core. `OperatorChannelsTest` (3). Browser-verified on a Pro org.
+
+**GATE 2 — Billing (this commit):**
+- **The subscription figure is REAL + reconciling** — a new `SubscriptionPricing` computes the org's REAL
+  active-unit count × a PLACEHOLDER per-unit price (`config/billing.php` `per_unit_minor`=€9) × a placeholder
+  VAT (23%): net + VAT == gross (#17), flagged "test mode · placeholder pricing," no real charge. Browser:
+  8 units × €9 = €72 + €16.56 VAT = **€88.56/mo incl 23% VAT**.
+- **HONEST card + invoices** — "No card on file" (account-gated, never a fake ····4242); the real trial
+  invoice (Free €0.00) + honest "no invoice is invented" (no fabricated "Paid"). Billing details real +
+  editable (reuse `saveCompany`). "What you're paying for" = real unit/team/channel counts.
+- **The REAL pause/cancel → read-only state machine** — a new `SubscriptionLifecycleService` +
+  `organizations.readonly_from` + the extended `OperatorWorkspace` gate + `BillingActionController`
+  pause/cancel/resume routes. **PAUSE** (up to 3 months) sets `paused_until` → the workspace is read-only NOW
+  (the shared gate the Dashboard/Calendar/certified-write consume); **CANCEL** sets `readonly_from =
+  current_period_end` → full access until the paid-through date, then read-only; **RESUME** clears both.
+  Orthogonal to the paywall (`EnsureSubscriptionActive` untouched — the subscription status is never
+  changed). **Mutation-proven** (`OperatorBillingLifecycleTest`): pause → `isReadOnly` true → a new booking
+  POST is REFUSED; cancel schedules read-only from the paid-through date (proven both sides). Browser: Pause
+  3 months → the Dashboard shows "Workspace paused — read-only until 30 Oct."
+
+**Verify:** `OperatorChannelsTest` (3) + `OperatorBillingLifecycleTest` (4); existing billing/dashboard
+suites undisturbed (the paywall/management split keyed on `active`). Suite **1301/9748** green; PHPStan L5
+(0); Pint clean; raw-blade guard clean (caught + fixed two `word@if` traps); `migrate:fresh --seed` clean.

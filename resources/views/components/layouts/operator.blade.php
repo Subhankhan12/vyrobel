@@ -227,6 +227,22 @@
         .vy-bill-feats li.is-off { color: var(--vy-faint); } .vy-bill-feats li.is-off svg { color: var(--vy-faint); }
         .vy-bill-note { color: var(--vy-faint); font-size: 11.5px; }
         .vy-bill-disclaimer { font-size: 11.5px; color: var(--vy-faint); margin-top: 14px; }
+
+        /* Operator Billing exact-match — settings sub-nav, invoices, retention modal */
+        .vy-subnav { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-subnav-tab { padding: 9px 14px; font-size: 13.5px; font-weight: 600; color: var(--vy-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+        .vy-subnav-tab:hover { color: var(--vy-ink); }
+        .vy-subnav-tab.is-active { color: var(--vy-accent); border-bottom-color: var(--vy-accent); }
+        .vy-inv-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-inv-row:last-child { border-bottom: none; }
+        .vy-inv-ref { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; }
+        .vy-inv-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-status--paid { display: inline-flex; align-items: center; font-weight: 700; color: #1B6B48; background: rgba(27,107,72,.12); border-radius: var(--vy-r-pill); padding: 2px 9px; }
+        .vy-modal-scrim { position: fixed; inset: 0; background: rgba(42,33,28,.44); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 60; }
+        .vy-modal { background: var(--vy-glass, #fffdfb); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow-lg, 0 20px 60px rgba(150,90,50,.24)); padding: 26px; width: 100%; max-width: 460px; }
+        .vy-retain-opt { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-retain-opt:last-of-type { border-bottom: none; }
+        [x-cloak] { display: none !important; }
         .vy-seg { display: inline-flex; border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-pill); overflow: hidden; }
         .vy-seg-btn { padding: 7px 16px; font-size: 12.5px; font-weight: 500; color: var(--vy-muted); text-decoration: none; }
         .vy-seg-btn.is-on { background: var(--vy-grad); color: #fff; }

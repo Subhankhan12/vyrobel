@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * every other business model points back here via `organization_id`.
  *
  * @property Carbon|null $paused_until
+ * @property Carbon|null $readonly_from
  */
 class Organization extends Model
 {
@@ -30,6 +31,7 @@ class Organization extends Model
         'country',
         'status',
         'paused_until',
+        'readonly_from',
         'billing_email',
         'billing_company',
         'billing_vat_id',
@@ -45,6 +47,7 @@ class Organization extends Model
         return [
             'branding' => 'array',
             'paused_until' => 'datetime',
+            'readonly_from' => 'datetime',
         ];
     }
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Services\BillingService;
 use App\Services\BillingWebhookService;
+use App\Services\SubscriptionLifecycleService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -75,6 +76,41 @@ class BillingActionController extends Controller
 
         // UX only — fulfilment is on the webhook. Off-site to Stripe's hosted, PCI-scoped card page.
         return redirect()->away($session->url);
+    }
+
+    /**
+     * PAUSE the workspace (the wireframe's "Pause instead") — read-only for 1–3 months via the REAL
+     * {@see SubscriptionLifecycleService}. Genuinely gates the workspace (the shared read-only gate the
+     * Dashboard/Calendar/certified-write consume). No charge; audited.
+     */
+    public function pause(Request $request, SubscriptionLifecycleService $lifecycle): RedirectResponse
+    {
+        $org = Organization::query()->findOrFail(app(TenantContext::class)->id());
+        $months = max(1, min(3, (int) $request->input('months', 1)));
+
+        $until = $lifecycle->pause($org, $months);
+
+        return redirect()->to(route('app.billing'))->with('billing_notice', 'Your workspace is paused (read-only) until '.$until->format('j M Y').'. Resume any time.');
+    }
+
+    /** CANCEL — full access until the paid-through date, then read-only (data kept). REAL; audited. */
+    public function cancel(Request $request, SubscriptionLifecycleService $lifecycle): RedirectResponse
+    {
+        $org = Organization::query()->findOrFail(app(TenantContext::class)->id());
+
+        $from = $lifecycle->cancel($org);
+
+        return redirect()->to(route('app.billing'))->with('billing_notice', 'Your subscription is set to cancel. You keep full access until '.$from->format('j M Y').', then the workspace is read-only.');
+    }
+
+    /** RESUME — clear the pause / scheduled cancellation → the workspace is live again. */
+    public function resume(Request $request, SubscriptionLifecycleService $lifecycle): RedirectResponse
+    {
+        $org = Organization::query()->findOrFail(app(TenantContext::class)->id());
+
+        $lifecycle->resume($org);
+
+        return redirect()->to(route('app.billing'))->with('billing_notice', 'Welcome back — your workspace is live again.');
     }
 
     /**

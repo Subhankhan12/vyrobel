@@ -25,6 +25,13 @@ return [
 
     'default_currency' => 'EUR',
 
+    // Per-unit subscription pricing (Operator Billing exact-match #85) — the subscription is billed PER
+    // active unit on the rack. ⚠️ PLACEHOLDER, like the tier prices: Subhan sets the real per-unit price +
+    // VAT rate before go-live. The Billing page computes the real figure from the org's REAL active-unit
+    // count × this price × (1 + VAT), reconciling (#17) — no real charge is taken until the live-Stripe flip.
+    'per_unit_minor' => 900,   // €9.00 / active unit / month — PLACEHOLDER
+    'vat_pct' => 23,           // the operator's subscription VAT rate (23%) — PLACEHOLDER
+
     /*
      * The tiers. `features` are keyed capabilities: `enabled` (boolean gate) and/or `limit` (int, null =
      * unlimited). The Paywall/Checkout read these for display; the SG3 feature-gate reads the org's plan's

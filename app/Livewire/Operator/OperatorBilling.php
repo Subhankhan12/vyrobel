@@ -5,23 +5,29 @@ declare(strict_types=1);
 namespace App\Livewire\Operator;
 
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\Channel;
+use App\Models\Membership;
 use App\Models\Organization;
+use App\Models\Unit;
 use App\Services\BillingService;
-use App\Support\Billing\SubscriptionStatus;
+use App\Support\Billing\SubscriptionPricing;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Operator BILLING / Paywall (Phase 7b · SG2) — the org's real subscription status + the tier catalog, from
- * which the founder subscribes. Tenant-scoped (the org is resolved from the active tenant context); `/app`
- * behind #26; the route carries `can:billing.manage` (the founder / Property Owner — NOT Front Desk, #30).
+ * Operator BILLING (exact-match #85) — the operator's OWN subscription (paying Vyrobel). Tenant-scoped;
+ * `can:billing.manage`. Two faces: the active-subscription MANAGEMENT view (plan · per-unit figure ·
+ * what-you-pay · billing details · pause/cancel) for an org with a plan, and the tier catalog / paywall for
+ * a lapsed / no-plan org.
  *
- * Every figure is REAL: the status label + trial days come from the derived {@see SubscriptionStatus};
- * the tier prices are the CONFIGURABLE PLACEHOLDERS from config/billing.php (marked as such — Subhan sets the
- * real ones), never fabricated market pricing. No charge is taken here — subscribing continues to the Checkout,
- * whose pay action is the account-gated Stripe seam.
+ * HONESTY: the STATE is real (status/trial/period, and the REAL read-only pause/cancel window). The
+ * per-unit FIGURE is real — the org's REAL active-unit count × the PLACEHOLDER per-unit price × VAT
+ * ({@see SubscriptionPricing}), reconciling (#17), flagged placeholder. The CHARGE, the stored CARD, and
+ * PAID invoices are account-gated — NEVER fabricated (no fake "····4242" / "Paid €66.42"); the real trial
+ * shows, future invoices are honestly gated.
  */
 #[Layout('components.layouts.operator')]
 class OperatorBilling extends Component
@@ -34,6 +40,16 @@ class OperatorBilling extends Component
         $status = $org->billingStatus();
         $current = $org->currentSubscription();
 
+        // The read-only lifecycle state (the REAL pause/cancel windows this page writes).
+        $pausedUntil = $org->paused_until !== null ? CarbonImmutable::parse($org->paused_until) : null;
+        $readonlyFrom = $org->readonly_from !== null ? CarbonImmutable::parse($org->readonly_from) : null;
+        $isPaused = $pausedUntil !== null && $pausedUntil->isFuture();
+        $isCanceling = $readonlyFrom !== null;
+
+        $currency = (string) config('billing.default_currency', 'EUR');
+        $pricing = SubscriptionPricing::current('monthly');
+        $yearlySaving = SubscriptionPricing::yearlySavingMinor();
+
         return view('livewire.operator.billing', [
             'viewer' => $this->viewer(),
             'status' => [
@@ -44,9 +60,73 @@ class OperatorBilling extends Component
                 'lapsed' => $status->isLapsed(),
                 'days' => $status->trialDaysRemaining(),
                 'plan_name' => $current?->plan?->name,
+                'has_plan' => $current !== null && $current->plan !== null,
             ],
+            // ── The active-subscription management view (exact-match) ───────────────────────────────
+            'plan' => ($current === null || $current->plan === null) ? null : [
+                'name' => (string) $current->plan->name,
+                'interval' => (string) $current->plan->interval,
+                'subscribed_on' => CarbonImmutable::parse($current->created_at)->format('j M Y'),
+                'period_end' => $current->current_period_end !== null ? CarbonImmutable::parse($current->current_period_end)->format('j M Y') : null,
+            ],
+            'pricing' => [
+                'units' => $pricing['units'],
+                'per_unit' => $this->money($pricing['per_unit_minor'], $currency),
+                'net' => $this->money($pricing['net_minor'], $currency),
+                'vat' => $this->money($pricing['vat_minor'], $currency),
+                'gross' => $this->money($pricing['gross_minor'], $currency),
+                'vat_pct' => $pricing['vat_pct'],
+                'yearly_saving' => $this->money($yearlySaving, $currency),
+            ],
+            'counts' => [
+                'units' => $pricing['units'],
+                'team' => Membership::query()->where('status', 'active')->count(),
+                'channels' => Channel::query()->where('status', 'connected')->count(),
+            ],
+            'billingDetails' => [
+                'company' => $org->billing_company !== null && $org->billing_company !== '' ? (string) $org->billing_company : null,
+                'vat_id' => $org->billing_vat_id !== null && $org->billing_vat_id !== '' ? (string) $org->billing_vat_id : null,
+                'email' => $org->billing_email !== null && $org->billing_email !== '' ? (string) $org->billing_email : null,
+                'country' => $org->country !== null && $org->country !== '' ? (string) $org->country : null,
+            ],
+            'lifecycle' => [
+                'is_paused' => $isPaused,
+                'is_canceling' => $isCanceling,
+                'paused_until' => $pausedUntil?->format('j M Y'),
+                'readonly_from' => $readonlyFrom?->format('j M Y'),
+            ],
+            // The honest invoice history — the real trial only; paid invoices are account-gated (no fabrication).
+            'invoices' => $this->invoices($org, $currency),
             'tiers' => $this->tierCards($billing),
         ]);
+    }
+
+    /**
+     * The REAL, honest invoice history. Without live Stripe billing no charge is ever taken, so there is NO
+     * paid invoice to show (fabricating one would be dishonest). The free trial IS real → shown as a €0.00
+     * line; future invoices are honestly gated.
+     *
+     * @return list<array{ref: string, label: string, period: ?string, status: string, amount: string, gated: bool}>
+     */
+    private function invoices(Organization $org, string $currency): array
+    {
+        $rows = [];
+
+        $sub = $org->currentSubscription();
+        if ($sub !== null) {
+            $trialDays = (int) config('billing.trial_days', 14);
+            $start = CarbonImmutable::parse($sub->created_at);
+            $rows[] = [
+                'ref' => 'Trial',
+                'label' => $trialDays.'-day trial',
+                'period' => $start->format('j M').' – '.$start->addDays($trialDays)->format('j M Y'),
+                'status' => 'Free',
+                'amount' => $this->money(0, $currency),
+                'gated' => false,
+            ];
+        }
+
+        return $rows;
     }
 
     /**

@@ -6,9 +6,35 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v29) · OPERATOR DASHBOARD + CALENDAR exact-match + the cross-cutting
-> READ-ONLY mode COMPLETE. This block SUPERSEDES every block below it. Fresh-session entry point: this block →
-> `docs/OPERATOR-DASHBOARD-CALENDAR-AUDIT.md` → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v30) · OPERATOR CHANNELS + BILLING exact-match COMPLETE. This block
+> SUPERSEDES every block below it. Fresh-session entry point: this block →
+> `docs/OPERATOR-CHANNELS-BILLING-AUDIT.md` → `docs/DECISIONS.md`.**
+>
+> **Operator Channels (`/app/channels`, NEW) + Billing (`/app/billing`) (Invariant #85)** matched to their
+> wireframes — both heavily gated, nothing faked. **GATE 1 — Channels (`d286014`):** the whole page is OTA
+> sync = **account-gated** (no real Channex integration). New Pro-gated page (`EnsurePlanFeature:channels`);
+> the DESIGN matched but HONEST-GATED — the **Direct** channel is REAL (`source='direct'`, always live), a
+> connected OTA channel's STATUS is real but live sync/import is honestly gated ("activates with your Channex
+> account" — NEVER a fabricated "Synced/imported"), the booking-mix + stats are REAL by `reservations.source`;
+> the fabricated "3 bookings waiting to import" alert replaced by the honest "setup required · Vyrobel never
+> fabricates a sync it can't run." **GATE 2 — Billing:** the active-subscription management view. **Real
+> per-unit FIGURE** — a new `SubscriptionPricing` = real active-unit count × a PLACEHOLDER per-unit price (€9)
+> × placeholder VAT (23%), reconciling (net+VAT==gross, #17; 8×€9=€72+€16.56=€88.56), no real charge.
+> **HONEST-gated** card ("No card on file", never a fake ····4242) + invoices (the real trial Free €0.00, "no
+> invoice is invented"); real counts/billing-details. **The REAL pause/cancel → read-only state machine** —
+> `SubscriptionLifecycleService` + `organizations.readonly_from` + the extended `OperatorWorkspace` gate +
+> `billing.pause/cancel/resume`: PAUSE → read-only NOW (the shared gate the Dashboard/Calendar/certified-write
+> consume); CANCEL → read-only from the paid-through date; RESUME clears; **orthogonal to the paywall**
+> (subscription status never changed). **Mutation-proven** (`OperatorBillingLifecycleTest`): pause →
+> `isReadOnly` true → a new booking POST refused. Browser-proven end-to-end (Pause 3 months → the Dashboard
+> shows "Workspace paused — read-only until 30 Oct"). 🔒 #17 the figure reconciles; #39 no fabrication
+> (channel-sync/card/paid-invoice/charge); the pause genuinely gates read-only; test-mode boundary
+> (`StripeSafetyGuard`, no real charge until go-live). `OperatorChannelsTest` (3) + `OperatorBillingLifecycleTest`
+> (4). Suite **1301/9748** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **Invariants #1–85.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v29) · OPERATOR DASHBOARD + CALENDAR exact-match + the cross-cutting READ-ONLY mode COMPLETE.**
 >
 > **Operator Dashboard (`/app/dashboard`) + Calendar (`/app/calendar`) (Invariant #84)** matched to their
 > wireframes on REAL tenant-scoped data (the operator realm + shell already existed — REUSE/EXTEND).
