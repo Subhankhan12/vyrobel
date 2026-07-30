@@ -149,7 +149,7 @@ it('renders every deferred-trigger email template', function () {
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
     expect((new PreArrivalMail($reservation))->render())->toContain('Your stay is ready');
-    expect((new ReviewRequestMail($reservation))->render())->toContain('How was your stay');
+    expect((new ReviewRequestMail($reservation))->render())->toContain('Thanks for staying with us');
     expect((new WaitlistNotificationMail('Ada', 'Seaside', '12–15 Aug 2026'))->render())->toContain('just opened up');
     expect((new WinbackMail('Ada', 'Seaside'))->render())->toContain('welcome you back');
     expect((new VerifyEmailMail('Ada', 'https://vyrobel.test/verify/abc'))->render())->toContain('Confirm your email');
@@ -229,4 +229,33 @@ it('renders the refund email with the real amount and an honest payment-method (
         ->toContain('your original payment method')                // honest — no card_last4 stored
         ->toContain('Requested')->toContain('Processed')           // the real status timeline
         ->not->toContain('····');                                  // never a fabricated masked card
+});
+
+// ══ Transactional-emails exact-match · GATE 2 (account) ════════════════════════════════════════════
+
+// ── Review request — star deep-links carry ?rating=N + "we only ask once" ─────────────────────────
+it('renders the review request with star deep-links that pre-fill the rating', function () {
+    $s = seedScenario(1);
+    emailGuest($s);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    $html = (new ReviewRequestMail($reservation, route('guest.review', $reservation->getKey())))->render();
+
+    expect($html)
+        ->toContain('rating=1')->toContain('rating=5')   // each star opens the review pre-filled
+        ->toContain('Leave a review')
+        ->toContain('only ask once');
+});
+
+// ── Verify — the REAL 1-hour expiry, and NO fabricated welcome credit ─────────────────────────────
+it('renders the verify email with the real 1-hour expiry and no fabricated welcome credit', function () {
+    $html = (new VerifyEmailMail('Ada', 'https://vyrobel.test/verify?token=abc', '1 hour', 'ada@example.test'))->render();
+
+    expect($html)
+        ->toContain('Confirm your email, Ada')
+        ->toContain('Verify my email')
+        ->toContain('expires in 1 hour')                 // the REAL claim-link lifetime, never a fabricated 24h
+        ->toContain('no account is created until')
+        ->not->toContain('credit')                       // no welcome-credit feature → never teased
+        ->not->toContain('waiting for you');
 });

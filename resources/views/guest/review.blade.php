@@ -42,7 +42,7 @@
                 <div class="vy-eyebrow" style="margin-bottom:10px">Your rating</div>
                 <div class="vy-stars">
                     @foreach ([5, 4, 3, 2, 1] as $n)
-                        <input type="radio" name="rating" id="star{{ $n }}" value="{{ $n }}" @if ($n === 5) required @endif>
+                        <input type="radio" name="rating" id="star{{ $n }}" value="{{ $n }}" {{ (($prefillRating ?? null) === $n) ? 'checked' : '' }} @if ($n === 5) required @endif>
                         <label for="star{{ $n }}" title="{{ $n }} star{{ $n > 1 ? 's' : '' }}">★</label>
                     @endforeach
                 </div>

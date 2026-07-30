@@ -131,5 +131,39 @@ card/credit/trigger/reviewer/parking).
 - **(confirmed, not a choice)** Welcome credit = **HONEST-OMIT** (no feature); parking/"sea-view studio"/
   named host = honest-omit; door-code/wifi = real + guest-only.
 
-## RESOLUTION
-_(appended at GATE close)_
+## RESOLUTION (GATES closed 2026-07-30 — invariant #83)
+
+Both founder decisions taken **Recommended** (verify copy at the real 1-hour expiry · build the `?rating`
+star deep-link). All 5 emails matched to their wireframes as real Mailables on real triggers, reusing the
+shared email-safe `layout.blade.php` + button pattern (anti-drift).
+
+**GATE 1 (guest stay, `d800964`):**
+- **Pre-arrival** — rewrote the template to the wireframe (door-code hero, directions + Maps, wifi,
+  check-in/out, balance pay-now, message us, reference footer). The Mailable now wires the real
+  `ArrivalPack::for()` (door code + wifi + directions + times) computed at the 48h send moment, so the
+  secrets are real + guest-only (#33 owner-perimeter untouched) + withheld out-of-window. **BUILT the real
+  trigger:** `emails:send-pre-arrival` scheduled command (mirrors `SendPaymentReminders`) + daily schedule.
+  Real balance (FolioTotals, only when > 0) → Pay-now → `guest.payments`.
+- **Payment-reminder** — Total / Paid / Balance from one `FolioTotals` read (Total − Paid == Balance, #17)
+  + a real Pay-now button + Arriving/Unit/Reference. Trigger unchanged (real daily command).
+- **Refund** — real amount + a status timeline (Requested/Processed = real `processed_at`; Arriving = an
+  honest range). HONEST: "your original payment method" (no `card_last4` stored — #28, no fabricated card),
+  reason only when a real `cancellation_reason` is set, ETA a range not a date. Trigger unchanged
+  (`payment.refunded`).
+
+**GATE 2 (account):**
+- **Review-request** — rewrote to the wireframe (star row, stay/unit/reference, "only ask once"). **BUILT
+  the `?rating` star deep-link:** each star links to `guest.review?rating=N`, and
+  `GuestReviewController::show` pre-selects that star (1–5, ignored when a review already exists). Trigger
+  unchanged (`reservation.checked_out` → real `guest.review` link). Honest byline ("your team", no
+  fabricated named host).
+- **Verify** — rewrote to the wireframe. The real trigger is the booking-tied **claim** flow
+  (`GuestAccountService::sendClaimLink`). HONEST: the copy states the **real 1-hour** signed-link expiry
+  (never the wireframe's 24h) via a passed `$expiresLabel`; the **welcome-credit teaser is OMITTED** (no
+  such feature — never fabricated).
+
+**Verify:** `GuestEmailTest` +7 (pre-arrival command 48h/guest-only/real code; withheld out-of-window;
+payment Total−Paid==Balance; refund real amount + honest method; review star deep-links; verify 1h + no
+credit) + `GuestReviewTest` +1 (the `?rating` pre-fill). Full suite **1290/9684** green; PHPStan L5 (0);
+Pint clean; raw-blade guard clean. **All 5 browser-preview-verified** (real door code 6273 + wifi;
+reconciling balance; refund timeline; star deep-links; verify honest 1h, no credit).

@@ -76,12 +76,13 @@ class GuestAccountService
             return;
         }
 
+        // The signed link lasts 1 hour — the email copy states this REAL expiry (never a fabricated 24h).
         $url = URL::temporarySignedRoute('guest.claim.verify', now()->addHour(), [
             'guest' => $guest->getKey(),
             'hash' => sha1($email),
         ]);
 
-        Mail::to($email)->send(new VerifyEmailMail(GuestName::display($guest), $url));
+        Mail::to($email)->send(new VerifyEmailMail(GuestName::display($guest), $url, '1 hour', $email));
     }
 
     /** Complete the claim: set the (hashed) password + mark the email verified → the account is active. */

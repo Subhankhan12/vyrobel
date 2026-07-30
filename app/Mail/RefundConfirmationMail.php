@@ -43,16 +43,12 @@ class RefundConfirmationMail extends Mailable
         $reservation = $this->reservation();
         $reservation->loadMissing(['leadGuest', 'property']);
 
-        $reason = is_string($reservation->cancellation_reason) && $reservation->cancellation_reason !== ''
-            ? (string) $reservation->cancellation_reason
-            : null;
+        $reason = filled($reservation->cancellation_reason) ? (string) $reservation->cancellation_reason : null;
 
         $processedAt = $this->refund->processed_at !== null ? Carbon::parse($this->refund->processed_at) : Carbon::now();
 
-        $stay = null;
-        if ($reservation->check_in !== null && $reservation->check_out !== null) {
-            $stay = Carbon::parse($reservation->check_in)->format('j M').' – '.Carbon::parse($reservation->check_out)->format('j M Y');
-        }
+        // check_in / check_out are NOT NULL date columns on a reservation.
+        $stay = Carbon::parse($reservation->check_in)->format('j M').' – '.Carbon::parse($reservation->check_out)->format('j M Y');
 
         return new Content(
             view: 'emails.refund-confirmation',

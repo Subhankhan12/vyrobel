@@ -134,6 +134,31 @@ it('fires the review-request email on checkout', function () {
     Mail::assertSent(ReviewRequestMail::class);
 });
 
+// ── The star deep-link from the review-request email pre-selects that rating ──────────────────────
+it('pre-selects the rating from the ?rating star deep-link and ignores it once reviewed', function () {
+    $s = seedScenario(1);
+    $a = revGuest($s['guest'], 'ada@example.test');
+    $res = revCompletedBook($s, $a, $s['units'][0]);
+
+    // Tapping the 4-star deep-link opens the review with star 4 pre-checked ("already halfway done").
+    $this->actingAs($a, 'guest')->get(route('guest.review', ['reservation' => $res->getKey(), 'rating' => 4]))
+        ->assertOk()
+        ->assertSee('value="4" checked', false)
+        ->assertDontSee('value="3" checked', false);
+
+    // An out-of-range value is ignored (no fabricated rating) — no star is pre-checked.
+    $this->actingAs($a, 'guest')->get(route('guest.review', ['reservation' => $res->getKey(), 'rating' => 9]))
+        ->assertOk()
+        ->assertDontSee('value="9" checked', false)
+        ->assertDontSee('value="1" checked', false);
+
+    // Once a review exists, the pre-fill is ignored — the saved review wins.
+    $this->actingAs($a, 'guest')->post(route('guest.review.submit', $res->getKey()), ['rating' => 2, 'body' => 'ok']);
+    $this->actingAs($a, 'guest')->get(route('guest.review', ['reservation' => $res->getKey(), 'rating' => 5]))
+        ->assertOk()
+        ->assertDontSee('value="5" checked', false);
+});
+
 // ── The Trips page shows a review link for a completed stay ───────────────────────────────────────
 it('shows a review link on Trips for a completed stay', function () {
     $s = seedScenario(1);

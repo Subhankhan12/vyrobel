@@ -6,9 +6,34 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v27) · OWNER AGREEMENT + AMENDMENT ACKNOWLEDGMENT exact-match COMPLETE.
-> This block SUPERSEDES every block below it. Fresh-session entry point: this block →
-> `docs/OWNER-AGREEMENT-AUDIT.md` → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v28) · 5 TRANSACTIONAL EMAILS exact-match COMPLETE. This block
+> SUPERSEDES every block below it. Fresh-session entry point: this block →
+> `docs/TRANSACTIONAL-EMAILS-AUDIT.md` → `docs/DECISIONS.md`.**
+>
+> **The 5 guest/account transactional emails (Invariant #83)** — pre-arrival · payment-reminder · refund ·
+> review-request · verify — matched to their decoded wireframes as REAL Mailables on real triggers,
+> REUSING/EXTENDING the shipped Phase-3 Mailables + the shared email-safe `emails/layout.blade.php` +
+> bulletproof-button pattern (anti-drift). All 5 Mailables + templates already existed (basic Phase-3
+> versions); this matched the designs + wired the real data + the one still-missing trigger.
+> **GATE 1 (guest stay, `d800964`):** pre-arrival (wired the shared `ArrivalPack` real **door code + wifi**
+> — computed at the 48h send moment, released + **guest-only**, the **#33 owner-perimeter untouched**;
+> **BUILT the real trigger** `emails:send-pre-arrival` + daily schedule; real balance + pay-now →
+> `guest.payments`) · payment-reminder (real Total/Paid/Balance from one `FolioTotals` read, Total −
+> Paid == Balance #17, + pay button) · refund (real amount + status timeline; HONEST "your original payment
+> method" — no `card_last4`, #28; reason only when set; ETA a range). **GATE 2 (account):** review-request
+> (**BUILT the `?rating` star deep-link** — each star pre-fills the real review via
+> `GuestReviewController::show`; "only ask once" real; honest byline) · verify (booking-tied claim link;
+> HONEST **real 1-hour** expiry not the wireframe's 24h; **welcome-credit teaser OMITTED** — no such
+> feature, never fabricated). 🔒 #17 balance/refund reconcile · #28 no card leak (none stored, name-only) ·
+> #33 arrival secrets guest-only (owner-perimeter intact) · #39 no fabrication (no fake
+> balance/refund/card/reason/credit/trigger/named-host). `GuestEmailTest` +7, `GuestReviewTest` +1; all 5
+> browser-preview-verified (real door code 6273 + wifi; reconciling balance; refund timeline; star
+> deep-links; verify honest 1h + no credit). Suite **1290/9684** green; PHPStan L5 (0); Pint clean;
+> raw-blade guard clean; no schema change. **Invariants #1–83.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v27) · OWNER AGREEMENT + AMENDMENT ACKNOWLEDGMENT exact-match COMPLETE.**
 >
 > **Owner Agreement (`/owner/agreement`) (Invariant #82)** matched to `Owner Agreement.html` on the REAL
 > `ManagementAgreement`, BUILDING the missing pieces (single gate). The wireframe's headline interaction —

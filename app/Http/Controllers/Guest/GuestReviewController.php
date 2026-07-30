@@ -37,12 +37,17 @@ class GuestReviewController extends Controller
 
     public function __construct(private readonly ReviewService $reviews) {}
 
-    public function show(string $reservation): View
+    public function show(Request $request, string $reservation): View
     {
         $model = $this->owned($reservation);
         abort_unless($this->reviews->isCompleted($model), 404);   // only a completed stay is reviewable
 
         $existing = $this->reviews->reviewFor($model);
+
+        // Star deep-link from the review-request email: ?rating=N pre-selects that star ("already halfway
+        // done"). Bounded 1–5; ignored when a review already exists (their saved rating wins).
+        $prefill = (int) $request->query('rating', '0');
+        $prefillRating = ($existing === null && $prefill >= 1 && $prefill <= 5) ? $prefill : null;
 
         return view('guest.review', [
             'reservation' => (string) $model->getKey(),
@@ -51,6 +56,7 @@ class GuestReviewController extends Controller
             'stay' => CarbonImmutable::parse($model->check_in)->format('j M').' – '.CarbonImmutable::parse($model->check_out)->format('j M Y'),
             'positiveTags' => self::POSITIVE_TAGS,
             'negativeTags' => self::NEGATIVE_TAGS,
+            'prefillRating' => $prefillRating,
             'existing' => $existing === null ? null : [
                 'rating' => (int) $existing->rating,
                 'tags' => $existing->tags ?? [],

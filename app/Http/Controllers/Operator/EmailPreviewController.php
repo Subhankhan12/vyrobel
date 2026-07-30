@@ -47,7 +47,7 @@ class EmailPreviewController extends Controller
         'review-request' => ['title' => 'Review request', 'status' => 'Live · sends on check-out'],
         'waitlist-notification' => ['title' => 'Waitlist notification', 'status' => 'Template ready · trigger deferred (Phase 4 · Waitlist)'],
         'winback' => ['title' => 'Winback', 'status' => 'Template ready · trigger deferred (scheduler)'],
-        'verify-email' => ['title' => 'Verify email', 'status' => 'Template ready · trigger deferred (Phase 4 · Guest accounts)'],
+        'verify-email' => ['title' => 'Verify email', 'status' => 'Live · sends on booking-tied account claim'],
     ];
 
     public function index(): Response
