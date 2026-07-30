@@ -6,9 +6,34 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v22) · OWNER MESSAGES exact-match 3-pane rebuild + rich chat COMPLETE.
-> This block SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-MESSAGES-AUDIT.md`
-> → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v23) · OWNER BOOKING DETAIL exact-match rebuild COMPLETE. This block
+> SUPERSEDES every block below it. Fresh-session entry point: this block → `docs/OWNER-BOOKINGDETAIL-AUDIT.md` →
+> `docs/DECISIONS.md`.**
+>
+> **Owner Booking Detail (`/owner/bookings/{booking}`, Invariant #78)** rebuilt to the decoded wireframe EXACTLY
+> on the already-correct owner-scoped backend (the page was ALREADY owner-scoped via the through-units 404 guard,
+> ALREADY refused guest contact #28, ALREADY used the shared `OwnerLedgerAttribution` — so this was a
+> presentation rebuild + the two corrections the wireframe gets wrong + the omitted sections). **⚠️ CORRECTION 1
+> — #28:** the wireframe exposes guest email/phone/country → REFUSED (never reach the page OR the new PDF; honest
+> "contact handled by your management team" line; **"Message {guest}" → the OPERATOR relay** `owner.messages`,
+> NEVER owner→guest; country OMITTED — strict name-only). **⚠️ CORRECTION 2 — #17:** commission "· 15%" → the
+> REAL **18%** (`OwnerCommissionRate`; the real ledger breakdown — room_revenue €540 − commission €97.20 = net
+> €442.80, reconciling to the cent). Rebuilt EXACT: identity header (avatar · name · 4-state pill · sub), the
+> reservation day-hero (34px CI/CO + dashed-connector nights pill + 4-col incl. real Nightly rate), the gross→net
+> earnings card, the guest card, a REAL **timeline** (from `booked_at`/`payment_status`/`guest_checked_in_at`/
+> checked-out/the real `Payout.paid_at`/`cancelled_at` — the fabricated pre-arrival email OMITTED #39), the dark
+> **net hero + count-up** (Alpine, presentational, ends at the REAL net, respects reduced-motion), booking-details
+> (Rate plan OMITTED — not modelled), and actions. **🔨 BUILT the per-booking confirmation PDF**
+> (`OwnerBookingConfirmationDocument` + `pdfs.owner-booking-confirmation` + `OwnerBookingConfirmationPdfController`
+> on the `PdfService`/`ExportAudit` pattern — guest NAME-only #28, `CAP_EXPORTS`-gated, owner-scoped via the SAME
+> through-units guard). 🔒 #28 (the email/phone refusal proven on the page AND the PDF); #17 real 18% reconciling;
+> #20 the gated PDF is the only write; #42 CAP_EXPORTS; #39 no fabrication. `OwnerBookingsTest` 15→18; browser-
+> verified (attributed + unattributed). Suite **1265/9528** green; PHPStan L5 (0); Pint clean; `migrate:fresh
+> --seed` clean. **Invariants #1–78.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v22) · OWNER MESSAGES exact-match 3-pane rebuild + rich chat COMPLETE.**
 >
 > **Owner Messages (`/owner/messages`, Invariant #77)** rebuilt to the decoded wireframe as a FULL messaging inbox
 > on the REAL owner↔OPERATOR relay (`InboxService`) — NEVER owner→guest; guest data name-only (#28). Founder

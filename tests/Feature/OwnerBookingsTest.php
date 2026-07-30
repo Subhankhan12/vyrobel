@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
@@ -8,6 +9,9 @@ use App\Models\Reservation;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\OwnerAttributionService;
+use App\Support\Money\MoneyFormatter;
+use App\Support\Owner\OwnerContext;
+use App\Support\Pdf\OwnerBookingConfirmationDocument;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -342,4 +346,71 @@ it('keeps tab links clean of a defaulted sort direction', function () {
         ->assertOk()
         ->assertSee('?tab=past"', false)         // a clean Past tab link…
         ->assertDontSee('tab=past&amp;', false); // …with nothing (no sort/dir) dragged into it
+});
+
+// ── 16. COMMISSION RATE — the REAL agreement rate on the detail page, NEVER the wireframe's hardcoded 15% ──
+it('shows the real agreement commission rate on the booking detail, never a hardcoded 15%', function () {
+    $s = seedScenario(1);
+    $a = bookingsOwner($s, 0, 'Amara Okafor');
+    // The REAL agreement is 18% (the demo rate) — deliberately NOT the wireframe's 15%. Set BEFORE attribution
+    // so the ledger commission AND the rate label agree.
+    ManagementAgreement::where('owner_id', $a['owner']->id)->update(['commission_pct' => 18.00]);
+    $r = bkStay($s, $a['unit'], 50000);   // €500 room → 18% = €90 commission → net €410
+
+    // The LEDGER commission is the real 18%.
+    $commission = OwnerLedgerEntry::where('reservation_id', $r->id)->where('entry_type', 'commission')->get()
+        ->reduce(fn (int $c, OwnerLedgerEntry $e): int => $c + abs($e->signedMinor()), 0);
+    expect($commission)->toBe(9000);
+
+    $this->actingAs($a['user'])->get('/owner/bookings/'.$r->id)
+        ->assertOk()
+        ->assertSee('18%')       // the REAL rate label (OwnerCommissionRate)…
+        ->assertDontSee('15%');  // …NEVER the wireframe's hardcode
+});
+
+// ── 17. CONFIRMATION PDF — owner-scoped + exports-gated (the wireframe's "Download confirmation") ──
+it('serves the per-booking confirmation PDF owner-scoped and exports-gated', function () {
+    $s = seedScenario(2);
+    $a = bookingsOwner($s, 0, 'Amara Okafor');
+    $b = bookingsOwner($s, 1, 'Bruno Vale');
+    $mine = bkStay($s, $a['unit'], 50000);
+    $theirs = bkStay($s, $b['unit'], 50000);
+
+    $res = $this->actingAs($a['user'])->get('/owner/bookings/'.$mine->id.'/confirmation')->assertOk();
+    expect($res->headers->get('content-type'))->toContain('pdf');
+
+    // Owner boundary: B's booking 404s for A (the SAME through-units guard as the page).
+    $this->actingAs($a['user'])->get('/owner/bookings/'.$theirs->id.'/confirmation')->assertNotFound();
+
+    // EXPORTS gate: an accountant may download; a view-only sub-user is refused.
+    $accountant = ownerSubUser($s, $a['owner']->id, 'accountant');
+    $this->actingAs($accountant)->get('/owner/bookings/'.$mine->id.'/confirmation')->assertOk();
+    $view = ownerSubUser($s, $a['owner']->id, 'view_only');
+    $this->actingAs($view)->get('/owner/bookings/'.$mine->id.'/confirmation')->assertForbidden();
+});
+
+// ── 18. CONFIRMATION PDF document — GUEST NAME ONLY, the real rate, reconciles (#28 / #17) ─────────
+it('builds the confirmation PDF with the guest NAME only — never contact — at the real rate, reconciling', function () {
+    $s = seedScenario(1);
+    $s['guest']->update([
+        'first_name' => 'Lars', 'last_name' => 'Andersen',
+        'email' => 'l.andersen@icloud.test', 'phone' => '+4520551804',
+    ]);
+    $a = bookingsOwner($s, 0, 'Amara Okafor');
+    ManagementAgreement::where('owner_id', $a['owner']->id)->update(['commission_pct' => 18.00]);
+    $r = bkStay($s, $a['unit'], 50000)->load('leadGuest');
+
+    // The document runs inside the owner context (as it does behind the gated route).
+    app(OwnerContext::class)->activate([(string) $a['owner']->id], 'co_owner', true);
+    $data = OwnerBookingConfirmationDocument::data($r, [['id' => (string) $a['unit']->id, 'label' => (string) ($a['unit']->name ?? $a['unit']->code)]]);
+
+    // #28 — the guest NAME is present; the contact NEVER appears anywhere in the document data.
+    expect($data['guest'])->toBe('Lars Andersen')
+        ->and($data['commission_rate'])->toBe('18');
+    $encoded = (string) json_encode($data);
+    expect($encoded)->not->toContain('l.andersen@icloud.test')
+        ->and($encoded)->not->toContain('+4520551804');
+
+    // #17 — gross − commission == net (no cleaning in the ledger): 50000 − 9000 = 41000.
+    expect($data['earnings'][0]['net_display'])->toBe(MoneyFormatter::display(41000, 'EUR'));
 });
