@@ -1,114 +1,188 @@
-{{-- Operator Insights (Phase 6b · SG2) — performance over the SG1 metric layer, scoped by the Phase-6a
-     property context + a real date range. EVERY figure is real/derived; a thin range shows an honest
-     "not enough data yet" state; the prototype's invented multi-year history + narrative are NOT rendered.
-     Lead time + booking pace are deferred "Soon" (real data too thin to be meaningful). --}}
+{{-- Operator INSIGHTS (#88 exact-match) — portfolio performance over the REAL SG1 metric layer, scoped by the
+     property context + a real range. EVERY figure real/derived (PerformanceMetrics/BookingCadence); vs-LY shown
+     only where prior-year data exists; the "Worth a look" cards are REAL DERIVED observations shown only when
+     the data supports them; the Expedia/brand fabrications are REFUSED (honest note). "Decisions stay yours."
+     RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div>
-    <x-operator.shell active="insights" title="Insights"
-        :subtitle="$scopeLabel . ' · ' . $activeRange['label']" :viewer="$viewer">
+    <x-operator.shell active="insights" title="Portfolio insights" :subtitle="$scopeLabel . ' · ' . $activeRange['label']" :viewer="$viewer">
 
-        {{-- Date-range selector (real GET links over real data) --}}
+        {{-- Range presets (real GET over real data) --}}
         <div class="vy-rack-toolbar vy-fade">
-            <div class="vy-left">
+            <div class="vy-left" style="flex-wrap: wrap; gap: 6px;">
                 @foreach ($ranges as $r)
                     <a class="vy-pill @if ($r['active']) is-on @endif" href="?range={{ $r['key'] }}">{{ $r['label'] }}</a>
                 @endforeach
             </div>
-            <div class="vy-right">
-                <span class="vy-topbar-sub" style="font-size:12px">Switch property in the top bar →</span>
-            </div>
+            <div class="vy-right"><span class="vy-topbar-sub" style="font-size: 12px;">Switch property in the top bar →</span></div>
         </div>
 
         @if ($multiCurrency)
-            <div class="vy-flash vy-fade" role="status">This scope spans more than one currency — money figures below cover {{ $activeRange['label'] }} in the primary currency only.</div>
+            <div class="vy-flash vy-fade" role="status">This scope spans more than one currency — money figures cover {{ $activeRange['label'] }} in the primary currency only.</div>
         @endif
 
-        {{-- METRIC CARDS — all REAL, reconciling to the metric layer / FolioTotals --}}
-        <div class="vy-dash-kpis vy-fade" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        {{-- ── KPI cards (4) with real vs-LY deltas ───────────────────────────────────────────────── --}}
+        <div class="vy-dash-kpis vy-dash-kpis--4 vy-fade">
             @foreach ($cards as $c)
-                {{-- Uniform light tiles (the prototype's Insights KPI band has no dark hero; matches the
-                     Rates/Reservations/Guests precedent). --}}
                 <div class="vy-dash-kpi">
                     <div class="vy-dk-label">{{ $c['label'] }}</div>
-                    <div class="vy-dk-val">{{ $c['value'] }}</div>
+                    <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                        <div class="vy-dk-val">{{ $c['value'] }}</div>
+                        @if ($c['delta'] !== null)
+                            <span style="font-size: 12px; font-weight: 700; color: {{ $c['delta_dir'] === 'down' ? '#8F3110' : 'var(--vy-accent)' }};">{{ $c['delta'] }}</span>
+                        @endif
+                    </div>
                     <div class="vy-dk-sub">{{ $c['sub'] }}</div>
                 </div>
             @endforeach
         </div>
 
-        <div class="vy-ins-grid vy-fade">
-            {{-- REVENUE TREND — real months of real data; honest thin-state below 2 active months --}}
+        <div class="vy-ins-grid vy-fade" style="margin-top: 18px;">
+            {{-- ── Occupancy by month (this-year + on-the-books + real LY) ─────────────────────────── --}}
             <div class="vy-card">
-                <div class="vy-card-head"><h3>Room revenue by month</h3><span class="vy-card-note">{{ $activeRange['label'] }}</span></div>
-                @if (! $trend['enough'])
-                    <div class="vy-empty">Not enough data yet for a trend — it appears once at least two months have bookings. (Real data only; no invented history.)</div>
-                @else
-                    <div class="vy-trend">
-                        @foreach ($trend['months'] as $mo)
-                            @php $h = $trend['max_minor'] > 0 ? max(3, (int) round($mo['revenue_minor'] / $trend['max_minor'] * 100)) : 0; @endphp
-                            <div class="vy-trend-col" title="{{ $mo['label'] }}: {{ $mo['revenue'] }} · {{ $mo['occupancy_pct'] }}% occ">
-                                <div class="vy-trend-bar-wrap"><span class="vy-trend-bar" style="height: {{ $h }}%"></span></div>
-                                <span class="vy-trend-lab">{{ $mo['label'] }}</span>
+                <div class="vy-detail-head" style="margin-bottom: 4px;">
+                    <h2 class="vy-card-title">Occupancy by month</h2>
+                    <div style="display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--vy-muted);">
+                        <span><span style="display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--vy-accent);"></span> This year</span>
+                        <span><span style="display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: repeating-linear-gradient(45deg, var(--vy-accent), var(--vy-accent) 2px, #fff 2px, #fff 4px);"></span> On the books</span>
+                        @if ($occByMonth['has_ly'])
+                            <span><span style="display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: rgba(120,70,40,.22);"></span> Last year</span>
+                        @endif
+                    </div>
+                </div>
+                @if ($occByMonth['enough'])
+                    <div style="display: flex; align-items: flex-end; gap: 6px; height: 160px; margin-top: 14px;">
+                        @foreach ($occByMonth['months'] as $m)
+                            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%;">
+                                <div style="flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 2px;">
+                                    @if ($m['ly'] !== null)
+                                        <div title="LY {{ $m['ly'] }}%" style="width: 34%; height: {{ $m['ly'] }}%; background: rgba(120,70,40,.20); border-radius: 3px 3px 0 0;"></div>
+                                    @endif
+                                    <div title="{{ $m['occ'] }}%" style="width: 42%; height: {{ max(2, $m['occ']) }}%; border-radius: 3px 3px 0 0; background: {{ $m['on_books'] ? 'repeating-linear-gradient(45deg, var(--vy-accent), var(--vy-accent) 3px, #F6D9C7 3px, #F6D9C7 6px)' : 'var(--vy-accent)' }};"></div>
+                                </div>
+                                <div style="font-size: 10px; color: var(--vy-muted);">{{ $m['label'] }}</div>
                             </div>
                         @endforeach
                     </div>
+                @else
+                    <div class="vy-empty">Not enough data in this range yet.</div>
                 @endif
             </div>
 
-            {{-- CHANNEL MIX — real source split (room-nights) --}}
+            {{-- ── Pace by property (forward 30d vs LY) ────────────────────────────────────────────── --}}
             <div class="vy-card">
-                <div class="vy-card-head"><h3>Channel mix</h3><span class="vy-card-note">room-nights by source</span></div>
-                @if (count($channelMix) === 0)
-                    <div class="vy-empty">No bookings in this range yet.</div>
-                @else
-                    @foreach ($channelMix as $ch)
-                        <div class="vy-mix-row">
-                            <span class="vy-mix-lab">{{ $ch['label'] }}</span>
-                            <span class="vy-mix-track"><span class="vy-mix-fill" style="width: {{ max(4, $ch['pct']) }}%"></span></span>
-                            <span class="vy-mix-val">{{ $ch['pct'] }}%</span>
+                <h2 class="vy-card-title" style="margin-bottom: 4px;">Pace by property</h2>
+                <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 12px;">Next 30 days booked vs the same moment last year.</p>
+                @forelse ($pace as $row)
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                            <span style="font-size: 13px; color: var(--vy-ink);">{{ $row['name'] }}</span>
+                            @php $tone = ['ahead' => ['Ahead', 'var(--vy-accent)'], 'behind' => ['Behind', '#8F3110'], 'onpace' => ['On pace', 'var(--vy-muted)'], 'flat' => ['—', 'var(--vy-faint)']][$row['tone']]; @endphp
+                            <span style="font-size: 11.5px; color: var(--vy-muted);">
+                                <span style="font-weight: 700; color: {{ $tone[1] }};">{{ $tone[0] }}</span>
+                                · {{ $row['booked'] }}% booked @if ($row['ly'] !== null) · LY {{ $row['ly'] }}% @endif
+                            </span>
                         </div>
-                    @endforeach
-                @endif
-            </div>
-
-            {{-- WHEN GUESTS BOOK — REAL lead-time distribution via the SHARED BookingCadence (Batch B).
-                 Buckets from real created_at → check_in; honest empty state when no history (#39). --}}
-            <div class="vy-card">
-                <div class="vy-card-head"><h3>When guests book</h3><span class="vy-card-note">by lead time</span></div>
-                @if ($leadTime['has_data'])
-                    @foreach ($leadTime['buckets'] as $b)
-                        <div class="vy-mix-row">
-                            <span class="vy-mix-lab">{{ $b['label'] }}</span>
-                            <span class="vy-mix-track"><span class="vy-mix-fill" style="width: {{ max(4, $b['pct']) }}%"></span></span>
-                            <span class="vy-mix-val">{{ $b['pct'] }}%</span>
+                        <div style="height: 8px; border-radius: 4px; background: var(--vy-hairline); position: relative;">
+                            <div style="height: 100%; width: {{ $row['booked'] }}%; border-radius: 4px; background: {{ $row['tone'] === 'behind' ? '#B4400F' : 'var(--vy-accent)' }};"></div>
+                            @if ($row['ly'] !== null)
+                                <div style="position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--vy-ink); left: {{ min(100, $row['ly']) }}%;" title="LY {{ $row['ly'] }}%"></div>
+                            @endif
                         </div>
-                    @endforeach
-                @else
-                    <div class="vy-empty">Not enough booking history yet — real data only, no invented curve.</div>
-                @endif
-            </div>
-
-            {{-- NIGHTS THAT FILL FIRST — REAL day-of-week occupancy via the SHARED BookingCadence + the
-                 SHARED <x-charts.bars> component (same computation + chart as owner Insights). --}}
-            <div class="vy-card">
-                <div class="vy-card-head"><h3>Nights that fill first</h3><span class="vy-card-note">avg occupancy by night</span></div>
-                @if ($weekday['has_data'])
-                    <x-charts.bars :bars="$weekday['weekdays']" height="120px" :accentLast="false" />
-                @else
-                    <div class="vy-empty">No bookings in this range yet.</div>
-                @endif
+                    </div>
+                @empty
+                    <div class="vy-empty">No forward bookings yet.</div>
+                @endforelse
             </div>
         </div>
 
-        {{-- BOOKING CADENCE — REAL (Batch B): the median lead time + the room revenue already on the books
-             for the next 90 days, via the SHARED BookingCadence. Replaces the former "Soon" deferrals. --}}
-        <div class="vy-dash-kpis vy-fade" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 14px;">
-            @foreach ($cadenceCards as $c)
-                <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">{{ $c['label'] }}</div>
-                    <div class="vy-dk-val">{{ $c['value'] }}</div>
-                    <div class="vy-dk-sub">{{ $c['sub'] }}</div>
+        {{-- ── "Worth a look" — REAL DERIVED observations only (Expedia refused, honest) ──────────── --}}
+        <div class="vy-card vy-fade" style="margin-top: 18px;">
+            <div class="vy-detail-head" style="margin-bottom: 4px;">
+                <h2 class="vy-card-title">Worth a look</h2>
+                <span class="vy-eyebrow">What the numbers suggest — decisions stay yours.</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 12px;">
+                @forelse ($insights as $card)
+                    <div class="vy-card" style="padding: 14px;">
+                        <div style="font-size: 14px; font-weight: 700; color: var(--vy-ink); margin-bottom: 6px;">{{ $card['title'] }}</div>
+                        <p style="font-size: 12.5px; line-height: 1.5; color: var(--vy-muted); margin: 0 0 10px;">{{ $card['body'] }}</p>
+                        @if ($card['link'])
+                            <a class="vy-arr-link" href="{{ $card['link']['url'] }}">{{ $card['link']['label'] }} →</a>
+                        @endif
+                    </div>
+                @empty
+                    <div class="vy-empty" style="grid-column: 1 / -1;">Nothing stands out in this range yet — more booking history will surface real patterns.</div>
+                @endforelse
+                {{-- HONEST: channel-level pace (the wireframe's Expedia card) needs a connected channel manager;
+                     Expedia isn't connected and there's no OTA-brand data, so no euro figure is invented (#39). --}}
+                <div class="vy-card" style="padding: 14px; border-style: dashed;">
+                    <div style="font-size: 14px; font-weight: 700; color: var(--vy-ink); margin-bottom: 6px;">Channel-level pace</div>
+                    <p style="font-size: 12.5px; line-height: 1.5; color: var(--vy-muted); margin: 0 0 10px;">Per-channel gap analysis needs a connected channel manager. Vyrobel won’t estimate a figure it can’t measure.</p>
+                    <a class="vy-arr-link" href="{{ route('app.channels') }}">Connect a channel →</a>
                 </div>
-            @endforeach
+            </div>
         </div>
+
+        <div class="vy-ins-grid vy-fade" style="margin-top: 18px;">
+            {{-- ── By property (Occ/ADR/RevPAR) ───────────────────────────────────────────────────── --}}
+            <div class="vy-card vy-card--flush">
+                <h2 class="vy-card-title" style="padding: 14px 16px 0;">By property</h2>
+                <p style="font-size: 12px; color: var(--vy-muted); margin: 2px 16px 0;">{{ $activeRange['label'] }}.</p>
+                <div class="vy-utable-wrap" style="margin-top: 10px;">
+                    <table class="vy-utable">
+                        <thead><tr><th>Property</th><th style="text-align: right;">Occ</th><th style="text-align: right;">ADR</th><th style="text-align: right;">RevPAR</th></tr></thead>
+                        <tbody>
+                            @foreach ($byProperty as $row)
+                                <tr @if ($row['group']) style="font-weight: 700;" @endif>
+                                    <td>{{ $row['name'] }}</td>
+                                    <td style="text-align: right;">{{ $row['occ'] }}</td>
+                                    <td style="text-align: right;">{{ $row['adr'] }}</td>
+                                    <td style="text-align: right;">{{ $row['revpar'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- ── Channel mix — REAL sources only (no OTA brand) ──────────────────────────────────── --}}
+            <div class="vy-card">
+                <h2 class="vy-card-title" style="margin-bottom: 4px;">Channel mix</h2>
+                <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 12px;">Share of room-nights, {{ $activeRange['label'] }}.</p>
+                @forelse ($channelMix as $ch)
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 3px;">
+                            <span style="color: var(--vy-ink);">{{ $ch['label'] }}</span>
+                            <span class="vy-muted">{{ $ch['pct'] }}%</span>
+                        </div>
+                        <div style="height: 7px; border-radius: 4px; background: var(--vy-hairline); overflow: hidden;">
+                            <div style="height: 100%; width: {{ $ch['pct'] }}%; background: var(--vy-accent);"></div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="vy-empty">No bookings in this range yet.</div>
+                @endforelse
+                <p class="vy-recon" style="margin-top: 8px;">Real booking sources. OTA bookings show as “OTA” — the per-brand split (Booking.com/Airbnb/Expedia) isn’t modelled.</p>
+            </div>
+        </div>
+
+        {{-- ── Nights that fill first (day-of-week occupancy) ─────────────────────────────────────── --}}
+        <div class="vy-card vy-fade" style="margin-top: 18px;">
+            <h2 class="vy-card-title" style="margin-bottom: 4px;">Nights that fill first</h2>
+            <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 12px;">Average occupancy by night of week.</p>
+            @if ($weekday['has_data'])
+                <div style="display: flex; gap: 8px;">
+                    @foreach ($weekday['weekdays'] as $w)
+                        <div style="flex: 1; text-align: center;">
+                            <div style="border-radius: 8px; padding: 14px 0; color: {{ $w['pct'] >= 85 ? '#fff' : 'var(--vy-ink)' }}; background: rgba(217,102,46,{{ max(0.08, min(0.95, $w['pct'] / 100)) }}); font-family: 'Sora', sans-serif; font-weight: 700;">{{ $w['pct'] }}</div>
+                            <div style="font-size: 11px; color: var(--vy-muted); margin-top: 4px;">{{ $w['label'] }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="vy-empty">Not enough stays yet to show a weekly pattern.</div>
+            @endif
+        </div>
+
     </x-operator.shell>
 </div>

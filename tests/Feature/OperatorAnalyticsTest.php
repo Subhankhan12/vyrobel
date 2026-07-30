@@ -2,6 +2,8 @@
 
 use App\Models\Property;
 use App\Models\RoomType;
+use App\Services\AssignmentService;
+use App\Services\AvailabilityService;
 use App\Support\Property\PropertyContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +33,7 @@ it('shows real metrics and channel mix from real bookings, with no fabricated hi
     $res->assertOk()
         ->assertSee('Occupancy')->assertSee('ADR')->assertSee('RevPAR')   // real metric cards
         ->assertSee('Direct')                                             // real channel mix (reservations.source)
-        ->assertSee('1 arrival in range');                                // real arrival count
+        ->assertSee('2 of');                                              // real sold room-nights (2 nights)
 
     // 🪤 THE FABRICATION GUARD — none of the prototype's invented narrative is rendered. Distinctive phrases
     // only (a bare year like "2024" is too generic a needle — it collides with incidental ULIDs/wire-ids;
@@ -91,21 +93,39 @@ it('scopes Insights to the selected property, not an arbitrary one', function ()
     RoomType::create(['property_id' => $empty->id, 'name' => 'QuietWing', 'kind' => 'room']);
     $user = operatorUser($s, [], 'Hotel Manager');
 
-    // Selected = the booked property → shows its real arrival.
+    // Selected = the booked property → shows its real sold room-nights (2 nights on the one stay).
     $this->actingAs($user)->withSession(['current_property_id' => $s['property']->id])
-        ->get('/app/insights?range=this-year')->assertOk()->assertSee('1 arrival in range');
+        ->get('/app/insights?range=this-year')->assertOk()->assertSee('2 of');
 
     // Selected = the empty property → its own honest zero, not the other property's data.
     $this->actingAs($user)->withSession(['current_property_id' => $empty->id])
-        ->get('/app/insights?range=this-year')->assertOk()->assertSee('0 arrivals in range');
+        ->get('/app/insights?range=this-year')->assertOk()->assertSee('0 of 0 room-nights');
 
-    // "All properties" rolls both up → still the one real arrival.
+    // "All properties" rolls both up → still the two real sold room-nights.
     $this->actingAs($user)->withSession(['current_property_id' => PropertyContext::ALL])
-        ->get('/app/insights?range=this-year')->assertOk()->assertSee('1 arrival in range');
+        ->get('/app/insights?range=this-year')->assertOk()->assertSee('2 of');
 });
 
-// ── Batch B · GATE 3 — the REAL booking cadence replaces the "Soon" deferrals (shared BookingCadence) ──
-it('renders the real lead-time distribution, day-of-week occupancy and on-the-books (was "Soon")', function () {
+// ── #88 — vs-LAST-YEAR is REAL where prior-year data exists, honestly absent otherwise ──────────────
+it('shows a real vs-last-year delta only where prior-year data exists', function () {
+    $s = seedScenario(2);
+    book($s, ['unit_id' => $s['units'][0]->id]);   // this-year stay (Sep 2026)
+
+    // A real prior-year stay in the same month one year back → a genuine LY comparison to measure.
+    app(AvailabilityService::class)->recompute($s['roomType']->id, '2025-09-01', '2025-09-10');
+    app(AssignmentService::class)->createBooking(
+        ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => '2025-09-01', 'check_out' => '2025-09-03', 'lead_guest_id' => $s['guest']->id, 'source' => 'direct'],
+        [['room_type_id' => $s['roomType']->id, 'unit_id' => $s['units'][1]->id, 'rate_plan_id' => $s['ratePlan']->id, 'check_in' => '2025-09-01', 'check_out' => '2025-09-03', 'price_minor' => 10000, 'currency' => 'EUR']],
+    );
+
+    $this->actingAs(operatorUser($s, [], 'Hotel Manager'))->get('/app/insights?range=this-year')
+        ->assertOk()
+        ->assertSee('pts')          // the REAL occupancy vs-LY delta pill
+        ->assertSee('Last year');   // the LY series legend appears only when prior-year data exists
+});
+
+// ── #88 — the wireframe-rebuilt Insights: real KPIs + day-of-week + channel mix + real-derived insights ──
+it('renders the real booking-window KPI, day-of-week occupancy, channel mix and pace (no fabrication)', function () {
     $s = seedScenario(2);
     $b = book($s, ['unit_id' => $s['units'][0]->id, 'price_minor' => 10000]);   // arrives 2026-09-01
     // A real, backdated created_at → a real lead time to measure (production has genuine timestamps).
@@ -113,10 +133,15 @@ it('renders the real lead-time distribution, day-of-week occupancy and on-the-bo
 
     $this->actingAs(operatorUser($s, [], 'Hotel Manager'))->get('/app/insights?range=this-year')
         ->assertOk()
-        ->assertSee('When guests book')        // the REAL lead-time distribution
-        ->assertSee('Nights that fill first')   // the REAL day-of-week occupancy
-        ->assertSee('Booking window')           // the REAL median-lead KPI (was a "Soon" tile)
-        ->assertSee('Next 90 days')             // the REAL on-the-books KPI
-        ->assertDontSee('Booking pace')         // the prototype's "Booking pace · Soon" tile is gone
-        ->assertDontSee('needs more booking history');   // the deferred "Soon" copy is gone
+        ->assertSee('Portfolio insights')       // the wireframe title
+        ->assertSee('Nights that fill first')    // the REAL day-of-week occupancy
+        ->assertSee('Booking window')            // the REAL median-lead KPI
+        ->assertSee('Channel mix')               // real sources
+        ->assertSee('Pace by property')          // real forward pace
+        ->assertSee('Worth a look')              // the real-derived insight section
+        ->assertSee('decisions stay yours')      // the honest framing kept
+        ->assertSee('Channel-level pace')        // the Expedia fabrication REFUSED → honest gated card
+        ->assertDontSee('costing')               // no fabricated "Expedia costing €X"
+        ->assertDontSee('Booking pace')          // the old "Soon" tile is gone
+        ->assertDontSee('needs more booking history');
 });

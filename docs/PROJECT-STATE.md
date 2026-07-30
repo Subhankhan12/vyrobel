@@ -6,9 +6,42 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v32) · OPERATOR GUESTS + GUEST PROFILE exact-match COMPLETE — full CRM,
-> GDPR bulk-delete, consent-gated marketing, prefs→ops. This block SUPERSEDES every block below it. Fresh-session
-> entry point: this block → `docs/OPERATOR-GUESTS-PROFILE-AUDIT.md` → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v33) · OPERATOR HOUSEKEEPING + INSIGHTS exact-match COMPLETE — real HK
+> management (assign-all, photos, real elapsed) + real-derived insights (Expedia honest). This block SUPERSEDES
+> every block below it. Fresh-session entry point: this block → `docs/OPERATOR-HOUSEKEEPING-INSIGHTS-AUDIT.md`
+> → `docs/DECISIONS.md`.**
+>
+> **Operator Housekeeping (`/app/housekeeping`) + Insights (`/app/insights`) (Invariant #88)** matched to their
+> wireframes EXACTLY on REAL data — both had substantial real backends, so this is match-the-design + a few
+> genuine builds. Founder decisions **Recommended**: real `started_at` (real elapsed); real-derived insights +
+> Expedia/brand fabrications REFUSED; single proof photo collection. **GATE 1 — Housekeeping (`964eec8`):** the
+> operator MANAGING the real `HousekeepingTask` (the owner read-only `OwnerUnitDetail::cleanings` untouched).
+> Migration `started_at` (set on in_progress → the "Elapsed {m}/{exp}m" bar is REAL; expected minutes a
+> documented per-turnover constant); **`HousekeepingService::assignAll`** (greedy least-load, waiting-guest
+> first, each via the certified audited `assign()`) + a "clean next" priority bump; **real proof-photo
+> upload/delete** (the `RoomTypePhotoController` media pattern → `Media` on the task, `hk_proof`). The board:
+> **Board/List + density** (client-persisted), **crew filter + search** (GET), the **5-status tally** (4 real
+> statuses + real out-of-order via `condition_status`), lanes, room cards (turnover/**urgency** [name-free
+> guest-arriving via `reservation_units`]/**elapsed**/action + #87 VIP+prefs), **assign + assign-all modals**,
+> a **room-detail drawer** (pipeline, photos, action). Crew = real `StaffRoster::housekeepers()` + a computed
+> live load. Every write `housekeeping.manage`-gated + read-only (#84). "Notified on device" softened honestly
+> (real task-list, no fake push). **GATE 2 — Insights:** over the real `PerformanceMetrics`/`BookingCadence`
+> (portfolio via `readIds`). Range presets; 4 KPIs with **real vs-LY deltas** (only where prior-year data
+> exists); occupancy-by-month (this-year + on-the-books + real LY); by-property table; forward pace; and
+> **real-derived "Worth a look" cards** (peak weekday / departure-day concentration / forward on-the-books —
+> each shown only above a real threshold). **The Expedia "€4,600" card + the Booking.com/Airbnb/Expedia brand
+> split + the Marina-Expedia suggested-step are REFUSED** (no connected channel, no OTA-brand data — #39): the
+> channel mix shows REAL sources; the Expedia slot is an honest "connect a channel" note. "Decisions stay
+> yours" kept. 🔒 operator-scoped; the HousekeepingTask + analytics reused (owner surfaces undisturbed); #20 HK
+> writes audited; insights **REAL-DERIVED-ONLY** (#39); read-only respected; #17 reconciles.
+> `OperatorHousekeepingActionsTest` (6) + `OperatorAnalyticsTest` 5→8; both browser-verified (7 rooms
+> auto-balanced; real −40pts vs-LY + €7,740 on-the-books insight + Expedia honest). PHPStan L5 (0); Pint clean;
+> `migrate:fresh --seed` clean. **Invariants #1–88.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v32) · OPERATOR GUESTS + GUEST PROFILE exact-match COMPLETE — full CRM, GDPR bulk-delete,
+> consent-gated marketing, prefs→ops.**
 >
 > **Operator Guests list (`/app/guests`) + Guest Profile (`/app/guests/{guest}`) (Invariant #87)** matched to
 > their wireframes EXACTLY and the Wave-2 honestly-omitted promises turned REAL (reviews #76 exist; the mandate

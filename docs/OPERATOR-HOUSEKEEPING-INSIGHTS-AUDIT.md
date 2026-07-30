@@ -83,5 +83,39 @@ Both pages have real backends already. Housekeeping = the operator MANAGING the 
 **GATE 1 (Housekeeping):** `started_at` migration + `assignAll` service + a HK photo controller → the Board/List/density/filter + crew panel + assign/assign-all modals + room-detail drawer (photos) → tests (assign · assign-all balances by load · photo upload · status advance · read-only) → browser → commit.
 **GATE 2 (Insights):** the range presets + KPIs/vs-LY + occupancy-by-month(+LY+on-books) + by-property + pace + channel-mix(real sources) + day-of-week → the **real-derived-insight helper** (Saturdays/Fridays/gap; Expedia honest) → tests (insights compute from real data / honest when not; vs-LY honest; channel-mix real sources) → consolidate docs → browser → commit + push.
 
-## RESOLUTION
-_(appended at GATE close)_
+## RESOLUTION _(2026-07-30 · #88 · two gates)_
+
+Both pages matched to their wireframes on REAL data. Founder decisions all taken **Recommended**: a real
+`started_at` (real elapsed); real-derived insights + the Expedia/brand fabrications REFUSED; a single proof
+photo collection.
+
+**GATE 1 — Housekeeping (`964eec8`).** The operator MANAGING the real `HousekeepingTask` (the owner read-only
+`OwnerUnitDetail::cleanings` untouched). Migration `started_at` (set on the in_progress transition → the
+board's "Elapsed {m}/{exp}m" is real; expected minutes a documented per-turnover constant). `assignAll`
+(greedy least-load, waiting-guest first, each via the certified `assign()`, audited) + `assign` gains a
+"clean next" priority bump. A real proof-photo upload/delete (the `RoomTypePhotoController` media pattern →
+`Media` on the task, `hk_proof`). The board: Board/List + density (client-persisted), crew filter + search
+(GET), the 5-status tally strip (4 real statuses + real out-of-order via `condition_status`), lanes, room
+cards (turnover/urgency[name-free guest-arriving via `reservation_units`]/elapsed/action + the #87 VIP+prefs),
+assign + assign-all modals, and a room-detail drawer (stage pipeline, photos, action). Crew = real
+`StaffRoster::housekeepers()` with a computed live load. Every write `housekeeping.manage`-gated + read-only
+(#84)-respecting. "Notified on device" softened honestly (real task-list entry, no fake push).
+`OperatorHousekeepingActionsTest` (6). Browser: 7 rooms auto-assigned + balanced (Rosa 0→7); drawer + photos.
+
+**GATE 2 — Insights.** Portfolio analytics over the real `PerformanceMetrics`/`MetricSet`/`BookingCadence`
+(scoped by `PropertyContext::readIds()`). Range presets (YTD/6m/Summer/Q4-on-books/Full-year). 4 KPIs
+(Occupancy/RevPAR/ADR/Booking-window) with **real vs-LY deltas** (shown only where prior-year data exists —
+`MetricSet::isEmpty()` gate; honest-absent otherwise). Occupancy-by-month (this-year + on-the-books future +
+real LY series). By-property table (per-property Occ/ADR/RevPAR + a Group row). Forward pace by property (30d
+vs LY). **Real-derived "Worth a look" cards** (a new helper): the real peak weekday (≥80%), the real
+check-out-day concentration (≥45% two-day), and the real forward on-the-books revenue — each shown ONLY when
+the data clears a threshold. **The Expedia "costing €4,600" card + the Booking.com/Airbnb/Expedia brand split
++ the Marina-Expedia suggested-step are REFUSED** (Expedia isn't a connected channel; `source` has no OTA
+brand — no real data, #39): the channel mix shows the REAL sources (Direct/OTA/…) and the Expedia slot is an
+honest "connect a channel" note. "Decisions stay yours" kept. Browser: real −40 pts vs-LY delta, €7,740
+on-the-books insight, all sections, Expedia honest. `OperatorAnalyticsTest` 5→8.
+
+**Guards held:** operator-scoped; the `HousekeepingTask` + analytics reused (the owner surfaces undisturbed);
+#20 assign/assign-all/status/photo controller-routed + `housekeeping.manage` + audited; the insight cards
+**REAL-DERIVED-ONLY** (Expedia/brand fabrications refused); read-only respected; #17 the analytics reconcile.
+Suite green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean; both pages browser-verified.
