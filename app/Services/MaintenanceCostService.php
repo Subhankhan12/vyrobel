@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\MaintenanceTicket;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,12 +14,13 @@ use Illuminate\Database\Eloquent\Model;
  * tickets (`maintenance_tickets.cost_minor`, integer minor units). TENANT-scoped by construction
  * (MaintenanceTicket is BelongsToOrganization → the global scope restricts every query to the acting org).
  *
- * ⚠️ HONESTY: the prototype draws a "Labor vs Parts" split and per-order Labor/Parts columns — but the schema
- * holds ONE `cost_minor` per ticket, not a labour/parts breakdown. That split is FABRICATED and is NOT rendered
- * (the Wave-1 rule: reconcile to real data or omit). What IS real: total spend, orders closed, average, spend by
- * category, top units, spend by month, and the owner-unit vs operator-unit split (from `units.owner_id` — the
- * same fact that decides owner-rechargeability via the certified maintenance→owner-expense hook). An empty
- * period is `null`/`—`, never a fabricated €0.00.
+ * #89: the labor/parts split is now REAL (`labor_minor`/`parts_minor`, captured at resolve; labor + parts ===
+ * cost_minor, #17), so the "Billable" line items (Labor|Parts|Total) + the labor-vs-parts split are genuine.
+ * A ticket resolved before the split existed records as all-labour (COALESCE), so it still reconciles. The
+ * billable totals equal what the owner is billed (the same `cost_minor` that posted to `owner_expense`). Also
+ * real: total spend, orders closed, average, parts-on-order count, spend by category, top units, spend by
+ * month, and the owner-unit vs operator-unit split (`units.owner_id`). An empty period is `null`/`—`, never a
+ * fabricated €0.00.
  */
 class MaintenanceCostService
 {
@@ -27,24 +29,71 @@ class MaintenanceCostService
     private const TOP_UNITS = 8;
 
     /**
-     * @return array{currency: string, total_minor: int, orders_closed: int, avg_minor: ?int, owner_units_minor: int, operator_units_minor: int, by_category: list<array{category: string, total_minor: int, count: int}>, top_units: list<array{code: string, name: string, total_minor: int, count: int}>, by_month: list<array{month: string, total_minor: int, count: int}>}
+     * @return array{currency: string, total_minor: int, labor_minor: int, parts_minor: int, orders_closed: int, avg_minor: ?int, parts_on_order: int, owner_units_minor: int, operator_units_minor: int, by_category: list<array{category: string, total_minor: int, count: int}>, top_units: list<array{code: string, name: string, total_minor: int, count: int}>, by_month: list<array{month: string, total_minor: int, count: int}>, billable: list<array{id: string, date: string, title: string, unit: string, category: string, labor_minor: int, parts_minor: int, total_minor: int}>}
      */
     public function report(): array
     {
         $ordersClosed = $this->resolved()->count();
         $totalMinor = (int) $this->resolved()->sum('cost_minor');
 
+        // #89 — the REAL labor/parts split. A legacy ticket (resolved before the split existed) has null
+        // labor/parts → COALESCE records it as all-labour, so labor + parts === total to the cent (#17).
+        $laborMinor = (int) $this->resolved()->selectRaw('SUM(COALESCE(labor_minor, cost_minor, 0)) AS s')->value('s');
+        $partsMinor = (int) $this->resolved()->selectRaw('SUM(COALESCE(parts_minor, 0)) AS s')->value('s');
+
         return [
             'currency' => (string) ($this->resolved()->whereNotNull('currency')->value('currency') ?? 'EUR'),
             'total_minor' => $totalMinor,
+            'labor_minor' => $laborMinor,
+            'parts_minor' => $partsMinor,
             'orders_closed' => $ordersClosed,
             'avg_minor' => $ordersClosed > 0 ? intdiv($totalMinor, $ordersClosed) : null,
+            // Real count of active tickets waiting on a part (the "Parts on order" KPI). A part on order has no
+            // cost yet (the ticket isn't resolved), so a count is the honest figure — never a fabricated €.
+            'parts_on_order' => MaintenanceTicket::query()->where('awaiting_parts', true)->whereIn('status', ['open', 'in_progress'])->count(),
             'owner_units_minor' => $this->spendOnUnits(true),
             'operator_units_minor' => $this->spendOnUnits(false),
             'by_category' => $this->byCategory(),
             'top_units' => $this->topUnits(),
             'by_month' => $this->byMonth(),
+            'billable' => $this->billable(),
         ];
+    }
+
+    /**
+     * The billable work-order line items (#89) — every costed resolved ticket with its REAL labor/parts/total.
+     * The totals reconcile to the owner Expenses (the same `cost_minor` that posted to `owner_expense`).
+     *
+     * @return list<array{id: string, date: string, title: string, unit: string, category: string, labor_minor: int, parts_minor: int, total_minor: int}>
+     */
+    private function billable(): array
+    {
+        return $this->resolved()
+            ->whereNotNull('cost_minor')
+            ->join('units', 'units.id', '=', 'maintenance_tickets.unit_id')
+            ->orderByDesc('maintenance_tickets.resolved_at')
+            ->limit(60)
+            ->get([
+                'maintenance_tickets.id AS id', 'maintenance_tickets.title AS title', 'maintenance_tickets.category AS category',
+                'maintenance_tickets.cost_minor AS total', 'maintenance_tickets.labor_minor AS labor', 'maintenance_tickets.parts_minor AS parts',
+                'maintenance_tickets.resolved_at AS resolved_at', 'units.code AS unit_code',
+            ])
+            ->map(function (Model $row): array {
+                $total = (int) $row->getAttribute('total');
+                $parts = $row->getAttribute('parts') !== null ? (int) $row->getAttribute('parts') : 0;
+                $labor = $row->getAttribute('labor') !== null ? (int) $row->getAttribute('labor') : $total - $parts;
+
+                return [
+                    'id' => (string) $row->getAttribute('id'),
+                    'date' => $row->getAttribute('resolved_at') !== null ? CarbonImmutable::parse($row->getAttribute('resolved_at'))->format('j M') : '—',
+                    'title' => (string) $row->getAttribute('title'),
+                    'unit' => (string) $row->getAttribute('unit_code'),
+                    'category' => (string) $row->getAttribute('category'),
+                    'labor_minor' => $labor,
+                    'parts_minor' => $parts,
+                    'total_minor' => $total,
+                ];
+            })->all();
     }
 
     /** The base set: resolved tickets in the acting org. */

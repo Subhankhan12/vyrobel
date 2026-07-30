@@ -57,6 +57,7 @@ use App\Http\Controllers\Operator\InboxActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\InviteOwnerPreviewController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
+use App\Http\Controllers\Operator\MaintenanceCostExportController;
 use App\Http\Controllers\Operator\MaintenanceSettingsController;
 use App\Http\Controllers\Operator\OperatorProfileController;
 use App\Http\Controllers\Operator\OperatorRateProposalController;
@@ -605,6 +606,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // "settings" are not captured as a ticket id. Gated on `maintenance.manage`. Costs is read-only real
     // aggregates; Settings persists typed columns (SLA / category-assignee / toggles) — never a toast-only save.
     Route::get('/maintenance/costs', OperatorMaintenanceCosts::class)->middleware('can:maintenance.manage')->name('maintenance.costs');
+    // #89 — Costs report EXPORTS (PDF report + CSV billable line-items + email-to-self). Gated maintenance.manage
+    // (the operator owns this cost data); every export is audited.
+    Route::get('/maintenance/costs/export.csv', [MaintenanceCostExportController::class, 'csv'])->middleware('can:maintenance.manage')->name('maintenance.costs.csv');
+    Route::get('/maintenance/costs/export.pdf', [MaintenanceCostExportController::class, 'pdf'])->middleware('can:maintenance.manage')->name('maintenance.costs.pdf');
+    Route::post('/maintenance/costs/email', [MaintenanceCostExportController::class, 'email'])->middleware('can:maintenance.manage')->name('maintenance.costs.email');
     Route::get('/maintenance/settings', OperatorMaintenanceSettings::class)->middleware('can:maintenance.manage')->name('maintenance.settings');
     Route::post('/maintenance/settings', [MaintenanceSettingsController::class, 'update'])->middleware('can:maintenance.manage')->name('maintenance.settings.update');
     Route::get('/maintenance/{ticket}', MaintenanceTicketDetail::class)->name('maintenance.show');

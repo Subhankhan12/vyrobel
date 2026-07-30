@@ -130,3 +130,84 @@ it('blocks a unit from selling when a work order marks it out of order', functio
 
     expect(fn () => book($s, ['unit_id' => $unit->id]))->toThrow(InsufficientAvailabilityException::class);
 });
+
+// ═══ GATE 2 · COSTS REPORT ═══════════════════════════════════════════════════════════════════════
+
+// ── The cost report's labor/parts split reconciles to the total (#17) ─────────────────────────────
+it('reports a labor/parts split that reconciles to total spend', function () {
+    $s = seedScenario(1);
+    $svc = app(MaintenanceService::class);
+
+    $t1 = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'A']);
+    $svc->start($t1->refresh());
+    $svc->resolve($t1->refresh(), null, Money::of(6000, 'EUR'), Money::of(2000, 'EUR'));   // 60 + 20
+
+    $t2 = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'B']);
+    $svc->start($t2->refresh());
+    $svc->resolve($t2->refresh(), Money::of(5000, 'EUR'));   // legacy single-cost path → all labour
+
+    $report = app(\App\Services\MaintenanceCostService::class)->report();
+
+    expect($report['total_minor'])->toBe(13000)
+        ->and($report['labor_minor'] + $report['parts_minor'])->toBe($report['total_minor'])
+        ->and($report['labor_minor'])->toBe(11000)   // 60 + 50 legacy
+        ->and($report['parts_minor'])->toBe(2000)
+        ->and($report['orders_closed'])->toBe(2);
+});
+
+// ── The billable line items tie to what the owner is billed ───────────────────────────────────────
+it('billable line items equal the owner-billed cost', function () {
+    $s = seedScenario(1);
+    ownUnit($s['units'][0]);
+
+    $svc = app(MaintenanceService::class);
+    $t = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'Boiler']);
+    $svc->start($t->refresh());
+    $svc->resolve($t->refresh(), null, Money::of(8000, 'EUR'), Money::of(3000, 'EUR'));
+
+    $report = app(\App\Services\MaintenanceCostService::class)->report();
+    $line = collect($report['billable'])->firstWhere('id', $t->id);
+
+    $expense = OwnerExpense::withoutGlobalScopes()->where('source_type', $t->fresh()->getMorphClass())->where('source_id', $t->id)->first();
+
+    expect($line)->not->toBeNull()
+        ->and($line['labor_minor'] + $line['parts_minor'])->toBe($line['total_minor'])
+        ->and($line['total_minor'])->toBe(11000)
+        ->and((int) $expense->amount_minor)->toBe($line['total_minor']);   // ties to the owner statement
+});
+
+// ── Exports are gated on maintenance.manage ──────────────────────────────────────────────────────
+it('refuses the CSV/PDF exports without maintenance.manage', function () {
+    $s = seedScenario(1);
+    $frontDesk = operatorUser($s, [], 'Front Desk');   // no maintenance.manage
+
+    $this->actingAs($frontDesk)->get(route('app.maintenance.costs.csv'))->assertForbidden();
+    $this->actingAs($frontDesk)->get(route('app.maintenance.costs.pdf'))->assertForbidden();
+});
+
+// ── The CSV export is real (streams billable rows) + audited ──────────────────────────────────────
+it('streams a real CSV of billable line items and audits the export', function () {
+    $s = seedScenario(1);
+    $svc = app(MaintenanceService::class);
+    $t = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'Tap swap']);
+    $svc->start($t->refresh());
+    $svc->resolve($t->refresh(), null, Money::of(4000, 'EUR'), Money::of(1000, 'EUR'));
+
+    $res = $this->actingAs(mtManager($s))->get(route('app.maintenance.costs.csv'));
+    $res->assertOk();
+    $body = $res->streamedContent();
+
+    expect($body)->toContain('Tap swap')->toContain('Total');
+    expect(\App\Models\AuditEvent::withoutGlobalScopes()->where('action', 'maintenance.costs_exported')->exists())->toBeTrue();
+});
+
+// ── Email-to-me sends the PDF report to the operator's OWN address ────────────────────────────────
+it('emails the costs report to the acting operator', function () {
+    \Illuminate\Support\Facades\Mail::fake();
+    $s = seedScenario(1);
+    $manager = mtManager($s);
+
+    $this->actingAs($manager)->post(route('app.maintenance.costs.email'))->assertRedirect(route('app.maintenance.costs'));
+
+    \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\MaintenanceCostReportMail::class, fn ($m) => $m->hasTo($manager->email));
+});

@@ -1,125 +1,146 @@
-{{-- Operator MAINTENANCE COSTS (Phase 1 · Sub-gate 4) — every figure derived from real resolved tickets
-     (MaintenanceCostService). No fabricated history; the design's Labor/Parts split is omitted (schema has one
-     cost per ticket); empty → "—". Integer money throughout. RAW-BLADE RULE: every `@` follows a space/newline/tag. --}}
-<div>
-    <x-operator.shell active="maintenance" title="Maintenance costs" :subtitle="'Derived from resolved work orders'" :viewer="$viewer">
+{{-- Operator MAINTENANCE COSTS (#89 exact-match) — every figure REAL/derived from resolved work orders
+     (MaintenanceCostService). #89 makes the labor/parts split real (labor+parts=total, #17); the billable
+     totals reconcile to what the owner is billed. Real exports (PDF/CSV) + email-to-self. Excel honest-deferred.
+     RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+<div x-data="{ exOpen: false }">
+    <x-operator.shell active="maintenance" title="Maintenance costs" subtitle="Derived from resolved work orders" :viewer="$viewer">
 
-        <div style="margin-bottom: 16px;">
-            <a href="{{ route('app.maintenance') }}" style="font-size: 12.5px; color: var(--vy-accent); text-decoration: none;">← Back to the board</a>
-        </div>
+        @if (session('mt_notice')) <div class="vy-flash is-ok vy-fade">{{ session('mt_notice') }}</div> @endif
+        @if (session('mt_error')) <div class="vy-flash is-err vy-fade">{{ session('mt_error') }}</div> @endif
 
-        {{-- KPI cards --}}
-        <div class="vymc-kpis vy-fade">
-            <div class="vymc-kpi">
-                <span class="vymc-kpi-label">Total spend</span>
-                <span class="vymc-kpi-val">{{ $hasData ? $money($report['total_minor']) : '—' }}</span>
-                <span class="vymc-kpi-sub">across all resolved work orders</span>
-            </div>
-            <div class="vymc-kpi">
-                <span class="vymc-kpi-label">Orders closed</span>
-                <span class="vymc-kpi-val">{{ $report['orders_closed'] ?: '—' }}</span>
-                <span class="vymc-kpi-sub">resolved tickets</span>
-            </div>
-            <div class="vymc-kpi">
-                <span class="vymc-kpi-label">Average / order</span>
-                <span class="vymc-kpi-val">{{ $money($report['avg_minor']) }}</span>
-                <span class="vymc-kpi-sub">mean cost per closed order</span>
-            </div>
-            <div class="vymc-kpi">
-                <span class="vymc-kpi-label">On owner units</span>
-                <span class="vymc-kpi-val">{{ $hasData ? $money($report['owner_units_minor']) : '—' }}</span>
-                <span class="vymc-kpi-sub">rechargeable · operator: {{ $hasData ? $money($report['operator_units_minor']) : '—' }}</span>
+        {{-- Header row --}}
+        <div class="vy-rack-toolbar vy-fade">
+            <div class="vy-left"><a class="vy-convo-back" href="{{ route('app.maintenance') }}">‹ Board</a></div>
+            <div class="vy-right" style="position: relative;">
+                <button type="button" class="vy-btn vy-btn--accent" @click="exOpen = !exOpen">Export ▾</button>
+                <div x-show="exOpen" x-cloak @click.outside="exOpen = false"
+                     style="position: absolute; right: 0; top: 42px; z-index: 30; width: 250px; background: var(--vy-glass); border: 1px solid var(--vy-glass-border); border-radius: 12px; box-shadow: 0 14px 40px rgba(150,90,50,.16); padding: 6px;">
+                    <a href="{{ route('app.maintenance.costs.pdf') }}" class="vy-menu-item" style="display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--vy-ink); font-size: 13px;">PDF report <span style="color: var(--vy-faint); font-size: 11px;">· formatted</span></a>
+                    <a href="{{ route('app.maintenance.costs.csv') }}" class="vy-menu-item" style="display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--vy-ink); font-size: 13px;">CSV <span style="color: var(--vy-faint); font-size: 11px;">· billable line items</span></a>
+                    <div style="padding: 9px 12px; color: var(--vy-faint); font-size: 13px;">Excel <span style="font-size: 11px;">· coming soon (use CSV)</span></div>
+                    <form method="POST" action="{{ route('app.maintenance.costs.email') }}" style="border-top: 1px solid var(--vy-hairline); margin-top: 4px; padding-top: 4px;">
+                        @csrf
+                        <button type="submit" class="vy-menu-item" style="display: block; width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; border: none; background: none; cursor: pointer; color: var(--vy-ink); font-size: 13px;">Email to me <span style="color: var(--vy-faint); font-size: 11px;">· PDF attachment</span></button>
+                    </form>
+                </div>
             </div>
         </div>
 
         @unless ($hasData)
-            <div class="vy-card vy-fade vymc-empty">No resolved work orders yet — cost figures appear here once maintenance tickets are closed with a cost.</div>
+            <div class="vy-card vy-fade"><div class="vy-empty">No resolved work orders yet — costs appear here once tickets are resolved with a cost.</div></div>
         @else
-            <div class="vymc-cols">
-                {{-- Spend by category — proportional bars (width ∝ the REAL total; peak in the terracotta
-                     gradient), matching the prototype's horizontal bar chart. All from data already passed. --}}
-                <div class="vy-card vy-fade">
-                    <h2 class="vy-card-title" style="margin-bottom: 12px;">Spend by category</h2>
-                    @php $maxCat = collect($report['by_category'])->max('total_minor') ?: 1; @endphp
-                    @foreach ($report['by_category'] as $row)
-                        <div class="vymc-item">
-                            <div class="vymc-row">
-                                <span class="vymc-row-name">{{ $categoryLabel($row['category']) }}</span>
-                                <span class="vymc-row-meta">
-                                    <span class="vymc-count">{{ $row['count'] }} {{ $row['count'] === 1 ? 'order' : 'orders' }}</span>
-                                    <strong>{{ $money($row['total_minor']) }}</strong>
-                                </span>
-                            </div>
-                            <div class="vymc-track"><span @class(['is-peak' => $row['total_minor'] >= $maxCat]) style="width: {{ max(4, (int) round($row['total_minor'] / $maxCat * 100)) }}%;"></span></div>
-                        </div>
-                    @endforeach
-                </div>
-
-                {{-- Top units — same proportional bars over the REAL per-unit totals. --}}
-                <div class="vy-card vy-fade">
-                    <h2 class="vy-card-title" style="margin-bottom: 12px;">Top units by spend</h2>
-                    @php $maxUnit = collect($report['top_units'])->max('total_minor') ?: 1; @endphp
-                    @forelse ($report['top_units'] as $row)
-                        <div class="vymc-item">
-                            <div class="vymc-row">
-                                <span class="vymc-row-name"><strong>{{ $row['code'] }}</strong> <span style="color: var(--vy-muted); font-size: 12px;">{{ $row['name'] }}</span></span>
-                                <span class="vymc-row-meta">
-                                    <span class="vymc-count">{{ $row['count'] }} {{ $row['count'] === 1 ? 'order' : 'orders' }}</span>
-                                    <strong>{{ $money($row['total_minor']) }}</strong>
-                                </span>
-                            </div>
-                            <div class="vymc-track"><span @class(['is-peak' => $row['total_minor'] >= $maxUnit]) style="width: {{ max(4, (int) round($row['total_minor'] / $maxUnit * 100)) }}%;"></span></div>
-                        </div>
-                    @empty
-                        <div style="color: var(--vy-muted); font-size: 12.5px;">—</div>
-                    @endforelse
-                </div>
+            {{-- KPIs --}}
+            <div class="vy-dash-kpis vy-dash-kpis--4 vy-fade">
+                <div class="vy-dash-kpi"><div class="vy-dk-label">Total spend</div><div class="vy-dk-val">{{ $money($report['total_minor']) }}</div></div>
+                <div class="vy-dash-kpi"><div class="vy-dk-label">Orders closed</div><div class="vy-dk-val">{{ $report['orders_closed'] }}</div></div>
+                <div class="vy-dash-kpi"><div class="vy-dk-label">Avg / order</div><div class="vy-dk-val">{{ $money($report['avg_minor']) }}</div></div>
+                <div class="vy-dash-kpi"><div class="vy-dk-label">Parts on order</div><div class="vy-dk-val">{{ $report['parts_on_order'] }}</div><div class="vy-dk-sub">active work orders</div></div>
             </div>
 
-            {{-- Spend by month --}}
-            <div class="vy-card vy-fade" style="margin-top: 14px;">
-                <h2 class="vy-card-title" style="margin-bottom: 12px;">Spend by month</h2>
-                @foreach ($report['by_month'] as $row)
-                    <div class="vymc-row">
-                        <span class="vymc-row-name">{{ $monthLabel($row['month']) }}</span>
-                        <span class="vymc-row-meta">
-                            <span class="vymc-count">{{ $row['count'] }} {{ $row['count'] === 1 ? 'order' : 'orders' }}</span>
-                            <strong>{{ $money($row['total_minor']) }}</strong>
-                        </span>
+            <div class="vy-ins-grid vy-fade" style="margin-top: 18px;">
+                <div class="vy-stack">
+                    {{-- Spend by category --}}
+                    <div class="vy-card">
+                        <h2 class="vy-card-title" style="margin-bottom: 12px;">Spend by category</h2>
+                        @php $catMax = collect($report['by_category'])->max('total_minor') ?: 1; @endphp
+                        @foreach ($report['by_category'] as $cat)
+                            <div style="margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 3px;">
+                                    <span style="color: var(--vy-ink);">{{ $categoryLabel($cat['category']) }} <span class="vy-muted">· {{ $cat['count'] }}</span></span>
+                                    <span class="vy-u-code">{{ $money($cat['total_minor']) }}</span>
+                                </div>
+                                <div style="height: 7px; border-radius: 4px; background: var(--vy-hairline); overflow: hidden;"><div style="height: 100%; width: {{ (int) round($cat['total_minor'] / $catMax * 100) }}%; background: var(--vy-accent);"></div></div>
+                            </div>
+                        @endforeach
                     </div>
-                @endforeach
+
+                    {{-- Billable work orders --}}
+                    <div class="vy-card vy-card--flush">
+                        <h2 class="vy-card-title" style="padding: 14px 16px 0;">Billable work orders</h2>
+                        <div class="vy-utable-wrap" style="margin-top: 8px;">
+                            <table class="vy-utable">
+                                <thead><tr><th>Date</th><th>Work order</th><th style="text-align: right;">Labor</th><th style="text-align: right;">Parts</th><th style="text-align: right;">Total</th></tr></thead>
+                                <tbody>
+                                    @foreach ($report['billable'] as $row)
+                                        <tr>
+                                            <td class="vy-u-sub">{{ $row['date'] }}</td>
+                                            <td><a class="vy-arr-link" href="{{ route('app.maintenance.show', $row['id']) }}">{{ $row['title'] }}</a><div class="vy-u-sub">{{ $row['unit'] }} · {{ $categoryLabel($row['category']) }}</div></td>
+                                            <td style="text-align: right;">{{ $money($row['labor_minor']) }}</td>
+                                            <td style="text-align: right;">{{ $money($row['parts_minor']) }}</td>
+                                            <td style="text-align: right;"><span class="vy-u-code">{{ $money($row['total_minor']) }}</span></td>
+                                        </tr>
+                                    @endforeach
+                                    <tr style="border-top: 2px solid var(--vy-ink); font-weight: 700;">
+                                        <td colspan="2">Total</td>
+                                        <td style="text-align: right;">{{ $money($report['labor_minor']) }}</td>
+                                        <td style="text-align: right;">{{ $money($report['parts_minor']) }}</td>
+                                        <td style="text-align: right; color: var(--vy-accent);">{{ $money($report['total_minor']) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="vy-recon" style="padding: 12px 16px;">Labour + parts reconcile to the total; owner-billed work orders match the amount charged on the owner statement.</div>
+                    </div>
+                </div>
+
+                <div class="vy-stack">
+                    {{-- Dark spend hero --}}
+                    <div class="vy-tonight" style="padding: 20px;">
+                        <div class="vy-dk-label" style="color: rgba(255,255,255,.7);">Spend, all time</div>
+                        <div style="font-family: 'Sora', sans-serif; font-weight: 700; color: #fff; font-size: 30px;">{{ $money($report['total_minor']) }}</div>
+                        <div style="font-size: 12.5px; color: rgba(255,255,255,.7); margin-top: 4px;">{{ $report['orders_closed'] }} orders closed · avg {{ $money($report['avg_minor']) }}</div>
+                        <div style="border-top: 1px solid rgba(255,255,255,.14); margin-top: 14px; padding-top: 12px; font-size: 12px; color: rgba(255,255,255,.85);">
+                            <div>Owner-billed · {{ $money($report['owner_units_minor']) }}</div>
+                            <div style="color: rgba(255,255,255,.6);">Operator-borne · {{ $money($report['operator_units_minor']) }}</div>
+                        </div>
+                    </div>
+
+                    {{-- Labor vs parts --}}
+                    <div class="vy-card">
+                        <h2 class="vy-card-title" style="margin-bottom: 10px;">Labour vs parts</h2>
+                        @php $lp = max(1, $report['labor_minor'] + $report['parts_minor']); $laborPct = (int) round($report['labor_minor'] / $lp * 100); @endphp
+                        <div style="display: flex; height: 12px; border-radius: 6px; overflow: hidden;">
+                            <div style="width: {{ $laborPct }}%; background: var(--vy-accent);"></div>
+                            <div style="width: {{ 100 - $laborPct }}%; background: #E0A63A;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px;">
+                            <span>Labour {{ $laborPct }}% <span class="vy-muted">{{ $money($report['labor_minor']) }}</span></span>
+                            <span>Parts {{ 100 - $laborPct }}% <span class="vy-muted">{{ $money($report['parts_minor']) }}</span></span>
+                        </div>
+                    </div>
+
+                    {{-- 6-month trend --}}
+                    <div class="vy-card">
+                        <h2 class="vy-card-title" style="margin-bottom: 12px;">Spend by month</h2>
+                        @php $months = array_reverse($report['by_month']); $mMax = collect($months)->max('total_minor') ?: 1; @endphp
+                        <div style="display: flex; align-items: flex-end; gap: 6px; height: 100px;">
+                            @forelse ($months as $m)
+                                <div style="flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; height: 100%;">
+                                    <div style="width: 100%; height: {{ max(3, (int) round($m['total_minor'] / $mMax * 100)) }}%; background: var(--vy-accent); border-radius: 3px 3px 0 0;" title="{{ $money($m['total_minor']) }}"></div>
+                                    <div style="font-size: 10px; color: var(--vy-muted); margin-top: 4px;">{{ $monthLabel($m['month']) }}</div>
+                                </div>
+                            @empty
+                                <div class="vy-empty">No monthly history yet.</div>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    {{-- Top units --}}
+                    <div class="vy-card">
+                        <h2 class="vy-card-title" style="margin-bottom: 10px;">Top units by spend</h2>
+                        @php $uMax = collect($report['top_units'])->max('total_minor') ?: 1; @endphp
+                        @foreach ($report['top_units'] as $u)
+                            <div style="margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 3px;"><span>{{ $u['code'] }}</span><span class="vy-u-code">{{ $money($u['total_minor']) }}</span></div>
+                                <div style="height: 6px; border-radius: 4px; background: var(--vy-hairline); overflow: hidden;"><div style="height: 100%; width: {{ (int) round($u['total_minor'] / $uMax * 100) }}%; background: var(--vy-accent);"></div></div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         @endunless
 
-        {{-- Honest deferrals --}}
-        <div class="vy-card vy-fade" style="margin-top: 16px;">
-            <div style="font-size: 11.5px; color: var(--vy-faint); line-height: 1.6;">
-                A labour-vs-parts breakdown isn’t shown — a work order carries a single cost, not a split, so that
-                figure would be invented. PDF / Excel export and “email to accountant” are coming soon.
-            </div>
-        </div>
-
     </x-operator.shell>
-
-    <style>
-        .vymc-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-        .vymc-kpi { background: var(--vy-glass); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md, 12px); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
-        .vymc-kpi-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--vy-muted); }
-        .vymc-kpi-val { font-size: 22px; font-weight: 700; color: var(--vy-ink); font-family: var(--vy-display, inherit); }
-        .vymc-kpi-sub { font-size: 11px; color: var(--vy-faint); }
-        .vymc-empty { text-align: center; padding: 32px 24px; color: var(--vy-muted); font-size: 13px; }
-        .vymc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .vymc-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; font-size: 13px; color: var(--vy-ink); }
-        .vymc-row + .vymc-row { border-top: 1px solid var(--vy-hairline); }
-        /* Bar rows (Spend by category / Top units) — the wrapper owns the rhythm so the row+bar read as one item. */
-        .vymc-item { padding: 10px 0; }
-        .vymc-item + .vymc-item { border-top: 1px solid var(--vy-hairline); }
-        .vymc-item .vymc-row { padding: 0; }
-        .vymc-track { height: 6px; border-radius: 6px; background: rgba(120, 70, 40, 0.09); overflow: hidden; margin-top: 8px; }
-        .vymc-track > span { display: block; height: 100%; border-radius: 6px; background: rgba(232, 112, 58, 0.42); }
-        .vymc-track > span.is-peak { background: var(--vy-grad-peach); }
-        .vymc-row-meta { display: flex; align-items: center; gap: 12px; }
-        .vymc-count { font-size: 11.5px; color: var(--vy-muted); }
-        @media (max-width: 860px) { .vymc-kpis { grid-template-columns: repeat(2, 1fr); } .vymc-cols { grid-template-columns: 1fr; } }
-    </style>
 </div>
+
+@once <style>[x-cloak] { display: none !important; }</style> @endonce

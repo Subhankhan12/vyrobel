@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Operator;
 
+use App\Http\Controllers\Operator\MaintenanceCostExportController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Services\MaintenanceCostService;
 use Carbon\CarbonImmutable;
@@ -12,10 +13,11 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Operator MAINTENANCE COSTS (Phase 1 · Sub-gate 4) — cost analytics DERIVED entirely from real resolved
- * maintenance tickets ({@see MaintenanceCostService}). READ-ONLY; tenant-scoped; gated on `maintenance.manage`.
- * The prototype's Labor/Parts split is fabricated (one `cost_minor` per ticket) and is NOT rendered; an empty
- * period shows "—", never a fabricated €0.00.
+ * Operator MAINTENANCE COSTS (Phase 1 · Sub-gate 4; rebuilt to the wireframe in #89) — cost analytics DERIVED
+ * entirely from real resolved maintenance tickets ({@see MaintenanceCostService}). READ-ONLY; tenant-scoped;
+ * gated on `maintenance.manage`. #89 makes the Labor/Parts split REAL (labor + parts === cost_minor, #17) and
+ * the billable line items reconcile to what the owner is billed; an empty period shows "—", never a fabricated
+ * €0.00. Real exports (PDF/CSV) + email-to-self live on the {@see MaintenanceCostExportController}.
  */
 #[Layout('components.layouts.operator')]
 class OperatorMaintenanceCosts extends Component
