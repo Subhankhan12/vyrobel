@@ -107,6 +107,7 @@ use App\Http\Controllers\StripeConnectWebhookController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Http\Middleware\EnsureOwnerCapability;
+use App\Http\Middleware\EnsurePlanFeature;
 use App\Http\Middleware\EnsurePlatformAdminTwoFactor;
 use App\Http\Middleware\EnsurePrimaryOwner;
 use App\Http\Middleware\EnsureSubscriptionActive;
@@ -129,6 +130,7 @@ use App\Livewire\Operator\GuestsList;
 use App\Livewire\Operator\NewReservation;
 use App\Livewire\Operator\OperatorBilling;
 use App\Livewire\Operator\OperatorBillingCheckout;
+use App\Livewire\Operator\OperatorChannels;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorInsights;
 use App\Livewire\Operator\OperatorMaintenanceCosts;
@@ -499,6 +501,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // rack component. `/rack` is kept as an alias for existing deep-links (front desk / maintenance / groups).
     Route::get('/calendar', ReservationRack::class)->name('calendar');
     Route::get('/units', UnitsList::class)->name('units');
+    // Operator Channels exact-match — the OTA channel-manager surface. Pro-gated (`plan.feature:channels` →
+    // an Essential org gets the honest "not in your plan" page). HONEST-GATED: real channel STATE, but live
+    // OTA two-way sync/import is account-gated (no real Channex integration) — never a fabricated sync.
+    Route::get('/channels', OperatorChannels::class)->middleware(EnsurePlanFeature::class.':channels')->name('channels');
 
     // Rates & availability (Wave 4) — the READ grid + the guarded rate/restriction write, which is the
     // FIRST production caller of RateAndRestrictionService (setRate/setRestriction). PER-ROOM-TYPE (the

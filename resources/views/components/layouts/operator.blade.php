@@ -777,6 +777,19 @@
         .vy-chan-status .vy-dot { width: 7px; height: 7px; border-radius: 50%; }
         .vy-chan-status.is-synced { color: #3d6b3d; } .vy-chan-status.is-synced .vy-dot { background: var(--vy-accent-3); }
         .vy-chan-status.is-off { color: var(--vy-muted); } .vy-chan-status.is-off .vy-dot { background: var(--vy-muted); }
+        .vy-chan-status.is-pending { color: var(--vy-amber); } .vy-chan-status.is-pending .vy-dot { background: var(--vy-amber-2); }
+        .vy-chan-status.is-error { color: var(--vy-accent); } .vy-chan-status.is-error .vy-dot { background: var(--vy-accent); }
+
+        /* Operator Channels exact-match — channel rows + connect grid */
+        .vy-chan-item { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-chan-item:last-child { border-bottom: none; }
+        .vy-chan-badge { width: 34px; height: 34px; border-radius: 9px; background: var(--vy-dark); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-family: var(--vy-display); font-weight: 700; font-size: 14px; flex: none; }
+        .vy-chan-name { font-family: var(--vy-display); font-size: 14px; font-weight: 600; display: flex; align-items: center; }
+        .vy-chan-sub { font-size: 12px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-chan-count { font-family: var(--vy-display); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .vy-chan-count-sub { font-size: 11px; color: var(--vy-muted); }
+        .vy-connect-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+        .vy-connect-opt { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--vy-hairline); border-radius: 12px; }
 
         /* ---- Units table ----------------------------------------------------------------------- */
         .vy-utable-wrap { overflow-x: auto; }
