@@ -81,6 +81,7 @@ use App\Http\Controllers\Owner\OwnerConnectController;
 use App\Http\Controllers\Owner\OwnerConnectedAppController;
 use App\Http\Controllers\Owner\OwnerExpenseApprovalController;
 use App\Http\Controllers\Owner\OwnerExpensesExportController;
+use App\Http\Controllers\Owner\OwnerGuardrailController;
 use App\Http\Controllers\Owner\OwnerHelpAskController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerPayoutMethodController;
@@ -508,6 +509,8 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // their portal) + may withdraw a pending one. `rates.manage` (#30, NOT Front Desk); integer money server-side.
     Route::post('/rate-proposals', [OperatorRateProposalController::class, 'store'])->middleware(['throttle:20,1', 'can:rates.manage'])->name('rate-proposals.store');
     Route::post('/rate-proposals/{proposal}/withdraw', [OperatorRateProposalController::class, 'withdraw'])->middleware('can:rates.manage')->name('rate-proposals.withdraw');
+    // Owner Rates exact-match (#81) — the operator ACCEPTS the owner's counter → the owner's rate is applied.
+    Route::post('/rate-proposals/{proposal}/accept-counter', [OperatorRateProposalController::class, 'acceptCounter'])->middleware('can:rates.manage')->name('rate-proposals.accept-counter');
 
     // Settings (Wave 4) — ONE coherent settings surface (Operator + Property settings de-conflicted). Only
     // the BACKED columns are written (properties / property_policies / organizations); unbacked design fields
@@ -856,6 +859,11 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // owner-scoped (RateProposal is BelongsToOwner → cross-owner 404); every decision audited.
     Route::post('/rate-proposals/{proposal}/approve', [OwnerRateProposalController::class, 'approve'])->middleware($capActions)->name('rate-proposals.approve');
     Route::post('/rate-proposals/{proposal}/decline', [OwnerRateProposalController::class, 'decline'])->middleware($capActions)->name('rate-proposals.decline');
+    // Owner Rates exact-match (#81) — the owner COUNTERS with their own rate (pending → countered; the operator
+    // then accepts or withdraws) + saves the pricing GUARDRAILS that constrain the manager's proposals. Both
+    // owner-scoped + CAP_ACTIONS (co-owner only, money-class), audited.
+    Route::post('/rate-proposals/{proposal}/counter', [OwnerRateProposalController::class, 'counter'])->middleware($capActions)->name('rate-proposals.counter');
+    Route::post('/rates/guardrails', [OwnerGuardrailController::class, 'save'])->middleware($capActions)->name('rates.guardrails');
 
     // EXPENSE APPROVAL (Wave C · GATE 2 · ⚠️ deduction model) — the owner APPROVES a pending expense (charged to
     // the payout/ledger, reducing net) or QUERIES it (held out of net + opens the relay). CAP_ACTIONS; owner-scoped.

@@ -7,11 +7,17 @@ namespace App\Livewire\Owner;
 use App\Http\Controllers\Owner\OwnerRateController;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\RateCalendar;
+use App\Models\RateGuardrail;
+use App\Models\RateProposal;
 use App\Models\Restriction;
 use App\Models\RoomType;
 use App\Models\Unit;
 use App\Services\OwnerRateService;
 use App\Services\RateAndRestrictionService;
+use App\Support\Analytics\PerformanceMetrics;
+use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerTeamRole;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -50,6 +56,12 @@ class OwnerRates extends Component
     {
         $roomTypes = app(OwnerRateService::class)->editableRoomTypes();   // exclusive; empty → fail-closed
 
+        // The manager's OPEN proposals (pending + the owner's counters awaiting the operator) — surfaced on the
+        // Rates page itself (#81), owner-scoped by BelongsToOwner. The guardrails + the real average are shown
+        // regardless of whether there are editable room types.
+        $proposals = $this->openProposals();
+        $guardrail = $this->guardrailData();
+
         if ($roomTypes->isEmpty()) {
             return view('livewire.owner.rates', [
                 'viewer' => $this->viewer(),
@@ -57,19 +69,120 @@ class OwnerRates extends Component
                 'selectedId' => null,
                 'from' => Carbon::today()->toDateString(),
                 'to' => Carbon::today()->addDays(6)->toDateString(),
+                'proposals' => $proposals,
+                'guardrail' => $guardrail,
+                'avgDisplay' => null,
             ]);
         }
 
         $from = $this->resolveFrom();
         $selectedId = $this->resolveSelected($roomTypes, $from);
+        $cards = $roomTypes->map(fn (RoomType $rt): array => $this->card($rt, $from))->all();
 
         return view('livewire.owner.rates', [
             'viewer' => $this->viewer(),
-            'cards' => $roomTypes->map(fn (RoomType $rt): array => $this->card($rt, $from))->all(),
+            'cards' => $cards,
             'selectedId' => $selectedId,
             'from' => $from,
             'to' => Carbon::parse($from)->addDays(6)->toDateString(),   // a sensible default range end
+            'proposals' => $proposals,
+            'guardrail' => $guardrail,
+            // WHERE YOU SIT — the owner's REAL average nightly rate across their room types (comp-set/market is
+            // external data Vyrobel does not have → omitted, never fabricated #39).
+            'avgDisplay' => $this->averageDisplay($cards),
         ]);
+    }
+
+    /**
+     * The manager's OPEN rate proposals for this owner (pending + countered) — owner-scoped (RateProposal is
+     * BelongsToOwner). Each formatted for the exact-match card: the room type, the window, the note (rationale),
+     * the before→after, the delta, and the state (so approved/declined/countered render distinctly).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function openProposals(): array
+    {
+        return RateProposal::query()
+            ->whereIn('state', [RateProposal::STATE_PENDING, RateProposal::STATE_COUNTERED])
+            ->with('roomType')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (RateProposal $p): array => $this->proposalRow($p))
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function proposalRow(RateProposal $p): array
+    {
+        $currency = (string) $p->currency;
+        $current = $p->current_rate_minor !== null ? (int) $p->current_rate_minor : null;
+        $proposed = (int) $p->proposed_rate_minor;
+        $pct = ($current !== null && $current > 0) ? (int) round(($proposed - $current) / $current * 100) : null;
+        $up = $proposed >= ($current ?? $proposed);
+
+        return [
+            'id' => (string) $p->getKey(),
+            'villa' => (string) ($p->roomType->name ?? 'Room type'),
+            'window' => Carbon::parse($p->from_date)->format('j M').' – '.Carbon::parse($p->to_date)->format('j M'),
+            'effective' => Carbon::parse($p->from_date)->format('j M'),
+            'rationale' => (string) ($p->note ?? ''),
+            'from_str' => $current !== null ? $this->money($current, $currency) : '—',
+            'to_str' => $this->money($proposed, $currency),
+            'delta_str' => $pct === null ? '—' : (($up ? '+' : '−').abs($pct).'%'),
+            'up' => $up,
+            'countered' => $p->isCountered(),
+            'counter_str' => $p->countered_rate_minor !== null ? $this->money((int) $p->countered_rate_minor, $currency) : null,
+        ];
+    }
+
+    /**
+     * The owner's saved guardrails, or the honest defaults (no row → dynamic, 0% auto-approve, no floor/ceiling —
+     * i.e. every change waits for the owner, which is exactly today's behaviour until they set limits).
+     *
+     * @return array{mode: string, auto_pct: int, floor: string, ceiling: string, set: bool}
+     */
+    private function guardrailData(): array
+    {
+        $ids = app(OwnerContext::class)->ownerIdsWithCapability(OwnerTeamRole::CAP_ACTIONS);
+        $g = $ids === [] ? null : RateGuardrail::query()->where('owner_id', $ids[0])->first();
+
+        if ($g === null) {
+            // No row → every change waits for the owner (today's behaviour until they set limits).
+            return ['mode' => RateGuardrail::MODE_DYNAMIC, 'auto_pct' => 0, 'floor' => '', 'ceiling' => '', 'set' => false];
+        }
+
+        return [
+            'mode' => (string) $g->pricing_mode,
+            'auto_pct' => (int) $g->auto_approve_pct,
+            'floor' => $g->floor_minor !== null ? (string) (int) round($g->floor_minor / 100) : '',
+            'ceiling' => $g->ceiling_minor !== null ? (string) (int) round($g->ceiling_minor / 100) : '',
+            'set' => true,
+        ];
+    }
+
+    /**
+     * The owner's REAL average current nightly rate across their room types (the ones with a set rate), or null.
+     *
+     * @param  list<array<string, mixed>>  $cards
+     */
+    private function averageDisplay(array $cards): ?string
+    {
+        $minors = [];
+        $currency = 'EUR';
+        foreach ($cards as $c) {
+            if (($c['rate_units'] ?? null) !== null) {
+                $minors[] = (int) $c['rate_units'] * 100;
+                $currency = (string) $c['currency'];
+            }
+        }
+
+        if ($minors === []) {
+            return null;
+        }
+
+        return $this->money((int) round(array_sum($minors) / count($minors)), $currency);
     }
 
     /**
@@ -101,6 +214,11 @@ class OwnerRates extends Component
 
         $rateMinor = $rate === null ? null : (int) $rate->price_minor;
 
+        // REAL forward occupancy for THIS room type's owned units (next 30 nights) — the shared metric layer.
+        $unitIds = $rt->units->map(fn (Unit $u): string => (string) $u->id)->all();
+        $occStart = CarbonImmutable::today();
+        $occ = $unitIds === [] ? 0 : PerformanceMetrics::forOwnerUnits($unitIds, $occStart, $occStart->addDays(30), (string) ($plan->currency ?? 'EUR'))->occupancyPct();
+
         return [
             'id' => (string) $rt->id,
             'name' => (string) $rt->name,
@@ -115,6 +233,7 @@ class OwnerRates extends Component
                 ? $this->money((int) round($rateMinor * (1 + $weekendPct / 100)), (string) $rate->currency)
                 : null,
             'min_stay' => $minStay !== null ? (int) $minStay : null,
+            'occ_pct' => $occ,
         ];
     }
 

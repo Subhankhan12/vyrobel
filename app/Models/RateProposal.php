@@ -34,6 +34,9 @@ class RateProposal extends Model
 
     public const STATE_WITHDRAWN = 'withdrawn';
 
+    /** The owner has proposed a DIFFERENT rate back to the operator (Owner Rates #81). Nothing applied yet. */
+    public const STATE_COUNTERED = 'countered';
+
     protected $fillable = [
         'organization_id',
         'owner_id',
@@ -46,12 +49,16 @@ class RateProposal extends Model
         'proposed_weekend_pct',
         'current_min_stay',
         'proposed_min_stay',
+        'countered_rate_minor',
+        'countered_note',
         'from_date',
         'to_date',
         'note',
         'state',
         'decided_at',
         'decided_by',
+        'countered_at',
+        'countered_by',
     ];
 
     /**
@@ -63,6 +70,8 @@ class RateProposal extends Model
             'from_date' => 'date',
             'to_date' => 'date',
             'decided_at' => 'datetime',
+            'countered_at' => 'datetime',
+            'countered_rate_minor' => 'integer',
             'current_weekend_pct' => 'decimal:2',
             'proposed_weekend_pct' => 'decimal:2',
         ];
@@ -71,6 +80,11 @@ class RateProposal extends Model
     public function isPending(): bool
     {
         return $this->state === self::STATE_PENDING;
+    }
+
+    public function isCountered(): bool
+    {
+        return $this->state === self::STATE_COUNTERED;
     }
 
     /**

@@ -72,7 +72,7 @@ class OperatorRateProposalController extends Controller
 
     public function withdraw(Request $request, string $proposal): RedirectResponse
     {
-        // Tenant-scoped by BelongsToOrganization; a cross-org id 404s. Only a pending one may be withdrawn.
+        // Tenant-scoped by BelongsToOrganization; a cross-org id 404s. A pending OR countered one may be withdrawn.
         $model = RateProposal::query()->findOrFail($proposal);
         $back = route('app.owners.show', $model->owner_id);
 
@@ -83,5 +83,24 @@ class OperatorRateProposalController extends Controller
         }
 
         return redirect()->to($back)->with('rate_notice', 'Proposal withdrawn.');
+    }
+
+    /**
+     * OPERATOR ACCEPTS the owner's counter (#81) → the owner's countered rate is applied via the certified path
+     * (the rate really changes) → `approved`. Tenant-scoped; gated `rates.manage` at the route. Only a
+     * `countered` proposal can be accepted; anything else is a graceful no-op flash.
+     */
+    public function acceptCounter(Request $request, string $proposal): RedirectResponse
+    {
+        $model = RateProposal::query()->findOrFail($proposal);
+        $back = route('app.owners.show', $model->owner_id);
+
+        try {
+            $this->proposals->acceptCounter($model, $request->user());
+        } catch (\RuntimeException) {
+            return redirect()->to($back)->with('rate_notice', 'That counter is no longer open.');
+        }
+
+        return redirect()->to($back)->with('rate_notice', 'Counter accepted — the owner’s rate is now live.');
     }
 }

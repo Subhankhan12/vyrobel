@@ -3,6 +3,7 @@
 use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\RateCalendar;
+use App\Models\RateGuardrail;
 use App\Models\RatePlan;
 use App\Models\RateProposal;
 use App\Models\RoomType;
@@ -167,4 +168,120 @@ it('surfaces a pending proposal as an attention item on My Units and Overview', 
             ->assertSee(route('owner.rate-proposals.approve', $p->id), false) // real Approve action
             ->assertSee(route('owner.rate-proposals.decline', $p->id), false);
     }
+});
+
+// ── COUNTER (Owner Rates exact-match #81) — owner counters → operator accepts → the OWNER'S rate applies ──
+it('lets the owner counter a proposal and the operator accept it — the owner’s rate genuinely applies', function () {
+    $s = seedScenario(1);
+    $c = proposalScenario($s);
+    $today = now()->toDateString();
+
+    // Operator proposes €185.
+    $this->actingAs($c['operator'])->post(route('app.rate-proposals.store'), [
+        'owner_id' => $c['owner']->id, 'room_type_id' => $c['rt']->id,
+        'rate' => '185', 'from_date' => $today, 'to_date' => now()->addDays(10)->toDateString(),
+    ])->assertRedirect();
+    $p = RateProposal::query()->firstOrFail();
+
+    // OWNER COUNTERS with €195 — state=countered, nothing applied yet (rate still €180).
+    $this->actingAs($c['ownerUser'])->post(route('owner.rate-proposals.counter', $p->id), ['counter_rate' => '195'])
+        ->assertRedirect();
+    $p->refresh();
+    expect($p->state)->toBe('countered')
+        ->and((int) $p->countered_rate_minor)->toBe(19500)
+        ->and(proposalRateMinor((string) $c['plan']->id, $today))->toBe(18000);   // unchanged while countered
+
+    // OPERATOR ACCEPTS the counter → the OWNER'S €195 is applied (the rate really changes).
+    $this->actingAs($c['operator'])->post(route('app.rate-proposals.accept-counter', $p->id))->assertRedirect();
+    $p->refresh();
+    expect($p->state)->toBe('approved')
+        ->and(proposalRateMinor((string) $c['plan']->id, $today))->toBe(19500);   // the owner's counter is live
+});
+
+it('refuses a counter to another owner’s proposal (owner-scoped 404)', function () {
+    $s = seedScenario(1);
+    $c = proposalScenario($s);
+    $this->actingAs($c['operator'])->post(route('app.rate-proposals.store'), [
+        'owner_id' => $c['owner']->id, 'room_type_id' => $c['rt']->id,
+        'rate' => '185', 'from_date' => now()->toDateString(), 'to_date' => now()->addDays(5)->toDateString(),
+    ])->assertRedirect();
+    $p = RateProposal::query()->firstOrFail();
+
+    $stranger = User::factory()->create();
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
+    $this->actingAs($stranger)->post(route('owner.rate-proposals.counter', $p->id), ['counter_rate' => '195'])->assertNotFound();
+    expect($p->fresh()->state)->toBe('pending');
+});
+
+// ── GUARDRAILS (#81) — a SAVED guardrail GENUINELY constrains the manager's proposals (mutation-proven) ──
+it('rejects an operator proposal below the owner’s floor / above the ceiling', function () {
+    $s = seedScenario(1);
+    $c = proposalScenario($s);
+    RateGuardrail::create(['owner_id' => $c['owner']->id, 'pricing_mode' => 'fixed', 'auto_approve_pct' => 0, 'floor_minor' => 15000, 'ceiling_minor' => 30000, 'currency' => 'EUR']);
+
+    // €140 is below the €150 floor → rejected, no proposal created.
+    $this->actingAs($c['operator'])->post(route('app.rate-proposals.store'), [
+        'owner_id' => $c['owner']->id, 'room_type_id' => $c['rt']->id,
+        'rate' => '140', 'from_date' => now()->toDateString(), 'to_date' => now()->addDays(5)->toDateString(),
+    ])->assertRedirect()->assertSessionHas('rate_error');
+    expect(RateProposal::query()->count())->toBe(0);
+
+    // €320 is above the €300 ceiling → also rejected.
+    $this->actingAs($c['operator'])->post(route('app.rate-proposals.store'), [
+        'owner_id' => $c['owner']->id, 'room_type_id' => $c['rt']->id,
+        'rate' => '320', 'from_date' => now()->toDateString(), 'to_date' => now()->addDays(5)->toDateString(),
+    ])->assertSessionHas('rate_error');
+    expect(RateProposal::query()->count())->toBe(0);
+});
+
+it('auto-approves a small change within the dynamic tolerance, and leaves a larger one pending', function () {
+    $s = seedScenario(1);
+    $c = proposalScenario($s);
+    $today = now()->toDateString();
+    RateGuardrail::create(['owner_id' => $c['owner']->id, 'pricing_mode' => 'dynamic', 'auto_approve_pct' => 5, 'currency' => 'EUR']);
+
+    // €185 vs €180 = +2.8% ≤ 5% → AUTO-APPROVED (applied immediately, no owner action).
+    $this->actingAs($c['operator'])->post(route('app.rate-proposals.store'), [
+        'owner_id' => $c['owner']->id, 'room_type_id' => $c['rt']->id,
+        'rate' => '185', 'from_date' => $today, 'to_date' => now()->addDays(10)->toDateString(),
+    ])->assertRedirect();
+    $p = RateProposal::query()->firstOrFail();
+    expect($p->state)->toBe('approved')
+        ->and(proposalRateMinor((string) $c['plan']->id, $today))->toBe(18500);   // genuinely live
+
+    // €230 vs €180 = +27.8% > 5% → PENDING (the owner decides); the rate is unchanged.
+    $this->actingAs($c['operator'])->post(route('app.rate-proposals.store'), [
+        'owner_id' => $c['owner']->id, 'room_type_id' => $c['rt']->id,
+        'rate' => '230', 'from_date' => $today, 'to_date' => now()->addDays(10)->toDateString(),
+    ])->assertRedirect();
+    $pending = RateProposal::query()->where('proposed_rate_minor', 23000)->firstOrFail();
+    expect($pending->state)->toBe('pending')
+        ->and(proposalRateMinor((string) $c['plan']->id, $today))->toBe(18500);   // still the auto-approved 185, not 230
+});
+
+it('never auto-approves in fixed mode — even a tiny change waits for the owner', function () {
+    $s = seedScenario(1);
+    $c = proposalScenario($s);
+    RateGuardrail::create(['owner_id' => $c['owner']->id, 'pricing_mode' => 'fixed', 'auto_approve_pct' => 10, 'currency' => 'EUR']);
+
+    $this->actingAs($c['operator'])->post(route('app.rate-proposals.store'), [
+        'owner_id' => $c['owner']->id, 'room_type_id' => $c['rt']->id,
+        'rate' => '182', 'from_date' => now()->toDateString(), 'to_date' => now()->addDays(5)->toDateString(),
+    ])->assertRedirect();
+    expect(RateProposal::query()->firstOrFail()->state)->toBe('pending');
+});
+
+it('saves the owner’s guardrails through the real controller (CAP_ACTIONS, owner-scoped)', function () {
+    $s = seedScenario(1);
+    $c = proposalScenario($s);
+
+    $this->actingAs($c['ownerUser'])->post(route('owner.rates.guardrails'), [
+        'pricing_mode' => 'dynamic', 'auto_approve_pct' => '8', 'floor' => '150', 'ceiling' => '600',
+    ])->assertRedirect()->assertSessionHas('owner_notice');
+
+    $g = RateGuardrail::query()->where('owner_id', $c['owner']->id)->firstOrFail();
+    expect($g->pricing_mode)->toBe('dynamic')
+        ->and((int) $g->auto_approve_pct)->toBe(8)
+        ->and((int) $g->floor_minor)->toBe(15000)
+        ->and((int) $g->ceiling_minor)->toBe(60000);
 });

@@ -122,7 +122,35 @@ class OwnerRateService
      */
     public function apply(string $roomTypeId, string $from, string $toExclusive, ?int $priceMinor, ?int $minStay, ?bool $stopSell, ?float $weekendUpliftPct = null): bool
     {
-        $roomType = $this->editableRoomTypeOrFail($roomTypeId);   // ← owner-scope guard on the money write
+        return $this->applyTo($this->editableRoomTypeOrFail($roomTypeId), $from, $toExclusive, $priceMinor, $minStay, $stopSell, $weekendUpliftPct);
+    }
+
+    /**
+     * Apply a rate to a room type EXCLUSIVELY owned by `$ownerId`, verifying that boundary WITHOUT the owner
+     * scope — so an OPERATOR-context caller (a rate-proposal auto-approve / counter-accept) can write the same
+     * money the owner would, and only ever to a room type that is entirely this owner's. The exclusive-ownership
+     * check is the SAME boundary {@see RateProposalService} enforces at propose time; a shared
+     * room type throws {@see OwnerRateException::notYourRoomType}. Used only by the certified proposal path.
+     */
+    public function applyForExclusiveOwner(string $roomTypeId, string $ownerId, string $from, string $toExclusive, ?int $priceMinor, ?int $minStay, ?bool $stopSell, ?float $weekendUpliftPct = null): bool
+    {
+        $shared = Unit::withoutOwnerScope()
+            ->where('room_type_id', $roomTypeId)
+            ->where(fn ($q) => $q->whereNull('owner_id')->orWhere('owner_id', '!=', $ownerId))
+            ->exists();
+
+        if ($shared) {
+            throw OwnerRateException::notYourRoomType($roomTypeId);
+        }
+
+        $roomType = RoomType::query()->withoutGlobalScopes()->findOrFail($roomTypeId);
+
+        return $this->applyTo($roomType, $from, $toExclusive, $priceMinor, $minStay, $stopSell, $weekendUpliftPct);
+    }
+
+    /** The shared apply body — resolves the plan + writes the nightly/weekend rate + min-stay via the certified service. */
+    private function applyTo(RoomType $roomType, string $from, string $toExclusive, ?int $priceMinor, ?int $minStay, ?bool $stopSell, ?float $weekendUpliftPct): bool
+    {
         $rateStored = true;
         $plan = $roomType->primaryRatePlan();
 

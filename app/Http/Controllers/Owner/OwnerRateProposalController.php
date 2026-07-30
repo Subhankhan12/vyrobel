@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\RateProposal;
 use App\Services\RateProposalService;
+use App\Support\Money\MoneyInput;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
@@ -50,5 +51,34 @@ class OwnerRateProposalController extends Controller
         }
 
         return back()->with('owner_notice', 'Proposal declined — your rate is unchanged.');
+    }
+
+    /**
+     * OWNER COUNTERS with their own nightly rate (#81) → `countered`; the operator then accepts or withdraws.
+     * Nothing is applied here. Money arrives as hand-typed text → integer minor units (junk / non-positive
+     * rejected) in the proposal's own currency. Owner-scoped + CAP_ACTIONS (per-owner), audited via the service.
+     */
+    public function counter(Request $request, string $proposal): RedirectResponse
+    {
+        $model = RateProposal::query()->findOrFail($proposal);   // owner-scoped
+        abort_unless(app(OwnerContext::class)->canOn((string) $model->owner_id, OwnerTeamRole::CAP_ACTIONS), 403);   // 🔒 P1-1 per-owner
+
+        $validated = $request->validate([
+            'counter_rate' => ['required', 'string', 'max:12'],
+            'counter_note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $minor = MoneyInput::toMinor($validated['counter_rate']);
+        if ($minor === null) {
+            return back()->with('owner_error', 'Enter a valid nightly rate for your counter.');
+        }
+
+        try {
+            $this->proposals->counter($model, $request->user(), $minor, $validated['counter_note'] ?? null);
+        } catch (\RuntimeException) {
+            return back()->with('owner_notice', 'That proposal was already decided.');
+        }
+
+        return back()->with('owner_notice', 'Counter sent — your manager will review it.');
     }
 }

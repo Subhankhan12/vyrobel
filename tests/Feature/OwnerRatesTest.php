@@ -208,14 +208,13 @@ it('shows the weekend-uplift and min-stay controls on the Rates page and reflect
     ])->assertRedirect();
 
     $this->actingAs($a['user'])->get('/owner/rates?from=2026-10-01')->assertOk()
-        // the manage table now carries Weekend + Min stay columns…
+        // Exact-match (#81): the Current-rates table carries Base / Weekend / Occ (Peak omitted — unmodelled #39)…
         ->assertSee('Weekend')
-        ->assertSee('Min stay')
-        // …with the real derived Fri/Sat price (200 × 1.25 = €250.00) + the uplift % + the min-stay
+        ->assertSee('Occ.')
+        // …with the real derived Fri/Sat price (200 × 1.25 = €250.00) — the uplift genuinely reflected.
         ->assertSee('€250.00')
-        ->assertSee('+25%')
-        ->assertSee('3n')
-        // the editor exposes the weekend-uplift control (posts to the Wave-A backend)
+        // …and the kept direct-edit editor still exposes the weekend-uplift + min-stay controls (Wave-A backend).
+        ->assertSee('Min stay')
         ->assertSee('name="weekend_uplift"', false)
         ->assertSee('Weekend uplift (%)');
 });
