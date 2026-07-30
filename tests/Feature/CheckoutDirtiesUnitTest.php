@@ -65,7 +65,7 @@ it('surfaces the departure task on the board and in the dashboard to-clean count
 
     // Both operator surfaces render it (the board shows the unit; the dashboard renders its KPIs).
     $this->actingAs($member)->get('/app/housekeeping')->assertOk()->assertSee('DIRTYUNIT');
-    $this->actingAs($member)->get('/app/dashboard')->assertOk()->assertSee('To clean');
+    $this->actingAs($member)->get('/app/dashboard')->assertOk()->assertSee('to clean');   // Housekeeping snapshot "{N} to clean" (wireframe wording)
 });
 
 // ── The dirty→clean cycle is a REAL transition now (no more clean→clean no-op) ────────────────────

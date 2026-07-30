@@ -6,11 +6,17 @@ namespace App\Livewire\Operator;
 
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\Channel;
 use App\Models\HousekeepingTask;
+use App\Models\MaintenanceTicket;
 use App\Models\Payment;
 use App\Models\Property;
+use App\Models\RateCalendar;
 use App\Models\Reservation;
+use App\Models\RoomType;
+use App\Models\Unit;
 use App\Services\FrontDeskService;
+use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Property\PropertyOccupancy;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -75,6 +81,15 @@ class OperatorDashboard extends Component
         $housekeeping = $this->housekeeping($propertyIds);
 
         $currency = (string) ($primary->currency ?? 'EUR');
+
+        // ── Operator Dashboard exact-match: the previously-missing REAL sections ────────────────────
+        $workOrders = $this->workOrders($propertyIds);
+        $maintenance = $this->maintenance($propertyIds, $currency, $date);
+        $occupancyWeek = $this->occupancyWeek($propertyIds, $date);
+        $adr = $this->adr($propertyIds, $date, $currency);
+        // Occupancy delta vs the previous night (real derived; null → no baseline, honest-omit).
+        $yesterday = PropertyOccupancy::forProperties($propertyIds, $day->subDay()->toDateString());
+        $occDelta = $occupancy['total'] > 0 && $yesterday['total'] > 0 ? $occupancy['pct'] - $yesterday['pct'] : null;
         $propertyLabel = $this->viewingAllProperties
             ? ['id' => 'all', 'name' => 'All properties']
             : ($primary !== null ? ['id' => (string) $primary->id, 'name' => (string) $primary->name] : null);
@@ -92,6 +107,7 @@ class OperatorDashboard extends Component
             ],
             'kpis' => [
                 'occupancy_pct' => $occupancy['pct'],
+                'occupancy_delta' => $occDelta,
                 'rooms_sold' => $occupancy['sold'],
                 'rooms_total' => $occupancy['total'],
                 'rooms_available' => $occupancy['available'],
@@ -99,10 +115,217 @@ class OperatorDashboard extends Component
                 'departures' => $departures->count(),
                 'in_house' => $inHouse->count(),
                 'payments' => $this->money($this->paymentsOn($date), $currency),
+                'work_orders' => $workOrders['open'],
+                'work_orders_urgent' => $workOrders['urgent'],
+                'adr' => $adr,
             ],
             'housekeeping' => $housekeeping,
+            'maintenance' => $maintenance,
+            'occupancyWeek' => $occupancyWeek,
+            'tasks' => $this->tasks($workOrders, $housekeeping, $arrivals, $inHouse),
+            'channels' => $this->channels($propertyIds),
             'arrivals' => $this->arrivalsList($arrivals),
         ]);
+    }
+
+    /**
+     * Open work orders (active maintenance tickets) + how many are urgent — real counts, tenant + read-set
+     * scoped.
+     *
+     * @param  list<string>  $propertyIds
+     * @return array{open: int, urgent: int}
+     */
+    private function workOrders(array $propertyIds): array
+    {
+        if ($propertyIds === []) {
+            return ['open' => 0, 'urgent' => 0];
+        }
+
+        $base = MaintenanceTicket::query()
+            ->whereIn('status', ['open', 'in_progress'])
+            ->whereHas('unit', fn ($q) => $q->whereIn('property_id', $propertyIds));
+
+        return [
+            'open' => (int) (clone $base)->count(),
+            'urgent' => (int) (clone $base)->where('priority', 'urgent')->count(),
+        ];
+    }
+
+    /**
+     * Maintenance snapshot: units genuinely OUT OF ORDER (distinct units on active out-of-service tickets)
+     * + the real nightly rate on hold (Σ tonight's rack rate of those units' room types). No pre-computed
+     * hold exists, so it is DERIVED from the real RateCalendar — omitted (null) when no rate is set, never
+     * fabricated.
+     *
+     * @param  list<string>  $propertyIds
+     * @return array{out_of_order: int, on_hold: ?string}
+     */
+    private function maintenance(array $propertyIds, string $currency, string $date): array
+    {
+        if ($propertyIds === []) {
+            return ['out_of_order' => 0, 'on_hold' => null];
+        }
+
+        // Units taken out of service by an ACTIVE ticket — the real "out of order" set (distinct units).
+        $unitIds = MaintenanceTicket::query()
+            ->whereIn('status', ['open', 'in_progress'])
+            ->where('takes_out_of_service', true)
+            ->whereHas('unit', fn ($q) => $q->whereIn('property_id', $propertyIds))
+            ->pluck('unit_id')
+            ->unique()
+            ->values();
+
+        $onHoldMinor = $this->onHoldMinor($unitIds->all(), $date);
+
+        return [
+            'out_of_order' => $unitIds->count(),
+            'on_hold' => $onHoldMinor > 0 ? $this->money($onHoldMinor, $currency) : null,
+        ];
+    }
+
+    /**
+     * The real nightly revenue on hold = Σ, over the out-of-order units, of tonight's rack rate for the
+     * unit's room type (via the room type's default rate plan → RateCalendar). A unit whose room type has no
+     * rate set contributes 0 (honest — never invented).
+     *
+     * @param  list<string>  $unitIds
+     */
+    private function onHoldMinor(array $unitIds, string $date): int
+    {
+        if ($unitIds === []) {
+            return 0;
+        }
+
+        // room_type_id per out-of-order unit (a room type may repeat — each idle unit holds its own rate).
+        $roomTypeIds = Unit::query()->whereIn('id', $unitIds)->pluck('room_type_id')->filter()->values();
+        if ($roomTypeIds->isEmpty()) {
+            return 0;
+        }
+
+        // Tonight's price per (default) rate plan for those room types.
+        $planPrice = [];
+        $plans = RoomType::query()->whereIn('id', $roomTypeIds->unique()->all())->pluck('default_rate_plan_id', 'id');
+        $planIds = collect($plans)->filter()->unique()->values();
+        if ($planIds->isNotEmpty()) {
+            $planPrice = RateCalendar::query()
+                ->whereIn('rate_plan_id', $planIds->all())
+                ->whereDate('date', $date)
+                ->pluck('price_minor', 'rate_plan_id')
+                ->all();
+        }
+
+        $total = 0;
+        foreach ($roomTypeIds as $rtId) {
+            $planId = $plans[$rtId] ?? null;
+            $total += $planId !== null ? (int) ($planPrice[$planId] ?? 0) : 0;
+        }
+
+        return $total;
+    }
+
+    /**
+     * Occupancy for the next 7 days — a real per-night % from the certified spine (never a fabricated curve).
+     *
+     * @param  list<string>  $propertyIds
+     * @return list<array{day: string, date: string, pct: int}>
+     */
+    private function occupancyWeek(array $propertyIds, string $date): array
+    {
+        $start = CarbonImmutable::parse($date);
+        $out = [];
+
+        for ($i = 0; $i < 7; $i++) {
+            $d = $start->addDays($i);
+            $occ = $propertyIds === [] ? ['pct' => 0] : PropertyOccupancy::forProperties($propertyIds, $d->toDateString());
+            $out[] = ['day' => $d->format('D'), 'date' => $d->toDateString(), 'pct' => (int) $occ['pct']];
+        }
+
+        return $out;
+    }
+
+    /** Tonight's ADR from the certified metric layer — null (honest) when there's no sold room-night yet. */
+    private function adr(array $propertyIds, string $date, string $currency): ?string
+    {
+        if ($propertyIds === []) {
+            return null;
+        }
+
+        $start = CarbonImmutable::parse($date);
+        $metrics = PerformanceMetrics::forProperties($propertyIds, $start, $start->addDay(), $currency);
+
+        return $metrics->isEmpty() || $metrics->adrMinor() <= 0 ? null : $this->money($metrics->adrMinor(), $currency);
+    }
+
+    /**
+     * Today's tasks — DERIVED from real operational state (urgent/active work orders, rooms to clean,
+     * arrivals still to check in). Honest-empty ("all caught up") when there is genuinely nothing.
+     *
+     * @param  array{open: int, urgent: int}  $workOrders
+     * @param  array{to_clean: int, pending: int, in_progress: int, clean: int, inspected: int}  $housekeeping
+     * @param  Collection<int, Reservation>  $arrivals
+     * @param  Collection<int, Reservation>  $inHouse
+     * @return array{groups: list<array{label: string, count: int}>, items: list<array{label: string, meta: string, priority: string}>}
+     */
+    private function tasks(array $workOrders, array $housekeeping, Collection $arrivals, Collection $inHouse): array
+    {
+        $items = [];
+
+        if ($workOrders['urgent'] > 0) {
+            $items[] = ['label' => 'Resolve urgent work orders', 'meta' => $workOrders['urgent'].' urgent', 'priority' => 'urgent'];
+        }
+        if ($workOrders['open'] - $workOrders['urgent'] > 0) {
+            $items[] = ['label' => 'Work through open work orders', 'meta' => ($workOrders['open'] - $workOrders['urgent']).' open', 'priority' => 'high'];
+        }
+        if ($housekeeping['to_clean'] > 0) {
+            $items[] = ['label' => 'Rooms to clean', 'meta' => $housekeeping['to_clean'].' to clean', 'priority' => 'high'];
+        }
+
+        // Arrivals still to check in = those not yet checked_in (the real status enum has no 'in_house').
+        $toArrive = $arrivals->reject(fn (Reservation $r): bool => (string) $r->status === 'checked_in')->count();
+        if ($toArrive > 0) {
+            $items[] = ['label' => 'Check in arrivals', 'meta' => $toArrive.' expected', 'priority' => 'normal'];
+        }
+
+        $groups = [
+            ['label' => 'Work orders', 'count' => $workOrders['open']],
+            ['label' => 'Housekeeping', 'count' => $housekeeping['to_clean']],
+            ['label' => 'Arrivals', 'count' => $toArrive],
+        ];
+
+        return ['groups' => $groups, 'items' => $items];
+    }
+
+    /**
+     * Channel connection status — HONEST. Reads the real `channels.status` + `last_synced_at`; a channel is
+     * "Synced" ONLY when genuinely connected. When the org has no connected channel (the norm — the OTA sync
+     * is account-gated), every row is "Not connected" — NEVER a fabricated "Synced" (#39).
+     *
+     * @param  list<string>  $propertyIds
+     * @return list<array{name: string, connected: bool, last_sync: ?string}>
+     */
+    private function channels(array $propertyIds): array
+    {
+        $channels = $propertyIds === []
+            ? new Collection
+            : Channel::query()->whereIn('property_id', $propertyIds)->orderBy('name')->get();
+
+        if ($channels->isEmpty()) {
+            // Honest defaults — the common OTAs shown as NOT connected (never a fake "Synced").
+            return array_map(
+                static fn (string $name): array => ['name' => $name, 'connected' => false, 'last_sync' => null],
+                ['Booking.com', 'Airbnb', 'Expedia'],
+            );
+        }
+
+        return $channels->map(function (Channel $c): array {
+            $connected = (string) $c->status === 'connected';
+
+            return [
+                'name' => (string) $c->name,
+                'connected' => $connected,
+                'last_sync' => $connected && $c->last_synced_at !== null ? CarbonImmutable::parse($c->last_synced_at)->diffForHumans() : null,
+            ];
+        })->all();
     }
 
     private function resolveDate(): string

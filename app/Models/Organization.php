@@ -9,10 +9,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * The tenant. This table IS the tenant boundary, so it does NOT use BelongsToOrganization;
  * every other business model points back here via `organization_id`.
+ *
+ * @property Carbon|null $paused_until
  */
 class Organization extends Model
 {
@@ -26,6 +29,7 @@ class Organization extends Model
         'default_locale',
         'country',
         'status',
+        'paused_until',
         'billing_email',
         'billing_company',
         'billing_vat_id',
@@ -40,6 +44,7 @@ class Organization extends Model
     {
         return [
             'branding' => 'array',
+            'paused_until' => 'datetime',
         ];
     }
 

@@ -1,9 +1,12 @@
 <?php
 
+use App\Models\MaintenanceTicket;
 use App\Models\Membership;
 use App\Models\User;
 use App\Services\FolioService;
 use App\Support\Money\Money;
+use App\Support\Operator\OperatorWorkspace;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -39,7 +42,9 @@ it('renders true org-scoped KPIs (occupancy, arrivals) with no PII or fabricated
         ->assertSee('2 of 3 rooms sold')   // occupancy numerator/denominator are the TRUE org figures
         ->assertSee('67')                  // 2/3 → 67% (not a mislabeled per-room-type figure)
         ->assertSee('Zephyrina Quibblewick')   // real arrivals list (names only)
-        ->assertSee('Not yet available')   // the revenue/ADR/RevPAR series is DEFERRED, not fabricated
+        ->assertSee('Occupancy · next 7 days')  // the once-deferred series is now REAL (per-night spine)
+        ->assertSee('Open work orders')         // the work-orders KPI (real MaintenanceTicket count)
+        ->assertSee('Not connected')            // channels HONEST — never a fabricated "Synced"
         ->assertDontSee('zephyrina-secret@example.test');   // encrypted PII never rendered
 });
 
@@ -85,4 +90,47 @@ it('shows only the org\'s own payments received today', function () {
         ->assertOk()
         ->assertSee('€200.00')
         ->assertDontSee('€999.00');
+});
+
+// ── 4. Open work orders + out-of-order maintenance are REAL, tenant-scoped counts ─────────────────
+it('shows real work-order and out-of-order counts, tenant-scoped', function () {
+    $s = seedScenario(3);
+    // Two active tickets (one urgent, out-of-service); one resolved (excluded).
+    MaintenanceTicket::create(['organization_id' => $s['org']->id, 'unit_id' => $s['units'][0]->id, 'title' => 'Boiler', 'category' => 'plumbing', 'priority' => 'urgent', 'status' => 'open', 'takes_out_of_service' => true, 'opened_at' => now()]);
+    MaintenanceTicket::create(['organization_id' => $s['org']->id, 'unit_id' => $s['units'][1]->id, 'title' => 'Light', 'category' => 'electrical', 'priority' => 'normal', 'status' => 'in_progress', 'takes_out_of_service' => false, 'opened_at' => now()]);
+    MaintenanceTicket::create(['organization_id' => $s['org']->id, 'unit_id' => $s['units'][2]->id, 'title' => 'Done', 'category' => 'other', 'priority' => 'low', 'status' => 'resolved', 'takes_out_of_service' => true, 'opened_at' => now(), 'resolved_at' => now()]);
+
+    // Another org's ticket must never count here.
+    $other = seedScenario(1);
+    MaintenanceTicket::create(['organization_id' => $other['org']->id, 'unit_id' => $other['units'][0]->id, 'title' => 'X', 'category' => 'other', 'priority' => 'urgent', 'status' => 'open', 'takes_out_of_service' => true, 'opened_at' => now()]);
+
+    $this->actingAs(dashMember($s))->get('/app/dashboard')
+        ->assertOk()
+        ->assertSee('Open work orders')
+        ->assertSee('1 urgent')          // exactly the one urgent active ticket in THIS org
+        ->assertSee('Units out of order');
+});
+
+// ── 5. The shared read-only gate + banner: unset → no banner; a future pause → the banner ─────────
+it('shows the workspace-paused banner only when the org has a real future pause', function () {
+    $s = seedScenario(1);
+    $user = dashMember($s);
+    $gate = fn (): bool => app(TenantContext::class)->forOrganization((string) $s['org']->id, fn () => app(OperatorWorkspace::class)->isReadOnly());
+
+    // Not paused → no banner (honest — nothing is paused).
+    $this->actingAs($user)->get('/app/dashboard')
+        ->assertOk()
+        ->assertDontSee('Workspace paused');
+    expect($gate())->toBeFalse();
+
+    // A real future pause → the read-only banner renders across the operator shell.
+    $s['org']->update(['paused_until' => now()->addDays(5)]);
+    $this->actingAs($user)->get('/app/dashboard')
+        ->assertOk()
+        ->assertSee('Workspace paused — read-only until');
+    expect($gate())->toBeTrue();
+
+    // A PAST pause is not read-only (never a spurious lock).
+    $s['org']->update(['paused_until' => now()->subDay()]);
+    expect($gate())->toBeFalse();
 });

@@ -721,6 +721,50 @@
         .vy-tonight-cell .vy-tc-k { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); }
         .vy-tonight-cell .vy-tc-v { font-family: var(--vy-display); font-size: 17px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
 
+        /* Cross-cutting READ-ONLY "workspace paused" banner (Operator Dashboard/Calendar exact-match) */
+        .vy-readonly-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; padding: 14px 18px; border-radius: var(--vy-r-lg); background: rgba(224, 146, 30, 0.10); border: 1px solid rgba(224, 146, 30, 0.30); }
+        .vy-ro-body { display: flex; align-items: flex-start; gap: 12px; }
+        .vy-ro-ico { color: var(--vy-amber); flex: none; margin-top: 1px; }
+        .vy-ro-title { font-family: var(--vy-display); font-size: 14px; font-weight: 600; color: var(--vy-ink); }
+        .vy-ro-sub { font-size: 12.5px; color: var(--vy-muted); margin-top: 3px; line-height: 1.5; max-width: 640px; }
+        .vy-ro-cta { flex: none; font-size: 13px; font-weight: 600; color: #fff; background: var(--vy-amber); border-radius: var(--vy-r-pill); padding: 8px 16px; text-decoration: none; white-space: nowrap; }
+        .vy-ro-arrow { margin-left: 2px; }
+
+        /* Dashboard — urgent count on the work-orders KPI */
+        .vy-dk-urgent { display: inline-block; font-size: 10.5px; font-weight: 700; color: var(--vy-accent); background: rgba(194, 65, 12, 0.10); border-radius: var(--vy-r-pill); padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
+        .vy-dk-delta { font-size: 12px; font-weight: 600; color: #3d6b3d; margin-left: 5px; }
+        .vy-dk-delta.is-down { color: var(--vy-accent); }
+
+        /* Dashboard — Today's tasks */
+        .vy-task-groups { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .vy-task-group { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--vy-muted); background: var(--vy-wash, rgba(255,255,255,.5)); border: 1px solid var(--vy-hairline); border-radius: var(--vy-r-pill); padding: 4px 10px; }
+        .vy-task-group b { font-family: var(--vy-display); color: var(--vy-ink); }
+        .vy-task-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-task-row:last-child { border-bottom: none; }
+        .vy-task-pri { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+        .vy-task-pri.is-urgent { background: var(--vy-accent); }
+        .vy-task-pri.is-high { background: var(--vy-amber-2); }
+        .vy-task-pri.is-normal { background: var(--vy-muted); }
+        .vy-task-label { font-size: 13px; color: var(--vy-ink); }
+        .vy-task-meta { font-size: 11.5px; color: var(--vy-muted); margin-left: auto; }
+
+        /* Dashboard — Occupancy next 7 days (real per-day bars) */
+        .vy-occ7 { display: flex; align-items: flex-end; gap: 8px; height: 92px; margin: 6px 0 4px; }
+        .vy-occ7-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+        .vy-occ7-bar { width: 100%; max-width: 30px; border-radius: 6px 6px 0 0; background: var(--vy-grad); min-height: 3px; }
+        .vy-occ7-pct { font-size: 10.5px; font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
+        .vy-occ7-day { font-size: 10px; color: var(--vy-muted); }
+
+        /* Dashboard — Maintenance + Channels rows */
+        .vy-mini-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
+        .vy-mini-row:last-child { border-bottom: none; }
+        .vy-mini-k { color: var(--vy-muted); display: inline-flex; align-items: center; gap: 8px; }
+        .vy-mini-v { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
+        .vy-chan-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+        .vy-chan-status .vy-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .vy-chan-status.is-synced { color: #3d6b3d; } .vy-chan-status.is-synced .vy-dot { background: var(--vy-accent-3); }
+        .vy-chan-status.is-off { color: var(--vy-muted); } .vy-chan-status.is-off .vy-dot { background: var(--vy-muted); }
+
         /* ---- Units table ----------------------------------------------------------------------- */
         .vy-utable-wrap { overflow-x: auto; }
         .vy-utable { width: 100%; border-collapse: collapse; min-width: 720px; }

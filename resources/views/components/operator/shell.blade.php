@@ -152,6 +152,25 @@
             </div>
         </div>
 
+        {{-- Cross-cutting READ-ONLY banner — the wireframe's "Workspace paused" state. Renders on EVERY
+             operator page (it lives in the shared shell) ONLY when the tenant org has a real future pause
+             window; unset → nothing shows (honest). Writes consume the SAME gate. --}}
+        @php $__workspace = app(\App\Support\Operator\OperatorWorkspace::class); @endphp
+        @if ($__workspace->isReadOnly())
+            <div class="vy-readonly-banner" role="status">
+                <div class="vy-ro-body">
+                    <svg class="vy-ro-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    <div>
+                        <div class="vy-ro-title">Workspace paused — read-only until {{ $__workspace->resumeLabel() }}</div>
+                        <div class="vy-ro-sub">You can view everything, but nothing can change: channels stopped selling, new bookings and edits are off. In-house guests can still check out.</div>
+                    </div>
+                </div>
+                @if (auth()->user()?->can('billing.manage'))
+                    <a class="vy-ro-cta" href="{{ route('app.billing') }}">Resume now <span class="vy-ro-arrow">›</span></a>
+                @endif
+            </div>
+        @endif
+
         {{ $slot }}
     </div>
 </div>
