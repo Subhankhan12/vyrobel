@@ -26,8 +26,18 @@ final class NotificationFeed
 
         $filter = ($category === null || $category === '' || $category === 'all') ? null : $category;
 
+        // #93 — the "Unread" filter is a real read-state filter (not a category); every other value is a category.
         $items = $all
-            ->filter(fn (DatabaseNotification $n): bool => $filter === null || (($n->data['category'] ?? 'general') === $filter))
+            ->filter(function (DatabaseNotification $n) use ($filter): bool {
+                if ($filter === null) {
+                    return true;
+                }
+                if ($filter === 'unread') {
+                    return $n->read_at === null;
+                }
+
+                return ($n->data['category'] ?? 'general') === $filter;
+            })
             ->map(fn (DatabaseNotification $n): array => self::map($n))
             ->values()
             ->all();

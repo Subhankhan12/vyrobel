@@ -7,6 +7,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
             <div style="display:flex;gap:6px;flex-wrap:wrap">
                 <a href="{{ route('app.notifications') }}" class="vy-btn {{ $filter === 'all' ? 'vy-btn--accent' : 'vy-btn--ghost' }}" style="padding:6px 12px;font-size:12.5px">All</a>
+                <a href="{{ route('app.notifications', ['filter' => 'unread']) }}" class="vy-btn {{ $filter === 'unread' ? 'vy-btn--accent' : 'vy-btn--ghost' }}" style="padding:6px 12px;font-size:12.5px">Unread @if ($feed['unread'] > 0)· {{ $feed['unread'] }}@endif</a>
                 @foreach ($feed['categories'] as $cat)
                     <a href="{{ route('app.notifications', ['filter' => $cat]) }}" class="vy-btn {{ $filter === $cat ? 'vy-btn--accent' : 'vy-btn--ghost' }}" style="padding:6px 12px;font-size:12.5px">{{ ucwords(str_replace('_', ' ', $cat)) }}</a>
                 @endforeach

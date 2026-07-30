@@ -43,78 +43,90 @@
             </div>
         @endif
 
-        {{-- Header: count + invite trigger --}}
+        <style>
+            .vy-paystatus { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 8px; border-radius: 20px; margin-top: 3px; background: var(--vy-hairline); color: var(--vy-muted); }
+            .vy-paystatus--paid { background: rgba(31,110,75,.14); color: #1F6E4B; }
+            .vy-paystatus--due { background: rgba(217,102,46,.14); color: #B4400F; }
+            .vy-paystatus--hold { background: rgba(180,64,15,.14); color: #B4400F; }
+            .vy-paystatus--draft { background: rgba(224,146,30,.16); color: #8A6410; }
+            .vyo-sched { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
+            .vyo-sched:last-child { border-bottom: none; }
+            .vyo-sched span { color: var(--vy-muted); }
+        </style>
+
+        {{-- Header: title + Add owner --}}
         <div class="vy-rack-toolbar vy-fade">
-            <div class="vy-left">
-                <span class="vy-range">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5"/></svg>
-                    {{ count($owners) }} {{ \Illuminate\Support\Str::plural('owner', count($owners)) }}
-                </span>
-            </div>
+            <div class="vy-left"><span class="vy-range">{{ $kpis['owners'] }} {{ \Illuminate\Support\Str::plural('owner', $kpis['owners']) }}</span></div>
             <div class="vy-right">
-                {{-- users.manage (2026-07-17): the invite ASSIGNS A REAL ROLE, so it is the privilege-
-                     escalation gate — held by Property Owner / Group Admin only. Hidden rather than shown
-                     dead, so the UI never invites the 403. --}}
                 @can('users.manage')
-                <button type="button" class="vy-btn vy-btn--accent" @click="open = true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 20c0-3.3 2.7-5 6-5s6 1.7 6 5M18 14v6M21 17h-6"/></svg>
-                    Invite an owner
-                </button>
+                    <button type="button" class="vy-btn vy-btn--accent" @click="open = true">Add owner</button>
                 @endcan
             </div>
         </div>
 
-        <div class="vy-dash-cols">
-            {{-- Owners list (REAL, tenant-scoped) --}}
-            <div class="vy-card vy-fade">
-                <h2 class="vy-card-title" style="margin-bottom: 4px;">Owners</h2>
-                <div style="margin: 0 -20px;">
+        {{-- KPIs — REAL (owners · units managed · net-payable current period · needs-attention) --}}
+        <div class="vy-dash-kpis vy-dash-kpis--4 vy-fade">
+            <div class="vy-dash-kpi"><div class="vy-dk-label">Owners</div><div class="vy-dk-val">{{ $kpis['owners'] }}</div><div class="vy-dk-sub">{{ $kpis['units'] }} units managed</div></div>
+            <div class="vy-dash-kpi"><div class="vy-dk-label">Net payable</div><div class="vy-dk-val">{{ $kpis['net'][0] }}</div>@if (count($kpis['net']) > 1)<div class="vy-dk-sub">{{ implode(' · ', array_slice($kpis['net'], 1)) }}</div>@else<div class="vy-dk-sub">this period</div>@endif</div>
+            <div class="vy-dash-kpi"><div class="vy-dk-label">Needs attention</div><div class="vy-dk-val">{{ $kpis['needs_attention'] }}</div><div class="vy-dk-sub">{{ $kpis['attention_sub'] }}</div></div>
+            <div class="vy-dash-kpi"><div class="vy-dk-label">Owner portal</div><div class="vy-dk-val">{{ $schedule['portal_active'] }} / {{ $schedule['portal_total'] }}</div><div class="vy-dk-sub">{{ count($pending) }} invites pending</div></div>
+        </div>
+
+        <div class="vy-ins-grid vy-fade" style="margin-top: 16px;">
+            {{-- Owner rows — REAL net + pay-status (reconciling #17) --}}
+            <div class="vy-card vy-card--flush">
+                <h2 class="vy-card-title" style="padding: 14px 16px 4px;">Statements · all owners</h2>
+                <div>
                     @forelse ($owners as $o)
-                        @php
-                            $parts = preg_split('/\s+/', trim($o['name'])) ?: [];
-                            $initials = strtoupper(mb_substr($parts[0] ?? 'O', 0, 1) . (count($parts) > 1 ? mb_substr(end($parts), 0, 1) : ''));
-                        @endphp
-                        {{-- Plain GET link to the REAL owner-detail route (tenant-scoped there too). --}}
-                        <a class="vy-owner-row" href="{{ route('app.owners.show', $o['id']) }}"
-                           style="color: inherit; text-decoration: none;">
-                            <span class="vy-owner-avatar">{{ $initials }}</span>
+                        <a class="vy-owner-row" href="{{ route('app.owners.show', $o['id']) }}" style="color: inherit; text-decoration: none;">
+                            <span class="vy-owner-avatar">{{ $o['initials'] }}</span>
                             <div class="vy-owner-main">
                                 <div class="vy-owner-name">{{ $o['name'] }}</div>
-                                <div class="vy-owner-sub">{{ $o['units'] }} {{ \Illuminate\Support\Str::plural('unit', $o['units']) }}</div>
+                                <div class="vy-owner-sub">{{ $o['sub'] }} · {{ $o['stmt'] }}</div>
                             </div>
-                            @unless ($o['active'])
-                                <span class="vy-pending-badge">Invited</span>
-                            @endunless
+                            <div style="text-align: right; flex: none; margin-right: 10px;">
+                                <div class="vy-owner-name" style="font-variant-numeric: tabular-nums;">{{ $o['net'] }}</div>
+                                <span class="vy-paystatus vy-paystatus--{{ $o['pay_key'] }}">{{ $o['pay_label'] }}</span>
+                            </div>
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none; color: var(--vy-faint);"><path d="M9 6l6 6-6 6"/></svg>
                         </a>
                     @empty
-                        <div class="vy-empty" style="padding: 30px 20px;">No owners yet — invite your first owner to give them portal access.</div>
+                        <div class="vy-empty" style="padding: 30px 20px;">No owners yet — add your first owner to give them portal access.</div>
                     @endforelse
                 </div>
+                @if (count($owners) > 0)
+                    <div style="padding: 12px 16px; border-top: 1px solid var(--vy-hairline); display: flex; justify-content: space-between; font-size: 12.5px; color: var(--vy-muted);">
+                        <span>{{ count($owners) }} {{ \Illuminate\Support\Str::plural('owner', count($owners)) }} · sorted by name</span>
+                        <span class="vy-u-code">{{ $payoutSummary['net_total'][0] }} net payable</span>
+                    </div>
+                @endif
             </div>
 
-            {{-- Pending invites (REAL) --}}
-            <div class="vy-card vy-fade">
-                <div class="vy-detail-head" style="margin-bottom: 4px;">
-                    <h2 class="vy-card-title">Pending invites</h2>
-                    <span class="vy-eyebrow">{{ count($pending) }}</span>
+            {{-- Right rail: payout-run summary + statement schedule --}}
+            <div class="vy-stack">
+                <div class="vy-tonight" style="padding: 18px;">
+                    <div class="vy-dk-label" style="color: rgba(255,255,255,.7);">Payout run · this period</div>
+                    <div style="font-family: 'Sora', sans-serif; font-weight: 700; color: #fff; font-size: 26px;">{{ $payoutSummary['net_total'][0] }}</div>
+                    <div style="font-size: 12.5px; color: rgba(255,255,255,.8); margin-top: 4px;">{{ $payoutSummary['due'] }} {{ \Illuminate\Support\Str::plural('owner', $payoutSummary['due']) }} scheduled @if ($payoutSummary['hold'] > 0)· {{ $payoutSummary['hold'] }} on hold @endif</div>
+                    <a href="{{ route('app.payouts.run') }}" style="display: inline-block; margin-top: 12px; font-size: 12.5px; color: #fff; text-decoration: underline;">Open the payout run →</a>
                 </div>
-                <div style="margin: 0 -20px;">
-                    @forelse ($pending as $p)
-                        <div class="vy-owner-row">
-                            <span class="vy-owner-avatar" style="background: rgba(224,146,30,0.16); color: var(--vy-amber);">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg>
-                            </span>
-                            <div class="vy-owner-main">
-                                <div class="vy-owner-name" style="font-weight: 500;">{{ $p['email'] }}</div>
-                                <div class="vy-owner-sub">@if ($p['expires']) Expires {{ $p['expires'] }} @else Awaiting acceptance @endif</div>
-                            </div>
-                            <span class="vy-pending-badge">Pending</span>
-                        </div>
-                    @empty
-                        <div class="vy-empty" style="padding: 30px 20px;">No pending invites.</div>
-                    @endforelse
+
+                <div class="vy-card">
+                    <h2 class="vy-card-title" style="margin-bottom: 10px;">Statement schedule</h2>
+                    <div class="vyo-sched"><span>Statements finalize</span><strong>1st of the month</strong></div>
+                    <div class="vyo-sched"><span>Payouts sent</span><strong>3rd business day</strong></div>
+                    <div class="vyo-sched"><span>Commission</span><strong>{{ $schedule['commission'] }} of gross</strong></div>
+                    <div class="vyo-sched"><span>Owner portal</span><strong>{{ $schedule['portal_active'] }} of {{ $schedule['portal_total'] }} active</strong></div>
                 </div>
+
+                @if (count($pending) > 0)
+                    <div class="vy-card">
+                        <h2 class="vy-card-title" style="margin-bottom: 8px;">Pending invites <span class="vy-eyebrow">{{ count($pending) }}</span></h2>
+                        @foreach ($pending as $p)
+                            <div class="vyo-sched"><span>{{ $p['email'] }}</span><strong>@if ($p['expires']) exp {{ $p['expires'] }} @else pending @endif</strong></div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
 
