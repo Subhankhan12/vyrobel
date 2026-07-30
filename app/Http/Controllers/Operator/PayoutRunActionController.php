@@ -8,9 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Livewire\Operator\PayoutRun;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
+use App\Models\PayoutRun as PayoutRunModel;
 use App\Payouts\Rails\ManualPayoutRail;
 use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\OwnerPayoutService;
+use App\Services\PayoutRunService;
+use App\Support\Operator\OperatorWorkspace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -47,8 +50,32 @@ class PayoutRunActionController extends Controller
      * Create a payout from ONE finalized statement (`statement_id`), or from every ready statement when it
      * is absent (the "create all" batch).
      */
+    /**
+     * Run the CERTIFIED payout engine ({@see PayoutRunService::run}) for the tenant's owners — a REAL persisted
+     * {@see PayoutRunModel} that reconciles (run total = Σ owner nets) and LOCKS (idempotent on its run_key). In
+     * TEST MODE nothing moves real money (the ManualPayoutRail records / the fake Connect client simulates) — the
+     * SAME payout-engine boundary as the CLI. Read-only-respecting (#20).
+     */
+    public function runNow(Request $request, PayoutRunService $runs): RedirectResponse
+    {
+        if ($this->paused()) {
+            return $this->back('payout_error', $this->pausedMessage());
+        }
+
+        $run = $runs->run(PayoutRunModel::TRIGGER_MANUAL);
+        $created = (int) ($run->payouts_created ?? 0);
+        $paid = (int) ($run->payouts_paid ?? 0);
+        $held = (int) ($run->payouts_held ?? 0);
+
+        return $this->back('payout_notice', 'Payout run complete ('.$run->mode.' mode) — '.$created.' created · '.$paid.' paid · '.$held.' held.');
+    }
+
     public function create(Request $request, OwnerPayoutService $payouts): RedirectResponse
     {
+        if ($this->paused()) {
+            return $this->back('payout_error', $this->pausedMessage());
+        }
+
         $validated = $request->validate([
             'statement_id' => ['nullable', 'string'],
         ]);
@@ -90,6 +117,10 @@ class PayoutRunActionController extends Controller
      */
     public function pay(Request $request, OwnerPayoutService $payouts): RedirectResponse
     {
+        if ($this->paused()) {
+            return $this->back('payout_error', $this->pausedMessage());
+        }
+
         $validated = $request->validate([
             'payout_id' => ['nullable', 'string'],
         ]);
@@ -236,6 +267,16 @@ class PayoutRunActionController extends Controller
         return (int) $statement->net_payable_minor < 0
             ? 'Nothing payable — this statement’s net is negative, so the balance carries forward to offset the owner’s next statement.'
             : 'Nothing payable — this statement’s net is zero, so nothing is owed.';
+    }
+
+    private function paused(): bool
+    {
+        return app(OperatorWorkspace::class)->isReadOnly();
+    }
+
+    private function pausedMessage(): string
+    {
+        return 'Workspace paused — payouts are read-only until '.app(OperatorWorkspace::class)->resumeLabel().'.';
     }
 
     private function back(string $key, string $message): RedirectResponse

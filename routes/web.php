@@ -511,6 +511,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
         ->middleware('can:payouts.manage')->name('payouts.create');
     Route::post('/payouts/pay', [PayoutRunActionController::class, 'pay'])
         ->middleware('can:payouts.manage')->name('payouts.pay');
+    // #93 — run the CERTIFIED payout engine (test-mode): a real persisted PayoutRun that reconciles + locks.
+    Route::post('/payouts/run', [PayoutRunActionController::class, 'runNow'])
+        ->middleware('can:payouts.manage')->name('payouts.run-now');
     Route::get('/rack', ReservationRack::class)->name('rack');
     // Operator Calendar exact-match — the canonical "Calendar" URL (the nav points here); same certified
     // rack component. `/rack` is kept as an alias for existing deep-links (front desk / maintenance / groups).

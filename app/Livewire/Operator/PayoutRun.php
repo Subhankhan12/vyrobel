@@ -9,12 +9,17 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Owner;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
+use App\Models\PayoutMethod;
+use App\Models\PayoutRun as PayoutRunModel;
 use App\Models\Scopes\OwnerScope;
 use App\Payouts\Contracts\PayoutRail;
+use App\Payouts\PayoutEngineMode;
 use App\Payouts\Rails\ManualPayoutRail;
 use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\OwnerPayoutService;
+use App\Support\Payouts\Iban;
 use App\Support\Payouts\RailLabel;
+use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -131,11 +136,45 @@ class PayoutRun extends Component
         // paid|failed|reversed are ALL real enum values — a settled row is never hidden, so a failure or a
         // reversal is always visible with its real reason next to the statement it belongs to.
         $recent = $payouts->whereIn('status', ['paid', 'failed', 'reversed'])->values();
+        $held = $payouts->where('status', 'held')->values();
+
+        // #93 — masked IBAN per owner (CAP_PAYOUT only, last-4, never the full number). One batched read.
+        $canPayout = (bool) auth()->user()?->can('payouts.manage');
+        $ibanByOwner = [];
+        if ($canPayout) {
+            foreach (PayoutMethod::query()->orderByDesc('is_default')->get() as $m) {
+                $oid = (string) $m->owner_id;
+                if (! isset($ibanByOwner[$oid]) && (string) $m->iban_last4 !== '') {
+                    $ibanByOwner[$oid] = Iban::masked((string) $m->iban_last4);
+                }
+            }
+        }
+
+        // The last persisted RUN (the real header/lock/status) + the certified engine MODE (test/live).
+        $latestRun = PayoutRunModel::query()->latest('created_at')->first();
+
+        // ON HOLD (honest): the certified tax-held payouts + owners with a positive-net ready statement but NO
+        // payout method on file (can't be sent). "Request IBAN" is a real notification, not a fabricated verify.
+        $ownerHasMethod = PayoutMethod::query()->pluck('owner_id')->unique()->flip();
+        $noMethod = $ready->filter(fn (OwnerStatement $s): bool => $s->owner !== null && ! $ownerHasMethod->has($s->owner->getKey()))->values();
 
         return view('livewire.operator.payout-run', [
             'viewer' => $this->viewer(),
             'subtitle' => $this->subtitle($ready->count(), $pending->count()),
             'rail' => $this->rail(),
+            'mode' => PayoutEngineMode::current(),
+            'canPayout' => $canPayout,
+            'latestRun' => $latestRun !== null ? [
+                'status' => (string) $latestRun->status,
+                'mode' => (string) $latestRun->mode,
+                'created' => (int) $latestRun->payouts_created,
+                'paid' => (int) $latestRun->payouts_paid,
+                'held' => (int) $latestRun->payouts_held,
+                'when' => $latestRun->created_at !== null ? CarbonImmutable::parse($latestRun->created_at)->diffForHumans() : '',
+            ] : null,
+            'heldRows' => $this->heldRows($held, $ibanByOwner),
+            'noMethodRows' => $this->noMethodRows($noMethod),
+            'ibanByOwner' => $ibanByOwner,
             'kpis' => [
                 'ready' => [
                     'lines' => $this->moneyLines($this->statementAmounts($ready)),
@@ -317,6 +356,40 @@ class PayoutRun extends Component
             'period' => $this->period($s),
             'net' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
             'negative' => (int) $s->net_payable_minor < 0,
+        ])->values()->all();
+    }
+
+    /**
+     * ON HOLD — the certified `held` payouts (the real tax-hold). Masked IBAN if on file (CAP_PAYOUT), never full.
+     *
+     * @param  Collection<int, Payout>  $payouts
+     * @param  array<string, string>  $ibanByOwner
+     * @return list<array<string, mixed>>
+     */
+    private function heldRows(Collection $payouts, array $ibanByOwner): array
+    {
+        return $payouts->map(fn (Payout $p): array => [
+            'owner_id' => $this->ownerId($p->owner),
+            'owner_name' => $this->ownerName($p->owner),
+            'amount' => $this->money((int) $p->amount_minor, (string) $p->currency),
+            'iban' => $ibanByOwner[$this->ownerId($p->owner) ?? ''] ?? null,
+            'reason' => 'Tax details pending — carried until cleared',
+        ])->values()->all();
+    }
+
+    /**
+     * READY statements whose owner has NO payout method on file — the honest "can't send yet" hold (the real
+     * gate in place of the wireframe's unbacked "no verified IBAN"). "Request IBAN" prompts the owner.
+     *
+     * @param  Collection<int, OwnerStatement>  $statements
+     * @return list<array<string, mixed>>
+     */
+    private function noMethodRows(Collection $statements): array
+    {
+        return $statements->map(fn (OwnerStatement $s): array => [
+            'owner_id' => $this->ownerId($s->owner),
+            'owner_name' => $this->ownerName($s->owner),
+            'amount' => $this->money((int) $s->net_payable_minor, (string) $s->currency),
         ])->values()->all();
     }
 

@@ -247,12 +247,9 @@ it('renders the real payout lifecycle only — no invented statuses, no IBAN, no
         ->assertSee('Bank transfer')            // rail=manual via the SHARED RailLabel map
         // ⚠️ the design's states — in NEITHER real enum, so they can never be rendered
         ->assertDontSee('Scheduled')
-        ->assertDontSee('On hold')
-        ->assertDontSee('On-hold')
         ->assertDontSee('In review')
-        // ⚠️ no bank-detail column exists anywhere in the schema, and no rail makes a scheme claim
-        ->assertDontSee('IBAN')
-        ->assertDontSee('SEPA')
+        // ⚠️ SEPA export is HONEST-DISABLED (#93 founder decision) — a "Soon", never a scheme claim that it works.
+        ->assertSee('Export SEPA · Soon')
         // …and the deferred rail is stated honestly, never as something that can send
         ->assertSee('Stripe Connect disbursement is not connected');
 

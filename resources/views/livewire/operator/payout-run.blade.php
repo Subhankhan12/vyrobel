@@ -41,6 +41,33 @@
             </div>
         @endif
 
+        {{-- TEST-MODE banner — the certified engine boundary (#71): in test mode NO real money moves. --}}
+        @if ($mode !== 'live')
+            <x-owner.payout-test-mode />
+        @endif
+
+        {{-- Run header + the REAL persisted run + the run action (certified PayoutRunService, test-mode) --}}
+        <div class="vy-rack-toolbar vy-fade" style="margin-bottom: 12px;">
+            <div class="vy-left">
+                @if ($latestRun)
+                    <span class="vy-range">Last run · {{ ucfirst($latestRun['status']) }} <span class="vy-muted">· {{ $latestRun['created'] }} created · {{ $latestRun['paid'] }} paid · {{ $latestRun['held'] }} held · {{ $latestRun['when'] }}</span></span>
+                @else
+                    <span class="vy-range">No payout run yet this period</span>
+                @endif
+            </div>
+            <div class="vy-right" style="gap: 8px;">
+                {{-- Export SEPA — HONEST-DISABLED: no SEPA generator exists; the real disbursement is the test-mode
+                     rail. Never a fabricated bank file (#39). --}}
+                <span class="vy-pill is-soon" aria-disabled="true" title="No SEPA export yet — the disbursement rail is test-mode">Export SEPA · Soon</span>
+                @if ($canPayout)
+                    <form method="POST" action="{{ route('app.payouts.run-now') }}" style="margin: 0;">
+                        @csrf
+                        <button type="submit" class="vy-btn vy-btn--accent">Run payout ({{ $mode }} mode)</button>
+                    </form>
+                @endif
+            </div>
+        </div>
+
         {{-- ── Stat strip — DERIVED per currency. An empty bucket is "—": a zero must be a zero of SOME
              currency, and this page spans every owner in the tenant, so there is none to pick. ──────── --}}
         <div class="vy-dash-kpis vy-fade">
@@ -191,7 +218,7 @@
                                                 </div>
                                             </td>
                                             <td class="vy-u-code">{{ $row['sequence_no'] !== null ? '#' . $row['sequence_no'] : '—' }}</td>
-                                            <td>{{ $row['method'] }}</td>
+                                            <td>{{ $row['method'] }}@if ($row['owner_id'] && ($ibanByOwner[$row['owner_id']] ?? null))<div class="vy-u-sub" style="font-variant-numeric: tabular-nums;">{{ $ibanByOwner[$row['owner_id']] }}</div>@endif</td>
                                             <td class="vy-u-code">{{ $row['amount'] }}</td>
                                             <td>
                                                 @if ($rail['can_send'] && auth()->user()?->can('payouts.manage'))
@@ -300,6 +327,37 @@
                         unverified live checkpoint, so no money can leave Vyrobel through it.
                     </div>
                 </div>
+
+                {{-- On hold — the REAL holds (#93): the certified TAX-hold (`held` payouts) + owners with a
+                     positive-net ready statement but NO payout method on file (can't be sent). The masked IBAN
+                     shows where one is on file; "Request IBAN" is a real prompt. NO fabricated "verified IBAN". --}}
+                @if (count($heldRows) > 0 || count($noMethodRows) > 0)
+                    <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+                        <div class="vy-detail-head">
+                            <h2 class="vy-card-title">On hold</h2>
+                            <span class="vy-eyebrow">{{ count($heldRows) + count($noMethodRows) }}</span>
+                        </div>
+                        @foreach ($heldRows as $row)
+                            <div class="vy-unit-row">
+                                <div>
+                                    <div class="vy-um-name">@if ($row['owner_id'])<a class="vy-assign-link" href="{{ route('app.owners.show', $row['owner_id']) }}">{{ $row['owner_name'] }}</a>@else {{ $row['owner_name'] }} @endif</div>
+                                    <div class="vy-um-sub">{{ $row['reason'] }}@if ($row['iban']) <span class="vy-sep">·</span> IBAN {{ $row['iban'] }} @endif</div>
+                                </div>
+                                <div class="vy-u-code">{{ $row['amount'] }}</div>
+                            </div>
+                        @endforeach
+                        @foreach ($noMethodRows as $row)
+                            <div class="vy-unit-row">
+                                <div>
+                                    <div class="vy-um-name">@if ($row['owner_id'])<a class="vy-assign-link" href="{{ route('app.owners.show', $row['owner_id']) }}">{{ $row['owner_name'] }}</a>@else {{ $row['owner_name'] }} @endif</div>
+                                    <div class="vy-um-sub">No payout method on file — the owner adds their IBAN in the portal, verified before the first payout.</div>
+                                </div>
+                                <div style="text-align: right;"><div class="vy-u-code">{{ $row['amount'] }}</div><span class="vy-act is-soon" aria-disabled="true">Request IBAN</span></div>
+                            </div>
+                        @endforeach
+                        <div class="vy-empty" style="padding: 8px 0 0; font-size: 11.5px;">Held amounts stay in the owner's ledger and carry forward until the block clears (#P2-1).</div>
+                    </div>
+                @endif
 
                 {{-- Not payable — the HONEST replacement for the design's bank-details hold rail (no such
                      column exists anywhere, so nothing is ever held awaiting one). What is real: a zero net

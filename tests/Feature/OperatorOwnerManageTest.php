@@ -7,7 +7,6 @@ use App\Models\OwnerStatement;
 use App\Models\PayoutMethod;
 use App\Models\Reservation;
 use App\Models\Unit;
-use App\Models\User;
 use App\Services\OwnerAttributionService;
 use App\Services\OwnerStatementService;
 use Illuminate\Foundation\Testing\RefreshDatabase;

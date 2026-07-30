@@ -6,7 +6,18 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v35) · OPERATOR MESSAGES + NEW RESERVATION + NOTIFICATION PREFERENCES
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v36) · OPERATOR OWNERS + OWNER DETAIL + PAYOUT RUN + NOTIFICATIONS
+> exact-match COMPLETE — the OPERATOR SIDE OF THE OWNER FINANCIAL SYSTEM on the certified spine: the owners
+> list (real net/pay-status, 18% commission, Add-owner reuses #80), Owner Detail (net-to-owner reconciling at
+> 18%, masked IBAN, edit/pause-payouts, careful archive-not-destroy remove, notes), the Payout Run (the
+> certified PayoutRunService in TEST MODE — a persisted reconciling run + lock, no real money; on-hold gate;
+> masked IBAN; SEPA honest-disabled; read-only guard), and the Notifications feed Unread filter. Reconciling
+> (#17) at the real 18%; nothing faked. Fresh-session entry point: this block → `docs/OPERATOR-OWNERS-PAYOUTRUN-AUDIT.md`
+> → `docs/DECISIONS.md`. **Invariants #1–95.**
+>
+> ---
+>
+> **PRIOR (v35) — 2026-07-31 · OPERATOR MESSAGES + NEW RESERVATION + NOTIFICATION PREFERENCES
 > exact-match COMPLETE — the 3-pane operator↔guest inbox (assign-to-staff + real in-app notify + start-from-
 > template), the full 7-step reservation wizard on the certified engine (reconciling extras/transfer/tax/credit
 > folio, test-mode payment, localStorage draft), and the operator notification prefs on the reused #79 engine
