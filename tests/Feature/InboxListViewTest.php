@@ -7,9 +7,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-// Design pass · Inbox list (InboxList, /app/inbox). Locks its PRESENTATION guarantees: real threads with
-// the real channel badge + last-message preview + unread state; the linked-reservation tag ONLY when truly
-// linked; guest NAME shown but the encrypted participant identity NEVER rendered; tenant-scoped.
+// #90 · Operator MESSAGES rail (OperatorInbox 3-pane, /app/inbox). Locks its PRESENTATION guarantees: real
+// threads with the real channel badge + last-message preview + unread state; the linked-reservation tag ONLY
+// when truly linked; guest NAME shown but the encrypted participant identity NEVER rendered; tenant-scoped.
 
 function listMember(array $scenario, string $name = 'Marco Reyes'): User
 {
@@ -31,7 +31,7 @@ it('renders real threads with the channel label and never the encrypted identity
 
     $this->actingAs(listMember($s))->get('/app/inbox')
         ->assertOk()
-        ->assertSee('Inbox')
+        ->assertSee('Messages')
         ->assertSee('Ada Okafor')                 // guest NAME
         ->assertSee('What time is check-in?')      // real preview
         ->assertSee('Direct')                      // real channel badge label (manual → Direct)

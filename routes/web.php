@@ -123,8 +123,6 @@ use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Http\Middleware\SetTenantForGuestRequest;
 use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
-use App\Livewire\InboxList;
-use App\Livewire\InboxThread;
 use App\Livewire\MaintenanceList;
 use App\Livewire\MaintenanceTicketDetail;
 use App\Livewire\Operator\GroupBooking;
@@ -136,6 +134,7 @@ use App\Livewire\Operator\OperatorBillingCheckout;
 use App\Livewire\Operator\OperatorChannels;
 use App\Livewire\Operator\OperatorDashboard;
 use App\Livewire\Operator\OperatorEmailEditor;
+use App\Livewire\Operator\OperatorInbox;
 use App\Livewire\Operator\OperatorInsights;
 use App\Livewire\Operator\OperatorMaintenanceCosts;
 use App\Livewire\Operator\OperatorMaintenanceSettings;
@@ -587,10 +586,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::post('/security/2fa/confirm', [TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('security.2fa.confirm');
     Route::post('/security/2fa/recovery-codes', [TwoFactorController::class, 'regenerate'])->name('security.2fa.regenerate');
     Route::post('/security/2fa/disable', [TwoFactorController::class, 'disable'])->middleware('throttle:6,1')->name('security.2fa.disable');
-    // Unified Inbox — UNSTYLED operator contract stubs (thread list + thread view; styled screen is a
-    // later design pass). Tenant-scoped; the view resolves {thread} via a scoped findOrFail → cross-org 404.
-    Route::get('/inbox', InboxList::class)->name('inbox');
-    Route::get('/inbox/{thread}', InboxThread::class)->name('inbox.show');
+    // Unified Inbox — the 3-pane operator MESSAGES page (#90 exact-match, OperatorInbox). Tenant-scoped;
+    // the active thread rides ?c={id} (scoped find → cross-org null). The legacy /inbox/{thread} deep-link
+    // redirects into the 3-pane so existing links keep working.
+    Route::get('/inbox', OperatorInbox::class)->name('inbox');
+    Route::get('/inbox/{thread}', fn (string $thread) => redirect()->route('app.inbox', ['c' => $thread]))->name('inbox.show');
+    // NEW MESSAGE — start a thread with a real guest (current/upcoming stay), optionally seeded from a #83 template.
+    Route::post('/inbox/start', [InboxActionController::class, 'start'])->name('inbox.start');
     // Inbox writes — REAL reply + lifecycle via POST → controller → InboxService → redirect (PRG).
     // Cross-org {thread} 404s; a deferred channel leaves an honest failed record + clean flash (never 500).
     Route::post('/inbox/{thread}/reply', [InboxActionController::class, 'reply'])->name('inbox.reply');

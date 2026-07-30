@@ -1,6 +1,8 @@
 <?php
 
 use App\Exceptions\Booking\InsufficientAvailabilityException;
+use App\Mail\MaintenanceCostReportMail;
+use App\Models\AuditEvent;
 use App\Models\Availability;
 use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
@@ -8,12 +10,14 @@ use App\Models\Media;
 use App\Models\OwnerExpense;
 use App\Models\User;
 use App\Services\AvailabilityService;
+use App\Services\MaintenanceCostService;
 use App\Services\MaintenanceService;
 use App\Services\MaintenanceSettingsService;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Money\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -147,7 +151,7 @@ it('reports a labor/parts split that reconciles to total spend', function () {
     $svc->start($t2->refresh());
     $svc->resolve($t2->refresh(), Money::of(5000, 'EUR'));   // legacy single-cost path → all labour
 
-    $report = app(\App\Services\MaintenanceCostService::class)->report();
+    $report = app(MaintenanceCostService::class)->report();
 
     expect($report['total_minor'])->toBe(13000)
         ->and($report['labor_minor'] + $report['parts_minor'])->toBe($report['total_minor'])
@@ -166,7 +170,7 @@ it('billable line items equal the owner-billed cost', function () {
     $svc->start($t->refresh());
     $svc->resolve($t->refresh(), null, Money::of(8000, 'EUR'), Money::of(3000, 'EUR'));
 
-    $report = app(\App\Services\MaintenanceCostService::class)->report();
+    $report = app(MaintenanceCostService::class)->report();
     $line = collect($report['billable'])->firstWhere('id', $t->id);
 
     $expense = OwnerExpense::withoutGlobalScopes()->where('source_type', $t->fresh()->getMorphClass())->where('source_id', $t->id)->first();
@@ -199,18 +203,18 @@ it('streams a real CSV of billable line items and audits the export', function (
     $body = $res->streamedContent();
 
     expect($body)->toContain('Tap swap')->toContain('Total');
-    expect(\App\Models\AuditEvent::withoutGlobalScopes()->where('action', 'maintenance.costs_exported')->exists())->toBeTrue();
+    expect(AuditEvent::withoutGlobalScopes()->where('action', 'maintenance.costs_exported')->exists())->toBeTrue();
 });
 
 // ── Email-to-me sends the PDF report to the operator's OWN address ────────────────────────────────
 it('emails the costs report to the acting operator', function () {
-    \Illuminate\Support\Facades\Mail::fake();
+    Mail::fake();
     $s = seedScenario(1);
     $manager = mtManager($s);
 
     $this->actingAs($manager)->post(route('app.maintenance.costs.email'))->assertRedirect(route('app.maintenance.costs'));
 
-    \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\MaintenanceCostReportMail::class, fn ($m) => $m->hasTo($manager->email));
+    Mail::assertSent(MaintenanceCostReportMail::class, fn ($m) => $m->hasTo($manager->email));
 });
 
 // ═══ GATE 3 · SETTINGS ═══════════════════════════════════════════════════════════════════════════

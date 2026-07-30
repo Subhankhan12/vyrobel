@@ -96,7 +96,7 @@ it('gives the inbox guest card and the guests CRM the same stay count for the sa
 
     $inbox = $this->actingAs($operator)->get('/app/inbox');
     $threadModel = MessageThread::query()->where('guest_id', $guest->id)->firstOrFail();
-    $conversation = $this->actingAs($operator)->get('/app/inbox/'.$threadModel->id);
+    $conversation = $this->actingAs($operator)->get(route('app.inbox', ['c' => $threadModel->id]));
     $crm = $this->actingAs($operator)->get('/app/guests');
     $profile = $this->actingAs($operator)->get('/app/guests/'.$guest->id);
 

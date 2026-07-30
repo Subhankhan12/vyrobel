@@ -50,22 +50,27 @@ it('renders a thread with the guest name but never the encrypted participant ide
     $s = seedScenario(1);
     $in = svc()->postInbound(['channel' => 'manual', 'external_message_id' => 'v1', 'body' => 'Can I get a late checkout?', 'participant_identity' => 'private-address@guest.test', 'sender_label' => 'Priya Traveller']);
 
-    $this->actingAs(inboxMember($s))->get("/app/inbox/{$in->thread_id}")
+    $this->actingAs(inboxMember($s))->get(route('app.inbox', ['c' => $in->thread_id]))
         ->assertOk()
         ->assertSee('Priya Traveller')             // guest NAME shown
         ->assertSee('Can I get a late checkout?')  // the conversation
         ->assertDontSee('private-address@guest.test');   // encrypted participant identity NEVER rendered
 });
 
-// ── 3. A cross-org thread 404s (RMB rule) ────────────────────────────────────────────────────────
-it('404s a cross-org thread', function () {
+// ── 3. A cross-org thread is isolated (tenant scope) — its content never renders; a write 404s ────
+it('isolates a cross-org thread', function () {
     $other = seedScenario(1);
-    $foreign = svc()->postInbound(['channel' => 'manual', 'external_message_id' => 'f1', 'body' => 'Foreign', 'participant_identity' => 'f@x.test']);
+    $foreign = svc()->postInbound(['channel' => 'manual', 'external_message_id' => 'f1', 'body' => 'Foreign secret', 'participant_identity' => 'f@x.test', 'sender_label' => 'Foreign Guest']);
 
     $s = seedScenario(1);
     $member = inboxMember($s);
 
-    $this->actingAs($member)->get("/app/inbox/{$foreign->thread_id}")->assertNotFound();
+    // ?c={foreign} — the tenant-scoped find returns null, so the foreign thread's content never appears.
+    $this->actingAs($member)->get(route('app.inbox', ['c' => $foreign->thread_id]))
+        ->assertOk()
+        ->assertDontSee('Foreign secret')
+        ->assertDontSee('Foreign Guest');
+    // A write to the foreign thread still 404s (tenant-scoped findOrFail in the controller).
     $this->actingAs($member)->post(route('app.inbox.reply', $foreign->thread_id), ['body' => 'hi'])->assertNotFound();
 });
 
@@ -77,7 +82,7 @@ it('sends a real outbound reply through the manual channel', function () {
 
     $this->actingAs($member)
         ->post(route('app.inbox.reply', $in->thread_id), ['body' => 'Yes, of course!'])
-        ->assertRedirect(route('app.inbox.show', $in->thread_id))
+        ->assertRedirect(route('app.inbox', ['c' => $in->thread_id]))
         ->assertSessionHas('inbox_notice');
 
     $this->assertDatabaseHas('messages', [
@@ -100,7 +105,7 @@ it('records an honest failed reply on a deferred channel, not a fake send', func
 
     $this->actingAs($member)
         ->post(route('app.inbox.reply', $thread->id), ['body' => 'Trying to reply'])
-        ->assertRedirect(route('app.inbox.show', $thread->id))
+        ->assertRedirect(route('app.inbox', ['c' => $thread->id]))
         ->assertSessionHas('inbox_error');
 
     $msg = Message::query()->where('thread_id', $thread->id)->where('direction', 'outbound')->first();
@@ -124,7 +129,7 @@ it('ties the module together: inbound linked to a guest, then a real reply, over
 
     // The operator sees the thread, opens it, and replies for real.
     $this->actingAs($member)->get('/app/inbox')->assertOk()->assertSee('Evan Endto');
-    $this->actingAs($member)->get("/app/inbox/{$in->thread_id}")->assertOk()->assertSee('Is breakfast included?')->assertSee('And parking?');
+    $this->actingAs($member)->get(route('app.inbox', ['c' => $in->thread_id]))->assertOk()->assertSee('Is breakfast included?')->assertSee('And parking?');
     $this->actingAs($member)->post(route('app.inbox.reply', $in->thread_id), ['body' => 'Breakfast is included; parking is €10/night.'])
         ->assertRedirect();
 

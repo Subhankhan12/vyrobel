@@ -128,7 +128,7 @@ it('shows the owner’s message as Delivered until the operator opens the thread
         ->assertDontSee('✓✓');
 
     // Operator opens the thread → markRead sets operator_last_read_at (the REAL receipt source).
-    $this->actingAs($marco)->get('/app/inbox/'.$thread->id)->assertOk();
+    $this->actingAs($marco)->get(route('app.inbox', ['c' => $thread->id]))->assertOk();
     expect($thread->fresh()->operator_last_read_at)->not->toBeNull();
 
     // Now the owner sees Read.

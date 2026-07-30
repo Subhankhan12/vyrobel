@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Guest;
 
-use App\Livewire\InboxThread;
+use App\Livewire\Operator\OperatorInbox;
 use App\Models\Reservation;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  * since when — shared by the Guests CRM list, the guest profile and the inbox's guest card (Wave 2). The
  * sibling of {@see GuestSpend} (what they were billed); this is how often they came.
  *
- * WHY IT EXISTS: THREE SCREENS WERE ABOUT TO DISAGREE. {@see InboxThread::guestCard()} already rendered
+ * WHY IT EXISTS: THREE SCREENS WERE ABOUT TO DISAGREE. {@see OperatorInbox::guestCard()} already rendered
  * "N stays · guest since YYYY" — counting EVERY reservation, cancellations included, and taking "since" from
  * the earliest of those. Sub-gate 4 then locked the CRM's rule as "a cancelled booking is not a stay". Left
  * alone, the inbox would say "3 stays" and the CRM "2 stays" about the same person on the same afternoon,

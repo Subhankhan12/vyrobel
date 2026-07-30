@@ -10,12 +10,14 @@ use App\Models\DomainEvent;
 use App\Models\Folio;
 use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
+use App\Models\MessageThread;
 use App\Models\Owner;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\Reservation;
 use App\Models\Review;
 use App\Models\Unit;
+use App\Models\User;
 use App\Notifications\FeedNotification;
 use App\Notifications\Operator\BalanceDueNotification;
 use App\Notifications\Operator\ChannelSyncErrorNotification;
@@ -23,12 +25,14 @@ use App\Notifications\Operator\NewBookingNotification;
 use App\Notifications\Operator\NewReviewNotification;
 use App\Notifications\Operator\OwnerPayoutSentNotification;
 use App\Notifications\Operator\StatementFinalizedNotification;
+use App\Notifications\Operator\ThreadAssignedNotification;
 use App\Notifications\Operator\UnitOutOfOrderNotification;
 use App\Notifications\Operator\UrgentWorkOrderNotification;
 use App\Notifications\Owner\AccountSecurityNotification;
 use App\Notifications\Owner\PayoutSentNotification;
 use App\Notifications\Owner\StatementReadyNotification;
 use App\Support\Folio\FolioTotals;
+use App\Support\Guest\GuestName;
 use App\Support\Notifications\NotificationRecipients;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Notification;
@@ -61,6 +65,7 @@ class DispatchNotificationsForDomainEvent
         'channel.error',
         'owner.payout_method_changed',
         'review.submitted',
+        'inbox.thread_assigned',
     ];
 
     /**
@@ -111,6 +116,7 @@ class DispatchNotificationsForDomainEvent
                 'channel.error' => $this->channelSyncError($domainEvent, $orgId),
                 'owner.payout_method_changed' => $this->accountSecurity($domainEvent),
                 'review.submitted' => $this->newReview($domainEvent, $orgId),
+                'inbox.thread_assigned' => $this->threadAssigned($domainEvent),
             };
         });
     }
@@ -244,6 +250,31 @@ class DispatchNotificationsForDomainEvent
         }
 
         $this->toOperators($orgId, new NewReviewNotification($review));
+    }
+
+    /**
+     * A conversation was assigned to a staff member (#90) → notify THAT ONE assignee in-app (the real form of
+     * "notified on their device"). Skips an unassign (assigned_to null) and a stale/foreign assignee. The feed
+     * row carries the guest NAME only (#28) — an assignment is internal, never sent on a guest channel.
+     */
+    private function threadAssigned(DomainEvent $domainEvent): void
+    {
+        $assignedTo = (string) (($domainEvent->payload['assigned_to'] ?? '') ?: '');
+        if ($assignedTo === '') {
+            return;   // an unassign — nobody to notify
+        }
+
+        $thread = MessageThread::query()->find($domainEvent->subject_id);
+        if (! $thread instanceof MessageThread) {
+            return;
+        }
+
+        $assignee = User::query()->find($assignedTo);
+        if (! $assignee instanceof User) {
+            return;   // stale/foreign assignee — no ghost notification
+        }
+
+        $assignee->notify(new ThreadAssignedNotification($thread, GuestName::display($thread->guest)));
     }
 
     /** Send one notification to every back-office recipient in the org (no-op when there are none). */

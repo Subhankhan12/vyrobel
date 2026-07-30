@@ -5,11 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Models\Guest;
 use App\Models\Membership;
 use App\Models\MessageThread;
+use App\Models\Reservation;
 use App\Models\User;
 use App\Services\InboxService;
+use App\Support\Email\EmailTemplateResolver;
+use App\Support\Money\MoneyFormatter;
+use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -30,6 +36,12 @@ class InboxActionController extends Controller
 {
     public function reply(Request $request, InboxService $inbox, string $thread): RedirectResponse
     {
+        if ($this->paused()) {
+            $model = MessageThread::query()->findOrFail($thread);
+
+            return $this->back($model, 'inbox_error', $this->pausedMessage());
+        }
+
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:5000'],
         ]);
@@ -55,9 +67,15 @@ class InboxActionController extends Controller
         return $this->back($model, 'inbox_notice', 'Reply sent.');
     }
 
-    /** Assign (or unassign) the thread to an active member of the org. */
+    /** Assign (or unassign) the thread to an active member of the org — an INTERNAL hand-off (the guest never sees it). */
     public function assign(Request $request, InboxService $inbox, string $thread): RedirectResponse
     {
+        if ($this->paused()) {
+            $model = MessageThread::query()->findOrFail($thread);
+
+            return $this->back($model, 'inbox_error', $this->pausedMessage());
+        }
+
         $validated = $request->validate(['user_id' => ['nullable', 'string']]);
 
         $model = MessageThread::query()->findOrFail($thread);   // tenant-scoped → cross-org 404
@@ -123,8 +141,90 @@ class InboxActionController extends Controller
         return $this->back($model, 'inbox_notice', 'Reservation linked.');
     }
 
+    /**
+     * NEW MESSAGE (#90) — start a thread with a real guest who has a current/upcoming (or recent) stay, optionally
+     * seeded from a #83 template (pre-arrival / payment-reminder / review-request). The thread is created on the
+     * `manual` channel (recorded delivered; the guest sees it in their portal inbox / email) — "the guest replies
+     * wherever they booked". A template pre-fills the first message with the guest+reservation merge vars; an empty
+     * start just opens the thread. Respects read-only.
+     */
+    public function start(Request $request, InboxService $inbox): RedirectResponse
+    {
+        if ($this->paused()) {
+            return redirect()->route('app.inbox')->with('inbox_error', $this->pausedMessage());
+        }
+
+        $validated = $request->validate([
+            'guest_id' => ['required', 'string'],
+            'template' => ['nullable', 'string', 'in:pre-arrival,payment-reminder,review-request'],
+            'body' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $guest = Guest::query()->findOrFail($validated['guest_id']);   // tenant-scoped → cross-org 404
+
+        // Reuse an existing manual thread for this guest rather than spawning duplicates (the guest-profile
+        // "Message" precedent), else open a fresh one linked to their latest reservation.
+        $reservation = Reservation::query()->where('lead_guest_id', $guest->getKey())->orderByDesc('check_in')->first();
+        $thread = MessageThread::query()->where('guest_id', $guest->getKey())->where('channel', 'manual')->orderByDesc('last_message_at')->first();
+        if ($thread === null) {
+            $thread = $inbox->startThread([
+                'channel' => 'manual',
+                'guest_id' => (string) $guest->getKey(),
+                'reservation_id' => $reservation?->getKey() !== null ? (string) $reservation->getKey() : null,
+                'subject' => 'Conversation',
+                'assigned_to' => (string) ($request->user()?->getAuthIdentifier() ?? '') ?: null,
+            ]);
+        }
+
+        // Seed the first message: an explicit body wins; else the chosen template's merged message; else nothing
+        // (just open the thread and let the operator type).
+        $body = trim((string) ($validated['body'] ?? ''));
+        if ($body === '' && ! empty($validated['template'])) {
+            $body = $this->templateBody((string) $validated['template'], $guest, $reservation);
+        }
+
+        if ($body !== '') {
+            $author = $request->user();
+            try {
+                $inbox->sendOutbound($thread, $body, $author instanceof User ? $author : null);
+            } catch (RuntimeException $e) {
+                return redirect()->route('app.inbox', ['c' => $thread->id])->with('inbox_error', 'Couldn’t send — '.$e->getMessage());
+            }
+        }
+
+        return redirect()->route('app.inbox', ['c' => $thread->id])->with('inbox_notice', 'Conversation started.');
+    }
+
+    /** Resolve a #83 template's message with the guest/reservation merge vars — the composer seed (never door codes #33). */
+    private function templateBody(string $key, Guest $guest, ?Reservation $reservation): string
+    {
+        $unit = $reservation?->reservationUnits?->first()?->unit;
+        $nights = $reservation !== null
+            ? CarbonImmutable::parse($reservation->check_in)->diffInDays(CarbonImmutable::parse($reservation->check_out))
+            : 0;
+        $vars = [
+            'first_name' => (string) ($guest->first_name ?: 'there'),
+            'unit' => $unit !== null ? (string) ($unit->name ?? $unit->code) : 'your unit',
+            'reference' => $reservation !== null ? (string) $reservation->reference : '',
+            'nights' => (string) $nights,
+            'balance' => $reservation !== null ? MoneyFormatter::display((int) ($reservation->balance_minor ?? 0), (string) ($reservation->currency ?? 'EUR')) : '',
+        ];
+
+        return EmailTemplateResolver::for(app(TenantContext::class)->id(), $key, $vars)->message();
+    }
+
+    private function paused(): bool
+    {
+        return app(OperatorWorkspace::class)->isReadOnly();
+    }
+
+    private function pausedMessage(): string
+    {
+        return 'Workspace paused — messaging is read-only until '.app(OperatorWorkspace::class)->resumeLabel().'.';
+    }
+
     private function back(MessageThread $model, string $key, string $message): RedirectResponse
     {
-        return redirect()->route('app.inbox.show', $model->id)->with($key, $message);
+        return redirect()->route('app.inbox', ['c' => $model->id])->with($key, $message);
     }
 }
