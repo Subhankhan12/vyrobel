@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Availability;
+use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
 use App\Models\OwnerExpense;
 use App\Models\Unit;
@@ -56,16 +57,23 @@ class MaintenanceService
      */
     public function open(array $data): MaintenanceTicket
     {
+        $category = $data['category'] ?? 'other';
+
+        // #89 — AUTO-ASSIGNMENT: with no explicit assignee, route the ticket to the category's configured
+        // technician when auto-assign is on. This is what makes the settings map genuinely take effect (it was
+        // dead config before). A missing map / disabled toggle leaves the ticket unassigned (honest).
+        $assignedTo = $data['assigned_to'] ?? $this->autoAssignee((string) $category);
+
         $ticket = DB::transaction(fn (): MaintenanceTicket => MaintenanceTicket::create([
             'unit_id' => $data['unit_id'],
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
-            'category' => $data['category'] ?? 'other',
+            'category' => $category,
             'priority' => $data['priority'] ?? 'normal',
             'status' => 'open',
             'takes_out_of_service' => $data['takes_out_of_service'] ?? false,
             'reported_by' => $data['reported_by'] ?? Auth::id(),
-            'assigned_to' => $data['assigned_to'] ?? null,
+            'assigned_to' => $assignedTo,
             'opened_at' => now(),
         ]));
 
@@ -118,32 +126,104 @@ class MaintenanceService
      * A resolved ticket is terminal — resolving again throws (a cost correction is an append-only
      * reversal, added in Step 3, never an in-place edit).
      */
-    public function resolve(MaintenanceTicket $ticket, ?Money $cost = null): MaintenanceTicket
+    public function resolve(MaintenanceTicket $ticket, ?Money $cost = null, ?Money $labor = null, ?Money $parts = null): MaintenanceTicket
     {
         $this->assertTransition($ticket, ['open', 'in_progress'], 'resolve');
         $from = (string) $ticket->status;
 
-        DB::transaction(function () use ($ticket, $cost): void {
+        // #89 — the REAL labor/parts split: when either is given, the TOTAL is their sum (labor + parts ===
+        // cost_minor, #17), and that total is what posts to the owner expense (the tie is unchanged). A plain
+        // legacy `$cost` (no split) records as all-labour so labor + parts still equals the total.
+        $split = $this->costSplit($cost, $labor, $parts);
+        $total = $split['total'];   // ?Money — the figure the owner_expense uses
+
+        DB::transaction(function () use ($ticket, $split): void {
             $ticket->update([
                 'status' => 'resolved',
-                'cost_minor' => $cost?->amountMinor(),
-                'currency' => $cost?->currency(),
+                'cost_minor' => $split['cost_minor'],
+                'labor_minor' => $split['labor_minor'],
+                'parts_minor' => $split['parts_minor'],
+                'currency' => $split['currency'],
+                // The work is done → the part (if any) has been fitted; clear the awaiting-parts state.
+                'awaiting_parts' => false,
+                'part_name' => null,
+                'part_eta' => null,
                 'resolved_at' => now(),
             ]);
         });
 
         $this->domainEvents->record('maintenance_ticket.resolved', $ticket, [
             'unit_id' => (string) $ticket->unit_id,
-            'cost_minor' => $cost?->amountMinor(),
+            'cost_minor' => $split['cost_minor'],
         ]);
         $this->audit->record('maintenance_ticket.resolved', $ticket, ['status' => $from], ['status' => 'resolved']);
 
-        if ($cost !== null) {
-            $this->postExpenseIfOwned($ticket->refresh(), $cost);   // certified owner-expense path (owned units only)
+        if ($total !== null) {
+            $this->postExpenseIfOwned($ticket->refresh(), $total);   // certified owner-expense path (owned units only)
         }
         $this->releaseUnitIfClear($ticket->refresh());   // back in service iff no other active OOS ticket
 
         return $ticket->refresh();
+    }
+
+    /**
+     * Flag / clear the "waiting on a part" state on an ACTIVE ticket (#89 — the Parts-on-order panel). Real
+     * state, never a fabricated parts row: an operator records the part they've ordered + its ETA.
+     */
+    public function setAwaitingParts(MaintenanceTicket $ticket, bool $awaiting, ?string $partName = null, ?string $partEta = null): MaintenanceTicket
+    {
+        $this->assertActive($ticket, 'update parts on');
+
+        $ticket->update([
+            'awaiting_parts' => $awaiting,
+            'part_name' => $awaiting ? $partName : null,
+            'part_eta' => $awaiting ? $partEta : null,
+        ]);
+
+        $this->domainEvents->record('maintenance_ticket.parts_updated', $ticket, ['awaiting_parts' => $awaiting, 'part_name' => $partName]);
+        $this->audit->record('maintenance_ticket.parts_updated', $ticket, null, ['awaiting_parts' => $awaiting]);
+
+        return $ticket->refresh();
+    }
+
+    /**
+     * The org's configured technician for a category when auto-assign is on — else null. One row per org
+     * ({@see MaintenanceSetting}), tenant-scoped; the assignee was validated as an org member on write.
+     */
+    private function autoAssignee(string $category): ?string
+    {
+        $setting = MaintenanceSetting::query()->first();   // tenant-scoped, one per org
+        if ($setting === null || ! $setting->auto_assign_enabled) {
+            return null;
+        }
+
+        $id = $setting->{'assignee_'.$category.'_id'} ?? null;
+
+        return is_string($id) && $id !== '' ? $id : null;
+    }
+
+    /**
+     * Reconcile a resolve into cost_minor + labor_minor + parts_minor with labor + parts === cost_minor.
+     *
+     * @return array{cost_minor: ?int, labor_minor: ?int, parts_minor: ?int, currency: ?string, total: ?Money}
+     */
+    private function costSplit(?Money $cost, ?Money $labor, ?Money $parts): array
+    {
+        if ($labor !== null || $parts !== null) {
+            $currency = ($labor ?? $parts)->currency();
+            $laborMinor = $labor?->amountMinor() ?? 0;
+            $partsMinor = $parts?->amountMinor() ?? 0;
+            $costMinor = $laborMinor + $partsMinor;
+
+            return ['cost_minor' => $costMinor, 'labor_minor' => $laborMinor, 'parts_minor' => $partsMinor, 'currency' => $currency, 'total' => Money::of($costMinor, $currency)];
+        }
+
+        if ($cost !== null) {
+            // Legacy single-total resolve → recorded as all-labour so the split still sums to the total.
+            return ['cost_minor' => $cost->amountMinor(), 'labor_minor' => $cost->amountMinor(), 'parts_minor' => 0, 'currency' => $cost->currency(), 'total' => $cost];
+        }
+
+        return ['cost_minor' => null, 'labor_minor' => null, 'parts_minor' => null, 'currency' => null, 'total' => null];
     }
 
     /**
@@ -166,7 +246,13 @@ class MaintenanceService
             $this->expenses->voidExpense($existing);
         }
 
-        $ticket->update(['cost_minor' => $newCost?->amountMinor(), 'currency' => $newCost?->currency()]);
+        // Keep the split consistent with the corrected total (recorded as all-labour when no split is given).
+        $ticket->update([
+            'cost_minor' => $newCost?->amountMinor(),
+            'labor_minor' => $newCost?->amountMinor(),
+            'parts_minor' => $newCost !== null ? 0 : null,
+            'currency' => $newCost?->currency(),
+        ]);
 
         if ($newCost !== null) {
             $this->postExpenseIfOwned($ticket->refresh(), $newCost);

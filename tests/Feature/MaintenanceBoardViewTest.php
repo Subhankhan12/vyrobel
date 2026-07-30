@@ -44,13 +44,13 @@ it('renders real tickets grouped by the real active-status enum', function () {
         ->assertSee('BOARD1')              // real unit
         ->assertSee('Plumbing')            // real category (humanized enum)
         ->assertSee('High')                // real priority
-        ->assertSee('Open')                // real lane
-        ->assertSee('In progress')
-        ->assertSee('Resolved')
-        ->assertSee('Broken blind')
-        ->assertSee('€45.00')              // real cost on the resolved card
-        ->assertDontSee('Awaiting parts')  // no invented status
-        ->assertDontSee('Parts on order'); // no fabricated panel
+        ->assertSee('Open')                // the real Open KPI chip
+        ->assertSee('Resolved')            // the real Resolved-7d KPI chip
+        ->assertSee('Broken blind')        // the resolved ticket is in the 7-day window
+        // #89 — "Awaiting parts" + "Parts on order" are now REAL (a real awaiting-parts state), not fabricated.
+        ->assertSee('Awaiting parts')      // the real KPI chip
+        ->assertSee('Parts on order')      // the real (empty here) parts panel
+        ->assertSee('Technicians');        // the real technicians panel
 });
 
 // ── 2. The "Unit OOS" badge + rail are REAL (genuine condition_status) ───────────────────────────
@@ -69,9 +69,9 @@ it('shows the Unit OOS badge only for a genuinely out-of-service unit', function
 
     $this->actingAs(boardMember($s))->get('/app/maintenance')
         ->assertOk()
-        ->assertSee('Unit OOS')                          // the badge
-        ->assertSee('out of service — not bookable')     // the rail copy
-        ->assertSee('OOSUNIT');
+        ->assertSee('Out of order')       // the real OOO badge on the row + the KPI chip
+        ->assertSee('units blocked')      // the real out-of-order hero
+        ->assertSee('OOSUNIT');           // the genuinely-blocked unit surfaces in the hero
 });
 
 // ── 3. "+ New ticket" opens a REAL ticket; a foreign unit is rejected ────────────────────────────

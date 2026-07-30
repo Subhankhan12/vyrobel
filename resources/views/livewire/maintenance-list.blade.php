@@ -1,265 +1,334 @@
-{{-- Operator Maintenance — the work-order kanban (design pass · Maintenance UI). Styled on the shared
-     operator design system via <x-operator.shell>. Tickets + statuses are REAL and tenant-scoped; the
-     3 lanes ARE the real active-status enum (open / in_progress / resolved). The board only READS; the
-     two mutations it offers — open a ticket ("+ New ticket") and assign — POST to the real actions
-     (MaintenanceActionController → MaintenanceService) and persist. Alpine (bundled with Livewire) drives
-     ONLY the New-ticket modal's presentation; per-card Assign is a native <details> disclosure. --}}
-<div>
-    <x-operator.shell active="maintenance" title="Maintenance" subtitle="Work orders" :viewer="$viewer">
-        <div x-data="{ open: {{ $errors->any() ? 'true' : 'false' }} }">
+{{-- Operator MAINTENANCE board (#89 exact-match) — the work-order list over the real MaintenanceTicket (the
+     same model the Dashboard reads; undisturbed). Real KPIs + SLA bar + technicians + parts-on-order + the
+     out-of-order hero with real revenue-on-hold. Every mutation is a guarded controller POST.
+     RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+<div x-data="{
+        nwoOpen: false, nwoOoo: false,
+        assign: null, detail: {{ \Illuminate\Support\Js::from($detail) }},
+        assignUrl(id) { return '{{ route('app.maintenance.assign', '__ID__') }}'.replace('__ID__', id); },
+     }">
+    <x-operator.shell active="maintenance" title="Maintenance" subtitle="Work orders across your units" :viewer="$viewer">
 
-        {{-- Flash: success / graceful error --}}
         @if (session('mt_notice'))
-            <div class="vy-flash is-ok vy-fade" role="status">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                {{ session('mt_notice') }}
-            </div>
+            <div class="vy-flash is-ok vy-fade">{{ session('mt_notice') }}</div>
         @endif
         @if (session('mt_error'))
-            <div class="vy-flash is-err vy-fade" role="alert">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-                {{ session('mt_error') }}
-            </div>
+            <div class="vy-flash is-err vy-fade">{{ session('mt_error') }}</div>
+        @endif
+        @if ($errors->any())
+            <div class="vy-flash is-err vy-fade">@foreach ($errors->all() as $e) <div>{{ $e }}</div> @endforeach</div>
         @endif
 
-        {{-- KPI band — DERIVED real aggregates over the org's own tickets, as uniform light tiles (the
-             shared .vy-dash-kpis band — default repeat(4) = exactly these 4 tiles — matching the prototype's
-             KPI row and the Dashboard/Rates precedent). These are the app's FOUR REAL stats; the prototype's
-             extra "Awaiting parts" tile is refused (no such status exists; a test asserts it never renders). --}}
-        <div class="vy-dash-kpis vy-fade">
-            <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Open</div>
-                <div class="vy-dk-val">{{ $summary['open'] }}</div>
-                <div class="vy-dk-sub">work orders awaiting action</div>
+        {{-- Control row --}}
+        <div class="vy-rack-toolbar vy-fade">
+            <div class="vy-left" style="flex: 1;">
+                <form method="GET" action="{{ route('app.maintenance') }}" class="vy-input-group" style="max-width: 320px;">
+                    <input class="vy-input" type="search" name="q" value="{{ $query }}" placeholder="Search work orders…" aria-label="Search work orders">
+                    @if ($filter) <input type="hidden" name="filter" value="{{ $filter }}"> @endif
+                </form>
             </div>
-            <div class="vy-dash-kpi">
-                <div class="vy-dk-label">In progress</div>
-                <div class="vy-dk-val">{{ $summary['in_progress'] }}</div>
-                <div class="vy-dk-sub">being worked on now</div>
-            </div>
-            <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Resolved · month</div>
-                <div class="vy-dk-val">{{ $summary['resolved_month'] }}</div>
-                <div class="vy-dk-sub">closed this calendar month</div>
-            </div>
-            <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Units out of service</div>
-                <div class="vy-dk-val">{{ $summary['out_of_service'] }}</div>
-                <div class="vy-dk-sub">blocked from sale until resolved</div>
+            <div class="vy-right" style="display: flex; gap: 8px;">
+                <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.costs') }}">Costs report</a>
+                <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.settings') }}">Settings</a>
+                @if ($canManage)
+                    <button type="button" class="vy-btn vy-btn--accent" @click="nwoOpen = true">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                        New work order
+                    </button>
+                @endif
             </div>
         </div>
 
-        {{-- Toolbar — actions only (the summary moved up into the KPI band). Honest "Filters · Soon". --}}
-        <div class="vy-rack-toolbar vy-fade" style="justify-content: flex-end;">
-            <div class="vy-right">
-                <span class="vy-pill is-soon" aria-disabled="true">Filters <span class="vy-soon-tag">Soon</span></span>
-                @can('maintenance.manage')
-                    <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.costs') }}" style="margin-right: 8px;">Costs</a>
-                    <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.settings') }}" style="margin-right: 8px;">Settings</a>
-                @endcan
-                <button type="button" class="vy-btn vy-btn--accent" @click="open = true">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                    New ticket
-                </button>
-            </div>
+        {{-- KPI filter chips --}}
+        @php
+            $chips = [
+                ['k' => 'active', 'label' => 'Open', 'v' => $kpis['open'], 'dot' => '#8A8079'],
+                ['k' => 'urgent', 'label' => 'Urgent', 'v' => $kpis['urgent'], 'dot' => '#E8703A'],
+                ['k' => 'parts', 'label' => 'Awaiting parts', 'v' => $kpis['parts'], 'dot' => '#33A0AC'],
+                ['k' => 'ooo', 'label' => 'Out of order', 'v' => $kpis['ooo'], 'dot' => '#B4400F'],
+                ['k' => 'done', 'label' => 'Resolved · 7d', 'v' => $kpis['done'], 'dot' => '#43A06B'],
+            ];
+        @endphp
+        <div class="vy-dash-kpis vy-dash-kpis--5 vy-fade" style="margin-bottom: 18px;">
+            @foreach ($chips as $chip)
+                <a class="vy-dash-kpi @if ($filter === $chip['k']) is-feature @endif" style="text-decoration: none;"
+                   href="{{ route('app.maintenance', array_filter([($filter === $chip['k'] ? null : 'filter') => $chip['k'], 'q' => $query])) }}">
+                    <div class="vy-dk-label"><span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $chip['dot'] }}; margin-right: 5px;"></span>{{ $chip['label'] }}</div>
+                    <div class="vy-dk-val">{{ $chip['v'] }}</div>
+                </a>
+            @endforeach
         </div>
 
-        {{-- Units out of service — REAL attention rail (real condition_status, links to the governing ticket) --}}
-        @if (count($oosUnits) > 0)
-            <div class="vy-oos-rail vy-fade">
-                <span class="vy-oos-ico">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 18L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-                </span>
-                <div class="vy-oos-rail-body">
-                    <div class="vy-oos-rail-title">{{ count($oosUnits) }} {{ \Illuminate\Support\Str::plural('unit', count($oosUnits)) }} out of service — not bookable until resolved</div>
-                    <div class="vy-oos-list">
-                        @foreach ($oosUnits as $u)
-                            @if ($u['ticket_id'])
-                                <a class="vy-oos-item" href="{{ route('app.maintenance.show', $u['ticket_id']) }}" title="{{ $u['ticket_title'] }}">
-                                    <span class="vy-oos-code">{{ $u['code'] }}</span>@if ($u['name'])<span class="vy-mt-when">{{ $u['name'] }}</span>@endif
-                                </a>
-                            @else
-                                <span class="vy-oos-item"><span class="vy-oos-code">{{ $u['code'] }}</span>@if ($u['name'])<span class="vy-mt-when">{{ $u['name'] }}</span>@endif</span>
-                            @endif
-                        @endforeach
+        <div class="vy-detail-cols" style="align-items: start;">
+            {{-- ── Work-orders list ───────────────────────────────────────────────────────────────── --}}
+            <div class="vy-stack">
+                <div class="vy-card vy-card--flush vy-fade">
+                    <div class="vy-detail-head" style="padding: 14px 16px 4px;">
+                        <h2 class="vy-card-title">Work orders</h2>
+                        @if ($filter) <a class="vy-eyebrow vy-arr-link" href="{{ route('app.maintenance') }}">Clear filter</a> @endif
                     </div>
+                    @forelse ($rows as $row)
+                        <div class="vy-unit-row" style="cursor: pointer; align-items: flex-start;" @click="detail = {{ \Illuminate\Support\Js::from($row) }}">
+                            <div style="min-width: 0; flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="width: 8px; height: 8px; border-radius: 2px; background: var(--vy-accent); flex: none;"></span>
+                                    <span class="vy-um-name">{{ $row['title'] }}</span>
+                                    @if ($row['oos']) <span class="vy-tag tone-risk"><span class="vy-dot"></span>Out of order</span> @endif
+                                    @if ($row['awaiting_parts']) <span class="vy-tag tone-tag"><span class="vy-dot"></span>Awaiting parts</span> @endif
+                                </div>
+                                <div class="vy-um-sub">{{ $row['unit'] }} · {{ $row['category'] }} · {{ $row['reported_ago'] }}</div>
+                                @if ($row['sla']['label'] !== '' && $row['status'] !== 'resolved')
+                                    <div style="font-size: 11px; margin-top: 3px; color: {{ $row['sla']['breached'] ? '#B4400F' : ($row['sla']['due_soon'] ? '#8F6414' : 'var(--vy-muted)') }};">
+                                        {{ $row['sla']['breached'] ? '⚠ ' : '' }}{{ $row['sla']['label'] }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; flex: none;">
+                                <span class="vy-tag tone-{{ $row['priority_tone'] }}">{{ $row['priority_label'] }}</span>
+                                @if ($row['assignee'])
+                                    <span class="vy-avatar" style="width: 26px; height: 26px; font-size: 10px;" title="{{ $row['assignee'] }}">{{ $row['assignee_initials'] }}</span>
+                                @elseif ($canManage)
+                                    <button type="button" class="vy-btn vy-btn--ghost" style="padding: 3px 10px; font-size: 12px;" @click.stop="assign = {{ \Illuminate\Support\Js::from(['id' => $row['id'], 'title' => $row['title']]) }}">Assign</button>
+                                @endif
+                                <span class="vy-tag tone-{{ $row['status_meta']['tone'] }}" style="min-width: 92px;"><span class="vy-dot"></span>{{ $row['status_meta']['label'] }}</span>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="vy-empty" style="margin: 12px;">No work orders match this view.</div>
+                    @endforelse
+                    <div class="vy-fl-note" style="padding: 12px 16px; border-top: 1px solid var(--vy-hairline);">Showing {{ count($rows) }} {{ \Illuminate\Support\Str::plural('order', count($rows)) }} from the last 7 days · older history lives in the costs report.</div>
+                </div>
+            </div>
+
+            {{-- ── Right rail ─────────────────────────────────────────────────────────────────────── --}}
+            <div class="vy-stack">
+                {{-- Out-of-order hero --}}
+                <div class="vy-tonight" style="padding: 20px;">
+                    <div class="vy-dk-label" style="color: rgba(255,255,255,.7);">Out of order</div>
+                    <div style="font-family: 'Sora', sans-serif; font-weight: 700; color: #fff; font-size: 30px;">{{ $oosHero['count'] }}<span style="font-size: 15px; font-weight: 600; color: rgba(255,255,255,.7);"> units blocked</span></div>
+                    <div style="font-size: 12.5px; color: rgba(255,255,255,.7); margin-top: 4px;">{{ $oosHero['units'] !== '' ? $oosHero['units'] : 'No units blocked — all clear' }}</div>
+                    @if ($oosHero['on_hold'] !== null)
+                        <div style="border-top: 1px solid rgba(255,255,255,.14); margin-top: 14px; padding-top: 12px;">
+                            <span style="color: #F6C6B4; font-weight: 700;">{{ $oosHero['on_hold'] }} / night</span>
+                            <div style="font-size: 11.5px; color: rgba(255,255,255,.6);">revenue on hold</div>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Technicians --}}
+                <div class="vy-card">
+                    <h2 class="vy-card-title" style="margin-bottom: 10px;">Technicians</h2>
+                    @forelse ($technicians as $tech)
+                        <div class="vy-unit-row" style="padding: 8px 0;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="vy-avatar" style="width: 28px; height: 28px; font-size: 11px;">{{ $tech['initials'] }}</span>
+                                <div>
+                                    <div style="font-size: 13px; color: var(--vy-ink);">{{ $tech['name'] }}</div>
+                                    <div style="font-size: 11px; color: var(--vy-muted);">{{ $tech['load'] }} open @if ($tech['urgent'] > 0) · {{ $tech['urgent'] }} urgent @endif</div>
+                                </div>
+                            </div>
+                            <span class="vy-tag tone-{{ $tech['status'] === 'busy' ? 'risk' : 'in-house' }}"><span class="vy-dot"></span>{{ ucfirst($tech['status']) }}</span>
+                        </div>
+                    @empty
+                        <div class="vy-empty" style="padding: 12px;">No technicians have open work right now.</div>
+                    @endforelse
+                </div>
+
+                {{-- Parts on order --}}
+                <div class="vy-card">
+                    <h2 class="vy-card-title" style="margin-bottom: 10px;">Parts on order</h2>
+                    @forelse ($partsOnOrder as $p)
+                        <div class="vy-unit-row" style="padding: 8px 0;">
+                            <div>
+                                <div style="font-size: 13px; color: var(--vy-ink);">{{ $p['part_name'] ?? 'Part' }}</div>
+                                <div style="font-size: 11px; color: var(--vy-muted);">{{ $p['unit'] }}@if ($p['part_eta']) · arrives {{ $p['part_eta'] }} @endif</div>
+                            </div>
+                            <span class="vy-tag tone-tag"><span class="vy-dot"></span>On order</span>
+                        </div>
+                    @empty
+                        <div class="vy-empty" style="padding: 12px;">Nothing on order.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- ── NEW WORK ORDER modal ───────────────────────────────────────────────────────────────── --}}
+        @if ($canManage)
+            <div x-show="nwoOpen" x-cloak @keydown.escape.window="nwoOpen = false"
+                 style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
+                <div @click.outside="nwoOpen = false" class="vy-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;">
+                    <h2 class="vy-card-title" style="margin-bottom: 12px;">New work order</h2>
+                    <form method="POST" action="{{ route('app.maintenance.store') }}">
+                        @csrf
+                        <label class="vy-field-label" for="nwo_title">Issue</label>
+                        <input class="vy-input" id="nwo_title" type="text" name="title" maxlength="160" required placeholder="e.g. AC not cooling" style="width: 100%; margin-bottom: 10px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label class="vy-field-label" for="nwo_unit">Unit</label>
+                                <select class="vy-input" id="nwo_unit" name="unit_id" required style="width: 100%;">
+                                    @foreach ($units as $u) <option value="{{ $u['id'] }}">{{ $u['label'] }}</option> @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="vy-field-label" for="nwo_priority">Priority</label>
+                                <select class="vy-input" id="nwo_priority" name="priority" style="width: 100%;">
+                                    @foreach ($priorities as $p) <option value="{{ $p['value'] }}" @if ($p['value'] === 'normal') selected @endif>{{ $p['label'] }}</option> @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="vy-field-label" for="nwo_cat">Category</label>
+                                <select class="vy-input" id="nwo_cat" name="category" style="width: 100%;">
+                                    @foreach ($categories as $c) <option value="{{ $c['value'] }}">{{ $c['label'] }}</option> @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <label class="vy-field-label" for="nwo_desc" style="margin-top: 10px;">Description</label>
+                        <textarea class="vy-input" id="nwo_desc" name="description" rows="3" maxlength="2000" placeholder="What’s wrong, where exactly, anything the tech should know…" style="width: 100%; resize: vertical;"></textarea>
+                        <p style="font-size: 11px; color: var(--vy-faint); margin: 6px 0 0;">Photos can be added from the work order once it’s created.</p>
+
+                        <label class="vy-field-label" style="display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; margin-top: 12px;">
+                            <input type="checkbox" name="takes_out_of_service" value="1" x-model="nwoOoo"> Mark room out of order
+                            <span style="color: var(--vy-faint); font-weight: 500;">· blocks the unit from selling until resolved</span>
+                        </label>
+                        <p x-show="nwoOoo" x-cloak style="font-size: 11.5px; color: #B4400F; margin: 6px 0 0;">Any nights already booked on this unit will need moving — check the rack first.</p>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="nwoOpen = false">Cancel</button>
+                            <button type="submit" class="vy-btn vy-btn--accent"><span x-text="nwoOoo ? 'Create & block room' : 'Create work order'">Create work order</span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {{-- ── ASSIGN modal ───────────────────────────────────────────────────────────────────── --}}
+            <div x-show="assign" x-cloak @keydown.escape.window="assign = null"
+                 style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
+                <div @click.outside="assign = null" class="vy-card vy-fade" style="width: 100%; max-width: 420px;" x-show="assign">
+                    <h2 class="vy-card-title" style="margin-bottom: 2px;">Assign technician</h2>
+                    <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;" x-text="assign ? assign.title : ''"></p>
+                    <form method="POST" :action="assign ? assignUrl(assign.id) : ''">
+                        @csrf
+                        <div style="display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow: auto;">
+                            @foreach ($staff as $i => $member)
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1px solid var(--vy-hairline); border-radius: 8px; cursor: pointer;">
+                                    <input type="radio" name="user_id" value="{{ $member['id'] }}" @if ($i === 0) checked @endif>
+                                    {{ $member['name'] }}
+                                </label>
+                            @endforeach
+                        </div>
+                        <p style="font-size: 11px; color: var(--vy-faint); margin: 8px 0 0;">The work order appears in their task list. (Device push isn’t wired — no fabricated notification.)</p>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="assign = null">Cancel</button>
+                            <button type="submit" class="vy-btn vy-btn--accent">Assign</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         @endif
 
-        @php $total = $summary['open'] + $summary['in_progress'] + count($columns[2]['tickets']); @endphp
-        @if ($total === 0)
-            <div class="vy-card vy-fade"><div class="vy-empty" style="padding: 40px 20px;">No maintenance tickets yet — open one with “New ticket”.</div></div>
-        @else
-            <div class="vy-kanban vy-fade">
-                @foreach ($columns as $col)
-                    <div class="vy-col tone-{{ $col['tone'] }}">
-                        <div class="vy-col-head">
-                            <span class="vy-col-title"><span class="vy-col-dot"></span>{{ $col['label'] }}</span>
-                            <span class="vy-col-count">{{ count($col['tickets']) }}</span>
+        {{-- ── DETAIL drawer ──────────────────────────────────────────────────────────────────────── --}}
+        <div x-show="detail" x-cloak @keydown.escape.window="detail = null"
+             style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: stretch; justify-content: flex-end;">
+            <div @click.outside="detail = null" class="vy-card vy-fade" style="width: 100%; max-width: 440px; height: 100%; border-radius: 0; overflow: auto;" x-show="detail">
+                <template x-if="detail">
+                    <div>
+                        <div class="vy-detail-head" style="margin-bottom: 12px;">
+                            <div>
+                                <div class="vy-detail-ref" x-text="detail.title"></div>
+                                <div class="vy-u-sub"><span x-text="detail.unit"></span> · <span x-text="detail.category"></span></div>
+                            </div>
+                            <button type="button" class="vy-btn vy-btn--ghost" style="padding: 4px 10px;" @click="detail = null">✕</button>
                         </div>
-                        <div class="vy-col-body">
-                            @forelse ($col['tickets'] as $ticket)
-                                <div class="vy-hk-card">
-                                    <div class="vy-hk-top">
-                                        <a class="vy-mt-title" href="{{ route('app.maintenance.show', $ticket['id']) }}">{{ $ticket['title'] }}</a>
-                                    </div>
-                                    <div class="vy-mt-sub">
-                                        <span class="vy-hk-unit">Unit {{ $ticket['unit'] }}</span>
-                                        <span class="vy-mt-cat">· {{ $ticket['category'] }}</span>
-                                        @if ($ticket['oos'])
-                                            <span class="vy-tag tone-oos"><span class="vy-dot"></span>Unit OOS</span>
-                                        @endif
-                                    </div>
-                                    <div class="vy-hk-meta">
-                                        <span class="vy-prio tone-{{ $ticket['priority_tone'] }}">{{ $ticket['priority_label'] }}</span>
-                                        @if ($ticket['assignee'])
-                                            <span class="vy-hk-assignee">
-                                                <span class="vy-mini-avatar">{{ strtoupper(mb_substr($ticket['assignee'], 0, 1)) }}</span>
-                                                {{ $ticket['assignee'] }}
-                                            </span>
-                                        @else
-                                            <span class="vy-hk-unassigned">Unassigned</span>
-                                        @endif
-                                    </div>
 
-                                    @if ($ticket['cost'] !== null)
-                                        <div class="vy-mt-foot">
-                                            <span class="vy-mt-cost">{{ $ticket['cost'] }}</span>
-                                            @if ($ticket['resolved'])<span class="vy-mt-when">Resolved {{ $ticket['resolved'] }}</span>@endif
-                                        </div>
-                                    @endif
-
-                                    {{-- Assign — REAL (MaintenanceService::assign) via POST → PRG. Only offered on
-                                         active tickets (open/in_progress); resolved tickets are terminal. --}}
-                                    @if ($col['key'] !== 'resolved')
-                                        <div class="vy-hk-actions">
-                                            <details class="vy-assign">
-                                                <summary>
-                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 20c0-3.3 2.7-5 6-5s6 1.7 6 5M18 14v6M21 17h-6"/></svg>
-                                                    {{ $ticket['assignee'] ? 'Reassign' : 'Assign' }}
-                                                </summary>
-                                                <form class="vy-assign-pop" method="POST" action="{{ route('app.maintenance.assign', $ticket['id']) }}">
-                                                    @csrf
-                                                    <select name="user_id" aria-label="Assign to">
-                                                        <option value="">— Unassigned —</option>
-                                                        @foreach ($staff as $person)
-                                                            <option value="{{ $person['id'] }}" @selected($ticket['assignee_id'] === $person['id'])>{{ $person['name'] }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    <button type="submit" class="vy-act vy-act--accent" style="justify-content: center;">Save</button>
-                                                </form>
-                                            </details>
-                                        </div>
-                                    @endif
+                        {{-- Pipeline --}}
+                        <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 14px;">
+                            <template x-for="(step, i) in ['Logged','Assigned','In progress','Resolved']" :key="step">
+                                <div style="flex: 1; text-align: center;">
+                                    <div :style="'height:4px;border-radius:2px;background:' + (
+                                        (i===0) || (i===1 && detail.assignee_id) || (i===2 && (detail.status==='in_progress'||detail.status==='resolved')) || (i===3 && detail.status==='resolved')
+                                        ? '#C2410C' : 'var(--vy-hairline)')"></div>
+                                    <div style="font-size: 10px; color: var(--vy-muted); margin-top: 4px;" x-text="step"></div>
                                 </div>
-                            @empty
-                                <div class="vy-hk-col-empty">None</div>
-                            @endforelse
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-
-        {{-- ============================ NEW TICKET MODAL ============================ --}}
-        <div class="vy-modal-backdrop" x-cloak x-show="open" x-transition.opacity
-             @keydown.escape.window="open = false" @click.self="open = false">
-            <div class="vy-modal" x-show="open" x-transition
-                 role="dialog" aria-modal="true" aria-labelledby="vy-mt-title">
-                <form method="POST" action="{{ route('app.maintenance.store') }}">
-                    @csrf
-
-                    <div class="vy-modal-head">
-                        <span class="vy-modal-ico">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/></svg>
-                        </span>
-                        <div style="flex: 1;">
-                            <h3 class="vy-modal-title" id="vy-mt-title">New maintenance ticket</h3>
-                            <p class="vy-modal-sub">Opens a work order on one of your units. Marking it out of service blocks the unit from sale until it’s resolved.</p>
-                        </div>
-                        <button type="button" class="vy-modal-x" @click="open = false" aria-label="Close">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-
-                    <div class="vy-modal-body">
-                        {{-- Unit — the org's OWN units only (tenant-scoped; the server re-validates) --}}
-                        <div class="vy-field">
-                            <label class="vy-field-label" for="vy-mt-unit">Unit</label>
-                            @if (count($units) > 0)
-                                <select id="vy-mt-unit" name="unit_id" class="vy-input" required>
-                                    <option value="" disabled {{ old('unit_id') ? '' : 'selected' }}>Select a unit…</option>
-                                    @foreach ($units as $u)
-                                        <option value="{{ $u['id'] }}" @selected(old('unit_id') === $u['id'])>{{ $u['label'] }}</option>
-                                    @endforeach
-                                </select>
-                                @error('unit_id') <div class="vy-help" style="color: var(--vy-accent);">{{ $message }}</div> @enderror
-                            @else
-                                <div class="vy-help">No units yet — add a unit first.</div>
-                            @endif
+                            </template>
                         </div>
 
-                        {{-- Title --}}
-                        <div class="vy-field">
-                            <label class="vy-field-label" for="vy-mt-name">Title</label>
-                            <div class="vy-inwrap">
-                                <span class="vy-in-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
-                                <input type="text" id="vy-mt-name" name="title" class="vy-input" placeholder="e.g. Leaking mixer tap"
-                                       value="{{ old('title') }}" maxlength="160" required>
+                        {{-- SLA + badges --}}
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">
+                            <span class="vy-tag" :class="'tone-' + detail.priority_tone" x-text="detail.priority_label + ' priority'"></span>
+                            <template x-if="detail.oos"><span class="vy-tag tone-risk"><span class="vy-dot"></span>Out of order</span></template>
+                            <template x-if="detail.sla.label && detail.status !== 'resolved'"><span class="vy-tag" :class="detail.sla.breached ? 'tone-risk' : 'tone-tag'" x-text="detail.sla.label"></span></template>
+                        </div>
+
+                        {{-- Facts --}}
+                        <div class="vy-facts" style="margin-bottom: 12px;">
+                            <div class="vy-fact-label">Assigned</div>
+                            <div class="vy-fact-val"><span x-text="detail.assignee || 'Unassigned'"></span></div>
+                            <div class="vy-fact-label">Reported</div>
+                            <div class="vy-fact-val"><span x-text="detail.reported_ago"></span></div>
+                            <template x-if="detail.cost"><div class="vy-fact-label">Cost</div></template>
+                            <template x-if="detail.cost"><div class="vy-fact-val"><span x-text="detail.cost"></span> <span style="color: var(--vy-faint); font-size: 11px;" x-text="detail.labor ? '(' + detail.labor + ' labor · ' + detail.parts_cost + ' parts)' : ''"></span></div></template>
+                        </div>
+                        <template x-if="detail.description">
+                            <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 12px; white-space: pre-line;" x-text="detail.description"></p>
+                        </template>
+
+                        {{-- Parts --}}
+                        <template x-if="detail.awaiting_parts">
+                            <div class="vy-recon" style="margin: 0 0 12px;"><span x-text="'Awaiting: ' + (detail.part_name || 'a part')"></span><span x-text="detail.part_eta ? ' · arrives ' + detail.part_eta : ''"></span></div>
+                        </template>
+
+                        {{-- Photos --}}
+                        <h3 style="font-size: 13px; font-weight: 700; color: var(--vy-ink); margin: 6px 0 8px;">Photos</h3>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+                            <template x-for="photo in detail.photos" :key="photo.id">
+                                <img :src="photo.url" alt="Maintenance photo" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--vy-hairline);">
+                            </template>
+                            <template x-if="detail.photos.length === 0"><span class="vy-muted" style="font-size: 12px;">No photos yet.</span></template>
+                        </div>
+
+                        {{-- Activity --}}
+                        <template x-if="detail.activity && detail.activity.length">
+                            <div style="margin-bottom: 12px;">
+                                <h3 style="font-size: 13px; font-weight: 700; color: var(--vy-ink); margin: 6px 0 8px;">Activity</h3>
+                                <template x-for="a in detail.activity" :key="a.label + a.when">
+                                    <div class="vy-um-sub" style="margin-bottom: 3px;"><span x-text="a.label"></span> <span class="vy-sep">·</span> <span x-text="a.when"></span></div>
+                                </template>
                             </div>
-                            @error('title') <div class="vy-help" style="color: var(--vy-accent);">{{ $message }}</div> @enderror
-                        </div>
+                        </template>
 
-                        {{-- Category + Priority — real enums --}}
-                        <div class="vy-field" style="display: flex; gap: 12px;">
-                            <div style="flex: 1;">
-                                <label class="vy-field-label" for="vy-mt-cat">Category</label>
-                                <select id="vy-mt-cat" name="category" class="vy-input">
-                                    @foreach ($categories as $c)
-                                        <option value="{{ $c['value'] }}" @selected(old('category', 'other') === $c['value'])>{{ $c['label'] }}</option>
-                                    @endforeach
-                                </select>
+                        @if ($canManage)
+                            <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--vy-hairline); padding-top: 14px;">
+                                {{-- Photo upload --}}
+                                <form method="POST" :action="'{{ route('app.maintenance.photos.store', '__ID__') }}'.replace('__ID__', detail.id)" enctype="multipart/form-data">
+                                    @csrf
+                                    <label class="vy-btn vy-btn--ghost" style="cursor: pointer; display: inline-flex;">Add photo<input type="file" name="photo" accept="image/*" capture="environment" style="display: none;" onchange="this.form.submit()"></label>
+                                </form>
+                                {{-- Start --}}
+                                <template x-if="detail.status === 'open'">
+                                    <form method="POST" :action="'{{ route('app.maintenance.start', '__ID__') }}'.replace('__ID__', detail.id)"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="vy-btn vy-btn--accent" style="width: 100%;">Start work</button></form>
+                                </template>
+                                {{-- Resolve (with labor/parts) --}}
+                                <template x-if="detail.status === 'open' || detail.status === 'in_progress'">
+                                    <form method="POST" :action="'{{ route('app.maintenance.resolve', '__ID__') }}'.replace('__ID__', detail.id)">
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                                            <div><label class="vy-field-label" style="font-size: 10px;">Labor</label><input class="vy-input" type="number" step="0.01" min="0" name="labor" placeholder="0.00" style="width: 100%;"></div>
+                                            <div><label class="vy-field-label" style="font-size: 10px;">Parts</label><input class="vy-input" type="number" step="0.01" min="0" name="parts" placeholder="0.00" style="width: 100%;"></div>
+                                        </div>
+                                        <button type="submit" class="vy-btn vy-btn--accent" style="width: 100%;">Mark resolved</button>
+                                    </form>
+                                </template>
+                                <a class="vy-btn vy-btn--ghost" style="text-align: center;" :href="'{{ route('app.maintenance.show', '__ID__') }}'.replace('__ID__', detail.id)">Open full record</a>
                             </div>
-                            <div style="flex: 1;">
-                                <label class="vy-field-label" for="vy-mt-prio">Priority</label>
-                                <select id="vy-mt-prio" name="priority" class="vy-input">
-                                    @foreach ($priorities as $p)
-                                        <option value="{{ $p['value'] }}" @selected(old('priority', 'normal') === $p['value'])>{{ $p['label'] }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        {{-- Description --}}
-                        <div class="vy-field">
-                            <label class="vy-field-label" for="vy-mt-desc">Description <span class="vy-fl-note">· optional</span></label>
-                            <textarea id="vy-mt-desc" name="description" class="vy-input" rows="3" maxlength="2000" placeholder="What’s wrong, access notes, etc.">{{ old('description') }}</textarea>
-                        </div>
-
-                        {{-- Takes out of service — the REAL availability toggle --}}
-                        <div class="vy-field" style="margin-bottom: 4px;">
-                            <label class="vy-unitpill" style="display: inline-flex;">
-                                <input type="checkbox" name="takes_out_of_service" value="1" {{ old('takes_out_of_service') ? 'checked' : '' }}>
-                                <span class="vy-ubox">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                                </span>
-                                Take the unit out of service (blocks it from sale until resolved)
-                            </label>
-                        </div>
+                        @endif
                     </div>
-
-                    <div class="vy-modal-foot">
-                        <button type="button" class="vy-btn vy-btn--ghost" @click="open = false">Cancel</button>
-                        <button type="submit" class="vy-btn vy-btn--accent">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                            Open ticket
-                        </button>
-                    </div>
-                </form>
+                </template>
             </div>
         </div>
 
-        </div>
     </x-operator.shell>
 </div>
+
+@once
+    <style>[x-cloak] { display: none !important; } .vy-dash-kpis--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); } @media (max-width: 900px) { .vy-dash-kpis--5 { grid-template-columns: repeat(2, 1fr); } }</style>
+@endonce

@@ -617,6 +617,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::post('/maintenance/{ticket}/start', [MaintenanceActionController::class, 'start'])->name('maintenance.start');
     Route::post('/maintenance/{ticket}/resolve', [MaintenanceActionController::class, 'resolve'])->name('maintenance.resolve');
     Route::post('/maintenance/{ticket}/cancel', [MaintenanceActionController::class, 'cancel'])->name('maintenance.cancel');
+    // #89 — awaiting-parts state + proof photos. Tenant + ticket scoped; read-only respected.
+    Route::post('/maintenance/{ticket}/parts', [MaintenanceActionController::class, 'setParts'])->name('maintenance.parts');
+    Route::post('/maintenance/{ticket}/photos', [MaintenanceActionController::class, 'uploadPhoto'])->name('maintenance.photos.store');
+    Route::delete('/maintenance/{ticket}/photos/{media}', [MaintenanceActionController::class, 'deletePhoto'])->name('maintenance.photos.destroy');
     // Demo-readiness · Part A — operator room-type PHOTO management (secure upload; the operator-mutation
     // pattern POST→controller→PRG). {roomType}/{photo} are string ids resolved tenant-scoped → cross-org 404.
     Route::post('/room-types/{roomType}/photos', [RoomTypePhotoController::class, 'store'])->name('room-types.photos.store');

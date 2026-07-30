@@ -21,6 +21,7 @@ class MaintenanceSetting extends Model
 
     protected $fillable = [
         'organization_id',
+        'auto_assign_enabled',
         'sla_urgent_hours', 'sla_high_hours', 'sla_normal_hours', 'sla_low_hours',
         'assignee_plumbing_id', 'assignee_electrical_id', 'assignee_appliance_id', 'assignee_structural_id', 'assignee_other_id',
         'require_photo_on_resolve', 'block_room_from_sale', 'notify_front_desk',
@@ -33,6 +34,7 @@ class MaintenanceSetting extends Model
     protected function casts(): array
     {
         return [
+            'auto_assign_enabled' => 'boolean',
             'sla_urgent_hours' => 'integer',
             'sla_high_hours' => 'integer',
             'sla_normal_hours' => 'integer',

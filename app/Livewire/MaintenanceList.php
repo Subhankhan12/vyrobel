@@ -7,50 +7,34 @@ namespace App\Livewire;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\AuditEvent;
+use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
+use App\Models\Media;
 use App\Models\Membership;
+use App\Models\Property;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\MaintenanceService;
+use App\Support\Maintenance\MaintenanceSla;
+use App\Support\Maintenance\RevenueOnHold;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Operator Maintenance — the work-order KANBAN board (design pass · Maintenance UI). Styled from the
- * catalogued "Operator Maintenance" design onto the SAME operator design system as the other operator
- * screens (the operator layout, <x-operator.shell>, FormatsOperatorData — reused, never redefined).
- * Presentation + a thin read: the board only READS; both MUTATIONS it offers run through the real
- * {@see MaintenanceService} via POST routes ({@see MaintenanceActionController}),
- * NOT from here — so no schema/guarantee/availability path is touched by this component.
+ * Operator MAINTENANCE board (#89 exact-match) — the work-order list over the real {@see MaintenanceTicket}
+ * (the SAME model the Dashboard #84 reads for out-of-order + on-hold revenue; undisturbed). READ view; every
+ * mutation is a guarded POST → {@see MaintenanceActionController} → the certified
+ * {@see MaintenanceService}. Real KPIs (Open/Urgent/Awaiting-parts/Out-of-order/Resolved-7d), a
+ * real SLA bar ({@see MaintenanceSla}), a technicians panel with real load, a parts-on-order panel, and the
+ * out-of-order hero with real revenue-on-hold ({@see RevenueOnHold}).
  *
- * TENANT-scoped (MaintenanceTicket + Unit are BelongsToOrganization) — one org never sees another's
- * tickets, units, or staff.
- *
- * Honesty triage (rule locked in DECISIONS.md 2026-07-11):
- *   • REAL       — every ticket grouped by its real `status` (the 3 kanban lanes ARE the real enum
- *                  open/in_progress/resolved — no invented columns; cancelled tickets are terminal and
- *                  fall off the work board, never faked). Per card the real unit, category, priority,
- *                  and assignee (or "Unassigned"); resolved cards carry the REAL cost + resolved date.
- *                  The "Unit OOS" badge shows only when the ticket took the unit out of service AND the
- *                  unit is genuinely `condition_status = out_of_service`. "+ New ticket" (→ open()) and
- *                  "Assign" (→ assign()) are REAL and persist.
- *   • DERIVED    — the summary chips (Open / In progress / Resolved this month / Units out of service)
- *                  and the "Units out of service" rail, from the real rows only.
- *   • NO BACKEND — filters / export: disabled "Soon" (never faked).
- *   • PII        — the assignee/reporter STAFF name is shown (a staff user, not a guest); no encrypted
- *                  guest/owner contact is ever rendered.
- *
- * The view receives:
- *   viewer: array{name: string, initials: string}
- *   columns: list<array{key: string, label: string, tone: string, tickets: list<array<string, mixed>>}>
- *   summary: array{open: int, in_progress: int, resolved_month: int, out_of_service: int}
- *   oosUnits: list<array{code: string, name: string|null, ticket_id: string|null, ticket_title: string|null}>
- *   units: list<array{id: string, label: string}>          // own units, for the New-ticket picker
- *   staff: list<array{id: string, name: string}>           // org staff, for the Assign picker
- *   categories / priorities: list<array{value: string, label: string}>
+ * TENANT + property scoped (tickets hang off a unit → scoped through `unit.property_id ∈ currentReadIds`).
  */
 #[Layout('components.layouts.operator')]
 class MaintenanceList extends Component
@@ -58,166 +42,287 @@ class MaintenanceList extends Component
     use FormatsOperatorData;
     use ResolvesCurrentProperty;
 
-    /** The kanban lanes, in workflow order — exactly the real active-status enum. */
-    private const STATUSES = ['open', 'in_progress', 'resolved'];
-
-    /** Real `category` enum, for the New-ticket picker (no invented categories). */
     private const CATEGORIES = ['plumbing', 'electrical', 'appliance', 'structural', 'other'];
 
-    /** Real `priority` enum, for the New-ticket picker (no invented priorities). */
     private const PRIORITIES = ['low', 'normal', 'high', 'urgent'];
+
+    /** The board filter chips (each a real query over the real tickets). */
+    private const FILTERS = ['active', 'urgent', 'parts', 'ooo', 'done'];
 
     public function render(): View
     {
-        // Phase 6a · multi-property: scope to the current property (or every accessible property when
-        // "all"). Tickets carry no property_id — they hang off a unit — so scope through the unit.
+        $readIds = $this->currentReadIds;
+        $now = CarbonImmutable::now();
+        $today = $now->toDateString();
+        $setting = MaintenanceSetting::query()->first() ?? new MaintenanceSetting;
+
+        $filterParam = request()->query('filter');
+        $filter = is_string($filterParam) && in_array($filterParam, self::FILTERS, true) ? $filterParam : null;
+        $search = mb_substr(trim((string) request()->query('q', '')), 0, 80);
+
+        // The window the board shows: active tickets + those resolved in the last 7 days (older → the costs report).
         $tickets = MaintenanceTicket::query()
-            ->whereHas('unit', fn (Builder $q) => $q->whereIn('property_id', $this->currentReadIds))
+            ->whereHas('unit', fn (Builder $q) => $q->whereIn('property_id', $readIds))
             ->with(['unit', 'assignedTo'])
-            ->whereIn('status', self::STATUSES)
+            ->where(function (Builder $q) use ($now): void {
+                $q->whereIn('status', ['open', 'in_progress'])
+                    ->orWhere(fn (Builder $r) => $r->where('status', 'resolved')->where('resolved_at', '>=', $now->subDays(7)));
+            })
             ->orderByRaw("FIELD(priority, 'urgent', 'high', 'normal', 'low')")
             ->orderByDesc('opened_at')
             ->get();
 
-        /** @var array<string, list<array<string, mixed>>> $grouped */
-        $grouped = array_fill_keys(self::STATUSES, []);
-        $resolvedMonth = 0;
-        $monthStart = now()->startOfMonth();
+        $photos = $this->photosForTickets($tickets);
+        $allCards = $tickets->map(fn (MaintenanceTicket $t): array => $this->card($t, $setting, $photos, $now))->all();
 
-        foreach ($tickets as $ticket) {
-            $status = (string) $ticket->status;
-            if (! array_key_exists($status, $grouped)) {
-                continue;   // ignore any out-of-lane row rather than invent a column
-            }
+        // OOS units (real condition_status) + the real revenue on hold.
+        $oosUnits = Unit::query()->whereIn('property_id', $readIds)->where('condition_status', 'out_of_service')->orderBy('code')->get();
+        $onHold = RevenueOnHold::forUnits($oosUnits->pluck('id')->map(fn ($id): string => (string) $id)->all(), $today);
+        $currency = $this->currency($readIds);
 
-            $grouped[$status][] = $this->card($ticket);
+        $cards = array_values(array_filter($allCards, fn (array $c): bool => $this->matches($c, $filter, $search)));
 
-            if ($status === 'resolved' && $ticket->resolved_at !== null && $ticket->resolved_at->greaterThanOrEqualTo($monthStart)) {
-                $resolvedMonth++;
+        // The detail drawer target (?ticket=), from the UNFILTERED set, with its real activity timeline.
+        $detailId = is_string(request()->query('ticket')) ? (string) request()->query('ticket') : null;
+        $detail = null;
+        if ($detailId !== null) {
+            $found = collect($allCards)->firstWhere('id', $detailId);
+            if ($found !== null) {
+                $found['activity'] = $this->activity($detailId);
+                $detail = $found;
             }
         }
-
-        $columns = [];
-        foreach (self::STATUSES as $status) {
-            $meta = $this->maintenanceStatusMeta($status);
-            $columns[] = [
-                'key' => $status,
-                'label' => $meta['label'],
-                'tone' => $meta['tone'],
-                'tickets' => $grouped[$status],
-            ];
-        }
-
-        // Units genuinely out of service right now (the real condition_status, tenant-scoped) + the
-        // active OOS ticket that governs each (for the "View" link on the rail).
-        $oosModels = Unit::query()
-            ->whereIn('property_id', $this->currentReadIds)
-            ->where('condition_status', 'out_of_service')
-            ->orderBy('code')
-            ->get();
-
-        $activeOosTickets = MaintenanceTicket::query()
-            ->whereIn('unit_id', $oosModels->pluck('id'))
-            ->where('takes_out_of_service', true)
-            ->whereIn('status', ['open', 'in_progress'])
-            ->get()
-            ->keyBy('unit_id');
-
-        $oosUnits = $oosModels->map(function (Unit $unit) use ($activeOosTickets): array {
-            $ticket = $activeOosTickets->get($unit->id);
-
-            return [
-                'code' => (string) $unit->code,
-                'name' => $unit->name !== null ? (string) $unit->name : null,
-                'ticket_id' => $ticket !== null ? (string) $ticket->id : null,
-                'ticket_title' => $ticket !== null ? (string) $ticket->title : null,
-            ];
-        })->all();
 
         return view('livewire.maintenance-list', [
             'viewer' => $this->viewer(),
-            'columns' => $columns,
-            'summary' => [
-                'open' => count($grouped['open']),
-                'in_progress' => count($grouped['in_progress']),
-                'resolved_month' => $resolvedMonth,
-                'out_of_service' => $oosModels->count(),
+            'rows' => $cards,
+            'kpis' => $this->kpis($allCards, $oosUnits->count()),
+            'technicians' => $this->technicians($allCards),
+            'partsOnOrder' => array_values(array_filter($allCards, fn (array $c): bool => $c['awaiting_parts'])),
+            'oosHero' => [
+                'count' => $oosUnits->count(),
+                'units' => $oosUnits->map(fn (Unit $u): string => (string) $u->code)->implode(' · '),
+                'on_hold' => $onHold > 0 ? $this->money($onHold, $currency) : null,
             ],
-            'oosUnits' => $oosUnits,
-            'units' => $this->ownUnits(),
+            'filter' => $filter,
+            'query' => $search,
+            'detail' => $detail,
+            'units' => $this->ownUnits($readIds),
             'staff' => $this->orgStaff(),
             'categories' => array_map(fn (string $c): array => ['value' => $c, 'label' => $this->maintenanceCategoryLabel($c)], self::CATEGORIES),
             'priorities' => array_map(fn (string $p): array => ['value' => $p, 'label' => $this->maintenancePriorityMeta($p)['label']], self::PRIORITIES),
+            'canManage' => (bool) auth()->user()?->can('maintenance.manage'),
         ]);
     }
 
     /**
+     * @param  array<string, list<array{id: string, url: string}>>  $photos
      * @return array<string, mixed>
      */
-    private function card(MaintenanceTicket $ticket): array
+    private function card(MaintenanceTicket $ticket, MaintenanceSetting $setting, array $photos, CarbonImmutable $now): array
     {
         $assignee = $ticket->assignedTo;
         $priority = $this->maintenancePriorityMeta((string) $ticket->priority);
+        $status = (string) $ticket->status;
         $unit = $ticket->unit;
-
-        // "Unit OOS" only when this ticket took the unit out AND the unit is genuinely out of service now.
         $oos = $ticket->takes_out_of_service && $unit !== null && $unit->condition_status === 'out_of_service';
+        $sla = MaintenanceSla::evaluate($ticket, $setting, $now);
+        $currency = (string) ($ticket->currency ?? 'EUR');
 
         return [
             'id' => (string) $ticket->id,
             'title' => (string) $ticket->title,
+            'description' => (string) ($ticket->description ?? ''),
             'unit' => (string) ($unit->code ?? '—'),
             'category' => $this->maintenanceCategoryLabel((string) $ticket->category),
+            'priority' => (string) $ticket->priority,
             'priority_label' => $priority['label'],
             'priority_tone' => $priority['tone'],
+            'status' => $status,
+            'status_meta' => $this->maintenanceStatusMeta($status),
             'assignee' => $assignee instanceof User ? (string) $assignee->name : null,
+            'assignee_initials' => $assignee instanceof User ? $this->initials((string) $assignee->name) : null,
             'assignee_id' => $ticket->assigned_to !== null ? (string) $ticket->assigned_to : null,
             'oos' => $oos,
-            'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, (string) ($ticket->currency ?? 'EUR')) : null,
+            'is_urgent' => $ticket->priority === 'urgent',
+            'awaiting_parts' => (bool) $ticket->awaiting_parts && $ticket->isActive(),
+            'part_name' => $ticket->part_name !== null ? (string) $ticket->part_name : null,
+            'part_eta' => $ticket->part_eta?->format('j M'),
+            'sla' => [
+                'state' => $sla['state'],
+                'breached' => $sla['breached'],
+                'due_soon' => $sla['due_soon'],
+                'label' => $this->slaLabel($sla),
+            ],
+            'reported_ago' => CarbonImmutable::parse($ticket->opened_at)->diffForHumans(),
+            'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, $currency) : null,
+            'labor' => $ticket->labor_minor !== null ? $this->money((int) $ticket->labor_minor, $currency) : null,
+            'parts_cost' => $ticket->parts_minor !== null ? $this->money((int) $ticket->parts_minor, $currency) : null,
             'resolved' => $ticket->resolved_at?->format('j M'),
+            'photos' => $photos[(string) $ticket->id] ?? [],
+        ];
+    }
+
+    /** @param array{state: string, over_hours: int, remaining_hours: int} $sla */
+    private function slaLabel(array $sla): string
+    {
+        return match ($sla['state']) {
+            'breached' => 'SLA breached · '.$sla['over_hours'].'h over',
+            'due_soon' => 'Due in '.$sla['remaining_hours'].'h',
+            'on_track' => $sla['remaining_hours'].'h to target',
+            'no_target' => 'No SLA target set',
+            default => '',
+        };
+    }
+
+    private function matches(array $card, ?string $filter, string $search): bool
+    {
+        $active = in_array($card['status'], ['open', 'in_progress'], true);
+        $ok = match ($filter) {
+            'active' => $active,
+            'urgent' => $active && $card['is_urgent'],
+            'parts' => $card['awaiting_parts'],
+            'ooo' => $card['oos'],
+            'done' => $card['status'] === 'resolved',
+            default => true,
+        };
+        if (! $ok) {
+            return false;
+        }
+        if ($search !== '') {
+            $hay = mb_strtolower($card['title'].' '.$card['unit'].' '.$card['category'].' '.((string) $card['assignee']));
+            if (! str_contains($hay, mb_strtolower($search))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $cards
+     * @return array<string, int>
+     */
+    private function kpis(array $cards, int $oosCount): array
+    {
+        $active = array_filter($cards, fn (array $c): bool => in_array($c['status'], ['open', 'in_progress'], true));
+
+        return [
+            'open' => count($active),
+            'urgent' => count(array_filter($active, fn (array $c): bool => $c['is_urgent'])),
+            'parts' => count(array_filter($cards, fn (array $c): bool => $c['awaiting_parts'])),
+            'ooo' => $oosCount,
+            'done' => count(array_filter($cards, fn (array $c): bool => $c['status'] === 'resolved')),
         ];
     }
 
     /**
-     * The org's OWN units for the New-ticket picker (tenant-scoped; a foreign unit id is impossible here
-     * and is rejected again server-side by the service action).
+     * The technicians panel — the org members who currently hold OPEN tickets, with a real open-ticket load +
+     * a busy/available status (derived from the load). No fabricated roster: only members with real work show.
      *
-     * @return list<array{id: string, label: string}>
+     * @param  list<array<string, mixed>>  $cards
+     * @return list<array{name: string, initials: string, load: int, urgent: int, status: string}>
      */
-    private function ownUnits(): array
+    private function technicians(array $cards): array
     {
-        return Unit::query()
-            ->whereIn('property_id', $this->currentReadIds)
-            ->orderBy('code')
-            ->get()
-            ->map(fn (Unit $u): array => [
-                'id' => (string) $u->id,
-                'label' => $u->name !== null ? $u->code.' · '.$u->name : (string) $u->code,
-            ])->all();
+        $by = [];
+        foreach ($cards as $c) {
+            if ($c['assignee'] === null || ! in_array($c['status'], ['open', 'in_progress'], true)) {
+                continue;
+            }
+            $key = (string) $c['assignee'];
+            $by[$key] ??= ['name' => $key, 'initials' => $this->initials($key), 'load' => 0, 'urgent' => 0, 'status' => 'available'];
+            $by[$key]['load']++;
+            if ($c['is_urgent']) {
+                $by[$key]['urgent']++;
+            }
+        }
+
+        $out = array_values($by);
+        usort($out, fn (array $a, array $b): int => $b['load'] <=> $a['load']);
+        foreach ($out as $i => $t) {
+            $out[$i]['status'] = $t['load'] >= 3 ? 'busy' : 'available';
+        }
+
+        return $out;
     }
 
     /**
-     * The active staff of the current org, for the Assign picker (org membership, not tenant-scoped rows).
+     * The ticket's real activity timeline (#89) — from the append-only `audit_events` for THIS ticket, the same
+     * source the detail page uses. Chronological.
      *
-     * @return list<array{id: string, name: string}>
+     * @return list<array{label: string, when: string}>
      */
+    private function activity(string $ticketId): array
+    {
+        $events = AuditEvent::query()
+            ->where('subject_type', (new MaintenanceTicket)->getMorphClass())
+            ->where('subject_id', $ticketId)
+            ->where('action', 'like', 'maintenance_ticket.%')
+            ->orderBy('created_at')
+            ->get(['action', 'created_at']);
+
+        return $events->map(fn (AuditEvent $e): array => [
+            'label' => ucfirst(str_replace(['maintenance_ticket.', '_'], ['', ' '], (string) $e->action)),
+            'when' => $e->created_at !== null ? CarbonImmutable::parse($e->created_at)->diffForHumans() : '',
+        ])->all();
+    }
+
+    /**
+     * @param  Collection<int, MaintenanceTicket>|iterable<MaintenanceTicket>  $tickets
+     * @return array<string, list<array{id: string, url: string}>>
+     */
+    private function photosForTickets($tickets): array
+    {
+        $ids = collect($tickets)->pluck('id')->all();
+        if ($ids === []) {
+            return [];
+        }
+
+        $media = Media::query()
+            ->where('mediable_type', (new MaintenanceTicket)->getMorphClass())
+            ->whereIn('mediable_id', $ids)
+            ->where('collection', 'mt_photo')
+            ->orderBy('created_at')
+            ->get();
+
+        $map = [];
+        foreach ($media as $m) {
+            $map[(string) $m->getAttribute('mediable_id')][] = ['id' => (string) $m->getKey(), 'url' => (string) $m->url];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param  list<string>  $readIds
+     * @return list<array{id: string, label: string}>
+     */
+    private function ownUnits(array $readIds): array
+    {
+        return Unit::query()->whereIn('property_id', $readIds)->orderBy('code')->get()
+            ->map(fn (Unit $u): array => ['id' => (string) $u->id, 'label' => $u->name !== null ? $u->code.' · '.$u->name : (string) $u->code])->all();
+    }
+
+    /** @return list<array{id: string, name: string}> */
     private function orgStaff(): array
     {
         $orgId = app(TenantContext::class)->id();
         if ($orgId === null) {
             return [];
         }
+        $memberIds = Membership::query()->where('organization_id', $orgId)->where('status', 'active')->pluck('user_id');
 
-        $memberIds = Membership::query()
-            ->where('organization_id', $orgId)
-            ->where('status', 'active')
-            ->pluck('user_id');
+        return User::query()->whereIn('id', $memberIds)->orderBy('name')->get()
+            ->map(fn (User $u): array => ['id' => (string) $u->id, 'name' => (string) $u->name])->all();
+    }
 
-        return User::query()
-            ->whereIn('id', $memberIds)
-            ->orderBy('name')
-            ->get()
-            ->map(fn (User $u): array => ['id' => (string) $u->id, 'name' => (string) $u->name])
-            ->all();
+    /** @param  list<string>  $readIds */
+    private function currency(array $readIds): string
+    {
+        $id = $readIds[0] ?? null;
+        $property = $id !== null ? Property::query()->whereKey($id)->first() : null;
+
+        return (string) ($property->currency ?? 'EUR');
     }
 }
