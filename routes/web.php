@@ -677,6 +677,7 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
         ->middleware('can:guests.erase')->name('guests.bulk.anonymize');
     Route::get('/guests/{guest}', GuestProfile::class)->name('guests.show');
     Route::post('/guests/{guest}', [GuestActionController::class, 'updateProfile'])->name('guests.update');
+    Route::post('/guests/{guest}/message', [GuestActionController::class, 'startThread'])->name('guests.message');
     Route::post('/guests/{guest}/notes', [GuestActionController::class, 'addNote'])->name('guests.notes.store');
     Route::post('/guests/{guest}/tags', [GuestActionController::class, 'addTag'])->name('guests.tags.store');
     Route::delete('/guests/{guest}/tags', [GuestActionController::class, 'removeTag'])->name('guests.tags.destroy');

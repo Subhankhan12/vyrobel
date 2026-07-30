@@ -6,9 +6,40 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v31) · OPERATOR EMAIL TEMPLATES + EDITOR exact-match COMPLETE — a REAL
-> customization store that drives the #83 guest sends. This block SUPERSEDES every block below it. Fresh-session
-> entry point: this block → `docs/OPERATOR-EMAIL-TEMPLATES-AUDIT.md` → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v32) · OPERATOR GUESTS + GUEST PROFILE exact-match COMPLETE — full CRM,
+> GDPR bulk-delete, consent-gated marketing, prefs→ops. This block SUPERSEDES every block below it. Fresh-session
+> entry point: this block → `docs/OPERATOR-GUESTS-PROFILE-AUDIT.md` → `docs/DECISIONS.md`.**
+>
+> **Operator Guests list (`/app/guests`) + Guest Profile (`/app/guests/{guest}`) (Invariant #87)** matched to
+> their wireframes EXACTLY and the Wave-2 honestly-omitted promises turned REAL (reviews #76 exist; the mandate
+> authorised the prefs/consent/city stores). ⚠️ **#28: the operator sees + edits FULL guest contact (the manager)
+> — the name-only rule is OWNER-surfaces-only; the perimeter test keeps front desk / reservations / inbox
+> name-only.** Three founder decisions **Recommended**: consent gates a real marketing send; prefs flow to
+> front-desk + housekeeping; CSV export built (audited). **GATE 1 — the list (`0818e6d`):** migration
+> `guests.city`/`prefers_email`/`preferences` (all nulled by `anonymize()`); filters → **All · In-house ·
+> Upcoming · VIP** (real stay-state); table adds **Last stay** + **Lifetime(+balance due)**; search matches name +
+> city + **exact email** (`email_hash` blind index). **Bulk select** (Alpine, ULID-id-keyed — no PII in any wire
+> payload) → **Message** (real email + inbox thread; "marketing" mode SKIPS non-consented via `GuestMarketing`) ·
+> **Add tag** · **Export** (audited CSV, count-only, CSV-injection-safe `c035998`) · **Delete** = the GDPR erasure
+> (loops the certified `Guest::anonymize()` — PII erased, **reservations RETAINED anonymized**; `can:guests.erase`
+> + typed-ERASE server-confirm; HONEST copy). **Add guest** create. Every write respects read-only (#84).
+> **GATE 2 — the profile:** restructured to the wireframe (header Message[real thread-start]/Edit-modal/Current-
+> stay · stat strip · **stay history + real per-stay refund** · **Latest review** [#76, honest empty state, no
+> fake 5.0] · **dark Lifetime hero** [billed + open folio, #17] · **Contact** [email/phone/**city** +
+> prefers-email/consent] · **Preferences** [real store] · Edit modal). **The "shown to housekeeping & front desk"
+> promise (once verified-false) MADE TRUE:** the front desk + housekeeping surface the guest's VIP + preference
+> labels via the ONE shared `Guest::preferenceLabels()` (operational flags, not contact PII — name-only intact).
+> **Marketing consent genuinely gates** a marketing send (`GuestMarketing::canReceive`; transactional stays
+> ungated). 🔒 operator-scoped full contact (#28 owner-only); #17 aggregates reconcile; #20 CRUD + bulk-delete
+> controller-routed + audited; the delete **anonymizes-not-destroys** (mutation-proven); consent gates email;
+> read-only respected; #39 no fabrication. `OperatorGuestBulkTest` (8) + `OperatorGuestCrmFlowTest` (7);
+> `OperatorGuestsListTest` + `OperatorGuestProfileTest` updated; the name-only perimeter stays green. PHPStan L5
+> (0); Pint clean; `migrate:fresh --seed` clean; both pages + FD/HK flow browser-verified. **Invariants #1–87.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v31) · OPERATOR EMAIL TEMPLATES + EDITOR exact-match COMPLETE — a REAL customization store
+> that drives the #83 guest sends.**
 >
 > **Operator Guest-emails list (`/app/email-templates`) + a NEW single-template Editor (Invariant #86)** matched
 > to `Operator Email Templates.html` / `Operator Email Editor.html` EXACTLY — replacing the old static "Editing ·

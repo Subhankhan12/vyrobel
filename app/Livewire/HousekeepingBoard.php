@@ -7,12 +7,16 @@ namespace App\Livewire;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\Guest;
 use App\Models\HousekeepingTask;
+use App\Models\ReservationUnit;
 use App\Models\User;
 use App\Services\HousekeepingService;
+use App\Support\Reservations\ReservationStage;
 use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -38,7 +42,9 @@ use Livewire\Component;
  *                  assignee is DISPLAYED (real) but the "Assign" affordance is a flagged "Soon" — never
  *                  a faked assignment.
  *   • NO BACKEND — filters / export: disabled "Soon".
- *   • PII        — the board shows the staff housekeeper's name (not a guest); no guest data is exposed.
+ *   • PII        — the board shows the staff housekeeper's name (not a guest). #87 adds the incoming guest's
+ *                  VIP flag + stay preferences (operational flags, not contact PII — no name/email/phone),
+ *                  so the room is prepped right; the name-only perimeter is unaffected.
  *
  * The view receives:
  *   viewer: array{name: string, initials: string}
@@ -79,13 +85,18 @@ class HousekeepingBoard extends Component
             ->orderBy('date')
             ->get();
 
+        // #87 — the guest each task is prepping for (the reservation ARRIVING on the task's unit that day), so
+        // housekeeping sees the incoming guest's VIP flag + stay preferences. One batched read; name-only is
+        // irrelevant here (VIP/prefs are operational flags, not contact PII — nothing decrypts).
+        $arrivalGuests = $this->arrivalGuestsForTasks($tasks);
+
         foreach ($tasks as $task) {
             $status = (string) $task->status;
             if (! array_key_exists($status, $grouped)) {
                 continue;   // ignore any out-of-enum row rather than invent a column
             }
 
-            $grouped[$status][] = $this->card($task);
+            $grouped[$status][] = $this->card($task, $arrivalGuests);
             $summary[$status]++;
             $total++;
             if ($task->priority === 'high') {
@@ -116,12 +127,15 @@ class HousekeepingBoard extends Component
     }
 
     /**
+     * @param  array<string, Guest>  $arrivalGuests  keyed "unitId|YYYY-MM-DD" → the guest arriving that day
      * @return array<string, mixed>
      */
-    private function card(HousekeepingTask $task): array
+    private function card(HousekeepingTask $task, array $arrivalGuests = []): array
     {
         $assignee = $task->assignedTo;
         $priority = $this->priorityMeta((string) $task->priority);
+
+        $guest = $arrivalGuests[$this->arrivalKey((string) $task->unit_id, (string) $task->date)] ?? null;
 
         return [
             'id' => $task->id,
@@ -132,6 +146,50 @@ class HousekeepingBoard extends Component
             'date' => CarbonImmutable::parse($task->date)->format('j M'),
             'assignee' => $assignee instanceof User ? (string) $assignee->name : null,
             'next' => self::NEXT_ACTIONS[$task->status],
+            // #87 — the incoming guest's VIP flag + preferences, so the room is prepped right. Name-free.
+            'guest_vip' => $guest !== null && (bool) $guest->is_vip,
+            'guest_preferences' => $guest !== null ? $guest->preferenceLabels() : [],
         ];
+    }
+
+    /**
+     * Map each task's unit+date to the guest ARRIVING on that unit that day (the stay the clean prepares for).
+     * One batched query over the active reservation lines; a cancelled/no-show stay never sources a guest.
+     *
+     * @param  Collection<int, HousekeepingTask>|iterable<HousekeepingTask>  $tasks
+     * @return array<string, Guest>
+     */
+    private function arrivalGuestsForTasks($tasks): array
+    {
+        $unitIds = collect($tasks)->pluck('unit_id')->filter()->unique()->values()->all();
+        if ($unitIds === []) {
+            return [];
+        }
+
+        $lines = ReservationUnit::query()
+            ->whereIn('unit_id', $unitIds)
+            ->where('status', 'active')
+            ->with(['reservation.leadGuest'])
+            ->get();
+
+        $map = [];
+        foreach ($lines as $line) {
+            $reservation = $line->reservation;
+            $guest = $reservation?->leadGuest;
+            if ($reservation === null || $guest === null) {
+                continue;
+            }
+            if (in_array((string) $reservation->status, ReservationStage::CANCELLED_STATUSES, true)) {
+                continue;
+            }
+            $map[$this->arrivalKey((string) $line->unit_id, (string) $reservation->check_in)] = $guest;
+        }
+
+        return $map;
+    }
+
+    private function arrivalKey(string $unitId, string $date): string
+    {
+        return $unitId.'|'.CarbonImmutable::parse($date)->toDateString();
     }
 }

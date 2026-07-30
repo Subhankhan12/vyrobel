@@ -277,7 +277,7 @@ it('shows the same billed, balance and stay count as the guests list, from the s
 });
 
 // ── 8. THE DESIGN'S FABRICATIONS ARE ABSENT ──────────────────────────────────────────────────────
-it('renders none of the design’s invented vocabulary or its fabricated review panel', function () {
+it('renders the real vocabulary and honest states — no fabricated review or brand (#87)', function () {
     $s = seedScenario(1);
     $guest = profileGuest();
     $stay = profileStay($s, 0, $guest, 'checked_out', '2026-08-01', '2026-08-03');
@@ -293,15 +293,13 @@ it('renders none of the design’s invented vocabulary or its fabricated review 
         // "Completed" is NOT in the status enum; the OTA brand is not modelled on any table.
         ->assertDontSee('Completed')
         ->assertDontSee('Booking.com')
-        // There is no reviews table, model or migration anywhere — the whole panel is omitted.
-        ->assertDontSee('Latest review')
-        ->assertDontSee('All reviews')
+        // #87 — the review panel is now REAL (reviews module #76) with an HONEST empty state (this guest has
+        // none), never a fabricated 5.0.
+        ->assertSee('Latest review')
+        ->assertSee('No reviews yet')
+        ->assertDontSee('5.0')
+        // #87 — the preferences flow is now REAL; the hint is truthful (front desk + housekeeping do read it).
+        ->assertSee('Shown to housekeeping')
         // Omitted by precedent: no billing backend reads subscriptions.status.
-        ->assertDontSee('Workspace paused')
-        // No city/residence column exists — nationality is not a residence.
-        ->assertDontSee('Dublin')
-        // No preferred_channel column, and no routing would honour one.
-        ->assertDontSee('Prefers email')
-        // Verified false: neither surface reads tags or is_vip.
-        ->assertDontSee('Shown to housekeeping');
+        ->assertDontSee('Workspace paused');
 });

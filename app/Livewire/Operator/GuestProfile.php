@@ -9,7 +9,9 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Guest;
 use App\Models\MessageThread;
 use App\Models\Note;
+use App\Models\Payment;
 use App\Models\Reservation;
+use App\Models\Review;
 use App\Models\Tag;
 use App\Services\GuestService;
 use App\Support\Guest\GuestHistory;
@@ -140,16 +142,79 @@ class GuestProfile extends Component
 
         $history = GuestHistory::for($reservations);
         $spend = GuestSpend::for($guest);
+        $refunds = $this->refundsByReservation($reservations->map(fn (Reservation $r): string => (string) $r->getKey())->all());
 
         return view('livewire.operator.guest-profile', [
             'viewer' => $this->viewer(),
             'guest' => $this->guestCard($guest, $history, $today, $reservations),
             'spend' => $this->spendCard($spend, $history),
-            'stays' => $reservations->map(fn (Reservation $reservation): array => $this->stayRow($reservation, $today))->all(),
+            'stays' => $reservations->map(fn (Reservation $reservation): array => $this->stayRow($reservation, $today, $refunds))->all(),
             'history' => $history,
             'notes' => $this->notes($guest),
+            'review' => $this->latestReview($guest),
+            'prefCatalog' => Guest::PREFERENCE_CATALOG,
             'threadId' => $this->latestThreadId($guest),
         ]);
+    }
+
+    /**
+     * The guest's latest review (#76) — real, tied to a real completed stay. Any review (published/pending),
+     * because the OPERATOR sees their own guest's feedback regardless of public moderation state. Null hides
+     * the panel (the honest "no reviews yet" is the design's empty state, never a fabricated 5.0).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function latestReview(Guest $guest): ?array
+    {
+        $review = Review::query()
+            ->where('guest_id', $guest->getKey())
+            ->with(['unit', 'roomType'])
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($review === null) {
+            return null;
+        }
+
+        $rating = max(1, min(5, (int) $review->rating));
+        $unit = $review->unit;
+        $roomType = $review->roomType;
+        $unitName = $unit !== null ? (string) $unit->name : ($roomType !== null ? (string) $roomType->name : null);
+
+        return [
+            'rating' => $rating,
+            'stars' => str_repeat('★', $rating).str_repeat('☆', 5 - $rating),
+            'body' => (string) ($review->body ?? ''),
+            'unit' => $unitName,
+            'when' => $review->created_at !== null ? CarbonImmutable::parse($review->created_at)->format('F Y') : null,
+            'status' => (string) $review->status,
+            'response' => $review->operator_response !== null ? (string) $review->operator_response : null,
+        ];
+    }
+
+    /**
+     * Total succeeded refunds per reservation (#87 — the stay-history "− refund" line). One query over the
+     * guest's stays; refunds are `payments.type='refund' AND status='succeeded'`, summed as a positive figure.
+     *
+     * @param  list<string>  $reservationIds
+     * @return array<string, int>
+     */
+    private function refundsByReservation(array $reservationIds): array
+    {
+        if ($reservationIds === []) {
+            return [];
+        }
+
+        return Payment::query()
+            ->whereIn('reservation_id', $reservationIds)
+            ->where('type', 'refund')
+            ->where('status', 'succeeded')
+            ->selectRaw('reservation_id, SUM(ABS(amount_minor)) as refunded')
+            ->groupBy('reservation_id')
+            ->pluck('refunded', 'reservation_id')
+            ->map(fn ($v): int => (int) $v)
+            ->all();
     }
 
     // ── The guest ────────────────────────────────────────────────────────────────────────────────
@@ -184,11 +249,18 @@ class GuestProfile extends Component
             // ⚠️ PII — decrypted for display AND for the edit form's current values.
             'email' => $this->contact($guest->email),
             'phone' => $this->contact($guest->phone),
+            // #87 — a real residence (the Contact card's city). Distinct from `nationality` (char2).
+            'city' => $this->contact($guest->city),
             // A nationality, not a residence (decision · see the docblock).
             'nationality' => $this->countryName($guest->nationality),
+            'nationality_code' => $guest->nationality !== null ? (string) $guest->nationality : '',
             'is_vip' => (bool) $guest->is_vip,
             'risk_flag' => (bool) $guest->risk_flag,
+            'prefers_email' => (bool) $guest->prefers_email,
             'marketing_consent' => (bool) $guest->marketing_consent,
+            // #87 — the ACTIVE stay-preference keys (a subset of Guest::PREFERENCE_CATALOG). Shown on the
+            // profile AND flowed to the front desk + housekeeping.
+            'preferences' => is_array($guest->preferences) ? array_values($guest->preferences) : [],
             'tags' => $guest->tags->map(fn (Tag $tag): array => [
                 'id' => (string) $tag->getKey(),
                 'name' => (string) $tag->name,
@@ -312,9 +384,10 @@ class GuestProfile extends Component
      * One stay row. The design linked only the FIRST row (rows 2-3 were `href: '#'`); every row here links,
      * because `route('app.reservations.show', $id)` is real for all of them.
      *
+     * @param  array<string, int>  $refunds  reservation id → total succeeded refund (minor)
      * @return array<string, mixed>
      */
-    private function stayRow(Reservation $reservation, CarbonImmutable $today): array
+    private function stayRow(Reservation $reservation, CarbonImmutable $today, array $refunds = []): array
     {
         $checkIn = CarbonImmutable::parse($reservation->check_in)->startOfDay();
         $checkOut = CarbonImmutable::parse($reservation->check_out)->startOfDay();
@@ -345,6 +418,11 @@ class GuestProfile extends Component
             // total_minor is kept in sync with the append-only ledger by FolioService::recompute(), so this
             // reconciles to the folio for free.
             'total' => $this->money((int) $reservation->total_minor, $currency),
+            // #87 — the real refund on this stay (succeeded refund payments), shown as a "− refund" line. Zero
+            // → null → no line, never a fabricated €0.00.
+            'refund' => ($refunds[(string) $reservation->getKey()] ?? 0) > 0
+                ? $this->money($refunds[(string) $reservation->getKey()], $currency)
+                : null,
         ];
     }
 

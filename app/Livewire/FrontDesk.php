@@ -161,6 +161,11 @@ class FrontDesk extends Component
                 'has_balance' => $balanceMinor > 0,
                 'can_check_in' => $status === 'confirmed',
                 'can_check_out' => $status === 'checked_in',
+                // #87 — the guest's VIP flag + stay preferences flow to the front desk so arrivals get the
+                // right care (the once-empty "flags the front desk" promise, made true). These are operational
+                // flags, NOT contact PII — the name-only perimeter (email/phone) is unaffected (#28).
+                'is_vip' => $guest !== null && (bool) $guest->is_vip,
+                'preferences' => $guest !== null ? $guest->preferenceLabels() : [],
             ];
         })->all();
     }

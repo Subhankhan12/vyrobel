@@ -44,6 +44,9 @@ use Illuminate\Support\Str;
  * @property Carbon|null $email_verified_at
  * @property string|null $email_hash
  * @property string|null $remember_token
+ * @property string|null $city
+ * @property bool $prefers_email
+ * @property array<int, string>|null $preferences
  */
 class Guest extends Model implements AuthenticatableContract, CanResetPasswordContract, MustVerifyEmailContract
 {
@@ -205,6 +208,25 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
     public function isAnonymized(): bool
     {
         return $this->anonymized_at !== null;
+    }
+
+    /**
+     * This guest's active stay preferences as human labels (#87), from {@see PREFERENCE_CATALOG} — a foreign
+     * key is dropped, so the labels can never drift from the catalog. The ONE definition, read by the profile,
+     * the front desk and housekeeping, so those surfaces cannot disagree.
+     *
+     * @return list<string>
+     */
+    public function preferenceLabels(): array
+    {
+        $labels = [];
+        foreach (is_array($this->preferences) ? $this->preferences : [] as $key) {
+            if (isset(self::PREFERENCE_CATALOG[$key])) {
+                $labels[] = self::PREFERENCE_CATALOG[$key];
+            }
+        }
+
+        return $labels;
     }
 
     /**

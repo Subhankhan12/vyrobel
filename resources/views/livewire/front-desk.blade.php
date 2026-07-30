@@ -62,7 +62,21 @@
                         @forelse ($rows as $row)
                             <div class="vy-fd-row">
                                 <div class="vy-fd-main">
-                                    <div class="vy-fd-guest">{{ $row['guest'] }}</div>
+                                    <div class="vy-fd-guest">
+                                        {{ $row['guest'] }}
+                                        {{-- #87 — VIP flags the front desk (real is_vip). An operational flag, not contact PII. --}}
+                                        @if ($row['is_vip'])
+                                            <span class="vy-tag tone-vip" style="margin-left: 6px;"><span class="vy-dot"></span>VIP</span>
+                                        @endif
+                                    </div>
+                                    @if ($row['preferences'] !== [])
+                                        {{-- #87 — the guest's stay preferences, shown to the front desk so arrivals get the right room. --}}
+                                        <div class="vy-fd-meta" style="margin-top: 4px;">
+                                            @foreach ($row['preferences'] as $pref)
+                                                <span class="vy-tag tone-tag"><span class="vy-dot"></span>{{ $pref }}</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                     <div class="vy-fd-meta">
                                         <span class="vy-tag tone-{{ $row['tone'] }}"><span class="vy-dot"></span>{{ $row['status_label'] }}</span>
                                         @if ($row['unassigned'])

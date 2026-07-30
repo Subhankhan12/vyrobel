@@ -6,8 +6,10 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Guest;
+use App\Models\MessageThread;
 use App\Models\Tag;
 use App\Services\GuestService;
+use App\Services\InboxService;
 use App\Support\Operator\OperatorWorkspace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -118,6 +120,40 @@ class GuestActionController extends Controller
         $guest = $guests->create($validated, $request->user());
 
         return redirect()->route('app.guests.show', $guest->id)->with('guest_notice', 'Guest added.');
+    }
+
+    /**
+     * The profile "Message" button (#87) — open the real guest↔operator channel. Reuses the guest's latest
+     * thread if one exists (a plain read → allowed even while paused); otherwise starts a manual thread via the
+     * certified {@see InboxService} (a write → respects read-only). Redirects to the inbox conversation.
+     */
+    public function startThread(Request $request, InboxService $inbox, string $guest): RedirectResponse
+    {
+        $model = Guest::query()->findOrFail($guest);
+
+        $existing = MessageThread::query()
+            ->where('guest_id', $model->getKey())
+            ->orderByDesc('last_message_at')->orderByDesc('id')->first();
+
+        if ($existing !== null) {
+            return redirect()->route('app.inbox.show', $existing->getKey());
+        }
+
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->back($model->id, 'guest_error', $this->pausedMessage());
+        }
+        if ($model->isAnonymized()) {
+            return $this->back($model->id, 'guest_error', 'That guest has been anonymized — no new conversation can be started.');
+        }
+
+        $thread = $inbox->startThread([
+            'channel' => 'manual',
+            'guest_id' => (string) $model->getKey(),
+            'subject' => 'Conversation',
+            'assigned_to' => $request->user()?->getKey(),
+        ]);
+
+        return redirect()->route('app.inbox.show', $thread->getKey());
     }
 
     /** Add an internal note — the first real writer of the shared polymorphic `notes` table. */

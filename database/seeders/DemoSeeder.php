@@ -313,7 +313,9 @@ class DemoSeeder extends Seeder
         // would demo them as permanently empty. Seeded here (demo data, like every guest on this row) so the
         // styled list shows the true feature. The guest PROFILE is where they become editable (Wave 2 ·
         // Sub-gate 5); until then this is the only writer.
-        $guest1 = Guest::create(['first_name' => 'Demo', 'last_name' => 'Traveller', 'email' => 'demo.traveller@vyrobel-demo.test', 'phone' => '+351910000001', 'nationality' => 'GB', 'is_vip' => true]);
+        // #87 — demo city + stay preferences + marketing consent so the guest profile / front desk / housekeeping
+        // demo the real CRM (flagged demo data, like every guest on this row).
+        $guest1 = Guest::create(['first_name' => 'Demo', 'last_name' => 'Traveller', 'email' => 'demo.traveller@vyrobel-demo.test', 'phone' => '+351910000001', 'city' => 'London, UK', 'nationality' => 'GB', 'is_vip' => true, 'prefers_email' => true, 'marketing_consent' => true, 'preferences' => ['sea_view', 'high_floor', 'late_checkout']]);
         $guest2 = Guest::create(['first_name' => 'Demo', 'last_name' => 'Walker', 'email' => 'demo.walker@vyrobel-demo.test', 'phone' => '+351910000002', 'nationality' => 'DE', 'risk_flag' => true]);
         $guest3 = Guest::create(['first_name' => 'Demo', 'last_name' => 'Booker', 'email' => 'demo.booker@vyrobel-demo.test', 'phone' => '+351910000003', 'nationality' => 'FR']);
 

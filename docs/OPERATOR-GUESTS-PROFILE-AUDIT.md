@@ -82,5 +82,40 @@ The two pages shipped in Wave 2 with a scrupulous REAL / DERIVED / **OMITTED** m
 **GATE 1 (list):** migration (city/prefers_email/preferences) → filters (In-house/Upcoming stay-state) → bulk-select + bar (Message/Delete[/Add-tag][/Export]) → bulk `GuestBulkActionController` (message + anonymize, gated + audited + read-only) → Add-guest create → table restructure (Last stay/Lifetime) → tests (bulk anonymize erases PII + retains anonymized reservations; message; add-guest; perimeter green) → browser → commit.
 **GATE 2 (profile):** the prefs store + `GuestService` prefs/city/prefers_email writes → the FrontDesk VIP/prefs flow → the marketing-consent gate → latest review (#76) → per-stay refund → restructure (dark LTV hero / contact / prefs / stat strip / edit modal / Message-start) → consolidate docs → tests (consent gates email; prefs flow to front desk; review; refund reconciles; edit audited) → browser → commit + push.
 
-## RESOLUTION
-_(appended at GATE close)_
+## RESOLUTION _(2026-07-30 · #87 · two gates)_
+
+Both pages matched to their wireframes and the honestly-omitted promises turned REAL. Founder decisions all
+taken as **Recommended**: consent gates a real marketing send; prefs flow to **front desk + housekeeping**;
+CSV export **built + audited**. Confirmed (not choices): bulk-delete = anonymize-not-destroy; JSON `preferences`
+store; `city`/`prefers_email` columns; Add-guest; name + exact-email(`email_hash`) search.
+
+**GATE 1 — the Guests list (`0818e6d`).** Migration `guests.city`/`prefers_email`/`preferences` (all nulled by
+`anonymize()`); `GuestService::create()` + a preferences normaliser. Filters → **All · In-house · Upcoming ·
+VIP** (real stay-state via `ReservationStage::scope`); table Guest(avatar/name/VIP/tags/email·phone) ·
+Nationality · Stays · **Last stay** · **Lifetime(+balance due)** · Status; search now matches name + city +
+exact email (blind index). **Bulk select** (Alpine, ULID ids — no PII in any wire payload) → **Message** (real
+`OperatorGuestMessageMail` + a manual inbox thread; a "marketing" mode SKIPS non-consented via `GuestMarketing`)
+· **Add tag** (reuses `attachTag`) · **Export** (audited CSV, `guest.exported` count-only, CSV-injection-safe) ·
+**Delete** = the GDPR erasure (loops the certified `Guest::anonymize()` — PII erased, reservations RETAINED
+anonymized; `can:guests.erase` + typed-ERASE server-confirm; HONEST dialog copy). **Add guest** create modal.
+Every guest write now respects read-only (#84). `OperatorGuestBulkTest` (8); `OperatorGuestsListTest` updated.
+
+**GATE 2 — the Guest Profile.** Restructured to the wireframe: header (Message[real thread-start] + Edit
+modal + Current stay) · stat strip (Stays/Nights/Avg + source split) · **stay history with a real per-stay
+refund line** (succeeded refund payments) · **Latest review** (reviews #76 — real, honest "No reviews yet"
+empty state, never a fabricated 5.0) · **dark Lifetime-value hero** (billed + open folio, reconciling #17) ·
+**Contact** (email/phone/**city** + prefers-email/consent) · **Preferences** (real structured store) · Tags ·
+Edit modal (name/email/phone/city + the 8 preference chips + VIP/prefers-email/marketing-consent) · GDPR erase.
+**The "shown to housekeeping & front desk" promise MADE TRUE:** `FrontDeskService`/FrontDesk arrival rows +
+the Housekeeping board (via the unit's arriving reservation) now surface the guest's VIP flag + preference
+labels (operational flags, NOT contact PII — the name-only perimeter is unaffected, #28). **Marketing consent
+genuinely gates** a marketing send (`GuestMarketing::canReceive` = consent + not-anonymized + has-email);
+transactional emails stay ungated. The ONE `Guest::preferenceLabels()` is read by the profile, the front desk
+and housekeeping (anti-drift). `OperatorGuestCrmFlowTest` (7); `OperatorGuestProfileTest` updated.
+
+**Guards held:** operator-scoped full contact (the manager, #28 name-only is owner-only — the perimeter test
+keeps front desk/reservations/inbox name-only, still green); #17 aggregates reconcile (shared helpers); #20
+every CRUD + the bulk delete controller-routed + audited; the delete **anonymizes-not-destroys** (financials
+retained, mutation-proven); consent genuinely gates marketing email; read-only respected; #39 no fabrication
+(no fake guest/aggregate/consent/review). CSV formula-injection neutralised (`c035998`). Suite green; PHPStan
+L5 (0); Pint clean; `migrate:fresh --seed` clean; both pages + the FD/HK flow browser-verified.

@@ -58,6 +58,18 @@
                                         <span class="vy-hk-date">{{ $task['date'] }}</span>
                                     </div>
                                     <div class="vy-hk-type">{{ $task['type'] }}</div>
+                                    {{-- #87 — the incoming guest's VIP flag + stay preferences, so the room is prepped right.
+                                         Operational flags, not contact PII (no name/email/phone). --}}
+                                    @if ($task['guest_vip'] || $task['guest_preferences'] !== [])
+                                        <div class="vy-hk-meta" style="margin: 4px 0;">
+                                            @if ($task['guest_vip'])
+                                                <span class="vy-tag tone-vip"><span class="vy-dot"></span>VIP arrival</span>
+                                            @endif
+                                            @foreach ($task['guest_preferences'] as $pref)
+                                                <span class="vy-tag tone-tag"><span class="vy-dot"></span>{{ $pref }}</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                     <div class="vy-hk-meta">
                                         <span class="vy-prio tone-{{ $task['priority_tone'] }}">{{ $task['priority_label'] }}</span>
                                         @if ($task['assignee'])
