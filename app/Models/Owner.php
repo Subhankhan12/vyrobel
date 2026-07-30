@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -83,6 +84,18 @@ class Owner extends Model
     public function units(): HasMany
     {
         return $this->hasMany(Unit::class);
+    }
+
+    /**
+     * The owner's operator-written note timeline (#93) — polymorphic {@see Note} entries. Named `noteEntries`,
+     * NOT `notes`, because `owners.notes` is a legacy single free-text column; a `notes()` relation would shadow
+     * that attribute. Authored + timestamped; operator-internal (never shown in the owner portal).
+     *
+     * @return MorphMany<Note, $this>
+     */
+    public function noteEntries(): MorphMany
+    {
+        return $this->morphMany(Note::class, 'notable');
     }
 
     /**

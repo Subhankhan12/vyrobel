@@ -10,15 +10,21 @@ use App\Models\ManagementAgreement;
 use App\Models\Owner;
 use App\Models\OwnerInvite;
 use App\Models\OwnerLedgerEntry;
+use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
+use App\Models\PayoutMethod;
 use App\Models\RateProposal;
 use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\OwnerInviteService;
+use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Owner\OwnerLedgerAttribution;
+use App\Support\Payouts\Iban;
 use App\Support\Payouts\RailLabel;
+use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -199,6 +205,46 @@ class OperatorOwnerDetail extends Component
         $payoutCurrency = (string) $record->payout_currency;
         $balance = $this->ledgerBalance($ledger);
 
+        // ── #93 additions ─────────────────────────────────────────────────────────────────────────
+        // Net-to-owner breakdown of the latest FINALIZED statement — the REAL stamped ledger, reconciling
+        // Σ(credits) − Σ(deductions) == net by construction (#17), at the real agreement commission.
+        $latestFinal = $statements->first(fn (OwnerStatement $s): bool => (string) $s->status !== 'draft');
+        $netToOwner = null;
+        if ($latestFinal !== null) {
+            $stmtLedger = OwnerLedgerEntry::query()->where('owner_id', $ownerId)->where('statement_id', $latestFinal->id)->get();
+            $breakdown = OwnerLedgerAttribution::breakdown($stmtLedger);
+            $netToOwner = $breakdown[0] ?? null;
+            if ($netToOwner !== null) {
+                $netToOwner['period'] = CarbonImmutable::parse($latestFinal->period_start)->format('M Y');
+            }
+        }
+
+        // Paid this year + occupancy this year (owner's own physical units).
+        $yearStart = CarbonImmutable::today()->startOfYear();
+        $paidYearMinor = 0;
+        $paidCount = 0;
+        foreach ($payouts as $p) {
+            if ((string) $p->status === 'paid' && $p->paid_at !== null && CarbonImmutable::parse($p->paid_at)->greaterThanOrEqualTo($yearStart)) {
+                $paidYearMinor += (int) $p->amount_minor;
+                $paidCount++;
+            }
+        }
+        $unitIds = $units->pluck('id')->map(fn (mixed $id): string => (string) $id)->all();
+        $occupancy = PerformanceMetrics::forOwnerUnits($unitIds, $yearStart, CarbonImmutable::today(), $payoutCurrency)->occupancyPct();
+
+        // Masked IBAN — CAP_PAYOUT only, never the full number, the operator never enters it (#28).
+        $canPayout = (bool) auth()->user()?->can('payouts.manage');
+        $method = PayoutMethod::query()->where('owner_id', $ownerId)->orderByDesc('is_default')->first();
+        $ibanMasked = ($canPayout && $method !== null && (string) $method->iban_last4 !== '') ? Iban::masked((string) $method->iban_last4) : null;
+
+        // Real payout-pause state + the operator note timeline.
+        $payoutPaused = (bool) OwnerPayoutPreference::query()->where('owner_id', $ownerId)->value('paused');
+        $noteEntries = $record->noteEntries()->with('author')->latest()->limit(20)->get()->map(fn ($n): array => [
+            'body' => (string) $n->body,
+            'author' => $n->author instanceof User ? (string) $n->author->name : 'Operator',
+            'when' => $n->created_at?->diffForHumans() ?? '',
+        ])->all();
+
         return view('livewire.operator.owner-detail', [
             'viewer' => $this->viewer(),
             'owner' => [
@@ -214,6 +260,16 @@ class OperatorOwnerDetail extends Component
                 'phone' => $this->nullableString($record->phone),
                 'notes' => $this->nullableString($record->notes),
             ],
+            'netToOwner' => $netToOwner,
+            'paidYear' => ['display' => MoneyFormatter::display($paidYearMinor, $payoutCurrency), 'count' => $paidCount],
+            'occupancy' => $occupancy,
+            'ibanMasked' => $ibanMasked,
+            'canPayout' => $canPayout,
+            'payoutPaused' => $payoutPaused,
+            'noteEntries' => $noteEntries,
+            'commissionPct' => $primary instanceof ManagementAgreement && $primary->commission_pct !== null ? rtrim(rtrim((string) $primary->commission_pct, '0'), '.') : null,
+            'canManage' => (bool) auth()->user()?->can('users.manage'),
+            'removeUnitNames' => $units->map(fn (Unit $u): string => (string) ($u->name ?? $u->code))->values()->all(),
             'portal' => $this->portalAccess($record, $invite),
             'kpis' => [
                 // Per currency, NEVER summed across currencies (invariant #17).

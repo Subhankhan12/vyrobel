@@ -12,20 +12,27 @@
        • NULLS    — "Not set" / "Open-ended" / "—" for genuinely empty columns; NEVER "0%".
        • PII      — email + phone ARE shown (the operator's own CRM record for a counterparty they
                     invited). tax_id + the raw address JSON are OMITTED entirely, never read.
-       • OMITTED  — the "Edit owner" modal (commission stepper = a write; its 3 toggles have NO columns),
-                    "Remove owner", IBAN / bank details, any estimated next-payout date, the "Workspace
-                    paused" billing banner, "Scheduled" statuses, the "Add note" write, the Email/Message
-                    buttons, and the design's demo figures. Nothing is greyed out — it is simply absent.
+       • BUILT (#93) — Edit owner (commission → a new effective-dated agreement, "applies from next
+                    statement"; portal access; PAUSE PAYOUTS via the real OwnerPayoutPreference the engine
+                    respects), Remove owner (a careful ARCHIVE-not-destroy, type-the-name confirm), the
+                    MASKED IBAN (····last4, CAP_PAYOUT only, never the full number, no fake "verified"), a
+                    real note timeline, the net-to-owner breakdown (reconciles at the real 18%), and
+                    paid-this-year + occupancy. All writes controller-routed + audited + read-only-gated.
+       • OMITTED  — any estimated next-payout DATE, "Scheduled" statuses, and the design's demo figures —
+                    no backing data (never fabricated). Nothing is greyed out; it is simply absent.
        • NOT LINKED — statement rows carry no link: the statement detail is on the OWNER-scoped route,
                     which an operator session cannot pass (it would 404).
 
      RAW-BLADE RULE: never write `word@directive` — Blade's \B guard would ship the raw source to the
      page as ordinary text. Every `@` below follows a space, a newline or a tag. --}}
-<div>
+<div x-data="{ editOpen: false, removeOpen: false }">
     <x-operator.shell active="owners" :title="$owner['name']"
         :subtitle="$owner['type_label'] . ' · Paid in ' . $owner['payout_currency']" :viewer="$viewer">
 
-        {{-- Toolbar: back to the real Owners list (the invite/re-invite WRITE lives there, not here) --}}
+        @if (session('owners_notice')) <div class="vy-flash is-ok vy-fade">{{ session('owners_notice') }}</div> @endif
+        @if (session('owners_error')) <div class="vy-flash is-err vy-fade">{{ session('owners_error') }}</div> @endif
+
+        {{-- Toolbar: back to the real Owners list + Edit / Remove owner --}}
         <div class="vy-rack-toolbar vy-fade">
             <div class="vy-left">
                 <a class="vy-convo-back" href="{{ route('app.owners') }}">
@@ -33,8 +40,12 @@
                     All owners
                 </a>
             </div>
-            <div class="vy-right">
+            <div class="vy-right" style="gap: 8px;">
+                @if ($payoutPaused)<span class="vy-tag" style="background: rgba(224,146,30,.16); color: #8A6410;">Payouts paused</span>@endif
                 <span class="vy-tag tone-{{ $owner['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $owner['status_meta']['label'] }}</span>
+                @if ($canManage)
+                    <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = true">Edit owner</button>
+                @endif
             </div>
         </div>
 
@@ -65,11 +76,38 @@
                 <div class="vy-dk-sub">Awaiting the payout rail</div>
             </div>
             <div class="vy-dash-kpi">
-                <div class="vy-dk-label">Units</div>
-                <div class="vy-dk-val">{{ $kpis['units'] }}</div>
-                <div class="vy-dk-sub">{{ \Illuminate\Support\Str::plural('unit', $kpis['units']) }} owned by this owner</div>
+                <div class="vy-dk-label">Paid this year</div>
+                <div class="vy-dk-val">{{ $paidYear['display'] }}</div>
+                <div class="vy-dk-sub">{{ $paidYear['count'] }} {{ \Illuminate\Support\Str::plural('payout', $paidYear['count']) }} · {{ $occupancy }}% avg occupancy</div>
             </div>
         </div>
+
+        {{-- Net to owner — the latest finalized statement's REAL breakdown; credits − deductions == net (#17, 18%) --}}
+        @if ($netToOwner)
+            <div class="vy-card vy-fade" style="margin-top: 16px;">
+                <div class="vy-detail-head" style="margin-bottom: 10px;">
+                    <h2 class="vy-card-title">Net to owner · {{ $netToOwner['period'] }}</h2>
+                    <span class="vy-eyebrow">reconciles to the cent</span>
+                </div>
+                <div class="vyo-net-grid">
+                    <div>
+                        <div class="vyo-net-label">Credited</div>
+                        @foreach ($netToOwner['credits'] as $c)
+                            <div class="vyo-net-row"><span>{{ $c['label'] }}</span><span class="vy-u-code">{{ $c['display'] }}</span></div>
+                        @endforeach
+                        <div class="vyo-net-row" style="font-weight: 700; border-top: 1px solid var(--vy-hairline);"><span>Credited</span><span class="vy-u-code">{{ $netToOwner['credited_display'] }}</span></div>
+                    </div>
+                    <div>
+                        <div class="vyo-net-label">Deductions <span class="vy-muted">· incl. {{ $commissionPct ?? '—' }}% commission</span></div>
+                        @foreach ($netToOwner['deductions'] as $d)
+                            <div class="vyo-net-row"><span>{{ $d['label'] }}</span><span class="vy-u-code">{{ $d['display'] }}</span></div>
+                        @endforeach
+                        <div class="vyo-net-row" style="font-weight: 700; border-top: 1px solid var(--vy-hairline);"><span>Deductions</span><span class="vy-u-code">{{ $netToOwner['deducted_display'] }}</span></div>
+                    </div>
+                </div>
+                <div class="vyo-net-total"><span>Net to owner</span><span class="vy-u-code">{{ $netToOwner['net_display'] }}</span></div>
+            </div>
+        @endif
 
         <div class="vy-detail-cols" style="margin-top: 22px;">
             {{-- ══════════════════════ LEFT: units · agreement · statements · payouts ═══════════ --}}
@@ -390,19 +428,113 @@
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2z"/></svg>
                             <span style="font-variant-numeric: tabular-nums;">{{ $owner['phone'] ?? 'Not set' }}</span>
                         </div>
+                        {{-- IBAN — MASKED (····4821), CAP_PAYOUT only, never the full number. The owner entered it
+                             themselves in the portal; the operator sees it masked + never enters it. NO fake "verified". --}}
+                        @if ($ibanMasked)
+                            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                                <span style="font-variant-numeric: tabular-nums;">IBAN {{ $ibanMasked }} <span class="vy-muted">· on file</span></span>
+                            </div>
+                        @elseif ($canPayout)
+                            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--vy-faint);">No payout method on file — the owner adds their IBAN in the portal.</div>
+                        @endif
                     </div>
                 </div>
 
-                {{-- Notes — the REAL `owners.notes` column, read-only. The design's "Add note" write has no
-                     backend path, so no composer is offered (omitted, not greyed out). --}}
-                @if ($owner['notes'])
-                    <div class="vy-card vy-fade">
-                        <span class="vy-eyebrow">Notes</span>
-                        <div style="margin-top: 10px; font-size: 13px; line-height: 1.55; white-space: pre-line;">{{ $owner['notes'] }}</div>
-                    </div>
-                @endif
+                {{-- Notes — a REAL operator-internal timeline (#93): authored + timestamped `noteEntries`, never
+                     shown in the owner portal. Add-note is a controller POST (audited). Plus the legacy single note. --}}
+                <div class="vy-card vy-fade">
+                    <span class="vy-eyebrow">Notes</span>
+                    @if ($owner['notes'])
+                        <div style="margin-top: 10px; font-size: 13px; line-height: 1.55; white-space: pre-line; padding-bottom: 8px; border-bottom: 1px solid var(--vy-hairline);">{{ $owner['notes'] }}</div>
+                    @endif
+                    @foreach ($noteEntries as $n)
+                        <div style="margin-top: 10px; font-size: 13px; line-height: 1.5;">
+                            {{ $n['body'] }}
+                            <div style="font-size: 11px; color: var(--vy-faint); margin-top: 2px;">{{ $n['author'] }} · {{ $n['when'] }}</div>
+                        </div>
+                    @endforeach
+                    @if ($canManage)
+                        <form method="POST" action="{{ route('app.owners.note', $ownerId) }}" style="margin-top: 12px;">
+                            @csrf
+                            <textarea name="body" rows="2" class="vy-input" placeholder="Add an internal note…" required></textarea>
+                            <div style="display: flex; justify-content: flex-end; margin-top: 8px;"><button type="submit" class="vy-btn vy-btn--ghost">Add note</button></div>
+                        </form>
+                    @endif
+                </div>
             </div>
         </div>
 
+        {{-- ══ EDIT OWNER modal — commission (→ new agreement) · pause payouts · portal access ══ --}}
+        @if ($canManage)
+        <div x-show="editOpen" x-cloak class="vyo-scrim" @click.self="editOpen = false">
+            <div class="vyo-modal">
+                <h2 class="vy-card-title">Edit owner</h2>
+                <p class="vy-muted" style="font-size: 12.5px; margin: 2px 0 14px;">{{ $owner['name'] }} · commission changes apply from the next statement.</p>
+                <form method="POST" action="{{ route('app.owners.update', $ownerId) }}">
+                    @csrf
+                    <label class="vy-field-label" for="comm">Management commission (%)</label>
+                    <input id="comm" type="number" name="commission_pct" class="vy-input" min="0" max="100" step="0.5" value="{{ $commissionPct }}">
+                    <label class="vyo-toggle" style="margin-top: 14px;">
+                        <input type="checkbox" name="portal_active" value="1" @checked($portal['tone'] === 'confirmed')>
+                        <span>Owner portal access <span class="vy-muted">· statements, payouts & occupancy</span></span>
+                    </label>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">Cancel</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                    </div>
+                </form>
+                {{-- Pause payouts — REAL (OwnerPayoutPreference.paused; the engine skips a paused owner). --}}
+                <form method="POST" action="{{ route('app.owners.pause-payouts', $ownerId) }}" style="border-top: 1px solid var(--vy-hairline); margin-top: 16px; padding-top: 14px;">
+                    @csrf
+                    <input type="hidden" name="paused" value="{{ $payoutPaused ? '0' : '1' }}">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div><strong style="font-size: 13.5px;">{{ $payoutPaused ? 'Payouts are paused' : 'Pause payouts' }}</strong><br><span class="vy-muted" style="font-size: 12px;">Amounts accumulate and carry forward until resumed.</span></div>
+                        <button type="submit" class="vy-btn vy-btn--ghost">{{ $payoutPaused ? 'Resume' : 'Pause' }}</button>
+                    </div>
+                </form>
+                <div style="border-top: 1px solid var(--vy-hairline); margin-top: 16px; padding-top: 14px; text-align: center;">
+                    <button type="button" class="vy-btn vy-btn--ghost" style="color: #B4400F;" @click="editOpen = false; removeOpen = true">Remove owner…</button>
+                </div>
+            </div>
+        </div>
+
+        {{-- ══ REMOVE OWNER modal — a careful archive-not-destroy (type the name to confirm) ══ --}}
+        <div x-show="removeOpen" x-cloak class="vyo-scrim" @click.self="removeOpen = false">
+            <div class="vyo-modal">
+                <h2 class="vy-card-title">Remove {{ $owner['name'] }}</h2>
+                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 4px 0 12px;">Removing {{ $owner['name'] }} means:</p>
+                <ul style="font-size: 12.5px; color: var(--vy-ink); line-height: 1.7; padding-left: 18px; margin: 0 0 14px;">
+                    <li>@if (count($removeUnitNames)){{ implode(', ', $removeUnitNames) }} become @else Their units become @endif unassigned — <strong>bookings stay intact</strong></li>
+                    <li>Portal access ends immediately</li>
+                    <li>All statements &amp; payout records <strong>stay archived for accounting</strong></li>
+                    <li>Any scheduled final payout is honored before the account closes</li>
+                </ul>
+                <form method="POST" action="{{ route('app.owners.remove', $ownerId) }}">
+                    @csrf
+                    <label class="vy-field-label" for="conf">Type the owner's name to confirm</label>
+                    <input id="conf" type="text" name="confirm_name" class="vy-input" placeholder="{{ $owner['name'] }}" autocomplete="off">
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="removeOpen = false">Keep owner</button>
+                        <button type="submit" class="vy-btn vy-btn--accent" style="background: #B4400F;">Remove owner permanently</button>
+                    </div>
+                </form>
+                <p style="font-size: 11px; color: var(--vy-faint); margin: 12px 0 0; text-align: center;">This can't be undone · re-adding them later starts a fresh owner record.</p>
+            </div>
+        </div>
+        @endif
+
     </x-operator.shell>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        .vyo-net-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .vyo-net-label { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 6px; }
+        .vyo-net-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 12.5px; }
+        .vyo-net-total { display: flex; justify-content: space-between; border-top: 2px solid var(--vy-ink); margin-top: 12px; padding-top: 10px; font-weight: 700; font-size: 14px; }
+        .vyo-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(43,35,32,.42); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .vyo-modal { width: 440px; max-width: 100%; background: var(--vy-surface, #FFFCF8); border-radius: 16px; padding: 22px; box-shadow: 0 24px 60px rgba(150,90,50,.24); max-height: 90vh; overflow-y: auto; }
+        .vyo-toggle { display: flex; gap: 9px; align-items: center; font-size: 13px; cursor: pointer; }
+        @media (max-width: 640px) { .vyo-net-grid { grid-template-columns: 1fr; } }
+    </style>
 </div>

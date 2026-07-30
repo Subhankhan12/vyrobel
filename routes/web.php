@@ -62,6 +62,7 @@ use App\Http\Controllers\Operator\MaintenanceSettingsController;
 use App\Http\Controllers\Operator\OperatorProfileController;
 use App\Http\Controllers\Operator\OperatorRateProposalController;
 use App\Http\Controllers\Operator\OperatorReviewsController;
+use App\Http\Controllers\Operator\OwnerManageController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\PropertyController;
 use App\Http\Controllers\Operator\PropertySwitchController;
@@ -483,6 +484,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // deliberately reads the whole owner relationship the operator manages, within their own org
     // (Owner is BelongsToOrganization → a cross-org id 404s).
     Route::get('/owners/{owner}', OperatorOwnerDetail::class)->name('owners.show');
+    // Owner management writes (#93) — edit / pause-payouts / add-note / remove (archive). Gated users.manage,
+    // read-only-respecting, audited; remove is a careful archive-not-destroy (financials/bookings retained).
+    Route::post('/owners/{owner}/update', [OwnerManageController::class, 'update'])->middleware('can:users.manage')->name('owners.update');
+    Route::post('/owners/{owner}/pause-payouts', [OwnerManageController::class, 'pausePayouts'])->middleware('can:users.manage')->name('owners.pause-payouts');
+    Route::post('/owners/{owner}/note', [OwnerManageController::class, 'addNote'])->middleware('can:users.manage')->name('owners.note');
+    Route::post('/owners/{owner}/remove', [OwnerManageController::class, 'remove'])->middleware('can:users.manage')->name('owners.remove');
     // Phase 2 · Sub-gate 6 — the operator sees owners' add-unit REQUESTS here (tenant-scoped; owner scope is
     // inactive off-portal). Read-only: creating the real unit stays the operator's own action. Gated units.view.
     Route::get('/unit-requests', OperatorUnitRequests::class)->middleware('can:units.view')->name('unit-requests');
