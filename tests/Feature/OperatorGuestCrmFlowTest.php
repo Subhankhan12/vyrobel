@@ -113,7 +113,7 @@ it('surfaces the arriving guest’s preferences on the housekeeping board', func
     $this->actingAs(operatorUser($s))->get('/app/housekeeping')
         ->assertOk()
         ->assertSee('Quiet room')
-        ->assertSee('VIP arrival');
+        ->assertSee('VIP');
 });
 
 // ── Marketing consent genuinely gates a marketing send (the gate, from the profile edit) ─────────

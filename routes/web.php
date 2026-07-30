@@ -739,6 +739,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // Batch C · GATE 1 — assign a REAL housekeeper (Housekeeping dept via StaffRoster) to a task. POST →
     // HousekeepingService::assign → PRG; `housekeeping.manage`-gated; a non-housekeeper/cross-org id refused.
     Route::post('/housekeeping/{task}/assign', [HousekeepingActionController::class, 'assign'])->middleware('can:housekeeping.manage')->name('housekeeping.assign');
+    // #88 — Assign-all (auto-balance across the real housekeepers) + task PROOF PHOTOS (the media-upload
+    // security pattern). All `housekeeping.manage`-gated; tenant + property scoped; read-only respected.
+    Route::post('/housekeeping/assign-all', [HousekeepingActionController::class, 'assignAll'])->middleware('can:housekeeping.manage')->name('housekeeping.assign-all');
+    Route::post('/housekeeping/{task}/photos', [HousekeepingActionController::class, 'uploadPhoto'])->middleware('can:housekeeping.manage')->name('housekeeping.photos.store');
+    Route::delete('/housekeeping/{task}/photos/{media}', [HousekeepingActionController::class, 'deletePhoto'])->middleware('can:housekeeping.manage')->name('housekeeping.photos.destroy');
     // Phase 7d — TEAM SCHEDULE. VIEW is broad (any staff sees the team roster, `schedule.view`); ASSIGN is a
     // manager-level act (`schedule.manage`, NOT Front Desk). The write is a real POST (NOT a Livewire action)
     // so the /app property middleware runs and the shift lands on the SELECTED property (PropertyContext).

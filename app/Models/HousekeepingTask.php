@@ -29,6 +29,7 @@ class HousekeepingTask extends Model
         'assigned_to',
         'checklist',
         'inspected_by',
+        'started_at',
         'completed_at',
     ];
 
@@ -40,6 +41,7 @@ class HousekeepingTask extends Model
         return [
             'date' => 'date',
             'checklist' => 'array',
+            'started_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
     }

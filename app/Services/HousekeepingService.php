@@ -64,6 +64,10 @@ class HousekeepingService
         DB::transaction(function () use ($task, $status, $by): void {
             $updates = ['status' => $status];
 
+            // #88 — the real START of the clock, so the board's "Elapsed {m}/{exp}m" is genuine (set once).
+            if ($status === 'in_progress' && $task->started_at === null) {
+                $updates['started_at'] = now();
+            }
             if ($status === 'clean' || $status === 'inspected') {
                 $updates['completed_at'] = now();
             }
@@ -109,5 +113,40 @@ class HousekeepingService
         $this->audit->record('housekeeping.task_assigned', $task, ['assigned_to' => $fromUserId], ['assigned_to' => (string) $user->getKey()]);
 
         return $task->refresh();
+    }
+
+    /**
+     * Auto-balance a batch of unassigned tasks across the real housekeepers (#88 — the "Assign all" button):
+     * greedy LEAST-LOAD assignment, so each task goes to whoever currently carries the fewest open jobs (ties
+     * broken by input order). The caller passes the tasks already ordered (waiting-guest rooms first) + the
+     * real housekeepers + their current open-task load; each assignment goes through the certified
+     * {@see assign()} (so every one is validated-by-the-caller, audited, and event-recorded). Returns the count.
+     *
+     * @param  iterable<HousekeepingTask>  $tasks  unassigned tasks, in priority order
+     * @param  list<User>  $housekeepers  the real, validated housekeepers to balance across
+     * @param  array<string, int>  $load  userId → current open-task count (mutated in-memory as we assign)
+     */
+    public function assignAll(iterable $tasks, array $housekeepers, array $load, ?User $by = null): int
+    {
+        if ($housekeepers === []) {
+            return 0;
+        }
+
+        $assigned = 0;
+        foreach ($tasks as $task) {
+            // The least-loaded housekeeper right now (in-memory load, updated as we go so the batch balances).
+            $target = $housekeepers[0];
+            foreach ($housekeepers as $candidate) {
+                if (($load[(string) $candidate->getKey()] ?? 0) < ($load[(string) $target->getKey()] ?? 0)) {
+                    $target = $candidate;
+                }
+            }
+
+            $this->assign($task, $target, $by);
+            $load[(string) $target->getKey()] = ($load[(string) $target->getKey()] ?? 0) + 1;
+            $assigned++;
+        }
+
+        return $assigned;
     }
 }
