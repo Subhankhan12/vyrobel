@@ -16,6 +16,7 @@ use App\Services\UnitAvailabilityService;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
+use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,6 +58,13 @@ class ReservationCreateController extends Controller
         FolioService $folios,
         UnitAvailabilityService $availability,
     ): RedirectResponse {
+        // READ-ONLY MODE (Operator Dashboard/Calendar exact-match): when the workspace is paused, new bookings
+        // are OFF (the wireframe's rule). Enforced at the SINGLE certified write path, so both the calendar
+        // quick-panel AND the full form respect it — the UI also hides the affordance, this is the real guard.
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->back($request, 'Your workspace is paused (read-only) — new bookings are off until you resume. Resume from Billing.');
+        }
+
         $checkIn = $this->dateString($request->input('check_in'));
         $checkOut = $this->dateString($request->input('check_out'));
 

@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\ReservationUnit;
 use App\Models\RoomType;
+use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
+use App\Services\UnitAvailabilityService;
+use App\Support\Money\MoneyFormatter;
+use App\Support\Operator\OperatorWorkspace;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -69,12 +74,18 @@ class ReservationRack extends Component
 
         $property = $this->currentProperty();
 
-        /** @var Collection<int, RoomType> $roomTypes */
-        $roomTypes = $property !== null
+        /** @var Collection<int, RoomType> $allRoomTypes */
+        $allRoomTypes = $property !== null
             ? RoomType::query()->where('property_id', $property->id)->orderBy('name')->get()
             : new Collection;
 
-        $start = $this->resolveStart($roomTypes);
+        // Room-type FILTER (real GET param) — the toolbar's "Filters" is now a real room-type narrow.
+        $filterRt = trim((string) request()->query('rt', ''));
+        $roomTypes = $filterRt !== ''
+            ? $allRoomTypes->filter(fn (RoomType $rt): bool => (string) $rt->id === $filterRt)->values()
+            : $allRoomTypes;
+
+        $start = $this->resolveStart($roomTypes->isEmpty() ? $allRoomTypes : $roomTypes);
         $end = $start->addDays(max(1, $this->days));
 
         $dates = $this->buildDates($start, $end);
@@ -106,7 +117,74 @@ class ReservationRack extends Component
             ],
             'dates' => $dates,
             'rows' => $rows,
+            // Operator Calendar exact-match: the room-type filter options, the read-only flag, and the inline
+            // new-reservation payload (real availability for the entered dates).
+            'roomTypeOptions' => $allRoomTypes->map(fn (RoomType $rt): array => ['id' => (string) $rt->id, 'name' => (string) $rt->name])->all(),
+            'filterRt' => $filterRt,
+            'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
+            'newRes' => $this->newReservation($property?->id, $start),
         ]);
+    }
+
+    /**
+     * The inline NEW-RESERVATION panel payload — a two-phase, RMB-safe flow (invariant #20): the operator
+     * enters guest + dates (a GET "Check rack"); when the dates are valid we compute the REAL bookable units
+     * via the certified {@see UnitAvailabilityService} (the SAME read the full form + the write path use), and
+     * each unit's Confirm is a POST to the certified {@see ReservationCreateController}
+     * → {@see AssignmentService::createBooking} (row-lock non-overlap). Nothing here writes.
+     *
+     * @return array<string, mixed>
+     */
+    private function newReservation(?string $propertyId, CarbonImmutable $windowStart): array
+    {
+        $q = request();
+        $open = $q->query('new') === '1';
+
+        $form = [
+            'guest_first' => trim((string) $q->query('gf', '')),
+            'guest_last' => trim((string) $q->query('gl', '')),
+            'adults' => max(1, min(12, (int) $q->query('adults', '2'))),
+            'check_in' => $this->validDate($q->query('ci')) ?? $windowStart->toDateString(),
+            'check_out' => $this->validDate($q->query('co')) ?? $windowStart->addDay()->toDateString(),
+            'source' => in_array($q->query('source'), ['direct', 'walk_in', 'corporate', 'agent'], true) ? (string) $q->query('source') : 'direct',
+        ];
+
+        $nights = 0;
+        $options = [];
+        if ($open && $propertyId !== null && $form['check_out'] > $form['check_in']) {
+            $nights = (int) CarbonImmutable::parse($form['check_in'])->diffInDays(CarbonImmutable::parse($form['check_out']));
+
+            foreach (app(UnitAvailabilityService::class)->availableRoomTypes($propertyId, $form['check_in'], $form['check_out']) as $rt) {
+                if ($rt['priced'] !== true || $rt['units'] === []) {
+                    continue;   // only offer genuinely bookable + priced room types
+                }
+                $options[] = [
+                    'room_type_id' => (string) $rt['room_type_id'],
+                    'room_type_name' => (string) $rt['room_type_name'],
+                    'rate' => MoneyFormatter::display((int) $rt['price_minor'], (string) $rt['currency']),
+                    'units' => array_map(static fn (array $u): array => [
+                        'id' => (string) $u['id'],
+                        'label' => (string) $u['code'],
+                    ], $rt['units']),
+                ];
+            }
+        }
+
+        return [
+            'open' => $open,
+            'form' => $form,
+            'nights' => $nights,
+            'options' => $options,
+            'checked' => $open && $form['check_out'] > $form['check_in'],
+            'sources' => ['direct' => 'Direct', 'walk_in' => 'Walk-in', 'corporate' => 'Corporate', 'agent' => 'Agent'],
+        ];
+    }
+
+    private function validDate(mixed $value): ?string
+    {
+        return is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1
+            ? CarbonImmutable::parse($value)->toDateString()
+            : null;
     }
 
     /**

@@ -6,9 +6,35 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v28) · 5 TRANSACTIONAL EMAILS exact-match COMPLETE. This block
-> SUPERSEDES every block below it. Fresh-session entry point: this block →
-> `docs/TRANSACTIONAL-EMAILS-AUDIT.md` → `docs/DECISIONS.md`.**
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-30 (v29) · OPERATOR DASHBOARD + CALENDAR exact-match + the cross-cutting
+> READ-ONLY mode COMPLETE. This block SUPERSEDES every block below it. Fresh-session entry point: this block →
+> `docs/OPERATOR-DASHBOARD-CALENDAR-AUDIT.md` → `docs/DECISIONS.md`.**
+>
+> **Operator Dashboard (`/app/dashboard`) + Calendar (`/app/calendar`) (Invariant #84)** matched to their
+> wireframes on REAL tenant-scoped data (the operator realm + shell already existed — REUSE/EXTEND).
+> **GATE 1 (`9c6e0c9`) — read-only + Dashboard:** the cross-cutting **read-only "Workspace paused" mode** is
+> a REAL, additive, ORTHOGONAL pause — a nullable `organizations.paused_until` + a shared
+> `App\Support\Operator\OperatorWorkspace` gate, read once + consumed by the shell banner (shell-wide) AND
+> every operator write; honest (unset in demo → no banner) + orthogonal to the subscription paywall
+> (`EnsureSubscriptionActive` untouched). The Dashboard matched the design + wired the missing REAL sections:
+> Open work orders (+urgent, `MaintenanceTicket`), Today's tasks (real derived), Occupancy · next 7 days
+> (real per-night — the once-"Not yet available" stub), ADR (`PerformanceMetrics`), Maintenance (real
+> out-of-order + on-hold from `RateCalendar`), Channels (HONEST — "Not connected", never a fake "Synced").
+> **GATE 2 — Calendar:** the real rack (certified availability + reservations) gained a real room-type filter
+> and — the centerpiece — a **REAL inline NEW RESERVATION**: two-phase RMB-safe (#20), guest+stay → the
+> certified `UnitAvailabilityService`'s real bookable units → Confirm POSTs to `ReservationCreateController`
+> → `AssignmentService::createBooking` (row-lock **non-overlap**) → a real reservation + guest + folio + the
+> real `BookingConfirmationMail`; read-only respected (affordance hidden + the certified write guarded). Added
+> the `app.calendar` route (`/rack` alias kept). 🔒 operator/tenant-scoped; the certified `AssignmentService`
+> reused (non-overlap mutation-proven); the read-only gate enforced at the single write path; #39 no
+> fabrication (no fake channel-sync/occupancy/ADR/on-hold/reservation). `OperatorDashboardViewTest` 3→5,
+> `OperatorRackViewTest` 4→6; both browser-verified (a real reservation R-YWME7DTF created via the calendar
+> Confirm; the read-only banner on pause). Suite **1294/9709** green; PHPStan L5 (0); Pint clean;
+> `migrate:fresh --seed` clean. **Invariants #1–84.**
+>
+> ---
+>
+> ⭐⭐⭐⭐ **2026-07-30 (v28) · 5 TRANSACTIONAL EMAILS exact-match COMPLETE.**
 >
 > **The 5 guest/account transactional emails (Invariant #83)** — pre-arrival · payment-reminder · refund ·
 > review-request · verify — matched to their decoded wireframes as REAL Mailables on real triggers,

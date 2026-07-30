@@ -1,10 +1,33 @@
 <?php
 
 use App\Models\Membership;
+use App\Models\Reservation;
 use App\Models\User;
+use App\Services\RateAndRestrictionService;
+use App\Support\Money\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
+
+/** A seeded scenario with a real nightly rate over the window, so room types are genuinely bookable. */
+function rackRated(int $units = 1, int $nightlyMinor = 12000): array
+{
+    $s = seedScenario($units);
+    app(RateAndRestrictionService::class)->setRate($s['ratePlan'], '2026-09-01', '2026-09-10', Money::of($nightlyMinor, 'EUR'));
+
+    return $s;
+}
+
+/** A valid booking POST payload (new guest, no payment). */
+function rackBooking(array $s): array
+{
+    return [
+        'check_in' => '2026-09-02', 'check_out' => '2026-09-05',
+        'room_type_id' => $s['roomType']->id, 'unit_id' => $s['units'][0]->id,
+        'guest_first_name' => 'Grace', 'guest_last_name' => 'Hopper',
+        'adults' => '2', 'children' => '0', 'source' => 'direct',
+    ];
+}
 
 // Design pass · Operator Screen 1 (Calendar → ReservationRack, /app/rack). Locks its PRESENTATION
 // guarantees: real reservations render as booking bars on real availability; TENANT isolation holds
@@ -91,4 +114,43 @@ it('isolates tenants — another org\'s reservations are not visible on the rack
     // B (own org context) never sees A's guest.
     $this->actingAs($userB)->get('/app/rack?start=2026-09-01')
         ->assertOk()->assertDontSee('Aurelio Castellanos');
+});
+
+// ══ Operator Calendar exact-match · GATE 2 (rack new-reservation + read-only) ═══════════════════════
+
+// ── The inline New-reservation panel shows REAL available units → a certified Confirm POST ─────────
+it('renders the inline new-reservation panel with real availability and a certified confirm form', function () {
+    $s = rackRated(1, 12000);                       // a real €120 nightly rate over 2026-09-01..10
+    $operator = operatorUser($s, ['name' => 'Marco Reyes'], 'Front Desk');   // holds reservations.create
+
+    $this->actingAs($operator)
+        ->get('/app/calendar?new=1&ci=2026-09-02&co=2026-09-05&gf=Marco&gl=Reyes&adults=2&source=direct')
+        ->assertOk()
+        ->assertSee('New reservation')
+        ->assertSee('Check rack')
+        ->assertSee('€360.00')                          // the REAL stay total (€120 x 3 nights)
+        ->assertSee('Confirm')                          // a real per-unit Confirm button
+        ->assertSee(route('app.reservations.store'), false)   // posts to the CERTIFIED write path
+        ->assertSee('Open the full form');
+});
+
+// ── Read-only: the calendar hides New reservation AND the certified write is refused when paused ──
+it('respects read-only — hides new-reservation and refuses the write when the workspace is paused', function () {
+    $s = rackRated(1, 12000);
+    $operator = operatorUser($s, ['name' => 'Marco Reyes'], 'Front Desk');
+
+    // Pause the workspace (a real future window).
+    $s['org']->update(['paused_until' => now()->addDays(5)]);
+
+    // The calendar shows the paused banner and NO "New reservation" affordance.
+    $this->actingAs($operator)->get('/app/calendar')
+        ->assertOk()
+        ->assertSee('Workspace paused')
+        ->assertDontSee('>New reservation<', false);
+
+    // The certified write is refused at the single write path — nothing is created.
+    $before = Reservation::query()->count();
+    $this->actingAs($operator)->post('/app/reservations/create', rackBooking($s))
+        ->assertRedirect();
+    expect(Reservation::query()->count())->toBe($before);   // no booking while paused
 });

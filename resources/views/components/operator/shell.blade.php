@@ -38,7 +38,7 @@
             ['search', 'Search', 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35', auth()->user()?->can('reservations.view') ? route('app.search') : null],
         ]],
         ['FRONT DESK', [
-            ['calendar', 'Calendar', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', route('app.rack')],
+            ['calendar', 'Calendar', 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', route('app.calendar')],
             ['front-desk', 'Front desk', 'M4 20v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', route('app.front-desk')],
             ['reservations', 'Reservations', 'M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h4', route('app.reservations')],
             ['guest-requests', 'Guest requests', 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM9 10h6M9 13h4', auth()->user()?->can('reservations.view') ? route('app.guest-requests') : null],

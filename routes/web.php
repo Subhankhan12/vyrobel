@@ -495,6 +495,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::post('/payouts/pay', [PayoutRunActionController::class, 'pay'])
         ->middleware('can:payouts.manage')->name('payouts.pay');
     Route::get('/rack', ReservationRack::class)->name('rack');
+    // Operator Calendar exact-match — the canonical "Calendar" URL (the nav points here); same certified
+    // rack component. `/rack` is kept as an alias for existing deep-links (front desk / maintenance / groups).
+    Route::get('/calendar', ReservationRack::class)->name('calendar');
     Route::get('/units', UnitsList::class)->name('units');
 
     // Rates & availability (Wave 4) — the READ grid + the guarded rate/restriction write, which is the

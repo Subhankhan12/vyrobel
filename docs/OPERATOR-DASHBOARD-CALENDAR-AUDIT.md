@@ -101,5 +101,37 @@ correct on the operator realm (they're the manager) but the existing name-only c
 - **(honest, not choices)** Channels = real status or "Not connected" (never fake Synced); maintenance
   on-hold €/night = real-from-rate-plans or honest-omit; OTA cells = real `source` (none if no channel).
 
-## RESOLUTION
-_(appended at GATE close)_
+## RESOLUTION (GATES closed 2026-07-30 — invariant #84)
+
+Both founder decisions taken **Recommended** (real additive `paused_until` + shared gate · inline quick
+new-reservation via the certified controller). The operator realm + shell already existed — REUSE/EXTEND.
+
+**GATE 1 — read-only foundation + Dashboard (`9c6e0c9`):**
+- **Read-only mode** — a nullable `organizations.paused_until` + a shared `App\Support\Operator\OperatorWorkspace`
+  gate (`isReadOnly`/`resumeLabel`), read once, consumed by the shell banner (shell-wide) AND (GATE 2) the
+  certified write. Real + honest (unset in demo → no banner) + orthogonal to the subscription paywall
+  (`EnsureSubscriptionActive` untouched). A past pause is never read-only.
+- **Dashboard** — matched the design + wired the missing REAL sections: KPIs (Arrivals/Departures/Occupancy
+  tonight +Δ vs yesterday/Revenue today/**Open work orders** + urgent from `MaintenanceTicket`); **Today's
+  tasks** (real derived — urgent/open work orders + rooms to clean + arrivals); **Occupancy · next 7 days**
+  (real per-night % — replaced the stale "Not yet available" stub); **ADR** (`PerformanceMetrics`);
+  **Maintenance** (real out-of-order units + on-hold nightly rate from `RateCalendar`, honest-omit when
+  unpriced); **Channels** (HONEST — real `channels.status`, "Not connected" when nothing is synced, never a
+  fake "Synced").
+
+**GATE 2 — Calendar (rack + new reservation):**
+- Added the canonical `app.calendar` route → the certified `ReservationRack` (nav repointed; `/rack` kept as
+  an alias). Real **room-type filter** (GET). The rack grid (real reservations + availability) unchanged.
+- **The inline NEW RESERVATION is REAL** — a two-phase RMB-safe flow (#20): the operator enters guest + stay
+  (a GET "Check rack") → the REAL bookable units from the certified `UnitAvailabilityService` (with the real
+  stay total) → each unit's **Confirm** is a POST to the certified `ReservationCreateController` →
+  `AssignmentService::createBooking` (row-lock **non-overlap**) → a real reservation + real/matched guest +
+  folio + the real `BookingConfirmationMail`. "Open the full form →" links to the existing full page.
+- **Read-only respected** — the "New reservation" affordance + panel are hidden when paused, AND a
+  `paused_until` guard on the certified write path refuses the booking (so the full form respects it too).
+
+**Verify:** `OperatorDashboardViewTest` 3→5, `OperatorRackViewTest` 4→6 (the inline panel shows real
+availability + a certified confirm form; read-only hides the affordance + refuses the write). Suite
+**1294/9709** green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **Browser-verified:** the
+Dashboard (5 KPIs, real 7-day occupancy, maintenance €100/night, read-only banner on pause); the Calendar
+(real availability panel; **Confirm → a real reservation R-YWME7DTF via createBooking** + folio + guest).

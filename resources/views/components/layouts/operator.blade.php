@@ -285,6 +285,19 @@
         /* ---- Reservation rack (timeline grid) -------------------------------------------------- */
         .vy-rack-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
         .vy-rack-toolbar .vy-left, .vy-rack-toolbar .vy-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        /* Operator Calendar exact-match — the inline New-reservation panel */
+        .vy-newres-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+        .vy-newres .vy-field { margin-bottom: 0; display: flex; flex-direction: column; gap: 6px; }
+        .vy-newres .vy-field > span { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-newres-rt { border: 1px solid var(--vy-hairline); border-radius: var(--vy-r-md, 12px); padding: 12px 14px; margin-bottom: 10px; }
+        .vy-newres-rt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+        .vy-newres-rt-name { font-family: var(--vy-display); font-size: 14px; font-weight: 600; }
+        .vy-newres-rt-rate { font-family: var(--vy-display); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .vy-newres-units { display: flex; flex-wrap: wrap; gap: 8px; }
+        .vy-newres-unit { margin: 0; }
+        .vy-newres-confirm { cursor: pointer; border: 1px solid var(--vy-accent-border); color: var(--vy-accent); background: rgba(194, 65, 12, 0.06); font-weight: 600; }
+        .vy-newres-confirm:hover { background: rgba(194, 65, 12, 0.12); }
         .vy-range { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.7); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); font-weight: 600; font-size: 13px; }
 
         .vy-rack-scroll { overflow-x: auto; }
