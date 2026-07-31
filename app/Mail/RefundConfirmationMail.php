@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BrandsGuestMail;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
@@ -29,13 +30,13 @@ use Illuminate\Support\Carbon;
  */
 class RefundConfirmationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BrandsGuestMail, Queueable, SerializesModels;
 
     public function __construct(public readonly Payment $refund) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->template()->subject());
+        return $this->brandedEnvelope($this->template()->subject(), $this->brandFor($this->reservation()->property));
     }
 
     public function content(): Content
@@ -62,6 +63,7 @@ class RefundConfirmationMail extends Mailable
                 'method' => 'your original payment method',
                 'reason' => $reason,
                 'propertyName' => (string) ($reservation->property->name ?? 'your stay'),
+                'brand' => $this->brandFor($reservation->property),
                 'stay' => $stay,
                 'processedOn' => $processedAt->format('j M Y'),
                 // HONEST ETA — a range, never a guaranteed arrival date.

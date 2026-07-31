@@ -83,8 +83,28 @@
                                             <input class="vy-input" type="number" inputmode="decimal" step="0.01"
                                                 min="0.01" max="{{ $payment['max_input'] }}"
                                                 name="amount" id="amount-{{ $payment['id'] }}" placeholder="0.00">
-                                            <x-busy-btn class="vy-act vy-act--ghost" busy-label="Refunding…">Refund</x-busy-btn>
                                         </div>
+
+                                        {{-- #100 — the refund REASON (recorded on the folio + reports) + REFUND-TO. --}}
+                                        <label class="vy-field-label" style="margin-top: 12px;">Reason <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· recorded on the folio &amp; in reports</span></label>
+                                        <select class="vy-input" name="reason">
+                                            <option value="">Choose a reason…</option>
+                                            <option value="duplicate">Duplicate charge</option>
+                                            <option value="overcharge">Overcharge</option>
+                                            <option value="service_issue">Service issue</option>
+                                            <option value="cancellation">Cancellation</option>
+                                            <option value="goodwill">Goodwill</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                        <input class="vy-input" type="text" name="note" maxlength="200" placeholder="Add a note (optional)" style="margin-top: 8px;">
+
+                                        <label class="vy-field-label" style="margin-top: 12px;">Refund to</label>
+                                        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--vy-ink);">
+                                            <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="destination" value="original" checked> Original method · <span style="color: var(--vy-muted);">{{ $payment['gateway'] }}</span></label>
+                                            <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="destination" value="manual_bank"> Manual bank transfer <span style="color: var(--vy-faint);">· recorded, no gateway</span></label>
+                                        </div>
+
+                                        <x-busy-btn class="vy-act vy-act--accent" busy-label="Refunding…" style="margin-top: 12px;">Review &amp; issue refund</x-busy-btn>
                                     </form>
                                     <div class="vy-recon" style="margin-top: 8px;">Up to {{ $payment['remaining'] }} is still refundable against this payment. Anything above that is refused, not trimmed to fit.</div>
                                 @else
@@ -123,33 +143,32 @@
                 @endif
 
                 <div class="vy-card">
-                    <span class="vy-eyebrow">What a refund does</span>
-                    {{-- Every claim here is one the code genuinely makes. The design's "the owner statement
-                         adjusts on the next close" is NOT among them: OwnerAttributionService has no
-                         production caller and reads folio_items + reservation_units, neither of which a
-                         refund touches — the statement would not move by a cent. --}}
+                    <span class="vy-eyebrow">What happens</span>
+                    {{-- #100 — every claim here is one the code genuinely makes now (the owner-statement
+                         adjustment is wired via the payment.refunded listener → OwnerAttributionService). --}}
                     <div class="vy-callout is-oos" style="margin-top: 12px;">
                         <div class="vy-callout-title">A reversing entry is appended</div>
                         The refund is posted as its own new entry on the ledger. The original payment is never edited or removed.
                     </div>
+                    <div class="vy-callout is-oos" style="margin-top: 10px;">
+                        <div class="vy-callout-title">The owner statement adjusts</div>
+                        For an owner-attributed stay, the owner's net share of the refund is posted to their ledger and lands on their next statement close.
+                    </div>
                     <div class="vy-callout is-cost" style="margin-top: 10px;">
-                        <div class="vy-callout-title">The balance goes back up</div>
+                        <div class="vy-callout-title">It can’t be reversed</div>
                         A refund reverses a payment, not the charges — so the folio shows the guest owing again. Refunds cannot be reversed once issued.
                     </div>
+                    <div class="vy-recon" style="margin-top: 10px;">The guest is emailed a refund confirmation automatically when the refund succeeds. Card refunds run in test mode until go-live — no real money moves yet.</div>
                 </div>
 
                 <div class="vy-card">
                     <span class="vy-eyebrow">Not yet available</span>
-                    {{-- DEFERRED, stated plainly rather than drawn and left inert. The reason chips need a
-                         `$reason` on FolioService::refundPayment (a service change, not approved here) AND a
-                         vocabulary decision — the design's 5 chips map to no enum in the schema. The guest
-                         email needs a Mailable that does not exist. Neither is faked. --}}
+                    {{-- The only genuine remaining gap: per-CHARGE selection needs a folio_items↔payments link
+                         (a credit note, a different concept). Refund reason + the guest email are now REAL. --}}
                     <div class="vy-action-list" style="margin-top: 10px;">
-                        <div class="vy-defer-item"><span>Refund reason</span><span class="vy-soon-tag">Soon</span></div>
-                        <div class="vy-defer-item"><span>Email the guest a confirmation</span><span class="vy-soon-tag">Soon</span></div>
-                        <div class="vy-defer-item"><span>Refund by charge</span><span class="vy-soon-tag">Soon</span></div>
+                        <div class="vy-defer-item"><span>Refund by individual charge</span><span class="vy-soon-tag">Soon</span></div>
                     </div>
-                    <div class="vy-recon" style="margin-top: 8px;">A reason is not stored anywhere yet, so the refund records none. Refunds attach to a payment, not to individual charges.</div>
+                    <div class="vy-recon" style="margin-top: 8px;">Refunds attach to a payment, not to individual charges — a per-charge credit note is a separate concept.</div>
                 </div>
             </div>
         </div>

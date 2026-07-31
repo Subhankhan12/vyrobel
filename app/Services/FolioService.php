@@ -349,7 +349,7 @@ class FolioService
      *
      * @throws RefundExceedsPaymentException when the cumulative bound or the currency rule is broken
      */
-    public function refundPayment(Payment $original, Money $amount): Payment
+    public function refundPayment(Payment $original, Money $amount, ?string $reason = null): Payment
     {
         if (! in_array($original->type, ['payment', 'capture'], true)) {
             throw new InvalidArgumentException('Only a payment/capture can be refunded.');
@@ -385,7 +385,14 @@ class FolioService
         $result = $this->gateway->refund((string) $original->gateway_ref, $amount);
         $folio = $original->folio;
 
-        $refund = DB::transaction(function () use ($original, $amount, $result, $folio): Payment {
+        // #100 — the operator's refund reason is recorded on the refund row's metadata (JSON — no schema change),
+        // so it surfaces on the folio + reports. It is operator context, not guest PII.
+        $metadata = ['refunds_payment_id' => $original->getKey()];
+        if ($reason !== null && trim($reason) !== '') {
+            $metadata['reason'] = trim($reason);
+        }
+
+        $refund = DB::transaction(function () use ($original, $amount, $result, $folio, $metadata): Payment {
             $refund = Payment::create([
                 'folio_id' => $original->folio_id,
                 'reservation_id' => $original->reservation_id,
@@ -395,7 +402,7 @@ class FolioService
                 'amount' => $amount,
                 'currency' => $amount->currency(),
                 'status' => $result->successful ? 'succeeded' : 'failed',
-                'metadata' => ['refunds_payment_id' => $original->getKey()],
+                'metadata' => $metadata,
                 'processed_at' => now(),
             ]);
 

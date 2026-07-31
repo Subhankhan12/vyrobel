@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Auth\GuestUserProvider;
 use App\Events\DomainEventRecorded;
+use App\Listeners\AdjustOwnerLedgerOnRefund;
 use App\Listeners\AuditOAuthTokenGranted;
 use App\Listeners\DispatchNotificationsForDomainEvent;
 use App\Listeners\EnqueueAriPushOnInventoryChange;
@@ -337,6 +338,9 @@ class AppServiceProvider extends ServiceProvider
         // Phase 3 · Sub-gate 4 — the GUEST transactional emails on their real events (booking confirmed /
         // cancelled / refunded). Same bus, same one-directional discipline; a mail failure never breaks the event.
         Event::listen(DomainEventRecorded::class, SendGuestTransactionalEmails::class);
+        // #100 — a guest refund posts an owner-statement ADJUSTMENT (the owner's net-ratio share of the refund),
+        // landing on the next statement close. Same bus; idempotent; a no-op for an operator-only reservation.
+        Event::listen(DomainEventRecorded::class, AdjustOwnerLedgerOnRefund::class);
 
         // Super Admin · Build 2 · Gate 1 — capture auth SECURITY SIGNALS (login / failed / lockout) for the
         // platform activity log. ADDED onto the framework auth events (the tenant login flow is NOT modified);

@@ -145,8 +145,13 @@ class ReservationFolioActionController extends Controller
             return $this->back($model->id, 'Enter a refund amount greater than zero.');
         }
 
+        // #100 — the operator's reason (a chip label + optional note) + the destination, recorded on the refund
+        // metadata via the service. NOT read-only-guarded: returning money to a guest is allowed even when the
+        // workspace is paused. The refund gateway call is TEST-MODE (StripeSafetyGuard) until go-live.
+        $reason = $this->composeReason($request);
+
         try {
-            $folios->refundPayment($payment, new Money($minor, (string) $payment->currency));
+            $folios->refundPayment($payment, new Money($minor, (string) $payment->currency), $reason);
         } catch (RefundExceedsPaymentException) {
             // The service is the authority — it re-reads the cumulative total inside the call, so it also
             // covers a concurrent refund landing between the read above and this one. Surfaced cleanly,
@@ -160,6 +165,32 @@ class ReservationFolioActionController extends Controller
         }
 
         return $this->back($model->id, 'Refund issued.');
+    }
+
+    /**
+     * Compose the refund reason from the chip label + an optional free-text note + the destination (task #100).
+     * Returns null when nothing meaningful was entered (the metadata `reason` is then omitted).
+     */
+    private function composeReason(Request $request): ?string
+    {
+        $allowed = ['duplicate', 'overcharge', 'service_issue', 'cancellation', 'goodwill', 'other'];
+        $label = (string) $request->input('reason', '');
+        $note = trim((string) $request->input('note', ''));
+        $destination = $request->input('destination') === 'manual_bank' ? 'manual bank transfer' : 'original method';
+
+        $parts = [];
+        if (in_array($label, $allowed, true)) {
+            $parts[] = ucfirst(str_replace('_', ' ', $label));
+        }
+        if ($note !== '') {
+            $parts[] = $note;
+        }
+        if ($parts === []) {
+            return null;   // no reason picked + no note — record no reason (just the amount)
+        }
+        $parts[] = 'to '.$destination;
+
+        return implode(' · ', $parts);
     }
 
     /** Parse an operator-entered major-unit amount (e.g. "50.00") to integer minor units. */

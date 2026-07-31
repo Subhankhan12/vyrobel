@@ -13,6 +13,7 @@ use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Money\Money;
+use App\Support\Owner\OwnerStatementBreakdown;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -68,6 +69,93 @@ class OwnerAttributionService
         }
 
         $this->attributeAtVersion($reservation, 1);
+    }
+
+    /**
+     * A GUEST REFUND adjustment (task #100 · F1). A folio refund returns money to the guest; the owner's net
+     * drops by their PROPORTIONAL, net-ratio-adjusted share of it, posted as a `debit` `adjustment` line so it
+     * lands on the next statement close (anti-drift with {@see OwnerStatementBreakdown}).
+     * Reconciles from what the owner ACTUALLY earned on this reservation (their net ÷ gross), never a fabricated
+     * figure. Only for owner-attributed reservations; idempotent per refund payment (`refund:{key}:{owner}`).
+     *
+     * @return int the total owner debit posted (minor units), 0 when not owner-attributed
+     */
+    public function attributeRefund(Reservation $reservation, Money $refund, string $refundKey): int
+    {
+        $currency = $refund->currency();
+
+        /** @var Collection<int, OwnerLedgerEntry> $entries */
+        $entries = OwnerLedgerEntry::query()
+            ->where('reservation_id', $reservation->getKey())
+            ->where('currency', $currency)
+            ->get();
+
+        if ($entries->isEmpty()) {
+            return 0;   // operator-only reservation — nothing attributed to an owner, nothing to adjust
+        }
+
+        // Per owner: net (Σ signedMinor — a reversed pair nets to 0) and gross room revenue (room_revenue signed).
+        $byOwner = $entries->groupBy(fn (OwnerLedgerEntry $e): string => (string) $e->owner_id);
+        $grossByOwner = [];
+        $netByOwner = [];
+        $unitByOwner = [];
+        foreach ($byOwner as $ownerId => $rows) {
+            $net = 0;
+            $gross = 0;
+            foreach ($rows as $row) {
+                $net += $row->signedMinor();
+                if ((string) $row->entry_type === 'room_revenue') {
+                    $gross += $row->signedMinor();
+                }
+                $unitByOwner[$ownerId] ??= (string) $row->unit_id;
+            }
+            $grossByOwner[(string) $ownerId] = $gross;
+            $netByOwner[(string) $ownerId] = $net;
+        }
+
+        $totalGross = array_sum($grossByOwner);
+        if ($totalGross <= 0) {
+            return 0;
+        }
+
+        $refundMinor = $refund->amountMinor();
+        $totalDebit = 0;
+
+        foreach ($grossByOwner as $ownerId => $gross) {
+            if ($gross <= 0) {
+                continue;
+            }
+            // The owner's share of the refund (by gross weight), scaled by their own net-to-gross ratio.
+            $refundShare = (int) round($refundMinor * $gross / $totalGross);
+            $ownerDebit = (int) round($refundShare * $netByOwner[$ownerId] / $gross);
+            if ($ownerDebit <= 0) {
+                continue;
+            }
+
+            OwnerLedgerEntry::firstOrCreate(
+                ['idempotency_key' => 'refund:'.$refundKey.':'.$ownerId],
+                [
+                    'organization_id' => $reservation->organization_id,
+                    'owner_id' => $ownerId,
+                    'unit_id' => $unitByOwner[$ownerId],
+                    'reservation_id' => $reservation->getKey(),
+                    'entry_type' => 'adjustment',
+                    'direction' => 'debit',
+                    'amount_minor' => $ownerDebit,
+                    'currency' => $currency,
+                    'description' => 'Guest refund adjustment',
+                    'service_date' => CarbonImmutable::today()->toDateString(),
+                    'attribution_version' => 0,
+                    'unverified' => false,
+                    'prior_period_adjustment' => $this->lockGuard->isSealed((string) $ownerId, CarbonImmutable::today()->toDateString()),
+                    'note' => 'refund',
+                    'posted_at' => now(),
+                ],
+            );
+            $totalDebit += $ownerDebit;
+        }
+
+        return $totalDebit;
     }
 
     /**

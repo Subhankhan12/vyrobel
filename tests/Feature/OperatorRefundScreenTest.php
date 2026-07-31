@@ -214,23 +214,20 @@ it('refuses an owner-role user the refund screen', function () {
 })->group('security');
 
 // ── 9. NO FICTION — nothing the schema cannot back is rendered ─────────────────────────────────────
-it('renders no fabricated card, ETA, or promise the code does not keep', function () {
+it('renders no fabricated card or ETA (#28 — the honest gateway, never a fake ····4242)', function () {
     $c = refundScreen(30000);
 
     $response = $this->actingAs($c['staff'])->get($c['screen'])->assertOk();
 
-    // `payments` has card_token ONLY — no brand, no last4 column exists anywhere in the schema.
+    // `payments` has card_token ONLY — no brand, no last4 column exists anywhere in the schema (#100 F3).
     $response->assertDontSee('Visa')->assertDontSee('4242');
-    // No settlement-ETA field exists (a GatewayResult carries {id, status}).
+    // No settlement-ETA field exists (a GatewayResult carries {id, status}) — the design's "2–5 days" is refused.
     $response->assertDontSee('2–5 business days');
-    // A reason is stored NOWHERE — the design's "Recorded on the folio and in reports." is false twice.
-    $response->assertDontSee('Recorded on the folio');
-    // The owner statement does NOT move on a refund: attribution reads folio_items + reservation_units,
-    // and a refund touches neither.
-    $response->assertDontSee('owner statement adjusts');
 
     // The real gateway is shown instead of the fabricated card.
     $response->assertSee('Manual / offline');
+    // #100 — the refund reason + the owner-statement adjustment are now REAL (mutation-proven elsewhere).
+    $response->assertSee('Reason')->assertSee('The owner statement adjusts');
 });
 
 // ── 10. The raw-Blade net (a real Wave 1 bug: `word@directive` ships uncompiled source) ────────────
