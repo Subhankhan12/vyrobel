@@ -86,8 +86,12 @@ class MaintenanceService
         return $ticket->refresh();
     }
 
-    /** Assign (or reassign) the ticket to a user. Allowed while active; idempotent for the same assignee. */
-    public function assign(MaintenanceTicket $ticket, ?string $userId): MaintenanceTicket
+    /**
+     * Assign (or reassign) the ticket to a user. Allowed while active; idempotent for the same assignee. An
+     * optional `$reason` (#105 reassign flow) is a REAL recorded field on the audit/domain payload — never a
+     * chip that persists nothing.
+     */
+    public function assign(MaintenanceTicket $ticket, ?string $userId, ?string $reason = null): MaintenanceTicket
     {
         $this->assertActive($ticket, 'assign');
 
@@ -98,8 +102,12 @@ class MaintenanceService
         $from = $ticket->assigned_to;
         $ticket->update(['assigned_to' => $userId]);
 
-        $this->domainEvents->record('maintenance_ticket.assigned', $ticket, ['assigned_to' => $userId]);
-        $this->audit->record('maintenance_ticket.assigned', $ticket, ['assigned_to' => $from], ['assigned_to' => $userId]);
+        $payload = ['assigned_to' => $userId];
+        if ($reason !== null && $reason !== '') {
+            $payload['reason'] = $reason;
+        }
+        $this->domainEvents->record('maintenance_ticket.assigned', $ticket, $payload);
+        $this->audit->record('maintenance_ticket.assigned', $ticket, ['assigned_to' => $from], $payload);
 
         return $ticket->refresh();
     }
@@ -127,7 +135,7 @@ class MaintenanceService
      * A resolved ticket is terminal — resolving again throws (a cost correction is an append-only
      * reversal, added in Step 3, never an in-place edit).
      */
-    public function resolve(MaintenanceTicket $ticket, ?Money $cost = null, ?Money $labor = null, ?Money $parts = null): MaintenanceTicket
+    public function resolve(MaintenanceTicket $ticket, ?Money $cost = null, ?Money $labor = null, ?Money $parts = null, ?float $laborHours = null, ?string $resolutionNotes = null, bool $keepBlocked = false): MaintenanceTicket
     {
         $this->assertTransition($ticket, ['open', 'in_progress'], 'resolve');
         $from = (string) $ticket->status;
@@ -138,13 +146,17 @@ class MaintenanceService
         $split = $this->costSplit($cost, $labor, $parts);
         $total = $split['total'];   // ?Money — the figure the owner_expense uses
 
-        DB::transaction(function () use ($ticket, $split): void {
+        DB::transaction(function () use ($ticket, $split, $laborHours, $resolutionNotes): void {
             $ticket->update([
                 'status' => 'resolved',
                 'cost_minor' => $split['cost_minor'],
                 'labor_minor' => $split['labor_minor'],
                 'parts_minor' => $split['parts_minor'],
                 'currency' => $split['currency'],
+                // #105 — the wireframe's Mark-resolved captures: Time spent (hours, informational — NOT priced,
+                // no labour rate is modelled, so it never touches the owner bill) + What was done.
+                'labor_hours' => $laborHours,
+                'resolution_notes' => $resolutionNotes,
                 // The work is done → the part (if any) has been fitted; clear the awaiting-parts state.
                 'awaiting_parts' => false,
                 'part_name' => null,
@@ -159,10 +171,20 @@ class MaintenanceService
         ]);
         $this->audit->record('maintenance_ticket.resolved', $ticket, ['status' => $from], ['status' => 'resolved']);
 
+        // The "What was done" note lands in the Activity timeline too (real Note; the column is the canonical record).
+        if ($resolutionNotes !== null && trim($resolutionNotes) !== '') {
+            $this->addNote($ticket->refresh(), $resolutionNotes, 'note');
+        }
+
         if ($total !== null) {
             $this->postExpenseIfOwned($ticket->refresh(), $total);   // certified owner-expense path (owned units only)
         }
-        $this->releaseUnitIfClear($ticket->refresh());   // back in service iff no other active OOS ticket
+
+        // #105 — "Return to sale" (default) releases the unit; toggling it OFF (`keepBlocked`) leaves it out of
+        // service so the operator lifts the block later from the rack. Either way `sold` is never touched.
+        if (! $keepBlocked) {
+            $this->releaseUnitIfClear($ticket->refresh());   // back in service iff no other active OOS ticket
+        }
 
         return $ticket->refresh();
     }

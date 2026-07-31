@@ -128,6 +128,7 @@ class MaintenanceTicketDetail extends Component
                 'reported_time' => $openedAt->format('H:i'),
                 'open_for' => $this->elapsedLabel($openedAt, $now),
                 'resolved' => $ticket->resolved_at?->format('j M Y · H:i'),
+                'labor_hours_label' => $ticket->labor_hours !== null ? $this->hoursLabel((float) $ticket->labor_hours) : null,
                 'is_oos' => $isOos,
                 'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, (string) ($ticket->currency ?? $currency)) : null,
                 // Real state → which transitions the service will accept (offer only what it allows).
@@ -373,6 +374,12 @@ class MaintenanceTicketDetail extends Component
         }
 
         return intdiv($minutes, 1440).'d '.(intdiv($minutes % 1440, 60)).'h';
+    }
+
+    /** "1.5h" / "2h" — a labour-hours label (trailing zeros trimmed). */
+    private function hoursLabel(float $hours): string
+    {
+        return rtrim(rtrim(number_format($hours, 2, '.', ''), '0'), '.').'h';
     }
 
     /** SLA progress % (elapsed / target), clamped 0–100 — for the timing bar. */

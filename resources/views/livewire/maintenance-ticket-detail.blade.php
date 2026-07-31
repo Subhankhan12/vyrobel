@@ -291,14 +291,21 @@
                     @endif
 
                     {{-- cost destination — real owner_expense (or operator cost), when resolved --}}
-                    @if ($ticket['status'] === 'resolved' && $ticket['cost'] !== null)
+                    @if ($ticket['status'] === 'resolved' && ($ticket['cost'] !== null || $ticket['labor_hours_label']))
                         <div class="vy-card vy-fade" style="padding:18px 20px;">
                             <span class="vy-eyebrow">Cost</span>
-                            <div style="font-family:var(--vy-display);font-size:22px;font-weight:700;margin-top:8px;">{{ $ticket['cost'] }}</div>
-                            @if ($expense)
-                                <div style="font-size:12px;color:var(--vy-muted);margin-top:4px;line-height:1.5;">Charged to <strong>{{ $expense['owner'] }}</strong> as a {{ $expense['deductible'] ? 'deductible' : 'non-deductible' }} expense — posted to their owner ledger.</div>
-                            @else
-                                <div style="font-size:12px;color:var(--vy-muted);margin-top:4px;line-height:1.5;">Operator cost — this unit isn’t owner-managed, so no owner expense was posted.</div>
+                            @if ($ticket['cost'] !== null)
+                                <div style="font-family:var(--vy-display);font-size:22px;font-weight:700;margin-top:8px;">{{ $ticket['cost'] }}</div>
+                            @endif
+                            @if ($ticket['labor_hours_label'])
+                                <div style="font-size:12px;color:var(--vy-faint);margin-top:{{ $ticket['cost'] !== null ? '2px' : '8px' }};">{{ $ticket['labor_hours_label'] }} logged</div>
+                            @endif
+                            @if ($ticket['cost'] !== null)
+                                @if ($expense)
+                                    <div style="font-size:12px;color:var(--vy-muted);margin-top:4px;line-height:1.5;">Charged to <strong>{{ $expense['owner'] }}</strong> as a {{ $expense['deductible'] ? 'deductible' : 'non-deductible' }} expense — posted to their owner ledger.</div>
+                                @else
+                                    <div style="font-size:12px;color:var(--vy-muted);margin-top:4px;line-height:1.5;">Operator cost — this unit isn’t owner-managed, so no owner expense was posted.</div>
+                                @endif
                             @endif
                         </div>
                     @endif
@@ -340,11 +347,13 @@
             {{-- ── Reassign technician modal (real staff + real load; reason/notify added in GATE 2) ────── --}}
             @if ($ticket['can_assign'] && ! $readOnly)
                 <div x-show="rt" x-cloak style="position:fixed;inset:0;z-index:50;background:rgba(43,35,32,.38);backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:24px;" @click="rt = false">
-                    <form method="POST" action="{{ route('app.maintenance.assign', $ticket['id']) }}" x-data="{ sel: '{{ $ticket['assignee_id'] }}' }" @click.stop
+                    <form method="POST" action="{{ route('app.maintenance.assign', $ticket['id']) }}" x-data="{ sel: '{{ $ticket['assignee_id'] }}', reason: '', notify: true }" @click.stop
                           class="vy-card" style="width:470px;max-width:100%;max-height:92vh;overflow-y:auto;padding:24px;">
                         @csrf
                         <input type="hidden" name="origin" value="detail">
                         <input type="hidden" name="user_id" :value="sel">
+                        <input type="hidden" name="reason" :value="reason">
+                        <input type="hidden" name="notify" :value="notify ? '1' : '0'">
                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;">
                             <div style="display:flex;align-items:center;gap:11px;">
                                 <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,#E8703A,#C2410C);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
@@ -383,16 +392,35 @@
                                     :style="sel === '' ? 'background:rgba(217,102,46,.10);border:1px solid rgba(232,112,58,.45)' : 'background:rgba(255,255,255,.5);border:1px solid rgba(120,70,40,.12)'"
                                     style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:12.5px;color:var(--vy-muted);">Leave unassigned</button>
                         </div>
+                        {{-- reason (optional) — a real recorded field on the assign event, never a chip that persists nothing --}}
+                        <div class="vy-eyebrow" style="margin-bottom:9px;">Reason <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint);">· optional</span></div>
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+                            @foreach (['Balancing load', 'Specialty match', 'Unavailable', 'Escalation'] as $r)
+                                <button type="button" @click="reason = (reason === '{{ $r }}' ? '' : '{{ $r }}')"
+                                        :style="reason === '{{ $r }}' ? 'background:rgba(217,102,46,.13);color:#B4400F;border:1px solid rgba(232,112,58,.30)' : 'background:rgba(120,70,40,.05);color:#8A8079;border:1px solid rgba(120,70,40,.12)'"
+                                        style="padding:7px 13px;border-radius:30px;font-family:inherit;font-size:11.5px;font-weight:500;cursor:pointer;transition:background .14s,color .14s;">{{ $r }}</button>
+                            @endforeach
+                        </div>
+                        {{-- notify both technicians --}}
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border:1px solid rgba(120,70,40,.10);background:rgba(255,255,255,.45);border-radius:14px;margin-bottom:18px;">
+                            <div style="min-width:0;">
+                                <div style="font-size:13px;font-weight:500;">Notify both technicians</div>
+                                <div style="font-size:11px;color:var(--vy-faint);margin-top:1px;">The new assignee gets the order; any prior assignee is told they’re off it</div>
+                            </div>
+                            <button type="button" @click="notify = !notify" :style="notify ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
+                                <span :style="notify ? 'left:19px' : 'left:3px'" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
+                            </button>
+                        </div>
                         <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;padding:13px 0;font-size:14px;" :disabled="sel === '{{ $ticket['assignee_id'] }}'" :style="sel === '{{ $ticket['assignee_id'] }}' ? 'opacity:.45;cursor:default' : ''">Reassign</button>
                         <button type="button" @click="rt = false" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;margin-top:10px;padding:11px 0;">Cancel</button>
                     </form>
                 </div>
             @endif
 
-            {{-- ── Mark-resolved modal (GATE 1: repair cost → certified resolve; GATE 2 enriches) ────────── --}}
+            {{-- ── Mark-resolved modal — the full resolution flow (real cost #17 + hours + notes + return-to-sale + notify) ── --}}
             @if ($ticket['can_resolve'] && ! $readOnly)
                 <div x-show="mr" x-cloak style="position:fixed;inset:0;z-index:50;background:rgba(43,35,32,.38);backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:24px;" @click="mr = false">
-                    <form method="POST" action="{{ route('app.maintenance.resolve', $ticket['id']) }}" @click.stop
+                    <form method="POST" action="{{ route('app.maintenance.resolve', $ticket['id']) }}" @click.stop x-data="{ ret: true, notify: true }"
                           class="vy-card" style="width:480px;max-width:100%;max-height:92vh;overflow-y:auto;padding:24px;">
                         @csrf
                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;">
@@ -409,15 +437,61 @@
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
                             </button>
                         </div>
-                        <div style="margin-bottom:16px;">
-                            <div class="vy-eyebrow" style="margin-bottom:7px;">Repair cost <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint);">· optional</span></div>
-                            <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;">
-                                <span style="color:var(--vy-faint);font-size:13.5px;flex-shrink:0;">{{ $currencySymbol }}</span>
-                                <input type="number" inputmode="decimal" step="0.01" min="0" name="cost" placeholder="0.00" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
-                            </div>
-                            <div style="font-size:11px;color:var(--vy-faint);margin-top:8px;line-height:1.45;">Resolving returns the unit to sale (if this ticket was blocking it). A cost on an owner’s unit posts a deductible expense to their ledger.</div>
+                        {{-- what was done → the ticket's resolution record + a timeline note --}}
+                        <div style="margin-bottom:14px;">
+                            <div class="vy-eyebrow" style="margin-bottom:7px;">What was done</div>
+                            <textarea name="resolution" maxlength="2000" placeholder="e.g. Replaced the trap and seal — tested, no leak." style="width:100%;min-height:66px;resize:vertical;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;font-family:inherit;font-size:13px;line-height:1.5;color:var(--vy-ink);outline:none;box-sizing:border-box;"></textarea>
                         </div>
-                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;padding:13px 0;font-size:14px;">Resolve &amp; return to sale</button>
+                        {{-- time spent (hours, informational) + parts cost (€, bills the owner, #17) --}}
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+                            <div>
+                                <div class="vy-eyebrow" style="margin-bottom:7px;">Time spent</div>
+                                <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A69A92" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                                    <input type="number" inputmode="decimal" step="0.25" min="0" name="time_spent" placeholder="e.g. 1.5" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
+                                    <span style="color:var(--vy-faint);font-size:12px;flex-shrink:0;">h</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="vy-eyebrow" style="margin-bottom:7px;">Parts cost</div>
+                                <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;">
+                                    <span style="color:var(--vy-faint);font-size:13.5px;flex-shrink:0;">{{ $currencySymbol }}</span>
+                                    <input type="number" inputmode="decimal" step="0.01" min="0" name="parts" placeholder="0.00" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
+                                </div>
+                            </div>
+                        </div>
+                        @if ($ticket['is_oos'])
+                            {{-- return to sale — genuinely un-blocks the unit (default ON = today's behaviour) --}}
+                            <input type="hidden" name="return_to_sale" :value="ret ? '1' : '0'">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:14px;background:rgba(217,102,46,.08);border:1px solid rgba(232,112,58,.28);margin-bottom:12px;">
+                                <div style="display:flex;align-items:flex-start;gap:11px;min-width:0;">
+                                    <span style="width:32px;height:32px;border-radius:9px;background:rgba(217,102,46,.14);color:#B4400F;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/><path d="m9 15 2 2 4-4"/></svg>
+                                    </span>
+                                    <div style="min-width:0;">
+                                        <div style="font-size:13px;font-weight:500;">Return {{ $ticket['unit'] }} to sale</div>
+                                        <div style="font-size:11px;margin-top:2px;line-height:1.45;" :style="ret ? 'color:#B4400F' : 'color:#A69A92'" x-text="ret ? 'The unit goes back on sale immediately.' : 'Stays out of order — lift the block later from the rack.'"></div>
+                                    </div>
+                                </div>
+                                <button type="button" @click="ret = !ret" :style="ret ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
+                                    <span :style="ret ? 'left:19px' : 'left:3px'" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
+                                </button>
+                            </div>
+                        @endif
+                        {{-- notify the front desk — a real, preference-gated ping to the reporter --}}
+                        <input type="hidden" name="notify" :value="notify ? '1' : '0'">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border:1px solid rgba(120,70,40,.10);background:rgba(255,255,255,.45);border-radius:14px;margin-bottom:18px;">
+                            <div>
+                                <div style="font-size:13px;font-weight:500;">Notify the front desk</div>
+                                <div style="font-size:11px;color:var(--vy-faint);margin-top:1px;">Lets {{ $ticket['reporter'] ?? 'the reporter' }} know it’s fixed and back online</div>
+                            </div>
+                            <button type="button" @click="notify = !notify" :style="notify ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
+                                <span :style="notify ? 'left:19px' : 'left:3px'" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
+                            </button>
+                        </div>
+                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;padding:13px 0;font-size:14px;">
+                            @if ($ticket['is_oos'])<span x-text="ret ? 'Resolve & return to sale' : 'Mark resolved'"></span>@else Mark resolved @endif
+                        </button>
                         <button type="button" @click="mr = false" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;margin-top:10px;padding:11px 0;">Cancel</button>
                     </form>
                 </div>

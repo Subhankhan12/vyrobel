@@ -9,6 +9,9 @@ use App\Models\MaintenanceTicket;
 use App\Models\Media;
 use App\Models\Membership;
 use App\Models\Unit;
+use App\Models\User;
+use App\Notifications\Operator\MaintenanceReassignedNotification;
+use App\Notifications\Operator\MaintenanceResolvedNotification;
 use App\Services\MaintenanceService;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
@@ -76,9 +79,13 @@ class MaintenanceActionController extends Controller
     {
         $validated = $request->validate([
             'user_id' => ['nullable', 'string'],
+            // #105 reassign flow — an optional real reason (recorded on the audit/domain payload) + notify-both.
+            'reason' => ['nullable', 'string', 'max:80'],
+            'notify' => ['sometimes', 'boolean'],
         ]);
 
-        $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
+        $model = MaintenanceTicket::query()->with('unit', 'assignedTo')->findOrFail($ticket);   // tenant-scoped → cross-org 404
+        $previousAssignee = $model->assignedTo;
 
         if ($this->paused()) {
             return $this->backTo($request, $model)->with('mt_error', $this->pausedMessage());
@@ -102,10 +109,23 @@ class MaintenanceActionController extends Controller
         }
 
         try {
-            $maintenance->assign($model, $userId);
+            $maintenance->assign($model, $userId, $validated['reason'] ?? null);
         } catch (RuntimeException) {
             // e.g. the ticket is already resolved/cancelled — guarded, surfaced cleanly, not a 500.
             return $this->backTo($request, $model)->with('mt_error', 'That ticket can’t be reassigned — it’s already closed.');
+        }
+
+        // "Notify both technicians" — real, preference-gated pings: the new assignee (it's now theirs) and the
+        // prior assignee (they're off it). Only when a real user changed + the toggle was kept on (#39).
+        if ($request->boolean('notify')) {
+            $unit = (string) ($model->unit->code ?? '');
+            $newAssignee = $userId !== null ? User::query()->find($userId) : null;
+            if ($newAssignee !== null) {
+                $newAssignee->notify(new MaintenanceReassignedNotification((string) $model->id, (string) $model->title, $unit, true));
+            }
+            if ($previousAssignee !== null && (string) $previousAssignee->id !== (string) $userId) {
+                $previousAssignee->notify(new MaintenanceReassignedNotification((string) $model->id, (string) $model->title, $unit, false));
+            }
         }
 
         return $this->backTo($request, $model)->with('mt_notice', 'Ticket assignment updated.');
@@ -142,9 +162,14 @@ class MaintenanceActionController extends Controller
             'cost' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'labor' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'parts' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            // #105 Mark-resolved modal — Time spent (hours, informational), What was done, the toggles.
+            'time_spent' => ['nullable', 'numeric', 'min:0', 'max:9999'],
+            'resolution' => ['nullable', 'string', 'max:2000'],
+            'return_to_sale' => ['sometimes', 'boolean'],
+            'notify' => ['sometimes', 'boolean'],
         ]);
 
-        $model = MaintenanceTicket::query()->with('unit.property')->findOrFail($ticket);   // tenant-scoped → 404
+        $model = MaintenanceTicket::query()->with('unit.property', 'reportedBy')->findOrFail($ticket);   // tenant-scoped → 404
 
         if ($this->paused()) {
             return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', $this->pausedMessage());
@@ -156,11 +181,20 @@ class MaintenanceActionController extends Controller
         $parts = $this->money($validated['parts'] ?? null, $currency);
         $cost = ($labor === null && $parts === null) ? $this->money($validated['cost'] ?? null, $currency) : null;
 
+        // Return to sale is the default; toggling it OFF keeps the unit out of order (lift later from the rack).
+        $returnToSale = $request->has('return_to_sale') ? $request->boolean('return_to_sale') : true;
+        $laborHours = isset($validated['time_spent']) && $validated['time_spent'] !== '' ? (float) $validated['time_spent'] : null;
+
         try {
-            $maintenance->resolve($model, $cost, $labor, $parts);
+            $maintenance->resolve($model, $cost, $labor, $parts, $laborHours, $validated['resolution'] ?? null, ! $returnToSale);
         } catch (RuntimeException) {
             return redirect()->route('app.maintenance.show', $model->id)
                 ->with('mt_error', 'That ticket can’t be resolved — it isn’t in progress.');
+        }
+
+        // "Notify the front desk" — a real, preference-gated ping to the reporter (never a dead toggle, #39).
+        if ($request->boolean('notify') && $model->reportedBy !== null) {
+            $model->reportedBy->notify(new MaintenanceResolvedNotification((string) $model->id, (string) $model->title, (string) $model->unit->code, $returnToSale));
         }
 
         return redirect()->route('app.maintenance.show', $model->id)

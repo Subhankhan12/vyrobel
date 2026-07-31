@@ -1,13 +1,18 @@
 <?php
 
+use App\Models\AuditEvent;
 use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
 use App\Models\Note;
+use App\Models\OwnerExpense;
 use App\Models\ReservationUnit;
+use App\Notifications\Operator\MaintenanceReassignedNotification;
+use App\Notifications\Operator\MaintenanceResolvedNotification;
 use App\Services\MaintenanceService;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
@@ -171,4 +176,108 @@ it('shows a real arrival tonight affected by the out-of-order block', function (
         ->assertSee('arrival tonight needs a room')   // real today-narrowed count
         ->assertSee('blocked from sale')
         ->assertSee('Open the rack to reassign');
+});
+
+// ── 8. GATE 2 — Mark-resolved captures REAL cost (#17) + hours + notes, and RETURNS the unit to sale ─
+it('resolves with a real cost that reconciles to the owner expense and returns the unit to sale', function () {
+    $s = seedScenario(1);
+    $owner = ownUnit($s['units'][0]);   // owner-owned unit + agreement
+    $manager = operatorUser($s, [], 'Hotel Manager');
+    $svc = app(MaintenanceService::class);
+
+    $ticket = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'Burst pipe', 'takes_out_of_service' => true]);
+    $svc->start($ticket->refresh());
+    expect($s['units'][0]->refresh()->condition_status)->toBe('out_of_service');   // genuinely blocked
+
+    $this->actingAs($manager)->post(route('app.maintenance.resolve', $ticket->id), [
+        'parts' => '120.00',
+        'time_spent' => '1.5',
+        'resolution' => 'Replaced the trap and seal — tested, no leak.',
+        'return_to_sale' => '1',
+        'notify' => '0',
+    ])->assertRedirect(route('app.maintenance.show', $ticket->id));
+
+    app(TenantContext::class)->set($s['org']->id);
+    $ticket->refresh();
+    expect($ticket->status)->toBe('resolved')
+        ->and($ticket->cost_minor)->toBe(12000)          // labor(0) + parts(12000) === cost (#17)
+        ->and($ticket->parts_minor)->toBe(12000)
+        ->and((float) $ticket->labor_hours)->toBe(1.5)   // hours logged (informational)
+        ->and((string) $ticket->resolution_notes)->toContain('Replaced the trap');
+
+    // The owner expense reconciles to the cent (#17) — the SAME integer-minor.
+    $exp = OwnerExpense::query()->where('source_type', 'maintenance_ticket')->where('source_id', $ticket->id)->firstOrFail();
+    expect($exp->amount_minor)->toBe(12000)->and($exp->owner_id)->toBe($owner->id);
+
+    // 🪤 RETURN TO SALE — mutation-proven un-block: the unit is back in service.
+    expect($s['units'][0]->refresh()->condition_status)->toBe('in_service');
+
+    // The "what was done" note lands in the Activity timeline.
+    $this->actingAs($manager)->get("/app/maintenance/{$ticket->id}")->assertSee('Replaced the trap');
+});
+
+// ── 9. GATE 2 — return-to-sale OFF keeps the unit out of order (mutation-proven) ─────────────────────
+it('resolves but keeps the unit out of order when return-to-sale is off', function () {
+    $s = seedScenario(1);
+    $manager = operatorUser($s, [], 'Hotel Manager');
+    $svc = app(MaintenanceService::class);
+
+    $ticket = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'Flood', 'takes_out_of_service' => true]);
+    $svc->start($ticket->refresh());
+    expect($s['units'][0]->refresh()->condition_status)->toBe('out_of_service');
+
+    $this->actingAs($manager)->post(route('app.maintenance.resolve', $ticket->id), ['return_to_sale' => '0'])
+        ->assertRedirect(route('app.maintenance.show', $ticket->id));
+
+    app(TenantContext::class)->set($s['org']->id);
+    expect($ticket->refresh()->status)->toBe('resolved')
+        ->and($s['units'][0]->refresh()->condition_status)->toBe('out_of_service');   // STILL blocked
+});
+
+// ── 10. GATE 2 — "Notify the front desk" is real + toggle-respecting (never a dead toggle, #39) ──────
+it('notifies the reporter only when the notify toggle is on', function () {
+    Notification::fake();
+    $s = seedScenario(2);
+    $manager = operatorUser($s, [], 'Hotel Manager');
+    $reporter = operatorUser($s, ['name' => 'Front Deskington'], 'Front Desk');
+    $svc = app(MaintenanceService::class);
+
+    // notify OFF → nothing sent.
+    $t1 = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'A', 'reported_by' => $reporter->id]);
+    $svc->start($t1->refresh());
+    $this->actingAs($manager)->post(route('app.maintenance.resolve', $t1->id), ['notify' => '0'])->assertRedirect();
+    Notification::assertNothingSent();
+
+    // notify ON → the reporter gets a real MaintenanceResolvedNotification.
+    $t2 = $svc->open(['unit_id' => $s['units'][1]->id, 'title' => 'B', 'reported_by' => $reporter->id]);
+    $svc->start($t2->refresh());
+    $this->actingAs($manager)->post(route('app.maintenance.resolve', $t2->id), ['notify' => '1'])->assertRedirect();
+    Notification::assertSentTo($reporter, MaintenanceResolvedNotification::class);
+});
+
+// ── 11. GATE 2 — reassign notifies BOTH technicians + records the reason (real, not a dead chip) ─────
+it('notifies both technicians and records the reason on reassign', function () {
+    Notification::fake();
+    $s = seedScenario(1);
+    $manager = operatorUser($s, [], 'Hotel Manager');
+    $oldTech = operatorUser($s, ['name' => 'Old Tech'], 'Maintenance');
+    $newTech = operatorUser($s, ['name' => 'New Tech'], 'Maintenance');
+    $svc = app(MaintenanceService::class);
+
+    $ticket = $svc->open(['unit_id' => $s['units'][0]->id, 'title' => 'Reassign me', 'assigned_to' => $oldTech->id]);
+
+    $this->actingAs($manager)->post(route('app.maintenance.assign', $ticket->id), [
+        'user_id' => $newTech->id, 'reason' => 'Balancing load', 'notify' => '1', 'origin' => 'detail',
+    ])->assertRedirect(route('app.maintenance.show', $ticket->id));
+
+    $this->assertDatabaseHas('maintenance_tickets', ['id' => $ticket->id, 'assigned_to' => $newTech->id]);
+
+    // Both technicians notified.
+    Notification::assertSentTo($newTech, MaintenanceReassignedNotification::class);
+    Notification::assertSentTo($oldTech, MaintenanceReassignedNotification::class);
+
+    // The reason is a REAL recorded field on the assign audit event (never a chip that persists nothing).
+    app(TenantContext::class)->set($s['org']->id);
+    $event = AuditEvent::query()->where('subject_id', $ticket->id)->where('action', 'maintenance_ticket.assigned')->latest()->firstOrFail();
+    expect($event->after['reason'] ?? null)->toBe('Balancing load');
 });
