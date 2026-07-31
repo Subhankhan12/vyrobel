@@ -9,17 +9,23 @@
         {{-- Toolbar: REAL window navigation (GET links, RMB-safe) + honest NO-BACKEND affordances --}}
         <div class="vy-rack-toolbar vy-fade">
             <div class="vy-left">
-                <a class="vy-icobtn" href="?start={{ $window['prev'] }}" aria-label="Previous {{ $window['days'] }} nights" title="Previous {{ $window['days'] }} nights">
+                <a class="vy-icobtn" href="?start={{ $window['prev'] }}&days={{ $window['selected_days'] }}" aria-label="Previous {{ $window['days'] }} nights" title="Previous {{ $window['days'] }} nights">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
                 </a>
                 <span class="vy-range">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg>
                     {{ $window['label'] }}
                 </span>
-                <a class="vy-icobtn" href="?start={{ $window['next'] }}" aria-label="Next {{ $window['days'] }} nights" title="Next {{ $window['days'] }} nights">
+                <a class="vy-icobtn" href="?start={{ $window['next'] }}&days={{ $window['selected_days'] }}" aria-label="Next {{ $window['days'] }} nights" title="Next {{ $window['days'] }} nights">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                 </a>
-                <a class="vy-pill" href="?start={{ $window['today'] }}">Today</a>
+                <a class="vy-pill" href="?start={{ $window['today'] }}&days={{ $window['selected_days'] }}">Today</a>
+                {{-- #104 GATE 3d — view-range switcher (7 / 14 / 30 nights), preserving the current window start. --}}
+                <span style="display:inline-flex; gap:4px; margin-left:4px;">
+                    @foreach ([7, 14, 30] as $d)
+                        <a class="vy-pill @if ($window['selected_days'] === $d) is-on @endif" href="?start={{ $window['start'] }}&days={{ $d }}">{{ $d }}n</a>
+                    @endforeach
+                </span>
             </div>
             <div class="vy-right">
                 {{-- REAL room-type filter (GET; RMB-safe) --}}
@@ -180,12 +186,14 @@
                                                 </div>
                                                 <div class="vy-lane-bars">
                                                     @foreach ($lane as $bar)
-                                                        <div class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif"
-                                                             style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }};"
-                                                             title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}">
+                                                        {{-- #104 GATE 3d — the booking bar links to the reservation detail (the wireframe's clickable bar). --}}
+                                                        <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif"
+                                                           href="{{ route('app.reservations.show', $bar['id']) }}"
+                                                           style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
+                                                           title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}">
                                                             <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
                                                             <span class="vy-bar-flag">{{ $bar['status_label'] }}</span>
-                                                        </div>
+                                                        </a>
                                                     @endforeach
                                                 </div>
                                             </div>

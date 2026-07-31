@@ -85,6 +85,10 @@ class ReservationRack extends Component
             ? $allRoomTypes->filter(fn (RoomType $rt): bool => (string) $rt->id === $filterRt)->values()
             : $allRoomTypes;
 
+        // #104 GATE 3d — the view-range switcher (the wireframe's 7/14/30-night control), a real ?days= GET param
+        // constrained to the allowed set (default 14). Navigation is GET-based, so re-resolving each request is safe.
+        $this->days = $this->resolveDays();
+
         $start = $this->resolveStart($roomTypes->isEmpty() ? $allRoomTypes : $roomTypes);
         $end = $start->addDays(max(1, $this->days));
 
@@ -111,6 +115,7 @@ class ReservationRack extends Component
                 'end' => $end->toDateString(),
                 'label' => $start->format('d M').' – '.$end->subDay()->format('d M Y'),
                 'days' => count($dates),
+                'selected_days' => $this->days,   // the chosen 7/14/30 (for the range switcher + to preserve across nav)
                 'prev' => $start->subDays(max(1, $this->days))->toDateString(),
                 'next' => $end->toDateString(),
                 'today' => CarbonImmutable::today()->toDateString(),
@@ -193,6 +198,14 @@ class ReservationRack extends Component
      *
      * @param  Collection<int, RoomType>  $roomTypes
      */
+    /** The view-range from ?days=, constrained to the allowed set (7/14/30); default 14. */
+    private function resolveDays(): int
+    {
+        $days = (int) request()->query('days', '14');
+
+        return in_array($days, [7, 14, 30], true) ? $days : 14;
+    }
+
     private function resolveStart(Collection $roomTypes): CarbonImmutable
     {
         $param = request()->query('start');
@@ -329,6 +342,9 @@ class ReservationRack extends Component
             : '';
 
         return [
+            // #104 GATE 3d — the reservation id so the rack's booking bar links to its detail (the wireframe's
+            // clickable bar). Name-only otherwise (#28).
+            'id' => (string) $reservation->getKey(),
             'ref' => (string) $reservation->reference,
             'guest' => $name !== '' ? $name : (string) $reservation->reference,
             'status' => (string) $reservation->status,
