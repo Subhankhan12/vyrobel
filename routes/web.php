@@ -682,6 +682,8 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
         Route::post('/maintenance/{ticket}/cancel', [MaintenanceActionController::class, 'cancel'])->name('maintenance.cancel');
         // #89 — awaiting-parts state + proof photos. Tenant + ticket scoped; read-only respected.
         Route::post('/maintenance/{ticket}/parts', [MaintenanceActionController::class, 'setParts'])->name('maintenance.parts');
+        // #105 — a real Activity update (Note / Progress / Part-ordered) posted to the ticket timeline.
+        Route::post('/maintenance/{ticket}/notes', [MaintenanceActionController::class, 'addNote'])->name('maintenance.notes.store');
         Route::post('/maintenance/{ticket}/photos', [MaintenanceActionController::class, 'uploadPhoto'])->name('maintenance.photos.store');
         Route::delete('/maintenance/{ticket}/photos/{media}', [MaintenanceActionController::class, 'deletePhoto'])->name('maintenance.photos.destroy');
     });

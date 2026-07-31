@@ -279,7 +279,8 @@ class OwnerMessages extends Component
     {
         $out = [];
         foreach ($message->media as $m) {
-            if (! $m instanceof Media || $m->collection !== 'attachments') {
+            // media() is now typed MorphMany<Media> (shared HasMedia), so $m is a Media — filter by collection.
+            if ($m->collection !== 'attachments') {
                 continue;
             }
             $out[] = [

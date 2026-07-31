@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Availability;
 use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
+use App\Models\Note;
 use App\Models\OwnerExpense;
 use App\Models\Unit;
 use App\Models\UnitStatusLog;
@@ -184,6 +185,35 @@ class MaintenanceService
         $this->audit->record('maintenance_ticket.parts_updated', $ticket, null, ['awaiting_parts' => $awaiting]);
 
         return $ticket->refresh();
+    }
+
+    /**
+     * The kinds an Activity-composer note may carry (the wireframe's Note / Progress / Part-ordered segments).
+     * A staff-authored update ABOUT the repair — never guest PII (#28).
+     */
+    public const NOTE_KINDS = ['note', 'progress', 'part'];
+
+    /**
+     * #105 (Work Order detail · Activity composer) — post a real staff update to the ticket's timeline. Reuses
+     * the shared polymorphic {@see Note} store (never a parallel updates table); the timeline merges these notes
+     * with the lifecycle `audit_events`. Additive content — allowed on any ticket (open or closed, for the record).
+     * The note IS the record (author_id + timestamps); the audit row logs the action + kind (not the body).
+     */
+    public function addNote(MaintenanceTicket $ticket, string $body, string $kind = 'note'): Note
+    {
+        $kind = in_array($kind, self::NOTE_KINDS, true) ? $kind : 'note';
+
+        /** @var Note $note */
+        $note = $ticket->notes()->create([
+            'body' => $body,
+            'visibility' => 'internal',
+            'kind' => $kind,
+            'author_id' => Auth::id(),
+        ]);
+
+        $this->audit->record('maintenance_ticket.note_added', $ticket, null, ['kind' => $kind]);
+
+        return $note;
     }
 
     /**

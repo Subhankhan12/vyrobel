@@ -13,6 +13,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  */
 trait HasMedia
 {
+    /**
+     * The relation genuinely yields Media, so it says so (mirrors {@see HasNotes}): without the generic,
+     * static analysis infers a bare `Model` and every typed `->media()->get()->map(fn (Media $m) …)` loses it.
+     *
+     * @return MorphMany<Media, $this>
+     */
     public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'mediable');

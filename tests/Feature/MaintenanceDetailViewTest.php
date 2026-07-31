@@ -43,7 +43,7 @@ it('renders real facts and a real activity timeline', function () {
         ->assertSee('High')                // real priority
         ->assertSee('Drips overnight.')    // real description
         ->assertSee('In progress')         // real status
-        ->assertSee('Ticket opened')       // real timeline entries (audit events)
+        ->assertSee('Reported')            // real timeline entries (audit events) — #105 exact-match label
         ->assertSee('Assigned')
         ->assertSee('Rosa Delacroix')      // real assignee, surfaced on the assigned entry
         ->assertSee('Work started')
@@ -157,17 +157,18 @@ it('surfaces the OOS callout and the real manual-move booking count', function (
     expect($s['units'][0]->refresh()->condition_status)->toBe('out_of_service');
 
     $this->actingAs($user)->get("/app/maintenance/{$ticket->id}")
-        ->assertSee('out of service — not bookable')     // the OOS callout
-        ->assertSee('to be moved manually')               // the manual-move flag (real count = 1)
-        ->assertSee('Open the rack to move them');
+        ->assertSee('blocked from sale')                  // the OOS callout — #105 exact-match copy
+        ->assertSee('needs to be moved')                  // the real manual-move flag (real count = 1)
+        ->assertSee('Open the rack to reassign');
 
     // A ticket on an OOS unit with NO bookings shows the callout but NOT the move note.
     $s2 = seedScenario(1);
     $s2['units'][0]->update(['code' => 'EMPTYOOS']);
     $t2 = app(MaintenanceService::class)->open(['unit_id' => $s2['units'][0]->id, 'title' => 'Empty OOS', 'takes_out_of_service' => true]);
     $this->actingAs(mtDetailMember($s2))->get("/app/maintenance/{$t2->id}")
-        ->assertSee('out of service — not bookable')
-        ->assertDontSee('need to be moved manually');
+        ->assertSee('blocked from sale')
+        ->assertSee('No bookings affected')
+        ->assertDontSee('to be moved');
 });
 
 // ── 7. Tenant isolation — cross-org detail 404s; cross-org action 404s and mutates nothing ───────

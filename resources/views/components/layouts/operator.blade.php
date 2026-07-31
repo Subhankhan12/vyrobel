@@ -665,6 +665,11 @@
         .vy-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
         .vy-fact-label { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-faint); }
         .vy-fact-val { font-size: 13.5px; font-weight: 500; margin-top: 3px; }
+        /* #105 Work Order detail — the wireframe's 4-col fact grid + responsive 2-col stack */
+        .vy-wo-flabel { font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 5px; }
+        .vy-wo-fval { font-size: 13px; font-weight: 500; }
+        .vy-wo-fsub { font-size: 11px; color: var(--vy-faint); margin-top: 1px; }
+        @media (max-width: 1080px) { .vy-wo-grid { grid-template-columns: minmax(0, 1fr) !important; } }
         .vy-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
         .vy-detail-ref { font-family: var(--vy-display); font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
 

@@ -214,6 +214,29 @@ class MaintenanceActionController extends Controller
     }
 
     /**
+     * #105 — post a real Activity update (Note / Progress / Part-ordered) to the ticket's timeline, through the
+     * certified {@see MaintenanceService::addNote} (shared polymorphic notes). Tenant + ticket scoped; read-only
+     * respected; `can:maintenance.manage` at the route (#20/#30).
+     */
+    public function addNote(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
+    {
+        $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
+
+        if ($this->paused()) {
+            return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', $this->pausedMessage());
+        }
+
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'max:2000'],
+            'kind' => ['nullable', Rule::in(MaintenanceService::NOTE_KINDS)],
+        ]);
+
+        $maintenance->addNote($model, $validated['body'], $validated['kind'] ?? 'note');
+
+        return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', 'Update posted.');
+    }
+
+    /**
      * Attach a proof/issue PHOTO to a ticket (#89) — the app's file-upload security discipline (as
      * {@see RoomTypePhotoController}): validate real image CONTENT, a generated filename, the `public` disk, a
      * `Media` row on the ticket (`collection='mt_photo'`). Tenant-scoped; read-only respected.

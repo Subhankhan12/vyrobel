@@ -4,48 +4,42 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\AuditEvent;
 use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
+use App\Models\Media;
 use App\Models\Membership;
+use App\Models\Note;
 use App\Models\OwnerExpense;
 use App\Models\ReservationUnit;
 use App\Models\User;
 use App\Services\MaintenanceService;
 use App\Support\Maintenance\MaintenanceSla;
+use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Operator Maintenance ticket detail — the styled work order (design pass · Maintenance UI). Ported from
- * the catalogued "Operator Work Order" design onto the SAME operator design system as the board (operator
- * layout, <x-operator.shell>, FormatsOperatorData — reused, never redefined). Presentation + wiring of
- * EXISTING actions only; no schema/guarantee/availability/cost path is touched.
+ * Operator Work Order detail — the styled work order (#105 exact-match to "Operator Work Order.html"). The
+ * detail of the SAME {@see MaintenanceTicket} model the Maintenance board lists (anti-drift; the board is
+ * undisturbed). All facts, the activity timeline (real `audit_events` ∪ real ticket `notes`), the SLA clock
+ * ({@see MaintenanceSla}, the ONE helper the board also reads), the out-of-order impact (real
+ * `condition_status` + real affected bookings), and the cost destination (real `owner_expense`) are REAL and
+ * tenant-scoped. The page READS; every mutation POSTs to the real {@see MaintenanceActionController} →
+ * {@see MaintenanceService} (guarded, read-only-respecting, audited).
  *
- * RMB rule: `{ticket}` is a plain string prop resolved in render() via a tenant-scoped `findOrFail`
- * (after SetTenantForWebRequest) — a cross-org id 404s. Never a route-model-bound prop. The lifecycle
- * MUTATIONS run through the real {@see MaintenanceService} via POST routes
- * ({@see MaintenanceActionController}), NOT from here.
+ * RMB rule: `{ticket}` is a plain string prop resolved in render() via a tenant-scoped `findOrFail` (after
+ * SetTenantForWebRequest) — a cross-org id 404s. Never a route-model-bound prop.
  *
- * Honesty triage (rule locked in DECISIONS.md 2026-07-11):
- *   • REAL       — the ticket's real facts (category/priority/reporter/opened/assignee), description, and
- *                  an activity timeline built ONLY from the real audit_events for this ticket (opened /
- *                  assigned / started / resolved / cancelled — actor + timestamp; nothing fabricated).
- *                  Lifecycle actions (Start/Resolve/Assign/Cancel) persist through the service and are
- *                  offered ONLY when the real current state allows the transition.
- *   • INTEGRATION 1 (out of service) — when the ticket took its unit out of service AND the unit is
- *                  genuinely `condition_status = out_of_service`, the OOS callout shows, PLUS the REAL
- *                  count of physically-assigned bookings on that unit (active `reservation_unit` rows) as
- *                  the manual-move flag (absent when zero) — surfacing, never auto-cancelling.
- *   • INTEGRATION 2 (cost → owner expense) — when resolved with a cost, the destination is read from the
- *                  ACTUAL owner_expense (source = this ticket): present → "charged to {owner}"; absent
- *                  (operator-owned) → "operator cost". Never a fabricated charge.
- *   • PII        — staff names (reporter/assignee/actor) are shown; no encrypted guest/owner contact.
+ * Honesty (#39): NO fabricated fields. The wireframe's Area / sequential WO-#### / technician specialty /
+ * "On site" presence / availability / resolution-outcome chips / "€X per night on hold" are NOT modelled and
+ * are OMITTED (the reduced honest state), never invented. The affected-arrival, the SLA countdown, the OOS
+ * block, and the cost are all real. Guest data on the OOS impact stays NAME-only-absent (a count, #28).
  */
 #[Layout('components.layouts.operator')]
 class MaintenanceTicketDetail extends Component
@@ -70,6 +64,8 @@ class MaintenanceTicketDetail extends Component
         $status = (string) $ticket->status;
         $statusMeta = $this->maintenanceStatusMeta($status);
         $priorityMeta = $this->maintenancePriorityMeta((string) $ticket->priority);
+        $now = CarbonImmutable::now();
+        $openedAt = CarbonImmutable::parse((string) $ticket->opened_at);
 
         // The real active owner-expense for this ticket's cost (owned units only; absent = operator cost).
         $expense = OwnerExpense::query()
@@ -82,26 +78,34 @@ class MaintenanceTicketDetail extends Component
         // OOS integration — shown only when this ticket took the unit out AND it is genuinely OOS now.
         $isOos = $ticket->takes_out_of_service && $unit->condition_status === 'out_of_service';
 
-        // Manual-move flag — REAL count of physically-assigned bookings on the (now-blocked) unit. These
-        // are NOT auto-moved/cancelled; the operator moves them from the rack. Absent when zero.
-        $bookingsToMove = $isOos
-            ? ReservationUnit::query()->active()->where('unit_id', $unit->id)->count()
+        // Real affected bookings on the (blocked) unit: the total still physically assigned, and — for the
+        // wireframe's "N arrival tonight needs a room" — the subset arriving today. Both are REAL counts.
+        $bookingsToMove = $isOos ? ReservationUnit::query()->active()->where('unit_id', $unit->id)->count() : 0;
+        $arrivalsToday = $isOos
+            ? ReservationUnit::query()->active()->where('unit_id', $unit->id)->whereDate('check_in', $now->toDateString())->count()
             : 0;
 
         $currency = (string) $unit->property->currency;
 
-        // #104 GATE 0 — the maintenance lifecycle routes are now gated `maintenance.manage`; gate the CONTROLS
-        // on the SAME permission so a role that can VIEW a ticket but not manage it never sees a 403-ing button.
+        // #104 GATE 0 — the maintenance lifecycle routes are gated `maintenance.manage`; gate the CONTROLS on the
+        // SAME permission so a role that can VIEW a ticket but not manage it never sees a 403-ing button.
         $canManage = (bool) auth()->user()?->can('maintenance.manage');
 
-        // #104 GATE 1d — surface the SAME real SLA clock the board shows (MaintenanceSla over the property's
-        // configured targets), and the awaiting-parts state — whose writer (setAwaitingParts) existed but was
-        // wired to no screen. The parts editor + SLA card below turn both into usable detail controls.
+        // The SAME real SLA clock the board shows (MaintenanceSla over the property's configured targets).
         $setting = MaintenanceSetting::query()->first() ?? new MaintenanceSetting;
-        $sla = MaintenanceSla::evaluate($ticket, $setting, CarbonImmutable::now());
+        $sla = MaintenanceSla::evaluate($ticket, $setting, $now);
+        $deadline = $sla['deadline'];   // ?CarbonImmutable, from the shared SLA helper
 
         return view('livewire.maintenance-ticket-detail', [
             'viewer' => $this->viewer(),
+            'canManage' => $canManage,
+            // A paused/lapsed workspace is read-only — hide the write affordances (the controller enforces too).
+            'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
+            'noteKinds' => [
+                ['key' => 'note', 'label' => 'Note'],
+                ['key' => 'progress', 'label' => 'Progress'],
+                ['key' => 'part', 'label' => 'Part ordered'],
+            ],
             'ticket' => [
                 'id' => (string) $ticket->id,
                 'title' => (string) $ticket->title,
@@ -114,17 +118,24 @@ class MaintenanceTicketDetail extends Component
                 'status_tone' => $statusMeta['tone'],
                 'unit' => (string) $unit->code,
                 'unit_name' => $unit->name !== null ? (string) $unit->name : null,
+                'property_name' => (string) $unit->property->name,
                 'reporter' => $ticket->reportedBy instanceof User ? (string) $ticket->reportedBy->name : null,
                 'assignee' => $ticket->assignedTo instanceof User ? (string) $ticket->assignedTo->name : null,
                 'assignee_id' => $ticket->assigned_to !== null ? (string) $ticket->assigned_to : null,
-                'opened' => $ticket->opened_at->format('j M Y · H:i'),
+                'assignee_initials' => $ticket->assignedTo instanceof User ? $this->initials((string) $ticket->assignedTo->name) : null,
+                'opened' => $openedAt->format('j M Y · H:i'),
+                'reported_day' => $openedAt->isToday() ? 'Today' : $openedAt->format('j M'),
+                'reported_time' => $openedAt->format('H:i'),
+                'open_for' => $this->elapsedLabel($openedAt, $now),
                 'resolved' => $ticket->resolved_at?->format('j M Y · H:i'),
+                'is_oos' => $isOos,
                 'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, (string) ($ticket->currency ?? $currency)) : null,
                 // Real state → which transitions the service will accept (offer only what it allows).
                 'can_start' => $canManage && $status === 'open',
                 'can_resolve' => $canManage && $status === 'in_progress',
                 'can_cancel' => $canManage && in_array($status, ['open', 'in_progress'], true),
                 'can_assign' => $canManage && in_array($status, ['open', 'in_progress'], true),
+                'is_active' => $ticket->isActive(),
                 // #104 GATE 1d — awaiting-parts state (real columns; the editor below is its first UI).
                 'awaiting_parts' => (bool) $ticket->awaiting_parts && $ticket->isActive(),
                 'part_name' => $ticket->part_name !== null ? (string) $ticket->part_name : null,
@@ -139,39 +150,48 @@ class MaintenanceTicketDetail extends Component
                 'due_soon' => $sla['due_soon'],
                 'target_hours' => $sla['target_hours'],
                 'label' => $this->slaLabel($sla),
+                // "Same-day target" only for a short (≤12h) SLA — a 24h target spans into the next day.
+                'same_day' => is_int($sla['target_hours']) && $sla['target_hours'] <= 12,
+                'due_by' => $deadline?->isSameDay($now) === true ? $deadline->format('H:i') : $deadline?->format('j M · H:i'),
+                'reported_time' => $openedAt->format('H:i'),
+                'progress_pct' => $this->slaProgress($openedAt, $now, is_int($sla['target_hours']) ? $sla['target_hours'] : null),
             ],
             'currencySymbol' => $this->currencySymbol($currency),
             'timeline' => $this->timeline($ticket),
+            'photos' => $this->photos($ticket),
             'oos' => [
                 'active' => $isOos,
                 'bookings_to_move' => $bookingsToMove,
+                'arrivals_today' => $arrivalsToday,
+                'impact_label' => $this->oosImpactLabel($arrivalsToday, $bookingsToMove),
             ],
             'expense' => $expense !== null ? [
                 'owner' => (string) ($expense->owner->name ?? 'the owner'),
                 'amount' => $this->money((int) $expense->amount_minor, (string) $expense->currency),
                 'deductible' => (bool) $expense->deductible,
             ] : null,
-            'staff' => $this->orgStaff(),
+            'staff' => $this->reassignStaff($ticket),
         ]);
     }
 
     /**
-     * The ticket's activity timeline — built ONLY from the real audit_events for this subject. Each entry
-     * is a genuine recorded transition (opened/assigned/started/resolved/cancelled) with its actor +
-     * timestamp; nothing is invented and no synthetic "expected next step" is shown.
+     * The ticket's activity timeline — REAL `audit_events` (lifecycle transitions) MERGED with the ticket's
+     * real `notes` (the Activity composer), ordered by time. Each entry carries a per-type dot/ring colour
+     * (a presentation map over the real action/kind) + an optional note body. Nothing is invented.
      *
-     * @return list<array{label: string, detail: string|null, actor: string, at: string}>
+     * @return list<array{label: string, time: string, actor: string, note: string|null, has_note: bool, dot: string, ring: string, show_line: bool}>
      */
     private function timeline(MaintenanceTicket $ticket): array
     {
+        // Lifecycle events — the note_added action is excluded (the note itself renders from the notes store).
         $events = AuditEvent::query()
             ->where('subject_type', $ticket->getMorphClass())
             ->where('subject_id', $ticket->getKey())
             ->where('action', 'like', 'maintenance_ticket.%')
+            ->where('action', '!=', 'maintenance_ticket.note_added')
             ->orderBy('created_at')
             ->get();
 
-        // Resolve the actor + (for assignments) the target user names in one batch.
         $userIds = $events->pluck('actor_id')->filter()->all();
         foreach ($events as $event) {
             $after = is_array($event->after) ? $event->after : [];
@@ -182,43 +202,101 @@ class MaintenanceTicketDetail extends Component
         /** @var array<string, string> $names */
         $names = User::query()->whereIn('id', array_values(array_unique($userIds)))->pluck('name', 'id')->all();
 
-        return $events->map(function (AuditEvent $event) use ($names): array {
+        /** @var Collection<int, array{sort: string, label: string, time: string, actor: string, note: string|null, has_note: bool, dot: string, ring: string}> $rows */
+        $rows = $events->map(function (AuditEvent $event) use ($names): array {
             $action = (string) $event->action;
             $after = is_array($event->after) ? $event->after : [];
 
             $label = match ($action) {
-                'maintenance_ticket.opened' => 'Ticket opened',
-                'maintenance_ticket.assigned' => isset($after['assigned_to']) ? 'Assigned' : 'Unassigned',
+                'maintenance_ticket.opened' => 'Reported',
+                'maintenance_ticket.assigned' => isset($after['assigned_to'])
+                    ? 'Assigned to '.($names[(string) $after['assigned_to']] ?? 'a technician')
+                    : 'Unassigned',
                 'maintenance_ticket.started' => 'Work started',
                 'maintenance_ticket.resolved' => 'Resolved',
                 'maintenance_ticket.cancelled' => 'Cancelled',
+                'maintenance_ticket.parts_updated' => 'Parts updated',
+                'maintenance_ticket.cost_corrected' => 'Cost corrected',
                 default => ucwords(str_replace(['maintenance_ticket.', '_'], ['', ' '], $action)),
             };
 
-            $detail = null;
-            if ($action === 'maintenance_ticket.assigned' && isset($after['assigned_to'])) {
-                $detail = $names[(string) $after['assigned_to']] ?? null;
-            }
-
-            $actor = $event->actor_id !== null
-                ? ($names[(string) $event->actor_id] ?? 'A team member')
-                : ($event->actor_type === 'system' ? 'System' : 'A team member');
+            [$dot, $ring] = $this->eventColour($action);
+            $at = $event->created_at;   // Illuminate\Support\Carbon|null
 
             return [
+                'sort' => $at?->format('Y-m-d H:i:s.u') ?? '',
                 'label' => $label,
-                'detail' => $detail,
-                'actor' => $actor,
-                'at' => $event->created_at?->format('j M · H:i') ?? '',
+                'time' => $at?->format('j M · H:i') ?? '',
+                'actor' => $event->actor_id !== null
+                    ? ($names[(string) $event->actor_id] ?? 'A team member')
+                    : ($event->actor_type === 'system' ? 'System' : 'A team member'),
+                'note' => null,
+                'has_note' => false,
+                'dot' => $dot,
+                'ring' => $ring,
             ];
-        })->all();
+        });
+
+        // Real composer notes on the ticket.
+        $notes = $ticket->notes()->with('author')->orderBy('created_at')->get()
+            ->map(function (Note $note): array {
+                $kind = (string) ($note->kind ?? 'note');
+                [$dot, $ring] = $this->noteColour($kind);
+                $at = $note->created_at;   // Illuminate\Support\Carbon|null
+
+                return [
+                    'sort' => $at?->format('Y-m-d H:i:s.u') ?? '',
+                    'label' => match ($kind) {
+                        'progress' => 'Progress update',
+                        'part' => 'Part ordered',
+                        default => 'Note added',
+                    },
+                    'time' => $at?->format('j M · H:i') ?? '',
+                    'actor' => (string) ($note->author->name ?? 'A team member'),
+                    'note' => (string) $note->body,
+                    'has_note' => true,
+                    'dot' => $dot,
+                    'ring' => $ring,
+                ];
+            });
+
+        $merged = $rows->concat($notes)->sortBy('sort')->values();
+        $last = $merged->count() - 1;
+
+        return $merged->map(fn (array $row, int $i): array => [
+            'label' => $row['label'],
+            'time' => $row['time'],
+            'actor' => $row['actor'],
+            'note' => $row['note'],
+            'has_note' => $row['has_note'],
+            'dot' => $row['dot'],
+            'ring' => $row['ring'],
+            'show_line' => $i < $last,
+        ])->all();
     }
 
     /**
-     * The active staff of the current org, for the Reassign picker.
+     * The ticket's photos (real Media, `mt_photo` collection) — surfaced on the detail's Reported-issue card.
      *
-     * @return list<array{id: string, name: string}>
+     * @return list<array{id: string, url: string, alt: string}>
      */
-    private function orgStaff(): array
+    private function photos(MaintenanceTicket $ticket): array
+    {
+        return $ticket->media()
+            ->where('collection', 'mt_photo')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (Media $m): array => ['id' => (string) $m->id, 'url' => (string) $m->url, 'alt' => (string) ($m->alt ?? 'Maintenance photo')])
+            ->all();
+    }
+
+    /**
+     * The active staff of the current org for the Reassign picker, each with a REAL open-work load (open /
+     * in-progress tickets assigned to them, and how many are urgent) — never a fabricated availability.
+     *
+     * @return list<array{id: string, name: string, initials: string, load: string, is_current: bool}>
+     */
+    private function reassignStaff(MaintenanceTicket $ticket): array
     {
         $orgId = app(TenantContext::class)->id();
         if ($orgId === null) {
@@ -230,11 +308,103 @@ class MaintenanceTicketDetail extends Component
             ->where('status', 'active')
             ->pluck('user_id');
 
+        // Real open-load per member: active tickets assigned to them + the urgent subset (one grouped query).
+        $open = MaintenanceTicket::query()
+            ->whereIn('assigned_to', $memberIds)
+            ->whereIn('status', ['open', 'in_progress'])
+            ->get(['assigned_to', 'priority']);
+        /** @var array<string, array{open: int, urgent: int}> $load */
+        $load = [];
+        foreach ($open as $row) {
+            $id = (string) $row->assigned_to;
+            $load[$id] ??= ['open' => 0, 'urgent' => 0];
+            $load[$id]['open']++;
+            if ((string) $row->priority === 'urgent') {
+                $load[$id]['urgent']++;
+            }
+        }
+
+        $currentId = $ticket->assigned_to !== null ? (string) $ticket->assigned_to : null;
+
         return User::query()
             ->whereIn('id', $memberIds)
             ->orderBy('name')
             ->get()
-            ->map(fn (User $u): array => ['id' => (string) $u->id, 'name' => (string) $u->name])
+            ->map(function (User $u) use ($load, $currentId): array {
+                $id = (string) $u->id;
+                $l = $load[$id] ?? ['open' => 0, 'urgent' => 0];
+                $label = $l['open'] === 0
+                    ? 'No open work orders'
+                    : $l['open'].' open'.($l['urgent'] > 0 ? ' · '.$l['urgent'].' urgent' : '');
+
+                return [
+                    'id' => $id,
+                    'name' => (string) $u->name,
+                    'initials' => $this->initials((string) $u->name),
+                    'load' => $label,
+                    'is_current' => $id === $currentId,
+                ];
+            })
             ->all();
+    }
+
+    /** The wireframe's OOS-impact headline, from REAL counts (arrivals tonight preferred, else bookings on the unit). */
+    private function oosImpactLabel(int $arrivalsToday, int $bookingsToMove): string
+    {
+        if ($arrivalsToday > 0) {
+            return $arrivalsToday.' '.($arrivalsToday === 1 ? 'arrival tonight needs' : 'arrivals tonight need').' a room';
+        }
+        if ($bookingsToMove > 0) {
+            return $bookingsToMove.' '.($bookingsToMove === 1 ? 'booking needs' : 'bookings need').' to be moved';
+        }
+
+        return 'No bookings affected';
+    }
+
+    /** Elapsed label "2h 03m" / "3d 4h" / "12m" between two instants. */
+    private function elapsedLabel(CarbonImmutable $from, CarbonImmutable $to): string
+    {
+        $minutes = max(0, (int) $from->diffInMinutes($to));
+        if ($minutes < 60) {
+            return $minutes.'m';
+        }
+        if ($minutes < 1440) {
+            return intdiv($minutes, 60).'h '.str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT).'m';
+        }
+
+        return intdiv($minutes, 1440).'d '.(intdiv($minutes % 1440, 60)).'h';
+    }
+
+    /** SLA progress % (elapsed / target), clamped 0–100 — for the timing bar. */
+    private function slaProgress(CarbonImmutable $openedAt, CarbonImmutable $now, ?int $targetHours): int
+    {
+        if ($targetHours === null || $targetHours <= 0) {
+            return 0;
+        }
+        $elapsed = (float) $openedAt->diffInMinutes($now) / 60.0;
+
+        return (int) round(max(0.0, min(100.0, $elapsed / $targetHours * 100.0)));
+    }
+
+    /** @return array{0: string, 1: string} dot + ring colour for a lifecycle action. */
+    private function eventColour(string $action): array
+    {
+        return match ($action) {
+            'maintenance_ticket.opened' => ['#C2410C', 'rgba(217,102,46,.14)'],
+            'maintenance_ticket.started' => ['#E8703A', 'rgba(232,112,58,.16)'],
+            'maintenance_ticket.resolved' => ['#3B9E6E', 'rgba(59,158,110,.16)'],
+            'maintenance_ticket.parts_updated' => ['#C79A3E', 'rgba(217,154,61,.16)'],
+            default => ['rgba(120,70,40,.40)', 'rgba(120,70,40,.10)'],
+        };
+    }
+
+    /** @return array{0: string, 1: string} dot + ring colour for a composer note kind. */
+    private function noteColour(string $kind): array
+    {
+        return match ($kind) {
+            'progress' => ['#E8703A', 'rgba(232,112,58,.16)'],
+            'part' => ['#C79A3E', 'rgba(217,154,61,.16)'],
+            default => ['rgba(120,70,40,.40)', 'rgba(120,70,40,.10)'],
+        };
     }
 }

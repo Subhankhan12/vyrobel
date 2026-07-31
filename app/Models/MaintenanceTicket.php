@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\HasMedia;
+use App\Models\Concerns\HasNotes;
 use Database\Factories\MaintenanceTicketFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,7 +35,7 @@ use Illuminate\Support\Carbon;
 class MaintenanceTicket extends Model
 {
     /** @use HasFactory<MaintenanceTicketFactory> */
-    use BelongsToOrganization, HasFactory, HasMedia, HasUlids, SoftDeletes;
+    use BelongsToOrganization, HasFactory, HasMedia, HasNotes, HasUlids, SoftDeletes;
 
     protected $fillable = [
         'organization_id',

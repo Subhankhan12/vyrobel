@@ -23,6 +23,7 @@ class Note extends Model
         'notable_id',
         'body',
         'visibility',
+        'kind',
         'author_id',
     ];
 
