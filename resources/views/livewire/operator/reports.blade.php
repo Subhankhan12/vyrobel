@@ -13,7 +13,11 @@
                 @endforeach
             </div>
             <div class="vy-right">
-                <span class="vy-pill is-soon" aria-disabled="true">Export <span class="vy-soon-tag">Soon</span></span>
+                {{-- #104 GATE 2 — real CSV export (was a dead "Soon" pill); the same figures the page shows. --}}
+                <a class="vy-pill" href="{{ $exportUrl }}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+                    Export CSV
+                </a>
             </div>
         </div>
 
@@ -86,6 +90,34 @@
                         </tbody>
                     </table>
                 @endif
+            </div>
+
+            {{-- #104 GATE 2 — REAL revenue-by-channel table (the reservation's real `source`; OTA brand honest) --}}
+            <div class="vy-card vy-fade" style="margin-top: 14px;">
+                <div class="vy-card-head"><h3>Revenue by channel</h3><span class="vy-card-note">by booking source · reconciles to gross</span></div>
+                @if (count($byChannel) === 0)
+                    <div class="vy-empty">No channel revenue in this range yet.</div>
+                @else
+                    <table class="vy-table">
+                        <thead><tr><th>Channel</th><th class="vy-num">Bookings</th><th class="vy-num">Revenue</th><th class="vy-num">Share</th></tr></thead>
+                        <tbody>
+                            @foreach ($byChannel as $c)
+                                <tr>
+                                    <td>{{ $c['label'] }}</td>
+                                    <td class="vy-num">{{ $c['bookings'] }}</td>
+                                    <td class="vy-num">{{ $c['revenue'] }}</td>
+                                    <td class="vy-num">{{ $c['share'] }}%</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            </div>
+
+            {{-- #104 GATE 2 — REAL revenue-by-month chart (same folio basis; every month a real bucket) --}}
+            <div class="vy-card vy-fade" style="margin-top: 14px;">
+                <div class="vy-card-head"><h3>Revenue by month</h3><span class="vy-card-note">{{ $activeRange['label'] }}</span></div>
+                <x-charts.bars :bars="$byMonth" height="140px" />
             </div>
         @endif
     </x-operator.shell>

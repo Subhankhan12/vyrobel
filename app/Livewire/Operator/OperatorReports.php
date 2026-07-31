@@ -14,6 +14,7 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Support\Folio\FolioTotals;
+use App\Support\Reports\OperatorRevenueBreakdown;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -82,6 +83,11 @@ class OperatorReports extends Component
             ],
             'net' => $this->money($grossMinor - $maintenanceMinor, $currency),
             'topUnits' => $this->topUnits($reservationIds, $currency),
+            // #104 GATE 2 — the wireframe's revenue-by-channel table + revenue-by-month chart, both REAL and
+            // reconciling to the report's gross (folio basis). CSV export carries the range in the query.
+            'byChannel' => $this->revenueByChannel($reservationIds, $currency),
+            'byMonth' => $this->revenueByMonth($reservationIds, $currency, $range),
+            'exportUrl' => route('app.reports.export', ['range' => $range['key']]),
             'empty' => $reservationIds === [] && $maintenanceMinor === 0,
         ]);
     }
@@ -113,6 +119,46 @@ class OperatorReports extends Component
             + (int) ($rows['manual'] ?? 0) + (int) ($rows['discount'] ?? 0);
 
         return ['room_minor' => $room, 'ancillary_minor' => $ancillary, 'tax_minor' => $tax];
+    }
+
+    /**
+     * REAL revenue-by-channel — the wireframe's Channel · Bookings · Revenue · Share table. Delegates the maths to
+     * the shared {@see OperatorRevenueBreakdown} (so the CSV export can't drift) and formats here. OTA brand is
+     * unmodelled → the honest "OTA" label (#39).
+     *
+     * @param  list<string>  $reservationIds
+     * @return list<array{source: string, label: string, bookings: int, revenue: string, revenue_minor: int, share: int}>
+     */
+    private function revenueByChannel(array $reservationIds, string $currency): array
+    {
+        return array_map(fn (array $row): array => [
+            'source' => $row['source'],
+            'label' => $this->sourceLabel($row['source']),
+            'bookings' => $row['bookings'],
+            'revenue' => $this->money($row['revenue_minor'], $currency),
+            'revenue_minor' => $row['revenue_minor'],
+            'share' => $row['share'],
+        ], OperatorRevenueBreakdown::byChannel($reservationIds, $currency));
+    }
+
+    /**
+     * REAL revenue-by-month bars (the wireframe's 6-month revenue chart). Buckets from the shared breakdown; scaled
+     * to the tallest bar here for the chart component.
+     *
+     * @param  list<string>  $reservationIds
+     * @param  array{start: CarbonImmutable, end: CarbonImmutable}  $range
+     * @return list<array{label: string, display: string, pct: int}>
+     */
+    private function revenueByMonth(array $reservationIds, string $currency, array $range): array
+    {
+        $buckets = OperatorRevenueBreakdown::byMonth($reservationIds, $currency, $range['start'], $range['end']);
+        $max = max(1, ...array_map(fn (array $b): int => $b['revenue_minor'], $buckets ?: [['revenue_minor' => 0]]));
+
+        return array_map(fn (array $b): array => [
+            'label' => $b['label'],
+            'display' => $this->money($b['revenue_minor'], $currency),
+            'pct' => (int) round($b['revenue_minor'] * 100 / $max),
+        ], $buckets);
     }
 
     /**

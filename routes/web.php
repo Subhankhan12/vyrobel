@@ -145,6 +145,7 @@ use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Operator\OperatorOwners;
 use App\Livewire\Operator\OperatorPortfolio;
 use App\Livewire\Operator\OperatorProfile;
+use App\Http\Controllers\Operator\OperatorReportsExportController;
 use App\Livewire\Operator\OperatorReports;
 use App\Livewire\Operator\OperatorRoles;
 use App\Livewire\Operator\OperatorSchedule;
@@ -451,6 +452,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // is a REAL aggregate reconciling to FolioTotals; no fabricated history/narrative.
     Route::get('/insights', OperatorInsights::class)->middleware('can:reports.view')->name('insights');
     Route::get('/reports', OperatorReports::class)->middleware('can:reports.view')->name('reports');
+    // #104 GATE 2 — the real Reports CSV export (was a dead "Soon" pill); same `reports.view` gate as the screen,
+    // scope via PropertyContext, figures through the shared OperatorRevenueBreakdown (can't drift from the page).
+    Route::get('/reports/export.csv', [OperatorReportsExportController::class, 'csv'])->middleware('can:reports.view')->name('reports.export');
 
     // Phase 7b · Subscription billing — the Paywall + Checkout, gated `can:billing.manage` (the founder /
     // Property Owner, NOT Front Desk). Read-only until the account-gated Stripe charge: the tiers + the

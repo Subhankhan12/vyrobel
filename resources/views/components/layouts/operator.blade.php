@@ -379,6 +379,15 @@
             font-size: 11.5px; font-weight: 600; color: #fff; white-space: nowrap;
             box-shadow: var(--vy-shadow-accent); cursor: default;
         }
+
+        /* #104 GATE 2 — the shared x-charts.bars vertical chart (Reports revenue-by-month). SCOPED under
+           .vy-chart so it never collides with the rack booking-bar `.vy-bar` above (same class, different
+           element). Values mirror the owner layout's chart, so both realms' charts read identically. */
+        .vy-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 8px; }
+        .vy-chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; height: 100%; }
+        .vy-chart .vy-bar { grid-row: auto; display: block; width: 100%; max-width: 44px; height: auto; margin: 0; padding: 0; border-radius: 8px 8px 4px 4px; background: var(--vy-grad-peach); box-shadow: none; overflow: visible; transition: height .3s ease; }
+        .vy-chart .vy-bar.is-last { background: var(--vy-grad); }
+        .vy-chart .vy-bar-label { display: block; font-size: 10.5px; color: var(--vy-muted); white-space: nowrap; }
         .vy-bar .vy-bar-guest { overflow: hidden; text-overflow: ellipsis; }
         .vy-bar .vy-bar-meta { font-weight: 500; opacity: .82; font-size: 10.5px; }
         .vy-bar .vy-bar-flag { margin-left: auto; font-size: 8.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; background: rgba(255,255,255,.22); border-radius: 5px; padding: 1px 5px; }
