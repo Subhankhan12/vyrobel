@@ -18,6 +18,7 @@ use App\Services\AssignmentService;
 use App\Services\FolioService;
 use App\Services\GuestWalletService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Folio\PropertyCharges;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
@@ -276,34 +277,16 @@ class ReservationCreateController extends Controller
      * base (room + taxable extras − any credit = the current folio balance before tax); the per-night / per-person
      * taxes use the stay. No property tax configured → nothing posted (honest, no fabricated VAT).
      */
+    // #104 GATE 1 — the tax + fee posting rules now live in ONE shared helper ({@see PropertyCharges}) so the
+    // direct booking and the group block charge them through the SAME code and cannot drift (#17 across surfaces).
     private function postTaxes(FolioService $folios, Folio $folio, string $propertyId, Money $taxableBase, int $nights, int $persons, string $currency): void
     {
-        $taxes = Tax::query()->where('property_id', $propertyId)->get();
-        if ($taxes->isEmpty()) {
-            return;
-        }
-
-        foreach ($taxes as $tax) {
-            // #98 GATE 2 — an INCLUSIVE percentage tax (VAT already in the room price) is informational, NOT
-            // charged; StayEstimator::taxApplies is the ONE rule the sample-stay preview shares (reconciles #17).
-            if (! StayEstimator::taxApplies($tax, $currency)) {
-                continue;
-            }
-            // A percentage tax (VAT) uses the taxable base; per-night / per-person taxes (city tax) use the stay.
-            $folios->applyTax($folio, $tax, $taxableBase, $nights, $persons);
-        }
+        PropertyCharges::postTaxes($folios, $folio, $propertyId, $taxableBase, $nights, $persons, $currency);
     }
 
-    /**
-     * Post the property's non-optional FEES to the folio (task #98 GATE 2) — cleaning + custom fees that always
-     * apply. Optional-at-booking fees are offered separately (guest can add), never auto-charged here. Uses the
-     * SAME {@see StayEstimator::feeApplies} rule + {@see FolioService::computeFee} the sample-stay preview uses.
-     */
     private function postFees(FolioService $folios, Folio $folio, string $propertyId, Money $base, int $nights, int $persons, string $currency): void
     {
-        Fee::query()->where('property_id', $propertyId)->get()
-            ->filter(fn (Fee $fee): bool => StayEstimator::feeApplies($fee, $currency))
-            ->each(fn (Fee $fee) => $folios->applyFee($folio, $fee, $base, $nights, $persons));
+        PropertyCharges::postFees($folios, $folio, $propertyId, $base, $nights, $persons, $currency);
     }
 
     /**

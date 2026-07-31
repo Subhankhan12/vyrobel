@@ -6,7 +6,9 @@ namespace App\Services;
 
 use App\Http\Controllers\Operator\GroupBookingController;
 use App\Models\Group;
+use App\Support\Folio\PropertyCharges;
 use App\Support\Money\Money;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
 /**
@@ -94,12 +96,27 @@ class GroupBookingService
         foreach ($reservations as $reservation) {
             $folio = $masterFolio ?? $this->folios->openFolio($reservation);
 
+            $memberRoomMinor = 0;
             foreach ($reservation->reservationUnits as $line) {
                 $roomName = ((string) $line->roomType->name) ?: 'Room';
                 $label = $master
                     ? 'Room · '.$roomName.' · '.$reservation->reference   // one bill: name the room it's for
                     : 'Room · '.$roomName;
                 $this->folios->postCharge($folio, 'room', $label, Money::of((int) $line->price_minor, $currency));
+                $memberRoomMinor += (int) $line->price_minor;
+            }
+
+            // #104 GATE 1 — post THIS member's property taxes + non-optional fees onto its folio (the master folio
+            // for a one-bill block, else the member's own), through the SAME shared helper the single-reservation
+            // flow uses ({@see PropertyCharges}). Before this, a group posted room charges only and under-billed vs
+            // both the wireframe and the direct flow — a real #17 gap across surfaces. The taxable base is the
+            // member's own room total; nights + persons are the member reservation's real stay.
+            if ($memberRoomMinor > 0) {
+                $nights = max(1, (int) CarbonImmutable::parse($reservation->check_in)->diffInDays(CarbonImmutable::parse($reservation->check_out)));
+                $persons = max(1, (int) $reservation->adults + (int) $reservation->children);
+                $base = Money::of($memberRoomMinor, $currency);
+                PropertyCharges::postTaxes($this->folios, $folio, (string) $reservation->property_id, $base, $nights, $persons, $currency);
+                PropertyCharges::postFees($this->folios, $folio, (string) $reservation->property_id, $base, $nights, $persons, $currency);
             }
         }
     }
