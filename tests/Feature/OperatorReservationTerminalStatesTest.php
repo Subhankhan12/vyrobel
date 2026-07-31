@@ -126,9 +126,11 @@ it('renders the real status timeline from reservation_status_history', function 
     expect((string) $transition->changed_by)->toBe((string) $operator->id);
 
     // …and the page shows the transition in the real enum's vocabulary, with the real actor.
+    // #104 GATE 1c — the card is now "Activity" (it merges the lifecycle transitions with the reservation's
+    // real payment audit_events); the transition + actor are unchanged.
     $this->actingAs($operator)->get("/app/reservations/{$res->id}")
         ->assertOk()
-        ->assertSee('Status history')
+        ->assertSee('Activity')
         ->assertSee('Confirmed → Cancelled')
         ->assertSee('Marisol Vandenberg');
 });

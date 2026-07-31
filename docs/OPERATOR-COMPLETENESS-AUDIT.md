@@ -96,3 +96,37 @@ The certified write paths + guards on every fully-operational page: `AssignmentS
 1. **Front Desk "Today's timeline"** — a truthful time-of-day plot needs an `expected_arrival`/ETA field (schema+model). Build the field, or keep the timeline a documented KIND-3 omission?
 2. **Schedule "Open shifts"** — needs an unassigned-shift model (net-new). Build, or keep the honest omission (the PDF already documents it)?
 3. **Calendar per-unit rows** — a real structural rebuild (unit-lane grid + per-unit blocks). In scope for this pass, or a separate structural task?
+
+---
+
+## ✅ RESOLUTION (2026-07-31 — built, per gate; all pushed)
+
+**19 commits, per-gate + per-item, each browser-verified where UI + mutation-proven where a guard/write.** No fabrication introduced (#39); money reconciles (#17); writes controller-routed + capability-gated + audited (#20); privacy perimeters held (#28 name-only off the CRM, #33 door-codes guest-only); deletions archive-not-destroy. The certified engines were REUSED (anti-drift), never duplicated. Suite green throughout + new tests; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.
+
+### GATE 0 — SECURITY (the read-found #20/#30 cluster)
+Capability-gated the ungated operator write routes (their controllers had no `authorize()`): `maintenance.*`→`maintenance.manage`, `housekeeping.status`→`housekeeping.manage`, `reservations.move`→`reservations.assign`, `front-desk.check-in/out`→`reservations.checkin/checkout` — each chosen so the legitimate role keeps access. Controls gated on the same permissions (UI never invites a 403). Mutation-proven 403-vs-404 (`OperatorRouteGatingGate0Test`).
+
+### GATE 1 — non-operational + #17 + biggest ops gaps
+- **1a Unit Requests** → OPERATIONAL: approve creates the REAL unit (the app's first unit-creation writer), assigned to the owner + made bookable; decline; owner notified. Bounded transitions, `units.manage`-gated (`OperatorUnitRequestWorkflowTest`).
+- **1b Group Booking #17**: block folios now charge tax + fees via ONE shared `PropertyCharges` (was room-only, under-billed vs the direct flow) — reconciles to the cent, both surfaces one code path (`OperatorGroupBookingChargesTest`).
+- **1c Reservation Detail**: unified activity trail (merges the `audit_events` money actions with lifecycle) + guest-CRM cross-link (`OperatorReservationActivityTrailTest`).
+- **1d Maintenance work order**: awaiting-parts UI (wired the built-but-unwired `setAwaitingParts`) + SLA card (shared `slaLabel`) (`OperatorMaintenancePartsTest`).
+
+### GATE 2 — finance/analytics real-able-absent
+- **2a Reports**: revenue-by-channel table + revenue-by-month chart + real CSV export — all through the shared `OperatorRevenueBreakdown`, reconciling to gross (`OperatorReportsBreakdownTest`).
+- **2b Reviews**: reputation summary dashboard (rating + 5-star distribution + reply-rate via `ReviewRating::operatorSummary`) + status filter tabs (`OperatorReviewsSummaryTest`).
+- **2c Property Settings**: the VAT Incl./Added toggle now PERSISTS + flips the folio-charging rule (`OperatorSettingsVatToggleTest`).
+- **2d Rates**: read-only room-type grid filter (`OperatorRatesFilterTest`).
+
+### GATE 3 — wiring + remaining
+- **3a Inbox**: snooze/reopen UI (closed-thread dead-end fixed; services already existed) (`OperatorInboxReopenTest`).
+- **3b Security**: renders the REAL active-sessions panel (was "Soon" though live on Profile) (`OperatorSecuritySessionsTest`).
+- **3c Dashboard** arrival detail (nights·unit) + **Reservations** Refunded pill + unit search (`OperatorReservationsListExtrasTest`).
+- **3d Calendar** bar cross-link + range switcher (`OperatorCalendarBarLinkTest`); **Schedule** grant-leave UI + coverage summary (`OperatorScheduleGrantLeaveTest`); **Front Desk** estimated-arrival capture + display (`OperatorFrontDeskEtaTest`, `OperatorNewReservationTest`).
+
+## Honest deferrals that REMAIN (documented, not faked)
+- **Reservation "Add note"** + New-Reservation **team_note** — a NEW guest-related free-text store on a reservation; per #28 it needs `anonymize()` wiring in the same change → a scoped follow-up, not half-built.
+- **New-Reservation send_confirmation toggle** — honouring it means threading a suppress flag through the certified booking domain-event → listener; deferred rather than modify the certified path.
+- **Front Desk time-of-day PLOT** + **Schedule "open shifts"** — the ETA is a free-text window (a precise plot would fabricate); open-shifts needs a net-new unassigned-shift model. ETA is captured + shown; open-shifts stays honestly omitted (the PDF documents it).
+- **Inbox link-reservation picker** · **Maintenance bulk-select / detail photos / activity composer** · **Profile per-session sign-out** — lower-priority follow-ups (the dead-end/backend-exists gaps were fixed).
+- **Account-gated (unchanged):** OTA/Channex sync · WhatsApp/OTA inbound · SMS/Push · live payment/payout go-live · IBAN verification · IP allow-list · connected-apps/trusted-devices for operators.
