@@ -11,6 +11,7 @@ use App\Models\Amenity;
 use App\Models\Building;
 use App\Models\Channel;
 use App\Models\ChannelMapping;
+use App\Models\Fee;
 use App\Models\Floor;
 use App\Models\Guest;
 use App\Models\GuestCreditEntry;
@@ -331,6 +332,10 @@ class DemoSeeder extends Seeder
         // reconciling folio lines (the extras are real org-owned AddOns; the city tax a real per-person-night
         // Tax). A founder configures their own; these are examples. (VAT above is the property's real 23%.)
         Tax::create(['property_id' => $property->id, 'name' => 'City tax', 'kind' => 'city_tax', 'mode' => 'per_person_night', 'amount' => Money::of(250, 'EUR')]);
+
+        // #98 · a clearly-flagged DEMO cleaning fee (real per-stay Fee) so the Property-Settings sample-stay +
+        // wizard folio show a cleaning line that reconciles (a founder configures their own).
+        Fee::create(['property_id' => $property->id, 'name' => 'Cleaning fee', 'kind' => 'cleaning', 'mode' => 'flat', 'amount_minor' => 4500, 'currency' => 'EUR', 'taxable' => false, 'optional' => false]);
         foreach ([
             ['name' => 'Breakfast', 'price' => 1800, 'taxable' => true],
             ['name' => 'Late checkout', 'price' => 4000, 'taxable' => true],

@@ -12,6 +12,7 @@ use App\Models\Organization;
 use App\Models\Property;
 use App\Models\Tax;
 use App\Services\PropertyBookingPauseService;
+use App\Services\PropertyRemovalService;
 use App\Services\SettingsService;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
@@ -140,6 +141,75 @@ class SettingsActionController extends Controller
         $settings->updateBrand($property, $attributes);
 
         return $this->back('Guest-facing brand saved.');
+    }
+
+    /**
+     * Add a custom FEE to the property (task #98 GATE 2 · Add-a-fee) — per-stay / per-night / per-guest, and
+     * optional-at-booking or always-applied. A non-optional fee then posts to every folio (via the shared
+     * StayEstimator rule the reservation folio uses). `properties.manage`-gated on the route.
+     */
+    public function addFee(Request $request, SettingsService $settings): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
+        $property = $this->currentProperty();
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'basis' => ['required', 'in:per_stay,per_night,per_guest'],
+            'amount' => ['required', 'numeric', 'min:0', 'max:100000'],
+            'optional' => ['sometimes', 'boolean'],
+        ]);
+
+        $mode = match ($data['basis']) {
+            'per_night' => 'per_night',
+            'per_guest' => 'per_person',
+            default => 'flat',
+        };
+
+        $settings->createFee($property, $data['name'], $mode, (int) round(((float) $data['amount']) * 100), $request->boolean('optional'));
+
+        return $this->back('Fee added.');
+    }
+
+    /**
+     * Schedule the property's REMOVAL (task #98 GATE 2 · ⚠️ archive-not-destroy). Requires typing the exact
+     * property name to confirm. The property stays live until the last checkout, then is soft-deleted (records
+     * retained). Cancellable via {@see cancelRemoval}. `properties.manage`-gated on the route + audited.
+     */
+    public function scheduleRemoval(Request $request, PropertyRemovalService $removals): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
+        $property = $this->currentProperty();
+
+        $request->validate([
+            'confirm_name' => ['required', 'string'],
+        ]);
+
+        if (trim((string) $request->input('confirm_name')) !== trim((string) $property->name)) {
+            return redirect()->to(route('app.settings'))->with('settings_error', 'The name you typed didn’t match — removal was not scheduled.');
+        }
+
+        $removals->schedule($property, (string) auth()->id());
+
+        return $this->back('Removal scheduled — you can cancel any time before it runs.');
+    }
+
+    /** Cancel a scheduled property removal (task #98 GATE 2). */
+    public function cancelRemoval(PropertyRemovalService $removals): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
+        $removals->cancel($this->currentProperty());
+
+        return $this->back('Scheduled removal cancelled — this property stays.');
     }
 
     /** Pause new bookings for the property (task #98) — real: fans out to units via the certified availability spine. */

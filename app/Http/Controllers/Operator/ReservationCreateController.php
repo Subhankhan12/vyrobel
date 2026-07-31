@@ -8,6 +8,7 @@ use App\Exceptions\Booking\BookingException;
 use App\Http\Controllers\Controller;
 use App\Livewire\Operator\NewReservation;
 use App\Models\AddOn;
+use App\Models\Fee;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Reservation;
@@ -17,6 +18,7 @@ use App\Services\AssignmentService;
 use App\Services\FolioService;
 use App\Services\GuestWalletService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
@@ -187,6 +189,9 @@ class ReservationCreateController extends Controller
         // The percentage-tax base = room (taxable) + taxable extras − credit; per-night/per-person taxes ignore it.
         $taxableBase = Money::of(max(0, $roomChargeMinor + $taxableExtrasMinor - $creditMinor), $currency);
         $this->postTaxes($folios, $folio, (string) $roomType->property_id, $taxableBase, $nights, max(1, $adults + $children), $currency);
+        // #98 GATE 2 — configured non-optional fees (cleaning) now POST to the folio (applyFee was never called);
+        // reconciles with the Property-Settings sample-stay via the shared StayEstimator rules.
+        $this->postFees($folios, $folio, (string) $roomType->property_id, $taxableBase, $nights, max(1, $adults + $children), $currency);
 
         $notice = 'Reservation '.$reservation->reference.' created.';
         if ($creditMinor > 0) {
@@ -279,12 +284,26 @@ class ReservationCreateController extends Controller
         }
 
         foreach ($taxes as $tax) {
-            if ($tax->currency !== null && (string) $tax->currency !== $currency) {
+            // #98 GATE 2 — an INCLUSIVE percentage tax (VAT already in the room price) is informational, NOT
+            // charged; StayEstimator::taxApplies is the ONE rule the sample-stay preview shares (reconciles #17).
+            if (! StayEstimator::taxApplies($tax, $currency)) {
                 continue;
             }
             // A percentage tax (VAT) uses the taxable base; per-night / per-person taxes (city tax) use the stay.
             $folios->applyTax($folio, $tax, $taxableBase, $nights, $persons);
         }
+    }
+
+    /**
+     * Post the property's non-optional FEES to the folio (task #98 GATE 2) — cleaning + custom fees that always
+     * apply. Optional-at-booking fees are offered separately (guest can add), never auto-charged here. Uses the
+     * SAME {@see StayEstimator::feeApplies} rule + {@see FolioService::computeFee} the sample-stay preview uses.
+     */
+    private function postFees(FolioService $folios, Folio $folio, string $propertyId, Money $base, int $nights, int $persons, string $currency): void
+    {
+        Fee::query()->where('property_id', $propertyId)->get()
+            ->filter(fn (Fee $fee): bool => StayEstimator::feeApplies($fee, $currency))
+            ->each(fn (Fee $fee) => $folios->applyFee($folio, $fee, $base, $nights, $persons));
     }
 
     /**

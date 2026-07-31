@@ -14,11 +14,14 @@ use App\Models\Owner;
 use App\Models\OwnerInvite;
 use App\Models\Property;
 use App\Models\PropertyPolicy;
+use App\Models\Reservation;
 use App\Models\Tax;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\SettingsService;
 use App\Support\Branding\PropertyBrand;
+use App\Support\Folio\StayEstimator;
+use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -74,6 +77,8 @@ class OperatorSettings extends Component
             'roleDefinitions' => self::roleDefinitions(),
             'brand' => $property !== null ? $this->brandForm($property) : null,
             'brandPreview' => $property !== null ? PropertyBrand::for($property) : PropertyBrand::default(),
+            'sample' => $property !== null ? $this->sampleStay($property) : null,
+            'removal' => $property !== null ? $this->removalState($property) : null,
         ]);
     }
 
@@ -285,6 +290,59 @@ class OperatorSettings extends Component
     }
 
     /**
+     * The sample 4-night stay (task #98 GATE 2) — Room €150 × 4, 2 guests, via the SHARED {@see StayEstimator}
+     * (the SAME rules + compute functions a REAL folio uses), so it reconciles to the cent (#17). Amounts are
+     * formatted here for the view.
+     *
+     * @return array{lines: list<array{label: string, detail: string, amount: string, informational: bool}>, total: string, currency: string}
+     */
+    private function sampleStay(Property $property): array
+    {
+        $currency = (string) ($property->currency ?: 'EUR');
+        $room = Money::of(60000, $currency);   // €150 × 4 nights (the wireframe's illustrative sample)
+
+        $taxes = Tax::query()->where('property_id', $property->id)->orderBy('name')->get();
+        $fees = Fee::query()->where('property_id', $property->id)->orderBy('name')->get();
+        $estimate = StayEstimator::estimate($taxes, $fees, $room, 4, 2, $currency);
+
+        return [
+            'lines' => array_map(fn (array $l): array => [
+                'label' => $l['label'],
+                'detail' => $l['detail'],
+                'amount' => $this->money($l['amount']->amountMinor(), $currency),
+                'informational' => $l['informational'],
+            ], $estimate['lines']),
+            'total' => $this->money($estimate['total']->amountMinor(), $currency),
+            'currency' => $currency,
+        ];
+    }
+
+    /**
+     * The property removal state (task #98 GATE 2 · archive-not-destroy) — whether a removal is scheduled, its
+     * effective date, and how many guests are in house right now (name-free count).
+     *
+     * @return array{scheduled: bool, effective: string, in_house: int, name: string, units: int}
+     */
+    private function removalState(Property $property): array
+    {
+        $today = Carbon::today()->toDateString();
+        $inHouse = Reservation::query()
+            ->where('property_id', $property->id)
+            ->whereNotIn('status', ['cancelled', 'no_show'])
+            ->whereDate('check_in', '<=', $today)
+            ->whereDate('check_out', '>', $today)
+            ->count();
+
+        return [
+            'scheduled' => $property->removal_scheduled_at !== null,
+            'effective' => $property->removal_effective_at?->format('j M Y') ?? '',
+            'in_house' => $inHouse,
+            'name' => (string) $property->name,
+            'units' => Unit::query()->where('property_id', $property->id)->count(),
+        ];
+    }
+
+    /**
      * Configured taxes — REAL. Rate/amount shown as the tax actually stores them (the detailed editor is GATE 2).
      *
      * @return list<array{id: string, name: string, kind: string, basis: string}>
@@ -315,6 +373,7 @@ class OperatorSettings extends Component
         return Fee::query()->where('property_id', $propertyId)->orderBy('name')->get()->map(fn (Fee $fee): array => [
             'id' => (string) $fee->id,
             'name' => (string) $fee->name,
+            'optional' => (bool) $fee->optional,
             'percentage' => (string) $fee->mode === 'percentage',
             'rate' => rtrim(rtrim((string) $fee->rate, '0'), '.'),
             'amount' => number_format((int) $fee->amount_minor / 100, 2, '.', ''),

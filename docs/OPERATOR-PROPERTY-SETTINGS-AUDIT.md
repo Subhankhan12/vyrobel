@@ -103,3 +103,22 @@ Every write: controller-routed, `can:properties.manage` (or `users.manage` for i
 - **Decision A → A1 (fix the folio).** Honor `taxes.inclusive` in `computeTax()` (inclusive → informational €0 line) + wire `applyFee()` via a new `ReservationCreateController::postFees()` step. Sample reconciles by construction. Money-path change → per-test verification, mutation-prove sample==real folio, re-check the demo seed VAT flag + any shifted figure.
 - **Decision C → full scheduled archive.** New `properties` columns + effective-date = last checkout + scheduler command + cancellable window + channels-disconnect/owner-access-end/90-day-export retention + typed-name confirm + gated + audited. Never a hard delete.
 - **Decisions B / D / E / F → proceed per recommendation.** B: extend `fees` (`name`, `optional`) + `applyFee`. D: build per-property brand store + brand-aware shared layouts (fail-open to Vyrobel default); from-address stays the **verified** fixed sender (honest), from-name + reply-to editable (Postmark-safe). E: real property pause fans out to units. F: property-scoped invite writes a `property_user` pivot row on acceptance.
+
+---
+
+## RESOLUTION — GATE 1 (`15bcf9b` + `c744834`)
+
+Rebuilt `/app/settings` to the wireframe on REAL backends: Property basics (+ address) · Policies (cancellation tier / deposit / pets / self check-in — door code GUEST-only #33) · Tax & fees summary · **Owner card at the REAL 18%** (`ManagementAgreement` via `Unit.owner_id`) · Property status with a **REAL booking pause** (`PropertyBookingPauseService` fans out to units via the certified `AvailabilityService`; `properties.bookings_paused_at` zeroes `total` → new bookings refused, existing stays run — mutation-proven) · Who-can-access (real `property_user` team + pending invites + real role tiers) · **Guest-facing BRAND** (new per-property store → the shared `emails.layout` + guest shell + review page, fail-open to Vyrobel; Postmark-safe: from-name + reply-to per-property, from-address fixed verified; live preview mirrors the real email). Added the **read-only guard** (was missing). Org + Invoice/Notification "Soon" retained. **Security follow-up (`c744834`):** SVG dropped from logo uploads (stored-XSS via same-origin SVG script) — raster only. +6 `OperatorPropertySettingsGate1Test`.
+
+## RESOLUTION — GATE 2
+
+**The folio fix (Decision A1) — the tax/fees are now truly the folio source, reconciling (#17):**
+- `StayEstimator` is the ONE rule set: an **inclusive** percentage tax is informational (extracted `base·rate/(100+rate)`, NOT charged); a non-optional fee is applied. `FolioService::computeTax`/`computeFee` unchanged; `ReservationCreateController::postTaxes` now skips inclusive taxes via `StayEstimator::taxApplies`, and a new `postFees` posts non-optional fees (`applyFee` finally has a caller) via `StayEstimator::feeApplies`.
+- The Property-Settings **sample 4-night stay** uses the SAME `StayEstimator` → it reconciles to a real folio **to the cent** (mutation-proven: sample €661.00 == a folio built from the same config; demo sample €803.00 = room 600 + city 20 + VAT 138 exclusive + cleaning 45).
+- Blast radius: the demo VAT is **exclusive** (unchanged) and the demo had **no** fee → existing folios/tests unaffected; a flagged demo cleaning fee (€45) now demos the shape. Wizard reservation tests green.
+
+**Custom Add-a-fee (Decision B):** `fees.optional` + `SettingsService::createFee` + a real create form (per-stay/night/guest, optional-at-booking). A non-optional fee posts to every folio; an optional fee is offered (not auto-charged) — both mutation-proven.
+
+**Remove-property (Decision C) — a careful ARCHIVE-NOT-DESTROY:** `PropertyRemovalService` schedules removal (effective = the last checkout, so it stays live until then), soft-deletes when due via `properties:process-removals` (daily), disconnects channels (certified `ChannelConnectionService`), and is **cancellable**. Records are NEVER destroyed (soft-delete doesn't cascade; a hard `delete()` is never used) — proven: after archive the property is trashed but its reservation is retained. Typed-name confirmation + `properties.manage` + audited.
+
+**⚠️ Raw-blade trap (caught in the browser, not by tests):** the remove-modal had `right now@endif` — the `@endif` after a word char is NOT compiled, so the page 500'd on GET while static checks + POST tests stayed green. Fixed (`...</span>@endif`) + a GET-render test added (the "static checks can't see a rendered page" lesson, live). +8 `OperatorPropertySettingsGate2Test`.

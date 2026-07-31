@@ -28,6 +28,7 @@ class Fee extends Model
         'amount_minor',
         'currency',
         'taxable',
+        'optional',
     ];
 
     /**
@@ -39,6 +40,7 @@ class Fee extends Model
             'rate' => 'decimal:4',
             'amount' => MoneyCast::class.':amount_minor,currency',
             'taxable' => 'boolean',
+            'optional' => 'boolean',
         ];
     }
 

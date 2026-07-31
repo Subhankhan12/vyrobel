@@ -201,7 +201,55 @@
                 @if ($property['bookings_paused'])
                     <div style="font-size: 12px; color: var(--vy-amber); padding-top: 6px;">New bookings are paused for this property.</div>
                 @endif
+
+                {{-- Remove from group — a careful ARCHIVE-NOT-DESTROY (scheduled, cancellable, records retained) --}}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0 0; margin-top: 8px; border-top: 1px solid var(--vy-hairline);">
+                    <div>
+                        <div style="font-size: 13.5px; color: var(--vy-ink);">Remove from group</div>
+                        <div style="font-size: 12px; color: var(--vy-muted);">Archives the property — records are kept &amp; exportable, billing stops.</div>
+                    </div>
+                    @if ($removal !== null && $removal['scheduled'])
+                        <form method="POST" action="{{ route('app.settings.remove.cancel') }}">
+                            @csrf
+                            <button type="submit" class="vy-btn" style="padding: 8px 16px; font-size: 12.5px;">Keep this property</button>
+                        </form>
+                    @elseif ($canManageProperty && ! $readOnly)
+                        <button type="button" x-data @click="$dispatch('open-remove')" class="vy-btn" style="padding: 8px 16px; font-size: 12.5px; color: rgb(150,50,42); border-color: rgba(180,68,58,.3);">Remove…</button>
+                    @endif
+                </div>
+                @if ($removal !== null && $removal['scheduled'])
+                    <div style="font-size: 12px; color: var(--vy-amber); padding-top: 8px;">
+                        Removal is scheduled — the property stays live until the last checkout on <strong>{{ $removal['effective'] }}</strong>. You can cancel any time before it runs.
+                    </div>
+                @endif
             </div>
+
+            {{-- Remove-property confirm modal (Alpine) --}}
+            @if ($removal !== null && ! $removal['scheduled'] && $canManageProperty && ! $readOnly)
+                <div x-data="{ open: false, typed: '' }" x-on:open-remove.window="open = true" x-cloak>
+                    <div x-show="open" style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" @click.self="open = false">
+                        <div class="vy-card" style="max-width: 460px; width: 100%;">
+                            <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 4px;">Remove {{ $removal['name'] }}</h3>
+                            <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 12px;">{{ $removal['units'] }} {{ \Illuminate\Support\Str::plural('unit', $removal['units']) }}@if ($removal['in_house'] > 0)<span> · {{ $removal['in_house'] }} guests in house right now</span>@endif</div>
+                            <ul style="font-size: 12.5px; color: var(--vy-ink); line-height: 1.7; padding-left: 18px; margin: 0 0 14px;">
+                                <li>Removal is <strong>scheduled</strong> — the property stays live until the last checkout.</li>
+                                <li>Channels disconnect — new OTA bookings stop importing.</li>
+                                <li>The owner loses owner-portal access to these units.</li>
+                                <li>Reservations, folios &amp; statements stay exportable for 90 days.</li>
+                            </ul>
+                            <form method="POST" action="{{ route('app.settings.remove.schedule') }}">
+                                @csrf
+                                <label class="vy-field-label" for="confirm_name">Type the property name to confirm</label>
+                                <input id="confirm_name" type="text" name="confirm_name" class="vy-input" x-model="typed" placeholder="{{ $removal['name'] }}" autocomplete="off">
+                                <div style="display: flex; gap: 10px; margin-top: 14px; justify-content: flex-end;">
+                                    <button type="button" @click="open = false" class="vy-btn" style="padding: 9px 16px; font-size: 12.5px;">Keep this property</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent" style="padding: 9px 16px; font-size: 12.5px;" x-bind:disabled="typed.trim() !== @js($removal['name'])">Schedule removal</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- ── 6 · WHO CAN ACCESS — REAL (property_user pivot-or-all; real roles) ──────────────────── --}}
             <div class="vy-card vy-fade" style="margin-bottom: 16px;">
@@ -352,6 +400,59 @@
                             <button type="submit" class="vy-btn vy-btn--accent" style="margin-top: 14px; padding: 11px 20px;">Save taxes &amp; fees</button>
                         @endif
                     </form>
+                @endif
+
+                {{-- Add a fee (real create — per-stay/night/guest, optional-at-booking) --}}
+                @if ($canManageProperty && ! $readOnly)
+                    <div x-data="{ open: false }" style="margin-top: 16px; border-top: 1px solid var(--vy-hairline); padding-top: 14px;">
+                        <button type="button" @click="open = !open" class="vy-btn" style="padding: 8px 14px; font-size: 12.5px;">+ Add a fee</button>
+                        <div x-show="open" x-cloak style="margin-top: 12px;">
+                            <form method="POST" action="{{ route('app.settings.fees.add') }}">
+                                @csrf
+                                <div class="vyn-grid3">
+                                    <div class="vy-field" style="margin: 0;">
+                                        <label class="vy-field-label" for="fee_name">Fee name</label>
+                                        <input id="fee_name" type="text" name="name" class="vy-input" placeholder="e.g. Resort fee" required>
+                                    </div>
+                                    <div class="vy-field" style="margin: 0;">
+                                        <label class="vy-field-label" for="fee_amount">Amount ({{ $sample['currency'] ?? 'EUR' }})</label>
+                                        <input id="fee_amount" type="number" step="0.01" min="0" name="amount" class="vy-input" required>
+                                    </div>
+                                    <div class="vy-field" style="margin: 0;">
+                                        <label class="vy-field-label" for="fee_basis">Charged</label>
+                                        <select id="fee_basis" name="basis" class="vy-input">
+                                            <option value="per_stay">Per stay</option>
+                                            <option value="per_night">Per night</option>
+                                            <option value="per_guest">Per guest</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--vy-ink); margin-top: 10px;">
+                                    <input type="checkbox" name="optional" value="1">
+                                    Optional at booking <span style="color: var(--vy-faint);">· guest can add it themselves, vs always applied</span>
+                                </label>
+                                <button type="submit" class="vy-btn vy-btn--accent" style="margin-top: 12px; padding: 10px 18px; font-size: 12.5px;">Add fee</button>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- The sample 4-night stay — reconciles to a REAL folio via the shared StayEstimator (#17) --}}
+                @if ($sample !== null)
+                    <div style="margin-top: 16px; border-top: 1px solid var(--vy-hairline); padding-top: 14px;">
+                        <div style="font-size: 12.5px; font-weight: 600; color: var(--vy-ink); margin-bottom: 2px;">On a sample 4-night stay</div>
+                        <div style="font-size: 11.5px; color: var(--vy-faint); margin-bottom: 10px;">2 guests · 4 nights · matches what a real folio charges for these settings</div>
+                        @foreach ($sample['lines'] as $line)
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; font-size: 13px;">
+                                <span style="color: var(--vy-ink);">{{ $line['label'] }} @if ($line['detail'] !== '')<span style="color: var(--vy-faint);">· {{ $line['detail'] }}</span>@endif</span>
+                                <span style="font-family: var(--vy-display); color: {{ $line['informational'] ? 'var(--vy-faint)' : 'var(--vy-ink)' }};">{{ $line['amount'] }}</span>
+                            </div>
+                        @endforeach
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0 0; margin-top: 6px; border-top: 1px solid var(--vy-hairline); font-size: 14px; font-weight: 700;">
+                            <span style="color: var(--vy-ink);">Guest pays</span>
+                            <span style="font-family: var(--vy-display); color: var(--vy-accent);">{{ $sample['total'] }}</span>
+                        </div>
+                    </div>
                 @endif
             </div>
 

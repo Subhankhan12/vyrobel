@@ -29,3 +29,6 @@ Schedule::command('platform:prune-activity')->daily();
 // (the command self-guards), and TEST-MODE unless live keys + production. The command selects owners due today
 // per their payout preferences and disburses via the certified PayoutRunService. ⚠️ Real money only at go-live.
 Schedule::command('payouts:run')->dailyAt('06:00');
+
+// #98 — archive properties whose scheduled removal date has passed (soft-delete, records retained). Daily.
+Schedule::command('properties:process-removals')->dailyAt('02:00');

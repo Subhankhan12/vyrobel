@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * A physical site (can be mixed-type). Reuses the shared polymorphic media/documents/notes/
@@ -22,6 +23,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $currency
  * @property string $timezone
  * @property array<string, mixed>|null $address
+ * @property Carbon|null $bookings_paused_at
+ * @property Carbon|null $removal_scheduled_at
+ * @property Carbon|null $removal_effective_at
+ * @property string|null $removal_requested_by
+ * @property bool $brand_powered_by
+ * @property string|null $brand_accent
+ * @property string|null $brand_logo_path
+ * @property string|null $brand_email_from_name
+ * @property string|null $brand_reply_to
  */
 class Property extends Model
 {
@@ -48,6 +58,9 @@ class Property extends Model
         'check_out_time',
         'status',
         'bookings_paused_at',
+        'removal_scheduled_at',
+        'removal_effective_at',
+        'removal_requested_by',
     ];
 
     /**
@@ -62,6 +75,8 @@ class Property extends Model
             'star_rating' => 'integer',
             'brand_powered_by' => 'boolean',
             'bookings_paused_at' => 'datetime',
+            'removal_scheduled_at' => 'datetime',
+            'removal_effective_at' => 'datetime',
         ];
     }
 

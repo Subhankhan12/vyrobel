@@ -116,6 +116,30 @@ class SettingsService
         $this->audit->record('property.brand_updated', $property, null, ['fields' => array_keys($changes)]);
     }
 
+    /**
+     * Create a custom property FEE (task #98 GATE 2) — the "Add a fee" flow. `mode` is the wireframe's basis
+     * (per-stay → flat, per-night → per_night, per-guest → per_person); `optional` = offered-at-booking vs
+     * always-applied. Integer minor amount (#17). Tenant-safe: Fee is BelongsToOrganization (org auto-fills).
+     */
+    public function createFee(Property $property, string $name, string $mode, int $amountMinor, bool $optional): Fee
+    {
+        $fee = new Fee([
+            'property_id' => $property->getKey(),
+            'name' => $name,
+            'kind' => 'other',
+            'mode' => $mode,
+            'amount_minor' => max(0, $amountMinor),
+            'currency' => (string) $property->currency,
+            'taxable' => false,
+            'optional' => $optional,
+        ]);
+        $fee->save();
+
+        $this->audit->record('fee.created', $fee, null, ['fields' => ['name', 'mode', 'amount_minor', 'optional']]);
+
+        return $fee;
+    }
+
     /** Bounded edit of a property FEE (Batch C · GATE 4) — same rule as {@see updateTax}. */
     public function updateFee(Fee $fee, float $value): void
     {

@@ -557,6 +557,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::post('/settings/brand', [SettingsActionController::class, 'updateBrand'])->middleware('can:properties.manage')->name('settings.brand');
     Route::post('/settings/pause', [SettingsActionController::class, 'pauseBookings'])->middleware('can:properties.manage')->name('settings.pause');
     Route::post('/settings/resume', [SettingsActionController::class, 'resumeBookings'])->middleware('can:properties.manage')->name('settings.resume');
+    // #98 GATE 2 — custom Add-a-fee (posts to folios via the shared StayEstimator rule) + the careful
+    // archive-not-destroy property removal (scheduled, cancellable, records retained). properties.manage.
+    Route::post('/settings/fees/add', [SettingsActionController::class, 'addFee'])->middleware('can:properties.manage')->name('settings.fees.add');
+    Route::post('/settings/remove/schedule', [SettingsActionController::class, 'scheduleRemoval'])->middleware('can:properties.manage')->name('settings.remove.schedule');
+    Route::post('/settings/remove/cancel', [SettingsActionController::class, 'cancelRemoval'])->middleware('can:properties.manage')->name('settings.remove.cancel');
 
     // Change password (Auth) — the operator Security page + its guarded write. Reachable by EVERY back-office
     // user (auth + #26, NO fine-grained gate — unlike /app/settings, which is manager-gated) so anyone can
