@@ -110,6 +110,14 @@
                 <p class="vy-line-sub" style="font-size:11.5px;color:var(--vy-faint);margin-top:10px">Early {{ \App\Support\Schedule\ShiftType::hours('early') }} · Day {{ \App\Support\Schedule\ShiftType::hours('day') }} · Late {{ \App\Support\Schedule\ShiftType::hours('late') }}. On-leave days block shifts; a shift already set that later clashes with approved leave is flagged. Roster is per property.</p>
             @endif
 
+            {{-- #104 GATE 3d — "Coverage this week" summary, derived from the SAME RosterWeek builder as the grid
+                 (so it reconciles): team on rota · total shifts · rostered hours. --}}
+            <div class="vy-card vy-fade" style="margin-top:18px;display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end">
+                <div><div class="vy-dk-label">Team on rota</div><div style="font-family:var(--vy-display);font-size:24px;font-weight:700">{{ $coverage['team'] }}</div></div>
+                <div><div class="vy-dk-label">Shifts this week</div><div style="font-family:var(--vy-display);font-size:24px;font-weight:700">{{ $coverage['shifts'] }}</div></div>
+                <div><div class="vy-dk-label">Rostered hours</div><div style="font-family:var(--vy-display);font-size:24px;font-weight:700">{{ $coverage['hours'] }}h</div></div>
+            </div>
+
             {{-- ── Time off — request (anyone) + the manager approval queue ─────────────────────────── --}}
             <div style="display:grid;grid-template-columns:{{ $canManage ? '1fr 1fr' : '1fr' }};gap:16px;margin-top:18px">
                 <section class="vy-card">
@@ -164,6 +172,30 @@
                         @empty
                             <div class="vy-empty" style="margin-top:6px">No pending requests.</div>
                         @endforelse
+
+                        {{-- #104 GATE 3d — grant leave directly (manager). The route existed with no UI; a manager
+                             can't grant their OWN leave (self-approval separation is enforced in LeaveService). --}}
+                        <div style="margin-top:16px;border-top:1px solid var(--vy-hairline);padding-top:14px">
+                            <h3 class="vy-card-title" style="font-size:13px;margin-bottom:8px">Add leave for a team member</h3>
+                            <form method="POST" action="{{ route('app.schedule.leave.grant') }}">
+                                @csrf
+                                <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
+                                <div class="vy-field" style="margin-bottom:8px">
+                                    <select name="user_id" class="vy-input" required aria-label="Team member">
+                                        <option value="">Choose a team member…</option>
+                                        @foreach ($rows as $r)
+                                            <option value="{{ $r['staff']['id'] }}">{{ $r['staff']['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                                    <input type="date" name="start_date" class="vy-input" required aria-label="From" style="flex:1;min-width:120px">
+                                    <input type="date" name="end_date" class="vy-input" required aria-label="To" style="flex:1;min-width:120px">
+                                </div>
+                                <input type="text" name="reason" class="vy-input" maxlength="160" placeholder="Reason (optional)" style="margin-top:8px">
+                                <button type="submit" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;margin-top:10px">Add leave</button>
+                            </form>
+                        </div>
                     </section>
                 @endif
             </div>

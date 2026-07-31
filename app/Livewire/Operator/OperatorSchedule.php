@@ -75,6 +75,9 @@ class OperatorSchedule extends Component
             'shiftTypes' => ShiftType::ALL,
             'canManage' => $canManage,
             'pending' => $pending,
+            // #104 GATE 3d — the wireframe's "Coverage this week" summary, derived from the SAME builder the grid
+            // renders (so it reconciles, never a re-query) — team size · total shifts · rostered hours.
+            'coverage' => ['team' => $roster->teamSize(), 'shifts' => $roster->shiftCount(), 'hours' => $roster->hours()],
         ]);
     }
 }
