@@ -2,7 +2,12 @@
      fallbacks, a bulletproof terracotta button — the SAME brand as the shipped owner-invite email (the frosted
      glass / flexbox of the on-screen design is not email-safe, so the brand is evoked with solid warm colours).
      Each email `@extends` this and fills `@section('content')` (the card body) + `@section('preheader')`.
+
+     BRAND-AWARE (#98): the optional `$brand` (App\Support\Branding\PropertyBrand) recolours the mark + swaps the
+     logo/name + toggles the "Powered by Vyrobel" footer. Fails OPEN — no `$brand` ⇒ the shipped Vyrobel default,
+     byte-identical to before. A Mailable passes it via `->with(['brand' => PropertyBrand::for($property)])`.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+@php $brand = $brand ?? \App\Support\Branding\PropertyBrand::default(); @endphp
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -19,13 +24,17 @@
         <tr>
             <td align="center" style="padding:32px 16px;">
                 <table role="presentation" width="480" cellpadding="0" cellspacing="0" border="0" style="width:480px; max-width:480px;">
-                    {{-- Brand --}}
+                    {{-- Brand (#98 — recoloured mark / logo / name from $brand; Vyrobel default when unset) --}}
                     <tr>
                         <td align="left" style="padding:4px 8px 20px;">
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td style="width:38px; height:38px; background-color:#C2410C; border-radius:10px; text-align:center; vertical-align:middle; color:#ffffff; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:19px; font-weight:700;">V</td>
-                                    <td style="padding-left:10px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:17px; font-weight:600; color:#2B2320;">Vyrobel</td>
+                                    @if ($brand->logoUrl !== null)
+                                        <td><img src="{{ $brand->logoUrl }}" alt="{{ $brand->displayName }}" width="38" height="38" style="width:38px; height:38px; border-radius:10px; display:block; object-fit:cover;"></td>
+                                    @else
+                                        <td style="width:38px; height:38px; background-color:{{ $brand->accent }}; border-radius:10px; text-align:center; vertical-align:middle; color:#ffffff; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:19px; font-weight:700;">{{ $brand->initial }}</td>
+                                    @endif
+                                    <td style="padding-left:10px; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:17px; font-weight:600; color:#2B2320;">{{ $brand->displayName }}</td>
                                 </tr>
                             </table>
                         </td>
@@ -41,7 +50,9 @@
                     {{-- Footer --}}
                     <tr>
                         <td align="center" style="padding:20px 8px;">
-                            <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A99E95;">Vyrobel · hotel management, done properly.</p>
+                            @if ($brand->poweredBy)
+                                <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A99E95;">Powered by Vyrobel · hotel management, done properly.</p>
+                            @endif
                             <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A99E95;">You’re receiving this because it relates to your booking with us.</p>
                         </td>
                     </tr>

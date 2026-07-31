@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Availability;
 use App\Models\InventoryBlock;
+use App\Models\Property;
 use App\Models\RoomType;
 use App\Models\Unit;
 use Carbon\CarbonImmutable;
@@ -44,7 +45,16 @@ class AvailabilityService
             ->where('is_active', true)
             ->get(['id', 'condition_status']);
 
-        $total = $units->count();
+        // #98 — a property-level booking PAUSE zeroes new availability: `total` drops to 0, so
+        // `available = max(0, total − sold − …) = 0` refuses NEW bookings, while existing `sold` (owned by
+        // AssignmentService, never touched here) keeps in-house stays running. Orthogonal to per-unit is_active
+        // (owner unit pause). Fails open: no paused property ⇒ unchanged behaviour.
+        $propertyPaused = Property::query()
+            ->whereKey($roomType->property_id)
+            ->whereNotNull('bookings_paused_at')
+            ->exists();
+
+        $total = $propertyPaused ? 0 : $units->count();
 
         $outOfServiceUnitIds = $units
             ->whereIn('condition_status', ['out_of_order', 'out_of_service'])

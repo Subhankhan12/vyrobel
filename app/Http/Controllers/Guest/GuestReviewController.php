@@ -10,6 +10,7 @@ use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
 use App\Models\Reservation;
 use App\Models\Review;
 use App\Services\ReviewService;
+use App\Support\Branding\PropertyBrand;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -53,6 +54,8 @@ class GuestReviewController extends Controller
             'reservation' => (string) $model->getKey(),
             'reference' => (string) $model->reference,
             'property' => (string) ($model->property->name ?? 'Your stay'),
+            // #98 — the property's guest-facing brand accent flows to the review page (fail-open to Vyrobel).
+            'brandAccent' => PropertyBrand::for($model->property)->accent,
             'stay' => CarbonImmutable::parse($model->check_in)->format('j M').' – '.CarbonImmutable::parse($model->check_out)->format('j M Y'),
             'positiveTags' => self::POSITIVE_TAGS,
             'negativeTags' => self::NEGATIVE_TAGS,

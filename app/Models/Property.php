@@ -32,6 +32,11 @@ class Property extends Model
         'name',
         'slug',
         'brand',
+        'brand_accent',
+        'brand_logo_path',
+        'brand_email_from_name',
+        'brand_reply_to',
+        'brand_powered_by',
         'type',
         'address',
         'lat',
@@ -42,6 +47,7 @@ class Property extends Model
         'check_in_time',
         'check_out_time',
         'status',
+        'bookings_paused_at',
     ];
 
     /**
@@ -54,6 +60,8 @@ class Property extends Model
             'lat' => 'decimal:7',
             'lng' => 'decimal:7',
             'star_rating' => 'integer',
+            'brand_powered_by' => 'boolean',
+            'bookings_paused_at' => 'datetime',
         ];
     }
 

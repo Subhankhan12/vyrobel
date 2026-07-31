@@ -11,7 +11,9 @@ use App\Models\Fee;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Models\Tax;
+use App\Services\PropertyBookingPauseService;
 use App\Services\SettingsService;
+use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +39,10 @@ class SettingsActionController extends Controller
 {
     public function updateProperty(Request $request, SettingsService $settings): RedirectResponse
     {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
         $property = $this->currentProperty();
 
         $data = $request->validate([
@@ -46,6 +52,19 @@ class SettingsActionController extends Controller
             'check_in_time' => ['nullable', 'date_format:H:i'],
             'check_out_time' => ['nullable', 'date_format:H:i'],
             'status' => ['required', 'in:active,inactive'],
+            'address_line' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'country' => ['nullable', 'string', 'max:120'],
+            'postal_code' => ['nullable', 'string', 'max:32'],
+        ]);
+
+        // Merge the address parts into the existing JSON (preserve any other keys, e.g. a stored region).
+        $existing = is_array($property->address) ? $property->address : [];
+        $data['address'] = array_merge($existing, [
+            'line1' => $data['address_line'] ?? null,
+            'city' => $data['city'] ?? null,
+            'country' => $data['country'] ?? null,
+            'postal_code' => $data['postal_code'] ?? null,
         ]);
 
         $settings->updateProperty($property, $data);
@@ -55,6 +74,10 @@ class SettingsActionController extends Controller
 
     public function updatePolicies(Request $request, SettingsService $settings): RedirectResponse
     {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
         $property = $this->currentProperty();
 
         $data = $request->validate([
@@ -62,15 +85,91 @@ class SettingsActionController extends Controller
             'smoking' => ['required', 'in:allowed,on_request,not_allowed'],
             'min_stay' => ['required', 'integer', 'between:1,365'],
             'max_stay' => ['nullable', 'integer', 'between:1,365'],
+            'cancellation_tier' => ['sometimes', 'in:flexible,moderate,strict'],
+            'deposit_required' => ['sometimes', 'boolean'],
+            'self_check_in' => ['sometimes', 'boolean'],
         ]);
+
+        // Assemble the JSON policy columns; self-check-in is a bool. ⚠️ #33 — the door CODE is guest-only and is
+        // NEVER stored/shown here; this toggle only records whether smart-lock self-check-in is offered.
+        if ($request->filled('cancellation_tier')) {
+            $data['cancellation'] = ['tier' => $data['cancellation_tier']];
+        }
+        $data['deposit'] = ['required' => $request->boolean('deposit_required')];
+        $data['self_check_in'] = $request->boolean('self_check_in');
 
         $settings->updatePolicies($property, $data);
 
         return $this->back('Stay policies saved.');
     }
 
+    /**
+     * Update the property's GUEST-FACING BRAND (task #98) — accent / logo / email from-name / reply-to /
+     * powered-by. The from ADDRESS is fixed (verified sender, Postmark-safe) and never accepted here. The logo
+     * is stored on the PUBLIC disk so transactional emails can reach it by absolute URL.
+     */
+    public function updateBrand(Request $request, SettingsService $settings): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
+        $property = $this->currentProperty();
+
+        $data = $request->validate([
+            'brand_accent' => ['nullable', 'regex:/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/'],
+            'brand_email_from_name' => ['nullable', 'string', 'max:120'],
+            'brand_reply_to' => ['nullable', 'email', 'max:190'],
+            'brand_powered_by' => ['sometimes', 'boolean'],
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg', 'max:2048'],
+        ]);
+
+        $attributes = [
+            'brand_accent' => $data['brand_accent'] ?? null,
+            'brand_email_from_name' => $data['brand_email_from_name'] ?? null,
+            'brand_reply_to' => $data['brand_reply_to'] ?? null,
+            'brand_powered_by' => $request->boolean('brand_powered_by'),
+        ];
+
+        if ($request->hasFile('logo')) {
+            $attributes['brand_logo_path'] = $request->file('logo')->store('brand-logos', 'public');
+        }
+
+        $settings->updateBrand($property, $attributes);
+
+        return $this->back('Guest-facing brand saved.');
+    }
+
+    /** Pause new bookings for the property (task #98) — real: fans out to units via the certified availability spine. */
+    public function pauseBookings(PropertyBookingPauseService $pause): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
+        $pause->pause($this->currentProperty());
+
+        return $this->back('New bookings paused — existing stays keep running.');
+    }
+
+    /** Resume new bookings for the property. */
+    public function resumeBookings(PropertyBookingPauseService $pause): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
+        $pause->resume($this->currentProperty());
+
+        return $this->back('New bookings resumed.');
+    }
+
     public function updateOrganization(Request $request, SettingsService $settings): RedirectResponse
     {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
         $property = $this->currentProperty();
         $organization = Organization::query()->findOrFail($property->organization_id);
 
@@ -93,6 +192,10 @@ class SettingsActionController extends Controller
      */
     public function updateTaxesAndFees(Request $request, SettingsService $settings): RedirectResponse
     {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
         // The property being edited — the lookup is scoped to THIS property (not just the org), so a
         // cross-property id (a sibling property in the same org, which a property-restricted user may not
         // access — Phase 6a's property_user pivot) resolves to null and is skipped: no cross-property IDOR.
@@ -137,6 +240,19 @@ class SettingsActionController extends Controller
     private function currentProperty(): Property
     {
         return Property::query()->findOrFail(app(PropertyContext::class)->id());
+    }
+
+    /**
+     * Read-only guard (task #98 — was missing here, unlike peer operator controllers): a paused/lapsed
+     * workspace refuses every settings write. Returns a redirect to short-circuit, or null to proceed.
+     */
+    private function guardReadOnly(): ?RedirectResponse
+    {
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return redirect()->to(route('app.settings'))->with('settings_error', 'Your workspace is read-only right now — changes are paused.');
+        }
+
+        return null;
     }
 
     private function back(string $notice): RedirectResponse

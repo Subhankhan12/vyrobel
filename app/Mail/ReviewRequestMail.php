@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Http\Controllers\Guest\GuestReviewController;
+use App\Mail\Concerns\BrandsGuestMail;
 use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\ResolvedEmailTemplate;
@@ -28,13 +29,13 @@ use Illuminate\Support\Str;
  */
 class ReviewRequestMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BrandsGuestMail, Queueable, SerializesModels;
 
     public function __construct(public readonly Reservation $reservation, public readonly ?string $reviewUrl = null) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->template()->subject());
+        return $this->brandedEnvelope($this->template()->subject(), $this->brandFor($this->reservation->property));
     }
 
     public function content(): Content
@@ -65,6 +66,7 @@ class ReviewRequestMail extends Mailable
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
                 'propertyName' => (string) ($r->property->name ?? 'your stay'),
+                'brand' => $this->brandFor($r->property),
                 'unitName' => $unitName,
                 'reference' => (string) $r->reference,
                 'stay' => $checkIn->format('j').'–'.$checkOut->format('j M').' · '.$nights.' '.Str::plural('night', $nights),

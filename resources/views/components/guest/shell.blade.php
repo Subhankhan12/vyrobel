@@ -3,7 +3,12 @@
      The viewer is resolved from the GUEST guard (never passed in) so it can only ever be the authed guest.
      Props: active (nav key to highlight), title (optional page heading). RAW-BLADE RULE: every `@` follows a
      space, newline or tag. --}}
-@props(['active' => '', 'title' => ''])
+@props(['active' => '', 'title' => '', 'accent' => null])
+@php
+    // #98 — a property-scoped guest surface (e.g. the review page) may pass its brand accent; validated hex only,
+    // never an arbitrary value into inline CSS. Unset/invalid ⇒ the default Vyrobel terracotta (fail-open).
+    $brandAccent = is_string($accent) && preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $accent) === 1 ? $accent : null;
+@endphp
 @php
     $viewer = \Illuminate\Support\Facades\Auth::guard('guest')->user();
     $viewerName = \App\Support\Guest\GuestName::display($viewer);
@@ -104,6 +109,9 @@
             outline: 2px solid var(--vy-accent); outline-offset: 2px;
         }
     </style>
+    @if ($brandAccent !== null)
+        <style>:root { --vy-accent: {{ $brandAccent }}; --vy-shadow-accent: {{ $brandAccent }}47 0 4px 12px; }</style>
+    @endif
 </head>
 <body>
     <header class="vy-top">

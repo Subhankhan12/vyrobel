@@ -1,6 +1,6 @@
 {{-- Guest Review (Phase 5 · SG1) — rate a real completed stay: tap-to-rate stars, tag chips, a written review, and
      "send privately to the manager". RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<x-guest.shell active="trips" :title="'Review · '.$reference">
+<x-guest.shell active="trips" :title="'Review · '.$reference" :accent="$brandAccent">
     <style>
         .vy-stars { display:inline-flex; flex-direction:row-reverse; gap:4px; }
         .vy-stars input { position:absolute; opacity:0; width:0; height:0; }

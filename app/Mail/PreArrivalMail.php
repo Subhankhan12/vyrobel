@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BrandsGuestMail;
 use App\Models\Folio;
 use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
@@ -36,13 +37,13 @@ use Illuminate\Support\Carbon;
  */
 class PreArrivalMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BrandsGuestMail, Queueable, SerializesModels;
 
     public function __construct(public readonly Reservation $reservation, public readonly ?CarbonInterface $asOf = null) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->template()->subject());
+        return $this->brandedEnvelope($this->template()->subject(), $this->brandFor($this->reservation->property));
     }
 
     public function content(): Content
@@ -73,6 +74,7 @@ class PreArrivalMail extends Mailable
             with: [
                 'guestName' => GuestName::display($r->leadGuest),
                 'propertyName' => (string) ($r->property->name ?? 'your stay'),
+                'brand' => $this->brandFor($r->property),
                 'unitName' => $unitName,
                 'reference' => (string) $r->reference,
                 'checkInLabel' => $checkIn->format('D, j M'),

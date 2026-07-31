@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BrandsGuestMail;
 use App\Models\Reservation;
 use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
@@ -22,13 +23,16 @@ use Illuminate\Support\Carbon;
  */
 class BookingConfirmationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BrandsGuestMail, Queueable, SerializesModels;
 
     public function __construct(public readonly Reservation $reservation) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Your booking is confirmed · '.((string) $this->reservation->reference));
+        return $this->brandedEnvelope(
+            'Your booking is confirmed · '.((string) $this->reservation->reference),
+            $this->brandFor($this->reservation->property),
+        );
     }
 
     public function content(): Content
@@ -47,6 +51,7 @@ class BookingConfirmationMail extends Mailable
                 'checkOut' => $checkOut->format('D, j M Y'),
                 'nights' => max(1, $checkIn->diffInDays($checkOut)),
                 'total' => MoneyFormatter::display((int) $r->total_minor, (string) $r->currency),
+                'brand' => $this->brandFor($r->property),
             ],
         );
     }

@@ -107,9 +107,10 @@ it('gates the page on properties.manage, and shows the org section only to setti
     $this->actingAs(operatorUser($s, ['name' => 'Mo'], 'Hotel Manager'))->get('/app/dashboard')
         ->assertOk()->assertDontSee(route('app.settings'));
 
-    // Group Admin sees the property + policy forms but NOT the org section (settings.manage).
+    // Group Admin sees the property + policy forms but NOT the org section (settings.manage). (#98 rebuild:
+    // "Property details" → "Property basics", "Stay policies" → "Policies".)
     $this->actingAs(operatorUser($s, ['name' => 'Ada'], 'Group Admin'))->get('/app/settings')
-        ->assertOk()->assertSee('Property details')->assertSee('Stay policies')->assertDontSee('Save organization settings');
+        ->assertOk()->assertSee('Property basics')->assertSee('Policies')->assertDontSee('Save organization settings');
 
     // Property Owner sees the org section too.
     $this->actingAs(operatorUser($s, ['name' => 'Priya'], 'Property Owner'))->get('/app/settings')
@@ -117,13 +118,15 @@ it('gates the page on properties.manage, and shows the org section only to setti
 });
 
 // ── 3. HONESTY — unbacked fields are "Soon", not a fake save; input validates ────────────────────
+// (#98 rebuild: Branding is now a REAL guest-brand section; Invoice numbering + Notification routing remain
+// genuinely-unbuilt subsystems, honestly "Soon".)
 it('stubs unbacked settings as Soon rather than faking a save', function () {
     $s = seedScenario(1);
 
     $response = $this->actingAs(operatorUser($s, [], 'Property Owner'))->get('/app/settings');
 
     $response->assertOk()
-        ->assertSee('Branding & white-label')
+        ->assertSee('Guest-facing brand')   // branding is now REAL (not a "Soon" stub)
         ->assertSee('Invoice numbering')
         ->assertSee('Notification routing')
         ->assertSee('not wired yet');       // the honest note — these are subsystems, not a form

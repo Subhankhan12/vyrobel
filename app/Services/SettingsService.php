@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Models\Property;
 use App\Models\PropertyPolicy;
 use App\Models\Tax;
+use App\Support\Branding\PropertyBrand;
 use App\Support\Events\AuditEventRecorder;
 use Illuminate\Support\Arr;
 
@@ -32,13 +33,16 @@ use Illuminate\Support\Arr;
 class SettingsService
 {
     /** @var list<string> */
-    public const PROPERTY_FIELDS = ['name', 'timezone', 'star_rating', 'check_in_time', 'check_out_time', 'status'];
+    public const PROPERTY_FIELDS = ['name', 'timezone', 'star_rating', 'check_in_time', 'check_out_time', 'status', 'address'];
 
     /** @var list<string> */
-    public const POLICY_FIELDS = ['pet', 'smoking', 'min_stay', 'max_stay'];
+    public const POLICY_FIELDS = ['pet', 'smoking', 'min_stay', 'max_stay', 'self_check_in', 'cancellation', 'deposit'];
 
     /** @var list<string> */
     public const ORG_FIELDS = ['default_currency', 'default_locale', 'billing_email'];
+
+    /** @var list<string> — the guest-facing brand (task #98); the from ADDRESS is fixed (never per-property). */
+    public const BRAND_FIELDS = ['brand_accent', 'brand_logo_path', 'brand_email_from_name', 'brand_reply_to', 'brand_powered_by'];
 
     public function __construct(private AuditEventRecorder $audit) {}
 
@@ -95,6 +99,21 @@ class SettingsService
 
         $tax->update($changes);
         $this->audit->record('tax.updated', $tax, null, ['fields' => array_keys($changes)]);
+    }
+
+    /**
+     * Update the property's GUEST-FACING BRAND (task #98) — accent / logo / email from-name / reply-to /
+     * powered-by. The from ADDRESS is NOT here: it stays the fixed verified sender (Postmark-safe). These flow
+     * to the real guest emails + portal + review page via {@see PropertyBrand}.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function updateBrand(Property $property, array $attributes): void
+    {
+        $changes = Arr::only($attributes, self::BRAND_FIELDS);
+        $property->update($changes);
+
+        $this->audit->record('property.brand_updated', $property, null, ['fields' => array_keys($changes)]);
     }
 
     /** Bounded edit of a property FEE (Batch C · GATE 4) — same rule as {@see updateTax}. */
