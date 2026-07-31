@@ -26,6 +26,9 @@ final class RosterWeek
      * @param  list<array{date: string, dow: string, label: string, today: bool}>  $days
      * @param  list<array{staff: array{id: string, name: string, initials: string, department: string, role_label: string}, cells: list<array<string, mixed>>}>  $rows
      */
+    /** Hours per worked shift — Early/Day/Late are all 8h windows (07–15, 09–17, 15–23). */
+    private const HOURS_PER_SHIFT = 8;
+
     public function __construct(
         public readonly array $days,
         public readonly array $rows,
@@ -35,6 +38,33 @@ final class RosterWeek
         public readonly string $dept,
         public readonly int $conflictCount,
     ) {}
+
+    /** The number of team members on this rota (task #102 — the summary reconciles to THIS builder). */
+    public function teamSize(): int
+    {
+        return count($this->rows);
+    }
+
+    /** The number of worked shifts across the week (a leave-conflicted cell is still a worked shift). */
+    public function shiftCount(): int
+    {
+        $count = 0;
+        foreach ($this->rows as $row) {
+            foreach ($row['cells'] as $cell) {
+                if ($cell['working']) {
+                    $count++;
+                }
+            }
+        }
+
+        return $count;
+    }
+
+    /** Total rostered hours across the week — derived from the same worked cells (never a re-query). */
+    public function hours(): int
+    {
+        return $this->shiftCount() * self::HOURS_PER_SHIFT;
+    }
 
     public static function build(?Property $property, int $week, string $dept): self
     {

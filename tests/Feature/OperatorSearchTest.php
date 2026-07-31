@@ -37,8 +37,8 @@ it('finds a reservation by its reference and by the guest name', function () {
         ->assertOk()->assertSee($reservation->reference);   // found via the guest name
 });
 
-// ── 2. ⚠️ Guests — NAME only; an email query finds nothing but SURFACES why (encrypted) ───────────
-it('searches guests by name, never by their encrypted email, and surfaces the limitation', function () {
+// ── 2. ⚠️ Guests — by NAME and by EXACT email via the blind index (#102), never a ciphertext LIKE ──
+it('searches guests by name and by their exact email via the blind index', function () {
     $s = searchScenario();
     Guest::create(['first_name' => 'Aria', 'last_name' => 'Nightingale', 'email' => 'aria.secret@hidden.test', 'phone' => '+441234567890']);
     $manager = operatorUser($s, [], 'Hotel Manager');
@@ -47,12 +47,13 @@ it('searches guests by name, never by their encrypted email, and surfaces the li
     $this->actingAs($manager)->get('/app/search?q=Nightingale')
         ->assertOk()->assertSee('Aria Nightingale');
 
-    // By email → NOT found (ciphertext isn't LIKE-searchable), and the operator is TOLD why (not a silent blank).
+    // By EXACT email → found via the deterministic blind index (email_hash), NOT a ciphertext LIKE (#28).
     $this->actingAs($manager)->get('/app/search?q=aria.secret@hidden.test')
-        ->assertOk()
-        ->assertDontSee('Aria Nightingale')
-        ->assertSee('looks like an')          // the encrypted-contact callout
-        ->assertSee('encrypted');
+        ->assertOk()->assertSee('Aria Nightingale');
+
+    // A DIFFERENT email does not match — the blind index is exact, never a partial/ciphertext match.
+    $this->actingAs($manager)->get('/app/search?q=aria.secret@other.test')
+        ->assertOk()->assertDontSee('Aria Nightingale');
 });
 
 // ── 3. Units — found by code ─────────────────────────────────────────────────────────────────────

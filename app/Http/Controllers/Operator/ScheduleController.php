@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\LeaveService;
 use App\Services\PdfService;
 use App\Services\ShiftRosterService;
+use App\Support\Branding\PropertyBrand;
 use App\Support\Property\PropertyContext;
 use App\Support\Schedule\RosterWeek;
 use App\Support\Schedule\ShiftType;
@@ -150,10 +151,33 @@ class ScheduleController extends Controller
 
         $roster = RosterWeek::build($property, $week, $dept);
 
+        // #102 — the time-off list (real LeaveRequest rows for this rota's staff overlapping the week).
+        $staffIds = array_map(fn (array $row): string => (string) $row['staff']['id'], $roster->rows);
+        $days = $roster->days;
+        $weekStart = $days[0]['date'] ?? CarbonImmutable::today()->toDateString();
+        $lastDay = end($days);
+        $weekEnd = is_array($lastDay) ? ($lastDay['date'] ?? $weekStart) : $weekStart;
+        $timeOff = LeaveRequest::query()
+            ->whereIn('user_id', $staffIds)
+            ->whereIn('status', ['approved', 'pending'])
+            ->whereDate('end_date', '>=', $weekStart)
+            ->whereDate('start_date', '<=', $weekEnd)
+            ->with('user:id,name')
+            ->orderBy('start_date')
+            ->get()
+            ->map(fn (LeaveRequest $l): array => [
+                'name' => (string) ($l->user->name ?? '—'),
+                'kind' => ucfirst((string) ($l->reason ?: 'Leave')),
+                'days' => $l->rangeLabel(),
+                'status' => ucfirst((string) $l->status),
+            ])->all();
+
         return $pdf->download('pdfs.operator-schedule', [
             'property' => $property,
             'roster' => $roster,
             'deptLabel' => StaffDepartment::label($dept),
+            'brand' => PropertyBrand::for($property),
+            'timeOff' => $timeOff,
         ], 'schedule-'.$property->getKey().'-week-'.$week.'.pdf');
     }
 

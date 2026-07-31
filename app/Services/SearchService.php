@@ -33,18 +33,99 @@ class SearchService
 
     /**
      * @param  array{units: bool, guests: bool}  $can  which optional entity groups the viewer may see
-     * @return array{reservations: list<array{id: string, reference: string, guest: string, status: string, source: string, url: string}>, guests: list<array{id: string, name: string, url: string}>, units: list<array{id: string, code: string, name: string, url: string}>, owners: list<array{id: string, name: string, url: string}>}
+     * @param  array<string, mixed>  $filters  source / status / from / to / occupancy / sort (task #102)
+     * @return array{reservations: list<array{id: string, reference: string, guest: string, status: string, source: string, url: string}>, guests: list<array{id: string, name: string, url: string}>, units: list<array{id: string, code: string, name: string, url: string}>, owners: list<array{id: string, name: string, url: string}>, counts: array{reservations: int, guests: int, units: int, owners: int, all: int}}
      */
-    public function search(string $query, array $can): array
+    public function search(string $query, array $can, array $filters = []): array
     {
         $term = '%'.addcslashes($query, '%_\\').'%';
 
-        return [
-            'reservations' => $this->reservations($term),
-            'guests' => $can['guests'] ? $this->guests($term) : [],
-            'units' => $can['units'] ? $this->units($term) : [],
-            'owners' => $this->owners($term),
+        // The reservation query carries the filters; the others take the term only (they have no dates/status).
+        $resQuery = fn (): Builder => $this->applyFilters($this->reservationMatch($term, $query), $filters);
+        $guestQuery = fn (): Builder => $this->guestMatch($term, $query);
+        $unitQuery = fn (): Builder => Unit::query()->where(fn (Builder $q) => $q->where('code', 'like', $term)->orWhere('name', 'like', $term));
+        $ownerQuery = fn (): Builder => Owner::query()->where('name', 'like', $term);
+
+        $counts = [
+            'reservations' => (clone $resQuery())->count(),
+            'guests' => $can['guests'] ? (clone $guestQuery())->count() : 0,
+            'units' => $can['units'] ? (clone $unitQuery())->count() : 0,
+            'owners' => (clone $ownerQuery())->count(),
         ];
+
+        return [
+            'reservations' => $this->reservations($resQuery(), (string) ($filters['sort'] ?? 'recent')),
+            'guests' => $can['guests'] ? $this->guests($guestQuery()) : [],
+            'units' => $can['units'] ? $this->units($unitQuery()) : [],
+            'owners' => $this->owners($ownerQuery()),
+            'counts' => $counts + ['all' => array_sum($counts)],
+        ];
+    }
+
+    /** The canonical filter option sets — reused by the blade's filter chips (anti-drift with the query). */
+    public const SOURCES = ['direct', 'ota', 'walk_in', 'corporate', 'group', 'agent'];
+
+    public const STATUSES = ['confirmed', 'checked_in', 'checked_out', 'tentative', 'enquiry', 'no_show', 'cancelled'];
+
+    /**
+     * Apply the real reservation filters (task #102) — source / status (canonical sets), a check-in date range,
+     * and an occupancy band (adults+children). Unknown values are ignored, never fabricated.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyFilters(Builder $query, array $filters): Builder
+    {
+        $source = (string) ($filters['source'] ?? '');
+        if (in_array($source, self::SOURCES, true)) {
+            $query->where('source', $source);
+        }
+
+        $status = (string) ($filters['status'] ?? '');
+        if (in_array($status, self::STATUSES, true)) {
+            $query->where('status', $status);
+        }
+
+        foreach (['from' => '>=', 'to' => '<='] as $key => $op) {
+            $date = (string) ($filters[$key] ?? '');
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1) {
+                $query->whereDate('check_in', $op, $date);
+            }
+        }
+
+        $occupancy = (string) ($filters['occupancy'] ?? '');
+        if ($occupancy === '1' || $occupancy === '2') {
+            $query->whereRaw('(COALESCE(adults,0) + COALESCE(children,0)) = ?', [(int) $occupancy]);
+        } elseif ($occupancy === '3plus') {
+            $query->whereRaw('(COALESCE(adults,0) + COALESCE(children,0)) >= 3');
+        }
+
+        return $query;
+    }
+
+    private function reservationMatch(string $term, string $query): Builder
+    {
+        return Reservation::query()
+            ->with('leadGuest')
+            ->where(function (Builder $q) use ($term): void {
+                $q->where('reference', 'like', $term)
+                    ->orWhereHas('leadGuest', fn (Builder $g) => $g->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", [$term]));
+            });
+    }
+
+    /**
+     * Guest match — NAME (plaintext) OR, when the query is an email, the deterministic BLIND INDEX `email_hash`
+     * ({@see Guest::emailHash()}) EXACT-match (the ciphertext isn't `LIKE`-searchable). Phone has no index.
+     */
+    private function guestMatch(string $term, string $query): Builder
+    {
+        $query = trim($query);
+
+        return Guest::query()->where(function (Builder $q) use ($term, $query): void {
+            $q->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", [$term]);
+            if (str_contains($query, '@')) {
+                $q->orWhere('email_hash', Guest::emailHash($query));   // exact-match blind index (#28)
+            }
+        });
     }
 
     /** Does the query look like an email/phone the operator might expect us to match — but can't (encrypted)? */
@@ -55,16 +136,19 @@ class SearchService
         return str_contains($query, '@') || preg_match('/^\+?[\d\s()\-]{6,}$/', $query) === 1;
     }
 
-    /** @return list<array{id: string, reference: string, guest: string, status: string, source: string, url: string}> */
-    private function reservations(string $term): array
+    /**
+     * @param  Builder<Reservation>  $query
+     * @return list<array{id: string, reference: string, guest: string, status: string, source: string, url: string}>
+     */
+    private function reservations(Builder $query, string $sort): array
     {
-        return Reservation::query()
-            ->with('leadGuest')
-            ->where(function (Builder $q) use ($term): void {
-                $q->where('reference', 'like', $term)
-                    ->orWhereHas('leadGuest', fn (Builder $g) => $g->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", [$term]));
-            })
-            ->latest('created_at')
+        $query = match ($sort) {
+            'checkin' => $query->orderBy('check_in'),
+            'reference' => $query->orderBy('reference'),
+            default => $query->latest('created_at'),
+        };
+
+        return $query
             ->limit(self::LIMIT)
             ->get()
             ->map(fn (Reservation $r): array => [
@@ -78,11 +162,13 @@ class SearchService
             ->all();
     }
 
-    /** @return list<array{id: string, name: string, url: string}> */
-    private function guests(string $term): array
+    /**
+     * @param  Builder<Guest>  $query
+     * @return list<array{id: string, name: string, url: string}>
+     */
+    private function guests(Builder $query): array
     {
-        return Guest::query()
-            ->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", [$term])   // NAME ONLY — email/phone are encrypted
+        return $query
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->limit(self::LIMIT)
@@ -95,11 +181,13 @@ class SearchService
             ->all();
     }
 
-    /** @return list<array{id: string, code: string, name: string, url: string}> */
-    private function units(string $term): array
+    /**
+     * @param  Builder<Unit>  $query
+     * @return list<array{id: string, code: string, name: string, url: string}>
+     */
+    private function units(Builder $query): array
     {
-        return Unit::query()
-            ->where(fn (Builder $q) => $q->where('code', 'like', $term)->orWhere('name', 'like', $term))
+        return $query
             ->orderBy('code')
             ->limit(self::LIMIT)
             ->get()
@@ -112,11 +200,13 @@ class SearchService
             ->all();
     }
 
-    /** @return list<array{id: string, name: string, url: string}> */
-    private function owners(string $term): array
+    /**
+     * @param  Builder<Owner>  $query
+     * @return list<array{id: string, name: string, url: string}>
+     */
+    private function owners(Builder $query): array
     {
-        return Owner::query()
-            ->where('name', 'like', $term)
+        return $query
             ->orderBy('name')
             ->limit(self::LIMIT)
             ->get()

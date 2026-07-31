@@ -7,29 +7,84 @@
 <div>
     <x-operator.shell active="search" title="Search" :subtitle="'Everything, in one place'" :viewer="$viewer">
 
-        {{-- ── The query (GET → drives the scoped search) ──────────────────────────────────────────── --}}
-        <form method="GET" action="{{ route('app.search') }}" class="vy-card vy-fade" style="margin-bottom: 16px;">
+        {{-- ── The query + real filters (GET → drives the scoped search) ───────────────────────────── --}}
+        <form method="GET" action="{{ route('app.search') }}" class="vy-card vy-fade" style="margin-bottom: 16px;"
+              x-data="searchBox()" x-on:submit="remember()">
             <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" name="q" class="vy-input" value="{{ $query }}" autofocus autocomplete="off"
-                    placeholder="Reference, guest name, unit code, owner…" style="flex: 1;">
+                <input type="text" name="q" class="vy-input" value="{{ $query }}" x-ref="q" autofocus autocomplete="off"
+                    placeholder="Search reservations, guests, units, owners…" style="flex: 1;">
                 <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 20px;">Search</button>
             </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
+                <select name="status" class="vy-input" style="width: auto; font-size: 12.5px;">
+                    <option value="">Any status</option>
+                    @foreach ($statuses as $st)
+                        <option value="{{ $st }}" @selected(($filters['status'] ?? '') === $st)>{{ ucfirst(str_replace('_', ' ', $st)) }}</option>
+                    @endforeach
+                </select>
+                <select name="source" class="vy-input" style="width: auto; font-size: 12.5px;">
+                    <option value="">Any source</option>
+                    @foreach ($sources as $sc)
+                        <option value="{{ $sc }}" @selected(($filters['source'] ?? '') === $sc)>{{ ucfirst(str_replace('_', ' ', $sc)) }}</option>
+                    @endforeach
+                </select>
+                <select name="occupancy" class="vy-input" style="width: auto; font-size: 12.5px;">
+                    <option value="">Any occupancy</option>
+                    <option value="1" @selected(($filters['occupancy'] ?? '') === '1')>1 guest</option>
+                    <option value="2" @selected(($filters['occupancy'] ?? '') === '2')>2 guests</option>
+                    <option value="3plus" @selected(($filters['occupancy'] ?? '') === '3plus')>3+ guests</option>
+                </select>
+                <input type="date" name="from" class="vy-input" value="{{ $filters['from'] ?? '' }}" style="width: auto; font-size: 12.5px;" title="Check-in from">
+                <input type="date" name="to" class="vy-input" value="{{ $filters['to'] ?? '' }}" style="width: auto; font-size: 12.5px;" title="Check-in to">
+                <select name="sort" class="vy-input" style="width: auto; font-size: 12.5px;">
+                    <option value="recent" @selected(($filters['sort'] ?? 'recent') === 'recent')>Sort · newest</option>
+                    <option value="checkin" @selected(($filters['sort'] ?? '') === 'checkin')>Sort · check-in</option>
+                    <option value="reference" @selected(($filters['sort'] ?? '') === 'reference')>Sort · reference</option>
+                </select>
+                @if ($searched)
+                    <a href="{{ route('app.search') }}" class="vy-btn" style="padding: 8px 12px; font-size: 12px;">Clear all filters</a>
+                @endif
+            </div>
             <div style="font-size: 11.5px; color: var(--vy-faint); margin-top: 9px;">
-                Guests are found by <strong>name</strong>. Email &amp; phone search is coming soon — contact details are encrypted, so they can’t be searched by value yet.
-                Source / status / date filters are coming soon too.
+                Search a guest by name or email, a reservation by reference (VYR-…), or a unit. Phone search isn’t available (numbers are stored encrypted).
             </div>
         </form>
 
-        {{-- ⚠️ Encrypted-contact honesty callout — the operator typed something that looks like an email/phone. --}}
+        {{-- ⚠️ Encrypted-contact honesty callout — an email typed by a viewer without guest access. --}}
         @if ($contactNote)
             <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-amber); margin-bottom: 16px;">
-                <div style="font-size: 13px; color: var(--vy-ink);">
-                    That looks like an <strong>email or phone number</strong>. Contact details are stored encrypted, so they can’t be searched by value yet — search the guest by <strong>name</strong> instead. (A searchable blind index is planned.)
-                </div>
+                <div style="font-size: 13px; color: var(--vy-ink);">Searching a guest by email needs guest access — you can search by <strong>name</strong> here.</div>
             </div>
         @endif
 
         @unless ($searched)
+            {{-- Recent searches (client-side localStorage — real, per-browser) + suggested arrivals --}}
+            <div x-data="searchBox()" x-init="load()">
+                <div class="vy-card vy-fade" style="margin-bottom: 16px;" x-show="recent.length > 0" x-cloak>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12.5px; font-weight: 600; color: var(--vy-ink);">Recent searches</span>
+                        <button type="button" class="vy-btn" style="padding: 4px 10px; font-size: 11px;" x-on:click="clear()">Clear</button>
+                    </div>
+                    <template x-for="t in recent" x-bind:key="t">
+                        <a x-bind:href="'{{ route('app.search') }}?q=' + encodeURIComponent(t)" style="display: inline-block; margin: 0 6px 6px 0; padding: 5px 11px; border: 1px solid var(--vy-hairline); border-radius: 16px; font-size: 12.5px; color: var(--vy-ink); text-decoration: none;" x-text="t"></a>
+                    </template>
+                </div>
+            </div>
+
+            @if (count($suggested) > 0)
+                <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+                    <span style="font-size: 12.5px; font-weight: 600; color: var(--vy-ink);">Upcoming arrivals</span>
+                    <div style="margin-top: 8px;">
+                        @foreach ($suggested as $sug)
+                            <a href="{{ route('app.search', ['q' => $sug['reference']]) }}" style="display: flex; justify-content: space-between; padding: 7px 0; border-top: 1px solid var(--vy-hairline); font-size: 13px; color: var(--vy-ink); text-decoration: none;">
+                                <span>{{ $sug['guest'] }} <span style="color: var(--vy-faint);">· {{ $sug['reference'] }}</span></span>
+                                <span style="color: var(--vy-muted);">{{ $sug['when'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <div class="vy-card vy-fade vys-empty">Type a reference, name, unit code or owner above to search across the whole property.</div>
         @else
             @if ($total === 0)
@@ -40,11 +95,11 @@
                     <div class="vys-tabs vy-fade">
                         @php
                             $tabs = [
-                                ['all', 'All', $total],
-                                ['reservations', 'Reservations', count($results['reservations'])],
-                                ['guests', 'Guests', count($results['guests'])],
-                                ['units', 'Units', count($results['units'])],
-                                ['owners', 'Owners', count($results['owners'])],
+                                ['all', 'All', $counts['all']],
+                                ['reservations', 'Reservations', $counts['reservations']],
+                                ['guests', 'Guests', $counts['guests']],
+                                ['units', 'Units', $counts['units']],
+                                ['owners', 'Owners', $counts['owners']],
                             ];
                         @endphp
                         @foreach ($tabs as [$key, $label, $n])
@@ -125,6 +180,24 @@
         @endunless
 
     </x-operator.shell>
+
+    <script>
+        function searchBox() {
+            return {
+                recent: [],
+                load() { try { this.recent = JSON.parse(localStorage.getItem('vy_recent_search') || '[]'); } catch (e) { this.recent = []; } },
+                remember() {
+                    const q = (this.$refs.q ? this.$refs.q.value : '').trim();
+                    if (!q) return;
+                    let list = [];
+                    try { list = JSON.parse(localStorage.getItem('vy_recent_search') || '[]'); } catch (e) { list = []; }
+                    list = [q].concat(list.filter((t) => t !== q)).slice(0, 6);
+                    localStorage.setItem('vy_recent_search', JSON.stringify(list));
+                },
+                clear() { localStorage.removeItem('vy_recent_search'); this.recent = []; },
+            };
+        }
+    </script>
 
     <style>
         .vys-empty { text-align: center; padding: 32px 24px; color: var(--vy-muted); font-size: 13px; }
