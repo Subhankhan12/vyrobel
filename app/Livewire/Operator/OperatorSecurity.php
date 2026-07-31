@@ -7,6 +7,7 @@ namespace App\Livewire\Operator;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Livewire\Concerns\PreparesTwoFactor;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Support\Security\ActiveSessions;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -37,6 +38,9 @@ class OperatorSecurity extends Component
         return view('livewire.operator.operator-security', [
             'viewer' => $this->viewer(),
             'twoFactor' => $this->twoFactorPanel('app.security.2fa'),
+            // #104 GATE 3b — the REAL active-sessions panel (the SAME ActiveSessions the Profile page ships; it
+            // was honestly "Soon" here while live one page over). Real `sessions` rows, current device flagged.
+            'sessions' => ActiveSessions::forUser((string) (auth()->id() ?? '')),
         ]);
     }
 }
