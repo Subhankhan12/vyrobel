@@ -37,6 +37,9 @@ class SendGuestTransactionalEmails
     /** @var array<int, string> */
     private const HANDLED = ['reservation.confirmed', 'reservation.cancelled', 'payment.refunded', 'reservation.checked_out'];
 
+    /** Delay (seconds) on the booking-confirmation send so it renders after the folio is posted (≫ request time). */
+    private const CONFIRMATION_DELAY_SECONDS = 60;
+
     /** @var array<string, true> */
     private static array $processed = [];
 
@@ -81,7 +84,8 @@ class SendGuestTransactionalEmails
         if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'booking-confirmation')) {
             return;
         }
-        $this->sendToGuest($reservation->leadGuest, new BookingConfirmationMail($reservation));
+        // Delayed so it renders AFTER the caller posts the folio (see sendToGuest) — the Total/breakdown reconcile.
+        $this->sendToGuest($reservation->leadGuest, new BookingConfirmationMail($reservation), self::CONFIRMATION_DELAY_SECONDS);
     }
 
     private function cancellation(DomainEvent $domainEvent): void
@@ -130,8 +134,16 @@ class SendGuestTransactionalEmails
         $this->sendToGuest($refund->folio?->reservation?->leadGuest, new RefundConfirmationMail($refund));
     }
 
-    /** Send to the guest's OWN email only (encrypted cast → plaintext here); no email → no send. Never throws. */
-    private function sendToGuest(?Guest $guest, Mailable $mail): void
+    /**
+     * Send to the guest's OWN email only (encrypted cast → plaintext here); no email → no send. Never throws.
+     *
+     * `$delaySeconds` QUEUES the send with a short delay instead of rendering inline — used by the booking
+     * confirmation because `reservation.confirmed` is recorded INSIDE `createBooking`, BEFORE the caller posts
+     * the folio (BookingEngineService / ReservationCreateController). Rendering inline would read `total_minor=0`
+     * with no folio items (a "€0.00" email). The delayed job re-loads the reservation (SerializesModels) once
+     * the request has committed the folio, so the Total + breakdown reconcile (#17). The delay ≫ request time.
+     */
+    private function sendToGuest(?Guest $guest, Mailable $mail, ?int $delaySeconds = null): void
     {
         $email = $guest?->email;
         if (! is_string($email) || $email === '') {
@@ -139,7 +151,10 @@ class SendGuestTransactionalEmails
         }
 
         try {
-            Mail::to($email)->send($mail);
+            $pending = Mail::to($email);
+            $delaySeconds !== null
+                ? $pending->later(now()->addSeconds($delaySeconds), $mail)
+                : $pending->send($mail);
         } catch (Throwable $e) {
             // A side effect must never break the triggering operation. Log the class + reason, never the address.
             Log::warning('Guest transactional email failed to send', ['mailable' => $mail::class, 'error' => $e->getMessage()]);

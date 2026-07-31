@@ -39,7 +39,7 @@ it('emails the guest a booking confirmation on a confirmed booking', function ()
 
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
-    Mail::assertSent(BookingConfirmationMail::class, fn (BookingConfirmationMail $mail): bool => $mail->hasTo('ada@example.test') && $mail->reservation->is($reservation));
+    Mail::assertQueued(BookingConfirmationMail::class, fn (BookingConfirmationMail $mail): bool => $mail->hasTo('ada@example.test') && $mail->reservation->is($reservation));
 });
 
 // ── Cancellation — on the real reservation.cancelled, to the guest ─────────────────────────────────
@@ -77,7 +77,7 @@ it('sends a guest email to exactly the guest and nobody else', function () {
 
     book($s, ['unit_id' => $s['units'][0]->id]);
 
-    Mail::assertSent(BookingConfirmationMail::class, function (BookingConfirmationMail $mail): bool {
+    Mail::assertQueued(BookingConfirmationMail::class, function (BookingConfirmationMail $mail): bool {
         return $mail->hasTo('ada@example.test')
             && count($mail->to) === 1        // exactly one recipient
             && count($mail->cc) === 0
@@ -92,7 +92,7 @@ it('sends no email when the guest has no address on file', function () {
 
     book($s, ['unit_id' => $s['units'][0]->id]);
 
-    Mail::assertNotSent(BookingConfirmationMail::class);
+    Mail::assertNotQueued(BookingConfirmationMail::class);
 });
 
 // ── Payment reminder command — arriving soon + a balance → the guest, real balance ────────────────

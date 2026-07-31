@@ -119,6 +119,7 @@ class OperatorEmailEditor extends Component
     private function mergeSample(string $text, array $catalog): string
     {
         $samples = [
+            'guest_name' => 'Alex Traveller',
             'first_name' => 'Alex',
             'unit' => 'Apartment 2B',
             'nights' => '3',

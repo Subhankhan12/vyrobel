@@ -35,7 +35,7 @@ final class EmailTemplateCatalog
                 'heading' => 'You’re all set, {guest_name}',
                 'message' => 'Your booking at {unit} is confirmed. We can’t wait to host you — here’s everything in one place.',
                 'button' => 'View your booking',
-                'vars' => ['guest_name', 'first_name', 'unit', 'nights', 'reference', 'total'],
+                'vars' => ['guest_name', 'first_name', 'unit', 'nights', 'reference'],
                 'blocks' => [
                     'price_breakdown' => ['label' => 'Price breakdown table', 'default' => true],
                     'before_you_arrive' => ['label' => 'Before-you-arrive rows', 'default' => true],
