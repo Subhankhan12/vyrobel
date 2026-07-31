@@ -266,11 +266,11 @@
                             @error('brand_accent') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
                         </div>
                         <div class="vy-field">
-                            <label class="vy-field-label" for="b_logo">Logo <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· SVG or PNG, square, ≥ 240px</span></label>
+                            <label class="vy-field-label" for="b_logo">Logo <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· PNG or JPG, square, ≥ 240px</span></label>
                             @if ($brand['logo_url'])
                                 <img src="{{ $brand['logo_url'] }}" alt="Current logo" style="width: 40px; height: 40px; border-radius: var(--vy-r-sm); object-fit: cover; margin-bottom: 6px;">
                             @endif
-                            <input id="b_logo" type="file" name="logo" accept="image/png,image/jpeg,image/svg+xml" class="vy-input" {{ $disabled }}>
+                            <input id="b_logo" type="file" name="logo" accept="image/png,image/jpeg,image/webp" class="vy-input" {{ $disabled }}>
                             @error('logo') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
                         </div>
                         <div class="vy-field">

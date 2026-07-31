@@ -121,7 +121,9 @@ class SettingsActionController extends Controller
             'brand_email_from_name' => ['nullable', 'string', 'max:120'],
             'brand_reply_to' => ['nullable', 'email', 'max:190'],
             'brand_powered_by' => ['sometimes', 'boolean'],
-            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg', 'max:2048'],
+            // ⚠️ RASTER ONLY — an SVG can carry <script> and, served from the app origin (public disk), would be
+            // stored XSS. The wireframe says "SVG or PNG"; we deliberately drop SVG for safety (raster logos only).
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
         ]);
 
         $attributes = [
