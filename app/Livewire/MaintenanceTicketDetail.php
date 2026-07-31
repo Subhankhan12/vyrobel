@@ -7,13 +7,16 @@ namespace App\Livewire;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\AuditEvent;
+use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
 use App\Models\Membership;
 use App\Models\OwnerExpense;
 use App\Models\ReservationUnit;
 use App\Models\User;
 use App\Services\MaintenanceService;
+use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -91,6 +94,12 @@ class MaintenanceTicketDetail extends Component
         // on the SAME permission so a role that can VIEW a ticket but not manage it never sees a 403-ing button.
         $canManage = (bool) auth()->user()?->can('maintenance.manage');
 
+        // #104 GATE 1d — surface the SAME real SLA clock the board shows (MaintenanceSla over the property's
+        // configured targets), and the awaiting-parts state — whose writer (setAwaitingParts) existed but was
+        // wired to no screen. The parts editor + SLA card below turn both into usable detail controls.
+        $setting = MaintenanceSetting::query()->first() ?? new MaintenanceSetting;
+        $sla = MaintenanceSla::evaluate($ticket, $setting, CarbonImmutable::now());
+
         return view('livewire.maintenance-ticket-detail', [
             'viewer' => $this->viewer(),
             'ticket' => [
@@ -116,6 +125,20 @@ class MaintenanceTicketDetail extends Component
                 'can_resolve' => $canManage && $status === 'in_progress',
                 'can_cancel' => $canManage && in_array($status, ['open', 'in_progress'], true),
                 'can_assign' => $canManage && in_array($status, ['open', 'in_progress'], true),
+                // #104 GATE 1d — awaiting-parts state (real columns; the editor below is its first UI).
+                'awaiting_parts' => (bool) $ticket->awaiting_parts && $ticket->isActive(),
+                'part_name' => $ticket->part_name !== null ? (string) $ticket->part_name : null,
+                'part_eta' => $ticket->part_eta?->format('Y-m-d'),
+                'part_eta_label' => $ticket->part_eta?->format('j M Y'),
+                'can_parts' => $canManage && $ticket->isActive(),
+            ],
+            'sla' => [
+                'state' => $sla['state'],
+                'has_target' => $sla['has_target'],
+                'breached' => $sla['breached'],
+                'due_soon' => $sla['due_soon'],
+                'target_hours' => $sla['target_hours'],
+                'label' => $this->slaLabel($sla),
             ],
             'currencySymbol' => $this->currencySymbol($currency),
             'timeline' => $this->timeline($ticket),

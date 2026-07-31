@@ -153,6 +153,42 @@
                     @endunless
                 </div>
 
+                {{-- #104 GATE 1d — SLA card: the SAME real clock the board shows (MaintenanceSla over the property's
+                     configured targets). Only meaningful while there's a target + the ticket is on the clock. --}}
+                @if ($sla['has_target'] && $sla['label'] !== '')
+                    <div class="vy-card">
+                        <span class="vy-eyebrow">Resolution target</span>
+                        @php $slaColor = $sla['breached'] ? '#c2410c' : ($sla['due_soon'] ? '#b26a08' : '#1a7f4b'); @endphp
+                        <div class="vy-fact-val" style="font-size:17px;font-weight:600;color:{{ $slaColor }};margin-top:6px;">{{ $sla['label'] }}</div>
+                        <div class="vy-recon" style="margin-top:6px;">Target: resolve within {{ $sla['target_hours'] }}h of reporting ({{ $ticket['priority_label'] }} priority).</div>
+                    </div>
+                @endif
+
+                {{-- #104 GATE 1d — awaiting-parts editor: the FIRST UI for the real setAwaitingParts writer (it was
+                     wired to no screen). Mark a ticket waiting on a part (name + ETA), or clear it when parts land. --}}
+                @if ($ticket['can_parts'])
+                    <div class="vy-card">
+                        <span class="vy-eyebrow">Parts</span>
+                        @if ($ticket['awaiting_parts'])
+                            <div class="vy-fact-val" style="font-size:14px;font-weight:600;margin-top:6px;">Waiting on: {{ $ticket['part_name'] ?? 'a part' }}</div>
+                            @if ($ticket['part_eta_label'])<div class="vy-recon" style="margin-top:4px;">Expected {{ $ticket['part_eta_label'] }}.</div>@endif
+                            <form method="POST" action="{{ route('app.maintenance.parts', $ticket['id']) }}" style="margin-top:10px;">
+                                @csrf
+                                <input type="hidden" name="awaiting_parts" value="0">
+                                <button type="submit" class="vy-act vy-act--ghost" style="width:100%;justify-content:center;">Parts arrived — clear</button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('app.maintenance.parts', $ticket['id']) }}" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+                                @csrf
+                                <input type="hidden" name="awaiting_parts" value="1">
+                                <input class="vy-input" type="text" name="part_name" maxlength="160" placeholder="Part needed (e.g. thermostat)">
+                                <input class="vy-input" type="date" name="part_eta" aria-label="Expected arrival">
+                                <button type="submit" class="vy-act vy-act--accent" style="width:100%;justify-content:center;">Mark awaiting parts</button>
+                            </form>
+                        @endif
+                    </div>
+                @endif
+
                 {{-- INTEGRATION 1 — out of service impact (real condition_status) + the manual-move flag. --}}
                 @if ($oos['active'])
                     <div class="vy-card">

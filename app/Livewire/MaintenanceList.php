@@ -163,18 +163,6 @@ class MaintenanceList extends Component
         ];
     }
 
-    /** @param array{state: string, over_hours: int, remaining_hours: int} $sla */
-    private function slaLabel(array $sla): string
-    {
-        return match ($sla['state']) {
-            'breached' => 'SLA breached · '.$sla['over_hours'].'h over',
-            'due_soon' => 'Due in '.$sla['remaining_hours'].'h',
-            'on_track' => $sla['remaining_hours'].'h to target',
-            'no_target' => 'No SLA target set',
-            default => '',
-        };
-    }
-
     private function matches(array $card, ?string $filter, string $search): bool
     {
         $active = in_array($card['status'], ['open', 'in_progress'], true);

@@ -6,6 +6,7 @@ namespace App\Livewire\Operator\Concerns;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\User;
+use App\Support\Maintenance\MaintenanceSla;
 
 /**
  * Shared presentation formatting for the operator back-office Livewire screens (design pass). The
@@ -251,6 +252,23 @@ trait FormatsOperatorData
             'normal' => ['label' => 'Normal', 'tone' => 'normal'],
             'low' => ['label' => 'Low', 'tone' => 'low'],
             default => ['label' => ucfirst($priority), 'tone' => 'normal'],
+        };
+    }
+
+    /**
+     * The SLA state → one human label. Shared (#104 GATE 1d) so the maintenance BOARD and the ticket DETAIL
+     * describe the same clock identically — they read the same {@see MaintenanceSla}.
+     *
+     * @param  array{state: string, over_hours: int, remaining_hours: int}  $sla
+     */
+    protected function slaLabel(array $sla): string
+    {
+        return match ($sla['state']) {
+            'breached' => 'SLA breached · '.$sla['over_hours'].'h over',
+            'due_soon' => 'Due in '.$sla['remaining_hours'].'h',
+            'on_track' => $sla['remaining_hours'].'h to target',
+            'no_target' => 'No SLA target set',
+            default => '',
         };
     }
 
