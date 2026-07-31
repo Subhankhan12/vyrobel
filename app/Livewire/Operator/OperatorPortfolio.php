@@ -174,10 +174,11 @@ class OperatorPortfolio extends Component
      */
     private function comparison($properties): array
     {
-        // #96 — "This month, side by side" (matches the wireframe + the month-scoped KPI/cards). Same
-        // PerformanceMetrics for a row [$id] and the Group ($accessibleIds) → Group = Σ reconciles (#17).
-        $start = CarbonImmutable::today()->startOfMonth();
-        $end = $start->addMonth();
+        // #96 — the side-by-side comparison spans the operating YEAR (the reconciling multi-period basis the
+        // Insights page + the certified analytics use; the KPI/cards above are current-month per the wireframe).
+        // Same PerformanceMetrics for a row [$id] and the Group ($accessibleIds) → Group = Σ reconciles (#17).
+        $start = CarbonImmutable::today()->startOfYear();
+        $end = $start->addYear();
 
         $rows = $properties->map(function (Property $property) use ($start, $end): array {
             $currency = (string) ($property->currency ?? 'EUR');

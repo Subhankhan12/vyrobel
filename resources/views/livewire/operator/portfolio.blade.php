@@ -118,7 +118,7 @@
              year, all REAL via the SG1 metric layer. A property with no data shows honest zeros. --}}
         @if (count($comparison['rows']) > 0)
             <div class="vy-card vy-fade" style="margin-top: 14px;">
-                <div class="vy-card-head"><h3>This month, side by side</h3><span class="vy-card-note">occupancy · ADR · RevPAR · room revenue</span></div>
+                <div class="vy-card-head"><h3>This year, side by side</h3><span class="vy-card-note">occupancy · ADR · RevPAR · room revenue</span></div>
                 <table class="vy-table">
                     <thead><tr><th>Property</th><th class="vy-num">Occupancy</th><th class="vy-num">ADR</th><th class="vy-num">RevPAR</th><th class="vy-num">Room revenue</th></tr></thead>
                     <tbody>
