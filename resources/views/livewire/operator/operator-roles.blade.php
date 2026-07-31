@@ -1,11 +1,11 @@
-{{-- Operator ROLES (Phase 1 · Sub-gate 3) — the security-first redesign. VIEW the fixed catalog roles + their
-     READ-ONLY permissions + members, and ASSIGN an existing role to a member. The whole page is gated on
-     users.manage (route). The role→permission catalog is CODE-DEFINED and shown read-only — never edited here
-     (that was the design's escalation weapon). Assignment is bounded by the privilege-subset rule in the service.
+{{-- Operator ROLES & PERMISSIONS (task #102) — matched to `Operator Roles.html`. The permission MATRIX is
+     EDITABLE (roles.manage): a toggle genuinely grants/revokes a real capability (spatie DB) via
+     RolePermissionService, bounded (editable-role/subset/last-admin) + audited. New-role/delete-role are honestly
+     deferred (the back-office role catalogue is config-anchored, #26). Assignment stays users.manage.
 
-     RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+     RAW-BLADE RULE: every `@` follows a space, newline or tag. Alpine uses x-on:/x-model, never `@click`. --}}
 <div>
-    <x-operator.shell active="roles" :title="'Roles & access'" :subtitle="'Who can do what'" :viewer="$viewer">
+    <x-operator.shell active="roles" :title="'Roles & permissions'" :subtitle="'What each role can see and do'" :viewer="$viewer">
 
         @if (session('roles_notice'))
             <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-accent); margin-bottom: 16px;">
@@ -13,115 +13,204 @@
             </div>
         @endif
 
-        {{-- The refusal, stated honestly: the catalog is code-defined and not editable here. --}}
-        <div class="vy-card vy-fade" style="margin-bottom: 16px;">
-            <div style="font-size: 12.5px; color: var(--vy-muted); line-height: 1.6;">
-                Roles and the permissions they grant are defined in Vyrobel’s code — the fixed catalog. They can’t be
-                created, edited or deleted here (so no one can quietly widen a role’s access). What you <strong>can</strong> do is
-                assign an existing role to a team member — and only a role whose access you already hold yourself.
+        @if ($readOnly)
+            <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-amber); margin-bottom: 16px;">
+                <div style="font-size: 13px; color: var(--vy-ink);">Your workspace is read-only right now — role changes are paused.</div>
             </div>
-        </div>
+        @endif
 
-        {{-- ── Assign a role (gated on users.manage — the page already is, but gate the control too) ──── --}}
-        @can('users.manage')
-            <form method="POST" action="{{ route('app.roles.assign') }}" class="vy-card vy-fade" style="margin-bottom: 20px;">
-                @csrf
-                <h2 class="vy-card-title" style="margin-bottom: 12px;">Assign a role</h2>
-                <div class="vyr-assign">
-                    <div class="vy-field" style="margin: 0;">
-                        <label class="vy-field-label" for="au">Team member</label>
-                        <select id="au" name="user_id" class="vy-input" required>
-                            <option value="">Choose a member…</option>
-                            @foreach ($members as $member)
-                                <option value="{{ $member['id'] }}">{{ $member['name'] }}</option>
-                            @endforeach
-                        </select>
+        @if (count($matrix['roles']) === 0)
+            <div class="vy-card vy-fade" style="text-align: center; padding: 40px 24px;">
+                <strong style="display: block; font-size: 15px; color: var(--vy-ink); margin-bottom: 6px;">No editable roles</strong>
+                <span style="font-size: 13px; color: var(--vy-muted);">Your organization's back-office roles will appear here.</span>
+            </div>
+        @else
+            <div x-data="rolesMatrix({
+                roles: @js($matrix['roles']),
+                sections: @js($matrix['sections']),
+                lockable: @js($matrix['lockable']),
+                canEdit: {{ $canEdit ? 'true' : 'false' }},
+                readOnly: {{ $readOnly ? 'true' : 'false' }},
+            })">
+                <div class="vyr-cols">
+                    {{-- ── LEFT: the role list ─────────────────────────────────────────────────────────── --}}
+                    <div class="vy-card vy-fade" style="align-self: start;">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+                            <h2 class="vy-card-title" style="margin: 0;">Roles</h2>
+                            <button type="button" class="vy-btn" style="padding: 6px 12px; font-size: 12px;" x-on:click="newRoleOpen = true">New role</button>
+                        </div>
+                        <template x-for="(r, i) in roles" x-bind:key="r.name">
+                            <button type="button" class="vyr-role" x-bind:class="{ 'is-on': i === selected }" x-on:click="select(i)">
+                                <div class="vyr-role-name" x-text="r.name"></div>
+                                <div class="vyr-role-desc" x-text="r.desc"></div>
+                                <div class="vyr-role-meta"><span x-text="r.level"></span> · <span x-text="r.member_count + (r.member_count === 1 ? ' member' : ' members')"></span></div>
+                            </button>
+                        </template>
                     </div>
-                    <div class="vy-field" style="margin: 0;">
-                        <label class="vy-field-label" for="ar">Role</label>
-                        <select id="ar" name="role" class="vy-input" required>
-                            <option value="">Choose a role…</option>
-                            @foreach ($assignableRoles as $role)
-                                <option value="{{ $role }}">{{ $role }}</option>
-                            @endforeach
-                        </select>
+
+                    {{-- ── CENTER: the editable permission matrix ──────────────────────────────────────── --}}
+                    <form class="vy-card vy-fade" method="POST" action="{{ route('app.roles.permissions') }}" style="align-self: start;">
+                        @csrf
+                        <input type="hidden" name="role" x-bind:value="roles[selected].name">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                            <h2 class="vy-card-title" style="margin: 0;"><span x-text="roles[selected].name"></span> · permissions</h2>
+                            <span style="font-size: 12px; color: var(--vy-muted);"><span x-text="grantCount()"></span> of <span x-text="roles[selected].total_count"></span> on</span>
+                        </div>
+                        <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 14px;">Toggle what this role can access. Changes apply to everyone assigned to it.</p>
+
+                        <template x-for="section in sections" x-bind:key="section.section">
+                            <div style="border-top: 1px solid var(--vy-hairline); padding: 10px 0;">
+                                <div class="vyr-section" x-text="section.section"></div>
+                                <div class="vyr-perms-grid">
+                                    <template x-for="perm in section.permissions" x-bind:key="perm.key">
+                                        <label class="vyr-toggle" x-bind:class="{ 'is-locked': !canToggle(perm.key) }">
+                                            <input type="checkbox" name="permissions[]" x-bind:value="perm.key"
+                                                   x-model="granted[perm.key]" x-bind:disabled="!canEdit || readOnly || !canToggle(perm.key)">
+                                            <span x-text="perm.label"></span>
+                                            {{-- Preserve a locked-but-granted permission on save (the actor can't toggle it, but must not drop it). --}}
+                                            <template x-if="!canToggle(perm.key) && granted[perm.key]"><input type="hidden" name="permissions[]" x-bind:value="perm.key"></template>
+                                        </label>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        @if ($canEdit && ! $readOnly)
+                            <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 20px;">Save changes</button>
+                            </div>
+                        @else
+                            <div style="margin-top: 14px; font-size: 11.5px; color: var(--vy-faint);">
+                                Editing a role's permissions needs the organization-admin permission (roles.manage).
+                            </div>
+                        @endif
+                    </form>
+
+                    {{-- ── RIGHT: the selected role card ───────────────────────────────────────────────── --}}
+                    <div class="vy-card vy-fade" style="align-self: start;">
+                        <span class="vy-eyebrow" style="font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-faint);">Selected role</span>
+                        <div style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 6px 0 2px;" x-text="roles[selected].name"></div>
+                        <div style="font-size: 12.5px; color: var(--vy-muted);"><span x-text="roles[selected].level"></span> · <span x-text="roles[selected].member_count + (roles[selected].member_count === 1 ? ' member' : ' members')"></span></div>
+                        <div style="font-size: 12px; color: var(--vy-faint); margin-top: 6px;"><span x-text="grantCount()"></span> permissions granted</div>
+
+                        <div style="margin-top: 14px; border-top: 1px solid var(--vy-hairline); padding-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 12.5px; font-weight: 600; color: var(--vy-ink);">Members</span>
+                                @if ($canAssign && ! $readOnly)
+                                    <a href="#assign" class="vy-btn" style="padding: 5px 11px; font-size: 11.5px;">Add</a>
+                                @endif
+                            </div>
+                            <template x-for="m in roles[selected].members" x-bind:key="m.id">
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 7px 0;">
+                                    <span style="width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center;" x-text="m.initials"></span>
+                                    <div style="min-width: 0;">
+                                        <div style="font-size: 13px; color: var(--vy-ink);" x-text="m.name"></div>
+                                        <div style="font-size: 11.5px; color: var(--vy-muted); overflow: hidden; text-overflow: ellipsis;" x-text="m.email"></div>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="roles[selected].members.length === 0" style="font-size: 12px; color: var(--vy-faint);">No one holds this role yet.</div>
+                        </div>
+
+                        {{-- Delete-this-role — honestly deferred (the catalogue is config-anchored). --}}
+                        <div style="margin-top: 14px; border-top: 1px solid var(--vy-hairline); padding-top: 12px;">
+                            <button type="button" class="vy-btn" style="padding: 7px 14px; font-size: 12px; color: rgb(150,50,42); border-color: rgba(180,68,58,.3);" x-on:click="deleteOpen = true">Delete this role</button>
+                        </div>
                     </div>
-                    <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 18px;">Assign role</button>
                 </div>
-                <div style="font-size: 11.5px; color: var(--vy-faint); margin-top: 9px;">
-                    Only roles whose access you already hold are listed — you can’t grant more than your own.
-                </div>
-            </form>
-        @endcan
 
-        {{-- ── The roles: read-only permissions + members ─────────────────────────────────────────────── --}}
-        @foreach ($roles as $role)
-            <div class="vy-card vy-fade" style="margin-bottom: 14px;">
-                <div class="vyr-head">
-                    <div>
-                        <span class="vyr-name">{{ $role['name'] }}</span>
-                        <span class="vyr-count">{{ $role['permission_count'] }} {{ $role['permission_count'] === 1 ? 'permission' : 'permissions' }} · {{ $role['member_count'] }} {{ $role['member_count'] === 1 ? 'member' : 'members' }}</span>
+                {{-- New-role modal — honest (the back-office catalogue is fixed) --}}
+                <div x-show="newRoleOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="newRoleOpen = false">
+                    <div class="vy-card" style="max-width: 440px; width: 100%;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;">The role catalogue is fixed</h3>
+                        <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">Back-office roles are anchored to how the app grants access, so new roles aren't created here. Instead, <strong>edit an existing role's permissions</strong> above to shape exactly what its members can do — the toggles take effect immediately.</p>
+                        <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="newRoleOpen = false">Got it</button></div>
                     </div>
                 </div>
 
-                {{-- Members --}}
-                @if ($role['members'] !== [])
-                    <div class="vyr-members">
-                        @foreach ($role['members'] as $member)
-                            <span class="vyr-member">
-                                <span class="vyr-av">{{ $member['initials'] }}</span>
-                                {{ $member['name'] }}
-                                @can('users.manage')
-                                    @if (in_array($role['name'], $assignableRoles, true))
-                                        <form method="POST" action="{{ route('app.roles.revoke') }}" style="display: inline;">
-                                            @csrf
-                                            <input type="hidden" name="user_id" value="{{ $member['id'] }}">
-                                            <input type="hidden" name="role" value="{{ $role['name'] }}">
-                                            <button type="submit" class="vyr-x" title="Remove this role">&times;</button>
-                                        </form>
-                                    @endif
-                                @endcan
-                            </span>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="vyr-nomembers">No one holds this role yet.</div>
-                @endif
-
-                {{-- Read-only permission grants (from the fixed catalog) --}}
-                <div class="vyr-perms">
-                    <span class="vyr-perms-label">Grants</span>
-                    <div class="vyr-perms-groups">
-                        @foreach ($role['permissions'] as $resource => $actions)
-                            <span class="vyr-perm">
-                                <strong>{{ $resource }}</strong>
-                                <span class="vyr-perm-actions">{{ implode(' · ', array_filter($actions)) }}</span>
-                            </span>
-                        @endforeach
+                {{-- Delete-role modal — honest --}}
+                <div x-show="deleteOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="deleteOpen = false">
+                    <div class="vy-card" style="max-width: 440px; width: 100%;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;">Roles can't be deleted here</h3>
+                        <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">The back-office role catalogue is fixed. To take access away from a role, un-toggle its permissions above; to move a person off a role, revoke it from them in the assignment section — they keep their other roles.</p>
+                        <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="deleteOpen = false">Got it</button></div>
                     </div>
                 </div>
             </div>
-        @endforeach
+
+            {{-- ── Assign a role to a member (users.manage) — kept below the matrix ────────────────────── --}}
+            @if ($canAssign)
+                <form id="assign" method="POST" action="{{ route('app.roles.assign') }}" class="vy-card vy-fade" style="margin-top: 20px;">
+                    @csrf
+                    <h2 class="vy-card-title" style="margin-bottom: 12px;">Assign a role</h2>
+                    <div class="vyr-assign">
+                        <div class="vy-field" style="margin: 0;">
+                            <label class="vy-field-label" for="au">Team member</label>
+                            <select id="au" name="user_id" class="vy-input" required {{ $readOnly ? 'disabled' : '' }}>
+                                <option value="">Choose a member…</option>
+                                @foreach ($members as $member)
+                                    <option value="{{ $member['id'] }}">{{ $member['name'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="vy-field" style="margin: 0;">
+                            <label class="vy-field-label" for="ar">Role</label>
+                            <select id="ar" name="role" class="vy-input" required {{ $readOnly ? 'disabled' : '' }}>
+                                <option value="">Choose a role…</option>
+                                @foreach ($assignableRoles as $role)
+                                    <option value="{{ $role }}">{{ $role }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @unless ($readOnly)
+                            <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 18px;">Assign role</button>
+                        @endunless
+                    </div>
+                    <div style="font-size: 11.5px; color: var(--vy-faint); margin-top: 9px;">Only roles whose access you already hold are listed — you can't grant more than your own.</div>
+                </form>
+            @endif
+        @endif
 
     </x-operator.shell>
 
+    <script>
+        function rolesMatrix(config) {
+            return {
+                roles: config.roles,
+                sections: config.sections,
+                lockable: config.lockable,
+                canEdit: config.canEdit,
+                readOnly: config.readOnly,
+                selected: 0,
+                granted: {},
+                newRoleOpen: false,
+                deleteOpen: false,
+                init() { this.loadGranted(); },
+                select(i) { this.selected = i; this.loadGranted(); },
+                loadGranted() {
+                    const set = {};
+                    (this.roles[this.selected].granted || []).forEach(function (p) { set[p] = true; });
+                    this.granted = set;
+                },
+                canToggle(key) { return this.lockable.includes(key); },
+                isGranted(key) { return !!this.granted[key]; },
+                grantCount() { return Object.keys(this.granted).filter((k) => this.granted[k]).length; },
+            };
+        }
+    </script>
+
     <style>
+        .vyr-cols { display: grid; grid-template-columns: 240px 1fr 260px; gap: 16px; align-items: start; }
+        .vyr-role { display: block; width: 100%; text-align: left; border: 1px solid var(--vy-hairline); background: rgba(255,255,255,0.6); border-radius: var(--vy-r-sm, 9px); padding: 10px 12px; margin-bottom: 8px; cursor: pointer; }
+        .vyr-role.is-on { border-color: var(--vy-accent); background: rgba(194,65,12,.06); }
+        .vyr-role-name { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
+        .vyr-role-desc { font-size: 11px; color: var(--vy-muted); margin-top: 2px; line-height: 1.4; }
+        .vyr-role-meta { font-size: 11px; color: var(--vy-faint); margin-top: 4px; }
+        .vyr-section { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 8px; }
+        .vyr-perms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 12px; }
+        .vyr-toggle { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--vy-ink); }
+        .vyr-toggle.is-locked { color: var(--vy-faint); }
         .vyr-assign { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
-        .vyr-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
-        .vyr-name { font-size: 15px; font-weight: 700; color: var(--vy-ink); font-family: var(--vy-display, inherit); }
-        .vyr-count { font-size: 11.5px; color: var(--vy-muted); margin-left: 10px; }
-        .vyr-members { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-        .vyr-member { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--vy-ink); background: rgba(255,255,255,0.7); border: 1px solid var(--vy-hairline); border-radius: 20px; padding: 4px 10px 4px 4px; }
-        .vyr-av { width: 24px; height: 24px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 9.5px; font-weight: 600; display: grid; place-items: center; }
-        .vyr-x { border: none; background: none; color: var(--vy-faint); font-size: 16px; line-height: 1; cursor: pointer; padding: 0 2px; }
-        .vyr-x:hover { color: var(--vy-accent); }
-        .vyr-nomembers { font-size: 12px; color: var(--vy-faint); margin-bottom: 14px; }
-        .vyr-perms { border-top: 1px solid var(--vy-hairline); padding-top: 12px; }
-        .vyr-perms-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--vy-faint); }
-        .vyr-perms-groups { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-        .vyr-perm { font-size: 11.5px; color: var(--vy-muted); background: rgba(120,70,40,0.05); border-radius: 7px; padding: 4px 9px; }
-        .vyr-perm strong { color: var(--vy-ink); font-weight: 600; }
-        .vyr-perm-actions { margin-left: 5px; }
-        @media (max-width: 720px) { .vyr-assign { grid-template-columns: 1fr; } }
+        @media (max-width: 980px) { .vyr-cols { grid-template-columns: 1fr; } .vyr-assign { grid-template-columns: 1fr; } }
     </style>
 </div>

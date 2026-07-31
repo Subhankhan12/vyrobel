@@ -502,6 +502,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::get('/roles', OperatorRoles::class)->middleware('can:users.manage')->name('roles');
     Route::post('/roles/assign', [RoleAssignmentController::class, 'assign'])->middleware('can:users.manage')->name('roles.assign');
     Route::post('/roles/revoke', [RoleAssignmentController::class, 'revoke'])->middleware('can:users.manage')->name('roles.revoke');
+    // #102 — edit a role's PERMISSION MATRIX (the toggles genuinely grant/revoke real capabilities, spatie DB).
+    // Gated `can:roles.manage` (org-admin: Property Owner + Super Admin), NOT the broader users.manage — a
+    // sensitive surface; RolePermissionService enforces editable-role/subset/last-admin + audits.
+    Route::post('/roles/permissions', [RoleAssignmentController::class, 'savePermissions'])->middleware('can:roles.manage')->name('roles.permissions');
     // Wave 1 · Sub-gate 4 — the operator PAYOUT RUN (tenant-scoped): finalized statements ready to pay
     // → REAL payouts through the certified OwnerPayoutService (ManualPayoutRail is the working rail;
     // the Stripe-Connect rail stays a config-gated skeleton that THROWS — never faked). The writes use

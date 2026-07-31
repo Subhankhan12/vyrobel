@@ -42,19 +42,19 @@ function rolePerms(string $roleName, array $scenario): array
     }
 }
 
-// ── 1. VIEW — real roles, read-only permission grants, real members, the refusal note ────────────
-it('shows the fixed catalog roles with read-only permissions and members', function () {
+// ── 1. VIEW — real roles, the permission matrix, real members (#102: the matrix is now editable) ──
+it('shows the roles, the permission matrix and members', function () {
     $s = seedScenario(1);
     $admin = operatorUser($s, ['name' => 'Ada Admin'], 'Group Admin');
     operatorUser($s, ['name' => 'Fred Front-Desk'], 'Front Desk');
 
     $this->actingAs($admin)->get('/app/roles')
         ->assertOk()
-        ->assertSee('Front Desk')             // a real catalog role
+        ->assertSee('Front Desk')                         // a real catalog role
         ->assertSee('Hotel Manager')
-        ->assertSee('Reservations')           // a grouped read-only permission
-        ->assertSee('Fred Front-Desk')        // a real member
-        ->assertSee('defined in Vyrobel');    // the catalog-is-code, not-editable-here note
+        ->assertSee('Reservations')                       // a matrix section
+        ->assertSee('Fred Front-Desk')                    // a real member
+        ->assertSee('Toggle what this role can access');  // the editable-matrix framing (#102)
 });
 
 // ── 2. ASSIGN — an admin may assign a role within their own privilege ────────────────────────────
@@ -126,8 +126,8 @@ it('cannot assign a role to a user in another organization', function () {
     expect(roleNames($outsider, $b))->not->toContain('Hotel Manager');   // untouched
 });
 
-// ── 7. THE CATALOG IS NOT UI-EDITABLE — assignment never mutates role→permission; no edit route exists ──
-it('never mutates the role permission catalog and exposes no catalog-edit route', function () {
+// ── 7. THE ASSIGN PATH never mutates the role→permission catalog (#102: matrix editing is its OWN route) ──
+it('the assign path never mutates the role→permission catalog', function () {
     $s = seedScenario(1);
     $admin = operatorUser($s, [], 'Group Admin');
     $member = operatorUser($s, ['name' => 'Mo Member'], 'Front Desk');
@@ -135,13 +135,13 @@ it('never mutates the role permission catalog and exposes no catalog-edit route'
     $before = rolePerms('Front Desk', $s);
     $this->actingAs($admin)->post('/app/roles/assign', ['user_id' => $member->id, 'role' => 'Hotel Manager']);
 
-    // Front Desk's GRANTS are unchanged — the assign moved a user, it did not touch the catalog.
+    // Front Desk's config grants are unchanged — the assign moved a user, it did not touch permissions.
     expect(rolePerms('Front Desk', $s))->toBe($before);
 
-    // Structurally: the ONLY roles routes are view + assign + revoke — there is NO permission-editing endpoint.
+    // #102 — the roles routes are view + assign + revoke + the roles.manage-gated permission-matrix edit.
     $roleRoutes = collect(app('router')->getRoutes())
         ->map->getName()
         ->filter(fn ($n): bool => is_string($n) && str_starts_with($n, 'app.roles'))
         ->values()->all();
-    expect($roleRoutes)->toEqualCanonicalizing(['app.roles', 'app.roles.assign', 'app.roles.revoke']);
+    expect($roleRoutes)->toEqualCanonicalizing(['app.roles', 'app.roles.assign', 'app.roles.revoke', 'app.roles.permissions']);
 });

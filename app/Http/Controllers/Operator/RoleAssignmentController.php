@@ -8,6 +8,8 @@ use App\Exceptions\Authorization\RoleAssignmentException;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\RoleAssignmentService;
+use App\Services\RolePermissionService;
+use App\Support\Operator\OperatorWorkspace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -31,10 +33,49 @@ class RoleAssignmentController extends Controller
     }
 
     /**
+     * Save the editable permission MATRIX for one role (task #102 · Decision RL1) — the toggled permissions
+     * genuinely grant/revoke real capabilities (spatie DB). Route-gated `can:roles.manage` (org-admin); the DATA
+     * bounds (editable-role, catalog-only, subset, last-admin) + the audit live in {@see RolePermissionService}.
+     */
+    public function savePermissions(Request $request, RolePermissionService $perms): RedirectResponse
+    {
+        if ($this->readOnly()) {
+            return $this->back('Your workspace is read-only right now — role changes are paused.');
+        }
+
+        /** @var User $actor */
+        $actor = $request->user();
+
+        $roleName = trim((string) $request->input('role'));
+        /** @var list<string> $granted */
+        $granted = array_values(array_filter((array) $request->input('permissions', []), 'is_string'));
+
+        if ($roleName === '') {
+            return $this->back('Choose a role to edit.');
+        }
+
+        try {
+            $result = $perms->save($actor, $roleName, $granted);
+        } catch (RoleAssignmentException $e) {
+            return $this->back($e->getMessage());   // an expected refusal (editable / subset / last-admin) — never a 500
+        }
+
+        $changed = $result['granted'] + $result['revoked'];
+
+        return $this->back($changed === 0
+            ? 'No changes to “'.$roleName.'”.'
+            : '“'.$roleName.'” updated — '.$result['granted'].' granted, '.$result['revoked'].' revoked.');
+    }
+
+    /**
      * @param  callable(User, User, string): void  $action
      */
     private function manage(Request $request, callable $action): RedirectResponse
     {
+        if ($this->readOnly()) {
+            return $this->back('Your workspace is read-only right now — role changes are paused.');
+        }
+
         /** @var User $actor */
         $actor = $request->user();
 
@@ -52,6 +93,12 @@ class RoleAssignmentController extends Controller
         }
 
         return $this->back('“'.$target->name.'” — role updated.');
+    }
+
+    /** #102 — the role write path now respects the paused/read-only workspace (was a gap). */
+    private function readOnly(): bool
+    {
+        return app(OperatorWorkspace::class)->isReadOnly();
     }
 
     private function back(string $notice): RedirectResponse
