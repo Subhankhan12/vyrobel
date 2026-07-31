@@ -43,6 +43,17 @@ function bookingPayload(array $s, array $overrides = []): array
     ], $overrides);
 }
 
+// #104 GATE 3 — the "Estimated arrival" field (once collected + silently dropped) now persists.
+it('persists the estimated arrival window from the booking form', function () {
+    $s = ratedScenario(1, 10000);
+    $frontDesk = operatorUser($s, ['name' => 'Fred Front-Desk'], 'Front Desk');
+
+    $this->actingAs($frontDesk)->post('/app/reservations/create', bookingPayload($s, ['arrival_window' => '3–6 PM']))
+        ->assertRedirect();
+
+    expect((string) Reservation::query()->latest('created_at')->firstOrFail()->expected_arrival)->toBe('3–6 PM');
+});
+
 // ── 1. THE WRITE IS REAL — a booking is created through createBooking, with a folio room charge ───
 it('creates a real reservation through the certified createBooking path', function () {
     $s = ratedScenario(1, 10000);

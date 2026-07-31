@@ -176,6 +176,14 @@ class ReservationCreateController extends Controller
             return $this->back($request, 'That unit was just taken for those dates — nothing was created. Re-check availability.');
         }
 
+        // #104 GATE 3 — persist the guest's ESTIMATED ARRIVAL (the "Estimated arrival" field was collected +
+        // silently dropped). A free-text window the front desk sees; bounded to the column length. A post-create
+        // update on the returned reservation — the certified createBooking contract is untouched.
+        $arrivalWindow = trim((string) $request->input('arrival_window', ''));
+        if ($arrivalWindow !== '') {
+            $reservation->update(['expected_arrival' => mb_substr($arrivalWindow, 0, 60)]);
+        }
+
         // Open the folio and post the room charge, so the balance the operator sees is real.
         $folio = $folios->openFolio($reservation);
         $folios->postCharge($folio, 'room', 'Room · '.$offered['room_type_name'], Money::of($roomChargeMinor, $currency));

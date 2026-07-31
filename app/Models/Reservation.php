@@ -27,6 +27,7 @@ class Reservation extends Model
         'property_id',
         'reference',
         'source',
+        'expected_arrival',
         'channel_id',
         'ota_reservation_id',
         'status',

@@ -77,6 +77,10 @@
                                             @endforeach
                                         </div>
                                     @endif
+                                    {{-- #104 GATE 3 — the guest's estimated arrival (real, captured at booking; was dropped). --}}
+                                    @if ($row['expected_arrival'])
+                                        <div class="vy-fd-meta" style="margin-top: 4px; font-size: 12px; color: var(--vy-muted);">Arrival · {{ $row['expected_arrival'] }}</div>
+                                    @endif
                                     <div class="vy-fd-meta">
                                         <span class="vy-tag tone-{{ $row['tone'] }}"><span class="vy-dot"></span>{{ $row['status_label'] }}</span>
                                         @if ($row['unassigned'])

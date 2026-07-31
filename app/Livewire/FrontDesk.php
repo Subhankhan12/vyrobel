@@ -162,6 +162,8 @@ class FrontDesk extends Component
                 'guests' => (int) $reservation->adults + (int) $reservation->children,
                 'check_in' => $checkIn->toDateString(),
                 'check_out' => $checkOut->toDateString(),
+                // #104 GATE 3 — the guest's estimated arrival (real, was dropped at booking). Free-text window.
+                'expected_arrival' => ($ea = trim((string) ($reservation->expected_arrival ?? ''))) !== '' ? $ea : null,
                 'balance_minor' => $balanceMinor,
                 'balance' => $this->money($balanceMinor, $currency),
                 'has_balance' => $balanceMinor > 0,
