@@ -90,11 +90,12 @@
     <aside class="vy-side">
         <div class="vy-brand">
             <span class="vy-brand-mark">V</span>
-            <span>
-                <span class="vy-brand-name">Vyrobel</span><br>
-                <span class="vy-brand-sub">Operator</span>
-            </span>
+            <span class="vy-brand-name">Vyrobel</span>
         </div>
+
+        {{-- #104 fidelity — the property switcher lives in the sidebar (below the brand), matching the decoded
+             operator wireframe. Same Livewire-free POST switcher, relocated from the topbar. --}}
+        <x-operator.property-switcher />
 
         @foreach ($navGroups as [$group, $items])
             <nav class="vy-nav-group" aria-label="{{ $group }}">
@@ -137,7 +138,6 @@
                 @endif
             </div>
             <div class="vy-topbar-actions">
-                <x-operator.property-switcher />
                 <x-notifications.bell :open-all-url="route('app.notifications')" />
                 <span class="vy-chip">
                     <span class="vy-avatar">{{ $viewer['initials'] }}</span>

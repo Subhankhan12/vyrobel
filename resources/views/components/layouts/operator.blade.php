@@ -48,6 +48,13 @@
             --vy-grad-peach: linear-gradient(90deg, #F0A57A, #C2410C);
             --vy-grad-dark: linear-gradient(160deg, #3A2E27, #251C17);
 
+            /* #104 fidelity — the decoded operator wireframe's warm peach→grey diagonal page background + the
+               three ambient orbs behind the frosted glass (identical to the owner shell, which already ships it). */
+            --vy-bg: linear-gradient(135deg, #F6C89B 0%, #F1B896 32%, #EBD9CF 62%, #D9D6D2 100%);
+            --vy-orb-1: #E8703A;
+            --vy-orb-2: #F0A57A;
+            --vy-orb-3: #FBE3CE;
+
             --vy-shadow: rgba(150, 90, 50, 0.16) 0 14px 40px, inset rgba(255, 255, 255, 0.65) 0 1px 0;
             --vy-shadow-sm: rgba(150, 90, 50, 0.12) 0 8px 22px, inset rgba(255, 255, 255, 0.6) 0 1px 0;
             --vy-shadow-accent: rgba(194, 65, 12, 0.30) 0 4px 12px;
@@ -73,26 +80,22 @@
             -webkit-font-smoothing: antialiased;
             text-rendering: optimizeLegibility;
             min-height: 100vh;
-            background:
-                radial-gradient(circle at 82% 8%, rgba(255, 255, 255, 0.35), transparent 68%),
-                radial-gradient(circle at 12% 92%, rgba(255, 224, 200, 0.4), transparent 60%),
-                linear-gradient(120deg, rgba(255, 240, 220, 0.5), transparent 55%),
-                linear-gradient(180deg, #FBF3EC 0%, #F6EBE2 100%);
+            background: var(--vy-bg);
             background-attachment: fixed;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        body.vy-body::before {
-            content: "";
-            position: fixed;
-            inset: -20% -10% auto auto;
-            width: 46vw;
-            height: 46vw;
-            background: radial-gradient(circle, rgba(255, 210, 170, 0.5), transparent 70%);
-            filter: blur(10px);
-            z-index: 0;
-            pointer-events: none;
-            animation: vyDrift 26s ease-in-out infinite;
-        }
+        /* #104 fidelity — ambient light streaks + floating color orbs (decoded from the operator wireframe;
+           identical to the owner shell). Behind everything (z-index 0), they make the frosted glass visible.
+           The animated ones are stilled by the reduced-motion floor below. */
+        .vy-amb { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .vy-amb > div { position: absolute; pointer-events: none; }
+        .vy-amb-streak1 { top: -180px; right: -120px; width: 640px; height: 640px; background: radial-gradient(circle, rgba(255, 255, 255, .35), transparent 68%); filter: blur(10px); }
+        .vy-amb-streak2 { top: 22%; left: -10%; width: 70%; height: 260px; background: linear-gradient(120deg, rgba(255, 240, 220, .5), transparent); transform: rotate(28deg); filter: blur(24px); animation: vyShimmer 9s ease-in-out infinite; }
+        .vy-amb-orb1 { top: 80px; left: 24%; width: 380px; height: 380px; background: var(--vy-orb-1); border-radius: 50%; filter: blur(70px); opacity: .55; animation: vyDrift 14s ease-in-out infinite; }
+        .vy-amb-orb2 { top: 470px; left: 36%; width: 320px; height: 320px; background: var(--vy-orb-2); border-radius: 50%; filter: blur(70px); opacity: .55; }
+        .vy-amb-orb3 { top: 220px; right: 4%; width: 300px; height: 300px; background: var(--vy-orb-3); border-radius: 50%; filter: blur(70px); opacity: .55; }
 
         main { position: relative; z-index: 1; }
         a { color: inherit; text-decoration: none; }
@@ -103,39 +106,40 @@
         @keyframes vyDrift { 0% { transform: translate(0, 0); } 50% { transform: translate(46px, 28px); } 100% { transform: translate(0, 0); } }
 
         /* ---- App shell ------------------------------------------------------------------------- */
-        .vy-shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
+        .vy-shell { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 100vh; }
 
+        /* #104 fidelity — the frosted nav floats directly on the gradient (no panel bg / border), exact-match
+           to the decoded operator wireframe (width 230px, padding 26px 16px 30px). */
         .vy-side {
             position: sticky; top: 0; align-self: start; height: 100vh;
-            padding: 22px 16px; display: flex; flex-direction: column; gap: 20px;
-            border-right: 1px solid var(--vy-hairline);
-            background: rgba(255, 253, 250, 0.5);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 26px 16px 30px; display: flex; flex-direction: column; gap: 18px;
             overflow-y: auto;
+            animation: vyFadeUp .45s cubic-bezier(.22, .61, .36, 1) both;
         }
-        .vy-brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 8px; }
+        .vy-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
         .vy-brand-mark {
-            width: 34px; height: 34px; border-radius: var(--vy-r-md); background: var(--vy-grad);
-            color: #fff; font-family: var(--vy-display); font-weight: 700; font-size: 18px;
+            width: 34px; height: 34px; border-radius: var(--vy-r-sm); background: var(--vy-grad);
+            color: #fff; font-family: var(--vy-display); font-weight: 600; font-size: 17px;
             display: grid; place-items: center; box-shadow: var(--vy-shadow-accent);
         }
-        .vy-brand-name { font-family: var(--vy-display); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
-        .vy-brand-sub { font-size: 9.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--vy-faint); }
-        .vy-nav-group { display: flex; flex-direction: column; gap: 2px; }
-        .vy-nav-label { font-size: 9.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--vy-faint); padding: 8px 10px 4px; }
+        .vy-brand-name { font-family: var(--vy-display); font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
+        .vy-nav-group { display: flex; flex-direction: column; gap: 3px; }
+        .vy-nav-label { font-size: 10.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #9C9089; padding: 0 12px 6px; }
         .vy-nav-item {
-            display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--vy-r-sm);
-            font-size: 13.5px; font-weight: 500; color: var(--vy-muted); cursor: pointer;
-            transition: background .18s ease, color .18s ease;
+            display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--vy-r-md);
+            font-size: 13.5px; font-weight: 500; color: #8A8079; cursor: pointer;
+            transition: background .16s ease, color .16s ease;
         }
-        .vy-nav-item .vy-ico { width: 15px; height: 15px; flex: none; opacity: .8; }
-        .vy-nav-item:hover { background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); }
+        .vy-nav-item .vy-ico { width: 16px; height: 16px; flex: none; }
+        .vy-nav-item:hover { background: rgba(255, 255, 255, 0.35); }
+        /* #104 fidelity — the active item reads terracotta on frosted glass (wireframe/owner exact), not espresso. */
         .vy-nav-item.is-active {
-            background: rgba(255, 255, 255, 0.9); color: var(--vy-ink); font-weight: 600;
-            box-shadow: var(--vy-shadow-sm); border: 1px solid var(--vy-glass-border);
+            background: rgba(255, 255, 255, 0.72); color: var(--vy-accent); font-weight: 500;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 14px rgba(150, 90, 50, 0.14); border: 1px solid rgba(255, 255, 255, 0.8);
         }
         .vy-nav-item[aria-disabled="true"] { cursor: default; opacity: .55; }
-        .vy-nav-item[aria-disabled="true"]:hover { background: transparent; color: var(--vy-muted); }
+        .vy-nav-item[aria-disabled="true"]:hover { background: transparent; color: #8A8079; }
 
         /* Main column */
         .vy-main { padding: 22px 30px 60px; max-width: 1480px; }
@@ -149,10 +153,11 @@
         .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; }
         .vy-chip-name { font-size: 13px; font-weight: 500; }
 
-        /* Property switcher (Phase 6a · multi-property) — sits in the topbar actions. */
-        .vy-propsw { display: flex; align-items: center; gap: 7px; padding: 4px 10px 4px 11px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); color: var(--vy-muted); }
+        /* Property switcher (Phase 6a · multi-property) — #104 fidelity: now a full-width frosted block in the
+           sidebar (below the brand), matching the decoded operator wireframe. */
+        .vy-propsw { display: flex; align-items: center; gap: 8px; margin: 0 4px; padding: 9px 12px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.5); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); color: var(--vy-muted); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         .vy-propsw-ico { color: var(--vy-accent); flex: none; }
-        .vy-propsw-select { border: 0; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--vy-ink); padding: 3px 2px; cursor: pointer; max-width: 180px; }
+        .vy-propsw-select { flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--vy-ink); padding: 2px 0; cursor: pointer; }
         .vy-propsw-select:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; border-radius: 4px; }
         .vy-propsw-static { font-size: 13px; font-weight: 500; color: var(--vy-ink); }
 
@@ -1010,6 +1015,13 @@
 </head>
 @php $vyPrefs = auth()->user(); @endphp
 <body class="vy-body" @if ($vyPrefs && $vyPrefs->reduce_motion) data-reduce-motion="1" @endif @if ($vyPrefs && $vyPrefs->compact_density) data-density="compact" @endif>
+    <div class="vy-amb" aria-hidden="true">
+        <div class="vy-amb-streak1"></div>
+        <div class="vy-amb-streak2"></div>
+        <div class="vy-amb-orb1"></div>
+        <div class="vy-amb-orb2"></div>
+        <div class="vy-amb-orb3"></div>
+    </div>
     <main>
         {{ $slot }}
     </main>
