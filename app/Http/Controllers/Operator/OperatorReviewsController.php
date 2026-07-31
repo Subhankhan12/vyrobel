@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Review;
 use App\Services\ReviewService;
 use App\Support\Guest\GuestName;
+use App\Support\Reviews\ReviewRating;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,10 +30,20 @@ class OperatorReviewsController extends Controller
 {
     public function __construct(private readonly ReviewService $reviews) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        // #104 GATE 2 — a real status filter (All / Published / Pending / Rejected), driven by the real
+        // `status` column. An unknown value falls through to "all" (no silent empty).
+        $filter = (string) $request->query('filter', 'all');
+        $statusFor = [
+            'published' => Review::STATUS_PUBLISHED,
+            'pending' => Review::STATUS_PENDING,
+            'rejected' => Review::STATUS_REJECTED,
+        ][$filter] ?? null;
+
         $reviews = Review::query()
             ->with(['guest', 'roomType'])
+            ->when($statusFor !== null, fn ($q) => $q->where('status', $statusFor))
             ->latest()
             ->get()
             ->map(fn (Review $r): array => [
@@ -49,7 +60,11 @@ class OperatorReviewsController extends Controller
                 'at' => CarbonImmutable::parse($r->created_at)->format('j M Y'),
             ]);
 
-        return response()->view('operator.reviews', ['reviews' => $reviews->all()]);
+        return response()->view('operator.reviews', [
+            'reviews' => $reviews->all(),
+            'summary' => ReviewRating::operatorSummary(),
+            'filter' => $filter,
+        ]);
     }
 
     public function respond(Request $request, string $review): RedirectResponse

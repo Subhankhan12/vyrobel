@@ -15,6 +15,45 @@
         for now, every response and publish decision is yours.
     </p>
 
+    {{-- #104 GATE 2 — REAL reputation summary (overall rating + 5-star distribution + reply rate), all real
+         aggregates over the org's reviews via the shared ReviewRating. Honest empty state when there are none. --}}
+    @if ($summary['has_reviews'])
+        <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade" style="margin-bottom:16px">
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">Overall rating</div>
+                <div class="vy-dk-val">{{ number_format((float) $summary['average'], 1) }}<span class="vy-dk-unit"> ★</span></div>
+                <div class="vy-dk-sub">{{ $summary['count'] }} published {{ \Illuminate\Support\Str::plural('review', $summary['count']) }}</div>
+            </div>
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">Reply rate</div>
+                <div class="vy-dk-val">{{ $summary['reply_rate'] }}<span class="vy-dk-unit">%</span></div>
+                <div class="vy-dk-sub">{{ $summary['responded'] }} of {{ $summary['count'] }} answered
+                    @if ($summary['pending'] > 0)· {{ $summary['pending'] }} awaiting review @endif
+                </div>
+            </div>
+            <div class="vy-dash-kpi">
+                <div class="vy-dk-label">Rating breakdown</div>
+                <div style="display:flex;flex-direction:column;gap:3px;margin-top:8px">
+                    @foreach ([5, 4, 3, 2, 1] as $star)
+                        @php $n = $summary['distribution'][$star]; $pct = $summary['count'] > 0 ? (int) round($n * 100 / $summary['count']) : 0; @endphp
+                        <div style="display:flex;align-items:center;gap:8px;font-size:11px">
+                            <span style="width:28px;color:var(--vy-muted)">{{ $star }}★</span>
+                            <span style="flex:1;height:6px;border-radius:4px;background:rgba(120,70,40,.10);overflow:hidden"><span style="display:block;height:100%;width:{{ $pct }}%;background:var(--vy-grad-peach)"></span></span>
+                            <span style="width:26px;text-align:right;color:var(--vy-muted)">{{ $n }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- #104 GATE 2 — REAL status filter tabs (All / Published / Pending / Rejected), driven by the real column. --}}
+    <div class="vy-fade" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        @foreach (['all' => 'All', 'published' => 'Published', 'pending' => 'Pending', 'rejected' => 'Rejected'] as $key => $label)
+            <a class="vy-pill @if ($filter === $key) is-on @endif" href="?filter={{ $key }}">{{ $label }}</a>
+        @endforeach
+    </div>
+
     @forelse ($reviews as $review)
         <section class="vy-card" style="margin-bottom:12px;padding:16px 18px;border-radius:14px;background:#fff;border:1px solid rgba(120,70,40,.10)">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">

@@ -52,6 +52,41 @@ final class ReviewRating
     }
 
     /**
+     * #104 GATE 2 — the operator Reviews SUMMARY dashboard (the wireframe's overall-rating + 5-star distribution
+     * + reply-rate strip). Org-scoped (the tenant scope on {@see Review}). Rating + distribution are over the
+     * PUBLISHED/public reviews (the reputation the guest sees); reply-rate + pending count over what the operator
+     * moderates. Every figure a REAL aggregate (#39) — an org with no reviews yields an honest empty summary.
+     *
+     * @return array{count: int, average: float|null, distribution: array<int, int>, responded: int, reply_rate: int, pending: int, has_reviews: bool}
+     */
+    public static function operatorSummary(): array
+    {
+        $published = self::publicScope();
+        $count = (clone $published)->count();
+        $average = $count > 0 ? round((float) (clone $published)->avg('rating'), 1) : null;
+
+        $distribution = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+        foreach ((clone $published)->selectRaw('rating, COUNT(*) AS c')->groupBy('rating')->pluck('c', 'rating') as $star => $c) {
+            $s = (int) $star;
+            if (isset($distribution[$s])) {
+                $distribution[$s] = (int) $c;
+            }
+        }
+
+        $responded = (clone $published)->whereNotNull('responded_at')->count();
+
+        return [
+            'count' => $count,
+            'average' => $average,
+            'distribution' => $distribution,
+            'responded' => $responded,
+            'reply_rate' => $count > 0 ? (int) round($responded * 100 / $count) : 0,
+            'pending' => Review::query()->where('status', Review::STATUS_PENDING)->count(),
+            'has_reviews' => $count > 0,
+        ];
+    }
+
+    /**
      * @param  Builder<Review>  $query
      * @return array{count: int, average: float|null, has_reviews: bool}
      */
