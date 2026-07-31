@@ -119,8 +119,12 @@ class OperatorSettings extends Component
         $status = $organization->billingStatus();
         $pricing = SubscriptionPricing::current('monthly');
 
+        // The REAL plan name off the org's current subscription (the SAME source /app/billing reads) — never a
+        // hardcoded tier, so the two operator surfaces can't disagree (#39). "Vyrobel " is the branded prefix.
+        $planName = $organization->currentSubscription()?->plan?->name;
+
         return [
-            'tier' => 'Vyrobel Pro',
+            'tier' => $planName !== null ? 'Vyrobel '.$planName : 'No plan',
             'status' => (string) $status->label(),
             'price' => $this->money((int) $pricing['gross_minor'], (string) config('billing.default_currency', 'EUR')).'/mo',
             'manage_url' => route('app.billing'),

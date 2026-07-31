@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\Organization;
+use App\Models\Plan;
+use App\Models\Subscription;
+use App\Services\BillingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -41,14 +44,49 @@ it('refuses invoice config to a role without settings.manage', function () {
         ->post(route('app.settings.invoice'), ['billing_company' => 'X'])->assertForbidden();
 });
 
-it('renders the invoice section with the honest SAF-T deferral + the real plan card', function () {
+it('renders the invoice section with the honest SAF-T deferral + the REAL plan name', function () {
     $s = seedScenario(1);
     $admin = operatorUser($s, [], 'Property Owner');
+
+    // The plan card shows the org's ACTUAL subscription plan (not a hardcoded tier). On Pro → "Vyrobel Pro".
+    app(BillingService::class)->ensurePlans();
+    $pro = Plan::query()->where('code', 'pro_monthly')->firstOrFail();
+    Subscription::create(['organization_id' => $s['org']->id, 'plan_id' => $pro->id, 'status' => 'active', 'current_period_end' => now()->addMonth()]);
 
     $this->actingAs($admin)->withSession(['current_property_id' => $s['property']->id])->get(route('app.settings'))
         ->assertOk()
         ->assertSee('Invoice details')
         ->assertSee('SAF-T')
         ->assertSee('Your plan')
-        ->assertSee('Vyrobel Pro');
+        ->assertSee('Vyrobel Pro');   // the REAL plan name, derived from the subscription
+});
+
+it('shows the REAL plan name for an Essential org (no drift with /app/billing)', function () {
+    $s = seedScenario(1);
+    $admin = operatorUser($s, [], 'Property Owner');
+
+    // An Essential org must NOT read "Vyrobel Pro" — the old hardcoded tier bug.
+    app(BillingService::class)->ensurePlans();
+    $essential = Plan::query()->where('code', 'essential_monthly')->firstOrFail();
+    Subscription::create(['organization_id' => $s['org']->id, 'plan_id' => $essential->id, 'status' => 'active', 'current_period_end' => now()->addMonth()]);
+
+    $this->actingAs($admin)->withSession(['current_property_id' => $s['property']->id])->get(route('app.settings'))
+        ->assertOk()
+        ->assertSee('Vyrobel Essential')
+        ->assertDontSee('Vyrobel Pro');
+});
+
+it('coerces a cleared "Next number" to 1 instead of 500ing on the NOT-NULL column', function () {
+    $s = seedScenario(1);
+    $admin = operatorUser($s, [], 'Property Owner');
+
+    // A cleared number field arrives as null (empty string → null) — must coerce to the floor, never 500.
+    $this->actingAs($admin)->withSession(['current_property_id' => $s['property']->id])->post(route('app.settings.invoice'), [
+        'billing_company' => 'Seaside Villas Lda',
+        'invoice_series_prefix' => 'FT2026/',
+        'invoice_next_number' => '',
+        'invoice_auto_issue' => '0',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    expect((int) Organization::query()->find($s['org']->id)->invoice_next_number)->toBe(1);
 });

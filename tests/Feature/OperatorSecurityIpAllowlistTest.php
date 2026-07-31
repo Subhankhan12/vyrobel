@@ -55,6 +55,21 @@ it('lets an admin add a rule (auditing + lockout auto-add) and refuses a non-adm
         ->post(route('app.security.ip-rules.add'), ['ip_address' => '8.8.8.8'])->assertForbidden();
 });
 
+it('treats a duplicate IP add as a no-op notice instead of a unique-constraint 500', function () {
+    $s = seedScenario(1);
+    $admin = operatorUser($s, [], 'Property Owner');
+    $session = ['current_property_id' => $s['property']->id];
+
+    $this->actingAs($admin)->withSession($session)
+        ->post(route('app.security.ip-rules.add'), ['ip_address' => '198.51.100.5'])->assertRedirect();
+    // Re-adding the SAME address must not hit the unique(organization_id, ip_address) index → friendly no-op.
+    $this->actingAs($admin)->withSession($session)
+        ->post(route('app.security.ip-rules.add'), ['ip_address' => '198.51.100.5'])
+        ->assertRedirect()->assertSessionHasNoErrors();
+
+    expect(IpAllowRule::query()->where('ip_address', '198.51.100.5')->count())->toBe(1);   // not duplicated
+});
+
 it('removes a rule and exports the account data (self-scoped)', function () {
     $s = seedScenario(1);
     $admin = operatorUser($s, ['email' => 'admin@demo.test'], 'Property Owner');

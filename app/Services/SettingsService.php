@@ -99,7 +99,10 @@ class SettingsService
     public function updateInvoiceDetails(Organization $organization, array $attributes): void
     {
         $changes = Arr::only($attributes, self::INVOICE_FIELDS);
-        if (isset($changes['invoice_next_number'])) {
+        // `array_key_exists`, not `isset`: a cleared "Next number" field arrives as null (ConvertEmptyStringsToNull
+        // + a `nullable` rule), which `isset` skips — letting null reach the NOT-NULL column and 500 on strict MySQL.
+        // `(int) null === 0`, so `max(1, …)` coerces a cleared/zero value back to the floor of 1.
+        if (array_key_exists('invoice_next_number', $changes)) {
             $changes['invoice_next_number'] = max(1, (int) $changes['invoice_next_number']);
         }
         $changes['invoice_auto_issue'] = (bool) ($attributes['invoice_auto_issue'] ?? false);

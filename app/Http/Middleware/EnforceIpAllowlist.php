@@ -22,6 +22,13 @@ use Symfony\Component\HttpFoundation\Response;
  * unauthenticated / no-org request never reaches here anyway; if it somehow does, never a spurious lock — the
  * same posture as OperatorWorkspace). Scoped to /app ONLY — not /owner, not /guest, not /login (so a locked-out
  * admin can still reach login + their owner portal).
+ *
+ * ⚠️ PRODUCTION DEPLOYMENT NOTE: {@see Request::ip()} returns the direct socket peer unless TrustProxies is
+ * configured. With no trusted proxy set (the current, safe default) a spoofed `X-Forwarded-For` is IGNORED — so
+ * there is no bypass. BUT behind a real reverse proxy / load balancer, every request would appear to come from
+ * the proxy's IP, which would make an allowlist either lock everyone out or match nothing. Before enabling the
+ * allowlist in a proxied deployment, configure trusted proxies (bootstrap/app.php → `trustProxies`) so
+ * `Request::ip()` resolves the real client address. Until deployment (pending), this is a documented prerequisite.
  */
 class EnforceIpAllowlist
 {

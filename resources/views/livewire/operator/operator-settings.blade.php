@@ -561,21 +561,9 @@
                 </div>
             @endcan
 
-            {{-- ── STUBBED — genuinely-unbuilt subsystems, honestly "Soon" (branding is now REAL above) ──── --}}
-            <div class="vy-card vy-fade">
-                <h2 class="vy-card-title" style="margin-bottom: 12px;">More settings</h2>
-                <div class="vyn-grid3">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 1px solid var(--vy-hairline); border-radius: var(--vy-r-sm);">
-                        <span style="font-size: 13px; color: var(--vy-muted);">Invoice numbering</span>
-                        <span class="vy-btn is-soon" aria-disabled="true" style="padding: 5px 11px; font-size: 11.5px;">Soon</span>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 1px solid var(--vy-hairline); border-radius: var(--vy-r-sm);">
-                        <span style="font-size: 13px; color: var(--vy-muted);">Notification routing</span>
-                        <span class="vy-btn is-soon" aria-disabled="true" style="padding: 5px 11px; font-size: 11.5px;">Soon</span>
-                    </div>
-                </div>
-                <p style="font-size: 11.5px; color: var(--vy-faint); margin: 12px 0 0;">These are net-new subsystems, not wired yet — shown so nothing here pretends to save.</p>
-            </div>
+            {{-- #104b review fix: the old "More settings → Invoice numbering / Notification routing · Soon" stub was
+                 removed — both are now represented by the REAL Invoice-details form + the honest Notification-routing
+                 card above, so the "Soon" rows contradicted them. --}}
 
         @endunless
 

@@ -230,7 +230,10 @@ class ScheduleController extends Controller
 
         $property = $this->currentProperty();
         $validated = $request->validate(['user_id' => ['required', 'string', Rule::in($staffRoster->staffIds())]]);
-        $open = OpenShift::query()->findOrFail($openShift);   // tenant-scoped → cross-org 404
+        // Scope to the SELECTED property (not just the org): filling an open shift creates a real Shift on
+        // `$property`, so the open row MUST belong to that property — otherwise a stale/crafted post could move a
+        // shift onto the wrong property. A cross-property id 404s, matching how `openShiftsFor()` reads.
+        $open = OpenShift::query()->where('property_id', $property->id)->findOrFail($openShift);
         $staff = User::query()->findOrFail($validated['user_id']);
 
         try {
@@ -252,7 +255,8 @@ class ScheduleController extends Controller
             return $readOnly;
         }
 
-        $open = OpenShift::query()->findOrFail($openShift);
+        $property = $this->currentProperty();
+        $open = OpenShift::query()->where('property_id', $property->id)->findOrFail($openShift);
         $open->delete();
         $audit->record('schedule.open_shift_removed', null, ['open_shift_id' => $openShift], null);
 

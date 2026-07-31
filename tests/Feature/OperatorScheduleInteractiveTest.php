@@ -156,3 +156,33 @@ it('gates publish and open-shift writes behind schedule.manage', function () {
         ->and(OpenShift::count())->toBe(1)
         ->and(Shift::count())->toBe(0);
 });
+
+// ── 6. PROPERTY SCOPE — an open shift can only be filled/removed under ITS OWN property (never cross-property) ─
+it('refuses to fill or remove an open shift while a different property is selected', function () {
+    $s = interactiveScheduleScenario();
+    $date = CarbonImmutable::now()->toDateString();
+
+    // Post an open shift on property A.
+    $this->actingAs($s['manager'])->withSession(['current_property_id' => $s['propertyA']->id])
+        ->post('/app/schedule/open-shifts', ['date' => $date, 'shift_type' => 'day', 'week' => 0, 'dept' => 'all'])->assertRedirect();
+    $open = OpenShift::where('property_id', $s['propertyA']->id)->firstOrFail();
+
+    // Now property B is selected — filling A's open shift must 404 (never create a shift on B off an A slot).
+    $this->actingAs($s['manager'])->withSession(['current_property_id' => $s['propertyB']->id])
+        ->post("/app/schedule/open-shifts/{$open->id}/fill", ['user_id' => $s['desk']->id, 'week' => 0, 'dept' => 'all'])
+        ->assertNotFound();
+    // …and removing it under the wrong property also 404s.
+    $this->actingAs($s['manager'])->withSession(['current_property_id' => $s['propertyB']->id])
+        ->delete("/app/schedule/open-shifts/{$open->id}", ['week' => 0, 'dept' => 'all'])
+        ->assertNotFound();
+
+    // The A open row is untouched; no shift landed on either property.
+    expect(OpenShift::whereKey($open->id)->exists())->toBeTrue()
+        ->and(Shift::count())->toBe(0);
+
+    // Under the CORRECT property (A) it fills into a real shift on A.
+    $this->actingAs($s['manager'])->withSession(['current_property_id' => $s['propertyA']->id])
+        ->post("/app/schedule/open-shifts/{$open->id}/fill", ['user_id' => $s['desk']->id, 'week' => 0, 'dept' => 'all'])->assertRedirect();
+    expect(Shift::where('property_id', $s['propertyA']->id)->where('user_id', $s['desk']->id)->exists())->toBeTrue()
+        ->and(OpenShift::whereKey($open->id)->exists())->toBeFalse();
+});

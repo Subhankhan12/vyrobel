@@ -40,6 +40,12 @@ class OperatorSecurityController extends Controller
         $isFirst = IpAllowRule::query()->count() === 0;
         $ip = trim((string) $data['ip_address']);
 
+        // Re-adding the same address would hit the unique(organization_id, ip_address) index and 500. Treat a
+        // duplicate as a no-op with a friendly notice (the rule is already enforcing).
+        if (IpAllowRule::query()->where('ip_address', $ip)->exists()) {
+            return $this->back('notice', $ip.' is already on the allowlist.');
+        }
+
         $rule = IpAllowRule::create(['ip_address' => $ip, 'label' => $data['label'] ?? null, 'created_by' => $request->user()?->getKey()]);
         $audit->record('app.ip_allow_rule.added', $rule, null, ['ip_address' => $ip]);
 

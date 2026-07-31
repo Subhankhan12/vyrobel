@@ -117,19 +117,22 @@ it('gates the page on properties.manage, and shows the org section only to setti
         ->assertOk()->assertSee('Save organization settings');
 });
 
-// ── 3. HONESTY — unbacked fields are "Soon", not a fake save; input validates ────────────────────
-// (#98 rebuild: Branding is now a REAL guest-brand section; Invoice numbering + Notification routing remain
-// genuinely-unbuilt subsystems, honestly "Soon".)
-it('stubs unbacked settings as Soon rather than faking a save', function () {
+// ── 3. HONESTY — real where real, honestly "Soon" where not; input validates ─────────────────────
+// (#98: Branding is a REAL guest-brand section. #104b GATE 2: Invoice numbering is now a REAL "Invoice details"
+// form, and Notification routing is an HONEST card — email + in-app are real per-person, only route-to-role /
+// SMS / Push stay "Soon". The old contradictory "More settings → Invoice numbering / Notification routing · Soon"
+// stub was removed in the #104b review pass.)
+it('shows real settings as real and unbuilt sub-features honestly as Soon', function () {
     $s = seedScenario(1);
 
     $response = $this->actingAs(operatorUser($s, [], 'Property Owner'))->get('/app/settings');
 
     $response->assertOk()
-        ->assertSee('Guest-facing brand')   // branding is now REAL (not a "Soon" stub)
-        ->assertSee('Invoice numbering')
-        ->assertSee('Notification routing')
-        ->assertSee('not wired yet');       // the honest note — these are subsystems, not a form
+        ->assertSee('Guest-facing brand')            // branding — REAL
+        ->assertSee('Invoice details')               // #104b — invoice numbering is now a REAL form, not "Soon"
+        ->assertSee('Notification routing')          // present…
+        ->assertSee('Route events to a specific role') // …with the still-unbuilt sub-features honestly "Soon"
+        ->assertDontSee('not wired yet');            // the removed contradictory stub note is gone
 
     assertNoRawBlade($response);
 });
