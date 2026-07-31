@@ -26,6 +26,8 @@ it('renders the real active-sessions panel with the user’s sessions, not a Soo
         ->assertSee('5.6.7.8')
         ->assertSee('Sign out of all other devices');
 
-    // The genuinely net-new subsystems stay honestly "Soon".
-    $res->assertSee('Connected apps')->assertSee('IP allow-list');
+    // #104b GATE 1 — the IP allowlist is now a REAL section (built, genuinely enforced); Connected apps is the
+    // honest empty state (no operator OAuth catalog).
+    $res->assertSee('IP allowlist')->assertSee('No IP restrictions')
+        ->assertSee('Connected apps')->assertSee('No apps connected');
 });

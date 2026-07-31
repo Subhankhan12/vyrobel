@@ -30,6 +30,7 @@ use App\Models\GuestCreditEntry;
 use App\Models\HousekeepingTask;
 use App\Models\InventoryBlock;
 use App\Models\Invoice;
+use App\Models\IpAllowRule;
 use App\Models\LeaveRequest;
 use App\Models\MaintenanceSetting;
 use App\Models\MaintenanceTicket;
@@ -280,6 +281,7 @@ class AppServiceProvider extends ServiceProvider
             'payment_authorization' => PaymentAuthorization::class,
             'tax' => Tax::class,
             'fee' => Fee::class,
+            'ip_allow_rule' => IpAllowRule::class,
             'add_on' => AddOn::class,
             'housekeeping_task' => HousekeepingTask::class,
             'channel' => Channel::class,

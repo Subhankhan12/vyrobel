@@ -63,6 +63,7 @@ use App\Http\Controllers\Operator\OperatorProfileController;
 use App\Http\Controllers\Operator\OperatorRateProposalController;
 use App\Http\Controllers\Operator\OperatorReportsExportController;
 use App\Http\Controllers\Operator\OperatorReviewsController;
+use App\Http\Controllers\Operator\OperatorSecurityController;
 use App\Http\Controllers\Operator\OwnerManageController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\PropertyController;
@@ -111,6 +112,7 @@ use App\Http\Controllers\Owner\OwnerUnitStatusController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StripeConnectWebhookController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Middleware\EnforceIpAllowlist;
 use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Http\Middleware\EnsureOwnerCapability;
 use App\Http\Middleware\EnsurePlanFeature;
@@ -428,7 +430,7 @@ Route::prefix('book/{property}')
  * See docs/DECISIONS.md 2026-07-16. The gate is on the GROUP, so it covers every route below —
  * including any added later.
  */
-Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
+Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
 
@@ -626,6 +628,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::post('/security/2fa/confirm', [TwoFactorController::class, 'confirm'])->middleware('throttle:6,1')->name('security.2fa.confirm');
     Route::post('/security/2fa/recovery-codes', [TwoFactorController::class, 'regenerate'])->name('security.2fa.regenerate');
     Route::post('/security/2fa/disable', [TwoFactorController::class, 'disable'])->middleware('throttle:6,1')->name('security.2fa.disable');
+    // #104b GATE 1 — Security: the REAL IP-allowlist (org-wide admin-panel access control; `settings.manage` +
+    // audited), the trusted-device revoke (shared #66 service; self-only re-auth), and the self-scoped account
+    // export (throttled). None read-only-gated — account security stays usable on a paused workspace.
+    Route::post('/security/ip-rules', [OperatorSecurityController::class, 'addIpRule'])->middleware('can:settings.manage')->name('security.ip-rules.add');
+    Route::delete('/security/ip-rules/{rule}', [OperatorSecurityController::class, 'removeIpRule'])->middleware('can:settings.manage')->name('security.ip-rules.remove');
+    Route::post('/security/trusted-devices/revoke', [OperatorSecurityController::class, 'revokeTrustedDevice'])->middleware('throttle:6,1')->name('security.trusted.revoke');
+    Route::get('/security/export', [OperatorSecurityController::class, 'exportData'])->middleware('throttle:6,1')->name('security.export');
     // Unified Inbox — the 3-pane operator MESSAGES page (#90 exact-match, OperatorInbox). Tenant-scoped;
     // the active thread rides ?c={id} (scoped find → cross-org null). The legacy /inbox/{thread} deep-link
     // redirects into the 3-pane so existing links keep working.
