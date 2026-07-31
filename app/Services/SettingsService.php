@@ -91,11 +91,18 @@ class SettingsService
      * kind is NEVER changed — only the editable figure. Tenant-safe: the caller resolves the Tax under the
      * org scope, so a cross-org id is never reached here.
      */
-    public function updateTax(Tax $tax, float $value): void
+    public function updateTax(Tax $tax, float $value, ?bool $inclusive = null): void
     {
         $changes = (string) $tax->mode === 'percentage'
             ? ['rate' => max(0.0, min(100.0, $value))]
             : ['amount_minor' => max(0, (int) round($value * 100))];
+
+        // #104 GATE 2c — the VAT Incl./Added toggle now PERSISTS (it was rendered read-only, but it drives the
+        // folio math via StayEstimator::taxApplies: an inclusive percentage tax is informational, an exclusive
+        // one is charged). Only meaningful on a percentage tax; a per-night/flat tax has no inclusive concept.
+        if ($inclusive !== null && (string) $tax->mode === 'percentage') {
+            $changes['inclusive'] = $inclusive;
+        }
 
         $tax->update($changes);
         $this->audit->record('tax.updated', $tax, null, ['fields' => array_keys($changes)]);

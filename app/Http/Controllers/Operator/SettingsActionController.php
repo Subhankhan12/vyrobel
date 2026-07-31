@@ -276,9 +276,15 @@ class SettingsActionController extends Controller
         $validated = $request->validate([
             'taxes' => ['array'],
             'taxes.*' => ['nullable', 'numeric', 'min:0', 'max:100000'],
+            'tax_inclusive' => ['array'],
+            'tax_inclusive.*' => ['nullable', 'in:0,1'],
             'fees' => ['array'],
             'fees.*' => ['nullable', 'numeric', 'min:0', 'max:100000'],
         ]);
+
+        // #104 GATE 2c — the per-tax Incl./Added toggle (a hidden 0 + a checkbox 1 → present for every rendered
+        // percentage tax). Read alongside the rate so both persist in one save.
+        $inclusiveById = $validated['tax_inclusive'] ?? [];
 
         foreach (($validated['taxes'] ?? []) as $id => $value) {
             if ($value === null || $value === '') {
@@ -286,7 +292,8 @@ class SettingsActionController extends Controller
             }
             $tax = Tax::query()->where('property_id', $property->id)->find((string) $id);   // property-scoped
             if ($tax instanceof Tax) {
-                $settings->updateTax($tax, (float) $value);
+                $inclusive = array_key_exists($id, $inclusiveById) ? ((string) $inclusiveById[$id] === '1') : null;
+                $settings->updateTax($tax, (float) $value, $inclusive);
             }
         }
 

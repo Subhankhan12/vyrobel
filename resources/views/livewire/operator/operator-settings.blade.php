@@ -384,7 +384,16 @@
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--vy-hairline); font-size: 13px;">
                                 <span style="color: var(--vy-ink);">{{ $row['name'] }} <span style="color: var(--vy-faint);">· {{ $row['label'] }}</span></span>
                                 @if ($canManageProperty && ! $readOnly)
-                                    <span style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="display: flex; align-items: center; gap: 10px;">
+                                        {{-- #104 GATE 2c — the VAT Incl./Added toggle now PERSISTS (drives folio math via
+                                             StayEstimator). Hidden 0 + checkbox 1 → a reliable boolean. Percentage taxes only. --}}
+                                        @if ($row['field'] === 'taxes' && ($row['percentage'] ?? false))
+                                            <input type="hidden" name="tax_inclusive[{{ $row['id'] }}]" value="0">
+                                            <label style="display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--vy-muted); white-space: nowrap;">
+                                                <input type="checkbox" name="tax_inclusive[{{ $row['id'] }}]" value="1" @checked($row['inclusive'] ?? false)>
+                                                Included in price
+                                            </label>
+                                        @endif
                                         <input class="vy-input" type="number" step="{{ $row['percentage'] ? '0.1' : '0.01' }}" min="0" style="width: 92px; text-align: right;"
                                                name="{{ $row['field'] }}[{{ $row['id'] }}]"
                                                value="{{ $row['percentage'] ? $row['rate'] : $row['amount'] }}"
