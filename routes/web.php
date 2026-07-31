@@ -611,6 +611,8 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/email-templates/{key}/test', [EmailTemplateActionController::class, 'testSend'])->middleware('can:properties.manage')->name('email-templates.test');
     Route::get('/email-previews', [EmailPreviewController::class, 'index'])->name('email-previews');
     Route::get('/email-previews/{key}', [EmailPreviewController::class, 'show'])->name('email-previews.show');
+    // #109 — a REAL test send from the previews gallery, to the operator's OWN email only (MailSafetyGuard).
+    Route::post('/email-previews/{key}/test', [EmailPreviewController::class, 'testSend'])->middleware('can:properties.manage')->name('email-previews.test');
 
     // Operator PROFILE (Phase 1 · Sub-gate 5) — the logged-in operator's OWN name + work email. Like /security,
     // behind auth + #26 with NO fine-grained gate (every back-office user has a profile). The write is SELF-ONLY:

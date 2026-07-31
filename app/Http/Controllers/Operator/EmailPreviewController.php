@@ -19,8 +19,12 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Support\Folio\FolioTotals;
 use App\Support\Guest\GuestName;
-use Illuminate\Contracts\Mail\Mailable;
+use App\Support\Mail\MailSafetyGuard;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Mail\Mailable;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
@@ -50,9 +54,12 @@ class EmailPreviewController extends Controller
         'verify-email' => ['title' => 'Verify email', 'status' => 'Live · sends on booking-tied account claim'],
     ];
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return response()->view('operator.email-previews', ['catalog' => self::CATALOG]);
+        return response()->view('operator.email-previews', [
+            'catalog' => self::CATALOG,
+            'operatorEmail' => (string) ($request->user()->email ?? ''),
+        ]);
     }
 
     public function show(string $key): SymfonyResponse
@@ -62,10 +69,37 @@ class EmailPreviewController extends Controller
         $reservation = Reservation::query()->with(['leadGuest', 'property'])->latest()->first();
         abort_if($reservation === null, 404, 'No sample reservation exists in this organization yet — create a booking first.');
 
+        return response($this->buildMailable($key, $reservation)->render());
+    }
+
+    /**
+     * A REAL test send from the previews gallery — the SAME sample Mailable the preview renders, sent to the
+     * OPERATOR'S OWN email ONLY (never an arbitrary/guest inbox; the certified {@see EmailTemplateActionController}
+     * rule). Goes through the real mail path, so {@see MailSafetyGuard} downgrades to log/Mailpit
+     * outside production. Gated `can:properties.manage` at the route (#30). Never a fake toast (#39).
+     */
+    public function testSend(Request $request, string $key): RedirectResponse
+    {
+        abort_unless(array_key_exists($key, self::CATALOG), 404);
+
+        $reservation = Reservation::query()->with(['leadGuest', 'property'])->latest()->first();
+        abort_if($reservation === null, 404, 'No sample reservation exists in this organization yet — create a booking first.');
+
+        $email = (string) $request->user()->email;
+        abort_if($email === '', 422, 'Your account has no email address to send a test to.');
+
+        Mail::to($email)->send($this->buildMailable($key, $reservation));
+
+        return redirect()->route('app.email-previews')->with('email_preview_notice', "Test email sent to {$email}.");
+    }
+
+    /** The real sample Mailable for a preview key over the tenant's latest reservation (the ONE builder). */
+    private function buildMailable(string $key, Reservation $reservation): Mailable
+    {
         $guestName = GuestName::display($reservation->leadGuest);
         $propertyName = (string) ($reservation->property->name ?? 'Your property');
 
-        $mailable = match ($key) {
+        return match ($key) {
             'booking-confirmation' => new BookingConfirmationMail($reservation),
             'cancellation' => new CancellationMail($reservation, 'Guest requested cancellation', (int) $reservation->total_minor),
             'refund-confirmation' => new RefundConfirmationMail($this->sampleRefund($reservation)),
@@ -75,9 +109,8 @@ class EmailPreviewController extends Controller
             'waitlist-notification' => new WaitlistNotificationMail($guestName, $propertyName, '12–15 Aug 2026', url('/')),
             'winback' => new WinbackMail($guestName, $propertyName),
             'verify-email' => new VerifyEmailMail($guestName, url('/verify-email/sample-token')),
+            default => abort(404),   // unreachable — callers guard on the CATALOG first
         };
-
-        return response($mailable->render());
     }
 
     /** A real successful refund if one exists; otherwise an in-memory sample bound to the sample reservation. */
