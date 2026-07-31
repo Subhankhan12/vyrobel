@@ -74,9 +74,14 @@ class SendGuestTransactionalEmails
     private function bookingConfirmation(DomainEvent $domainEvent): void
     {
         $reservation = Reservation::query()->with(['leadGuest', 'property'])->find($domainEvent->subject_id);
-        if ($reservation instanceof Reservation) {
-            $this->sendToGuest($reservation->leadGuest, new BookingConfirmationMail($reservation));
+        if (! $reservation instanceof Reservation) {
+            return;
         }
+        // #86 — the operator can disable this email per-org; OFF genuinely stops the send.
+        if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'booking-confirmation')) {
+            return;
+        }
+        $this->sendToGuest($reservation->leadGuest, new BookingConfirmationMail($reservation));
     }
 
     private function cancellation(DomainEvent $domainEvent): void
@@ -84,6 +89,9 @@ class SendGuestTransactionalEmails
         $reservation = Reservation::query()->with(['leadGuest', 'property'])->find($domainEvent->subject_id);
         if (! $reservation instanceof Reservation) {
             return;
+        }
+        if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'cancellation')) {
+            return;   // #86 — disabled by the operator
         }
 
         $reason = is_array($domainEvent->payload) ? ($domainEvent->payload['reason'] ?? null) : null;

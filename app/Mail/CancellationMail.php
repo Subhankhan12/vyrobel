@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BrandsGuestMail;
 use App\Models\Reservation;
+use App\Support\Email\EmailTemplateResolver;
+use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Bus\Queueable;
@@ -12,16 +15,24 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
- * Guest: booking cancelled (Phase 3 · Sub-gate 4) — sent on the REAL `reservation.cancelled` domain event to the
- * lead guest's own email. Carries the real cancellation reason (from the event) and, when the caller has computed
- * one, the real refund amount via {@see MoneyFormatter}. Refund figures are never invented: `$refundMinor` is
- * null unless a genuine refund was recorded, and the email says so.
+ * Guest: booking cancelled (transactional-emails exact-match #109) — sent on the REAL `reservation.cancelled`
+ * domain event to the lead guest's own email. Matched to "Cancellation Email.html", email-safe. Branded
+ * ({@see BrandsGuestMail}) + customizable per #86 (subject/heading/message/button + the refund-summary /
+ * come-back blocks).
+ *
+ * HONESTY (#28/#39): TWO cases, never a fabricated refund. `$refundMinor` is null unless a genuine refund was
+ * recorded — a plain cancel issues none (a real refund fires its OWN {@see RefundConfirmationMail}); the
+ * itemized "deposit / non-refundable / waived" split + a masked card are NOT modelled and are refused (the
+ * destination is "your original payment method", no `····`). The source is the booking's real category, never
+ * a fabricated OTA brand (#85). No promo code is invented (there is no discount engine) — just a warm invite.
  */
 class CancellationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BrandsGuestMail, Queueable, SerializesModels;
 
     public function __construct(
         public readonly Reservation $reservation,
@@ -31,15 +42,23 @@ class CancellationMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Your booking has been cancelled · '.((string) $this->reservation->reference));
+        return $this->brandedEnvelope($this->template()->subject(), $this->brandFor($this->reservation->property));
     }
 
     public function content(): Content
     {
         $r = $this->reservation;
+        $r->loadMissing(['leadGuest', 'property']);
+        $checkIn = Carbon::parse($r->check_in);
+        $checkOut = Carbon::parse($r->check_out);
+        $nights = max(1, (int) $checkIn->diffInDays($checkOut));
+
+        // A real recorded refund (>0) → Case A; else the honest non-refundable / no-refund-due case.
         $refund = ($this->refundMinor !== null && $this->refundMinor > 0)
             ? MoneyFormatter::display($this->refundMinor, (string) $r->currency)
             : null;
+
+        $tpl = $this->template();
 
         return new Content(
             view: 'emails.cancellation',
@@ -47,9 +66,74 @@ class CancellationMail extends Mailable
                 'guestName' => GuestName::display($r->leadGuest),
                 'reference' => (string) $r->reference,
                 'propertyName' => (string) ($r->property->name ?? 'your stay'),
+                'stay' => $checkIn->format('j M').' – '.$checkOut->format('j M Y'),
+                'nights' => $nights,
+                'guests' => $this->guestsLabel($r),
                 'reason' => $this->reason !== null && $this->reason !== '' ? $this->reason : null,
+                // Case A vs Case B — a real refund figure or an honest "no refund due".
                 'refund' => $refund,
+                // HONEST: no card_last4 stored (#28) — never a fabricated masked number.
+                'refundMethod' => 'your original payment method',
+                'refundEta' => '3–5 business days',
+                'sourceLine' => $this->sourceLine($r),
+                'browseUrl' => $this->browseUrl($r),
+                'messagesUrl' => route('guest.messages'),
+                'brand' => $this->brandFor($r->property),
+                // #86 customizable template + toggleable blocks.
+                'heading' => $tpl->heading(),
+                'intro' => $tpl->message(),
+                'button' => $tpl->button(),
+                'blocks' => [
+                    'refund_summary' => $tpl->block('refund_summary'),
+                    'return_offer' => $tpl->block('return_offer'),
+                ],
             ],
         );
+    }
+
+    /** "2 adults · 1 child" from the real counts. */
+    private function guestsLabel(Reservation $r): string
+    {
+        $adults = max(1, (int) $r->adults);
+        $children = (int) $r->children;
+        $parts = [$adults.' '.Str::plural('adult', $adults)];
+        if ($children > 0) {
+            $parts[] = $children.' '.Str::plural('child', $children);
+        }
+
+        return implode(' · ', $parts);
+    }
+
+    /** A guest-facing source line — the booking's real category, never a fabricated OTA brand (#85). */
+    private function sourceLine(Reservation $r): string
+    {
+        $name = (string) ($r->property->name ?? 'us');
+
+        return match ((string) $r->source) {
+            'direct' => 'Booked direct with '.$name,
+            'ota' => 'Booked via a travel partner',
+            default => 'Booked with '.$name,
+        };
+    }
+
+    /** The property's public storefront to browse again, or the guest inbox as a safe fallback. */
+    private function browseUrl(Reservation $r): string
+    {
+        $slug = $r->property?->slug;
+
+        return is_string($slug) && $slug !== '' ? route('booking.browse', $slug) : route('guest.messages');
+    }
+
+    private function template(): ResolvedEmailTemplate
+    {
+        $r = $this->reservation;
+        $guest = $r->leadGuest;
+        $first = $guest !== null ? trim((string) $guest->first_name) : '';
+
+        return EmailTemplateResolver::for((string) $r->organization_id, 'cancellation', [
+            'first_name' => $first !== '' ? $first : 'there',
+            'unit' => (string) ($r->property->name ?? 'your stay'),
+            'reference' => (string) $r->reference,
+        ]);
     }
 }

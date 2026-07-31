@@ -25,6 +25,38 @@ final class EmailTemplateCatalog
     public static function all(): array
     {
         return [
+            'booking-confirmation' => [
+                'label' => 'Booking confirmation',
+                'trigger' => 'Sends when a booking is confirmed',
+                'channel' => 'Email',
+                'preview' => 'booking-confirmation',
+                // Subject byte-identical to the shipped envelope so an un-customized send is unchanged.
+                'subject' => 'Your booking is confirmed · {reference}',
+                'heading' => 'You’re all set, {guest_name}',
+                'message' => 'Your booking at {unit} is confirmed. We can’t wait to host you — here’s everything in one place.',
+                'button' => 'View your booking',
+                'vars' => ['guest_name', 'first_name', 'unit', 'nights', 'reference', 'total'],
+                'blocks' => [
+                    'price_breakdown' => ['label' => 'Price breakdown table', 'default' => true],
+                    'before_you_arrive' => ['label' => 'Before-you-arrive rows', 'default' => true],
+                    'calendar_links' => ['label' => 'Add-to-calendar links', 'default' => true],
+                ],
+            ],
+            'cancellation' => [
+                'label' => 'Cancellation',
+                'trigger' => 'Sends when a booking is cancelled',
+                'channel' => 'Email',
+                'preview' => 'cancellation',
+                'subject' => 'Your booking has been cancelled · {reference}',
+                'heading' => 'Your booking is cancelled',
+                'message' => 'Hi {first_name}, we’re confirming that your booking {reference} at {unit} has been cancelled.',
+                'button' => 'Browse dates for another stay',
+                'vars' => ['first_name', 'unit', 'reference'],
+                'blocks' => [
+                    'refund_summary' => ['label' => 'Refund summary', 'default' => true],
+                    'return_offer' => ['label' => 'Come-back-again invitation', 'default' => true],
+                ],
+            ],
             'pre-arrival' => [
                 'label' => 'Pre-arrival',
                 'trigger' => 'Sends 48 hours before check-in',

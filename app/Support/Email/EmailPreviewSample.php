@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Support\Email;
 
 use App\Http\Controllers\Operator\EmailPreviewController;
+use App\Mail\BookingConfirmationMail;
+use App\Mail\CancellationMail;
 use App\Mail\PaymentReminderMail;
 use App\Mail\PreArrivalMail;
 use App\Mail\RefundConfirmationMail;
@@ -44,6 +46,9 @@ final class EmailPreviewSample
         }
 
         return match ($key) {
+            'booking-confirmation' => new BookingConfirmationMail($reservation),
+            // Sample a refund figure so the editor preview shows Case A; the real send passes null unless a refund exists.
+            'cancellation' => new CancellationMail($reservation, 'Guest requested cancellation', (int) $reservation->total_minor),
             'pre-arrival' => new PreArrivalMail($reservation),
             'payment-reminder' => new PaymentReminderMail($reservation, self::sampleBalance($reservation)),
             'refund-confirmation' => new RefundConfirmationMail(self::sampleRefund($reservation)),
