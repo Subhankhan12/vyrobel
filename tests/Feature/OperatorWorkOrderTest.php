@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Notification;
 
 uses(RefreshDatabase::class);
 
-// #105 — the Operator Work Order DETAIL exact-match rebuild (GATE 1). Locks the ADDED behaviour on top of the
+// #108 — the Operator Work Order DETAIL exact-match rebuild (GATE 1). Locks the ADDED behaviour on top of the
 // existing detail (MaintenanceDetailViewTest covers the base): the real Activity composer (a shared Note store),
 // reassign from the detail, the real SLA surfacing (the ONE MaintenanceSla helper), real photo surfacing, the
 // real "arrival tonight" narrowing — and the HONEST omissions (no fabricated Area / €-per-night / WO-#### / on-site).

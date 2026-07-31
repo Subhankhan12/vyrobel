@@ -79,7 +79,7 @@ class MaintenanceActionController extends Controller
     {
         $validated = $request->validate([
             'user_id' => ['nullable', 'string'],
-            // #105 reassign flow — an optional real reason (recorded on the audit/domain payload) + notify-both.
+            // #108 reassign flow — an optional real reason (recorded on the audit/domain payload) + notify-both.
             'reason' => ['nullable', 'string', 'max:80'],
             'notify' => ['sometimes', 'boolean'],
         ]);
@@ -162,7 +162,7 @@ class MaintenanceActionController extends Controller
             'cost' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'labor' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'parts' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
-            // #105 Mark-resolved modal — Time spent (hours, informational), What was done, the toggles.
+            // #108 Mark-resolved modal — Time spent (hours, informational), What was done, the toggles.
             'time_spent' => ['nullable', 'numeric', 'min:0', 'max:9999'],
             'resolution' => ['nullable', 'string', 'max:2000'],
             'return_to_sale' => ['sometimes', 'boolean'],
@@ -248,7 +248,7 @@ class MaintenanceActionController extends Controller
     }
 
     /**
-     * #105 — post a real Activity update (Note / Progress / Part-ordered) to the ticket's timeline, through the
+     * #108 — post a real Activity update (Note / Progress / Part-ordered) to the ticket's timeline, through the
      * certified {@see MaintenanceService::addNote} (shared polymorphic notes). Tenant + ticket scoped; read-only
      * respected; `can:maintenance.manage` at the route (#20/#30).
      */

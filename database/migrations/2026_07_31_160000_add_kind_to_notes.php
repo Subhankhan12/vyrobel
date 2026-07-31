@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * #105 (Work Order detail) — a nullable `kind` on `notes` so a ticket's Activity composer can record the
+ * #108 (Work Order detail) — a nullable `kind` on `notes` so a ticket's Activity composer can record the
  * REAL update TYPE (note / progress / part). Additive + nullable: every existing note (guest/reservation/…)
  * is unaffected (kind stays null → "note"). Reuses the shared polymorphic notes store — no parallel table.
  */

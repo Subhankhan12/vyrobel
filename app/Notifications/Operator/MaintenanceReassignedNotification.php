@@ -7,7 +7,7 @@ namespace App\Notifications\Operator;
 use App\Notifications\FeedNotification;
 
 /**
- * #105 (Work Order · Reassign · "Notify both technicians") — a technician is told about a reassignment: the new
+ * #108 (Work Order · Reassign · "Notify both technicians") — a technician is told about a reassignment: the new
  * assignee that they now own the order, or the prior assignee that they are off it. Real values only (#39): the
  * title + unit + which side this recipient is. Maintenance category; links to the ticket. Sent ONLY when the
  * operator kept the toggle on.

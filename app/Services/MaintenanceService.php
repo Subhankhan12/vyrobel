@@ -88,7 +88,7 @@ class MaintenanceService
 
     /**
      * Assign (or reassign) the ticket to a user. Allowed while active; idempotent for the same assignee. An
-     * optional `$reason` (#105 reassign flow) is a REAL recorded field on the audit/domain payload — never a
+     * optional `$reason` (#108 reassign flow) is a REAL recorded field on the audit/domain payload — never a
      * chip that persists nothing.
      */
     public function assign(MaintenanceTicket $ticket, ?string $userId, ?string $reason = null): MaintenanceTicket
@@ -153,7 +153,7 @@ class MaintenanceService
                 'labor_minor' => $split['labor_minor'],
                 'parts_minor' => $split['parts_minor'],
                 'currency' => $split['currency'],
-                // #105 — the wireframe's Mark-resolved captures: Time spent (hours, informational — NOT priced,
+                // #108 — the wireframe's Mark-resolved captures: Time spent (hours, informational — NOT priced,
                 // no labour rate is modelled, so it never touches the owner bill) + What was done.
                 'labor_hours' => $laborHours,
                 'resolution_notes' => $resolutionNotes,
@@ -180,7 +180,7 @@ class MaintenanceService
             $this->postExpenseIfOwned($ticket->refresh(), $total);   // certified owner-expense path (owned units only)
         }
 
-        // #105 — "Return to sale" (default) releases the unit; toggling it OFF (`keepBlocked`) leaves it out of
+        // #108 — "Return to sale" (default) releases the unit; toggling it OFF (`keepBlocked`) leaves it out of
         // service so the operator lifts the block later from the rack. Either way `sold` is never touched.
         if (! $keepBlocked) {
             $this->releaseUnitIfClear($ticket->refresh());   // back in service iff no other active OOS ticket
@@ -216,7 +216,7 @@ class MaintenanceService
     public const NOTE_KINDS = ['note', 'progress', 'part'];
 
     /**
-     * #105 (Work Order detail · Activity composer) — post a real staff update to the ticket's timeline. Reuses
+     * #108 (Work Order detail · Activity composer) — post a real staff update to the ticket's timeline. Reuses
      * the shared polymorphic {@see Note} store (never a parallel updates table); the timeline merges these notes
      * with the lifecycle `audit_events`. Additive content — allowed on any ticket (open or closed, for the record).
      * The note IS the record (author_id + timestamps); the audit row logs the action + kind (not the body).

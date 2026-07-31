@@ -1,4 +1,4 @@
-{{-- Operator Work Order detail (#105) — exact-match to "Operator Work Order.html" on the shared operator
+{{-- Operator Work Order detail (#108) — exact-match to "Operator Work Order.html" on the shared operator
      design system. The ticket, timeline (real audit_events ∪ real notes), SLA (the ONE MaintenanceSla helper),
      out-of-order impact (real condition_status + real affected bookings) and cost (real owner_expense) are all
      REAL + tenant-scoped. The page READS; every mutation POSTs to the real MaintenanceActionController →

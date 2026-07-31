@@ -25,7 +25,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Operator Work Order detail — the styled work order (#105 exact-match to "Operator Work Order.html"). The
+ * Operator Work Order detail — the styled work order (#108 exact-match to "Operator Work Order.html"). The
  * detail of the SAME {@see MaintenanceTicket} model the Maintenance board lists (anti-drift; the board is
  * undisturbed). All facts, the activity timeline (real `audit_events` ∪ real ticket `notes`), the SLA clock
  * ({@see MaintenanceSla}, the ONE helper the board also reads), the out-of-order impact (real

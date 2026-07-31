@@ -43,7 +43,7 @@ it('renders real facts and a real activity timeline', function () {
         ->assertSee('High')                // real priority
         ->assertSee('Drips overnight.')    // real description
         ->assertSee('In progress')         // real status
-        ->assertSee('Reported')            // real timeline entries (audit events) — #105 exact-match label
+        ->assertSee('Reported')            // real timeline entries (audit events) — #108 exact-match label
         ->assertSee('Assigned')
         ->assertSee('Rosa Delacroix')      // real assignee, surfaced on the assigned entry
         ->assertSee('Work started')
@@ -157,7 +157,7 @@ it('surfaces the OOS callout and the real manual-move booking count', function (
     expect($s['units'][0]->refresh()->condition_status)->toBe('out_of_service');
 
     $this->actingAs($user)->get("/app/maintenance/{$ticket->id}")
-        ->assertSee('blocked from sale')                  // the OOS callout — #105 exact-match copy
+        ->assertSee('blocked from sale')                  // the OOS callout — #108 exact-match copy
         ->assertSee('needs to be moved')                  // the real manual-move flag (real count = 1)
         ->assertSee('Open the rack to reassign');
 

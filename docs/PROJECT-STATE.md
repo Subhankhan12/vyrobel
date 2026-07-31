@@ -6,7 +6,29 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v38) · OPERATOR SECURITY + SETTINGS + TEAM SCHEDULE exact-match
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v39) · OPERATOR WORK ORDER detail exact-match COMPLETE (task #108,
+> invariant #108) — the Work Order detail (`/app/maintenance/{ticket}`) matched to `Operator Work Order.html`
+> EXACTLY on the REAL `MaintenanceTicket` — the DETAIL of the SAME model the Maintenance board lists (anti-drift;
+> the board undisturbed). The page already existed (#89) on the operator design system; this is an exact-match
+> restyle + gap-fill. **GATE 1:** the 2-col layout + dark Status hero + 4-col Details + Reported-issue + real
+> photos + Activity timeline + **composer** (a real Note/Progress/Part-ordered update via a new
+> `MaintenanceService::addNote` on the SHARED `Note` store; timeline MERGES real `audit_events` ∪ notes) +
+> Assignee + **SLA** (the ONE shared `MaintenanceSla`, honestly absent with no target) + **Out-of-order impact**
+> (real block + real affected-booking count narrowed to "N arrival(s) tonight" + real rack link) + the **Reassign
+> modal** (real staff + real open-work load). **GATE 2:** the full **Mark-resolved** modal — What-was-done
+> (`resolution_notes`, also to the timeline) + Time-spent (`labor_hours`, informational, never priced) + Parts-cost
+> (bills the owner, **parts_minor === cost_minor** reconciling #17) + **Return-to-sale** (genuinely un-blocks the
+> unit, mutation-proven; keep-blocked leaves it out of order) + **Notify-front-desk** (real, toggle-respecting) —
+> plus the Reassign reason chips (recorded on the assign event) + notify-both. HONESTLY OMITTED (#39): Area,
+> sequential `WO-####`, technician specialty / "On site" / availability, outcome chips, "€/night on hold". Every
+> write `can:maintenance.manage` + read-only-respected + audited; the board / availability-rack / Costs report /
+> owner-Expenses / #88 attachments undisturbed. A raw-blade `word@if` trap was caught before shipping. Nothing
+> faked. Fresh-session entry point: this block → `docs/OPERATOR-WORK-ORDER-AUDIT.md` → `docs/DECISIONS.md`.
+> **Invariants #1–108.**
+>
+> ---
+>
+> **PRIOR (v38) — 2026-07-31 · OPERATOR SECURITY + SETTINGS + TEAM SCHEDULE exact-match
 > COMPLETE (task #104b) — the three operator System pages matched to their decoded wireframes EXACTLY on REAL
 > data, building what was missing. **Security** (`/app/settings/security`): overview + KPI tiles · change-password ·
 > 2FA · an **IP allowlist that GENUINELY ENFORCES** (new `ip_allow_rules` + an `EnforceIpAllowlist` middleware in

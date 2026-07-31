@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * #105 (Work Order · Mark-resolved) — real resolve-time captures the wireframe's modal asks for:
+ * #108 (Work Order · Mark-resolved) — real resolve-time captures the wireframe's modal asks for:
  * `labor_hours` (Time spent — informational; hours are NOT auto-priced, no labour rate is modelled, so this
  * never affects the owner bill) and `resolution_notes` (What was done — also posted to the Activity timeline).
  * Both additive + nullable: existing tickets/behaviour + the reconciling cost split (labor_minor/parts_minor)

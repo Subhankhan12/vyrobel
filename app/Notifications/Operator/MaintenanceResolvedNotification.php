@@ -7,7 +7,7 @@ namespace App\Notifications\Operator;
 use App\Notifications\FeedNotification;
 
 /**
- * #105 (Work Order · Mark-resolved · "Notify the front desk") — the ticket's reporter is told a work order is
+ * #108 (Work Order · Mark-resolved · "Notify the front desk") — the ticket's reporter is told a work order is
  * resolved (and, when it returned to sale, back online). Real values only (#39): the title + unit + whether the
  * unit is back on sale. Maintenance category; links to the ticket. Sent ONLY when the operator kept the toggle on.
  */
