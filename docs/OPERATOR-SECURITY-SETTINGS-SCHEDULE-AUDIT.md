@@ -84,3 +84,56 @@ Classes: **REAL-NOW** (already built — reuse) · **DEDUPE** (share the SAME ex
 4. **Connected apps → HONEST** "No apps connected" (no operator OAuth catalog; drop the mock directory).
 
 Build order: GATE 1 Security · GATE 2 Settings · GATE 3 Team Schedule. Per-gate commit + push.
+
+---
+
+## OUTCOME — gaps → resolved (2026-07-31, PHASE 2 delivered, gated)
+
+**GATE 1 — Security (`84b2706`, pushed).** `/app/settings/security` rebuilt wireframe-exact on REAL data:
+overview + 4 KPI count tiles · change-password · 2FA (reuse `two-factor-panel`) · **IP allowlist —
+GENUINELY ENFORCED** (new `ip_allow_rules` + `EnforceIpAllowlist` middleware in the `/app` group after
+`EnsureBackOfficeAccess`; Symfony `IpUtils::checkIp` exact+CIDR; fail-open when no tenant / zero rules;
+first-rule auto-adds the current IP as a lockout mitigation; `settings.manage`-gated add/remove, audited) ·
+active sessions (`ActiveSessions`) · trusted devices (`TrustedDeviceService`, current-password-gated revoke) ·
+**Connected apps HONEST** "No apps connected" (operator OAuth is owner-data-scoped #72 → no operator catalog) ·
+**Data export** (self-scoped account + own `audit_events`, JSON/CSV, date-range, csv-safe). Tests:
+`OperatorSecurityIpAllowlistTest` (5) — no-rules reachable · non-covered IP 403 + covering IP OK · admin
+add audits+auto-adds current IP · non-admin 403 · remove + self-scoped export; `OperatorSecuritySessionsTest`
+assertions updated. Mutation-proven the allowlist actually blocks (403-vs-reachable), never a fake toggle.
+
+**GATE 2 — Settings (`1ab313f`, pushed).** `/app/settings` is the System→Settings HUB, **DEDUPED by
+SUPERSEDE-BY-LAYER** over the ONE `SettingsService` store — every existing writer reused unchanged, new config
+as COLUMNS on `organizations` (never a parallel store). Added: **Invoice details** (billing company/VAT/city +
+series-prefix / next-number / auto-issue → `updateInvoiceDetails`, `settings.manage`, audited) with an honest
+**SAF-T "Soon"** note (config real; the certified sequence + SAF-T export are honestly deferred — no invoicing
+pipeline exists, grep-clean, so nothing fabricated) · **Your plan** card (`billingStatus()` +
+`SubscriptionPricing::current`, real state + label, Manage → `app.billing` #85; €99 = configurable placeholder,
+honest) · Notification-routing + Guest-messages rendered as honest links to their real editors
+(`notification-preferences` #79 · `email-templates` #83/#86). Owner-statement commission = the REAL **18%**
+(`OwnerCommissionRate`, never the wireframe's 15%). Tests: `OperatorSettingsInvoiceTest` (3) — persists config +
+audits · non-admin (Hotel Manager) 403 · renders Invoice/SAF-T/Your plan/Vyrobel Pro.
+
+**GATE 3 — Team Schedule (`445cc34`, pushed).** The interactive-rota additions on the REAL rota model:
+**Publish week** (`schedule_publications` per property+week finalize stamp + a real `SchedulePublishedNotification`
+to each rostered staffer; edits stay LIVE, re-publish idempotent; new `schedule_published` CATALOG entry) ·
+**Open shifts** (`open_shifts` net-new table — Shift can't be open, `user_id` non-nullable + unique; fill = a
+REAL Shift via the certified `ShiftRosterService` + delete the open row in one txn; post/assign/remove) ·
+**READ-ONLY FIX** (the audit found the schedule writes did NOT guard `isReadOnly()` though the banner showed —
+unlike the Rate/Housekeeping peers; every roster write now short-circuits via `guardReadOnly()`). All writes are
+`can:schedule.manage` controller POSTs (#30), property-scoped (`PropertyContext`, never `->first()`), over real
+`StaffRoster` staff, audited, nothing fabricated (#39). Tests: `OperatorScheduleInteractiveTest` (5) — publish
+stamps+notifies+idempotent · open-shift post→fill creates a real Shift + consumes the row · remove · read-only
+refuses every write (nothing sent) · manager-gating (Front Desk 403 on all new routes). Browser-verified as
+demo-staff: posted an open shift → assigned to Rosa Fernandes (a real Early shift) → published the week (team
+notified, "Published … ago" tag, button → Re-publish).
+
+**Presentation follow-ups (documented, not built this pass):** Team-Schedule Today/Week day-view
+(`RosterWeek::dayGroups`), drag-move/swap (Alpine → a `move` POST funnelling `ShiftRosterService::assign`),
+per-dept coverage bars (`RosterWeek::coverageByDept`), and an add-shift modal (reuses `app.schedule.assign`).
+The grid's per-cell assign already covers the essential write; these are visual-parity niceties. Settings'
+cancellation free-days / deposit-% / late-fee and booking-ahead/advance-notice/arrival-days remain honest config
+extensions on the existing JSON policy store (enforcement engines are separate, later work).
+
+Verification: full suite green · PHPStan L5 (0) · Pint clean · `migrate:fresh --seed` clean. Presentation +
+additive-config + minimal-real scheduling only — no money / auth / isolation behaviour changed except the
+Security IP allowlist (a genuinely new, enforced control) and the Schedule read-only guard (a bug fix).

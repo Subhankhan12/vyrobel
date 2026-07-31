@@ -6,7 +6,31 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v37) · OPERATOR PORTFOLIO + PROFILE exact-match COMPLETE — the
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v38) · OPERATOR SECURITY + SETTINGS + TEAM SCHEDULE exact-match
+> COMPLETE (task #104b) — the three operator System pages matched to their decoded wireframes EXACTLY on REAL
+> data, building what was missing. **Security** (`/app/settings/security`): overview + KPI tiles · change-password ·
+> 2FA · an **IP allowlist that GENUINELY ENFORCES** (new `ip_allow_rules` + an `EnforceIpAllowlist` middleware in
+> the `/app` group — `IpUtils::checkIp` exact+CIDR, fail-open on no-tenant/zero-rules, lockout-mitigated,
+> mutation-proven to 403 a non-covered IP, never a fake toggle) · active sessions · trusted devices (#66) ·
+> **Connected apps HONEST** "No apps connected" (OAuth is owner-data-scoped only #72) · self-scoped **data export**.
+> **Settings** (`/app/settings`): the System→Settings HUB **DEDUPED by supersede-by-layer** over the ONE
+> `SettingsService` store (new config = columns on `organizations`, never a parallel store) — **Invoice details**
+> real + **SAF-T issuance honestly deferred** (no pipeline → config-real, not fabricated-certified), **Your plan**
+> real (`billingStatus()`/`SubscriptionPricing`), commission the REAL **18%** (`OwnerCommissionRate`, never 15%).
+> **Team Schedule** (`/app/schedule`): the interactive rota — **Publish week** (a real `schedule_publications`
+> finalize stamp + a real notify to rostered staff; edits stay live) · **Open shifts** (net-new `open_shifts`;
+> FILL = a real Shift via the certified `ShiftRosterService` + delete the open row) · the **read-only write-guard
+> fix** (the schedule writes didn't respect a paused workspace — the Rate/Housekeeping peers did). Nothing faked.
+> Fresh-session entry point: this block → `docs/OPERATOR-SECURITY-SETTINGS-SCHEDULE-AUDIT.md` → `docs/DECISIONS.md`.
+> **Invariants #1–107.**
+>
+> _(Intervening operator exact-match tasks #98–104 — Property Settings, Rates+Refund, Roles+Schedule-PDF+Search,
+> and the full operator COMPLETENESS AUDIT + BUILD — are dated in `docs/DECISIONS.md`; this header was brought
+> current from v37/#97 to v38/#107 in this pass.)_
+>
+> ---
+>
+> **PRIOR (v37) — 2026-07-31 · OPERATOR PORTFOLIO + PROFILE exact-match COMPLETE — the
 > multi-property Portfolio (real per-property analytics: Revenue·month/Occupancy/Arrivals/Needs-attention +
 > per-card ADR/revenue + honest Fix-sync via real channels.status; Group = Σ reconciles #17; read-only guard)
 > and the operator Profile (real personal details + preferences [motion/density genuinely applied, date-format
