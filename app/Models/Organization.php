@@ -35,6 +35,10 @@ class Organization extends Model
         'billing_email',
         'billing_company',
         'billing_vat_id',
+        'billing_city',
+        'invoice_series_prefix',
+        'invoice_next_number',
+        'invoice_auto_issue',
         'custom_domain',
         'branding',
     ];

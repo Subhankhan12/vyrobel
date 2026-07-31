@@ -85,6 +85,29 @@ class SettingsService
         $this->audit->record('organization.settings_updated', $organization, null, ['fields' => array_keys($changes)]);
     }
 
+    /** The org-level invoice CONFIG fields (legal entity/VAT/city already exist; the numbering is #104b GATE 2). */
+    public const INVOICE_FIELDS = ['billing_company', 'billing_vat_id', 'billing_city', 'invoice_series_prefix', 'invoice_next_number', 'invoice_auto_issue'];
+
+    /**
+     * #104b GATE 2 — persist the Settings hub's Invoice details + numbering CONFIG on the ONE store (the org),
+     * through the same audited path. ⚠️ This is CONFIG only: the certified numbered-invoice ISSUANCE + emailed PDF
+     * + SAF-T (PT) export are honestly deferred (no pipeline is fabricated, #39) — the auto-issue flag records
+     * intent, it does not itself issue an invoice.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function updateInvoiceDetails(Organization $organization, array $attributes): void
+    {
+        $changes = Arr::only($attributes, self::INVOICE_FIELDS);
+        if (isset($changes['invoice_next_number'])) {
+            $changes['invoice_next_number'] = max(1, (int) $changes['invoice_next_number']);
+        }
+        $changes['invoice_auto_issue'] = (bool) ($attributes['invoice_auto_issue'] ?? false);
+
+        $organization->update($changes);
+        $this->audit->record('organization.invoice_details_updated', $organization, null, ['fields' => array_keys($changes)]);
+    }
+
     /**
      * Bounded edit of a property TAX (Batch C · GATE 4) — a percentage tax updates `rate` (clamped 0–100);
      * a fixed tax updates `amount_minor` (≥ 0, integer minor from the entered major units, #17). The mode /

@@ -257,6 +257,34 @@ class SettingsActionController extends Controller
     }
 
     /**
+     * #104b GATE 2 — the Settings hub's Invoice details + numbering CONFIG (legal entity / VAT number / billing
+     * city / series prefix / next number / auto-issue). Org-scoped, `settings.manage`, audited, read-only-guarded.
+     * ⚠️ CONFIG only — the certified issuance + SAF-T export are honestly deferred (never fabricated).
+     */
+    public function updateInvoiceDetails(Request $request, SettingsService $settings): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
+        $property = $this->currentProperty();
+        $organization = Organization::query()->findOrFail($property->organization_id);
+
+        $data = $request->validate([
+            'billing_company' => ['nullable', 'string', 'max:160'],
+            'billing_vat_id' => ['nullable', 'string', 'max:40'],
+            'billing_city' => ['nullable', 'string', 'max:120'],
+            'invoice_series_prefix' => ['nullable', 'string', 'max:16'],
+            'invoice_next_number' => ['nullable', 'integer', 'min:1', 'max:100000000'],
+            'invoice_auto_issue' => ['sometimes', 'in:0,1'],
+        ]);
+
+        $settings->updateInvoiceDetails($organization, $data);
+
+        return $this->back('Invoice details saved.');
+    }
+
+    /**
      * Batch C · GATE 4 — edit the property's TAXES & FEES (the "Editing · Soon" gap). Each posted id → a
      * bounded {@see SettingsService::updateTax}/{@see SettingsService::updateFee} write (rate clamped 0–100,
      * amount ≥ 0 integer minor #17). Tenant-safe: Tax/Fee are BelongsToOrganization, so a cross-org id

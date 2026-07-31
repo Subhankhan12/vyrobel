@@ -164,6 +164,69 @@
                 @endif
             </div>
 
+            {{-- ── #104b GATE 2 · INVOICE DETAILS + NUMBERING — REAL config on the ONE store; certified issuance
+                 + SAF-T (PT) honestly deferred (never a fabricated invoice/SAF-T) ──────────────────────────── --}}
+            @if ($invoice !== [] && $canManageOrg && ! $readOnly)
+                <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+                    <h2 class="vy-card-title" style="margin-bottom: 4px;">Invoice details</h2>
+                    <p class="vy-line-sub" style="font-size: 12.5px; margin: 0 0 12px;">The legal entity and numbering that appear on guest invoices.</p>
+                    <form method="POST" action="{{ route('app.settings.invoice') }}">
+                        @csrf
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <label class="vy-field"><span class="vy-field-label">Legal entity</span><input type="text" name="billing_company" class="vy-input" maxlength="160" value="{{ $invoice['legal_entity'] }}" placeholder="Seaside Villas Lda"></label>
+                            <label class="vy-field"><span class="vy-field-label">VAT number (NIF)</span><input type="text" name="billing_vat_id" class="vy-input" maxlength="40" value="{{ $invoice['vat_number'] }}" placeholder="PT123456789"></label>
+                            <label class="vy-field"><span class="vy-field-label">Billing city</span><input type="text" name="billing_city" class="vy-input" maxlength="120" value="{{ $invoice['billing_city'] }}" placeholder="Lisboa"></label>
+                            <label class="vy-field"><span class="vy-field-label">Series prefix</span><input type="text" name="invoice_series_prefix" class="vy-input" maxlength="16" value="{{ $invoice['series_prefix'] }}" placeholder="FT2026/"></label>
+                            <label class="vy-field"><span class="vy-field-label">Next number</span><input type="number" name="invoice_next_number" min="1" class="vy-input" value="{{ $invoice['next_number'] }}"></label>
+                        </div>
+                        <p style="font-size:12px;color:var(--vy-muted);margin:12px 0 6px;">Next invoice issues as <strong>{{ $invoice['series_prefix'] }}{{ $invoice['next_number'] }}</strong>.</p>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:12px;">
+                            <input type="hidden" name="invoice_auto_issue" value="0">
+                            <input type="checkbox" name="invoice_auto_issue" value="1" @checked($invoice['auto_issue'])> Auto-issue an invoice at check-out
+                        </label>
+                        <button type="submit" class="vy-btn vy-btn--accent">Save invoice details</button>
+                    </form>
+                    <div style="margin-top:12px;border-top:1px solid var(--vy-hairline);padding-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                        <div style="font-size:12.5px;color:var(--vy-muted);">Certified series · SAF-T (PT) export</div>
+                        <span class="vy-btn is-soon" aria-disabled="true" style="padding:4px 11px;font-size:11.5px;">Soon</span>
+                    </div>
+                    <p style="font-size:11px;color:var(--vy-faint);margin:6px 0 0;">Numbered, tax-authority-certified issuance and the SAF-T export are coming — the details above are saved now, but no certified invoice or SAF-T file is generated yet.</p>
+                </div>
+            @endif
+
+            {{-- ── #104b GATE 2 · YOUR PLAN — REAL billing state (#85); €99 a configurable placeholder ────────── --}}
+            @if ($plan !== null)
+                <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+                    <h2 class="vy-card-title" style="margin-bottom: 12px;">Your plan</h2>
+                    <div style="display:flex;align-items:center;gap:14px;">
+                        <div style="flex:1;">
+                            <div style="font-size:14px;font-weight:600;color:var(--vy-ink);">{{ $plan['tier'] }} · {{ $plan['price'] }}</div>
+                            <div style="font-size:12.5px;color:var(--vy-muted);">{{ $plan['status'] }}</div>
+                        </div>
+                        <a href="{{ $plan['manage_url'] }}" class="vy-btn vy-btn--ghost">Manage plan</a>
+                    </div>
+                </div>
+            @endif
+
+            {{-- ── #104b GATE 2 · NOTIFICATION ROUTING — HONEST (per-user prefs are real #79; route-to-role is
+                 net-new + not built; SMS/Push have no provider) ─────────────────────────────────────────────── --}}
+            <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+                <h2 class="vy-card-title" style="margin-bottom: 4px;">Notification routing</h2>
+                <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 10px;">Email and in-app notifications are on and configurable per person in <a href="{{ route('app.notification-preferences') }}" style="color:var(--vy-accent);">notification preferences</a>.</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid var(--vy-hairline);font-size:12.5px;color:var(--vy-muted);">
+                    <span>Route events to a specific role · SMS · Push</span>
+                    <span class="vy-btn is-soon" aria-disabled="true" style="padding:4px 11px;font-size:11.5px;">Soon</span>
+                </div>
+            </div>
+
+            {{-- ── #104b GATE 2 · GUEST MESSAGES — REAL (reuse the #83/#86 email templates) ─────────────────── --}}
+            <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+                <h2 class="vy-card-title" style="margin-bottom: 4px;">Guest messages</h2>
+                <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 10px;">The automated emails guests receive. Edit the wording in <a href="{{ route('app.email-templates') }}" style="color:var(--vy-accent);">email templates</a>.</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px;"><span>Booking confirmation</span><span class="vy-muted" style="font-size:12px;">Email · instant</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px;"><span>Pre-arrival details</span><span class="vy-muted" style="font-size:12px;">Email · before check-in</span></div>
+            </div>
+
             {{-- ── 4 · OWNER — REAL (Unit.owner_id → Owner; commission = ManagementAgreement, the real 18%) ─ --}}
             @if ($owner !== null)
                 <div class="vy-card vy-fade" style="margin-bottom: 16px;">

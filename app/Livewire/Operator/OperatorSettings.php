@@ -19,6 +19,7 @@ use App\Models\Tax;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\SettingsService;
+use App\Support\Billing\SubscriptionPricing;
 use App\Support\Branding\PropertyBrand;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
@@ -79,7 +80,51 @@ class OperatorSettings extends Component
             'brandPreview' => $property !== null ? PropertyBrand::for($property) : PropertyBrand::default(),
             'sample' => $property !== null ? $this->sampleStay($property) : null,
             'removal' => $property !== null ? $this->removalState($property) : null,
+            // #104b GATE 2 — the Settings-hub additions, all on the ONE store / real reuses.
+            'invoice' => $organization !== null ? $this->invoiceForm($organization) : [],
+            'plan' => $this->planCard($organization),
         ]);
+    }
+
+    /**
+     * #104b GATE 2 — the invoice-details CONFIG (legal entity / VAT number / billing city / series prefix / next
+     * number / auto-issue). Real fields; the certified issuance + SAF-T export are honestly deferred in the view.
+     *
+     * @return array<string, mixed>
+     */
+    private function invoiceForm(Organization $organization): array
+    {
+        return [
+            'legal_entity' => (string) ($organization->billing_company ?? ''),
+            'vat_number' => (string) ($organization->billing_vat_id ?? ''),
+            'billing_city' => (string) ($organization->billing_city ?? ''),
+            'series_prefix' => (string) ($organization->invoice_series_prefix ?? ''),
+            'next_number' => (int) ($organization->invoice_next_number ?? 1),
+            'auto_issue' => (bool) $organization->invoice_auto_issue,
+        ];
+    }
+
+    /**
+     * #104b GATE 2 — the "Your plan" card, REUSING the #85 billing state (SubscriptionStatus + the real per-unit
+     * pricing). €99 is a configurable placeholder (honest, from config/billing.php), not fabricated market pricing.
+     *
+     * @return array{tier: string, status: string, price: string, manage_url: string}|null
+     */
+    private function planCard(?Organization $organization): ?array
+    {
+        if ($organization === null) {
+            return null;
+        }
+
+        $status = $organization->billingStatus();
+        $pricing = SubscriptionPricing::current('monthly');
+
+        return [
+            'tier' => 'Vyrobel Pro',
+            'status' => (string) $status->label(),
+            'price' => $this->money((int) $pricing['gross_minor'], (string) config('billing.default_currency', 'EUR')).'/mo',
+            'manage_url' => route('app.billing'),
+        ];
     }
 
     /**

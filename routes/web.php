@@ -569,6 +569,7 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/settings/property', [SettingsActionController::class, 'updateProperty'])->middleware('can:properties.manage')->name('settings.property');
     Route::post('/settings/policies', [SettingsActionController::class, 'updatePolicies'])->middleware('can:properties.manage')->name('settings.policies');
     Route::post('/settings/organization', [SettingsActionController::class, 'updateOrganization'])->middleware('can:settings.manage')->name('settings.organization');
+    Route::post('/settings/invoice', [SettingsActionController::class, 'updateInvoiceDetails'])->middleware('can:settings.manage')->name('settings.invoice');
     // Batch C · GATE 4 — edit taxes & fees (bounded rate/amount) via the certified SettingsService.
     Route::post('/settings/tax-fees', [SettingsActionController::class, 'updateTaxesAndFees'])->middleware('can:properties.manage')->name('settings.tax-fees');
     // #98 — guest-facing brand (accent/logo/from-name/reply-to/powered-by → real emails + portal) + the REAL
