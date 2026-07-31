@@ -588,6 +588,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // another account. Only the genuinely-backed fields persist; unbacked design fields are omitted, not faked.
     Route::get('/profile', OperatorProfile::class)->name('profile');
     Route::post('/profile', [OperatorProfileController::class, 'update'])->name('profile.update');
+    // #96 — UI preferences (stored + applied) + REAL sign-out-of-all-other-devices (#66 session revocation).
+    Route::post('/profile/preferences', [OperatorProfileController::class, 'preferences'])->name('profile.preferences');
+    Route::post('/profile/sign-out-others', [OperatorProfileController::class, 'signOutOtherSessions'])->middleware('throttle:6,1')->name('profile.sign-out-others');
 
     // Two-factor ENROLLMENT (self-service; the login challenge is separate). Real TOTP (google2fa) — enable →
     // confirm-code (anti-lockout) → one-time recovery codes; regenerate; disable (re-auth). Self-only

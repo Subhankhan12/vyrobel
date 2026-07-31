@@ -36,7 +36,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $avatar_path relative path on the `public` disk of the user's own avatar
  * @property string|null $pending_email a login-email change parked here until the signed verify link is opened
  */
-#[Fillable(['name', 'email', 'password', 'locale', 'avatar_path', 'status', 'two_factor_enabled', 'require_login_approval', 'quiet_hours_start', 'quiet_hours_end', 'last_login_at'])]
+#[Fillable(['name', 'preferred_name', 'email', 'phone', 'password', 'locale', 'timezone', 'avatar_path', 'status', 'two_factor_enabled', 'require_login_approval', 'quiet_hours_start', 'quiet_hours_end', 'last_login_at', 'compact_density', 'onboarding_tips', 'reduce_motion', 'date_format'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements OAuthenticatable
 {
@@ -53,6 +53,9 @@ class User extends Authenticatable implements OAuthenticatable
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
             'require_login_approval' => 'boolean',
+            'compact_density' => 'boolean',
+            'onboarding_tips' => 'boolean',
+            'reduce_motion' => 'boolean',
             // Secret + recovery codes are ENCRYPTED at rest (convention #5). The secret existed as PLAINTEXT
             // text before 2FA was wired; the cast fixes that latent exposure. `encrypted:array` stores the
             // recovery codes as encrypted JSON ([{code, used_at}]).

@@ -998,9 +998,18 @@
             *, *::before, *::after { animation: none !important; transition: none !important; }
             .vy-fade { opacity: 1; }
         }
+        /* #96 — the STORED interface-motion preference (Profile) overrides the OS default: with it off, kill
+           animations/transitions just like the media query; with it on, ambient motion runs. */
+        body[data-reduce-motion="1"] *, body[data-reduce-motion="1"] *::before, body[data-reduce-motion="1"] *::after { animation: none !important; transition: none !important; }
+        body[data-reduce-motion="1"] .vy-fade { opacity: 1; }
+        /* #96 — the STORED compact-density preference tightens the workspace's spacing. */
+        body[data-density="compact"] .vy-main { padding-top: 12px; padding-bottom: 32px; }
+        body[data-density="compact"] .vy-card { padding: 14px; }
+        body[data-density="compact"] .vy-dash-kpi { padding: 12px 14px; }
     </style>
 </head>
-<body class="vy-body">
+@php $vyPrefs = auth()->user(); @endphp
+<body class="vy-body" @if ($vyPrefs && $vyPrefs->reduce_motion) data-reduce-motion="1" @endif @if ($vyPrefs && $vyPrefs->compact_density) data-density="compact" @endif>
     <main>
         {{ $slot }}
     </main>

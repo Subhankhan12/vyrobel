@@ -6,7 +6,17 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v36) · OPERATOR OWNERS + OWNER DETAIL + PAYOUT RUN + NOTIFICATIONS
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v37) · OPERATOR PORTFOLIO + PROFILE exact-match COMPLETE — the
+> multi-property Portfolio (real per-property analytics: Revenue·month/Occupancy/Arrivals/Needs-attention +
+> per-card ADR/revenue + honest Fix-sync via real channels.status; Group = Σ reconciles #17; read-only guard)
+> and the operator Profile (real personal details + preferences [motion/density genuinely applied, date-format
+> shared helper] + a READ-ONLY real-spatie role-caps display + Sign-in & security reusing #66 password/2FA +
+> REAL sessions via the shared ActiveSessions + sign-out-of-all-other-devices). Nothing faked. Fresh-session
+> entry point: this block → `docs/OPERATOR-PORTFOLIO-PROFILE-AUDIT.md` → `docs/DECISIONS.md`. **Invariants #1–97.**
+>
+> ---
+>
+> **PRIOR (v36) — 2026-07-31 · OPERATOR OWNERS + OWNER DETAIL + PAYOUT RUN + NOTIFICATIONS
 > exact-match COMPLETE — the OPERATOR SIDE OF THE OWNER FINANCIAL SYSTEM on the certified spine: the owners
 > list (real net/pay-status, 18% commission, Add-owner reuses #80), Owner Detail (net-to-owner reconciling at
 > 18%, masked IBAN, edit/pause-payouts, careful archive-not-destroy remove, notes), the Payout Run (the

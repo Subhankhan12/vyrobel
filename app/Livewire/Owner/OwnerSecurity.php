@@ -11,9 +11,9 @@ use App\Services\OAuthConnectionService;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\OAuth\OAuthScopes;
 use App\Support\Owner\OwnerContext;
+use App\Support\Security\ActiveSessions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -122,42 +122,7 @@ class OwnerSecurity extends Component
      */
     private function activeSessions(string $userId): array
     {
-        $currentId = session()->getId();
-
-        return DB::table('sessions')
-            ->where('user_id', $userId)
-            ->orderByDesc('last_activity')
-            ->get()
-            ->map(fn ($row): array => [
-                'current' => $row->id === $currentId,
-                'device' => $this->describeUserAgent((string) ($row->user_agent ?? '')),
-                'ip' => (string) ($row->ip_address ?? '—'),
-                'last_active' => Carbon::createFromTimestamp((int) $row->last_activity),
-            ])
-            ->values()
-            ->all();
-    }
-
-    /** A plain, honest device string from a user-agent — no fabrication; "Unknown device" when unclear. */
-    private function describeUserAgent(string $ua): string
-    {
-        $browser = match (true) {
-            str_contains($ua, 'Edg') => 'Edge',
-            str_contains($ua, 'Chrome') => 'Chrome',
-            str_contains($ua, 'Firefox') => 'Firefox',
-            str_contains($ua, 'Safari') => 'Safari',
-            default => 'Browser',
-        };
-        $os = match (true) {
-            str_contains($ua, 'iPhone') => 'iPhone',
-            str_contains($ua, 'iPad') => 'iPad',
-            str_contains($ua, 'Android') => 'Android',
-            str_contains($ua, 'Mac OS') => 'Mac',
-            str_contains($ua, 'Windows') => 'Windows',
-            str_contains($ua, 'Linux') => 'Linux',
-            default => '',
-        };
-
-        return $ua === '' ? 'Unknown device' : trim($browser.($os !== '' ? ' · '.$os : ''));
+        // #96 — the ONE shared definition (owner + operator read the same {@see ActiveSessions}), no drift.
+        return ActiveSessions::forUser($userId);
     }
 }
