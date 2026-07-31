@@ -8,8 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Livewire\Operator\RatesGrid;
 use App\Models\RoomType;
 use App\Services\RateAndRestrictionService;
+use App\Services\RateBulkService;
+use App\Services\RateDerivationService;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyInput;
+use App\Support\Operator\OperatorWorkspace;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,8 +54,12 @@ class RateActionController extends Controller
      * Apply a rate and/or restriction change over a date range, to ONE room type or to ALL of the tenant's
      * room types. The single-cell editor is just start == end (one night); the bulk panel is a wider range.
      */
-    public function apply(Request $request, RateAndRestrictionService $rates): RedirectResponse
+    public function apply(Request $request, RateAndRestrictionService $rates, RateDerivationService $derivation): RedirectResponse
     {
+        if ($readOnly = $this->guardReadOnly($request)) {
+            return $readOnly;
+        }
+
         $fromParam = $this->dateString($request->input('start_date'));
         $toParam = $this->dateString($request->input('end_date'));
 
@@ -113,6 +120,7 @@ class RateActionController extends Controller
             return $this->back($fromParam, 'Choose a room type to update.');
         }
 
+        $updateDerived = $request->boolean('update_derived');
         $applied = 0;
         $missingPlan = 0;
 
@@ -125,6 +133,10 @@ class RateActionController extends Controller
                     $missingPlan++;
                 } else {
                     $rates->setRate($plan, $start, $endExclusive, Money::of($priceMinor, (string) $plan->currency));
+                    // #100 — recompute Non-refundable/Weekly derived plans (base × adjustment) so they track.
+                    if ($updateDerived) {
+                        $derivation->recomputeDerived($plan, $start, $endExclusive);
+                    }
                 }
             }
 
@@ -143,6 +155,89 @@ class RateActionController extends Controller
         }
 
         return $this->back($fromParam, $this->summary($applied, $nights, $missingPlan, $setRate, $setMinStay, $setStopSell));
+    }
+
+    /**
+     * BULK edit (task #100) — an increase% / decrease% / set-exact adjustment across a set of room types over
+     * a date range, restricted to a nights filter (whole/weekends/midweek), skipping booked & closed nights,
+     * optionally recomputing derived plans. Writes through the certified {@see RateBulkService}. `rates.manage`.
+     */
+    public function bulkApply(Request $request, RateBulkService $bulk): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly($request)) {
+            return $readOnly;
+        }
+
+        $fromParam = $this->dateString($request->input('start_date'));
+        $toParam = $this->dateString($request->input('end_date'));
+        if ($fromParam === null || $toParam === null) {
+            return $this->back($fromParam, 'Choose valid start and end dates.');
+        }
+
+        $start = CarbonImmutable::parse($fromParam)->startOfDay();
+        $endInclusive = CarbonImmutable::parse($toParam)->startOfDay();
+        if ($endInclusive->lt($start)) {
+            return $this->back($fromParam, 'The end date can’t be before the start date.');
+        }
+        $endExclusive = $endInclusive->addDay();
+        if ((int) $start->diffInDays($endExclusive) > self::MAX_SPAN_NIGHTS) {
+            return $this->back($fromParam, 'That date range is too long — please apply at most a year at a time.');
+        }
+
+        $mode = (string) $request->input('mode');
+        if (! in_array($mode, RateBulkService::MODES, true)) {
+            return $this->back($fromParam, 'Choose increase %, decrease %, or set exact €.');
+        }
+        $nights = (string) $request->input('nights', 'whole');
+        if (! in_array($nights, RateBulkService::NIGHTS, true)) {
+            $nights = 'whole';
+        }
+
+        $pct = 0.0;
+        $exactMinor = null;
+        if ($mode === 'set_exact') {
+            $exactMinor = MoneyInput::toMinor((string) $request->input('amount', ''), self::MAX_PRICE_MINOR);
+            if ($exactMinor === null) {
+                return $this->back($fromParam, 'Enter a valid exact rate, e.g. 175 or 175.50.');
+            }
+        } else {
+            $raw = trim((string) $request->input('amount', ''));
+            if (! is_numeric($raw) || (float) $raw <= 0 || (float) $raw > 100) {
+                return $this->back($fromParam, 'Enter a percentage between 0 and 100.');
+            }
+            $pct = (float) $raw;
+        }
+
+        $roomTypes = $this->resolveRoomTypes($request->input('room_type_id'));
+        if ($roomTypes === []) {
+            return $this->back($fromParam, 'Choose which units to update.');
+        }
+
+        $result = $bulk->apply(
+            $roomTypes, $start, $endExclusive, $mode, $pct, $exactMinor, $nights,
+            $request->boolean('skip_booked', true), $request->boolean('update_derived'),
+        );
+
+        $msg = 'Updated '.$result['applied'].' '.($result['applied'] === 1 ? 'night' : 'nights')
+            .' across '.$result['room_types'].' '.($result['room_types'] === 1 ? 'room type' : 'room types').'.';
+        if ($result['skipped'] > 0) {
+            $msg .= ' '.$result['skipped'].' booked/closed skipped.';
+        }
+        if ($result['derived'] > 0) {
+            $msg .= ' '.$result['derived'].' derived plans updated.';
+        }
+
+        return $this->back($fromParam, $msg);
+    }
+
+    /** Read-only guard (task #100 — was missing on the rate write, a gap vs peer controllers). */
+    private function guardReadOnly(Request $request): ?RedirectResponse
+    {
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->back($this->dateString($request->input('start_date')), 'Your workspace is read-only right now — rate changes are paused.');
+        }
+
+        return null;
     }
 
     /**

@@ -53,6 +53,7 @@ use App\Services\OwnerAttributionService;
 use App\Services\OwnerExpenseService;
 use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
+use App\Services\RateDerivationService;
 use App\Services\ReviewService;
 use App\Services\ShiftRosterService;
 use App\Services\TaxRateService;
@@ -303,6 +304,17 @@ class DemoSeeder extends Seeder
 
         $this->seedCalendar($roomRate, 10000);
         $this->seedCalendar($aptRate, 18000);
+
+        // #100 · DEMO derived rate plans (Non-refundable −10%, Weekly −15%) on the double-room base — clearly
+        // flagged demo config so the Rates page shows real derived plans + the derivation reconciles (a founder
+        // configures their own). Prices are recomputed from the base (base × adjustment) via the certified path.
+        RatePlan::create(['property_id' => $property->id, 'room_type_id' => $doubleRoom->id, 'name' => 'Non-refundable', 'code' => 'NONREF-DBL', 'currency' => 'EUR', 'is_refundable' => false, 'derived_from_rate_plan_id' => $roomRate->id, 'adjustment' => ['pct' => -10]]);
+        RatePlan::create(['property_id' => $property->id, 'room_type_id' => $doubleRoom->id, 'name' => 'Weekly', 'code' => 'WEEKLY-DBL', 'currency' => 'EUR', 'is_refundable' => true, 'derived_from_rate_plan_id' => $roomRate->id, 'adjustment' => ['pct' => -15]]);
+        app(RateDerivationService::class)->recomputeDerived(
+            $roomRate,
+            CarbonImmutable::today(),
+            CarbonImmutable::today()->addDays(180),
+        );
 
         // --- Availability (computed, not fabricated) ---
         $availability = app(AvailabilityService::class);

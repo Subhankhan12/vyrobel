@@ -13,6 +13,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * A sellable price configuration for a room_type. `derivedFrom` supports derived rates
  * (e.g. parent −10% via `adjustment`).
+ *
+ * @property string $name
+ * @property string $currency
+ * @property string $room_type_id
+ * @property bool $is_refundable
+ * @property bool $is_active
+ * @property string|null $derived_from_rate_plan_id
+ * @property array<string, mixed>|null $adjustment
+ * @property string|null $weekend_uplift_pct
  */
 class RatePlan extends Model
 {

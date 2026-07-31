@@ -97,6 +97,41 @@ class RateAndRestrictionService
     }
 
     /**
+     * Set a DIFFERENT price per night on one rate_plan (task #100) — the flexible primitive behind bulk
+     * %-adjust / set-exact (where each night's new price depends on its old price) and derived-plan recompute
+     * (each night = base × adjustment). Empty map is a no-op. ONE post-commit `rate_calendar.updated` event over
+     * the min→max date, so ARI push reads it once. Same certified upsert as {@see setRate}.
+     *
+     * @param  array<string, Money>  $priceByDate  keyed Y-m-d → Money
+     */
+    public function setRatePerNight(RatePlan $ratePlan, array $priceByDate): void
+    {
+        if ($priceByDate === []) {
+            return;
+        }
+
+        DB::transaction(function () use ($ratePlan, $priceByDate): void {
+            foreach ($priceByDate as $date => $price) {
+                RateCalendar::query()->updateOrCreate(
+                    ['rate_plan_id' => $ratePlan->getKey(), 'date' => $date],
+                    ['price' => $price],
+                );
+            }
+        });
+
+        $dates = array_keys($priceByDate);
+        sort($dates);
+        $payload = [
+            'room_type_id' => $ratePlan->room_type_id,
+            'start_date' => $dates[0],
+            'end_date' => CarbonImmutable::parse($dates[count($dates) - 1])->addDay()->toDateString(),
+        ];
+
+        $this->domainEvents->record('rate_calendar.updated', $ratePlan, $payload);
+        $this->audit->record('rate_calendar.updated', $ratePlan, null, $payload + ['nights' => count($priceByDate)]);
+    }
+
+    /**
      * Upsert the same restriction flags for every night in [startDate, endDate), scoped to a
      * room_type and/or a rate_plan (at least one required — matches the `restrictions` schema).
      *

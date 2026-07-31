@@ -8,12 +8,15 @@ use App\Http\Controllers\Operator\RateActionController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Availability;
+use App\Models\Channel;
 use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Restriction;
 use App\Models\RoomType;
 use App\Services\RateAndRestrictionService;
+use App\Services\RateDerivationService;
 use App\Support\Money\Money;
+use App\Support\Operator\OperatorWorkspace;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -131,7 +134,113 @@ class RatesGrid extends Component
                 'from' => $fromStr,
                 'to' => $fromStr,
             ],
+            'ratePlans' => $this->ratePlanList($roomTypeIds),
+            'channels' => $this->channelList(),
+            'pacing' => $this->pacing($availability),
+            'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
         ]);
+    }
+
+    /**
+     * The room types' rate plans — the REAL base + derived plans (task #100). A derived plan shows its
+     * adjustment (−10% from base) + refundability. Channel scoping is HONEST: only Direct is a live channel
+     * (#85), so no fabricated "All channels / Direct only" pill — the real distribution is Direct.
+     *
+     * @param  list<string>  $roomTypeIds
+     * @return list<array{name: string, sub: string, refundable: bool, is_derived: bool, channel: string}>
+     */
+    private function ratePlanList(array $roomTypeIds): array
+    {
+        if ($roomTypeIds === []) {
+            return [];
+        }
+
+        return RatePlan::query()
+            ->whereIn('room_type_id', $roomTypeIds)
+            ->where('is_active', true)
+            ->with('derivedFrom:id,name')
+            ->orderBy('derived_from_rate_plan_id')   // base plans (null) first
+            ->orderBy('created_at')
+            ->get()
+            ->map(function (RatePlan $plan): array {
+                $pct = RateDerivationService::adjustmentPct($plan);
+                $sub = $pct !== null
+                    ? rtrim(rtrim(number_format($pct, 2), '0'), '.').'% · derived from '.((string) ($plan->derivedFrom->name ?? 'base'))
+                    : ($plan->is_refundable ? 'Free cancellation · the grid above' : 'Base plan');
+
+                return [
+                    'name' => (string) $plan->name,
+                    'sub' => $sub,
+                    'refundable' => (bool) $plan->is_refundable,
+                    'is_derived' => $pct !== null,
+                    'channel' => 'Direct',   // honest — the only live channel (#85)
+                ];
+            })->all();
+    }
+
+    /**
+     * HONEST channel list (#85) — Direct is live; any real `channels` rows show their REAL status; live OTA
+     * sync is account-gated, so nothing here fabricates a "Synced". The push affordance is honest ("needs the
+     * channel setup").
+     *
+     * @return array{summary: string, rows: list<array{init: string, name: string, status: string, live: bool}>}
+     */
+    private function channelList(): array
+    {
+        $rows = [[
+            'init' => 'D',
+            'name' => 'Direct booking',
+            'status' => 'Live',
+            'live' => true,
+        ]];
+
+        foreach (Channel::query()->whereIn('property_id', $this->currentReadIds)->orderBy('name')->get() as $channel) {
+            $status = (string) $channel->status;
+            $rows[] = [
+                'init' => mb_strtoupper(mb_substr((string) $channel->name, 0, 1)),
+                'name' => (string) $channel->name,
+                'status' => match ($status) {
+                    'connected' => 'Connected',
+                    'error' => 'Needs attention',
+                    'disabled' => 'Disabled',
+                    default => 'Not connected',
+                },
+                'live' => false,   // no live two-way sync until the OTA rail is set up (#85)
+            ];
+        }
+
+        $connected = collect($rows)->filter(fn (array $r): bool => $r['live'])->count();
+
+        return [
+            'summary' => $connected.' live · OTA sync needs setup',
+            'rows' => $rows,
+        ];
+    }
+
+    /**
+     * Pacing — a REAL derived signal over the window (booked % + open nights). NO fabricated "+9% vs last year"
+     * trend (no prior-year snapshot exists). An honest, real read of on-the-books.
+     *
+     * @param  array<string, array{total: int, sold: int, available: int}>  $availability
+     * @return array{booked_pct: ?int, open_nights: int, insight: string}
+     */
+    private function pacing(array $availability): array
+    {
+        $sold = 0;
+        $total = 0;
+        $open = 0;
+        foreach ($availability as $cell) {
+            $sold += $cell['sold'];
+            $total += $cell['total'];
+            $open += $cell['available'];
+        }
+        $pct = $total > 0 ? (int) round($sold / $total * 100) : null;
+
+        $insight = $pct === null
+            ? 'No inventory published in this window yet.'
+            : ($pct >= 70 ? 'Filling fast — review your open nights.' : ($pct >= 30 ? 'Steady on-the-books for the next two weeks.' : $open.' open nights — consider a promotion.'));
+
+        return ['booked_pct' => $pct, 'open_nights' => $open, 'insight' => $insight];
     }
 
     // ── Request state ────────────────────────────────────────────────────────────────────────────

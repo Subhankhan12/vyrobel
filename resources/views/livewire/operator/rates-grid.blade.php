@@ -66,6 +66,22 @@
 
         <div x-data="ratesEditor()">
 
+            {{-- ── Header: legend + Bulk edit ───────────────────────────────────────────────────────── --}}
+            @if (count($rows) > 0)
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 16px; font-size: 12px; color: var(--vy-muted);">
+                        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: rgba(120,70,40,.10);"></span> Open</span>
+                        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: rgba(194,65,12,.20);"></span> Booked</span>
+                        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: rgba(178,106,8,.14);"></span> Weekend</span>
+                    </div>
+                    @can('rates.manage')
+                        @unless ($readOnly)
+                            <button type="button" class="vy-btn vy-btn--ghost" style="padding: 8px 14px; font-size: 12.5px;" x-on:click="bulkOpen = true">Bulk edit</button>
+                        @endunless
+                    @endcan
+                </div>
+            @endif
+
             {{-- ── The grid ─────────────────────────────────────────────────────────────────────────── --}}
             <div class="vy-card vy-card--flush vy-fade" style="margin-bottom: 18px;">
                 @if (count($rows) === 0)
@@ -102,7 +118,7 @@
                                         </td>
                                         @foreach ($row['cells'] as $cell)
                                             <td class="vyr-cell @if ($dates[$loop->index]['is_weekend']) is-weekend @endif">
-                                                @if ($canManage && $row['has_plan'])
+                                                @if ($canManage && $row['has_plan'] && ! $readOnly)
                                                     <button type="button" class="vyr-cellbtn"
                                                         x-on:click="edit('{{ $row['id'] }}', '{{ $cell['date'] }}', '{{ $cell['rate_input'] }}', {{ $cell['min_stay'] ?? 'null' }}, {{ $cell['stop_sell'] ? 'true' : 'false' }})"
                                                         title="Edit {{ $row['name'] }} · {{ \Carbon\CarbonImmutable::parse($cell['date'])->format('j M') }}">
@@ -127,7 +143,7 @@
                  so a Reservation Agent (rates.view only) sees the grid but never this form. A real POST →
                  controller → setRate/setRestriction → PRG; integer money is parsed server-side. ────────── --}}
             @can('rates.manage')
-                @if (count($rows) > 0)
+                @if (count($rows) > 0 && ! $readOnly)
                     <div class="vy-card vy-fade">
                         <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px;">
                             <h2 class="vy-card-title">Set rates &amp; availability</h2>
@@ -190,17 +206,115 @@
                                     <button type="submit" class="vy-btn vy-btn--accent" style="width: 100%; justify-content: center; padding: 12px;">Apply</button>
                                 </div>
                             </div>
+
+                            {{-- #100 — recompute Non-refundable / Weekly derived plans (base × adjustment) on this write. --}}
+                            <label class="vyr-check" style="margin-top: 14px;">
+                                <input type="checkbox" name="update_derived" value="1" x-model="updateDerived">
+                                Update derived plans too <span style="color: var(--vy-faint);">· Non-refundable −10% and Weekly −15% follow the new base</span>
+                            </label>
                         </form>
 
-                        {{-- Honest deferrals — real capabilities gated on account/config work, never a fake button. --}}
+                        {{-- Honest deferral (#85) — the ARI push is real but the live Channex rail is account-gated. --}}
                         <div class="vyr-soon-note">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 1px; color: var(--vy-faint);"><path d="M12 8v4l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/></svg>
-                            <span>Pushing rates to channels and propagating to derived plans are coming soon — the channel connection and derived-plan setup are not configured yet, so no changes are sent out from here.</span>
+                            <span>Rates save to Direct now. Pushing them to OTA channels needs the channel connection set up first — nothing is sent to a channel until then.</span>
                         </div>
                     </div>
                 @endif
             @endcan
 
+            {{-- ── Bulk edit modal (Alpine) — increase% / decrease% / set-exact across units × nights, skip
+                 booked, update derived. Real POST → app.rates.bulk. ──────────────────────────────────── --}}
+            @can('rates.manage')
+                @if (count($rows) > 0 && ! $readOnly)
+                    <div x-show="bulkOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="bulkOpen = false">
+                        <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;">
+                            <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 2px;">Bulk edit rates</h3>
+                            <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 14px;">{{ $window['label'] }} · base plan</div>
+                            <form method="POST" action="{{ route('app.rates.bulk') }}">
+                                @csrf
+                                <input type="hidden" name="start_date" x-model="from">
+                                <input type="hidden" name="end_date" x-model="to">
+                                <div class="vy-field" style="margin: 0 0 12px;">
+                                    <label class="vy-field-label" for="bu_rt">Units</label>
+                                    <select id="bu_rt" name="room_type_id" class="vy-input">
+                                        <option value="all">All room types</option>
+                                        @foreach ($roomTypeOptions as $opt)
+                                            <option value="{{ $opt['id'] }}">{{ $opt['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="vy-field" style="margin: 0 0 12px;">
+                                    <label class="vy-field-label">Nights</label>
+                                    <div style="display: flex; gap: 8px;">
+                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="nights" value="whole" checked> Whole range</label>
+                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="nights" value="weekends"> Weekends</label>
+                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="nights" value="midweek"> Midweek</label>
+                                    </div>
+                                </div>
+                                <div class="vy-field" style="margin: 0 0 12px;">
+                                    <label class="vy-field-label">Adjustment</label>
+                                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="increase_pct" x-model="buMode" checked> Increase %</label>
+                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="decrease_pct" x-model="buMode"> Decrease %</label>
+                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="set_exact" x-model="buMode"> Set exact €</label>
+                                    </div>
+                                    <input type="text" name="amount" class="vy-input" inputmode="decimal" x-bind:placeholder="buMode === 'set_exact' ? 'e.g. 175.00' : 'e.g. 10 (percent)'" required>
+                                </div>
+                                <label class="vyr-check" style="margin: 0 0 10px;">
+                                    <input type="checkbox" name="update_derived" value="1"> Update derived plans too
+                                    <span style="color: var(--vy-faint);">· Non-refundable −10% and Weekly −15% follow the new base</span>
+                                </label>
+                                <div style="font-size: 11.5px; color: var(--vy-faint); margin-bottom: 14px;">Booked and closed nights are skipped · push when you’re ready.<input type="hidden" name="skip_booked" value="1"></div>
+                                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                    <button type="button" class="vy-btn" x-on:click="bulkOpen = false" style="padding: 9px 16px;">Cancel</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent" style="padding: 9px 16px;">Apply bulk edit</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+            @endcan
+
+        </div>
+
+        {{-- ── Rate plans — REAL base + derived plans (#100). Derived = base × adjustment (reconciles). ──── --}}
+        @if (count($ratePlans) > 0)
+            <div class="vy-card vy-fade" style="margin-top: 18px;">
+                <h2 class="vy-card-title" style="margin-bottom: 12px;">Rate plans</h2>
+                @foreach ($ratePlans as $plan)
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--vy-hairline);">
+                        <div style="flex: 1;">
+                            <div style="font-size: 13.5px; color: var(--vy-ink); font-weight: 600;">{{ $plan['name'] }} @if ($plan['is_derived'])<span style="color: var(--vy-accent); font-weight: 500;"> · derived</span>@endif</div>
+                            <div style="font-size: 12px; color: var(--vy-muted);">{{ $plan['sub'] }}</div>
+                        </div>
+                        <span style="font-size: 11.5px; color: var(--vy-faint);">{{ $plan['channel'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        {{-- ── Channels — HONEST (#85): Direct live; OTA sync needs setup, never a fabricated "Synced". ──── --}}
+        <div class="vy-card vy-fade" style="margin-top: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 class="vy-card-title" style="margin: 0;">Channels</h2>
+                <span style="font-size: 12px; color: var(--vy-muted);">{{ $channels['summary'] }}</span>
+            </div>
+            @foreach ($channels['rows'] as $ch)
+                <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--vy-hairline);">
+                    <span style="width: 32px; height: 32px; border-radius: 8px; background: rgba(194,65,12,.10); color: var(--vy-accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">{{ $ch['init'] }}</span>
+                    <div style="flex: 1; font-size: 13.5px; color: var(--vy-ink);">{{ $ch['name'] }}</div>
+                    <span style="font-size: 12px; color: {{ $ch['live'] ? 'var(--vy-accent)' : 'var(--vy-faint)' }};">{{ $ch['status'] }}</span>
+                </div>
+            @endforeach
+            <p style="font-size: 11px; color: var(--vy-faint); margin: 10px 0 0;">Live OTA sync (push rates &amp; availability to channels) activates once your channel connection is set up.</p>
+        </div>
+
+        {{-- ── Pacing — a REAL derived signal (booked % + open nights); no fabricated "vs last year" trend. ── --}}
+        <div class="vy-card vy-fade" style="margin-top: 18px;">
+            <h2 class="vy-card-title" style="margin-bottom: 8px;">Pacing · next 14 days</h2>
+            <div style="font-family: var(--vy-display); font-size: 26px; font-weight: 700; color: var(--vy-ink);">{{ $pacing['booked_pct'] !== null ? $pacing['booked_pct'].'%' : '—' }}</div>
+            <div style="font-size: 12.5px; color: var(--vy-muted); margin-top: 4px;">{{ $pacing['insight'] }}</div>
         </div>
 
     </x-operator.shell>
@@ -217,6 +331,9 @@
                 minStay: '',
                 setStop: false,
                 stopSell: false,
+                updateDerived: false,
+                bulkOpen: false,
+                buMode: 'increase_pct',
                 edit(roomType, date, rate, minStay, stopSell) {
                     this.roomType = roomType;
                     this.from = date;

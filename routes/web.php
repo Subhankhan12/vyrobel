@@ -533,6 +533,8 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // RatesGrid gates the editor off the SAME permission so the UI never offers a write the route refuses).
     Route::get('/rates', RatesGrid::class)->middleware('can:rates.view')->name('rates');
     Route::post('/rates', [RateActionController::class, 'apply'])->middleware('can:rates.manage')->name('rates.update');
+    // #100 — bulk edit (increase%/decrease%/set-exact across units/nights, skip booked, update derived plans).
+    Route::post('/rates/bulk', [RateActionController::class, 'bulkApply'])->middleware('can:rates.manage')->name('rates.bulk');
 
     // RATE PROPOSALS (Wave C · GATE 1) — the operator proposes a rate change to an owner (who approves/declines in
     // their portal) + may withdraw a pending one. `rates.manage` (#30, NOT Front Desk); integer money server-side.
