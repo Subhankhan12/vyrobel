@@ -6,10 +6,15 @@ namespace App\Livewire\Operator;
 
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\OpenShift;
+use App\Models\Property;
+use App\Models\SchedulePublication;
 use App\Services\LeaveService;
+use App\Support\Operator\OperatorWorkspace;
 use App\Support\Schedule\RosterWeek;
 use App\Support\Schedule\ShiftType;
 use App\Support\Schedule\StaffDepartment;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -78,6 +83,57 @@ class OperatorSchedule extends Component
             // #104 GATE 3d — the wireframe's "Coverage this week" summary, derived from the SAME builder the grid
             // renders (so it reconciles, never a re-query) — team size · total shifts · rostered hours.
             'coverage' => ['team' => $roster->teamSize(), 'shifts' => $roster->shiftCount(), 'hours' => $roster->hours()],
+            // #104b GATE 3 — the interactive-rota additions: the published state (finalize + notify), the open-shift
+            // slots for the week, and per-day coverage — all derived for THIS property + week.
+            'published' => $this->publishedState($property, $roster),
+            'openShifts' => $this->openShiftsFor($property, $roster),
+            'weekStart' => (string) ($roster->days[0]['date'] ?? ''),
+            // A paused/lapsed workspace is read-only — the roster write controls hide (they'd 302 to a banner anyway).
+            'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
         ]);
+    }
+
+    /** The published stamp for this property + week (null = not published; the roster is always live regardless). */
+    private function publishedState(Property $property, RosterWeek $roster): ?string
+    {
+        $weekStart = (string) ($roster->days[0]['date'] ?? '');
+        if ($weekStart === '') {
+            return null;
+        }
+
+        $pub = SchedulePublication::query()
+            ->where('property_id', $property->id)
+            ->whereDate('week_starts_on', $weekStart)
+            ->first();
+
+        return $pub?->published_at !== null ? CarbonImmutable::parse($pub->published_at)->diffForHumans() : null;
+    }
+
+    /**
+     * The open (unassigned) shift slots for this property + week, staff-assignable.
+     *
+     * @return list<array{id: string, date: string, day_label: string, shift_label: string, department: ?string}>
+     */
+    private function openShiftsFor(Property $property, RosterWeek $roster): array
+    {
+        $days = collect($roster->days);
+        $first = (string) ($days->first()['date'] ?? '');
+        $last = (string) ($days->last()['date'] ?? '');
+        if ($first === '') {
+            return [];
+        }
+
+        return OpenShift::query()
+            ->where('property_id', $property->id)
+            ->whereBetween('date', [$first, $last])
+            ->orderBy('date')
+            ->get()
+            ->map(fn (OpenShift $o): array => [
+                'id' => (string) $o->getKey(),
+                'date' => $o->date->toDateString(),
+                'day_label' => $o->date->format('D j M'),
+                'shift_label' => ShiftType::label((string) $o->shift_type),
+                'department' => $o->department,
+            ])->all();
     }
 }

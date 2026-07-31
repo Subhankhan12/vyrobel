@@ -35,6 +35,17 @@
                         <a href="{{ route('app.schedule', ['week' => $week, 'dept' => $d]) }}" class="vy-btn {{ $dept === $d ? 'vy-btn--accent' : 'vy-btn--ghost' }}" style="padding:5px 12px;font-size:12px">{{ \App\Support\Schedule\StaffDepartment::label($d) }}</a>
                     @endforeach
                     <a href="{{ route('app.schedule.pdf', ['week' => $week, 'dept' => $dept]) }}" class="vy-btn vy-btn--ghost" style="padding:5px 12px;font-size:12px" title="Download this week as a PDF">PDF</a>
+                    {{-- #104b GATE 3 — Publish week (finalize + notify the team; edits stay live). --}}
+                    @if ($canManage && ! $readOnly && count($rows) > 0)
+                        <form method="POST" action="{{ route('app.schedule.publish') }}" style="margin:0">
+                            @csrf
+                            <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
+                            <button type="submit" class="vy-btn vy-btn--accent" style="padding:5px 12px;font-size:12px">{{ $published ? 'Re-publish' : 'Publish week' }}</button>
+                        </form>
+                    @endif
+                    @if ($published)
+                        <span class="vy-tag tone-confirmed" style="font-size:11px" title="The team was notified">Published {{ $published }}</span>
+                    @endif
                 </div>
             </div>
 
@@ -117,6 +128,56 @@
                 <div><div class="vy-dk-label">Shifts this week</div><div style="font-family:var(--vy-display);font-size:24px;font-weight:700">{{ $coverage['shifts'] }}</div></div>
                 <div><div class="vy-dk-label">Rostered hours</div><div style="font-family:var(--vy-display);font-size:24px;font-weight:700">{{ $coverage['hours'] }}h</div></div>
             </div>
+
+            {{-- #104b GATE 3 — OPEN SHIFTS: unassigned slots a manager posts, then assigns to a real staffer (fill
+                 creates a real Shift via the certified service). --}}
+            @if ($canManage)
+                <div class="vy-card vy-fade" style="margin-top:18px" x-data="{ addOpen: false }">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                        <h2 class="vy-card-title" style="margin:0">Open shifts</h2>
+                        @unless ($readOnly)
+                            <button type="button" class="vy-btn vy-btn--ghost" style="font-size:12px;padding:5px 12px" @click="addOpen = !addOpen">Add open shift</button>
+                        @endunless
+                    </div>
+                    @unless ($readOnly)
+                        <form x-show="addOpen" x-cloak method="POST" action="{{ route('app.schedule.open.create') }}" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px">
+                            @csrf
+                            <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
+                            <input type="date" name="date" class="vy-input" required aria-label="Date" style="min-width:150px">
+                            <select name="shift_type" class="vy-input" required aria-label="Shift" style="min-width:120px"><option value="early">Early</option><option value="day">Day</option><option value="late">Late</option></select>
+                            <input type="text" name="department" class="vy-input" maxlength="40" placeholder="Department (optional)" style="min-width:150px">
+                            <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12.5px">Post open shift</button>
+                        </form>
+                    @endunless
+                    @forelse ($openShifts as $o)
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--vy-hairline);font-size:13px">
+                            <div><strong>{{ $o['shift_label'] }}</strong> · {{ $o['day_label'] }}@if ($o['department'])<span class="vy-muted"> · {{ $o['department'] }}</span>@endif<br><span class="vy-muted" style="font-size:11.5px">No one scheduled</span></div>
+                            @unless ($readOnly)
+                                <div style="display:flex;gap:6px;flex-shrink:0">
+                                    <form method="POST" action="{{ route('app.schedule.open.fill', $o['id']) }}" style="margin:0;display:flex;gap:6px">
+                                        @csrf
+                                        <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
+                                        <select name="user_id" required aria-label="Assign to" class="vy-input" style="font-size:12px;padding:4px 8px">
+                                            <option value="">Assign…</option>
+                                            @foreach ($rows as $r)
+                                                <option value="{{ $r['staff']['id'] }}">{{ $r['staff']['name'] }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12px;padding:4px 10px">Assign</button>
+                                    </form>
+                                    <form method="POST" action="{{ route('app.schedule.open.remove', $o['id']) }}" style="margin:0" onsubmit="return confirm('Remove this open shift?');">
+                                        @csrf @method('DELETE')
+                                        <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
+                                        <button type="submit" class="vy-btn vy-btn--ghost" style="font-size:12px;padding:4px 10px">Remove</button>
+                                    </form>
+                                </div>
+                            @endunless
+                        </div>
+                    @empty
+                        <div class="vy-empty" style="padding:12px 0;margin-top:6px">No open shifts — every slot is covered.</div>
+                    @endforelse
+                </div>
+            @endif
 
             {{-- ── Time off — request (anyone) + the manager approval queue ─────────────────────────── --}}
             <div style="display:grid;grid-template-columns:{{ $canManage ? '1fr 1fr' : '1fr' }};gap:16px;margin-top:18px">

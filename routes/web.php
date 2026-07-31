@@ -829,6 +829,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/schedule/leave', [ScheduleController::class, 'grantLeave'])->middleware('can:schedule.manage')->name('schedule.leave.grant');
     Route::post('/schedule/leave/{leave}/approve', [ScheduleController::class, 'approveLeave'])->middleware('can:schedule.manage')->name('schedule.leave.approve');
     Route::post('/schedule/leave/{leave}/deny', [ScheduleController::class, 'denyLeave'])->middleware('can:schedule.manage')->name('schedule.leave.deny');
+    // #104b GATE 3 — publish the week (finalize + notify; edits stay live) + open-shift slots (create / fill via
+    // the certified assign / remove). schedule.manage-gated, read-only-guarded, audited.
+    Route::post('/schedule/publish', [ScheduleController::class, 'publishWeek'])->middleware('can:schedule.manage')->name('schedule.publish');
+    Route::post('/schedule/open-shifts', [ScheduleController::class, 'createOpenShift'])->middleware('can:schedule.manage')->name('schedule.open.create');
+    Route::post('/schedule/open-shifts/{openShift}/fill', [ScheduleController::class, 'fillOpenShift'])->middleware('can:schedule.manage')->name('schedule.open.fill');
+    Route::delete('/schedule/open-shifts/{openShift}', [ScheduleController::class, 'removeOpenShift'])->middleware('can:schedule.manage')->name('schedule.open.remove');
     // Phase 2 Step 8 — front-desk staff surface (arrivals/departures/in-house + action contracts).
     Route::get('/front-desk', FrontDesk::class)->name('front-desk');
     // Design pass · Operator Screen 2 — REAL check-in/out via POST → action → redirect (PRG). The

@@ -39,6 +39,7 @@ use App\Models\Media;
 use App\Models\Message;
 use App\Models\MessageThread;
 use App\Models\Note;
+use App\Models\OpenShift;
 use App\Models\Organization;
 use App\Models\OverbookingConflict;
 use App\Models\Owner;
@@ -58,6 +59,7 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Review;
 use App\Models\RoomType;
+use App\Models\SchedulePublication;
 use App\Models\Shift;
 use App\Models\Tag;
 use App\Models\Tax;
@@ -282,6 +284,8 @@ class AppServiceProvider extends ServiceProvider
             'tax' => Tax::class,
             'fee' => Fee::class,
             'ip_allow_rule' => IpAllowRule::class,
+            'schedule_publication' => SchedulePublication::class,
+            'open_shift' => OpenShift::class,
             'add_on' => AddOn::class,
             'housekeeping_task' => HousekeepingTask::class,
             'channel' => Channel::class,

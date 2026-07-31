@@ -51,6 +51,7 @@ class NotificationPreferences
         'channel_sync_error' => ['label' => 'Channel sync error', 'description' => 'A channel stops syncing', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => true],
         'new_device_login' => ['label' => 'Login from a new device', 'description' => 'Your account signs in somewhere new', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => true],
         'daily_summary' => ['label' => 'Daily morning summary', 'description' => 'A digest of the day at 08:00', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => false, 'email_default' => false],
+        'schedule_published' => ['label' => 'Schedule published', 'description' => 'Your week’s roster is published', 'group' => 'Operations', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => false],
         // ── Owner ──
         'statement_ready' => ['label' => 'Statement ready', 'description' => 'Your monthly statement is finalized', 'group' => 'Earnings', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
         'payout_sent' => ['label' => 'Payout sent', 'description' => 'The day money leaves for your account', 'group' => 'Earnings', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
