@@ -56,7 +56,7 @@
                         <span class="vy-tag tone-{{ $reservation['tone'] }}"><span class="vy-dot"></span>{{ $reservation['status_label'] }}</span>
                     </div>
                     <div class="vy-facts" style="margin-top: 14px;">
-                        <div><div class="vy-fact-label">Guest</div><div class="vy-fact-val">{{ $reservation['guest'] ?? '—' }}</div></div>
+                        <div><div class="vy-fact-label">Guest</div><div class="vy-fact-val">{{ $reservation['guest'] ?? '—' }}@if (($reservation['guest_id'] ?? null) && auth()->user()?->can('guests.view'))<a href="{{ route('app.guests.show', $reservation['guest_id']) }}" style="margin-left:8px;font-size:12px;font-weight:600;color:var(--vy-accent)">View profile ›</a>@endif</div></div>
                         <div><div class="vy-fact-label">Source</div><div class="vy-fact-val">{{ $reservation['source'] }}</div></div>
                         <div><div class="vy-fact-label">Check-in → out</div><div class="vy-fact-val">{{ $reservation['check_in'] }} → {{ $reservation['check_out'] }}</div></div>
                         <div><div class="vy-fact-label">Nights · guests</div><div class="vy-fact-val">{{ $reservation['nights'] }} {{ \Illuminate\Support\Str::plural('night', $reservation['nights']) }} · {{ $reservation['guests'] }} {{ \Illuminate\Support\Str::plural('guest', $reservation['guests']) }}</div></div>
@@ -82,11 +82,11 @@
                      webhook cancel has no authenticated user). Nothing is invented. --}}
                 @if ($timeline !== [])
                     <div class="vy-card">
-                        <h2 class="vy-card-title" style="margin-bottom: 6px;">Status history</h2>
+                        <h2 class="vy-card-title" style="margin-bottom: 6px;">Activity</h2>
                         <div class="vy-timeline">
                             @foreach ($timeline as $event)
                                 <div class="vy-tl-item">
-                                    <div class="vy-tl-rail"><span class="vy-tl-dot"></span><span class="vy-tl-line"></span></div>
+                                    <div class="vy-tl-rail"><span class="vy-tl-dot" @if (!empty($event['is_money'])) style="background:var(--vy-accent)" @endif></span><span class="vy-tl-line"></span></div>
                                     <div class="vy-tl-body">
                                         <div class="vy-tl-label">{{ $event['label'] }}</div>
                                         <div class="vy-tl-meta">{{ $event['actor'] }} · {{ $event['at'] }}</div>

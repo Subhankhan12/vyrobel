@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\AuditEvent;
 use App\Models\Folio;
 use App\Models\InventoryBlock;
 use App\Models\Payment;
@@ -134,7 +135,7 @@ class ReservationDetail extends Component
         return view('livewire.reservation-detail', [
             'viewer' => $this->viewer(),
             'terminal' => $this->terminalState($reservation, $status, $meta),
-            'timeline' => $this->timeline($reservation),
+            'timeline' => $this->timeline($reservation, $folioModel),
             // Cancellation policy is CONTEXT for a CANCELLATION — so it shows exactly where it is
             // meaningful: on a cancelled booking, or on one that can still be cancelled. Not on a
             // checked-out stay (noise), and deliberately NOT on a no-show: `property_policies.cancellation`
@@ -156,6 +157,9 @@ class ReservationDetail extends Component
                 'guests' => (int) $reservation->adults + (int) $reservation->children,
                 'currency' => $currency,
                 'guest' => $name !== '' ? $name : null,
+                // #104 GATE 1c — the honest form of the wireframe's guest card on this operational surface (#28
+                // keeps it name-only): a cross-link to the Guests CRM, where the full profile + contact live.
+                'guest_id' => $reservation->lead_guest_id !== null ? (string) $reservation->lead_guest_id : null,
             ],
             'units' => $reservation->reservationUnits->map(fn (ReservationUnit $line): array => [
                 'id' => (string) $line->id,
@@ -285,41 +289,76 @@ class ReservationDetail extends Component
      *
      * @return list<array<string, mixed>>
      */
-    private function timeline(Reservation $reservation): array
+    private function timeline(Reservation $reservation, ?Folio $folioModel): array
     {
-        // Read the rows through their OWN tenant-scoped model rather than the `statusHistory` relation:
-        // that relation carries no generics, so a collection reached through it degrades to
-        // Collection<int, Model> and every real column read becomes an undefined-property error. Same
-        // table, same global scope, same rows — just a type PHPStan can actually check. Ordered oldest
-        // first, with the ULID breaking ties: `created_at` is second-granular and a book→cancel can land
-        // inside one second (it does in tests), while ULIDs are monotonic within a process.
+        // #104 GATE 1c — the trail was STATUS-ONLY; the money actions were already in `audit_events` (subject =
+        // the Payment) but this screen never read them. Now it merges BOTH into one real who-did-what-when trail:
+        // lifecycle transitions (reservation_status_history) + the reservation's payment events (recorded /
+        // settled / refunded). No PII — actions, actors, and times only (#28); amounts stay in the folio ledger.
+        $entries = [];
+
+        // 1) Lifecycle transitions — through their OWN tenant-scoped model (the statusHistory relation carries no
+        //    generics, so rows reached through it degrade to bare Model). ULID breaks a same-second tie.
         $rows = ReservationStatusHistory::query()
             ->where('reservation_id', $reservation->id)
             ->with('changedBy')
             ->orderBy('created_at')
             ->orderBy('id')
             ->get();
-
-        return $rows->map(function (ReservationStatusHistory $row): array {
+        foreach ($rows as $row) {
             $to = $this->reservationStatusMeta((string) $row->to_status)['label'];
-            $from = $row->from_status !== null
-                ? $this->reservationStatusMeta((string) $row->from_status)['label']
-                : null;
-            $reason = trim((string) ($row->reason ?? ''));
-
-            // `changed_by` is a nullable FK → a real User, or genuinely nobody. The instanceof narrows the
-            // ungenericized BelongsTo to the real model — the same idiom FormatsOperatorData::viewer() uses.
+            $from = $row->from_status !== null ? $this->reservationStatusMeta((string) $row->from_status)['label'] : null;
             $actor = $row->changedBy;
-
-            return [
-                // Composed here, not in Blade: the transition must stay one contiguous string.
+            $entries[] = [
+                'ts' => CarbonImmutable::parse($row->created_at),
+                'sort' => (string) $row->id,
                 'label' => $from !== null ? $from.' → '.$to : $to,
-                // `created_at` is `timestamp NOT NULL useCurrent()` — never null, so no null branch.
-                'at' => CarbonImmutable::parse($row->created_at)->format('j M Y · H:i'),
                 'actor' => $actor instanceof User ? (string) $actor->name : 'System',
-                'reason' => $reason !== '' ? $reason : null,
+                'reason' => trim((string) ($row->reason ?? '')) ?: null,
+                'is_money' => false,
             ];
-        })->values()->all();
+        }
+
+        // 2) Money actions on THIS reservation's payments — the real audit_events the status-only trail missed.
+        $paymentIds = $folioModel?->payments->pluck('id')->all() ?? [];
+        if ($paymentIds !== []) {
+            $events = AuditEvent::query()
+                ->where('subject_type', (new Payment)->getMorphClass())
+                ->whereIn('subject_id', $paymentIds)
+                ->whereIn('action', ['payment.recorded', 'payment.settled', 'payment.refunded'])
+                ->orderBy('created_at')
+                ->get();
+            /** @var array<string, string> $names */
+            $names = User::query()->whereIn('id', $events->pluck('actor_id')->filter()->all())->pluck('name', 'id')->all();
+            foreach ($events as $event) {
+                $label = match ((string) $event->action) {
+                    'payment.recorded' => 'Payment recorded',
+                    'payment.settled' => 'Payment settled',
+                    'payment.refunded' => 'Refund issued',
+                    default => ucfirst(str_replace('payment.', '', (string) $event->action)),
+                };
+                $actorId = $event->actor_id !== null ? (string) $event->actor_id : null;
+                $entries[] = [
+                    'ts' => CarbonImmutable::parse($event->created_at),
+                    'sort' => (string) $event->getKey(),
+                    'label' => $label,
+                    'actor' => $actorId !== null ? ($names[$actorId] ?? 'A team member') : 'System',
+                    'reason' => null,
+                    'is_money' => true,
+                ];
+            }
+        }
+
+        // Merge oldest-first; a same-timestamp tie falls back to the monotonic sort key.
+        usort($entries, fn (array $a, array $b): int => $a['ts']->eq($b['ts']) ? ($a['sort'] <=> $b['sort']) : ($a['ts']->lt($b['ts']) ? -1 : 1));
+
+        return array_map(fn (array $e): array => [
+            'label' => $e['label'],
+            'at' => $e['ts']->format('j M Y · H:i'),
+            'actor' => $e['actor'],
+            'reason' => $e['reason'],
+            'is_money' => $e['is_money'],
+        ], $entries);
     }
 
     /**
