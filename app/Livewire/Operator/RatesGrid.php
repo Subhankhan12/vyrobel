@@ -81,12 +81,20 @@ class RatesGrid extends Component
         // Phase 6a · multi-property: scope the grid to the current property (or every accessible
         // property when "all" is selected). Pre-6a this read ALL room types org-wide — which silently
         // BLENDED properties once an org ran more than one.
-        $roomTypes = RoomType::query()
+        $allRoomTypes = RoomType::query()
             ->whereIn('property_id', $this->currentReadIds)
             ->with(['defaultRatePlan', 'ratePlans' => fn ($q) => $q->where('is_active', true)->orderBy('created_at')])
             ->withCount('units')
             ->orderBy('name')
             ->get();
+
+        // #104 GATE 2d — a read-only room-type filter (the wireframe's segment/unit dropdown), driven by ?rt=
+        // exactly like the ?from= window nav. The OPTIONS stay the full accessible set; only the GRID narrows.
+        // A tampered/unknown id falls through to "all" (the room type must be in the accessible set).
+        $rtFilter = (string) request()->query('rt', '');
+        $roomTypes = ($rtFilter !== '' && $allRoomTypes->contains(fn (RoomType $rt): bool => (string) $rt->getKey() === $rtFilter))
+            ? $allRoomTypes->filter(fn (RoomType $rt): bool => (string) $rt->getKey() === $rtFilter)->values()
+            : $allRoomTypes;
 
         // Resolve each room type's primary plan once; collect the plan ids so the calendar/restriction/
         // availability reads are three batched queries, not an N+1 across the grid.
@@ -123,11 +131,14 @@ class RatesGrid extends Component
             'canManage' => (bool) auth()->user()?->can('rates.manage'),
             'dates' => array_map(fn (string $d): array => $this->dateHeader($d), $dates),
             'rows' => $rows,
-            'roomTypeOptions' => $roomTypes->map(fn (RoomType $rt): array => [
+            // Options are the FULL accessible set (so the filter dropdown offers every room type), even when the
+            // grid itself is narrowed to one by ?rt=.
+            'roomTypeOptions' => $allRoomTypes->map(fn (RoomType $rt): array => [
                 'id' => (string) $rt->getKey(),
                 'name' => (string) $rt->name,
-                'has_plan' => $primaryPlan[(string) $rt->getKey()] !== null,
+                'has_plan' => $this->primaryRatePlan($rt) !== null,
             ])->all(),
+            'rtFilter' => $rtFilter,
             'tiles' => $this->tiles($rates, $availability),
             'window' => $this->windowNav($from, $fromStr, $throughStr),
             'formDefaults' => [

@@ -30,6 +30,17 @@
                 </a>
                 <a class="vy-btn vy-btn--ghost" href="{{ $window['today'] }}" style="padding: 8px 13px; font-size: 12.5px;">Today</a>
             </div>
+            {{-- #104 GATE 2d — read-only room-type filter (preserves the ?from= window); narrows the grid to one
+                 room type. Only shown when there's more than one to choose from. --}}
+            @if (count($roomTypeOptions) > 1)
+                <select class="vy-input" style="font-size: 12.5px; max-width: 220px;" aria-label="Filter by room type"
+                        onchange="window.location.href='{{ route('app.rates') }}?from={{ $formDefaults['from'] }}' + (this.value ? '&rt=' + encodeURIComponent(this.value) : '')">
+                    <option value="" @selected($rtFilter === '')>All room types</option>
+                    @foreach ($roomTypeOptions as $opt)
+                        <option value="{{ $opt['id'] }}" @selected($rtFilter === $opt['id'])>{{ $opt['name'] }}</option>
+                    @endforeach
+                </select>
+            @endif
             @if ($window['jump'])
                 <a class="vyr-jump" href="{{ $window['jump']['href'] }}">Jump to rates from {{ \Carbon\CarbonImmutable::parse($window['jump']['date'])->format('j M Y') }} →</a>
             @endif
