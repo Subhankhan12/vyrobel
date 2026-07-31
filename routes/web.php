@@ -647,17 +647,23 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::get('/maintenance/{ticket}', MaintenanceTicketDetail::class)->name('maintenance.show');
     // Maintenance writes — REAL open + assign via POST → controller → MaintenanceService → redirect (PRG).
     // A foreign unit_id / cross-org {ticket} 404s; a guarded illegal transition flashes cleanly (never 500).
-    Route::post('/maintenance', [MaintenanceActionController::class, 'store'])->name('maintenance.store');
-    Route::post('/maintenance/{ticket}/assign', [MaintenanceActionController::class, 'assign'])->name('maintenance.assign');
-    // Lifecycle writes from the styled ticket detail — each offered only when the real state allows it;
-    // the service is still the authority (illegal transition → clean flash, never 500). Cross-org → 404.
-    Route::post('/maintenance/{ticket}/start', [MaintenanceActionController::class, 'start'])->name('maintenance.start');
-    Route::post('/maintenance/{ticket}/resolve', [MaintenanceActionController::class, 'resolve'])->name('maintenance.resolve');
-    Route::post('/maintenance/{ticket}/cancel', [MaintenanceActionController::class, 'cancel'])->name('maintenance.cancel');
-    // #89 — awaiting-parts state + proof photos. Tenant + ticket scoped; read-only respected.
-    Route::post('/maintenance/{ticket}/parts', [MaintenanceActionController::class, 'setParts'])->name('maintenance.parts');
-    Route::post('/maintenance/{ticket}/photos', [MaintenanceActionController::class, 'uploadPhoto'])->name('maintenance.photos.store');
-    Route::delete('/maintenance/{ticket}/photos/{media}', [MaintenanceActionController::class, 'deletePhoto'])->name('maintenance.photos.destroy');
+    // #104 GATE 0 — every maintenance WRITE is gated `can:maintenance.manage` (the dedicated permission the
+    // Maintenance/Manager roles hold; NOT Front Desk/Reservation Agent/Accountant), matching the already-gated
+    // costs/settings siblings. The controller carries no authorize(), so this route middleware is the actor gate
+    // (#20/#30) — closing the privilege-within-org hole where `resolve` posts a REAL deductible owner expense.
+    Route::middleware('can:maintenance.manage')->group(function () {
+        Route::post('/maintenance', [MaintenanceActionController::class, 'store'])->name('maintenance.store');
+        Route::post('/maintenance/{ticket}/assign', [MaintenanceActionController::class, 'assign'])->name('maintenance.assign');
+        // Lifecycle writes from the styled ticket detail — each offered only when the real state allows it;
+        // the service is still the authority (illegal transition → clean flash, never 500). Cross-org → 404.
+        Route::post('/maintenance/{ticket}/start', [MaintenanceActionController::class, 'start'])->name('maintenance.start');
+        Route::post('/maintenance/{ticket}/resolve', [MaintenanceActionController::class, 'resolve'])->name('maintenance.resolve');
+        Route::post('/maintenance/{ticket}/cancel', [MaintenanceActionController::class, 'cancel'])->name('maintenance.cancel');
+        // #89 — awaiting-parts state + proof photos. Tenant + ticket scoped; read-only respected.
+        Route::post('/maintenance/{ticket}/parts', [MaintenanceActionController::class, 'setParts'])->name('maintenance.parts');
+        Route::post('/maintenance/{ticket}/photos', [MaintenanceActionController::class, 'uploadPhoto'])->name('maintenance.photos.store');
+        Route::delete('/maintenance/{ticket}/photos/{media}', [MaintenanceActionController::class, 'deletePhoto'])->name('maintenance.photos.destroy');
+    });
     // Demo-readiness · Part A — operator room-type PHOTO management (secure upload; the operator-mutation
     // pattern POST→controller→PRG). {roomType}/{photo} are string ids resolved tenant-scoped → cross-org 404.
     Route::post('/room-types/{roomType}/photos', [RoomTypePhotoController::class, 'store'])->name('room-types.photos.store');
@@ -770,13 +776,17 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::post('/reservations/{reservation}/charge', [ReservationFolioActionController::class, 'addCharge'])
         ->middleware('can:folios.manage')->name('reservations.charge');
     // Batch C · GATE 2 — MOVE ROOM: the SINGLE guarded inventory write (AssignmentService::assignUnit —
-    // availability lock, no-overlap, same-room-type). Gated like check-in/out (any back-office; the POST
-    // re-runs the tenant middleware). Same-room-type only (Q5); a cross-type/occupied target is refused.
-    Route::post('/reservations/{reservation}/move', [FrontDeskActionController::class, 'move'])->name('reservations.move');
+    // availability lock, no-overlap, same-room-type). Same-room-type only (Q5); a cross-type/occupied target
+    // is refused. #104 GATE 0 — gated `can:reservations.assign` (the dedicated permission Group Admin/Hotel
+    // Manager/Front Desk hold; NOT Reservation Agent/Accountant/Housekeeping). The controller carries no
+    // authorize(), so this is the actor gate for an inventory write (#20/#30).
+    Route::post('/reservations/{reservation}/move', [FrontDeskActionController::class, 'move'])->middleware('can:reservations.assign')->name('reservations.move');
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
     // Design pass · Operator Screen 3 — REAL housekeeping status advance via POST → action → redirect
     // (PRG). {task} is a string param resolved tenant-scoped in the controller (never RMB) → cross-org 404.
-    Route::post('/housekeeping/{task}/status', [HousekeepingActionController::class, 'updateStatus'])->name('housekeeping.status');
+    // #104 GATE 0 — gated `can:housekeeping.manage` (matching the assign/photos siblings; NOT Front Desk's
+    // housekeeping.view-only). The controller carries no authorize(), so this is the actor gate (#20/#30).
+    Route::post('/housekeeping/{task}/status', [HousekeepingActionController::class, 'updateStatus'])->middleware('can:housekeeping.manage')->name('housekeeping.status');
     // Batch C · GATE 1 — assign a REAL housekeeper (Housekeeping dept via StaffRoster) to a task. POST →
     // HousekeepingService::assign → PRG; `housekeeping.manage`-gated; a non-housekeeper/cross-org id refused.
     Route::post('/housekeeping/{task}/assign', [HousekeepingActionController::class, 'assign'])->middleware('can:housekeeping.manage')->name('housekeeping.assign');
@@ -802,9 +812,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     Route::get('/front-desk', FrontDesk::class)->name('front-desk');
     // Design pass · Operator Screen 2 — REAL check-in/out via POST → action → redirect (PRG). The
     // {reservation} is a string param resolved tenant-scoped in the controller (never RMB), so the
-    // mutation re-runs the tenant middleware and cross-org ids 404.
-    Route::post('/front-desk/{reservation}/check-in', [FrontDeskActionController::class, 'checkIn'])->name('front-desk.check-in');
-    Route::post('/front-desk/{reservation}/check-out', [FrontDeskActionController::class, 'checkOut'])->name('front-desk.check-out');
+    // mutation re-runs the tenant middleware and cross-org ids 404. #104 GATE 0 — gated by the dedicated
+    // `reservations.checkin`/`reservations.checkout` permissions (held by Group Admin/Hotel Manager/Front Desk —
+    // the roles that actually work the desk; NOT Reservation Agent/Accountant/Housekeeping/Maintenance). The
+    // controller carries no authorize(), so these route gates are the actor gate (#20/#30).
+    Route::post('/front-desk/{reservation}/check-in', [FrontDeskActionController::class, 'checkIn'])->middleware('can:reservations.checkin')->name('front-desk.check-in');
+    Route::post('/front-desk/{reservation}/check-out', [FrontDeskActionController::class, 'checkOut'])->middleware('can:reservations.checkout')->name('front-desk.check-out');
 });
 
 /*

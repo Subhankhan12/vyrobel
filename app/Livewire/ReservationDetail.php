@@ -126,8 +126,10 @@ class ReservationDetail extends Component
         // Batch C · GATE 2 — a room MOVE is offered only on a non-terminal reservation (moving a cancelled /
         // no-show / checked-out stay is nonsensical). The write goes through AssignmentService::assignUnit,
         // which re-checks availability under a lock — so the free-unit list here is a UX nicety, never the
-        // authority. Gated like check-in/out (any back-office; the route re-runs the tenant middleware).
-        $canMove = ! in_array($status, ['cancelled', 'no_show', 'checked_out'], true);
+        // authority. #104 GATE 0 — the move route is now gated `reservations.assign`; gate the CONTROL on the
+        // SAME permission so the UI never invites a 403 (the reservation detail is reachable by roles without it).
+        $canMove = ! in_array($status, ['cancelled', 'no_show', 'checked_out'], true)
+            && (bool) auth()->user()?->can('reservations.assign');
 
         return view('livewire.reservation-detail', [
             'viewer' => $this->viewer(),

@@ -123,7 +123,13 @@ class FrontDesk extends Component
         $rows = EloquentCollection::make($reservations->all());
         $rows->load(['reservationUnits' => fn ($q) => $q->where('status', 'active'), 'reservationUnits.unit']);
 
-        return $rows->map(function (Reservation $reservation): array {
+        // #104 GATE 0 — the check-in/out routes are now gated `reservations.checkin`/`checkout`; gate the row
+        // CONTROLS on the SAME permissions so a back-office role that can VIEW the desk but not work it (e.g.
+        // Reservation Agent / Accountant) never sees a button that 403s.
+        $canCheckIn = (bool) auth()->user()?->can('reservations.checkin');
+        $canCheckOut = (bool) auth()->user()?->can('reservations.checkout');
+
+        return $rows->map(function (Reservation $reservation) use ($canCheckIn, $canCheckOut): array {
             $guest = $reservation->leadGuest;
             $name = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
 
@@ -159,8 +165,8 @@ class FrontDesk extends Component
                 'balance_minor' => $balanceMinor,
                 'balance' => $this->money($balanceMinor, $currency),
                 'has_balance' => $balanceMinor > 0,
-                'can_check_in' => $status === 'confirmed',
-                'can_check_out' => $status === 'checked_in',
+                'can_check_in' => $status === 'confirmed' && $canCheckIn,
+                'can_check_out' => $status === 'checked_in' && $canCheckOut,
                 // #87 — the guest's VIP flag + stay preferences flow to the front desk so arrivals get the
                 // right care (the once-empty "flags the front desk" promise, made true). These are operational
                 // flags, NOT contact PII — the name-only perimeter (email/phone) is unaffected (#28).

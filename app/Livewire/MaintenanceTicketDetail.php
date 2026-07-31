@@ -87,6 +87,10 @@ class MaintenanceTicketDetail extends Component
 
         $currency = (string) $unit->property->currency;
 
+        // #104 GATE 0 — the maintenance lifecycle routes are now gated `maintenance.manage`; gate the CONTROLS
+        // on the SAME permission so a role that can VIEW a ticket but not manage it never sees a 403-ing button.
+        $canManage = (bool) auth()->user()?->can('maintenance.manage');
+
         return view('livewire.maintenance-ticket-detail', [
             'viewer' => $this->viewer(),
             'ticket' => [
@@ -108,10 +112,10 @@ class MaintenanceTicketDetail extends Component
                 'resolved' => $ticket->resolved_at?->format('j M Y · H:i'),
                 'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, (string) ($ticket->currency ?? $currency)) : null,
                 // Real state → which transitions the service will accept (offer only what it allows).
-                'can_start' => $status === 'open',
-                'can_resolve' => $status === 'in_progress',
-                'can_cancel' => in_array($status, ['open', 'in_progress'], true),
-                'can_assign' => in_array($status, ['open', 'in_progress'], true),
+                'can_start' => $canManage && $status === 'open',
+                'can_resolve' => $canManage && $status === 'in_progress',
+                'can_cancel' => $canManage && in_array($status, ['open', 'in_progress'], true),
+                'can_assign' => $canManage && in_array($status, ['open', 'in_progress'], true),
             ],
             'currencySymbol' => $this->currencySymbol($currency),
             'timeline' => $this->timeline($ticket),
