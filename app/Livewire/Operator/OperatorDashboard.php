@@ -20,6 +20,7 @@ use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Property\PropertyOccupancy;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -416,10 +417,20 @@ class OperatorDashboard extends Component
      */
     private function arrivalsList(Collection $arrivals): array
     {
-        return $arrivals->take(8)->map(function (Reservation $reservation): array {
+        // #104 GATE 3c — surface the wireframe's per-arrival detail (nights + assigned unit). Eager-load the active
+        // unit lines once (name-only operational data, not PII — the #28 perimeter is unaffected).
+        $rows = EloquentCollection::make($arrivals->take(8)->all());
+        $rows->loadMissing(['reservationUnits' => fn ($q) => $q->where('status', 'active'), 'reservationUnits.unit']);
+
+        return $rows->map(function (Reservation $reservation): array {
             $guest = $reservation->leadGuest;
             $name = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
             $meta = $this->reservationStatusMeta((string) $reservation->status);
+
+            $nights = (int) CarbonImmutable::parse($reservation->check_in)->diffInDays(CarbonImmutable::parse($reservation->check_out));
+            $unit = $reservation->reservationUnits
+                ->map(fn ($line): string => (string) ($line->unit->code ?? ''))
+                ->filter()->unique()->values()->implode(', ');
 
             return [
                 'id' => $reservation->id,
@@ -427,6 +438,8 @@ class OperatorDashboard extends Component
                 'guest' => $name !== '' ? $name : (string) $reservation->reference,
                 'status_label' => $meta['label'],
                 'tone' => $meta['tone'],
+                'nights' => $nights,
+                'unit' => $unit !== '' ? $unit : null,
             ];
         })->all();
     }

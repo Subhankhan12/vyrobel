@@ -196,6 +196,8 @@
                                     <td><span class="vy-muted">{{ $row['source'] }}</span></td>
                                     <td>
                                         <span class="vy-tag tone-{{ $row['stage_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['stage_meta']['label'] }}</span>
+                                        {{-- #104 GATE 3c — REAL "Refunded" pill (payment_status='refunded'). --}}
+                                        @if ($row['refunded'])<span class="vy-tag tone-cancelled" style="margin-left:5px;"><span class="vy-dot"></span>Refunded</span>@endif
                                     </td>
                                     <td style="text-align: right;"><span class="vy-u-code">{{ $row['total'] }}</span></td>
                                     <td style="text-align: right;">

@@ -191,6 +191,11 @@ class ReservationsList extends Component
                     // all match one typed term. CONCAT_WS skips NULLs, so an anonymized guest (whose names
                     // are nulled by Guest::anonymize()) simply never matches — it does not error.
                     $guest->whereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", [$term]);
+                })
+                // #104 GATE 3c — search the assigned UNIT code too (plaintext, not PII). The encrypted email/phone
+                // stay un-searchable (a LIKE would match nothing) — that deferral is unchanged.
+                ->orWhereHas('reservationUnits.unit', function (Builder $unit) use ($term): void {
+                    $unit->where('code', 'like', $term);
                 });
         });
     }
@@ -274,6 +279,9 @@ class ReservationsList extends Component
             'total' => $this->money((int) $reservation->total_minor, $currency),
             'balance' => $this->money($balanceMinor, $currency),
             'has_balance' => $balanceMinor > 0,
+            // #104 GATE 3c — the wireframe's "Refunded" pill. `payment_status='refunded'` is a REAL written
+            // state (a fully-refunded stay); render it (no figure — the amount lives on the folio, #39).
+            'refunded' => (string) $reservation->payment_status === 'refunded',
         ];
     }
 

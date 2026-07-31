@@ -106,7 +106,8 @@
                             <div class="vy-arr-row">
                                 <div>
                                     <div class="vy-arr-name">{{ $a['guest'] }}</div>
-                                    <div class="vy-arr-ref">{{ $a['reference'] }}</div>
+                                    {{-- #104 GATE 3c — the wireframe's per-arrival detail: reference · N nights · unit (real). --}}
+                                    <div class="vy-arr-ref">{{ $a['reference'] }} · {{ $a['nights'] }} {{ \Illuminate\Support\Str::plural('night', $a['nights']) }}@if ($a['unit']) · {{ $a['unit'] }}@else · Unassigned @endif</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <span class="vy-tag tone-{{ $a['tone'] }}"><span class="vy-dot"></span>{{ $a['status_label'] }}</span>
