@@ -151,6 +151,7 @@ use App\Livewire\Operator\OperatorSchedule;
 use App\Livewire\Operator\OperatorSearch;
 use App\Livewire\Operator\OperatorSecurity;
 use App\Livewire\Operator\OperatorSettings;
+use App\Http\Controllers\Operator\UnitRequestActionController;
 use App\Livewire\Operator\OperatorUnitRequests;
 use App\Livewire\Operator\PayoutRun;
 use App\Livewire\Operator\RatesGrid;
@@ -493,6 +494,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, SetCurrentPropertyForW
     // Phase 2 · Sub-gate 6 — the operator sees owners' add-unit REQUESTS here (tenant-scoped; owner scope is
     // inactive off-portal). Read-only: creating the real unit stays the operator's own action. Gated units.view.
     Route::get('/unit-requests', OperatorUnitRequests::class)->middleware('can:units.view')->name('unit-requests');
+    // #104 GATE 1 — the review is now OPERATIONAL: approve (→ create the real unit) / decline (→ notify the owner)
+    // via POST → UnitRequestActionController → OwnerUnitRequestService → PRG. Gated `can:units.manage` (the write
+    // permission Group Admin/Hotel Manager hold; the read screen stays units.view). Controller carries no
+    // authorize(), so these gates are the actor gate (#20/#30).
+    Route::post('/unit-requests/{unitRequest}/approve', [UnitRequestActionController::class, 'approve'])->middleware('can:units.manage')->name('unit-requests.approve');
+    Route::post('/unit-requests/{unitRequest}/decline', [UnitRequestActionController::class, 'decline'])->middleware('can:units.manage')->name('unit-requests.decline');
 
     // ROLES & ACCESS (Phase 1 · Sub-gate 3) — VIEW the fixed catalog (roles + read-only permissions + members)
     // and ASSIGN a role to a member. Gated on `users.manage` (only an admin manages roles — the same gate that

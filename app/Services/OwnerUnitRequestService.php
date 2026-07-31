@@ -6,10 +6,18 @@ namespace App\Services;
 
 use App\Models\Amenity;
 use App\Models\Owner;
+use App\Models\Property;
+use App\Models\RoomType;
+use App\Models\Unit;
 use App\Models\UnitRequest;
 use App\Models\User;
+use App\Notifications\Owner\UnitRequestReviewedNotification;
 use App\Support\Events\AuditEventRecorder;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use RuntimeException;
 
 /**
  * Owner ADD-UNIT request path (Phase 2 · Sub-gate 6). ⚠️ An owner does NOT create billable inventory directly —
@@ -111,5 +119,118 @@ class OwnerUnitRequestService
     public function requests(): Collection
     {
         return UnitRequest::query()->orderByDesc('created_at')->get();
+    }
+
+    /**
+     * #104 GATE 1 — the operator APPROVES a pending request by creating the REAL unit from the owner's proposed
+     * values. This is the app's first unit-creation writer, so it is deliberately narrow: the operator chooses an
+     * existing property + one of that property's existing room types (the operational decisions the owner can't
+     * make), and the unit is created under them, ASSIGNED to the requesting owner, and made bookable by recomputing
+     * availability. The proposed nightly rate is NOT auto-applied — rates live on the shared room-type rate plan
+     * (applying one here would reprice the type's OTHER units), so the operator prices it on the Rates screen; the
+     * proposed figure is carried into the audit for reference. The request is stamped `fulfilled` and linked to the
+     * unit it became (clean provenance), and the owner is notified. Everything runs in ONE transaction.
+     *
+     * @throws RuntimeException when the request is not pending, or the property/room type is not in this tenant
+     */
+    public function approve(UnitRequest $request, User $reviewer, string $propertyId, string $roomTypeId, ?string $note = null): Unit
+    {
+        if ($request->status !== 'pending') {
+            throw new RuntimeException('Only a pending request can be approved.');
+        }
+
+        // Tenant-scoped resolution — a foreign property/room-type id 404s via the global scope, and the room type
+        // must belong to the chosen property (no cross-property graft).
+        $property = Property::query()->findOrFail($propertyId);
+        $roomType = RoomType::query()->where('property_id', $property->id)->findOrFail($roomTypeId);
+
+        $currency = (string) ($request->currency ?? $property->currency ?? 'EUR');
+
+        return DB::transaction(function () use ($request, $reviewer, $property, $roomType, $currency, $note): Unit {
+            $unit = Unit::create([
+                'property_id' => $property->id,
+                'room_type_id' => $roomType->id,
+                'code' => $this->uniqueCode($property->id, (string) $request->requested_name),
+                'name' => (string) $request->requested_name,
+                'unit_kind' => (string) $request->requested_kind,
+                'max_occupancy' => $request->sleeps > 0 ? $request->sleeps : 2,
+                'owner_id' => $request->owner_id,
+                'is_active' => true,
+            ]);
+
+            // The new unit adds to the room type's sellable inventory — recompute a forward year so it is bookable
+            // immediately (the certified availability spine, never a direct availability write).
+            $today = CarbonImmutable::today();
+            app(AvailabilityService::class)->recompute($roomType->id, $today->toDateString(), $today->addYear()->toDateString());
+
+            $request->forceFill([
+                'status' => 'approved',
+                'created_unit_id' => $unit->id,
+                'review_note' => $note,
+                'reviewed_by' => $reviewer->getKey(),
+                'reviewed_at' => now(),
+            ])->save();
+
+            $this->audit->record('owner.unit_request_approved', $request, null, [
+                'unit_id' => $unit->id,
+                'kind' => (string) $request->requested_kind,
+                'proposed_rate_minor' => $request->requested_rate_minor,
+                'currency' => $currency,
+            ]);
+
+            $request->owner?->user?->notify(new UnitRequestReviewedNotification($request->refresh(), 'approved'));
+
+            return $unit;
+        });
+    }
+
+    /**
+     * #104 GATE 1 — the operator DECLINES a pending request. No inventory is created; the request is stamped
+     * `declined` with the operator's reason, audited, and the owner is notified so they learn the outcome (the
+     * feedback loop the audit found missing). Reversible only by the owner re-requesting — the record is retained.
+     *
+     * @throws RuntimeException when the request is not pending
+     */
+    public function decline(UnitRequest $request, User $reviewer, ?string $note = null): UnitRequest
+    {
+        if ($request->status !== 'pending') {
+            throw new RuntimeException('Only a pending request can be declined.');
+        }
+
+        $request->forceFill([
+            'status' => 'declined',
+            'review_note' => $note,
+            'reviewed_by' => $reviewer->getKey(),
+            'reviewed_at' => now(),
+        ])->save();
+
+        $this->audit->record('owner.unit_request_declined', $request, null, ['kind' => (string) $request->requested_kind]);
+
+        $request->owner?->user?->notify(new UnitRequestReviewedNotification($request->refresh(), 'declined'));
+
+        return $request;
+    }
+
+    /**
+     * A unique unit `code` within the property (the table enforces UNIQUE(property_id, code)). Derived from the
+     * requested name so it reads sensibly (e.g. "Sea View 2B" → "SEA-VIEW-2B"), with a numeric suffix only if that
+     * base already exists — deterministic, no reliance on random ids.
+     */
+    private function uniqueCode(string $propertyId, string $name): string
+    {
+        $base = Str::upper(Str::slug($name, '-'));
+        if ($base === '') {
+            $base = 'UNIT';
+        }
+        $base = Str::limit($base, 24, '');
+
+        $code = $base;
+        $n = 2;
+        while (Unit::query()->where('property_id', $propertyId)->where('code', $code)->exists()) {
+            $code = $base.'-'.$n;
+            $n++;
+        }
+
+        return $code;
     }
 }

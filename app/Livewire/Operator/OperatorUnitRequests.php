@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\Operator;
 
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\Property;
+use App\Models\RoomType;
 use App\Models\UnitRequest;
 use App\Services\OwnerUnitRequestService;
 use Illuminate\Contracts\View\View;
@@ -24,17 +26,38 @@ class OperatorUnitRequests extends Component
 
     public function render(): View
     {
-        $requests = UnitRequest::query()->with('owner', 'amenities', 'photos')->orderByDesc('created_at')->get();
+        $requests = UnitRequest::query()->with('owner', 'amenities', 'photos', 'createdUnit')->orderByDesc('created_at')->get();
+
+        // #104 GATE 1 — the approve form needs the tenant's real properties + each property's room types (the
+        // operational choices the owner can't make). Tenant-scoped; only offered to a manager (`units.manage`).
+        $canManage = (bool) auth()->user()?->can('units.manage');
+        $properties = [];
+        if ($canManage) {
+            foreach (Property::query()->with('roomTypes:id,property_id,name')->orderBy('name')->get() as $p) {
+                $properties[] = [
+                    'id' => (string) $p->getKey(),
+                    'name' => (string) $p->name,
+                    'room_types' => $p->roomTypes
+                        ->map(fn (RoomType $rt): array => ['id' => (string) $rt->getKey(), 'name' => (string) $rt->name])
+                        ->values()->all(),
+                ];
+            }
+        }
 
         return view('livewire.operator.unit-requests', [
             'viewer' => $this->viewer(),
+            'canManage' => $canManage,
+            'properties' => $properties,
             'pending' => $requests->where('status', 'pending')->count(),
             'requests' => $requests->map(fn (UnitRequest $r): array => [
+                'id' => (string) $r->id,
                 'owner' => (string) ($r->owner->name ?? '—'),
                 'name' => (string) $r->requested_name,
                 'kind' => OwnerUnitRequestService::KINDS[$r->requested_kind],
                 'details' => $this->detailSummary($r),
                 'status' => (string) $r->status,
+                'review_note' => (string) ($r->review_note ?? ''),
+                'created_unit' => $r->createdUnit !== null ? (string) $r->createdUnit->name : null,
                 'when' => $r->created_at?->format('j M Y'),
             ])->all(),
         ]);

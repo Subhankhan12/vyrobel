@@ -45,6 +45,8 @@ class UnitRequest extends Model
         'currency',
         'notes',
         'status',
+        'created_unit_id',
+        'review_note',
         'reviewed_by',
         'reviewed_at',
     ];
@@ -71,5 +73,16 @@ class UnitRequest extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(Owner::class);
+    }
+
+    /**
+     * The REAL unit an approval created from this request (#104 GATE 1) — null until fulfilled. Clean provenance:
+     * a fulfilled request points at what it became.
+     *
+     * @return BelongsTo<Unit, $this>
+     */
+    public function createdUnit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class, 'created_unit_id');
     }
 }

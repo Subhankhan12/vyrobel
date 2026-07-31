@@ -93,6 +93,9 @@ class Property extends Model
         return $this->hasMany(Building::class);
     }
 
+    /**
+     * @return HasMany<RoomType, $this>
+     */
     public function roomTypes(): HasMany
     {
         return $this->hasMany(RoomType::class);

@@ -56,6 +56,7 @@ class NotificationPreferences
         'payout_sent' => ['label' => 'Payout sent', 'description' => 'The day money leaves for your account', 'group' => 'Earnings', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
         'performance_digest' => ['label' => 'Performance digest', 'description' => 'Occupancy & earnings vs last month', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
         'terms_changed' => ['label' => 'Terms changed', 'description' => 'A change to commission or fees', 'group' => 'Account', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
+        'unit_request_reviewed' => ['label' => 'Unit request reviewed', 'description' => 'Your add-a-unit request is approved or declined', 'group' => 'Account', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
         'account_security' => ['label' => 'Account & security', 'description' => 'Sign-ins and bank changes — always on', 'group' => 'Account', 'audience' => 'owner', 'always_on' => true, 'default' => true, 'email_default' => true],
     ];
 
