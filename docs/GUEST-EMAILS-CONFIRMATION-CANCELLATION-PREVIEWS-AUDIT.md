@@ -62,3 +62,38 @@ The task's premise ("two NEW Mailables, 5→7") is **half true**: `BookingConfir
 ## Build plan (gated)
 - **⛔ GATE 1 — the two Mailables exact-match + #86 threading.** Rebuild `emails/booking-confirmation.blade.php` (brand band, dates+times, facts, **real folio breakdown + Total===total_minor**, honest paid-with, before-you-arrive pointer, buttons, host block, footer + **real calendar links**) + `emails/cancellation.blade.php` (brand band via new `BrandsGuestMail`, stay strip, single reason, **honest two-case refund**, source, warm invitation, footer). Thread both through #86: extend `EmailTemplateCatalog` 5→7 (defaults === current strings), add `template()` to each Mailable, add `EmailPreviewSample` arms, blades read `$heading/$intro/$button/@if($blocks[...])`, add the `enabled()` guard to the two triggers. `App\Support\Email\CalendarLinks` helper. Tests: confirmation breakdown reconciles (Σ items / Total === total_minor #17) + door-code-pointer-not-code + no `····` card; cancellation two cases (real refund vs honest no-refund) + branded + source honest; both thread through #86 (customization renders; switched-off doesn't send). `GuestEmailTest` stays green (defaults byte-faithful). Render-verify. Commit.
 - **⛔ GATE 2 — Email Previews harness + consolidate.** Rebuild `operator.email-previews` to the tabbed gallery (9 tabs) + inline `<iframe>` preview (reuse `show`) + the real **test-send** (own-email locked, `can:properties.manage`, `MailSafetyGuard`, honest flash). Keep the honest status captions. Consolidate docs (this file gaps→resolved · `DECISIONS.md` dated · `DIVERGENCE-REGISTER.md` Confirmation/Cancellation/Previews → exact-design · `PROJECT-STATE.md` + invariant bump). Full suite green + PHPStan L5 + Pint + `migrate:fresh --seed`. Render-verify (both emails render real + reconcile; the gallery renders all 9 + a real test-send). Commit + push.
+
+---
+
+## OUTCOME — gaps → resolved (2026-08-01, PHASE 2 delivered, gated; invariant #109)
+
+**GATE 1 (`2364256`) — the two Mailables exact-match + threaded through #86.** `BookingConfirmationMail` +
+`CancellationMail` (they existed but minimal) rebuilt to their wireframes, email-safe. **Confirmation:** the REAL
+folio-item price breakdown with **Total === `total_minor`** (#17-reconciling; degrades honestly to Total-only when
+the folio is empty — no fabricated nightly split), real dates + property check-in/out times, a real receipt link,
+and **add-to-calendar** (Google/Outlook/Apple `.ics`) via a new `App\Support\Email\CalendarLinks` from real dates;
+**HONEST (#28/#39):** no masked card → "your original payment method"; the door code is a **48h pointer only**
+(#33); the source is the real category, never an OTA brand (#85); "free cancellation until {date}" from the real
+`PropertyPolicy.cancellation.free_until_days`. **Cancellation:** now **branded** (added `BrandsGuestMail` — the
+real gap) + the **two honest cases** (a real recorded refund, or "No refund due" — the deposit/non-refundable/
+waived split is unmodelled and **refused**; a real refund fires its own `RefundConfirmationMail`); a warm come-back
+invite, **no fabricated WELCOME10 promo** (#39). **#86 threading:** both added to `EmailTemplateCatalog` (defaults
+byte-faithful so `GuestEmailTest` stays green), a `template()` → `EmailTemplateResolver` on each, `EmailPreviewSample`
+arms, blades read `$heading/$intro/$button/@if($blocks[...])`, and the `enabled()` guard added to both triggers so
+the on/off toggle is real. +5 `GuestEmailBookingCancellationTest`.
+
+**GATE 2 (`73bc366`) — the Email Previews harness.** `operator.email-previews` rebuilt to the tabbed gallery: a
+9-pill tab switcher over the automated emails, an inline **`<iframe>`** rendering the REAL Mailable per tab (via
+`app.email-previews.show` — **can't drift** from the send), the honest per-email status caption, and a **real
+Send-test** (`EmailPreviewController::testSend`, extracted the ONE shared Mailable builder) to the **operator's OWN
+inbox only** (the certified rule — the wireframe's free-typed recipient **refused**, the field read-only-locked;
+`MailSafetyGuard` downgrades outside production). Gated `can:properties.manage` (#30) + `@can`-gated control (never
+a 403-ing button). +3 `OperatorEmailPreviewsTest`.
+
+**Not in scope (already done):** the 4th sibling wireframe `Refund Confirmation Email.html` is already `RefundConfirmationMail`, threaded through #86 (catalog `refund-confirmation`).
+
+Verification: full suite green (the #83 five + #86 editor undisturbed); PHPStan L5 (0); Pint clean;
+`migrate:fresh --seed` clean. Both emails **browser-rendered** via the previews route; the gallery + tab-switch +
+gated test-send **browser-verified**. Presentation boundary documented: the wireframes' frosted-glass/gradient
+hero is not email-safe — the emails evoke the brand with table-based, inline-CSS, solid warm colours (the shipped
+`emails.layout` discipline), which is the honest email-client-safe rendition.

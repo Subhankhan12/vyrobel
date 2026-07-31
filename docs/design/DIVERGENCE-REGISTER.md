@@ -1,5 +1,17 @@
 # Vyrobel — Design-Fidelity Divergence Register
 
+> **2026-08-01 — GUEST EMAILS: Booking Confirmation + Cancellation + Email Previews exact-match (task #109;
+> `docs/GUEST-EMAILS-CONFIRMATION-CANCELLATION-PREVIEWS-AUDIT.md`)** — the two guest Mailables (existed but minimal)
+> rebuilt exact-match, email-safe, + threaded through the #86 editor (catalog 5→7, defaults byte-faithful so the
+> #83 five + `GuestEmailTest` stay green); the Email Previews page rebuilt to the tabbed gallery + a real own-inbox
+> test-send. **Confirmation** = real folio breakdown (Total === total_minor, #17) + calendar links + 48h door
+> POINTER (#33) + honest "your original payment method" (no masked card, SAQ A/#28). **Cancellation** = branded +
+> TWO honest cases (real refund vs "No refund due"). **KIND-2 REFUSED (#39):** masked card `····4242`, the itemized
+> deposit/non-refundable/waived split + "Reviewed" timeline step, the WELCOME10 10%-off promo, a specific OTA brand,
+> the ~10-min-reply SLA, "sea-view studio". **Email-safe presentation boundary:** the wireframes' frosted-glass/
+> gradient hero is not email-client-safe — the emails evoke the brand with table-based inline-CSS solid warm colours
+> (the shipped `emails.layout` discipline). Nothing faked. 
+
 > **2026-07-31 — OPERATOR SECURITY + SETTINGS + TEAM SCHEDULE exact-match (task #104b, invariants #105–107;
 > `docs/OPERATOR-SECURITY-SETTINGS-SCHEDULE-AUDIT.md`)** closed the last operator-System divergences by BUILDING:
 > **Security** — an IP allowlist that genuinely enforces (new `EnforceIpAllowlist` middleware, mutation-proven),

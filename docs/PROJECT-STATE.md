@@ -6,7 +6,26 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ## Status (verified against the repo)
 
-> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-07-31 (v39) · OPERATOR WORK ORDER detail exact-match COMPLETE (task #108,
+> ⭐⭐⭐⭐⭐ **CURRENT STATE — 2026-08-01 (v40) · GUEST EMAILS: Booking Confirmation + Cancellation + Email
+> Previews exact-match COMPLETE (task #109, invariant #109) — the two guest Mailables (they existed but minimal)
+> rebuilt exact-match to `Booking Confirmation Email.html` + `Cancellation Email.html`, email-safe, and threaded
+> through the #86 template editor (catalog 5→7, defaults byte-faithful so the #83 five + `GuestEmailTest` stay
+> green); the Email Previews page (`Email Previews.html`) rebuilt to the tabbed gallery + a real own-inbox
+> test-send. **GATE 1:** Confirmation — the REAL folio-item price breakdown with **Total === total_minor** (#17;
+> honest degrade, no fabricated nightly split), real dates/times, add-to-calendar (Google/Outlook/Apple .ics via
+> a new `CalendarLinks`), a 48h door-code **POINTER** (#33), honest **"your original payment method"** (no masked
+> card, SAQ A/#28), real source (#85), "free cancellation until {date}" from the real policy. Cancellation — now
+> **branded** (`BrandsGuestMail`) + **two honest cases** (a real recorded refund vs "No refund due" — the deposit/
+> non-refundable/waived split + WELCOME10 promo **refused**, #39). Both threaded through #86 (template()+catalog+
+> preview-sample+enabled()-guard). **GATE 2:** the Previews gallery — a 9-pill tab switcher, an inline `<iframe>`
+> rendering the REAL Mailable per tab (can't drift), honest status captions, and a real **Send-test** to the
+> operator's **OWN inbox only** (the certified rule — the wireframe's free-typed recipient refused), gated
+> `properties.manage` + `@can`-gated control. Nothing faked. Fresh-session entry point: this block →
+> `docs/GUEST-EMAILS-CONFIRMATION-CANCELLATION-PREVIEWS-AUDIT.md` → `docs/DECISIONS.md`. **Invariants #1–109.**
+>
+> ---
+>
+> **PRIOR (v39) — 2026-07-31 · OPERATOR WORK ORDER detail exact-match COMPLETE (task #108,
 > invariant #108) — the Work Order detail (`/app/maintenance/{ticket}`) matched to `Operator Work Order.html`
 > EXACTLY on the REAL `MaintenanceTicket` — the DETAIL of the SAME model the Maintenance board lists (anti-drift;
 > the board undisturbed). The page already existed (#89) on the operator design system; this is an exact-match
