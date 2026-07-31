@@ -80,6 +80,18 @@
                         <div class="vy-thread-actions">
                             @unless ($readOnly)
                                 <button type="button" class="vy-btn vy-btn--ghost" @click="assignOpen = true">Assign</button>
+                                {{-- #104 GATE 3a — snooze / reopen: the routes + InboxService methods existed but had no
+                                     UI, leaving a CLOSED thread a dead-end. Both are POST → controller → PRG. --}}
+                                @if ($active['can_snooze'])
+                                    <form method="POST" action="{{ route('app.inbox.snooze', $active['id']) }}" style="display:inline">@csrf
+                                        <button type="submit" class="vy-btn vy-btn--ghost">Snooze</button>
+                                    </form>
+                                @endif
+                                @if ($active['can_reopen'])
+                                    <form method="POST" action="{{ route('app.inbox.reopen', $active['id']) }}" style="display:inline">@csrf
+                                        <button type="submit" class="vy-btn vy-btn--accent">Reopen</button>
+                                    </form>
+                                @endif
                             @endunless
                             @if ($active['reservation'])
                                 <a class="vy-btn vy-btn--ghost" href="{{ route('app.reservations.show', $active['reservation']['id']) }}">{{ $active['reservation']['reference'] }}</a>
@@ -113,6 +125,9 @@
                     <footer class="vy-thread-composer">
                         @if ($readOnly)
                             <div class="vy-composer-note">Workspace paused — replies are read-only.</div>
+                        @elseif ($active['status'] === 'closed')
+                            {{-- #104 GATE 3a — a closed thread is no longer a dead-end: an honest closed note + Reopen (header). --}}
+                            <div class="vy-composer-note">This conversation is closed — reopen it to reply.</div>
                         @elseif (! $active['can_reply'])
                             <div class="vy-composer-note">{{ $active['channel_label'] }} isn’t connected yet — you can’t send on this channel.</div>
                         @else
