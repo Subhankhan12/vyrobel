@@ -77,3 +77,28 @@ The tokens match, but the operator **shell composition** (`components/operator/s
 - **F3 → DEFER Front Desk + Reports** as separate structural tasks (the timeline visualization + the Reports sections are structural, some honestly cross-realm). Documented here as known divergences.
 - **F4 → intentional divergences STAY** (Refund #27 picker · Rates no-smart-pricing · Channels no-fake-sync · Roles fixed-catalogue · New Reservation no-card · Email fixed-set) — never re-introduced as fabrication (#39).
 - **VISUAL/CSS ONLY** — no backend/logic/data/route/behaviour change; the green suite is the proof; browser-verified side-by-side.
+
+---
+
+## ✅ BUILT (2026-07-31)
+
+### GATE 1 — the shared operator shell chrome (`e6a2698`, presentation-only)
+All 8 chrome deltas reconciled to the values the decoded `Operator_Dashboard.html` uses (which are the values the owner shell already ships), in `layouts/operator.blade.php` + `components/operator/shell.blade.php`:
+
+1. Active nav item → terracotta `#C2410C` on `rgba(255,255,255,.72)` frosted glass (`blur(10px)` + `0 4px 14px` shadow), weight 500.
+2. Page background → the wireframe's peach→grey diagonal (`--vy-bg`, added to `:root`).
+3. Sidebar → floats on the gradient (no bg/border), 230px, padding `26px 16px 30px`, fade-up entrance.
+4. Brand → dropped the "OPERATOR" sublabel; name 17px, mark radius 10px.
+5. **Property switcher → relocated from the topbar into the sidebar** (below the brand) as a full-width frosted block — the SAME Livewire-free POST switcher, just moved (F2).
+6. Nav-label → `10.5px/500/.08em/#9C9089`.
+7. Nav-item → padding `9px 12px`, radius 12px, icon 16px, muted `#8A8079`.
+8. Ambient background → the single drifting blob replaced with the owner-style radial streaks + orbs (behind the frosted glass; the `.vy-amb` markup added to the body; stilled by the existing reduced-motion floor).
+
+Browser-verified side-by-side (Dashboard + Owners) vs the decoded wireframe. 398 operator/shell/dashboard/property tests green — every shell-rendering path (proof of no behavioural change).
+
+### GATE 2 — targeted Dashboard content fidelity (presentation-only)
+- **Greeting header** — the topbar title on the Dashboard is now the wireframe's personalized time-of-day salutation + the authenticated staff member's real first name ("Good morning, {name}"), computed in the blade (no data/route/behaviour change). The nav still carries "Dashboard", so the existing `assertSee('Dashboard')` assertions hold.
+- **Inline search** — the wireframe's dashboard-header search entry, a real `.vy-pill` link to the built Search page, gated exactly like the nav item (`reservations.view`). Dashboard-only (absent from the Owners/Rates wireframes).
+- **KPI stat tiles** (`.vy-dash-kpi`) — radius 12px→20px, `shadow-sm`→the full warm shadow, added a `translateY(-2px)` hover, and the label to the wireframe's `11px/500/.08em/#9C9089` — so they read as full glass stat cards.
+
+Intentional honest divergences (F4/#39) untouched. Front Desk + Reports remain DEFERRED (F3) as separate structural tasks.

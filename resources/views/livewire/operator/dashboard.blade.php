@@ -3,8 +3,15 @@
      Every figure is a certified read: occupancy/ADR from the Availability spine + PerformanceMetrics, counts
      from FrontDeskService/HousekeepingTask/MaintenanceTicket, revenue from the payments ledger. Channels are
      HONEST (real status — "Not connected" when nothing is genuinely synced, never a fake "Synced"). --}}
+@php
+    // #104 GATE 2 — the wireframe's personalized greeting header. Presentation-only: a time-of-day salutation
+    // + the authenticated staff member's real first name (no data/route/behaviour change).
+    $vyHour = (int) now()->format('G');
+    $vyGreet = $vyHour < 12 ? 'Good morning' : ($vyHour < 18 ? 'Good afternoon' : 'Good evening');
+    $vyFirst = trim((string) \Illuminate\Support\Str::before((string) ($viewer['name'] ?? ''), ' ')) ?: 'there';
+@endphp
 <div>
-    <x-operator.shell active="dashboard" title="Dashboard"
+    <x-operator.shell active="dashboard" :title="$vyGreet . ', ' . $vyFirst"
         :subtitle="($property['name'] ?? 'No property yet') . ' · ' . $day['label']" :viewer="$viewer">
 
         {{-- REAL day navigation (GET links) --}}
@@ -24,6 +31,16 @@
                     <a class="vy-pill" href="?date={{ $day['today'] }}">Today</a>
                 @endunless
             </div>
+            {{-- #104 GATE 2 — the wireframe's inline search entry (dashboard header only). A real link to the
+                 built Search page, gated exactly like the nav item (reservations.view). --}}
+            @can('reservations.view')
+                <div class="vy-right">
+                    <a class="vy-pill" href="{{ route('app.search') }}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"/></svg>
+                        Search reservations, guests…
+                    </a>
+                </div>
+            @endcan
         </div>
 
         @if ($property === null)

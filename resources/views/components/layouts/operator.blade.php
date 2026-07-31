@@ -708,16 +708,20 @@
         .vy-dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
         .vy-dash-kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .vy-dash-kpis--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+        /* #104 GATE 2 — the KPI stat tiles read as full glass cards (radius 20px + the full warm shadow +
+           a translateY(-2px) hover), matching the decoded wireframe's stat cards. */
         .vy-dash-kpi {
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
             -webkit-backdrop-filter: blur(22px) saturate(1.15);
-            border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md);
-            box-shadow: var(--vy-shadow-sm); padding: 16px 18px;
+            border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg);
+            box-shadow: var(--vy-shadow); padding: 16px 18px;
+            transition: transform .18s ease, box-shadow .18s ease;
         }
+        .vy-dash-kpi:hover { transform: translateY(-2px); }
         .vy-dash-kpi.is-feature { background: var(--vy-grad-dark); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: var(--vy-shadow-dark); color: rgba(255, 255, 255, 0.92); }
         .vy-dash-kpi.is-feature .vy-dk-label { color: rgba(255, 255, 255, 0.55); }
         .vy-dash-kpi.is-feature .vy-dk-sub { color: rgba(255, 255, 255, 0.6); }
-        .vy-dk-label { font-size: 9.5px; font-weight: 600; letter-spacing: .11em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-dk-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; }
         .vy-dk-val { font-family: var(--vy-display); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-top: 8px; }
         .vy-dk-val .vy-dk-unit { font-size: 16px; font-weight: 600; color: var(--vy-muted); margin-left: 2px; }
         .vy-dash-kpi.is-feature .vy-dk-val .vy-dk-unit { color: rgba(255,255,255,.6); }
