@@ -142,6 +142,11 @@ class SendGuestTransactionalEmails
      * the folio (BookingEngineService / ReservationCreateController). Rendering inline would read `total_minor=0`
      * with no folio items (a "€0.00" email). The delayed job re-loads the reservation (SerializesModels) once
      * the request has committed the folio, so the Total + breakdown reconcile (#17). The delay ≫ request time.
+     *
+     * ⚠️ Requires a real queue driver that honours the delay — `redis` (prod · Horizon) or `database` (fallback),
+     * both configured here. The `sync` driver runs delayed jobs inline (ignoring the delay), so a `sync` config
+     * would still render before the folio; that is a dev/test-only connection, never prod (see config/queue.php +
+     * `.env`). Tests use `Mail::fake` (assertQueued), which captures the deferral regardless of driver.
      */
     private function sendToGuest(?Guest $guest, Mailable $mail, ?int $delaySeconds = null): void
     {
