@@ -32,7 +32,7 @@ class GuestDeletionService
 
     public function __construct(
         private readonly AuditEventRecorder $audit,
-        private readonly AssignmentService $assignment,
+        private readonly ReservationCancellationService $cancellations,
         private readonly TenantContext $tenant,
     ) {}
 
@@ -97,9 +97,10 @@ class GuestDeletionService
 
         foreach ($live as $reservation) {
             try {
-                $this->assignment->cancelReservation($reservation, 'Guest account deletion');
+                // Cancel per policy (+ a full in-window refund, bounded #27) — never block the erase on one.
+                $this->cancellations->cancelWithPolicyRefund($reservation, 'Guest account deletion');
             } catch (Throwable) {
-                // Already terminal / a race — never block the erase on one reservation.
+                // Already terminal / a race — skip.
             }
         }
 

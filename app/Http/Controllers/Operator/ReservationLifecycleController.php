@@ -9,6 +9,8 @@ use App\Http\Controllers\ReservationFolioActionController;
 use App\Livewire\ReservationDetail;
 use App\Models\Reservation;
 use App\Services\AssignmentService;
+use App\Services\ReservationCancellationService;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Reservations\ReservationStage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -84,7 +86,7 @@ class ReservationLifecycleController extends Controller
     public const NO_SHOWABLE = ['confirmed'];
 
     /** Cancel a reservation through the single write path, with the operator's optional free-text reason. */
-    public function cancel(Request $request, AssignmentService $assignments, string $reservation): RedirectResponse
+    public function cancel(Request $request, ReservationCancellationService $cancellations, string $reservation): RedirectResponse
     {
         $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
 
@@ -105,14 +107,20 @@ class ReservationLifecycleController extends Controller
         }
 
         try {
-            $assignments->cancelReservation($model, $reason !== '' ? $reason : null);
+            // Cancel + auto-refund IN-WINDOW (founder decision): a cancellation within the property's free-cancel
+            // window fully refunds everything paid (bounded #27, test-mode); after it, no auto-refund (manual).
+            $result = $cancellations->cancelWithPolicyRefund($model, $reason !== '' ? $reason : null);
         } catch (RuntimeException) {
             // An expected rejection (e.g. no published availability row for a night) — the whole
             // terminate() transaction rolled back, so nothing changed. Clean flash, never a 500.
             return $this->back($model->id, 'That reservation couldn’t be cancelled — the booking service rejected it. Nothing was changed.');
         }
 
-        return $this->back($model->id, 'Reservation cancelled. The held nights are back on the calendar.');
+        $message = $result['refunded_minor'] > 0
+            ? 'Reservation cancelled + '.MoneyFormatter::display($result['refunded_minor'], (string) $model->currency).' refunded (within the free-cancellation window). The held nights are back on the calendar.'
+            : 'Reservation cancelled. The held nights are back on the calendar.';
+
+        return $this->back($model->id, $message);
     }
 
     /**

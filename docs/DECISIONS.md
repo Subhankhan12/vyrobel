@@ -5265,3 +5265,17 @@ The five guest-facing wireframes rebuilt exact-match to the peach-glass design o
 - **#114** — the guest saved-cards surface is an honest empty state: no saved-card vault, no raw PAN on the server (SAQ A / #28), never a fabricated stored card (D3).
 
 Honesty held (REFUSED, never faked): cross-property "Where"/map (no geo), the structured house-guide/checkout-steps/local-picks/named-host+SLA+phone, the invented extras catalogue, "····4242"/raw PAN, the SMS send, the waitlist "#N in line". Suite green (the only failures = the pre-existing order-flaky `BookingImportTest`, green in isolation); PHPStan L5 (0); Pint clean; `migrate` clean; all five pages browser-verified.
+
+---
+
+## 2026-08-01 — REFUND-ON-CANCEL (policy-driven, in-window only) — invariant #115
+
+Follow-up to the Guest Portal (the flagged gap: cancelling a booking released inventory but never issued a refund). Founder decision: **full auto-refund in-window only**.
+
+- **`App\Support\Reservations\CancellationPolicy`** — the ONE reading of the policy's free-cancel window (`freeUntil` = check-in − `free_until_days`, `isRefundable(on)`); `BookingConfirmationMail`'s inline derivation refactored onto it (anti-drift). ⚠️ The policy encodes ONLY a deadline, not a post-deadline refund %, so nothing is invented (#39).
+- **`App\Services\ReservationCancellationService::cancelWithPolicyRefund`** — cancels via the certified `AssignmentService` (throws-if-terminal preserved), then, WHEN the cancellation is within the free window, refunds everything paid through the certified bounded `FolioService::refundPayment` (#27 same-currency, TEST-MODE gateway, reconciling #17). After the window: **no auto-refund** (a manual operator decision).
+- **Wired** the operator cancel (`ReservationLifecycleController` — flashes the refunded amount) + the guest account-delete sweep (`GuestDeletionService`) through it. OTA/no-show/system cancels are untouched (no auto-refund).
+
+**Invariant #115** — a cancellation within the property's free-cancel window auto-issues a FULL, bounded (#27), test-mode refund of everything paid via the certified `FolioService::refundPayment` (reconciling #17); after the window there is NO auto-refund — the policy encodes no partial amount, so it stays a manual operator decision (never a fabricated %, #39). The refund-on-cancel is one path (`ReservationCancellationService`), reused by the operator cancel + the guest account-delete.
+
++`RefundOnCancelTest` (6): policy window · in-window full refund reconciles · after-window none · bounded to paid (#27) · operator route auto-refunds + flashes · the guest-delete sweep refunds in-window. Browser-verified (operator cancelled `R-NLEGCIJG` in-window → €246.00 refund posted + flashed). PHPStan L5 (0); Pint clean; the operator-cancel + terminate-guard suites green (nothing disturbed).

@@ -6,13 +6,13 @@ namespace App\Mail;
 
 use App\Mail\Concerns\BrandsGuestMail;
 use App\Models\Folio;
-use App\Models\PropertyPolicy;
 use App\Models\Reservation;
 use App\Support\Email\CalendarLinks;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Reservations\CancellationPolicy;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -76,7 +76,7 @@ class BookingConfirmationMail extends Mailable
                 'checkinUrl' => route('guest.checkin', $r->getKey()),
                 'messagesUrl' => route('guest.messages'),
                 'sourceLine' => $this->sourceLine($r),
-                'freeCancelUntil' => $this->freeCancelUntil($r, $checkIn),
+                'freeCancelUntil' => CancellationPolicy::freeUntilLabel($r),
                 'calendar' => CalendarLinks::for($r),
                 'brand' => $this->brandFor($r->property),
                 // #86 customizable template + toggleable blocks.
@@ -152,18 +152,6 @@ class BookingConfirmationMail extends Mailable
             'ota' => 'Booked via a travel partner',
             default => 'Booked with '.$name,
         };
-    }
-
-    /** "10 Sep" — the free-cancellation date from the property's real policy (check-in − free_until_days), or null. */
-    private function freeCancelUntil(Reservation $r, Carbon $checkIn): ?string
-    {
-        $policy = PropertyPolicy::query()->where('property_id', $r->property_id)->first();
-        $days = is_array($policy?->cancellation) ? ($policy->cancellation['free_until_days'] ?? null) : null;
-        if (! is_int($days) && ! (is_string($days) && is_numeric($days))) {
-            return null;
-        }
-
-        return $checkIn->copy()->subDays((int) $days)->format('j M');
     }
 
     private function template(): ResolvedEmailTemplate
