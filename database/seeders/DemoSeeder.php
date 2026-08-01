@@ -219,6 +219,9 @@ class DemoSeeder extends Seeder
             // Public booking-engine identifier: the `/book/{slug}` storefront resolves the property by
             // this slug. Without it the public booking loop is unreachable for the demo data.
             'slug' => 'seaside-demo',
+            // DEMO ONLY — a real town so the multi-property storefront landing (/stay/{org}) groups by
+            // town. Clearly demo data; the town aggregation itself is real (grouped from address.city).
+            'address' => ['city' => 'Faro', 'region' => 'Algarve', 'country' => 'Portugal'],
             'currency' => 'EUR', 'timezone' => 'Europe/Lisbon',
             'check_in_time' => '15:00:00', 'check_out_time' => '11:00:00', 'status' => 'active',
         ]);
@@ -270,6 +273,13 @@ class DemoSeeder extends Seeder
 
         $property->amenities()->attach([$wifi->id, $pool->id]);
         $roomUnits->each(fn (Unit $u) => $u->amenities()->attach($wifi->id));
+
+        // Room-type amenities (demo) — power BOTH the storefront amenity filter (booking.browse reads
+        // room-type amenities) and the multi-property landing's "Browse by what matters" chips, so the
+        // two surfaces agree. Reference vocabulary already seeded above; a realistic set per type.
+        $amenityId = fn (string $name): ?string => Amenity::where('name', $name)->value('id');
+        $doubleRoom->amenities()->attach(array_filter([$wifi->id, $amenityId('Air conditioning'), $amenityId('TV'), $amenityId('Balcony')]));
+        $apartment->amenities()->attach(array_filter([$wifi->id, $amenityId('Kitchen'), $pool->id, $amenityId('Free parking'), $amenityId('Washer')]));
 
         // Arrival info (Phase 4b · SG4) — DEMO door codes + wifi so the guest Arrival Info screen shows a real,
         // released pack. door_code/wifi_password are encrypted at rest; they surface only for the owning guest,
@@ -546,6 +556,8 @@ class DemoSeeder extends Seeder
         $property = Property::create([
             'name' => 'Demo Vista Apartments', 'brand' => 'Vyrobel Demo', 'type' => 'aparthotel',
             'slug' => 'vista-demo', 'currency' => 'EUR', 'timezone' => 'Europe/Lisbon',
+            // DEMO ONLY — a distinct town so the landing shows two "where to stay" cards (Faro + Lagos).
+            'address' => ['city' => 'Lagos', 'region' => 'Algarve', 'country' => 'Portugal'],
             'check_in_time' => '15:00:00', 'check_out_time' => '11:00:00', 'status' => 'active',
         ]);
         PropertyPolicy::create([
@@ -561,6 +573,12 @@ class DemoSeeder extends Seeder
         collect(['V1', 'V2', 'V3'])->each(fn (string $code) => Unit::create([
             'property_id' => $property->id, 'room_type_id' => $studio->id,
             'code' => $code, 'unit_kind' => 'apartment', 'max_occupancy' => 3,
+        ]));
+
+        // Room-type amenities for the second property's studio (demo) — same rationale as property 1.
+        $studioAmenity = fn (string $name): ?string => Amenity::where('name', $name)->value('id');
+        $studio->amenities()->attach(array_filter([
+            $studioAmenity('WiFi'), $studioAmenity('Kitchen'), $studioAmenity('Air conditioning'), $studioAmenity('Free parking'),
         ]));
 
         $studioRate = RatePlan::create(['property_id' => $property->id, 'room_type_id' => $studio->id, 'name' => 'Flexible', 'code' => 'FLEX-STU', 'currency' => 'EUR']);

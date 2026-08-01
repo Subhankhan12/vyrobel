@@ -28,6 +28,21 @@ final class ReviewList
     }
 
     /**
+     * The org-wide "recent guests" strip for the storefront landing (#76) — the org's latest published/public
+     * reviews across every room type, first-name-only byline (#28), capped. No reviews → [], so the landing
+     * shows an honest "No reviews yet", never a fabricated quote (#39).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function forOrganization(string $organizationId, int $limit = 3): array
+    {
+        return self::map(ReviewRating::publicScope()
+            ->whereHas('roomType', fn ($q) => $q->where('organization_id', $organizationId))
+            ->with(['guest', 'roomType', 'unit:id,name,code', 'reservation:id,source'])
+            ->latest('published_at')->limit(max(1, $limit))->get());
+    }
+
+    /**
      * @param  list<string>  $unitIds
      * @return list<array<string, mixed>>
      */

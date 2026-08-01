@@ -52,6 +52,18 @@ final class ReviewRating
     }
 
     /**
+     * The org-wide public rating for the multi-property storefront landing (#76) — the REAL average +
+     * REAL count across every published/public review of the org's room types. No reviews → has_reviews
+     * false, so the landing hides the badge rather than fabricate a "4.8 · 369 stays" (#39).
+     *
+     * @return array{count: int, average: float|null, has_reviews: bool}
+     */
+    public static function forOrganization(string $organizationId): array
+    {
+        return self::summarize(self::publicScope()->whereHas('roomType', fn (Builder $q) => $q->where('organization_id', $organizationId)));
+    }
+
+    /**
      * #104 GATE 2 — the operator Reviews SUMMARY dashboard (the wireframe's overall-rating + 5-star distribution
      * + reply-rate strip). Org-scoped (the tenant scope on {@see Review}). Rating + distribution are over the
      * PUBLISHED/public reviews (the reputation the guest sees); reply-rate + pending count over what the operator

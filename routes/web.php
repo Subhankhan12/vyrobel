@@ -28,10 +28,10 @@ use App\Http\Controllers\Guest\GuestArrivalController;
 use App\Http\Controllers\Guest\GuestCheckinController;
 use App\Http\Controllers\Guest\GuestClaimController;
 use App\Http\Controllers\Guest\GuestDocumentController;
+use App\Http\Controllers\Guest\GuestExtrasController;
 use App\Http\Controllers\Guest\GuestFolioPaymentController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
-use App\Http\Controllers\Guest\GuestExtrasController;
 use App\Http\Controllers\Guest\GuestManageController;
 use App\Http\Controllers\Guest\GuestMessagesController;
 use App\Http\Controllers\Guest\GuestPasswordResetController;
@@ -111,6 +111,7 @@ use App\Http\Controllers\Owner\OwnerUnitRequestController;
 use App\Http\Controllers\Owner\OwnerUnitsExportController;
 use App\Http\Controllers\Owner\OwnerUnitStatusController;
 use App\Http\Controllers\ReservationFolioActionController;
+use App\Http\Controllers\StorefrontLandingController;
 use App\Http\Controllers\StripeConnectWebhookController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnforceIpAllowlist;
@@ -123,6 +124,7 @@ use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\NoIndex;
 use App\Http\Middleware\RequirePlatformAdminTwoFactorPending;
 use App\Http\Middleware\RequireTwoFactorPending;
+use App\Http\Middleware\ResolvePublicOrganization;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetCurrentPropertyForWebRequest;
 use App\Http\Middleware\SetOwnerScopeForPortal;
@@ -423,6 +425,20 @@ Route::prefix('book/{property}')
         Route::post('/quote', [BookingEngineController::class, 'quote'])->name('quote');
         Route::post('/book', [BookingEngineController::class, 'book'])->name('book');
         Route::get('/confirmation/{quote}', [BookingEngineController::class, 'confirmation'])->name('confirmation');
+    });
+
+/*
+ * Public, unauthenticated multi-property storefront LANDING (Guest Browse · founder decision D1). Org
+ * context is set by ResolvePublicOrganization (real tenant context, never a guard bypass) from the
+ * {organization} slug; every aggregate re-loads tenant-scoped. Rate-limited (throttle:booking). The
+ * search action is a GET redirect into the per-property booking.browse (no state written here).
+ */
+Route::prefix('stay/{organization}')
+    ->middleware([ResolvePublicOrganization::class, 'throttle:booking'])
+    ->name('storefront.')
+    ->group(function () {
+        Route::get('/', [StorefrontLandingController::class, 'show'])->name('landing');
+        Route::get('/search', [StorefrontLandingController::class, 'search'])->name('search');
     });
 
 /*

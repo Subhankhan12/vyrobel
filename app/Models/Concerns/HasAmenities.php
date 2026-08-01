@@ -13,6 +13,9 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
  */
 trait HasAmenities
 {
+    /**
+     * @return MorphToMany<Amenity, $this>
+     */
     public function amenities(): MorphToMany
     {
         return $this->morphToMany(Amenity::class, 'amenitiable');
