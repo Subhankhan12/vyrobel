@@ -31,16 +31,8 @@
                     <a class="vy-pill" href="?date={{ $day['today'] }}">Today</a>
                 @endunless
             </div>
-            {{-- #104 GATE 2 — the wireframe's inline search entry (dashboard header only). A real link to the
-                 built Search page, gated exactly like the nav item (reservations.view). --}}
-            @can('reservations.view')
-                <div class="vy-right">
-                    <a class="vy-pill" href="{{ route('app.search') }}">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"/></svg>
-                        Search reservations, guests…
-                    </a>
-                </div>
-            @endcan
+            {{-- GATE 0 — the inline search entry moved to the bespoke-chrome topbar (shared shell); the
+                 redundant in-content search pill was removed here to avoid a duplicate. --}}
         </div>
 
         @if ($property === null)

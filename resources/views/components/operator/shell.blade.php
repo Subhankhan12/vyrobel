@@ -18,7 +18,20 @@
     'title' => '',
     'subtitle' => '',
     'viewer' => ['name' => 'Operator', 'initials' => 'O'],
+    'toolbar' => null,   // GATE 0 — optional per-page topbar controls (date-nav / filters / New-reservation),
+                         // rendered INTO the bespoke chrome so each page keeps ONE shell (machinery preserved).
 ])
+@php
+    // GATE 0 (bespoke-chrome, parameterized shell) — the account-dropdown identity, derived from the real
+    // authed staff user (self only): role label + login email for the popover. No page needs to pass these.
+    $__acctUser = auth()->user();
+    $__acctRole = $__acctUser?->getRoleNames()->first() ?? 'Staff';
+    $__acctEmail = (string) ($__acctUser?->email ?? '');
+    $__searchHref = $__acctUser?->can('reservations.view') ? route('app.search') : null;
+    $__todayLabel = \Carbon\CarbonImmutable::now()->format('D · j M');
+    // #84 read-only workspace — resolved once, used by BOTH the topbar read-only pill and the banner below.
+    $__workspace = app(\App\Support\Operator\OperatorWorkspace::class);
+@endphp
 @php
     // Phase 7b feature-gating: whether the org's plan grants Channels (Pro-only). Shown as a "Pro" tag on the
     // Channels nav item for an Essential org (vs the account-gated "Soon" everyone else sees).
@@ -130,32 +143,82 @@
     </aside>
 
     <div class="vy-main">
+        {{-- GATE 0 bespoke-chrome topbar (parameterized shared shell → prototype-exact): H1 (+ read-only pill)
+             on the left; Search pill · Today chip · Notif bell · ACCOUNT-DROPDOWN popover on the right. The
+             machinery is untouched (property switcher #38 is in the sidebar; read-only #84 renders below;
+             nav-gating #104 above). The account menu links only to REAL routes; Alpine ships with Livewire. --}}
         <div class="vy-topbar">
-            <div>
-                <h1>{{ $title }}</h1>
-                @if ($subtitle !== '')
-                    <div class="vy-topbar-sub">{{ $subtitle }}</div>
+            <div class="vy-topbar-lead">
+                <div>
+                    <h1>{{ $title }}</h1>
+                    @if ($subtitle !== '')
+                        <div class="vy-topbar-sub">{{ $subtitle }}</div>
+                    @endif
+                </div>
+                @if ($__workspace->isReadOnly())
+                    <span class="vy-ro-pill">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                        Read-only
+                    </span>
                 @endif
             </div>
             <div class="vy-topbar-actions">
-                <x-notifications.bell :open-all-url="route('app.notifications')" />
-                <span class="vy-chip">
-                    <span class="vy-avatar">{{ $viewer['initials'] }}</span>
-                    <span class="vy-chip-name">{{ $viewer['name'] }}</span>
+                @if ($__searchHref)
+                    <a class="vy-search-pill" href="{{ $__searchHref }}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        Search reservations, guests…
+                    </a>
+                @endif
+                <span class="vy-date-chip">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/></svg>
+                    Today · {{ $__todayLabel }}
                 </span>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="vy-icobtn" title="Sign out" aria-label="Sign out">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                <x-notifications.bell :open-all-url="route('app.notifications')" />
+                <div class="vy-acct" x-data="{ open: false }" @keydown.escape.window="open = false">
+                    <button type="button" class="vy-acct-btn" @click="open = ! open" :aria-expanded="open ? 'true' : 'false'" aria-haspopup="menu">
+                        <span class="vy-acct-id">
+                            <span class="vy-acct-name">{{ $viewer['name'] }}</span>
+                            <span class="vy-acct-role">{{ $__acctRole }}</span>
+                        </span>
+                        <span class="vy-avatar">{{ $viewer['initials'] }}</span>
+                        <svg class="vy-acct-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" :style="open ? 'transform:rotate(180deg)' : ''"><path d="M6 9l6 6 6-6"/></svg>
                     </button>
-                </form>
+                    <div class="vy-acct-menu" x-show="open" x-transition.origin.top.right @click.outside="open = false" role="menu" x-cloak>
+                        <div class="vy-acct-head">
+                            <span class="vy-avatar vy-avatar--lg">{{ $viewer['initials'] }}</span>
+                            <span class="vy-acct-hid">
+                                <span class="vy-acct-name">{{ $viewer['name'] }}</span>
+                                @if ($__acctEmail !== '')<span class="vy-acct-email">{{ $__acctEmail }}</span>@endif
+                            </span>
+                        </div>
+                        <a class="vy-acct-link" href="{{ route('app.profile') }}" role="menuitem">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-muted)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.9-3.6 3.8-5.5 7-5.5s6.1 1.9 7 5.5"/></svg>
+                            Your profile
+                        </a>
+                        <a class="vy-acct-link" href="{{ route('app.notification-preferences') }}" role="menuitem">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-muted)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9z"/><path d="M13.5 21a1.8 1.8 0 0 1-3 0"/></svg>
+                            Notification preferences
+                        </a>
+                        <a class="vy-acct-link" href="{{ route('app.security') }}" role="menuitem">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-muted)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                            Security
+                        </a>
+                        <div class="vy-acct-div"></div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="vy-acct-link vy-acct-link--danger" role="menuitem">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                                Sign out
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 
         {{-- Cross-cutting READ-ONLY banner — the wireframe's "Workspace paused" state. Renders on EVERY
              operator page (it lives in the shared shell) ONLY when the tenant org has a real future pause
-             window; unset → nothing shows (honest). Writes consume the SAME gate. --}}
-        @php $__workspace = app(\App\Support\Operator\OperatorWorkspace::class); @endphp
+             window; unset → nothing shows (honest). Writes consume the SAME gate. ($__workspace resolved above.) --}}
         @if ($__workspace->isReadOnly())
             <div class="vy-readonly-banner" role="status">
                 <div class="vy-ro-body">
@@ -169,6 +232,12 @@
                     <a class="vy-ro-cta" href="{{ route('app.billing') }}">Resume now <span class="vy-ro-arrow">›</span></a>
                 @endif
             </div>
+        @endif
+
+        {{-- GATE 0 — optional per-page toolbar row (date-nav / filters / primary action), rendered into the
+             bespoke chrome so a page's controls live under the topbar without forking the shell. --}}
+        @if ($toolbar)
+            <div class="vy-toolbar">{{ $toolbar }}</div>
         @endif
 
         {{ $slot }}

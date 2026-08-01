@@ -150,8 +150,38 @@
 
         .vy-bell { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); color: var(--vy-muted); }
         .vy-chip { display: flex; align-items: center; gap: 9px; padding: 5px 12px 5px 6px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
-        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; }
+        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); color: #fff; font-size: 11px; font-weight: 500; display: grid; place-items: center; flex: none; }
+        .vy-avatar--lg { width: 38px; height: 38px; font-size: 13px; font-weight: 600; }
         .vy-chip-name { font-size: 13px; font-weight: 500; }
+
+        /* GATE 0 — bespoke-chrome topbar (prototype-exact): read-only pill · search pill · date chip · account dropdown */
+        [x-cloak] { display: none !important; }
+        .vy-topbar-lead { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .vy-ro-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: var(--vy-r-pill); background: rgba(217, 154, 61, 0.18); color: #8F6414; font-size: 11.5px; font-weight: 500; white-space: nowrap; flex: none; }
+        .vy-glass-pill { display: inline-flex; align-items: center; gap: 8px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); }
+        .vy-search-pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); color: var(--vy-faint); font-size: 13px; min-width: 210px; text-decoration: none; transition: color .15s; }
+        .vy-search-pill:hover { color: var(--vy-muted); }
+        .vy-date-chip { display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); font-size: 13px; font-weight: 500; white-space: nowrap; }
+        .vy-acct { position: relative; }
+        .vy-acct-btn { display: flex; align-items: center; gap: 9px; padding: 5px 9px 5px 14px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); white-space: nowrap; cursor: pointer; font-family: var(--vy-sans); transition: background .15s; }
+        .vy-acct-btn:hover { background: rgba(255, 255, 255, 0.72); }
+        .vy-acct-id { text-align: right; line-height: 1.2; }
+        .vy-acct-name { display: block; font-size: 12.5px; font-weight: 500; color: var(--vy-ink); line-height: 1.25; }
+        .vy-acct-role { display: block; font-size: 10.5px; color: var(--vy-faint); line-height: 1.2; }
+        .vy-acct-chev { color: #B9ADA4; transition: transform .18s; flex: none; }
+        .vy-acct-menu { position: absolute; top: calc(100% + 10px); right: 0; width: 252px; z-index: 70; background: rgba(255, 252, 248, 0.96); backdrop-filter: blur(30px) saturate(1.15); -webkit-backdrop-filter: blur(30px) saturate(1.15); border: 1px solid rgba(255, 255, 255, 0.85); border-radius: 18px; box-shadow: 0 24px 60px rgba(60, 30, 10, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.75); padding: 8px; }
+        .vy-acct-head { display: flex; align-items: center; gap: 11px; padding: 10px 11px 12px; }
+        .vy-acct-hid { min-width: 0; }
+        .vy-acct-hid .vy-acct-name { font-size: 13px; }
+        .vy-acct-email { display: block; font-size: 11px; color: var(--vy-faint); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vy-acct-link { display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; padding: 9px 11px; border-radius: 11px; text-decoration: none; color: var(--vy-ink); font-size: 13px; font-weight: 500; font-family: var(--vy-sans); background: none; border: 0; cursor: pointer; text-align: left; transition: background .14s; }
+        .vy-acct-link:hover { background: rgba(120, 70, 40, 0.06); }
+        .vy-acct-link--danger { color: #8F3110; }
+        .vy-acct-link--danger:hover { background: rgba(143, 49, 16, 0.08); }
+        .vy-acct-link--danger svg { stroke: #8F3110; }
+        .vy-acct-div { height: 1px; background: rgba(120, 70, 40, 0.10); margin: 6px 10px; }
+        .vy-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        @media (prefers-reduced-motion: reduce) { .vy-amb-orb1, .vy-side, [style*="vyFadeUp"] { animation: none !important; } }
 
         /* Property switcher (Phase 6a · multi-property) — #104 fidelity: now a full-width frosted block in the
            sidebar (below the brand), matching the decoded operator wireframe. */

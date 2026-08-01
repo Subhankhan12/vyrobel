@@ -5297,3 +5297,24 @@ Three more guest wireframes rebuilt exact-match on REAL data, BUILDING what was 
 - **#117** — the guest ID captured at online check-in is REALLY encrypted at rest (Crypt-wrapped bytes on the PRIVATE disk — the blob is ciphertext), register-only, `verification_status='pending'` (CAPTURED, never a fabricated "verified" — #39, legally consequential), owner NEVER sees it (#28), and short-lived (a scheduled 30-day-after-checkout purge of the file + rows, plus immediate purge on GDPR erase). The single writer is `GuestIdDocumentService`; delivery of arrival secrets is BY EMAIL (#33) — SMS is honestly deferred (no provider), never faked.
 
 Honesty held (REFUSED, never faked): the fabricated towns/counts/"369 stays" (real avg only) · inline raw PAN + on-page Apple Pay + "charged at check-in" (SAQ A → hosted Stripe) · "ID verified"/third-party KYC scan (capture-only, pending) · door-code "by SMS" (relabelled email) · a fabricated co-guest name (count only). Suite green (the only failures = the pre-existing order-flaky `BookingImportTest`, green in isolation — 11/11); PHPStan L5 (0); Pint clean; `migrate` clean; the landing + checkout + all 3 check-in steps + done browser-verified.
+
+---
+
+## 2026-08-02 — OPERATOR REALM → 100% pass · GATE 0: the bespoke-chrome ARCHITECTURE DECISION + topbar (foundational)
+
+The operator realm audit (`docs/FULL-AUDIT-OPERATOR-GUEST.md`) found **0/27 pages at 100% fidelity**, with "shared-shell restructure vs each prototype's bespoke chrome" as the #1 root cause. The founder directed finishing every operator page to genuine 100% (bespoke chrome + motion + features), one page per gate, **preserving the shell's real machinery** (property switcher #38, read-only #84, nav-gating #104, tenant scope). GATE 0 establishes the approach that governs the whole pass.
+
+**THE DECISION — parameterize the SHARED shell, do NOT fork 42 bespoke chromes (option (b)).** On inspecting the code, the premise partly dissolved: the shared operator layout (`components/layouts/operator.blade.php`) **already carries the prototype's exact chrome** — the same `--vy-bg` warm gradient (`135deg #F6C89B→#D9D6D2`), the `.vy-amb-orb1/2/3` floating orbs, the `vyFadeUp/vyShimmer/vyDrift` keyframes, the glass/radii/shadow tokens, the 230px transparent sidebar, the frosted-glass active-nav pill, and Alpine (via `@livewireScripts`). The prototype chrome is **identical across all operator pages** (same gradient/orbs/sidebar/topbar cluster) — only the H1 title and a per-page toolbar differ. So forking per page would **duplicate an already-correct chrome and violate anti-drift** (Phase 0.3's "ONE source" rule). The correct move: finish the SHARED shell's chrome to pixel-match the prototype — which upgrades **every** operator page at once and keeps the machinery by construction (it already lives in the shell).
+
+**The pattern (for every later gate):** a page keeps using `<x-operator.shell active title subtitle :viewer :toolbar>`; the shell renders the prototype-exact chrome + machinery; the page's gate focuses on its **content, motion, and features** — never re-doing chrome.
+
+**GATE 0 delivered (the specific chrome gap the audit flagged realm-wide):**
+- **Account-dropdown popover** (replaces the static chip) — an Alpine `x-data` toggle: the button (name + real role + avatar + chevron) → a frosted popover (avatar + name + real login email) with **Your profile / Notification preferences / Security / Sign out**, all REAL routes; role + email derived from `auth()->user()` (self only) so no page passes them.
+- **Search pill** (→ `app.search`, gated `reservations.view`) + **"Today · {date}" chip** in the topbar, matching the prototype; the redundant in-content search on Dashboard removed (de-dup).
+- A **read-only pill** beside the H1 (from the same `OperatorWorkspace` as the banner, #84).
+- A `$toolbar` slot for per-page topbar controls (date-nav / filters / primary action) rendered into the bespoke chrome, so pages don't fork the shell.
+- `prefers-reduced-motion` honored; `[x-cloak]` guards the popover flash.
+
+**Machinery preserved + verified:** property switcher (#38) in the sidebar, read-only banner + pill (#84), role-gated nav (#104) — all unchanged and green. Proven on the **Dashboard** browser side-by-side (topbar + account dropdown open/close pixel-match the prototype; property switcher + nav intact). 58/58 operator render tests green (every page renders through this shell); `OperatorDashboardViewTest` + `OperatorNavVisibilityTest` 7/7; Pint clean; Blade compiles. **No behaviour changed; no fabrication introduced.**
+
+**Files:** `components/operator/shell.blade.php` (topbar + account dropdown + toolbar slot + machinery unchanged), `components/layouts/operator.blade.php` (topbar/account-dropdown CSS), `livewire/operator/dashboard.blade.php` (search de-dup). This is gate 1 of ~13 in the operator-100% pass.
