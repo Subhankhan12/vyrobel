@@ -36,3 +36,8 @@ Schedule::command('properties:process-removals')->dailyAt('02:00');
 // Guest Portal · GATE 3 (D2) — run guest-account deletions whose 14-day grace window has elapsed
 // (cancel upcoming reservations per policy + GDPR-anonymize). Reversible until it runs. Daily.
 Schedule::command('guests:process-deletions')->dailyAt('03:00');
+
+// Guest Portal batch 2 · GATE 2 (D2) — DATA MINIMISATION: hard-delete guest ID documents (encrypted file
+// bytes + rows) 30 days after the stay checks out. Makes the online-check-in "deleted 30 days after
+// checkout" promise real. Daily.
+Schedule::command('guest-documents:purge-expired')->dailyAt('03:30');

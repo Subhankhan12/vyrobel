@@ -3,7 +3,7 @@
      The viewer is resolved from the GUEST guard (never passed in) so it can only ever be the authed guest.
      Props: active (nav key to highlight), title (optional page heading). RAW-BLADE RULE: every `@` follows a
      space, newline or tag. --}}
-@props(['active' => '', 'title' => '', 'accent' => null])
+@props(['active' => '', 'title' => '', 'accent' => null, 'head' => null])
 @php
     // #98 — a property-scoped guest surface (e.g. the review page) may pass its brand accent; validated hex only,
     // never an arbitrary value into inline CSS. Unset/invalid ⇒ the default Vyrobel terracotta (fail-open).
@@ -112,6 +112,7 @@
     @if ($brandAccent !== null)
         <style>:root { --vy-accent: {{ $brandAccent }}; --vy-shadow-accent: {{ $brandAccent }}47 0 4px 12px; }</style>
     @endif
+    {{ $head ?? '' }}
 </head>
 <body>
     <header class="vy-top">

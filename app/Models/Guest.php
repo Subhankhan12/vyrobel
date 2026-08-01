@@ -300,6 +300,12 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
             // already promises to clear. Tenant-scoped + guest-scoped via the morph relation.
             $this->notes()->update(['body' => '']);
 
+            // GDPR: the guest's OWN free-text on their reservations is their PII too. `notes_guest` holds the
+            // arrival-preparation note the guest types at online check-in ("allergies, a cot, parking…"); clear
+            // it (and the coarse arrival window) on erase. Added WITH the online-check-in writer that first
+            // populates it (Guest Portal batch 2 · GATE 2) — never a store the erase silently leaves behind.
+            $this->reservations()->update(['notes_guest' => null, 'arrival_window' => null]);
+
             // NOTE: never put the erased PII into the audit before/after — that would re-retain it.
             app(AuditEventRecorder::class)->record(
                 action: 'guest.anonymized',

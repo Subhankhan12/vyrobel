@@ -51,6 +51,7 @@ class Reservation extends Model
         'cancelled_at',
         'cancellation_reason',
         'guest_checked_in_at',
+        'arrival_window',
         'notes_guest',
         'notes_internal',
     ];

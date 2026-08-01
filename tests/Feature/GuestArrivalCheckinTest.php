@@ -4,14 +4,16 @@ use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Unit;
 use App\Services\AssignmentService;
+use App\Support\Pdf\ArrivalPackDocument;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-// GUEST CHECK-IN + ARRIVAL INFO (Phase 4b · Sub-gate 4). Two guarantees are proven here:
+// GUEST CHECK-IN + ARRIVAL INFO (Phase 4b · SG4 + Guest Portal batch 2 · GATE 2). Guarantees proven here:
 //   • ONLINE CHECK-IN is the GUEST's pre-check-in intent (stamps guest_checked_in_at) — it is NOT the operator's
-//     authoritative check-in (status stays 'confirmed'); passport/ID is an honest KYC stub (nothing captured).
+//     authoritative check-in (status stays 'confirmed'). The ID is a REAL capture (encrypted, register-only,
+//     pending — never "verified"; the vault details are in GuestCheckinIdVaultTest); delivery is BY EMAIL.
 //   • DOOR-CODE ISOLATION: the arrival pack — especially the door code — shows ONLY for the authed guest's OWN
 //     booking (foreign → 404), and only inside the arrival window (withheld before it; never fabricated).
 
@@ -52,8 +54,8 @@ it('records a guest pre-check-in without performing the operator’s authoritati
     expect($fresh->status)->toBe('confirmed');              // …but the booking's status is UNTOUCHED (operator owns that)
 });
 
-// ── The passport / ID capture is an honest KYC stub — nothing is captured ─────────────────────────
-it('shows the check-in review with an honest ID-verification stub', function () {
+// ── The 4-step wizard renders; ID is a real capture (register-only), delivery is by EMAIL, no fake SMS ──
+it('shows the check-in wizard with a real, honest ID capture and email delivery', function () {
     $s = seedScenario(1);
     $a = arrGuest($s['guest'], 'ada@example.test');
     $reservation = arrBook($s, $a, $s['units'][0]);
@@ -61,7 +63,12 @@ it('shows the check-in review with an honest ID-verification stub', function () 
     $this->actingAs($a, 'guest')->get(route('guest.checkin', $reservation->getKey()))
         ->assertOk()
         ->assertSee('Online check-in')
-        ->assertSee('coming soon');   // ID verification deferred honestly
+        ->assertSee('Add your ID')                                          // the real ID step
+        ->assertSee('deleted 30 days after checkout')                       // the real retention promise
+        ->assertSee('Door code by email')                                  // 🪤 delivery by EMAIL, not SMS
+        ->assertDontSee('coming soon')                                     // no honest-stub any more — it's real
+        ->assertDontSee('by SMS')                                          // no fabricated SMS channel
+        ->assertDontSee('verified');                                       // captured, never "verified" (#39)
 });
 
 // ── A second submit is idempotent (no re-stamp, no error) ─────────────────────────────────────────
@@ -176,11 +183,11 @@ it('gates the door code on the arrival PDF exactly like the screen', function ()
     $reservation = arrBook($s, $a, $s['units'][0])->load(['property', 'reservationUnits.unit', 'leadGuest']);
 
     // Inside the window → the guide carries the real code + wifi.
-    $inside = view('pdfs.arrival', \App\Support\Pdf\ArrivalPackDocument::data($reservation, CarbonImmutable::parse('2026-09-06')))->render();
+    $inside = view('pdfs.arrival', ArrivalPackDocument::data($reservation, CarbonImmutable::parse('2026-09-06')))->render();
     expect($inside)->toContain('2468')->toContain('Seaside-Guest');
 
     // Weeks before → the shareable file NEVER carries the code; it prints the honest state.
-    $before = view('pdfs.arrival', \App\Support\Pdf\ArrivalPackDocument::data($reservation, CarbonImmutable::parse('2026-08-01')))->render();
+    $before = view('pdfs.arrival', ArrivalPackDocument::data($reservation, CarbonImmutable::parse('2026-08-01')))->render();
     expect($before)->not->toContain('2468')->toContain('unlock');
 });
 
