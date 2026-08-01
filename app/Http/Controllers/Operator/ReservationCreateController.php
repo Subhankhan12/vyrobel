@@ -23,6 +23,7 @@ use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
+use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Reservations\ReservationExtras;
@@ -146,6 +147,13 @@ class ReservationCreateController extends Controller
             return $guest;   // a validation failure already flashed
         }
 
+        // GATE 1 — "Send confirmation email" (default ON). Unchecked → suppress THIS booking's guest
+        // confirmation. The flag is read by SendGuestTransactionalEmails during the reservation.confirmed
+        // event that createBooking fires synchronously below, so it MUST be set first.
+        if (! $request->boolean('send_confirmation', true)) {
+            app(BookingNotificationIntent::class)->suppressConfirmation();
+        }
+
         // THE CERTIFIED WRITE. createBooking guards inventory under a row lock; a race is rejected here (the
         // whole transaction rolls back), never a double book. An expected rejection must never 500.
         try {
@@ -176,12 +184,22 @@ class ReservationCreateController extends Controller
             return $this->back($request, 'That unit was just taken for those dates — nothing was created. Re-check availability.');
         }
 
-        // #104 GATE 3 — persist the guest's ESTIMATED ARRIVAL (the "Estimated arrival" field was collected +
-        // silently dropped). A free-text window the front desk sees; bounded to the column length. A post-create
-        // update on the returned reservation — the certified createBooking contract is untouched.
+        // Persist the fields the wizard collected and previously DROPPED — a post-create update on the
+        // returned reservation (the certified createBooking contract is untouched). Estimated arrival (#104),
+        // plus GATE 1: the internal team note, the house-rules acknowledgement, and the guest's stay note.
         $arrivalWindow = trim((string) $request->input('arrival_window', ''));
-        if ($arrivalWindow !== '') {
-            $reservation->update(['expected_arrival' => mb_substr($arrivalWindow, 0, 60)]);
+        $teamNote = trim((string) $request->input('team_note', ''));
+        $guestNote = trim((string) $request->input('guest_note', ''));   // guest free-text (#28 — in anonymize())
+        $reservationUpdate = array_filter([
+            'expected_arrival' => $arrivalWindow !== '' ? mb_substr($arrivalWindow, 0, 60) : null,
+            'notes_internal' => $teamNote !== '' ? mb_substr($teamNote, 0, 2000) : null,
+            'notes_guest' => $guestNote !== '' ? mb_substr($guestNote, 0, 2000) : null,
+        ], fn ($v): bool => $v !== null);
+        if ($request->boolean('rules_agreed')) {
+            $reservationUpdate['house_rules_ack_at'] = now();   // the operator confirmed the guest accepted
+        }
+        if ($reservationUpdate !== []) {
+            $reservation->update($reservationUpdate);
         }
 
         // Open the folio and post the room charge, so the balance the operator sees is real.
@@ -327,12 +345,17 @@ class ReservationCreateController extends Controller
             return $this->back($request, 'That guest email address isn’t valid.');
         }
         $phone = trim((string) $request->input('guest_phone', ''));
+        // GATE 1 — the guest's Country (ISO-3166 alpha-2, e.g. "PT") → the guest's nationality. Bounded + upper;
+        // an invalid/blank value is simply not set (never a fabricated country).
+        $country = strtoupper(trim((string) $request->input('guest_country', '')));
+        $country = preg_match('/^[A-Z]{2}$/', $country) === 1 ? $country : null;
 
         return Guest::create([
             'first_name' => $first !== '' ? $first : 'Guest',
             'last_name' => $last,
             'email' => $email !== '' ? $email : null,
             'phone' => $phone !== '' ? $phone : null,
+            'nationality' => $country,
             'is_vip' => $request->boolean('guest_vip'),
             'marketing_consent' => $request->boolean('guest_marketing_consent'),
         ]);

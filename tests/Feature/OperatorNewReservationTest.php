@@ -1,5 +1,6 @@
 <?php
 
+use App\Mail\BookingConfirmationMail;
 use App\Models\Guest;
 use App\Models\Payment;
 use App\Models\Reservation;
@@ -7,6 +8,7 @@ use App\Models\ReservationUnit;
 use App\Services\RateAndRestrictionService;
 use App\Support\Money\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
 uses(RefreshDatabase::class);
@@ -224,4 +226,70 @@ it('refuses a cross-org room type for a permitted actor, creating nothing', func
     ]))->assertRedirect()->assertSessionHas('new_reservation_notice');
 
     expect(Reservation::query()->withoutGlobalScopes()->count())->toBe(0);
+});
+
+// ── GATE 1 — the fields the wizard COLLECTED but the controller silently DROPPED, now all real ───────
+
+it('persists the internal team note to notes_internal', function () {
+    $s = ratedScenario(1);
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, ['team_note' => 'Allergic to nuts — brief the kitchen.']))
+        ->assertRedirect();
+
+    expect((string) Reservation::query()->latest('created_at')->firstOrFail()->notes_internal)
+        ->toBe('Allergic to nuts — brief the kitchen.');
+});
+
+it('records the house-rules acknowledgement only when the operator ticks it', function () {
+    $s = ratedScenario(2);
+
+    // ticked → a real ack timestamp
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, ['rules_agreed' => '1']))->assertRedirect();
+    expect(Reservation::query()->latest('created_at')->firstOrFail()->house_rules_ack_at)->not->toBeNull();
+
+    // not ticked → no ack (never a fabricated one)
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, ['unit_id' => $s['units'][1]->id, 'check_in' => '2026-09-06', 'check_out' => '2026-09-08']))->assertRedirect();
+    expect(Reservation::query()->latest('created_at')->firstOrFail()->house_rules_ack_at)->toBeNull();
+});
+
+it('stores the guest country and stay note on a new guest', function () {
+    $s = ratedScenario(1);
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, [
+            'guest_country' => 'pt',                        // lower-case in → normalised to PT
+            'guest_note' => 'Late arrival, needs a cot.',
+        ]))->assertRedirect();
+
+    $reservation = Reservation::query()->latest('created_at')->with('leadGuest')->firstOrFail();
+    expect((string) $reservation->leadGuest->nationality)->toBe('PT')
+        ->and((string) $reservation->notes_guest)->toBe('Late arrival, needs a cot.');
+});
+
+it('ignores a nonsense country code rather than storing a fabricated one', function () {
+    $s = ratedScenario(1);
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, ['guest_country' => 'Portugal!!']))->assertRedirect();
+    expect(Reservation::query()->latest('created_at')->with('leadGuest')->firstOrFail()->leadGuest->nationality)->toBeNull();
+});
+
+it('sends the guest confirmation by default but suppresses it when the operator unchecks the box', function () {
+    Mail::fake();
+    $s = ratedScenario(2);
+
+    // default (checkbox checked) → the certified confirmation is queued to the guest's own email
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, ['guest_email' => 'grace@example.test', 'send_confirmation' => '1']))
+        ->assertRedirect();
+    Mail::assertQueued(BookingConfirmationMail::class);
+
+    // unchecked (hidden "0" submits) → THIS booking's confirmation is suppressed
+    Mail::fake();
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, [
+            'unit_id' => $s['units'][1]->id, 'check_in' => '2026-09-06', 'check_out' => '2026-09-08',
+            'guest_email' => 'ada@example.test', 'send_confirmation' => '0',
+        ]))->assertRedirect();
+    Mail::assertNotQueued(BookingConfirmationMail::class);
 });

@@ -130,6 +130,11 @@
                                 <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="gl">Last name</label><input id="gl" type="text" name="guest_last_name" class="vy-input" x-bind:disabled="guestMode !== 'new'" x-model="newLast" autocomplete="off"></div>
                                 <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="ge">Email · optional</label><input id="ge" type="email" name="guest_email" class="vy-input" x-bind:disabled="guestMode !== 'new'" autocomplete="off"></div>
                                 <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="gp">Phone · optional</label><input id="gp" type="text" name="guest_phone" class="vy-input" x-bind:disabled="guestMode !== 'new'" autocomplete="off"></div>
+                                <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="gc">Country · optional</label><input id="gc" type="text" name="guest_country" class="vy-input" maxlength="2" placeholder="PT" x-bind:disabled="guestMode !== 'new'" x-on:input="$event.target.value = $event.target.value.toUpperCase()" autocomplete="off"><span class="vy-field-hint">2-letter code (ISO), e.g. PT · ES · GB</span></div>
+                            </div>
+                            <div x-show="guestMode === 'new'" class="vy-field" style="margin-top: 12px;">
+                                <label class="vy-field-label" for="gnote">Guest note · optional</label>
+                                <textarea id="gnote" name="guest_note" class="vy-input" rows="2" placeholder="Preferences, allergies, access needs…" x-bind:disabled="guestMode !== 'new'" style="resize: vertical;"></textarea>
                             </div>
                             <div x-show="guestMode === 'new'" style="margin-top: 12px; display: flex; gap: 22px;">
                                 <label class="vyn-check"><input type="checkbox" name="guest_vip" value="1" x-bind:disabled="guestMode !== 'new'"> Mark as VIP</label>
@@ -202,6 +207,9 @@
                                 <select id="src" name="source" class="vy-input">@foreach ($sources as $src)<option value="{{ $src['value'] }}">{{ $src['label'] }}</option>@endforeach</select>
                             </div>
                             <div class="vy-field" style="margin-top: 10px;"><label class="vy-field-label" for="note">Note for the team · optional</label><textarea id="note" name="team_note" rows="2" class="vy-input"></textarea></div>
+                            {{-- Hidden "0" fallback so UNCHECKING genuinely suppresses this booking's confirmation
+                                 (an unchecked checkbox submits nothing); the checked "1" overrides it. --}}
+                            <input type="hidden" name="send_confirmation" value="0">
                             <label class="vyn-check" style="margin-top: 10px;"><input type="checkbox" name="send_confirmation" value="1" checked> Send confirmation email <span class="vy-muted">· guest gets the booking details right away</span></label>
                         </section>
 

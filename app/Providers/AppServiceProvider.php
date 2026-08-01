@@ -86,6 +86,7 @@ use App\Support\Llm\LlmClientInterface;
 use App\Support\Llm\LlmCostLedger;
 use App\Support\Llm\LlmSafetyGuard;
 use App\Support\Mail\MailSafetyGuard;
+use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\OAuth\OAuthScopes;
 use App\Support\Owner\OwnerContext;
 use App\Support\Property\PropertyContext;
@@ -125,6 +126,11 @@ class AppServiceProvider extends ServiceProvider
         // SetCurrentPropertyForWebRequest middleware, the switcher, and every /app screen resolving
         // "the current property" must see the same instance. Inactive by default (CLI/queue/tests).
         $this->app->singleton(PropertyContext::class);
+
+        // GATE 1 — the New Reservation "Send confirmation email" toggle is request-scoped: the controller
+        // stashes the operator's choice and SendGuestTransactionalEmails reads it during the synchronous
+        // reservation.confirmed event. Must be ONE instance per request. Defaults to "send" everywhere else.
+        $this->app->singleton(BookingNotificationIntent::class);
 
         // Payment gateway selection is config-driven (services.payments.gateway; per-tenant
         // override is a Phase 3 hook). `manual` = offline (Phase 1); `stripe` = Step 6. FolioService

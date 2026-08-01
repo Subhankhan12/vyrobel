@@ -14,6 +14,7 @@ use App\Models\Guest;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
+use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Log;
@@ -82,6 +83,11 @@ class SendGuestTransactionalEmails
         }
         // #86 — the operator can disable this email per-org; OFF genuinely stops the send.
         if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'booking-confirmation')) {
+            return;
+        }
+        // GATE 1 — the New Reservation wizard's "Send confirmation email" checkbox: an operator can suppress
+        // THIS booking's confirmation (the flag is set on the request before createBooking fires this event).
+        if (app(BookingNotificationIntent::class)->confirmationSuppressed()) {
             return;
         }
         // Delayed so it renders AFTER the caller posts the folio (see sendToGuest) — the Total/breakdown reconcile.
