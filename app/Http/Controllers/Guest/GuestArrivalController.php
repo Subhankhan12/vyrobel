@@ -6,9 +6,12 @@ namespace App\Http\Controllers\Guest;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
+use App\Services\PdfService;
 use App\Support\Guest\ArrivalPack;
+use App\Support\Pdf\ArrivalPackDocument;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Guest Arrival Info (Phase 4b · Sub-gate 4) — the arrival pack for ONE owned booking: directions, check-in/out
@@ -31,10 +34,30 @@ class GuestArrivalController extends Controller
             ->findOrFail($reservation);
 
         return view('guest.arrival', [
+            'reservationId' => (string) $model->getKey(),
             'reference' => (string) $model->reference,
             'property' => (string) ($model->property->name ?? 'Your stay'),
+            'firstName' => (string) ($this->guest()->first_name ?: 'there'),
             'checkIn' => CarbonImmutable::parse($model->check_in)->format('D, j M Y'),
             'pack' => ArrivalPack::for($model, CarbonImmutable::today()),
         ]);
+    }
+
+    /**
+     * The printable Arrival Guide (Guest Portal · GATE 2) — a real PDF export of this owned booking's arrival
+     * info. Resolved through the guest's OWN relation (foreign id = 404), rendered from the SAME window-gated
+     * {@see ArrivalPack} as the screen + the #83 email (no drift). A pre-window PDF omits the door code (#33).
+     */
+    public function pdf(string $reservation, PdfService $pdf): Response
+    {
+        $model = $this->guest()->reservations()
+            ->with(['property', 'reservationUnits.unit', 'leadGuest'])
+            ->findOrFail($reservation);
+
+        return $pdf->download(
+            'pdfs.arrival',
+            ArrivalPackDocument::data($model, CarbonImmutable::today()),
+            'arrival-guide-'.$model->reference.'.pdf',
+        );
     }
 }

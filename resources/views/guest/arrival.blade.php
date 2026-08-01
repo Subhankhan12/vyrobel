@@ -2,10 +2,15 @@
      by the arrival window (ArrivalPack): shown only close to the stay, withheld otherwise — never a fabricated
      code. Directions/times are the property's real data. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-guest.shell active="trips" :title="'Arrival · '.$reference">
-    <a class="vy-link" href="{{ route('guest.reservation', request()->route('reservation')) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Back to booking</a>
+    <a class="vy-link" href="{{ route('guest.reservation', $reservationId) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Back to booking</a>
 
-    <h1 class="vy-h1" style="margin-top:10px">Arrival info</h1>
-    <p class="vy-lead" style="margin-bottom:16px">Everything you need to get in at {{ $property }} on {{ $checkIn }}.</p>
+    <div class="vy-eyebrow" style="margin-top:12px;color:var(--vy-accent)">Arrival info</div>
+    <h1 class="vy-h1" style="margin-top:4px">Welcome to {{ $property }}, {{ $firstName }}</h1>
+    <p class="vy-lead" style="margin-bottom:12px">Everything you need for a smooth arrival on {{ $checkIn }}.</p>
+    <a class="vy-btn vy-btn--ghost" href="{{ route('guest.arrival.pdf', $reservationId) }}" style="display:inline-flex;align-items:center;gap:7px;margin-bottom:16px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+        Save printable guide
+    </a>
 
     {{-- Getting here — real property data --}}
     <section class="vy-card" style="margin-bottom:14px">
@@ -75,9 +80,18 @@
     </section>
 
     {{-- Local recommendations — honestly not built yet (no fabricated content) --}}
-    <section class="vy-card">
+    <section class="vy-card" style="margin-bottom:14px">
         <div class="vy-eyebrow" style="margin-bottom:6px">Local recommendations</div>
         <div style="font-size:13px;color:var(--vy-muted)">Our neighbourhood guide is coming soon.</div>
+    </section>
+
+    {{-- Message host — the REAL guest↔operator channel (name-only; no fabricated host/SLA/phone) --}}
+    <section class="vy-card" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+        <div>
+            <div style="font-size:14px;color:var(--vy-ink);font-weight:500">Need anything before you arrive?</div>
+            <div style="font-size:12px;color:var(--vy-muted);margin-top:2px">Message the team — we’re happy to help.</div>
+        </div>
+        <a class="vy-btn vy-btn--accent" href="{{ route('guest.messages') }}" style="flex:none">Message</a>
     </section>
 
     <script>

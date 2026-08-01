@@ -27,9 +27,6 @@ class GuestManageController extends Controller
 {
     use ResolvesGuest;
 
-    /** The design's requestable extras (a REQUEST by name — the operator prices + adds them on confirmation). */
-    private const ADD_ONS = ['Breakfast', 'Airport transfer', 'Late checkout', 'Mid-stay clean'];
-
     private const CANCEL_REASONS = ['Change of plans', 'My dates changed', 'Found somewhere else', 'Too expensive', 'Other'];
 
     public function __construct(private readonly GuestChangeRequestService $requests) {}
@@ -53,7 +50,6 @@ class GuestManageController extends Controller
             'newCheckIn' => $newCheckIn,
             'newCheckOut' => $newCheckOut,
             'quote' => $quote,
-            'addOnOptions' => self::ADD_ONS,
             'cancelReasons' => self::CANCEL_REASONS,
             'pending' => $this->pendingFor($model),
         ]);
@@ -75,14 +71,17 @@ class GuestManageController extends Controller
     public function requestAddOns(Request $request, string $reservation): RedirectResponse
     {
         $model = $this->owned($reservation);
+        // Server-authoritative: the chosen extras must be REAL active AddOns of THIS property (never a name a
+        // guest could invent). Shared by the manage section and the dedicated /guest/extras page (back() returns
+        // to whichever posted). The operator's confirm posts them to the folio (reconciling #17).
         $data = $request->validate([
             'add_ons' => ['required', 'array', 'min:1'],
-            'add_ons.*' => ['string', Rule::in(self::ADD_ONS)],
+            'add_ons.*' => ['string', Rule::exists('add_ons', 'id')->where(fn ($q) => $q->where('property_id', $model->property_id)->where('is_active', true))],
         ]);
 
         $this->requests->requestAddOns($model, $this->guest(), (array) $data['add_ons']);
 
-        return $this->backWith($model, 'Add-on request sent — we’ll confirm availability and pricing.');
+        return back()->with('status', 'Extras requested — the property will confirm and add them to your booking.');
     }
 
     public function requestCancellation(Request $request, string $reservation): RedirectResponse

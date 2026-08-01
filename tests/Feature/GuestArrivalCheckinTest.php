@@ -150,3 +150,49 @@ it('404s when a guest opens another guest’s arrival info (door code isolation)
     $this->actingAs($a, 'guest')->get(route('guest.arrival', $bRes->getKey()))->assertNotFound();                   // foreign → 404
     $this->travelBack();
 });
+
+// ─────────────────────────────── ARRIVAL GUIDE PDF (GATE 2) ───────────────────────────────
+
+// ── The printable guide downloads for an owned booking (real PDF, guest-scoped) ────────────────────
+it('downloads the arrival guide PDF for an owned booking', function () {
+    $s = seedScenario(1);
+    $a = arrGuest($s['guest'], 'ada@example.test');
+    $s['units'][0]->update(['door_code' => '2468', 'wifi_ssid' => 'Seaside-Guest', 'wifi_password' => 'welcome2026']);
+    $reservation = arrBook($s, $a, $s['units'][0]);
+
+    $this->travelTo(CarbonImmutable::parse('2026-09-06'));
+    $response = $this->actingAs($a, 'guest')->get(route('guest.arrival.pdf', $reservation->getKey()));
+    $response->assertOk();
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+    expect($response->headers->get('content-disposition'))->toContain('attachment');
+    $this->travelBack();
+});
+
+// ── 🔒 #33 — the PDF shows the code INSIDE the window but OMITS it before (same gate as the screen) ──
+it('gates the door code on the arrival PDF exactly like the screen', function () {
+    $s = seedScenario(1);
+    $a = arrGuest($s['guest'], 'ada@example.test');
+    $s['units'][0]->update(['door_code' => '2468', 'wifi_ssid' => 'Seaside-Guest', 'wifi_password' => 'welcome2026']);
+    $reservation = arrBook($s, $a, $s['units'][0])->load(['property', 'reservationUnits.unit', 'leadGuest']);
+
+    // Inside the window → the guide carries the real code + wifi.
+    $inside = view('pdfs.arrival', \App\Support\Pdf\ArrivalPackDocument::data($reservation, CarbonImmutable::parse('2026-09-06')))->render();
+    expect($inside)->toContain('2468')->toContain('Seaside-Guest');
+
+    // Weeks before → the shareable file NEVER carries the code; it prints the honest state.
+    $before = view('pdfs.arrival', \App\Support\Pdf\ArrivalPackDocument::data($reservation, CarbonImmutable::parse('2026-08-01')))->render();
+    expect($before)->not->toContain('2468')->toContain('unlock');
+});
+
+// ── ISOLATION: a guest cannot download another guest's arrival PDF ─────────────────────────────────
+it('404s downloading another guest’s arrival PDF', function () {
+    $s = seedScenario(2);
+    $a = arrGuest($s['guest'], 'ada@example.test');
+    $b = Guest::create(['email' => 'bob@example.test', 'first_name' => 'Bob', 'last_name' => 'Vale']);
+    $s['units'][1]->update(['door_code' => 'BBB-SECRET']);
+    $bRes = arrBook($s, $b, $s['units'][1]);
+
+    $this->travelTo(CarbonImmutable::parse('2026-09-06'));
+    $this->actingAs($a, 'guest')->get(route('guest.arrival.pdf', $bRes->getKey()))->assertNotFound();
+    $this->travelBack();
+});

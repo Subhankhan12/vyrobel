@@ -31,6 +31,7 @@ use App\Http\Controllers\Guest\GuestDocumentController;
 use App\Http\Controllers\Guest\GuestFolioPaymentController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
+use App\Http\Controllers\Guest\GuestExtrasController;
 use App\Http\Controllers\Guest\GuestManageController;
 use App\Http\Controllers\Guest\GuestMessagesController;
 use App\Http\Controllers\Guest\GuestPasswordResetController;
@@ -310,12 +311,15 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::get('/reservation/{reservation}/manage', [GuestManageController::class, 'show'])->name('manage');
         Route::post('/reservation/{reservation}/manage/date-change', [GuestManageController::class, 'requestDateChange'])->middleware('throttle:12,1')->name('manage.date-change');
         Route::post('/reservation/{reservation}/manage/add-ons', [GuestManageController::class, 'requestAddOns'])->middleware('throttle:12,1')->name('manage.add-ons');
+        // Add-ons — "Enhance your stay": the real AddOn catalogue; the form posts to manage.add-ons (D4).
+        Route::get('/reservation/{reservation}/extras', [GuestExtrasController::class, 'show'])->name('extras');
         Route::post('/reservation/{reservation}/manage/cancel', [GuestManageController::class, 'requestCancellation'])->middleware('throttle:12,1')->name('manage.cancel');
         // Online check-in (SG4) — the GUEST's pre-check-in intent (stamps guest_checked_in_at); NOT the operator's
         // authoritative check-in. Arrival info (SG4) — directions/times + the timing-gated door code & wifi.
         Route::get('/reservation/{reservation}/check-in', [GuestCheckinController::class, 'show'])->name('checkin');
         Route::post('/reservation/{reservation}/check-in', [GuestCheckinController::class, 'submit'])->middleware('throttle:12,1')->name('checkin.submit');
         Route::get('/reservation/{reservation}/arrival', [GuestArrivalController::class, 'show'])->name('arrival');
+        Route::get('/reservation/{reservation}/arrival/pdf', [GuestArrivalController::class, 'pdf'])->name('arrival.pdf');
         // Review (Phase 5) — a guest reviews their OWN completed stay (foreign/future/cancelled → 404); one per stay.
         Route::get('/reservation/{reservation}/review', [GuestReviewController::class, 'show'])->name('review');
         Route::post('/reservation/{reservation}/review', [GuestReviewController::class, 'submit'])->middleware('throttle:12,1')->name('review.submit');

@@ -70,22 +70,13 @@
         @endif
     </section>
 
-    {{-- Add-ons --}}
-    <section class="vy-card" style="margin-bottom:14px">
-        <div class="vy-eyebrow" style="margin-bottom:8px">Add extras</div>
-        <p style="font-size:12.5px;color:var(--vy-muted);margin:0 0 12px">Request extras for your stay — the property confirms availability and pricing.</p>
-        <form method="POST" action="{{ route('guest.manage.add-ons', $reservation) }}">
-            @csrf
-            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
-                @foreach ($addOnOptions as $option)
-                    <label style="display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--vy-ink)">
-                        <input type="checkbox" name="add_ons[]" value="{{ $option }}" style="width:16px;height:16px;accent-color:var(--vy-accent)">
-                        {{ $option }}
-                    </label>
-                @endforeach
-            </div>
-            <button type="submit" class="vy-btn">Request extras</button>
-        </form>
+    {{-- Add-ons — the REAL catalogue lives on the dedicated Extras page (settles to the folio on confirm) --}}
+    <section class="vy-card" style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+        <div>
+            <div class="vy-eyebrow" style="margin-bottom:4px">Enhance your stay</div>
+            <p style="font-size:12.5px;color:var(--vy-muted);margin:0">Add breakfast, transfers and more — everything settles to your booking.</p>
+        </div>
+        <a class="vy-btn vy-btn--accent" href="{{ route('guest.extras', $reservation) }}" style="flex:none">Browse extras</a>
     </section>
 
     {{-- Cancellation --}}

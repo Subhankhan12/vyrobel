@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Http\Controllers\Operator\ReservationCreateController;
+use App\Models\AddOn;
 use App\Models\Guest;
 use App\Models\GuestChangeRequest;
 use App\Models\Reservation;
+use App\Models\Tax;
+use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Reservations\ReservationExtras;
+use Carbon\CarbonImmutable;
 
 /**
  * Guest change REQUESTS (Phase 4b · Sub-gate 3) — the guest side NEVER writes the operator's domain.
@@ -23,7 +29,7 @@ use App\Support\Money\MoneyFormatter;
  */
 class GuestChangeRequestService
 {
-    public function __construct(private BookingEngineService $engine) {}
+    public function __construct(private BookingEngineService $engine, private FolioService $folios) {}
 
     /**
      * A real, read-only price-difference quote for a proposed new stay. `priced` is false when the new dates have
@@ -60,11 +66,16 @@ class GuestChangeRequestService
     }
 
     /**
-     * @param  array<array-key, mixed>  $addOns
+     * A guest add-on request stores the chosen REAL AddOn ids (server-validated to the reservation's property).
+     * The quantities + prices are NOT trusted from the guest — they are re-derived server-side at confirm time.
+     *
+     * @param  array<array-key, mixed>  $addOnIds
      */
-    public function requestAddOns(Reservation $reservation, Guest $guest, array $addOns): GuestChangeRequest
+    public function requestAddOns(Reservation $reservation, Guest $guest, array $addOnIds): GuestChangeRequest
     {
-        return $this->create($reservation, $guest, GuestChangeRequest::TYPE_ADD_ON, ['add_ons' => array_values(array_map('strval', $addOns))]);
+        return $this->create($reservation, $guest, GuestChangeRequest::TYPE_ADD_ON, [
+            'add_on_ids' => array_values(array_unique(array_map('strval', $addOnIds))),
+        ]);
     }
 
     public function requestCancellation(Reservation $reservation, Guest $guest, string $reason): GuestChangeRequest
@@ -73,17 +84,87 @@ class GuestChangeRequestService
     }
 
     /**
-     * OPERATOR side — status ONLY. This does NOT execute the real change: the operator runs the actual
-     * date-change / cancel-and-refund / folio charge with their certified tools; this records the decision.
+     * OPERATOR side — records the decision. For a DATE-CHANGE / CANCELLATION this is status ONLY: the operator
+     * runs the actual move / cancel-and-refund with their certified tools. For an ADD-ON request (founder
+     * decision D4), confirming POSTS the real folio lines — the SAME certified path the operator New Reservation
+     * uses (re-read scoped+active AddOns, server-derived quantity via {@see ReservationExtras}, a separate VAT
+     * line on the taxable base) — so the extra genuinely "settles to the booking", reconciling #17. Guarded on
+     * the pending→confirmed transition so a double-confirm never double-posts.
      */
     public function confirm(GuestChangeRequest $request): void
     {
+        if ((string) $request->status !== 'pending') {
+            return;   // already decided — never re-post the folio
+        }
+
+        if ((string) $request->type === GuestChangeRequest::TYPE_ADD_ON) {
+            $this->postAddOnsToFolio($request);
+        }
+
         $request->update(['status' => 'confirmed']);
     }
 
     public function decline(GuestChangeRequest $request): void
     {
+        if ((string) $request->status !== 'pending') {
+            return;
+        }
         $request->update(['status' => 'declined']);
+    }
+
+    /**
+     * Post the confirmed add-ons onto the reservation's folio — mirrors {@see ReservationCreateController}::postExtras
+     * EXACTLY (server-authoritative re-read, per-basis quantity, a separate VAT line on the taxable base only),
+     * so the guest-requested extra reconciles to the cent (#17) and the two surfaces cannot drift.
+     */
+    private function postAddOnsToFolio(GuestChangeRequest $request): void
+    {
+        $reservation = $request->reservation;
+        if (! $reservation instanceof Reservation) {
+            return;
+        }
+
+        $ids = array_values(array_filter(array_map('strval', (array) ($request->payload['add_on_ids'] ?? []))));
+        if ($ids === []) {
+            return;
+        }
+
+        $currency = (string) $reservation->currency;
+        $propertyId = (string) $reservation->property_id;
+        $guests = max(1, (int) $reservation->adults + (int) $reservation->children);
+        $nights = max(1, (int) CarbonImmutable::parse($reservation->check_in)->diffInDays(CarbonImmutable::parse($reservation->check_out)));
+
+        $folio = $this->folios->openFolio($reservation);   // idempotent (firstOrCreate)
+
+        $addOns = AddOn::query()
+            ->where('property_id', $propertyId)
+            ->where('is_active', true)
+            ->whereIn('id', $ids)
+            ->get();
+
+        $taxableMinor = 0;
+        foreach ($addOns as $addOn) {
+            if ((string) $addOn->currency !== $currency) {
+                continue;   // never mix currencies on one folio
+            }
+            $quantity = ReservationExtras::quantityFor($addOn, $guests, $nights);
+            $this->folios->postAddOn($folio, $addOn, $quantity);
+            if ((bool) $addOn->taxable) {
+                $taxableMinor += (int) $addOn->price_minor * $quantity;
+            }
+        }
+
+        // A separate VAT line on the taxable EXTRAS base only — the stay's per-night/per-person taxes were
+        // already posted at booking, so re-posting them would double-charge. Percentage-exclusive taxes only.
+        if ($taxableMinor > 0) {
+            foreach (Tax::query()->where('property_id', $propertyId)->get() as $tax) {
+                $charged = (string) $tax->mode === 'percentage' && ! (bool) $tax->inclusive
+                    && ($tax->currency === null || (string) $tax->currency === $currency);
+                if ($charged) {
+                    $this->folios->applyTax($folio, $tax, Money::of($taxableMinor, $currency), $nights, $guests);
+                }
+            }
+        }
     }
 
     /**
