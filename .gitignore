@@ -41,3 +41,6 @@ CLAUDE.local.md
 # Laravel Passport OAuth signing keys — NEVER commit the private key
 /storage/oauth-private.key
 /storage/oauth-public.key
+
+# Gated build browser-verification screenshots (not part of the regression net)
+gate*.png

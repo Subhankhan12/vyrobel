@@ -6,9 +6,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Models\BookingQuote;
+use App\Models\Fee;
 use App\Models\Property;
 use App\Models\RoomType;
+use App\Models\Tax;
+use App\Payments\Stripe\StripeClientInterface;
+use App\Payments\Stripe\StripeIdempotency;
 use App\Services\BookingEngineService;
+use App\Services\FolioService;
+use App\Support\Folio\FolioTotals;
+use App\Support\Folio\StayEstimator;
+use App\Support\Money\Money;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
 use Carbon\CarbonImmutable;
@@ -16,6 +24,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 /**
  * Public booking engine (Step 7) — JSON endpoints + one bare, UNSTYLED contract-stub landing.
@@ -27,6 +38,7 @@ class BookingEngineController extends Controller
 {
     public function __construct(
         private readonly BookingEngineService $engine,
+        private readonly FolioService $folios,
     ) {}
 
     /**
@@ -45,28 +57,49 @@ class BookingEngineController extends Controller
         $children = max(0, (int) $request->query('children', '0'));
         $checkIn = $this->validDate($request->query('check_in'));
         $checkOut = $this->validDate($request->query('check_out'));
-
         $searched = $checkIn !== null && $checkOut !== null && $checkOut > $checkIn;
 
-        // Cover photo per room-type (public disk) — a map so the cards avoid N+1; null → gradient fallback.
-        $covers = RoomType::query()
-            ->where('property_id', $property->getKey())
-            ->with('photos')
-            ->get()
-            ->mapWithKeys(fn (RoomType $rt): array => [(string) $rt->getKey() => $rt->coverPhoto()?->url]);
+        // Refine controls (real filters over the real offer set — never fabricated).
+        $bedrooms = is_numeric($request->query('bedrooms')) ? (int) $request->query('bedrooms') : null;
+        $maxPrice = is_numeric($request->query('max_price')) ? (int) $request->query('max_price') : null;
+        $sort = in_array($request->query('sort'), ['rating', 'price_asc', 'price_desc'], true) ? (string) $request->query('sort') : 'recommended';
+        $amenityFilter = array_values(array_filter(array_map('strval', (array) $request->query('amenities', [])), fn ($a): bool => $a !== ''));
 
-        // REAL sellable rooms for the searched dates (only when a valid range is given).
+        // All room types (+ photos + amenities) once — cards, feature chips, filter options, no N+1.
+        $roomTypes = RoomType::query()
+            ->where('property_id', $property->getKey())
+            ->with(['photos', 'amenities'])
+            ->get()
+            ->keyBy(fn (RoomType $rt): string => (string) $rt->getKey());
+
+        // The property's taxes + fees, once — for the RECONCILING grand total (#17: shown total incl. the
+        // real cleaning fee === the folio total, never a hardcoded €45).
+        $taxes = Tax::query()->where('property_id', $property->getKey())->get();
+        $fees = Fee::query()->where('property_id', $property->getKey())->get();
+        $persons = max(1, $adults + $children);
+
         $rooms = [];
         $nights = 0;
         if ($searched) {
             $nights = (int) CarbonImmutable::parse($checkIn)->diffInDays(CarbonImmutable::parse($checkOut));
             foreach ($this->engine->search($property, $checkIn, $checkOut, $adults, $children) as $offer) {
+                /** @var RoomType|null $rt */
+                $rt = $roomTypes->get((string) $offer['room_type_id']);
                 $card = $this->roomOffer($offer);
-                $card['cover'] = $covers[(string) $offer['room_type_id']] ?? null;
+                $card['cover'] = $rt?->coverPhoto()?->url;
                 $card['rating'] = ReviewRating::forRoomType((string) $offer['room_type_id']);   // real derived rating
+                $card['bedrooms'] = $rt?->bedrooms !== null ? (int) $rt->bedrooms : null;
+                $card['features'] = $this->roomFeatures($rt);
+                $card['amenities'] = $rt !== null ? $rt->amenities->pluck('name')->map('strval')->all() : [];
+                [$card['grand_total'], $card['grand_total_minor'], $card['fees_note']] = $this->grandTotal($taxes, $fees, $offer, $persons);
                 $rooms[] = $card;
             }
+            $rooms = $this->applyRefine($rooms, $bedrooms, $amenityFilter, $maxPrice, $sort);
         }
+
+        // Real filter options (present bedroom counts + amenities across the property's rooms — never invented).
+        $bedroomOptions = $roomTypes->pluck('bedrooms')->filter(fn ($b): bool => $b !== null)->map(fn ($b): int => (int) $b)->unique()->sort()->values()->all();
+        $amenityOptions = $roomTypes->flatMap(fn (RoomType $rt): array => $rt->amenities->pluck('name')->all())->map('strval')->unique()->sort()->values()->all();
 
         return view('booking.browse', [
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
@@ -78,10 +111,119 @@ class BookingEngineController extends Controller
                 'searched' => $searched,
                 'nights' => $nights,
             ],
+            'refine' => ['bedrooms' => $bedrooms, 'max_price' => $maxPrice, 'sort' => $sort, 'amenities' => $amenityFilter],
+            'filterOptions' => ['bedrooms' => $bedroomOptions, 'amenities' => $amenityOptions, 'max_price_ceiling' => $this->maxPriceCeiling($rooms)],
             'rooms' => $rooms,
+            // Signed-in guest chrome (wishlist/account) is honest-gated — anonymous visitors get a sign-in affordance.
+            'guest' => Auth::guard('guest')->check() ? ['name' => (string) (Auth::guard('guest')->user()->first_name ?? 'You')] : null,
             // Teaser (no valid search yet): real room-type names only — NO availability/price claim.
-            'teaser' => $searched ? [] : $this->teaserRooms($property, $covers->all()),
+            'teaser' => $searched ? [] : $this->teaserRooms($property, $roomTypes->mapWithKeys(fn (RoomType $rt): array => [(string) $rt->getKey() => $rt->coverPhoto()?->url])->all()),
         ]);
+    }
+
+    /**
+     * The RECONCILING grand total for one offer = room + the property's real non-optional fees + charged
+     * taxes, via the SAME {@see StayEstimator} the operator + the folio use (#17 to the cent). Also returns a
+     * short "incl. €X cleaning" note (the non-optional fee summary), or '' when the property has no such fee.
+     *
+     * @param  Collection<int, Tax>  $taxes
+     * @param  Collection<int, Fee>  $fees
+     * @param  array<string, mixed>  $offer
+     * @return array{0: string, 1: int, 2: string}
+     */
+    private function grandTotal(Collection $taxes, Collection $fees, array $offer, int $persons): array
+    {
+        $currency = (string) $offer['currency'];
+        $room = Money::of((int) $offer['total_minor'], $currency);
+        $nights = max(1, (int) $offer['nights']);
+
+        $estimate = StayEstimator::estimate($taxes, $fees, $room, $nights, $persons, $currency);
+        $totalMinor = $estimate['total']->amountMinor();
+
+        // "incl. €45 cleaning" — sum the real non-optional fees (they're what the wireframe surfaces).
+        $feeMinor = 0;
+        foreach ($fees as $fee) {
+            if (StayEstimator::feeApplies($fee, $currency)) {
+                $feeMinor += app(FolioService::class)->computeFee($fee, $room, $nights, $persons)->amountMinor();
+            }
+        }
+        $note = $feeMinor > 0 ? 'incl. '.$this->money($feeMinor, $currency).' cleaning' : '';
+
+        return [$this->money($totalMinor, $currency), $totalMinor, $note];
+    }
+
+    /**
+     * Real, honest feature chips for a room card (sleeps / bedrooms / kind) — from real columns only.
+     *
+     * @return list<string>
+     */
+    private function roomFeatures(?RoomType $rt): array
+    {
+        if ($rt === null) {
+            return [];
+        }
+        $features = [];
+        $capacity = (int) $rt->max_adults + (int) $rt->max_children;
+        if ($capacity > 0) {
+            $features[] = 'Sleeps '.$capacity;
+        }
+        if ($rt->bedrooms !== null) {
+            $features[] = (int) $rt->bedrooms === 0 ? 'Studio' : (int) $rt->bedrooms.' '.Str::plural('bedroom', (int) $rt->bedrooms);
+        }
+        $features[] = $this->roomKind((string) $rt->kind);
+
+        return $features;
+    }
+
+    /**
+     * Apply the real refine controls to the already-real offer set. Client-safe filtering over server-real
+     * data — bedrooms / amenities (all-of) / max grand-total price, then sort. Never fabricates a match.
+     *
+     * @param  list<array<string, mixed>>  $rooms
+     * @param  list<string>  $amenityFilter
+     * @return list<array<string, mixed>>
+     */
+    private function applyRefine(array $rooms, ?int $bedrooms, array $amenityFilter, ?int $maxPrice, string $sort): array
+    {
+        $rooms = array_values(array_filter($rooms, function (array $room) use ($bedrooms, $amenityFilter, $maxPrice): bool {
+            if ($bedrooms !== null && (int) ($room['bedrooms'] ?? -1) !== $bedrooms) {
+                return false;
+            }
+            if ($maxPrice !== null && (int) $room['grand_total_minor'] > $maxPrice * 100) {
+                return false;
+            }
+            foreach ($amenityFilter as $needed) {
+                if (! in_array($needed, $room['amenities'] ?? [], true)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }));
+
+        usort($rooms, fn (array $a, array $b): int => match ($sort) {
+            'price_asc' => $a['grand_total_minor'] <=> $b['grand_total_minor'],
+            'price_desc' => $b['grand_total_minor'] <=> $a['grand_total_minor'],
+            'rating' => (float) ($b['rating']['average'] ?? 0) <=> (float) ($a['rating']['average'] ?? 0),
+            default => 0,   // recommended = the engine's own order (cheapest-plan sellable)
+        });
+
+        return $rooms;
+    }
+
+    /**
+     * The max-price slider ceiling — the dearest real grand total (in whole currency units), or a sane default.
+     *
+     * @param  list<array<string, mixed>>  $rooms
+     */
+    private function maxPriceCeiling(array $rooms): int
+    {
+        $max = 0;
+        foreach ($rooms as $room) {
+            $max = max($max, (int) ceil(((int) $room['grand_total_minor']) / 100));
+        }
+
+        return $max > 0 ? $max : 500;
     }
 
     /**
@@ -216,20 +358,102 @@ class BookingEngineController extends Controller
             $validated['email'],
         );
 
-        // The booking: THROUGH AssignmentService (re-checks under lock; rejects if now full). Payment
-        // via the configured gateway through FolioService. Card entry (Stripe Elements/3DS) is the
-        // deferred rail — the styled form uses the manual "pay on arrival" method, recorded for real.
-        $result = $this->engine->book($quote, (string) $request->input('payment_token', 'offline'), [
+        $guestData = [
             'email' => $validated['email'],
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
-        ]);
+        ];
+
+        // TEST-MODE hosted-Stripe rail (founder decision D1): when the payments gateway is Stripe, the
+        // booking is created (room + fees + taxes on the folio, #17) with the balance DUE, and the guest
+        // is redirected to a hosted Checkout session — fulfilment happens on the `payment_intent.succeeded`
+        // webhook (the SAME certified rail as the guest folio payment), never off this redirect. No PAN
+        // ever touches us (SAQ A); StripeSafetyGuard refuses a live key outside production.
+        if ((string) config('services.payments.gateway') === 'stripe') {
+            return $this->reserveViaStripeCheckout($request, $property, $quote, $guestData, $validated, $adults, $children);
+        }
+
+        // Otherwise: the wired pay-on-arrival flow — the booking THROUGH AssignmentService (re-checks
+        // under lock; rejects if now full) settles the full folio balance inline through FolioService.
+        $result = $this->engine->book($quote, (string) $request->input('payment_token', 'offline'), $guestData);
 
         if ($result['status'] === 'confirmed' || $result['status'] === 'already_converted') {
             return redirect()->to(route('booking.reservation', [$property->slug, $quote->getKey()]));
         }
 
-        // Lost the last unit between hold and book — honest, never overbooked, never faked.
+        return $this->soldOutRedirect($property, $validated, $adults, $children);
+    }
+
+    /**
+     * Reserve → pay via the certified TEST-MODE hosted-Stripe Checkout rail. Books (balance due, no inline
+     * charge), creates a Checkout session for the real folio balance, records the PENDING intent, and
+     * redirects the guest to Stripe. The `webhooks.stripe` → `payment_intent.succeeded` → settlePayment
+     * path marks the folio paid — no new webhook code. Idempotent on the folio (a re-submit reuses the
+     * same session). On a lost race → the honest sold-out redirect (never a faked confirmation).
+     *
+     * @param  array<string, mixed>  $guestData
+     * @param  array<string, mixed>  $validated
+     */
+    private function reserveViaStripeCheckout(Request $request, Property $property, BookingQuote $quote, array $guestData, array $validated, int $adults, int $children): RedirectResponse
+    {
+        $result = $this->engine->book($quote, 'stripe_checkout', $guestData, takePayment: false);
+
+        if ($result['status'] === 'unavailable') {
+            return $this->soldOutRedirect($property, $validated, $adults, $children);
+        }
+
+        $reservation = $result['reservation'];
+        $folio = $result['folio'];
+        $confirmationUrl = route('booking.reservation', [$property->slug, $quote->getKey()]);
+
+        // already_converted (re-submit) or a zero-balance booking → straight to the confirmation.
+        if ($reservation === null || $folio === null) {
+            return redirect()->to($confirmationUrl);
+        }
+
+        $currency = (string) $reservation->currency;
+        $balanceMinor = FolioTotals::for($folio)['balance_minor'];
+        if ($balanceMinor <= 0) {
+            return redirect()->to($confirmationUrl);
+        }
+
+        $session = app(StripeClientInterface::class)->createPaymentCheckout(
+            amountMinor: $balanceMinor,
+            currency: $currency,
+            description: 'Booking '.$reservation->reference,
+            successUrl: $confirmationUrl.'?paid=1',
+            cancelUrl: $confirmationUrl.'?canceled=1',
+            metadata: [
+                'organization_id' => (string) $reservation->organization_id,
+                'reservation_id' => (string) $reservation->getKey(),
+                'folio_id' => (string) $folio->getKey(),
+            ],
+            idempotencyKey: StripeIdempotency::keyFor('folio_checkout', (string) $folio->getKey()),
+        );
+
+        // No payment intent on the session (shouldn't happen for a payment-mode session) → don't strand
+        // the guest; show the confirmation with the balance still due (honest).
+        if ($session->paymentIntentId === null) {
+            return redirect()->to($confirmationUrl);
+        }
+
+        // Pre-create the PENDING payment keyed on the intent id (idempotent) — settled on the webhook.
+        $this->folios->recordCheckoutIntent($folio, Money::of($balanceMinor, $currency), $session->paymentIntentId, [
+            'booking_quote_id' => $quote->getKey(),
+            'source' => 'storefront',
+        ]);
+
+        return redirect()->away($session->url);
+    }
+
+    /**
+     * The honest "someone just booked it" redirect — back to checkout carrying the search, never a faked
+     * confirmation and never an overbooking.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    private function soldOutRedirect(Property $property, array $validated, int $adults, int $children): RedirectResponse
+    {
         return redirect()
             ->to(route('booking.checkout', $property->slug).'?'.http_build_query([
                 'room_type_id' => $validated['room_type_id'],
@@ -258,6 +482,17 @@ class BookingEngineController extends Controller
         $reservation = $bookingQuote->convertedReservation;
         abort_if($reservation === null, 404);
 
+        // Honest payment state (never faked). 'paid' → settled (manual, or the Stripe webhook fired);
+        // 'processing' → the guest returned from Stripe but the webhook hasn't settled it yet; 'on_arrival'
+        // → the balance is due at the property. Card-return is signalled by ?paid=1 (success redirect).
+        $payStatus = (string) $reservation->payment_status;
+        $cardReturn = $request->query('paid') === '1';
+        $payment = match (true) {
+            $payStatus === 'paid' => ['label' => 'Payment received', 'note' => 'Paid in full.'],
+            $cardReturn => ['label' => 'Payment processing', 'note' => 'We’re confirming your card payment — you’ll get an email the moment it clears.'],
+            default => ['label' => 'Pay on arrival', 'note' => 'Settle at the property when you check in.'],
+        };
+
         return view('booking.reservation', [
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'reservation' => [
@@ -268,6 +503,7 @@ class BookingEngineController extends Controller
                 'total' => $this->money((int) $reservation->total_minor, (string) $reservation->currency),
                 'email' => (string) $bookingQuote->email,
             ],
+            'payment' => $payment,
         ]);
     }
 
@@ -403,11 +639,43 @@ class BookingEngineController extends Controller
     {
         foreach ($this->engine->search($property, $checkIn, $checkOut, $adults, $children) as $offer) {
             if ((string) $offer['room_type_id'] === $roomTypeId) {
-                return $this->roomOffer($offer);
+                $card = $this->roomOffer($offer);
+                $taxes = Tax::query()->where('property_id', $property->getKey())->get();
+                $fees = Fee::query()->where('property_id', $property->getKey())->get();
+                $persons = max(1, $adults + $children);
+                [$card['grand_total'], $card['grand_total_minor'], $card['fees_note']] = $this->grandTotal($taxes, $fees, $offer, $persons);
+                $card['breakdown'] = $this->breakdownLines($taxes, $fees, $offer, $persons);   // room + fees + taxes, reconciling (#17)
+
+                return $card;
             }
         }
 
         return null;
+    }
+
+    /**
+     * The reconciling price breakdown for the checkout review — one display line per component (room + the
+     * real charged taxes/fees) via the SAME {@see StayEstimator} the folio uses, so what the guest reviews
+     * === what the folio charges to the cent (#17). An inclusive tax is flagged informational (already in room).
+     *
+     * @param  Collection<int, Tax>  $taxes
+     * @param  Collection<int, Fee>  $fees
+     * @param  array<string, mixed>  $offer
+     * @return list<array{label: string, detail: string, amount: string, informational: bool}>
+     */
+    private function breakdownLines(Collection $taxes, Collection $fees, array $offer, int $persons): array
+    {
+        $currency = (string) $offer['currency'];
+        $room = Money::of((int) $offer['total_minor'], $currency);
+        $nights = max(1, (int) $offer['nights']);
+        $estimate = StayEstimator::estimate($taxes, $fees, $room, $nights, $persons, $currency);
+
+        return array_map(fn (array $line): array => [
+            'label' => (string) $line['label'],
+            'detail' => (string) $line['detail'],
+            'amount' => $this->money($line['amount']->amountMinor(), $currency),
+            'informational' => (bool) $line['informational'],
+        ], $estimate['lines']);
     }
 
     /**

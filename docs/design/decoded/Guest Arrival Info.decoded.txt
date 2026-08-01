@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="89d54721-e96c-49ac-a6eb-6299695be2ce"></script>
+
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <style>/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("33382d96-fb9c-4a8c-b01e-a46fe1abd8a5") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("1dce830f-4206-414a-843b-2a5efe3e6075") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("7fe96888-5021-4bfb-8053-4390a40630d8") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("1c38e9d9-7748-473d-9496-117552e80939") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("6187e55e-aa61-48c2-a3be-ae951bde3b3a") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("55620c85-1414-42fc-87d0-04d9a51152bf") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("d9a672f6-6dab-4aa6-876e-eddb41addaa3") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("33382d96-fb9c-4a8c-b01e-a46fe1abd8a5") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("1dce830f-4206-414a-843b-2a5efe3e6075") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("7fe96888-5021-4bfb-8053-4390a40630d8") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("1c38e9d9-7748-473d-9496-117552e80939") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("6187e55e-aa61-48c2-a3be-ae951bde3b3a") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("55620c85-1414-42fc-87d0-04d9a51152bf") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("d9a672f6-6dab-4aa6-876e-eddb41addaa3") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("8409bc29-02ff-43be-966c-fb49fedddfeb") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("039fe45a-730c-4654-b8a8-544ef119e419") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("8409bc29-02ff-43be-966c-fb49fedddfeb") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("039fe45a-730c-4654-b8a8-544ef119e419") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    @keyframes vyFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes vyShimmer { 0% { opacity: .25; transform: translateX(-4%) rotate(28deg); } 50% { opacity: .45; transform: translateX(3%) rotate(28deg); } 100% { opacity: .25; transform: translateX(-4%) rotate(28deg); } }
+    @keyframes vyDrift { 0% { transform: translate(0, 0); } 50% { transform: translate(46px, 28px); } 100% { transform: translate(0, 0); } }
+  </style>
+</helmet>
+
+<div data-screen-label="Guest Arrival Info" style="min-height: 100vh; font-family: Inter, sans-serif; color: #2B2320; background: linear-gradient(135deg, #F6C89B 0%, #F1B896 32%, #EBD9CF 62%, #D9D6D2 100%); position: relative; overflow-x: hidden; box-sizing: border-box;">
+
+  <div style="position: absolute; top: -160px; right: -100px; width: 560px; height: 560px; background: radial-gradient(circle, rgba(255,255,255,.35), transparent 68%); filter: blur(10px); pointer-events: none;"></div>
+  <div style="position: absolute; top: 20%; left: -10%; width: 70%; height: 260px; background: linear-gradient(120deg, rgba(255,240,220,.5), transparent); transform: rotate(28deg); filter: blur(24px); pointer-events: none; animation: vyShimmer 9s ease-in-out infinite;"></div>
+  <sc-if value="{{ motion }}" hint-placeholder-val="{{ true }}"><div style="position: absolute; top: 130px; left: 20%; width: 380px; height: 380px; border-radius: 50%; background: #E8703A; filter: blur(70px); opacity: .5; pointer-events: none; animation: vyDrift 14s ease-in-out infinite;"></div></sc-if>
+  <div style="position: absolute; top: 560px; right: 8%; width: 320px; height: 320px; border-radius: 50%; background: #FBE3CE; filter: blur(70px); opacity: .55; pointer-events: none;"></div>
+
+  <div style="position: relative; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 30px; max-width: 780px; margin: 0 auto; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(140deg, #E8703A, #C2410C); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(194,65,12,.3);"><span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 16px; color: #FFFFFF;">V</span></div>
+      <span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 16px; letter-spacing: -.01em;">Seaside Villas</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+    <a href="Guest Reservation.dc.html" style="font-size: 12.5px; color: #8A8079; font-weight: 500; text-decoration: none;">Villa Coralis · 12–16 Sep</a>
+      <dc-import name="Guest Notif Bell" hint-size="42px,42px"></dc-import>
+      <dc-import name="Guest Account Menu" hint-size="130px,40px"></dc-import>
+    </div>
+  </div>
+
+  <main style="position: relative; z-index: 2; max-width: 780px; margin: 0 auto; padding: 10px 30px 70px; box-sizing: border-box;">
+
+    <div style="animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) both;">
+      <div style="font-size: 12.5px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; color: #B4400F;">Arrival info</div>
+      <h1 style="margin: 6px 0 0; font-family: Sora, sans-serif; font-weight: 600; font-size: 32px; letter-spacing: -.02em; line-height: 1.1;">Welcome to Villa Coralis, Lukas</h1>
+      <p style="margin: 8px 0 0; font-size: 14.5px; color: #8A8079; line-height: 1.5; text-wrap: pretty;">Everything you need for a smooth arrival on Friday. Check-in is any time after 15:00 — the door code below is live from then.</p>
+      <a href="Guest Arrival Info PDF.dc.html" style="display: inline-flex; align-items: center; gap: 7px; margin-top: 14px; padding: 9px 16px; border-radius: 30px; background: rgba(255,252,248,.6); backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,.75); box-shadow: inset 0 1px 0 rgba(255,255,255,.65); color: #2B2320; font-family: Inter, sans-serif; font-size: 12.5px; font-weight: 500; text-decoration: none;" style-hover="background: rgba(255,255,255,.78);">
+        <svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M4 21h16"></path></svg>
+        Save printable guide
+      </a>
+    </div>
+
+    <!-- essentials: door + wifi -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 24px;">
+      <div style="background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.75); border-radius: 20px; box-shadow: 0 14px 40px rgba(150,90,50,.14), inset 0 1px 0 rgba(255,255,255,.65); padding: 20px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both;">
+        <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 14px;">
+          <span style="width: 32px; height: 32px; border-radius: 9px; background: rgba(217,102,46,.13); color: #B4400F; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><circle cx="12" cy="15.5" r="1.2"></circle></svg></span>
+          <span style="font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089;">Door code</span>
+        </div>
+        <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 38px; letter-spacing: .12em; color: #2B2320; font-variant-numeric: tabular-nums;">4 8 2 1</div>
+        <div style="font-size: 12px; color: #A69A92; margin-top: 6px; line-height: 1.45;">Keypad on the blue front door — press <span style="color: #8A8079; font-weight: 500;">✳</span> then the code.</div>
+        <button sc-camel-on-click="{{ copyDoor }}" style="margin-top: 14px; width: 100%; padding: 10px 0; border-radius: 30px; background: {{ doorBtnBg }}; border: {{ doorBtnBd }}; color: {{ doorBtnCo }}; font-family: Inter, sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; transition: background .14s;">
+          <svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ doorBtnIcon }}"></path></svg>
+          {{ doorBtnLabel }}
+        </button>
+      </div>
+
+      <div style="background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.75); border-radius: 20px; box-shadow: 0 14px 40px rgba(150,90,50,.14), inset 0 1px 0 rgba(255,255,255,.65); padding: 20px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .12s both;">
+        <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 14px;">
+          <span style="width: 32px; height: 32px; border-radius: 9px; background: rgba(217,102,46,.13); color: #B4400F; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0"></path><path d="M2 8.5a15 15 0 0 1 20 0"></path><path d="M8.5 16a5 5 0 0 1 7 0"></path><circle cx="12" cy="19.5" r="1"></circle></svg></span>
+          <span style="font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089;">Wi-Fi</span>
+        </div>
+        <div style="font-size: 12px; color: #A69A92;">Network</div>
+        <div style="font-family: Sora, sans-serif; font-weight: 500; font-size: 17px; margin-top: 1px;">SeasideVillas-Coralis</div>
+        <div style="font-size: 12px; color: #A69A92; margin-top: 10px;">Password</div>
+        <div style="font-family: Sora, sans-serif; font-weight: 500; font-size: 17px; margin-top: 1px; letter-spacing: .01em;">coral-sunset-42</div>
+        <button sc-camel-on-click="{{ copyWifi }}" style="margin-top: 14px; width: 100%; padding: 10px 0; border-radius: 30px; background: {{ wifiBtnBg }}; border: {{ wifiBtnBd }}; color: {{ wifiBtnCo }}; font-family: Inter, sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; transition: background .14s;">
+          <svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ wifiBtnIcon }}"></path></svg>
+          {{ wifiBtnLabel }}
+        </button>
+      </div>
+    </div>
+
+    <!-- quick facts row -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-top: 16px;">
+      <div style="background: rgba(255,252,248,.55); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.7); border-radius: 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.6); padding: 15px 17px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .16s both;">
+        <div style="font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #9C9089; margin-bottom: 5px;">Check-in</div>
+        <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 18px; font-variant-numeric: tabular-nums;">From 15:00</div>
+      </div>
+      <div style="background: rgba(255,252,248,.55); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.7); border-radius: 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.6); padding: 15px 17px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .2s both;">
+        <div style="font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #9C9089; margin-bottom: 5px;">Check-out</div>
+        <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 18px; font-variant-numeric: tabular-nums;">By 11:00</div>
+      </div>
+      <a href="#" style="text-decoration: none; color: inherit; background: rgba(255,252,248,.55); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.7); border-radius: 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.6); padding: 15px 17px; display: block; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .24s both;" style-hover="background: rgba(255,255,255,.72);">
+        <div style="font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #9C9089; margin-bottom: 5px;">Address</div>
+        <div style="font-size: 13.5px; font-weight: 500; line-height: 1.35;">Rua do Mar 14, Faro</div>
+        <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; color: #C2410C; margin-top: 4px;">Get directions<svg width="11" height="11" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></div>
+      </a>
+    </div>
+
+    <!-- house guide accordion -->
+    <div style="margin-top: 30px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .26s both;">
+      <h2 style="margin: 0 0 14px; font-family: Sora, sans-serif; font-weight: 600; font-size: 20px; letter-spacing: -.01em;">House guide</h2>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <sc-for list="{{ guide }}" as="s" hint-placeholder-count="5">
+          <div style="background: rgba(255,252,248,.58); backdrop-filter: blur(22px) saturate(1.15); border: {{ s.cardBorder }}; border-radius: 16px; box-shadow: 0 8px 26px rgba(150,90,50,.1), inset 0 1px 0 rgba(255,255,255,.6); overflow: hidden;">
+            <button sc-camel-on-click="{{ s.toggle }}" style="display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; padding: 15px 18px; background: transparent; border: none; cursor: pointer; font-family: Inter, sans-serif;">
+              <span style="width: 34px; height: 34px; border-radius: 10px; background: {{ s.iconBg }}; color: {{ s.iconCo }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .16s;"><svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ s.icon }}"></path></svg></span>
+              <span style="flex: 1; min-width: 0; font-size: 14.5px; font-weight: 500; color: #2B2320;">{{ s.title }}</span>
+              <svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="#A69A92" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; transform: {{ s.chev }}; transition: transform .18s;"><path d="M6 9l6 6 6-6"></path></svg>
+            </button>
+            <sc-if value="{{ s.open }}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 0 18px 17px 65px; font-size: 13px; color: #6B615A; line-height: 1.6; text-wrap: pretty;">{{ s.body }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- checkout checklist -->
+    <div style="margin-top: 24px; background: linear-gradient(160deg, #3A2E27 0%, #251C17 100%); border-radius: 20px; box-shadow: 0 10px 30px rgba(60,30,10,.28); padding: 22px; position: relative; overflow: hidden; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .3s both;">
+      <div style="position: absolute; top: -30px; right: -20px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(232,112,58,.35), transparent 70%); filter: blur(30px); pointer-events: none;"></div>
+      <div style="position: relative;">
+        <div style="font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #B9ABA0; margin-bottom: 4px;">Before you leave · by 11:00</div>
+        <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 18px; color: #FFFFFF; margin-bottom: 14px;">A quick checkout</div>
+        <div style="display: flex; flex-direction: column; gap: 11px;">
+          <sc-for list="{{ checkout }}" as="c" hint-placeholder-count="4">
+            <div style="display: flex; align-items: flex-start; gap: 11px;">
+              <span style="width: 20px; height: 20px; border-radius: 6px; background: rgba(232,112,58,.2); color: #F0A57A; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;"><svg width="12" height="12" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg></span>
+              <span style="font-size: 13px; color: #E8DED6; line-height: 1.5;">{{ c }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- nearby -->
+    <div style="margin-top: 30px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .34s both;">
+      <h2 style="margin: 0 0 14px; font-family: Sora, sans-serif; font-weight: 600; font-size: 20px; letter-spacing: -.01em;">Marco's local picks</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+        <sc-for list="{{ nearby }}" as="n" hint-placeholder-count="3">
+          <div style="background: rgba(255,252,248,.58); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.72); border-radius: 18px; box-shadow: 0 10px 30px rgba(150,90,50,.1), inset 0 1px 0 rgba(255,255,255,.6); padding: 16px 17px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px;">
+              <span style="width: 34px; height: 34px; border-radius: 10px; background: {{ n.thumb }}; color: rgba(255,255,255,.92); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.icon }}"></path></svg></span>
+              <span style="font-size: 11px; font-weight: 500; color: #B4400F; background: rgba(217,102,46,.12); padding: 3px 9px; border-radius: 30px; white-space: nowrap;">{{ n.dist }}</span>
+            </div>
+            <div style="font-family: Sora, sans-serif; font-weight: 500; font-size: 14.5px;">{{ n.name }}</div>
+            <div style="font-size: 12px; color: #A69A92; margin-top: 3px; line-height: 1.45;">{{ n.desc }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- help -->
+    <div style="margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; background: rgba(255,252,248,.58); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.72); border-radius: 20px; box-shadow: 0 14px 40px rgba(150,90,50,.12), inset 0 1px 0 rgba(255,255,255,.6); padding: 18px 20px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .38s both;">
+      <div style="display: flex; align-items: center; gap: 13px; min-width: 0;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 14px; font-weight: 500; flex-shrink: 0;">MR</div>
+        <div style="min-width: 0;">
+          <div style="font-size: 14px; font-weight: 500;">Need anything? Message Marco</div>
+          <div style="font-size: 12px; color: #A69A92; margin-top: 1px;">Your host · usually replies in ~10 min · emergency +351 91 244 1180</div>
+        </div>
+      </div>
+      <a href="Guest Messages.dc.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 30px; background: linear-gradient(140deg, #E8703A, #C2410C); color: #FFFFFF; font-family: Inter, sans-serif; font-size: 13px; font-weight: 500; text-decoration: none; box-shadow: 0 6px 18px rgba(194,65,12,.35); white-space: nowrap; flex-shrink: 0; transition: transform .14s;" style-hover="transform: translateY(-2px);">
+        <svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.2-.6L3 21l1.7-5.1a8.4 8.4 0 1 1 16.3-4.4z"></path></svg>
+        Message
+      </a>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;motion&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Motion&quot;}}">
+class Component extends DCLogic {
+  state = { copied: '', open: 'getin' };
+
+  copy(id, text) {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text); } catch (e) {}
+    this.setState({ copied: id });
+    clearTimeout(this._c);
+    this._c = setTimeout(() => this.setState({ copied: '' }), 1800);
+  }
+
+  renderVals() {
+    const checkIcon = 'M4.5 12.5 9.5 17.5 19.5 7';
+    const copyIcon = 'M9 9h10v10H9zM5 15V5h10';
+    const sections = [
+      { id: 'getin', title: 'Getting in', icon: 'M15 7a4 4 0 1 0-4 4M13 11l-8 8v2h2l1-1h2v-2h2l1-1z', body: 'The keypad is on the blue front door. Press ✳, enter 4821, then #. There\u2019s a backup key in the lockbox to the right of the door — same code. The door sticks slightly in warm weather; a firm push does it.' },
+      { id: 'climate', title: 'Heating & air conditioning', icon: 'M12 3v3M18.4 5.6l-2.1 2.1M21 12h-3M5.6 5.6l2.1 2.1M3 12h3M7 21c0-3 2.2-5.5 5-5.5S17 18 17 21z', body: 'The white remote on the living-room wall controls the AC. 22–24°C is comfortable and quiet. Please switch it off when you head out and close the balcony door while it runs.' },
+      { id: 'kitchen', title: 'Kitchen & appliances', icon: 'M8 3v6a3 3 0 0 0 6 0V3M11 3v18M18 3c-1.5 1-2 3-2 5v4h3V3z', body: 'Coffee pods are in the top drawer, dishwasher tablets under the sink. The oven runs a little hot — knock 10°C off recipes. Bottled water and a welcome bottle of vinho verde are in the fridge, on us.' },
+      { id: 'waste', title: 'Trash & recycling', icon: 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14', body: 'General waste in the kitchen bin; recycling bags (yellow = plastic, blue = paper, green = glass) live in the utility cupboard. Collection is Tuesday and Friday — leave bins by the gate the night before.' },
+      { id: 'pool', title: 'Pool & garden', icon: 'M2 18c1.5 0 1.5-1.5 3-1.5S8 18 9.5 18 11 16.5 12.5 16.5 14 18 15.5 18 17 16.5 18.5 16.5 20 18 22 18M2 13c1.5 0 1.5-1.5 3-1.5S8 13 9.5 13M12 5a2 2 0 1 1 4 0v9', body: 'The shared pool is open 08:00–22:00. No glass poolside, and a quick shower before swimming keeps it lovely for everyone. Sun loungers and a parasol are in the garden shed (unlocked).' }
+    ];
+    const guide = sections.map((s) => {
+      const on = this.state.open === s.id;
+      return {
+        title: s.title, icon: s.icon, body: s.body, open: on,
+        toggle: () => this.setState((st) => ({ open: st.open === s.id ? '' : s.id })),
+        chev: on ? 'rotate(180deg)' : 'rotate(0deg)',
+        cardBorder: on ? '1px solid rgba(232,112,58,.4)' : '1px solid rgba(255,255,255,.72)',
+        iconBg: on ? 'linear-gradient(140deg, #E8703A, #C2410C)' : 'rgba(120,70,40,.08)',
+        iconCo: on ? '#FFFFFF' : '#8A8079'
+      };
+    });
+    const checkout = [
+      'Pop used towels in the bath and strip nothing else — we\u2019ll handle the linen.',
+      'Start the dishwasher and empty the kitchen bin into the gate bins.',
+      'Close all windows and the balcony door, and switch off the AC.',
+      'Drop the key back in the lockbox and spin the dial — that\u2019s you checked out!'
+    ];
+    const nearby = [
+      { name: 'O Mercado', desc: 'Fresh seafood & daily specials, right on the marina.', dist: '4 min walk', thumb: 'linear-gradient(140deg, #F0A57A, #E8703A)', icon: 'M3 3h18v5a4 4 0 0 1-8 0 4 4 0 0 1-8 0zM5 12v9h14v-9' },
+      { name: 'Praia de Faro', desc: 'The long sandy beach — best at golden hour.', dist: '12 min drive', thumb: 'linear-gradient(140deg, #F3B98E, #E8875A)', icon: 'M12 3a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9zM3 16h18M3 20h18' },
+      { name: 'Mercado Municipal', desc: 'Morning market — bread, fruit, olives, flowers.', dist: '6 min walk', thumb: 'linear-gradient(140deg, #EDA378, #D9662E)', icon: 'M3 9l1-5h16l1 5M4 9h16v11H4zM9 20v-6h6v6' }
+    ];
+    return {
+      guide, checkout, nearby,
+      copyDoor: () => this.copy('door', '4821'),
+      copyWifi: () => this.copy('wifi', 'coral-sunset-42'),
+      doorBtnLabel: this.state.copied === 'door' ? 'Copied' : 'Copy code',
+      doorBtnIcon: this.state.copied === 'door' ? checkIcon : copyIcon,
+      doorBtnBg: this.state.copied === 'door' ? 'rgba(217,102,46,.13)' : 'rgba(255,255,255,.6)',
+      doorBtnBd: this.state.copied === 'door' ? '1px solid rgba(232,112,58,.4)' : '1px solid rgba(120,70,40,.14)',
+      doorBtnCo: this.state.copied === 'door' ? '#B4400F' : '#8A8079',
+      wifiBtnLabel: this.state.copied === 'wifi' ? 'Copied' : 'Copy password',
+      wifiBtnIcon: this.state.copied === 'wifi' ? checkIcon : copyIcon,
+      wifiBtnBg: this.state.copied === 'wifi' ? 'rgba(217,102,46,.13)' : 'rgba(255,255,255,.6)',
+      wifiBtnBd: this.state.copied === 'wifi' ? '1px solid rgba(232,112,58,.4)' : '1px solid rgba(120,70,40,.14)',
+      wifiBtnCo: this.state.copied === 'wifi' ? '#B4400F' : '#8A8079'
+    };
+  }
+}
+</script>
+
+
+</body></html>

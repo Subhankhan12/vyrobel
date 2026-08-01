@@ -14,6 +14,7 @@
             <div class="vy-summary-line"><span class="vy-sl-label">Check-in</span><span class="vy-sl-val">{{ $reservation['check_in'] }}</span></div>
             <div class="vy-summary-line"><span class="vy-sl-label">Check-out</span><span class="vy-sl-val">{{ $reservation['check_out'] }}</span></div>
             <div class="vy-summary-line"><span class="vy-sl-label">Nights</span><span class="vy-sl-val">{{ $reservation['nights'] }}</span></div>
+            <div class="vy-summary-line"><span class="vy-sl-label">Payment</span><span class="vy-sl-val">{{ $payment['label'] }}</span></div>
             <div class="vy-summary-total">
                 <span class="vy-st-label">Total</span>
                 <span class="vy-st-val">{{ $reservation['total'] }}</span>
@@ -21,7 +22,7 @@
         </div>
 
         <div class="vy-deferred-note" style="justify-content:center; margin-top:16px;">
-            A confirmation will be sent to {{ $reservation['email'] }} · settle at the property on arrival.
+            A confirmation is on its way to {{ $reservation['email'] }} · {{ $payment['note'] }}
         </div>
         <div style="margin-top:18px;"><a class="vy-btn vy-btn--accent" href="{{ route('booking.browse', $property['slug']) }}">Back to {{ $property['name'] }}</a></div>
     </div>

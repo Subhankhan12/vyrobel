@@ -13,6 +13,8 @@
 @props([
     'property' => ['name' => 'Stay', 'type' => ''],
     'title' => '',
+    'head' => null,
+    'nav' => null,
 ])
 <!DOCTYPE html>
 <html lang="en">
@@ -64,24 +66,28 @@
         body.vy-body {
             font-family: var(--vy-sans); color: var(--vy-ink); font-size: 16px; line-height: 1.45;
             -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; min-height: 100vh;
-            background:
-                radial-gradient(circle at 82% 4%, rgba(255, 255, 255, 0.4), transparent 60%),
-                radial-gradient(circle at 10% 96%, rgba(255, 224, 200, 0.4), transparent 55%),
-                linear-gradient(120deg, rgba(255, 240, 220, 0.5), transparent 55%),
-                linear-gradient(180deg, #FBF3EC 0%, #F6EBE2 100%);
+            /* Guest-portal peach → sand, matching the decoded wireframes. */
+            background: linear-gradient(135deg, #F6C89B 0%, #F1B896 32%, #EBD9CF 62%, #D9D6D2 100%);
             background-attachment: fixed;
         }
         a { color: inherit; text-decoration: none; }
 
         @keyframes vyFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes vyDrift { 0% { transform: translate(0, 0); } 50% { transform: translate(40px, 24px); } 100% { transform: translate(0, 0); } }
+        @keyframes vyShimmer { 0%, 100% { opacity: .5; } 50% { opacity: .85; } }
         .vy-fade { opacity: 0; animation: vyFadeUp .6s cubic-bezier(.2, .7, .2, 1) forwards; }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .vy-fade { opacity: 1; } }
 
+        /* Ambient glow blobs (matching the wireframes) — decorative, motion-gated. */
         body.vy-body::before {
-            content: ""; position: fixed; inset: -20% -10% auto auto; width: 44vw; height: 44vw;
-            background: radial-gradient(circle, rgba(255, 210, 170, 0.45), transparent 70%);
-            filter: blur(10px); z-index: 0; pointer-events: none; animation: vyDrift 28s ease-in-out infinite;
+            content: ""; position: fixed; inset: -160px -100px auto auto; width: 560px; height: 560px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.35), transparent 68%);
+            filter: blur(10px); z-index: 0; pointer-events: none;
+        }
+        body.vy-body::after {
+            content: ""; position: fixed; top: 150px; left: 20%; width: 380px; height: 380px; border-radius: 50%;
+            background: rgba(232, 112, 58, 0.5); filter: blur(70px); z-index: 0; pointer-events: none;
+            animation: vyDrift 14s ease-in-out infinite;
         }
 
         /* Storefront header */
@@ -225,6 +231,7 @@
             main { padding: 22px 16px 56px; }
         }
     </style>
+    {{ $head }}
 </head>
 <body class="vy-body">
     <header class="vy-store-header">
@@ -235,7 +242,7 @@
                 @if (($property['type'] ?? '') !== '')<span class="vy-store-type">{{ $property['type'] }}</span>@endif
             </span>
         </div>
-        <span class="vy-store-note">Book direct</span>
+        @if ($nav !== null){{ $nav }}@else<span class="vy-store-note">Book direct</span>@endif
     </header>
 
     <main>

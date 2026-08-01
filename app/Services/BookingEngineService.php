@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Exceptions\Booking\BookingException;
 use App\Models\BookingQuote;
+use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Payment;
 use App\Models\Property;
@@ -13,6 +14,8 @@ use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Reservation;
 use App\Models\RoomType;
+use App\Support\Folio\FolioTotals;
+use App\Support\Folio\PropertyCharges;
 use App\Support\Money\Money;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
@@ -123,16 +126,24 @@ class BookingEngineService
      * Convert a held quote into a real booking. Routes THROUGH AssignmentService (source=direct),
      * which re-checks availability under its lock — the advisory hold guaranteed nothing. If the
      * seat is gone, returns ['status' => 'unavailable'] (never overbooks — direct rejects when
-     * full). On success: seats, posts the room charge + payment through FolioService, and marks the
-     * quote converted. The booking's domain events drive the Step 3 ARI push outward.
+     * full). On success: seats, posts the room charge PLUS the property's real non-optional fees +
+     * taxes (so the folio total is the TRUE total — #17: the shown grand total incl. the cleaning
+     * fee === the folio total, never a hardcoded €45), then (when $takePayment) settles the FULL
+     * folio balance through FolioService, and marks the quote converted. The booking's domain events
+     * drive the Step 3 ARI push outward.
+     *
+     * ⚠️ $takePayment=false skips the inline charge and leaves the folio balance DUE — used by the
+     * storefront's TEST-MODE hosted-Stripe rail (the controller then creates a Checkout session for
+     * the balance and fulfils on the webhook). The default (true) keeps every existing caller intact:
+     * the JSON book endpoint + the certified engine tests record a real, full-balance payment inline.
      *
      * @param  array{email?: string, first_name?: string, last_name?: string}  $guestData
-     * @return array{status: string, reservation: ?Reservation, payment: ?Payment, client_secret: ?string}
+     * @return array{status: string, reservation: ?Reservation, payment: ?Payment, folio: ?Folio, client_secret: ?string}
      */
-    public function book(BookingQuote $quote, string $paymentToken, array $guestData): array
+    public function book(BookingQuote $quote, string $paymentToken, array $guestData, bool $takePayment = true): array
     {
         if ($quote->status === BookingQuote::STATUS_CONVERTED) {
-            return ['status' => 'already_converted', 'reservation' => $quote->convertedReservation, 'payment' => null, 'client_secret' => null];
+            return ['status' => 'already_converted', 'reservation' => $quote->convertedReservation, 'payment' => null, 'folio' => null, 'client_secret' => null];
         }
 
         $guest = Guest::create([
@@ -174,12 +185,29 @@ class BookingEngineService
             ], $lines);
         } catch (BookingException) {
             // Someone took the last unit between hold and book — fail gracefully, never overbook.
-            return ['status' => 'unavailable', 'reservation' => null, 'payment' => null, 'client_secret' => null];
+            return ['status' => 'unavailable', 'reservation' => null, 'payment' => null, 'folio' => null, 'client_secret' => null];
         }
 
         $folio = $this->folios->openFolio($reservation);
         $this->folios->postCharge($folio, 'room', 'Room ('.$quote->reference.')', $total);
-        $payment = $this->folios->recordPayment($folio, $total, $paymentToken, ['booking_quote_id' => $quote->getKey()]);
+
+        // #17 — post the property's REAL non-optional fees (e.g. the cleaning fee) + taxes onto the
+        // folio, mirroring the operator New Reservation. recompute() re-derives total_minor from the
+        // ledger, so the folio total is the TRUE total; the storefront shows exactly this (no €45 stub,
+        // no fee/tax silently dropped). A property with no fees/taxes posts nothing (harmless no-op).
+        $nights = $this->nights($checkIn, $checkOut);
+        $persons = max(1, (int) $quote->adults + (int) $quote->children);
+        PropertyCharges::postFees($this->folios, $folio, (string) $quote->property_id, $total, $nights, $persons, (string) $quote->currency);
+        PropertyCharges::postTaxes($this->folios, $folio, (string) $quote->property_id, $total, $nights, $persons, (string) $quote->currency);
+
+        // The TRUE amount owed after fees + taxes (nothing paid yet → balance == total).
+        $balanceMinor = FolioTotals::for($folio->refresh())['balance_minor'];
+
+        // Settle the FULL balance inline unless the caller defers to the hosted-Stripe rail. Paying the
+        // full balance (not just the room) keeps payment_status == 'paid' now that fees/taxes are posted.
+        $payment = $takePayment
+            ? $this->folios->recordPayment($folio, Money::of($balanceMinor, (string) $quote->currency), $paymentToken, ['booking_quote_id' => $quote->getKey()])
+            : null;
 
         $quote->update([
             'status' => BookingQuote::STATUS_CONVERTED,
@@ -187,12 +215,13 @@ class BookingEngineService
         ]);
 
         /** @var array<string, mixed> $paymentMetadata */
-        $paymentMetadata = $payment->metadata ?? [];
+        $paymentMetadata = $payment instanceof Payment ? ($payment->metadata ?? []) : [];
 
         return [
             'status' => 'confirmed',
             'reservation' => $reservation->refresh(),
             'payment' => $payment,
+            'folio' => $folio->refresh(),
             'client_secret' => is_string($paymentMetadata['client_secret'] ?? null) ? $paymentMetadata['client_secret'] : null,
         ];
     }

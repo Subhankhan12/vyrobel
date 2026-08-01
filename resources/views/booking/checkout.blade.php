@@ -7,6 +7,8 @@
         'check_in' => $search['check_in'], 'check_out' => $search['check_out'],
         'adults' => $search['adults'], 'children' => $search['children'],
     ]));
+    // The wired rail (founder decision D1): 'stripe' → test-mode hosted Checkout; else pay-on-arrival.
+    $payByCard = (string) config('services.payments.gateway') === 'stripe';
 @endphp
 <x-public.shell :property="$property" title="Checkout">
 
@@ -52,14 +54,21 @@
                         <div class="vy-full"><label class="vy-field-label" for="email">Email</label><input class="vy-input" type="email" id="email" name="email" value="{{ old('email') }}" required></div>
                     </div>
 
-                    {{-- Payment: the wired method is pay-on-arrival (manual gateway) recorded for real through
-                         FolioService. Secure card payment (Stripe) is the deferred rail — no fake card field. --}}
-                    <div class="vy-pay-note">
-                        <span class="vy-soon-tag">Pay on arrival</span>
-                        <span>Reserve now and settle at the property. Secure card payment is coming soon — no card is collected here.</span>
-                    </div>
-
-                    <x-busy-btn class="vy-btn vy-btn--accent" style="width:100%; margin-top:16px;" busy-label="Reserving…">Confirm reservation</x-busy-btn>
+                    {{-- Payment (D1): card → the certified TEST-MODE hosted Stripe Checkout (no PAN on us, SAQ A;
+                         fulfils on the webhook). Otherwise pay-on-arrival, recorded for real via FolioService. --}}
+                    @if ($payByCard)
+                        <div class="vy-pay-note">
+                            <span class="vy-soon-tag">Secure card</span>
+                            <span>You'll be taken to our secure payment page to pay by card — we never see your card number. <strong>Test mode:</strong> no real charge is taken until go-live.</span>
+                        </div>
+                        <x-busy-btn class="vy-btn vy-btn--accent" style="width:100%; margin-top:16px;" busy-label="Redirecting…">Reserve &amp; pay {{ $offer['grand_total'] }}</x-busy-btn>
+                    @else
+                        <div class="vy-pay-note">
+                            <span class="vy-soon-tag">Pay on arrival</span>
+                            <span>Reserve now and settle at the property — no card is collected here.</span>
+                        </div>
+                        <x-busy-btn class="vy-btn vy-btn--accent" style="width:100%; margin-top:16px;" busy-label="Reserving…">Confirm reservation</x-busy-btn>
+                    @endif
                     <div class="vy-deferred-note" style="margin-top:10px;">Your room is only reserved once you confirm — availability is re-checked at that moment.</div>
                 </form>
             </div>
@@ -74,13 +83,19 @@
                         · {{ $offer['nights'] }} {{ \Illuminate\Support\Str::plural('night', $offer['nights']) }}
                     </div>
                 </div>
+                {{-- The RECONCILING breakdown (room + real cleaning fee + charged taxes) — via StayEstimator,
+                     so this === the folio the guest pays to the cent (#17). An inclusive tax is 'included'. --}}
                 <div style="margin-top:14px;">
-                    <div class="vy-summary-line"><span class="vy-sl-label">{{ $offer['per_night'] }} × {{ $offer['nights'] }} {{ \Illuminate\Support\Str::plural('night', $offer['nights']) }}</span><span class="vy-sl-val">{{ $offer['total'] }}</span></div>
-                    <div class="vy-summary-line"><span class="vy-sl-label">{{ $search['adults'] }} {{ \Illuminate\Support\Str::plural('adult', $search['adults']) }}@if ($search['children'] > 0), {{ $search['children'] }} {{ \Illuminate\Support\Str::plural('child', $search['children']) }}@endif</span><span class="vy-sl-val">{{ $offer['available'] }} left</span></div>
+                    @foreach ($offer['breakdown'] as $line)
+                        <div class="vy-summary-line">
+                            <span class="vy-sl-label">{{ $line['label'] }}{{ $line['detail'] !== '' ? ' · '.$line['detail'] : '' }}</span>
+                            <span class="vy-sl-val">{{ $line['informational'] ? 'included' : $line['amount'] }}</span>
+                        </div>
+                    @endforeach
                 </div>
                 <div class="vy-summary-total">
                     <span class="vy-st-label">Total</span>
-                    <span class="vy-st-val">{{ $offer['total'] }}</span>
+                    <span class="vy-st-val">{{ $offer['grand_total'] }}</span>
                 </div>
             </div>
         </div>
