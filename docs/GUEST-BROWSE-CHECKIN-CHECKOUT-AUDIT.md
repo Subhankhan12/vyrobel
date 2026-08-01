@@ -1,5 +1,8 @@
 # Guest Portal — Browse · Check-in · Checkout — exact-match audit (PHASE 1, read-only)
 
+> **✅ BUILT & SHIPPED (2026-08-01, invariants #116–117; `DECISIONS.md`).** All three pages rebuilt exact-match on REAL data: **Browse** = a new multi-property per-org landing `/stay/{organization}` (`c13b1d5`, D1) · **Checkout** restyle + real gated wallet toggle (`4f833f6`, D3/D4) · **Check-in** 4-step wizard + REAL encrypted ID vault + 30-day purge (`2ec43ff`, D2). Every refusal below held (no fabricated towns/counts/"369 stays"; no raw PAN / on-page Apple Pay / "charged at check-in"; ID captured-not-verified, register-only, owner-never #28; door code by email, SMS deferred). Suite green (`BookingImportTest` flake only); PHPStan L5 (0); Pint clean; all surfaces browser-verified.
+
+
 **Scope:** three decoded guest wireframes — **Browse** (storefront landing), **Check-in** (online, ⚠️ sensitive ID), **Checkout** (payment step) — matched element-by-element against the REAL backend. Classify each element **REAL-NOW / BUILD / NOT-BUILDABLE**, map the reuse, surface the honesty cruxes + founder decisions, then **PAUSE**.
 
 **Method:** the 3 `__bundler` bundles decoded (`docs/design/decoded/*.decoded.txt`), then a 3-agent read-only investigation, cross-checked by direct reading of `BookingEngineController`/`Service`, `StayEstimator`/`FolioTotals`, `GuestCheckinController`, `FrontDeskService`, `GuestDocument`/`Document`/`Media` + the private disk, `GuestWalletService` + the operator credit-apply, `ReviewRating`, `ArrivalPack`, `CancellationPolicy`, `PropertyPolicy`, the demo seed.
