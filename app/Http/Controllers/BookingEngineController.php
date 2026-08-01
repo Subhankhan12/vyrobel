@@ -21,6 +21,7 @@ use App\Services\GuestWalletService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
+use App\Support\Reservations\CancellationPolicy;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
 use Carbon\CarbonImmutable;
@@ -314,10 +315,30 @@ class BookingEngineController extends Controller
         $currency = (string) $property->currency;
         $walletMinor = $guest instanceof Guest ? app(GuestWalletService::class)->spendableMinor($guest) : 0;
 
+        // Real free-cancellation deadline from the property's policy + the proposed check-in (honest fallback when
+        // the property has no such policy — never a fabricated "14 days"); the SAME reading the booked surfaces use.
+        $freeCancel = ($checkIn !== null)
+            ? CancellationPolicy::freeUntilForCheckIn((string) $property->getKey(), $checkIn)?->format('j M')
+            : null;
+
+        // The wallet card shows the guest's REAL spendable balance + the amount that WOULD apply (capped at what's
+        // owed) + the net total after — so the inline (no-Alpine) toggle preview reconciles with the server-side
+        // deduction to the cent (#17). Only for a signed-in guest with a real balance AND a priced offer.
+        $grandMinor = (int) ($offer['grand_total_minor'] ?? 0);
+        $applyMinor = min($walletMinor, $grandMinor);
+        $wallet = ($walletMinor > 0 && $offer !== null) ? [
+            'minor' => $walletMinor,
+            'display' => $this->money($walletMinor, $currency),
+            'apply' => $applyMinor,
+            'apply_display' => $this->money($applyMinor, $currency),
+            'net_display' => $this->money(max(0, $grandMinor - $applyMinor), $currency),
+        ] : null;
+
         return view('booking.checkout', [
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'offer' => $offer,
-            'wallet' => $walletMinor > 0 ? ['minor' => $walletMinor, 'display' => $this->money($walletMinor, $currency)] : null,
+            'wallet' => $wallet,
+            'freeCancel' => $freeCancel,
             'search' => [
                 'room_type_id' => $roomTypeId,
                 'check_in' => $checkIn,

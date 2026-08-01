@@ -1,7 +1,10 @@
-{{-- Public checkout — review + guest details (design pass · Booking Screen 3, step 1). PUBLIC,
-     server-rendered. The price is REAL (certified search path). NO inventory is written here — the
-     advisory hold + the booking happen on the CSRF-protected POST below (which routes through
-     AssignmentService + FolioService). --}}
+{{-- Public checkout — review + guest details (design pass · Guest Checkout wireframe). PUBLIC,
+     server-rendered. The price is REAL (certified search path) and reconciles to the folio to the
+     cent (#17). NO inventory is written here — the booking happens on the CSRF-protected POST, which
+     routes through AssignmentService + FolioService. Honesty (audit D4): NO raw PAN / on-page Apple
+     Pay (SAQ A → the certified hosted Stripe redirect); NO "won't be charged until check-in". The
+     wallet-credit toggle is REAL (D3) — a signed-in guest's spendable balance, capped at what's owed,
+     genuinely deducted on submit; a tiny inline preview (guest realm has no Alpine) reconciles with it. --}}
 @php
     $back = http_build_query(array_filter([
         'check_in' => $search['check_in'], 'check_out' => $search['check_out'],
@@ -9,8 +12,72 @@
     ]));
     // The wired rail (founder decision D1): 'stripe' → test-mode hosted Checkout; else pay-on-arrival.
     $payByCard = (string) config('services.payments.gateway') === 'stripe';
+    $fmtDate = fn (?string $d): string => $d ? \Illuminate\Support\Carbon::parse($d)->format('D j M') : '';
+    $guests = (int) $search['adults'] + (int) $search['children'];
 @endphp
 <x-public.shell :property="$property" title="Checkout">
+    <x-slot:head>
+        <style>
+            .vy-co-h1 { margin: 0 0 22px; font-family: var(--vy-display); font-weight: 600; font-size: 30px; letter-spacing: -0.02em; }
+            .vy-co-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; align-items: start; }
+            .vy-co-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+            .vy-co-card { background: rgba(255, 252, 248, 0.6); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); border-radius: 20px; box-shadow: 0 14px 40px rgba(150, 90, 50, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.65); padding: 22px; }
+            .vy-co-h2 { margin: 0 0 14px; font-family: var(--vy-display); font-weight: 500; font-size: 16px; }
+            .vy-co-fl { font-size: 10.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #9c9089; margin-bottom: 6px; }
+            .vy-co-in { width: 100%; box-sizing: border-box; border: 1px solid rgba(120, 70, 40, 0.14); background: rgba(255, 255, 255, 0.75); border-radius: 13px; padding: 11px 14px; font-family: var(--vy-sans); font-size: 13.5px; color: var(--vy-ink); outline: none; }
+            .vy-co-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+            .vy-co-secure { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--vy-muted); font-weight: 500; }
+
+            .vy-co-pay-brands { display: inline-flex; gap: 5px; }
+            .vy-co-pay-brands span { width: 30px; height: 20px; border-radius: 4px; }
+            .vy-co-note { font-size: 11.5px; color: var(--vy-muted); margin-top: 12px; display: flex; align-items: flex-start; gap: 6px; line-height: 1.45; }
+
+            .vy-co-hero { display: flex; gap: 13px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid rgba(120, 70, 40, 0.12); }
+            .vy-co-hero-ic { width: 62px; height: 62px; border-radius: 14px; background: linear-gradient(140deg, #f3b98e, #e8875a); display: grid; place-items: center; color: rgba(255, 255, 255, 0.9); flex-shrink: 0; }
+            .vy-co-hero-name { font-family: var(--vy-display); font-weight: 500; font-size: 16px; }
+            .vy-co-hero-sub { font-size: 12px; color: var(--vy-faint); margin-top: 3px; }
+            .vy-co-rows { display: flex; flex-direction: column; gap: 9px; padding: 16px 0; border-bottom: 1px solid rgba(120, 70, 40, 0.12); }
+            .vy-co-row { display: flex; justify-content: space-between; font-size: 12.5px; }
+            .vy-co-row .k { color: var(--vy-muted); }
+            .vy-co-row .v { font-weight: 500; font-variant-numeric: tabular-nums; }
+            .vy-co-lines { display: flex; flex-direction: column; gap: 9px; padding: 16px 0; }
+            .vy-co-line { display: flex; justify-content: space-between; font-size: 12.5px; }
+            .vy-co-line .k { color: var(--vy-muted); }
+            .vy-co-line .v { font-variant-numeric: tabular-nums; }
+
+            .vy-co-credit { width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 11px; text-align: left; padding: 11px 12px; border-radius: 14px; border: 1px solid rgba(120, 70, 40, 0.14); background: rgba(255, 255, 255, 0.5); cursor: pointer; margin: 6px 0; transition: background 0.16s ease, border-color 0.16s ease; }
+            .vy-co-credit.on { border-color: rgba(232, 112, 58, 0.5); background: rgba(217, 102, 46, 0.09); }
+            .vy-co-credit input { position: absolute; opacity: 0; pointer-events: none; }
+            .vy-co-credit-ic { width: 32px; height: 32px; border-radius: 9px; background: rgba(217, 102, 46, 0.12); color: #b4400f; display: grid; place-items: center; flex-shrink: 0; }
+            .vy-co-credit-t { flex: 1; min-width: 0; }
+            .vy-co-credit-t b { display: block; font-size: 13px; font-weight: 500; color: var(--vy-ink); }
+            .vy-co-credit-t span { display: block; font-size: 11.5px; color: var(--vy-muted); margin-top: 1px; }
+            .vy-co-switch { position: relative; width: 38px; height: 22px; border-radius: 22px; background: rgba(120, 70, 40, 0.18); flex-shrink: 0; transition: background 0.18s ease; }
+            .vy-co-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28); transition: left 0.18s ease; }
+            .vy-co-credit.on .vy-co-switch { background: var(--vy-grad); }
+            .vy-co-credit.on .vy-co-switch::after { left: 19px; }
+            .vy-co-credit-line { display: none; justify-content: space-between; font-size: 12.5px; padding: 6px 0 2px; }
+            .vy-co-credit.on ~ .vy-co-credit-line { display: flex; }
+            .vy-co-credit-line .lbl { color: #3f6338; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+            .vy-co-credit-line .amt { color: #3f6338; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+            .vy-co-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 14px; border-top: 1px solid rgba(120, 70, 40, 0.16); }
+            .vy-co-total .lbl { font-family: var(--vy-display); font-weight: 600; font-size: 15px; }
+            .vy-co-total .val { font-family: var(--vy-display); font-weight: 600; font-size: 22px; color: var(--vy-accent); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+            .vy-co-confirm { width: 100%; margin-top: 16px; padding: 14px 0; border-radius: var(--vy-r-pill); background: var(--vy-grad); border: none; color: #fff; font-family: var(--vy-sans); font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 22px rgba(194, 65, 12, 0.4); }
+            .vy-co-saved { display: none; text-align: center; font-size: 11.5px; color: #3f6338; font-weight: 500; margin-top: 11px; align-items: center; justify-content: center; gap: 6px; }
+            .vy-co-freecancel { text-align: center; font-size: 11px; color: var(--vy-faint); margin-top: 12px; }
+
+            @media (max-width: 700px) { .vy-co-h1 { font-size: 25px; } }
+        </style>
+    </x-slot:head>
+
+    <x-slot:nav>
+        <span class="vy-co-secure">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+            Secure checkout
+        </span>
+    </x-slot:nav>
 
     <a class="vy-back vy-fade" href="{{ route('booking.browse', $property['slug']) }}?{{ $back }}">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
@@ -25,90 +92,145 @@
     @endif
 
     @if ($offer === null)
-        <div class="vy-card vy-fade">
+        <div class="vy-co-card vy-fade">
             <div class="vy-empty">
                 That room isn’t available for these dates.
                 <div style="margin-top:14px;"><a class="vy-btn vy-btn--accent" href="{{ route('booking.browse', $property['slug']) }}?{{ $back }}">Choose another room</a></div>
             </div>
         </div>
     @else
-        <h1 class="vy-hero-title vy-fade" style="font-size:28px;">Complete your booking</h1>
+        <h1 class="vy-co-h1 vy-fade">Complete your booking</h1>
 
-        <div class="vy-checkout-grid vy-fade" style="margin-top:18px;">
-            {{-- Guest details → CSRF-protected POST that books through AssignmentService --}}
-            <div class="vy-card">
-                <span class="vy-eyebrow">Guest details</span>
-                <form method="POST" action="{{ route('booking.reserve', $property['slug']) }}" style="margin-top:14px;"
-                      data-guard-submit>
-                    @csrf
-                    <input type="hidden" name="room_type_id" value="{{ $offer['room_type_id'] }}">
-                    <input type="hidden" name="rate_plan_id" value="{{ $offer['rate_plan_id'] }}">
-                    <input type="hidden" name="check_in" value="{{ $search['check_in'] }}">
-                    <input type="hidden" name="check_out" value="{{ $search['check_out'] }}">
-                    <input type="hidden" name="adults" value="{{ $search['adults'] }}">
-                    <input type="hidden" name="children" value="{{ $search['children'] }}">
+        {{-- ONE form spans both columns so the summary's Confirm button + the wallet toggle submit together. --}}
+        <form method="POST" action="{{ route('booking.reserve', $property['slug']) }}" data-guard-submit>
+            @csrf
+            <input type="hidden" name="room_type_id" value="{{ $offer['room_type_id'] }}">
+            <input type="hidden" name="rate_plan_id" value="{{ $offer['rate_plan_id'] }}">
+            <input type="hidden" name="check_in" value="{{ $search['check_in'] }}">
+            <input type="hidden" name="check_out" value="{{ $search['check_out'] }}">
+            <input type="hidden" name="adults" value="{{ $search['adults'] }}">
+            <input type="hidden" name="children" value="{{ $search['children'] }}">
 
-                    <div class="vy-form-grid">
-                        <div><label class="vy-field-label" for="first_name">First name</label><input class="vy-input" type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required></div>
-                        <div><label class="vy-field-label" for="last_name">Last name</label><input class="vy-input" type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required></div>
-                        <div class="vy-full"><label class="vy-field-label" for="email">Email</label><input class="vy-input" type="email" id="email" name="email" value="{{ old('email') }}" required></div>
+            <div class="vy-co-grid vy-fade">
+                {{-- LEFT — your details + payment --}}
+                <div class="vy-co-col">
+                    <div class="vy-co-card">
+                        <h2 class="vy-co-h2">Your details</h2>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div class="vy-co-2">
+                                <div><div class="vy-co-fl">First name</div><input class="vy-co-in" type="text" name="first_name" value="{{ old('first_name') }}" required></div>
+                                <div><div class="vy-co-fl">Last name</div><input class="vy-co-in" type="text" name="last_name" value="{{ old('last_name') }}" required></div>
+                            </div>
+                            <div><div class="vy-co-fl">Email</div><input class="vy-co-in" type="email" name="email" value="{{ old('email') }}" required></div>
+                        </div>
                     </div>
 
-                    {{-- Real wallet credit (D3): shown ONLY for a signed-in guest with a real spendable balance.
-                         Ticking it applies up to min(spendable, owed) as a −discount folio line before the charge
-                         (reconciling #17). Never a fabricated/€0 credit — the controller omits $wallet otherwise. --}}
+                    <div class="vy-co-card">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                            <h2 class="vy-co-h2" style="margin:0;">Payment</h2>
+                            <span class="vy-co-pay-brands"><span style="background: linear-gradient(140deg, #F0A57A, #D9662E);"></span><span style="background: rgba(120,70,40,.15);"></span></span>
+                        </div>
+                        {{-- D4 — honest payment: the certified TEST-MODE hosted Stripe Checkout (no PAN on us, SAQ A;
+                             fulfils on the webhook). NO inline card fields, NO on-page Apple Pay, NO "not charged
+                             until check-in". Otherwise pay-on-arrival, recorded for real via FolioService. --}}
+                        @if ($payByCard)
+                            <div class="vy-pay-note">
+                                <span class="vy-soon-tag">Secure card</span>
+                                <span>You'll be taken to our secure payment page (Apple&nbsp;Pay &amp; card) — we never see your card number. <strong>Test mode:</strong> no real charge is taken until go-live.</span>
+                            </div>
+                        @else
+                            <div class="vy-pay-note">
+                                <span class="vy-soon-tag">Pay on arrival</span>
+                                <span>Reserve now and settle at the property — no card is collected here.</span>
+                            </div>
+                        @endif
+                        <div class="vy-co-note">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none; margin-top:1px;"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+                            Encrypted connection · your room is only reserved once you confirm — availability is re-checked at that moment.
+                        </div>
+                    </div>
+                </div>
+
+                {{-- RIGHT — the REAL reconciling summary --}}
+                <div class="vy-co-card" id="vy-summary" @isset($wallet) data-credit-minor="{{ $wallet['apply'] }}" @endisset>
+                    <div class="vy-co-hero">
+                        <div class="vy-co-hero-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path><path d="M9.5 21v-6h5v6"></path></svg></div>
+                        <div style="min-width:0;">
+                            <div class="vy-co-hero-name">{{ $offer['name'] }}</div>
+                            <div class="vy-co-hero-sub">{{ $offer['kind'] }} · {{ $property['name'] }}</div>
+                        </div>
+                    </div>
+
+                    <div class="vy-co-rows">
+                        <div class="vy-co-row"><span class="k">Check-in</span><span class="v">{{ $fmtDate($search['check_in']) }}</span></div>
+                        <div class="vy-co-row"><span class="k">Check-out</span><span class="v">{{ $fmtDate($search['check_out']) }}</span></div>
+                        <div class="vy-co-row"><span class="k">Guests</span><span class="v">{{ $guests }} {{ \Illuminate\Support\Str::plural('guest', $guests) }}</span></div>
+                    </div>
+
+                    {{-- RECONCILING breakdown (room + real cleaning fee + charged taxes) via StayEstimator (#17). --}}
+                    <div class="vy-co-lines">
+                        @foreach ($offer['breakdown'] as $line)
+                            <div class="vy-co-line">
+                                <span class="k">{{ $line['label'] }}{{ $line['detail'] !== '' ? ' · '.$line['detail'] : '' }}</span>
+                                <span class="v">{{ $line['informational'] ? 'included' : $line['amount'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- REAL wallet credit (D3): shown ONLY for a signed-in guest with a real spendable balance.
+                         The checkbox submits apply_credit; the server caps + deducts for real. A no-Alpine inline
+                         preview swaps the shown Total — it reconciles with the server (cap = min(spendable, owed)). --}}
                     @isset($wallet)
-                        <label class="vy-credit-toggle">
-                            <input type="checkbox" name="apply_credit" value="1" checked>
-                            <span>Apply my wallet credit <strong>({{ $wallet['display'] }})</strong> to this stay</span>
+                        <label class="vy-co-credit" id="vy-credit-toggle">
+                            <input type="checkbox" name="apply_credit" value="1" onchange="vyToggleCredit(this)">
+                            <span class="vy-co-credit-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2.5"></rect><path d="M2 10.5h20"></path><path d="M6 15h3"></path></svg></span>
+                            <span class="vy-co-credit-t"><b>Apply wallet credit</b><span>{{ $wallet['display'] }} available in your wallet</span></span>
+                            <span class="vy-co-switch"></span>
                         </label>
+                        <div class="vy-co-credit-line">
+                            <span class="lbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg>Wallet credit</span>
+                            <span class="amt">−{{ $wallet['apply_display'] }}</span>
+                        </div>
                     @endisset
 
-                    {{-- Payment (D1): card → the certified TEST-MODE hosted Stripe Checkout (no PAN on us, SAQ A;
-                         fulfils on the webhook). Otherwise pay-on-arrival, recorded for real via FolioService. --}}
-                    @if ($payByCard)
-                        <div class="vy-pay-note">
-                            <span class="vy-soon-tag">Secure card</span>
-                            <span>You'll be taken to our secure payment page to pay by card — we never see your card number. <strong>Test mode:</strong> no real charge is taken until go-live.</span>
-                        </div>
-                        <x-busy-btn class="vy-btn vy-btn--accent" style="width:100%; margin-top:16px;" busy-label="Redirecting…">Reserve &amp; pay {{ $offer['grand_total'] }}</x-busy-btn>
-                    @else
-                        <div class="vy-pay-note">
-                            <span class="vy-soon-tag">Pay on arrival</span>
-                            <span>Reserve now and settle at the property — no card is collected here.</span>
-                        </div>
-                        <x-busy-btn class="vy-btn vy-btn--accent" style="width:100%; margin-top:16px;" busy-label="Reserving…">Confirm reservation</x-busy-btn>
-                    @endif
-                    <div class="vy-deferred-note" style="margin-top:10px;">Your room is only reserved once you confirm — availability is re-checked at that moment.</div>
-                </form>
-            </div>
-
-            {{-- REAL price summary (from the certified offer) --}}
-            <div class="vy-card">
-                <span class="vy-eyebrow">Your stay</span>
-                <div style="margin-top:12px;">
-                    <div class="vy-room-name">{{ $offer['name'] }}</div>
-                    <div class="vy-room-meta" style="margin-top:6px;">
-                        {{ \Illuminate\Support\Carbon::parse($search['check_in'])->format('j M') }} → {{ \Illuminate\Support\Carbon::parse($search['check_out'])->format('j M Y') }}
-                        · {{ $offer['nights'] }} {{ \Illuminate\Support\Str::plural('night', $offer['nights']) }}
+                    <div class="vy-co-total">
+                        <span class="lbl">Total</span>
+                        <span class="val" id="vy-total" @isset($wallet) data-full="{{ $offer['grand_total'] }}" data-net="{{ $wallet['net_display'] }}" @endisset>{{ $offer['grand_total'] }}</span>
                     </div>
-                </div>
-                {{-- The RECONCILING breakdown (room + real cleaning fee + charged taxes) — via StayEstimator,
-                     so this === the folio the guest pays to the cent (#17). An inclusive tax is 'included'. --}}
-                <div style="margin-top:14px;">
-                    @foreach ($offer['breakdown'] as $line)
-                        <div class="vy-summary-line">
-                            <span class="vy-sl-label">{{ $line['label'] }}{{ $line['detail'] !== '' ? ' · '.$line['detail'] : '' }}</span>
-                            <span class="vy-sl-val">{{ $line['informational'] ? 'included' : $line['amount'] }}</span>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="vy-summary-total">
-                    <span class="vy-st-label">Total</span>
-                    <span class="vy-st-val">{{ $offer['grand_total'] }}</span>
+
+                    <x-busy-btn class="vy-co-confirm" busy-label="{{ $payByCard ? 'Redirecting…' : 'Reserving…' }}"><span id="vy-confirm-label">{{ $payByCard ? 'Confirm & pay '.$offer['grand_total'] : 'Confirm reservation' }}</span></x-busy-btn>
+
+                    @isset($wallet)
+                        <div class="vy-co-saved" id="vy-saved"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>You saved {{ $wallet['apply_display'] }} with wallet credit</div>
+                    @endisset
+
+                    @if ($freeCancel !== null)
+                        <div class="vy-co-freecancel">Free cancellation until {{ $freeCancel }} · no fees</div>
+                    @endif
                 </div>
             </div>
-        </div>
-    @endif
+        </form>
 
+        @isset($wallet)
+            <script>
+                // No-Alpine wallet-credit preview (progressive enhancement). Presentational only — the server is
+                // authoritative (caps at min(spendable, owed) and posts the real folio discount). The full/net
+                // display strings are computed server-side so the preview can't drift from the charge (#17).
+                function vyToggleCredit(cb) {
+                    var toggle = document.getElementById('vy-credit-toggle');
+                    var total = document.getElementById('vy-total');
+                    var saved = document.getElementById('vy-saved');
+                    var label = document.getElementById('vy-confirm-label');
+                    var on = cb.checked;
+                    if (toggle) toggle.classList.toggle('on', on);
+                    if (total) total.textContent = on ? (total.dataset.net || total.textContent) : (total.dataset.full || total.textContent);
+                    if (saved) saved.style.display = on ? 'flex' : 'none';
+                    // Only the card path shows a price in the button ("Confirm & pay …"); keep it in sync.
+                    if (label && label.textContent.indexOf('pay') !== -1) {
+                        label.textContent = 'Confirm & pay ' + (on ? total.dataset.net : total.dataset.full);
+                    }
+                }
+            </script>
+        @endisset
+    @endif
 </x-public.shell>

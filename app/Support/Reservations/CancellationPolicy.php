@@ -25,7 +25,16 @@ final class CancellationPolicy
     /** The free-cancellation deadline = check-in − free_until_days, or null when the property has no such policy. */
     public static function freeUntil(Reservation $reservation): ?CarbonImmutable
     {
-        $policy = PropertyPolicy::query()->where('property_id', $reservation->property_id)->first();
+        return self::freeUntilForCheckIn((string) $reservation->property_id, $reservation->check_in);
+    }
+
+    /**
+     * The free-cancel deadline for a property + a proposed check-in date — the ONE policy reading, so the
+     * pre-booking storefront checkout (no reservation yet) and the post-booking surfaces can't drift.
+     */
+    public static function freeUntilForCheckIn(string $propertyId, mixed $checkIn): ?CarbonImmutable
+    {
+        $policy = PropertyPolicy::query()->where('property_id', $propertyId)->first();
         $cancellation = is_array($policy?->cancellation) ? $policy->cancellation : [];
 
         // array_key_exists (not isset/truthiness): `free_until_days: 0` is a real, meaningful value.
@@ -33,7 +42,7 @@ final class CancellationPolicy
             return null;
         }
 
-        return CarbonImmutable::parse($reservation->check_in)->startOfDay()->subDays((int) $cancellation['free_until_days']);
+        return CarbonImmutable::parse($checkIn)->startOfDay()->subDays((int) $cancellation['free_until_days']);
     }
 
     /** True when a cancellation ON `$on` qualifies for a FULL refund (on/before the free-cancel deadline). */
