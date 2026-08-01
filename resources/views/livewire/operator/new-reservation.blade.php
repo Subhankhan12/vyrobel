@@ -7,20 +7,55 @@
      GUARDS: honest availability · guest NAME-only search (#28) · NO raw PAN (card = honest "Soon", #45).
      Draft-restore = client localStorage (matches the wireframe; cleared on confirm — no server-persistence claim).
      RAW-BLADE RULE: Alpine uses x-on:/x-model/x-bind (no `@click`). --}}
-<div>
-    <x-operator.shell active="reservations" title="New reservation" :subtitle="$subtitle" :viewer="$viewer">
+@php $__nrReadOnly = app(\App\Support\Operator\OperatorWorkspace::class)->isReadOnly(); @endphp
+{{-- GATE 1 · Part B — the STANDALONE wizard chrome (the prototype is a centered gradient/glass wizard, NOT
+     the app shell). The operator LAYOUT still supplies the warm gradient + ambient orbs + tokens; we drop the
+     shell (sidebar/nav) for a focused create flow with a close-X → the reservations rack. Machinery preserved:
+     read-only (#84) is shown here AND enforced server-side; property context (#38) is resolved by middleware
+     and shown as the sublabel (cross-property writes are blocked in the controller); the route stays gated
+     (#20/#26/#30). RAW-BLADE RULE: Alpine uses x-on:/x-model/x-bind (no `@click`). --}}
+<div class="vy-nr-standalone" @if ($hasProperty) x-data="newReservationWizard()" x-init="init()" @endif>
+    <div class="vy-nr-topbar vy-fade">
+        <div class="vy-nr-brand">
+            <span class="vy-nr-logo">V</span>
+            <span class="vy-nr-brand-id">
+                <span class="vy-nr-brand-title">New reservation</span>
+                <span class="vy-nr-brand-sub">{{ $subtitle !== '' ? $subtitle : 'Direct entry' }} · direct entry</span>
+            </span>
+        </div>
+        <div class="vy-nr-topright">
+            @if ($hasProperty)
+                <span class="vy-nr-draftpill" x-show="draftRestored" x-cloak>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
+                    Draft restored
+                </span>
+                <span class="vy-nr-stepcount" x-text="'Step ' + step + ' of 7'"></span>
+            @endif
+            <a class="vy-nr-close" href="{{ route('app.reservations') }}" title="Close" aria-label="Close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+            </a>
+        </div>
+    </div>
 
-        @if (session('new_reservation_notice'))
-            <div class="vy-flash is-err vy-fade">{{ session('new_reservation_notice') }}</div>
-        @endif
+    @if (session('new_reservation_notice'))
+        <div class="vy-flash is-err vy-fade">{{ session('new_reservation_notice') }}</div>
+    @endif
 
-        @unless ($hasProperty)
-            <div class="vy-card vy-fade" style="text-align: center; padding: 40px 24px;">
-                <strong style="display: block; font-size: 15px; color: var(--vy-ink); margin-bottom: 6px;">No property configured</strong>
-                <span style="font-size: 13px; color: var(--vy-muted);">Add a property before creating reservations.</span>
-            </div>
-        @else
-            <div class="vy-nr" x-data="newReservationWizard()" x-init="init()">
+    @if ($__nrReadOnly)
+        {{-- #84 — read-only workspace: creation is OFF (also enforced server-side at createBooking). --}}
+        <div class="vy-nr-ro vy-fade" role="status">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <span>Your workspace is paused — new bookings are off until you resume from Billing.</span>
+        </div>
+    @endif
+
+    @unless ($hasProperty)
+        <div class="vy-card vy-fade" style="text-align: center; padding: 40px 24px;">
+            <strong style="display: block; font-size: 15px; color: var(--vy-ink); margin-bottom: 6px;">No property configured</strong>
+            <span style="font-size: 13px; color: var(--vy-muted);">Add a property before creating reservations.</span>
+        </div>
+    @else
+        <div class="vy-nr">
                 <input type="hidden" x-ref="checkIn" value="{{ $checkIn }}">
                 <input type="hidden" x-ref="checkOut" value="{{ $checkOut }}">
 
@@ -30,12 +65,22 @@
                     <button type="button" class="vy-btn vy-btn--ghost" x-on:click="startOver()">Start over</button>
                 </div>
 
-                {{-- Step rail --}}
-                <div class="vy-nr-steps vy-fade">
-                    @foreach (['When & unit', 'Who’s staying', 'Rate & extras', 'Arrival & transfer', 'House rules', 'Review', 'Payment'] as $i => $label)
-                        <div class="vy-nr-step" x-bind:class="step === {{ $i + 1 }} ? 'is-on' : (step > {{ $i + 1 }} ? 'is-done' : '')">
-                            <span class="vy-nr-step-num">{{ $i + 1 }}</span>
-                            <span class="vy-nr-step-label">{{ $label }}</span>
+                {{-- Progress stepper — circular numbered nodes joined by connector bars, CLICKABLE to jump
+                     to any step (prototype-exact); gradient fill + check on done, ring on active. --}}
+                @php $__nrSteps = ['When & unit', 'Who’s staying', 'Rate & extras', 'Arrival & transfer', 'House rules', 'Review', 'Payment']; @endphp
+                <div class="vy-nr-stepper vy-fade">
+                    @foreach ($__nrSteps as $i => $label)
+                        @php $n = $i + 1; @endphp
+                        <div class="vy-nr-node" x-bind:class="step === {{ $n }} ? 'is-on' : (step > {{ $n }} ? 'is-done' : '')">
+                            <div class="vy-nr-node-row">
+                                <span class="vy-nr-bar" @if ($i === 0) style="visibility:hidden" @endif></span>
+                                <button type="button" class="vy-nr-circle" x-on:click="step = {{ $n }}" aria-label="Go to {{ $label }}">
+                                    <span class="vy-nr-circle-num">{{ $n }}</span>
+                                    <svg class="vy-nr-circle-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
+                                </button>
+                                <span class="vy-nr-bar" @if ($i === count($__nrSteps) - 1) style="visibility:hidden" @endif></span>
+                            </div>
+                            <span class="vy-nr-node-label">{{ $label }}</span>
                         </div>
                     @endforeach
                 </div>
@@ -106,10 +151,15 @@
                                 <button type="button" class="vyn-tab" x-bind:class="guestMode === 'new' ? 'is-on' : ''" x-on:click="guestMode = 'new'">New guest</button>
                             </div>
                             <div x-show="guestMode === 'existing'">
-                                <form method="GET" action="{{ route('app.reservations.create') }}" style="margin: 12px 0;">
-                                    <input type="hidden" name="check_in" value="{{ $checkIn }}"><input type="hidden" name="check_out" value="{{ $checkOut }}">
-                                    <input type="text" name="q" value="{{ $query }}" class="vy-input" placeholder="Search a returning guest by name" autocomplete="off">
-                                </form>
+                                {{-- Guest name search — a GET NAVIGATION (not a nested <form>: a form-in-form is
+                                     invalid HTML and would close the outer POST form early). Enter or the button
+                                     reloads with ?q=; server-side search is NAME-only (#28). --}}
+                                @php $__nrSearchBase = route('app.reservations.create').'?check_in='.urlencode((string) $checkIn).'&check_out='.urlencode((string) $checkOut).'&q='; @endphp
+                                <div style="margin: 12px 0; display: flex; gap: 8px;">
+                                    <input type="text" id="nr-guest-q" value="{{ $query }}" class="vy-input" placeholder="Search a returning guest by name" autocomplete="off"
+                                           x-on:keydown.enter.prevent="window.location = '{{ $__nrSearchBase }}' + encodeURIComponent($event.target.value)">
+                                    <button type="button" class="vy-btn vy-btn--ghost" x-on:click="window.location = '{{ $__nrSearchBase }}' + encodeURIComponent(document.getElementById('nr-guest-q').value)">Search</button>
+                                </div>
                                 @if ($query === '')
                                     <div class="vyn-empty">Search a guest by name, then pick them here.</div>
                                 @elseif ($guestMatches === [])
@@ -259,8 +309,6 @@
             </div>
         @endunless
 
-    </x-operator.shell>
-
     <script>
         function newReservationWizard() {
             const EXTRAS = @js(collect($extras)->map(fn ($e) => ['id' => $e['id'], 'price' => $e['price_minor'], 'taxable' => $e['taxable'], 'basis' => $e['basis']])->all());
@@ -373,6 +421,40 @@
         .vy-nr-sumline { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 0; }
         .vy-nr-sumtotal { border-top: 2px solid var(--vy-ink); font-weight: 700; margin-top: 4px; padding-top: 10px; }
         .vy-nr-esthint { font-size: 11px; color: var(--vy-faint); margin: 8px 0 0; }
+
+        /* GATE 1 Part B — the STANDALONE wizard chrome (prototype-exact) */
+        .vy-nr-standalone { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 24px 30px 60px; box-sizing: border-box; }
+        .vy-nr-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+        .vy-nr-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .vy-nr-logo { width: 36px; height: 36px; border-radius: 10px; background: var(--vy-grad); color: #fff; font-family: var(--vy-display); font-weight: 600; font-size: 18px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); flex: none; }
+        .vy-nr-brand-title { display: block; font-family: var(--vy-display); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; line-height: 1.2; }
+        .vy-nr-brand-sub { display: block; font-size: 12px; color: var(--vy-faint); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vy-nr-topright { display: flex; align-items: center; gap: 12px; flex: none; }
+        .vy-nr-draftpill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255, 255, 255, 0.7); font-size: 11.5px; font-weight: 500; color: #1F8A5B; white-space: nowrap; }
+        .vy-nr-stepcount { font-size: 12px; font-weight: 500; color: var(--vy-muted); white-space: nowrap; }
+        .vy-nr-close { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); color: var(--vy-muted); display: grid; place-items: center; text-decoration: none; transition: background 0.14s; flex: none; }
+        .vy-nr-close:hover { background: rgba(255, 255, 255, 0.9); color: var(--vy-ink); }
+        .vy-nr-ro { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px; background: rgba(217, 154, 61, 0.16); border: 1px solid rgba(217, 154, 61, 0.4); color: #8F6414; font-size: 13px; margin-bottom: 16px; }
+
+        /* clickable circular stepper */
+        .vy-nr-stepper { display: flex; background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); border-radius: 20px; box-shadow: 0 14px 40px rgba(150, 90, 50, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.65); padding: 18px 26px; margin-bottom: 20px; }
+        .vy-nr-node { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 9px; min-width: 0; }
+        .vy-nr-node-row { display: flex; align-items: center; width: 100%; }
+        .vy-nr-bar { flex: 1; height: 2px; border-radius: 2px; background: var(--vy-hairline); }
+        .vy-nr-node.is-done .vy-nr-bar { background: var(--vy-grad); }
+        .vy-nr-node.is-on .vy-nr-bar:first-child { background: var(--vy-grad); }
+        .vy-nr-circle { position: relative; width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); color: var(--vy-faint); cursor: pointer; flex: none; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 13px; transition: background 0.2s, box-shadow 0.2s, transform 0.12s; }
+        .vy-nr-circle:hover { transform: translateY(-1px); }
+        .vy-nr-node.is-on .vy-nr-circle { background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: 0 0 0 4px rgba(232, 112, 58, 0.18); }
+        .vy-nr-node.is-done .vy-nr-circle { background: var(--vy-grad); color: #fff; border-color: transparent; }
+        .vy-nr-circle-num { transition: opacity 0.15s; }
+        .vy-nr-circle-check { position: absolute; opacity: 0; transition: opacity 0.15s; }
+        .vy-nr-node.is-done .vy-nr-circle-num { opacity: 0; }
+        .vy-nr-node.is-done .vy-nr-circle-check { opacity: 1; }
+        .vy-nr-node-label { font-size: 12px; font-weight: 500; color: var(--vy-faint); white-space: nowrap; }
+        .vy-nr-node.is-on .vy-nr-node-label, .vy-nr-node.is-done .vy-nr-node-label { color: var(--vy-ink); }
+
         @media (max-width: 900px) { .vy-nr-body { grid-template-columns: 1fr; } }
+        @media (max-width: 760px) { .vy-nr-node-label { display: none; } .vy-nr-standalone { padding: 18px 16px 48px; } }
     </style>
 </div>
