@@ -32,3 +32,7 @@ Schedule::command('payouts:run')->dailyAt('06:00');
 
 // #98 — archive properties whose scheduled removal date has passed (soft-delete, records retained). Daily.
 Schedule::command('properties:process-removals')->dailyAt('02:00');
+
+// Guest Portal · GATE 3 (D2) — run guest-account deletions whose 14-day grace window has elapsed
+// (cancel upcoming reservations per policy + GDPR-anonymize). Reversible until it runs. Daily.
+Schedule::command('guests:process-deletions')->dailyAt('03:00');

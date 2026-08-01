@@ -47,6 +47,7 @@ use Illuminate\Support\Str;
  * @property string|null $city
  * @property bool $prefers_email
  * @property array<int, string>|null $preferences
+ * @property Carbon|null $scheduled_deletion_at
  */
 class Guest extends Model implements AuthenticatableContract, CanResetPasswordContract, MustVerifyEmailContract
 {
@@ -117,6 +118,7 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
             'preferences' => 'array',
             'external_refs' => 'array',
             'anonymized_at' => 'datetime',
+            'scheduled_deletion_at' => 'datetime',
         ];
     }
 

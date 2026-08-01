@@ -6,38 +6,52 @@ namespace App\Http\Controllers\Guest;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
+use App\Models\GuestWaitlistEntry;
+use App\Services\GuestDeletionService;
+use App\Services\GuestWalletService;
+use App\Services\GuestWishlistService;
 use App\Support\Guest\GuestName;
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 
 /**
- * Guest Account (Phase 4a · Sub-gate 4) — the authenticated guest's OWN profile, change-password, and account
- * removal. Behind the guest guard (`auth:guest`).
+ * Guest Account (Guest Portal · GATE 3) — the authenticated guest's OWN profile, preferences, and account
+ * deletion. Behind the guest guard (`auth:guest`).
  *
  * 🔒 SELF-ONLY / GUEST ISOLATION — the guard IS the resolution: the guest is ALWAYS {@see Guest()} = the
  * authenticated guest-guard user, NEVER a request-supplied id. There is no `{guest}` route param to tamper with,
- * so a guest can only ever read/edit their OWN record — the isolation the whole 4b/4c portal relies on.
+ * so a guest can only ever read/edit their OWN record.
  *
- * DEFERRED (stated): EMAIL change — email is the login identifier AND drives the blind index, so changing it
- * needs re-verification of the new address + re-indexing; deferred honestly (the field is read-only here).
- * DELETION CHOICE (stated): "remove portal access" revokes the login (nulls the auth fields) but KEEPS the guest
- * row + PII + bookings — the property needs them for upcoming stays and its legal/financial records. This is
- * SAFER than an instant self-anonymize (which would strip a guest's name off an upcoming booking); full GDPR
- * erasure of personal data stays an operator-mediated action ({@see Guest::anonymize()}).
+ * DELETION (founder decision D2): "Delete my account" is a REVERSIBLE, 14-day SCHEDULED erase via
+ * {@see GuestDeletionService} — never an immediate destroy. The account stays usable and the guest can UNDO
+ * before the daily sweep runs the certified {@see Guest::anonymize()} + per-policy reservation cancellation.
+ * EMAIL change stays deferred (it is the login identifier + drives the blind index — read-only here).
  */
 class GuestAccountController extends Controller
 {
     use ResolvesGuest;
 
-    public function show(): View
+    public function show(GuestWalletService $wallet, GuestWishlistService $saved): View
     {
         $guest = $this->guest();
+        $waitlist = $saved->waitlist($guest);
 
         return view('guest.account', [
-            'name' => GuestName::display($guest),
+            'hero' => [
+                'initials' => $this->initials((string) $guest->first_name, (string) $guest->last_name),
+                'member_since' => $guest->created_at?->format('Y') ?? '—',
+                'name' => GuestName::display($guest),
+                'email' => (string) $guest->email,
+            ],
+            'kpi' => [
+                'credit' => MoneyFormatter::display($wallet->spendableMinor($guest), 'EUR'),
+                'stays' => (int) $guest->reservations()->count(),
+                'cards' => 0,   // D3 — no saved-card vault (no raw PAN); honest 0
+                'waitlists' => $waitlist->count(),
+            ],
             'profile' => [
                 'first_name' => (string) $guest->first_name,
                 'last_name' => (string) $guest->last_name,
@@ -45,6 +59,16 @@ class GuestAccountController extends Controller
                 'phone' => (string) $guest->phone,
                 'nationality' => (string) $guest->nationality,
                 'language' => (string) $guest->language,
+            ],
+            'waitlist' => $waitlist->map(fn (GuestWaitlistEntry $entry): array => [
+                'id' => (string) $entry->getKey(),
+                'room' => (string) ($entry->roomType->name ?? 'Room'),
+                'dates' => $this->waitlistDates($entry),
+            ])->all(),
+            'marketingConsent' => (bool) $guest->marketing_consent,
+            'deletion' => [
+                'scheduled' => $guest->scheduled_deletion_at !== null,
+                'on' => $guest->scheduled_deletion_at?->format('j M Y'),
             ],
         ]);
     }
@@ -67,6 +91,21 @@ class GuestAccountController extends Controller
         return redirect()->route('guest.account')->with('status', 'Your details have been saved.');
     }
 
+    /** Preferences — the REAL #87 marketing-consent gate + language. SMS is honest-gated (no provider), never set. */
+    public function updatePreferences(Request $request): RedirectResponse
+    {
+        $guest = $this->guest();
+
+        if ($request->has('marketing_consent')) {
+            $guest->update(['marketing_consent' => $request->boolean('marketing_consent')]);
+        }
+        if ($request->filled('language')) {
+            $guest->update(['language' => (string) $request->string('language')->substr(0, 10)]);
+        }
+
+        return redirect()->route('guest.account')->with('status', 'Your preferences have been saved.');
+    }
+
     /** Change password — the CURRENT password is verified (against the guest guard) before the shared hash path. */
     public function changePassword(Request $request): RedirectResponse
     {
@@ -82,21 +121,43 @@ class GuestAccountController extends Controller
         return redirect()->route('guest.account')->with('status', 'Your password has been changed.');
     }
 
-    /** Remove PORTAL ACCESS (revoke the login) — keeps the guest row + PII + bookings; see the class docblock. */
-    public function destroy(Request $request): RedirectResponse
+    /**
+     * SCHEDULE a reversible 14-day deletion (D2) — the guest must type DELETE. NEVER an immediate destroy: the
+     * daily sweep runs the certified erase after the grace window; the guest stays logged in and can undo.
+     */
+    public function destroy(Request $request, GuestDeletionService $deletions): RedirectResponse
     {
-        $guest = $this->guest();
+        $request->validate(['confirm' => ['required', 'in:DELETE']], [
+            'confirm.in' => 'Type DELETE to confirm.',
+        ]);
 
-        $guest->forceFill([
-            'password' => null,
-            'email_verified_at' => null,
-            'remember_token' => null,
-        ])->save();
+        $effective = $deletions->schedule($this->guest());
 
-        Auth::guard('guest')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        return redirect()->route('guest.account')->with('status',
+            'Account deletion scheduled for '.$effective->format('j M Y').'. You can undo any time before then.');
+    }
 
-        return redirect()->route('guest.login')->with('status', 'Your portal access has been removed.');
+    /** Undo a scheduled deletion — the guest keeps their account. */
+    public function undoDeletion(GuestDeletionService $deletions): RedirectResponse
+    {
+        $deletions->cancel($this->guest());
+
+        return redirect()->route('guest.account')->with('status', 'Your account deletion has been cancelled — welcome back.');
+    }
+
+    private function initials(string $first, string $last): string
+    {
+        $initials = mb_strtoupper(mb_substr($first, 0, 1).mb_substr($last, 0, 1));
+
+        return $initials !== '' ? $initials : 'G';
+    }
+
+    private function waitlistDates(GuestWaitlistEntry $entry): string
+    {
+        if ($entry->check_in !== null && $entry->check_out !== null) {
+            return $entry->check_in->format('j M').' → '.$entry->check_out->format('j M Y');
+        }
+
+        return $entry->flexible_month !== null ? 'Flexible · '.(string) $entry->flexible_month : 'Flexible dates';
     }
 }

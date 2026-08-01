@@ -359,7 +359,10 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::get('/account', [GuestAccountController::class, 'show'])->name('account');
         Route::post('/account', [GuestAccountController::class, 'updateProfile'])->name('account.update');
         Route::post('/account/password', [GuestAccountController::class, 'changePassword'])->middleware('throttle:6,1')->name('account.password');
+        Route::post('/account/preferences', [GuestAccountController::class, 'updatePreferences'])->name('account.preferences');
+        // Delete = a reversible 14-day SCHEDULED erase (D2); undo restores the account before the sweep runs.
         Route::post('/account/delete', [GuestAccountController::class, 'destroy'])->name('account.delete');
+        Route::post('/account/delete/undo', [GuestAccountController::class, 'undoDeletion'])->name('account.delete.undo');
     });
 });
 

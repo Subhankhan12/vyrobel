@@ -124,3 +124,13 @@ Peach→terracotta full-page gradient `linear-gradient(135deg,#F6C89B 0%,#F1B896
 - **⛔ GATE 3 — Account + consolidate:** rebuild to hero+5-KPI+3-col-bento over real data; real profile edit; **delete per D2**; **cards per D3** (honest empty state or the real test-mode vault); waitlists real (no "#N"); Trip-offers = real `marketing_consent` (#87); SMS honest-gated; language real. Consolidate docs (`DECISIONS.md` dated · `DIVERGENCE-REGISTER.md` the 5 pages · `PROJECT-STATE.md` + invariant list). Tests + browser-verify + push.
 
 **Invariants preserved throughout:** certified engine reused (no-overbook mutation-proven) · #17 folio + extras reconcile to the cent · payment test-mode (no real/fake charge, no PAN) · #33 secrets shown to the guest / owner still refused (mutation-proven) · #28 guest isolation + name-only cross-actor · #87 consent gates marketing · #39 no fabrication (no fake availability/rate/booking/secret/extra/card/SMS/undo-timer) · disturb nothing (the green suite is the proof).
+
+---
+
+## ✅ OUTCOME (2026-08-01 — all 3 gates shipped, gaps → resolved)
+
+- **GATE 1 (`51ae811`) — Booking storefront.** Rebuilt to the peach-glass wireframe; real filters; the **#17 cleaning-fee gap CLOSED** — `book()` posts room + fees + taxes via `PropertyCharges`, the checkout shows the reconciling breakdown via `StayEstimator` (browser-verified €483.20). **D1** test-mode hosted Stripe wired (fulfil-on-webhook, no PAN). Map + cross-property "Where" refused (no geo). +4 tests.
+- **GATE 2 (`4db8fa5`) — Arrival Info + PDF + Add-ons.** Arrival re-skinned; the **Arrival PDF BUILT** (same window-gated `ArrivalPack`; a pre-window PDF omits the code, #33). **Add-ons page BUILT** on the real `AddOn` catalogue (VAT-inclusive); **D4** operator-confirmed request → `confirm()` posts the folio (reconciling #17, idempotent). +5 tests.
+- **GATE 3 — Account.** Rebuilt to the hero + 5-KPI + 3-col bento (real credit/stays/waitlists/consent). **D2 the 14-day scheduled delete BUILT** (`GuestDeletionService` + `scheduled_deletion_at` + undo + the `guests:process-deletions` daily command → per-policy cancellation + `Guest::anonymize()`); **D3** honest cards (no vault); SMS honest-disabled; trip-offers → `marketing_consent` (#87). +7 tests.
+
+Honesty held throughout — every refusal in the register above stands. New invariants **#110–114** (see `DECISIONS.md`). Suite green (only the pre-existing `BookingImportTest` flake); PHPStan L5 (0); Pint clean; `migrate` clean; all five pages browser-verified.

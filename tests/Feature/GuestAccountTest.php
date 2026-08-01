@@ -7,11 +7,12 @@ use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
 
-// GUEST ACCOUNT + GUEST ISOLATION (Phase 4a · Sub-gate 4) — the authed guest's OWN profile, change-password, and
-// safe account removal. SELF-ONLY: everything resolves from the GUEST guard, never a request id — the isolation
-// the whole 4b/4c portal relies on. Proven: a guest edits only their own; a guest can't reach another's (even
-// with another's id in the payload); change-password is current-verified; deletion revokes access but keeps the
-// booking record; the guest realm never falls back to the operator login.
+// GUEST ACCOUNT + GUEST ISOLATION (Phase 4a · Guest Portal GATE 3) — the authed guest's OWN profile,
+// preferences, and account deletion. SELF-ONLY: everything resolves from the GUEST guard, never a request id.
+// Proven: a guest edits only their own; a guest can't reach another's (even with another's id in the payload);
+// change-password is current-verified; DELETE is a REVERSIBLE 14-day SCHEDULED erase (D2 — type DELETE, undo,
+// the daily sweep runs anonymize + per-policy cancellation, never an immediate destroy); real KPIs + honest
+// cards/SMS (D3); the trip-offers toggle flips marketing_consent (#87); the guest realm never falls back to operator.
 
 /** A standalone claimed guest account. */
 function acct(string $email, string $pw = 'account-password-1234'): Guest
@@ -71,26 +72,92 @@ it('changes the password only when the current one is correct', function () {
     expect(Hash::check('new-password-456', (string) $a->fresh()->password))->toBeTrue();
 });
 
-// ── Safe deletion: revoke portal access, KEEP the guest row + PII + booking ───────────────────────
-it('removes portal access but keeps the guest record and bookings', function () {
+// ── D2: delete requires typing DELETE, and only SCHEDULES a reversible 14-day erase (nothing removed now) ──
+it('schedules a reversible 14-day deletion (never an immediate destroy) and emails the guest', function () {
+    Illuminate\Support\Facades\Mail::fake();
     $s = seedScenario(1);
-    $a = $s['guest'];
+    $a = acct('ada@example.test');
+
+    // Type-DELETE guard: a bare submit is rejected.
+    $this->actingAs($a, 'guest')->post('/guest/account/delete')->assertSessionHasErrors('confirm');
+    expect($a->fresh()->scheduled_deletion_at)->toBeNull();
+
+    // Confirmed → scheduled ~14 days out; PII + login KEPT; the guest stays signed in; a confirmation email sent.
+    $this->actingAs($a, 'guest')->post('/guest/account/delete', ['confirm' => 'DELETE'])->assertRedirect(route('guest.account'));
+    $fresh = $a->fresh();
+    expect($fresh->scheduled_deletion_at)->not->toBeNull();
+    expect($fresh->scheduled_deletion_at->toDateString())->toBe(now()->addDays(14)->toDateString());
+    expect($fresh->password)->not->toBeNull();               // NOT anonymized — the erase is deferred
+    expect((string) $fresh->email)->toBe('ada@example.test');
+    expect($fresh->anonymized_at)->toBeNull();
+    $this->assertAuthenticated('guest');                     // still signed in (can undo)
+    Illuminate\Support\Facades\Mail::assertSent(App\Mail\AccountDeletionScheduledMail::class);
+});
+
+// ── D2: undo clears the schedule (the guest keeps their account) ───────────────────────────────────
+it('undoes a scheduled deletion', function () {
+    $s = seedScenario(1);
+    $a = acct('ada@example.test');
+    $this->actingAs($a, 'guest')->post('/guest/account/delete', ['confirm' => 'DELETE'])->assertRedirect();
+    expect($a->fresh()->scheduled_deletion_at)->not->toBeNull();
+
+    $this->actingAs($a->fresh(), 'guest')->post('/guest/account/delete/undo')->assertRedirect(route('guest.account'));
+    expect($a->fresh()->scheduled_deletion_at)->toBeNull();
+});
+
+// ── D2: the daily sweep runs the real erase after the grace window — anonymize + cancel upcoming ────
+it('erases the guest and cancels upcoming reservations when the scheduled date passes', function () {
+    $s = seedScenario(1);
+    $a = $s['guest'];   // book()'s lead guest is the scenario guest
     $a->update(['email' => 'ada@example.test', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
     $a->password = 'account-password-1234';
     $a->email_verified_at = now();
     $a->save();
-    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);   // $s['guest'] leads a real booking
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    expect((string) $reservation->status)->toBe('confirmed');
 
-    $this->actingAs($a->fresh(), 'guest')->post('/guest/account/delete')->assertRedirect(route('guest.login'));
+    $a->forceFill(['scheduled_deletion_at' => now()->subDay()])->save();   // grace window elapsed
+
+    $erased = app(App\Services\GuestDeletionService::class)->processDue();
+    expect($erased)->toBe(1);
 
     $fresh = $a->fresh();
-    expect($fresh->password)->toBeNull();               // portal access revoked…
-    expect($fresh->email_verified_at)->toBeNull();
-    expect($fresh->hasPortalAccount())->toBeFalse();
-    expect($fresh->first_name)->toBe('Ada');            // …but the PII + record are KEPT (the operator needs them)
-    expect((string) $fresh->email)->toBe('ada@example.test');
-    expect(Reservation::where('lead_guest_id', $a->getKey())->count())->toBe(1);   // the booking survives
-    $this->assertGuest('guest');
+    expect($fresh->anonymized_at)->not->toBeNull();          // the certified GDPR erase ran
+    expect($fresh->first_name)->toBeNull();                  // PII gone
+    expect((string) $reservation->fresh()->status)->toBe('cancelled');   // upcoming reservation cancelled per policy
+});
+
+// ── D2: not-yet-due schedules are left alone (never erased early) ──────────────────────────────────
+it('never erases a guest before the scheduled date', function () {
+    $s = seedScenario(1);
+    $a = acct('ada@example.test');
+    $a->forceFill(['scheduled_deletion_at' => now()->addDays(10)])->save();
+
+    expect(app(App\Services\GuestDeletionService::class)->processDue())->toBe(0);
+    expect($a->fresh()->anonymized_at)->toBeNull();          // untouched
+});
+
+// ── Account page shows REAL KPIs + honest cards/SMS (D3) ───────────────────────────────────────────
+it('renders real KPIs with honest cards and SMS states', function () {
+    seedScenario(1);
+    $a = acct('ada@example.test');
+
+    $this->actingAs($a, 'guest')->get('/guest/account')
+        ->assertOk()
+        ->assertSee('Saved cards')
+        ->assertSee('No saved cards')            // D3 — honest empty state, no fake card
+        ->assertSee('Not available yet')         // SMS honest-gated
+        ->assertSee('Trip offers');
+});
+
+// ── Preferences: the trip-offers toggle genuinely flips marketing_consent (#87) ────────────────────
+it('toggles marketing consent from the preferences form', function () {
+    seedScenario(1);
+    $a = acct('ada@example.test');
+    expect((bool) $a->fresh()->marketing_consent)->toBeFalse();
+
+    $this->actingAs($a, 'guest')->post('/guest/account/preferences', ['marketing_consent' => '1'])->assertRedirect(route('guest.account'));
+    expect((bool) $a->fresh()->marketing_consent)->toBeTrue();
 });
 
 // ── The guest realm never falls back to the operator login ────────────────────────────────────────
