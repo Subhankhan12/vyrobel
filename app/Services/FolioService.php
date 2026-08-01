@@ -90,7 +90,9 @@ class FolioService
                     'reference_type' => $reference?->getMorphClass(),
                     'reference_id' => $reference?->getKey(),
                     'service_date' => $serviceDate,
-                    'posted_by' => Auth::id(),
+                    // posted_by → users: the OPERATOR (web guard) or null — never a signed-in guest's id
+                    // (a guest booking/checkout while logged in must not leak their guest id into this FK).
+                    'posted_by' => Auth::guard('web')->id(),
                     'posted_at' => now(),
                     'idempotency_key' => $idempotencyKey,
                 ]);

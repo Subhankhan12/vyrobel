@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="67604e8b-88e0-44ef-9b3d-215a9dba187d"></script>
+
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <style>/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("13f804ae-ca46-4d62-956e-e5e5db247cb9") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("e35c0dd5-5db3-4d5a-a393-8b09fc274848") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("8ee09fcc-163b-4a90-b884-9ddbf232fa58") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("708709bd-d7f0-4835-8d67-6e11f2f27232") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("ba26e941-e48c-492d-bdb1-f9e581d2b40d") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("aaf55d6f-75cb-4641-987c-512202a14fe7") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("540855ec-43fc-4d14-89c7-76a572524422") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("13f804ae-ca46-4d62-956e-e5e5db247cb9") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("e35c0dd5-5db3-4d5a-a393-8b09fc274848") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("8ee09fcc-163b-4a90-b884-9ddbf232fa58") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("708709bd-d7f0-4835-8d67-6e11f2f27232") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("ba26e941-e48c-492d-bdb1-f9e581d2b40d") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("aaf55d6f-75cb-4641-987c-512202a14fe7") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("540855ec-43fc-4d14-89c7-76a572524422") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("4e462f41-94cf-47ce-950e-929a34fe4008") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("572c09f5-73bd-45be-9a1c-81e86cb37ffc") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("4e462f41-94cf-47ce-950e-929a34fe4008") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("572c09f5-73bd-45be-9a1c-81e86cb37ffc") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("4e462f41-94cf-47ce-950e-929a34fe4008") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("572c09f5-73bd-45be-9a1c-81e86cb37ffc") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    a { color: #C2410C; }
+    a:hover { color: #9A3208; }
+    @keyframes vyFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes vyShimmer { 0% { opacity: .25; transform: translateX(-4%) rotate(28deg); } 50% { opacity: .45; transform: translateX(3%) rotate(28deg); } 100% { opacity: .25; transform: translateX(-4%) rotate(28deg); } }
+    @keyframes vyDrift { 0% { transform: translate(0, 0); } 50% { transform: translate(46px, 28px); } 100% { transform: translate(0, 0); } }
+    @keyframes vyFloat { 0% { transform: translateY(0); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0); } }
+  </style>
+<script src="effd3bd7-36ad-4326-8ac7-169e7c5ee077"></script>
+</helmet>
+
+<div data-screen-label="Guest Browse" style="min-height: 100vh; font-family: Inter, sans-serif; color: #2B2320; background: linear-gradient(135deg, #F6C89B 0%, #F1B896 30%, #EBD9CF 60%, #D9D6D2 100%); position: relative; overflow-x: hidden; box-sizing: border-box;">
+
+  <div style="position: absolute; top: -160px; right: -100px; width: 560px; height: 560px; background: radial-gradient(circle, rgba(255,255,255,.4), transparent 68%); filter: blur(10px); pointer-events: none;"></div>
+  <div style="position: absolute; top: 12%; left: -10%; width: 70%; height: 300px; background: linear-gradient(120deg, rgba(255,240,220,.5), transparent); transform: rotate(28deg); filter: blur(24px); pointer-events: none; animation: vyShimmer 9s ease-in-out infinite;"></div>
+  <sc-if value="{{ motion }}" hint-placeholder-val="{{ true }}"><div style="position: absolute; top: 120px; left: 24%; width: 400px; height: 400px; border-radius: 50%; background: #E8703A; filter: blur(74px); opacity: .48; pointer-events: none; animation: vyDrift 15s ease-in-out infinite;"></div></sc-if>
+  <div style="position: absolute; top: 520px; right: 6%; width: 340px; height: 340px; border-radius: 50%; background: #F0A57A; filter: blur(74px); opacity: .5; pointer-events: none;"></div>
+
+  <!-- top bar -->
+  <div style="position: relative; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 34px; max-width: 1080px; margin: 0 auto; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(140deg, #E8703A, #C2410C); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(194,65,12,.3);"><span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 17px; color: #FFFFFF;">S</span></div>
+      <span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 17px; letter-spacing: -.01em;">Seaside Villas</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 18px;">
+      <a href="Guest Booking.dc.html" style="font-size: 13px; color: #7A6E66; font-weight: 500; text-decoration: none;" style-hover="color: #C2410C;">Stays</a>
+      <a href="Guest Help.dc.html" style="font-size: 13px; color: #7A6E66; font-weight: 500; text-decoration: none;" style-hover="color: #C2410C;">Help</a>
+      <sc-if value="{{ hasWish }}" hint-placeholder-val="{{ false }}">
+        <a href="Guest Wishlist.dc.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: #B4400F; font-weight: 500; text-decoration: none;" style-hover="opacity: .8;">
+          <svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="#E8703A" stroke="none"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg>
+          {{ wishCount }} saved
+        </a>
+      </sc-if>
+      <dc-import name="Guest Notif Bell" hint-size="42px,42px"></dc-import>
+      <dc-import name="Guest Account Menu" hint-size="130px,40px"></dc-import>
+    </div>
+  </div>
+
+  <main style="position: relative; z-index: 2; max-width: 1080px; margin: 0 auto; padding: 8px 34px 80px; box-sizing: border-box;">
+
+    <!-- HERO -->
+    <section style="display: flex; flex-wrap: wrap; align-items: center; gap: 40px; padding: 26px 0 20px;">
+      <div style="flex: 1 1 440px; min-width: 300px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) both;">
+        <div style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: 30px; background: rgba(255,252,248,.6); border: 1px solid rgba(255,255,255,.78); font-size: 11.5px; font-weight: 500; color: #B4400F; margin-bottom: 18px;">
+          <svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="#E8703A" stroke="none"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z"></path></svg>
+          4.8 across 369 stays · Faro · Lagos · Tavira
+        </div>
+        <h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 46px; line-height: 1.04; letter-spacing: -.03em;">Your Algarve,<br>right by the sea.</h1>
+        <p style="margin: 16px 0 0; font-size: 15.5px; color: #7A6E66; line-height: 1.55; max-width: 440px;">Hand-kept villas and suites along the southern coast of Portugal. Book direct — no fees, best rate, and a host who actually answers.</p>
+      </div>
+
+      <!-- hero visual: floating tiles -->
+      <div style="flex: 1 1 360px; min-width: 280px; display: flex; gap: 14px; height: 320px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .1s both;">
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 14px;">
+          <div style="flex: 1.3; border-radius: 22px; background: linear-gradient(150deg, #F0A57A, #E8703A); box-shadow: 0 18px 44px rgba(150,90,50,.24); position: relative; overflow: hidden; animation: vyFloat 7s ease-in-out infinite;">
+            <div style="position: absolute; inset: 0; display: flex; align-items: flex-end; padding: 14px;"><span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 14px; color: rgba(255,255,255,.95);">Faro</span></div>
+            <svg width="30" height="30" sc-camel-view-box="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; top: 14px; left: 14px;"><path d="M2 18c1.5 0 2-1 3.5-1s2 1 3.5 1 2-1 3.5-1 2 1 3.5 1 2-1 3.5-1"></path><path d="M2 13c1.5 0 2-1 3.5-1s2 1 3.5 1 2-1 3.5-1 2 1 3.5 1 2-1 3.5-1"></path></svg>
+          </div>
+          <div style="flex: 1; border-radius: 22px; background: linear-gradient(150deg, #EDC9A8, #DDA271); box-shadow: 0 18px 44px rgba(150,90,50,.2); position: relative; overflow: hidden; animation: vyFloat 8s ease-in-out infinite .6s;">
+            <div style="position: absolute; inset: 0; display: flex; align-items: flex-end; padding: 14px;"><span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 14px; color: rgba(255,255,255,.95);">Tavira</span></div>
+          </div>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding-top: 34px;">
+          <div style="flex: 1; border-radius: 22px; background: linear-gradient(150deg, #F3B98E, #D9662E); box-shadow: 0 18px 44px rgba(150,90,50,.22); position: relative; overflow: hidden; animation: vyFloat 7.5s ease-in-out infinite .3s;">
+            <div style="position: absolute; inset: 0; display: flex; align-items: flex-end; padding: 14px;"><span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 14px; color: rgba(255,255,255,.95);">Lagos</span></div>
+          </div>
+          <div style="flex: 1.3; border-radius: 22px; background: linear-gradient(150deg, #E7B58C, #C88A54); box-shadow: 0 18px 44px rgba(150,90,50,.2); position: relative; overflow: hidden; animation: vyFloat 8.5s ease-in-out infinite .9s;">
+            <svg width="30" height="30" sc-camel-view-box="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; bottom: 14px; right: 14px;"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEARCH capsule -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; padding: 12px; border-radius: 22px; background: rgba(255,252,248,.72); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.82); box-shadow: 0 16px 44px rgba(150,90,50,.16), inset 0 1px 0 rgba(255,255,255,.65); position: relative; z-index: 25; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .16s both;">
+      <div style="flex: 1.2; min-width: 150px; position: relative;">
+        <button sc-camel-on-click="{{ toggleLoc }}" style="width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 14px; background: {{ locFieldBg }}; border: none; cursor: pointer; font-family: Inter, sans-serif; text-align: left; transition: background .14s;" style-hover="background: rgba(217,102,46,.08);">
+          <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 21s-7-5.4-7-11a7 7 0 0 1 14 0c0 5.6-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+          <span style="min-width: 0; flex: 1;"><span style="display: block; font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #A69A92;">Where</span><span style="display: block; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ whereLabel }}</span></span>
+          <svg width="12" height="12" sc-camel-view-box="0 0 24 24" fill="none" stroke="#A69A92" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; transform: {{ locChev }}; transition: transform .18s;"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <sc-if value="{{ locOpen }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div sc-camel-on-click="{{ closeLoc }}" style="position: fixed; inset: 0; z-index: 40;"></div>
+            <div style="position: absolute; top: calc(100% + 10px); left: 0; z-index: 41; width: 300px; max-width: 86vw; background: rgba(255,252,248,.97); backdrop-filter: blur(30px) saturate(1.15); border: 1px solid rgba(255,255,255,.85); border-radius: 18px; box-shadow: 0 20px 50px rgba(60,30,10,.28), inset 0 1px 0 rgba(255,255,255,.7); padding: 8px; box-sizing: border-box; animation: vyFadeUp .22s cubic-bezier(.22,.61,.36,1) both;">
+              <div style="font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #B7ADA4; padding: 8px 12px 6px;">Destination</div>
+              <sc-for list="{{ locList }}" as="l" hint-placeholder-count="3">
+                <button sc-camel-on-click="{{ l.pick }}" style="display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 10px 11px; border-radius: 12px; background: transparent; border: none; cursor: pointer; font-family: Inter, sans-serif; transition: background .14s;" style-hover="background: rgba(217,102,46,.08);">
+                  <span style="width: 34px; height: 34px; border-radius: 10px; background: rgba(217,102,46,.12); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.4-7-11a7 7 0 0 1 14 0c0 5.6-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>
+                  <span style="min-width: 0; flex: 1;"><span style="display: block; font-size: 13.5px; font-weight: 500; color: #2B2320;">{{ l.name }}</span><span style="display: block; font-size: 11.5px; color: #A69A92; margin-top: 1px;">{{ l.sub }}</span></span>
+                  <sc-if value="{{ l.on }}" hint-placeholder-val="{{ false }}"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg></sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="width: 1px; height: 34px; background: rgba(120,70,40,.12);"></div>
+
+      <a href="Guest Booking.dc.html" style="flex: 1; min-width: 130px; display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 14px; text-decoration: none; color: #2B2320; transition: background .14s;" style-hover="background: rgba(217,102,46,.08);">
+        <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><rect x="4" y="5" width="16" height="16" rx="2.5"></rect><path d="M4 10h16"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>
+        <span style="min-width: 0;"><span style="display: block; font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #A69A92;">When</span><span style="display: block; font-size: 14px; font-weight: 500; white-space: nowrap;">Sep 12 – 16</span></span>
+      </a>
+
+      <div style="width: 1px; height: 34px; background: rgba(120,70,40,.12);"></div>
+
+      <div style="flex: 1; min-width: 120px; position: relative;">
+        <button sc-camel-on-click="{{ toggleGuests }}" style="width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 14px; background: {{ gFieldBg }}; border: none; cursor: pointer; font-family: Inter, sans-serif; text-align: left; transition: background .14s;" style-hover="background: rgba(217,102,46,.08);">
+          <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="9" cy="8" r="3"></circle><path d="M2.5 20c.9-3.4 3.6-5.5 6.5-5.5s5.6 2.1 6.5 5.5"></path></svg>
+          <span style="min-width: 0; flex: 1;"><span style="display: block; font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #A69A92;">Guests</span><span style="display: block; font-size: 14px; font-weight: 500; white-space: nowrap;">{{ guestsLabel }}</span></span>
+          <svg width="12" height="12" sc-camel-view-box="0 0 24 24" fill="none" stroke="#A69A92" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; transform: {{ gChev }}; transition: transform .18s;"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <sc-if value="{{ gOpen }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div sc-camel-on-click="{{ closeGuests }}" style="position: fixed; inset: 0; z-index: 40;"></div>
+            <div style="position: absolute; top: calc(100% + 10px); right: 0; z-index: 41; width: 270px; max-width: 86vw; background: rgba(255,252,248,.97); backdrop-filter: blur(30px) saturate(1.15); border: 1px solid rgba(255,255,255,.85); border-radius: 18px; box-shadow: 0 20px 50px rgba(60,30,10,.28), inset 0 1px 0 rgba(255,255,255,.7); padding: 16px 18px; box-sizing: border-box; animation: vyFadeUp .22s cubic-bezier(.22,.61,.36,1) both;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0;">
+                <span style="min-width: 0;"><span style="display: block; font-size: 13.5px; font-weight: 500; color: #2B2320;">Adults</span><span style="display: block; font-size: 11.5px; color: #A69A92;">Age 13+</span></span>
+                <span style="display: flex; align-items: center; gap: 12px;">
+                  <button sc-camel-on-click="{{ decA }}" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(120,70,40,.18); background: rgba(255,255,255,.7); color: #C2410C; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: {{ decAOp }}; flex-shrink: 0;"><svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                  <span style="min-width: 18px; text-align: center; font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums;">{{ adultsStr }}</span>
+                  <button sc-camel-on-click="{{ incA }}" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(120,70,40,.18); background: rgba(255,255,255,.7); color: #C2410C; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: {{ incAOp }}; flex-shrink: 0;"><svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+                </span>
+              </div>
+              <div style="height: 1px; background: rgba(120,70,40,.1); margin: 4px 0;"></div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0;">
+                <span style="min-width: 0;"><span style="display: block; font-size: 13.5px; font-weight: 500; color: #2B2320;">Children</span><span style="display: block; font-size: 11.5px; color: #A69A92;">Age 0–12</span></span>
+                <span style="display: flex; align-items: center; gap: 12px;">
+                  <button sc-camel-on-click="{{ decC }}" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(120,70,40,.18); background: rgba(255,255,255,.7); color: #C2410C; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: {{ decCOp }}; flex-shrink: 0;"><svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                  <span style="min-width: 18px; text-align: center; font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums;">{{ childrenStr }}</span>
+                  <button sc-camel-on-click="{{ incC }}" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(120,70,40,.18); background: rgba(255,255,255,.7); color: #C2410C; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: {{ incCOp }}; flex-shrink: 0;"><svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+                </span>
+              </div>
+              <button sc-camel-on-click="{{ closeGuests }}" style="width: 100%; margin-top: 12px; padding: 10px 0; border-radius: 30px; background: linear-gradient(140deg, #E8703A, #C2410C); border: none; color: #FFFFFF; font-family: Inter, sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 12px rgba(194,65,12,.3);">Done</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <button sc-camel-on-click="{{ search }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 15px; background: linear-gradient(140deg, #E8703A, #C2410C); border: none; color: #FFFFFF; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 20px rgba(194,65,12,.38); white-space: nowrap; transition: transform .14s;" style-hover="transform: translateY(-2px);">
+        <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        Search
+      </button>
+    </div>
+
+    <!-- DESTINATIONS -->
+    <section style="margin-top: 54px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px;">
+        <div>
+          <h2 style="margin: 0; font-family: Sora, sans-serif; font-weight: 600; font-size: 24px; letter-spacing: -.02em;">Where to stay</h2>
+          <p style="margin: 5px 0 0; font-size: 13.5px; color: #7A6E66;">Three towns along the Algarve coast, each with its own pace.</p>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <sc-for list="{{ destinations }}" as="d" hint-placeholder-count="3">
+          <button sc-camel-on-click="{{ d.go }}" style="text-align: left; padding: 0; border: none; cursor: pointer; background: transparent; font-family: Inter, sans-serif; border-radius: 20px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) both; animation-delay: {{ d.delay }};" style-hover="transform: translateY(-3px);">
+            <div style="height: 176px; border-radius: 20px; background: {{ d.thumb }}; box-shadow: 0 14px 40px rgba(150,90,50,.2); position: relative; overflow: hidden;">
+              <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(43,25,15,.42), transparent 58%);"></div>
+              <svg width="26" height="26" sc-camel-view-box="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; top: 16px; left: 16px;"><path d="M12 21s-7-5.4-7-11a7 7 0 0 1 14 0c0 5.6-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+              <div style="position: absolute; left: 16px; bottom: 14px; right: 16px;">
+                <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 20px; color: #FFFFFF; letter-spacing: -.01em;">{{ d.town }}</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,.85); margin-top: 2px;">{{ d.sub }}</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px 4px;">
+              <span style="font-size: 12.5px; color: #7A6E66;">{{ d.count }}</span>
+              <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 500; color: #C2410C;">from {{ d.from }}<svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></span>
+            </div>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- FEATURED STAYS -->
+    <section style="margin-top: 54px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px;">
+        <div>
+          <h2 style="margin: 0; font-family: Sora, sans-serif; font-weight: 600; font-size: 24px; letter-spacing: -.02em;">Featured stays</h2>
+          <p style="margin: 5px 0 0; font-size: 13.5px; color: #7A6E66;">Guest favourites across the collection this season.</p>
+        </div>
+        <a href="Guest Booking.dc.html" style="display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: #C2410C; text-decoration: none; white-space: nowrap;" style-hover="opacity: .8;">See all stays<svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></a>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <sc-for list="{{ featured }}" as="r" hint-placeholder-count="3">
+          <div sc-camel-on-click="{{ r.go }}" style="position: relative; display: flex; flex-direction: column; background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.75); border-radius: 20px; box-shadow: 0 14px 40px rgba(150,90,50,.14), inset 0 1px 0 rgba(255,255,255,.65); overflow: hidden; cursor: pointer; transition: transform .16s, box-shadow .16s; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) both; animation-delay: {{ r.delay }};" style-hover="transform: translateY(-3px); box-shadow: 0 22px 52px rgba(150,90,50,.2), inset 0 1px 0 rgba(255,255,255,.65);">
+            <div style="height: 150px; background: {{ r.thumb }}; position: relative;">
+              <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(43,25,15,.25), transparent 55%);"></div>
+              <button sc-camel-on-click="{{ r.toggleSave }}" title="Save to wishlist" style="position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,252,248,.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.85); box-shadow: 0 4px 12px rgba(60,30,10,.15); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .14s;" style-hover="transform: scale(1.1);">
+                <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="{{ r.heartFill }}" stroke="{{ r.heartStroke }}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg>
+              </button>
+              <sc-if value="{{ r.tagShow }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: 12px; left: 12px; display: inline-flex; padding: 4px 11px; border-radius: 30px; background: rgba(255,252,248,.92); color: #B4400F; font-size: 10.5px; font-weight: 600; box-shadow: 0 4px 12px rgba(60,30,10,.15);">{{ r.tag }}</span></sc-if>
+            </div>
+            <div style="display: flex; flex-direction: column; flex: 1; padding: 15px 16px 16px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 16px;">{{ r.name }}</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;"><svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="#E8703A" stroke="none"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z"></path></svg><span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 12.5px; font-variant-numeric: tabular-nums;">{{ r.rating }}</span></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #A69A92; margin-top: 3px;">
+                <svg width="12" height="12" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.4-7-11a7 7 0 0 1 14 0c0 5.6-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                {{ r.town }} · {{ r.sub }}
+              </div>
+              <div style="flex: 1;"></div>
+              <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 14px;">
+                <div><span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 19px; letter-spacing: -.02em; font-variant-numeric: tabular-nums;">{{ r.nightly }}</span><span style="font-size: 12px; color: #A69A92;"> / night</span></div>
+                <button sc-camel-on-click="{{ r.go }}" style="padding: 9px 18px; border-radius: 30px; background: linear-gradient(140deg, #E8703A, #C2410C); border: none; color: #FFFFFF; font-family: Inter, sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 12px rgba(194,65,12,.3); white-space: nowrap; transition: transform .14s;" style-hover="transform: translateY(-1px);">View</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- COLLECTIONS -->
+    <section style="margin-top: 54px;">
+      <h2 style="margin: 0 0 18px; font-family: Sora, sans-serif; font-weight: 600; font-size: 24px; letter-spacing: -.02em;">Browse by vibe</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+        <sc-for list="{{ collections }}" as="c" hint-placeholder-count="4">
+          <button sc-camel-on-click="{{ c.go }}" style="text-align: left; cursor: pointer; font-family: Inter, sans-serif; display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 18px; background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.75); box-shadow: 0 12px 34px rgba(150,90,50,.13), inset 0 1px 0 rgba(255,255,255,.6); transition: transform .14s;" style-hover="transform: translateY(-3px);">
+            <span style="width: 42px; height: 42px; border-radius: 13px; background: {{ c.iconBg }}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(194,65,12,.24);">{{ c.icon }}</span>
+            <span><span style="display: block; font-family: Sora, sans-serif; font-weight: 600; font-size: 15px;">{{ c.label }}</span><span style="display: block; font-size: 12px; color: #A69A92; margin-top: 2px;">{{ c.sub }}</span></span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- BOOK DIRECT trust band -->
+    <section style="margin-top: 54px; padding: 26px 28px; border-radius: 22px; background: linear-gradient(160deg, #3A2E27 0%, #251C17 100%); box-shadow: 0 18px 50px rgba(60,30,10,.28); position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -40px; right: -20px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(232,112,58,.4), transparent 70%); filter: blur(20px); pointer-events: none;"></div>
+      <div style="position: relative;">
+        <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 19px; color: #FFFFFF; letter-spacing: -.01em;">Why book direct</div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 20px;">
+          <sc-for list="{{ perks }}" as="p" hint-placeholder-count="4">
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+              <span style="width: 38px; height: 38px; border-radius: 11px; background: rgba(255,255,255,.1); color: #F3B98E; display: flex; align-items: center; justify-content: center;">{{ p.icon }}</span>
+              <span style="font-size: 13.5px; font-weight: 500; color: #F3E7DD;">{{ p.label }}</span>
+              <span style="font-size: 12px; color: #B9ABA0; line-height: 1.45;">{{ p.sub }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section style="margin-top: 54px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px;">
+        <h2 style="margin: 0; font-family: Sora, sans-serif; font-weight: 600; font-size: 24px; letter-spacing: -.02em;">Recent guests</h2>
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 30px; background: rgba(217,102,46,.12); color: #B4400F; font-size: 12px; font-weight: 500;"><svg width="12" height="12" sc-camel-view-box="0 0 24 24" fill="#E8703A" stroke="none"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z"></path></svg>4.8 · 369 reviews</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <sc-for list="{{ reviews }}" as="rv" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; padding: 20px; border-radius: 18px; background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.75); box-shadow: 0 12px 34px rgba(150,90,50,.12), inset 0 1px 0 rgba(255,255,255,.6);">
+            <div style="display: flex; gap: 2px; margin-bottom: 10px;">{{ rv.stars }}</div>
+            <p style="margin: 0; font-size: 13.5px; color: #4A3F38; line-height: 1.55; flex: 1;">{{ rv.quote }}</p>
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 16px;">
+              <span style="width: 34px; height: 34px; border-radius: 50%; background: {{ rv.avBg }}; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 12px; font-weight: 500;">{{ rv.initials }}</span>
+              <span><span style="display: block; font-size: 13px; font-weight: 500;">{{ rv.name }}</span><span style="display: block; font-size: 11.5px; color: #A69A92;">{{ rv.stay }}</span></span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section style="margin-top: 44px; text-align: center; padding: 40px 24px;">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -.02em;">Find your place by the sea</h2>
+      <p style="margin: 10px 0 22px; font-size: 14.5px; color: #7A6E66;">Real dates, live prices, instant confirmation.</p>
+      <a href="Guest Booking.dc.html" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 30px; border-radius: 30px; background: linear-gradient(140deg, #E8703A, #C2410C); border: none; color: #FFFFFF; font-family: Inter, sans-serif; font-size: 15px; font-weight: 500; text-decoration: none; box-shadow: 0 10px 28px rgba(194,65,12,.4); transition: transform .14s;" style-hover="transform: translateY(-2px);">Browse all stays<svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></a>
+    </section>
+  </main>
+
+  <!-- footer -->
+  <footer style="position: relative; z-index: 2; border-top: 1px solid rgba(120,70,40,.12); background: rgba(255,252,248,.4);">
+    <div style="max-width: 1080px; margin: 0 auto; padding: 28px 34px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(140deg, #E8703A, #C2410C); display: flex; align-items: center; justify-content: center;"><span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 15px; color: #FFFFFF;">S</span></div>
+        <div><div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 14px;">Seaside Villas</div><div style="font-size: 11.5px; color: #A69A92;">Faro · Lagos · Tavira, Portugal</div></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap;">
+        <a href="Guest Booking.dc.html" style="font-size: 12.5px; color: #7A6E66; text-decoration: none;" style-hover="color: #C2410C;">Stays</a>
+        <a href="Guest Help.dc.html" style="font-size: 12.5px; color: #7A6E66; text-decoration: none;" style-hover="color: #C2410C;">Help</a>
+        <a href="Guest Messages.dc.html" style="font-size: 12.5px; color: #7A6E66; text-decoration: none;" style-hover="color: #C2410C;">Contact</a>
+        <a href="Guest Account.dc.html" style="font-size: 12.5px; color: #7A6E66; text-decoration: none;" style-hover="color: #C2410C;">My account</a>
+        <span style="font-size: 12px; color: #B7ADA4;">stays@seasidevillas.ie</span>
+      </div>
+    </div>
+  </footer>
+
+  <sc-if value="{{ saveToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; bottom: 24px; right: 24px; z-index: 60; display: flex; align-items: center; gap: 11px; padding: 12px 16px 12px 13px; border-radius: 16px; background: rgba(255,252,248,.95); backdrop-filter: blur(30px) saturate(1.15); border: 1px solid rgba(255,255,255,.85); box-shadow: 0 16px 40px rgba(60,30,10,.28), inset 0 1px 0 rgba(255,255,255,.7); animation: vyFadeUp .3s cubic-bezier(.22,.61,.36,1) both;">
+      <span style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(140deg, #E8703A, #C2410C); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="#FFFFFF" stroke="none"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg>
+      </span>
+      <span style="font-size: 13.5px; font-weight: 500; color: #2B2320;">{{ saveToastMsg }}</span>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1120, &quot;height&quot;: 900}, &quot;motion&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Motion&quot;}}">
+class Component extends DCLogic {
+  state = { loc: 'faro', locOpen: false, adults: 2, children: 0, gOpen: false, wishlist: [], saveToast: false, saveToastMsg: '' };
+
+  componentDidMount() {
+    try {
+      const raw = window.localStorage.getItem('vyrobel_booking_filters');
+      if (raw) {
+        const f = JSON.parse(raw);
+        if (f && Array.isArray(f.wishlist)) this.setState({ wishlist: f.wishlist });
+      }
+    } catch (e) {}
+    this._mounted = true;
+  }
+
+  writeFilters(patch) {
+    let f = {};
+    try { f = JSON.parse(window.localStorage.getItem('vyrobel_booking_filters')) || {}; } catch (e) {}
+    Object.assign(f, { wishlist: this.state.wishlist }, patch || {});
+    try { window.localStorage.setItem('vyrobel_booking_filters', JSON.stringify(f)); } catch (e) {}
+  }
+
+  goBooking(destId, extra) {
+    const locMap = { faro: 'seaside', lagos: 'marina', tavira: 'casa' };
+    this.writeFilters(Object.assign({ loc: locMap[destId] || 'seaside', adults: this.state.adults, children: this.state.children }, extra || {}));
+    window.location.href = 'Guest Booking.dc.html';
+  }
+
+  openVilla(d) {
+    const locMap = { faro: 'seaside', lagos: 'marina', tavira: 'casa' };
+    this.writeFilters({ loc: locMap[d.dest] || 'seaside', adults: this.state.adults, children: this.state.children, villa: { id: d.id, name: d.name, town: d.town, sub: d.sub, nightly: d.nightly, rating: d.rating, thumb: d.thumb } });
+    window.location.href = 'Guest Villa Detail.dc.html';
+  }
+
+  ic(paths, fill) {
+    return React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: fill || 'none', stroke: fill ? 'none' : 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' },
+      paths.map((d, i) => React.createElement('path', { key: i, d })));
+  }
+
+  renderVals() {
+    if (this._mounted) this.writeFilters({});
+    const grad = 'linear-gradient(140deg, #E8703A, #C2410C)';
+    const gTotal = this.state.adults + this.state.children;
+    const guestsLabel = gTotal + (gTotal === 1 ? ' guest' : ' guests');
+
+    const locs = [
+      { id: 'faro', name: 'Faro', sub: 'Beachfront · 3 villas', region: 'Faro, Portugal' },
+      { id: 'lagos', name: 'Lagos', sub: 'Marina view · 18 suites', region: 'Lagos, Portugal' },
+      { id: 'tavira', name: 'Tavira', sub: 'Old town · 12 rooms', region: 'Tavira, Portugal' }
+    ];
+    const curLoc = locs.find((l) => l.id === this.state.loc) || locs[0];
+    const locList = locs.map((l) => ({ name: l.name, sub: l.sub, on: l.id === this.state.loc, pick: () => this.setState({ loc: l.id, locOpen: false }) }));
+
+    const destinations = [
+      { id: 'faro', town: 'Faro', sub: 'Beachfront apartments & villas', count: '3 villas · sleeps 2–6', from: (window.VYC ? VYC.fmt(110) : '€110'), thumb: 'linear-gradient(150deg, #F3B98E, #D9662E)', delay: '.04s' },
+      { id: 'lagos', town: 'Lagos', sub: 'Marina-view suites', count: '18 suites · sleeps 2–4', from: (window.VYC ? VYC.fmt(130) : '€130'), thumb: 'linear-gradient(150deg, #EDBE97, #C67B44)', delay: '.1s' },
+      { id: 'tavira', town: 'Tavira', sub: 'Old-town townhouses', count: '12 rooms · sleeps 2–5', from: (window.VYC ? VYC.fmt(95) : '€95'), thumb: 'linear-gradient(150deg, #E7C6A0, #B98A57)', delay: '.16s' }
+    ].map((d) => Object.assign({}, d, { go: () => this.goBooking(d.id) }));
+
+    const featDefs = [
+      { id: 'azure', name: 'Villa Azure', dest: 'faro', town: 'Faro', sub: '2-bed · sleeps 4', nightly: 140, rating: 4.8, tag: 'Popular', thumb: 'linear-gradient(150deg, #F0A57A, #E8703A)' },
+      { id: 'dunes', name: 'Villa Dunes', dest: 'faro', town: 'Faro', sub: '3-bed · sleeps 6', nightly: 190, rating: 4.9, tag: 'Sea view', thumb: 'linear-gradient(150deg, #EDA378, #D9662E)' },
+      { id: 'coralis', name: 'Villa Coralis', dest: 'faro', town: 'Faro', sub: 'Studio · sleeps 2', nightly: 110, rating: 4.6, tag: 'Best value', thumb: 'linear-gradient(150deg, #F3B98E, #E8875A)' },
+      { id: 'marina-loft', name: 'Marina Loft', dest: 'lagos', town: 'Lagos', sub: '1-bed · sleeps 3', nightly: 160, rating: 4.7, tag: '', thumb: 'linear-gradient(150deg, #EDBE97, #C67B44)' },
+      { id: 'casa-patio', name: 'Casa Pátio', dest: 'tavira', town: 'Tavira', sub: '2-bed · sleeps 4', nightly: 95, rating: 4.5, tag: '', thumb: 'linear-gradient(150deg, #E7C6A0, #B98A57)' },
+      { id: 'marina-belair', name: 'Belair Suite', dest: 'lagos', town: 'Lagos', sub: 'Studio · sleeps 2', nightly: 130, rating: 4.7, tag: '', thumb: 'linear-gradient(150deg, #EFCBA6, #CE9560)' }
+    ];
+    const featured = featDefs.map((d, i) => {
+      const saved = this.state.wishlist.indexOf(d.id) >= 0;
+      return {
+        name: d.name, town: d.town, sub: d.sub, thumb: d.thumb, tag: d.tag, tagShow: !!d.tag,
+        nightly: (window.VYC ? VYC.fmt(d.nightly) : ('€' + d.nightly)), rating: d.rating.toFixed(1), delay: (0.04 + i * 0.05).toFixed(2) + 's',
+        heartFill: saved ? '#E8703A' : 'none', heartStroke: saved ? '#E8703A' : '#8A8079',
+        go: () => this.openVilla(d),
+        toggleSave: (e) => {
+          if (e && e.stopPropagation) e.stopPropagation();
+          const adding = this.state.wishlist.indexOf(d.id) < 0;
+          this.setState((s) => ({ wishlist: adding ? s.wishlist.concat([d.id]) : s.wishlist.filter((x) => x !== d.id), saveToast: true, saveToastMsg: adding ? 'Saved to wishlist' : 'Removed from wishlist' }), () => this.writeFilters({}));
+          clearTimeout(this._st);
+          this._st = setTimeout(() => this.setState({ saveToast: false }), 2200);
+        }
+      };
+    });
+
+    const collections = [
+      { label: 'Beachfront', sub: 'Steps from the sand', icon: this.ic(['M2 18c1.5 0 2-1 3.5-1s2 1 3.5 1 2-1 3.5-1 2 1 3.5 1 2-1 3.5-1', 'M2 13c1.5 0 2-1 3.5-1s2 1 3.5 1 2-1 3.5-1 2 1 3.5 1 2-1 3.5-1']), iconBg: 'linear-gradient(140deg, #5AA9C9, #3E82A8)', patch: { amenities: ['seaview'] } },
+      { label: 'Private pools', sub: 'Your own plunge', icon: this.ic(['M2 20c1.5 0 2-1 3.5-1s2 1 3.5 1 2-1 3.5-1 2 1 3.5 1 2-1 3.5-1', 'M6 16V6a2 2 0 0 1 4 0', 'M18 16V6a2 2 0 0 0-4 0', 'M6 11h4']), iconBg: 'linear-gradient(140deg, #47B0A0, #2E8B7A)', patch: { amenities: ['pool'] } },
+      { label: 'Pet-friendly', sub: 'Bring the dog', icon: this.ic(['M11 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z', 'M17 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z', 'M5 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z', 'M14 13c2 0 4 1.6 4 4a2 2 0 0 1-2 2c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5a2 2 0 0 1-2-2c0-2.4 2-4 4-4z']), iconBg: 'linear-gradient(140deg, #E8875A, #C2410C)', patch: { amenities: ['pets'] } },
+      { label: 'For families', sub: 'Space for everyone', icon: this.ic(['M9 8a3 3 0 1 0 0-.01', 'M2.5 20c.9-3.4 3.6-5.5 6.5-5.5s5.6 2.1 6.5 5.5', 'M17 9a2.5 2.5 0 1 0 0-.01', 'M16.5 15c2.4.3 4.3 1.8 5 4.5']), iconBg: 'linear-gradient(140deg, #C98BC0, #9A5C93)', patch: { beds: '2' } }
+    ].map((c) => Object.assign({}, c, { go: () => { this.writeFilters(c.patch); window.location.href = 'Guest Booking.dc.html'; } }));
+
+    const perks = [
+      { label: 'No booking fees', sub: 'The price you see is the price you pay.', icon: this.ic(['M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 2.8 12V4.8A2 2 0 0 1 4.8 2.8H12a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.8z', 'M7.5 7.5v.01']) },
+      { label: 'Best-rate guarantee', sub: 'Cheaper elsewhere? We\u2019ll match it.', icon: this.ic(['M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6z', 'M9 12l2 2 4-4']) },
+      { label: 'Free cancellation', sub: 'Full refund up to 14 days before.', icon: this.ic(['M4 5.5h16', 'M8 3v4', 'M16 3v4', 'M5 8.5h14V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z', 'M9.5 13.5l5 4', 'M14.5 13.5l-5 4']) },
+      { label: 'Direct host support', sub: 'A real person, same day.', icon: this.ic(['M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z']) }
+    ];
+
+    const star = React.createElement('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: '#E8703A', stroke: 'none' }, React.createElement('path', { d: 'M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8z' }));
+    const stars5 = React.createElement(React.Fragment, null, [0, 1, 2, 3, 4].map((i) => React.createElement('span', { key: i }, star)));
+    const reviews = [
+      { name: 'Marta L.', stay: 'Villa Azure · Aug 2025', quote: '\u201CThe balcony caught the sunrise every morning. Spotless, and the host sorted us a late checkout without a fuss.\u201D', initials: 'ML', avBg: 'linear-gradient(140deg, #F0A57A, #D9662E)', stars: stars5 },
+      { name: 'Tom & Aoife', stay: 'Villa Dunes · Jul 2025', quote: '\u201CThe private pool sold it for the kids. Booking direct was cheaper than the big sites and check-in took two minutes.\u201D', initials: 'TA', avBg: 'linear-gradient(140deg, #C98BC0, #9A5C93)', stars: stars5 },
+      { name: 'Priya S.', stay: 'Casa Pátio · Jun 2025', quote: '\u201CTavira\u2019s old town on the doorstep, and a message back within the hour when we needed directions. Faultless.\u201D', initials: 'PS', avBg: 'linear-gradient(140deg, #5AA9C9, #3E82A8)', stars: stars5 }
+    ];
+
+    return {
+      motion: this.props.motion ?? true,
+      destinations, featured, collections, perks, reviews,
+      wishCount: '' + this.state.wishlist.length,
+      hasWish: this.state.wishlist.length > 0,
+      saveToast: this.state.saveToast, saveToastMsg: this.state.saveToastMsg,
+
+      locOpen: this.state.locOpen,
+      toggleLoc: () => this.setState((s) => ({ locOpen: !s.locOpen, gOpen: false })),
+      closeLoc: () => this.setState({ locOpen: false }),
+      locChev: this.state.locOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+      locFieldBg: this.state.locOpen ? 'rgba(217,102,46,.1)' : 'transparent',
+      whereLabel: curLoc.name,
+      locList,
+
+      gOpen: this.state.gOpen,
+      toggleGuests: () => this.setState((s) => ({ gOpen: !s.gOpen, locOpen: false })),
+      closeGuests: () => this.setState({ gOpen: false }),
+      gChev: this.state.gOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+      gFieldBg: this.state.gOpen ? 'rgba(217,102,46,.1)' : 'transparent',
+      guestsLabel,
+      adultsStr: '' + this.state.adults,
+      childrenStr: '' + this.state.children,
+      decAOp: this.state.adults <= 1 ? '.3' : '1',
+      incAOp: this.state.adults >= 12 ? '.3' : '1',
+      decCOp: this.state.children <= 0 ? '.3' : '1',
+      incCOp: this.state.children >= 8 ? '.3' : '1',
+      decA: () => this.setState((s) => ({ adults: Math.max(1, s.adults - 1) })),
+      incA: () => this.setState((s) => ({ adults: Math.min(12, s.adults + 1) })),
+      decC: () => this.setState((s) => ({ children: Math.max(0, s.children - 1) })),
+      incC: () => this.setState((s) => ({ children: Math.min(8, s.children + 1) })),
+
+      search: () => this.goBooking(this.state.loc)
+    };
+  }
+}
+</script>
+
+
+</body></html>

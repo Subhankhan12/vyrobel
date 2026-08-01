@@ -778,7 +778,9 @@ class AssignmentService
 
     private function recordStatusHistory(Reservation $reservation, ?string $from, string $to, ?string $reason = null): void
     {
-        $actorId = Auth::id();
+        // `changed_by` → users, so the actor is the OPERATOR (web guard) or null — NEVER a signed-in guest
+        // (a guest booking the public storefront while logged in must not leak their guest id here).
+        $actorId = Auth::guard('web')->id();
 
         ReservationStatusHistory::create([
             'reservation_id' => $reservation->getKey(),

@@ -7,13 +7,17 @@ namespace App\Http\Controllers;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Models\BookingQuote;
 use App\Models\Fee;
+use App\Models\Folio;
+use App\Models\Guest;
 use App\Models\Property;
+use App\Models\Reservation;
 use App\Models\RoomType;
 use App\Models\Tax;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Payments\Stripe\StripeIdempotency;
 use App\Services\BookingEngineService;
 use App\Services\FolioService;
+use App\Services\GuestWalletService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
@@ -305,9 +309,15 @@ class BookingEngineController extends Controller
             ? $this->offerFor($property, $roomTypeId, $checkIn, $checkOut, $adults, $children)
             : null;
 
+        // Real wallet credit (D3) — shown ONLY for a signed-in guest with a real spendable balance (never €0/fake).
+        $guest = Auth::guard('guest')->user();
+        $currency = (string) $property->currency;
+        $walletMinor = $guest instanceof Guest ? app(GuestWalletService::class)->spendableMinor($guest) : 0;
+
         return view('booking.checkout', [
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'offer' => $offer,
+            'wallet' => $walletMinor > 0 ? ['minor' => $walletMinor, 'display' => $this->money($walletMinor, $currency)] : null,
             'search' => [
                 'room_type_id' => $roomTypeId,
                 'check_in' => $checkIn,
@@ -364,39 +374,10 @@ class BookingEngineController extends Controller
             'last_name' => $validated['last_name'],
         ];
 
-        // TEST-MODE hosted-Stripe rail (founder decision D1): when the payments gateway is Stripe, the
-        // booking is created (room + fees + taxes on the folio, #17) with the balance DUE, and the guest
-        // is redirected to a hosted Checkout session — fulfilment happens on the `payment_intent.succeeded`
-        // webhook (the SAME certified rail as the guest folio payment), never off this redirect. No PAN
-        // ever touches us (SAQ A); StripeSafetyGuard refuses a live key outside production.
-        if ((string) config('services.payments.gateway') === 'stripe') {
-            return $this->reserveViaStripeCheckout($request, $property, $quote, $guestData, $validated, $adults, $children);
-        }
-
-        // Otherwise: the wired pay-on-arrival flow — the booking THROUGH AssignmentService (re-checks
-        // under lock; rejects if now full) settles the full folio balance inline through FolioService.
-        $result = $this->engine->book($quote, (string) $request->input('payment_token', 'offline'), $guestData);
-
-        if ($result['status'] === 'confirmed' || $result['status'] === 'already_converted') {
-            return redirect()->to(route('booking.reservation', [$property->slug, $quote->getKey()]));
-        }
-
-        return $this->soldOutRedirect($property, $validated, $adults, $children);
-    }
-
-    /**
-     * Reserve → pay via the certified TEST-MODE hosted-Stripe Checkout rail. Books (balance due, no inline
-     * charge), creates a Checkout session for the real folio balance, records the PENDING intent, and
-     * redirects the guest to Stripe. The `webhooks.stripe` → `payment_intent.succeeded` → settlePayment
-     * path marks the folio paid — no new webhook code. Idempotent on the folio (a re-submit reuses the
-     * same session). On a lost race → the honest sold-out redirect (never a faked confirmation).
-     *
-     * @param  array<string, mixed>  $guestData
-     * @param  array<string, mixed>  $validated
-     */
-    private function reserveViaStripeCheckout(Request $request, Property $property, BookingQuote $quote, array $guestData, array $validated, int $adults, int $children): RedirectResponse
-    {
-        $result = $this->engine->book($quote, 'stripe_checkout', $guestData, takePayment: false);
+        // Book with the balance DUE (no inline charge) so a signed-in guest's REAL wallet credit can reduce it
+        // FIRST (reconciling #17), and the remaining balance is then paid via the certified rail. The booking
+        // routes THROUGH AssignmentService (re-checks under lock; never overbooks). No PAN touches us (SAQ A).
+        $result = $this->engine->book($quote, 'checkout', $guestData, takePayment: false);
 
         if ($result['status'] === 'unavailable') {
             return $this->soldOutRedirect($property, $validated, $adults, $children);
@@ -406,14 +387,28 @@ class BookingEngineController extends Controller
         $folio = $result['folio'];
         $confirmationUrl = route('booking.reservation', [$property->slug, $quote->getKey()]);
 
-        // already_converted (re-submit) or a zero-balance booking → straight to the confirmation.
-        if ($reservation === null || $folio === null) {
+        // already_converted (re-submit) → straight to the confirmation.
+        if (! $reservation instanceof Reservation || ! $folio instanceof Folio) {
             return redirect()->to($confirmationUrl);
         }
 
+        // Real wallet credit (founder decision D3) — ONLY a signed-in guest with a real spendable balance, capped
+        // at what's owed, genuinely deducted (never a fabricated €50, #39); it reduces the folio balance (#17).
+        $this->applyGuestWalletCredit($request, $reservation);
+
+        $folio->refresh();
         $currency = (string) $reservation->currency;
-        $balanceMinor = FolioTotals::for($folio)['balance_minor'];
+        $balanceMinor = FolioTotals::for($folio->load(['items', 'payments']))['balance_minor'];
+
+        // Fully covered by credit → nothing to charge; confirm.
         if ($balanceMinor <= 0) {
+            return redirect()->to($confirmationUrl);
+        }
+
+        // Card → the certified TEST-MODE hosted Stripe Checkout (fulfil on the webhook, no PAN). Else pay-on-arrival.
+        if ((string) config('services.payments.gateway') !== 'stripe') {
+            $this->folios->recordPayment($folio, Money::of($balanceMinor, $currency), 'offline', ['booking_quote_id' => $quote->getKey()]);
+
             return redirect()->to($confirmationUrl);
         }
 
@@ -444,6 +439,38 @@ class BookingEngineController extends Controller
         ]);
 
         return redirect()->away($session->url);
+    }
+
+    /**
+     * Apply a signed-in guest's REAL wallet credit to the booking (founder decision D3) — the SAME certified path
+     * the operator uses ({@see GuestWalletService::applyToBooking}): capped at the guest's spendable
+     * balance AND at what's owed, debited from the wallet + posted as a folio discount line (reconciling #17).
+     * Anonymous storefront / no real balance / nothing owed → nothing applied (never a fabricated credit, #39).
+     */
+    private function applyGuestWalletCredit(Request $request, Reservation $reservation): int
+    {
+        if (! $request->boolean('apply_credit')) {
+            return 0;
+        }
+
+        $guest = Auth::guard('guest')->user();
+        if (! $guest instanceof Guest) {
+            return 0;   // wallet credit is a signed-in feature only
+        }
+
+        $wallet = app(GuestWalletService::class);
+        $spendable = $wallet->spendableMinor($guest);
+        $folio = Folio::query()->where('reservation_id', $reservation->getKey())->with(['items', 'payments'])->first();
+        $owed = $folio instanceof Folio ? (int) FolioTotals::for($folio)['balance_minor'] : 0;
+
+        $apply = max(0, min($spendable, $owed));
+        if ($apply <= 0) {
+            return 0;   // no real balance / nothing owed → never a fabricated credit
+        }
+
+        $wallet->applyToBooking($guest, $reservation, Money::of($apply, (string) $reservation->currency));
+
+        return $apply;
     }
 
     /**

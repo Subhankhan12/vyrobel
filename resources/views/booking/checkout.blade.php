@@ -54,6 +54,16 @@
                         <div class="vy-full"><label class="vy-field-label" for="email">Email</label><input class="vy-input" type="email" id="email" name="email" value="{{ old('email') }}" required></div>
                     </div>
 
+                    {{-- Real wallet credit (D3): shown ONLY for a signed-in guest with a real spendable balance.
+                         Ticking it applies up to min(spendable, owed) as a −discount folio line before the charge
+                         (reconciling #17). Never a fabricated/€0 credit — the controller omits $wallet otherwise. --}}
+                    @isset($wallet)
+                        <label class="vy-credit-toggle">
+                            <input type="checkbox" name="apply_credit" value="1" checked>
+                            <span>Apply my wallet credit <strong>({{ $wallet['display'] }})</strong> to this stay</span>
+                        </label>
+                    @endisset
+
                     {{-- Payment (D1): card → the certified TEST-MODE hosted Stripe Checkout (no PAN on us, SAQ A;
                          fulfils on the webhook). Otherwise pay-on-arrival, recorded for real via FolioService. --}}
                     @if ($payByCard)

@@ -205,6 +205,9 @@
         .vy-summary-total .vy-st-label { font-family: var(--vy-display); font-weight: 600; font-size: 15px; }
         .vy-summary-total .vy-st-val { font-family: var(--vy-display); font-weight: 700; font-size: 24px; color: var(--vy-accent); letter-spacing: -0.01em; }
         .vy-pay-note { display: flex; align-items: flex-start; gap: 8px; margin-top: 14px; font-size: 11.5px; color: var(--vy-muted); background: rgba(255, 255, 255, 0.5); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md); padding: 11px 13px; }
+        .vy-credit-toggle { display: flex; align-items: center; gap: 10px; margin-top: 16px; font-size: 12.5px; color: var(--vy-ink); background: rgba(255, 255, 255, 0.5); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md); padding: 12px 14px; cursor: pointer; }
+        .vy-credit-toggle input { width: 16px; height: 16px; accent-color: var(--vy-accent); flex: none; }
+        .vy-credit-toggle strong { color: var(--vy-accent-ink, var(--vy-ink)); }
 
         .vy-error { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px 16px; border-radius: var(--vy-r-md); background: rgba(224, 146, 30, 0.12); border: 1px solid rgba(224, 146, 30, 0.4); border-left: 3px solid var(--vy-amber-2); font-size: 13px; font-weight: 500; color: var(--vy-ink); }
         .vy-error svg { color: var(--vy-amber); flex: none; }

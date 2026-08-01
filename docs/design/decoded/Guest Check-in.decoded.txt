@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="eef29b9c-0a4e-4c1c-83eb-10c642bc4333"></script>
+
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <style>/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("06e5431f-91d0-4212-86b5-d47db7f11454") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("e76f7a0c-aaaa-483e-877a-f13176f346c7") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("7fc95ec5-be74-4eac-aa3b-038c47e849ec") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("731f6dd0-262b-4cca-9854-c9b270486894") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("d84a6d13-baaf-4ddd-90bf-d152e28059ba") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("df84b58b-95fc-4a20-a7ec-a63fd9184939") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("5431cb09-ae6e-4425-9636-24c9062ef426") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("06e5431f-91d0-4212-86b5-d47db7f11454") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("e76f7a0c-aaaa-483e-877a-f13176f346c7") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("7fc95ec5-be74-4eac-aa3b-038c47e849ec") format('woff2');
+  unicode-range: U+1F00-1FFF;
+}
+/* greek */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("731f6dd0-262b-4cca-9854-c9b270486894") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("d84a6d13-baaf-4ddd-90bf-d152e28059ba") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("df84b58b-95fc-4a20-a7ec-a63fd9184939") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("5431cb09-ae6e-4425-9636-24c9062ef426") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("bf5b365f-07cc-4c63-aa8a-3ae380b389da") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("c593430d-a586-48a4-96b4-ffa6f45492a6") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("bf5b365f-07cc-4c63-aa8a-3ae380b389da") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Sora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("c593430d-a586-48a4-96b4-ffa6f45492a6") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    @keyframes vyFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes vyShimmer { 0% { opacity: .25; transform: translateX(-4%) rotate(28deg); } 50% { opacity: .45; transform: translateX(3%) rotate(28deg); } 100% { opacity: .25; transform: translateX(-4%) rotate(28deg); } }
+    @keyframes vyDrift { 0% { transform: translate(0, 0); } 50% { transform: translate(46px, 28px); } 100% { transform: translate(0, 0); } }
+    @keyframes ciBarPulse { 0%, 100% { filter: brightness(1) saturate(1); } 50% { filter: brightness(1.16) saturate(1.14); } }
+    @keyframes ciTipPulse { 0% { box-shadow: 0 0 0 2px rgba(255,251,248,.85), 0 0 0 0 rgba(217,102,46,.5); } 70% { box-shadow: 0 0 0 2px rgba(255,251,248,.85), 0 0 0 7px rgba(217,102,46,0); } 100% { box-shadow: 0 0 0 2px rgba(255,251,248,.85), 0 0 0 0 rgba(217,102,46,0); } }
+  </style>
+</helmet>
+
+<div data-screen-label="Guest Online Check-in" style="min-height: 100vh; font-family: Inter, sans-serif; color: #2B2320; background: linear-gradient(135deg, #F6C89B 0%, #F1B896 32%, #EBD9CF 62%, #D9D6D2 100%); position: relative; overflow: hidden; box-sizing: border-box;">
+
+  <!-- ambient light -->
+  <div style="position: absolute; top: -180px; right: -120px; width: 640px; height: 640px; background: radial-gradient(circle, rgba(255,255,255,.35), transparent 68%); filter: blur(10px); pointer-events: none;"></div>
+  <div style="position: absolute; top: 22%; left: -10%; width: 70%; height: 260px; background: linear-gradient(120deg, rgba(255,240,220,.5), transparent); transform: rotate(28deg); filter: blur(24px); pointer-events: none; animation: vyShimmer 9s ease-in-out infinite;"></div>
+  <sc-if value="{{ motion }}" hint-placeholder-val="{{ true }}"><div style="position: absolute; top: 60px; left: 30%; width: 380px; height: 380px; border-radius: 50%; background: #E8703A; filter: blur(70px); opacity: .5; pointer-events: none; animation: vyDrift 14s ease-in-out infinite;"></div></sc-if>
+  <div style="position: absolute; bottom: 8%; left: 12%; width: 320px; height: 320px; border-radius: 50%; background: #F0A57A; filter: blur(70px); opacity: .45; pointer-events: none;"></div>
+  <div style="position: absolute; top: 260px; right: 6%; width: 300px; height: 300px; border-radius: 50%; background: #FBE3CE; filter: blur(70px); opacity: .5; pointer-events: none;"></div>
+
+  <div style="position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 30px 34px 52px; box-sizing: border-box;">
+
+    <!-- top bar -->
+    <div style="position: relative; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; animation: vyFadeUp .45s cubic-bezier(.22,.61,.36,1) both;">
+      <div style="display: flex; align-items: center; gap: 11px; min-width: 0;">
+        <div style="width: 38px; height: 38px; border-radius: 11px; background: linear-gradient(140deg, #E8703A, #C2410C); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(194,65,12,.30); flex-shrink: 0;">
+          <span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 18px; color: #FFFFFF;">V</span>
+        </div>
+        <div style="min-width: 0;">
+          <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 16px; letter-spacing: -.01em; line-height: 1.2;">Seaside Villas</div>
+          <div style="font-size: 11px; color: #A69A92; line-height: 1.2;">Villa Coralis · VYR-10430</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+        <a href="Guest Reservation.dc.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 500; color: #8A8079; text-decoration: none; white-space: nowrap;" style-hover="color: #C2410C;">
+          <svg width="12" height="12" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+          My stay
+        </a>
+        <dc-import name="Guest Notif Bell" hint-size="40px,40px"></dc-import>
+        <dc-import name="Guest Account Menu" hint-size="130px,40px"></dc-import>
+      </div>
+    </div>
+
+    <!-- hero band -->
+    <div style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; background: linear-gradient(135deg, rgba(255,252,248,.72), rgba(255,246,238,.5)); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); border-radius: 22px; box-shadow: 0 14px 40px rgba(150,90,50,.15), inset 0 1px 0 rgba(255,255,255,.7); padding: 24px 26px; margin-bottom: 18px; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both;">
+      <div style="display: flex; align-items: flex-start; gap: 18px; flex: 1; min-width: 280px;">
+        <div style="position: relative; width: 60px; height: 60px; flex-shrink: 0;">
+          <div style="position: absolute; inset: -6px; border-radius: 20px; background: radial-gradient(circle, rgba(232,112,58,.34), transparent 70%); filter: blur(8px);"></div>
+          <div style="position: relative; width: 60px; height: 60px; border-radius: 18px; background: linear-gradient(140deg, #E8703A, #C2410C); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(194,65,12,.38);"><svg width="27" height="27" sc-camel-view-box="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="9" r="4.2"></circle><path d="M11.4 11.6 20 20.2"></path><path d="M16.5 17.2l1.9-1.9"></path><path d="M18.6 19.3l1.9-1.9"></path></svg></div>
+        </div>
+        <div style="min-width: 0;">
+          <div style="display: inline-flex; align-items: center; gap: 7px; padding: 3px 12px 3px 9px; border-radius: 30px; background: {{ heroPillBg }}; margin-bottom: 9px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: {{ heroPillDot }}; box-shadow: 0 0 0 3px rgba(217,154,61,.14);"></span><span style="font-size: 11px; font-weight: 600; color: {{ heroPillCo }};">{{ heroPillText }}</span></div>
+          <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 27px; letter-spacing: -.02em; line-height: 1.12;">Online check-in</div>
+          <div style="font-size: 13px; color: #8A8079; margin-top: 5px; max-width: 430px; line-height: 1.45;">Two minutes now — your door code lands on your phone, and you skip the front desk on arrival Friday.</div>
+          <button sc-camel-on-click="{{ goWizard }}" style="display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 20px; border-radius: 30px; background: linear-gradient(140deg, #E8703A, #C2410C); border: none; color: #FFFFFF; font-family: Inter, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 6px 18px rgba(194,65,12,.38); transition: transform .14s;" style-hover="transform: translateY(-2px);">
+            {{ ctaText }}
+            <svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; flex: 1.5; min-width: 340px;">
+
+        <!-- countdown to arrival -->
+        <div style="display: flex; flex-direction: column; gap: 11px; padding: 12px 16px 13px; border-radius: 15px; background: rgba(255,255,255,.55); border: 1px solid rgba(120,70,40,.12); box-sizing: border-box;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+              <span style="width: 30px; height: 30px; border-radius: 9px; background: rgba(217,102,46,.12); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"></circle><path d="M12 10v4l2.5 1.5"></path><path d="M9.5 2.5h5"></path><path d="M19 6l1.5-1.5"></path></svg></span>
+              <div style="min-width: 0;">
+                <div style="font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #B4400F; line-height: 1.2;">Arrival in</div>
+                <div style="font-size: 11px; color: #8A8079; line-height: 1.2; margin-top: 1px; font-variant-numeric: tabular-nums;">Fri 12 Sep · 15:00</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 6px; flex-shrink: 0;">
+              <span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 19px; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; color: #2B2320;">{{ cdBig }}</span>
+              <span style="font-family: Sora, sans-serif; font-weight: 500; font-size: 12.5px; line-height: 1; font-variant-numeric: tabular-nums; color: #B4400F;">{{ cdSmall }}</span>
+            </div>
+          </div>
+          <div style="position: relative; height: 5px;">
+            <div style="position: absolute; inset: 0; border-radius: 999px; background: rgba(120,70,40,.13); overflow: hidden;">
+              <div style="position: absolute; top: 0; bottom: 0; left: 0; width: {{ cdPct }}; border-radius: 999px; background: linear-gradient(90deg, #F0894E, #C2410C); animation: ciBarPulse 2.2s ease-in-out infinite;"></div>
+            </div>
+            <div style="position: absolute; top: 50%; left: {{ cdPct }}; width: 6px; height: 6px; transform: translate(-50%, -50%); border-radius: 999px; background: #C2410C; box-shadow: 0 0 0 2px rgba(255,251,248,.85); animation: ciTipPulse 2.2s ease-in-out infinite;"></div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 9.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;">
+            <span style="color: #A69A92;">Booked</span>
+            <span style="color: #B4400F;">{{ cdPctLabel }} there</span>
+            <span style="color: #A69A92;">Arrival</span>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+        <button sc-camel-on-click="{{ goWizard }}" style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 13px 14px; border-radius: 15px; background: rgba(255,255,255,.55); border: 1px solid rgba(120,70,40,.12); cursor: pointer; box-sizing: border-box; transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease; font-family: Inter, sans-serif;" style-hover="transform: translateY(-3px); box-shadow: 0 12px 26px rgba(150,90,50,.16); background: rgba(255,255,255,.82); border-color: rgba(120,70,40,.2);">
+          <span style="width: 28px; height: 28px; border-radius: 9px; background: rgba(217,102,46,.12); color: #B4400F; display: flex; align-items: center; justify-content: center; margin-bottom: 9px;"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11"></path><path d="M9 12h11"></path><path d="M9 18h11"></path><path d="M3.5 6l1 1 1.8-2"></path><path d="M3.5 12l1 1 1.8-2"></path><circle cx="4.5" cy="18" r="1.3"></circle></svg></span>
+          <span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 20px; letter-spacing: -.02em; color: #2B2320; line-height: 1;">{{ progNum }}</span>
+          <span style="font-size: 11px; color: #8A8079; margin-top: 4px;">Check-in steps</span>
+        </button>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 13px 14px; border-radius: 15px; background: rgba(255,255,255,.55); border: 1px solid rgba(120,70,40,.12); box-sizing: border-box;">
+          <span style="width: 28px; height: 28px; border-radius: 9px; background: rgba(217,102,46,.12); color: #B4400F; display: flex; align-items: center; justify-content: center; margin-bottom: 9px;"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2.5"></rect><path d="M3.5 9.5h17"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg></span>
+          <span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 20px; letter-spacing: -.02em; color: #2B2320; line-height: 1;">12 Sep</span>
+          <span style="font-size: 11px; color: #8A8079; margin-top: 4px;">Arrival · Fri</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 13px 14px; border-radius: 15px; background: rgba(255,255,255,.55); border: 1px solid rgba(120,70,40,.12); box-sizing: border-box;">
+          <span style="width: 28px; height: 28px; border-radius: 9px; background: rgba(217,102,46,.12); color: #B4400F; display: flex; align-items: center; justify-content: center; margin-bottom: 9px;"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 15.5c2.4.3 4.3 1.8 5 4.5"></path></svg></span>
+          <span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 20px; letter-spacing: -.02em; color: #2B2320; line-height: 1;">2</span>
+          <span style="font-size: 11px; color: #8A8079; margin-top: 4px;">Guests · Lukas &amp; Anna</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 13px 14px; border-radius: 15px; background: rgba(255,255,255,.55); border: 1px solid rgba(120,70,40,.12); box-sizing: border-box;">
+          <span style="width: 28px; height: 28px; border-radius: 9px; background: rgba(217,102,46,.12); color: #B4400F; display: flex; align-items: center; justify-content: center; margin-bottom: 9px;"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+          <span style="font-family: Sora, sans-serif; font-weight: 600; font-size: 18px; letter-spacing: -.01em; color: #2B2320; line-height: 1;">By SMS</span>
+          <span style="font-size: 11px; color: #8A8079; margin-top: 4px;">Door code · Wed</span>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- bento -->
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start;">
+
+      <!-- LEFT — wizard -->
+      <div id="sec-wizard" style="flex: 1.4 1 420px; min-width: 0;">
+
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; animation: vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .1s both;">
+          <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 17px; letter-spacing: -.01em;">Complete your check-in</div>
+          <div style="font-size: 11.5px; color: #A69A92; white-space: nowrap;">{{ stepOf }}</div>
+        </div>
+
+        <!-- progress rail -->
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; animation: vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .12s both;">
+          <div style="display: flex; align-items: center; gap: 7px; flex: 1;">
+            <span style="width: 26px; height: 26px; border-radius: 50%; background: {{ s1CircleBg }}; color: {{ s1CircleCo }}; border: {{ s1CircleBd }}; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 500; flex-shrink: 0; box-sizing: border-box;">{{ s1Mark }}</span>
+            <span style="font-size: 11.5px; font-weight: 500; color: {{ s1LabelCo }}; white-space: nowrap;">Details</span>
+          </div>
+          <div style="flex: 1; height: 2px; border-radius: 2px; background: {{ bar1Bg }};"></div>
+          <div style="display: flex; align-items: center; gap: 7px; flex: 1; justify-content: center;">
+            <span style="width: 26px; height: 26px; border-radius: 50%; background: {{ s2CircleBg }}; color: {{ s2CircleCo }}; border: {{ s2CircleBd }}; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 500; flex-shrink: 0; box-sizing: border-box;">{{ s2Mark }}</span>
+            <span style="font-size: 11.5px; font-weight: 500; color: {{ s2LabelCo }}; white-space: nowrap;">ID</span>
+          </div>
+          <div style="flex: 1; height: 2px; border-radius: 2px; background: {{ bar2Bg }};"></div>
+          <div style="display: flex; align-items: center; gap: 7px; flex: 1; justify-content: flex-end;">
+            <span style="width: 26px; height: 26px; border-radius: 50%; background: {{ s3CircleBg }}; color: {{ s3CircleCo }}; border: {{ s3CircleBd }}; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 500; flex-shrink: 0; box-sizing: border-box;">{{ s3Mark }}</span>
+            <span style="font-size: 11.5px; font-weight: 500; color: {{ s3LabelCo }}; white-space: nowrap;">Arrival</span>
+          </div>
+        </div>
+
+        <!-- card -->
+        <div style="background: rgba(255,252,248,.58); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.75); border-radius: 20px; box-shadow: 0 14px 40px rgba(150,90,50,.16), inset 0 1px 0 rgba(255,255,255,.65); padding: 26px; animation: vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .16s both;">
+
+          <!-- STEP 1: details -->
+          <sc-if value="{{ step1 }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 22px; letter-spacing: -.02em;">Let's check you in, Lukas</div>
+              <div style="font-size: 13px; color: #8A8079; margin-top: 5px; margin-bottom: 20px;">Two minutes now — keys straight away on Friday. We prefilled what we know.</div>
+
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div>
+                    <div style="font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 7px;">First name</div>
+                    <input value="{{ ciFirstStr }}" sc-camel-on-change="{{ onCiFirst }}" style="width: 100%; box-sizing: border-box; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.75); border-radius: 14px; padding: 11px 14px; font-family: Inter, sans-serif; font-size: 13.5px; color: #2B2320; outline: none;">
+                  </div>
+                  <div>
+                    <div style="font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 7px;">Last name</div>
+                    <input value="{{ ciLastStr }}" sc-camel-on-change="{{ onCiLast }}" style="width: 100%; box-sizing: border-box; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.75); border-radius: 14px; padding: 11px 14px; font-family: Inter, sans-serif; font-size: 13.5px; color: #2B2320; outline: none;">
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 7px;">Email</div>
+                  <input value="{{ ciEmailStr }}" sc-camel-on-change="{{ onCiEmail }}" style="width: 100%; box-sizing: border-box; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.75); border-radius: 14px; padding: 11px 14px; font-family: Inter, sans-serif; font-size: 13.5px; color: #2B2320; outline: none;">
+                </div>
+                <div>
+                  <div style="font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 7px;">Phone · for the door code SMS</div>
+                  <input value="{{ ciPhoneStr }}" sc-camel-on-change="{{ onCiPhone }}" placeholder="+49 …" style="width: 100%; box-sizing: border-box; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.75); border-radius: 14px; padding: 11px 14px; font-family: Inter, sans-serif; font-size: 13.5px; color: #2B2320; outline: none; font-variant-numeric: tabular-nums;">
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(120,70,40,.06); border: 1px solid rgba(120,70,40,.10); margin-bottom: 20px;">
+                <span style="width: 30px; height: 30px; border-radius: 50%; background: rgba(217,102,46,.13); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16.5 15.5c2.4.3 4.3 1.8 5 4.5"></path></svg>
+                </span>
+                <span style="min-width: 0; flex: 1; font-size: 12px; color: #8A8079;">Travelling with one more guest — <span style="font-weight: 500; color: #2B2320;">Anna Meyer</span> is on the booking. Only the lead guest checks in online.</span>
+              </div>
+
+              <button sc-camel-on-click="{{ toStep2 }}" style="width: 100%; padding: 13px 0; border-radius: 30px; background: linear-gradient(140deg, #E8703A, #C2410C); border: none; color: #FFFFFF; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 22px rgba(194,65,12,.40); transition: transform .14s, box-shadow .14s;" style-hover="transform: translateY(-2px); box-shadow: 0 12px 28px rgba(194,65,12,.48);">Continue to ID</button>
+            </div>
+          </sc-if>
+
+          <!-- STEP 2: ID -->
+          <sc-if value="{{ step2 }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 22px; letter-spacing: -.02em;">Verify your ID</div>
+              <div style="font-size: 13px; color: #8A8079; margin-top: 5px; margin-bottom: 20px;">Portuguese law asks us to register guests. A quick photo does it — no queue at the desk.</div>
+
+              <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                <button sc-camel-on-click="{{ idPickPass }}" style="flex: 1; padding: 9px 0; border-radius: 30px; background: {{ idPassBg }}; border: {{ idPassBd }}; color: {{ idPassCo }}; font-family: Inter, sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: transform .14s;" style-hover="transform: translateY(-1px);">Passport</button>
+                <button sc-camel-on-click="{{ idPickEu }}" style="flex: 1; padding: 9px 0; border-radius: 30px; background: {{ idEuBg }}; border: {{ idEuBd }}; color: {{ idEuCo }}; font-family: Inter, sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: transform .14s;" style-hover="transform: translateY(-1px);">EU ID card</button>
+              </div>
+
+              <button sc-camel-on-click="{{ idCapture }}" style="width: 100%; box-sizing: border-box; border: {{ idZoneBd }}; background: {{ idZoneBg }}; border-radius: 16px; padding: 26px 20px; font-family: Inter, sans-serif; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 14px; transition: background .16s;" style-hover="background: rgba(217,102,46,.07);">
+                <span style="width: 46px; height: 46px; border-radius: 50%; background: {{ idZoneIconBg }}; color: {{ idZoneIconCo }}; display: flex; align-items: center; justify-content: center;">
+                  <sc-if value="{{ idNotDone }}" hint-placeholder-val="{{ true }}">
+                    <svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v12H4z"></path><circle cx="12" cy="13.5" r="3.5"></circle></svg>
+                  </sc-if>
+                  <sc-if value="{{ idDone }}" hint-placeholder-val="{{ false }}">
+                    <svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg>
+                  </sc-if>
+                </span>
+                <span style="font-size: 13.5px; font-weight: 500; color: #2B2320;">{{ idZoneTitle }}</span>
+                <span style="font-size: 11.5px; color: #A69A92;">{{ idZoneSub }}</span>
+              </button>
+
+              <a href="Guest ID Verification.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 7px; margin-bottom: 12px; padding: 9px 0; border-radius: 12px; background: rgba(217,102,46,.07); border: 1px solid rgba(232,112,58,.22); font-size: 12px; font-weight: 500; color: #C2410C; text-decoration: none; transition: background .14s;" style-hover="background: rgba(217,102,46,.12);">
+                <svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.4"></rect><circle cx="8" cy="11" r="2"></circle><path d="M14 10h4"></path><path d="M14 13.5h3"></path></svg>
+                Prefer a guided scan? Run the full ID check
+                <svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </a>
+
+              <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 20px;">
+                <svg width="11" height="11" sc-camel-view-box="0 0 24 24" fill="none" stroke="#B4400F" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5c0 4.6 3.2 8.4 7.5 10 4.3-1.6 7.5-5.4 7.5-10V6z"></path><path d="M9 12l2 2 4-4.5"></path></svg>
+                <span style="font-size: 11px; color: #A69A92;">Encrypted · used only for the guest register · deleted 30 days after checkout</span>
+              </div>
+
+              <button sc-camel-on-click="{{ toStep3 }}" style="width: 100%; padding: 13px 0; border-radius: 30px; background: linear-gradient(140deg, #E8703A, #C2410C); border: none; color: #FFFFFF; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; cursor: {{ id2Cursor }}; opacity: {{ id2Op }}; box-shadow: 0 8px 22px rgba(194,65,12,.40); transition: transform .14s, box-shadow .14s;" style-hover="transform: translateY(-2px); box-shadow: 0 12px 28px rgba(194,65,12,.48);">Continue to arrival</button>
+              <button sc-camel-on-click="{{ toStep1 }}" style="width: 100%; margin-top: 10px; padding: 11px 0; border-radius: 30px; background: transparent; border: 1px solid rgba(120,70,40,.16); color: #8A8079; font-family: Inter, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer;" style-hover="background: rgba(120,70,40,.06);">Back</button>
+            </div>
+          </sc-if>
+
+          <!-- STEP 3: arrival -->
+          <sc-if value="{{ step3 }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 22px; letter-spacing: -.02em;">When do you arrive?</div>
+              <div style="font-size: 13px; color: #8A8079; margin-top: 5px; margin-bottom: 20px;">Housekeeping plans around this — and your early check-in request is already noted.</div>
+
+              <div style="font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 8px;">Arrival window · Fri 12 Sep</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px;">
+                <button sc-camel-on-click="{{ arr11 }}" style="padding: 12px 0; border-radius: 14px; background: {{ arr11Bg }}; border: {{ arr11Bd }}; color: {{ arr11Co }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; font-variant-numeric: tabular-nums; transition: transform .14s;" style-hover="transform: translateY(-1px);">11:00–13:00</button>
+                <button sc-camel-on-click="{{ arr13 }}" style="padding: 12px 0; border-radius: 14px; background: {{ arr13Bg }}; border: {{ arr13Bd }}; color: {{ arr13Co }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; font-variant-numeric: tabular-nums; transition: transform .14s;" style-hover="transform: translateY(-1px);">13:00–15:00</button>
+                <button sc-camel-on-click="{{ arr15 }}" style="padding: 12px 0; border-radius: 14px; background: {{ arr15Bg }}; border: {{ arr15Bd }}; color: {{ arr15Co }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; font-variant-numeric: tabular-nums; transition: transform .14s;" style-hover="transform: translateY(-1px);">15:00–18:00</button>
+                <button sc-camel-on-click="{{ arr18 }}" style="padding: 12px 0; border-radius: 14px; background: {{ arr18Bg }}; border: {{ arr18Bd }}; color: {{ arr18Co }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; font-variant-numeric: tabular-nums; transition: transform .14s;" style-hover="transform: translateY(-1px);">After 18:00</button>
+              </div>
+
+              <sc-if value="{{ arrEarly }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(217,154,61,.14); border: 1px solid rgba(217,154,61,.35); margin-bottom: 18px;">
+                  <span style="width: 30px; height: 30px; border-radius: 50%; background: rgba(217,154,61,.25); color: #8F6414; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg width="13" height="13" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg>
+                  </span>
+                  <span style="min-width: 0; flex: 1; font-size: 12px; color: #8F6414;">That's before the 15:00 check-in — we'll do our best. Housekeeping often finishes Coralis by 13:30; we'll message you the moment it's ready.</span>
+                </div>
+              </sc-if>
+
+              <div style="font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 8px;">Anything we should prepare? · optional</div>
+              <textarea value="{{ arrNoteStr }}" sc-camel-on-change="{{ onArrNote }}" rows="2" placeholder="Allergies, a cot, parking for a larger car…" style="width: 100%; box-sizing: border-box; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.75); border-radius: 14px; padding: 11px 14px; font-family: Inter, sans-serif; font-size: 13px; line-height: 1.5; color: #2B2320; outline: none; resize: vertical; margin-bottom: 20px;"></textarea>
+
+              <button sc-camel-on-click="{{ toDone }}" style="width: 100%; padding: 13px 0; border-radius: 30px; background: linear-gradient(140deg, #E8703A, #C2410C); border: none; color: #FFFFFF; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 22px rgba(194,65,12,.40); transition: transform .14s, box-shadow .14s;" style-hover="transform: translateY(-2px); box-shadow: 0 12px 28px rgba(194,65,12,.48);">Complete check-in</button>
+              <button sc-camel-on-click="{{ toStep2 }}" style="width: 100%; margin-top: 10px; padding: 11px 0; border-radius: 30px; background: transparent; border: 1px solid rgba(120,70,40,.16); color: #8A8079; font-family: Inter, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer;" style-hover="background: rgba(120,70,40,.06);">Back</button>
+            </div>
+          </sc-if>
+
+          <!-- DONE -->
+          <sc-if value="{{ stepDone }}" hint-placeholder-val="{{ false }}">
+            <div>
+              <div style="display: flex; flex-direction: column; align-items: center; padding: 8px 0 18px;">
+                <div style="position: relative; width: 84px; height: 84px; margin-bottom: 16px;">
+                  <div style="position: absolute; inset: -14px; border-radius: 50%; background: radial-gradient(circle, rgba(232,112,58,.30), transparent 70%); filter: blur(10px);"></div>
+                  <div style="position: relative; width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(140deg, #E8703A, #C2410C); box-shadow: 0 14px 34px rgba(194,65,12,.42); display: flex; align-items: center; justify-content: center; animation: vyFadeUp .5s cubic-bezier(.22,.61,.36,1) both;">
+                    <svg width="36" height="36" sc-camel-view-box="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg>
+                  </div>
+                </div>
+                <div style="font-family: Sora, sans-serif; font-weight: 600; font-size: 24px; letter-spacing: -.02em; text-align: center;">You're checked in, Lukas</div>
+                <div style="font-size: 12.5px; color: #8A8079; margin-top: 6px; text-align: center;">{{ doneSub }}</div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(217,102,46,.10); border: 1px solid rgba(232,112,58,.35); margin-bottom: 10px;">
+                <span style="width: 34px; height: 34px; border-radius: 50%; background: rgba(217,102,46,.16); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+                </span>
+                <span style="min-width: 0; flex: 1;">
+                  <span style="display: block; font-size: 12.5px; font-weight: 500; color: #B4400F;">Door code arrives Wed 10 Sep</span>
+                  <span style="display: block; font-size: 11px; color: #A69A92; margin-top: 1px;">By SMS to {{ donePhone }} and email — no key pickup</span>
+                </span>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(120,70,40,.06); border: 1px solid rgba(120,70,40,.10); margin-bottom: 20px;">
+                <span style="width: 34px; height: 34px; border-radius: 50%; background: rgba(217,102,46,.13); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5z"></path></svg>
+                </span>
+                <span style="min-width: 0; flex: 1;">
+                  <span style="display: block; font-size: 12.5px; font-weight: 500;">Skip-the-queue on Friday</span>
+                  <span style="display: block; font-size: 11px; color: #A69A92; margin-top: 1px;">ID verified · stay settled · arriving {{ doneEta }} — the desk is ready for you</span>
+                </span>
+              </div>
+
+              <a href="Guest Reservation.dc.html" style="display: block; width: 100%; box-sizing: border-box; padding: 13px 0; border-radius: 30px; background: linear-gradient(140deg, #E8703A, #C2410C); border: none; color: #FFFFFF; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 22px rgba(194,65,12,.40); text-align: center; text-decoration: none; transition: transform .14s, box-shadow .14s;" style-hover="transform: translateY(-2px); box-shadow: 0 12px 28px rgba(194,65,12,.48);">Back to my stay</a>
+            </div>
+          </sc-if>
+        </div>
+
+        <!-- footer -->
+        <div style="text-align: center; font-size: 11px; color: #A69A92; margin-top: 16px; line-height: 1.5; animation: vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .2s both;">Reservation VYR-10430 · questions? <a href="Guest Messages.dc.html" style="color: #C2410C; font-weight: 500; text-decoration: none;">Message the property</a> — we reply in ~10 min</div>
+      </div>
+
+      <!-- RIGHT — sidebar -->
+      <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+
+        <!-- your stay -->
+        <div style="background: rgba(255,252,248,.58); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.75); border-radius: 20px; box-shadow: 0 14px 40px rgba(150,90,50,.16), inset 0 1px 0 rgba(255,255,255,.65); padding: 20px; animation: vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .16s both;">
+          <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 14px;">
+            <span style="width: 34px; height: 34px; border-radius: 10px; background: rgba(217,102,46,.12); color: #C2410C; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 5l8 6.5"></path><path d="M6 10.5V20h12v-9.5"></path><path d="M10 20v-5h4v5"></path></svg>
+            </span>
+            <div style="font-family: Sora, sans-serif; font-weight: 500; font-size: 16px;">Your stay</div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0;">
+            <span style="font-size: 12.5px; color: #8A8079;">Villa</span>
+            <span style="font-size: 13px; font-weight: 500; text-align: right;">Coralis · sleeps 4</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid rgba(120,70,40,.1);">
+            <span style="font-size: 12.5px; color: #8A8079;">Dates</span>
+            <span style="font-size: 13px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums;">12–16 Sep · 4 nights</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid rgba(120,70,40,.1);">
+            <span style="font-size: 12.5px; color: #8A8079;">Guests</span>
+            <span style="font-size: 13px; font-weight: 500; text-align: right;">Lukas &amp; Anna</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0 4px; border-top: 1px solid rgba(120,70,40,.1);">
+            <span style="font-size: 12.5px; color: #8A8079;">Reservation</span>
+            <span style="font-size: 13px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums;">VYR-10430</span>
+          </div>
+        </div>
+
+        <!-- what this unlocks -->
+        <div style="background: rgba(255,252,248,.58); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.75); border-radius: 20px; box-shadow: 0 14px 40px rgba(150,90,50,.16), inset 0 1px 0 rgba(255,255,255,.65); padding: 20px; animation: vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .2s both;">
+          <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 14px;">
+            <span style="width: 34px; height: 34px; border-radius: 10px; background: rgba(217,102,46,.12); color: #C2410C; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.1 4.6L19 8.2l-3.5 3.4.9 4.9L12 14.2 7.6 16.5l.9-4.9L5 8.2l4.9-.6z"></path></svg>
+            </span>
+            <div style="font-family: Sora, sans-serif; font-weight: 500; font-size: 16px;">What this unlocks</div>
+          </div>
+
+          <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 0;">
+            <span style="width: 30px; height: 30px; border-radius: 9px; background: rgba(217,102,46,.12); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+            <span style="min-width: 0; flex: 1;"><span style="display: block; font-size: 13px; font-weight: 500;">Door code by SMS</span><span style="display: block; font-size: 11.5px; color: #A69A92; margin-top: 2px;">Sent Wed 10 Sep — no key pickup</span></span>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(120,70,40,.1);">
+            <span style="width: 30px; height: 30px; border-radius: 9px; background: rgba(217,102,46,.12); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5z"></path></svg></span>
+            <span style="min-width: 0; flex: 1;"><span style="display: block; font-size: 13px; font-weight: 500;">Skip the front desk</span><span style="display: block; font-size: 11.5px; color: #A69A92; margin-top: 2px;">Walk straight to Coralis on arrival</span></span>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 0 4px; border-top: 1px solid rgba(120,70,40,.1);">
+            <span style="width: 30px; height: 30px; border-radius: 9px; background: rgba(217,102,46,.12); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg></span>
+            <span style="min-width: 0; flex: 1;"><span style="display: block; font-size: 13px; font-weight: 500;">Early arrival noted</span><span style="display: block; font-size: 11.5px; color: #A69A92; margin-top: 2px;">We'll prep the villa as soon as we can</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;motion&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Motion&quot;}}">
+class Component extends DCLogic {
+  state = { step: 1, first: 'Lukas', last: 'Meyer', email: 'lukas@meyer.de', phone: '+49 171 555 0182', idType: 'pass', idDone: false, eta: '13', note: '' };
+
+  _scrollTo(id) { const el = document.getElementById(id); if (!el) return; const y = window.scrollY + el.getBoundingClientRect().top - 20; window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' }); }
+
+  componentDidMount() { this._mount = Date.now(); this._cd = setInterval(() => this.setState(st => ({ tick: (st.tick || 0) + 1 })), 1000); }
+  componentWillUnmount() { clearInterval(this._cd); }
+  _pad(n) { return String(n).padStart(2, '0'); }
+
+  renderVals() {
+    const s = this.state;
+    const step = s.step;
+    const done = step === 4;
+    const times = { '11': '11:00–13:00', '13': '13:00–15:00', '15': '15:00–18:00', '18': 'after 18:00' };
+
+    // live countdown to arrival — Fri 12 Sep, 15:00 (simulated ~6 days out, ticks down live)
+    const cdArrival = new Date(2025, 8, 12, 15, 0, 0).getTime();
+    const cdBase = new Date(2025, 8, 6, 9, 24, 0).getTime();
+    const cdRem = Math.max(0, cdArrival - (cdBase + (Date.now() - (this._mount || Date.now()))));
+    const cdTotal = 24 * 86400000; // booking-to-arrival window
+    const cdPct = Math.max(0, Math.min(100, (cdTotal - cdRem) / cdTotal * 100));
+
+    const vals = {
+      step1: step === 1, step2: step === 2, step3: step === 3, stepDone: done,
+      toStep1: () => this.setState({ step: 1 }),
+      toStep2: () => this.setState({ step: 2 }),
+      toStep3: () => { if (this.state.idDone) this.setState({ step: 3 }); },
+      toDone: () => this.setState({ step: 4 }),
+
+      ciFirstStr: s.first, onCiFirst: (e) => this.setState({ first: e.target.value }),
+      ciLastStr: s.last, onCiLast: (e) => this.setState({ last: e.target.value }),
+      ciEmailStr: s.email, onCiEmail: (e) => this.setState({ email: e.target.value }),
+      ciPhoneStr: s.phone, onCiPhone: (e) => this.setState({ phone: e.target.value }),
+
+      idCapture: () => this.setState({ idDone: true }),
+      idDone: s.idDone, idNotDone: !s.idDone,
+      idZoneTitle: s.idDone ? (s.idType === 'pass' ? 'Passport captured' : 'ID card captured') : 'Photograph your ' + (s.idType === 'pass' ? 'passport' : 'ID card'),
+      idZoneSub: s.idDone ? 'Looks good — details matched to your booking' : 'Tap to open the camera · photo page only',
+      idZoneBd: s.idDone ? '1px solid rgba(232,112,58,.45)' : '1.5px dashed rgba(120,70,40,.25)',
+      idZoneBg: s.idDone ? 'rgba(217,102,46,.08)' : 'rgba(255,255,255,.5)',
+      idZoneIconBg: s.idDone ? 'linear-gradient(140deg, #E8703A, #C2410C)' : 'rgba(217,102,46,.13)',
+      idZoneIconCo: s.idDone ? '#FFFFFF' : '#B4400F',
+      id2Op: s.idDone ? '1' : '.5',
+      id2Cursor: s.idDone ? 'pointer' : 'default',
+
+      arrEarly: s.eta === '11' || s.eta === '13',
+      arrNoteStr: s.note, onArrNote: (e) => this.setState({ note: e.target.value }),
+
+      doneSub: 'Guest register done for you and Anna · nothing to sign at the desk',
+      donePhone: s.phone.replace(/\s\d{4}$/, ' ····'),
+      doneEta: times[s.eta],
+
+      // hero
+      goWizard: () => this._scrollTo('sec-wizard'),
+      progNum: done ? 'Done' : (step + ' / 3'),
+      stepOf: done ? 'Complete' : ('Step ' + step + ' of 3'),
+      ctaText: done ? 'Review my details' : 'Start check-in',
+      heroPillBg: done ? 'rgba(79,122,70,.13)' : 'rgba(217,154,61,.16)',
+      heroPillCo: done ? '#3F6338' : '#8F6414',
+      heroPillDot: done ? '#4F7A46' : '#D99A3D',
+      heroPillText: done ? 'Checked in' : 'Not checked in yet',
+
+      // countdown to arrival (thin progress bar)
+      cdBig: Math.floor(cdRem / 86400000) + 'd',
+      cdSmall: this._pad(Math.floor(cdRem / 3600000) % 24) + ':' + this._pad(Math.floor(cdRem / 60000) % 60) + ':' + this._pad(Math.floor(cdRem / 1000) % 60),
+      cdPct: cdPct.toFixed(2) + '%',
+      cdPctLabel: Math.round(cdPct) + '%'
+    };
+
+    // progress rail
+    const stepStates = [
+      { n: 1, done: step > 1, active: step === 1 },
+      { n: 2, done: step > 2, active: step === 2 },
+      { n: 3, done: step > 3, active: step === 3 }
+    ];
+    stepStates.forEach((st, i) => {
+      const k = 's' + (i + 1);
+      vals[k + 'Mark'] = st.done ? '✓' : String(st.n);
+      vals[k + 'CircleBg'] = st.done || st.active ? 'linear-gradient(140deg, #E8703A, #C2410C)' : 'rgba(255,255,255,.6)';
+      vals[k + 'CircleCo'] = st.done || st.active ? '#FFFFFF' : '#A69A92';
+      vals[k + 'CircleBd'] = st.done || st.active ? 'none' : '1px solid rgba(120,70,40,.16)';
+      vals[k + 'LabelCo'] = st.active ? '#2B2320' : (st.done ? '#B4400F' : '#A69A92');
+    });
+    vals.bar1Bg = step > 1 ? 'linear-gradient(90deg, #E8703A, #C2410C)' : 'rgba(120,70,40,.14)';
+    vals.bar2Bg = step > 2 ? 'linear-gradient(90deg, #E8703A, #C2410C)' : 'rgba(120,70,40,.14)';
+
+    // id type chips
+    for (const [id, K] of [['pass', 'Pass'], ['eu', 'Eu']]) {
+      const on = s.idType === id;
+      vals['idPick' + K] = () => this.setState({ idType: id, idDone: false });
+      vals['id' + K + 'Bg'] = on ? 'rgba(217,102,46,.13)' : 'rgba(255,255,255,.6)';
+      vals['id' + K + 'Bd'] = on ? '1px solid rgba(232,112,58,.45)' : '1px solid rgba(120,70,40,.14)';
+      vals['id' + K + 'Co'] = on ? '#B4400F' : '#8A8079';
+    }
+
+    // arrival chips
+    for (const t of ['11', '13', '15', '18']) {
+      const on = s.eta === t;
+      vals['arr' + t] = () => this.setState({ eta: t });
+      vals['arr' + t + 'Bg'] = on ? 'linear-gradient(140deg, #E8703A, #C2410C)' : 'rgba(255,255,255,.6)';
+      vals['arr' + t + 'Bd'] = on ? '1px solid transparent' : '1px solid rgba(120,70,40,.14)';
+      vals['arr' + t + 'Co'] = on ? '#FFFFFF' : '#8A8079';
+    }
+
+    return vals;
+  }
+}
+</script>
+
+
+</body></html>

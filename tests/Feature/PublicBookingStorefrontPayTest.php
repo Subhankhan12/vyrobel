@@ -2,9 +2,13 @@
 
 use App\Models\Fee;
 use App\Models\Folio;
+use App\Models\Guest;
+use App\Models\GuestCreditEntry;
 use App\Models\Payment;
 use App\Payments\Stripe\FakeStripeClient;
+use App\Services\GuestWalletService;
 use App\Support\Folio\FolioTotals;
+use App\Support\Money\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -136,4 +140,45 @@ it('leaves the storefront folio unpaid when the hosted charge fails', function (
 
     expect(storefrontFolioBalance($s))->toBe(28500);          // still owed — no fake "paid"
     expect(Payment::query()->where('gateway_ref', $intentId)->value('status'))->toBe('failed');
+});
+
+// ── D3 — a signed-in guest's REAL wallet credit reduces the booking total (capped, reconciling #17) ──
+it('applies a signed-in guest\'s real wallet credit to the checkout, reconciling', function () {
+    $s = publicPropertyScenario(units: 1);
+    cleaningFee($s);                                          // room €240 + cleaning €45 = €285 owed
+    config(['services.payments.gateway' => 'manual']);        // settle inline so we can read the final balance
+
+    // A returning guest with a REAL €50 wallet credit, signed in.
+    $guest = Guest::create(['first_name' => 'Lukas', 'last_name' => 'Meyer', 'email' => 'lukas@example.test']);
+    app(GuestWalletService::class)->credit($guest, GuestCreditEntry::TYPE_PROMO, 'Loyalty', Money::of(5000, 'EUR'));
+
+    test()->actingAs($guest, 'guest')
+        ->post("/book/{$s['property']->slug}/checkout", storefrontBody($s, ['apply_credit' => '1']))
+        ->assertRedirect();
+
+    $folio = Folio::query()
+        ->whereHas('reservation', fn ($q) => $q->where('property_id', $s['property']->id))
+        ->firstOrFail()->load(['items', 'payments']);
+
+    // A REAL wallet debit + a folio discount line of −€50; the guest's balance drops by exactly €50 (#17).
+    expect($folio->items->where('type', 'discount')->sum('amount_minor'))->toBe(-5000);
+    expect((int) FolioTotals::for($folio)['charges_minor'])->toBe(28500 - 5000);   // €285 − €50 = €235
+    expect((int) FolioTotals::for($folio)['balance_minor'])->toBe(0);              // manual payment settled the €235
+    expect(app(GuestWalletService::class)->spendableMinor($guest->fresh()))->toBe(0);   // wallet spent
+});
+
+// ── D3 — wallet credit NEVER exceeds spendable or what's owed, and is anonymous-safe ────────────────
+it('never applies a fabricated credit for an anonymous booker', function () {
+    $s = publicPropertyScenario(units: 1);
+    cleaningFee($s);
+    config(['services.payments.gateway' => 'manual']);
+
+    // No signed-in guest → apply_credit is ignored (no wallet, no fabricated €50).
+    test()->post("/book/{$s['property']->slug}/checkout", storefrontBody($s, ['apply_credit' => '1']))->assertRedirect();
+
+    $folio = Folio::query()
+        ->whereHas('reservation', fn ($q) => $q->where('property_id', $s['property']->id))
+        ->firstOrFail()->load(['items', 'payments']);
+    expect($folio->items->where('type', 'discount')->count())->toBe(0);            // no fabricated credit
+    expect((int) FolioTotals::for($folio)['charges_minor'])->toBe(28500);          // full €285
 });
