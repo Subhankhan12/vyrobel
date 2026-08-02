@@ -77,12 +77,15 @@
                                 <span class="vy-task-group">{{ $g['label'] }} <b>{{ $g['count'] }}</b></span>
                             @endforeach
                         </div>
+                        {{-- ACTIONABLE — each task links to the page where it's resolved; it auto-clears from
+                             REAL state when its count hits 0 (no fabricated "done" flag, #39). --}}
                         @forelse ($tasks['items'] as $t)
-                            <div class="vy-task-row">
+                            <a class="vy-task-row is-actionable" href="{{ $t['link'] }}">
                                 <span class="vy-task-pri is-{{ $t['priority'] }}"></span>
                                 <span class="vy-task-label">{{ $t['label'] }}</span>
                                 <span class="vy-task-meta">{{ $t['meta'] }}</span>
-                            </div>
+                                <span class="vy-task-go" aria-hidden="true">→</span>
+                            </a>
                         @empty
                             <div class="vy-empty" style="padding: 20px 12px;">All caught up — nothing needs attention right now.</div>
                         @endforelse
@@ -152,6 +155,13 @@
                         @endphp
                         <div class="vy-hk-progress"><span style="width: {{ $hkPct }}%"></span></div>
                         <div class="vy-hk-progress-label"><span>{{ $housekeeping['to_clean'] }} to clean</span><span>{{ $hkDone }}/{{ $hkTotal }} done</span></div>
+                        {{-- Per-status rail cards — the REAL housekeeping_tasks.status counts. --}}
+                        <div class="vy-stat-list" style="margin-top: 14px;">
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#B4400F;"></span><span class="vy-stat-k">Dirty</span><span class="vy-stat-v">{{ $housekeeping['pending'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#E0921E;"></span><span class="vy-stat-k">In progress</span><span class="vy-stat-v">{{ $housekeeping['in_progress'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#33A0AC;"></span><span class="vy-stat-k">Clean</span><span class="vy-stat-v">{{ $housekeeping['clean'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#43A06B;"></span><span class="vy-stat-k">Inspected</span><span class="vy-stat-v">{{ $housekeeping['inspected'] }}</span></div>
+                        </div>
                         <a class="vy-arr-link" href="{{ route('app.housekeeping') }}" style="display:inline-block; margin-top:12px;">Open board →</a>
                     </div>
 
@@ -161,13 +171,16 @@
                             <h2 class="vy-card-title">Maintenance</h2>
                             <a class="vy-arr-link" href="{{ route('app.maintenance') }}">View all →</a>
                         </div>
-                        <div class="vy-mini-row">
-                            <span class="vy-mini-k">Units out of order</span>
-                            <span class="vy-mini-v">{{ $maintenance['out_of_order'] }}</span>
+                        {{-- Per-status rail cards — REAL active-ticket counts (open/urgent/awaiting-parts/out-of-order). --}}
+                        <div class="vy-stat-list">
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#8A8079;"></span><span class="vy-stat-k">Open</span><span class="vy-stat-v">{{ $kpis['work_orders'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#E8703A;"></span><span class="vy-stat-k">Urgent</span><span class="vy-stat-v">{{ $kpis['work_orders_urgent'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#33A0AC;"></span><span class="vy-stat-k">Awaiting parts</span><span class="vy-stat-v">{{ $maintenance['awaiting_parts'] }}</span></div>
+                            <div class="vy-stat"><span class="vy-stat-dot" style="background:#B4400F;"></span><span class="vy-stat-k">Out of order</span><span class="vy-stat-v">{{ $maintenance['out_of_order'] }}</span></div>
                         </div>
                         @if ($maintenance['on_hold'])
-                            <div class="vy-mini-row">
-                                <span class="vy-mini-k">On hold</span>
+                            <div class="vy-mini-row" style="margin-top: 10px; border-top: 1px solid var(--vy-hairline); padding-top: 10px;">
+                                <span class="vy-mini-k">Revenue on hold</span>
                                 <span class="vy-mini-v">{{ $maintenance['on_hold'] }} / night</span>
                             </div>
                         @endif

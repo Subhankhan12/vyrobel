@@ -925,6 +925,17 @@
         .vy-task-pri.is-normal { background: var(--vy-muted); }
         .vy-task-label { font-size: 13px; color: var(--vy-ink); }
         .vy-task-meta { font-size: 11.5px; color: var(--vy-muted); margin-left: auto; }
+        /* GATE 7 — an ACTIONABLE task row (links to where it's resolved). */
+        .vy-task-row.is-actionable { text-decoration: none; color: inherit; cursor: pointer; border-radius: 8px; padding: 10px 8px; margin: 0 -8px; border-bottom: 1px solid var(--vy-hairline); transition: background .14s; }
+        .vy-task-row.is-actionable:hover { background: rgba(232, 112, 58, 0.06); }
+        .vy-task-go { margin-left: 10px; color: var(--vy-accent); font-weight: 700; opacity: 0; transition: opacity .14s, transform .14s; }
+        .vy-task-row.is-actionable:hover .vy-task-go { opacity: 1; transform: translateX(2px); }
+        /* GATE 7 — Housekeeping / Maintenance per-status rail cards (real status counts). */
+        .vy-stat-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .vy-stat { display: flex; align-items: center; gap: 8px; padding: 8px 11px; border-radius: 10px; background: rgba(255, 255, 255, 0.5); border: 1px solid var(--vy-glass-border); }
+        .vy-stat-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+        .vy-stat-k { font-size: 12px; color: var(--vy-muted); }
+        .vy-stat-v { margin-left: auto; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--vy-ink); }
 
         /* Dashboard — Occupancy next 7 days (real per-day bars) */
         .vy-occ7 { display: flex; align-items: flex-end; gap: 8px; height: 92px; margin: 6px 0 4px; }

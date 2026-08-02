@@ -108,7 +108,11 @@ it('shows real work-order and out-of-order counts, tenant-scoped', function () {
         ->assertOk()
         ->assertSee('Open work orders')
         ->assertSee('1 urgent')          // exactly the one urgent active ticket in THIS org
-        ->assertSee('Units out of order');
+        ->assertSee('Out of order')      // the per-status maintenance rail card (real out-of-order count)
+        ->assertSee('Awaiting parts')    // the new per-status rail row (real awaiting_parts count)
+        // Today's tasks are ACTIONABLE — the urgent-work-orders task links to the maintenance board (filtered).
+        ->assertSee('Resolve urgent work orders')
+        ->assertSee(route('app.maintenance').'?filter=urgent', false);
 });
 
 // ── 5. The shared read-only gate + banner: unset → no banner; a future pause → the banner ─────────

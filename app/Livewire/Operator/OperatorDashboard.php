@@ -123,7 +123,7 @@ class OperatorDashboard extends Component
             'housekeeping' => $housekeeping,
             'maintenance' => $maintenance,
             'occupancyWeek' => $occupancyWeek,
-            'tasks' => $this->tasks($workOrders, $housekeeping, $arrivals, $inHouse),
+            'tasks' => $this->tasks($workOrders, $housekeeping, $arrivals, $date),
             'channels' => $this->channels($propertyIds),
             'arrivals' => $this->arrivalsList($arrivals),
         ]);
@@ -159,12 +159,12 @@ class OperatorDashboard extends Component
      * fabricated.
      *
      * @param  list<string>  $propertyIds
-     * @return array{out_of_order: int, on_hold: ?string}
+     * @return array{out_of_order: int, awaiting_parts: int, on_hold: ?string}
      */
     private function maintenance(array $propertyIds, string $currency, string $date): array
     {
         if ($propertyIds === []) {
-            return ['out_of_order' => 0, 'on_hold' => null];
+            return ['out_of_order' => 0, 'awaiting_parts' => 0, 'on_hold' => null];
         }
 
         // Units taken out of service by an ACTIVE ticket — the real "out of order" set (distinct units).
@@ -176,10 +176,18 @@ class OperatorDashboard extends Component
             ->unique()
             ->values();
 
+        // Active tickets genuinely waiting on a part (the real `awaiting_parts` flag) — the per-status rail row.
+        $awaitingParts = (int) MaintenanceTicket::query()
+            ->whereIn('status', ['open', 'in_progress'])
+            ->where('awaiting_parts', true)
+            ->whereHas('unit', fn ($q) => $q->whereIn('property_id', $propertyIds))
+            ->count();
+
         $onHoldMinor = $this->onHoldMinor($unitIds->all(), $date);
 
         return [
             'out_of_order' => $unitIds->count(),
+            'awaiting_parts' => $awaitingParts,
             'on_hold' => $onHoldMinor > 0 ? $this->money($onHoldMinor, $currency) : null,
         ];
     }
@@ -261,30 +269,34 @@ class OperatorDashboard extends Component
      * Today's tasks — DERIVED from real operational state (urgent/active work orders, rooms to clean,
      * arrivals still to check in). Honest-empty ("all caught up") when there is genuinely nothing.
      *
+     * Each item is ACTIONABLE — it links to the page where the operator resolves it (maintenance /
+     * housekeeping / front desk); the item auto-clears when its REAL count hits 0, so there is no
+     * fabricated "done" flag (the prototype's localStorage checkmark is refused in favour of real state, #39).
+     *
      * @param  array{open: int, urgent: int}  $workOrders
      * @param  array{to_clean: int, pending: int, in_progress: int, clean: int, inspected: int}  $housekeeping
      * @param  Collection<int, Reservation>  $arrivals
-     * @param  Collection<int, Reservation>  $inHouse
-     * @return array{groups: list<array{label: string, count: int}>, items: list<array{label: string, meta: string, priority: string}>}
+     * @return array{groups: list<array{label: string, count: int}>, items: list<array{label: string, meta: string, priority: string, link: string}>}
      */
-    private function tasks(array $workOrders, array $housekeeping, Collection $arrivals, Collection $inHouse): array
+    private function tasks(array $workOrders, array $housekeeping, Collection $arrivals, string $date): array
     {
+        $maintenanceUrl = route('app.maintenance');
         $items = [];
 
         if ($workOrders['urgent'] > 0) {
-            $items[] = ['label' => 'Resolve urgent work orders', 'meta' => $workOrders['urgent'].' urgent', 'priority' => 'urgent'];
+            $items[] = ['label' => 'Resolve urgent work orders', 'meta' => $workOrders['urgent'].' urgent', 'priority' => 'urgent', 'link' => $maintenanceUrl.'?filter=urgent'];
         }
         if ($workOrders['open'] - $workOrders['urgent'] > 0) {
-            $items[] = ['label' => 'Work through open work orders', 'meta' => ($workOrders['open'] - $workOrders['urgent']).' open', 'priority' => 'high'];
+            $items[] = ['label' => 'Work through open work orders', 'meta' => ($workOrders['open'] - $workOrders['urgent']).' open', 'priority' => 'high', 'link' => $maintenanceUrl];
         }
         if ($housekeeping['to_clean'] > 0) {
-            $items[] = ['label' => 'Rooms to clean', 'meta' => $housekeeping['to_clean'].' to clean', 'priority' => 'high'];
+            $items[] = ['label' => 'Rooms to clean', 'meta' => $housekeeping['to_clean'].' to clean', 'priority' => 'high', 'link' => route('app.housekeeping')];
         }
 
         // Arrivals still to check in = those not yet checked_in (the real status enum has no 'in_house').
         $toArrive = $arrivals->reject(fn (Reservation $r): bool => (string) $r->status === 'checked_in')->count();
         if ($toArrive > 0) {
-            $items[] = ['label' => 'Check in arrivals', 'meta' => $toArrive.' expected', 'priority' => 'normal'];
+            $items[] = ['label' => 'Check in arrivals', 'meta' => $toArrive.' expected', 'priority' => 'normal', 'link' => route('app.front-desk').'?date='.$date];
         }
 
         $groups = [
