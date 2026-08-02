@@ -3,7 +3,21 @@
      modals. FULL guest data (the manager) — name + channel + reservation context; the encrypted contact is
      NEVER rendered (#28). Reply/assign/new-message are POST routes (#20). RAW-BLADE RULE: every `@` follows a
      space, newline or tag. --}}
-<div x-data="{ assignOpen: false, composeOpen: false, composeGuest: null, composeTemplate: '' }">
+<div x-data="{
+        assignOpen: false,
+        composeOpen: false, composeGuest: null, composeTemplate: '', composeBody: '',
+        composeData: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['templates']])),
+        pickComposeGuest(id) { this.composeGuest = id; this.refillCompose(); },
+        pickComposeTemplate(key) { this.composeTemplate = (this.composeTemplate === key ? '' : key); this.refillCompose(); },
+        refillCompose() {
+            // Pre-fill the editable body from the chosen template merged for the chosen guest; the operator then
+            // reviews/edits and THAT text is what sends. Never overwrites text the operator has already typed for
+            // a different template without an explicit template pick.
+            if (this.composeGuest && this.composeTemplate && this.composeData[this.composeGuest]) {
+                this.composeBody = this.composeData[this.composeGuest][this.composeTemplate] || '';
+            }
+        }
+    }">
     <x-operator.shell active="inbox" title="Messages" :subtitle="$summary['unread'].' unread'" :viewer="$viewer">
 
         @if (session('inbox_notice')) <div class="vy-flash is-ok vy-fade">{{ session('inbox_notice') }}</div> @endif
@@ -259,10 +273,10 @@
                     @csrf
                     <input type="hidden" name="guest_id" :value="composeGuest">
                     <input type="hidden" name="template" :value="composeTemplate">
-                    <div class="vy-assign-list" style="max-height: 240px;">
+                    <div class="vy-assign-list" style="max-height: 190px;">
                         @forelse ($composeGuests as $g)
                             <label class="vy-assign-opt">
-                                <input type="radio" name="_guest_pick" value="{{ $g['id'] }}" @click="composeGuest = '{{ $g['id'] }}'">
+                                <input type="radio" name="_guest_pick" value="{{ $g['id'] }}" @click="pickComposeGuest('{{ $g['id'] }}')">
                                 <span class="vy-conv-avatar" style="width:30px;height:30px;font-size:11px;">{{ $g['initials'] }}</span>
                                 <span><strong>{{ $g['name'] }}</strong><br><span class="vy-muted">{{ $g['meta'] }}</span></span>
                             </label>
@@ -274,11 +288,17 @@
                         <span class="vy-field-label">Start from</span>
                         <div class="vy-template-row">
                             @foreach ($templates as $t)
-                                <button type="button" class="vy-template-chip" :class="composeTemplate === '{{ $t['key'] }}' ? 'is-on' : ''" @click="composeTemplate = (composeTemplate === '{{ $t['key'] }}' ? '' : '{{ $t['key'] }}')">{{ $t['label'] }}</button>
+                                <button type="button" class="vy-template-chip" :class="composeTemplate === '{{ $t['key'] }}' ? 'is-on' : ''" @click="pickComposeTemplate('{{ $t['key'] }}')">{{ $t['label'] }}</button>
                             @endforeach
                         </div>
                     </div>
-                    <p class="vy-modal-note">Starts a thread in this inbox · the guest replies wherever they booked.</p>
+                    {{-- The REAL editable body — a template pre-fills it (merged for the picked guest); the operator
+                         reviews + edits, and this exact text is what sends (`body` wins over `template` server-side). --}}
+                    <div class="vy-compose-editor">
+                        <span class="vy-field-label">Message</span>
+                        <textarea name="body" x-model="composeBody" rows="5" class="vy-input" placeholder="Write a message, or pick a template above to start from one — you can edit it before sending."></textarea>
+                    </div>
+                    <p class="vy-modal-note">Starts a thread in this inbox · the guest replies wherever they booked · contact details stay private.</p>
                     <div class="vy-modal-actions">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="composeOpen = false">Cancel</button>
                         <button type="submit" class="vy-btn vy-btn--accent" :disabled="!composeGuest" :style="!composeGuest ? 'opacity:.5;pointer-events:none;' : ''">Start conversation</button>
@@ -369,6 +389,8 @@
         .vy-assign-opt:hover { background: rgba(120,70,40,.05); }
         .vy-modal-note { font-size: 11px; color: var(--vy-faint); margin: 12px 0; border-top: 1px solid var(--vy-hairline); padding-top: 10px; }
         .vy-modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .vy-compose-editor { margin-top: 14px; }
+        .vy-compose-editor textarea { margin-top: 6px; resize: vertical; width: 100%; box-sizing: border-box; }
         .vy-compose-templates { margin-top: 14px; }
         .vy-template-row { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
         .vy-template-chip { padding: 7px 12px; border-radius: 20px; border: 1px solid var(--vy-hairline); background: none; font-size: 12px; cursor: pointer; color: var(--vy-ink); }

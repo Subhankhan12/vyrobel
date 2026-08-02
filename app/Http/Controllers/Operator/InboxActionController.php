@@ -11,11 +11,9 @@ use App\Models\MessageThread;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\InboxService;
-use App\Support\Email\EmailTemplateResolver;
-use App\Support\Money\MoneyFormatter;
+use App\Support\Inbox\MessageTemplate;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -198,19 +196,7 @@ class InboxActionController extends Controller
     /** Resolve a #83 template's message with the guest/reservation merge vars — the composer seed (never door codes #33). */
     private function templateBody(string $key, Guest $guest, ?Reservation $reservation): string
     {
-        $unit = $reservation?->reservationUnits?->first()?->unit;
-        $nights = $reservation !== null
-            ? CarbonImmutable::parse($reservation->check_in)->diffInDays(CarbonImmutable::parse($reservation->check_out))
-            : 0;
-        $vars = [
-            'first_name' => (string) ($guest->first_name ?: 'there'),
-            'unit' => $unit !== null ? (string) ($unit->name ?? $unit->code) : 'your unit',
-            'reference' => $reservation !== null ? (string) $reservation->reference : '',
-            'nights' => (string) $nights,
-            'balance' => $reservation !== null ? MoneyFormatter::display((int) ($reservation->balance_minor ?? 0), (string) ($reservation->currency ?? 'EUR')) : '',
-        ];
-
-        return EmailTemplateResolver::for(app(TenantContext::class)->id(), $key, $vars)->message();
+        return MessageTemplate::merged($key, $guest, $reservation);   // the ONE merge, shared with the composer preview
     }
 
     private function paused(): bool

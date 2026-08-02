@@ -12,6 +12,7 @@ use App\Models\Reservation;
 use App\Models\User;
 use App\Services\InboxService;
 use App\Support\Guest\GuestHistory;
+use App\Support\Inbox\MessageTemplate;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
@@ -501,6 +502,14 @@ class OperatorInbox extends Component
                 'name' => $name,
                 'initials' => $this->initials($name),
                 'meta' => trim($when.($unitLabel !== '' ? ' · '.$unitLabel : '').' · '.ucfirst((string) $reservation->source)),
+                // Each template pre-MERGED for THIS guest (the ONE shared merge #83) so the New-message modal
+                // can pre-fill the editable textarea — the operator reviews + edits before sending, and the
+                // edited body is what sends (it wins over `template` in start()). No door codes/secrets (#33).
+                'templates' => [
+                    'pre-arrival' => MessageTemplate::merged('pre-arrival', $guest, $reservation),
+                    'payment-reminder' => MessageTemplate::merged('payment-reminder', $guest, $reservation),
+                    'review-request' => MessageTemplate::merged('review-request', $guest, $reservation),
+                ],
             ];
         }
 

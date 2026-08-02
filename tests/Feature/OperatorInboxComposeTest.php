@@ -30,6 +30,23 @@ it('starts a thread with a real guest seeded from a template', function () {
         ->and($msg->delivery_status)->toBe('delivered');
 });
 
+// ── GATE 3.2 — the operator's EDITED body is what sends (the in-modal editor), not the raw template ──
+it('sends the operator-edited body verbatim, overriding the template', function () {
+    $s = seedScenario(1);
+    $manager = operatorUser($s);
+    book($s);
+    $edited = 'Reviewed & edited by the operator before sending — marker Q22Z.';
+
+    $this->actingAs($manager)
+        ->post(route('app.inbox.start'), ['guest_id' => $s['guest']->id, 'template' => 'pre-arrival', 'body' => $edited])
+        ->assertRedirect();
+
+    $thread = MessageThread::query()->where('guest_id', $s['guest']->id)->where('channel', 'manual')->firstOrFail();
+    $msg = Message::query()->where('thread_id', $thread->id)->where('direction', 'outbound')->firstOrFail();
+    // The EDITED body sent verbatim — the template was only the starting point, never overriding the operator.
+    expect((string) $msg->body)->toBe($edited);
+});
+
 // ── The compose picker only offers guests with a current/upcoming/recent stay ─────────────────────
 it('lists guests with a current or upcoming stay in the new-message picker', function () {
     $s = seedScenario(1);
