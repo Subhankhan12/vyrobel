@@ -3,6 +3,7 @@
 use App\Models\Membership;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Models\ReservationUnit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -112,6 +113,26 @@ it('records an on-desk collect once when the same idempotency key is submitted t
     $this->actingAs(deskMember($s))->post(route('app.reservations.payment', $res->id), $payload)->assertRedirect();
 
     expect(Payment::query()->where('reservation_id', $res->id)->where('type', 'payment')->count())->toBe(1);
+});
+
+// ── 3e. GATE 2 — an in-place MOVE reseats the line through the certified path and returns to the board ──
+it('moves a reservation to a free same-type unit from the board and returns to the board', function () {
+    $s = seedScenario(2);
+    $s['units'][0]->update(['code' => 'ROOMA9']);
+    $s['units'][1]->update(['code' => 'ROOMB9']);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $line = ReservationUnit::query()->where('reservation_id', $res->id)->where('status', 'active')->firstOrFail();
+
+    $this->actingAs(deskMember($s))
+        ->post(route('app.reservations.move', $res->id), [
+            'reservation_unit_id' => $line->id, 'unit_id' => $s['units'][1]->id,
+            'return_to' => 'front-desk', 'return_date' => '2026-09-01',
+        ])
+        ->assertRedirect(route('app.front-desk').'?date=2026-09-01')   // back to the BOARD, not the detail
+        ->assertSessionHas('desk_notice');
+
+    // The line genuinely moved through AssignmentService::assignUnit (the single guarded write path).
+    expect((string) $line->fresh()->unit_id)->toBe((string) $s['units'][1]->id);
 });
 
 // ── 4. Tenant isolation — org B cannot see OR act on org A's reservation ─────────────────────────

@@ -46,12 +46,13 @@
         @else
             <div x-data="{
                     tab: 'arrivals',
-                    modal: null, row: {}, keycards: 2, collectAmt: '', payKey: '', checks: { id: false, reg: false },
+                    modal: null, row: {}, keycards: 2, collectAmt: '', payKey: '', checks: { id: false, reg: false }, moveTarget: '',
                     newKey() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('k' + Date.now() + Math.floor(Math.random() * 1e6)); },
                     defaultAmt(r) { return r.balance_minor ? (r.balance_minor / 100).toFixed(2) : ''; },
                     openCheckin(r) { this.row = r; this.keycards = 2; this.checks = { id: false, reg: false }; this.collectAmt = this.defaultAmt(r); this.payKey = this.newKey(); this.modal = 'checkin'; },
                     openCheckout(r) { this.row = r; this.collectAmt = this.defaultAmt(r); this.payKey = this.newKey(); this.modal = 'checkout'; },
                     openCollect(r) { this.row = r; this.collectAmt = this.defaultAmt(r); this.payKey = this.newKey(); this.modal = 'collect'; },
+                    openMove(r) { this.row = r; this.moveTarget = ''; this.modal = 'move'; },
                     close() { this.modal = null; }
                 }" x-on:keydown.escape.window="close()">
                 {{-- Segmented control — Arrivals / Departures / In-house (sliding-pill tab state) --}}
@@ -131,6 +132,18 @@
                         </div>
 
                         @forelse ($rows as $row)
+                            @php
+                                // Compact row payload for the shared modals (NAME-only #28; no contact PII).
+                                $rowModal = [
+                                    'id' => $row['id'], 'guest' => $row['guest'], 'unit' => $row['unit'],
+                                    'nights' => $row['nights'], 'guests' => $row['guests'], 'source' => $row['source'],
+                                    'check_in_label' => $row['check_in_label'], 'check_out_label' => $row['check_out_label'],
+                                    'balance' => $row['balance'], 'balance_minor' => $row['balance_minor'],
+                                    'has_balance' => $row['has_balance'], 'can_collect' => $row['can_collect'],
+                                    'is_vip' => $row['is_vip'], 'status_label' => $row['status_label'], 'tone' => $row['tone'],
+                                    'can_move' => $row['can_move'], 'move' => $row['move'], 'unassigned' => $row['unassigned'],
+                                ];
+                            @endphp
                             <div class="vy-fd-row">
                                 <div class="vy-fd-main">
                                     <div class="vy-fd-guest">
@@ -154,9 +167,17 @@
                                         <span class="vy-tag tone-{{ $row['tone'] }}"><span class="vy-dot"></span>{{ $row['status_label'] }}</span>
                                         @if ($row['unassigned'])
                                             <span class="vy-unassigned">Unassigned</span>
-                                            <a class="vy-assign-link" href="{{ route('app.rack') }}?start={{ $row['check_in'] }}">Assign →</a>
+                                            @if ($row['can_move'])
+                                                {{-- In-place ASSIGN — real free same-type units → app.reservations.move --}}
+                                                <button type="button" class="vy-assign-link" x-on:click="openMove(@js($rowModal))">Assign →</button>
+                                            @else
+                                                <a class="vy-assign-link" href="{{ route('app.rack') }}?start={{ $row['check_in'] }}">Assign →</a>
+                                            @endif
                                         @elseif ($row['unit'])
                                             <span class="vy-unit-chip">{{ $row['unit'] }}</span>
+                                            @if ($row['can_move'])
+                                                <button type="button" class="vy-move-link" x-on:click="openMove(@js($rowModal))">Move</button>
+                                            @endif
                                         @endif
                                         <span class="vy-sep">·</span>
                                         <span>{{ $row['source'] }}</span>
@@ -167,17 +188,6 @@
                                     </div>
                                 </div>
 
-                                @php
-                                    // Compact row payload for the shared modals (NAME-only #28; no contact PII).
-                                    $rowModal = [
-                                        'id' => $row['id'], 'guest' => $row['guest'], 'unit' => $row['unit'],
-                                        'nights' => $row['nights'], 'guests' => $row['guests'], 'source' => $row['source'],
-                                        'check_in_label' => $row['check_in_label'], 'check_out_label' => $row['check_out_label'],
-                                        'balance' => $row['balance'], 'balance_minor' => $row['balance_minor'],
-                                        'has_balance' => $row['has_balance'], 'can_collect' => $row['can_collect'],
-                                        'is_vip' => $row['is_vip'], 'status_label' => $row['status_label'], 'tone' => $row['tone'],
-                                    ];
-                                @endphp
                                 <div class="vy-fd-right">
                                     @if ($row['has_balance'])
                                         <span class="vy-balance is-due" title="Outstanding folio balance">{{ $row['balance'] }} due</span>
@@ -311,12 +321,64 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- ── MOVE / ASSIGN modal — REAL free same-type units → the certified app.reservations.move
+                     (AssignmentService::assignUnit re-checks Level B under a lock). "Open rack" is the full
+                     assignment surface for a cross-type move. ── --}}
+                <div class="vy-fdm-overlay" x-show="modal === 'move'" x-cloak x-transition.opacity x-on:click.self="close()">
+                    <div class="vy-fdm">
+                        <div class="vy-fdm-head">
+                            <div>
+                                <div class="vy-fdm-title"><span x-text="row.unassigned ? 'Assign a unit' : ('Move ' + (row.guest || ''))"></span></div>
+                                <div class="vy-fdm-sub"><span x-text="row.check_in_label"></span>–<span x-text="row.check_out_label"></span> · same room type</div>
+                            </div>
+                            <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+                            </button>
+                        </div>
+                        <template x-if="row.move && row.move.candidates && row.move.candidates.length">
+                            <form method="POST" x-bind:action="'/app/reservations/' + row.id + '/move'">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="reservation_unit_id" x-bind:value="row.move ? row.move.line_id : ''">
+                                <input type="hidden" name="return_to" value="front-desk">
+                                <input type="hidden" name="return_date" value="{{ $day['date'] }}">
+                                <div class="vy-fdm-body">
+                                    <div class="vy-fdm-units">
+                                        <template x-for="u in (row.move ? row.move.candidates : [])" x-bind:key="u.id">
+                                            <label class="vy-fdm-unit">
+                                                <input type="radio" name="unit_id" x-bind:value="u.id" x-model="moveTarget">
+                                                <span class="vy-fdm-unit-code" x-text="u.name"></span>
+                                                <span class="vy-fdm-unit-free">Free</span>
+                                            </label>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div class="vy-fdm-foot">
+                                    <a class="vy-fdm-folio" href="{{ route('app.rack') }}?start={{ $day['date'] }}" style="margin-top: 0; margin-right: auto;">Open rack</a>
+                                    <button type="button" class="vy-act vy-act--ghost" x-on:click="close()">Cancel</button>
+                                    <button type="submit" class="vy-act vy-act--accent" x-bind:disabled="!moveTarget">Assign</button>
+                                </div>
+                            </form>
+                        </template>
+                        <template x-if="!(row.move && row.move.candidates && row.move.candidates.length)">
+                            <div>
+                                <div class="vy-fdm-body">
+                                    <div class="vy-fdm-settled">No free same-type unit for these dates — use the rack to move across room types.</div>
+                                </div>
+                                <div class="vy-fdm-foot">
+                                    <a class="vy-fdm-folio" href="{{ route('app.rack') }}?start={{ $day['date'] }}" style="margin-top: 0; margin-right: auto;">Open rack</a>
+                                    <button type="button" class="vy-act vy-act--ghost" x-on:click="close()">Cancel</button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             </div>
 
             <div class="vy-deferred-note" style="margin-top: 18px;">
                 <span class="vy-soon-tag">Wiring next</span>
-                Room moves and walk-ins are wired to their real routes in the next sub-gate; check-in, check-out
-                and on-desk payment collection are live. Balances are the real folio figures.
+                Walk-in create-and-check-in is wired to its real route in the next sub-gate; check-in, check-out,
+                on-desk payment collection and room moves are live. Balances are the real folio figures.
             </div>
         @endif
 
@@ -386,6 +448,14 @@
         .vy-fdm-folio { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--vy-accent, #e8703a); text-decoration: none; }
         .vy-fdm-folio:hover { text-decoration: underline; }
         .vy-fdm-foot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 22px 20px; }
+        .vy-move-link { margin-left: 8px; padding: 0; border: none; background: none; color: var(--vy-accent, #e8703a); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .vy-move-link:hover { text-decoration: underline; }
+        .vy-fdm-units { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+        .vy-fdm-unit { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 11px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.5); font-size: 13.5px; color: var(--vy-ink); cursor: pointer; transition: border-color 0.14s, background 0.14s; }
+        .vy-fdm-unit:has(input:checked) { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.07); }
+        .vy-fdm-unit input { accent-color: var(--vy-accent, #e8703a); width: 16px; height: 16px; }
+        .vy-fdm-unit-code { flex: 1; font-weight: 600; }
+        .vy-fdm-unit-free { font-size: 11px; color: #3c8c5a; font-weight: 600; }
         [x-cloak] { display: none !important; }
     </style>
 </div>

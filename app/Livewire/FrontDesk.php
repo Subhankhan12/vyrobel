@@ -10,6 +10,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\FrontDeskService;
+use App\Services\UnitAvailabilityService;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -52,6 +53,9 @@ class FrontDesk extends Component
 {
     use FormatsOperatorData;
     use ResolvesCurrentProperty;
+
+    /** Per-request memo for the move/assign free-unit lookups (keyed by room-type|dates|reservation). */
+    private array $freeUnitsMemo = [];
 
     public function render(): View
     {
@@ -237,8 +241,10 @@ class FrontDesk extends Component
         // #30 — gate the on-desk Collect CONTROL on the SAME permission the payment route enforces, so a role
         // that can view the desk but not take money never sees a Collect that would 403.
         $canCollect = (bool) auth()->user()?->can('payments.record');
+        // #30 — the in-place move/assign CONTROL gates on reservations.assign (the move route's permission).
+        $canMove = (bool) auth()->user()?->can('reservations.assign');
 
-        return $rows->map(function (Reservation $reservation) use ($canCheckIn, $canCheckOut, $canCollect): array {
+        return $rows->map(function (Reservation $reservation) use ($canCheckIn, $canCheckOut, $canCollect, $canMove): array {
             $guest = $reservation->leadGuest;
             $name = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
 
@@ -251,6 +257,24 @@ class FrontDesk extends Component
                 ->map(fn ($l) => (string) ($l->unit->name ?? $l->unit->code))
                 ->unique()->values();
             $unassigned = $lines->isNotEmpty() && $lines->contains(fn ($l) => $l->unit_id === null);
+
+            // In-place MOVE / ASSIGN candidates — physically-free same-type units for the active line's stay
+            // (Level B; the certified assignUnit re-checks under a lock). Computed only for a still-active
+            // reservation and only for a role that may assign — the CONTROL matches the route permission (#30).
+            $activeLine = $lines->first();
+            $move = null;
+            if ($canMove && $activeLine !== null && in_array($status, ['confirmed', 'checked_in'], true)) {
+                $move = [
+                    'line_id' => (string) $activeLine->id,
+                    'candidates' => $this->freeUnitsFor(
+                        (string) $reservation->property_id,
+                        (string) $activeLine->room_type_id,
+                        CarbonImmutable::parse($activeLine->check_in)->toDateString(),
+                        CarbonImmutable::parse($activeLine->check_out)->toDateString(),
+                        (string) $reservation->id,
+                    ),
+                ];
+            }
 
             $checkIn = CarbonImmutable::parse($reservation->check_in)->startOfDay();
             $checkOut = CarbonImmutable::parse($reservation->check_out)->startOfDay();
@@ -281,6 +305,9 @@ class FrontDesk extends Component
                 'can_check_in' => $status === 'confirmed' && $canCheckIn,
                 'can_check_out' => $status === 'checked_in' && $canCheckOut,
                 'can_collect' => $balanceMinor > 0 && $canCollect,
+                // In-place move/assign: the active line + its free same-type candidates (null when not allowed).
+                'move' => $move,
+                'can_move' => $move !== null && $move['candidates'] !== [],
                 // #87 — the guest's VIP flag + stay preferences flow to the front desk so arrivals get the
                 // right care (the once-empty "flags the front desk" promise, made true). These are operational
                 // flags, NOT contact PII — the name-only perimeter (email/phone) is unaffected (#28).
@@ -288,6 +315,22 @@ class FrontDesk extends Component
                 'preferences' => $guest !== null ? $guest->preferenceLabels() : [],
             ];
         })->all();
+    }
+
+    /**
+     * Memoised free same-type units for the move/assign picker (dedupes identical lookups within a render).
+     *
+     * @return list<array{id: string, code: string, name: string}>
+     */
+    private function freeUnitsFor(string $propertyId, string $roomTypeId, string $checkIn, string $checkOut, string $reservationId): array
+    {
+        $key = implode('|', [$roomTypeId, $checkIn, $checkOut, $reservationId]);
+        if (! array_key_exists($key, $this->freeUnitsMemo)) {
+            $this->freeUnitsMemo[$key] = app(UnitAvailabilityService::class)
+                ->freeUnitsForRoomType($propertyId, $roomTypeId, $checkIn, $checkOut, $reservationId);
+        }
+
+        return $this->freeUnitsMemo[$key];
     }
 
     /**

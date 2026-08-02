@@ -149,6 +149,58 @@ class UnitAvailabilityService
         return $result;
     }
 
+    /**
+     * Physically-free units of a room type for [checkIn, checkOut) — LEVEL B ONLY (never gated on the Level A
+     * count), for the front-desk MOVE / ASSIGN picker. A move within a room type doesn't change the count, and
+     * an already-booked reservation has consumed its Level-A slot, so requiring Level A here would wrongly hide
+     * physically-free units. A unit occupied by ANOTHER active reservation, or blocked, is excluded; the given
+     * reservation's OWN occupancy is ignored (so its current unit isn't shown as taken and same-date moves work).
+     * Best-effort for the UI — {@see AssignmentService::assignUnit} re-checks Level B under a row lock and is
+     * the sole guarantee, so a unit taken between this read and the write is still safely refused there.
+     *
+     * @return list<array{id: string, code: string, name: string}>
+     */
+    public function freeUnitsForRoomType(string $propertyId, string $roomTypeId, string $checkIn, string $checkOut, ?string $ignoreReservationId = null): array
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $checkIn) !== 1 || preg_match('/^\d{4}-\d{2}-\d{2}$/', $checkOut) !== 1) {
+            return [];
+        }
+
+        $in = CarbonImmutable::parse($checkIn)->toDateString();
+        $outExclusive = CarbonImmutable::parse($checkOut)->toDateString();
+
+        $units = Unit::query()->where('room_type_id', $roomTypeId)->orderBy('code')->get();
+        if ($units->isEmpty()) {
+            return [];
+        }
+        $unitIds = $units->map(fn (Unit $u): string => (string) $u->getKey())->all();
+
+        $occupiedQuery = ReservationUnit::query()
+            ->whereIn('unit_id', $unitIds)
+            ->where('status', 'active')
+            ->whereDate('check_in', '<', $outExclusive)
+            ->whereDate('check_out', '>', $in);
+        if ($ignoreReservationId !== null) {
+            $occupiedQuery->where('reservation_id', '!=', $ignoreReservationId);
+        }
+        $occupied = array_fill_keys(
+            $occupiedQuery->pluck('unit_id')->map(fn ($id): string => (string) $id)->all(),
+            true,
+        );
+        $blocked = $this->blockedUnitIds($unitIds, $in, $outExclusive);
+
+        $free = [];
+        foreach ($units as $unit) {
+            $uid = (string) $unit->getKey();
+            if (isset($occupied[$uid]) || isset($blocked[$uid])) {
+                continue;
+            }
+            $free[] = ['id' => $uid, 'code' => (string) $unit->code, 'name' => (string) ($unit->name ?? $unit->code)];
+        }
+
+        return $free;
+    }
+
     /** Level A: every night has a published availability row with available() ≥ 1. */
     private function levelAClear(string $roomTypeId, array $nights, array $available): bool
     {

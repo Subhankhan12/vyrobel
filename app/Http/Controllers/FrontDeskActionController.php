@@ -83,10 +83,26 @@ class FrontDeskActionController extends Controller
             $assignment->assignUnit($line, (string) $validated['unit_id']);
         } catch (UnitUnavailableException|InvalidArgumentException) {
             // Occupied for these dates, or a different room type — the move is refused by the guard.
-            return $this->backToDetail($model->id, 'That room isn’t available for these dates — pick another.');
+            return $this->afterMove($request, $model->id, 'That room isn’t available for these dates — pick another.');
         }
 
-        return $this->backToDetail($model->id, "Moved {$model->reference} to a new unit.");
+        return $this->afterMove($request, $model->id, "Moved {$model->reference} to a new unit.");
+    }
+
+    /**
+     * Redirect after a move: back to the FRONT-DESK BOARD when it originated there (`return_to=front-desk`,
+     * preserving `?date`), otherwise to the reservation detail (the rack/detail move surface is unchanged).
+     */
+    private function afterMove(Request $request, string $reservationId, string $notice): RedirectResponse
+    {
+        if ($request->input('return_to') === 'front-desk') {
+            $date = $request->input('return_date');
+            $target = route('app.front-desk').(is_string($date) && $date !== '' ? '?date='.urlencode($date) : '');
+
+            return redirect()->to($target)->with('desk_notice', $notice);
+        }
+
+        return $this->backToDetail($reservationId, $notice);
     }
 
     /** Redirect back to the reservation detail with a folio_notice flash (shared by move/charge). */
