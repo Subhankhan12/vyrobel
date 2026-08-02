@@ -1,6 +1,6 @@
 {{-- Operator HOUSEKEEPING (#88 exact-match) — the operator MANAGING the real HousekeepingTask (the owner sees
      the same model read-only). Board + List views, crew panel with real load, assign / assign-all (real writes),
-     room-detail drawer with real proof photos + elapsed. Every mutation is a guarded controller POST.
+     room-detail MODAL with real proof photos + elapsed. Every mutation is a guarded controller POST.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div x-data="{
         view: localStorage.getItem('vy:hk:view') || 'list',
@@ -255,10 +255,10 @@
             </div>
         </div>
 
-        {{-- ── ROOM DETAIL drawer ─────────────────────────────────────────────────────────────────── --}}
-        <div x-show="detail" x-cloak @keydown.escape.window="detail = null"
-             style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: stretch; justify-content: flex-end;">
-            <div @click.outside="detail = null" class="vy-card vy-fade" style="width: 100%; max-width: 420px; height: 100%; border-radius: 0; overflow: auto;" x-show="detail">
+        {{-- ── ROOM DETAIL modal (GATE 8.2 — was a right-side drawer; now a centered modal via the shared
+             .vy-modal-backdrop, whose grid centering survives x-show's inline-display toggle). ── --}}
+        <div x-show="detail" x-cloak @keydown.escape.window="detail = null" class="vy-modal-backdrop" style="z-index: 50;">
+            <div @click.outside="detail = null" class="vy-card vy-fade" style="width: 100%; max-width: 440px; max-height: 90vh; overflow: auto;" x-show="detail">
                 <template x-if="detail">
                     <div>
                         <div class="vy-detail-head" style="margin-bottom: 12px;">
@@ -293,6 +293,14 @@
                         <template x-if="detail.urgency">
                             <div class="vy-recon" style="margin-top: 0; margin-bottom: 12px;" x-text="detail.urgency.label"></div>
                         </template>
+
+                        {{-- Reassign-from-detail (GATE 8.2) — opens the shared, gated assign modal for THIS task
+                             (reuses the certified HousekeepingService::assign route; real-housekeeper-only). --}}
+                        @if ($canManage ?? $canAssign)
+                            <button type="button" class="vy-btn vy-btn--ghost" style="width: 100%; margin-bottom: 14px;"
+                                    @click="assign = { id: detail.id, unit: detail.unit, type: detail.type }; detail = null"
+                                    x-text="detail && detail.assignee ? 'Reassign housekeeper' : 'Assign housekeeper'"></button>
+                        @endif
 
                         {{-- Photos --}}
                         <h3 style="font-size: 13px; font-weight: 700; color: var(--vy-ink); margin: 6px 0 8px;">Photos</h3>
