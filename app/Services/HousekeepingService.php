@@ -116,6 +116,28 @@ class HousekeepingService
     }
 
     /**
+     * UNASSIGN a task (clear `assigned_to`) — the "Undo" behind the assign toast. A plain column reset within the
+     * housekeeping domain (touches no inventory/availability), recorded on the append-only event trail. No-op
+     * (no event) when the task is already unassigned, so a stray/duplicate undo is harmless.
+     */
+    public function unassign(HousekeepingTask $task, ?User $by = null): HousekeepingTask
+    {
+        $fromUserId = $task->assigned_to;
+        if ($fromUserId === null) {
+            return $task;   // already unassigned — nothing to undo
+        }
+
+        DB::transaction(function () use ($task): void {
+            $task->update(['assigned_to' => null]);
+        });
+
+        $this->domainEvents->record('housekeeping.task_unassigned', $task, ['from_user_id' => $fromUserId]);
+        $this->audit->record('housekeeping.task_unassigned', $task, ['assigned_to' => $fromUserId], ['assigned_to' => null]);
+
+        return $task->refresh();
+    }
+
+    /**
      * Auto-balance a batch of unassigned tasks across the real housekeepers (#88 — the "Assign all" button):
      * greedy LEAST-LOAD assignment, so each task goes to whoever currently carries the fewest open jobs (ties
      * broken by input order). The caller passes the tasks already ordered (waiting-guest rooms first) + the

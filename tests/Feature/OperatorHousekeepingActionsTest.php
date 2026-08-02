@@ -69,6 +69,84 @@ it('assigns a real housekeeper and bumps priority through the controller', funct
         ->and((string) $fresh->priority)->toBe('high');
 });
 
+// ── GATE 8.4 — the toast Undo: UNASSIGN clears the housekeeper (and is a no-op when already clear) ──
+it('unassigns a task through the guarded controller (the assign-toast Undo)', function () {
+    $s = seedScenario(1);
+    $cleaner = hkCleaner($s, 'Rosa Delacroix');
+    $task = hkT($s, 0, ['assigned_to' => $cleaner->id]);
+
+    $this->actingAs(hkActor($s))
+        ->post(route('app.housekeeping.unassign', $task->id))
+        ->assertRedirect(route('app.housekeeping'));
+
+    expect($task->fresh()->assigned_to)->toBeNull();
+});
+
+it('bulk-unassigns exactly the given tasks and never a foreign org\'s task (assign-all Undo)', function () {
+    $s = seedScenario(2);
+    $cleaner = hkCleaner($s, 'Rosa Delacroix');
+    $a = hkT($s, 0, ['assigned_to' => $cleaner->id]);
+    $b = hkT($s, 1, ['assigned_to' => $cleaner->id]);
+
+    // A different org's assigned task must NOT be touched (tenant-scoped whereIn).
+    $other = seedScenario(1);
+    $otherCleaner = hkCleaner($other, 'Foreign Cleaner');
+    $foreign = hkT($other, 0, ['assigned_to' => $otherCleaner->id]);
+
+    $this->actingAs(hkActor($s))
+        ->post(route('app.housekeeping.bulk-unassign'), ['task_ids' => [$a->id, $b->id, $foreign->id]])
+        ->assertRedirect(route('app.housekeeping'));
+
+    expect($a->fresh()->assigned_to)->toBeNull()
+        ->and($b->fresh()->assigned_to)->toBeNull()
+        ->and((string) $foreign->fresh()->assigned_to)->toBe((string) $otherCleaner->id);   // untouched
+});
+
+it('fully reverts a priority-assign: Undo restores the prior priority AND unassigns', function () {
+    $s = seedScenario(1);
+    $cleaner = hkCleaner($s, 'Rosa Delacroix');
+    $task = hkT($s, 0, ['priority' => 'normal']);   // starts normal
+
+    // Assign WITH the "clean next · priority" toggle → bumps to high + assigns.
+    $this->actingAs(hkActor($s))
+        ->post(route('app.housekeeping.assign', $task->id), ['user_id' => $cleaner->id, 'priority' => '1'])
+        ->assertRedirect();
+    expect((string) $task->fresh()->priority)->toBe('high');
+
+    // Undo (carrying the captured prior priority) reverts the WHOLE action — unassign + priority back to normal.
+    $this->actingAs(hkActor($s))
+        ->post(route('app.housekeeping.unassign', $task->id), ['restore_priority' => 'normal'])
+        ->assertRedirect();
+    $fresh = $task->fresh();
+    expect($fresh->assigned_to)->toBeNull()
+        ->and((string) $fresh->priority)->toBe('normal');
+});
+
+it('refuses unassign when the workspace is read-only (paused)', function () {
+    $s = seedScenario(1);
+    $cleaner = hkCleaner($s, 'Rosa Delacroix');
+    $task = hkT($s, 0, ['assigned_to' => $cleaner->id]);
+    $s['org']->update(['paused_until' => now()->addDays(5)]);
+
+    $this->actingAs(hkActor($s))
+        ->post(route('app.housekeeping.unassign', $task->id))
+        ->assertRedirect(route('app.housekeeping'));
+
+    expect((string) $task->fresh()->assigned_to)->toBe((string) $cleaner->id);   // unchanged
+});
+
+it('forbids unassign without housekeeping.manage', function () {
+    $s = seedScenario(1);
+    $cleaner = hkCleaner($s, 'Rosa Delacroix');
+    $task = hkT($s, 0, ['assigned_to' => $cleaner->id]);
+
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))   // holds housekeeping.view, NOT .manage
+        ->post(route('app.housekeeping.unassign', $task->id))
+        ->assertForbidden();
+
+    expect((string) $task->fresh()->assigned_to)->toBe((string) $cleaner->id);
+});
+
 // ── Assign-all auto-balances the unassigned rooms across housekeepers by load ────────────────────
 it('assign-all balances unassigned rooms across housekeepers by least load', function () {
     $s = seedScenario(4);

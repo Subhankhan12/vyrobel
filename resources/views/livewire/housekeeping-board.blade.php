@@ -41,8 +41,21 @@
      }">
     <x-operator.shell active="housekeeping" title="Housekeeping" subtitle="Today’s cleaning across your rooms" :viewer="$viewer">
 
+        {{-- GATE 8.4 — the assign / assign-all toast with a REAL Undo (a POST to the gated unassign route —
+             a genuine server-side revert, never a fabricated client-only "undo"). --}}
         @if (session('hk_notice'))
-            <div class="vy-flash is-ok vy-fade">{{ session('hk_notice') }}</div>
+            @php $hkUndo = session('hk_undo'); @endphp
+            <div class="vy-flash is-ok vy-fade" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <span>{{ session('hk_notice') }}</span>
+                @if (is_array($hkUndo) && ! empty($hkUndo['url']))
+                    <form method="POST" action="{{ $hkUndo['url'] }}" style="margin: 0; flex: none;">
+                        @csrf
+                        @foreach ($hkUndo['ids'] ?? [] as $undoId)<input type="hidden" name="task_ids[]" value="{{ $undoId }}">@endforeach
+                        @if (! empty($hkUndo['restore_priority']))<input type="hidden" name="restore_priority" value="{{ $hkUndo['restore_priority'] }}">@endif
+                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding: 3px 14px; font-size: 12px;">Undo</button>
+                    </form>
+                @endif
+            </div>
         @endif
         @if (session('hk_error'))
             <div class="vy-flash is-err vy-fade">{{ session('hk_error') }}</div>

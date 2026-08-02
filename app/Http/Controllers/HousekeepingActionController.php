@@ -80,7 +80,10 @@ class HousekeepingActionController extends Controller
         }
 
         // "Clean next · priority" (the modal toggle) → bump the task to high priority (top of their queue).
-        if ($request->boolean('priority')) {
+        // Capture the PRIOR priority first so Undo can fully revert the toast's action (not just the assignment).
+        $priorPriority = (string) $model->priority;
+        $bumped = $request->boolean('priority') && $priorPriority !== 'high';
+        if ($bumped) {
             $model->update(['priority' => 'high']);
         }
 
@@ -88,8 +91,63 @@ class HousekeepingActionController extends Controller
 
         $housekeeping->assign($model, $user);
 
+        // The toast Undo reverts the WHOLE assign action — the assignment AND (when it bumped) the priority.
+        $undo = ['url' => route('app.housekeeping.unassign', $model->id)];
+        if ($bumped) {
+            $undo['restore_priority'] = $priorPriority;
+        }
+
         return redirect()->to(route('app.housekeeping'))
-            ->with('hk_notice', "Assigned {$user->name} to unit {$model->unit?->code}.");
+            ->with('hk_notice', "Assigned {$user->name} to unit {$model->unit?->code}.")
+            ->with('hk_undo', $undo);
+    }
+
+    /** UNASSIGN a task (clear the housekeeper) — the "Undo" behind the assign toast. Gated + read-only + tenant-scoped. */
+    public function unassign(Request $request, HousekeepingService $housekeeping, string $task): RedirectResponse
+    {
+        $model = HousekeepingTask::query()->findOrFail($task);   // tenant-scoped → cross-org 404
+
+        if ($this->paused()) {
+            return $this->pausedRedirect();
+        }
+
+        $housekeeping->unassign($model, $request->user());
+
+        // Fully revert the assign toast: if that assign had bumped priority, restore the value it bumped FROM.
+        $restore = (string) $request->input('restore_priority', '');
+        if (in_array($restore, ['low', 'normal', 'high'], true)) {
+            $model->update(['priority' => $restore]);
+        }
+
+        return redirect()->to(route('app.housekeeping'))->with('hk_notice', "Unit {$model->unit?->code} unassigned.");
+    }
+
+    /**
+     * BULK UNASSIGN the given tasks — the "Undo" behind Assign-all. Tenant-scoped whereIn → a foreign id is
+     * fail-safe-absent (never touched); each clear goes through the certified service. Gated + read-only.
+     */
+    public function bulkUnassign(Request $request, HousekeepingService $housekeeping): RedirectResponse
+    {
+        if ($this->paused()) {
+            return $this->pausedRedirect();
+        }
+
+        $validated = $request->validate([
+            'task_ids' => ['required', 'array', 'min:1', 'max:500'],
+            'task_ids.*' => ['string'],
+        ]);
+
+        $tasks = HousekeepingTask::query()->whereIn('id', $validated['task_ids'])->get();
+        $n = 0;
+        foreach ($tasks as $t) {
+            if ($t->assigned_to !== null) {
+                $housekeeping->unassign($t, $request->user());
+                $n++;
+            }
+        }
+
+        return redirect()->to(route('app.housekeeping'))
+            ->with('hk_notice', $n > 0 ? "{$n} ".($n === 1 ? 'room' : 'rooms').' unassigned.' : 'Nothing to undo.');
     }
 
     /**
@@ -143,10 +201,13 @@ class HousekeepingActionController extends Controller
                 fn (HousekeepingTask $t): string => (string) $t->date,
             ]);
 
+        // Capture the ids assignAll will touch (all of $tasks when housekeepers exist) so Undo can revert exactly them.
+        $assignedIds = $tasks->pluck('id')->map(fn ($id): string => (string) $id)->all();
         $count = $housekeeping->assignAll($tasks, $housekeepers, $load, $request->user());
 
         return redirect()->to(route('app.housekeeping'))
-            ->with('hk_notice', $count > 0 ? "{$count} ".($count === 1 ? 'room' : 'rooms').' assigned · queues balanced.' : 'Nothing to assign — every room already has a housekeeper.');
+            ->with('hk_notice', $count > 0 ? "{$count} ".($count === 1 ? 'room' : 'rooms').' assigned · queues balanced.' : 'Nothing to assign — every room already has a housekeeper.')
+            ->with('hk_undo', $count > 0 ? ['url' => route('app.housekeeping.bulk-unassign'), 'ids' => $assignedIds] : null);
     }
 
     /**

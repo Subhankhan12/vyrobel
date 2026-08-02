@@ -852,6 +852,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // Batch C · GATE 1 — assign a REAL housekeeper (Housekeeping dept via StaffRoster) to a task. POST →
     // HousekeepingService::assign → PRG; `housekeeping.manage`-gated; a non-housekeeper/cross-org id refused.
     Route::post('/housekeeping/{task}/assign', [HousekeepingActionController::class, 'assign'])->middleware('can:housekeeping.manage')->name('housekeeping.assign');
+    // GATE 8.4 — the "Undo" behind the assign / assign-all toast: clear the assignment. Both `housekeeping.manage`
+    // -gated, read-only-guarded, tenant-scoped. `bulk-unassign` is 2-segment so it is never captured as {task}.
+    Route::post('/housekeeping/bulk-unassign', [HousekeepingActionController::class, 'bulkUnassign'])->middleware('can:housekeeping.manage')->name('housekeeping.bulk-unassign');
+    Route::post('/housekeeping/{task}/unassign', [HousekeepingActionController::class, 'unassign'])->middleware('can:housekeeping.manage')->name('housekeeping.unassign');
     // #88 — Assign-all (auto-balance across the real housekeepers) + task PROOF PHOTOS (the media-upload
     // security pattern). All `housekeeping.manage`-gated; tenant + property scoped; read-only respected.
     Route::post('/housekeeping/assign-all', [HousekeepingActionController::class, 'assignAll'])->middleware('can:housekeeping.manage')->name('housekeeping.assign-all');
