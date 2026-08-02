@@ -51,7 +51,7 @@ class UnitAvailabilityService
      *   room_type_id: string, room_type_name: string, rate_plan_id: ?string, currency: string,
      *   nights: int, price_minor: int, priced: bool,
      *   plans: list<array{id: string, name: string, price_minor: int, currency: string}>,
-     *   units: list<array{id: string, code: string, name: string}>
+     *   units: list<array{id: string, code: string, name: string, sleeps: int}>
      * }>
      */
     public function availableRoomTypes(string $propertyId, string $checkIn, string $checkOut): array
@@ -108,6 +108,7 @@ class UnitAvailabilityService
                     'id' => $unitId,
                     'code' => (string) $unit->code,
                     'name' => (string) ($unit->name ?? $unit->code),
+                    'sleeps' => (int) $unit->max_occupancy,   // real capacity — the group capacity meter (never fabricated)
                 ];
             }
 

@@ -85,7 +85,7 @@ class GroupBooking extends Component
 
     /**
      * @param  array<string, mixed>  $rt
-     * @return array{room_type_id: string, name: string, price: string, price_minor: int, currency: string, units: list<array{id: string, code: string, name: string}>, unit_count: int}
+     * @return array{room_type_id: string, name: string, price: string, price_minor: int, currency: string, units: list<array{id: string, code: string, name: string, sleeps: int}>, unit_count: int}
      */
     private function presentRoomType(array $rt): array
     {

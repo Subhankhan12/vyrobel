@@ -213,3 +213,15 @@ it('refuses a group booking to a role without reservations.create', function () 
 
     expect(Group::query()->count())->toBe(0);
 });
+
+// ── GATE 4.1 — the group wizard exposes each unit's REAL capacity (units.max_occupancy) for the meter ──
+it('exposes each unit real capacity for the group capacity meter', function () {
+    $s = groupScenario(2);
+    $s['units'][0]->update(['max_occupancy' => 5]);   // a distinctive REAL capacity
+    $frontDesk = operatorUser($s, [], 'Front Desk');
+
+    $this->actingAs($frontDesk)
+        ->get('/app/group-booking?check_in=2026-09-02&check_out=2026-09-05')
+        ->assertOk()
+        ->assertSee('sleeps 5');   // the capacity meter reads real max_occupancy — never a fabricated number
+});
