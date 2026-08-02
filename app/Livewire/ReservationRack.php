@@ -7,8 +7,10 @@ namespace App\Livewire;
 use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\InventoryBlock;
 use App\Models\ReservationUnit;
 use App\Models\RoomType;
+use App\Models\Unit;
 use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\UnitAvailabilityService;
@@ -54,9 +56,10 @@ use Livewire\Component;
  *   rows: list<array{
  *     room_type_id: string, room_type: string, kind: string, units: int,
  *     availability: array<string, int>,
- *     lanes: list<list<array{ref: string, guest: string, status: string, status_label: string,
- *       tone: string, source: string, nights: int, offset: int, span: int,
- *       clip_start: bool, clip_end: bool}>>,
+ *     unit_rows: list<array{unit_id: string, code: string, name: string, state: string, state_label: string,
+ *       bars: list<array<string, mixed>>,
+ *       ooo: list<array{offset: int, span: int, reason: string, label: string, clip_start: bool, clip_end: bool}>}>,
+ *     unassigned: list<list<array<string, mixed>>>,
  *   }>
  */
 #[Layout('components.layouts.operator')]
@@ -93,17 +96,70 @@ class ReservationRack extends Component
         $end = $start->addDays(max(1, $this->days));
 
         $dates = $this->buildDates($start, $end);
-        $barsByType = $this->loadBars($roomTypes->pluck('id')->all(), $start, $end);
+        $roomTypeIds = $roomTypes->pluck('id')->all();
+        $barsByType = $this->loadBars($roomTypeIds, $start, $end);
+        $blocksByUnit = $this->loadBlocks($roomTypeIds, $start, $end);   // OOO / owner / manual blocks per unit
 
         $rows = [];
         foreach ($roomTypes as $roomType) {
+            $rtLines = $barsByType->get($roomType->id, new Collection);
+            $linesByUnit = $rtLines->groupBy('unit_id');
+
+            /** @var Collection<int, Unit> $activeUnits */
+            $activeUnits = $roomType->units()->where('is_active', true)->orderBy('code')->get();
+            $activeIds = $activeUnits->map(fn (Unit $u): string => (string) $u->getKey())->all();
+
+            // A booking is NEVER dropped: an owner-PAUSED unit (is_active=false) keeps its existing stays
+            // (#7/#69), so any active in-window line on a non-active unit still needs a row. Pull those units
+            // in (paused, but shown) — otherwise their real guest silently vanishes from the primary calendar.
+            $orphanUnitIds = $rtLines
+                ->filter(fn (ReservationUnit $l): bool => $l->unit_id !== null && ! in_array((string) $l->unit_id, $activeIds, true))
+                ->pluck('unit_id')->unique()->values();
+            $pausedUnits = $orphanUnitIds->isEmpty()
+                ? new Collection
+                : $roomType->units()->whereIn('id', $orphanUnitIds->all())->orderBy('code')->get();
+
+            // GATE 5.1 — one row PER PHYSICAL UNIT (the wireframe's axis): each unit's own bookings + its
+            // out-of-order / block periods (hatched). A unit never double-books, so its bars don't need lanes.
+            // A non-bookable STATE (paused / out-of-service) is a DATELESS condition — carried as a flag and
+            // rendered as a full-window band, NEVER a fabricated date-ranged bar (#39). It makes the row
+            // reconcile with the header availability count (which already subtracts these units).
+            $unitRows = [];
+            foreach ($activeUnits->concat($pausedUnits) as $unit) {
+                $state = match (true) {
+                    ! (bool) $unit->is_active => 'paused',
+                    in_array((string) $unit->condition_status, ['out_of_order', 'out_of_service'], true) => 'out_of_service',
+                    default => 'active',
+                };
+                $unitRows[] = [
+                    'unit_id' => (string) $unit->getKey(),
+                    'code' => (string) $unit->code,
+                    'name' => (string) ($unit->name ?? $unit->code),
+                    'state' => $state,
+                    'state_label' => match ($state) {
+                        'paused' => 'Paused',
+                        'out_of_service' => 'Out of service',
+                        default => '',
+                    },
+                    'bars' => $this->buildUnitBars($linesByUnit->get($unit->getKey(), new Collection), $start),
+                    'ooo' => $this->buildOooBars($blocksByUnit->get((string) $unit->getKey(), new Collection), $start),
+                ];
+            }
+
             $rows[] = [
                 'room_type_id' => $roomType->id,
                 'room_type' => $roomType->name,
                 'kind' => (string) $roomType->kind,
-                'units' => (int) $roomType->units()->where('is_active', true)->count(),
+                'units' => $activeUnits->count(),
                 'availability' => $availability->availabilityRange($roomType->id, $start, $end),
-                'lanes' => $this->packLanes($barsByType->get($roomType->id, new Collection), $start),
+                'unit_rows' => $unitRows,
+                // Reservations with no unit yet (they consume room-type inventory but no unit row) — a real
+                // "Unassigned" track so the operator can see + seat them; lane-packed (they can overlap).
+                // Filtered explicitly (not groupBy(null), whose empty-string key is ambiguous).
+                'unassigned' => $this->packLanes(
+                    $rtLines->filter(fn (ReservationUnit $line): bool => $line->unit_id === null)->values(),
+                    $start,
+                ),
             ];
         }
 
@@ -357,5 +413,93 @@ class ReservationRack extends Component
             'clip_start' => $checkIn->lessThan($windowStart),
             'clip_end' => $checkOut->greaterThan($windowEnd),
         ];
+    }
+
+    /**
+     * GATE 5.1 — the REAL out-of-order / block periods that show as hatched bars on a unit's row: unit-level
+     * inventory_blocks (unit_id set) overlapping the window, grouped by unit. Room-type-level blocks
+     * (unit_id null) reduce the room-type availability count already and belong to no single unit row, so
+     * they are not carried here. Read-only; never fabricated (an empty unit shows no hatch).
+     *
+     * @param  list<string>  $roomTypeIds
+     * @return Collection<array-key, EloquentCollection<int, InventoryBlock>>
+     */
+    private function loadBlocks(array $roomTypeIds, CarbonImmutable $start, CarbonImmutable $end): Collection
+    {
+        if ($roomTypeIds === []) {
+            return new Collection;
+        }
+
+        return InventoryBlock::query()
+            ->whereIn('room_type_id', $roomTypeIds)
+            ->whereNotNull('unit_id')
+            ->whereDate('start_date', '<', $end->toDateString())
+            ->whereDate('end_date', '>', $start->toDateString())
+            ->orderBy('start_date')
+            ->get()
+            ->groupBy('unit_id');
+    }
+
+    /**
+     * A single physical unit's booking bars, clamped to the window. A unit never double-books (the
+     * no-overlap guarantee), so its active lines never collide — no lane packing, one bar per line.
+     *
+     * @param  Collection<int, ReservationUnit>  $lines
+     * @return list<array<string, mixed>>
+     */
+    private function buildUnitBars(Collection $lines, CarbonImmutable $start): array
+    {
+        $bars = [];
+        foreach ($lines as $line) {
+            $bar = $this->buildBar($line, $start);
+            if ($bar !== null) {
+                $bars[] = $bar;
+            }
+        }
+
+        return $bars;
+    }
+
+    /**
+     * Geometry + a real reason label for each of a unit's block periods, clamped to the window. Half-open
+     * `[start_date, end_date)`, same math as a booking bar. Returns [] when the unit has none.
+     *
+     * @param  Collection<int, InventoryBlock>  $blocks
+     * @return list<array{offset: int, span: int, reason: string, label: string, clip_start: bool, clip_end: bool}>
+     */
+    private function buildOooBars(Collection $blocks, CarbonImmutable $windowStart): array
+    {
+        $windowEnd = $windowStart->addDays(max(1, $this->days));
+
+        $bars = [];
+        foreach ($blocks as $block) {
+            $blockStart = CarbonImmutable::parse($block->start_date)->startOfDay();
+            $blockEnd = CarbonImmutable::parse($block->end_date)->startOfDay();
+
+            $barStart = $blockStart->greaterThan($windowStart) ? $blockStart : $windowStart;
+            $barEnd = $blockEnd->lessThan($windowEnd) ? $blockEnd : $windowEnd;
+
+            $span = (int) $barStart->diffInDays($barEnd);
+            if ($span <= 0) {
+                continue;
+            }
+
+            $reason = (string) $block->reason;
+            $bars[] = [
+                'offset' => (int) $windowStart->diffInDays($barStart),
+                'span' => $span,
+                'reason' => $reason,
+                'label' => match ($reason) {
+                    'maintenance' => 'Out of order',
+                    'owner' => 'Owner block',
+                    'overbooking_protection' => 'Held',
+                    default => 'Blocked',   // 'manual' + any legacy value
+                },
+                'clip_start' => $blockStart->lessThan($windowStart),
+                'clip_end' => $blockEnd->greaterThan($windowEnd),
+            ];
+        }
+
+        return $bars;
     }
 }

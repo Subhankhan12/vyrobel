@@ -426,6 +426,51 @@
         .vy-rt-lanes { border-bottom: 1px solid var(--vy-hairline); }
         .vy-rt-lanes .vy-lane:last-child .vy-lane-bg > div { border-bottom: none; }
 
+        /* GATE 5.1 — one row per PHYSICAL UNIT under each room-type header. The narrow label reads
+           "code + name"; the timeline lane carries that unit's bookings + its out-of-order bars. */
+        .vy-unit-label {
+            padding: 6px 14px 6px 24px; border-bottom: 1px solid var(--vy-hairline);
+            display: flex; flex-direction: column; justify-content: center; gap: 1px;
+            background: rgba(255, 255, 255, 0.16);
+        }
+        .vy-unit-code { font-size: 12px; font-weight: 600; color: var(--vy-ink); }
+        .vy-unit-name { font-size: 10px; color: var(--vy-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-unit-row .vy-lane { min-height: 38px; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-unit-row .vy-lane-bars { min-height: 38px; z-index: 2; }
+        .vy-unit-row--unassigned .vy-unit-code { color: var(--vy-accent); }
+
+        /* Out-of-order / block bars — a muted hatch UNDER the bookings (real inventory_blocks, never faked). */
+        .vy-lane-ooo { position: absolute; inset: 0; z-index: 1; display: grid; grid-template-columns: var(--night-cols); align-items: center; }
+        .vy-ooo {
+            grid-row: 1; height: 26px; margin: 0 3px; border-radius: 6px; overflow: hidden;
+            display: flex; align-items: center; padding: 0 8px;
+            font-size: 9.5px; font-weight: 600; letter-spacing: .02em; color: #6f645c; white-space: nowrap;
+            border: 1px dashed rgba(138, 128, 121, 0.5);
+            background: repeating-linear-gradient(45deg, rgba(138,128,121,0.18) 0, rgba(138,128,121,0.18) 6px, rgba(138,128,121,0.05) 6px, rgba(138,128,121,0.05) 12px);
+        }
+        .vy-ooo.is-clip-start { border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
+        .vy-ooo.is-clip-end { border-top-right-radius: 3px; border-bottom-right-radius: 3px; }
+        .vy-ooo-label { overflow: hidden; text-overflow: ellipsis; }
+        /* Owner blocks read a touch warmer than pure maintenance, but stay muted (not a status tone). */
+        .vy-ooo.ooo-owner { color: #8a5a2b; border-color: rgba(180, 128, 74, 0.5);
+            background: repeating-linear-gradient(45deg, rgba(180,128,74,0.16) 0, rgba(180,128,74,0.16) 6px, rgba(180,128,74,0.04) 6px, rgba(180,128,74,0.04) 12px); }
+        .vy-legend-swatch.swatch-ooo { border: 1px dashed rgba(138, 128, 121, 0.6);
+            background: repeating-linear-gradient(45deg, rgba(138,128,121,0.22) 0, rgba(138,128,121,0.22) 4px, rgba(138,128,121,0.06) 4px, rgba(138,128,121,0.06) 8px); }
+
+        /* A DATELESS non-bookable state (owner-paused / maintenance out-of-service): a full-window band so the
+           unit row reconciles with the header count (which already subtracts it) and the operator sees WHY it's
+           unbookable. NEVER a fabricated date-ranged bar — the condition has no end date. */
+        .vy-ooo.vy-ooo--full { height: 28px; opacity: .9; }
+        .vy-ooo.state-paused { color: #6a6f78; border-color: rgba(120, 128, 140, 0.5);
+            background: repeating-linear-gradient(45deg, rgba(120,128,140,0.16) 0, rgba(120,128,140,0.16) 6px, rgba(120,128,140,0.04) 6px, rgba(120,128,140,0.04) 12px); }
+        .vy-ooo.state-out_of_service { color: #9a4a24; border-color: rgba(194, 65, 12, 0.4);
+            background: repeating-linear-gradient(45deg, rgba(194,65,12,0.14) 0, rgba(194,65,12,0.14) 6px, rgba(194,65,12,0.03) 6px, rgba(194,65,12,0.03) 12px); }
+        /* A small state badge on the unit label. */
+        .vy-unit-state { align-self: flex-start; font-size: 8.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 5px; padding: 1px 5px; }
+        .vy-unit-state.state-paused { color: #565c66; background: rgba(120, 128, 140, 0.16); }
+        .vy-unit-state.state-out_of_service { color: #9a4a24; background: rgba(194, 65, 12, 0.12); }
+        .vy-unit-row.is-paused .vy-unit-code, .vy-unit-row.is-out_of_service .vy-unit-code { color: var(--vy-muted); }
+
         /* Warm status tones (no green/red) — mapped ONLY to real reservation statuses */
         .vy-bar.tone-confirmed { background: var(--vy-grad); }
         .vy-bar.tone-in-house { background: linear-gradient(140deg, #C2410C, #8f2f08); }

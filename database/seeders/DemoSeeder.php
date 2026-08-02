@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Actions\Authorization\OrganizationRoleProvisioner;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Exceptions\Booking\BookingException;
+use App\Exceptions\Booking\UnitUnavailableException;
 use App\Models\AddOn;
 use App\Models\AgreementAmendment;
 use App\Models\Amenity;
@@ -459,6 +460,14 @@ class DemoSeeder extends Seeder
         // owner accounting so the apartment owner_id is set (the owned-unit cost posts a real expense).
         $this->seedMaintenance($roomUnits, $aptUnits, $staff);
 
+        // --- Inventory blocks — real date-ranged holds so the Calendar's "Out of order / blocked" hatched
+        // bars have data (the operator rack reads inventory_blocks; a maintenance out-of-service unit shows
+        // in the availability numbers, but a date-ranged block is what renders a bar). Created through the
+        // certified AssignmentService::blockInventory (the single write path, non-overlap guarded) — never a
+        // raw insert. Windows are today-relative + in a free gap; best-effort (a rare date collision skips
+        // that one block rather than breaking the seed).
+        $this->seedInventoryBlocks($roomUnits, $aptUnits);
+
         // --- Unified Inbox — coherent guest conversations through the REAL InboxService (no raw inserts):
         // a linked pre-arrival question (+ operator reply), an unlinked stranger enquiry, a resolved thread.
         $this->seedInbox($staff, $guest1, $stay1, $guest2);
@@ -736,6 +745,48 @@ class DemoSeeder extends Seeder
         ]);
         $maintenance->start($operatorCost->refresh());
         $maintenance->resolve($operatorCost->refresh(), Money::of(4500, 'EUR'));
+    }
+
+    /**
+     * Seed a couple of REAL date-ranged inventory blocks so the Calendar's per-unit "Out of order / blocked"
+     * hatched bars have data. Both go through the certified {@see AssignmentService::blockInventory()} (single
+     * write path + non-overlap guard). Windows are today-relative and sit in a free gap between the demo stays;
+     * each is best-effort — a rare overlap (from the today-relative analytics stays) skips just that block so
+     * the seed never fails. NOT a maintenance ticket — a plain operator/owner hold, distinct from the
+     * out-of-service condition seeded above.
+     */
+    private function seedInventoryBlocks(Collection $roomUnits, Collection $aptUnits): void
+    {
+        $assignments = app(AssignmentService::class);
+        $today = CarbonImmutable::today();
+
+        // Unit 102 (a Double Room) — a short maintenance hold ("Out of order") in the today+9..+12 gap.
+        // Unit A2 (an apartment) — an owner personal-use block ("Owner block") in the today+12..+15 gap.
+        $blocks = [
+            ['unit' => $roomUnits[1] ?? null, 'from' => 9, 'to' => 12, 'reason' => 'maintenance', 'note' => 'Bathroom re-grout — held out of sale'],
+            ['unit' => $aptUnits[1] ?? null, 'from' => 12, 'to' => 15, 'reason' => 'owner', 'note' => 'Owner staying — personal use'],
+        ];
+
+        foreach ($blocks as $b) {
+            $unit = $b['unit'];
+            if (! $unit instanceof Unit) {
+                continue;
+            }
+            try {
+                $assignments->blockInventory([
+                    'property_id' => $unit->property_id,
+                    'unit_id' => $unit->id,
+                    'room_type_id' => $unit->room_type_id,
+                    'start_date' => $today->addDays($b['from'])->toDateString(),
+                    'end_date' => $today->addDays($b['to'])->toDateString(),
+                    'reason' => $b['reason'],
+                    'notes' => $b['note'],
+                ]);
+            } catch (UnitUnavailableException) {
+                // A today-relative stay happened to occupy the gap this run — skip this demo block only
+                // (never swallow an unexpected error: only the real overlap signal is caught).
+            }
+        }
     }
 
     /**

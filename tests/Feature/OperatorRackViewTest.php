@@ -3,6 +3,7 @@
 use App\Models\Membership;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Services\AssignmentService;
 use App\Services\RateAndRestrictionService;
 use App\Support\Money\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -114,6 +115,74 @@ it('isolates tenants — another org\'s reservations are not visible on the rack
     // B (own org context) never sees A's guest.
     $this->actingAs($userB)->get('/app/rack?start=2026-09-01')
         ->assertOk()->assertDontSee('Aurelio Castellanos');
+});
+
+// ══ Operator Calendar exact-match · GATE 5.1 (per-physical-unit rows + real OOO / block bars) ════════
+
+// ── One ROW PER PHYSICAL UNIT, each carrying its own booking; a real inventory_block draws an OOO bar ──
+it('renders one row per physical unit and draws real inventory blocks as out-of-order bars', function () {
+    $s = seedScenario(2);                                 // U1, U2 under room type "Std"
+    $s['guest']->update(['first_name' => 'Persephone', 'last_name' => 'Ashgrove']);
+    book($s, ['unit_id' => $s['units'][0]->id]);          // a real booking on U1 only
+
+    // A REAL unit-level maintenance block on U2 (the single write path) → the hatched "Out of order" bar.
+    app(AssignmentService::class)->blockInventory([
+        'property_id' => $s['property']->id,
+        'unit_id' => $s['units'][1]->id,
+        'room_type_id' => $s['roomType']->id,
+        'start_date' => '2026-09-04',
+        'end_date' => '2026-09-06',
+        'reason' => 'maintenance',
+        'notes' => 'Deep clean',
+    ]);
+
+    $this->actingAs(memberOf($s))->get('/app/rack?start=2026-09-01')
+        ->assertOk()
+        ->assertSee('Persephone Ashgrove')          // the booking renders on its unit's row
+        ->assertSee('U1')                            // per-unit row labels (the wireframe's axis)
+        ->assertSee('U2')
+        ->assertSee('>Out of order<', false)         // the REAL block renders as a hatched OOO BAR (not just the legend)
+        ->assertSee('Out of order / blocked');       // the legend swatch
+});
+
+// ── OOO bars are REAL only — a unit with no block shows no hatch (nothing fabricated) ─────────────────
+it('never fabricates an out-of-order bar — a unit with no block shows none', function () {
+    $s = seedScenario(1);
+    book($s, ['unit_id' => $s['units'][0]->id]);   // a booking, but NO inventory block anywhere
+
+    $this->actingAs(memberOf($s))->get('/app/rack?start=2026-09-01')
+        ->assertOk()
+        ->assertSee('U1')
+        ->assertDontSee('>Owner block<', false)     // no owner block exists → its BAR label must never render
+        ->assertDontSee('>Out of order<', false);   // no maintenance block → no OOO bar label
+});
+
+// ── A booking on an owner-PAUSED unit (is_active=false, #69) must NOT vanish — it stays on the rack ───
+it('keeps an active booking visible when its unit was paused (is_active=false)', function () {
+    $s = seedScenario(2);                                 // U1, U2
+    $s['guest']->update(['first_name' => 'Thaddeus', 'last_name' => 'Blackwood']);
+    book($s, ['unit_id' => $s['units'][1]->id]);          // a real confirmed stay on U2
+
+    // Owner pauses U2 while it still has the live stay (#7 keeps existing bookings). The reservation_unit
+    // line still points at U2, which is now is_active=false — the exact case that used to drop it.
+    $s['units'][1]->update(['is_active' => false]);
+
+    $this->actingAs(memberOf($s))->get('/app/rack?start=2026-09-01')
+        ->assertOk()
+        ->assertSee('Thaddeus Blackwood')     // the real guest is STILL on the primary calendar (not dropped)
+        ->assertSee('U2')                       // the paused unit still gets a row
+        ->assertSee('Paused');                  // honestly flagged as not accepting new bookings
+});
+
+// ── An out-of-service unit (dateless condition) shows a full-window band, not a free-looking empty lane ─
+it('marks an out-of-service unit with a dateless band so it reconciles with the availability count', function () {
+    $s = seedScenario(1);
+    $s['units'][0]->update(['condition_status' => 'out_of_service']);   // a real maintenance out-of-service
+
+    $this->actingAs(memberOf($s))->get('/app/rack?start=2026-09-01')
+        ->assertOk()
+        ->assertSee('U1')
+        ->assertSee('Out of service');   // the unit row is no longer free-looking (honest, dateless)
 });
 
 // ══ Operator Calendar exact-match · GATE 2 (rack new-reservation + read-only) ═══════════════════════

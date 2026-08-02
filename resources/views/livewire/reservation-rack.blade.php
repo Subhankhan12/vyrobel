@@ -156,60 +156,115 @@
                             </div>
                         </div>
 
-                        {{-- One group per room type: sticky label + availability strip + booking lanes --}}
+                        {{-- One group per room type: a header row (sticky label + REAL availability strip),
+                             then ONE ROW PER PHYSICAL UNIT (the wireframe's axis) carrying that unit's own
+                             bookings + its out-of-order / block periods (hatched). --}}
                         @foreach ($rows as $row)
-                            <div class="vy-rack-flexrow">
+                            {{-- Room-type header: label + REAL availability per night (AvailabilityService). --}}
+                            <div class="vy-rack-flexrow vy-rt-availrow">
                                 <div class="vy-rt-label vy-rack-labelcol">
                                     <span class="vy-rt-name">{{ $row['room_type'] }}</span>
                                     <span class="vy-rt-kind">{{ $row['kind'] }}</span>
                                     <span class="vy-rt-meta">{{ $row['units'] }} {{ \Illuminate\Support\Str::plural('unit', $row['units']) }}</span>
                                 </div>
-
-                                <div style="flex: 1; min-width: 0;">
-                                    {{-- REAL availability per night (AvailabilityService). --}}
-                                    <div class="vy-nights">
-                                        @foreach ($dates as $d)
-                                            @php $avail = $row['availability'][$d['date']] ?? 0; @endphp
-                                            <div class="vy-avail @if ($d['weekend']) is-weekend @endif @if ($avail === 0) is-zero @elseif ($avail === 1) is-tight @endif"
-                                                 title="{{ $avail }} available on {{ $d['date'] }}">{{ $avail }}</div>
-                                        @endforeach
-                                    </div>
-
-                                    {{-- REAL booking bars, packed into non-overlapping lanes. --}}
-                                    <div class="vy-rt-lanes">
-                                        @forelse ($row['lanes'] as $lane)
-                                            <div class="vy-lane">
-                                                <div class="vy-lane-bg">
-                                                    @foreach ($dates as $d)
-                                                        <div class="@if ($d['weekend']) is-weekend @endif"></div>
-                                                    @endforeach
-                                                </div>
-                                                <div class="vy-lane-bars">
-                                                    @foreach ($lane as $bar)
-                                                        {{-- #104 GATE 3d — the booking bar links to the reservation detail (the wireframe's clickable bar). --}}
-                                                        <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif"
-                                                           href="{{ route('app.reservations.show', $bar['id']) }}"
-                                                           style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
-                                                           title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}">
-                                                            <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
-                                                            <span class="vy-bar-flag">{{ $bar['status_label'] }}</span>
-                                                        </a>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        @empty
-                                            {{-- No bookings in this window: a clean empty track (honest, not faked). --}}
-                                            <div class="vy-lane">
-                                                <div class="vy-lane-bg">
-                                                    @foreach ($dates as $d)
-                                                        <div class="@if ($d['weekend']) is-weekend @endif"></div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        @endforelse
-                                    </div>
+                                <div class="vy-nights">
+                                    @foreach ($dates as $d)
+                                        @php $avail = $row['availability'][$d['date']] ?? 0; @endphp
+                                        <div class="vy-avail @if ($d['weekend']) is-weekend @endif @if ($avail === 0) is-zero @elseif ($avail === 1) is-tight @endif"
+                                             title="{{ $avail }} available on {{ $d['date'] }}">{{ $avail }}</div>
+                                    @endforeach
                                 </div>
                             </div>
+
+                            {{-- One row per physical unit — its bookings + its OOO/block bars (real inventory_blocks). --}}
+                            @foreach ($row['unit_rows'] as $unit)
+                                <div class="vy-rack-flexrow vy-unit-row @if ($unit['state'] !== 'active') is-{{ $unit['state'] }} @endif">
+                                    <div class="vy-unit-label vy-rack-labelcol">
+                                        <span class="vy-unit-code">{{ $unit['code'] }}</span>
+                                        @if ($unit['state_label'] !== '')<span class="vy-unit-state state-{{ $unit['state'] }}">{{ $unit['state_label'] }}</span>@endif
+                                        @if ($unit['name'] !== $unit['code'])<span class="vy-unit-name">{{ $unit['name'] }}</span>@endif
+                                    </div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div class="vy-lane">
+                                            <div class="vy-lane-bg">
+                                                @foreach ($dates as $d)
+                                                    <div class="@if ($d['weekend']) is-weekend @endif"></div>
+                                                @endforeach
+                                            </div>
+
+                                            {{-- A non-bookable STATE (paused / out-of-service) is DATELESS — a full-window
+                                                 band (never a fabricated date-ranged bar). It reconciles the row with the
+                                                 header count (which already subtracts these units) and shows WHY it's unbookable. --}}
+                                            @if ($unit['state'] !== 'active')
+                                                <div class="vy-lane-ooo">
+                                                    <span class="vy-ooo vy-ooo--full state-{{ $unit['state'] }}"
+                                                          style="grid-column: 1 / span {{ count($dates) }};"
+                                                          title="{{ $unit['state_label'] }} — not accepting new bookings">
+                                                        <span class="vy-ooo-label">{{ $unit['state_label'] }}</span>
+                                                    </span>
+                                                </div>
+                                            @endif
+
+                                            {{-- OOO / block periods — hatched, below the bookings, REAL inventory_blocks. --}}
+                                            @if (! empty($unit['ooo']))
+                                                <div class="vy-lane-ooo">
+                                                    @foreach ($unit['ooo'] as $blk)
+                                                        <span class="vy-ooo ooo-{{ $blk['reason'] }} @if ($blk['clip_start']) is-clip-start @endif @if ($blk['clip_end']) is-clip-end @endif"
+                                                              style="grid-column: {{ $blk['offset'] + 1 }} / span {{ $blk['span'] }};"
+                                                              title="{{ $blk['label'] }}">
+                                                            <span class="vy-ooo-label">{{ $blk['label'] }}</span>
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+
+                                            {{-- REAL booking bars for THIS unit (a unit never double-books → no lanes). --}}
+                                            <div class="vy-lane-bars">
+                                                @foreach ($unit['bars'] as $bar)
+                                                    {{-- #104 GATE 3d — the booking bar links to the reservation detail (the wireframe's clickable bar). --}}
+                                                    <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif"
+                                                       href="{{ route('app.reservations.show', $bar['id']) }}"
+                                                       style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
+                                                       title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}">
+                                                        <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
+                                                        <span class="vy-bar-flag">{{ $bar['status_label'] }}</span>
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            {{-- Reservations with no unit yet — a real "Unassigned" track (lane-packed; they can overlap). --}}
+                            @foreach ($row['unassigned'] as $lane)
+                                <div class="vy-rack-flexrow vy-unit-row vy-unit-row--unassigned">
+                                    <div class="vy-unit-label vy-rack-labelcol">
+                                        <span class="vy-unit-code">Unassigned</span>
+                                        @if (! $loop->first)<span class="vy-unit-name">overflow</span>@endif
+                                    </div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div class="vy-lane">
+                                            <div class="vy-lane-bg">
+                                                @foreach ($dates as $d)
+                                                    <div class="@if ($d['weekend']) is-weekend @endif"></div>
+                                                @endforeach
+                                            </div>
+                                            <div class="vy-lane-bars">
+                                                @foreach ($lane as $bar)
+                                                    <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif"
+                                                       href="{{ route('app.reservations.show', $bar['id']) }}"
+                                                       style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
+                                                       title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }} · not yet assigned to a unit">
+                                                        <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
+                                                        <span class="vy-bar-flag">{{ $bar['status_label'] }}</span>
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
                         @endforeach
                     </div>
                 </div>
@@ -222,13 +277,15 @@
                         <span class="vy-legend-item"><span class="vy-legend-swatch tone-departed"></span> Checked out</span>
                         <span class="vy-legend-item"><span class="vy-legend-swatch tone-pending"></span> Tentative / enquiry</span>
                         <span class="vy-legend-item"><span class="vy-legend-swatch tone-no-show"></span> No-show</span>
+                        <span class="vy-legend-item"><span class="vy-legend-swatch swatch-ooo"></span> Out of order / blocked</span>
                     </div>
                     {{-- The rack now creates real bookings (the New reservation flow above → the certified engine).
                          Drag-to-reschedule stays deferred honestly (it mutates inventory) — never a broken drag. --}}
                     <div class="vy-deferred-note" style="margin-top: 14px;">
                         <span class="vy-soon-tag">Not yet available</span>
-                        Drag-to-reschedule is planned. Cells show units available per night (a sold-out night is
-                        tinted, reflecting sold, blocked and out-of-order inventory); use “New reservation” to book.
+                        Drag-to-reschedule is planned. Each row is a physical unit; hatched bars are real
+                        out-of-order / owner blocks; the header strip shows units available per night. Use
+                        “New reservation” to book.
                     </div>
                 </div>
             </div>
