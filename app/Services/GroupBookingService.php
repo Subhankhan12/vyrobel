@@ -58,7 +58,9 @@ class GroupBookingService
                 'check_out' => $input['check_out'],
                 'adults' => $input['adults'],
                 'children' => $input['children'],
-                'lead_guest_id' => $input['organiser_guest_id'],
+                // ROOMING (4.3): this unit's own lead guest when the organiser assigned one, else the organiser
+                // leads it. A per-member lead_guest_id already exists on the schema — no new store.
+                'lead_guest_id' => $member['lead_guest_id'] ?? $input['organiser_guest_id'],
                 'status' => $input['status'],
             ],
             'line' => [

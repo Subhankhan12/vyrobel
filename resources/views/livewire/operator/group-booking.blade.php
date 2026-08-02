@@ -151,6 +151,18 @@
                         <div class="vy-gb-field"><label class="vy-gb-label">Email · optional</label><input type="email" name="organiser_email" class="vy-gb-input" autocomplete="off"></div>
                         <div class="vy-gb-field"><label class="vy-gb-label">Phone · optional</label><input type="text" name="organiser_phone" class="vy-gb-input" autocomplete="off"></div>
                     </div>
+
+                    {{-- Rooming list — a lead-guest NAME per selected unit (optional; blank → the organiser leads it).
+                         Name-only (#28) — no contact captured here. Persists to each member reservation's lead_guest. --}}
+                    <div class="vy-gb-field" x-show="count > 0" x-cloak style="margin-top: 6px;">
+                        <label class="vy-gb-label"><span x-text="'Rooming list · ' + count + (count === 1 ? ' unit' : ' units')"></span></label>
+                        <template x-for="u in selected" x-bind:key="u.id">
+                            <div class="vy-gb-rooming">
+                                <span class="vy-gb-rooming-unit"><span x-text="u.code"></span> · <span class="vy-gb-faint" x-text="'sleeps ' + u.sleeps"></span></span>
+                                <input type="text" class="vy-gb-input vy-gb-rooming-input" x-model="rooming[u.id]" x-bind:name="'rooming[' + u.id + ']'" placeholder="Lead guest — TBC" autocomplete="off">
+                            </div>
+                        </template>
+                    </div>
                 </section>
 
                 {{-- STEP 4 · Terms — hold + billing (discount/deposit added in 4.2) --}}
@@ -224,7 +236,7 @@
                         <div class="vy-gb-rev-units">
                             <div class="vy-gb-rev-units-h" x-text="'Units · ' + count"></div>
                             <template x-for="u in selected" x-bind:key="u.id">
-                                <div class="vy-gb-rev-unit"><span x-text="u.code + ' · ' + u.rt"></span><span x-text="fmt(u.priceMinor)"></span></div>
+                                <div class="vy-gb-rev-unit"><span x-text="u.code + ' · ' + u.rt + ((rooming[u.id] && rooming[u.id].trim()) ? ' · ' + rooming[u.id].trim() : '')"></span><span x-text="fmt(u.priceMinor)"></span></div>
                             </template>
                         </div>
                     </div>
@@ -264,6 +276,7 @@
                     name: '', occasion: 'wedding', headcount: 10,
                     orgFirst: '', orgLast: '',
                     selected: [],
+                    rooming: {},
                     holdType: 'confirmed', billingMode: 'individual', pickupDeadline: checkIn,
                     discountPct: 0, depositPct: 0, depositMethod: 'cash',
                     init() {},
@@ -281,8 +294,10 @@
                     fmtDate(s) { const d = new Date(s + 'T00:00:00'); return d.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; },
                     get occasionLabel() { const m = { wedding: 'Wedding', corporate: 'Corporate', family: 'Family', sports: 'Sports', other: 'Other' }; return m[this.occasion] || 'Other'; },
                     toggleUnit(u, checked) {
-                        if (checked) { if (! this.selected.some(x => x.id === u.id)) this.selected.push(u); }
-                        else { this.selected = this.selected.filter(x => x.id !== u.id); }
+                        if (checked) {
+                            if (! this.selected.some(x => x.id === u.id)) this.selected.push(u);
+                            if (this.rooming[u.id] === undefined) this.rooming[u.id] = '';   // a rooming slot for this unit
+                        } else { this.selected = this.selected.filter(x => x.id !== u.id); }
                     },
                     isSelected(id) { return this.selected.some(u => u.id === id); },
                     get count() { return this.selected.length; },
@@ -364,6 +379,11 @@
             .vy-gb-unit-code { font-weight: 600; }
             .vy-gb-unit-sleeps { font-size: 10.5px; color: var(--vy-faint); }
             .vy-gb-empty { padding: 24px; text-align: center; color: var(--vy-muted); font-size: 13px; }
+            /* rooming */
+            .vy-gb-rooming { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+            .vy-gb-rooming-unit { flex: 0 0 140px; font-size: 12.5px; font-weight: 600; color: var(--vy-ink); }
+            .vy-gb-rooming-input { flex: 1; }
+            .vy-gb-faint { font-weight: 400; color: var(--vy-faint); }
             /* options */
             .vy-gb-opt { display: flex; align-items: flex-start; gap: 9px; padding: 11px 13px; border: 1px solid var(--vy-hairline); border-radius: 12px; margin-bottom: 8px; cursor: pointer; font-size: 13px; color: var(--vy-ink); }
             .vy-gb-opt.is-on { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.06); }

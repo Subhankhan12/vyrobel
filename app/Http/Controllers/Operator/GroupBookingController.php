@@ -104,6 +104,12 @@ class GroupBookingController extends Controller
             return $organiser;
         }
 
+        // ROOMING LIST (4.3) — an optional lead-guest NAME per unit. A given name resolves to a real (name-only)
+        // Guest so that unit's member reservation leads with them; blank → the organiser leads it. The name is
+        // guest PII, but it lives in the Guest row (first/last name), covered by Guest::anonymize() like any guest
+        // — no new free-text store. #28: name only, never contact, on this surface.
+        $roomingLeadIds = $this->resolveRoomingGuests($request);
+
         try {
             $group = $groups->create([
                 'property_id' => (string) $property->getKey(),
@@ -127,6 +133,7 @@ class GroupBookingController extends Controller
                     'unit_id' => $m['unit_id'],
                     'rate_plan_id' => $m['rate_plan_id'],
                     'price_minor' => $m['price_minor'],
+                    'lead_guest_id' => $roomingLeadIds[$m['unit_id']] ?? null,   // rooming lead, else the service falls back to the organiser
                 ], $members),
             ]);
         } catch (BookingException) {
@@ -197,6 +204,42 @@ class GroupBookingController extends Controller
             'email' => $email !== '' ? $email : null,
             'phone' => ($p = trim((string) $request->input('organiser_phone', ''))) !== '' ? $p : null,
         ]);
+    }
+
+    /**
+     * Resolve the rooming list — a `rooming[<unit_id>] = "Lead guest name"` map — into a unit_id → lead_guest_id
+     * map, creating a NAME-ONLY {@see Guest} for each unit that carries a real name (blank / "TBC" → skipped, so
+     * the organiser leads that unit). The name splits on the first space into first/last. No contact is captured
+     * here (#28 — name only outside the Guests CRM); the Guest row is covered by anonymize() like any guest.
+     *
+     * @return array<string, string> unit_id → lead_guest_id
+     */
+    private function resolveRoomingGuests(Request $request): array
+    {
+        $rooming = $request->input('rooming');
+        if (! is_array($rooming)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($rooming as $unitId => $name) {
+            if (! is_string($unitId) || ! is_string($name)) {
+                continue;
+            }
+            $name = trim($name);
+            if ($name === '' || mb_strtoupper($name) === 'TBC') {
+                continue;   // blank / TBC → the organiser leads this unit
+            }
+
+            $parts = preg_split('/\s+/', $name, 2) ?: [$name];
+            $guest = Guest::create([
+                'first_name' => mb_substr($parts[0], 0, 100),
+                'last_name' => isset($parts[1]) ? mb_substr($parts[1], 0, 100) : '',
+            ]);
+            $out[$unitId] = (string) $guest->getKey();
+        }
+
+        return $out;
     }
 
     /**

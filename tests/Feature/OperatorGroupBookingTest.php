@@ -225,3 +225,31 @@ it('exposes each unit real capacity for the group capacity meter', function () {
         ->assertOk()
         ->assertSee('sleeps 5');   // the capacity meter reads real max_occupancy — never a fabricated number
 });
+
+// ── GATE 4.3 — the rooming list assigns a per-unit lead guest (real), and the name anonymizes (#28) ──
+it('assigns a per-unit lead guest from the rooming list and erases the name on anonymize', function () {
+    $s = groupScenario(2);
+    $frontDesk = operatorUser($s, [], 'Front Desk');
+
+    $this->actingAs($frontDesk)->post('/app/group-booking', groupPayload($s, [
+        'units' => [$s['units'][0]->id, $s['units'][1]->id],
+        'rooming' => [
+            $s['units'][0]->id => 'Chidi Roomingsson',   // a distinct lead guest for unit 0
+            $s['units'][1]->id => '',                     // blank → the organiser leads unit 1
+        ],
+    ]))->assertRedirect();
+
+    $group = Group::query()->latest('created_at')->firstOrFail();
+    $members = Reservation::query()->where('group_id', $group->id)->with('reservationUnits')->get();
+    $rooming = Guest::query()->where('first_name', 'Chidi')->where('last_name', 'Roomingsson')->firstOrFail();
+
+    // Unit 0's member leads with the rooming guest; unit 1's member leads with someone else (the organiser).
+    $m0 = $members->first(fn (Reservation $m): bool => $m->reservationUnits->contains('unit_id', $s['units'][0]->id));
+    $m1 = $members->first(fn (Reservation $m): bool => $m->reservationUnits->contains('unit_id', $s['units'][1]->id));
+    expect((string) $m0->lead_guest_id)->toBe((string) $rooming->id)
+        ->and((string) $m1->lead_guest_id)->not->toBe((string) $rooming->id);
+
+    // PII (#28): the rooming lead is a normal Guest — anonymize() clears the name (no new free-text store).
+    $rooming->anonymize();
+    expect(trim(((string) $rooming->fresh()->first_name).((string) $rooming->fresh()->last_name)))->toBe('');
+});
