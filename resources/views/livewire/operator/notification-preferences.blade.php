@@ -15,7 +15,11 @@
                 <div class="vy-np-chan">
                     <div class="vy-np-chan-icon">✉</div>
                     <div style="flex: 1;"><div class="vy-np-chan-name">Email</div><div class="vy-np-chan-detail">{{ $email !== '' ? $email : 'No email on file' }}</div></div>
-                    <span class="vy-np-status is-on">Verified</span>
+                    @if ($emailVerified)
+                        <span class="vy-np-status is-on" title="Your login email is verified">Verified</span>
+                    @else
+                        <span class="vy-np-status" style="color:var(--vy-muted)" title="Your login email has not been verified yet">Unverified</span>
+                    @endif
                 </div>
                 <div class="vy-np-chan is-off" title="Push isn’t set up yet">
                     <div class="vy-np-chan-icon">🔔</div>

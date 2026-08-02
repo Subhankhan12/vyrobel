@@ -126,7 +126,7 @@ class DemoSeeder extends Seeder
     {
         $owner = User::firstOrCreate(
             ['email' => 'demo-owner@vyrobel-demo.test'],
-            ['name' => 'Demo Owner', 'password' => Hash::make('password'), 'status' => 'active'],
+            ['name' => 'Demo Owner', 'password' => Hash::make('password'), 'status' => 'active', 'email_verified_at' => now()],
         );
         Membership::firstOrCreate(
             ['organization_id' => $org->id, 'user_id' => $owner->id],
@@ -147,7 +147,7 @@ class DemoSeeder extends Seeder
         // role, as a real staff invite assigns. Hotel Manager mirrors OwnerInviteService's 'manager' slug.
         $staff = User::firstOrCreate(
             ['email' => 'demo-staff@vyrobel-demo.test'],
-            ['name' => 'Demo Staff', 'password' => Hash::make('password'), 'status' => 'active'],
+            ['name' => 'Demo Staff', 'password' => Hash::make('password'), 'status' => 'active', 'email_verified_at' => now()],
         );
         Membership::firstOrCreate(
             ['organization_id' => $org->id, 'user_id' => $staff->id],
@@ -169,7 +169,7 @@ class DemoSeeder extends Seeder
         // inverted seeder happened: a seeder that disagrees with the production model teaches the wrong thing.)
         $accountant = User::firstOrCreate(
             ['email' => 'demo-accountant@vyrobel-demo.test'],
-            ['name' => 'Demo Accountant', 'password' => Hash::make('password'), 'status' => 'active'],
+            ['name' => 'Demo Accountant', 'password' => Hash::make('password'), 'status' => 'active', 'email_verified_at' => now()],
         );
         Membership::firstOrCreate(
             ['organization_id' => $org->id, 'user_id' => $accountant->id],
@@ -193,7 +193,7 @@ class DemoSeeder extends Seeder
         //   demo-owner@…      External Owner  → /owner only; refused from /app entirely (#26)
         $admin = User::firstOrCreate(
             ['email' => 'demo-admin@vyrobel-demo.test'],
-            ['name' => 'Demo Admin', 'password' => Hash::make('password'), 'status' => 'active'],
+            ['name' => 'Demo Admin', 'password' => Hash::make('password'), 'status' => 'active', 'email_verified_at' => now()],
         );
         Membership::firstOrCreate(
             ['organization_id' => $org->id, 'user_id' => $admin->id],
@@ -206,7 +206,7 @@ class DemoSeeder extends Seeder
         // role — a genuine demo staff member, like every row here (never a fabricated assignee).
         $housekeeper = User::firstOrCreate(
             ['email' => 'demo-housekeeper@vyrobel-demo.test'],
-            ['name' => 'Rosa Fernandes', 'password' => Hash::make('password'), 'status' => 'active'],
+            ['name' => 'Rosa Fernandes', 'password' => Hash::make('password'), 'status' => 'active', 'email_verified_at' => now()],
         );
         Membership::firstOrCreate(
             ['organization_id' => $org->id, 'user_id' => $housekeeper->id],
@@ -1094,7 +1094,7 @@ class DemoSeeder extends Seeder
         foreach ($members as $m) {
             $user = User::firstOrCreate(
                 ['email' => $m['email']],
-                ['name' => $m['name'], 'password' => Hash::make('password'), 'status' => 'active'],
+                ['name' => $m['name'], 'password' => Hash::make('password'), 'status' => 'active', 'email_verified_at' => now()],
             );
             Membership::firstOrCreate(
                 ['organization_id' => $orgId, 'user_id' => $user->id],

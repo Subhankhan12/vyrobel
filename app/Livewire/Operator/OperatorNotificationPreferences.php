@@ -56,6 +56,8 @@ class OperatorNotificationPreferences extends Component
             'groups' => $groups,
             'digest' => $digest,
             'email' => (string) ($user->email ?? ''),
+            // HONESTY (#39): the "Verified" badge must reflect the REAL email_verified_at, never a hardcoded label.
+            'emailVerified' => $user->email_verified_at !== null,
             'quietStart' => $user->quiet_hours_start !== null ? substr((string) $user->quiet_hours_start, 0, 5) : '22:00',
             'quietEnd' => $user->quiet_hours_end !== null ? substr((string) $user->quiet_hours_end, 0, 5) : '07:00',
             'quietOn' => $user->quiet_hours_start !== null && $user->quiet_hours_end !== null,

@@ -109,3 +109,18 @@ it('does not notify for a non-urgent maintenance ticket', function () {
 
     expect($operator->fresh()->notifications()->count())->toBe(0);
 });
+
+// ── 6. GATE 11 — the Email channel's "Verified" badge reflects the REAL email_verified_at (never hardcoded #39) ──
+it('shows a real email-verification badge, not a hardcoded one', function () {
+    $s = seedScenario(1);
+
+    // A verified operator (factory default email_verified_at = now()) → "Verified".
+    $verified = operatorUser($s, ['name' => 'Verified Vera']);
+    $this->actingAs($verified)->get('/app/notification-preferences')
+        ->assertOk()->assertSee('Verified')->assertDontSee('Unverified');
+
+    // An operator whose email was never verified → the HONEST "Unverified", never a fake "Verified".
+    $unverified = operatorUser($s, ['name' => 'Unverified Uma', 'email_verified_at' => null]);
+    $this->actingAs($unverified)->get('/app/notification-preferences')
+        ->assertOk()->assertSee('Unverified');
+});
