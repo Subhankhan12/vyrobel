@@ -866,6 +866,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // so the /app property middleware runs and the shift lands on the SELECTED property (PropertyContext).
     Route::get('/schedule', OperatorSchedule::class)->middleware('can:schedule.view')->name('schedule');
     Route::post('/schedule/shift', [ScheduleController::class, 'assign'])->middleware('can:schedule.manage')->name('schedule.assign');
+    // GATE 9.1 — DRAG-TO-MOVE / SWAP a shift. Same manager gate + real-POST discipline as assign; dates are the
+    // grid's server-rendered cell strings (never a client toISOString). Atomic + leave-guarded in the service.
+    Route::post('/schedule/shift/move', [ScheduleController::class, 'moveShift'])->middleware('can:schedule.manage')->name('schedule.move');
     // The week's roster as a PDF (real shifts/staff/leave, selected property — reconciles to the grid). Broad view.
     Route::get('/schedule/pdf', [ScheduleController::class, 'pdf'])->middleware('can:schedule.view')->name('schedule.pdf');
     // TIME OFF — requesting OWN is broad + self-only; grant/approve/deny are manager-level. 🔒 The self-approval

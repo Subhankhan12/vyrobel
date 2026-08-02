@@ -58,67 +58,162 @@
                     @endif
                 </div>
             @else
-                <div class="vy-card" style="overflow-x:auto;padding:0">
-                    <table style="width:100%;border-collapse:collapse;font-size:12.5px">
-                        <thead>
-                            <tr style="border-bottom:1px solid var(--vy-hairline)">
-                                <th style="text-align:left;padding:12px 14px;font-weight:600;color:var(--vy-muted);position:sticky;left:0;background:var(--vy-card,#fff)">Staff</th>
-                                @foreach ($days as $day)
-                                    <th style="padding:10px 8px;font-weight:600;color:{{ $day['today'] ? 'var(--vy-accent)' : 'var(--vy-muted)' }};text-align:center;min-width:100px">
-                                        <div style="font-size:11px;letter-spacing:.04em;text-transform:uppercase">{{ $day['dow'] }}</div>
-                                        <div style="font-size:12px;font-weight:500;color:var(--vy-faint)">{{ $day['label'] }}</div>
-                                    </th>
-                                @endforeach
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($rows as $row)
-                                <tr style="border-bottom:1px solid var(--vy-hairline)">
-                                    <td style="padding:10px 14px;position:sticky;left:0;background:var(--vy-card,#fff)">
-                                        <div style="display:flex;align-items:center;gap:9px">
-                                            <span style="width:28px;height:28px;border-radius:50%;background:var(--vy-wash,var(--vy-wash));display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--vy-muted)">{{ $row['staff']['initials'] }}</span>
-                                            <div>
-                                                <div style="font-weight:600;color:var(--vy-ink)">{{ $row['staff']['name'] }}</div>
-                                                <div style="font-size:11px;color:var(--vy-faint)">{{ $row['staff']['role_label'] }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    @foreach ($row['cells'] as $cell)
-                                        <td style="padding:6px;text-align:center;{{ $cell['conflict'] ? 'background:#FBE9E7' : ($cell['on_leave'] ? 'background:#FBF3E4' : '') }}">
-                                            @if ($canManage && ! ($cell['on_leave'] && ! $cell['conflict']))
-                                                {{-- Manager picker. On a pure-leave day the select is hidden (assigning is blocked); a
-                                                     conflict day keeps it so the shift can be cleared to off. --}}
-                                                <form method="POST" action="{{ route('app.schedule.assign') }}" style="margin:0">
-                                                    @csrf
-                                                    <input type="hidden" name="user_id" value="{{ $row['staff']['id'] }}">
-                                                    <input type="hidden" name="date" value="{{ $cell['date'] }}">
-                                                    <input type="hidden" name="week" value="{{ $week }}">
-                                                    <input type="hidden" name="dept" value="{{ $dept }}">
-                                                    <select name="shift_type" onchange="this.form.requestSubmit()" aria-label="Shift for {{ $row['staff']['name'] }} on {{ $cell['date'] }}"
-                                                            class="vy-input" style="padding:5px 6px;font-size:12px;text-align:center;{{ $cell['working'] ? 'font-weight:600;color:var(--vy-accent)' : 'color:var(--vy-faint)' }}">
-                                                        @foreach ($shiftTypes as $t)
-                                                            <option value="{{ $t }}" @selected($cell['type'] === $t)>{{ \App\Support\Schedule\ShiftType::label($t) }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    @if ($cell['conflict'])
-                                                        <div style="font-size:10px;color:#B0322A;font-weight:600;margin-top:2px" title="This staff member is on approved leave — clear the shift">⚠ on leave</div>
-                                                    @endif
-                                                </form>
-                                            @elseif ($cell['on_leave'])
-                                                <span style="display:inline-block;padding:4px 10px;border-radius:12px;background:#F4E7CC;font-size:11.5px;font-weight:600;color:#8A6E2F" title="Approved leave">On leave</span>
-                                            @elseif ($cell['working'])
-                                                <span style="display:inline-block;padding:4px 10px;border-radius:12px;background:var(--vy-wash,var(--vy-wash));font-size:11.5px;font-weight:600;color:var(--vy-accent)" title="{{ $cell['hours'] }}">{{ $cell['label'] }}</span>
-                                            @else
-                                                <span style="font-size:12px;color:var(--vy-faint)">—</span>
-                                            @endif
-                                        </td>
+                @php
+                    // Department colour-coding (real: {@see StaffDepartment} from the staffer's spatie role) — the
+                    // chip bar/tint by team, matching the design. ONE map, no fabricated attribute.
+                    $deptC = [
+                        'frontdesk' => ['bar' => '#E8703A', 'dot' => '#E8703A', 'bg' => 'rgba(217,102,46,.10)', 'color' => '#B4400F', 'border' => '1px solid rgba(232,112,58,.28)'],
+                        'housekeeping' => ['bar' => '#D99A3D', 'dot' => '#D99A3D', 'bg' => 'rgba(217,154,61,.13)', 'color' => '#8F6414', 'border' => '1px solid rgba(217,154,61,.34)'],
+                        'manager' => ['bar' => '#6B6058', 'dot' => '#6B6058', 'bg' => 'rgba(43,35,32,.06)', 'color' => '#5C5049', 'border' => '1px solid rgba(120,70,40,.18)'],
+                    ];
+                    $gridCols = '184px repeat(7, minmax(92px, 1fr))';
+                @endphp
+
+                {{-- GATE 9.1 — the interactive week rota: drag a shift chip to move it, or drop it on another
+                     staffer's cell to SWAP. All drag data is the SERVER-rendered cell strings (staff id + Y-m-d
+                     date) — never a client toISOString — so there is no timezone day-roll. Managers also click a
+                     cell to add / change / clear a shift (the modal). Everything routes through the guarded POSTs. --}}
+                <div x-data="scheduleGrid()">
+                    {{-- hidden move/swap form — drop() fills these from server strings then requestSubmit()s --}}
+                    <form x-ref="moveForm" method="POST" action="{{ route('app.schedule.move') }}" style="display:none">
+                        @csrf
+                        <input type="hidden" name="from_user" x-ref="mvFromUser">
+                        <input type="hidden" name="from_date" x-ref="mvFromDate">
+                        <input type="hidden" name="to_user" x-ref="mvToUser">
+                        <input type="hidden" name="to_date" x-ref="mvToDate">
+                        <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
+                    </form>
+
+                    <div class="vy-card" style="padding:16px">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+                            <span class="vy-line-sub" style="font-size:11.5px;color:var(--vy-faint)">Drag a shift to move it — or drop it on another person's day to swap. @if ($canManage)Click a cell to add or change a shift.@endif</span>
+                            @if ($canManage && ! $readOnly)
+                                <button type="button" class="vy-btn vy-btn--accent" style="font-size:12px;padding:5px 14px" @click="openBlank()">+ Add shift</button>
+                            @endif
+                        </div>
+
+                        <div style="overflow-x:auto">
+                            <div style="min-width:880px">
+                                {{-- header --}}
+                                <div style="display:grid;grid-template-columns:{{ $gridCols }};gap:8px;margin-bottom:8px">
+                                    <div style="display:flex;align-items:flex-end;padding:0 4px 4px;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint)">Team</div>
+                                    @foreach ($days as $day)
+                                        <a href="{{ route('app.schedule', ['week' => $week, 'dept' => $dept, 'view' => 'day', 'day' => $day['date']]) }}"
+                                           style="display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 0;border-radius:12px;text-decoration:none;{{ $day['today'] ? 'background:rgba(217,102,46,.12);border:1px solid rgba(232,112,58,.4)' : 'border:1px solid transparent' }}" title="Open day view">
+                                            <span style="font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:{{ $day['today'] ? '#B4400F' : 'var(--vy-faint)' }}">{{ $day['dow'] }}</span>
+                                            <span style="font-family:var(--vy-display);font-weight:600;font-size:15px;color:{{ $day['today'] ? '#C2410C' : 'var(--vy-ink)' }}">{{ $day['label'] }}</span>
+                                        </a>
                                     @endforeach
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                </div>
+
+                                {{-- staff rows --}}
+                                @foreach ($rows as $row)
+                                    @php $dc = $deptC[$row['staff']['department']] ?? $deptC['manager']; @endphp
+                                    <div style="display:grid;grid-template-columns:{{ $gridCols }};gap:8px;margin-bottom:8px">
+                                        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:13px;background:var(--vy-wash);border:1px solid var(--vy-hairline);min-width:0">
+                                            <span style="width:30px;height:30px;border-radius:50%;background:{{ $dc['bg'] }};border:{{ $dc['border'] }};color:{{ $dc['color'] }};font-size:10.5px;font-weight:600;display:grid;place-items:center;flex-shrink:0">{{ $row['staff']['initials'] }}</span>
+                                            <span style="min-width:0;flex:1">
+                                                <span style="display:block;font-size:12.5px;font-weight:600;color:var(--vy-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $row['staff']['name'] }}</span>
+                                                <span style="display:flex;align-items:center;gap:5px;margin-top:1px">
+                                                    <span style="width:6px;height:6px;border-radius:50%;background:{{ $dc['dot'] }};flex-shrink:0"></span>
+                                                    <span style="font-size:10.5px;color:var(--vy-faint);white-space:nowrap">{{ $row['staff']['role_label'] }}</span>
+                                                </span>
+                                            </span>
+                                        </div>
+
+                                        @foreach ($row['cells'] as $cell)
+                                            @php
+                                                $sid = $row['staff']['id'];
+                                                $key = $sid.'|'.$cell['date'];
+                                                $pureLeave = $cell['on_leave'] && ! $cell['working'];
+                                                $dropOk = $canManage && ! $readOnly && ! $pureLeave;
+                                            @endphp
+                                            <div style="min-height:58px;border-radius:13px;padding:3px;transition:box-shadow .12s,background .12s;{{ $cell['today'] ?? false ? 'background:rgba(217,102,46,.04)' : '' }}"
+                                                 :style="overKey === '{{ $key }}' ? 'box-shadow:inset 0 0 0 2px rgba(232,112,58,.65);background:rgba(217,102,46,.12)' : ''"
+                                                 @if ($dropOk)
+                                                     @dragover="over('{{ $sid }}','{{ $cell['date'] }}', $event, {{ $pureLeave ? 'true' : 'false' }})"
+                                                     @dragleave="leaveCell('{{ $sid }}','{{ $cell['date'] }}')"
+                                                     @drop="drop('{{ $sid }}','{{ $cell['date'] }}', {{ $pureLeave ? 'true' : 'false' }})"
+                                                 @endif>
+                                                @if ($cell['working'])
+                                                    <div data-shift-type="{{ $cell['type'] }}" @if ($canManage && ! $readOnly) draggable="true" @dragstart="start('{{ $sid }}','{{ $cell['date'] }}', $event)" @dragend="reset()" @click="openCell('{{ $sid }}','{{ $cell['date'] }}','{{ $cell['type'] }}')" title="Drag to move · click to change" @endif
+                                                         style="position:relative;height:100%;box-sizing:border-box;border-radius:11px;background:{{ $cell['conflict'] ? 'rgba(176,50,42,.08)' : $dc['bg'] }};border:{{ $cell['conflict'] ? '1px solid rgba(176,50,42,.4)' : $dc['border'] }};padding:8px 9px 8px 12px;display:flex;flex-direction:column;justify-content:center;gap:2px;overflow:hidden;{{ $canManage && ! $readOnly ? 'cursor:grab' : '' }}">
+                                                        <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:{{ $cell['conflict'] ? '#B0322A' : $dc['bar'] }}"></span>
+                                                        <span style="font-size:11.5px;font-weight:600;color:{{ $cell['conflict'] ? '#B0322A' : $dc['color'] }};line-height:1.1">{{ $cell['label'] }}</span>
+                                                        <span style="font-size:10px;color:{{ $cell['conflict'] ? '#B0322A' : $dc['color'] }};opacity:.75">{{ $cell['conflict'] ? '⚠ on leave' : $cell['hours'] }}</span>
+                                                    </div>
+                                                @elseif ($cell['on_leave'])
+                                                    <div style="height:100%;box-sizing:border-box;border-radius:11px;background:rgba(120,70,40,.05);border:1px dashed rgba(120,70,40,.22);display:flex;align-items:center;justify-content:center" title="Approved leave">
+                                                        <span style="font-size:10.5px;font-weight:600;color:#8A6E2F">On leave</span>
+                                                    </div>
+                                                @elseif ($canManage && ! $readOnly)
+                                                    <button type="button" @click="openCell('{{ $sid }}','{{ $cell['date'] }}','off')" title="Add a shift"
+                                                            style="width:100%;height:100%;border-radius:11px;background:transparent;border:1px dashed var(--vy-hairline);color:var(--vy-faint);font-size:16px;cursor:pointer;transition:background .14s" onmouseover="this.style.background='var(--vy-wash)'" onmouseout="this.style.background='transparent'">+</button>
+                                                @else
+                                                    <div style="height:100%;display:flex;align-items:center;justify-content:center"><span style="font-size:11px;color:var(--vy-faint)">—</span></div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <p class="vy-line-sub" style="font-size:11px;color:var(--vy-faint);margin-top:10px">Early {{ \App\Support\Schedule\ShiftType::hours('early') }} · Day {{ \App\Support\Schedule\ShiftType::hours('day') }} · Late {{ \App\Support\Schedule\ShiftType::hours('late') }}. On-leave days block shifts; a shift already set that later clashes with approved leave is flagged in red. Roster is per property.</p>
+                    </div>
+
+                    {{-- Add / change / clear a shift — one modal, opened blank (toolbar) or pre-targeted (a cell click).
+                         Posts to the SAME guarded schedule.assign. The date picker offers this week's real days only. --}}
+                    @if ($canManage)
+                        <div class="vy-modal-backdrop" x-show="modal" x-cloak @click.self="closeModal()" style="z-index:50">
+                            <form method="POST" action="{{ route('app.schedule.assign') }}" class="vy-card" style="width:min(420px,94vw);padding:22px" @click.stop>
+                                @csrf
+                                <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
+                                <h2 class="vy-card-title" style="margin:0 0 14px" x-text="mType === 'off' ? 'Add shift' : 'Change shift'">Add shift</h2>
+
+                                <div class="vy-field" style="margin-bottom:12px">
+                                    <label class="vy-field-label" for="m_user">Team member</label>
+                                    <select id="m_user" name="user_id" class="vy-input" required x-model="mUser">
+                                        <option value="">Choose…</option>
+                                        @foreach ($rows as $r)
+                                            <option value="{{ $r['staff']['id'] }}">{{ $r['staff']['name'] }} · {{ $r['staff']['role_label'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="vy-field" style="margin-bottom:14px">
+                                    <label class="vy-field-label" for="m_date">Day</label>
+                                    <select id="m_date" name="date" class="vy-input" required x-model="mDate">
+                                        @foreach ($days as $day)
+                                            <option value="{{ $day['date'] }}">{{ $day['dow'] }} {{ $day['label'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="vy-field" style="margin-bottom:18px">
+                                    <label class="vy-field-label">Shift</label>
+                                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                                        @foreach ($shiftTypes as $t)
+                                            <label style="flex:1;min-width:70px;text-align:center;cursor:pointer">
+                                                <input type="radio" name="shift_type" value="{{ $t }}" x-model="mType" style="position:absolute;opacity:0;pointer-events:none">
+                                                <span style="display:block;padding:8px 6px;border-radius:10px;font-size:12px;font-weight:600;border:1px solid var(--vy-hairline)"
+                                                      :style="mType === '{{ $t }}' ? 'background:var(--vy-accent);color:#fff;border-color:var(--vy-accent)' : 'color:var(--vy-muted)'">
+                                                    {{ \App\Support\Schedule\ShiftType::label($t) }}
+                                                    @if ($t !== 'off')<span style="display:block;font-size:9.5px;font-weight:500;opacity:.7">{{ \App\Support\Schedule\ShiftType::hours($t) }}</span>@endif
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    <p class="vy-line-sub" style="font-size:11px;margin:8px 0 0;color:var(--vy-faint)">“Off” clears the shift. A working shift can’t land on an approved-leave day.</p>
+                                </div>
+
+                                <div style="display:flex;gap:8px;justify-content:flex-end">
+                                    <button type="button" class="vy-btn vy-btn--ghost" style="font-size:12.5px" @click="closeModal()">Cancel</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12.5px">Save shift</button>
+                                </div>
+                            </form>
+                        </div>
+                    @endif
                 </div>
-                <p class="vy-line-sub" style="font-size:11.5px;color:var(--vy-faint);margin-top:10px">Early {{ \App\Support\Schedule\ShiftType::hours('early') }} · Day {{ \App\Support\Schedule\ShiftType::hours('day') }} · Late {{ \App\Support\Schedule\ShiftType::hours('late') }}. On-leave days block shifts; a shift already set that later clashes with approved leave is flagged. Roster is per property.</p>
             @endif
 
             {{-- #104 GATE 3d — "Coverage this week" summary, derived from the SAME RosterWeek builder as the grid
@@ -262,4 +357,42 @@
             </div>
         @endif
     </x-operator.shell>
+
+    {{-- GATE 9.1 — the drag + modal controller. Drag state holds the SERVER-rendered staff id + Y-m-d string; the
+         drop fills the hidden move form from those strings and submits (no client date math → no timezone roll). --}}
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('scheduleGrid', () => ({
+                dragUser: null, dragDate: null, overKey: '',
+                modal: false, mUser: '', mDate: '', mType: 'off',
+
+                start(u, d, e) {
+                    this.dragUser = u; this.dragDate = d;
+                    try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', u + '|' + d); } catch (_) {}
+                },
+                over(u, d, e, leave) {
+                    if (this.dragUser === null || leave) return;
+                    e.preventDefault();
+                    this.overKey = u + '|' + d;
+                },
+                leaveCell(u, d) { if (this.overKey === u + '|' + d) this.overKey = ''; },
+                drop(u, d, leave) {
+                    const fu = this.dragUser, fd = this.dragDate;
+                    this.reset();
+                    if (fu === null || leave) return;
+                    if (fu === u && fd === d) return;            // dropped on itself
+                    this.$refs.mvFromUser.value = fu;
+                    this.$refs.mvFromDate.value = fd;            // server Y-m-d string — never toISOString
+                    this.$refs.mvToUser.value = u;
+                    this.$refs.mvToDate.value = d;
+                    this.$refs.moveForm.requestSubmit();
+                },
+                reset() { this.dragUser = null; this.dragDate = null; this.overKey = ''; },
+
+                openCell(u, d, t) { this.mUser = u; this.mDate = d; this.mType = t || 'off'; this.modal = true; },
+                openBlank() { this.mUser = ''; this.mDate = @js($days[0]['date'] ?? ''); this.mType = 'day'; this.modal = true; },
+                closeModal() { this.modal = false; },
+            }));
+        });
+    </script>
 </div>

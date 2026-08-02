@@ -63,12 +63,12 @@ it('assigns a shift to the selected property and never to another', function () 
     expect(Shift::where('property_id', $s['propertyB']->id)->where('user_id', $s['desk']->id)->whereDate('date', $today)->where('shift_type', 'late')->exists())->toBeTrue();
     expect(Shift::where('property_id', $s['propertyA']->id)->count())->toBe(0);   // NEVER property A
 
-    // The roster READ follows the property: B shows the shift (a viewer sees the badge with its hours title),
-    // A does not. `title="15:00–23:00"` is unique to a rendered Late badge (the legend is plain text).
+    // The roster READ follows the property: B shows the shift (a viewer sees the rendered chip), A does not.
+    // `data-shift-type="late"` marks a rendered Late shift chip and is unique to it (the legend is plain text).
     $this->actingAs($s['desk'])->withSession(['current_property_id' => $s['propertyB']->id])
-        ->get('/app/schedule')->assertOk()->assertSee('title="15:00–23:00"', false);
+        ->get('/app/schedule')->assertOk()->assertSee('data-shift-type="late"', false);
     $this->actingAs($s['desk'])->withSession(['current_property_id' => $s['propertyA']->id])
-        ->get('/app/schedule')->assertOk()->assertDontSee('title="15:00–23:00"', false);
+        ->get('/app/schedule')->assertOk()->assertDontSee('data-shift-type="late"', false);
 });
 
 // ── 3. 🪤/🔒 REAL STAFF GUARD — a non-staff / cross-org user can't be assigned a shift ───────────────

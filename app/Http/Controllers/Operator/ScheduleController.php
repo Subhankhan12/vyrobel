@@ -76,6 +76,44 @@ class ScheduleController extends Controller
         return $this->back($request)->with('schedule_status', 'Shift updated.');
     }
 
+    /**
+     * GATE 9.1 — MOVE / SWAP a shift by drag-and-drop. Both staff ids are re-validated against the real roster;
+     * both dates are the grid's SERVER-rendered cell strings (never a client `toISOString()`). The move goes
+     * through {@see ShiftRosterService::moveShift} (atomic, leave-guarded). `schedule.manage`-gated + read-only.
+     */
+    public function moveShift(Request $request, StaffRoster $staffRoster): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly($request)) {
+            return $readOnly;
+        }
+
+        $property = $this->currentProperty();
+
+        $validated = $request->validate([
+            'from_user' => ['required', 'string', Rule::in($staffRoster->staffIds())],
+            'to_user' => ['required', 'string', Rule::in($staffRoster->staffIds())],
+            'from_date' => ['required', 'date_format:Y-m-d'],
+            'to_date' => ['required', 'date_format:Y-m-d'],
+        ]);
+
+        $fromStaff = User::query()->findOrFail($validated['from_user']);
+        $toStaff = User::query()->findOrFail($validated['to_user']);
+
+        try {
+            $this->roster->moveShift(
+                $property,
+                $fromStaff,
+                CarbonImmutable::parse((string) $validated['from_date']),
+                $toStaff,
+                CarbonImmutable::parse((string) $validated['to_date']),
+            );
+        } catch (ScheduleException $e) {
+            return $this->back($request)->with('schedule_error', $e->getMessage());
+        }
+
+        return $this->back($request)->with('schedule_status', 'Shift moved.');
+    }
+
     // ── TIME OFF ────────────────────────────────────────────────────────────────────────────────────
 
     /** The acting staff member requests THEIR OWN time off (pending). Self-only — never someone else's. */
