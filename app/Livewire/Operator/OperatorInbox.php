@@ -50,8 +50,10 @@ class OperatorInbox extends Component
     public function render(): View
     {
         $viewerId = (string) (auth()->id() ?? '');
-        $filter = $this->resolveFilter();
+        $filter = $this->resolveFilter();      // null|unread|arriving|mine|closed
         $search = $this->resolveQuery();
+        $sort = $this->resolveSort();          // 'newest'|'oldest'
+        $channel = $this->resolveChannel();    // a channel LABEL, or null = all
 
         // Mark the explicitly-opened thread read FIRST (an explicit ?c=, never the default preview) so the rail
         // badge + unread count reflect it on THIS request. Tenant-scoped find → cross-org id = null.
@@ -62,21 +64,35 @@ class OperatorInbox extends Component
         }
 
         $models = MessageThread::query()
-            ->with(['guest', 'owner', 'reservation.reservationUnits.unit', 'assignedTo', 'messages' => fn ($q) => $q->latest()->limit(1)])
-            ->orderByDesc('last_message_at')
-            ->orderByDesc('created_at')
+            ->with([
+                'guest', 'owner', 'reservation.reservationUnits.unit', 'assignedTo',
+                // The TRUE last message drives last_who / last_delivery (Waiting vs Needs-sending). Tiebreak on
+                // the ULID id (creation-ordered) so same-second messages resolve deterministically — a plain
+                // latest() can otherwise return the wrong one (the same-second ambiguity the GATE-1 pass hit).
+                'messages' => fn ($q) => $q->orderByDesc('created_at')->orderByDesc('id')->limit(1),
+            ])
             ->get();
 
-        $rows = $this->rows($models, $viewerId, $filter, $search);
+        // One base row per thread with EVERY derived field, computed once. The stat strip is over ALL threads;
+        // the channel tabs are over the status-filtered set; the visible rows are status + channel + search + sort.
+        $base = $this->baseRows($models, $viewerId);
+        $stats = $this->stats($base);
+
+        $tabList = $this->applyStatusFilter($base, $filter);
+        $channelTabs = $this->channelTabs($tabList, $channel);
+        $filtered = $channel !== null
+            ? array_values(array_filter($tabList, fn (array $r): bool => $r['channel_label'] === $channel))
+            : $tabList;
+        $filtered = $this->applySearch($filtered, $search);
+        $rows = $this->sortRows($filtered, $sort, $filter);
 
         // The active pane: ?c= (explicit) or the first row of the filtered list — so the pane and rail agree.
         $activeThread = $explicitThread ?? $this->resolveActiveThread($rows[0]['id'] ?? null, $models);
         $active = null;
         $messages = [];
         if ($activeThread !== null) {
-            $msgs = Message::query()->with('author')->where('thread_id', $activeThread->getKey())->orderBy('created_at')->orderBy('id')->get();
             $active = $this->activeCard($activeThread);
-            $messages = $msgs->map(fn (Message $m): array => $this->messageRow($m, $activeThread))->all();
+            $messages = $this->transcript($activeThread);
         }
 
         return view('livewire.operator.operator-inbox', [
@@ -84,11 +100,14 @@ class OperatorInbox extends Component
             'rows' => $rows,
             'filter' => $filter,
             'query' => $search,
+            'sort' => $sort,
+            'channel' => $channel,
+            'stats' => $stats,
+            'channelTabs' => $channelTabs,
+            'chips' => $this->chips($filter, $channel),
             'summary' => [
-                'unread' => $models->where('status', '!=', 'closed')->where('unread_count', '>', 0)->count(),
-                'total' => $models->count(),
-                'mine' => $viewerId !== '' ? $models->where('status', '!=', 'closed')->where('assigned_to', $viewerId)->count() : 0,
-                'closed' => $models->where('status', 'closed')->count(),
+                'unread' => $stats['unread'],
+                'total' => count($base),
             ],
             'active' => $active,
             'messages' => $messages,
@@ -106,17 +125,33 @@ class OperatorInbox extends Component
     // ── The rail ─────────────────────────────────────────────────────────────────────────────────
 
     /**
+     * One derived row per thread — every field the rail, stat strip, channel tabs, filters and sort need,
+     * computed once. `last_who`/`last_delivery` come from the thread's single loaded last message; `arrives_today`
+     * from the linked reservation. `ord` is the sort key (last activity). Guest NAME only (#28).
+     *
      * @param  Collection<int, MessageThread>  $models
      * @return list<array<string, mixed>>
      */
-    private function rows($models, string $viewerId, ?string $filter, string $search): array
+    private function baseRows($models, string $viewerId): array
     {
-        $rows = $models->map(function (MessageThread $thread) use ($viewerId): array {
+        return $models->map(function (MessageThread $thread) use ($viewerId): array {
             $last = $thread->messages->first();
             $channel = $this->channelMeta((string) $thread->channel);
             $name = $this->displayName($thread);
             $assignee = $thread->assignedTo;
             $preview = $last !== null ? Str::limit((string) $last->body, 90) : 'No messages yet';
+            $closed = (string) $thread->status === 'closed';
+
+            // Who sent the last message, and — when it was ours (outbound) — its delivery state. This drives the
+            // real "Waiting on guest" (we replied, delivered/sent, awaiting them) vs "Needs sending" (a failed
+            // outbound to retry) stats, exactly as the prototype derives them.
+            $lastOut = $last !== null && $last->direction === 'outbound';
+            $lastDelivery = $lastOut ? (string) $last->delivery_status : null;
+
+            $reservation = $thread->reservation;
+            $arrivesToday = $reservation !== null
+                && CarbonImmutable::parse($reservation->check_in)->toDateString() === CarbonImmutable::today()->toDateString()
+                && ! in_array((string) $reservation->status, ['cancelled', 'no_show', 'checked_out'], true);
 
             return [
                 'id' => (string) $thread->getKey(),
@@ -124,31 +159,184 @@ class OperatorInbox extends Component
                 'initials' => $this->initials($name),
                 'channel_label' => $channel['label'],
                 'channel_tone' => $channel['tone'],
-                'is_unread' => $thread->unread_count > 0 && $thread->status !== 'closed',
+                'is_unread' => $thread->unread_count > 0 && ! $closed,
                 'status' => (string) $thread->status,
+                'closed' => $closed,
                 'mine' => $viewerId !== '' && (string) $thread->assigned_to === $viewerId,
                 'preview' => $preview,
                 'time' => $this->shortTime($thread->last_message_at),
                 'context' => $this->reservationTag($thread),
+                'arrives_today' => $arrivesToday,
+                'last_who' => $last === null ? null : ($lastOut ? 'host' : 'guest'),
+                'last_delivery' => $lastDelivery,
                 'assignee' => $assignee instanceof User ? $this->initials((string) $assignee->name) : null,
+                'ord' => $thread->last_message_at !== null ? CarbonImmutable::parse($thread->last_message_at)->getTimestamp() : 0,
                 'search' => Str::lower($name.' '.$preview.' '.$channel['label']),
             ];
         })->all();
+    }
 
-        if ($filter === 'unread') {
-            $rows = array_values(array_filter($rows, fn (array $r): bool => $r['is_unread']));
-        } elseif ($filter === 'mine') {
-            $rows = array_values(array_filter($rows, fn (array $r): bool => $r['mine'] && $r['status'] !== 'closed'));
-        } elseif ($filter === 'closed') {
-            $rows = array_values(array_filter($rows, fn (array $r): bool => $r['status'] === 'closed'));
+    /**
+     * The 4 stat cards — REAL derived counts over ALL threads (never the wireframe's hardcoded figures, #39).
+     * Unread = active with unread; Open = active (non-closed); Waiting on guest = active, our last message,
+     * delivered/sent (awaiting them); Needs sending = active with a FAILED outbound to retry.
+     *
+     * @param  list<array<string, mixed>>  $base
+     * @return array{unread: int, open: int, waiting: int, needs_sending: int}
+     */
+    private function stats(array $base): array
+    {
+        $active = array_filter($base, fn (array $r): bool => ! $r['closed']);
+
+        return [
+            'unread' => count(array_filter($active, fn (array $r): bool => $r['is_unread'])),
+            'open' => count($active),
+            'waiting' => count(array_filter($active, fn (array $r): bool => $r['last_who'] === 'host' && $r['last_delivery'] !== 'failed')),
+            'needs_sending' => count(array_filter($active, fn (array $r): bool => $r['last_who'] === 'host' && $r['last_delivery'] === 'failed')),
+        ];
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $base
+     * @return list<array<string, mixed>>
+     */
+    private function applyStatusFilter(array $base, ?string $filter): array
+    {
+        // Closed threads appear ONLY under "Closed" — every other tab (incl. the default "All") is non-closed,
+        // matching the prototype's `if (d.closed) return false` before the per-tab predicate.
+        return match ($filter) {
+            'unread' => array_values(array_filter($base, fn (array $r): bool => $r['is_unread'])),
+            'arriving' => array_values(array_filter($base, fn (array $r): bool => $r['arrives_today'] && ! $r['closed'])),
+            'mine' => array_values(array_filter($base, fn (array $r): bool => $r['mine'] && ! $r['closed'])),
+            'closed' => array_values(array_filter($base, fn (array $r): bool => $r['closed'])),
+            default => array_values(array_filter($base, fn (array $r): bool => ! $r['closed'])),
+        };
+    }
+
+    /**
+     * The channel filter — "All channels" + only the channels ACTUALLY present in the status-filtered set (plus
+     * the currently-selected one so it never vanishes mid-filter). Honest: a channel with no threads is never
+     * offered, so the deferred external channels appear only as real threads land on them (#39).
+     *
+     * @param  list<array<string, mixed>>  $tabList
+     * @return list<array{key: string, label: string, count: int, active: bool}>
+     */
+    private function channelTabs(array $tabList, ?string $selected): array
+    {
+        $order = ['Direct', 'Booking.com', 'Airbnb', 'Expedia', 'WhatsApp', 'Email'];
+        $present = array_values(array_filter($order, fn (string $c): bool => $c === $selected
+            || array_filter($tabList, fn (array $r): bool => $r['channel_label'] === $c) !== []));
+
+        if ($present === [] || (count($present) === 1 && $selected === null)) {
+            return [];   // a single channel (the common case today) → no filter row needed
         }
 
-        if ($search !== '') {
-            $needle = Str::lower($search);
-            $rows = array_values(array_filter($rows, fn (array $r): bool => str_contains($r['search'], $needle)));
+        $tabs = [['key' => 'all', 'label' => 'All channels', 'count' => count($tabList), 'active' => $selected === null]];
+        foreach ($present as $c) {
+            $tabs[] = [
+                'key' => $c,
+                'label' => $c,
+                'count' => count(array_filter($tabList, fn (array $r): bool => $r['channel_label'] === $c)),
+                'active' => $selected === $c,
+            ];
+        }
+
+        return $tabs;
+    }
+
+    /**
+     * Rail search — matches the guest NAME, the last-message preview, the channel label (in memory) AND the full
+     * body of ANY message in the thread (a single DB lookup). Honest scope: it never searches guest CONTACT
+     * (encrypted, name-only #28). Message bodies are plaintext, so a full-history text search is real.
+     *
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<array<string, mixed>>
+     */
+    private function applySearch(array $rows, string $search): array
+    {
+        if ($search === '') {
+            return $rows;
+        }
+
+        $needle = Str::lower($search);
+        $ids = array_map(fn (array $r): string => $r['id'], $rows);
+        $bodyMatch = $ids === [] ? [] : array_flip(
+            Message::query()
+                ->whereIn('thread_id', $ids)
+                ->whereRaw('LOWER(body) LIKE ?', ['%'.$this->escapeLike($needle).'%'])
+                ->distinct()
+                ->pluck('thread_id')
+                ->map(fn ($id): string => (string) $id)
+                ->all(),
+        );
+
+        return array_values(array_filter(
+            $rows,
+            fn (array $r): bool => str_contains($r['search'], $needle) || isset($bodyMatch[$r['id']]),
+        ));
+    }
+
+    /**
+     * Sort by last activity (Newest / Oldest first). Unread floats to the top on every non-closed view — the
+     * prototype's `unreadFirst` — so the operator sees what needs attention first regardless of direction.
+     *
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<array<string, mixed>>
+     */
+    private function sortRows(array $rows, string $sort, ?string $filter): array
+    {
+        usort($rows, function (array $a, array $b) use ($sort): int {
+            return $sort === 'oldest' ? $a['ord'] <=> $b['ord'] : $b['ord'] <=> $a['ord'];
+        });
+
+        if ($filter !== 'closed') {
+            // Stable-ish unread-first: PHP's usort isn't stable pre-8.0 but IS from 8.0, so the activity order
+            // within each group is preserved.
+            usort($rows, fn (array $a, array $b): int => ($b['is_unread'] ? 1 : 0) <=> ($a['is_unread'] ? 1 : 0));
         }
 
         return $rows;
+    }
+
+    /**
+     * Active-filter chips (status + channel) → each clears itself; "Clear all" resets both. Presentation over
+     * the existing GET params.
+     *
+     * @return list<array{label: string, clear_filter: bool, clear_channel: bool}>
+     */
+    private function chips(?string $filter, ?string $channel): array
+    {
+        $labels = ['unread' => 'Unread', 'arriving' => 'Arriving today', 'mine' => 'Assigned to me', 'closed' => 'Closed'];
+        $chips = [];
+        if ($filter !== null && isset($labels[$filter])) {
+            $chips[] = ['label' => $labels[$filter], 'clear_filter' => true, 'clear_channel' => false];
+        }
+        if ($channel !== null) {
+            $chips[] = ['label' => $channel, 'clear_filter' => false, 'clear_channel' => true];
+        }
+
+        return $chips;
+    }
+
+    private function escapeLike(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
+    }
+
+    /**
+     * The active thread's full transcript. Presentation of the real messages, ordered oldest→newest.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function transcript(MessageThread $thread): array
+    {
+        return Message::query()
+            ->with('author')
+            ->where('thread_id', $thread->getKey())
+            ->orderBy('created_at')->orderBy('id')
+            ->get()
+            ->map(fn (Message $m): array => $this->messageRow($m, $thread))
+            ->all();
     }
 
     /**
@@ -389,7 +577,22 @@ class OperatorInbox extends Component
     {
         $f = request()->query('filter');
 
-        return in_array($f, ['unread', 'mine', 'closed'], true) ? (string) $f : null;
+        return in_array($f, ['unread', 'arriving', 'mine', 'closed'], true) ? (string) $f : null;
+    }
+
+    /** Newest first by default; ?sort=oldest flips it. Mirrors the ?filter=/?q= GET pattern (RMB-safe). */
+    private function resolveSort(): string
+    {
+        return request()->query('sort') === 'oldest' ? 'oldest' : 'newest';
+    }
+
+    /** A channel display LABEL to filter by, or null for all. Validated against the known channel labels. */
+    private function resolveChannel(): ?string
+    {
+        $c = request()->query('channel');
+        $known = ['Direct', 'Booking.com', 'Airbnb', 'Expedia', 'WhatsApp', 'Email'];
+
+        return is_string($c) && in_array($c, $known, true) ? $c : null;
     }
 
     private function resolveQuery(): string

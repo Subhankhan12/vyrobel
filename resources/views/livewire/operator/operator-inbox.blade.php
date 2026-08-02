@@ -9,14 +9,51 @@
         @if (session('inbox_notice')) <div class="vy-flash is-ok vy-fade">{{ session('inbox_notice') }}</div> @endif
         @if (session('inbox_error')) <div class="vy-flash is-err vy-fade">{{ session('inbox_error') }}</div> @endif
 
-        {{-- Toolbar: filters + New message --}}
-        <div class="vy-rack-toolbar vy-fade" style="margin-bottom: 12px;">
+        @php
+            // Compose the inbox GET params so filter / channel / sort / search / active-thread stay together as
+            // the operator switches any one of them. A null override drops that key (e.g. filter → All). `sort`
+            // only rides when non-default (oldest), keeping URLs clean.
+            $inboxParams = array_filter([
+                'filter' => $filter,
+                'channel' => $channel,
+                'sort' => $sort === 'oldest' ? 'oldest' : null,
+                'q' => $query !== '' ? $query : null,
+                'c' => request('c'),
+            ], fn ($v) => $v !== null && $v !== '');
+            $inboxUrl = function (array $over) use ($inboxParams) {
+                return route('app.inbox', array_filter(array_merge($inboxParams, $over), fn ($v) => $v !== null && $v !== ''));
+            };
+        @endphp
+
+        {{-- Stat strip — REAL derived counts (Unread / Open / Waiting on guest / Needs sending) --}}
+        <div class="vy-inbox-stats vy-fade">
+            <a class="vy-istat {{ $filter === 'unread' ? 'is-on' : '' }}" href="{{ $inboxUrl(['filter' => $filter === 'unread' ? null : 'unread']) }}">
+                <span class="vy-istat-dot" style="background:#E8703A"></span>
+                <span class="vy-istat-num" style="color:#B4400F">{{ $stats['unread'] }}</span><span class="vy-istat-label">Unread</span>
+            </a>
+            <div class="vy-istat">
+                <span class="vy-istat-dot" style="background:#2A6FDB"></span>
+                <span class="vy-istat-num">{{ $stats['open'] }}</span><span class="vy-istat-label">Open</span>
+            </div>
+            <div class="vy-istat">
+                <span class="vy-istat-dot" style="background:#D99A3D"></span>
+                <span class="vy-istat-num">{{ $stats['waiting'] }}</span><span class="vy-istat-label">Waiting on guest</span>
+            </div>
+            <div class="vy-istat {{ $stats['needs_sending'] > 0 ? 'is-alert' : '' }}">
+                <span class="vy-istat-dot" style="background:#C0392B"></span>
+                <span class="vy-istat-num" style="{{ $stats['needs_sending'] > 0 ? 'color:#C0392B' : '' }}">{{ $stats['needs_sending'] }}</span><span class="vy-istat-label">Needs sending</span>
+            </div>
+        </div>
+
+        {{-- Toolbar: status tabs + New message --}}
+        <div class="vy-rack-toolbar vy-fade" style="margin-bottom: 10px;">
             <div class="vy-left">
-                <div class="vy-seg" style="max-width: 460px;">
-                    <a class="vy-seg-opt {{ $filter === null ? 'is-checked' : '' }}" href="{{ route('app.inbox', array_filter(['c' => request('c')])) }}">All</a>
-                    <a class="vy-seg-opt {{ $filter === 'unread' ? 'is-checked' : '' }}" href="{{ route('app.inbox', ['filter' => 'unread']) }}">Unread</a>
-                    <a class="vy-seg-opt {{ $filter === 'mine' ? 'is-checked' : '' }}" href="{{ route('app.inbox', ['filter' => 'mine']) }}">Assigned to me</a>
-                    <a class="vy-seg-opt {{ $filter === 'closed' ? 'is-checked' : '' }}" href="{{ route('app.inbox', ['filter' => 'closed']) }}">Closed</a>
+                <div class="vy-seg" style="max-width: 560px;">
+                    <a class="vy-seg-opt {{ $filter === null ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => null]) }}">All</a>
+                    <a class="vy-seg-opt {{ $filter === 'unread' ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => 'unread']) }}">Unread</a>
+                    <a class="vy-seg-opt {{ $filter === 'arriving' ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => 'arriving']) }}">Arriving today</a>
+                    <a class="vy-seg-opt {{ $filter === 'mine' ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => 'mine']) }}">Assigned to me</a>
+                    <a class="vy-seg-opt {{ $filter === 'closed' ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => 'closed']) }}">Closed</a>
                 </div>
             </div>
             <div class="vy-right">
@@ -28,6 +65,34 @@
             </div>
         </div>
 
+        {{-- Channel filter (only channels actually present) + sort toggle + active-filter chips --}}
+        <div class="vy-inbox-subbar vy-fade">
+            <div class="vy-inbox-chan">
+                @foreach ($channelTabs as $ch)
+                    <a class="vy-chan-tab {{ $ch['active'] ? 'is-on' : '' }}" href="{{ $inboxUrl(['channel' => $ch['key'] === 'all' ? null : $ch['key']]) }}">
+                        {{ $ch['label'] }} <span class="vy-chan-n">{{ $ch['count'] }}</span>
+                    </a>
+                @endforeach
+            </div>
+            <div class="vy-inbox-subright">
+                @if ($chips !== [])
+                    <div class="vy-inbox-chips">
+                        @foreach ($chips as $chip)
+                            <a class="vy-fchip" href="{{ $inboxUrl([$chip['clear_filter'] ? 'filter' : 'channel' => null]) }}">
+                                {{ $chip['label'] }}
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+                            </a>
+                        @endforeach
+                        <a class="vy-fchip-clear" href="{{ $inboxUrl(['filter' => null, 'channel' => null]) }}">Clear all</a>
+                    </div>
+                @endif
+                <a class="vy-sort-toggle" href="{{ $inboxUrl(['sort' => $sort === 'oldest' ? null : 'oldest']) }}" title="Toggle sort order">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h13M3 12h9M3 18h5M17 8l4-4 4 4M21 4v16" transform="translate(-4)"/></svg>
+                    {{ $sort === 'oldest' ? 'Oldest first' : 'Newest first' }}
+                </a>
+            </div>
+        </div>
+
         {{-- 3-pane: rail + active thread --}}
         <div class="vy-inbox-grid vy-fade">
 
@@ -35,11 +100,13 @@
             <aside class="vy-card vy-card--flush vy-inbox-rail">
                 <form method="GET" action="{{ route('app.inbox') }}" class="vy-inbox-search">
                     @if ($filter) <input type="hidden" name="filter" value="{{ $filter }}"> @endif
-                    <input type="search" name="q" value="{{ $query }}" class="vy-input" placeholder="Search guests…" autocomplete="off">
+                    @if ($channel) <input type="hidden" name="channel" value="{{ $channel }}"> @endif
+                    @if ($sort === 'oldest') <input type="hidden" name="sort" value="oldest"> @endif
+                    <input type="search" name="q" value="{{ $query }}" class="vy-input" placeholder="Search guests &amp; messages…" autocomplete="off">
                 </form>
                 <div class="vy-inbox-list">
                     @forelse ($rows as $row)
-                        <a href="{{ route('app.inbox', ['c' => $row['id']] + ($filter ? ['filter' => $filter] : []) + ($query !== '' ? ['q' => $query] : [])) }}"
+                        <a href="{{ $inboxUrl(['c' => $row['id']]) }}"
                            class="vy-conv {{ $active && $active['id'] === $row['id'] ? 'is-active' : '' }} {{ $row['is_unread'] ? 'is-unread' : '' }}">
                             <div class="vy-conv-avatar">{{ $row['initials'] }}</div>
                             <div class="vy-conv-body">
@@ -224,6 +291,31 @@
 
     <style>
         [x-cloak] { display: none !important; }
+        /* stat strip */
+        .vy-inbox-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+        .vy-istat { display: flex; align-items: center; gap: 9px; padding: 12px 15px; border-radius: 14px; background: rgba(255, 252, 248, 0.66); backdrop-filter: blur(20px) saturate(1.1); -webkit-backdrop-filter: blur(20px) saturate(1.1); border: 1px solid var(--vy-glass-border, rgba(150,90,50,.12)); text-decoration: none; color: var(--vy-ink); transition: border-color .14s, transform .1s; }
+        a.vy-istat:hover { transform: translateY(-1px); }
+        a.vy-istat.is-on { border-color: var(--vy-accent, #E8703A); box-shadow: 0 0 0 1px var(--vy-accent, #E8703A) inset; }
+        .vy-istat.is-alert { border-color: rgba(192,57,43,.4); }
+        .vy-istat-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+        .vy-istat-num { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+        .vy-istat-label { font-size: 12px; color: var(--vy-muted); line-height: 1.2; }
+        /* channel filter + sort + chips subbar */
+        .vy-inbox-subbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; min-height: 30px; }
+        .vy-inbox-chan { display: flex; gap: 6px; flex-wrap: wrap; }
+        .vy-chan-tab { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--vy-hairline); background: none; font-size: 12px; font-weight: 500; color: var(--vy-muted); text-decoration: none; }
+        .vy-chan-tab:hover { color: var(--vy-ink); }
+        .vy-chan-tab.is-on { background: var(--vy-accent, #E8703A); color: #fff; border-color: var(--vy-accent, #E8703A); }
+        .vy-chan-n { font-size: 10.5px; opacity: .8; font-variant-numeric: tabular-nums; }
+        .vy-inbox-subright { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+        .vy-inbox-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .vy-fchip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; background: rgba(217,102,46,.1); color: #B4400F; font-size: 11.5px; font-weight: 600; text-decoration: none; }
+        .vy-fchip:hover { background: rgba(217,102,46,.16); }
+        .vy-fchip-clear { padding: 4px 10px; font-size: 11.5px; color: var(--vy-faint); text-decoration: none; }
+        .vy-fchip-clear:hover { color: #B4400F; }
+        .vy-sort-toggle { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--vy-hairline); background: none; font-size: 12px; font-weight: 500; color: var(--vy-muted); text-decoration: none; white-space: nowrap; }
+        .vy-sort-toggle:hover { color: var(--vy-ink); border-color: var(--vy-accent-border, rgba(217,102,46,.3)); }
+        @media (max-width: 720px) { .vy-inbox-stats { grid-template-columns: repeat(2, 1fr); } }
         .vy-inbox-grid { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
         .vy-inbox-rail { display: flex; flex-direction: column; max-height: 72vh; }
         .vy-inbox-search { padding: 12px; border-bottom: 1px solid var(--vy-hairline); }
