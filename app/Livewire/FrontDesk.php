@@ -179,12 +179,15 @@ class FrontDesk extends Component
     }
 
     /**
-     * DERIVED count + outstanding-balance chips, from the real rows only.
+     * DERIVED count chips, from the real rows only. The four are the wireframe's KPI band —
+     * Arriving / Departing / In-house / Unassigned — plus the due-count that drives the row balances.
+     * "Unassigned" is the real number of TODAY'S ARRIVALS still without a unit (the actionable ones —
+     * an unassigned in-house guest can't be seated today anyway).
      *
      * @param  list<array<string, mixed>>  $arrivals
      * @param  list<array<string, mixed>>  $departures
      * @param  list<array<string, mixed>>  $inHouse
-     * @return array{arrivals: int, departures: int, in_house: int, due_count: int}
+     * @return array{arrivals: int, departures: int, in_house: int, unassigned: int, due_count: int}
      */
     private function summary(array $arrivals, array $departures, array $inHouse): array
     {
@@ -197,10 +200,18 @@ class FrontDesk extends Component
             }
         }
 
+        $unassigned = 0;
+        foreach ($arrivals as $row) {
+            if (($row['unassigned'] ?? false) === true) {
+                $unassigned++;
+            }
+        }
+
         return [
             'arrivals' => count($arrivals),
             'departures' => count($departures),
             'in_house' => count($inHouse),
+            'unassigned' => $unassigned,
             'due_count' => $dueCount,
         ];
     }

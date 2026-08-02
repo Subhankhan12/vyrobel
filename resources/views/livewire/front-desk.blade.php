@@ -1,7 +1,11 @@
-{{-- Operator Front Desk — arrivals / departures / in-house (design pass · Operator Screen 2).
-     Styled on the shared operator design system via <x-operator.shell>. Lists + balances are REAL
-     and tenant-scoped (FrontDeskService + folio balance). The board only READS; check-in/out post to
-     the real staff action (FrontDeskActionController) and persist. Presentation only otherwise. --}}
+{{-- Operator Front Desk — arrivals / departures / in-house (GATE 2 exact-match rebuild).
+     Styled on the shared operator design system via <x-operator.shell>. Lists + balances are REAL and
+     tenant-scoped (FrontDeskService + folio balance). The board only READS; check-in/out post to the real
+     staff action (FrontDeskActionController) and persist. The segmented Arrivals/Departures/In-house tabs are
+     Alpine tab-state (presentation); the KPI band + counts are DERIVED from the real rows only. The wireframe's
+     invented "Filters"/"Print" affordances are NOT rendered (they were never in the design). Room moves, on-desk
+     Collect, the check-in/out modals and Walk-in are wired to their real routes in the following GATE-2 sub-gates.
+     RAW-BLADE RULE: Alpine uses x-on:/x-model/x-bind (no `@click`). --}}
 <div>
     <x-operator.shell active="front-desk" title="Front desk"
         :subtitle="($property['name'] ?? 'No property yet') . ' · ' . $day['label']" :viewer="$viewer">
@@ -14,7 +18,8 @@
             </div>
         @endif
 
-        {{-- Toolbar: REAL day navigation (GET links) + honest NO-BACKEND affordances --}}
+        {{-- Toolbar: REAL day navigation (GET links). Walk-in is wired to its real create-and-check-in flow in
+             a later GATE-2 sub-gate; until then it is an honest disabled affordance (never a faked booking). --}}
         <div class="vy-rack-toolbar vy-fade">
             <div class="vy-left">
                 <a class="vy-icobtn" href="?date={{ $day['prev'] }}" aria-label="Previous day" title="Previous day">
@@ -33,27 +38,45 @@
             </div>
             <div class="vy-right">
                 <span class="vy-pill is-soon" aria-disabled="true">Walk-in <span class="vy-soon-tag">Soon</span></span>
-                <span class="vy-pill is-soon" aria-disabled="true">Filters <span class="vy-soon-tag">Soon</span></span>
-                <span class="vy-pill is-soon" aria-disabled="true">Print <span class="vy-soon-tag">Soon</span></span>
             </div>
         </div>
 
         @if ($property === null)
             <div class="vy-card vy-fade"><div class="vy-empty">No property yet — add a property to run the front desk.</div></div>
         @else
-            {{-- DERIVED summary chips (from the real rows only) --}}
-            <div class="vy-summary vy-fade">
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $summary['arrivals'] }}</span><span class="vy-sc-label">Arrivals</span></div>
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $summary['departures'] }}</span><span class="vy-sc-label">Departures</span></div>
-                <div class="vy-summary-chip"><span class="vy-sc-num">{{ $summary['in_house'] }}</span><span class="vy-sc-label">In-house</span></div>
-                <div class="vy-summary-chip @if ($summary['due_count'] > 0) is-due @endif">
-                    <span class="vy-sc-num">{{ $summary['due_count'] }}</span><span class="vy-sc-label">Balance due</span>
+            <div x-data="{ tab: 'arrivals' }">
+                {{-- DERIVED KPI band (real rows only): Arriving / Departing / In-house / Unassigned --}}
+                <div class="vy-summary vy-fade">
+                    <button type="button" class="vy-summary-chip vy-fd-kpi" x-bind:class="tab === 'arrivals' ? 'is-active' : ''" x-on:click="tab = 'arrivals'">
+                        <span class="vy-sc-num">{{ $summary['arrivals'] }}</span><span class="vy-sc-label">Arriving</span>
+                    </button>
+                    <button type="button" class="vy-summary-chip vy-fd-kpi" x-bind:class="tab === 'departures' ? 'is-active' : ''" x-on:click="tab = 'departures'">
+                        <span class="vy-sc-num">{{ $summary['departures'] }}</span><span class="vy-sc-label">Departing</span>
+                    </button>
+                    <button type="button" class="vy-summary-chip vy-fd-kpi" x-bind:class="tab === 'inhouse' ? 'is-active' : ''" x-on:click="tab = 'inhouse'">
+                        <span class="vy-sc-num">{{ $summary['in_house'] }}</span><span class="vy-sc-label">In-house</span>
+                    </button>
+                    <div class="vy-summary-chip @if ($summary['unassigned'] > 0) is-due @endif">
+                        <span class="vy-sc-num">{{ $summary['unassigned'] }}</span><span class="vy-sc-label">Unassigned</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="vy-fd-cols">
-                @foreach (['Arrivals' => $arrivals, 'Departures' => $departures, 'In-house' => $inHouse] as $heading => $rows)
-                    <div class="vy-card vy-card--flush vy-fade">
+                {{-- Segmented control — Arrivals / Departures / In-house (sliding-pill tab state) --}}
+                <div class="vy-fd-seg vy-fade" role="tablist">
+                    <button type="button" class="vy-fd-seg-btn" role="tab" x-bind:class="tab === 'arrivals' ? 'is-on' : ''" x-on:click="tab = 'arrivals'">
+                        Arrivals <span class="vy-fd-seg-n">{{ $summary['arrivals'] }}</span>
+                    </button>
+                    <button type="button" class="vy-fd-seg-btn" role="tab" x-bind:class="tab === 'departures' ? 'is-on' : ''" x-on:click="tab = 'departures'">
+                        Departures <span class="vy-fd-seg-n">{{ $summary['departures'] }}</span>
+                    </button>
+                    <button type="button" class="vy-fd-seg-btn" role="tab" x-bind:class="tab === 'inhouse' ? 'is-on' : ''" x-on:click="tab = 'inhouse'">
+                        In-house <span class="vy-fd-seg-n">{{ $summary['in_house'] }}</span>
+                    </button>
+                </div>
+
+                {{-- The active tab's list. One at a time (x-show), each over the REAL rows. --}}
+                @foreach (['arrivals' => ['Arrivals', $arrivals], 'departures' => ['Departures', $departures], 'inhouse' => ['In-house', $inHouse]] as $key => [$heading, $rows])
+                    <div class="vy-card vy-card--flush vy-fade" role="tabpanel" x-show="tab === '{{ $key }}'" x-cloak>
                         <div class="vy-fd-head">
                             <span class="vy-fd-title">{{ $heading }}</span>
                             <span class="vy-fd-count">{{ count($rows) }}</span>
@@ -70,14 +93,12 @@
                                         @endif
                                     </div>
                                     @if ($row['preferences'] !== [])
-                                        {{-- #87 — the guest's stay preferences, shown to the front desk so arrivals get the right room. --}}
                                         <div class="vy-fd-meta" style="margin-top: 4px;">
                                             @foreach ($row['preferences'] as $pref)
                                                 <span class="vy-tag tone-tag"><span class="vy-dot"></span>{{ $pref }}</span>
                                             @endforeach
                                         </div>
                                     @endif
-                                    {{-- #104 GATE 3 — the guest's estimated arrival (real, captured at booking; was dropped). --}}
                                     @if ($row['expected_arrival'])
                                         <div class="vy-fd-meta" style="margin-top: 4px; font-size: 12px; color: var(--vy-muted);">Arrival · {{ $row['expected_arrival'] }}</div>
                                     @endif
@@ -120,10 +141,10 @@
                                             </form>
                                         @endif
 
-                                        {{-- DEFERRED: collecting a payment needs an amount + card token + gateway flow.
-                                             Shown real-looking but flagged — it never fakes a payment. --}}
+                                        {{-- On-desk Collect is wired to the real folio payment route in a later GATE-2 sub-gate;
+                                             until then it stays an honest disabled affordance — it never fakes a payment. --}}
                                         @if ($row['has_balance'])
-                                            <span class="vy-act is-soon" aria-disabled="true" title="Payment collection is not yet wired to this screen">Collect <span class="vy-soon-tag">Soon</span></span>
+                                            <span class="vy-act is-soon" aria-disabled="true" title="Payment collection is wired next">Collect <span class="vy-soon-tag">Soon</span></span>
                                         @endif
                                     </div>
                                 </div>
@@ -136,11 +157,25 @@
             </div>
 
             <div class="vy-deferred-note" style="margin-top: 18px;">
-                <span class="vy-soon-tag">Not yet available</span>
-                Room moves &amp; on-desk payment collection are planned; check-in and check-out are live.
-                Balances are the real folio figures.
+                <span class="vy-soon-tag">Wiring next</span>
+                Room moves, on-desk payment collection and walk-ins are wired to their real routes in the next
+                sub-gates; check-in and check-out are live. Balances are the real folio figures.
             </div>
         @endif
 
     </x-operator.shell>
+
+    {{-- GATE-2 board chrome: the segmented control + KPI-as-tab affordance. Presentation only. --}}
+    <style>
+        .vy-fd-kpi { cursor: pointer; border: 1px solid transparent; background: none; font: inherit; text-align: left; transition: border-color 0.14s, background 0.14s, transform 0.1s; }
+        .vy-fd-kpi:hover { transform: translateY(-1px); }
+        .vy-fd-kpi.is-active { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.06); box-shadow: 0 0 0 1px var(--vy-accent-border) inset; }
+        .vy-fd-seg { display: inline-flex; gap: 4px; padding: 4px; margin: 4px 0 16px; border-radius: 13px; background: rgba(255, 252, 248, 0.62); backdrop-filter: blur(20px) saturate(1.1); -webkit-backdrop-filter: blur(20px) saturate(1.1); border: 1px solid var(--vy-glass-border); }
+        .vy-fd-seg-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border: none; border-radius: 10px; background: transparent; color: var(--vy-muted); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; cursor: pointer; transition: background 0.16s, color 0.16s, box-shadow 0.16s; }
+        .vy-fd-seg-btn:hover { color: var(--vy-ink); }
+        .vy-fd-seg-btn.is-on { background: var(--vy-grad); color: #fff; box-shadow: var(--vy-shadow-accent); }
+        .vy-fd-seg-n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: rgba(60, 40, 24, 0.1); color: inherit; font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .vy-fd-seg-btn.is-on .vy-fd-seg-n { background: rgba(255, 255, 255, 0.26); }
+        [x-cloak] { display: none !important; }
+    </style>
 </div>
