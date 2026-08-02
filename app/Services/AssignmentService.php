@@ -359,6 +359,96 @@ class AssignmentService
     }
 
     /**
+     * RESCHEDULE a line to a new date range and/or unit — the operator Calendar's drag-to-reschedule. The
+     * general move: it RELEASES the old nights' `sold` and CLAIMS the new nights' `sold` atomically (net-zero
+     * on any night the two ranges share), re-checks Level A on the NEW nights AFTER the release (so a
+     * self-overlapping move never blocks on its own occupancy) and Level B on the TARGET unit (ignoring THIS
+     * line), then resyncs the reservation's aggregate dates. The lock covers the UNION of old + new nights, so
+     * two concurrent moves onto the same unit/nights serialize on the availability rows and the second one's
+     * assertUnitFree sees the first's committed line → exactly one wins (the no-double-booking guarantee, same
+     * as createBooking). Money is NOT re-derived here (like assignUnit / extend): moving inventory is separate
+     * from re-pricing the folio — the operator adjusts charges explicitly if the new dates carry a new rate.
+     */
+    public function reschedule(ReservationUnit $reservationUnit, CarbonInterface|string $newCheckIn, CarbonInterface|string $newCheckOut, ?string $newUnitId = null): ReservationUnit
+    {
+        if ($reservationUnit->status !== 'active') {
+            throw new InvalidArgumentException('Only an active reservation line can be rescheduled.');
+        }
+
+        $newCi = CarbonImmutable::parse($newCheckIn)->startOfDay();
+        $newCo = CarbonImmutable::parse($newCheckOut)->startOfDay();
+        if ($newCo->lessThanOrEqualTo($newCi)) {
+            throw new InvalidArgumentException('reschedule() requires check_out after check_in.');
+        }
+
+        $targetUnitId = $newUnitId ?? ($reservationUnit->unit_id !== null ? (string) $reservationUnit->unit_id : null);
+        if ($newUnitId !== null) {
+            $unit = Unit::query()->findOrFail($newUnitId);
+            if ($unit->room_type_id !== $reservationUnit->room_type_id) {
+                throw new InvalidArgumentException('Target unit room_type does not match the reservation_unit room_type.');
+            }
+        }
+
+        $oldCi = CarbonImmutable::parse($reservationUnit->check_in)->startOfDay();
+        $oldCo = CarbonImmutable::parse($reservationUnit->check_out)->startOfDay();
+        $fromUnitId = $reservationUnit->unit_id;
+
+        DB::transaction(function () use ($reservationUnit, $oldCi, $oldCo, $newCi, $newCo, $targetUnitId): void {
+            $oldNights = $this->nights($oldCi, $oldCo);
+            $newNights = $this->nights($newCi, $newCo);
+            $union = array_values(array_unique(array_merge($oldNights, $newNights)));
+            sort($union);
+
+            $rows = $this->lockAvailability((string) $reservationUnit->room_type_id, $union);   // serialize old ∪ new
+
+            // Release the OLD nights first so a self-overlapping move doesn't block on its own occupancy,
+            // then Level A on the NEW nights (now reflecting the release), then Level B on the target unit.
+            $this->adjustSold($rows, $oldNights, -1);
+            $this->assertCountsAvailable($rows, $newNights, (string) $reservationUnit->room_type_id);
+            if ($targetUnitId !== null) {
+                $this->assertUnitFree($targetUnitId, $newCi, $newCo, (string) $reservationUnit->getKey());
+            }
+            $this->adjustSold($rows, $newNights, +1);
+
+            $reservationUnit->update([
+                'unit_id' => $targetUnitId,
+                'check_in' => $newCi->toDateString(),
+                'check_out' => $newCo->toDateString(),
+            ]);
+
+            $this->resyncReservationDates((string) $reservationUnit->reservation_id);
+        });
+
+        $this->domainEvents->record('reservation_unit.rescheduled', $reservationUnit, [
+            'from' => ['check_in' => $oldCi->toDateString(), 'check_out' => $oldCo->toDateString(), 'unit_id' => $fromUnitId],
+            'to' => ['check_in' => $newCi->toDateString(), 'check_out' => $newCo->toDateString(), 'unit_id' => $targetUnitId],
+        ]);
+        $this->audit->record('reservation_unit.rescheduled', $reservationUnit,
+            ['check_in' => $oldCi->toDateString(), 'check_out' => $oldCo->toDateString(), 'unit_id' => $fromUnitId],
+            ['check_in' => $newCi->toDateString(), 'check_out' => $newCo->toDateString(), 'unit_id' => $targetUnitId]);
+
+        return $reservationUnit->refresh();
+    }
+
+    /**
+     * Recompute a reservation's aggregate [check_in, check_out) from its ACTIVE lines (min check-in, max
+     * check-out) so the header stay dates stay truthful after a line move. Runs inside the caller's
+     * transaction. No active lines ⇒ left unchanged (a fully-cancelled reservation keeps its record).
+     */
+    private function resyncReservationDates(string $reservationId): void
+    {
+        $minCheckIn = ReservationUnit::query()->where('reservation_id', $reservationId)->where('status', 'active')->min('check_in');
+        $maxCheckOut = ReservationUnit::query()->where('reservation_id', $reservationId)->where('status', 'active')->max('check_out');
+
+        if ($minCheckIn !== null && $maxCheckOut !== null) {
+            Reservation::query()->whereKey($reservationId)->update([
+                'check_in' => CarbonImmutable::parse($minCheckIn)->toDateString(),
+                'check_out' => CarbonImmutable::parse($maxCheckOut)->toDateString(),
+            ]);
+        }
+    }
+
+    /**
      * Split a line at a date into two segments on the same unit. `sold` is unchanged — the
      * nights are already counted; the two half-open segments [in, split) and [split, out) do
      * not overlap, so each night still has exactly one occupying line.
