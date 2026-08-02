@@ -614,6 +614,14 @@ class AssignmentService
 
         $unitId = $line['unit_id'] ?? null;
         if ($unitId !== null) {
+            // Never CREATE a booking onto a paused / out-of-service unit. The availability READ (Unit::bookable())
+            // never OFFERS one, but a crafted create-POST could still name one — so the WRITE path must refuse it
+            // too, the SAME `isBookable` rule the move (assignUnit) + reschedule paths already enforce. Covers both
+            // createBooking() and createGroupBooking() (both funnel here). #29-style: guard once, every caller safe.
+            $unit = Unit::query()->findOrFail((string) $unitId);
+            if (! $unit->isBookable()) {
+                throw UnitUnavailableException::blocked((string) $unitId);
+            }
             $this->assertUnitFree((string) $unitId, $line['check_in'], $line['check_out'], null);
         }
 
