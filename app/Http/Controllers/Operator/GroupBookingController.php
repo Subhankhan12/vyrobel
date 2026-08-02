@@ -93,6 +93,12 @@ class GroupBookingController extends Controller
         $adults = max(1, min(30, (int) $request->input('adults', 2)));
         $children = max(0, min(30, (int) $request->input('children', 0)));
 
+        // GUARD 1 — the discount / deposit percentages are re-derived from the FIXED sets, never a client-sent
+        // amount (a crafted % outside the set collapses to 0 / no deposit). Deposit is master-invoice only.
+        $discountPct = in_array((int) $request->input('discount_pct'), [0, 5, 10, 15], true) ? (int) $request->input('discount_pct') : 0;
+        $depositPct = in_array((int) $request->input('deposit_pct'), [0, 25, 50, 100], true) ? (int) $request->input('deposit_pct') : 0;
+        $depositMethod = in_array($request->input('deposit_method'), ['cash', 'bank', 'card'], true) ? (string) $request->input('deposit_method') : 'cash';
+
         $organiser = $this->resolveOrganiser($request);
         if ($organiser instanceof RedirectResponse) {
             return $organiser;
@@ -113,6 +119,9 @@ class GroupBookingController extends Controller
                 'organiser_guest_id' => (string) $organiser->getKey(),
                 'pickup_deadline' => $pickupDeadline,
                 'contact' => $this->organiserContact($request, $organiser),
+                'discount_pct' => $discountPct,
+                'deposit_pct' => $depositPct,
+                'deposit_method' => $depositMethod,
                 'members' => array_map(fn (array $m): array => [
                     'room_type_id' => $m['room_type_id'],
                     'unit_id' => $m['unit_id'],

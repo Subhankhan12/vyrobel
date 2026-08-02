@@ -65,6 +65,9 @@
                 <input type="hidden" name="hold_type" x-bind:value="holdType">
                 <input type="hidden" name="pickup_deadline" x-bind:value="pickupDeadline">
                 <input type="hidden" name="billing_mode" x-bind:value="billingMode">
+                <input type="hidden" name="discount_pct" x-bind:value="discountPct">
+                <input type="hidden" name="deposit_pct" x-bind:value="billingMode === 'master' ? depositPct : 0">
+                <input type="hidden" name="deposit_method" x-bind:value="depositMethod">
                 {{-- selected units → real POST inputs --}}
                 <template x-for="u in selected" x-bind:key="u.id"><input type="hidden" name="units[]" x-bind:value="u.id"></template>
 
@@ -167,6 +170,43 @@
                             <label class="vy-gb-opt" x-bind:class="billingMode === 'master' ? 'is-on' : ''"><input type="radio" x-model="billingMode" value="master"><span><strong>Master invoice</strong><br><span class="vy-gb-opt-sub">Organiser settles one bill for the block</span></span></label>
                         </div>
                     </div>
+
+                    {{-- Group discount — a REAL negative folio line (re-derived server-side from the fixed set). --}}
+                    <div class="vy-gb-field" style="margin-top: 18px;">
+                        <label class="vy-gb-label">Group discount</label>
+                        <div class="vy-gb-chips">
+                            <template x-for="p in [0, 5, 10, 15]" x-bind:key="p">
+                                <button type="button" class="vy-gb-chip" x-bind:class="discountPct === p ? 'is-on' : ''" x-on:click="discountPct = p" x-text="p + '%'"></button>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Deposit-to-confirm — a REAL cash/bank payment on the master invoice; card is the deferred
+                         Stripe seam. Only on a master invoice (an individual-pay block has no single folio). --}}
+                    <div class="vy-gb-field" style="margin-top: 4px;">
+                        <label class="vy-gb-label">Deposit to confirm</label>
+                        <template x-if="billingMode === 'master'">
+                            <div>
+                                <div class="vy-gb-chips">
+                                    <button type="button" class="vy-gb-chip" x-bind:class="depositPct === 0 ? 'is-on' : ''" x-on:click="depositPct = 0">None</button>
+                                    <template x-for="p in [25, 50, 100]" x-bind:key="p">
+                                        <button type="button" class="vy-gb-chip" x-bind:class="depositPct === p ? 'is-on' : ''" x-on:click="depositPct = p" x-text="p + '%'"></button>
+                                    </template>
+                                </div>
+                                <div x-show="depositPct > 0" x-cloak style="margin-top: 8px;">
+                                    <div class="vy-gb-chips">
+                                        <button type="button" class="vy-gb-chip" x-bind:class="depositMethod === 'cash' ? 'is-on' : ''" x-on:click="depositMethod = 'cash'">Cash</button>
+                                        <button type="button" class="vy-gb-chip" x-bind:class="depositMethod === 'bank' ? 'is-on' : ''" x-on:click="depositMethod = 'bank'">Bank transfer</button>
+                                        <button type="button" class="vy-gb-chip" x-bind:class="depositMethod === 'card' ? 'is-on' : ''" x-on:click="depositMethod = 'card'">Card <span style="font-size:10px; opacity:.7;">· soon</span></button>
+                                    </div>
+                                    <div class="vy-gb-hint" x-show="depositMethod === 'card'">Card deposits arrive with secure Stripe checkout (test-mode until go-live) — take cash or a bank transfer to record a deposit now.</div>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-if="billingMode !== 'master'">
+                            <div class="vy-gb-hint">Deposits are collected on a master invoice — switch to “Master invoice” above to take one.</div>
+                        </template>
+                    </div>
                 </section>
 
                 {{-- STEP 5 · Review (fleshed out with agree + done in 4.4) --}}
@@ -179,6 +219,8 @@
                         <div class="vy-gb-rev-row"><span>Headcount</span><strong x-text="headcount + ' guests · sleeps ' + cap"></strong></div>
                         <div class="vy-gb-rev-row"><span>Organiser</span><strong x-text="(orgFirst + ' ' + orgLast).trim() || '—'"></strong></div>
                         <div class="vy-gb-rev-row"><span>Hold</span><strong x-text="(holdType === 'tentative' ? 'Tentative' : 'Confirmed') + ' · ' + (billingMode === 'master' ? 'master invoice' : 'individual folios')"></strong></div>
+                        <div class="vy-gb-rev-row" x-show="discountPct > 0" x-cloak><span>Discount</span><strong x-text="discountPct + '% · −' + fmt(discountMinor)"></strong></div>
+                        <div class="vy-gb-rev-row" x-show="billingMode === 'master' && depositPct > 0" x-cloak><span>Deposit</span><strong x-text="depositPct + '% · ' + (depositMethod === 'card' ? 'card (soon)' : depositMethod)"></strong></div>
                         <div class="vy-gb-rev-units">
                             <div class="vy-gb-rev-units-h" x-text="'Units · ' + count"></div>
                             <template x-for="u in selected" x-bind:key="u.id">
@@ -205,7 +247,9 @@
                     <div class="vy-gb-rail-title">Block summary</div>
                     <div class="vy-gb-rail-line"><span x-text="count + (count === 1 ? ' unit' : ' units') + ' · sleeps ' + cap"></span><span></span></div>
                     <div class="vy-gb-rail-line"><span>Accommodation</span><span class="vy-u-code" x-text="fmt(blockSubMinor)"></span></div>
-                    <div class="vy-gb-rail-total"><span>Block total</span><span class="vy-u-code" x-text="fmt(blockSubMinor)"></span></div>
+                    <div class="vy-gb-rail-line" x-show="discountPct > 0" x-cloak style="color:#1F8A5B;"><span x-text="'Group discount (' + discountPct + '%)'"></span><span class="vy-u-code" x-text="'−' + fmt(discountMinor)"></span></div>
+                    <div class="vy-gb-rail-total"><span x-text="discountPct > 0 ? 'After discount' : 'Block total'"></span><span class="vy-u-code" x-text="fmt(afterDiscMinor)"></span></div>
+                    <div class="vy-gb-rail-line" x-show="billingMode === 'master' && depositPct > 0" x-cloak style="color:var(--vy-accent);"><span x-text="'Deposit ' + depositPct + '% to confirm'"></span><span x-text="depositMethod === 'card' ? 'soon' : depositMethod"></span></div>
                     <div class="vy-gb-rail-note">Taxes &amp; fees are posted to the real folio on confirm — the authoritative total is the folio.</div>
                 </div>
             </aside>
@@ -221,7 +265,13 @@
                     orgFirst: '', orgLast: '',
                     selected: [],
                     holdType: 'confirmed', billingMode: 'individual', pickupDeadline: checkIn,
+                    discountPct: 0, depositPct: 0, depositMethod: 'cash',
                     init() {},
+                    // The discount is computed PER UNIT (floor(price × pct / 100)) and summed — the EXACT same
+                    // rule the server posts per member — so the rail figure and the real folio agree to the cent
+                    // (no two-paths-compute-independently drift). Each member is one unit, so member-room = unit price.
+                    get discountMinor() { return this.discountPct > 0 ? this.selected.reduce((s, u) => s + Math.floor(u.priceMinor * this.discountPct / 100), 0) : 0; },
+                    get afterDiscMinor() { return this.blockSubMinor - this.discountMinor; },
                     // dates change → GET nav (re-reads availability server-side, invariant #20). LOCAL date strings
                     // straight from the inputs — never toISOString (which shifts the day for +UTC users).
                     applyDates() { if (this.ci && this.co && this.co > this.ci) { window.location = '?check_in=' + this.ci + '&check_out=' + this.co; } },

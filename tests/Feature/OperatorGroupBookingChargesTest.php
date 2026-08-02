@@ -3,6 +3,7 @@
 use App\Models\Fee;
 use App\Models\Folio;
 use App\Models\FolioItem;
+use App\Models\Payment;
 use App\Models\Tax;
 use App\Services\GroupBookingService;
 use App\Support\Folio\FolioTotals;
@@ -91,4 +92,54 @@ it('adds nothing when the property has no taxes or fees (room only — unchanged
     foreach ($group->reservations()->get() as $member) {
         expect((int) $member->refresh()->total_minor)->toBe(30000);   // room only, exactly as before
     }
+});
+
+// ── GATE 4.2 — the group DISCOUNT is a real negative line that lowers the total AND the tax base (VAT-on-afterDisc) ──
+it('posts a real group-discount line that reduces the total and the tax base, reconciling', function () {
+    $s = seedScenario(2);
+    configureCharges($s['property']->id);
+
+    $group = app(GroupBookingService::class)->create(array_merge(blockInput($s, 'individual'), ['discount_pct' => 10]));
+
+    foreach ($group->reservations()->get() as $member) {
+        // room 30000 − discount 3000 + VAT 10% of (30000−3000)=2700 + city 800 + cleaning 4500 = 35000.
+        expect((int) $member->refresh()->total_minor)->toBe(35000);   // #17 reconciles to the discounted sum
+
+        $folioId = Folio::query()->where('reservation_id', $member->id)->value('id');
+        // A real NEGATIVE discount line landed…
+        expect((int) FolioItem::query()->where('folio_id', $folioId)->where('type', 'discount')->sum('amount_minor'))->toBe(-3000)
+            // …and the VAT was charged on the DISCOUNTED base (2700, not 3000).
+            ->and((int) FolioItem::query()->where('folio_id', $folioId)->where('type', 'tax')->where('description', 'like', 'VAT%')->sum('amount_minor'))->toBe(2700);
+    }
+});
+
+// ── GATE 4.2 — the deposit is a REAL cash payment on the master invoice (capped), card is deferred, individual none ──
+it('records a real cash deposit on the master invoice and never over-collects', function () {
+    $s = seedScenario(2);
+    configureCharges($s['property']->id);
+
+    $group = app(GroupBookingService::class)->create(array_merge(blockInput($s, 'master'), ['deposit_pct' => 50, 'deposit_method' => 'cash']));
+    $folio = Folio::query()->whereIn('reservation_id', $group->reservations()->pluck('id'))->firstOrFail();
+
+    // Master total 2 × 38300 = 76600; deposit 50% = 38300 recorded as a real payment; balance halves.
+    expect((int) $folio->refresh()->total_minor)->toBe(76600)
+        ->and((int) Payment::query()->where('folio_id', $folio->id)->where('type', 'payment')->sum('amount_minor'))->toBe(38300)
+        ->and((int) $folio->balance_minor)->toBe(38300);
+});
+
+it('never records a deposit for a CARD method (deferred) or an individual-pay block', function () {
+    $s = seedScenario(2);
+    configureCharges($s['property']->id);
+
+    // Card deposit on a master block → the block creates, but NO payment is recorded (deferred Stripe seam).
+    $card = app(GroupBookingService::class)->create(array_merge(blockInput($s, 'master'), ['deposit_pct' => 50, 'deposit_method' => 'card']));
+    $cardFolio = Folio::query()->whereIn('reservation_id', $card->reservations()->pluck('id'))->firstOrFail();
+    expect((int) Payment::query()->where('folio_id', $cardFolio->id)->count())->toBe(0);
+
+    // Individual-pay block ignores the deposit entirely (no single folio to hold it).
+    $s2 = seedScenario(2);
+    configureCharges($s2['property']->id);
+    $indiv = app(GroupBookingService::class)->create(array_merge(blockInput($s2, 'individual'), ['deposit_pct' => 50, 'deposit_method' => 'cash']));
+    $indivFolios = Folio::query()->whereIn('reservation_id', $indiv->reservations()->pluck('id'))->pluck('id');
+    expect((int) Payment::query()->whereIn('folio_id', $indivFolios)->count())->toBe(0);
 });
