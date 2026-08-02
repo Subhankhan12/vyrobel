@@ -102,11 +102,41 @@
                             <h2 class="vy-card-title">When &amp; which unit</h2>
                             <p class="vy-nr-hint">Pick the dates and party size — availability updates as you go.</p>
 
-                            {{-- The dates are a REAL server read: changing them reloads with the availability. --}}
-                            <div class="vyn-grid3" style="align-items: end; margin-top: 12px;">
-                                <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="ci">Check-in</label><input id="ci" type="date" x-ref="ciInput" value="{{ $checkIn }}" class="vy-input"></div>
-                                <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="co">Check-out</label><input id="co" type="date" x-ref="coInput" value="{{ $checkOut }}" class="vy-input"></div>
-                                <div><button type="button" class="vy-btn vy-btn--ghost" style="width: 100%; justify-content: center; padding: 11px;" x-on:click="reloadDates()">Check availability</button></div>
+                            {{-- Dual-month drag-range calendar. The dates are a REAL server read: "Check availability"
+                                 reloads with the picked range so the availability + the POST dates update together
+                                 (same certified flow as before — the calendar just replaces the native inputs). --}}
+                            <div class="vy-cal" style="margin-top: 12px;">
+                                <div class="vy-cal-head">
+                                    <button type="button" class="vy-cal-nav" x-on:click="calPrev()" aria-label="Previous month">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+                                    </button>
+                                    <div class="vy-cal-labels"><span x-text="calLabel(0)"></span><span x-text="calLabel(1)"></span></div>
+                                    <button type="button" class="vy-cal-nav" x-on:click="calNext()" aria-label="Next month">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                                    </button>
+                                </div>
+                                <div class="vy-cal-grids">
+                                    <template x-for="off in [0, 1]" :key="off">
+                                        <div class="vy-cal-month">
+                                            <div class="vy-cal-dow"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div>
+                                            <div class="vy-cal-days" x-on:mouseleave="cal.hover = ''">
+                                                <template x-for="(d, i) in calGrid(off)" :key="off + '-' + i">
+                                                    <button type="button" class="vy-cal-day"
+                                                            x-bind:class="{ 'is-pad': !d.date, 'is-past': d.past, 'is-weekend': d.weekend, 'is-start': calState(d.date) === 'start', 'is-end': calState(d.date) === 'end', 'is-in': calState(d.date) === 'in' }"
+                                                            x-bind:disabled="!d.date || d.past"
+                                                            x-on:click="calClick(d.date)" x-on:mouseenter="if (d.date) cal.hover = d.date"
+                                                            x-text="d.day"></button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="vy-cal-foot">
+                                    <span class="vy-cal-sel" x-text="calSelLabel()"></span>
+                                    <span style="flex: 1;"></span>
+                                    <button type="button" class="vy-btn vy-btn--ghost" x-show="cal.start" x-on:click="calClear()">Clear</button>
+                                    <button type="button" class="vy-btn vy-btn--accent" x-on:click="calApply()" x-bind:disabled="!cal.start || !cal.end" x-bind:style="(!cal.start || !cal.end) ? 'opacity:.5;pointer-events:none;' : ''">Check availability</button>
+                                </div>
                             </div>
                             @if ($datesValid)
                                 <div class="vy-nr-daterow">{{ \Carbon\CarbonImmutable::parse($checkIn)->format('j M Y') }} → {{ \Carbon\CarbonImmutable::parse($checkOut)->format('j M Y') }} · {{ $nights }} {{ $nights === 1 ? 'night' : 'nights' }}</div>
@@ -356,11 +386,50 @@
                 extras: [], transferTrip: 'one', applyCredit: false,
                 arrivalWindow: '', rulesAgreed: false, payMethod: 'later',
                 draftRestored: false,
-                init() { this.restore(); this.$watch('step', () => this.persist()); },
-                reloadDates() {
-                    const ci = this.$refs.ciInput.value, co = this.$refs.coInput.value;
-                    if (ci && co) window.location = '{{ route('app.reservations.create') }}?check_in=' + ci + '&check_out=' + co;
+                cal: { y: 2026, m: 0, start: @js((string) $checkIn), end: @js((string) $checkOut), hover: '' },
+                init() { this.calInit(); this.restore(); this.$watch('step', () => this.persist()); },
+                // ── Dual-month drag-range calendar ──────────────────────────────────────────────────────────
+                calInit() { const base = this.cal.start ? new Date(this.cal.start + 'T00:00') : new Date(); this.cal.y = base.getFullYear(); this.cal.m = base.getMonth(); },
+                calYM(off) { const d = new Date(this.cal.y, this.cal.m + off, 1); return { y: d.getFullYear(), m: d.getMonth() }; },
+                calLabel(off) { const c = this.calYM(off); return new Date(c.y, c.m, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }); },
+                calGrid(off) {
+                    const c = this.calYM(off);
+                    const lead = (new Date(c.y, c.m, 1).getDay() + 6) % 7;   // Monday-first
+                    const dim = new Date(c.y, c.m + 1, 0).getDate();
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    const cells = [];
+                    for (let i = 0; i < lead; i++) cells.push({ date: '', day: '' });
+                    for (let dd = 1; dd <= dim; dd++) {
+                        const dt = new Date(c.y, c.m, dd);
+                        const iso = c.y + '-' + String(c.m + 1).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
+                        cells.push({ date: iso, day: dd, past: dt < today, weekend: dt.getDay() === 0 || dt.getDay() === 6 });
+                    }
+                    return cells;
                 },
+                calClick(iso) {
+                    if (!iso) return;
+                    if (!this.cal.start || this.cal.end || iso <= this.cal.start) { this.cal.start = iso; this.cal.end = ''; }
+                    else { this.cal.end = iso; }
+                },
+                calState(iso) {
+                    if (!iso) return '';
+                    if (iso === this.cal.start) return 'start';
+                    if (iso === this.cal.end) return 'end';
+                    const e = this.cal.end || (this.cal.start ? this.cal.hover : '');
+                    if (this.cal.start && e && iso > this.cal.start && iso < e) return 'in';
+                    return '';
+                },
+                calSelLabel() {
+                    if (!this.cal.start) return 'Pick your check-in date';
+                    if (!this.cal.end) return 'Now pick check-out';
+                    const nights = Math.round((new Date(this.cal.end) - new Date(this.cal.start)) / 86400000);
+                    return this.calFmt(this.cal.start) + ' → ' + this.calFmt(this.cal.end) + ' · ' + nights + (nights === 1 ? ' night' : ' nights');
+                },
+                calFmt(iso) { return new Date(iso + 'T00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); },
+                calPrev() { const d = new Date(this.cal.y, this.cal.m - 1, 1); this.cal.y = d.getFullYear(); this.cal.m = d.getMonth(); },
+                calNext() { const d = new Date(this.cal.y, this.cal.m + 1, 1); this.cal.y = d.getFullYear(); this.cal.m = d.getMonth(); },
+                calClear() { this.cal.start = ''; this.cal.end = ''; },
+                calApply() { if (this.cal.start && this.cal.end) window.location = '{{ route('app.reservations.create') }}?check_in=' + this.cal.start + '&check_out=' + this.cal.end; },
                 pickUnit(rt, id, priceMajor) { this.roomTypeId = rt; this.unitId = id; this.roomMinor = priceMajor; this.ratePlanId = (PLANS[rt] && PLANS[rt].default) || ''; this.unitCode = event.target.closest('label').textContent.trim(); this.persist(); },
                 plansFor() { return (PLANS[this.roomTypeId] && PLANS[this.roomTypeId].list) || []; },
                 pickPlan(planId, priceMinor) { this.ratePlanId = planId; this.roomMinor = priceMinor; this.persist(); },
@@ -465,6 +534,29 @@
         .vy-nr-counter button:hover:not(:disabled) { background: rgba(232, 112, 58, 0.1); }
         .vy-nr-counter button:disabled { opacity: 0.4; cursor: default; }
         .vy-nr-counter span { min-width: 20px; text-align: center; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        /* dual-month drag-range calendar */
+        .vy-cal { border: 1px solid var(--vy-hairline); border-radius: 16px; background: rgba(255, 255, 255, 0.45); padding: 14px 16px; }
+        .vy-cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .vy-cal-nav { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.7); color: var(--vy-accent); display: grid; place-items: center; cursor: pointer; flex: none; transition: background 0.14s; }
+        .vy-cal-nav:hover { background: rgba(232, 112, 58, 0.1); }
+        .vy-cal-labels { flex: 1; display: grid; grid-template-columns: 1fr 1fr; }
+        .vy-cal-labels span { text-align: center; font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
+        .vy-cal-grids { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+        .vy-cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+        .vy-cal-dow span { text-align: center; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--vy-faint); padding: 4px 0; }
+        .vy-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px 0; }
+        .vy-cal-day { aspect-ratio: 1; border: none; background: transparent; font-family: var(--vy-sans); font-size: 12.5px; color: var(--vy-ink); cursor: pointer; border-radius: 9px; transition: background 0.12s; display: grid; place-items: center; }
+        .vy-cal-day:hover:not(:disabled):not(.is-start):not(.is-end) { background: rgba(232, 112, 58, 0.12); }
+        .vy-cal-day.is-pad { visibility: hidden; cursor: default; }
+        .vy-cal-day.is-past { color: var(--vy-faint); opacity: 0.4; cursor: default; }
+        .vy-cal-day.is-weekend:not(.is-start):not(.is-end):not(.is-in) { color: var(--vy-accent); }
+        .vy-cal-day.is-in { background: rgba(232, 112, 58, 0.14); border-radius: 0; }
+        .vy-cal-day.is-start, .vy-cal-day.is-end { background: var(--vy-grad); color: #fff; font-weight: 600; }
+        .vy-cal-day.is-start { border-radius: 9px 0 0 9px; }
+        .vy-cal-day.is-end { border-radius: 0 9px 9px 0; }
+        .vy-cal-foot { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--vy-hairline); }
+        .vy-cal-sel { font-size: 12.5px; font-weight: 500; color: var(--vy-muted); }
+        @media (max-width: 560px) { .vy-cal-grids { grid-template-columns: 1fr; } .vy-cal-labels { grid-template-columns: 1fr; } .vy-cal-labels span:last-child { display: none; } }
         .vy-nr-doorcode { font-size: 12px; color: var(--vy-muted); background: rgba(31,110,75,.07); border-radius: 10px; padding: 11px 13px; margin-top: 14px; }
         .vy-nr-rules, .vyn-rules { display: grid; gap: 1px; }
         .vyn-rules > div { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
