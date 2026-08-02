@@ -66,6 +66,112 @@ final class RosterWeek
         return $this->shiftCount() * self::HOURS_PER_SHIFT;
     }
 
+    /**
+     * GATE 9.2 — the DAY view's agenda for one day of the week: the focused day's staff grouped by working shift
+     * type (Early/Day/Late), plus who is NOT working. Derived from the SAME rows the grid renders (dept-filtered),
+     * so the two views reconcile — never a re-query.
+     *
+     * @return array{date: string, index: int, label: string, working_count: int, groups: list<array{type: string, label: string, hours: string, count: int, empty: bool, people: list<array{init: string, name: string, role: string, department: string, conflict: bool}>}>, not_working: list<array{init: string, name: string, reason: string}>}
+     */
+    public function dayView(int $focusIdx): array
+    {
+        $lastIdx = count($this->days) - 1;
+        $focusIdx = max(0, min($focusIdx, $lastIdx));
+        $day = $this->days[$focusIdx];
+
+        $groups = [];
+        foreach (ShiftType::WORKING as $type) {
+            $people = [];
+            foreach ($this->rows as $r) {
+                $cell = $r['cells'][$focusIdx];
+                if ($cell['working'] && $cell['type'] === $type) {
+                    $people[] = [
+                        'init' => $r['staff']['initials'],
+                        'name' => $r['staff']['name'],
+                        'role' => $r['staff']['role_label'],
+                        'department' => $r['staff']['department'],
+                        'conflict' => (bool) $cell['conflict'],
+                    ];
+                }
+            }
+            $groups[] = [
+                'type' => $type,
+                'label' => ShiftType::label($type),
+                'hours' => ShiftType::hours($type),
+                'count' => count($people),
+                'empty' => $people === [],
+                'people' => $people,
+            ];
+        }
+
+        $notWorking = [];
+        $workingCount = 0;
+        foreach ($this->rows as $r) {
+            $cell = $r['cells'][$focusIdx];
+            if ($cell['working']) {
+                $workingCount++;
+
+                continue;
+            }
+            $notWorking[] = [
+                'init' => $r['staff']['initials'],
+                'name' => $r['staff']['name'],
+                'reason' => $cell['on_leave'] ? 'On leave' : 'Day off',
+            ];
+        }
+
+        return [
+            'date' => $day['date'],
+            'index' => $focusIdx,
+            'label' => CarbonImmutable::parse($day['date'])->format('l j M'),
+            'working_count' => $workingCount,
+            'groups' => $groups,
+            'not_working' => $notWorking,
+        ];
+    }
+
+    /**
+     * GATE 9.2 — HONEST per-department coverage for the week: the number of the 7 days on which at least ONE
+     * staffer of that department is working, out of 7. There is NO configured staffing target, so this is a real
+     * "days with cover" count — never an invented ratio like the prototype's fabricated 14/16. Only departments
+     * actually on the team appear (no 0/7 bar for a department you don't employ). Feed an UNFILTERED roster so all
+     * departments show regardless of the grid's department filter.
+     *
+     * @return list<array{dept: string, label: string, filled: int, total: int, pct: int, full: bool}>
+     */
+    public function coverageByDepartment(): array
+    {
+        $dayCount = count($this->days);
+        $out = [];
+        foreach ([StaffDepartment::FRONTDESK, StaffDepartment::HOUSEKEEPING, StaffDepartment::MANAGER] as $dept) {
+            $deptRows = array_values(array_filter($this->rows, fn (array $r): bool => $r['staff']['department'] === $dept));
+            if ($deptRows === []) {
+                continue;
+            }
+
+            $covered = 0;
+            for ($i = 0; $i < $dayCount; $i++) {
+                foreach ($deptRows as $r) {
+                    if ($r['cells'][$i]['working']) {
+                        $covered++;
+                        break;
+                    }
+                }
+            }
+
+            $out[] = [
+                'dept' => $dept,
+                'label' => StaffDepartment::label($dept),
+                'filled' => $covered,
+                'total' => $dayCount,
+                'pct' => $dayCount > 0 ? (int) round($covered / $dayCount * 100) : 0,
+                'full' => $covered >= $dayCount,
+            ];
+        }
+
+        return $out;
+    }
+
     public static function build(?Property $property, int $week, string $dept): self
     {
         $tz = $property !== null ? (string) ($property->timezone ?? 'UTC') : 'UTC';

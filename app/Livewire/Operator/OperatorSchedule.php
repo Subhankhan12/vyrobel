@@ -40,11 +40,19 @@ class OperatorSchedule extends Component
     /** Department filter (one of {@see StaffDepartment::FILTERS}). */
     public string $dept = 'all';
 
+    /** GATE 9.2 — 'week' (the drag grid) or 'day' (a single day's agenda). Rides a GET param. */
+    public string $view = 'week';
+
+    /** GATE 9.2 — the focused day (Y-m-d) for the day view; empty = default to today (or the week's first day). */
+    public string $focusDay = '';
+
     public function mount(): void
     {
         $this->week = (int) request()->query('week', '0');
         $dept = (string) request()->query('dept', 'all');
         $this->dept = StaffDepartment::isFilter($dept) ? $dept : 'all';
+        $this->view = request()->query('view') === 'day' ? 'day' : 'week';
+        $this->focusDay = (string) request()->query('day', '');
     }
 
     public function render(): View
@@ -54,6 +62,11 @@ class OperatorSchedule extends Component
 
         // The ONE roster builder — the PDF renders from the same, so screen and PDF reconcile.
         $roster = RosterWeek::build($property, $this->week, $this->dept);
+
+        // GATE 9.2 — the focused day for the day view: the ?day= within this week, else today, else the first day.
+        $focusIdx = $this->resolveFocusIdx($roster);
+        // Per-department coverage always spans ALL departments (never the grid's filter) — build once unfiltered.
+        $coverageRoster = $this->dept === 'all' ? $roster : RosterWeek::build($property, $this->week, 'all');
 
         // The manager's time-off queue: pending requests to approve/deny. Read for managers only.
         $pending = $canManage
@@ -83,6 +96,11 @@ class OperatorSchedule extends Component
             // #104 GATE 3d — the wireframe's "Coverage this week" summary, derived from the SAME builder the grid
             // renders (so it reconciles, never a re-query) — team size · total shifts · rostered hours.
             'coverage' => ['team' => $roster->teamSize(), 'shifts' => $roster->shiftCount(), 'hours' => $roster->hours()],
+            // GATE 9.2 — the view toggle, the day-view agenda, and the HONEST per-department coverage bars.
+            'view' => $this->view,
+            'focusIdx' => $focusIdx,
+            'dayView' => $this->view === 'day' ? $roster->dayView($focusIdx) : null,
+            'coverageBars' => $coverageRoster->coverageByDepartment(),
             // #104b GATE 3 — the interactive-rota additions: the published state (finalize + notify), the open-shift
             // slots for the week, and per-day coverage — all derived for THIS property + week.
             'published' => $this->publishedState($property, $roster),
@@ -91,6 +109,29 @@ class OperatorSchedule extends Component
             // A paused/lapsed workspace is read-only — the roster write controls hide (they'd 302 to a banner anyway).
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
         ]);
+    }
+
+    /**
+     * GATE 9.2 — the day-view focus index (0–6). The explicit `?day=` if it falls in this week; otherwise today
+     * when this week contains it; otherwise the first day. Never out of range.
+     */
+    private function resolveFocusIdx(RosterWeek $roster): int
+    {
+        if ($this->focusDay !== '') {
+            foreach ($roster->days as $i => $day) {
+                if ($day['date'] === $this->focusDay) {
+                    return $i;
+                }
+            }
+        }
+
+        foreach ($roster->days as $i => $day) {
+            if ($day['today']) {
+                return $i;
+            }
+        }
+
+        return 0;
     }
 
     /** The published stamp for this property + week (null = not published; the roster is always live regardless). */

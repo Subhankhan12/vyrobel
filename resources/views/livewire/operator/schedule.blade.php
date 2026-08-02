@@ -17,22 +17,34 @@
         @if ($property === null)
             <div class="vy-card" style="padding:30px;text-align:center;color:var(--vy-muted);font-size:14px">Add a property to start building a team roster.</div>
         @else
-            {{-- Toolbar — week navigation + department filter + PDF (GET links preserve each other's state) --}}
+            @php
+                // GATE 9.2 — link bases. Week-nav preserves the view + department (a new week has different days, so
+                // it drops ?day, defaulting the day view to today/first). Dept-filter stays on the same week + day.
+                $focusDate = $days[$focusIdx]['date'] ?? ($days[0]['date'] ?? '');
+                $navBase = ['dept' => $dept, 'view' => $view];
+                $viewBase = ['week' => $week, 'dept' => $dept] + ($view === 'day' ? ['day' => $focusDate] : []);
+            @endphp
+            {{-- Toolbar — week navigation + Week/Day view toggle + department filter + PDF (GET links preserve each other's state) --}}
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
                 <div style="display:flex;align-items:center;gap:8px">
-                    <a class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12.5px" href="{{ route('app.schedule', ['week' => $week - 1, 'dept' => $dept]) }}">‹ Last week</a>
+                    <a class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12.5px" href="{{ route('app.schedule', ['week' => $week - 1] + $navBase) }}">‹ Last week</a>
                     @unless ($isThisWeek)
-                        <a class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12.5px" href="{{ route('app.schedule', ['week' => 0, 'dept' => $dept]) }}">This week</a>
+                        <a class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12.5px" href="{{ route('app.schedule', ['week' => 0] + $navBase) }}">This week</a>
                     @endunless
-                    <a class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12.5px" href="{{ route('app.schedule', ['week' => $week + 1, 'dept' => $dept]) }}">Next week ›</a>
+                    <a class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12.5px" href="{{ route('app.schedule', ['week' => $week + 1] + $navBase) }}">Next week ›</a>
                     <span style="font-size:13px;font-weight:600;color:var(--vy-ink);margin-left:6px">{{ $weekLabel }}</span>
                     @if ($conflictCount > 0)
                         <span style="font-size:11.5px;color:#B0322A;font-weight:600">· {{ $conflictCount }} on leave &amp; shifted</span>
                     @endif
                 </div>
                 <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+                    {{-- Week / Day view toggle --}}
+                    <span style="display:inline-flex;gap:2px;padding:3px;border-radius:30px;background:var(--vy-wash);margin-right:4px">
+                        <a href="{{ route('app.schedule', ['week' => $week, 'dept' => $dept]) }}" class="vy-btn {{ $view === 'week' ? 'vy-btn--accent' : 'vy-btn--ghost' }}" style="padding:4px 14px;font-size:12px;border-radius:30px">Week</a>
+                        <a href="{{ route('app.schedule', ['week' => $week, 'dept' => $dept, 'view' => 'day', 'day' => $focusDate]) }}" class="vy-btn {{ $view === 'day' ? 'vy-btn--accent' : 'vy-btn--ghost' }}" style="padding:4px 14px;font-size:12px;border-radius:30px">Day</a>
+                    </span>
                     @foreach ($departments as $d)
-                        <a href="{{ route('app.schedule', ['week' => $week, 'dept' => $d]) }}" class="vy-btn {{ $dept === $d ? 'vy-btn--accent' : 'vy-btn--ghost' }}" style="padding:5px 12px;font-size:12px">{{ \App\Support\Schedule\StaffDepartment::label($d) }}</a>
+                        <a href="{{ route('app.schedule', ['dept' => $d] + $viewBase) }}" class="vy-btn {{ $dept === $d ? 'vy-btn--accent' : 'vy-btn--ghost' }}" style="padding:5px 12px;font-size:12px">{{ \App\Support\Schedule\StaffDepartment::label($d) }}</a>
                     @endforeach
                     <a href="{{ route('app.schedule.pdf', ['week' => $week, 'dept' => $dept]) }}" class="vy-btn vy-btn--ghost" style="padding:5px 12px;font-size:12px" title="Download this week as a PDF">PDF</a>
                     {{-- #104b GATE 3 — Publish week (finalize + notify the team; edits stay live). --}}
@@ -69,6 +81,73 @@
                     $gridCols = '184px repeat(7, minmax(92px, 1fr))';
                 @endphp
 
+                @if ($view === 'day')
+                    {{-- GATE 9.2 — DAY VIEW: the focused day's staff grouped by working shift, plus who's off. A
+                         read-only agenda derived from the SAME RosterWeek rows (reconciles with the grid). --}}
+                    <div class="vy-card" style="padding:18px">
+                        {{-- day picker (this week's 7 days) --}}
+                        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px">
+                            @foreach ($days as $day)
+                                @php $active = $day['date'] === $dayView['date']; @endphp
+                                <a href="{{ route('app.schedule', ['week' => $week, 'dept' => $dept, 'view' => 'day', 'day' => $day['date']]) }}"
+                                   style="flex:1;min-width:74px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 0;border-radius:14px;text-decoration:none;{{ $active ? 'background:var(--vy-wash);border:1px solid rgba(232,112,58,.45)' : 'border:1px solid var(--vy-hairline)' }}">
+                                    <span style="font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:{{ $day['today'] ? '#B4400F' : 'var(--vy-faint)' }}">{{ $day['dow'] }}</span>
+                                    <span style="font-family:var(--vy-display);font-weight:600;font-size:16px;color:{{ $active ? '#C2410C' : ($day['today'] ? '#B4400F' : 'var(--vy-ink)') }}">{{ $day['label'] }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+
+                        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px">
+                            <h2 style="margin:0;font-family:var(--vy-display);font-weight:700;font-size:18px">{{ $dayView['label'] }}</h2>
+                            <span style="font-size:12px;color:var(--vy-muted)">{{ $dayView['working_count'] }} working</span>
+                        </div>
+
+                        <div style="display:flex;flex-direction:column;gap:16px">
+                            @foreach ($dayView['groups'] as $g)
+                                @php $gc = $deptC[$g['type'] === 'day' ? 'housekeeping' : 'frontdesk'] ?? $deptC['manager']; @endphp
+                                <div>
+                                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+                                        <span style="width:3px;height:15px;border-radius:2px;background:{{ $gc['bar'] }}"></span>
+                                        <span style="font-family:var(--vy-display);font-weight:600;font-size:13.5px">{{ $g['label'] }} · {{ $g['hours'] }}</span>
+                                        <span style="font-size:11.5px;color:var(--vy-faint)">{{ $g['count'] }} {{ \Illuminate\Support\Str::plural('person', $g['count']) }}</span>
+                                    </div>
+                                    <div style="display:flex;flex-wrap:wrap;gap:8px">
+                                        @forelse ($g['people'] as $p)
+                                            @php $pc = $deptC[$p['department']] ?? $deptC['manager']; @endphp
+                                            <div style="display:flex;align-items:center;gap:9px;padding:8px 14px 8px 8px;border-radius:30px;background:{{ $pc['bg'] }};border:{{ $pc['border'] }}">
+                                                <span style="width:26px;height:26px;border-radius:50%;background:{{ $pc['bg'] }};border:{{ $pc['border'] }};color:{{ $pc['color'] }};font-size:9.5px;font-weight:600;display:grid;place-items:center">{{ $p['init'] }}</span>
+                                                <span>
+                                                    <span style="display:block;font-size:12.5px;font-weight:600;color:var(--vy-ink);line-height:1.15">{{ $p['name'] }}@if ($p['conflict'])<span style="color:#B0322A" title="On approved leave — clear the shift"> ⚠</span>@endif</span>
+                                                    <span style="display:block;font-size:10px;color:var(--vy-faint);line-height:1.15">{{ $p['role'] }}</span>
+                                                </span>
+                                            </div>
+                                        @empty
+                                            <span style="font-size:12px;color:var(--vy-faint);padding:8px 4px">No one scheduled</span>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <div style="padding-top:14px;border-top:1px solid var(--vy-hairline)">
+                                <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:10px">Not working · {{ count($dayView['not_working']) }}</div>
+                                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                                    @forelse ($dayView['not_working'] as $o)
+                                        <div style="display:flex;align-items:center;gap:8px;padding:6px 13px 6px 6px;border-radius:30px;background:var(--vy-wash);border:1px solid var(--vy-hairline)">
+                                            <span style="width:22px;height:22px;border-radius:50%;background:rgba(120,70,40,.10);color:var(--vy-faint);font-size:9px;font-weight:600;display:grid;place-items:center">{{ $o['init'] }}</span>
+                                            <span style="font-size:11.5px;color:var(--vy-muted)">{{ $o['name'] }}</span>
+                                            <span style="font-size:10px;color:var(--vy-faint)">· {{ $o['reason'] }}</span>
+                                        </div>
+                                    @empty
+                                        <span style="font-size:12px;color:var(--vy-faint)">Everyone is working.</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                        @if ($canManage && ! $readOnly)
+                            <p class="vy-line-sub" style="font-size:11px;color:var(--vy-faint);margin-top:16px">Switch to <a href="{{ route('app.schedule', ['week' => $week, 'dept' => $dept]) }}" style="color:var(--vy-accent)">Week view</a> to add or move shifts.</p>
+                        @endif
+                    </div>
+                @else
                 {{-- GATE 9.1 — the interactive week rota: drag a shift chip to move it, or drop it on another
                      staffer's cell to SWAP. All drag data is the SERVER-rendered cell strings (staff id + Y-m-d
                      date) — never a client toISOString — so there is no timezone day-roll. Managers also click a
@@ -214,14 +293,33 @@
                         </div>
                     @endif
                 </div>
+                @endif
             @endif
 
-            {{-- #104 GATE 3d — "Coverage this week" summary, derived from the SAME RosterWeek builder as the grid
-                 (so it reconciles): team on rota · total shifts · rostered hours. --}}
-            <div class="vy-card vy-fade" style="margin-top:18px;display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end">
-                <div><div class="vy-dk-label">Team on rota</div><div style="font-family:var(--vy-display);font-size:24px;font-weight:700">{{ $coverage['team'] }}</div></div>
-                <div><div class="vy-dk-label">Shifts this week</div><div style="font-family:var(--vy-display);font-size:24px;font-weight:700">{{ $coverage['shifts'] }}</div></div>
-                <div><div class="vy-dk-label">Rostered hours</div><div style="font-family:var(--vy-display);font-size:24px;font-weight:700">{{ $coverage['hours'] }}h</div></div>
+            {{-- GATE 9.2 — "Coverage this week": HONEST per-department bars = the number of days (of 7) with at least
+                 one person from that team working (never an invented staffing target — the prototype's 14/16 was
+                 fabricated). Footer keeps the real team / shifts / rostered-hours totals from the SAME builder. --}}
+            <div class="vy-card vy-fade" style="margin-top:18px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:14px">Coverage this week</div>
+                @forelse ($coverageBars as $c)
+                    <div style="margin-bottom:13px">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+                            <span style="font-size:12.5px;font-weight:600;color:var(--vy-ink)">{{ $c['label'] }}</span>
+                            <span style="font-size:11.5px;font-weight:600;color:{{ $c['full'] ? '#1F7A52' : '#8F6414' }}">{{ $c['filled'] }}/{{ $c['total'] }} days</span>
+                        </div>
+                        <div style="height:7px;border-radius:5px;background:var(--vy-wash);overflow:hidden">
+                            <div style="height:100%;width:{{ $c['pct'] }}%;border-radius:5px;background:{{ $c['full'] ? 'linear-gradient(90deg,#47A06E,#1F8A5B)' : 'linear-gradient(90deg,#E8B45A,#D99A3D)' }}"></div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="vy-empty" style="padding:8px 0">No teams rostered yet.</div>
+                @endforelse
+                <p class="vy-line-sub" style="font-size:11px;color:var(--vy-faint);margin:6px 0 14px">Days this week with at least one person from each team working.</p>
+                <div style="display:flex;gap:28px;flex-wrap:wrap;align-items:flex-end;border-top:1px solid var(--vy-hairline);padding-top:14px">
+                    <div><div class="vy-dk-label">Team on rota</div><div style="font-family:var(--vy-display);font-size:22px;font-weight:700">{{ $coverage['team'] }}</div></div>
+                    <div><div class="vy-dk-label">Shifts this week</div><div style="font-family:var(--vy-display);font-size:22px;font-weight:700">{{ $coverage['shifts'] }}</div></div>
+                    <div><div class="vy-dk-label">Rostered hours</div><div style="font-family:var(--vy-display);font-size:22px;font-weight:700">{{ $coverage['hours'] }}h</div></div>
+                </div>
             </div>
 
             {{-- #104b GATE 3 — OPEN SHIFTS: unassigned slots a manager posts, then assigns to a real staffer (fill
