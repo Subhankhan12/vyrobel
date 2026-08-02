@@ -70,6 +70,20 @@ it('checks a reservation in through the real action and persists it', function (
     $this->assertDatabaseHas('reservations', ['id' => $res->id, 'status' => 'checked_in']);
 });
 
+// ── 3b. GATE 2 — the day timeline plots real SCHEDULED times (name-only), never a fabricated arrival ──
+it('plots the day timeline from the real expected-arrival time, name-only', function () {
+    $s = seedScenario(1);
+    $s['guest']->update(['first_name' => 'Tam', 'last_name' => 'Rivera']);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $res->update(['expected_arrival' => 'arriving 16:30']);   // a parseable window → plots at 16:30
+
+    $this->actingAs(deskMember($s))->get('/app/front-desk?date=2026-09-01')
+        ->assertOk()
+        ->assertSee('Today’s timeline')
+        ->assertSee('16:30')                             // plotted at the REAL expected time (not a guess)
+        ->assertSee('Tam Rivera · arrives 16:30');       // NAME-only dot (#28), honestly "scheduled"
+});
+
 // ── 4. Tenant isolation — org B cannot see OR act on org A's reservation ─────────────────────────
 it('isolates tenants — org B cannot view or check in org A\'s reservation', function () {
     $sA = seedScenario(1);

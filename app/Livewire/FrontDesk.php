@@ -87,7 +87,113 @@ class FrontDesk extends Component
             'departures' => $departures,
             'inHouse' => $inHouse,
             'summary' => $this->summary($arrivals, $departures, $inHouse),
+            'timeline' => $this->timeline($property, $arrivals, $departures, $date === CarbonImmutable::today()->toDateString()),
         ]);
+    }
+
+    /**
+     * The day TIMELINE RAIL (the wireframe's plotted-dots axis) — REAL SCHEDULED times only, never a
+     * fabricated "live arrival". An arrival plots at its parsed `expected_arrival` time when the guest gave
+     * one, else the property's configured default check-in time; a departure plots at the default check-out
+     * time. The now-line is the property's real local time (only on today). Every dot carries the guest
+     * NAME only (#28). Presentation over already-real figures — nothing is invented.
+     *
+     * @param  list<array<string, mixed>>  $arrivals
+     * @param  list<array<string, mixed>>  $departures
+     * @return array{has_points: bool, points: list<array<string, mixed>>, marks: list<array{label: string, pos: float}>, start_min: int, span: int, now_min: int|null}
+     */
+    private function timeline(?Property $property, array $arrivals, array $departures, bool $isToday): array
+    {
+        $startMin = 6 * 60;    // 06:00
+        $endMin = 23 * 60;     // 23:00 — covers a default 11:00 checkout, 15:00 check-in and late arrivals
+        $span = $endMin - $startMin;
+
+        $ciDefault = $this->minutesFromTime($property?->check_in_time, 15 * 60);
+        $coDefault = $this->minutesFromTime($property?->check_out_time, 11 * 60);
+
+        $points = [];
+        foreach ($arrivals as $row) {
+            $min = $this->parseArrivalMinutes(is_string($row['expected_arrival'] ?? null) ? $row['expected_arrival'] : null, $ciDefault);
+            $points[] = $this->plot('arrival', $row, $min, $startMin, $span);
+        }
+        foreach ($departures as $row) {
+            $points[] = $this->plot('departure', $row, $coDefault, $startMin, $span);
+        }
+
+        $marks = [];
+        for ($h = 6; $h <= 21; $h += 3) {
+            $marks[] = ['label' => sprintf('%02d:00', $h), 'pos' => round((($h * 60) - $startMin) / $span * 100, 2)];
+        }
+
+        $nowMin = null;
+        if ($isToday) {
+            $now = CarbonImmutable::now($property?->timezone !== null && $property->timezone !== '' ? $property->timezone : config('app.timezone'));
+            $nowMin = ((int) $now->format('G')) * 60 + (int) $now->format('i');
+        }
+
+        return ['has_points' => $points !== [], 'points' => $points, 'marks' => $marks, 'start_min' => $startMin, 'span' => $span, 'now_min' => $nowMin];
+    }
+
+    /**
+     * One plotted dot. `pos` is the percentage across the visible window (clamped); `in_window` says whether
+     * the real scheduled time actually falls inside the axis (an out-of-window time is pinned to the edge and
+     * flagged, never silently relocated).
+     *
+     * @param  array<string, mixed>  $row
+     * @return array{type: string, guest: string, time: string, pos: float, in_window: bool, is_vip: bool, unassigned: bool}
+     */
+    private function plot(string $type, array $row, int $min, int $startMin, int $span): array
+    {
+        $pos = $span > 0 ? (($min - $startMin) / $span) * 100 : 0.0;
+
+        return [
+            'type' => $type,
+            'guest' => (string) ($row['guest'] ?? ''),
+            'time' => sprintf('%02d:%02d', intdiv($min, 60), $min % 60),
+            'pos' => max(0.0, min(100.0, round($pos, 2))),
+            'in_window' => $min >= $startMin && $min <= $startMin + $span,
+            'is_vip' => (bool) ($row['is_vip'] ?? false),
+            'unassigned' => (bool) ($row['unassigned'] ?? false),
+        ];
+    }
+
+    /** Minutes-of-day from a stored `HH:MM[:SS]` time column, or a default when absent/unparseable. */
+    private function minutesFromTime(mixed $time, int $default): int
+    {
+        if (preg_match('/^(\d{1,2}):(\d{2})/', trim((string) $time), $m) === 1) {
+            return ((int) $m[1]) * 60 + (int) $m[2];
+        }
+
+        return $default;
+    }
+
+    /**
+     * Minutes-of-day parsed from the guest's free-text arrival window — trusting ONLY an explicit HH:MM or an
+     * am/pm-qualified hour (so a stray number never misfires), else the scheduled default. Honest: an
+     * unparseable "Late"/"Morning" plots at the property's default check-in time, not a guessed minute.
+     */
+    private function parseArrivalMinutes(?string $text, int $default): int
+    {
+        if ($text === null) {
+            return $default;
+        }
+        if (preg_match('/(\d{1,2}):(\d{2})/', $text, $m) === 1) {
+            $h = (int) $m[1];
+            $min = (int) $m[2];
+            if ($h <= 23 && $min <= 59) {
+                return $h * 60 + $min;
+            }
+        }
+        if (preg_match('/(\d{1,2})\s*(a|p)\.?\s*m/i', $text, $m) === 1) {
+            $h = ((int) $m[1]) % 12;
+            if (strtolower($m[2]) === 'p') {
+                $h += 12;
+            }
+
+            return $h * 60;
+        }
+
+        return $default;
     }
 
     /**
