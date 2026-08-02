@@ -329,19 +329,29 @@
                             <h2 class="vy-card-title">Payment</h2>
                             <p class="vy-nr-hint">Take a deposit or the full amount now, or collect at check-in.</p>
                             @if ($canPay)
-                                <div class="vy-field" style="margin-top: 12px;"><label class="vy-field-label" for="pm">Method</label>
-                                    <select id="pm" name="payment_method" class="vy-input" x-model="payMethod">
-                                        <option value="later">Pay later (balance due)</option>
-                                        <option value="cash">Cash</option>
-                                        <option value="bank">Bank transfer</option>
-                                        <option value="card" disabled>Card — coming soon</option>
-                                    </select>
+                                {{-- Deposit split: Nothing / Deposit (30%) / Full — a real payment-timing choice that
+                                     drives the REAL manual payment. Card capture stays deferred (SAQ A). The effective
+                                     payment_method is ONE hidden field (no duplicate names, the B.1 lesson). --}}
+                                <div class="vy-nr-sub" style="margin-top: 12px;">How much to collect now?</div>
+                                <input type="hidden" name="payment_method" x-bind:value="depositChoice === 'nothing' ? 'later' : payMethod">
+                                <div class="vy-nr-deposit">
+                                    <button type="button" class="vy-nr-dep" x-bind:class="depositChoice === 'nothing' ? 'is-on' : ''" x-on:click="setDeposit('nothing')"><strong>Nothing</strong><span>collect at check-in</span></button>
+                                    <button type="button" class="vy-nr-dep" x-bind:class="depositChoice === 'deposit' ? 'is-on' : ''" x-on:click="setDeposit('deposit')"><strong>Deposit · 30%</strong><span x-text="fmt(Math.round(totalMinor() * 0.3))"></span></button>
+                                    <button type="button" class="vy-nr-dep" x-bind:class="depositChoice === 'full' ? 'is-on' : ''" x-on:click="setDeposit('full')"><strong>Full</strong><span x-text="fmt(totalMinor())"></span></button>
                                 </div>
-                                <div class="vy-field" style="margin-top: 10px;" x-show="payMethod === 'cash' || payMethod === 'bank'">
-                                    <label class="vy-field-label" for="pa">Amount</label>
-                                    <input id="pa" type="text" name="payment_amount" class="vy-input" inputmode="decimal" placeholder="e.g. 150 or 150.00" x-bind:disabled="payMethod !== 'cash' && payMethod !== 'bank'">
+                                <div x-show="depositChoice !== 'nothing'" x-cloak>
+                                    <div class="vy-field" style="margin-top: 12px;"><label class="vy-field-label" for="pm">Method</label>
+                                        <select id="pm" class="vy-input" x-model="payMethod">
+                                            <option value="cash">Cash</option>
+                                            <option value="bank">Bank transfer</option>
+                                            <option value="card" disabled>Card — coming soon</option>
+                                        </select>
+                                    </div>
+                                    <div class="vy-field" style="margin-top: 10px;"><label class="vy-field-label" for="pa">Amount charged now</label>
+                                        <input id="pa" type="text" name="payment_amount" class="vy-input" inputmode="decimal" x-model="payAmount">
+                                    </div>
+                                    <div class="vy-nr-doorcode">Balance <strong x-text="fmt(Math.max(0, totalMinor() - Math.round((parseFloat(payAmount) || 0) * 100)))"></strong> due at check-in. Card capture arrives with secure Stripe checkout (test-mode until go-live) — <strong>no card number is entered or stored here</strong>.</div>
                                 </div>
-                                <div class="vy-nr-doorcode">Card payments arrive with secure Stripe checkout — <strong>no card number is ever entered or stored here</strong> (test-mode until go-live). Take cash or bank now, or record it later from the folio.</div>
                             @else
                                 <div class="vyn-empty">Payment is taken later from the reservation’s folio.</div>
                             @endif
@@ -385,6 +395,7 @@
                 existingGuestName: '', newFirst: '', newLast: '',
                 extras: [], transferTrip: 'one', applyCredit: false,
                 arrivalWindow: '', rulesAgreed: false, payMethod: 'later',
+                depositChoice: 'nothing', payAmount: '',
                 draftRestored: false,
                 cal: { y: 2026, m: 0, start: @js((string) $checkIn), end: @js((string) $checkOut), hover: '' },
                 init() { this.calInit(); this.restore(); this.$watch('step', () => this.persist()); },
@@ -433,6 +444,13 @@
                 pickUnit(rt, id, priceMajor) { this.roomTypeId = rt; this.unitId = id; this.roomMinor = priceMajor; this.ratePlanId = (PLANS[rt] && PLANS[rt].default) || ''; this.unitCode = event.target.closest('label').textContent.trim(); this.persist(); },
                 plansFor() { return (PLANS[this.roomTypeId] && PLANS[this.roomTypeId].list) || []; },
                 pickPlan(planId, priceMinor) { this.ratePlanId = planId; this.roomMinor = priceMinor; this.persist(); },
+                setDeposit(c) {
+                    this.depositChoice = c;
+                    if (c === 'nothing') { this.payMethod = 'later'; this.payAmount = ''; return; }
+                    if (this.payMethod !== 'cash' && this.payMethod !== 'bank') this.payMethod = 'cash';
+                    const total = this.totalMinor();
+                    this.payAmount = ((c === 'full' ? total : Math.round(total * 0.3)) / 100).toFixed(2);
+                },
                 guests() { return Math.max(1, this.adults + this.children); },
                 extrasMinor() {
                     let sum = 0;
@@ -557,6 +575,12 @@
         .vy-cal-foot { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--vy-hairline); }
         .vy-cal-sel { font-size: 12.5px; font-weight: 500; color: var(--vy-muted); }
         @media (max-width: 560px) { .vy-cal-grids { grid-template-columns: 1fr; } .vy-cal-labels { grid-template-columns: 1fr; } .vy-cal-labels span:last-child { display: none; } }
+        /* deposit split */
+        .vy-nr-deposit { display: flex; gap: 8px; margin-top: 8px; }
+        .vy-nr-dep { flex: 1; display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.5); cursor: pointer; text-align: left; font-family: var(--vy-sans); font-size: 13.5px; color: var(--vy-ink); transition: border-color 0.14s, background 0.14s; }
+        .vy-nr-dep span { font-size: 12px; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
+        .vy-nr-dep:hover { background: rgba(255, 255, 255, 0.78); }
+        .vy-nr-dep.is-on { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.08); box-shadow: 0 0 0 1px var(--vy-accent-border); }
         .vy-nr-doorcode { font-size: 12px; color: var(--vy-muted); background: rgba(31,110,75,.07); border-radius: 10px; padding: 11px 13px; margin-top: 14px; }
         .vy-nr-rules, .vyn-rules { display: grid; gap: 1px; }
         .vyn-rules > div { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }

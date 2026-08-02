@@ -320,3 +320,15 @@ it('ignores a rate plan that is not a real priced plan of the room type (falls b
         ->post('/app/reservations/create', bookingPayload($s, ['rate_plan_id' => 'nonexistent-plan-000000000']))->assertRedirect();
     expect((int) Reservation::query()->orderByDesc('id')->firstOrFail()->total_minor)->toBe(30000);
 });
+
+// ── GATE 1 B.2 — deposit split: a manual payment is capped at the REAL folio balance (never over-collects) ──
+it('caps a manual payment at the folio balance so a full/over-deposit collects only what is owed', function () {
+    $s = ratedScenario(1, 10000);   // €300 stay (bare scenario: no tax/fee)
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, ['payment_method' => 'cash', 'payment_amount' => '500']))->assertRedirect();
+
+    $res = Reservation::query()->orderByDesc('id')->firstOrFail();
+    $payment = Payment::query()->where('reservation_id', $res->id)->where('type', 'payment')->firstOrFail();
+    expect((int) $payment->amount_minor)->toBe(30000)        // capped at the €300 owed, NOT the €500 entered
+        ->and((int) $res->fresh()->balance_minor)->toBe(0);  // paid in full, reconciles (#17)
+});

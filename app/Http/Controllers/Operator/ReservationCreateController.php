@@ -141,9 +141,12 @@ class ReservationCreateController extends Controller
             if ($request->user()?->cannot('payments.record')) {
                 return $this->back($request, 'You don’t have permission to record a payment.');
             }
-            $paymentMinor = MoneyInput::toMinor((string) $request->input('payment_amount', ''), $roomChargeMinor);
+            // GATE 1 B.2 — deposit split: validate a positive amount here; it is CAPPED at the real folio
+            // balance when recorded (below), so a deposit/full up to the whole stay cost is allowed but the
+            // operator can never collect more than is owed. (Was capped at the room charge only.)
+            $paymentMinor = MoneyInput::toMinor((string) $request->input('payment_amount', ''));
             if ($paymentMinor === null) {
-                return $this->back($request, 'Enter a valid payment amount up to the room charge, e.g. 150 or 150.00.');
+                return $this->back($request, 'Enter a valid payment amount, e.g. 150 or 150.00.');
             }
         }
 
@@ -230,10 +233,16 @@ class ReservationCreateController extends Controller
             $notice .= ' '.MoneyFormatter::display($creditMinor, $currency).' credit applied.';
         }
 
-        // Optional MANUAL payment (no card data ever) via the real folio path.
+        // Optional MANUAL payment (no card data ever) via the real folio path. The amount is capped at the
+        // REAL folio balance now that room + extras + tax + fees are posted — a deposit/full is honoured, but
+        // the operator can never collect more than is owed (reconciling #17).
         if ($paymentMinor !== null) {
-            $folios->recordPayment($folio, Money::of($paymentMinor, $currency));
-            $notice .= ' '.MoneyFormatter::display($paymentMinor, $currency).' recorded as paid.';
+            $folio->refresh();
+            $pay = min($paymentMinor, max(0, (int) $folio->balance_minor));
+            if ($pay > 0) {
+                $folios->recordPayment($folio, Money::of($pay, $currency));
+                $notice .= ' '.MoneyFormatter::display($pay, $currency).' recorded as paid.';
+            }
         }
 
         return redirect()->to(route('app.reservations.show', $reservation->getKey()))->with('folio_notice', $notice);
