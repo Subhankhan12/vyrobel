@@ -11,6 +11,15 @@
                 @foreach ($ranges as $r)
                     <a class="vy-pill @if ($r['active']) is-on @endif" href="?range={{ $r['key'] }}">{{ $r['label'] }}</a>
                 @endforeach
+                {{-- GATE 10.1 — the prototype's "Reporting month" picker: jump to a specific calendar month (real
+                     ?month=YYYY-MM; the shared ReportPeriod resolves it for the page + both exports). --}}
+                <select class="vy-input" style="padding:5px 10px;font-size:12px;max-width:150px" aria-label="Reporting month"
+                        onchange="if (this.value) window.location.href='?month='+this.value;">
+                    <option value="">Jump to month…</option>
+                    @foreach ($months as $mo)
+                        <option value="{{ $mo['value'] }}" @selected($mo['active'])>{{ $mo['label'] }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="vy-right">
                 {{-- #104 GATE 2 — real CSV export (was a dead "Soon" pill); the same figures the page shows. --}}
@@ -24,31 +33,24 @@
         @if ($empty)
             <div class="vy-card vy-fade"><div class="vy-empty">No arrivals or costs in {{ $activeRange['label'] }} for {{ $scopeLabel }} yet. Real data only — nothing is invented for an empty period.</div></div>
         @else
-            {{-- KPI band — the prototype leads Reports with a KPI row. These are the REAL figures the page
-                 already computes (no fabricated trend/± vs last year — #39; ADR/RevPAR/occupancy live on
-                 Insights). Uniform light .vy-dash-kpis band, matching the operator KPI-band pattern. --}}
-            <div class="vy-dash-kpis vy-fade" style="margin-bottom: 16px;">
-                <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Gross revenue</div>
-                    <div class="vy-dk-val">{{ $revenue['gross'] }}</div>
-                    <div class="vy-dk-sub">room + ancillary · {{ $activeRange['label'] }}</div>
-                </div>
-                <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Net · rev − tracked costs</div>
-                    <div class="vy-dk-val">{{ $net }}</div>
-                    <div class="vy-dk-sub">after tracked maintenance</div>
-                </div>
-                <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Arrivals</div>
-                    <div class="vy-dk-val">{{ $arrivals }}</div>
-                    <div class="vy-dk-sub">reservations in scope</div>
-                </div>
-                <div class="vy-dash-kpi">
-                    <div class="vy-dk-label">Tax collected</div>
-                    <div class="vy-dk-val">{{ $revenue['tax'] }}</div>
-                    <div class="vy-dk-sub">pass-through</div>
-                </div>
+            {{-- GATE 10.1 — the prototype's KPI lead: REAL performance metrics (occupancy · ADR · RevPAR, stay-night
+                 basis via PerformanceMetrics) + gross revenue (folio basis). Each performance KPI shows a vs-last-year
+                 delta ONLY where the prior-year period has data — never a fabricated trend (#39). --}}
+            <div class="vy-dash-kpis vy-dash-kpis--4 vy-fade" style="margin-bottom: 6px;">
+                @foreach ($kpis as $c)
+                    <div class="vy-dash-kpi">
+                        <div class="vy-dk-label">{{ $c['label'] }}</div>
+                        <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                            <div class="vy-dk-val">{{ $c['value'] }}</div>
+                            @if ($c['delta'] !== null)
+                                <span style="font-size: 12px; font-weight: 700; color: {{ $c['delta_dir'] === 'down' ? '#8F3110' : 'var(--vy-accent)' }};">{{ $c['delta'] }}</span>
+                            @endif
+                        </div>
+                        <div class="vy-dk-sub">{{ $c['sub'] }}</div>
+                    </div>
+                @endforeach
             </div>
+            <p class="vy-fade" style="font-size: 11px; color: var(--vy-faint); margin: 0 0 16px;">Occupancy · ADR · RevPAR are on the stay-night basis; deltas are vs the same period last year, shown only where prior-year data exists. Revenue below is on the folio (arrival) basis.</p>
 
             <div class="vy-ins-grid vy-fade">
                 {{-- REVENUE — real folio breakdown --}}

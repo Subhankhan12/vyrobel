@@ -10,7 +10,7 @@ use App\Models\Reservation;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Property\PropertyContext;
 use App\Support\Reports\OperatorRevenueBreakdown;
-use Carbon\CarbonImmutable;
+use App\Support\Reports\ReportPeriod;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -27,7 +27,7 @@ class OperatorReportsExportController extends Controller
     {
         $ctx = app(PropertyContext::class);
         $ids = $ctx->readIds();
-        $range = $this->resolveRange((string) $request->query('range', 'this-year'));
+        $range = ReportPeriod::resolve($request->query('range'), $request->query('month'));
         $currency = $this->currency($ctx);
 
         $reservationIds = $ids === []
@@ -42,7 +42,7 @@ class OperatorReportsExportController extends Controller
         $channels = OperatorRevenueBreakdown::byChannel($reservationIds, $currency);
         $months = OperatorRevenueBreakdown::byMonth($reservationIds, $currency, $range['start'], $range['end']);
 
-        $filename = 'reports-'.$range['key'].'.csv';
+        $filename = 'reports-'.str_replace(':', '-', $range['key']).'.csv';
 
         return response()->streamDownload(function () use ($channels, $months, $currency, $range): void {
             $out = fopen('php://output', 'w');
@@ -70,18 +70,6 @@ class OperatorReportsExportController extends Controller
 
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv']);
-    }
-
-    /** @return array{key: string, label: string, start: CarbonImmutable, end: CarbonImmutable} */
-    private function resolveRange(string $key): array
-    {
-        $today = CarbonImmutable::today();
-
-        return match ($key) {
-            'ytd' => ['key' => 'ytd', 'label' => 'Year to date', 'start' => $today->startOfYear(), 'end' => $today->addDay()],
-            '6m' => ['key' => '6m', 'label' => 'Last 6 months', 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay()],
-            default => ['key' => 'this-year', 'label' => $today->format('Y'), 'start' => $today->startOfYear(), 'end' => $today->startOfYear()->addYear()],
-        };
     }
 
     private function currency(PropertyContext $ctx): string

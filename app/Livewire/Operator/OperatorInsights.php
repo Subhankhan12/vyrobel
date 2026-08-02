@@ -110,20 +110,7 @@ class OperatorInsights extends Component
         ];
     }
 
-    private function signed(int $n): string
-    {
-        return ($n > 0 ? '+' : ($n < 0 ? '−' : '')).abs($n);
-    }
-
-    private function signedMoney(int $minor, string $currency): string
-    {
-        return ($minor >= 0 ? '+' : '−').$this->money(abs($minor), $currency);
-    }
-
-    private function dir(?int $n): ?string
-    {
-        return $n === null ? null : ($n > 0 ? 'up' : ($n < 0 ? 'down' : 'flat'));
-    }
+    // signed() / signedMoney() / dir() moved to the shared FormatsOperatorData trait (GATE 10.1 — Reports reuses them).
 
     /**
      * Real channel mix (room-nights by the reservation `source`), as shares — never fabricated.

@@ -53,6 +53,24 @@ trait FormatsOperatorData
         return ($minor < 0 ? '−' : '')."{$symbol}{$abs}";   // U+2212 minus, matches the design
     }
 
+    /** A signed integer for a delta, e.g. 5 → "+5", -3 → "−3", 0 → "0". */
+    protected function signed(int $n): string
+    {
+        return ($n > 0 ? '+' : ($n < 0 ? '−' : '')).abs($n);
+    }
+
+    /** A signed money delta, e.g. +€12.00 / −€3.40 (U+2212 minus). */
+    protected function signedMoney(int $minor, string $currency): string
+    {
+        return ($minor >= 0 ? '+' : '−').$this->money(abs($minor), $currency);
+    }
+
+    /** A delta direction for styling: 'up' / 'down' / 'flat', or null when there is no baseline. */
+    protected function dir(?int $n): ?string
+    {
+        return $n === null ? null : ($n > 0 ? 'up' : ($n < 0 ? 'down' : 'flat'));
+    }
+
     protected function currencySymbol(string $currency): string
     {
         return match (strtoupper($currency)) {

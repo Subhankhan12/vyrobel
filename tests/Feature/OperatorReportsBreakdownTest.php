@@ -77,3 +77,38 @@ it('refuses the export to a role without reports.view', function () {
     $this->actingAs($frontDesk)->withSession(['current_property_id' => $s['property']->id])
         ->get(route('app.reports.export'))->assertForbidden();
 });
+
+// GATE 10.1 — the page leads with the REAL performance KPIs + a Reporting-month picker.
+it('leads with real performance KPIs (occupancy · ADR · RevPAR · gross) and a month picker', function () {
+    $s = seedScenario(1);
+    reservationWithRoom($s, 'direct', 30000, 'VYR-KPI');
+    $manager = operatorUser($s, [], 'Hotel Manager');
+
+    $this->actingAs($manager)->withSession(['current_property_id' => $s['property']->id])
+        ->get(route('app.reports'))
+        ->assertOk()
+        ->assertSee('Occupancy')
+        ->assertSee('ADR')
+        ->assertSee('RevPAR')
+        ->assertSee('Gross revenue')
+        ->assertSee('Jump to month');   // the Reporting-month picker
+});
+
+// GATE 10.1 — ?month=YYYY-MM scopes the whole report (page + subtitle) to that calendar month.
+it('scopes the report to a specific reporting month via ?month=', function () {
+    $s = seedScenario(1);
+    reservationWithRoom($s, 'direct', 30000, 'VYR-SEP');   // arrives 2026-09-01
+    $manager = operatorUser($s, [], 'Hotel Manager');
+    $session = ['current_property_id' => $s['property']->id];
+
+    // September has the arrival → its gross shows; a different month is empty (honest, not fabricated).
+    $this->actingAs($manager)->withSession($session)->get(route('app.reports', ['month' => '2026-09']))
+        ->assertOk()
+        ->assertSee('arrivals in September 2026')
+        ->assertSee('€300.00');
+
+    $this->actingAs($manager)->withSession($session)->get(route('app.reports', ['month' => '2026-07']))
+        ->assertOk()
+        ->assertSee('arrivals in July 2026')
+        ->assertSee('No arrivals or costs');   // real empty state for a month with nothing
+});

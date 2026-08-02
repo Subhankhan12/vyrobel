@@ -13,8 +13,11 @@ use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
+use App\Support\Analytics\MetricSet;
+use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Folio\FolioTotals;
 use App\Support\Reports\OperatorRevenueBreakdown;
+use App\Support\Reports\ReportPeriod;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -44,7 +47,7 @@ class OperatorReports extends Component
 
     public function render(): View
     {
-        $range = $this->resolveRange();
+        $range = ReportPeriod::resolve(request()->query('range'), request()->query('month'));
         $currency = $this->currency();
         $ids = $this->currentReadIds;
 
@@ -65,7 +68,12 @@ class OperatorReports extends Component
         return view('livewire.operator.reports', [
             'viewer' => $this->viewer(),
             'scopeLabel' => $this->viewingAllProperties ? 'All properties' : $this->currentPropertyName(),
-            'ranges' => $this->rangeOptions($range['key']),
+            'ranges' => ReportPeriod::rangeOptions($range['key']),
+            'months' => ReportPeriod::monthOptions($range['key']),
+            // GATE 10.1 — the wireframe's KPI lead: REAL performance metrics (occupancy · ADR · RevPAR) over the
+            // period via the shared PerformanceMetrics (stay-night basis, as on Insights), with an HONEST
+            // vs-last-year delta shown ONLY when the prior-year period has data (never a fabricated trend, #39).
+            'kpis' => $this->performanceKpis($ids, $range, $currency, $grossMinor),
             'activeRange' => $range,
             'arrivals' => count($reservationIds),
             'revenue' => [
@@ -219,31 +227,41 @@ class OperatorReports extends Component
     }
 
     /**
-     * @return array{key: string, label: string, start: CarbonImmutable, end: CarbonImmutable}
+     * The REAL performance KPI band — occupancy · ADR · RevPAR over the period (shared {@see PerformanceMetrics},
+     * stay-night basis, as on Insights) + gross revenue (folio/arrival basis). Each performance KPI carries an
+     * HONEST vs-last-year delta shown ONLY when the SAME period one year earlier has data
+     * ({@see MetricSet::isEmpty()}); otherwise null — never a fabricated trend (#39). The two bases measure
+     * different things and are labelled as such on the page.
+     *
+     * @param  list<string>  $ids
+     * @param  array{start: CarbonImmutable, end: CarbonImmutable}  $range
+     * @return list<array{key: string, label: string, value: string, sub: string, delta: ?string, delta_dir: ?string}>
      */
-    private function resolveRange(): array
+    private function performanceKpis(array $ids, array $range, string $currency, int $grossMinor): array
     {
-        $today = CarbonImmutable::today();
-        $key = (string) request()->query('range', 'this-year');
+        $m = $ids === [] ? null : PerformanceMetrics::forProperties($ids, $range['start'], $range['end'], $currency);
+        $ly = $ids === [] ? null : PerformanceMetrics::forProperties($ids, $range['start']->subYear(), $range['end']->subYear(), $currency);
 
-        return match ($key) {
-            'ytd' => ['key' => 'ytd', 'label' => 'Year to date', 'start' => $today->startOfYear(), 'end' => $today->addDay()],
-            '6m' => ['key' => '6m', 'label' => 'Last 6 months', 'start' => $today->startOfMonth()->subMonths(5), 'end' => $today->addDay()],
-            default => ['key' => 'this-year', 'label' => $today->format('Y'), 'start' => $today->startOfYear(), 'end' => $today->startOfYear()->addYear()],
-        };
-    }
+        $occ = $m?->occupancyPct() ?? 0;
+        $adr = $m?->adrMinor() ?? 0;
+        $revpar = $m?->revparMinor() ?? 0;
 
-    /**
-     * @return list<array{key: string, label: string, active: bool}>
-     */
-    private function rangeOptions(string $active): array
-    {
-        $year = CarbonImmutable::today()->format('Y');
+        $occDelta = $adrDelta = $revparDelta = null;
+        if ($ly !== null && ! $ly->isEmpty()) {
+            $occDelta = $occ - $ly->occupancyPct();
+            $adrDelta = $adr - $ly->adrMinor();
+            $revparDelta = $revpar - $ly->revparMinor();
+        }
 
         return [
-            ['key' => 'this-year', 'label' => $year, 'active' => $active === 'this-year'],
-            ['key' => 'ytd', 'label' => 'Year to date', 'active' => $active === 'ytd'],
-            ['key' => '6m', 'label' => 'Last 6 months', 'active' => $active === '6m'],
+            ['key' => 'occupancy', 'label' => 'Occupancy', 'value' => $occ.'%', 'sub' => 'room-nights sold',
+                'delta' => $occDelta !== null ? $this->signed($occDelta).'pp' : null, 'delta_dir' => $this->dir($occDelta)],
+            ['key' => 'adr', 'label' => 'ADR', 'value' => $this->money($adr, $currency), 'sub' => 'average daily rate',
+                'delta' => $adrDelta !== null ? $this->signedMoney($adrDelta, $currency) : null, 'delta_dir' => $this->dir($adrDelta)],
+            ['key' => 'revpar', 'label' => 'RevPAR', 'value' => $this->money($revpar, $currency), 'sub' => 'per available room',
+                'delta' => $revparDelta !== null ? $this->signedMoney($revparDelta, $currency) : null, 'delta_dir' => $this->dir($revparDelta)],
+            ['key' => 'gross', 'label' => 'Gross revenue', 'value' => $this->money($grossMinor, $currency), 'sub' => 'room + ancillary · folio basis',
+                'delta' => null, 'delta_dir' => null],
         ];
     }
 
