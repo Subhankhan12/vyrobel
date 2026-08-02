@@ -936,6 +936,11 @@
         .vy-stat-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
         .vy-stat-k { font-size: 12px; color: var(--vy-muted); }
         .vy-stat-v { margin-left: auto; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--vy-ink); }
+        /* GATE 8.1 — housekeeping drag-lane-move (forward-only). */
+        .vy-hk-drag { cursor: grab; }
+        .vy-hk-drag:active { cursor: grabbing; }
+        .vy-hk-lane { transition: background .12s, outline-color .12s; }
+        .vy-hk-lane.is-drop { outline: 2px dashed var(--vy-accent-border); outline-offset: -2px; background: rgba(232, 112, 58, 0.05); }
 
         /* Dashboard — Occupancy next 7 days (real per-day bars) */
         .vy-occ7 { display: flex; align-items: flex-end; gap: 8px; height: 92px; margin: 6px 0 4px; }

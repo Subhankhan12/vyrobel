@@ -11,6 +11,27 @@
         assignUrl(id) { return '{{ route('app.housekeeping.assign', '__ID__') }}'.replace('__ID__', id); },
         statusUrl(id) { return '{{ route('app.housekeeping.status', '__ID__') }}'.replace('__ID__', id); },
         photoUrl(id) { return '{{ route('app.housekeeping.photos.store', '__ID__') }}'.replace('__ID__', id); },
+        {{-- GATE 8.1 — drag-lane-move. FORWARD-ONLY through the real status enum (a backward drop is a no-op:
+             the enum is a forward workflow, and updateStatus only accepts in_progress/clean/inspected). The
+             drop POSTs the SAME certified, gated status route the buttons use — no new backend, no date math. --}}
+        csrf: '{{ csrf_token() }}', hkOrder: ['pending', 'in_progress', 'clean', 'inspected'],
+        dragging: false, dragTask: '', dragIdx: -1,
+        hkStart(e, id, status) { this.dragTask = id; this.dragIdx = this.hkOrder.indexOf(status); this.dragging = true; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', id); },
+        hkEnd() { this.dragging = false; this.dragTask = ''; this.dragIdx = -1; },
+        // Only the IMMEDIATE next lane is a valid target — the drag is a 1:1 stand-in for the forward button
+        // (never a multi-step skip that would leave started_at unset). Requires an ACTIVE in-page card drag.
+        hkForward(laneKey) { return this.dragging && this.hkOrder.indexOf(laneKey) === this.dragIdx + 1; },
+        hkDrop(laneKey) {
+            const task = this.dragTask;   // capture BEFORE hkEnd() clears it
+            const ok = this.dragging && task && this.hkOrder.indexOf(laneKey) === this.dragIdx + 1;
+            this.hkEnd();
+            if (! ok) return;   // aborted/stale drag, non-adjacent, or an external source → no-op
+            const f = document.createElement('form');
+            f.method = 'POST'; f.action = this.statusUrl(task);
+            const add = (n, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; f.appendChild(i); };
+            add('_token', this.csrf); add('status', laneKey);
+            document.body.appendChild(f); f.submit();
+        },
      }">
     <x-operator.shell active="housekeeping" title="Housekeeping" subtitle="Today’s cleaning across your rooms" :viewer="$viewer">
 
@@ -106,7 +127,11 @@
             {{-- Lanes --}}
             <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: start;">
                 @foreach ($columns as $column)
-                    <div class="vy-card vy-fade" style="padding: 12px;">
+                    {{-- A lane is a forward-only drop target while a card is in flight (a card is dropped here to
+                         advance its status). Backward lanes never highlight and reject the drop. --}}
+                    <div class="vy-card vy-fade vy-hk-lane" style="padding: 12px;"
+                         :class="hkForward('{{ $column['key'] }}') ? 'is-drop' : ''"
+                         @dragover.prevent @drop.prevent="hkDrop('{{ $column['key'] }}')">
                         <div class="vy-detail-head" style="margin-bottom: 10px;">
                             <span style="font-size: 13px; font-weight: 700; color: var(--vy-ink);">
                                 <span class="vy-tag tone-{{ $column['tone'] }}" style="padding: 2px 8px;"><span class="vy-dot"></span>{{ $column['label'] }}</span>

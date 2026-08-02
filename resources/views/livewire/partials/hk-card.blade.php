@@ -1,7 +1,11 @@
 {{-- One housekeeping room card (board lane). Real task data; clicking opens the detail drawer.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<div class="vy-card" style="padding: 11px; margin-bottom: 10px; border-left: 3px solid var(--vy-accent);"
-     :class="density === 'compact' && 'vy-hk-compact'">
+{{-- GATE 8.1 — the card is DRAGGABLE only when it can actually advance (the EXACT condition its forward
+     button uses: assigned, or already past pending), so a drag never bypasses the "Assign to start" rule. --}}
+@php $hkDraggable = ($canManage ?? $canAssign) && $card['next'] !== [] && ($card['assignee'] || $card['status'] !== 'pending'); @endphp
+<div class="vy-card @if ($hkDraggable) vy-hk-drag @endif" style="padding: 11px; margin-bottom: 10px; border-left: 3px solid var(--vy-accent);"
+     :class="density === 'compact' && 'vy-hk-compact'"
+     @if ($hkDraggable) draggable="true" @dragstart="hkStart($event, '{{ $card['id'] }}', '{{ $card['status'] }}')" @dragend="hkEnd()" @endif>
     <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
         <button type="button" class="vy-u-code" style="border: none; background: none; cursor: pointer; padding: 0; font-weight: 700;"
                 @click="detail = {{ \Illuminate\Support\Js::from($card) }}">{{ $card['unit'] }}</button>
