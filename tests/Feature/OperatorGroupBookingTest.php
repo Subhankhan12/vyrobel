@@ -273,3 +273,21 @@ it('renders the done screen with the block reference after a create', function (
         ->assertOk()
         ->assertDontSee('Block confirmed');
 });
+
+// ── GATE 4 review — the block-organiser NAME in groups.contact is redacted on GDPR erase (#28) ──
+it('redacts the block organiser name from groups.contact on anonymize', function () {
+    $s = groupScenario(2);
+    $frontDesk = operatorUser($s, [], 'Front Desk');
+    $this->actingAs($frontDesk)->post('/app/group-booking', groupPayload($s, [
+        'organiser_first_name' => 'Ada', 'organiser_last_name' => 'Erasable',
+    ]))->assertRedirect();
+
+    $group = Group::query()->latest('created_at')->firstOrFail();
+    // Stored for display, WITH the organiser FK (the link erase uses).
+    expect(data_get($group->contact, 'name'))->toBe('Ada Erasable')
+        ->and((string) $group->organiser_guest_id)->not->toBe('');
+
+    // GDPR erase of the organiser redacts the plaintext name copy — the review-caught leak, now closed.
+    Guest::query()->findOrFail($group->organiser_guest_id)->anonymize();
+    expect(data_get($group->fresh()->contact, 'name'))->toBeNull();
+});

@@ -24,6 +24,7 @@ class Group extends Model
         'occasion',
         'block_code',
         'billing_mode',
+        'organiser_guest_id',
         'pickup_deadline',
         'contact',
     ];
@@ -42,6 +43,12 @@ class Group extends Model
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
+    }
+
+    /** The block organiser — the link that lets GDPR erase redact the plaintext organiser name in `contact`. */
+    public function organiser(): BelongsTo
+    {
+        return $this->belongsTo(Guest::class, 'organiser_guest_id');
     }
 
     /**

@@ -312,6 +312,12 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
             // populates it (Guest Portal batch 2 · GATE 2) — never a store the erase silently leaves behind.
             $this->reservations()->update(['notes_guest' => null, 'arrival_window' => null]);
 
+            // GDPR: the block-organiser NAME copied into `groups.contact` (plaintext json, for display) is this
+            // guest's PII too. Redact just the name (company is a business, not PII) via the organiser FK — added
+            // WITH that FK so this store can never survive erase. An adversarial review caught it: without the FK
+            // + this clause the organiser name lingered in plaintext after anonymize.
+            Group::query()->where('organiser_guest_id', $this->getKey())->update(['contact->name' => null]);
+
             // NOTE: never put the erased PII into the audit before/after — that would re-retain it.
             app(AuditEventRecorder::class)->record(
                 action: 'guest.anonymized',

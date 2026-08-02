@@ -120,6 +120,7 @@ it('records a real cash deposit on the master invoice and never over-collects', 
 
     $group = app(GroupBookingService::class)->create(array_merge(blockInput($s, 'master'), ['deposit_pct' => 50, 'deposit_method' => 'cash']));
     $folio = Folio::query()->whereIn('reservation_id', $group->reservations()->pluck('id'))->firstOrFail();
+    expect(Folio::query()->whereIn('reservation_id', $group->reservations()->pluck('id'))->count())->toBe(1);   // deposit on the CHARGED folio, no orphan
 
     // Master total 2 × 38300 = 76600; deposit 50% = 38300 recorded as a real payment; balance halves.
     expect((int) $folio->refresh()->total_minor)->toBe(76600)

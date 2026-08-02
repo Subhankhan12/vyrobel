@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Http\Controllers\Operator\GroupBookingController;
+use App\Models\Folio;
 use App\Models\Group;
 use App\Support\Folio\PropertyCharges;
 use App\Support\Money\Money;
@@ -46,6 +47,8 @@ class GroupBookingService
             'occasion' => $input['occasion'],
             'billing_mode' => $input['billing_mode'],
             'block_code' => 'GRP-'.Str::upper(Str::random(6)),
+            // The organiser FK — the link GDPR erase uses to redact the plaintext name copied into `contact`.
+            'organiser_guest_id' => $input['organiser_guest_id'],
             'pickup_deadline' => $input['pickup_deadline'] ?? null,
             'contact' => $input['contact'] ?? null,
         ];
@@ -81,12 +84,14 @@ class GroupBookingService
         // GATE 4.2 — the group discount % (from the fixed {0,5,10,15} set, re-derived by the controller — never a
         // client amount) and the deposit-to-confirm (% from {0,25,50,100} + method). Both are REAL folio movements.
         $discountPct = max(0, min(100, (int) ($input['discount_pct'] ?? 0)));
-        $this->postFolios($group, $currency, $input['billing_mode'] === 'master', $discountPct);
+        $masterFolio = $this->postFolios($group, $currency, $input['billing_mode'] === 'master', $discountPct);
 
         // The deposit is collected on a MASTER invoice only (a group deposit secures the ONE bill; an individual-pay
-        // block has no single folio to hold it — the UI hides the control there). Cash/bank record NOW via the
+        // block has no single folio to hold it — the UI hides the control there). It takes the SAME folio postFolios
+        // charged — passed through, never re-derived by a second non-deterministic order-by (else same-second group
+        // members can resolve a DIFFERENT, empty folio and the deposit is silently lost). Cash/bank record NOW via the
         // certified FolioService; card is the DEFERRED Stripe seam (never faked, #41/#45) — the block still creates.
-        $this->takeDeposit($group, $currency, $input['billing_mode'] === 'master',
+        $this->takeDeposit($group, $currency, $masterFolio,
             max(0, min(100, (int) ($input['deposit_pct'] ?? 0))), (string) ($input['deposit_method'] ?? ''));
 
         return $group;
@@ -98,9 +103,9 @@ class GroupBookingService
      * base (so percentage taxes fall on room − discount, exactly the wireframe's VAT-on-afterDisc and the same
      * rule the single-reservation credit flow uses). The block total then reconciles to the discounted sum (#17).
      */
-    private function postFolios(Group $group, string $currency, bool $master, int $discountPct): void
+    private function postFolios(Group $group, string $currency, bool $master, int $discountPct): ?Folio
     {
-        $reservations = $group->reservations()->with('reservationUnits.roomType')->orderBy('created_at')->get();
+        $reservations = $group->reservations()->with('reservationUnits.roomType')->orderBy('created_at')->orderBy('id')->get();
 
         $masterFolio = $master && $reservations->isNotEmpty()
             ? $this->folios->openFolio($reservations->first())
@@ -137,30 +142,28 @@ class GroupBookingService
                 PropertyCharges::postFees($this->folios, $folio, (string) $reservation->property_id, $base, $nights, $persons, $currency);
             }
         }
+
+        return $masterFolio;   // the deposit takes THIS exact folio — never re-derived (the same-second ordering trap)
     }
 
     /**
      * Take the deposit-to-confirm on the MASTER folio — a REAL payment (cash / bank transfer) for `pct` of the
-     * finalised block total, capped at the real balance so it never over-collects (#17). Card is the deferred
-     * Stripe seam (no payment recorded; the block still creates). No-op for individual billing / 0% / no folio.
+     * finalised block total, capped at the real balance so it never over-collects (#17). Takes the SAME folio
+     * postFolios charged (passed in) — no re-query, so the deposit can never land on a different, empty member
+     * folio. Card is the deferred Stripe seam (no payment recorded; the block still creates). No-op for
+     * individual billing (null folio) / 0% / a non-cash-or-bank method.
      */
-    private function takeDeposit(Group $group, string $currency, bool $master, int $depositPct, string $method): void
+    private function takeDeposit(Group $group, string $currency, ?Folio $masterFolio, int $depositPct, string $method): void
     {
-        if (! $master || $depositPct <= 0 || ! in_array($method, ['cash', 'bank'], true)) {
+        if ($masterFolio === null || $depositPct <= 0 || ! in_array($method, ['cash', 'bank'], true)) {
             return;   // card / none / individual → nothing recorded (honest; never a faked payment)
         }
 
-        $reservation = $group->reservations()->orderBy('created_at')->first();
-        if ($reservation === null) {
-            return;
-        }
-
-        $folio = $this->folios->openFolio($reservation);   // the same first-member folio the master charges landed on
-        $folio->refresh();
-        $depositMinor = min(max(0, (int) $folio->balance_minor), intdiv((int) $folio->total_minor * $depositPct, 100));
+        $masterFolio->refresh();
+        $depositMinor = min(max(0, (int) $masterFolio->balance_minor), intdiv((int) $masterFolio->total_minor * $depositPct, 100));
         if ($depositMinor > 0) {
             $this->folios->recordPayment(
-                $folio,
+                $masterFolio,
                 Money::of($depositMinor, $currency),
                 metadata: ['method' => $method, 'kind' => 'group_deposit', 'deposit_pct' => $depositPct],
                 idempotencyKey: 'group-deposit-'.$group->getKey(),
