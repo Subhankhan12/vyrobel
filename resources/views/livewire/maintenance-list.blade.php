@@ -7,6 +7,12 @@
         nwoPriority: 'normal', nwoCategory: @js($categories[0]['value'] ?? 'other'),
         assign: null, detail: {{ \Illuminate\Support\Js::from($detail) }},
         assignUrl(id) { return '{{ route('app.maintenance.assign', '__ID__') }}'.replace('__ID__', id); },
+        selecting: false, sel: [],
+        inSel(id) { return this.sel.includes(id); },
+        toggleSel(id) { const i = this.sel.indexOf(id); i < 0 ? this.sel.push(id) : this.sel.splice(i, 1); },
+        selAll(ids) { this.sel = (this.sel.length === ids.length) ? [] : [...ids]; },
+        endSelect() { this.selecting = false; this.sel = []; },
+        bulkSubmit(formId) { if (this.sel.length) document.getElementById(formId).requestSubmit(); },
      }">
     <x-operator.shell active="maintenance" title="Maintenance" subtitle="Work orders across your units" :viewer="$viewer">
 
@@ -42,6 +48,9 @@
             <div class="vy-right" style="display: flex; gap: 8px;">
                 <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.costs') }}">Costs report</a>
                 <a class="vy-btn vy-btn--ghost" href="{{ route('app.maintenance.settings') }}">Settings</a>
+                @if ($canManage && count($rows) > 0)
+                    <button type="button" class="vy-btn vy-btn--ghost" @click="selecting ? endSelect() : selecting = true" x-text="selecting ? 'Done' : 'Select'">Select</button>
+                @endif
                 @if ($canManage)
                     <button type="button" class="vy-btn vy-btn--accent" @click="nwoOpen = true">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -50,6 +59,28 @@
                 @endif
             </div>
         </div>
+
+        {{-- GATE 6.2 — BULK toolbar (select mode). Each action posts the SELECTED ids to a bulk route that
+             loops the certified MaintenanceService; the count-gated buttons are inert with 0 selected. --}}
+        @if ($canManage)
+            @php $rowIds = collect($rows)->pluck('id')->values()->all(); @endphp
+            <div x-show="selecting" x-cloak class="vy-card vy-fade" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; margin-bottom: 14px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 500;">
+                    <input type="checkbox" @change="selAll(@js($rowIds))" :checked="sel.length > 0 && sel.length === {{ count($rows) }}">
+                    Select all
+                </label>
+                <span style="font-size: 13px; font-weight: 600; color: var(--vy-ink);" x-text="sel.length + ' selected'"></span>
+                <div style="flex: 1;"></div>
+                <button type="button" class="vy-btn vy-btn--ghost" :style="sel.length ? '' : 'opacity:.45; pointer-events:none;'"
+                        @click="bulkSubmit('bulkExportForm')" x-text="sel.length ? ('Export ' + sel.length) : 'Export'">Export</button>
+                <button type="button" class="vy-btn vy-btn--ghost" :style="sel.length ? '' : 'opacity:.45; pointer-events:none;'"
+                        @click="assign = { bulk: true, title: '' }" x-text="sel.length ? ('Assign ' + sel.length) : 'Assign'">Assign</button>
+                <button type="button" class="vy-btn vy-btn--accent" :style="sel.length ? '' : 'opacity:.45; pointer-events:none;'"
+                        @click="if (sel.length && confirm('Resolve ' + sel.length + ' work order(s)? Each returns its unit to sale.')) bulkSubmit('bulkResolveForm')"
+                        x-text="sel.length ? ('Resolve ' + sel.length) : 'Resolve'">Resolve</button>
+                <button type="button" class="vy-btn vy-btn--ghost" @click="endSelect()">Cancel</button>
+            </div>
+        @endif
 
         {{-- KPI filter chips --}}
         @php
@@ -80,7 +111,11 @@
                         @if ($filter) <a class="vy-eyebrow vy-arr-link" href="{{ route('app.maintenance') }}">Clear filter</a> @endif
                     </div>
                     @forelse ($rows as $row)
-                        <div class="vy-unit-row" style="cursor: pointer; align-items: flex-start;" @click="detail = {{ \Illuminate\Support\Js::from($row) }}">
+                        <div class="vy-unit-row" style="cursor: pointer; align-items: flex-start;" :class="selecting && inSel('{{ $row['id'] }}') ? 'is-sel' : ''"
+                             @click="selecting ? toggleSel('{{ $row['id'] }}') : (detail = {{ \Illuminate\Support\Js::from($row) }})">
+                            <div x-show="selecting" x-cloak style="flex: none; padding-top: 3px;">
+                                <input type="checkbox" class="vy-mt-check" @click.stop.prevent="toggleSel('{{ $row['id'] }}')" :checked="inSel('{{ $row['id'] }}')" aria-label="Select {{ $row['title'] }}">
+                            </div>
                             <div style="min-width: 0; flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <span style="width: 8px; height: 8px; border-radius: 2px; background: var(--vy-accent); flex: none;"></span>
@@ -219,9 +254,13 @@
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
                 <div @click.outside="assign = null" class="vy-card vy-fade" style="width: 100%; max-width: 420px;" x-show="assign">
                     <h2 class="vy-card-title" style="margin-bottom: 2px;">Assign technician</h2>
-                    <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;" x-text="assign ? assign.title : ''"></p>
-                    <form method="POST" :action="assign ? assignUrl(assign.id) : ''">
+                    <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;" x-text="assign ? (assign.bulk ? (sel.length + ' work order(s) selected') : assign.title) : ''"></p>
+                    {{-- Shared modal: BULK posts the selected ids to bulk.assign; single posts to that ticket's route. --}}
+                    <form method="POST" :action="assign && assign.bulk ? '{{ route('app.maintenance.bulk.assign') }}' : (assign ? assignUrl(assign.id) : '')">
                         @csrf
+                        <template x-if="assign && assign.bulk">
+                            <template x-for="id in sel" :key="id"><input type="hidden" name="ticket_ids[]" :value="id"></template>
+                        </template>
                         <div style="display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow: auto;">
                             @foreach ($staff as $i => $member)
                                 <label style="display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1px solid var(--vy-hairline); border-radius: 8px; cursor: pointer;">
@@ -238,6 +277,16 @@
                     </form>
                 </div>
             </div>
+
+            {{-- Hidden BULK forms — the ids are bound from the reactive `sel` (flushed before a later button click). --}}
+            <form id="bulkResolveForm" method="POST" action="{{ route('app.maintenance.bulk.resolve') }}" class="vy-newres-hidden">
+                @csrf
+                <template x-for="id in sel" :key="id"><input type="hidden" name="ticket_ids[]" :value="id"></template>
+            </form>
+            <form id="bulkExportForm" method="POST" action="{{ route('app.maintenance.bulk.export') }}" class="vy-newres-hidden">
+                @csrf
+                <template x-for="id in sel" :key="id"><input type="hidden" name="ticket_ids[]" :value="id"></template>
+            </form>
         @endif
 
         {{-- ── DETAIL drawer ──────────────────────────────────────────────────────────────────────── --}}

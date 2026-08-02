@@ -480,6 +480,10 @@
         .vy-lane-drop > div { border-radius: 6px; transition: background .1s, box-shadow .1s; }
         .vy-lane-drop.is-dragging > div:hover { background: rgba(232, 112, 58, 0.16); box-shadow: inset 0 0 0 2px var(--vy-accent-border); }
 
+        /* GATE 6.2 — Maintenance bulk select mode. */
+        .vy-unit-row.is-sel { background: rgba(232, 112, 58, 0.07); }
+        .vy-mt-check { width: 16px; height: 16px; accent-color: var(--vy-accent); cursor: pointer; }
+
         /* GATE 5.2 — the New-reservation MODAL (two-phase: Check rack → pick a unit → Confirm). Reuses the
            shared .vy-modal chrome; these are the modal-specific controls. */
         .vy-newres-modal { max-width: 480px; }

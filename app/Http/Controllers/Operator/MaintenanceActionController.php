@@ -13,15 +13,18 @@ use App\Models\User;
 use App\Notifications\Operator\MaintenanceReassignedNotification;
 use App\Notifications\Operator\MaintenanceResolvedNotification;
 use App\Services\MaintenanceService;
+use App\Support\Export\CsvSafe;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Operator Maintenance writes — the REAL open + assign actions driven from the styled Maintenance board
@@ -129,6 +132,131 @@ class MaintenanceActionController extends Controller
         }
 
         return $this->backTo($request, $model)->with('mt_notice', 'Ticket assignment updated.');
+    }
+
+    /**
+     * BULK ASSIGN (#GATE 6.2) — assign (or unassign) the SELECTED tickets to one member, each through the
+     * certified {@see MaintenanceService::assign} (never a raw update). Tenant-scoped: a foreign id simply
+     * does not resolve (fail-safe isolation — it is never touched). A ticket that can't be reassigned (closed)
+     * is SKIPPED, not a 500; the flash reports done/skipped honestly.
+     */
+    public function bulkAssign(Request $request, MaintenanceService $maintenance): RedirectResponse
+    {
+        if ($this->paused()) {
+            return redirect()->route('app.maintenance')->with('mt_error', $this->pausedMessage());
+        }
+
+        $validated = $request->validate([
+            'ticket_ids' => ['required', 'array', 'min:1', 'max:500'],
+            'ticket_ids.*' => ['string'],
+            'user_id' => ['nullable', 'string'],
+        ]);
+
+        $userId = is_string($validated['user_id'] ?? null) && $validated['user_id'] !== '' ? (string) $validated['user_id'] : null;
+        if ($userId !== null) {
+            $isMember = Membership::query()->where('organization_id', app(TenantContext::class)->id())
+                ->where('user_id', $userId)->where('status', 'active')->exists();
+            if (! $isMember) {
+                abort(422, 'That user is not a member of this organization.');
+            }
+        }
+
+        // Tenant-scoped whereIn — a foreign/unknown id is silently absent (never acted on).
+        $tickets = MaintenanceTicket::query()->whereIn('id', $validated['ticket_ids'])->get();
+        [$done, $skipped] = [0, 0];
+        foreach ($tickets as $t) {
+            try {
+                $maintenance->assign($t, $userId, null);
+                $done++;
+            } catch (RuntimeException) {
+                $skipped++;   // already closed — skipped, not fatal
+            }
+        }
+
+        return redirect()->route('app.maintenance')->with('mt_notice', $this->bulkNotice('Assigned', $done, $skipped));
+    }
+
+    /**
+     * BULK RESOLVE (#GATE 6.2) — resolve the SELECTED active tickets through the certified service (no cost
+     * captured in bulk — per-ticket cost stays on the detail). An OPEN ticket is started first, then resolved;
+     * an already-resolved/cancelled ticket is skipped. Returns each unit to sale by default (lift OOO). No raw
+     * writes; each transition is the guarded service. Tenant-scoped; done/skipped reported honestly.
+     */
+    public function bulkResolve(Request $request, MaintenanceService $maintenance): RedirectResponse
+    {
+        if ($this->paused()) {
+            return redirect()->route('app.maintenance')->with('mt_error', $this->pausedMessage());
+        }
+
+        $validated = $request->validate([
+            'ticket_ids' => ['required', 'array', 'min:1', 'max:500'],
+            'ticket_ids.*' => ['string'],
+        ]);
+
+        $tickets = MaintenanceTicket::query()->whereIn('id', $validated['ticket_ids'])->with('unit.property')->get();
+        [$done, $skipped] = [0, 0];
+        foreach ($tickets as $t) {
+            try {
+                if ($t->status === 'open') {
+                    $maintenance->start($t);
+                    $t->refresh();
+                }
+                if ($t->status === 'in_progress') {
+                    $maintenance->resolve($t, null, null, null, null, null, false);   // no cost; return to sale
+                    $done++;
+                } else {
+                    $skipped++;   // resolved / cancelled — nothing to do
+                }
+            } catch (RuntimeException) {
+                $skipped++;
+            }
+        }
+
+        return redirect()->route('app.maintenance')->with('mt_notice', $this->bulkNotice('Resolved', $done, $skipped));
+    }
+
+    /**
+     * BULK EXPORT (#GATE 6.2) — stream a CSV of the SELECTED tickets (a READ; no mutation). Tenant-scoped, so a
+     * foreign id is silently absent. Maintenance tickets carry no guest PII (#28) — unit code + work fields only.
+     */
+    public function bulkExport(Request $request): StreamedResponse
+    {
+        $validated = $request->validate([
+            'ticket_ids' => ['required', 'array', 'min:1', 'max:500'],
+            'ticket_ids.*' => ['string'],
+        ]);
+
+        $tickets = MaintenanceTicket::query()->whereIn('id', $validated['ticket_ids'])
+            ->with('unit.property', 'assignedTo')->orderByDesc('opened_at')->get();
+
+        return response()->streamDownload(function () use ($tickets): void {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Title', 'Unit', 'Category', 'Priority', 'Status', 'Assignee', 'Reported', 'Cost']);
+            foreach ($tickets as $t) {
+                $currency = (string) ($t->unit->property->currency ?? 'EUR');
+                fputcsv($out, [
+                    // Free-text (user-controllable) columns pass through the ONE CSV formula-injection guard
+                    // (App\Support\Export\CsvSafe — the same guard the costs export uses; never a raw =/+/-/@).
+                    CsvSafe::field((string) $t->title),
+                    CsvSafe::field((string) ($t->unit->code ?? '—')),
+                    (string) $t->category,   // enum — safe
+                    (string) $t->priority,   // enum — safe
+                    (string) $t->status,     // enum — safe
+                    CsvSafe::field((string) ($t->assignedTo->name ?? '—')),
+                    CarbonImmutable::parse($t->opened_at)->toDateString(),
+                    $t->cost_minor !== null ? number_format(((int) $t->cost_minor) / 100, 2).' '.$currency : '',
+                ]);
+            }
+            fclose($out);
+        }, 'work-orders-'.now()->format('Ymd').'.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    /** "Assigned 3 · 1 skipped (closed)" — an honest bulk result line. */
+    private function bulkNotice(string $verb, int $done, int $skipped): string
+    {
+        $msg = $verb.' '.$done.' '.Str::plural('work order', $done);
+
+        return $skipped > 0 ? $msg.' · '.$skipped.' skipped (already closed)' : $msg.'.';
     }
 
     /** Start work on an OPEN ticket (guarded: illegal from any other state → clean flash). */

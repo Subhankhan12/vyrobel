@@ -9,6 +9,7 @@ use App\Mail\MaintenanceCostReportMail;
 use App\Services\MaintenanceCostService;
 use App\Services\PdfService;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Export\CsvSafe;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,9 +41,9 @@ class MaintenanceCostExportController extends Controller
             foreach ($report['billable'] as $row) {
                 fputcsv($out, [
                     $row['date'],
-                    $this->csvSafe($row['title']),
-                    $this->csvSafe($row['unit']),
-                    $this->csvSafe(ucfirst($row['category'])),
+                    CsvSafe::field($row['title']),
+                    CsvSafe::field($row['unit']),
+                    CsvSafe::field(ucfirst($row['category'])),
                     MoneyFormatter::display($row['labor_minor'], $currency),
                     MoneyFormatter::display($row['parts_minor'], $currency),
                     MoneyFormatter::display($row['total_minor'], $currency),
@@ -75,13 +76,5 @@ class MaintenanceCostExportController extends Controller
         Mail::to($email)->send(new MaintenanceCostReportMail($bytes));
 
         return redirect()->route('app.maintenance.costs')->with('mt_notice', "Costs report emailed to {$email}.");
-    }
-
-    /** Neutralise CSV formula injection: a field beginning with = + - @ (or a control char) is quote-prefixed. */
-    private function csvSafe(string $value): string
-    {
-        $value = str_replace(["\r", "\n"], ' ', $value);
-
-        return preg_match('/^[=+\-@\t]/', $value) === 1 ? "'".$value : $value;
     }
 }

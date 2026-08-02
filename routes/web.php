@@ -702,6 +702,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // (#20/#30) — closing the privilege-within-org hole where `resolve` posts a REAL deductible owner expense.
     Route::middleware('can:maintenance.manage')->group(function () {
         Route::post('/maintenance', [MaintenanceActionController::class, 'store'])->name('maintenance.store');
+        // GATE 6.2 — BULK actions from the board's select mode. DECLARED BEFORE the /{ticket}/ routes so
+        // `/maintenance/bulk/assign` is never captured as {ticket}='bulk'. Each loops the certified
+        // MaintenanceService per ticket (tenant-scoped whereIn → foreign ids fail-safe-excluded); same actor
+        // gate (maintenance.manage).
+        Route::post('/maintenance/bulk/assign', [MaintenanceActionController::class, 'bulkAssign'])->name('maintenance.bulk.assign');
+        Route::post('/maintenance/bulk/resolve', [MaintenanceActionController::class, 'bulkResolve'])->name('maintenance.bulk.resolve');
+        Route::post('/maintenance/bulk/export', [MaintenanceActionController::class, 'bulkExport'])->name('maintenance.bulk.export');
         Route::post('/maintenance/{ticket}/assign', [MaintenanceActionController::class, 'assign'])->name('maintenance.assign');
         // Lifecycle writes from the styled ticket detail — each offered only when the real state allows it;
         // the service is still the authority (illegal transition → clean flash, never 500). Cross-org → 404.
