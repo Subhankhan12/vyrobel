@@ -114,6 +114,15 @@ class NewReservation extends Component
             'name' => $rt['room_type_name'],
             'priced' => $rt['priced'],
             'price' => $rt['priced'] ? $this->money((int) $rt['price_minor'], (string) $rt['currency']) : null,
+            'price_minor' => $rt['priced'] ? (int) $rt['price_minor'] : 0,
+            'rate_plan_id' => (string) ($rt['rate_plan_id'] ?? ''),
+            // REAL active + priced rate plans for the selector (name + server-derived price). Never fabricated.
+            'plans' => array_map(fn (array $p): array => [
+                'id' => (string) $p['id'],
+                'name' => (string) $p['name'],
+                'price' => $this->money((int) $p['price_minor'], (string) $p['currency']),
+                'price_minor' => (int) $p['price_minor'],
+            ], $rt['plans'] ?? []),
             'units' => $rt['units'],
             'unit_count' => count($rt['units']),
         ];

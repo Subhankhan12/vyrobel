@@ -3,6 +3,7 @@
 use App\Mail\BookingConfirmationMail;
 use App\Models\Guest;
 use App\Models\Payment;
+use App\Models\RatePlan;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Services\RateAndRestrictionService;
@@ -243,15 +244,16 @@ it('persists the internal team note to notes_internal', function () {
 it('records the house-rules acknowledgement only when the operator ticks it', function () {
     $s = ratedScenario(2);
 
-    // ticked → a real ack timestamp
+    // ticked → a real ack timestamp (order by ULID id — creation-ordered + deterministic within a second)
     $this->actingAs(operatorUser($s, [], 'Front Desk'))
         ->post('/app/reservations/create', bookingPayload($s, ['rules_agreed' => '1']))->assertRedirect();
-    expect(Reservation::query()->latest('created_at')->firstOrFail()->house_rules_ack_at)->not->toBeNull();
+    expect(Reservation::query()->orderByDesc('id')->firstOrFail()->house_rules_ack_at)->not->toBeNull();
 
-    // not ticked → no ack (never a fabricated one)
+    // not ticked → no ack (never a fabricated one); the second booking really is created (2 total)
     $this->actingAs(operatorUser($s, [], 'Front Desk'))
         ->post('/app/reservations/create', bookingPayload($s, ['unit_id' => $s['units'][1]->id, 'check_in' => '2026-09-06', 'check_out' => '2026-09-08']))->assertRedirect();
-    expect(Reservation::query()->latest('created_at')->firstOrFail()->house_rules_ack_at)->toBeNull();
+    expect(Reservation::query()->count())->toBe(2);
+    expect(Reservation::query()->orderByDesc('id')->firstOrFail()->house_rules_ack_at)->toBeNull();
 });
 
 it('stores the guest country and stay note on a new guest', function () {
@@ -292,4 +294,29 @@ it('sends the guest confirmation by default but suppresses it when the operator 
             'guest_email' => 'ada@example.test', 'send_confirmation' => '0',
         ]))->assertRedirect();
     Mail::assertNotQueued(BookingConfirmationMail::class);
+});
+
+// ── GATE 1 B.2 — the rate-plan selector books at the CHOSEN plan's server-derived price (real plans only) ──
+
+it('books at the selected rate plan’s server-derived price, never the default', function () {
+    $s = ratedScenario(1, 10000);   // default plan: €100/night
+    // a SECOND real, active, priced plan for the same room type — cheaper (€80/night)
+    $plan2 = RatePlan::create(['property_id' => $s['property']->id, 'room_type_id' => $s['roomType']->id, 'name' => 'Non-refundable', 'currency' => 'EUR']);
+    app(RateAndRestrictionService::class)->setRate($plan2, '2026-09-01', '2026-09-10', Money::of(8000, 'EUR'));
+
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, ['rate_plan_id' => $plan2->id]))->assertRedirect();
+
+    $res = Reservation::query()->orderByDesc('id')->firstOrFail();
+    // 3 nights × €80 (the chosen plan), NOT 3 × €100 — proves the server re-derived the chosen plan's price.
+    expect((int) $res->total_minor)->toBe(24000);
+    expect((string) ReservationUnit::query()->where('reservation_id', $res->id)->value('rate_plan_id'))->toBe((string) $plan2->id);
+});
+
+it('ignores a rate plan that is not a real priced plan of the room type (falls back to the default)', function () {
+    $s = ratedScenario(1, 10000);
+    // a nonexistent/foreign plan id → the server ignores it (never trusts a client plan), uses the default (3 × €100)
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->post('/app/reservations/create', bookingPayload($s, ['rate_plan_id' => 'nonexistent-plan-000000000']))->assertRedirect();
+    expect((int) Reservation::query()->orderByDesc('id')->firstOrFail()->total_minor)->toBe(30000);
 });

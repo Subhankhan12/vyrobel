@@ -49,7 +49,9 @@ class UnitAvailabilityService
      *
      * @return list<array{
      *   room_type_id: string, room_type_name: string, rate_plan_id: ?string, currency: string,
-     *   nights: int, price_minor: int, priced: bool, units: list<array{id: string, code: string, name: string}>
+     *   nights: int, price_minor: int, priced: bool,
+     *   plans: list<array{id: string, name: string, price_minor: int, currency: string}>,
+     *   units: list<array{id: string, code: string, name: string}>
      * }>
      */
     public function availableRoomTypes(string $propertyId, string $checkIn, string $checkOut): array
@@ -116,6 +118,21 @@ class UnitAvailabilityService
             $plan = $this->primaryRatePlan($roomType);
             [$priceMinor, $priced, $currency] = $this->priceOverStay($plan, $nights);
 
+            // All REAL active + priced rate plans for this room type over the stay (the operator's selector).
+            // Server-derived prices only — the client never supplies a price; an unpriced plan isn't offered.
+            $plans = [];
+            foreach ($roomType->ratePlans as $rp) {
+                [$rpPrice, $rpPriced, $rpCurrency] = $this->priceOverStay($rp, $nights);
+                if ($rpPriced && $rpCurrency === $currency) {
+                    $plans[] = [
+                        'id' => (string) $rp->getKey(),
+                        'name' => (string) $rp->name,
+                        'price_minor' => $rpPrice,
+                        'currency' => $rpCurrency,
+                    ];
+                }
+            }
+
             $result[] = [
                 'room_type_id' => $rtId,
                 'room_type_name' => (string) $roomType->name,
@@ -124,6 +141,7 @@ class UnitAvailabilityService
                 'nights' => count($nights),
                 'price_minor' => $priceMinor,
                 'priced' => $priced,
+                'plans' => $plans,   // >1 → a real rate-plan selector; 1 → shown honestly; never a fabricated discount
                 'units' => $freeUnits,
             ];
         }

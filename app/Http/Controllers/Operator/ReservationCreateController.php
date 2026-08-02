@@ -117,7 +117,12 @@ class ReservationCreateController extends Controller
         }
 
         $currency = (string) $offered['currency'];
-        $roomChargeMinor = (int) $offered['price_minor'];
+        // Rate-plan selector — honor a chosen plan ONLY if it is a REAL, priced active plan of this room type
+        // for these dates (its price is re-derived server-side by the availability read; a client-sent price or
+        // plan is never trusted). Otherwise the default primary plan. No fabricated discount plans (#39).
+        $chosenPlan = collect($offered['plans'])->firstWhere('id', trim((string) $request->input('rate_plan_id', '')));
+        $ratePlanId = is_array($chosenPlan) ? (string) $chosenPlan['id'] : (string) $offered['rate_plan_id'];
+        $roomChargeMinor = is_array($chosenPlan) ? (int) $chosenPlan['price_minor'] : (int) $offered['price_minor'];
 
         $adults = max(1, min(30, (int) $request->input('adults', 1)));
         $children = max(0, min(30, (int) $request->input('children', 0)));
@@ -171,7 +176,7 @@ class ReservationCreateController extends Controller
                 [[
                     'room_type_id' => $roomTypeId,
                     'unit_id' => $unitId,
-                    'rate_plan_id' => $offered['rate_plan_id'],
+                    'rate_plan_id' => $ratePlanId,
                     'check_in' => $checkIn,
                     'check_out' => $checkOut,
                     'adults' => $adults,

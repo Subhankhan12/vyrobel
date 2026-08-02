@@ -93,6 +93,7 @@
                         <input type="hidden" name="check_out" value="{{ $checkOut }}">
                         <input type="hidden" name="room_type_id" x-model="roomTypeId">
                         <input type="hidden" name="unit_id" x-model="unitId">
+                        <input type="hidden" name="rate_plan_id" x-model="ratePlanId">
                         <input type="hidden" name="transfer_trip" x-model="transferTrip">
                         <input type="hidden" name="apply_credit" x-bind:value="applyCredit ? '1' : ''">
 
@@ -112,8 +113,22 @@
                             @endif
 
                             <div class="vyn-grid3" style="margin-top: 14px;">
-                                <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="ad">Adults</label><input id="ad" type="number" name="adults" class="vy-input" min="1" max="30" x-model.number="adults"></div>
-                                <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="ch">Children</label><input id="ch" type="number" name="children" class="vy-input" min="0" max="30" x-model.number="children"></div>
+                                <div class="vy-field" style="margin: 0;"><label class="vy-field-label">Adults</label>
+                                    <div class="vy-nr-counter">
+                                        <button type="button" x-on:click="adults = Math.max(1, adults - 1)" x-bind:disabled="adults <= 1" aria-label="Fewer adults">−</button>
+                                        <span x-text="adults"></span>
+                                        <button type="button" x-on:click="adults = Math.min(30, adults + 1)" aria-label="More adults">+</button>
+                                    </div>
+                                    <input type="hidden" name="adults" x-model.number="adults">
+                                </div>
+                                <div class="vy-field" style="margin: 0;"><label class="vy-field-label">Children</label>
+                                    <div class="vy-nr-counter">
+                                        <button type="button" x-on:click="children = Math.max(0, children - 1)" x-bind:disabled="children <= 0" aria-label="Fewer children">−</button>
+                                        <span x-text="children"></span>
+                                        <button type="button" x-on:click="children = Math.min(30, children + 1)" aria-label="More children">+</button>
+                                    </div>
+                                    <input type="hidden" name="children" x-model.number="children">
+                                </div>
                             </div>
 
                             <div class="vy-nr-sub" style="margin-top: 16px;">Unit · availability for these dates</div>
@@ -195,8 +210,24 @@
                         {{-- STEP 3 — Rate & extras --}}
                         <section class="vy-card" x-show="step === 3" x-cloak>
                             <h2 class="vy-card-title">Rate &amp; extras</h2>
-                            <p class="vy-nr-hint">The nightly rate is set; add anything the guest wants — each is a real line on the folio.</p>
-                            <div class="vy-nr-sub" style="margin-top: 12px;">Extras</div>
+                            <p class="vy-nr-hint">Pick the rate plan, then add anything the guest wants — each is a real line on the folio.</p>
+
+                            {{-- Rate-plan selector — REAL active plans of the chosen room type (server-priced over the
+                                 stay). >1 → a selector; exactly 1 → shown honestly. No fabricated discount plans (#39). --}}
+                            <div x-show="plansFor().length > 1" style="margin-top: 12px;">
+                                <div class="vy-nr-sub">Rate plan</div>
+                                <div class="vy-nr-plans">
+                                    <template x-for="p in plansFor()" :key="p.id">
+                                        <button type="button" class="vy-nr-plan" x-bind:class="ratePlanId === p.id ? 'is-on' : ''" x-on:click="pickPlan(p.id, p.price_minor)">
+                                            <span class="vy-nr-plan-name" x-text="p.name"></span>
+                                            <span class="vy-nr-plan-price" x-text="fmt(p.price_minor) + ' · stay'"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                            <div x-show="roomTypeId && plansFor().length === 1" class="vy-nr-hint" style="margin-top: 12px;">Rate plan: <strong x-text="(plansFor()[0] &amp;&amp; plansFor()[0].name) || '—'"></strong> · <span x-text="fmt(roomMinor)"></span> for the stay.</div>
+
+                            <div class="vy-nr-sub" style="margin-top: 14px;">Extras</div>
                             @forelse ($extras as $ex)
                                 <label class="vyn-extra">
                                     <input type="checkbox" name="extras[]" value="{{ $ex['id'] }}" x-model="extras">
@@ -314,9 +345,11 @@
             const EXTRAS = @js(collect($extras)->map(fn ($e) => ['id' => $e['id'], 'price' => $e['price_minor'], 'taxable' => $e['taxable'], 'basis' => $e['basis']])->all());
             const TAXES = @js(collect($taxes)->map(fn ($t) => ['mode' => $t['mode'], 'rate' => $t['rate'], 'amount' => $t['amount_minor']])->all());
             const NIGHTS = @js($nights);
+            // room_type_id → its REAL active/priced rate plans (default first) — drives the plan selector.
+            const PLANS = @js(collect($roomTypes)->mapWithKeys(fn ($rt) => [$rt['room_type_id'] => ['default' => $rt['rate_plan_id'], 'list' => $rt['plans']]])->all());
             return {
                 step: 1,
-                roomTypeId: '', unitId: '', unitCode: '', roomMinor: 0,
+                roomTypeId: '', unitId: '', unitCode: '', roomMinor: 0, ratePlanId: '',
                 adults: 2, children: 0,
                 guestMode: @js($guestMatches !== [] ? 'existing' : 'new'),
                 existingGuestName: '', newFirst: '', newLast: '',
@@ -328,7 +361,9 @@
                     const ci = this.$refs.ciInput.value, co = this.$refs.coInput.value;
                     if (ci && co) window.location = '{{ route('app.reservations.create') }}?check_in=' + ci + '&check_out=' + co;
                 },
-                pickUnit(rt, id, priceMajor) { this.roomTypeId = rt; this.unitId = id; this.roomMinor = priceMajor; this.unitCode = event.target.closest('label').textContent.trim(); this.persist(); },
+                pickUnit(rt, id, priceMajor) { this.roomTypeId = rt; this.unitId = id; this.roomMinor = priceMajor; this.ratePlanId = (PLANS[rt] && PLANS[rt].default) || ''; this.unitCode = event.target.closest('label').textContent.trim(); this.persist(); },
+                plansFor() { return (PLANS[this.roomTypeId] && PLANS[this.roomTypeId].list) || []; },
+                pickPlan(planId, priceMinor) { this.ratePlanId = planId; this.roomMinor = priceMinor; this.persist(); },
                 guests() { return Math.max(1, this.adults + this.children); },
                 extrasMinor() {
                     let sum = 0;
@@ -412,6 +447,24 @@
         .vyn-guest-av { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-accent-wash,#F6E4D6); color: var(--vy-accent); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
         .vyn-check { font-size: 12.5px; color: var(--vy-ink); display: inline-flex; gap: 7px; align-items: center; cursor: pointer; }
         .vyn-extra { display: flex; gap: 11px; align-items: center; padding: 11px 12px; border: 1px solid var(--vy-hairline); border-radius: 10px; margin-top: 8px; font-size: 13px; cursor: pointer; }
+        /* GATE 1 B.2 — extras rendered as on/off TOGGLE SWITCHES (prototype-exact); the checkbox still submits. */
+        .vyn-extra input[type="checkbox"] { appearance: none; -webkit-appearance: none; position: relative; width: 38px; height: 22px; border-radius: 22px; background: rgba(120, 70, 40, 0.18); border: none; cursor: pointer; flex: none; order: 3; margin: 0; transition: background 0.18s; }
+        .vyn-extra input[type="checkbox"]::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28); transition: left 0.18s; }
+        .vyn-extra input[type="checkbox"]:checked { background: var(--vy-grad); }
+        .vyn-extra input[type="checkbox"]:checked::after { left: 19px; }
+        /* rate-plan selector cards */
+        .vy-nr-plans { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .vy-nr-plan { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.5); cursor: pointer; text-align: left; font-family: var(--vy-sans); transition: border-color 0.14s, background 0.14s; }
+        .vy-nr-plan:hover { background: rgba(255, 255, 255, 0.78); }
+        .vy-nr-plan.is-on { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.08); box-shadow: 0 0 0 1px var(--vy-accent-border); }
+        .vy-nr-plan-name { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
+        .vy-nr-plan-price { font-size: 12px; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
+        /* guest counters */
+        .vy-nr-counter { display: inline-flex; align-items: center; gap: 14px; padding: 5px 8px; border: 1px solid var(--vy-hairline); border-radius: 12px; background: rgba(255, 255, 255, 0.5); }
+        .vy-nr-counter button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.7); color: var(--vy-accent); font-size: 18px; line-height: 1; cursor: pointer; display: grid; place-items: center; transition: background 0.14s; }
+        .vy-nr-counter button:hover:not(:disabled) { background: rgba(232, 112, 58, 0.1); }
+        .vy-nr-counter button:disabled { opacity: 0.4; cursor: default; }
+        .vy-nr-counter span { min-width: 20px; text-align: center; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
         .vy-nr-doorcode { font-size: 12px; color: var(--vy-muted); background: rgba(31,110,75,.07); border-radius: 10px; padding: 11px 13px; margin-top: 14px; }
         .vy-nr-rules, .vyn-rules { display: grid; gap: 1px; }
         .vyn-rules > div { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
