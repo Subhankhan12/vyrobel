@@ -83,7 +83,9 @@ class UnitAvailabilityService
         }
 
         /** @var Collection<string, Collection<int, Unit>> $unitsByRoomType */
-        $unitsByRoomType = Unit::query()->whereIn('room_type_id', $roomTypeIds)->orderBy('code')->get()->groupBy('room_type_id');
+        // BOOKABLE units only — never offer a paused / out-of-service unit for a NEW booking (it isn't in the
+        // availability count either, so offering it would be an unbookable, non-reconciling option).
+        $unitsByRoomType = Unit::query()->bookable()->whereIn('room_type_id', $roomTypeIds)->orderBy('code')->get()->groupBy('room_type_id');
         $unitIds = $unitsByRoomType->flatten()->map(fn (Unit $u): string => (string) $u->getKey())->all();
 
         $occupied = $this->occupiedUnitIds($unitIds, $firstNight, $outExclusive);
@@ -170,7 +172,8 @@ class UnitAvailabilityService
         $in = CarbonImmutable::parse($checkIn)->toDateString();
         $outExclusive = CarbonImmutable::parse($checkOut)->toDateString();
 
-        $units = Unit::query()->where('room_type_id', $roomTypeId)->orderBy('code')->get();
+        // BOOKABLE units only — a move/assign target must never be a paused / out-of-service unit.
+        $units = Unit::query()->bookable()->where('room_type_id', $roomTypeId)->orderBy('code')->get();
         if ($units->isEmpty()) {
             return [];
         }

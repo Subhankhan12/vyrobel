@@ -7,6 +7,7 @@ use App\Models\Concerns\BelongsToOwner;
 use App\Models\Concerns\HasAmenities;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasNotes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -92,6 +93,22 @@ class Unit extends Model
     public function floor(): BelongsTo
     {
         return $this->belongsTo(Floor::class);
+    }
+
+    /**
+     * BOOKABLE units only: active (not owner-paused, #69) AND in service (not maintenance out-of-service/
+     * out-of-order). This is EXACTLY the set the availability count treats as sellable — AvailabilityService
+     * counts only `is_active` units in `total` and subtracts the out-of-service ones — so any read that offers
+     * a unit for a NEW booking must use this scope, or it will offer a unit the count already excluded (an
+     * unbookable, non-reconciling option). Occupancy / block overlap is a separate, date-scoped check.
+     *
+     * @param  Builder<Unit>  $query
+     * @return Builder<Unit>
+     */
+    public function scopeBookable(Builder $query): Builder
+    {
+        return $query->where('is_active', true)
+            ->whereNotIn('condition_status', ['out_of_order', 'out_of_service']);
     }
 
     public function inventoryBlocks(): HasMany
