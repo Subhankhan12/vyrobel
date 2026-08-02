@@ -245,7 +245,11 @@ class ReservationCreateController extends Controller
             }
         }
 
-        return redirect()->to(route('app.reservations.show', $reservation->getKey()))->with('folio_notice', $notice);
+        // PRG to the in-wizard DONE screen (the wireframe's success card: reference + self-check-in QR),
+        // carrying the notice. "View reservation" on that card links to the folio/detail — so the reservation
+        // page stays one click away, it is just no longer the landing.
+        return redirect()->to(route('app.reservations.create', ['created' => $reservation->getKey()]))
+            ->with('folio_notice', $notice);
     }
 
     /**

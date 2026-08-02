@@ -14,6 +14,66 @@
      read-only (#84) is shown here AND enforced server-side; property context (#38) is resolved by middleware
      and shown as the sublabel (cross-property writes are blocked in the controller); the route stays gated
      (#20/#26/#30). RAW-BLADE RULE: Alpine uses x-on:/x-model/x-bind (no `@click`). --}}
+@if ($done)
+    {{-- GATE 1 · Part B — the in-wizard DONE screen (the wireframe's success card). Landed here by PRG after a
+         real create. The QR encodes the guard-protected guest-portal check-in URL (a convenience deep-link, not
+         an auth-bypass or a fabricated code — the guest still signs in). "View reservation" keeps the folio one
+         click away. Single Livewire root (only this branch renders when $done). --}}
+    <div class="vy-nr-standalone">
+        <div class="vy-nr-topbar vy-fade">
+            <div class="vy-nr-brand">
+                <span class="vy-nr-logo">V</span>
+                <span class="vy-nr-brand-id">
+                    <span class="vy-nr-brand-title">Reservation confirmed</span>
+                    <span class="vy-nr-brand-sub">{{ $subtitle !== '' ? $subtitle : 'Direct entry' }} · direct entry</span>
+                </span>
+            </div>
+            <a class="vy-nr-close" href="{{ route('app.reservations') }}" title="Close" aria-label="Close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+            </a>
+        </div>
+        <div class="vy-nr-donewrap vy-fade-up">
+            <div class="vy-nr-donecheck">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
+            </div>
+            <div class="vy-nr-donetitle">Reservation confirmed</div>
+            <div class="vy-nr-doneref">Reference <span class="vy-u-code">{{ $done['ref'] }}</span> · it’s on the rack now</div>
+            <div class="vy-nr-qr">{!! $done['qr'] !!}</div>
+            <div class="vy-nr-qrlabel">Self check-in code</div>
+            <div class="vy-nr-qrsub">{{ $done['guest'] }} scans to open online check-in from {{ $done['check_in_time'] }} — in the guest portal (they sign in first). No check-in code is stored here.</div>
+            <div class="vy-nr-doneactions">
+                <a href="{{ $done['show_url'] }}" class="vy-nr-donebtn is-primary">View reservation</a>
+                <a href="{{ $done['create_url'] }}" class="vy-nr-donebtn">New reservation</a>
+            </div>
+        </div>
+        <style>
+            /* done-screen chrome, self-contained: the wizard style block renders only in the other branch */
+            .vy-nr-standalone { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 24px 30px 60px; box-sizing: border-box; }
+            .vy-nr-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+            .vy-nr-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+            .vy-nr-logo { width: 36px; height: 36px; border-radius: 10px; background: var(--vy-grad); color: #fff; font-family: var(--vy-display); font-weight: 600; font-size: 18px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); flex: none; }
+            .vy-nr-brand-title { display: block; font-family: var(--vy-display); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; line-height: 1.2; }
+            .vy-nr-brand-sub { display: block; font-size: 12px; color: var(--vy-faint); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .vy-nr-close { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); color: var(--vy-muted); display: grid; place-items: center; text-decoration: none; transition: background 0.14s; flex: none; }
+            .vy-nr-close:hover { background: rgba(255, 255, 255, 0.9); color: var(--vy-ink); }
+            /* done card */
+            .vy-nr-donewrap { max-width: 460px; margin: 22px auto 0; padding: 40px 34px 34px; text-align: center; border-radius: 22px; background: rgba(255, 252, 248, 0.72); backdrop-filter: blur(26px) saturate(1.2); -webkit-backdrop-filter: blur(26px) saturate(1.2); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-lg, 0 22px 60px -24px rgba(60, 40, 24, 0.32)); }
+            .vy-nr-donecheck { width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%; background: var(--vy-grad); color: #fff; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
+            .vy-nr-donetitle { font-family: var(--vy-display); font-weight: 600; font-size: 22px; letter-spacing: -0.02em; color: var(--vy-ink); }
+            .vy-nr-doneref { margin-top: 6px; font-size: 13.5px; color: var(--vy-muted); }
+            .vy-nr-doneref .vy-u-code { font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
+            .vy-nr-qr { width: 190px; height: 190px; margin: 26px auto 12px; padding: 12px; background: #fff; border-radius: 16px; border: 1px solid var(--vy-hairline); box-shadow: 0 8px 24px -12px rgba(60, 40, 24, 0.28); }
+            .vy-nr-qr svg { width: 100%; height: 100%; display: block; }
+            .vy-nr-qrlabel { font-size: 13px; font-weight: 600; color: var(--vy-ink); }
+            .vy-nr-qrsub { margin: 5px auto 0; max-width: 340px; font-size: 12px; line-height: 1.5; color: var(--vy-faint); }
+            .vy-nr-doneactions { display: flex; gap: 10px; margin-top: 26px; }
+            .vy-nr-donebtn { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; text-decoration: none; text-align: center; transition: background 0.14s, border-color 0.14s; }
+            .vy-nr-donebtn:hover { background: rgba(255, 255, 255, 0.9); }
+            .vy-nr-donebtn.is-primary { background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: var(--vy-shadow-accent); }
+            @media (max-width: 760px) { .vy-nr-standalone { padding: 18px 16px 48px; } }
+        </style>
+    </div>
+@else
 <div class="vy-nr-standalone" @if ($hasProperty) x-data="newReservationWizard()" x-init="init()" @endif>
     <div class="vy-nr-topbar vy-fade">
         <div class="vy-nr-brand">
@@ -373,7 +433,7 @@
                         <div class="vy-nr-sumline" x-show="extrasMinor() > 0"><span>Extras</span><span class="vy-u-code" x-text="fmt(extrasMinor())"></span></div>
                         <div class="vy-nr-sumline" x-show="applyCredit && guestMode === 'existing'"><span>Returning-guest credit</span><span class="vy-u-code" style="color:#1F8A5B;">applied on confirm</span></div>
                         <div class="vy-nr-sumline" x-show="taxMinor() > 0"><span>Taxes</span><span class="vy-u-code" x-text="fmt(taxMinor())"></span></div>
-                        <div class="vy-nr-sumline vy-nr-sumtotal"><span>Estimated total</span><span class="vy-u-code" x-text="fmt(totalMinor())"></span></div>
+                        <div class="vy-nr-sumline vy-nr-sumtotal"><span>Estimated total</span><span class="vy-u-code" x-text="fmt(Math.round(animTotal))"></span></div>
                         <p class="vy-nr-esthint">An estimate — the exact total (with any wallet credit) is on the reservation folio once created.</p>
                     </aside>
                 </div>
@@ -396,9 +456,16 @@
                 extras: [], transferTrip: 'one', applyCredit: false,
                 arrivalWindow: '', rulesAgreed: false, payMethod: 'later',
                 depositChoice: 'nothing', payAmount: '',
-                draftRestored: false,
+                draftRestored: false, animTotal: 0,
                 cal: { y: 2026, m: 0, start: @js((string) $checkIn), end: @js((string) $checkOut), hover: '' },
-                init() { this.calInit(); this.restore(); this.$watch('step', () => this.persist()); },
+                init() { this.calInit(); this.restore(); this.animTotal = this.totalMinor(); this.tickTotal(); this.$watch('step', () => this.persist()); },
+                // Running-total count-up (eases toward the real total on change); snaps when reduced-motion is on.
+                tickTotal() {
+                    const target = this.totalMinor();
+                    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { this.animTotal = target; }
+                    else { this.animTotal += (target - this.animTotal) * 0.2; if (Math.abs(target - this.animTotal) < 1) this.animTotal = target; }
+                    requestAnimationFrame(() => this.tickTotal());
+                },
                 // ── Dual-month drag-range calendar ──────────────────────────────────────────────────────────
                 calInit() { const base = this.cal.start ? new Date(this.cal.start + 'T00:00') : new Date(); this.cal.y = base.getFullYear(); this.cal.m = base.getMonth(); },
                 calYM(off) { const d = new Date(this.cal.y, this.cal.m + off, 1); return { y: d.getFullYear(), m: d.getMonth() }; },
@@ -627,3 +694,4 @@
         @media (max-width: 760px) { .vy-nr-node-label { display: none; } .vy-nr-standalone { padding: 18px 16px 48px; } }
     </style>
 </div>
+@endif

@@ -66,7 +66,9 @@ it('creates a real reservation through the certified createBooking path', functi
 
     // A guest was created via the real path, and the reservation exists — confirmed, direct, its unit seated.
     $reservation = Reservation::query()->latest('created_at')->firstOrFail();
-    $response->assertRedirect(route('app.reservations.show', $reservation->id))->assertSessionHas('folio_notice');
+    // PRG lands on the in-wizard DONE screen (?created=<id>), carrying the folio notice.
+    $response->assertRedirect(route('app.reservations.create', ['created' => $reservation->id]))
+        ->assertSessionHas('folio_notice');
 
     expect((string) $reservation->status)->toBe('confirmed')
         ->and((string) $reservation->source)->toBe('direct')
@@ -178,10 +180,10 @@ it('refuses the payment (and the booking) when the actor lacks payments.record',
         ->assertRedirect()->assertSessionHas('new_reservation_notice');
     expect(Reservation::query()->count())->toBe(0);
 
-    // …but the SAME agent CAN create a booking with no payment (the normal flow).
+    // …but the SAME agent CAN create a booking with no payment (the normal flow) → the done screen.
     $this->actingAs(operatorUser($s, ['name' => 'Rae Agent'], 'Reservation Agent'))
         ->post('/app/reservations/create', bookingPayload($s))   // no payment_method → 'later'
-        ->assertRedirect(route('app.reservations.show', Reservation::query()->latest('created_at')->firstOrFail()->id));
+        ->assertRedirect(route('app.reservations.create', ['created' => Reservation::query()->latest('created_at')->firstOrFail()->id]));
     expect(Reservation::query()->count())->toBe(1);
 });
 
@@ -331,4 +333,28 @@ it('caps a manual payment at the folio balance so a full/over-deposit collects o
     $payment = Payment::query()->where('reservation_id', $res->id)->where('type', 'payment')->firstOrFail();
     expect((int) $payment->amount_minor)->toBe(30000)        // capped at the €300 owed, NOT the €500 entered
         ->and((int) $res->fresh()->balance_minor)->toBe(0);  // paid in full, reconciles (#17)
+});
+
+// ── GATE 1 B.2 — the in-wizard DONE screen (reference + a REAL self-check-in QR deep-link) ──
+it('renders the done screen with the reference and an inline self-check-in QR after a create', function () {
+    $s = ratedScenario(1, 10000);
+    $frontDesk = operatorUser($s, [], 'Front Desk');
+    $this->actingAs($frontDesk)->post('/app/reservations/create', bookingPayload($s))->assertRedirect();
+    $reservation = Reservation::query()->latest('created_at')->firstOrFail();
+
+    $this->actingAs($frontDesk)
+        ->get(route('app.reservations.create', ['created' => $reservation->id]))
+        ->assertOk()
+        ->assertSee('Reservation confirmed')
+        ->assertSee((string) $reservation->reference)
+        ->assertSee('Self check-in code')
+        ->assertSee('<svg', false);   // the QR rendered inline (BaconQrCode SVG backend)
+});
+
+it('shows the normal wizard (never a done card) for a non-existent created id', function () {
+    $s = ratedScenario(1, 10000);
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->get(route('app.reservations.create', ['created' => '01JUNKJUNKJUNKJUNKJUNKJUNK']))
+        ->assertOk()
+        ->assertDontSee('Self check-in code');
 });

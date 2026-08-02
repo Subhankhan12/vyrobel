@@ -10,9 +10,11 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\AddOn;
 use App\Models\Guest;
 use App\Models\Property;
+use App\Models\Reservation;
 use App\Models\Tax;
 use App\Services\AssignmentService;
 use App\Services\UnitAvailabilityService;
+use App\Support\QrSvg;
 use App\Support\Reservations\ReservationExtras;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -98,7 +100,45 @@ class NewReservation extends Component
             'extras' => $property !== null ? $this->extrasFor((string) $property->getKey()) : [],
             'taxes' => $property !== null ? $this->taxesFor((string) $property->getKey()) : [],
             'houseRules' => $property !== null ? $this->houseRules($property) : [],
+            // GATE 1 · Part B — the in-wizard DONE screen after a successful create (PRG → ?created=<id>).
+            'done' => $this->done(),
         ]);
+    }
+
+    /**
+     * The post-create DONE payload (the wireframe's success card), or null during the normal wizard. Loads the
+     * just-created reservation TENANT-scoped (the global org scope guarantees isolation — a foreign/bogus id
+     * returns null → the normal wizard). The self-check-in QR encodes the REAL, guard-protected guest-portal
+     * check-in URL: a convenience deep-link (the guest still authenticates), never a fabricated code or a
+     * check-in that bypasses the guest guard.
+     *
+     * @return array{ref: string, guest: string, qr: string, check_in_time: string, show_url: string, create_url: string}|null
+     */
+    private function done(): ?array
+    {
+        $id = request()->query('created');
+        if (! is_string($id) || $id === '') {
+            return null;
+        }
+
+        $reservation = Reservation::query()->with(['property', 'leadGuest'])->find($id);
+        if ($reservation === null) {
+            return null;
+        }
+
+        $property = $reservation->property;
+        $checkInTime = $property?->check_in_time !== null ? substr((string) $property->check_in_time, 0, 5) : '15:00';
+        $guest = $reservation->leadGuest;
+        $guestName = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
+
+        return [
+            'ref' => (string) $reservation->reference,
+            'guest' => $guestName !== '' ? $guestName : 'the guest',   // NAME only (#28)
+            'qr' => QrSvg::of(route('guest.checkin', $reservation->getKey()), 190),
+            'check_in_time' => $checkInTime,
+            'show_url' => route('app.reservations.show', $reservation->getKey()),
+            'create_url' => route('app.reservations.create'),
+        ];
     }
 
     /**
