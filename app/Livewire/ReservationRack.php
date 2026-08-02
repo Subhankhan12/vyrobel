@@ -188,11 +188,12 @@ class ReservationRack extends Component
     }
 
     /**
-     * The inline NEW-RESERVATION panel payload — a two-phase, RMB-safe flow (invariant #20): the operator
-     * enters guest + dates (a GET "Check rack"); when the dates are valid we compute the REAL bookable units
-     * via the certified {@see UnitAvailabilityService} (the SAME read the full form + the write path use), and
-     * each unit's Confirm is a POST to the certified {@see ReservationCreateController}
-     * → {@see AssignmentService::createBooking} (row-lock non-overlap). Nothing here writes.
+     * The NEW-RESERVATION MODAL payload — a two-phase, RMB-safe flow (invariant #20): the operator enters
+     * guest + dates (a GET "Check rack"); when the dates are valid we compute the REAL bookable units via the
+     * certified {@see UnitAvailabilityService} (the SAME read the full form + the write path use), the operator
+     * picks one, and Confirm is a POST to the certified {@see ReservationCreateController}
+     * → {@see AssignmentService::createBooking} (row-lock non-overlap). Nothing here writes; the modal never
+     * sends a price (the server re-derives the stay total).
      *
      * @return array<string, mixed>
      */
@@ -211,23 +212,28 @@ class ReservationRack extends Component
         ];
 
         $nights = 0;
-        $options = [];
+        $units = [];
         if ($open && $propertyId !== null && $form['check_out'] > $form['check_in']) {
             $nights = (int) CarbonImmutable::parse($form['check_in'])->diffInDays(CarbonImmutable::parse($form['check_out']));
 
+            // Flatten to a single radio list of bookable UNITS (the modal's room list), each carrying the REAL
+            // server-derived stay total (price_minor is the sum over the nights — never a client-supplied price).
             foreach (app(UnitAvailabilityService::class)->availableRoomTypes($propertyId, $form['check_in'], $form['check_out']) as $rt) {
                 if ($rt['priced'] !== true || $rt['units'] === []) {
                     continue;   // only offer genuinely bookable + priced room types
                 }
-                $options[] = [
-                    'room_type_id' => (string) $rt['room_type_id'],
-                    'room_type_name' => (string) $rt['room_type_name'],
-                    'rate' => MoneyFormatter::display((int) $rt['price_minor'], (string) $rt['currency']),
-                    'units' => array_map(static fn (array $u): array => [
-                        'id' => (string) $u['id'],
-                        'label' => (string) $u['code'],
-                    ], $rt['units']),
-                ];
+                $totalMinor = (int) $rt['price_minor'];
+                $currency = (string) $rt['currency'];
+                foreach ($rt['units'] as $u) {
+                    $units[] = [
+                        'room_type_id' => (string) $rt['room_type_id'],
+                        'room_type_name' => (string) $rt['room_type_name'],
+                        'unit_id' => (string) $u['id'],
+                        'unit_label' => (string) $u['code'],
+                        'total_minor' => $totalMinor,
+                        'total_display' => MoneyFormatter::display($totalMinor, $currency),
+                    ];
+                }
             }
         }
 
@@ -235,7 +241,7 @@ class ReservationRack extends Component
             'open' => $open,
             'form' => $form,
             'nights' => $nights,
-            'options' => $options,
+            'units' => $units,
             'checked' => $open && $form['check_out'] > $form['check_in'],
             'sources' => ['direct' => 'Direct', 'walk_in' => 'Walk-in', 'corporate' => 'Corporate', 'agent' => 'Agent'],
         ];

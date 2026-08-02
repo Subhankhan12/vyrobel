@@ -42,7 +42,7 @@
                 @endif
                 {{-- NEW RESERVATION — hidden when the workspace is read-only (writes are off when paused) --}}
                 @if (! $readOnly)
-                    <a class="vy-btn vy-btn--accent" href="?start={{ $window['start'] }}&new=1">
+                    <a class="vy-btn vy-btn--accent" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}&new=1">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                         New reservation
                     </a>
@@ -55,75 +55,129 @@
             <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:14px"><div style="font-size:13.5px;color:var(--vy-ink)">{{ $notice }}</div></div>
         @endif
 
-        {{-- INLINE NEW RESERVATION (exact-match) — two-phase: enter guest + stay (GET "Check rack") → the REAL
-             available units (UnitAvailabilityService) → Confirm = a POST to the certified ReservationCreateController
-             → AssignmentService::createBooking (row-lock non-overlap) + the real confirmation email. #20-safe. --}}
+        {{-- NEW RESERVATION MODAL (exact-match) — a frosted overlay, two-phase + #20-safe: enter guest + stay
+             (GET "Check rack") → the REAL available units (UnitAvailabilityService) → pick one → Confirm = a POST
+             to the certified ReservationCreateController → AssignmentService::createBooking (row-lock non-overlap)
+             + the real confirmation email. The client NEVER sends a price (the server re-derives the total). --}}
         @if (! $readOnly && $newRes['open'] && $property !== null)
-            <section class="vy-card vy-fade vy-newres" style="margin-bottom:16px">
-                <div class="vy-detail-head" style="margin-bottom:12px">
-                    <h2 class="vy-card-title">New reservation</h2>
-                    <span class="vy-line-sub" style="margin-top:0">{{ $property['name'] }} · direct entry</span>
-                </div>
+            <div x-data="{ open: true, dirty: false, gf: @js($newRes['form']['guest_first']), gl: @js($newRes['form']['guest_last']), adults: {{ (int) $newRes['form']['adults'] }}, source: '{{ $newRes['form']['source'] }}', sel: '', selTotal: '', selLabel: '', close() { this.open = false; history.replaceState({}, '', location.pathname + '?start={{ $window['start'] }}&days={{ $window['selected_days'] }}'); } }" x-cloak>
+                <div class="vy-modal-backdrop" x-show="open" @click="close()" style="z-index:60"
+                     x-transition.opacity>
+                    <div class="vy-modal vy-newres-modal" @click.stop>
+                        {{-- header --}}
+                        <div class="vy-modal-head">
+                            <div style="flex:1">
+                                <h2 class="vy-modal-title">New reservation</h2>
+                                <div class="vy-modal-sub">{{ $property['name'] }} · direct entry</div>
+                            </div>
+                            <button type="button" class="vy-modal-x" @click="close()" aria-label="Close">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                            </button>
+                        </div>
 
-                {{-- Phase 1: the stay + guest (GET → re-checks availability) --}}
-                <form method="GET" class="vy-newres-form">
-                    <input type="hidden" name="start" value="{{ $window['start'] }}">
-                    <input type="hidden" name="new" value="1">
-                    <div class="vy-newres-grid">
-                        <label class="vy-field"><span>Guest first name</span><input type="text" name="gf" value="{{ $newRes['form']['guest_first'] }}" placeholder="e.g. Marco" class="vy-input"></label>
-                        <label class="vy-field"><span>Guest last name</span><input type="text" name="gl" value="{{ $newRes['form']['guest_last'] }}" placeholder="e.g. Reyes" class="vy-input"></label>
-                        <label class="vy-field"><span>Adults</span><input type="number" name="adults" min="1" max="12" value="{{ $newRes['form']['adults'] }}" class="vy-input"></label>
-                        <label class="vy-field"><span>Check-in</span><input type="date" name="ci" value="{{ $newRes['form']['check_in'] }}" class="vy-input"></label>
-                        <label class="vy-field"><span>Check-out</span><input type="date" name="co" value="{{ $newRes['form']['check_out'] }}" class="vy-input"></label>
-                        <label class="vy-field"><span>Source</span>
-                            <select name="source" class="vy-input">
-                                @foreach ($newRes['sources'] as $val => $label)<option value="{{ $val }}" @selected($newRes['form']['source'] === $val)>{{ $label }}</option>@endforeach
-                            </select>
-                        </label>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
-                        <button type="submit" class="vy-btn vy-btn--accent">Check rack</button>
-                        <span class="vy-line-sub" style="margin-top:0">Matches an existing profile if the guest has stayed before.</span>
-                    </div>
-                </form>
+                        <div class="vy-modal-body">
+                            {{-- Phase 1: guest + adults stepper + stay (GET → re-checks availability) --}}
+                            <form method="GET" class="vy-newres-p1">
+                                <input type="hidden" name="start" value="{{ $window['start'] }}">
+                                <input type="hidden" name="days" value="{{ $window['selected_days'] }}">
+                                <input type="hidden" name="new" value="1">
+                                <input type="hidden" name="adults" :value="adults">
+                                {{-- source round-trips through the re-check so a picked channel survives a 'Check rack' --}}
+                                <input type="hidden" name="source" :value="source">
 
-                {{-- Phase 2: the REAL available units for the entered dates → Confirm (certified POST) --}}
-                @if ($newRes['checked'])
-                    <div style="margin-top:16px;border-top:1px solid var(--vy-hairline);padding-top:14px">
-                        <div class="vy-eyebrow" style="margin-bottom:8px">Unit · available {{ \Illuminate\Support\Carbon::parse($newRes['form']['check_in'])->format('j M') }} – {{ \Illuminate\Support\Carbon::parse($newRes['form']['check_out'])->format('j M') }} · {{ $newRes['nights'] }} {{ \Illuminate\Support\Str::plural('night', $newRes['nights']) }}</div>
-                        @forelse ($newRes['options'] as $opt)
-                            <div class="vy-newres-rt">
-                                <div class="vy-newres-rt-head">
-                                    <span class="vy-newres-rt-name">{{ $opt['room_type_name'] }}</span>
-                                    <span class="vy-newres-rt-rate">{{ $opt['rate'] }} <span style="color:var(--vy-muted);font-weight:400">· {{ $newRes['nights'] }}-night stay</span></span>
+                                <div class="vy-field-label">Guest</div>
+                                <div class="vy-newres-guest">
+                                    <input type="text" name="gf" x-model="gf" placeholder="First name" class="vy-input">
+                                    <input type="text" name="gl" x-model="gl" placeholder="Last name" class="vy-input">
+                                    <div class="vy-stepper" role="group" aria-label="Adults">
+                                        <button type="button" @click="adults = Math.max(1, adults - 1)" aria-label="Fewer adults">&minus;</button>
+                                        <span x-text="adults + (adults === 1 ? ' adult' : ' adults')"></span>
+                                        <button type="button" @click="adults = Math.min(12, adults + 1)" aria-label="More adults">+</button>
+                                    </div>
                                 </div>
-                                <div class="vy-newres-units">
-                                    @foreach ($opt['units'] as $u)
-                                        <form method="POST" action="{{ route('app.reservations.store') }}" class="vy-newres-unit">
+                                <div class="vy-help">Matches an existing profile if the guest has stayed before.</div>
+
+                                <div class="vy-field-label" style="margin-top:16px">Stay</div>
+                                <div class="vy-newres-dates">
+                                    <input type="date" name="ci" value="{{ $newRes['form']['check_in'] }}" class="vy-input" @change="dirty = true">
+                                    <input type="date" name="co" value="{{ $newRes['form']['check_out'] }}" class="vy-input" @change="dirty = true">
+                                    @if ($newRes['checked'])<span class="vy-newres-nights">{{ $newRes['nights'] }} {{ \Illuminate\Support\Str::plural('night', $newRes['nights']) }}</span>@endif
+                                </div>
+                                {{-- edited dates invalidate the checked availability below → must re-check before Confirm --}}
+                                <div class="vy-help vy-newres-dirty" x-show="dirty" x-cloak style="color:var(--vy-accent)">Dates changed — click “Check rack” to refresh availability.</div>
+
+                                <button type="submit" class="vy-btn vy-btn--accent vy-newres-check">Check rack</button>
+                            </form>
+
+                            {{-- Phase 2: the REAL available units → pick → Source → running total → Confirm (certified POST) --}}
+                            @if ($newRes['checked'])
+                                <div class="vy-field-label" style="margin-top:20px">Unit · available {{ \Illuminate\Support\Carbon::parse($newRes['form']['check_in'])->format('j M') }} – {{ \Illuminate\Support\Carbon::parse($newRes['form']['check_out'])->format('j M') }}</div>
+                                <div class="vy-newres-rooms">
+                                    @forelse ($newRes['units'] as $u)
+                                        {{-- data-* carries the (possibly apostrophe'd) room name safely into Alpine, never into a JS literal --}}
+                                        <button type="button" class="vy-newres-room"
+                                                data-unit="{{ $u['unit_id'] }}"
+                                                data-total="{{ $u['total_display'] }}"
+                                                data-label="{{ $u['room_type_name'] }} · {{ $u['unit_label'] }}"
+                                                :class="sel === '{{ $u['unit_id'] }}' ? 'is-sel' : ''"
+                                                @click="sel = $event.currentTarget.dataset.unit; selTotal = $event.currentTarget.dataset.total; selLabel = $event.currentTarget.dataset.label">
+                                            <span class="vy-newres-room-info">
+                                                <span class="vy-newres-room-name">{{ $u['room_type_name'] }} · {{ $u['unit_label'] }}</span>
+                                                <span class="vy-newres-room-sub">{{ $newRes['nights'] }}-night stay</span>
+                                            </span>
+                                            <span class="vy-newres-room-rate">{{ $u['total_display'] }}</span>
+                                            <span class="vy-newres-radio" :class="sel === '{{ $u['unit_id'] }}' ? 'on' : ''"></span>
+                                        </button>
+                                        {{-- the certified per-unit POST form (hidden); the total is NOT sent — the server re-derives it --}}
+                                        <form method="POST" action="{{ route('app.reservations.store') }}" id="resf-{{ $u['unit_id'] }}" class="vy-newres-hidden">
                                             @csrf
                                             <input type="hidden" name="check_in" value="{{ $newRes['form']['check_in'] }}">
                                             <input type="hidden" name="check_out" value="{{ $newRes['form']['check_out'] }}">
-                                            <input type="hidden" name="room_type_id" value="{{ $opt['room_type_id'] }}">
-                                            <input type="hidden" name="unit_id" value="{{ $u['id'] }}">
-                                            <input type="hidden" name="adults" value="{{ $newRes['form']['adults'] }}">
-                                            <input type="hidden" name="source" value="{{ $newRes['form']['source'] }}">
-                                            <input type="hidden" name="guest_first_name" value="{{ $newRes['form']['guest_first'] }}">
-                                            <input type="hidden" name="guest_last_name" value="{{ $newRes['form']['guest_last'] }}">
-                                            <button type="submit" class="vy-pill vy-newres-confirm">{{ $u['label'] }} · Confirm</button>
+                                            <input type="hidden" name="room_type_id" value="{{ $u['room_type_id'] }}">
+                                            <input type="hidden" name="unit_id" value="{{ $u['unit_id'] }}">
+                                            <input type="hidden" name="adults" :value="adults">
+                                            <input type="hidden" name="source" :value="source">
+                                            <input type="hidden" name="guest_first_name" :value="gf">
+                                            <input type="hidden" name="guest_last_name" :value="gl">
                                         </form>
-                                    @endforeach
+                                    @empty
+                                        <div class="vy-empty" style="padding:16px 12px">No units are free (and priced) for those dates — try other dates.</div>
+                                    @endforelse
                                 </div>
-                            </div>
-                        @empty
-                            <div class="vy-empty" style="padding:18px 12px">No units are free (and priced) for those dates — try other dates.</div>
-                        @endforelse
-                        <div class="vy-line-sub" style="margin-top:12px;font-size:12px">
-                            Confirming creates a real booking on the certified engine · the guest gets a confirmation email · it appears on the rack immediately.
-                            <a href="{{ route('app.reservations.create', ['check_in' => $newRes['form']['check_in'], 'check_out' => $newRes['form']['check_out']]) }}" style="color:var(--vy-accent);font-weight:600">Need rate plans, extras &amp; payment? Open the full form →</a>
+
+                                @if (count($newRes['units']) > 0)
+                                    <div class="vy-field-label" style="margin-top:16px">Source</div>
+                                    <div class="vy-newres-sources">
+                                        @foreach ($newRes['sources'] as $val => $label)
+                                            <button type="button" class="vy-source-pill" :class="source === '{{ $val }}' ? 'on' : ''" @click="source = '{{ $val }}'">{{ $label }}</button>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="vy-newres-total">
+                                        <span class="vy-newres-total-lbl" x-text="sel ? selLabel : 'Pick a unit above'"></span>
+                                        <span class="vy-newres-total-amt" x-text="sel ? selTotal : '—'"></span>
+                                    </div>
+                                @endif
+                            @endif
+                        </div>
+
+                        {{-- footer actions --}}
+                        <div class="vy-modal-foot vy-newres-foot">
+                            @if ($newRes['checked'] && count($newRes['units']) > 0)
+                                {{-- one Confirm: submit the SELECTED unit's certified form. The :value bindings above
+                                     are flushed by the time this later click fires (no same-tick set+submit race). --}}
+                                <button type="button" class="vy-btn vy-btn--accent" :disabled="! sel || dirty"
+                                        @click="sel && ! dirty && document.getElementById('resf-' + sel).requestSubmit()">Confirm reservation</button>
+                            @endif
+                            <button type="button" class="vy-btn vy-newres-cancel" @click="close()">Cancel</button>
+                        </div>
+                        <div class="vy-newres-note">
+                            Creates a real booking on the certified engine · the guest gets a confirmation email · you land on the confirmation (with a self-check-in QR).
+                            <a href="{{ route('app.reservations.create', ['check_in' => $newRes['form']['check_in'], 'check_out' => $newRes['form']['check_out']]) }}">Need rate plans, extras &amp; payment? Open the full form →</a>
                         </div>
                     </div>
-                @endif
-            </section>
+                </div>
+            </div>
         @endif
 
         @if ($property === null || count($rows) === 0)

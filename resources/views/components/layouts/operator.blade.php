@@ -471,6 +471,44 @@
         .vy-unit-state.state-out_of_service { color: #9a4a24; background: rgba(194, 65, 12, 0.12); }
         .vy-unit-row.is-paused .vy-unit-code, .vy-unit-row.is-out_of_service .vy-unit-code { color: var(--vy-muted); }
 
+        /* GATE 5.2 — the New-reservation MODAL (two-phase: Check rack → pick a unit → Confirm). Reuses the
+           shared .vy-modal chrome; these are the modal-specific controls. */
+        .vy-newres-modal { max-width: 480px; }
+        .vy-newres-p1 { display: block; }
+        .vy-newres-guest { display: grid; grid-template-columns: 1fr 1fr 116px; gap: 9px; }
+        .vy-stepper { display: flex; align-items: center; border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.7); border-radius: var(--vy-r-md); overflow: hidden; }
+        .vy-stepper button { width: 30px; padding: 10px 0; border: none; background: transparent; color: var(--vy-muted); font-size: 15px; line-height: 1; cursor: pointer; transition: background .14s; }
+        .vy-stepper button:hover { background: rgba(232,112,58,.08); color: var(--vy-accent); }
+        .vy-stepper span { flex: 1; text-align: center; font-size: 12px; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .vy-newres-dates { display: grid; grid-template-columns: 1fr 1fr auto; gap: 9px; align-items: center; }
+        .vy-newres-nights { font-size: 12px; font-weight: 600; color: var(--vy-muted); white-space: nowrap; padding-right: 2px; }
+        .vy-newres-check { width: 100%; justify-content: center; margin-top: 14px; padding: 11px 16px; }
+
+        .vy-newres-rooms { display: flex; flex-direction: column; gap: 8px; }
+        .vy-newres-room { display: flex; align-items: center; gap: 12px; text-align: left; padding: 11px 13px; border-radius: var(--vy-r-md); background: rgba(255,255,255,.55); border: 1px solid var(--vy-glass-border); cursor: pointer; transition: transform .12s ease, border-color .14s, background .14s; }
+        .vy-newres-room:hover { transform: translateY(-1px); }
+        .vy-newres-room.is-sel { border-color: var(--vy-accent-border); background: rgba(232,112,58,.09); }
+        .vy-newres-room-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+        .vy-newres-room-name { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-newres-room-sub { font-size: 11px; color: var(--vy-muted); }
+        .vy-newres-room-rate { font-size: 13px; font-weight: 600; color: var(--vy-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .vy-newres-radio { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--vy-faint); flex: none; position: relative; transition: all .14s; }
+        .vy-newres-radio.on { border-color: transparent; background: var(--vy-grad); box-shadow: var(--vy-shadow-accent); }
+        .vy-newres-radio.on::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
+        .vy-newres-hidden { display: none; }
+
+        .vy-newres-sources { display: flex; flex-wrap: wrap; gap: 7px; }
+        .vy-source-pill { padding: 8px 15px; border-radius: var(--vy-r-pill); font-size: 12.5px; font-weight: 500; color: var(--vy-muted); background: rgba(255,255,255,.55); border: 1px solid var(--vy-glass-border); cursor: pointer; transition: transform .12s ease, all .14s; }
+        .vy-source-pill:hover { transform: translateY(-1px); }
+        .vy-source-pill.on { color: var(--vy-accent); background: rgba(232,112,58,.10); border-color: var(--vy-accent-border); font-weight: 600; }
+        .vy-newres-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 13px 15px; border-radius: var(--vy-r-md); background: rgba(232,112,58,.07); border: 1px solid var(--vy-accent-border); }
+        .vy-newres-total-lbl { font-size: 12.5px; font-weight: 500; color: var(--vy-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-newres-total-amt { font-family: var(--vy-display); font-size: 18px; font-weight: 700; color: var(--vy-accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .vy-newres-foot .vy-btn--accent[disabled] { opacity: .5; cursor: not-allowed; }
+        .vy-newres-cancel { background: rgba(255,255,255,.6); border: 1px solid var(--vy-glass-border); color: var(--vy-muted); }
+        .vy-newres-note { padding: 0 24px 22px; font-size: 11.5px; color: var(--vy-faint); line-height: 1.5; }
+        .vy-newres-note a { color: var(--vy-accent); font-weight: 600; text-decoration: none; }
+
         /* Warm status tones (no green/red) — mapped ONLY to real reservation statuses */
         .vy-bar.tone-confirmed { background: var(--vy-grad); }
         .vy-bar.tone-in-house { background: linear-gradient(140deg, #C2410C, #8f2f08); }
