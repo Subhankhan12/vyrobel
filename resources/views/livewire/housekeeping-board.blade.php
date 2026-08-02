@@ -32,6 +32,12 @@
             add('_token', this.csrf); add('status', laneKey);
             document.body.appendChild(f); f.submit();
         },
+        {{-- GATE 8.3 — collapsible lanes. Per-lane collapse state, persisted; the "done" lanes (clean/
+             inspected) default collapsed so the eye lands on what still needs work. A collapsed lane keeps its
+             header (and stays a drop target for the drag). --}}
+        collapsed: (() => { try { return JSON.parse(localStorage.getItem('vy:hk:collapsed')) || { clean: true, inspected: true }; } catch (e) { return { clean: true, inspected: true }; } })(),
+        toggleLane(k) { this.collapsed = { ...this.collapsed, [k]: ! this.collapsed[k] }; localStorage.setItem('vy:hk:collapsed', JSON.stringify(this.collapsed)); },
+        laneOpen(k) { return ! this.collapsed[k]; },
      }">
     <x-operator.shell active="housekeeping" title="Housekeeping" subtitle="Today’s cleaning across your rooms" :viewer="$viewer">
 
@@ -130,19 +136,25 @@
                     {{-- A lane is a forward-only drop target while a card is in flight (a card is dropped here to
                          advance its status). Backward lanes never highlight and reject the drop. --}}
                     <div class="vy-card vy-fade vy-hk-lane" style="padding: 12px;"
-                         :class="hkForward('{{ $column['key'] }}') ? 'is-drop' : ''"
+                         :class="(hkForward('{{ $column['key'] }}') ? 'is-drop ' : '') + (laneOpen('{{ $column['key'] }}') ? '' : 'is-collapsed')"
                          @dragover.prevent @drop.prevent="hkDrop('{{ $column['key'] }}')">
-                        <div class="vy-detail-head" style="margin-bottom: 10px;">
+                        {{-- The lane header toggles collapse (a collapsed lane stays a drop target). --}}
+                        <div class="vy-detail-head" style="margin-bottom: 10px; cursor: pointer; user-select: none;" @click="toggleLane('{{ $column['key'] }}')">
                             <span style="font-size: 13px; font-weight: 700; color: var(--vy-ink);">
                                 <span class="vy-tag tone-{{ $column['tone'] }}" style="padding: 2px 8px;"><span class="vy-dot"></span>{{ $column['label'] }}</span>
                             </span>
-                            <span class="vy-muted" style="font-size: 12px;">{{ count($column['tasks']) }}</span>
+                            <span style="display: inline-flex; align-items: center; gap: 7px;">
+                                <span class="vy-muted" style="font-size: 12px;">{{ count($column['tasks']) }}</span>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vy-muted" style="transition: transform .15s;" :style="laneOpen('{{ $column['key'] }}') ? 'transform: rotate(180deg)' : ''"><path d="M6 9l6 6 6-6"/></svg>
+                            </span>
                         </div>
-                        @forelse ($column['tasks'] as $card)
-                            @include('livewire.partials.hk-card', ['card' => $card])
-                        @empty
-                            <div class="vy-empty" style="padding: 14px; font-size: 12px;">Empty</div>
-                        @endforelse
+                        <div x-show="laneOpen('{{ $column['key'] }}')">
+                            @forelse ($column['tasks'] as $card)
+                                @include('livewire.partials.hk-card', ['card' => $card])
+                            @empty
+                                <div class="vy-empty" style="padding: 14px; font-size: 12px;">Empty</div>
+                            @endforelse
+                        </div>
                     </div>
                 @endforeach
             </div>
