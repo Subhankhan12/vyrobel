@@ -12,6 +12,7 @@ use App\Models\Message;
 use App\Models\MessageReaction;
 use App\Models\MessageStar;
 use App\Models\MessageThread;
+use App\Models\Note;
 use App\Models\Reservation;
 use App\Models\SyncJob;
 use App\Models\User;
@@ -233,6 +234,27 @@ class InboxService
         $this->audit->record('inbox.thread_assigned', $thread, ['assigned_to' => $from], ['assigned_to' => $userId]);
 
         return $thread;
+    }
+
+    /**
+     * Add an INTERNAL note to the thread — staff-only, the guest NEVER sees it. Reuses the shared polymorphic
+     * {@see Note} (visibility `internal`, org auto-filled) rather than inventing a store; the author is nullable
+     * (a note outlives the staff member). The note BODY is guest-adjacent PII (free text ABOUT the guest), so it
+     * is cleared by Guest::anonymize() and NEVER placed in the audit/domain payloads — record only which thread
+     * got a note (#28). The write is an internal record — no channel send, no unread bump.
+     */
+    public function addNote(MessageThread $thread, string $body, ?User $author = null): Note
+    {
+        /** @var Note $note */
+        $note = $thread->notes()->create([
+            'body' => $body,
+            'visibility' => 'internal',
+            'author_id' => $author?->getKey(),
+        ]);
+
+        $this->audit->record('inbox.note_added', $thread, null, ['note_id' => (string) $note->getKey()]);
+
+        return $note;
     }
 
     /** Close a thread (guarded: only an active thread; closing a closed thread is a no-op). */

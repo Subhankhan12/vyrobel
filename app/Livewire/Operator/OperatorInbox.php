@@ -380,7 +380,72 @@ class OperatorInbox extends Component
             'guest' => $this->guestCard($thread),
             'reservation' => $this->reservationCard($thread),
             'assignee' => $thread->assignedTo instanceof User ? ['name' => (string) $thread->assignedTo->name, 'initials' => $this->initials((string) $thread->assignedTo->name)] : null,
+            // The latest INTERNAL note (staff-only, #28 name-only author) + the guest's reservations for the
+            // link-reservation picker. A note whose body was cleared by anonymize is treated as absent.
+            'note' => $this->latestNote($thread),
+            'has_guest' => $thread->guest !== null,
+            'link_reservations' => $this->linkReservations($thread),
         ];
+    }
+
+    /**
+     * The most recent STAFF internal note on the thread (or null). Author name only (#28). An anonymized note
+     * (body redacted to '') is treated as absent — the erase promise holds on this surface too.
+     *
+     * @return array{body: string, author: string, time: string}|null
+     */
+    private function latestNote(MessageThread $thread): ?array
+    {
+        $note = $thread->notes()
+            ->with('author')
+            ->where('visibility', 'internal')
+            ->where('body', '!=', '')
+            ->latest()
+            ->first();
+
+        if ($note === null) {
+            return null;
+        }
+
+        return [
+            'body' => (string) $note->body,
+            'author' => $note->author instanceof User ? (string) $note->author->name : 'Staff',
+            'time' => $note->created_at !== null ? CarbonImmutable::parse($note->created_at)->diffForHumans() : '',
+        ];
+    }
+
+    /**
+     * The thread guest's reservations, for the link-reservation picker — id + a NAME-free label (reference ·
+     * unit · date) + whether it's the currently-linked one. Empty for a guest-less (e.g. owner) thread; the
+     * write is the certified InboxService::linkReservation (tenant-scoped) via a POST route.
+     *
+     * @return list<array{id: string, label: string, linked: bool}>
+     */
+    private function linkReservations(MessageThread $thread): array
+    {
+        $guest = $thread->guest;
+        if ($guest === null) {
+            return [];
+        }
+
+        return Reservation::query()
+            ->where('lead_guest_id', $guest->getKey())
+            ->with('reservationUnits.unit')
+            ->orderByDesc('check_in')
+            ->limit(12)
+            ->get()
+            ->map(function (Reservation $r) use ($thread): array {
+                $unit = $r->reservationUnits->first()?->unit;
+
+                return [
+                    'id' => (string) $r->getKey(),
+                    'label' => (string) $r->reference
+                        .($unit !== null ? ' · '.($unit->name ?? $unit->code) : '')
+                        .' · '.CarbonImmutable::parse($r->check_in)->format('j M').'–'.CarbonImmutable::parse($r->check_out)->format('j M'),
+                    'linked' => (string) $thread->reservation_id === (string) $r->getKey(),
+                ];
+            })
+            ->all();
     }
 
     /**

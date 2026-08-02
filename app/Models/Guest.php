@@ -286,6 +286,12 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
             if ($threadIds->isNotEmpty()) {
                 Message::query()->whereIn('thread_id', $threadIds)->update(['body' => '', 'sender_label' => null]);
                 MessageThread::query()->whereKey($threadIds)->update(['participant_identity' => null, 'subject' => null]);
+
+                // Staff INTERNAL notes on the guest's threads are free text ABOUT the guest ("handing to HK re:
+                // late checkout for X") — their PII too, so redact the body on erase (keep the row skeleton for
+                // audit). Added WITH the inbox assign-note writer that first populates them — never a store the
+                // erase silently leaves behind. `message_thread` is the enforced morph alias for MessageThread.
+                Note::query()->where('notable_type', 'message_thread')->whereIn('notable_id', $threadIds)->update(['body' => '']);
             }
 
             // GDPR: scrub the operator's NOTES about this guest for the same reason as the messages above —

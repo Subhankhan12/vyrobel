@@ -2,6 +2,7 @@
 
 use App\Models\Message;
 use App\Models\MessageThread;
+use App\Models\Note;
 use App\Notifications\Operator\ThreadAssignedNotification;
 use App\Services\InboxService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -56,6 +57,61 @@ it('lists guests with a current or upcoming stay in the new-message picker', fun
     $this->actingAs($manager)->get(route('app.inbox'))
         ->assertOk()
         ->assertSee('Guests with a current or upcoming stay');
+});
+
+// ── GATE 3.3 — assign carries a REAL internal note (staff-only), and GDPR erase redacts it ───────
+it('records an internal note on assign, shows it staff-only, and erases it on anonymize', function () {
+    $s = seedScenario(1);
+    $manager = operatorUser($s);
+    $thread = app(InboxService::class)->postInbound(['channel' => 'manual', 'external_message_id' => 'nt1', 'body' => 'Hi', 'guest_id' => $s['guest']->id])->thread;
+
+    $this->actingAs($manager)
+        ->post(route('app.inbox.assign', $thread->id), ['user_id' => '', 'note' => 'Late checkout requested — SECRETNOTE7'])
+        ->assertRedirect();
+
+    // A REAL internal Note landed on the thread (reuses the shared polymorphic notes; staff-only visibility).
+    $note = Note::query()->where('notable_type', 'message_thread')->where('notable_id', $thread->id)->firstOrFail();
+    expect((string) $note->visibility)->toBe('internal')
+        ->and((string) $note->body)->toContain('SECRETNOTE7');
+
+    // The operator inbox shows the note (staff surface).
+    $this->actingAs($manager)->get(route('app.inbox', ['c' => $thread->id]))->assertOk()->assertSee('SECRETNOTE7');
+
+    // GDPR erase (#28) redacts the note body — the invariant that a free-text store ABOUT a guest is cleared.
+    $s['guest']->anonymize();
+    expect((string) $note->fresh()->body)->toBe('');
+    $this->actingAs($manager)->get(route('app.inbox', ['c' => $thread->id]))->assertOk()->assertDontSee('SECRETNOTE7');
+});
+
+// ── GATE 3.3 — the link-reservation picker renders and links the thread via the real route ───────
+it('renders the link-reservation picker and links a reservation via the UI route', function () {
+    $s = seedScenario(1);
+    $manager = operatorUser($s);
+    $res = book($s);   // a reservation for $s['guest']
+    $thread = app(InboxService::class)->postInbound(['channel' => 'manual', 'external_message_id' => 'lk1', 'body' => 'Hi', 'guest_id' => $s['guest']->id])->thread;
+
+    // The picker offers the guest's reservation (the UI control the audit said was missing).
+    $this->actingAs($manager)->get(route('app.inbox', ['c' => $thread->id]))->assertOk()
+        ->assertSee('Link a reservation')
+        ->assertSee((string) $res->reference);
+
+    // Linking through the route attaches it (tenant-scoped, certified InboxService path).
+    $this->actingAs($manager)->post(route('app.inbox.link-reservation', $thread->id), ['reservation_id' => $res->id])->assertRedirect();
+    expect((string) $thread->fresh()->reservation_id)->toBe((string) $res->id);
+});
+
+// ── GATE 3.3 — Retry re-sends a FAILED outbound for real (never a fake flip-to-delivered) ────────
+it('retries a failed outbound with a real re-send', function () {
+    $s = seedScenario(1);
+    $manager = operatorUser($s);
+    $thread = app(InboxService::class)->postInbound(['channel' => 'manual', 'external_message_id' => 're1', 'body' => 'Hi', 'guest_id' => $s['guest']->id])->thread;
+    $failed = Message::create(['organization_id' => $s['org']->id, 'thread_id' => $thread->id, 'direction' => 'outbound', 'channel' => 'manual', 'body' => 'Please retry me', 'delivery_status' => 'failed', 'sender_label' => 'Operator']);
+
+    $this->actingAs($manager)->post(route('app.inbox.retry', [$thread->id, $failed->id]))
+        ->assertRedirect()->assertSessionHas('inbox_notice');
+
+    // A REAL new outbound (same body) was sent and DELIVERED on the manual channel — an actual attempt.
+    expect(Message::query()->where('thread_id', $thread->id)->where('direction', 'outbound')->where('body', 'Please retry me')->where('delivery_status', 'delivered')->exists())->toBeTrue();
 });
 
 // ── Assign → a REAL in-app notification lands for the assignee (honest "notified on their device") ─

@@ -4,7 +4,7 @@
      NEVER rendered (#28). Reply/assign/new-message are POST routes (#20). RAW-BLADE RULE: every `@` follows a
      space, newline or tag. --}}
 <div x-data="{
-        assignOpen: false,
+        assignOpen: false, linkOpen: false,
         composeOpen: false, composeGuest: null, composeTemplate: '', composeBody: '',
         composeData: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['templates']])),
         pickComposeGuest(id) { this.composeGuest = id; this.refillCompose(); },
@@ -177,8 +177,21 @@
                             @if ($active['reservation'])
                                 <a class="vy-btn vy-btn--ghost" href="{{ route('app.reservations.show', $active['reservation']['id']) }}">{{ $active['reservation']['reference'] }}</a>
                             @endif
+                            {{-- #90 — the link-reservation control (route + service existed; no UI until now). Only for a
+                                 guest thread with reservations to link. --}}
+                            @if (! $readOnly && $active['has_guest'] && $active['link_reservations'] !== [])
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="linkOpen = true">{{ $active['reservation'] ? 'Change link' : 'Link reservation' }}</button>
+                            @endif
                         </div>
                     </header>
+
+                    {{-- Latest INTERNAL note — staff-only (guests never see this); name-only author (#28). --}}
+                    @if ($active['note'])
+                        <div class="vy-thread-note" title="Internal — the guest never sees this">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H7l-3 3z"/></svg>
+                            <span><strong>Internal · {{ $active['note']['author'] }}</strong> · {{ $active['note']['time'] }} — {{ $active['note']['body'] }}</span>
+                        </div>
+                    @endif
 
                     <div class="vy-thread-scroll">
                         @php $lastDay = null; @endphp
@@ -193,6 +206,12 @@
                                     <span>{{ $m['author'] }} · {{ $m['time'] }}</span>
                                     @if ($m['delivery'])
                                         <span class="vy-msg-delivery {{ $m['delivery']['failed'] ? 'is-failed' : '' }}">{{ $m['delivery']['label'] }}</span>
+                                    @endif
+                                    @if ($m['delivery'] && $m['delivery']['failed'] && ! $readOnly)
+                                        {{-- REAL re-send (never a fake flip-to-delivered) — delivers on manual, fails again honestly on a deferred channel. --}}
+                                        <form method="POST" action="{{ route('app.inbox.retry', [$active['id'], $m['id']]) }}" style="display:inline">@csrf
+                                            <button type="submit" class="vy-msg-retry">Retry</button>
+                                        </form>
                                     @endif
                                 </div>
                             </div>
@@ -254,7 +273,15 @@
                             </label>
                         @endforeach
                     </div>
-                    <p class="vy-modal-note">Internal note · guests never see this. They're notified on their device; the thread stays in this shared inbox.</p>
+                    {{-- REAL editable internal note (staff-only). Persists as a thread Note on submit; empty → no note. --}}
+                    <div class="vy-compose-editor">
+                        <span class="vy-field-label">Internal note · guests never see this</span>
+                        @if ($active['note'])
+                            <div class="vy-assign-lastnote">Latest · {{ $active['note']['author'] }}: {{ \Illuminate\Support\Str::limit($active['note']['body'], 120) }}</div>
+                        @endif
+                        <textarea name="note" rows="2" class="vy-input" placeholder="Add a note for the team (optional) — e.g. why you're handing this over"></textarea>
+                    </div>
+                    <p class="vy-modal-note">They're notified on their device; the thread stays in this shared inbox.</p>
                     <div class="vy-modal-actions">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="assignOpen = false">Cancel</button>
                         <button type="submit" class="vy-btn vy-btn--accent">Assign</button>
@@ -262,6 +289,35 @@
                 </form>
             </div>
         </div>
+
+        {{-- ── Link-reservation modal — attach/change/detach the thread's reservation (real, tenant-scoped) ── --}}
+        @if ($active['has_guest'] && $active['link_reservations'] !== [])
+        <div x-show="linkOpen" x-cloak class="vy-modal-backdrop" @click.self="linkOpen = false">
+            <div class="vy-modal">
+                <h2 class="vy-modal-title">Link a reservation</h2>
+                <p class="vy-modal-sub">{{ $active['name'] }} · pick which booking this conversation is about.</p>
+                <form method="POST" action="{{ route('app.inbox.link-reservation', $active['id']) }}">
+                    @csrf
+                    <div class="vy-assign-list">
+                        <label class="vy-assign-opt">
+                            <input type="radio" name="reservation_id" value="" @checked(! $active['reservation'])>
+                            <span><strong>Not linked</strong><br><span class="vy-muted">No reservation</span></span>
+                        </label>
+                        @foreach ($active['link_reservations'] as $r)
+                            <label class="vy-assign-opt">
+                                <input type="radio" name="reservation_id" value="{{ $r['id'] }}" @checked($r['linked'])>
+                                <span><strong>{{ $r['label'] }}</strong></span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <div class="vy-modal-actions">
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="linkOpen = false">Cancel</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">Save link</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        @endif
         @endif
 
         {{-- ── New message modal — pick a guest with a current/upcoming stay + start from template ──────── --}}
@@ -374,6 +430,7 @@
         .vy-msg-meta { font-size: 10.5px; color: var(--vy-faint); margin-top: 3px; display: flex; gap: 6px; }
         .vy-msg.is-out .vy-msg-meta { justify-content: flex-end; }
         .vy-msg-delivery.is-failed { color: #B4400F; font-weight: 600; }
+        .vy-msg-retry { border: none; background: none; padding: 0; color: var(--vy-accent, #E8703A); font-size: 10.5px; font-weight: 700; cursor: pointer; text-decoration: underline; }
         .vy-thread-composer { border-top: 1px solid var(--vy-hairline); padding: 12px 16px; }
         .vy-composer-form { display: flex; gap: 10px; align-items: flex-end; }
         .vy-composer-form textarea { flex: 1; resize: vertical; }
@@ -389,6 +446,10 @@
         .vy-assign-opt:hover { background: rgba(120,70,40,.05); }
         .vy-modal-note { font-size: 11px; color: var(--vy-faint); margin: 12px 0; border-top: 1px solid var(--vy-hairline); padding-top: 10px; }
         .vy-modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .vy-thread-note { display: flex; align-items: flex-start; gap: 8px; margin: 0 16px; padding: 8px 12px; border-radius: 10px; background: rgba(217,158,61,.1); border: 1px solid rgba(217,158,61,.28); color: #7A5A1E; font-size: 12px; line-height: 1.45; }
+        .vy-thread-note svg { flex: none; margin-top: 1px; }
+        .vy-thread-note strong { color: #6A4E1A; }
+        .vy-assign-lastnote { margin: 6px 0; padding: 7px 10px; border-radius: 8px; background: rgba(217,158,61,.1); color: #7A5A1E; font-size: 11.5px; line-height: 1.4; }
         .vy-compose-editor { margin-top: 14px; }
         .vy-compose-editor textarea { margin-top: 6px; resize: vertical; width: 100%; box-sizing: border-box; }
         .vy-compose-templates { margin-top: 14px; }

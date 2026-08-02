@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Operator;
 use App\Http\Controllers\Controller;
 use App\Models\Guest;
 use App\Models\Membership;
+use App\Models\Message;
 use App\Models\MessageThread;
 use App\Models\Reservation;
 use App\Models\User;
@@ -74,7 +75,10 @@ class InboxActionController extends Controller
             return $this->back($model, 'inbox_error', $this->pausedMessage());
         }
 
-        $validated = $request->validate(['user_id' => ['nullable', 'string']]);
+        $validated = $request->validate([
+            'user_id' => ['nullable', 'string'],
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
 
         $model = MessageThread::query()->findOrFail($thread);   // tenant-scoped → cross-org 404
 
@@ -94,6 +98,13 @@ class InboxActionController extends Controller
         }
 
         $inbox->assign($model, $userId);
+
+        // The wireframe's assign carries an editable INTERNAL note (staff-only, guests never see it). It is a
+        // REAL, persisted note now — never a textarea whose text goes nowhere. Empty → no note.
+        $note = trim((string) ($validated['note'] ?? ''));
+        if ($note !== '') {
+            $inbox->addNote($model, $note, $request->user() instanceof User ? $request->user() : null);
+        }
 
         return $this->back($model, 'inbox_notice', 'Conversation assignment updated.');
     }
@@ -126,6 +137,36 @@ class InboxActionController extends Controller
         }
 
         return $this->back($model, 'inbox_notice', 'Conversation snoozed.');
+    }
+
+    /**
+     * Retry a FAILED outbound — re-send its body over the channel via the certified sendOutbound. A REAL
+     * attempt: it delivers on the manual channel and fails again (honestly) on a deferred one — never the
+     * prototype's fabricated "flip to delivered". The message must be a failed outbound OF this thread.
+     */
+    public function retryMessage(Request $request, InboxService $inbox, string $thread, string $message): RedirectResponse
+    {
+        $model = MessageThread::query()->findOrFail($thread);   // tenant-scoped → cross-org 404
+
+        if ($this->paused()) {
+            return $this->back($model, 'inbox_error', $this->pausedMessage());
+        }
+
+        $original = Message::query()
+            ->where('thread_id', $model->getKey())
+            ->where('direction', 'outbound')
+            ->where('delivery_status', 'failed')
+            ->findOrFail($message);
+
+        $author = $request->user();
+
+        try {
+            $inbox->sendOutbound($model, (string) $original->body, $author instanceof User ? $author : null);
+        } catch (RuntimeException $e) {
+            return $this->back($model, 'inbox_error', 'Still couldn’t send — '.$e->getMessage());
+        }
+
+        return $this->back($model, 'inbox_notice', 'Message re-sent.');
     }
 
     /** Link the thread to one of the guest's reservations (tenant-scoped — a foreign id 404s). */

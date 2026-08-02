@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\BelongsToOwner;
+use App\Models\Concerns\HasNotes;
 use App\Models\Scopes\OwnerScope;
 use App\Services\InboxService;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -64,7 +65,7 @@ class MessageThread extends Model
      * REMOVING THIS TRAIT SILENTLY LEAKS EVERY OWNER'S THREADS TO EVERY OTHER OWNER — the scope does not warn,
      * it simply stops running. `OwnerInboxIsolationTest` mutation-proves that: delete the trait and it fails.
      */
-    use BelongsToOrganization, BelongsToOwner, HasUlids, SoftDeletes;
+    use BelongsToOrganization, BelongsToOwner, HasNotes, HasUlids, SoftDeletes;
 
     protected $fillable = [
         'organization_id',

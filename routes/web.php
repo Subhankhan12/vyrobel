@@ -676,6 +676,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/inbox/{thread}/reopen', [InboxActionController::class, 'reopen'])->name('inbox.reopen');
     Route::post('/inbox/{thread}/snooze', [InboxActionController::class, 'snooze'])->name('inbox.snooze');
     Route::post('/inbox/{thread}/link-reservation', [InboxActionController::class, 'linkReservation'])->name('inbox.link-reservation');
+    // Retry a FAILED outbound — a REAL re-send over the channel (delivers on manual; a deferred channel fails
+    // again, honestly — never the prototype's fake flip-to-delivered).
+    Route::post('/inbox/{thread}/messages/{message}/retry', [InboxActionController::class, 'retryMessage'])->name('inbox.retry');
     // Maintenance module — styled work-order board + detail (design pass · Maintenance UI). Tenant-scoped;
     // the detail resolves {ticket} via a scoped findOrFail in render() → cross-org 404.
     Route::get('/maintenance', MaintenanceList::class)->name('maintenance');
