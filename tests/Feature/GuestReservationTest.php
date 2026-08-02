@@ -44,10 +44,12 @@ it('shows the guest their own booking’s real charges, balance and timeline', f
     app(FolioService::class)->postCharge($folio, 'room', 'Room', Money::of(20000, 'EUR'));
     app(FolioService::class)->recordPayment($folio, Money::of(20000, 'EUR'));   // settled → a real timeline event
 
+    // Pixel-diff: the reservation page shows the balance SUMMARY (the itemized lines live on the receipt);
+    // the figures reconcile to the folio (#17), and the real payment shows in the timeline.
     $this->actingAs($a, 'guest')->get(route('guest.reservation', $reservation->getKey()))
         ->assertOk()
-        ->assertSee($reservation->reference)
-        ->assertSee('Room')                    // the charge line
+        ->assertSee($reservation->reference)   // in the page title
+        ->assertSee('Total charges')           // the balance summary
         ->assertSee('Paid in full')            // balance reconciles (charged 200, paid 200 → 0)
         ->assertSee('Payment received');       // the real folio payment in the timeline
 });
@@ -82,4 +84,24 @@ it('shows an outstanding balance and links to the real pay flow (no faked pay)',
         ->assertSee(route('guest.payments'))      // the one honest truth: pay on the Payments hub
         ->assertDontSee('Settle your stay · Soon')// the old contradictory coming-soon stub is gone
         ->assertDontSee('Pay with Apple Pay');    // the design's account-gated card UI is not faked
+});
+
+// ── G1 pixel-diff HONESTY: the redesigned page refuses the wireframe's fabrications, and #33-gates arrival ──
+it('refuses the fabricated payment/host UI and withholds the door code before the window (#33/#39)', function () {
+    $s = seedScenario(1);
+    $a = resvGuest($s['guest'], 'ada@example.test');
+    $reservation = bookLedBy($s, $a);   // check-in 2026-09-01 — comfortably >48h out at test-run time
+
+    $res = $this->actingAs($a, 'guest')->get(route('guest.reservation', $reservation->getKey()))->assertOk();
+
+    // #39: no fabricated saved-card vault / Apple Pay / biometric on the guest reservation page (SAQ A).
+    $res->assertDontSee('Apple Pay')
+        ->assertDontSee('Face ID')
+        ->assertDontSee('A different card')
+        ->assertDontSee('card on your booking')
+        // …and no invented "we reply in ~10 min" support SLA.
+        ->assertDontSee('~10 min');
+
+    // #33: the door code / wifi are gated to the release window — a >48h-out stay shows the honest hold, no code.
+    $res->assertSee('unlock 48h before check-in');
 });
