@@ -181,8 +181,14 @@ it('bills a master-invoice block onto ONE folio (individual mode already billed 
     $folios = Folio::query()->whereIn('reservation_id', $members->pluck('id'))->get();
     expect($folios)->toHaveCount(1)
         ->and((int) $folios->first()->total_minor)->toBe(60000);
-    expect((int) $members->first()->refresh()->total_minor)->toBe(60000)   // master carries the whole block
-        ->and((int) $members->last()->refresh()->total_minor)->toBe(0);    // the other owes nothing directly
+
+    // Identify the master member by the folio's ACTUAL owner (postFolios opens it on the (created_at,id)-first
+    // reservation) — never by a tied-created_at order, which MySQL may return either way (a latent flake).
+    $masterId = (string) $folios->first()->reservation_id;
+    $master = $members->firstWhere('id', $masterId);
+    $other = $members->first(fn ($m): bool => (string) $m->id !== $masterId);
+    expect((int) $master->refresh()->total_minor)->toBe(60000)   // master carries the whole block
+        ->and((int) $other->refresh()->total_minor)->toBe(0);    // the other owes nothing directly
 });
 
 // ── 5. TENTATIVE HOLD — members are tentative, the option deadline is stored on the group ─────────
