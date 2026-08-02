@@ -101,8 +101,7 @@ it('creates a group + one member reservation per unit through the certified path
 
     $this->actingAs($frontDesk)
         ->post('/app/group-booking', groupPayload($s))
-        ->assertRedirect(route('app.rack'))
-        ->assertSessionHas('group_notice');
+        ->assertRedirect();   // PRG to the in-wizard done screen (?created=<group>)
 
     $group = Group::query()->firstOrFail();
     expect($group->name)->toBe('Okafor–Bello Wedding')
@@ -172,7 +171,7 @@ it('bills a master-invoice block onto ONE folio (individual mode already billed 
     $frontDesk = operatorUser($s, [], 'Front Desk');
 
     $this->actingAs($frontDesk)->post('/app/group-booking', groupPayload($s, ['billing_mode' => 'master']))
-        ->assertRedirect(route('app.rack'));
+        ->assertRedirect();
 
     $group = Group::query()->where('billing_mode', 'master')->firstOrFail();
     $members = Reservation::query()->where('group_id', $group->id)->orderBy('created_at')->get();
@@ -194,7 +193,7 @@ it('creates a tentative block with a pickup deadline', function () {
     $this->actingAs($frontDesk)->post('/app/group-booking', groupPayload($s, [
         'hold_type' => 'tentative',
         'pickup_deadline' => '2026-08-25',
-    ]))->assertRedirect(route('app.rack'));
+    ]))->assertRedirect();
 
     $group = Group::query()->firstOrFail();
     expect($group->pickup_deadline?->toDateString())->toBe('2026-08-25');
@@ -252,4 +251,25 @@ it('assigns a per-unit lead guest from the rooming list and erases the name on a
     // PII (#28): the rooming lead is a normal Guest — anonymize() clears the name (no new free-text store).
     $rooming->anonymize();
     expect(trim(((string) $rooming->fresh()->first_name).((string) $rooming->fresh()->last_name)))->toBe('');
+});
+
+// ── GATE 4.4 — the in-wizard DONE screen renders the created block; a bogus id shows the wizard ──
+it('renders the done screen with the block reference after a create', function () {
+    $s = groupScenario(2);
+    $frontDesk = operatorUser($s, [], 'Front Desk');
+    $this->actingAs($frontDesk)->post('/app/group-booking', groupPayload($s))->assertRedirect();
+    $group = Group::query()->latest('created_at')->firstOrFail();
+
+    $this->actingAs($frontDesk)
+        ->get(route('app.group-booking', ['created' => $group->id]))
+        ->assertOk()
+        ->assertSee('Block confirmed')
+        ->assertSee((string) $group->block_code)
+        ->assertSee('View on the rack');
+
+    // A bogus/foreign created id → the normal wizard, never a foreign done card.
+    $this->actingAs($frontDesk)
+        ->get(route('app.group-booking', ['created' => '01JUNKJUNKJUNKJUNKJUNKJUNK', 'check_in' => '2026-09-02', 'check_out' => '2026-09-05']))
+        ->assertOk()
+        ->assertDontSee('Block confirmed');
 });

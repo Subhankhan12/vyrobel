@@ -7,6 +7,9 @@ namespace App\Livewire\Operator;
 use App\Http\Controllers\Operator\GroupBookingController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\Folio;
+use App\Models\Group;
+use App\Models\Payment;
 use App\Services\AssignmentService;
 use App\Services\UnitAvailabilityService;
 use Carbon\CarbonImmutable;
@@ -80,7 +83,49 @@ class GroupBooking extends Component
                 ['value' => 'sports', 'label' => 'Sports'],
                 ['value' => 'other', 'label' => 'Other'],
             ],
+            'done' => $this->done(),
         ]);
+    }
+
+    /**
+     * The post-create DONE payload (the wireframe's success card), or null during the normal wizard. Loads the
+     * just-created group TENANT-scoped (the global org scope isolates — a foreign/bogus id returns null → the
+     * wizard). Every figure is REAL (block total = Σ member folios; deposit = Σ recorded payments); NO guest
+     * contact (#28 — organiser NAME only, from the non-PII contact json).
+     *
+     * @return array{reference: string, title: string, sub: string, organiser: string, units: int, dates: string, total: string, deposit: string|null, rack_url: string, new_url: string}|null
+     */
+    private function done(): ?array
+    {
+        $id = request()->query('created');
+        if (! is_string($id) || $id === '') {
+            return null;
+        }
+
+        $group = Group::query()->with('reservations')->find($id);
+        if ($group === null || $group->reservations->isEmpty()) {
+            return null;
+        }
+
+        $first = $group->reservations->first();
+        $tentative = (string) $first->status === 'tentative';
+        $folios = Folio::query()->whereIn('reservation_id', $group->reservations->pluck('id'))->get();
+        $currency = ($c = (string) $first->currency) !== '' ? $c : 'EUR';   // the member reservation's currency is always set
+        $totalMinor = (int) $folios->sum('total_minor');
+        $depositMinor = (int) Payment::query()->whereIn('folio_id', $folios->pluck('id'))->where('type', 'payment')->sum('amount_minor');
+
+        return [
+            'reference' => (string) $group->block_code,
+            'title' => $tentative ? 'Block held' : 'Block confirmed',
+            'sub' => $tentative ? 'option on the rack' : 'it’s on the rack now',
+            'organiser' => (string) (data_get($group->contact, 'name') ?: 'the organiser'),   // NAME only (#28)
+            'units' => $group->reservations->count(),
+            'dates' => CarbonImmutable::parse($first->check_in)->format('j M').' – '.CarbonImmutable::parse($first->check_out)->format('j M Y'),
+            'total' => $this->money($totalMinor, $currency),
+            'deposit' => $depositMinor > 0 ? $this->money($depositMinor, $currency) : null,
+            'rack_url' => route('app.rack'),
+            'new_url' => route('app.group-booking'),
+        ];
     }
 
     /**

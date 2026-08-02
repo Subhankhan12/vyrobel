@@ -7,7 +7,56 @@
      + posted server-side (GUARD 1). CAPACITY: real units.max_occupancy vs the real headcount — never fabricated.
      RAW-BLADE RULE: Alpine uses x-on:/x-model/x-bind (no `@click`); every `@` follows a space/newline/tag. --}}
 @php $__gbReadOnly = app(\App\Support\Operator\OperatorWorkspace::class)->isReadOnly(); @endphp
-@if (! $hasProperty)
+@if ($done)
+    {{-- ── DONE screen (the wireframe's success card). Landed here by PRG after a real atomic create. "View on
+         the rack" keeps the rack one click away. Single Livewire root; self-contained <style> (the wizard's
+         style block only renders in the wizard branch — the New-Reservation done-screen lesson). ── --}}
+    <div class="vy-gb-standalone">
+        <div class="vy-gb-topbar vy-fade">
+            <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><span class="vy-gb-brand-title">{{ $done['title'] }}</span><span class="vy-gb-brand-sub">{{ $subtitle }} · block reservation</span></span></div>
+            <a class="vy-gb-close" href="{{ $done['rack_url'] }}" title="Close" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></a>
+        </div>
+        <div class="vy-gb-donewrap vy-fade">
+            <div class="vy-gb-donecheck"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg></div>
+            <div class="vy-gb-donetitle">{{ $done['title'] }}</div>
+            <div class="vy-gb-doneref">Reference <span class="vy-u-code">{{ $done['reference'] }}</span> · {{ $done['sub'] }}</div>
+            <div class="vy-gb-donecard">
+                <div class="vy-gb-drow"><span>Organiser</span><strong>{{ $done['organiser'] }}</strong></div>
+                <div class="vy-gb-drow"><span>Units &amp; dates</span><strong>{{ $done['units'] }} {{ \Illuminate\Support\Str::plural('unit', $done['units']) }} · {{ $done['dates'] }}</strong></div>
+                <div class="vy-gb-drow"><span>Block total</span><strong>{{ $done['total'] }}</strong></div>
+                @if ($done['deposit'])
+                    <div class="vy-gb-drow"><span>Deposit taken</span><strong>{{ $done['deposit'] }}</strong></div>
+                @endif
+            </div>
+            <div class="vy-gb-doneactions">
+                <a href="{{ $done['rack_url'] }}" class="vy-gb-btn vy-gb-btn--accent">View on the rack</a>
+                <a href="{{ $done['new_url'] }}" class="vy-gb-btn">Create another block</a>
+            </div>
+        </div>
+        <style>
+            /* done-screen chrome, self-contained (the wizard style block renders only in the wizard branch) */
+            .vy-gb-standalone { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 24px 30px 60px; box-sizing: border-box; }
+            .vy-gb-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+            .vy-gb-brand { display: flex; align-items: center; gap: 12px; }
+            .vy-gb-logo { width: 36px; height: 36px; border-radius: 10px; background: var(--vy-grad); color: #fff; font-family: var(--vy-display); font-weight: 600; font-size: 18px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); flex: none; }
+            .vy-gb-brand-title { display: block; font-family: var(--vy-display); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; line-height: 1.2; }
+            .vy-gb-brand-sub { display: block; font-size: 12px; color: var(--vy-faint); line-height: 1.2; }
+            .vy-gb-close { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); color: var(--vy-muted); display: grid; place-items: center; text-decoration: none; flex: none; }
+            .vy-gb-donewrap { max-width: 460px; margin: 26px auto 0; padding: 40px 34px 34px; text-align: center; border-radius: 22px; background: rgba(255, 252, 248, 0.72); backdrop-filter: blur(26px) saturate(1.2); -webkit-backdrop-filter: blur(26px) saturate(1.2); border: 1px solid var(--vy-glass-border); box-shadow: 0 22px 60px -24px rgba(60, 40, 24, 0.32); }
+            .vy-gb-donecheck { width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%; background: var(--vy-grad); color: #fff; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
+            .vy-gb-donetitle { font-family: var(--vy-display); font-weight: 600; font-size: 22px; letter-spacing: -0.02em; color: var(--vy-ink); }
+            .vy-gb-doneref { margin-top: 6px; font-size: 13.5px; color: var(--vy-muted); }
+            .vy-gb-doneref .vy-u-code { font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
+            .vy-gb-donecard { text-align: left; margin: 20px 0; border: 1px solid var(--vy-hairline); border-radius: 14px; padding: 4px 16px; }
+            .vy-gb-drow { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; color: var(--vy-muted); }
+            .vy-gb-donecard .vy-gb-drow:last-child { border-bottom: none; }
+            .vy-gb-drow strong { color: var(--vy-ink); font-weight: 600; text-align: right; }
+            .vy-gb-doneactions { display: flex; gap: 10px; }
+            .vy-gb-btn { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; text-decoration: none; text-align: center; }
+            .vy-gb-btn--accent { background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: var(--vy-shadow-accent); }
+        </style>
+    </div>
+@elseif (! $hasProperty)
     <div class="vy-gb-standalone">
         <div class="vy-gb-topbar vy-fade">
             <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><span class="vy-gb-brand-title">Group booking</span><span class="vy-gb-brand-sub">No property configured</span></span></div>
@@ -240,6 +289,7 @@
                             </template>
                         </div>
                     </div>
+                    <label class="vy-gb-agree"><input type="checkbox" x-model="agree"><span>I've checked availability with the property and confirmed the organiser's details.</span></label>
                 </section>
 
                 {{-- Footer nav --}}
@@ -248,7 +298,7 @@
                     <span style="flex:1"></span>
                     <button type="button" class="vy-gb-btn vy-gb-btn--accent" x-show="step < 5" x-on:click="next()" x-bind:disabled="! canLeave(step)">Continue</button>
                     @unless ($__gbReadOnly)
-                        <button type="submit" class="vy-gb-btn vy-gb-btn--accent" x-show="step === 5" x-bind:disabled="count === 0 || ! name.trim()">Confirm block</button>
+                        <button type="submit" class="vy-gb-btn vy-gb-btn--accent" x-show="step === 5" x-bind:disabled="count === 0 || ! name.trim() || ! agree">Confirm block</button>
                     @endunless
                 </div>
             </form>
@@ -278,7 +328,7 @@
                     selected: [],
                     rooming: {},
                     holdType: 'confirmed', billingMode: 'individual', pickupDeadline: checkIn,
-                    discountPct: 0, depositPct: 0, depositMethod: 'cash',
+                    discountPct: 0, depositPct: 0, depositMethod: 'cash', agree: false,
                     init() {},
                     // The discount is computed PER UNIT (floor(price × pct / 100)) and summed — the EXACT same
                     // rule the server posts per member — so the rail figure and the real folio agree to the cent
@@ -395,6 +445,8 @@
             .vy-gb-rev-units { padding: 12px 0; }
             .vy-gb-rev-units-h { font-size: 12px; font-weight: 600; color: var(--vy-ink); margin-bottom: 8px; }
             .vy-gb-rev-unit { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--vy-muted); padding: 4px 0; }
+            .vy-gb-agree { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.5); font-size: 13px; color: var(--vy-ink); cursor: pointer; }
+            .vy-gb-agree input { margin-top: 2px; accent-color: var(--vy-accent, #E8703A); width: 16px; height: 16px; flex: none; }
             /* nav */
             .vy-gb-nav { display: flex; align-items: center; gap: 10px; margin-top: 22px; }
             .vy-gb-btn { padding: 11px 20px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; cursor: pointer; }

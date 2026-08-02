@@ -140,11 +140,9 @@ class GroupBookingController extends Controller
             return $this->back($request, 'A unit in the block was just taken for those dates — nothing was created. Re-check availability.');
         }
 
-        $count = $group->reservations->count();
-        $notice = 'Group “'.$group->name.'” ('.$group->block_code.') created — '.$count.' '.($count === 1 ? 'room' : 'rooms')
-            .($status === 'tentative' ? ' held tentatively.' : ' confirmed.');
-
-        return redirect()->to(route('app.rack'))->with('group_notice', $notice);
+        // PRG to the in-wizard DONE screen (the wireframe's success card: reference + summary + actions). "View
+        // on the rack" on that card keeps the rack one click away — it is just no longer the landing.
+        return redirect()->to(route('app.group-booking', ['created' => $group->getKey()]));
     }
 
     /**
