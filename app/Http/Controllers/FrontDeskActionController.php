@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\UnitUnavailableException;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Services\AssignmentService;
 use App\Services\FrontDeskService;
+use App\Support\Operator\OperatorWorkspace;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
@@ -67,6 +70,11 @@ class FrontDeskActionController extends Controller
      */
     public function move(Request $request, AssignmentService $assignment, string $reservation): RedirectResponse
     {
+        // READ-ONLY workspace — edits off (same guard as reschedule/create; the UI hides the control).
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->afterMove($request, $reservation, 'The workspace is paused — moves are off.');
+        }
+
         $model = Reservation::query()->with('reservationUnits')->findOrFail($reservation);   // tenant-scoped → 404
 
         $validated = $request->validate([
@@ -87,6 +95,67 @@ class FrontDeskActionController extends Controller
         }
 
         return $this->afterMove($request, $model->id, "Moved {$model->reference} to a new unit.");
+    }
+
+    /**
+     * RESCHEDULE a line — the Calendar drag-to-reschedule (GATE 5.3). The SINGLE guarded inventory write path:
+     * {@see AssignmentService::reschedule} (availability `FOR UPDATE` lock + release-old/claim-new + Level A/B
+     * re-check), NEVER a raw dates/unit update. Gated `can:reservations.assign` (the POST re-runs the tenant
+     * middleware). The stay LENGTH is preserved server-side (a MOVE): new_check_out = new_check_in + the line's
+     * current nights — the drag sends only the target DATE (a server-rendered string) + unit, so no client date
+     * arithmetic ever runs (no toISOString day-shift). An occupied / cross-type / unavailable target is refused
+     * by the service under the lock and surfaced as a flash.
+     */
+    public function reschedule(Request $request, AssignmentService $assignment, string $reservation): RedirectResponse
+    {
+        // READ-ONLY workspace (billing paused/canceled but still in /app): edits are OFF. The UI hides the drag,
+        // but this is the real server guard — the same self-check every operator write does (create/rate/desk).
+        if (app(OperatorWorkspace::class)->isReadOnly()) {
+            return $this->afterReschedule($request, 'The workspace is paused — moves are off.');
+        }
+
+        $model = Reservation::query()->with('reservationUnits')->findOrFail($reservation);   // tenant-scoped → 404
+
+        $validated = $request->validate([
+            'reservation_unit_id' => ['required', 'string'],
+            'new_check_in' => ['required', 'date_format:Y-m-d'],
+            'unit_id' => ['nullable', 'string'],
+        ]);
+
+        $line = $model->reservationUnits->firstWhere('id', $validated['reservation_unit_id']);
+        if (! $line instanceof ReservationUnit) {
+            abort(404);   // the line is not part of THIS reservation
+        }
+
+        // Preserve the stay LENGTH (a move, not a resize): the server derives check_out from the line's own
+        // current nights — the client never computes a date, so there is no local-vs-UTC day-shift to get wrong.
+        $nights = max(1, (int) CarbonImmutable::parse($line->check_in)->diffInDays(CarbonImmutable::parse($line->check_out)));
+        $newCheckIn = CarbonImmutable::parse($validated['new_check_in'])->startOfDay();
+        $newCheckOut = $newCheckIn->addDays($nights);
+
+        $unitId = is_string($validated['unit_id'] ?? null) && $validated['unit_id'] !== '' ? (string) $validated['unit_id'] : null;
+
+        try {
+            $assignment->reschedule($line, $newCheckIn->toDateString(), $newCheckOut->toDateString(), $unitId);
+        } catch (UnitUnavailableException|InsufficientAvailabilityException|InvalidArgumentException) {
+            return $this->afterReschedule($request, 'That move isn’t available — the unit or nights are already taken.');
+        }
+
+        return $this->afterReschedule($request, "Moved {$model->reference} to {$newCheckIn->format('j M')}.");
+    }
+
+    /** Redirect back to the Calendar, preserving the rack window (start/days), with a flash notice. */
+    private function afterReschedule(Request $request, string $notice): RedirectResponse
+    {
+        $start = $request->input('return_start');
+        $days = (int) $request->input('return_days');
+        $params = array_filter([
+            'start' => is_string($start) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $start) === 1 ? $start : null,
+            'days' => in_array($days, [7, 14, 30], true) ? $days : null,
+        ], fn ($v): bool => $v !== null);
+
+        return redirect()->to(route('app.calendar').($params !== [] ? '?'.http_build_query($params) : ''))
+            ->with('new_reservation_notice', $notice);
     }
 
     /**

@@ -99,6 +99,29 @@ it('refuses a target unit of a different room type', function () {
         ->toThrow(InvalidArgumentException::class);
 });
 
+it('refuses a move onto a paused (is_active=false) unit', function () {
+    $s = seedScenario(2);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $line = $res->reservationUnits()->first();
+    $s['units'][1]->update(['is_active' => false]);   // owner-paused target (#69)
+
+    expect(fn () => app(AssignmentService::class)->reschedule($line, '2026-09-05', '2026-09-07', $s['units'][1]->id))
+        ->toThrow(UnitUnavailableException::class);
+
+    $line->refresh();
+    expect((string) $line->unit_id)->toBe((string) $s['units'][0]->id);   // unchanged
+});
+
+it('refuses a move onto an out-of-service unit', function () {
+    $s = seedScenario(2);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $line = $res->reservationUnits()->first();
+    $s['units'][1]->update(['condition_status' => 'out_of_service']);   // maintenance OOS target
+
+    expect(fn () => app(AssignmentService::class)->reschedule($line, '2026-09-05', '2026-09-07', $s['units'][1]->id))
+        ->toThrow(UnitUnavailableException::class);
+});
+
 it('rejects check_out on or before check_in', function () {
     $s = seedScenario(1);
     $res = book($s, ['unit_id' => $s['units'][0]->id]);

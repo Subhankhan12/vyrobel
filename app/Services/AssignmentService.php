@@ -309,6 +309,12 @@ class AssignmentService
         if ($unit->room_type_id !== $reservationUnit->room_type_id) {
             throw new InvalidArgumentException('Unit room_type does not match the reservation_unit room_type.');
         }
+        // Never MOVE a stay onto a paused / out-of-service unit (the UI never offers it, but a crafted request
+        // must be refused too) — same "bookable" rule the availability read uses. Guarded here so BOTH the
+        // move and the reschedule paths inherit it.
+        if (! $unit->isBookable()) {
+            throw UnitUnavailableException::blocked($unitId);
+        }
 
         $fromUnitId = $reservationUnit->unit_id;
 
@@ -386,6 +392,11 @@ class AssignmentService
             $unit = Unit::query()->findOrFail($newUnitId);
             if ($unit->room_type_id !== $reservationUnit->room_type_id) {
                 throw new InvalidArgumentException('Target unit room_type does not match the reservation_unit room_type.');
+            }
+            // Never RESCHEDULE onto a paused / out-of-service unit — the same bookable rule as a new booking /
+            // a move (the UI only offers active rows; a crafted request is refused here).
+            if (! $unit->isBookable()) {
+                throw UnitUnavailableException::blocked($newUnitId);
             }
         }
 

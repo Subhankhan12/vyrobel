@@ -471,6 +471,15 @@
         .vy-unit-state.state-out_of_service { color: #9a4a24; background: rgba(194, 65, 12, 0.12); }
         .vy-unit-row.is-paused .vy-unit-code, .vy-unit-row.is-out_of_service .vy-unit-code { color: var(--vy-muted); }
 
+        /* GATE 5.3 — drag-to-reschedule. A draggable bar; a per-night drop layer that is click-through
+           (pointer-events:none) until a drag is in flight, so it never steals the bar's link click. */
+        .vy-bar.is-draggable { cursor: grab; }
+        .vy-bar.is-draggable:active { cursor: grabbing; }
+        .vy-lane-drop { position: absolute; inset: 0; z-index: 4; display: grid; grid-template-columns: var(--night-cols); pointer-events: none; }
+        .vy-lane-drop.is-dragging { pointer-events: auto; }
+        .vy-lane-drop > div { border-radius: 6px; transition: background .1s, box-shadow .1s; }
+        .vy-lane-drop.is-dragging > div:hover { background: rgba(232, 112, 58, 0.16); box-shadow: inset 0 0 0 2px var(--vy-accent-border); }
+
         /* GATE 5.2 — the New-reservation MODAL (two-phase: Check rack → pick a unit → Confirm). Reuses the
            shared .vy-modal chrome; these are the modal-specific controls. */
         .vy-newres-modal { max-width: 480px; }

@@ -191,7 +191,28 @@
                 </div>
             </div>
         @else
-            <div class="vy-card vy-card--flush vy-fade">
+            {{-- GATE 5.3 — drag-to-reschedule. A booking bar is draggable; the drop cells (only on ACTIVE unit
+                 rows) POST to the certified AssignmentService::reschedule. The drop cell's date is a
+                 SERVER-RENDERED string → the server preserves the stay length (no client date math, no
+                 toISOString day-shift). The drop layer is click-through except while a drag is in flight. --}}
+            <div class="vy-card vy-card--flush vy-fade"
+                 x-data="{
+                     dragging: false, dragRes: '', dragLine: '',
+                     base: @js(url('/app/reservations')), csrf: @js(csrf_token()),
+                     start: @js($window['start']), days: @js((string) $window['selected_days']),
+                     onStart(e, resId, lineId) { this.dragRes = resId; this.dragLine = lineId; this.dragging = true; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', resId); },
+                     onDrop(e, unitId, date) {
+                         this.dragging = false;
+                         if (! this.dragRes || ! this.dragLine) return;
+                         const f = document.createElement('form');
+                         f.method = 'POST'; f.action = this.base + '/' + this.dragRes + '/reschedule';
+                         const add = (n, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; f.appendChild(i); };
+                         add('_token', this.csrf); add('reservation_unit_id', this.dragLine);
+                         add('new_check_in', date); add('unit_id', unitId);
+                         add('return_start', this.start); add('return_days', this.days);
+                         document.body.appendChild(f); f.submit();
+                     }
+                 }">
                 <div class="vy-rack-scroll">
                     {{-- --night-cols inherits to every descendant grid so all night columns stay aligned. --}}
                     <div class="vy-rack" style="--night-cols: repeat({{ $window['days'] }}, minmax(38px, 1fr));">
@@ -272,14 +293,26 @@
                                                 </div>
                                             @endif
 
+                                            {{-- Drop targets — one per night, only on a BOOKABLE (active) unit row, click-through
+                                                 except while a drag is in flight. The date is server-rendered (no client date math). --}}
+                                            @if (! $readOnly && $unit['state'] === 'active')
+                                                <div class="vy-lane-drop" :class="dragging ? 'is-dragging' : ''">
+                                                    @foreach ($dates as $d)
+                                                        <div data-date="{{ $d['date'] }}" @dragover.prevent @drop.prevent="onDrop($event, '{{ $unit['unit_id'] }}', '{{ $d['date'] }}')"></div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+
                                             {{-- REAL booking bars for THIS unit (a unit never double-books → no lanes). --}}
                                             <div class="vy-lane-bars">
                                                 @foreach ($unit['bars'] as $bar)
-                                                    {{-- #104 GATE 3d — the booking bar links to the reservation detail (the wireframe's clickable bar). --}}
-                                                    <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif"
+                                                    {{-- #104 GATE 3d — the bar links to the reservation detail; GATE 5.3 — it's draggable
+                                                         to reschedule (unless the workspace is read-only). --}}
+                                                    <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif @if (! $readOnly) is-draggable @endif"
                                                        href="{{ route('app.reservations.show', $bar['id']) }}"
+                                                       @if (! $readOnly) draggable="true" @dragstart="onStart($event, '{{ $bar['id'] }}', '{{ $bar['line_id'] }}')" @dragend="dragging = false" @endif
                                                        style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
-                                                       title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}">
+                                                       title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}{{ ! $readOnly ? ' · drag to reschedule' : '' }}">
                                                         <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
                                                         <span class="vy-bar-flag">{{ $bar['status_label'] }}</span>
                                                     </a>
@@ -333,13 +366,17 @@
                         <span class="vy-legend-item"><span class="vy-legend-swatch tone-no-show"></span> No-show</span>
                         <span class="vy-legend-item"><span class="vy-legend-swatch swatch-ooo"></span> Out of order / blocked</span>
                     </div>
-                    {{-- The rack now creates real bookings (the New reservation flow above → the certified engine).
-                         Drag-to-reschedule stays deferred honestly (it mutates inventory) — never a broken drag. --}}
+                    {{-- Drag-to-reschedule is LIVE (→ the certified AssignmentService::reschedule, availability
+                         locked, no-overlap). Each row is a physical unit; hatched bars are real blocks. --}}
                     <div class="vy-deferred-note" style="margin-top: 14px;">
-                        <span class="vy-soon-tag">Not yet available</span>
-                        Drag-to-reschedule is planned. Each row is a physical unit; hatched bars are real
-                        out-of-order / owner blocks; the header strip shows units available per night. Use
-                        “New reservation” to book.
+                        @if (! $readOnly)
+                            <strong style="color:var(--vy-ink)">Drag a booking</strong> to a new date or unit to reschedule it — the stay
+                            length is kept and availability is re-checked. Hatched bars are real out-of-order / owner blocks; the
+                            header strip shows units available per night. Use “New reservation” to book.
+                        @else
+                            Each row is a physical unit; hatched bars are real out-of-order / owner blocks; the header
+                            strip shows units available per night. (The workspace is paused — moves are off.)
+                        @endif
                     </div>
                 </div>
             </div>

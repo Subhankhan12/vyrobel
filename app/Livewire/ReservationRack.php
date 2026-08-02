@@ -407,6 +407,8 @@ class ReservationRack extends Component
             // #104 GATE 3d — the reservation id so the rack's booking bar links to its detail (the wireframe's
             // clickable bar). Name-only otherwise (#28).
             'id' => (string) $reservation->getKey(),
+            // GATE 5.3 — the reservation_unit (line) id: what drag-to-reschedule moves (POST target is the line).
+            'line_id' => (string) $line->getKey(),
             'ref' => (string) $reservation->reference,
             'guest' => $name !== '' ? $name : (string) $reservation->reference,
             'status' => (string) $reservation->status,

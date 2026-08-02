@@ -95,6 +95,9 @@ class Unit extends Model
         return $this->belongsTo(Floor::class);
     }
 
+    /** Maintenance conditions that make a physical unit unbookable (no new/moved stay may land on it). */
+    public const UNBOOKABLE_CONDITIONS = ['out_of_order', 'out_of_service'];
+
     /**
      * BOOKABLE units only: active (not owner-paused, #69) AND in service (not maintenance out-of-service/
      * out-of-order). This is EXACTLY the set the availability count treats as sellable — AvailabilityService
@@ -108,7 +111,18 @@ class Unit extends Model
     public function scopeBookable(Builder $query): Builder
     {
         return $query->where('is_active', true)
-            ->whereNotIn('condition_status', ['out_of_order', 'out_of_service']);
+            ->whereNotIn('condition_status', self::UNBOOKABLE_CONDITIONS);
+    }
+
+    /**
+     * The per-instance counterpart of {@see scopeBookable()} — the SAME rule, for guarding a chosen target
+     * unit on a WRITE (a new booking's / a move's destination) so it can never land on a paused or
+     * out-of-service unit. One rule, two forms (query + instance), sharing UNBOOKABLE_CONDITIONS.
+     */
+    public function isBookable(): bool
+    {
+        return (bool) $this->is_active
+            && ! in_array((string) $this->condition_status, self::UNBOOKABLE_CONDITIONS, true);
     }
 
     public function inventoryBlocks(): HasMany

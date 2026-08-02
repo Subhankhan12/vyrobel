@@ -832,6 +832,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // Manager/Front Desk hold; NOT Reservation Agent/Accountant/Housekeeping). The controller carries no
     // authorize(), so this is the actor gate for an inventory write (#20/#30).
     Route::post('/reservations/{reservation}/move', [FrontDeskActionController::class, 'move'])->middleware('can:reservations.assign')->name('reservations.move');
+    // GATE 5.3 — DRAG-TO-RESCHEDULE: the Calendar drag routes to the SAME guarded inventory write path
+    // (AssignmentService::reschedule — availability lock, release-old/claim-new, Level A/B). Same actor gate
+    // as move (`can:reservations.assign`); the stay length is preserved server-side (no client date math).
+    Route::post('/reservations/{reservation}/reschedule', [FrontDeskActionController::class, 'reschedule'])->middleware('can:reservations.assign')->name('reservations.reschedule');
     Route::get('/housekeeping', HousekeepingBoard::class)->name('housekeeping');
     // Design pass · Operator Screen 3 — REAL housekeeping status advance via POST → action → redirect
     // (PRG). {task} is a string param resolved tenant-scoped in the controller (never RMB) → cross-org 404.
