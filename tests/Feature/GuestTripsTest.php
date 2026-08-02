@@ -63,3 +63,28 @@ it('shows the guest-facing balance, reconciling to the folio', function () {
 it('redirects an unauthenticated visitor to the guest login', function () {
     $this->get('/guest/trips')->assertRedirect(route('guest.login'));
 });
+
+// ── G1 pixel-diff: the travel-account HERO + Upcoming/Past/Cancelled tabs + search (all REAL, native GET) ──
+it('renders the travel-account hero, real tab counts, and filters by tab + search', function () {
+    $s = seedScenario(2);
+    $a = tripGuest($s['guest'], 'ada@example.test');
+    bookFor($s, $a);   // one upcoming stay
+
+    // Hero renders with the real first name + the "Your travel account" band; the trip card shows.
+    $this->actingAs($a, 'guest')->get(route('guest.trips'))
+        ->assertOk()
+        ->assertSee('Your travel account')
+        ->assertSee('Welcome back, Ada')
+        ->assertSee('View reservation');
+
+    // The Cancelled tab has no trips → honest empty state, and the upcoming trip is NOT shown there.
+    $this->actingAs($a, 'guest')->get(route('guest.trips', ['tab' => 'cancelled']))
+        ->assertOk()
+        ->assertSee('No cancelled bookings')
+        ->assertDontSee('R-');   // no reservation reference rows on the cancelled tab
+
+    // Search that can't match → honest "no match" empty state (never a fabricated result).
+    $this->actingAs($a, 'guest')->get(route('guest.trips', ['q' => 'zzz-no-such-place']))
+        ->assertOk()
+        ->assertSee('match your search');
+});

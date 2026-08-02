@@ -165,7 +165,8 @@ it('shows a review link on Trips for a completed stay', function () {
     $a = revGuest($s['guest'], 'ada@example.test');
     revCompletedBook($s, $a, $s['units'][0]);
 
-    $this->actingAs($a, 'guest')->get(route('guest.trips'))->assertOk()->assertSee('Review your stay');
+    // Pixel-diff G1: a completed stay lives under the Trips "Past" tab, where the review action appears.
+    $this->actingAs($a, 'guest')->get(route('guest.trips', ['tab' => 'past']))->assertOk()->assertSee('Write a review');
 });
 
 // ── GDPR: anonymize() de-identifies the review's author ───────────────────────────────────────────
