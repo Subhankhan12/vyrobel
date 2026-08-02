@@ -44,7 +44,16 @@
         @if ($property === null)
             <div class="vy-card vy-fade"><div class="vy-empty">No property yet — add a property to run the front desk.</div></div>
         @else
-            <div x-data="{ tab: 'arrivals' }">
+            <div x-data="{
+                    tab: 'arrivals',
+                    modal: null, row: {}, keycards: 2, collectAmt: '', payKey: '', checks: { id: false, reg: false },
+                    newKey() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('k' + Date.now() + Math.floor(Math.random() * 1e6)); },
+                    defaultAmt(r) { return r.balance_minor ? (r.balance_minor / 100).toFixed(2) : ''; },
+                    openCheckin(r) { this.row = r; this.keycards = 2; this.checks = { id: false, reg: false }; this.collectAmt = this.defaultAmt(r); this.payKey = this.newKey(); this.modal = 'checkin'; },
+                    openCheckout(r) { this.row = r; this.collectAmt = this.defaultAmt(r); this.payKey = this.newKey(); this.modal = 'checkout'; },
+                    openCollect(r) { this.row = r; this.collectAmt = this.defaultAmt(r); this.payKey = this.newKey(); this.modal = 'collect'; },
+                    close() { this.modal = null; }
+                }" x-on:keydown.escape.window="close()">
                 {{-- Segmented control — Arrivals / Departures / In-house (sliding-pill tab state) --}}
                 <div class="vy-fd-seg vy-fade" role="tablist">
                     <button type="button" class="vy-fd-seg-btn" role="tab" x-bind:class="tab === 'arrivals' ? 'is-on' : ''" x-on:click="tab = 'arrivals'">
@@ -158,6 +167,17 @@
                                     </div>
                                 </div>
 
+                                @php
+                                    // Compact row payload for the shared modals (NAME-only #28; no contact PII).
+                                    $rowModal = [
+                                        'id' => $row['id'], 'guest' => $row['guest'], 'unit' => $row['unit'],
+                                        'nights' => $row['nights'], 'guests' => $row['guests'], 'source' => $row['source'],
+                                        'check_in_label' => $row['check_in_label'], 'check_out_label' => $row['check_out_label'],
+                                        'balance' => $row['balance'], 'balance_minor' => $row['balance_minor'],
+                                        'has_balance' => $row['has_balance'], 'can_collect' => $row['can_collect'],
+                                        'is_vip' => $row['is_vip'], 'status_label' => $row['status_label'], 'tone' => $row['tone'],
+                                    ];
+                                @endphp
                                 <div class="vy-fd-right">
                                     @if ($row['has_balance'])
                                         <span class="vy-balance is-due" title="Outstanding folio balance">{{ $row['balance'] }} due</span>
@@ -167,23 +187,15 @@
 
                                     <div class="vy-fd-actions">
                                         @if ($row['can_check_in'])
-                                            <form method="POST" action="{{ route('app.front-desk.check-in', $row['id']) }}">
-                                                @csrf
-                                                <input type="hidden" name="date" value="{{ $day['date'] }}">
-                                                <button type="submit" class="vy-act vy-act--accent">Check in</button>
-                                            </form>
+                                            <button type="button" class="vy-act vy-act--accent" x-on:click="openCheckin(@js($rowModal))">Check in</button>
                                         @elseif ($row['can_check_out'])
-                                            <form method="POST" action="{{ route('app.front-desk.check-out', $row['id']) }}">
-                                                @csrf
-                                                <input type="hidden" name="date" value="{{ $day['date'] }}">
-                                                <button type="submit" class="vy-act vy-act--ghost">Check out</button>
-                                            </form>
+                                            <button type="button" class="vy-act vy-act--ghost" x-on:click="openCheckout(@js($rowModal))">Check out</button>
                                         @endif
 
-                                        {{-- On-desk Collect is wired to the real folio payment route in a later GATE-2 sub-gate;
-                                             until then it stays an honest disabled affordance — it never fakes a payment. --}}
-                                        @if ($row['has_balance'])
-                                            <span class="vy-act is-soon" aria-disabled="true" title="Payment collection is wired next">Collect <span class="vy-soon-tag">Soon</span></span>
+                                        {{-- On-desk Collect — REAL (cash / bank transfer) via the folio payment route,
+                                             gated on payments.record. Card stays the deferred Stripe seam (never faked). --}}
+                                        @if ($row['can_collect'])
+                                            <button type="button" class="vy-act" x-on:click="openCollect(@js($rowModal))">Collect</button>
                                         @endif
                                     </div>
                                 </div>
@@ -193,12 +205,118 @@
                         @endforelse
                     </div>
                 @endforeach
+
+                {{-- ── CHECK-IN modal — wraps the REAL, gated check-in action. The checklist + key-card counter are
+                     a local staff aide-memoire (they persist nothing — no fake ID "verification"/KYC). Collect is
+                     the REAL folio payment (cash/bank), shown only to a payments.record holder. ── --}}
+                <div class="vy-fdm-overlay" x-show="modal === 'checkin'" x-cloak x-transition.opacity x-on:click.self="close()">
+                    <div class="vy-fdm">
+                        <div class="vy-fdm-head">
+                            <div>
+                                <div class="vy-fdm-title">Check in <span x-text="row.guest"></span></div>
+                                <div class="vy-fdm-sub"><span x-text="row.unit || 'Unassigned'"></span> · <span x-text="row.nights"></span> <span x-text="row.nights == 1 ? 'night' : 'nights'"></span> · <span x-text="row.check_in_label"></span>–<span x-text="row.check_out_label"></span></div>
+                            </div>
+                            <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+                            </button>
+                        </div>
+                        <div class="vy-fdm-body">
+                            <div class="vy-fdm-label">Before handing keys</div>
+                            <label class="vy-fdm-check"><input type="checkbox" x-model="checks.id"><span>Photo ID checked</span></label>
+                            <label class="vy-fdm-check"><input type="checkbox" x-model="checks.reg"><span>Registration card signed</span></label>
+                            <div class="vy-fdm-keycards">
+                                <span>Key cards</span>
+                                <div class="vy-fdm-counter">
+                                    <button type="button" x-on:click="keycards = Math.max(0, keycards - 1)" aria-label="Fewer key cards">−</button>
+                                    <span x-text="keycards"></span>
+                                    <button type="button" x-on:click="keycards = Math.min(9, keycards + 1)" aria-label="More key cards">+</button>
+                                </div>
+                            </div>
+                            <template x-if="row.can_collect">
+                                <div>
+                                    <div class="vy-fdm-label">Collect balance now — <span x-text="row.balance"></span> due</div>
+                                    @include('livewire.partials.fd-collect-form')
+                                </div>
+                            </template>
+                        </div>
+                        <div class="vy-fdm-foot">
+                            <button type="button" class="vy-act vy-act--ghost" x-on:click="close()">Cancel</button>
+                            <form method="POST" x-bind:action="'/app/front-desk/' + row.id + '/check-in'">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="date" value="{{ $day['date'] }}">
+                                <button type="submit" class="vy-act vy-act--accent">Check in</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ── CHECK-OUT modal — wraps the REAL, gated check-out action + the real folio PDF + an honest
+                     settle-now (real payment) when a balance remains. ── --}}
+                <div class="vy-fdm-overlay" x-show="modal === 'checkout'" x-cloak x-transition.opacity x-on:click.self="close()">
+                    <div class="vy-fdm">
+                        <div class="vy-fdm-head">
+                            <div>
+                                <div class="vy-fdm-title">Check out <span x-text="row.guest"></span></div>
+                                <div class="vy-fdm-sub"><span x-text="row.unit || 'Unassigned'"></span> · <span x-text="row.check_in_label"></span>–<span x-text="row.check_out_label"></span></div>
+                            </div>
+                            <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+                            </button>
+                        </div>
+                        <div class="vy-fdm-body">
+                            <template x-if="row.has_balance">
+                                <div>
+                                    <div class="vy-fdm-warn">Balance <strong x-text="row.balance"></strong> still due — settle before checkout.</div>
+                                    <template x-if="row.can_collect">
+                                        <div>
+                                            <div class="vy-fdm-label">Settle now</div>
+                                            @include('livewire.partials.fd-collect-form')
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="!row.has_balance">
+                                <div class="vy-fdm-settled">Folio settled — nothing outstanding.</div>
+                            </template>
+                            <a class="vy-fdm-folio" x-bind:href="'/app/reservations/' + row.id + '/folio.pdf'" target="_blank" rel="noopener">View folio (PDF)</a>
+                        </div>
+                        <div class="vy-fdm-foot">
+                            <button type="button" class="vy-act vy-act--ghost" x-on:click="close()">Cancel</button>
+                            <form method="POST" x-bind:action="'/app/front-desk/' + row.id + '/check-out'">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="date" value="{{ $day['date'] }}">
+                                <button type="submit" class="vy-act vy-act--accent">Check out</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ── COLLECT modal — standalone on-desk payment for a due row (departures / in-house). ── --}}
+                <div class="vy-fdm-overlay" x-show="modal === 'collect'" x-cloak x-transition.opacity x-on:click.self="close()">
+                    <div class="vy-fdm vy-fdm--sm">
+                        <div class="vy-fdm-head">
+                            <div>
+                                <div class="vy-fdm-title">Collect payment</div>
+                                <div class="vy-fdm-sub"><span x-text="row.guest"></span> · <span x-text="row.balance"></span> due</div>
+                            </div>
+                            <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+                            </button>
+                        </div>
+                        <div class="vy-fdm-body">
+                            @include('livewire.partials.fd-collect-form')
+                        </div>
+                        <div class="vy-fdm-foot">
+                            <button type="button" class="vy-act vy-act--ghost" x-on:click="close()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="vy-deferred-note" style="margin-top: 18px;">
                 <span class="vy-soon-tag">Wiring next</span>
-                Room moves, on-desk payment collection and walk-ins are wired to their real routes in the next
-                sub-gates; check-in and check-out are live. Balances are the real folio figures.
+                Room moves and walk-ins are wired to their real routes in the next sub-gate; check-in, check-out
+                and on-desk payment collection are live. Balances are the real folio figures.
             </div>
         @endif
 
@@ -240,6 +358,34 @@
         .vy-tl-dot.is-dep .vy-tl-dotlabel { top: 14px; }
         .vy-tl-foot { font-size: 11px; color: var(--vy-faint); line-height: 1.45; margin-top: 8px; }
         @media (prefers-reduced-motion: reduce) { .vy-tl-now::before { animation: none; } }
+        /* front-desk modals */
+        .vy-fdm-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: rgba(46, 30, 18, 0.32); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+        .vy-fdm { width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; border-radius: 20px; background: rgba(255, 252, 248, 0.98); border: 1px solid var(--vy-glass-border); box-shadow: 0 30px 80px -28px rgba(46, 30, 18, 0.5); }
+        .vy-fdm--sm { max-width: 380px; }
+        .vy-fdm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 22px 12px; }
+        .vy-fdm-title { font-family: var(--vy-display); font-weight: 600; font-size: 17px; letter-spacing: -0.02em; color: var(--vy-ink); }
+        .vy-fdm-sub { margin-top: 3px; font-size: 12.5px; color: var(--vy-muted); }
+        .vy-fdm-x { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.6); color: var(--vy-muted); display: grid; place-items: center; cursor: pointer; transition: background 0.14s; }
+        .vy-fdm-x:hover { background: rgba(255, 255, 255, 0.95); color: var(--vy-ink); }
+        .vy-fdm-body { padding: 6px 22px 8px; }
+        .vy-fdm-label { font-size: 12px; font-weight: 600; color: var(--vy-ink); margin: 14px 0 8px; }
+        .vy-fdm-check { display: flex; align-items: center; gap: 10px; padding: 9px 12px; margin-bottom: 6px; border-radius: 11px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.5); font-size: 13.5px; color: var(--vy-ink); cursor: pointer; }
+        .vy-fdm-check input { accent-color: var(--vy-accent, #e8703a); width: 16px; height: 16px; }
+        .vy-fdm-keycards { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; margin-top: 8px; border-radius: 11px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.5); font-size: 13.5px; color: var(--vy-ink); }
+        .vy-fdm-counter { display: inline-flex; align-items: center; gap: 12px; }
+        .vy-fdm-counter button { width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.7); color: var(--vy-ink); font-size: 16px; line-height: 1; cursor: pointer; }
+        .vy-fdm-counter span { min-width: 16px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .vy-fdm-collect { margin-top: 4px; }
+        .vy-fdm-collect-row { display: flex; gap: 8px; }
+        .vy-fdm-amt { flex: 1; }
+        .vy-fdm-method { flex: 0 0 130px; }
+        .vy-fdm-hint { margin-top: 8px; font-size: 11.5px; color: var(--vy-faint); line-height: 1.45; }
+        .vy-fdm-warn { padding: 10px 12px; border-radius: 11px; background: rgba(232, 112, 58, 0.08); border: 1px solid var(--vy-accent-border); font-size: 13px; color: var(--vy-ink); }
+        .vy-fdm-warn strong { font-variant-numeric: tabular-nums; }
+        .vy-fdm-settled { padding: 10px 12px; border-radius: 11px; background: rgba(60, 140, 90, 0.08); border: 1px solid rgba(60, 140, 90, 0.25); font-size: 13px; color: var(--vy-ink); }
+        .vy-fdm-folio { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--vy-accent, #e8703a); text-decoration: none; }
+        .vy-fdm-folio:hover { text-decoration: underline; }
+        .vy-fdm-foot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 22px 20px; }
         [x-cloak] { display: none !important; }
     </style>
 </div>

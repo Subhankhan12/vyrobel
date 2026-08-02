@@ -42,12 +42,12 @@ class ReservationFolioActionController extends Controller
 
         if ($validated['method'] === 'card') {
             // 🔒 NOT a live charge in the build: on-desk card is the account-gated Stripe seam.
-            return $this->back($model->id, 'Card payments go through Stripe (test-mode) — available at the live-key flip. Record cash or a bank transfer to take an on-desk payment now.');
+            return $this->afterPayment($request, $model->id, 'Card payments go through Stripe (test-mode) — available at the live-key flip. Record cash or a bank transfer to take an on-desk payment now.');
         }
 
         $minor = $this->parseAmountMinor($validated['amount']);
         if ($minor <= 0) {
-            return $this->back($model->id, 'Enter a payment amount greater than zero.');
+            return $this->afterPayment($request, $model->id, 'Enter a payment amount greater than zero.');
         }
 
         $folio = $folios->openFolio($model);
@@ -59,7 +59,25 @@ class ReservationFolioActionController extends Controller
             idempotencyKey: (string) $validated['idempotency_key'],
         );
 
-        return $this->back($model->id, 'Payment recorded.');
+        return $this->afterPayment($request, $model->id, 'Payment recorded.');
+    }
+
+    /**
+     * Redirect after an on-desk payment: back to the FRONT-DESK BOARD when the collect originated there
+     * (`return_to=front-desk`, preserving the viewed `?date`), otherwise to the reservation detail. The board
+     * is where the operator is standing when they collect at check-in — landing them back there matches the
+     * wireframe flow. Only recognises the one known origin; anything else falls through to the detail.
+     */
+    private function afterPayment(Request $request, string $reservationId, string $notice): RedirectResponse
+    {
+        if ($request->input('return_to') === 'front-desk') {
+            $date = $request->input('return_date');
+            $target = route('app.front-desk').(is_string($date) && $date !== '' ? '?date='.urlencode($date) : '');
+
+            return redirect()->to($target)->with('desk_notice', $notice);
+        }
+
+        return $this->back($reservationId, $notice);
     }
 
     /**

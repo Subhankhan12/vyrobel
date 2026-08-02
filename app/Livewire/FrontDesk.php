@@ -234,8 +234,11 @@ class FrontDesk extends Component
         // Reservation Agent / Accountant) never sees a button that 403s.
         $canCheckIn = (bool) auth()->user()?->can('reservations.checkin');
         $canCheckOut = (bool) auth()->user()?->can('reservations.checkout');
+        // #30 — gate the on-desk Collect CONTROL on the SAME permission the payment route enforces, so a role
+        // that can view the desk but not take money never sees a Collect that would 403.
+        $canCollect = (bool) auth()->user()?->can('payments.record');
 
-        return $rows->map(function (Reservation $reservation) use ($canCheckIn, $canCheckOut): array {
+        return $rows->map(function (Reservation $reservation) use ($canCheckIn, $canCheckOut, $canCollect): array {
             $guest = $reservation->leadGuest;
             $name = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
 
@@ -268,6 +271,8 @@ class FrontDesk extends Component
                 'guests' => (int) $reservation->adults + (int) $reservation->children,
                 'check_in' => $checkIn->toDateString(),
                 'check_out' => $checkOut->toDateString(),
+                'check_in_label' => $checkIn->format('j M'),
+                'check_out_label' => $checkOut->format('j M'),
                 // #104 GATE 3 — the guest's estimated arrival (real, was dropped at booking). Free-text window.
                 'expected_arrival' => ($ea = trim((string) ($reservation->expected_arrival ?? ''))) !== '' ? $ea : null,
                 'balance_minor' => $balanceMinor,
@@ -275,6 +280,7 @@ class FrontDesk extends Component
                 'has_balance' => $balanceMinor > 0,
                 'can_check_in' => $status === 'confirmed' && $canCheckIn,
                 'can_check_out' => $status === 'checked_in' && $canCheckOut,
+                'can_collect' => $balanceMinor > 0 && $canCollect,
                 // #87 — the guest's VIP flag + stay preferences flow to the front desk so arrivals get the
                 // right care (the once-empty "flags the front desk" promise, made true). These are operational
                 // flags, NOT contact PII — the name-only perimeter (email/phone) is unaffected (#28).

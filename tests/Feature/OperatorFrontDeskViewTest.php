@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Membership;
+use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -82,6 +83,35 @@ it('plots the day timeline from the real expected-arrival time, name-only', func
         ->assertSee('Today’s timeline')
         ->assertSee('16:30')                             // plotted at the REAL expected time (not a guess)
         ->assertSee('Tam Rivera · arrives 16:30');       // NAME-only dot (#28), honestly "scheduled"
+});
+
+// ── 3c. GATE 2 — on-desk COLLECT records a REAL folio payment and returns to the BOARD ───────────
+it('records a real on-desk cash payment from the board and returns to the board', function () {
+    $s = seedScenario(1);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    $this->actingAs(deskMember($s))
+        ->post(route('app.reservations.payment', $res->id), [
+            'amount' => '50', 'method' => 'cash', 'idempotency_key' => 'desk-'.$res->id,
+            'return_to' => 'front-desk', 'return_date' => '2026-09-01',
+        ])
+        ->assertRedirect(route('app.front-desk').'?date=2026-09-01')   // back to the BOARD, not the detail
+        ->assertSessionHas('desk_notice');
+
+    // A REAL payment row landed (integer minor, cash) through the certified FolioService path.
+    expect(Payment::query()->where('reservation_id', $res->id)->where('type', 'payment')->where('amount_minor', 5000)->exists())->toBeTrue();
+});
+
+// ── 3d. GATE 2 — the on-desk collect is idempotent (a double-submit records ONCE) ────────────────
+it('records an on-desk collect once when the same idempotency key is submitted twice', function () {
+    $s = seedScenario(1);
+    $res = book($s, ['unit_id' => $s['units'][0]->id]);
+    $payload = ['amount' => '50', 'method' => 'cash', 'idempotency_key' => 'dup-'.$res->id, 'return_to' => 'front-desk', 'return_date' => '2026-09-01'];
+
+    $this->actingAs(deskMember($s))->post(route('app.reservations.payment', $res->id), $payload)->assertRedirect();
+    $this->actingAs(deskMember($s))->post(route('app.reservations.payment', $res->id), $payload)->assertRedirect();
+
+    expect(Payment::query()->where('reservation_id', $res->id)->where('type', 'payment')->count())->toBe(1);
 });
 
 // ── 4. Tenant isolation — org B cannot see OR act on org A's reservation ─────────────────────────
