@@ -7,6 +7,7 @@ namespace App\Livewire\Operator\Concerns;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\User;
 use App\Support\Maintenance\MaintenanceSla;
+use App\Support\Reports\OperatorRevenueBreakdown;
 
 /**
  * Shared presentation formatting for the operator back-office Livewire screens (design pass). The
@@ -141,15 +142,8 @@ trait FormatsOperatorData
      */
     protected function sourceLabel(string $source): string
     {
-        return match ($source) {
-            'direct' => 'Direct',
-            'walk_in' => 'Walk-in',
-            'corporate' => 'Corporate',
-            'group' => 'Group',
-            'agent' => 'Agent',
-            'ota' => 'OTA',
-            default => ucwords(str_replace('_', ' ', $source)),
-        };
+        // Delegates to the ONE operator source-label map (shared with the CSV + PDF exports — anti-drift).
+        return OperatorRevenueBreakdown::sourceLabel($source);
     }
 
     /**

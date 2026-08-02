@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Operator;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Services\PdfService;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Property\PropertyContext;
+use App\Support\Reports\OperatorReportData;
 use App\Support\Reports\OperatorRevenueBreakdown;
 use App\Support\Reports\ReportPeriod;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -72,27 +75,46 @@ class OperatorReportsExportController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
+    /**
+     * GATE 10.2 — the wireframe's "PDF report" export: revenue, KPIs, channel mix + top units for the current
+     * scope + period, rendered from the SAME {@see OperatorReportData} the screen builds (so the printed report
+     * can never disagree with the page). Gated `can:reports.view`; scope via {@see PropertyContext}.
+     */
+    public function pdf(Request $request, PdfService $pdf): Response
+    {
+        $ctx = app(PropertyContext::class);
+        $ids = $ctx->readIds();
+        $range = ReportPeriod::resolve($request->query('range'), $request->query('month'));
+        $currency = $this->currency($ctx);
+
+        $id = $ctx->id();
+        $scopeLabel = $id !== null
+            ? (string) (Property::query()->whereKey($id)->value('name') ?? 'Property')
+            : 'All properties';
+
+        $filename = 'report-'.str_replace(':', '-', $range['key']).'.pdf';
+
+        return $pdf->download('pdfs.operator-report', [
+            'data' => OperatorReportData::build($ids, $range, $currency),
+            'range' => $range,
+            'currency' => $currency,
+            'scopeLabel' => $scopeLabel,
+        ], $filename);
+    }
+
     private function currency(PropertyContext $ctx): string
     {
-        $id = $ctx->id();
-        if ($id !== null) {
-            return (string) (Property::query()->where('id', $id)->value('currency') ?? 'EUR');
-        }
-
-        return (string) (Property::query()->orderBy('name')->value('currency') ?? 'EUR');
+        // Derive the currency from the SAME property the screen does — {@see PropertyContext::id()}, which in the
+        // "all" view already resolves to the first ACCESSIBLE property (accessibleIds[0]), matching the page's
+        // currentReadIds[0]. So the export can't pick a different currency than the page (#17); when the scope is
+        // empty (no accessible property) both fall back to EUR (the report is empty anyway). NEVER the org-wide
+        // first-by-name property, which a property_user pivot may exclude (#38).
+        return (string) (Property::query()->whereKey($ctx->id())->value('currency') ?? 'EUR');
     }
 
     private function sourceLabel(string $source): string
     {
-        return match ($source) {
-            'direct' => 'Direct',
-            'walk_in' => 'Walk-in',
-            'corporate' => 'Corporate',
-            'group' => 'Group',
-            'agent' => 'Agent',
-            'ota' => 'OTA',
-            default => ucwords(str_replace('_', ' ', $source)),
-        };
+        return OperatorRevenueBreakdown::sourceLabel($source);   // the ONE operator source-label map (anti-drift)
     }
 
     /** Neutralise CSV formula injection: a field beginning with = + - @ (or a control char) is quote-prefixed. */

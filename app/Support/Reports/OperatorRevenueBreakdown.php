@@ -57,6 +57,20 @@ final class OperatorRevenueBreakdown
      * @param  list<string>  $reservationIds
      * @return list<array{source: string, bookings: int, revenue_minor: int, share: int}>
      */
+    /** THE operator booking-source label (direct/walk-in/corporate/group/agent/OTA) — one map, no fabricated brand (#39). */
+    public static function sourceLabel(string $source): string
+    {
+        return match ($source) {
+            'direct' => 'Direct',
+            'walk_in' => 'Walk-in',
+            'corporate' => 'Corporate',
+            'group' => 'Group',
+            'agent' => 'Agent',
+            'ota' => 'OTA',
+            default => ucwords(str_replace('_', ' ', $source)),
+        };
+    }
+
     public static function byChannel(array $reservationIds, string $currency): array
     {
         if ($reservationIds === []) {

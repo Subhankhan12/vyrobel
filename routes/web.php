@@ -480,6 +480,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // #104 GATE 2 — the real Reports CSV export (was a dead "Soon" pill); same `reports.view` gate as the screen,
     // scope via PropertyContext, figures through the shared OperatorRevenueBreakdown (can't drift from the page).
     Route::get('/reports/export.csv', [OperatorReportsExportController::class, 'csv'])->middleware('can:reports.view')->name('reports.export');
+    // GATE 10.2 — the Reports PDF export (the wireframe's "PDF report"). Same reports.view gate + PropertyContext
+    // scope; rendered from the SAME OperatorReportData the screen builds, so the printed report can't drift.
+    Route::get('/reports/export.pdf', [OperatorReportsExportController::class, 'pdf'])->middleware('can:reports.view')->name('reports.export.pdf');
 
     // Phase 7b · Subscription billing — the Paywall + Checkout, gated `can:billing.manage` (the founder /
     // Property Owner, NOT Front Desk). Read-only until the account-gated Stripe charge: the tiers + the

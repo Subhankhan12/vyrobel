@@ -22,11 +22,33 @@
                 </select>
             </div>
             <div class="vy-right">
-                {{-- #104 GATE 2 — real CSV export (was a dead "Soon" pill); the same figures the page shows. --}}
-                <a class="vy-pill" href="{{ $exportUrl }}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
-                    Export CSV
-                </a>
+                {{-- GATE 10.2 — the wireframe's "Exports" menu. PDF report + CSV are REAL (rendered from the SAME
+                     OperatorReportData the page builds — can't drift). Excel + email-as-PDF are HONESTLY "Soon"
+                     (Excel needs a spreadsheet library; neither is faked as a working download). --}}
+                <div style="position:relative" x-data="{ open: false }" @click.outside="open = false">
+                    <button type="button" class="vy-pill" @click="open = !open">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+                        Exports
+                    </button>
+                    <div x-show="open" x-cloak x-transition style="position:absolute;right:0;top:calc(100% + 6px);z-index:30;width:250px;background:#FFFDFB;border:1px solid var(--vy-hairline);border-radius:14px;box-shadow:0 18px 44px rgba(120,70,40,.22);padding:6px">
+                        <a href="{{ $pdfUrl }}" style="display:block;padding:9px 10px;border-radius:10px;text-decoration:none;color:var(--vy-ink)">
+                            <span style="display:block;font-size:13px;font-weight:600">PDF report</span>
+                            <span style="display:block;font-size:11px;color:var(--vy-faint)">Revenue, KPIs &amp; channel mix</span>
+                        </a>
+                        <a href="{{ $exportUrl }}" style="display:block;padding:9px 10px;border-radius:10px;text-decoration:none;color:var(--vy-ink)">
+                            <span style="display:block;font-size:13px;font-weight:600">CSV export</span>
+                            <span style="display:block;font-size:11px;color:var(--vy-faint)">Channel &amp; month rows · opens in Excel</span>
+                        </a>
+                        <div style="padding:9px 10px;border-radius:10px;opacity:.55" title="Needs a spreadsheet library — coming soon">
+                            <span style="display:block;font-size:13px;font-weight:600">Excel workbook <span class="vy-soon-tag" style="font-size:9px">Soon</span></span>
+                            <span style="display:block;font-size:11px;color:var(--vy-faint)">Use the CSV meanwhile</span>
+                        </div>
+                        <div style="padding:9px 10px;border-radius:10px;opacity:.55" title="Coming soon">
+                            <span style="display:block;font-size:13px;font-weight:600">Email as PDF <span class="vy-soon-tag" style="font-size:9px">Soon</span></span>
+                            <span style="display:block;font-size:11px;color:var(--vy-faint)">Send the report to your inbox</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

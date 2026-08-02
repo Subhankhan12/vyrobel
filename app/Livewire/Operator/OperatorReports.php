@@ -6,33 +6,25 @@ namespace App\Livewire\Operator;
 
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
-use App\Models\Folio;
-use App\Models\FolioItem;
-use App\Models\MaintenanceTicket;
 use App\Models\Property;
-use App\Models\Reservation;
-use App\Models\ReservationUnit;
-use App\Models\Unit;
-use App\Support\Analytics\MetricSet;
 use App\Support\Analytics\PerformanceMetrics;
-use App\Support\Folio\FolioTotals;
-use App\Support\Reports\OperatorRevenueBreakdown;
+use App\Support\Reports\OperatorReportData;
 use App\Support\Reports\ReportPeriod;
-use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Operator REPORTS (Phase 6b · SG2) — a period report on the ARRIVAL basis (reservations arriving in the
- * range), scoped by the Phase-6a property context. EVERY figure is real and reconciles to the folios:
- *   • revenue breakdown — room / ancillary (add-ons·products·fees) / tax — is Σ real `folio_items`, so it
- *     reconciles to {@see FolioTotals} by construction.
- *   • the only REAL operator cost captured today is MAINTENANCE (resolved `maintenance_tickets.cost_minor`
- *     on the scope's units in the range). The prototype's other expense lines — channel commissions,
- *     cleaning, supplies, linen — have NO real data source, so they are HONESTLY OMITTED (listed as "not
- *     tracked yet"), never fabricated.
- *   • top performers = the scope's units ranked by REAL room revenue. No "best month on record" narrative.
+ * Operator REPORTS (Phase 6b · SG2; GATE 10) — a period report scoped by the Phase-6a property context. EVERY
+ * figure is real and reconciles: the figures are assembled ONCE by the shared {@see OperatorReportData} (so the
+ * page and the PDF/CSV exports can never drift), and this component only maps that raw data to display.
+ *
+ *   • KPIs — occupancy · ADR · RevPAR (stay-night basis, {@see PerformanceMetrics}) with an
+ *     HONEST vs-last-year delta shown only where the prior-year period has data (never a fabricated trend, #39).
+ *   • Revenue P&L — room / ancillary / tax is Σ real `folio_items` (folio·arrival basis), reconciling to the folios.
+ *   • The only REAL operator cost captured today is MAINTENANCE; the prototype's other expense lines have no data
+ *     source and are HONESTLY listed as "not tracked yet", never fabricated.
+ *   • Top performers + by-channel + by-month = real aggregates. No "best month on record" narrative.
  *
  * TENANT-scoped; `/app` behind #26; the route carries `can:reports.view` (NOT Front Desk, #30).
  */
@@ -42,124 +34,85 @@ class OperatorReports extends Component
     use FormatsOperatorData;
     use ResolvesCurrentProperty;
 
-    /** Expense categories the prototype shows for which the product captures NO real data (honestly deferred). */
-    private const UNTRACKED_EXPENSES = ['Channel commissions', 'Cleaning', 'Supplies', 'Linen'];
-
     public function render(): View
     {
         $range = ReportPeriod::resolve(request()->query('range'), request()->query('month'));
         $currency = $this->currency();
-        $ids = $this->currentReadIds;
+        $data = OperatorReportData::build($this->currentReadIds, $range, $currency);
 
-        // Active reservations ARRIVING in the range, within scope — the report's population.
-        $reservationIds = $ids === []
-            ? []
-            : Reservation::query()
-                ->whereIn('property_id', $ids)
-                ->whereNotIn('status', ['cancelled', 'no_show'])
-                ->whereDate('check_in', '>=', $range['start']->toDateString())
-                ->whereDate('check_in', '<', $range['end']->toDateString())
-                ->pluck('id')->map(fn ($id): string => (string) $id)->all();
-
-        $revenue = $this->revenue($reservationIds, $currency);
-        $maintenanceMinor = $this->maintenanceCost($ids, $range);
-        $grossMinor = $revenue['room_minor'] + $revenue['ancillary_minor'];
+        $exportParams = str_starts_with($range['key'], 'month:')
+            ? ['month' => substr($range['key'], 6)]
+            : ['range' => $range['key']];
 
         return view('livewire.operator.reports', [
             'viewer' => $this->viewer(),
             'scopeLabel' => $this->viewingAllProperties ? 'All properties' : $this->currentPropertyName(),
             'ranges' => ReportPeriod::rangeOptions($range['key']),
             'months' => ReportPeriod::monthOptions($range['key']),
-            // GATE 10.1 — the wireframe's KPI lead: REAL performance metrics (occupancy · ADR · RevPAR) over the
-            // period via the shared PerformanceMetrics (stay-night basis, as on Insights), with an HONEST
-            // vs-last-year delta shown ONLY when the prior-year period has data (never a fabricated trend, #39).
-            'kpis' => $this->performanceKpis($ids, $range, $currency, $grossMinor),
             'activeRange' => $range,
-            'arrivals' => count($reservationIds),
+            'arrivals' => $data['arrivals'],
+            // GATE 10.1 — the KPI lead: real occupancy · ADR · RevPAR + gross, with honest vs-LY deltas (#39).
+            'kpis' => $this->kpiCards($data, $currency),
             'revenue' => [
-                'room' => $this->money($revenue['room_minor'], $currency),
-                'ancillary' => $this->money($revenue['ancillary_minor'], $currency),
-                'tax' => $this->money($revenue['tax_minor'], $currency),
-                'gross' => $this->money($grossMinor, $currency),
-                'room_minor' => $revenue['room_minor'],
-                'ancillary_minor' => $revenue['ancillary_minor'],
+                'room' => $this->money($data['room_minor'], $currency),
+                'ancillary' => $this->money($data['ancillary_minor'], $currency),
+                'tax' => $this->money($data['tax_minor'], $currency),
+                'gross' => $this->money($data['gross_minor'], $currency),
             ],
             'expenses' => [
-                'maintenance' => $this->money($maintenanceMinor, $currency),
-                'maintenance_minor' => $maintenanceMinor,
-                'untracked' => self::UNTRACKED_EXPENSES,
+                'maintenance' => $this->money($data['maintenance_minor'], $currency),
+                'untracked' => $data['untracked'],
             ],
-            'net' => $this->money($grossMinor - $maintenanceMinor, $currency),
-            'topUnits' => $this->topUnits($reservationIds, $currency),
-            // #104 GATE 2 — the wireframe's revenue-by-channel table + revenue-by-month chart, both REAL and
-            // reconciling to the report's gross (folio basis). CSV export carries the range in the query.
-            'byChannel' => $this->revenueByChannel($reservationIds, $currency),
-            'byMonth' => $this->revenueByMonth($reservationIds, $currency, $range),
-            'exportUrl' => route('app.reports.export', ['range' => $range['key']]),
-            'empty' => $reservationIds === [] && $maintenanceMinor === 0,
+            'net' => $this->money($data['net_minor'], $currency),
+            'topUnits' => array_map(fn (array $u): array => [
+                'code' => $u['code'],
+                'name' => $u['name'],
+                'nights' => $u['nights'],
+                'revenue' => $this->money($u['revenue_minor'], $currency),
+            ], $data['top_units']),
+            'byChannel' => array_map(fn (array $c): array => [
+                'label' => $this->sourceLabel($c['source']),
+                'bookings' => $c['bookings'],
+                'revenue' => $this->money($c['revenue_minor'], $currency),
+                'share' => $c['share'],
+            ], $data['by_channel']),
+            'byMonth' => $this->monthBars($data['by_month'], $currency),
+            // GATE 10.2 — both exports carry the SAME period (roll-up range or specific month).
+            'exportUrl' => route('app.reports.export', $exportParams),
+            'pdfUrl' => route('app.reports.export.pdf', $exportParams),
+            'empty' => $data['empty'],
         ]);
     }
 
     /**
-     * Revenue split from REAL folio items (arrival-attributed) — reconciles to the folios.
+     * Map the shared raw metrics to the KPI card display (occupancy · ADR · RevPAR · gross), formatting the
+     * honest vs-last-year deltas here (presentation) — the delta is null when the builder found no prior-year data.
      *
-     * @param  list<string>  $reservationIds
-     * @return array{room_minor: int, ancillary_minor: int, tax_minor: int}
+     * @param  array<string, mixed>  $d
+     * @return list<array{key: string, label: string, value: string, sub: string, delta: ?string, delta_dir: ?string}>
      */
-    private function revenue(array $reservationIds, string $currency): array
+    private function kpiCards(array $d, string $currency): array
     {
-        if ($reservationIds === []) {
-            return ['room_minor' => 0, 'ancillary_minor' => 0, 'tax_minor' => 0];
-        }
-
-        $folioIds = Folio::query()->whereIn('reservation_id', $reservationIds)->pluck('id');
-
-        $rows = FolioItem::query()
-            ->whereIn('folio_id', $folioIds)
-            ->where('currency', $currency)   // never sum across currencies (#17)
-            ->selectRaw('type, SUM(amount_minor) AS total')
-            ->groupBy('type')
-            ->pluck('total', 'type');
-
-        $room = (int) ($rows['room'] ?? 0);
-        $tax = (int) ($rows['tax'] ?? 0);
-        $ancillary = (int) ($rows['add_on'] ?? 0) + (int) ($rows['product'] ?? 0) + (int) ($rows['fee'] ?? 0)
-            + (int) ($rows['manual'] ?? 0) + (int) ($rows['discount'] ?? 0);
-
-        return ['room_minor' => $room, 'ancillary_minor' => $ancillary, 'tax_minor' => $tax];
+        return [
+            ['key' => 'occupancy', 'label' => 'Occupancy', 'value' => $d['occupancy_pct'].'%', 'sub' => 'room-nights sold',
+                'delta' => $d['occupancy_delta'] !== null ? $this->signed($d['occupancy_delta']).'pp' : null, 'delta_dir' => $this->dir($d['occupancy_delta'])],
+            ['key' => 'adr', 'label' => 'ADR', 'value' => $this->money($d['adr_minor'], $currency), 'sub' => 'average daily rate',
+                'delta' => $d['adr_delta'] !== null ? $this->signedMoney($d['adr_delta'], $currency) : null, 'delta_dir' => $this->dir($d['adr_delta'])],
+            ['key' => 'revpar', 'label' => 'RevPAR', 'value' => $this->money($d['revpar_minor'], $currency), 'sub' => 'per available room',
+                'delta' => $d['revpar_delta'] !== null ? $this->signedMoney($d['revpar_delta'], $currency) : null, 'delta_dir' => $this->dir($d['revpar_delta'])],
+            ['key' => 'gross', 'label' => 'Gross revenue', 'value' => $this->money($d['gross_minor'], $currency), 'sub' => 'room + ancillary · folio basis',
+                'delta' => null, 'delta_dir' => null],
+        ];
     }
 
     /**
-     * REAL revenue-by-channel — the wireframe's Channel · Bookings · Revenue · Share table. Delegates the maths to
-     * the shared {@see OperatorRevenueBreakdown} (so the CSV export can't drift) and formats here. OTA brand is
-     * unmodelled → the honest "OTA" label (#39).
+     * The revenue-by-month bars — scaled to the tallest bar here for the chart component.
      *
-     * @param  list<string>  $reservationIds
-     * @return list<array{source: string, label: string, bookings: int, revenue: string, revenue_minor: int, share: int}>
-     */
-    private function revenueByChannel(array $reservationIds, string $currency): array
-    {
-        return array_map(fn (array $row): array => [
-            'source' => $row['source'],
-            'label' => $this->sourceLabel($row['source']),
-            'bookings' => $row['bookings'],
-            'revenue' => $this->money($row['revenue_minor'], $currency),
-            'revenue_minor' => $row['revenue_minor'],
-            'share' => $row['share'],
-        ], OperatorRevenueBreakdown::byChannel($reservationIds, $currency));
-    }
-
-    /**
-     * REAL revenue-by-month bars (the wireframe's 6-month revenue chart). Buckets from the shared breakdown; scaled
-     * to the tallest bar here for the chart component.
-     *
-     * @param  list<string>  $reservationIds
-     * @param  array{start: CarbonImmutable, end: CarbonImmutable}  $range
+     * @param  list<array{month: string, label: string, revenue_minor: int}>  $buckets
      * @return list<array{label: string, display: string, pct: int}>
      */
-    private function revenueByMonth(array $reservationIds, string $currency, array $range): array
+    private function monthBars(array $buckets, string $currency): array
     {
-        $buckets = OperatorRevenueBreakdown::byMonth($reservationIds, $currency, $range['start'], $range['end']);
         $max = max(1, ...array_map(fn (array $b): int => $b['revenue_minor'], $buckets ?: [['revenue_minor' => 0]]));
 
         return array_map(fn (array $b): array => [
@@ -167,102 +120,6 @@ class OperatorReports extends Component
             'display' => $this->money($b['revenue_minor'], $currency),
             'pct' => (int) round($b['revenue_minor'] * 100 / $max),
         ], $buckets);
-    }
-
-    /**
-     * REAL maintenance spend: resolved tickets on the scope's units, resolved inside the range.
-     *
-     * @param  list<string>  $propertyIds
-     * @param  array{start: CarbonImmutable, end: CarbonImmutable}  $range
-     */
-    private function maintenanceCost(array $propertyIds, array $range): int
-    {
-        if ($propertyIds === []) {
-            return 0;
-        }
-
-        $unitIds = Unit::query()->whereIn('property_id', $propertyIds)->pluck('id');
-        if ($unitIds->isEmpty()) {
-            return 0;
-        }
-
-        return (int) MaintenanceTicket::query()
-            ->where('status', 'resolved')
-            ->whereIn('unit_id', $unitIds)
-            ->whereNotNull('resolved_at')
-            ->whereDate('resolved_at', '>=', $range['start']->toDateString())
-            ->whereDate('resolved_at', '<', $range['end']->toDateString())
-            ->sum('cost_minor');
-    }
-
-    /**
-     * Top units by REAL room revenue among the arriving reservations.
-     *
-     * @param  list<string>  $reservationIds
-     * @return list<array{code: string, name: string, revenue: string, nights: int}>
-     */
-    private function topUnits(array $reservationIds, string $currency): array
-    {
-        if ($reservationIds === []) {
-            return [];
-        }
-
-        return ReservationUnit::query()
-            ->join('units', 'units.id', '=', 'reservation_units.unit_id')
-            ->whereIn('reservation_units.reservation_id', $reservationIds)
-            ->where('reservation_units.status', 'active')
-            ->where('reservation_units.currency', $currency)
-            ->selectRaw('units.code AS code, units.name AS name, SUM(reservation_units.price_minor) AS revenue, SUM(DATEDIFF(reservation_units.check_out, reservation_units.check_in)) AS nights')
-            ->groupBy('units.id', 'units.code', 'units.name')
-            ->orderByDesc('revenue')
-            ->limit(6)
-            ->get()
-            ->map(fn ($row): array => [
-                'code' => (string) $row->getAttribute('code'),
-                'name' => (string) ($row->getAttribute('name') ?? $row->getAttribute('code')),
-                'revenue' => $this->money((int) $row->getAttribute('revenue'), $currency),
-                'nights' => (int) $row->getAttribute('nights'),
-            ])
-            ->all();
-    }
-
-    /**
-     * The REAL performance KPI band — occupancy · ADR · RevPAR over the period (shared {@see PerformanceMetrics},
-     * stay-night basis, as on Insights) + gross revenue (folio/arrival basis). Each performance KPI carries an
-     * HONEST vs-last-year delta shown ONLY when the SAME period one year earlier has data
-     * ({@see MetricSet::isEmpty()}); otherwise null — never a fabricated trend (#39). The two bases measure
-     * different things and are labelled as such on the page.
-     *
-     * @param  list<string>  $ids
-     * @param  array{start: CarbonImmutable, end: CarbonImmutable}  $range
-     * @return list<array{key: string, label: string, value: string, sub: string, delta: ?string, delta_dir: ?string}>
-     */
-    private function performanceKpis(array $ids, array $range, string $currency, int $grossMinor): array
-    {
-        $m = $ids === [] ? null : PerformanceMetrics::forProperties($ids, $range['start'], $range['end'], $currency);
-        $ly = $ids === [] ? null : PerformanceMetrics::forProperties($ids, $range['start']->subYear(), $range['end']->subYear(), $currency);
-
-        $occ = $m?->occupancyPct() ?? 0;
-        $adr = $m?->adrMinor() ?? 0;
-        $revpar = $m?->revparMinor() ?? 0;
-
-        $occDelta = $adrDelta = $revparDelta = null;
-        if ($ly !== null && ! $ly->isEmpty()) {
-            $occDelta = $occ - $ly->occupancyPct();
-            $adrDelta = $adr - $ly->adrMinor();
-            $revparDelta = $revpar - $ly->revparMinor();
-        }
-
-        return [
-            ['key' => 'occupancy', 'label' => 'Occupancy', 'value' => $occ.'%', 'sub' => 'room-nights sold',
-                'delta' => $occDelta !== null ? $this->signed($occDelta).'pp' : null, 'delta_dir' => $this->dir($occDelta)],
-            ['key' => 'adr', 'label' => 'ADR', 'value' => $this->money($adr, $currency), 'sub' => 'average daily rate',
-                'delta' => $adrDelta !== null ? $this->signedMoney($adrDelta, $currency) : null, 'delta_dir' => $this->dir($adrDelta)],
-            ['key' => 'revpar', 'label' => 'RevPAR', 'value' => $this->money($revpar, $currency), 'sub' => 'per available room',
-                'delta' => $revparDelta !== null ? $this->signedMoney($revparDelta, $currency) : null, 'delta_dir' => $this->dir($revparDelta)],
-            ['key' => 'gross', 'label' => 'Gross revenue', 'value' => $this->money($grossMinor, $currency), 'sub' => 'room + ancillary · folio basis',
-                'delta' => null, 'delta_dir' => null],
-        ];
     }
 
     private function currency(): string

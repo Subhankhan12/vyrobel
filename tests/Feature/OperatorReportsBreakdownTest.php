@@ -94,6 +94,27 @@ it('leads with real performance KPIs (occupancy · ADR · RevPAR · gross) and a
         ->assertSee('Jump to month');   // the Reporting-month picker
 });
 
+// GATE 10.2 — the PDF report export: a real PDF, gated, from the SAME data the page shows.
+it('exports a real PDF report through the shared report data', function () {
+    $s = seedScenario(1);
+    reservationWithRoom($s, 'direct', 30000, 'VYR-PDF');
+    $manager = operatorUser($s, [], 'Hotel Manager');
+
+    $res = $this->actingAs($manager)->withSession(['current_property_id' => $s['property']->id])
+        ->get(route('app.reports.export.pdf', ['month' => '2026-09']));
+
+    $res->assertOk();
+    expect($res->headers->get('content-type'))->toContain('application/pdf');
+    expect(substr((string) $res->getContent(), 0, 4))->toBe('%PDF');   // a genuine PDF, not a stub
+});
+
+it('refuses the PDF export to a role without reports.view', function () {
+    $s = seedScenario(1);
+    $frontDesk = operatorUser($s, [], 'Front Desk');   // lacks reports.view
+    $this->actingAs($frontDesk)->withSession(['current_property_id' => $s['property']->id])
+        ->get(route('app.reports.export.pdf'))->assertForbidden();
+});
+
 // GATE 10.1 — ?month=YYYY-MM scopes the whole report (page + subtitle) to that calendar month.
 it('scopes the report to a specific reporting month via ?month=', function () {
     $s = seedScenario(1);
