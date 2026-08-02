@@ -24,6 +24,61 @@ final class MessageTemplate
     public const KEYS = ['pre-arrival', 'payment-reminder', 'review-request'];
 
     /**
+     * The guest's MESSAGING-CONTEXT reservation — the ONE the composer references (meta + merged template) AND
+     * the one {@see InboxActionController::start()} links the thread to, so those surfaces can never disagree
+     * (the drift an adversarial review caught: the composer merged the guest's OLDEST reservation while start()
+     * linked the newest). Relevance: a current/upcoming stay (soonest) beats a recent checkout. Tenant-scoped.
+     */
+    public static function contextReservation(Guest $guest): ?Reservation
+    {
+        $reservations = Reservation::query()
+            ->where('lead_guest_id', $guest->getKey())
+            ->whereIn('status', ['confirmed', 'checked_in', 'checked_out'])
+            ->with('reservationUnits.unit')
+            ->get();
+
+        return self::mostRelevant($reservations, CarbonImmutable::today());
+    }
+
+    /**
+     * Pick the most-relevant reservation from a set by the ONE rule both the composer and start() use: an
+     * active/future stay (check_out ≥ today), soonest check_in first (so in-house then next-upcoming), beats a
+     * past stay; among past stays, the most-recent checkout wins. Pure — no query, so the composer can apply it
+     * over its already-loaded rows and start() over a fresh query and both land on the same reservation.
+     *
+     * @param  iterable<int, Reservation>  $reservations
+     */
+    public static function mostRelevant(iterable $reservations, CarbonImmutable $today): ?Reservation
+    {
+        $best = null;
+        foreach ($reservations as $r) {
+            if ($best === null || self::moreRelevant($r, $best, $today)) {
+                $best = $r;
+            }
+        }
+
+        return $best;
+    }
+
+    private static function moreRelevant(Reservation $a, Reservation $b, CarbonImmutable $today): bool
+    {
+        $t = $today->toDateString();
+        $aOut = CarbonImmutable::parse($a->check_out)->toDateString();
+        $bOut = CarbonImmutable::parse($b->check_out)->toDateString();
+        $aActive = $aOut >= $t;
+        $bActive = $bOut >= $t;
+
+        if ($aActive !== $bActive) {
+            return $aActive;   // an active/future stay always beats a past one
+        }
+        if ($aActive) {
+            return CarbonImmutable::parse($a->check_in)->toDateString() < CarbonImmutable::parse($b->check_in)->toDateString();   // soonest first
+        }
+
+        return $aOut > $bOut;   // both past → the most-recent checkout wins
+    }
+
+    /**
      * The merged message body for one template + guest (+ their reservation, for the unit/reference/balance
      * vars). Returns '' for an unknown key. Tenant-scoped via the active TenantContext.
      */

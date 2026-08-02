@@ -3,8 +3,11 @@
 use App\Models\Message;
 use App\Models\MessageThread;
 use App\Models\Note;
+use App\Models\Reservation;
 use App\Notifications\Operator\ThreadAssignedNotification;
 use App\Services\InboxService;
+use App\Support\Inbox\MessageTemplate;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -29,6 +32,25 @@ it('starts a thread with a real guest seeded from a template', function () {
     expect($msg)->not->toBeNull()
         ->and($msg->body)->not->toBe('')
         ->and($msg->delivery_status)->toBe('delivered');
+});
+
+// ── GATE 3.2 fix — the composer + the link reference the SAME (current/upcoming) reservation, not the oldest ──
+it('picks the current/upcoming reservation over a recent checkout for the messaging context', function () {
+    $today = CarbonImmutable::parse('2026-08-02');
+    $mk = fn (string $in, string $out, string $status) => (new Reservation)->forceFill(['check_in' => $in, 'check_out' => $out, 'status' => $status]);
+
+    $past = $mk('2026-07-20', '2026-07-22', 'checked_out');      // recent checkout (within 14d)
+    $upcoming = $mk('2026-08-10', '2026-08-13', 'confirmed');    // upcoming stay
+    $inHouse = $mk('2026-08-01', '2026-08-05', 'checked_in');    // currently in-house
+    $older = $mk('2026-06-01', '2026-06-03', 'checked_out');     // older checkout
+
+    // an upcoming stay beats a recent checkout (the review-caught bug: the composer used to pick the past one)
+    expect(MessageTemplate::mostRelevant([$past, $upcoming], $today))->toBe($upcoming)
+        ->and(MessageTemplate::mostRelevant([$upcoming, $past], $today))->toBe($upcoming)
+        // in-house (active, earliest check-in) beats an upcoming stay
+        ->and(MessageTemplate::mostRelevant([$upcoming, $inHouse], $today))->toBe($inHouse)
+        // among past-only, the MOST-recent checkout wins
+        ->and(MessageTemplate::mostRelevant([$older, $past], $today))->toBe($past);
 });
 
 // ── GATE 3.2 — the operator's EDITED body is what sends (the in-modal editor), not the raw template ──

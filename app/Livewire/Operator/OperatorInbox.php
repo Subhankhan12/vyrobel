@@ -534,51 +534,73 @@ class OperatorInbox extends Component
      */
     private function composeGuests(): array
     {
-        $today = CarbonImmutable::today()->toDateString();
-        $recent = CarbonImmutable::today()->subDays(14)->toDateString();
+        $today = CarbonImmutable::today();
+        $todayStr = $today->toDateString();
+        $recent = $today->subDays(14)->toDateString();
 
         $reservations = Reservation::query()
             ->with(['leadGuest', 'reservationUnits.unit'])
             ->whereNotNull('lead_guest_id')
             ->whereIn('status', ['confirmed', 'checked_in', 'checked_out'])
             ->where('check_out', '>=', $recent)
-            ->orderBy('check_in')
             ->get();
 
-        $seen = [];
-        $out = [];
+        // Group by guest, then pick the SAME most-relevant reservation per guest that start() links + merges —
+        // a current/upcoming stay beats a recent checkout — so the picker meta, the pre-merged templates, the
+        // sent body AND the linked reservation reference the ONE booking (the review-caught drift where the
+        // composer merged the guest's oldest reservation while start() linked the newest).
+        $byGuest = [];
         foreach ($reservations as $reservation) {
-            $guest = $reservation->leadGuest;
-            if ($guest === null || isset($seen[(string) $guest->getKey()])) {
+            if ($reservation->lead_guest_id !== null) {
+                $byGuest[(string) $reservation->lead_guest_id][] = $reservation;
+            }
+        }
+
+        $rows = [];
+        foreach ($byGuest as $list) {
+            $reservation = MessageTemplate::mostRelevant($list, $today);
+            $guest = $reservation?->leadGuest;
+            if ($reservation === null || $guest === null) {
                 continue;
             }
-            $seen[(string) $guest->getKey()] = true;
 
             $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name)) ?: 'Guest';
             $unit = $reservation->reservationUnits->first()?->unit;
             $unitLabel = $unit !== null ? (string) ($unit->name ?? $unit->code) : '';
             $in = CarbonImmutable::parse($reservation->check_in);
-            $when = $in->toDateString() > $today
+            $outDate = CarbonImmutable::parse($reservation->check_out);
+            $when = $in->toDateString() > $todayStr
                 ? 'Arrives '.$in->format('j M')
-                : ($reservation->status === 'checked_out' ? 'Checked out '.CarbonImmutable::parse($reservation->check_out)->format('j M') : 'In-house');
+                : ($outDate->toDateString() < $todayStr || (string) $reservation->status === 'checked_out'
+                    ? 'Checked out '.$outDate->format('j M')
+                    : 'In-house');
 
-            $out[] = [
+            $rows[] = [
                 'id' => (string) $guest->getKey(),
                 'name' => $name,
                 'initials' => $this->initials($name),
                 'meta' => trim($when.($unitLabel !== '' ? ' · '.$unitLabel : '').' · '.ucfirst((string) $reservation->source)),
-                // Each template pre-MERGED for THIS guest (the ONE shared merge #83) so the New-message modal
-                // can pre-fill the editable textarea — the operator reviews + edits before sending, and the
+                // Each template pre-MERGED from the SAME context reservation (the ONE shared merge #83) so the
+                // New-message modal pre-fills the editable textarea — the operator reviews + edits, and the
                 // edited body is what sends (it wins over `template` in start()). No door codes/secrets (#33).
                 'templates' => [
                     'pre-arrival' => MessageTemplate::merged('pre-arrival', $guest, $reservation),
                     'payment-reminder' => MessageTemplate::merged('payment-reminder', $guest, $reservation),
                     'review-request' => MessageTemplate::merged('review-request', $guest, $reservation),
                 ],
+                // Sort key: active/upcoming guests first (soonest check-in), then recently-departed guests last.
+                '_active' => $outDate->toDateString() >= $todayStr ? 0 : 1,
+                '_sort' => $outDate->toDateString() >= $todayStr ? $in->getTimestamp() : -$outDate->getTimestamp(),
             ];
         }
 
-        return $out;
+        usort($rows, fn (array $a, array $b): int => [$a['_active'], $a['_sort']] <=> [$b['_active'], $b['_sort']]);
+
+        return array_map(function (array $r): array {
+            unset($r['_active'], $r['_sort']);
+
+            return $r;
+        }, $rows);
     }
 
     // ── Shared helpers ───────────────────────────────────────────────────────────────────────────

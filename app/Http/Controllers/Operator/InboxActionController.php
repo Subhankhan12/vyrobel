@@ -202,8 +202,10 @@ class InboxActionController extends Controller
         $guest = Guest::query()->findOrFail($validated['guest_id']);   // tenant-scoped → cross-org 404
 
         // Reuse an existing manual thread for this guest rather than spawning duplicates (the guest-profile
-        // "Message" precedent), else open a fresh one linked to their latest reservation.
-        $reservation = Reservation::query()->where('lead_guest_id', $guest->getKey())->orderByDesc('check_in')->first();
+        // "Message" precedent), else open a fresh one linked to their MESSAGING-CONTEXT reservation — the SAME
+        // one the composer's meta + pre-merged template referenced (MessageTemplate::contextReservation), so the
+        // thread's linked reservation and the sent body can never disagree.
+        $reservation = MessageTemplate::contextReservation($guest);
         $thread = MessageThread::query()->where('guest_id', $guest->getKey())->where('channel', 'manual')->orderByDesc('last_message_at')->first();
         if ($thread === null) {
             $thread = $inbox->startThread([
