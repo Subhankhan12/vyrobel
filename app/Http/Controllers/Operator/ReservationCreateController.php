@@ -16,6 +16,7 @@ use App\Models\RoomType;
 use App\Models\Tax;
 use App\Services\AssignmentService;
 use App\Services\FolioService;
+use App\Services\FrontDeskService;
 use App\Services\GuestWalletService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Folio\PropertyCharges;
@@ -236,13 +237,35 @@ class ReservationCreateController extends Controller
         // Optional MANUAL payment (no card data ever) via the real folio path. The amount is capped at the
         // REAL folio balance now that room + extras + tax + fees are posted — a deposit/full is honoured, but
         // the operator can never collect more than is owed (reconciling #17).
+        $paidMinor = 0;
         if ($paymentMinor !== null) {
             $folio->refresh();
             $pay = min($paymentMinor, max(0, (int) $folio->balance_minor));
             if ($pay > 0) {
                 $folios->recordPayment($folio, Money::of($pay, $currency));
+                $paidMinor = $pay;
                 $notice .= ' '.MoneyFormatter::display($pay, $currency).' recorded as paid.';
             }
+        }
+
+        // GATE 2 — WALK-IN: a guest at the desk. This is a New Reservation with today's dates + an immediate
+        // check-in, so it reuses this ENTIRE certified path (createBooking + folio + tax + fees + payment,
+        // source=walk_in) and adds only the check-in + a return to the BOARD instead of the done screen. No new
+        // booking/pricing/money code. The check-in is gated on reservations.checkin (the actor may create a
+        // walk-in but not work the desk → the booking still lands, just not checked in).
+        if ($request->boolean('walk_in')) {
+            $verb = 'created';
+            if ($reservation->status === 'confirmed' && $request->user()?->can('reservations.checkin')) {
+                app(FrontDeskService::class)->checkIn($reservation);
+                $verb = 'checked in';
+            }
+            $deskNotice = 'Walk-in '.$reservation->reference.' '.$verb.'.';
+            if ($paidMinor > 0) {
+                $deskNotice .= ' '.MoneyFormatter::display($paidMinor, $currency).' recorded as paid.';
+            }
+
+            return redirect()->to(route('app.front-desk').'?date='.urlencode(CarbonImmutable::parse($checkIn)->toDateString()))
+                ->with('desk_notice', $deskNotice);
         }
 
         // PRG to the in-wizard DONE screen (the wireframe's success card: reference + self-check-in QR),

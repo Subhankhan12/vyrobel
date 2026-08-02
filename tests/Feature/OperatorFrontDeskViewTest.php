@@ -5,6 +5,10 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\User;
+use App\Services\AvailabilityService;
+use App\Services\RateAndRestrictionService;
+use App\Support\Money\Money;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -133,6 +137,35 @@ it('moves a reservation to a free same-type unit from the board and returns to t
 
     // The line genuinely moved through AssignmentService::assignUnit (the single guarded write path).
     expect((string) $line->fresh()->unit_id)->toBe((string) $s['units'][1]->id);
+});
+
+// ── 3f. GATE 2 — a WALK-IN creates a source=walk_in booking, checks it in, and records the first night ──
+it('creates a walk-in through the certified path, checks it in, and records the first-night payment', function () {
+    $s = seedScenario(1);
+    $today = CarbonImmutable::today();
+    // Publish availability + price the plan across today's window so the walk-in is genuinely bookable now
+    // (seedScenario only publishes the Sept demo window).
+    app(AvailabilityService::class)->recompute($s['roomType']->id, $today->toDateString(), $today->addDays(4)->toDateString());
+    app(RateAndRestrictionService::class)->setRate(
+        $s['ratePlan'], $today->toDateString(), $today->addDays(3)->toDateString(), Money::of(9000, 'EUR'),
+    );
+
+    $this->actingAs(deskMember($s))
+        ->post(route('app.reservations.create'), [
+            'source' => 'walk_in', 'walk_in' => '1',
+            'check_in' => $today->toDateString(), 'check_out' => $today->addDay()->toDateString(),
+            'room_type_id' => $s['roomType']->id, 'unit_id' => $s['units'][0]->id,
+            'guest_first_name' => 'Wanda', 'guest_last_name' => 'Kingsley', 'adults' => '1',
+            'payment_method' => 'cash', 'payment_amount' => '50',   // collect first night now
+        ])
+        ->assertRedirect(route('app.front-desk').'?date='.$today->toDateString())   // returns to the BOARD
+        ->assertSessionHas('desk_notice');
+
+    // Created AS a walk-in AND checked in (both via the certified createBooking + check-in path).
+    $res = Reservation::query()->where('source', 'walk_in')->latest('created_at')->firstOrFail();
+    expect((string) $res->status)->toBe('checked_in')
+        // The first-night payment landed on the real folio (integer minor, cash).
+        ->and(Payment::query()->where('reservation_id', $res->id)->where('type', 'payment')->where('amount_minor', 5000)->exists())->toBeTrue();
 });
 
 // ── 4. Tenant isolation — org B cannot see OR act on org A's reservation ─────────────────────────

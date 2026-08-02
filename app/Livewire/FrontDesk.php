@@ -92,7 +92,41 @@ class FrontDesk extends Component
             'inHouse' => $inHouse,
             'summary' => $this->summary($arrivals, $departures, $inHouse),
             'timeline' => $this->timeline($property, $arrivals, $departures, $date === CarbonImmutable::today()->toDateString()),
+            'walkin' => $property !== null
+                ? $this->walkInCandidates($property)
+                : ['today' => CarbonImmutable::today()->toDateString(), 'units' => []],
         ]);
+    }
+
+    /**
+     * Free, PRICED units for a WALK-IN tonight (today → +1) across all room types — the walk-in modal's unit
+     * picker. Uses availableRoomTypes (Level A + priced) because a walk-in CREATE needs a real availability
+     * count and price; createBooking then re-checks under a row lock for the actual stay length (a longer stay
+     * that isn't free is refused there, never a double book). NAME/label only.
+     *
+     * @return array{today: string, units: list<array{unit_id: string, room_type_id: string, label: string, price: string}>}
+     */
+    private function walkInCandidates(Property $property): array
+    {
+        $today = CarbonImmutable::today()->toDateString();
+        $tomorrow = CarbonImmutable::today()->addDay()->toDateString();
+
+        $units = [];
+        foreach (app(UnitAvailabilityService::class)->availableRoomTypes((string) $property->id, $today, $tomorrow) as $rt) {
+            if ($rt['priced'] !== true) {
+                continue;
+            }
+            foreach ($rt['units'] as $u) {
+                $units[] = [
+                    'unit_id' => (string) $u['id'],
+                    'room_type_id' => (string) $rt['room_type_id'],
+                    'label' => (string) $u['name'].' · '.(string) $rt['room_type_name'],
+                    'price' => $this->money((int) $rt['price_minor'], (string) $rt['currency']).' / night',
+                ];
+            }
+        }
+
+        return ['today' => $today, 'units' => $units];
     }
 
     /**

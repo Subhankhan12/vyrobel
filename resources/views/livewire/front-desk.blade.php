@@ -37,7 +37,17 @@
                 @endunless
             </div>
             <div class="vy-right">
-                <span class="vy-pill is-soon" aria-disabled="true">Walk-in <span class="vy-soon-tag">Soon</span></span>
+                @if ($property !== null && auth()->user()?->can('reservations.create'))
+                    @if ($walkin['units'] !== [])
+                        {{-- REAL walk-in: creates a source=walk_in booking + checks it in, via the certified path. --}}
+                        <button type="button" x-data x-on:click="$dispatch('vy-walkin-open')" class="vy-pill vy-pill--accent">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                            Walk-in
+                        </button>
+                    @else
+                        <span class="vy-pill is-soon" aria-disabled="true" title="No unit is free tonight">Walk-in · none free</span>
+                    @endif
+                @endif
             </div>
         </div>
 
@@ -47,14 +57,18 @@
             <div x-data="{
                     tab: 'arrivals',
                     modal: null, row: {}, keycards: 2, collectAmt: '', payKey: '', checks: { id: false, reg: false }, moveTarget: '',
+                    walkinUnits: @js($walkin['units']), walkinToday: @js($walkin['today']),
+                    wi: { first: '', last: '', nights: 1, unit: '', roomType: '', collect: false, amt: '', method: 'cash' },
                     newKey() { return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('k' + Date.now() + Math.floor(Math.random() * 1e6)); },
                     defaultAmt(r) { return r.balance_minor ? (r.balance_minor / 100).toFixed(2) : ''; },
                     openCheckin(r) { this.row = r; this.keycards = 2; this.checks = { id: false, reg: false }; this.collectAmt = this.defaultAmt(r); this.payKey = this.newKey(); this.modal = 'checkin'; },
                     openCheckout(r) { this.row = r; this.collectAmt = this.defaultAmt(r); this.payKey = this.newKey(); this.modal = 'checkout'; },
                     openCollect(r) { this.row = r; this.collectAmt = this.defaultAmt(r); this.payKey = this.newKey(); this.modal = 'collect'; },
                     openMove(r) { this.row = r; this.moveTarget = ''; this.modal = 'move'; },
+                    openWalkIn() { this.wi = { first: '', last: '', nights: 1, unit: '', roomType: '', collect: false, amt: '', method: 'cash' }; this.modal = 'walkin'; },
+                    walkCheckout() { const d = new Date(this.walkinToday + 'T00:00:00'); d.setDate(d.getDate() + Math.max(1, parseInt(this.wi.nights) || 1)); const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0'); return y + '-' + m + '-' + day; },
                     close() { this.modal = null; }
-                }" x-on:keydown.escape.window="close()">
+                }" x-on:keydown.escape.window="close()" x-on:vy-walkin-open.window="openWalkIn()">
                 {{-- Segmented control — Arrivals / Departures / In-house (sliding-pill tab state) --}}
                 <div class="vy-fd-seg vy-fade" role="tablist">
                     <button type="button" class="vy-fd-seg-btn" role="tab" x-bind:class="tab === 'arrivals' ? 'is-on' : ''" x-on:click="tab = 'arrivals'">
@@ -373,12 +387,82 @@
                         </template>
                     </div>
                 </div>
+
+                {{-- ── WALK-IN modal — a guest at the desk NOW. Posts to the CERTIFIED app.reservations.create
+                     (source=walk_in, today's dates) which prices + creates + posts the folio, then checks in and
+                     returns here. Free-tonight units are real + priced; a longer stay is re-checked under the
+                     booking lock. Optional "collect first night" is the real folio payment; card is deferred. ── --}}
+                <div class="vy-fdm-overlay" x-show="modal === 'walkin'" x-cloak x-transition.opacity x-on:click.self="close()">
+                    <div class="vy-fdm">
+                        <div class="vy-fdm-head">
+                            <div>
+                                <div class="vy-fdm-title">Walk-in</div>
+                                <div class="vy-fdm-sub">{{ \Carbon\CarbonImmutable::parse($walkin['today'])->format('D j M') }} · guest at the desk now</div>
+                            </div>
+                            <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+                            </button>
+                        </div>
+                        <form method="POST" action="{{ route('app.reservations.create') }}">
+                            @csrf
+                            <input type="hidden" name="source" value="walk_in">
+                            <input type="hidden" name="walk_in" value="1">
+                            <input type="hidden" name="check_in" value="{{ $walkin['today'] }}">
+                            <input type="hidden" name="check_out" x-bind:value="walkCheckout()">
+                            <input type="hidden" name="room_type_id" x-bind:value="wi.roomType">
+                            <input type="hidden" name="unit_id" x-bind:value="wi.unit">
+                            <input type="hidden" name="adults" value="1">
+                            <input type="hidden" name="send_confirmation" value="0">
+                            <div class="vy-fdm-body">
+                                <div class="vy-fdm-row2">
+                                    <input type="text" name="guest_first_name" x-model="wi.first" class="vy-input" placeholder="First name" autocomplete="off">
+                                    <input type="text" name="guest_last_name" x-model="wi.last" class="vy-input" placeholder="Last name" autocomplete="off">
+                                </div>
+                                <div class="vy-fdm-keycards" style="margin-top: 10px;">
+                                    <span>Nights</span>
+                                    <div class="vy-fdm-counter">
+                                        <button type="button" x-on:click="wi.nights = Math.max(1, wi.nights - 1)" aria-label="Fewer nights">−</button>
+                                        <span x-text="wi.nights"></span>
+                                        <button type="button" x-on:click="wi.nights = Math.min(14, wi.nights + 1)" aria-label="More nights">+</button>
+                                    </div>
+                                </div>
+                                <div class="vy-fdm-label">Free tonight</div>
+                                <div class="vy-fdm-units">
+                                    <template x-for="u in walkinUnits" x-bind:key="u.unit_id">
+                                        <label class="vy-fdm-unit">
+                                            <input type="radio" x-bind:value="u.unit_id" x-model="wi.unit" x-on:change="wi.roomType = u.room_type_id">
+                                            <span class="vy-fdm-unit-code" x-text="u.label"></span>
+                                            <span class="vy-fdm-unit-free" x-text="u.price"></span>
+                                        </label>
+                                    </template>
+                                </div>
+                                @can('payments.record')
+                                    <label class="vy-fdm-check" style="margin-top: 12px;"><input type="checkbox" x-model="wi.collect"><span>Collect first night now</span></label>
+                                    <div x-show="wi.collect" x-cloak>
+                                        <div class="vy-fdm-collect-row">
+                                            <input type="text" name="payment_amount" x-model="wi.amt" x-bind:disabled="! wi.collect" inputmode="decimal" class="vy-input vy-fdm-amt" placeholder="0.00" aria-label="First-night amount">
+                                            <select name="payment_method" x-bind:disabled="! wi.collect" class="vy-input vy-fdm-method" aria-label="Method">
+                                                <option value="cash">Cash</option>
+                                                <option value="bank">Bank transfer</option>
+                                            </select>
+                                        </div>
+                                        <div class="vy-fdm-hint">Card terminal at the desk is the deferred Stripe seam · the rest stays on the folio.</div>
+                                    </div>
+                                @endcan
+                            </div>
+                            <div class="vy-fdm-foot">
+                                <button type="button" class="vy-act vy-act--ghost" x-on:click="close()">Cancel</button>
+                                <button type="submit" class="vy-act vy-act--accent" x-bind:disabled="! wi.unit || ! wi.first.trim() || ! wi.last.trim()">Check in walk-in</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
 
             <div class="vy-deferred-note" style="margin-top: 18px;">
-                <span class="vy-soon-tag">Wiring next</span>
-                Walk-in create-and-check-in is wired to its real route in the next sub-gate; check-in, check-out,
-                on-desk payment collection and room moves are live. Balances are the real folio figures.
+                <span class="vy-soon-tag">Live integrations</span>
+                Card capture (Stripe, test-mode until go-live) is the one deferred desk payment method — cash,
+                bank transfer, check-in/out, room moves and walk-ins are all live on real folio figures.
             </div>
         @endif
 
@@ -456,6 +540,10 @@
         .vy-fdm-unit input { accent-color: var(--vy-accent, #e8703a); width: 16px; height: 16px; }
         .vy-fdm-unit-code { flex: 1; font-weight: 600; }
         .vy-fdm-unit-free { font-size: 11px; color: #3c8c5a; font-weight: 600; }
+        .vy-fdm-row2 { display: flex; gap: 8px; }
+        .vy-fdm-row2 .vy-input { flex: 1; min-width: 0; }
+        .vy-pill--accent { display: inline-flex; align-items: center; gap: 6px; background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: var(--vy-shadow-accent); cursor: pointer; }
+        .vy-pill--accent:hover { filter: brightness(1.04); }
         [x-cloak] { display: none !important; }
     </style>
 </div>
