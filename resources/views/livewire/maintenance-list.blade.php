@@ -4,6 +4,7 @@
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div x-data="{
         nwoOpen: false, nwoOoo: false,
+        nwoPriority: 'normal', nwoCategory: @js($categories[0]['value'] ?? 'other'),
         assign: null, detail: {{ \Illuminate\Support\Js::from($detail) }},
         assignUrl(id) { return '{{ route('app.maintenance.assign', '__ID__') }}'.replace('__ID__', id); },
      }">
@@ -21,10 +22,21 @@
 
         {{-- Control row --}}
         <div class="vy-rack-toolbar vy-fade">
-            <div class="vy-left" style="flex: 1;">
-                <form method="GET" action="{{ route('app.maintenance') }}" class="vy-input-group" style="max-width: 320px;">
+            <div class="vy-left" style="flex: 1; display: flex; gap: 8px; align-items: center;">
+                <form method="GET" action="{{ route('app.maintenance') }}" class="vy-input-group" style="max-width: 300px;">
                     <input class="vy-input" type="search" name="q" value="{{ $query }}" placeholder="Search work orders…" aria-label="Search work orders">
                     @if ($filter) <input type="hidden" name="filter" value="{{ $filter }}"> @endif
+                </form>
+                {{-- Status filter DROPDOWN — a finer status filter that shares the SAME ?filter= param + the ONE
+                     matches() rule the KPI chips use (no drift; a blank value clears the filter). --}}
+                @php $statusOpts = ['' => 'All statuses', 'active' => 'All open', 'open' => 'Open — not started', 'inprog' => 'In progress', 'urgent' => 'Urgent', 'parts' => 'Awaiting parts', 'ooo' => 'Out of order', 'done' => 'Resolved · 7d']; @endphp
+                <form method="GET" action="{{ route('app.maintenance') }}">
+                    @if ($query !== '') <input type="hidden" name="q" value="{{ $query }}"> @endif
+                    <select name="filter" class="vy-input" onchange="this.form.submit()" aria-label="Filter by status" style="min-width: 160px;">
+                        @foreach ($statusOpts as $val => $label)
+                            <option value="{{ $val }}" @selected(($filter ?? '') === $val)>{{ $label }}</option>
+                        @endforeach
+                    </select>
                 </form>
             </div>
             <div class="vy-right" style="display: flex; gap: 8px;">
@@ -162,25 +174,27 @@
                         @csrf
                         <label class="vy-field-label" for="nwo_title">Issue</label>
                         <input class="vy-input" id="nwo_title" type="text" name="title" maxlength="160" required placeholder="e.g. AC not cooling" style="width: 100%; margin-bottom: 10px;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div>
-                                <label class="vy-field-label" for="nwo_unit">Unit</label>
-                                <select class="vy-input" id="nwo_unit" name="unit_id" required style="width: 100%;">
-                                    @foreach ($units as $u) <option value="{{ $u['id'] }}">{{ $u['label'] }}</option> @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="vy-field-label" for="nwo_priority">Priority</label>
-                                <select class="vy-input" id="nwo_priority" name="priority" style="width: 100%;">
-                                    @foreach ($priorities as $p) <option value="{{ $p['value'] }}" @if ($p['value'] === 'normal') selected @endif>{{ $p['label'] }}</option> @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="vy-field-label" for="nwo_cat">Category</label>
-                                <select class="vy-input" id="nwo_cat" name="category" style="width: 100%;">
-                                    @foreach ($categories as $c) <option value="{{ $c['value'] }}">{{ $c['label'] }}</option> @endforeach
-                                </select>
-                            </div>
+                        <label class="vy-field-label" for="nwo_unit">Unit</label>
+                        <select class="vy-input" id="nwo_unit" name="unit_id" required style="width: 100%; margin-bottom: 12px;">
+                            @foreach ($units as $u) <option value="{{ $u['id'] }}">{{ $u['label'] }}</option> @endforeach
+                        </select>
+
+                        {{-- Priority — a SEGMENTED control (was a <select>); the pick feeds the POST via a hidden input. --}}
+                        <label class="vy-field-label">Priority</label>
+                        <input type="hidden" name="priority" :value="nwoPriority">
+                        <div class="vy-seg" style="margin-bottom: 12px;">
+                            @foreach ($priorities as $p)
+                                <button type="button" class="vy-seg-opt" :class="nwoPriority === '{{ $p['value'] }}' ? 'is-checked' : ''" @click="nwoPriority = '{{ $p['value'] }}'">{{ $p['label'] }}</button>
+                            @endforeach
+                        </div>
+
+                        {{-- Category — chip buttons (was a <select>); the pick feeds the POST via a hidden input. --}}
+                        <label class="vy-field-label">Category</label>
+                        <input type="hidden" name="category" :value="nwoCategory">
+                        <div class="vy-newres-sources" style="margin-bottom: 4px;">
+                            @foreach ($categories as $c)
+                                <button type="button" class="vy-source-pill" :class="nwoCategory === '{{ $c['value'] }}' ? 'on' : ''" @click="nwoCategory = '{{ $c['value'] }}'">{{ $c['label'] }}</button>
+                            @endforeach
                         </div>
                         <label class="vy-field-label" for="nwo_desc" style="margin-top: 10px;">Description</label>
                         <textarea class="vy-input" id="nwo_desc" name="description" rows="3" maxlength="2000" placeholder="What’s wrong, where exactly, anything the tech should know…" style="width: 100%; resize: vertical;"></textarea>

@@ -46,8 +46,8 @@ class MaintenanceList extends Component
 
     private const PRIORITIES = ['low', 'normal', 'high', 'urgent'];
 
-    /** The board filter chips (each a real query over the real tickets). */
-    private const FILTERS = ['active', 'urgent', 'parts', 'ooo', 'done'];
+    /** The board filters (the KPI chips + the finer status dropdown all write ?filter= — ONE shared rule). */
+    private const FILTERS = ['active', 'open', 'inprog', 'urgent', 'parts', 'ooo', 'done'];
 
     public function render(): View
     {
@@ -168,6 +168,8 @@ class MaintenanceList extends Component
         $active = in_array($card['status'], ['open', 'in_progress'], true);
         $ok = match ($filter) {
             'active' => $active,
+            'open' => $card['status'] === 'open',
+            'inprog' => $card['status'] === 'in_progress',
             'urgent' => $active && $card['is_urgent'],
             'parts' => $card['awaiting_parts'],
             'ooo' => $card['oos'],
