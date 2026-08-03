@@ -27,7 +27,7 @@ final class GuestPayments
 {
     /**
      * @return array{
-     *   currency: string, total_balance: string, total_balance_minor: int, total_paid: string,
+     *   currency: string, total_balance: string, total_balance_minor: int, total_paid: string, total_charged: string,
      *   bookings: list<array<string, mixed>>, history: list<array<string, mixed>>
      * }
      */
@@ -46,6 +46,7 @@ final class GuestPayments
         $currency = (string) ($reservations->first()->currency ?? 'EUR');
         $totalBalance = 0;
         $totalPaid = 0;
+        $totalCharged = 0;
         $bookings = [];
         $history = [];
 
@@ -56,6 +57,7 @@ final class GuestPayments
 
             $totalBalance += $totals['balance_minor'];
             $totalPaid += $totals['paid_minor'];
+            $totalCharged += $totals['charges_minor'];   // real Σ charges (pixel-diff hero tile — not a fabricated "card on file")
 
             $bookings[] = [
                 'id' => (string) $reservation->getKey(),
@@ -87,6 +89,7 @@ final class GuestPayments
             'total_balance' => MoneyFormatter::display($totalBalance, $currency),
             'total_balance_minor' => $totalBalance,
             'total_paid' => MoneyFormatter::display($totalPaid, $currency),
+            'total_charged' => MoneyFormatter::display($totalCharged, $currency),
             'bookings' => $bookings,
             'history' => array_map(fn (array $e): array => array_diff_key($e, ['ts' => 0]), $history),
         ];

@@ -164,3 +164,24 @@ it('reconciles the VAT invoice net + vat to the folio charges', function () {
     expect($data['vat'])->toBe('€69.00');    // 23% of 300
     expect($data['gross'])->toBe('€369.00'); // net + vat, = the folio charges
 });
+
+// ── G2 pixel-diff HONESTY: the hero's real "Total charged" tile + NO fabricated saved-card vault / Apple Pay ──
+it('shows the real total-charged hero tile and refuses the fabricated saved-card + Apple Pay (#39/#41)', function () {
+    $s = seedScenario(1);
+    $a = payGuest($s['guest'], 'ada@example.test');
+    payBook($s, $a, $s['units'][0], 30000, 20000);   // €300 charged, €200 paid → €100 due
+
+    $res = $this->actingAs($a, 'guest')->get(route('guest.payments'))->assertOk();
+
+    // The 3 hero tiles are REAL (charged/paid/balance reconcile to the folio, #17).
+    $res->assertSee('Total charged')
+        ->assertSee('€300.00')   // charged
+        ->assertSee('Paid to date')
+        ->assertSee('Pay by card');   // the real hosted-Stripe pay flow for the outstanding balance
+
+    // #39/#41/#28: NO fabricated saved card / Apple Pay — an honest no-stored-card state instead.
+    $res->assertDontSee('Apple Pay')
+        ->assertDontSee('Card on file')
+        ->assertDontSee('Expires 04')
+        ->assertSee('never touch Vyrobel');
+});

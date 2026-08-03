@@ -14,9 +14,10 @@ use Illuminate\Contracts\View\View;
  * Guest Payments hub (Phase 4c · Sub-gate 1) — the authed guest's balance across THEIR OWN bookings + payment
  * history, from the real folio ledger via {@see GuestPayments} (reconciling to the operator/owner figures).
  *
- * 🪤 CARD CHARGE DEFERRED: paying a balance by card / Apple Pay is the account-gated Stripe rail (the same
- * deferral as New-Reservation card capture) — the screen shows the balance and an honest "Soon", never a faked
- * payment and never a raw PAN. 🔒 Every booking here is one the guest leads (resolved from the guest guard).
+ * 💳 CARD CHARGE IS LIVE (test-mode-first, Phase 8): paying a balance by card goes through hosted Stripe Checkout
+ * ({@see GuestFolioPaymentController}) — the card NEVER touches Vyrobel (SAQ A), fulfilled on the webhook. The
+ * wireframe's SAVED-CARD vault ("Card on file · Expires 04/27") + Apple Pay are REFUSED (#39/#41/#28): no card is
+ * stored; an honest no-stored-card state is shown. 🔒 Every booking here is one the guest leads (guest guard).
  */
 class GuestPaymentsController extends Controller
 {
