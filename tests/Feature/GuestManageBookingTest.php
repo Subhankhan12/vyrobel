@@ -1,10 +1,15 @@
 <?php
 
+use App\Models\AddOn;
 use App\Models\Guest;
 use App\Models\GuestChangeRequest;
 use App\Models\Reservation;
+use App\Models\Tax;
 use App\Services\AssignmentService;
+use App\Services\FolioService;
 use App\Services\GuestChangeRequestService;
+use App\Support\Folio\FolioTotals;
+use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -50,8 +55,8 @@ it('records a date-change / add-on / cancellation as pending requests, leaving t
     $reservation = mgrBook($s, $a);
 
     // Real, active AddOns of THIS property — the request stores their ids (a guest can't invent a name/price).
-    $breakfast = App\Models\AddOn::create(['property_id' => $s['property']->id, 'name' => 'Breakfast', 'price' => App\Support\Money\Money::of(1800, 'EUR'), 'taxable' => true, 'is_active' => true]);
-    $late = App\Models\AddOn::create(['property_id' => $s['property']->id, 'name' => 'Late checkout', 'price' => App\Support\Money\Money::of(4000, 'EUR'), 'taxable' => true, 'is_active' => true]);
+    $breakfast = AddOn::create(['property_id' => $s['property']->id, 'name' => 'Breakfast', 'price' => Money::of(1800, 'EUR'), 'taxable' => true, 'is_active' => true]);
+    $late = AddOn::create(['property_id' => $s['property']->id, 'name' => 'Late checkout', 'price' => Money::of(4000, 'EUR'), 'taxable' => true, 'is_active' => true]);
 
     $this->actingAs($a, 'guest')->post(route('guest.manage.date-change', $reservation->getKey()), ['new_check_in' => '2026-10-01', 'new_check_out' => '2026-10-04'])->assertRedirect(route('guest.manage', $reservation->getKey()));
     $this->actingAs($a, 'guest')->post(route('guest.manage.add-ons', $reservation->getKey()), ['add_ons' => [$breakfast->id, $late->id]])->assertRedirect();
@@ -157,27 +162,27 @@ it('posts the confirmed add-ons to the folio, reconciling to the cent (#17)', fu
     $reservation = mgrBook($s, $a);
 
     // A real folio with the room charge already on it.
-    $folio = app(App\Services\FolioService::class)->openFolio($reservation);
-    app(App\Services\FolioService::class)->postCharge($folio, 'room', 'Room', App\Support\Money\Money::of(10000, 'EUR'));
-    $before = (int) App\Support\Folio\FolioTotals::for($folio->refresh())['charges_minor'];
+    $folio = app(FolioService::class)->openFolio($reservation);
+    app(FolioService::class)->postCharge($folio, 'room', 'Room', Money::of(10000, 'EUR'));
+    $before = (int) FolioTotals::for($folio->refresh())['charges_minor'];
 
     // A flat €18 taxable extra + a real 23% VAT on the property.
-    $extra = App\Models\AddOn::create(['property_id' => $s['property']->id, 'name' => 'Spa voucher', 'price' => App\Support\Money\Money::of(1800, 'EUR'), 'taxable' => true, 'is_active' => true]);
-    App\Models\Tax::create(['property_id' => $s['property']->id, 'name' => 'VAT', 'mode' => 'percentage', 'rate' => 23, 'inclusive' => false, 'currency' => 'EUR']);
+    $extra = AddOn::create(['property_id' => $s['property']->id, 'name' => 'Spa voucher', 'price' => Money::of(1800, 'EUR'), 'taxable' => true, 'is_active' => true]);
+    Tax::create(['property_id' => $s['property']->id, 'name' => 'VAT', 'mode' => 'percentage', 'rate' => 23, 'inclusive' => false, 'currency' => 'EUR']);
 
     // Guest REQUESTS it → pending; the folio is NOT touched (a guest never writes the operator's folio).
     $request = app(GuestChangeRequestService::class)->requestAddOns($reservation, $a, [$extra->id]);
-    expect((int) App\Support\Folio\FolioTotals::for($folio->refresh())['charges_minor'])->toBe($before);
+    expect((int) FolioTotals::for($folio->refresh())['charges_minor'])->toBe($before);
 
     // Operator CONFIRMS → the real folio lines post: €18 net + €4.14 VAT (23%) = €22.14, reconciling (#17).
     app(GuestChangeRequestService::class)->confirm($request);
-    $after = (int) App\Support\Folio\FolioTotals::for($folio->refresh())['charges_minor'];
+    $after = (int) FolioTotals::for($folio->refresh())['charges_minor'];
     expect($after - $before)->toBe(2214);
     expect($request->fresh()->status)->toBe('confirmed');
 
     // Idempotent: a second confirm never double-posts.
     app(GuestChangeRequestService::class)->confirm($request->fresh());
-    expect((int) App\Support\Folio\FolioTotals::for($folio->refresh())['charges_minor'])->toBe($after);
+    expect((int) FolioTotals::for($folio->refresh())['charges_minor'])->toBe($after);
 });
 
 // ── The extras page renders the REAL AddOn catalogue (never the wireframe's invented items) ─────────
@@ -185,8 +190,8 @@ it('renders the real add-on catalogue on the extras page, VAT-inclusive', functi
     $s = seedScenario(1);
     $a = mgrGuest($s['guest'], 'ada@example.test');
     $reservation = mgrBook($s, $a);
-    App\Models\AddOn::create(['property_id' => $s['property']->id, 'name' => 'Spa voucher', 'price' => App\Support\Money\Money::of(1800, 'EUR'), 'taxable' => true, 'is_active' => true]);
-    App\Models\Tax::create(['property_id' => $s['property']->id, 'name' => 'VAT', 'mode' => 'percentage', 'rate' => 23, 'inclusive' => false, 'currency' => 'EUR']);
+    AddOn::create(['property_id' => $s['property']->id, 'name' => 'Spa voucher', 'price' => Money::of(1800, 'EUR'), 'taxable' => true, 'is_active' => true]);
+    Tax::create(['property_id' => $s['property']->id, 'name' => 'VAT', 'mode' => 'percentage', 'rate' => 23, 'inclusive' => false, 'currency' => 'EUR']);
 
     $this->actingAs($a, 'guest')->get(route('guest.extras', $reservation->getKey()))
         ->assertOk()
@@ -194,4 +199,20 @@ it('renders the real add-on catalogue on the extras page, VAT-inclusive', functi
         ->assertSee('Spa voucher')
         ->assertSee('€22.14')          // 18 net + 23% VAT = VAT-inclusive display (#17)
         ->assertSee('Prices include VAT');
+});
+
+// ── G2 pixel-diff HONESTY: the wireframe's retention upsell is refused; the real cancellation policy shows ──
+it('shows the real cancellation policy and refuses the fabricated "convert to travel credit" upsell (#39)', function () {
+    $s = seedScenario(1);
+    $a = mgrGuest($s['guest'], 'ada@example.test');
+    $res = mgrBook($s, $a);
+
+    $page = $this->actingAs($a, 'guest')->get(route('guest.manage', $res->getKey()))->assertOk();
+
+    $page->assertSee('Manage your booking')
+        ->assertSee('Cancellation policy')
+        ->assertSee('Request cancellation')
+        // #39: no "Convert to travel credit" / "Instead of losing your deposit" — there is no such backend.
+        ->assertDontSee('Convert to travel credit')
+        ->assertDontSee('Instead of losing your deposit');
 });

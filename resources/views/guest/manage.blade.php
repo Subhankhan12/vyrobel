@@ -1,10 +1,18 @@
-{{-- Guest Manage Booking (Phase 4b · SG3) — date change / add-ons / cancellation, all as operator-confirmed
-     REQUESTS (the guest never writes inventory/folio/refund). RAW-BLADE RULE: every `@` follows a space, newline
-     or tag. --}}
+{{-- Guest Manage Booking (Phase 4b · SG3; guest Phase-4 pixel-diff G2) — date change / add-ons / cancellation,
+     all as operator-confirmed REQUESTS (the guest never writes inventory/folio/refund; can't confirm its own).
+     Matched to the wireframe: a hero + card sections + motion, over the already-real GuestChangeRequest flow.
+     ⚠️ HONEST (#39): the wireframe's "Convert to travel credit" / "Instead of losing your deposit…" retention
+     upsell has NO backend → REFUSED (the honest path is a cancellation request the property confirms + refunds
+     per policy). The guest-count stepper has no change-request type → omitted. RAW-BLADE RULE: `@` after a space,
+     newline or tag. --}}
 <x-guest.shell active="trips" :title="'Manage '.$reference">
     <a class="vy-link" href="{{ route('guest.reservation', $reservation) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Back to booking</a>
-    <h1 class="vy-h1" style="margin-top:10px">Manage your booking</h1>
-    <p class="vy-lead">Changes are confirmed by the property — we’ll message you the moment they are.</p>
+
+    {{-- Hero --}}
+    <div style="background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:22px 26px;margin:12px 0 18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
+        <div style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink)">Manage your booking</div>
+        <div style="font-size:13px;color:var(--vy-muted);margin-top:4px">{{ $property }} · {{ $checkIn }} → {{ $checkOut }}. Changes are confirmed by the property — we’ll message you the moment they are.</div>
+    </div>
 
     @if (session('status'))
         <div class="vy-notice">{{ session('status') }}</div>
@@ -15,7 +23,7 @@
 
     {{-- Pending requests --}}
     @if (! empty($pending))
-        <section class="vy-card" style="margin-bottom:14px">
+        <section class="vy-card" style="margin-bottom:14px;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .1s both">
             <div class="vy-eyebrow" style="margin-bottom:10px">Pending requests</div>
             @foreach ($pending as $req)
                 <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--vy-hairline)">
@@ -31,26 +39,26 @@
     @endif
 
     {{-- Date change --}}
-    <section class="vy-card" style="margin-bottom:14px">
-        <div class="vy-eyebrow" style="margin-bottom:8px">Change dates</div>
+    <section class="vy-card" style="margin-bottom:14px;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .14s both">
+        <div class="vy-eyebrow" style="margin-bottom:8px">Pick new dates</div>
         <p style="font-size:12.5px;color:var(--vy-muted);margin:0 0 12px">Currently {{ $checkIn }} → {{ $checkOut }}. Pick new dates to see the price difference, then request the change.</p>
 
         <form method="GET" action="{{ route('guest.manage', $reservation) }}">
             <div style="display:flex;gap:10px;flex-wrap:wrap">
                 <div class="vy-field" style="flex:1;min-width:140px;margin-bottom:10px">
-                    <label class="vy-label" for="new_check_in" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--vy-muted);display:block;margin-bottom:5px">New check-in</label>
-                    <input class="vy-input" type="date" id="new_check_in" name="new_check_in" value="{{ $newCheckIn }}" required style="width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--vy-glass-border);background:rgba(255,255,255,.8);font-family:var(--vy-sans);font-size:14px">
+                    <label class="vy-label" for="new_check_in">New check-in</label>
+                    <input class="vy-input" type="date" id="new_check_in" name="new_check_in" value="{{ $newCheckIn }}" required>
                 </div>
                 <div class="vy-field" style="flex:1;min-width:140px;margin-bottom:10px">
-                    <label class="vy-label" for="new_check_out" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--vy-muted);display:block;margin-bottom:5px">New check-out</label>
-                    <input class="vy-input" type="date" id="new_check_out" name="new_check_out" value="{{ $newCheckOut }}" required style="width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--vy-glass-border);background:rgba(255,255,255,.8);font-family:var(--vy-sans);font-size:14px">
+                    <label class="vy-label" for="new_check_out">New check-out</label>
+                    <input class="vy-input" type="date" id="new_check_out" name="new_check_out" value="{{ $newCheckOut }}" required>
                 </div>
             </div>
             <button type="submit" class="vy-btn vy-btn--ghost">See price difference</button>
         </form>
 
         @if ($quote)
-            <div style="margin-top:14px;padding:14px;border:1px solid var(--vy-hairline);border-radius:12px">
+            <div style="margin-top:14px;padding:14px;border:1px solid var(--vy-hairline);border-radius:12px;background:var(--vy-wash)">
                 @if ($quote['priced'])
                     <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--vy-muted);padding-bottom:5px"><span>New stay</span><span>{{ $quote['new'] }}</span></div>
                     <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--vy-muted)"><span>Current</span><span>{{ $quote['current'] }}</span></div>
@@ -71,23 +79,27 @@
     </section>
 
     {{-- Add-ons — the REAL catalogue lives on the dedicated Extras page (settles to the folio on confirm) --}}
-    <section class="vy-card" style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+    <section class="vy-card" style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .18s both">
         <div>
-            <div class="vy-eyebrow" style="margin-bottom:4px">Enhance your stay</div>
-            <p style="font-size:12.5px;color:var(--vy-muted);margin:0">Add breakfast, transfers and more — everything settles to your booking.</p>
+            <div class="vy-eyebrow" style="margin-bottom:4px">Add to your stay</div>
+            <p style="font-size:12.5px;color:var(--vy-muted);margin:0">Add breakfast, transfers and more — everything settles to your booking on confirm.</p>
         </div>
         <a class="vy-btn vy-btn--accent" href="{{ route('guest.extras', $reservation) }}" style="flex:none">Browse extras</a>
     </section>
 
-    {{-- Cancellation --}}
-    <section class="vy-card">
-        <div class="vy-eyebrow" style="margin-bottom:8px">Cancel booking</div>
-        <p style="font-size:12.5px;color:var(--vy-muted);margin:0 0 12px">Request cancellation — the property confirms it and handles any refund per their policy.</p>
+    {{-- Cancellation — real policy (free-until), request only; NO fabricated "convert to travel credit" --}}
+    <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .22s both">
+        <div class="vy-eyebrow" style="margin-bottom:8px">Cancellation policy</div>
+        @if ($freeUntil !== null)
+            <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--vy-ink);margin-bottom:12px"><span style="width:8px;height:8px;border-radius:50%;background:rgb(70,120,60)"></span>Free cancellation until <strong>{{ $freeUntil }}</strong> — a request cancelled before then is refunded in full.</div>
+        @else
+            <p style="font-size:12.5px;color:var(--vy-muted);margin:0 0 12px">The property confirms your cancellation and handles any refund per their policy.</p>
+        @endif
         <form method="POST" action="{{ route('guest.manage.cancel', $reservation) }}">
             @csrf
             <div class="vy-field" style="margin-bottom:12px">
-                <label class="vy-label" for="reason" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--vy-muted);display:block;margin-bottom:5px">Reason</label>
-                <select name="reason" id="reason" required style="width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--vy-glass-border);background:rgba(255,255,255,.8);font-family:var(--vy-sans);font-size:14px;color:var(--vy-ink)">
+                <label class="vy-label" for="reason">Reason</label>
+                <select class="vy-input" name="reason" id="reason" required>
                     <option value="">Choose a reason…</option>
                     @foreach ($cancelReasons as $reason)
                         <option value="{{ $reason }}">{{ $reason }}</option>

@@ -9,6 +9,7 @@ use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
 use App\Models\GuestChangeRequest;
 use App\Models\Reservation;
 use App\Services\GuestChangeRequestService;
+use App\Support\Reservations\CancellationPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -34,6 +35,7 @@ class GuestManageController extends Controller
     public function show(Request $request, string $reservation): View
     {
         $model = $this->owned($reservation);
+        $today = CarbonImmutable::today();
 
         // A REAL read-only price quote when the guest has picked new dates (GET preview) — never a charge.
         $newCheckIn = trim((string) $request->query('new_check_in', ''));
@@ -42,9 +44,12 @@ class GuestManageController extends Controller
             ? $this->requests->quoteDateChange($model, $newCheckIn, $newCheckOut)
             : null;
 
+        $freeUntil = CancellationPolicy::freeUntil($model);
+
         return view('guest.manage', [
             'reservation' => (string) $model->getKey(),
             'reference' => (string) $model->reference,
+            'property' => (string) ($model->property->name ?? 'Your stay'),
             'checkIn' => CarbonImmutable::parse($model->check_in)->format('D, j M Y'),
             'checkOut' => CarbonImmutable::parse($model->check_out)->format('D, j M Y'),
             'newCheckIn' => $newCheckIn,
@@ -52,6 +57,8 @@ class GuestManageController extends Controller
             'quote' => $quote,
             'cancelReasons' => self::CANCEL_REASONS,
             'pending' => $this->pendingFor($model),
+            // Real free-cancellation deadline (null when none / it has passed) — never a "convert to credit" fabrication.
+            'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->format('D, j M Y') : null,
         ]);
     }
 
