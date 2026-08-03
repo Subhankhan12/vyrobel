@@ -170,3 +170,21 @@ it('never lets a guest see or spend another guest’s wallet', function () {
     // A can't apply credit to B's booking.
     $this->actingAs($a, 'guest')->post(route('guest.wallet.apply', $bRes->getKey()), ['amount' => '5.00'])->assertNotFound();
 });
+
+// ── G3 pixel-diff HONESTY: the available-credit hero + "How credits work"; NO fabricated refer-a-friend program ──
+it('shows the available-credit hero + how-credits-work and refuses the fabricated referral invite program (#39)', function () {
+    $s = seedScenario(1);
+    $a = walGuest($s['guest'], 'ada@example.test');
+    wal()->credit($a, GuestCreditEntry::TYPE_REFUND, 'Goodwill', Money::of(2500, 'EUR'));   // €25 credit
+
+    $res = $this->actingAs($a, 'guest')->get(route('guest.wallet'))->assertOk();
+
+    $res->assertSee('Available credit')
+        ->assertSee('€25.00')                 // real derived spendable
+        ->assertSee('How credits work');
+
+    // #39: there is no invite/referral PROGRAM — no fabricated invite link / friend counter.
+    $res->assertDontSee('Copy invite link')
+        ->assertDontSee('friend joined')
+        ->assertSee('coming soon');           // honestly deferred
+});
