@@ -12,8 +12,17 @@
     </style>
 
     <a class="vy-link" href="{{ route('guest.trips') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Trips</a>
-    <h1 class="vy-h1" style="margin-top:10px">How was your stay?</h1>
-    <p class="vy-lead">{{ $property }} · {{ $stay }}</p>
+
+    {{-- Hero (per-property brand accent) --}}
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:22px 26px;margin:12px 0 18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
+        <div style="width:52px;height:52px;flex-shrink:0;border-radius:16px;background:linear-gradient(140deg,var(--vy-accent-3),var(--vy-accent));display:grid;place-items:center;box-shadow:var(--vy-shadow-accent)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.9 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+        </div>
+        <div style="min-width:0">
+            <div style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink)">How was your stay?</div>
+            <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">{{ $property }} · {{ $stay }}</div>
+        </div>
+    </div>
 
     @if (session('error'))
         <div class="vy-notice" style="margin-bottom:14px;background:rgba(180,68,58,.10);border-color:rgba(180,68,58,.3);border-left-color:rgb(150,50,42)">{{ session('error') }}</div>

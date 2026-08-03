@@ -109,3 +109,23 @@ it('redacts a guest-authored message body on anonymize', function () {
 
     expect((string) Message::withoutGlobalScopes()->find($message->id)->body)->toBe('');   // scrubbed
 });
+
+// ── G4 pixel-diff HONESTY: name-only chat; NO fabricated presence / SLA / host phone (#39/#28) ──
+it('renders a name-only chat and refuses the wireframe presence/SLA/phone fabrications', function () {
+    $s = seedScenario(1);
+    $a = msgGuest($s['guest'], 'ada@example.test');
+    $this->actingAs($a, 'guest')->post(route('guest.messages.start'), ['subject' => 'Parking', 'body' => 'Is there parking?'])->assertRedirect();
+    $thread = MessageThread::withoutGlobalScopes()->where('guest_id', $a->getKey())->first();
+
+    // Messages list + thread render with the real subject; the property side is name-only.
+    $this->actingAs($a, 'guest')->get(route('guest.messages'))->assertOk()->assertSee('Parking');
+    $view = $this->actingAs($a, 'guest')->get(route('guest.messages.show', $thread->getKey()))->assertOk();
+
+    $view->assertSee('With the property team')
+        // #39: NO realtime presence / typing, NO reply-time SLA, NO named-host persona, NO contact phone (#28).
+        ->assertDontSee('Online now')
+        ->assertDontSee('is typing')
+        ->assertDontSee('replies in')
+        ->assertDontSee('Marco Silva')
+        ->assertDontSee('+351 289');
+});

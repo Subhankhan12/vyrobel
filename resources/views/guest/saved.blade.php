@@ -2,15 +2,23 @@
      self-only stores; the notify trigger + auto-hold are deferred honestly. RAW-BLADE RULE: every `@` follows a
      space, newline or tag. --}}
 <x-guest.shell active="saved" title="Saved">
-    <h1 class="vy-h1">Saved</h1>
-    <p class="vy-lead">Rooms you love, and waitlists for the dates you want.</p>
+    {{-- Hero --}}
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:22px 26px;margin-bottom:18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
+        <div style="width:52px;height:52px;flex-shrink:0;border-radius:16px;background:linear-gradient(140deg,#E8703A,#C2410C);display:grid;place-items:center;box-shadow:var(--vy-shadow-accent)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        </div>
+        <div style="min-width:0">
+            <div style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink)">Saved</div>
+            <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">Rooms you love, and waitlists for the dates you want.</div>
+        </div>
+    </div>
 
     @if (session('status'))
         <div class="vy-notice" style="margin-bottom:14px">{{ session('status') }}</div>
     @endif
 
     {{-- Wishlist --}}
-    <section class="vy-card" style="margin-bottom:14px">
+    <section class="vy-card" style="margin-bottom:14px;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .1s both">
         <div class="vy-eyebrow" style="margin-bottom:10px">Wishlist</div>
         @forelse ($wishlist as $item)
             <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--vy-hairline)">
