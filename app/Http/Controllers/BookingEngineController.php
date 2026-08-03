@@ -372,6 +372,8 @@ class BookingEngineController extends Controller
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email'],
+            // The guest's REAL payment choice (never decorative): pay now by card, or settle on arrival.
+            'payment_option' => ['sometimes', 'string', 'in:card,on_arrival'],
         ]);
 
         $adults = (int) ($validated['adults'] ?? 2);
@@ -426,10 +428,16 @@ class BookingEngineController extends Controller
             return redirect()->to($confirmationUrl);
         }
 
-        // Card → the certified TEST-MODE hosted Stripe Checkout (fulfil on the webhook, no PAN). Else pay-on-arrival.
-        if ((string) config('services.payments.gateway') !== 'stripe') {
-            $this->folios->recordPayment($folio, Money::of($balanceMinor, $currency), 'offline', ['booking_quote_id' => $quote->getKey()]);
+        // Honor the guest's REAL payment choice — NEVER fabricate a payment (#39). "Pay on arrival" leaves the
+        // balance genuinely DUE (settled at the property), and the confirmation reflects that honestly. The card
+        // rail is only offered + valid when the certified TEST-MODE Stripe gateway is wired; otherwise the sole
+        // honest option is pay-on-arrival, and we NEVER record an 'offline' payment the guest never made (#17: the
+        // folio balance stays === total until money is really collected).
+        $wantsCard = ($validated['payment_option'] ?? 'card') === 'card'
+            && (string) config('services.payments.gateway') === 'stripe';
 
+        if (! $wantsCard) {
+            // Pay on arrival — record NO payment; the balance is due at the property and reconciles (#17).
             return redirect()->to($confirmationUrl);
         }
 

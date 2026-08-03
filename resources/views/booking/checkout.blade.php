@@ -61,6 +61,18 @@
             .vy-co-credit-line .lbl { color: #3f6338; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
             .vy-co-credit-line .amt { color: #3f6338; font-weight: 600; font-variant-numeric: tabular-nums; }
 
+            /* F-GUEST-1 — the real payment-method chooser (shown only when the card rail is wired). */
+            .vy-co-pm { display: flex; flex-direction: column; gap: 9px; }
+            .vy-co-pm-opt { position: relative; display: flex; align-items: flex-start; gap: 11px; padding: 12px 13px; border-radius: 14px; border: 1px solid rgba(120, 70, 40, 0.14); background: rgba(255, 255, 255, 0.5); cursor: pointer; transition: background 0.16s ease, border-color 0.16s ease; }
+            .vy-co-pm-opt.on { border-color: rgba(232, 112, 58, 0.5); background: rgba(217, 102, 46, 0.09); }
+            .vy-co-pm-opt input { position: absolute; opacity: 0; pointer-events: none; }
+            .vy-co-pm-t { flex: 1; min-width: 0; }
+            .vy-co-pm-t b { display: block; font-size: 13px; font-weight: 500; color: var(--vy-ink); }
+            .vy-co-pm-t span { display: block; font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; line-height: 1.4; }
+            .vy-co-pm-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(120, 70, 40, 0.28); flex-shrink: 0; margin-top: 2px; position: relative; transition: border-color 0.16s ease; }
+            .vy-co-pm-opt.on .vy-co-pm-dot { border-color: var(--vy-accent); }
+            .vy-co-pm-opt.on .vy-co-pm-dot::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--vy-grad); }
+
             .vy-co-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-top: 14px; border-top: 1px solid rgba(120, 70, 40, 0.16); }
             .vy-co-total .lbl { font-family: var(--vy-display); font-weight: 600; font-size: 15px; }
             .vy-co-total .val { font-family: var(--vy-display); font-weight: 600; font-size: 22px; color: var(--vy-accent); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
@@ -130,15 +142,26 @@
                             <h2 class="vy-co-h2" style="margin:0;">Payment</h2>
                             <span class="vy-co-pay-brands"><span style="background: linear-gradient(140deg, #F0A57A, #D9662E);"></span><span style="background: rgba(120,70,40,.15);"></span></span>
                         </div>
-                        {{-- D4 — honest payment: the certified TEST-MODE hosted Stripe Checkout (no PAN on us, SAQ A;
-                             fulfils on the webhook). NO inline card fields, NO on-page Apple Pay, NO "not charged
-                             until check-in". Otherwise pay-on-arrival, recorded for real via FolioService. --}}
+                        {{-- D4 — honest payment (F-GUEST-1): the guest's choice is a REAL submitted field
+                             (payment_option), never decorative. "Pay on arrival" leaves the balance DUE — we
+                             NEVER record a payment the guest didn't make (#39). The card option is offered ONLY
+                             when the certified TEST-MODE hosted Stripe rail is wired (no PAN on us, SAQ A; fulfils
+                             on the webhook) — when it isn't, pay-on-arrival is the sole honest option. --}}
                         @if ($payByCard)
-                            <div class="vy-pay-note">
-                                <span class="vy-soon-tag">Secure card</span>
-                                <span>You'll be taken to our secure payment page (Apple&nbsp;Pay &amp; card) — we never see your card number. <strong>Test mode:</strong> no real charge is taken until go-live.</span>
+                            <div class="vy-co-pm" role="radiogroup" aria-label="How would you like to pay?">
+                                <label class="vy-co-pm-opt on">
+                                    <input type="radio" name="payment_option" value="card" checked onchange="vyPayOpt(this)">
+                                    <span class="vy-co-pm-t"><b>Pay now</b><span>Secure card &amp; Apple&nbsp;Pay — we never see your card number. <strong>Test mode:</strong> no real charge until go-live.</span></span>
+                                    <span class="vy-co-pm-dot"></span>
+                                </label>
+                                <label class="vy-co-pm-opt">
+                                    <input type="radio" name="payment_option" value="on_arrival" onchange="vyPayOpt(this)">
+                                    <span class="vy-co-pm-t"><b>Pay on arrival</b><span>Reserve now and settle at the property — no card is collected here.</span></span>
+                                    <span class="vy-co-pm-dot"></span>
+                                </label>
                             </div>
                         @else
+                            <input type="hidden" name="payment_option" value="on_arrival">
                             <div class="vy-pay-note">
                                 <span class="vy-soon-tag">Pay on arrival</span>
                                 <span>Reserve now and settle at the property — no card is collected here.</span>
@@ -210,6 +233,20 @@
                 </div>
             </div>
         </form>
+
+        @if ($payByCard)
+            <script>
+                // F-GUEST-1 — reflect the guest's real payment choice in the confirm button (progressive
+                // enhancement; the server is authoritative). "Pay now" shows the price; "Pay on arrival" doesn't.
+                function vyPayOpt(radio) {
+                    document.querySelectorAll('.vy-co-pm-opt').forEach(function (o) { o.classList.toggle('on', o.contains(radio)); });
+                    var label = document.getElementById('vy-confirm-label');
+                    var total = document.getElementById('vy-total');
+                    var shown = total ? total.textContent : '';
+                    if (label) label.textContent = radio.value === 'card' ? ('Confirm & pay ' + shown) : 'Confirm reservation';
+                }
+            </script>
+        @endif
 
         @isset($wallet)
             <script>

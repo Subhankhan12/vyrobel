@@ -30,9 +30,9 @@ function checkoutBody(array $s, array $overrides = []): array
 }
 
 // ── 1. Full flow → a REAL reservation via AssignmentService (source=direct), inventory at BOOK ────
-it('books a real reservation through AssignmentService and takes a real payment', function () {
+it('books a real reservation through AssignmentService and leaves the balance due on pay-on-arrival (F-GUEST-1)', function () {
     $s = publicPropertyScenario(units: 1);
-    config(['services.payments.gateway' => 'manual']);   // wired payment = manual/pay-on-arrival, recorded for real
+    config(['services.payments.gateway' => 'manual']);   // no card rail → pay-on-arrival (settle at the property)
 
     // No auth — a public visitor. CSRF is auto-skipped only under the test runner (real browser must send it).
     $resp = test()->post("/book/{$s['property']->slug}/checkout", checkoutBody($s))->assertRedirect();
@@ -43,15 +43,17 @@ it('books a real reservation through AssignmentService and takes a real payment'
         ->and($reservation->status)->toBe('confirmed')
         ->and(soldOn($s['roomType']->id, '2026-09-01'))->toBe(1);   // reserved at book, exactly once
 
-    // Real, append-only ledger through FolioService (a room charge + a succeeded payment row).
+    // Real, append-only ledger through FolioService (a room charge). Pay-on-arrival records NO payment — the
+    // balance is genuinely DUE and settled at the property (never a fabricated "paid in full", #39/F-GUEST-1).
     $this->assertDatabaseHas('folio_items', ['type' => 'room']);
-    $this->assertDatabaseHas('payments', ['reservation_id' => $reservation->id, 'type' => 'payment', 'status' => 'succeeded']);
+    $this->assertDatabaseMissing('payments', ['reservation_id' => $reservation->id, 'type' => 'payment']);
 
-    // The styled confirmation shows the REAL reference.
+    // The styled confirmation shows the REAL reference and the honest pay-on-arrival state.
     test()->get($resp->headers->get('Location'))
         ->assertOk()
         ->assertSee('Booking confirmed')
-        ->assertSee($reservation->reference);
+        ->assertSee($reservation->reference)
+        ->assertSee('Pay on arrival');
 });
 
 // ── 2. The advisory hold reserves NO inventory (sold unchanged; an expired hold too) ─────────────

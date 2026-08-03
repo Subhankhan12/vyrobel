@@ -72,10 +72,10 @@ function storefrontIntentWebhook(string $type, string $intentId): TestResponse
 }
 
 // ── 1. #17 — the folio carries the REAL cleaning fee; the total the guest owes === room + cleaning ──
-it('posts the real cleaning fee onto the storefront booking folio (grand total reconciles)', function () {
+it('posts the real cleaning fee and leaves the balance DUE on pay-on-arrival — never a fabricated payment (#17, F-GUEST-1)', function () {
     $s = publicPropertyScenario(units: 1);                    // €120/night room
     cleaningFee($s);                                          // + €45 non-optional cleaning
-    config(['services.payments.gateway' => 'manual']);        // pay-on-arrival → settles inline
+    config(['services.payments.gateway' => 'manual']);        // no card rail → pay-on-arrival (settle at the property)
 
     test()->post("/book/{$s['property']->slug}/checkout", storefrontBody($s))->assertRedirect();
 
@@ -86,10 +86,35 @@ it('posts the real cleaning fee onto the storefront booking folio (grand total r
     // The ledger carries BOTH the room and the real cleaning fee.
     expect($folio->items->where('type', 'room')->sum('amount_minor'))->toBe(24000);
     expect($folio->items->where('type', 'fee')->sum('amount_minor'))->toBe(4500);
-    // #17 — the true total is room + cleaning, and the full-balance payment settles it to the cent.
+    // #17 — the true total is room + cleaning; pay-on-arrival leaves it FULLY DUE with NO payment recorded (#39 —
+    // the guest was told "settle at the property", so we never fabricate a "paid in full" they didn't make).
     expect((int) FolioTotals::for($folio)['charges_minor'])->toBe(28500);
-    expect((int) FolioTotals::for($folio)['balance_minor'])->toBe(0);
-    expect($folio->payments->where('status', 'succeeded')->sum('amount_minor'))->toBe(28500);
+    expect((int) FolioTotals::for($folio)['balance_minor'])->toBe(28500);
+    expect($folio->payments->count())->toBe(0);
+});
+
+// ── F-GUEST-1 — the guest's payment CHOICE is honored, and the confirmation is honest ───────────────
+it('honors pay-on-arrival: no payment, balance due, confirmation says "Pay on arrival" (F-GUEST-1)', function () {
+    $s = publicPropertyScenario(units: 1);
+    cleaningFee($s);
+    config(['services.payments.gateway' => 'stripe']);        // card rail IS wired — yet the guest CHOOSES on-arrival
+
+    $resp = test()->post("/book/{$s['property']->slug}/checkout", storefrontBody($s, ['payment_option' => 'on_arrival']));
+    $resp->assertRedirect();
+    // Honored: it does NOT redirect off-site to Stripe — it goes to the confirmation with the balance due.
+    expect($resp->headers->get('Location'))->not->toContain('checkout.stripe.test');
+
+    $folio = Folio::query()
+        ->whereHas('reservation', fn ($q) => $q->where('property_id', $s['property']->id))
+        ->firstOrFail()->load(['items', 'payments']);
+    expect($folio->payments->count())->toBe(0);                          // 🔒 nothing charged
+    expect((int) FolioTotals::for($folio)['balance_minor'])->toBe(28500); // fully due (#17)
+
+    // The confirmation is honest — "Pay on arrival", never "Paid in full".
+    test()->get($resp->headers->get('Location'))
+        ->assertOk()
+        ->assertSee('Pay on arrival')
+        ->assertDontSee('Paid in full');
 });
 
 // ── 2. D1 — TEST-MODE hosted Stripe: redirect off-site, PENDING for the true total, NOT paid yet ────
@@ -146,7 +171,7 @@ it('leaves the storefront folio unpaid when the hosted charge fails', function (
 it('applies a signed-in guest\'s real wallet credit to the checkout, reconciling', function () {
     $s = publicPropertyScenario(units: 1);
     cleaningFee($s);                                          // room €240 + cleaning €45 = €285 owed
-    config(['services.payments.gateway' => 'manual']);        // settle inline so we can read the final balance
+    config(['services.payments.gateway' => 'manual']);        // pay-on-arrival → the reduced balance stays DUE
 
     // A returning guest with a REAL €50 wallet credit, signed in.
     $guest = Guest::create(['first_name' => 'Lukas', 'last_name' => 'Meyer', 'email' => 'lukas@example.test']);
@@ -160,10 +185,11 @@ it('applies a signed-in guest\'s real wallet credit to the checkout, reconciling
         ->whereHas('reservation', fn ($q) => $q->where('property_id', $s['property']->id))
         ->firstOrFail()->load(['items', 'payments']);
 
-    // A REAL wallet debit + a folio discount line of −€50; the guest's balance drops by exactly €50 (#17).
+    // A REAL wallet debit + a folio discount line of −€50; the guest's charges drop by exactly €50 (#17).
     expect($folio->items->where('type', 'discount')->sum('amount_minor'))->toBe(-5000);
     expect((int) FolioTotals::for($folio)['charges_minor'])->toBe(28500 - 5000);   // €285 − €50 = €235
-    expect((int) FolioTotals::for($folio)['balance_minor'])->toBe(0);              // manual payment settled the €235
+    expect((int) FolioTotals::for($folio)['balance_minor'])->toBe(23500);          // €235 DUE on arrival (no fabricated payment)
+    expect($folio->payments->count())->toBe(0);                                    // 🔒 wallet credit ≠ a payment
     expect(app(GuestWalletService::class)->spendableMinor($guest->fresh()))->toBe(0);   // wallet spent
 });
 
