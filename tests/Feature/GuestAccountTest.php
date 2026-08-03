@@ -1,9 +1,12 @@
 <?php
 
+use App\Mail\AccountDeletionScheduledMail;
 use App\Models\Guest;
 use App\Models\Reservation;
+use App\Services\GuestDeletionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
 
@@ -74,7 +77,7 @@ it('changes the password only when the current one is correct', function () {
 
 // ── D2: delete requires typing DELETE, and only SCHEDULES a reversible 14-day erase (nothing removed now) ──
 it('schedules a reversible 14-day deletion (never an immediate destroy) and emails the guest', function () {
-    Illuminate\Support\Facades\Mail::fake();
+    Mail::fake();
     $s = seedScenario(1);
     $a = acct('ada@example.test');
 
@@ -91,7 +94,7 @@ it('schedules a reversible 14-day deletion (never an immediate destroy) and emai
     expect((string) $fresh->email)->toBe('ada@example.test');
     expect($fresh->anonymized_at)->toBeNull();
     $this->assertAuthenticated('guest');                     // still signed in (can undo)
-    Illuminate\Support\Facades\Mail::assertSent(App\Mail\AccountDeletionScheduledMail::class);
+    Mail::assertSent(AccountDeletionScheduledMail::class);
 });
 
 // ── D2: undo clears the schedule (the guest keeps their account) ───────────────────────────────────
@@ -118,7 +121,7 @@ it('erases the guest and cancels upcoming reservations when the scheduled date p
 
     $a->forceFill(['scheduled_deletion_at' => now()->subDay()])->save();   // grace window elapsed
 
-    $erased = app(App\Services\GuestDeletionService::class)->processDue();
+    $erased = app(GuestDeletionService::class)->processDue();
     expect($erased)->toBe(1);
 
     $fresh = $a->fresh();
@@ -133,7 +136,7 @@ it('never erases a guest before the scheduled date', function () {
     $a = acct('ada@example.test');
     $a->forceFill(['scheduled_deletion_at' => now()->addDays(10)])->save();
 
-    expect(app(App\Services\GuestDeletionService::class)->processDue())->toBe(0);
+    expect(app(GuestDeletionService::class)->processDue())->toBe(0);
     expect($a->fresh()->anonymized_at)->toBeNull();          // untouched
 });
 

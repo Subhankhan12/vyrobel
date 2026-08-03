@@ -43,7 +43,29 @@ The operator finish-to-100 pass closed **every operator page** across 13 gates (
 
 **Verification at close:** full suite **1603 / 1610** (the 6–7 failures are ALL the documented pre-existing `BookingImportTest` isolation flakes — 11/11 in isolation, OTA path, unrelated); PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.
 
-**GUEST realm — still pending (unchanged below):** the Phase-4 guest pages (Trips, Reservation view, Manage, Payments, Wallet, Messages, Saved, Review, Receipt) are functional-verified but **not freshly pixel-diffed** — that is the NEXT Vyrobel finish track, not part of this operator pass.
+**GUEST realm — ~~still pending~~ NOW RESOLVED (2026-08-03; see the GUEST RESOLUTION LOG below):** the Phase-4 guest pages were functional-verified but not freshly pixel-diffed at the time of the operator pass. They have since been matched (guest Phase-4 pixel-diff pass, G0–G4 + G-FINAL).
+
+---
+
+## ✅ RESOLUTION LOG — GUEST realm Phase-4 pixel-diff finished to genuine 100% (2026-08-03)
+
+The guest Phase-4 pixel-diff pass matched **all 10 Phase-4 guest pages** to their decoded wireframes across gates G0–G4, all pushed to `main`. **Verify-first (the GATE-11 operator lesson) held:** every page was already FUNCTIONAL on the correct 760px guest shell — the gap was pixel-diff fidelity/motion, NOT backend; several pages carried NO fabrications already (grep-clean). This pass was PRESENTATION over the certified, shared backend (`AssignmentService` / `FolioService`+`FolioTotals` #17 / `ArrivalPack` #33 / `ReviewRating` #76 / `GuestWalletService` / `InboxService` / `CancellationPolicy` / `GuestReservationView` / `GuestTrip` / `GuestPayments` / `PdfService`), every page guest-isolated (foreign → 404), with the guest invariants (#17 reconcile · #28 isolation + name-only · #33 window-gated door code · archive-not-destroy) intact.
+
+| Guest page | Resolved by | What matched it | Remaining honest deferrals (#39) |
+|---|---|---|---|
+| **Trips** | G1 · `f7398e0` | Travel-account HERO (real stays-completed/nights-away/countries via `GuestHistory`) + Upcoming/Past/Cancelled TABS + search + year filter (native GET — no Alpine) + rich cards (gradient band + status pill + REAL relative countdown + folio balance) + vyFadeUp. `GuestTrip::card` extended additively (anti-drift with Reservation). | — (real per-property gradient placeholder, not a photo) |
+| **Reservation** | G1b · `1383b57` | Status HERO + 4 quick-stat tiles + 2-col bento (balance summary · arrival · enhance · cancellation free-until · message · timeline). | Apple Pay + saved-card vault ("A different card") + Face-ID REFUSED (SAQ A — balance links to hosted Stripe on Payments); "~10 min" SLA refused. #33: door code withheld >48h out. |
+| **Payments** | G2a · `25f409b` | Status HERO + 3 REAL stat tiles (Total-charged [new additive `GuestPayments::overview.total_charged`] / Paid / Balance, reconciling #17) + 2-col bento (bookings + real hosted-Stripe "Pay by card" + activity · payment-methods + receipts). Fixed a STALE docblock (card charge is LIVE, not "Soon"). | Saved-card vault ("Card on file · Expires 04/27") + Apple Pay REFUSED → honest no-stored-card ("never touch Vyrobel"). Live charge is test-mode-first (SAQ A, webhook-settled). |
+| **Manage** | G2b · `079813c` | Hero + card sections + real cancellation free-until (`CancellationPolicy::freeUntil`) over the real GuestChangeRequest request→operator-confirm flow. | "Convert to travel credit" / "Instead of losing your deposit…" retention upsell REFUSED (no backend); guest-count stepper omitted (no change-request type). |
+| **Wallet / Credits** | G3 · `3703023` | Available-credit HERO + redeem + real Apply-to-a-booking + "Every credit added & used" ledger (DERIVED spendable, reconciling) + "How credits work". | Refer-a-friend PROGRAM ("Copy invite link · 1 friend joined") REFUSED → honest "coming soon" (a referral BONUS can post to the ledger, but there is no invite program); "apply automatically" omitted (no auto-apply backend). |
+| **Receipt** | G3 · `3703023` | Document-style header (Receipt · reference · Balance-settled/due badge) + folio + real PDFs — figures from the SHARED `GuestReservationView::folio` (SAME source as Reservation → can't drift, #17). | Refund receipt + credit note offered ONLY when a real succeeded refund exists. |
+| **Messages** (list + thread) | G4 · `eefd4a6` | Hero + conversation list + name-only chat thread (mirrored bubbles + real reply via `InboxService`; author = real sender label or "Property"). | "Online now" + typing indicator (no websockets/presence), "replies in ~10 min" SLA, "Marco Silva · Front desk" persona, "urgent? Call +351…" phone ALL REFUSED (#39/#28). |
+| **Saved** (wishlist + waitlist) | G4 · `eefd4a6` | Hero + real wishlist/waitlist/join over the self-only stores. | "#N in line / 7 travellers also waiting" position REFUSED; notify + auto-hold honest "we'll email you first · coming soon". |
+| **Review** | G4 · `eefd4a6` | Hero over the polished Phase-5 form (tap-to-rate stars, category sub-ratings, tag chips, private-to-manager, completed-stay-tied via `ReviewRating` #76, already-reviewed read-only). | "10% off with CORALIS-RETURN" promo REFUSED; no fabricated reviews (honest empty). |
+
+**Verification at close:** guest suite green throughout (233/233 at the last content gate); full suite green modulo the documented pre-existing `BookingImportTest` isolation flakes (OTA path, unrelated); PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. Every page browser-verified side-by-side with its wireframe.
+
+**➡ Vyrobel's finish-to-100 is now COMPLETE across operator + guest** (owner realm was completed earlier). Remaining work = ONLY the founder's external-infra go-live flips (Channex, Stripe live/Connect/SEPA/IBAN, Push/SMS, KYC, websockets) — all honestly surfaced today.
 
 ---
 

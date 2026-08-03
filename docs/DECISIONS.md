@@ -5363,3 +5363,25 @@ The operator finish-to-100 pass is **COMPLETE across GATES 0–12 + FINAL**, all
 **Suite state at close:** 1603 / 1610 (the 6–7 failures are the documented pre-existing `BookingImportTest` isolation flakes — 11/11 in isolation, OTA import path, unrelated to any operator work); PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.
 
 **NEXT track:** the GUEST realm's Phase-4 pixel-diff pass (Trips, Reservation view, Manage, Payments, Wallet, Messages, Saved, Review, Receipt — functional-verified, not freshly pixel-diffed). The operator realm is closed.
+
+---
+
+## 2026-08-03 — GUEST realm Phase-4 pixel-diff → COMPLETE · VYROBEL FINISH-TO-100 CLOSED (operator + guest + owner)
+
+The guest Phase-4 pixel-diff pass is COMPLETE: all 10 guest pages (Trips · Reservation · Manage · Payments · Wallet/Credits · Messages · Saved · Review · Receipt) matched to their decoded wireframes across gates G0–G4, all pushed to `main` (HEAD `eefd4a6`). Per-page detail (gate + commit + what matched it + honest deferrals) is the GUEST RESOLUTION LOG in `docs/FULL-AUDIT-OPERATOR-GUEST.md`; the dated summary is in `docs/design/DIVERGENCE-REGISTER.md`. **With this, Vyrobel's finish-to-100 is COMPLETE across all three realms** — operator (`d8e5255`), owner (earlier), guest (`eefd4a6`).
+
+**What "complete" means (honestly):** every guest page is at genuine wireframe fidelity + motion on REAL, guest-isolated, reconciling data. It does NOT mean every deferred integration is live — the remaining Vyrobel work is ONLY the founder's external-infra go-live flips (Channex, Stripe live/Connect/SEPA/IBAN, Push/SMS, KYC, websockets), none of which are UI/fidelity gaps.
+
+**Load-bearing decisions of this pass:**
+- **Presentation over an already-real, SHARED backend — no engine change.** Every gate reused the certified engines the operator realm also uses (`AssignmentService`, `FolioService`/`FolioTotals` #17, `ArrivalPack` #33, `ReviewRating` #76, `GuestWalletService`, `InboxService`, `CancellationPolicy`, `PdfService`) and the shared guest data helpers (`GuestTrip`/`GuestReservationView`/`GuestPayments`/`GuestHistory`) — so a page and its sibling can't drift (Receipt vs Reservation folio; Reservation header vs Trips card = ONE `GuestTrip::card`). The only helper changes were ADDITIVE (`GuestTrip::card` gained gradient/countdown/date_range; `GuestPayments::overview` gained `total_charged`).
+- **The guest realm has NO Alpine** → all new interactivity is native GET / progressive enhancement (Trips tabs/search/year filter, hero-tile anchor links), never client JS state.
+- **Every wireframe fabrication REFUSED (#39), reproduced as an honest empty/Soon:** saved-card vault + Apple Pay + Face-ID (SAQ A — hosted Stripe, test-mode); "Card on file · Expires 04/27"; "Online now"/typing + "~10 min" SLA + "Marco Silva" persona + contact phone (Messages, name-only #28); refer-a-friend program (Wallet); "convert to travel credit" upsell (Manage); waitlist "#N in line" position (Saved); "10% off CORALIS-RETURN" promo (Review). Verify-against-code found Saved + Review + the current Wallet/Messages backends carried NO fabrications already — only Reservation/Payments/Manage/Messages-thread needed guarding.
+
+**Process lessons that recurred (same as the operator finish):**
+- **VERIFY AGAINST THE CODE — audit/reviewer/DOCBLOCK are guides, not gospel.** Payments' controller docblock claimed card charge was "deferred · Soon", but paying is LIVE (Phase-8 hosted Stripe) → fixed the stale docblock. Several "pending" pages were already honest + close (Saved, Review, Wallet).
+- **BROWSER-VERIFY THE REAL FLOW — the RAW-BLADE TRAP re-bit on Reservation** (`Check-in@if(...)…}}@endif` — the `@if` after a word char didn't compile but the `}}@endif` did → orphaned `@endif` → 500; rewrote as inline ternaries). #33 door-code withholding + #17 reconciliation were confirmed in a live browser, not just tests.
+- **Guest invariants held:** #28 isolation (foreign reservation/thread/booking → 404, mutation-proven) + name-only owner-facing; #33 window-gated door code (withheld >48h out, browser-proven); #17 folio/receipt/payments reconcile to the cent (Room €300 + VAT €69 = €369 = paid); archive-not-destroy (the 14-day delete + anonymize covers the thread bodies).
+
+**Suite state at close:** guest suite 233/233; full suite green modulo the documented pre-existing `BookingImportTest` isolation flakes (OTA import path, 11/11 in isolation, unrelated); PHPStan L5 (0); Pint clean (a pre-existing import-order drift in `tests/Feature/GuestAccountTest.php` was tidied); `migrate:fresh --seed` clean.
+
+**➡ THE VYROBEL FINISH-TO-100 IS CLOSED.** All three realms are at genuine design fidelity on real, reconciling, isolated data under the honesty rule. The next Vyrobel work is deployment + the founder's provider-account go-live flips — not UI.
