@@ -62,6 +62,19 @@ it('shows only real reservation statuses on the board, never a fabricated one', 
         ->assertDontSee('Partial payment');
 });
 
+// ── 2b. F-OP-1 — the board defaults to TODAY, never the furthest-future booking ──────────────────
+it('opens the front-desk board on today by default, never the furthest-future booking (F-OP-1)', function () {
+    $s = seedScenario(1);
+    book($s, ['unit_id' => $s['units'][0]->id]);   // a FUTURE stay (arrives 2026-09-01) — the old `max(check_in)`
+
+    $today = CarbonImmutable::today();
+
+    $this->actingAs(deskMember($s))->get('/app/front-desk')   // NO ?date param
+        ->assertOk()
+        ->assertSee($today->format('l, j M Y'))                       // opens on TODAY
+        ->assertSee('date='.$today->subDay()->toDateString());       // prev-day link proves today is the anchor
+});
+
 // ── 3. Check-in PERSISTS through the real staff action (PRG) ─────────────────────────────────────
 it('checks a reservation in through the real action and persists it', function () {
     $s = seedScenario(1);

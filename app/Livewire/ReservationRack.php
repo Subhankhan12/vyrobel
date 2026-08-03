@@ -16,6 +16,7 @@ use App\Services\AvailabilityService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Schedule\BoardDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -255,8 +256,9 @@ class ReservationRack extends Component
     }
 
     /**
-     * The window's first night: `?start=YYYY-MM-DD` if valid, else the most recent active booking's
-     * check-in (so the demo/live rack lands on real occupancy), else today.
+     * The window's first night: `?start=YYYY-MM-DD` if valid, else TODAY when there's current/upcoming
+     * occupancy, else the most recent PAST arrival for a stale dataset — never the furthest-future booking
+     * (F-OP-1; shared with the Front Desk via {@see BoardDate}).
      *
      * @param  Collection<int, RoomType>  $roomTypes
      */
@@ -271,19 +273,21 @@ class ReservationRack extends Component
     private function resolveStart(Collection $roomTypes): CarbonImmutable
     {
         $param = request()->query('start');
-        if (is_string($param) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $param) === 1) {
-            return CarbonImmutable::parse($param)->startOfDay();
+        $roomTypeIds = $roomTypes->pluck('id')->all();
+
+        if ($roomTypeIds === []) {
+            return BoardDate::resolve($param, false, null);
         }
 
-        $roomTypeIds = $roomTypes->pluck('id')->all();
-        $latest = $roomTypeIds === [] ? null : ReservationUnit::query()
-            ->whereIn('room_type_id', $roomTypeIds)
-            ->where('status', 'active')
-            ->max('check_in');
+        $today = CarbonImmutable::today()->toDateString();
+        $base = ReservationUnit::query()->whereIn('room_type_id', $roomTypeIds)->where('status', 'active');
 
-        return $latest !== null
-            ? CarbonImmutable::parse($latest)->startOfDay()
-            : CarbonImmutable::today();
+        $hasCurrentOrFuture = (clone $base)->where('check_out', '>', $today)->exists();
+        $latestOnOrBefore = (clone $base)->where('check_in', '<=', $today)->max('check_in');
+
+        // Shared rule with the Front Desk (F-OP-1): today when there's current/upcoming occupancy, else the most
+        // recent PAST arrival for a stale dataset, NEVER the furthest-future booking. {@see BoardDate}
+        return BoardDate::resolve($param, $hasCurrentOrFuture, $latestOnOrBefore !== null ? (string) $latestOnOrBefore : null);
     }
 
     /**

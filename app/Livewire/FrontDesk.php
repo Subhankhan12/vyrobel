@@ -11,6 +11,7 @@ use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\FrontDeskService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Schedule\BoardDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -235,24 +236,31 @@ class FrontDesk extends Component
     }
 
     /**
-     * The board's day: `?date=YYYY-MM-DD` if valid, else the most recent arrival date for the
-     * property (so the demo/live board lands on real activity), else today.
+     * The board's day: `?date=YYYY-MM-DD` if valid, else TODAY (the whole point of a front desk) whenever the
+     * property has current/upcoming activity; only a stale dataset falls back to the most recent PAST arrival,
+     * NEVER the furthest-future booking (F-OP-1). The rule is shared with the Calendar via {@see BoardDate}.
      */
     private function resolveDate(?Property $property): string
     {
         $param = request()->query('date');
-        if (is_string($param) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $param) === 1) {
-            return CarbonImmutable::parse($param)->toDateString();
+
+        if ($property === null) {
+            return BoardDate::resolve($param, false, null)->toDateString();
         }
 
-        $latest = $property === null ? null : Reservation::query()
+        $today = CarbonImmutable::today()->toDateString();
+        $base = Reservation::query()
             ->where('property_id', $property->id)
-            ->whereIn('status', ['confirmed', 'checked_in', 'checked_out'])
-            ->max('check_in');
+            ->whereIn('status', ['confirmed', 'checked_in', 'checked_out']);
 
-        return $latest !== null
-            ? CarbonImmutable::parse($latest)->toDateString()
-            : CarbonImmutable::today()->toDateString();
+        $hasCurrentOrFuture = (clone $base)->where('check_out', '>', $today)->exists();
+        $latestOnOrBefore = (clone $base)->where('check_in', '<=', $today)->max('check_in');
+
+        return BoardDate::resolve(
+            $param,
+            $hasCurrentOrFuture,
+            $latestOnOrBefore !== null ? (string) $latestOnOrBefore : null,
+        )->toDateString();
     }
 
     /**
