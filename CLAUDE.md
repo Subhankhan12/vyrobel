@@ -53,7 +53,7 @@ Keep this file lean and high-signal — it loads into context every session. Det
 - **Operator back office → `demo-staff@vyrobel-demo.test` / `password`** (Hotel Manager) → `/app`. **The only demo account that can reach `/app`.**
 - **Owner portal → `demo-owner@vyrobel-demo.test` / `password`** (External Owner) → `/owner`.
 - **Guest portal (Phase 4a) → `demo.traveller@vyrobel-demo.test` / `password`** (a claimed, booking-tied guest account) → `/guest/login`. Separate `guest` realm — refused from `/app` and `/owner` by construction.
-- **Public storefront (no login) → `/book/vyrobel-demo`.**
+- **Public storefront (no login) → `/book/seaside-demo`** (⚠️ the storefront route takes a PROPERTY slug — `seaside-demo` or `vista-demo` — NOT the org slug `vyrobel-demo`, which 404s).
 - ⚠️ **`demo-owner` is REFUSED from `/app` and bounced to `/owner` — that is invariant #26 WORKING, not a bug.** An owner reaching the back office was a real, closed security hole; don't "fix" the gate.
 
 ## Authoritative references — READ the relevant file before building in that area (do not assume)

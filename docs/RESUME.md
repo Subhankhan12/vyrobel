@@ -66,7 +66,7 @@ Prereqs for the suite: a genuine **MySQL 8** `vyrobel_test` DB (NOT MariaDB) + *
 | Guest portal | `/guest/login` | `demo.traveller@vyrobel-demo.test` | Booking-tied guest |
 | **Platform admin** | `/admin` | `admin@vyrobel-demo.test` | Super Admin (**forced 2FA enrol on first login**) |
 
-Public storefront (no login): `/book/vyrobel-demo`. Self-signup (provisions a new trial tenant): `/signup`.
+Public storefront (no login): `/book/seaside-demo`. Self-signup (provisions a new trial tenant): `/signup`.
 (Also seeded: owner sub-users `demo-owner-accountant@` / `demo-owner-viewer@`; operator `demo-accountant@` /
 `demo-housekeeper@`. Full detail in `database/seeders/DemoSeeder.php` + `PlatformAdminSeeder.php`.)
 

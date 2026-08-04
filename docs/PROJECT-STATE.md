@@ -967,7 +967,7 @@ Propose-before-build (STOP at ⛔ gates); **NO fabricated data** (honest empty/S
 > operator back office `demo-staff@vyrobel-demo.test` (Hotel Manager) or `demo-admin@vyrobel-demo.test` (org admin) → `/app` ·
 > owner `demo-owner@vyrobel-demo.test` (External Owner, primary) → `/owner` · guest `demo.traveller@vyrobel-demo.test` →
 > `/guest/login` · **platform admin `admin@vyrobel-demo.test` → `/admin` (forced 2FA enrol on first login)**. Public
-> storefront `/book/vyrobel-demo`; self-signup `/signup`. (Also seeded: owner sub-users accountant/view-only; operator
+> storefront `/book/seaside-demo`; self-signup `/signup`. (Also seeded: owner sub-users accountant/view-only; operator
 > accountant/housekeeper — `database/seeders/DemoSeeder.php` + `PlatformAdminSeeder.php`.)
 >
 > ---
@@ -1269,7 +1269,7 @@ Propose-before-build (STOP at ⛔ gates); **NO fabricated data** (honest empty/S
 > | Guest portal | `/guest/login` | `demo.traveller@vyrobel-demo.test` | booking-tied guest |
 > | **Platform admin** | `/admin` | `admin@vyrobel-demo.test` | Super Admin (**forced 2FA enrol on first login**) |
 >
-> Public storefront (no login): `/book/vyrobel-demo`. Self-signup (provisions a new trial tenant): `/signup`. ⚠️ `demo-owner`
+> Public storefront (no login): `/book/seaside-demo`. Self-signup (provisions a new trial tenant): `/signup`. ⚠️ `demo-owner`
 > is REFUSED from `/app` and bounced to `/owner` — invariant #26 WORKING, not a bug. (Also seeded: owner sub-users
 > `demo-owner-accountant@` / `demo-owner-viewer@`; operator `demo-accountant@` / `demo-housekeeper@`.)
 >
@@ -1389,7 +1389,7 @@ Propose-before-build (STOP at ⛔ gates); **NO fabricated data** (honest empty/S
 > **`demo-admin@vyrobel-demo.test`** (Property Owner / org admin) or `demo-staff@vyrobel-demo.test` (Hotel Manager) at
 > `/app`; owner **`demo-owner@vyrobel-demo.test`** at `/owner`; guest **`demo.traveller@vyrobel-demo.test`** at
 > `/guest/login`; **PLATFORM ADMIN `admin@vyrobel-demo.test`** at `/admin` (forced 2FA enrolment on first login).
-> Public storefront (no login) `/book/vyrobel-demo`; self-signup `/signup`.
+> Public storefront (no login) `/book/seaside-demo`; self-signup `/signup`.
 >
 > **THE NEXT ACTION.** No launch-blocking build remains. The active hands-on task is the **owner-page exact-match
 > track: Owner Bookings page + Booking-Summary PDF** — the PHASE-1 audit is done (`docs/OWNER-BOOKINGS-AUDIT.md`), so
@@ -1479,7 +1479,7 @@ Propose-before-build (STOP at ⛔ gates); **NO fabricated data** (honest empty/S
 > **`demo-admin@vyrobel-demo.test`** (Property Owner / org admin) or `demo-staff@vyrobel-demo.test` (Hotel Manager) at
 > `/app`; owner **`demo-owner@vyrobel-demo.test`** at `/owner`; guest **`demo.traveller@vyrobel-demo.test`** at
 > `/guest/login`; **PLATFORM ADMIN `admin@vyrobel-demo.test`** at `/admin` (forced 2FA enrolment on first login).
-> Public storefront (no login) `/book/vyrobel-demo`; self-signup `/signup`.
+> Public storefront (no login) `/book/seaside-demo`; self-signup `/signup`.
 >
 > **THE NEXT ACTION for a fresh session:** there is NO outstanding build. The next decision is the founder's — **choose
 > the launch model** (free-trial now vs paid after the Stripe go-live + suspension enforcement), then **deploy**. If

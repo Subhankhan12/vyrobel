@@ -66,7 +66,7 @@ class EmailPreviewController extends Controller
     {
         abort_unless(array_key_exists($key, self::CATALOG), 404);
 
-        $reservation = Reservation::query()->with(['leadGuest', 'property'])->latest()->first();
+        $reservation = $this->sampleReservation();
         abort_if($reservation === null, 404, 'No sample reservation exists in this organization yet — create a booking first.');
 
         return response($this->buildMailable($key, $reservation)->render());
@@ -82,7 +82,7 @@ class EmailPreviewController extends Controller
     {
         abort_unless(array_key_exists($key, self::CATALOG), 404);
 
-        $reservation = Reservation::query()->with(['leadGuest', 'property'])->latest()->first();
+        $reservation = $this->sampleReservation();
         abort_if($reservation === null, 404, 'No sample reservation exists in this organization yet — create a booking first.');
 
         $email = (string) $request->user()->email;
@@ -93,7 +93,18 @@ class EmailPreviewController extends Controller
         return redirect()->route('app.email-previews')->with('email_preview_notice', "Test email sent to {$email}.");
     }
 
-    /** The real sample Mailable for a preview key over the tenant's latest reservation (the ONE builder). */
+    /**
+     * The tenant's sample reservation for the previews — F-OP-4: prefer the latest booking with a REAL total
+     * (a posted folio) so previews render a meaningful figure instead of €0.00 for a folio-less confirmed
+     * booking. Falls back to the latest reservation of any kind so a fresh org can still preview. Tenant-scoped.
+     */
+    private function sampleReservation(): ?Reservation
+    {
+        return Reservation::query()->with(['leadGuest', 'property'])->where('total_minor', '>', 0)->latest()->first()
+            ?? Reservation::query()->with(['leadGuest', 'property'])->latest()->first();
+    }
+
+    /** The real sample Mailable for a preview key over the tenant's sample reservation (the ONE builder). */
     private function buildMailable(string $key, Reservation $reservation): Mailable
     {
         $guestName = GuestName::display($reservation->leadGuest);

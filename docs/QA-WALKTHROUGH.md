@@ -29,7 +29,7 @@ php artisan serve                     # http://127.0.0.1:8000
 | `demo-staff@vyrobel-demo.test` | Hotel Manager | `/app` | Runs the house — **NO** refund, **NO** payout, **NO** invite |
 | `demo-owner@vyrobel-demo.test` | External Owner | `/owner` **only** | Refused from `/app` entirely (invariant #26) |
 
-Public storefront (no login): `http://127.0.0.1:8000/book/vyrobel-demo`.
+Public storefront (no login): `http://127.0.0.1:8000/book/seaside-demo`.
 
 ---
 
@@ -37,7 +37,7 @@ Public storefront (no login): `http://127.0.0.1:8000/book/vyrobel-demo`.
 
 | # | Screen · URL | Do | Expect |
 |---|---|---|---|
-| ☐ | **Browse** · `/book/vyrobel-demo` | Load; pick dates | Real property, room types with **real photos**, prices; no login prompt |
+| ☐ | **Browse** · `/book/seaside-demo` | Load; pick dates | Real property, room types with **real photos**, prices; no login prompt |
 | ☐ | **Room detail** · click a room | View gallery + price | Photo gallery, per-night price, availability for the dates; a "Book" CTA |
 | ☐ | **Checkout** · proceed to book | Enter guest details, confirm | A REAL booking is created (guarded — no double-book); lands on a **confirmation** page with the reference |
 | ☐ | Isolation | Try `/book/some-other-slug` | 404 / not found — only the demo property resolves |
