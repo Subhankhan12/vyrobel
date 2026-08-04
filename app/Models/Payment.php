@@ -24,6 +24,7 @@ class Payment extends Model
         'folio_id',
         'reservation_id',
         'gateway',
+        'method',
         'gateway_ref',
         'idempotency_key',
         'type',
@@ -53,6 +54,26 @@ class Payment extends Model
             'metadata' => 'array',
             'processed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * A human display label for the payment method (QA D2-OBS-1) — the REAL cash / bank-transfer / card choice,
+     * from the distinct `method` column (backfilled for pre-column rows from the choice already in metadata).
+     * Null when no explicit method was recorded (the `gateway` still identifies the rail). Label only.
+     */
+    public function methodLabel(): ?string
+    {
+        $method = $this->method;
+        if (! is_string($method) || $method === '') {
+            return null;
+        }
+
+        return match ($method) {
+            'cash' => 'Cash',
+            'bank_transfer', 'bank' => 'Bank transfer',
+            'card' => 'Card',
+            default => ucfirst(str_replace('_', ' ', $method)),
+        };
     }
 
     /**

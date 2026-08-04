@@ -5403,3 +5403,19 @@ A complete Playwright-MCP-driven QA of every realm + page (`docs/QA-FULL-REPORT-
 **Process (the finish-pass discipline held):** verified each finding against the code before fixing; browser-verified every UI flow (the F-GUEST-1 fabrication was itself a "green tests + correct DOM hide a real bug" case); one shared rule per concept (BoardDate, the shell chip); nothing money/auth/isolation changed except REMOVING the F-GUEST-1 fabrication.
 
 **Suite state at close:** 1616/1623 green; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. The 7 non-green are pre-existing, unrelated flakes — 6 `BookingImportTest` ordering flakes (11/11 in isolation) + 1 `OwnerUnitDetailViewTest` random inventory_block collision — none in any file this pass touched (proven by the 18-file diff scope).
+
+---
+
+## 2026-08-04 — QA D2-OBS-1 fixed: distinct on-desk payment method (cash vs bank), money untouched
+
+The deep-QA's one LOW observation (D2-OBS-1) is resolved. The on-desk Collect stored the real Cash/Bank
+choice only inside `payments.metadata` while the queryable `gateway` read a generic "manual". Added an
+additive, nullable **`payments.method`** column (backfilled from `metadata->method` for historical rows),
+populated by `FolioService::recordPayment` from the operator's choice; a `Payment::methodLabel()` helper
+renders it, surfaced on the reservation-detail folio ledger ("Received · Cash" / "· Bank transfer"). This is
+a LABEL/reporting change only — the amount, integer-minor storage, #17 reconciliation, and the double-submit
+idempotency are all untouched; the card path stays the honest test-mode Stripe seam (never faked). Browser +
+DB verified (Cash→`cash`, Bank transfer→`bank_transfer`, distinct not `manual`, money unchanged, folio
+reconciles); a regression test asserts the method is stored distinctly with money unchanged. Suite
+1617/1624 (the 7 non-green are the documented pre-existing BookingImportTest + OwnerUnitDetailViewTest flakes,
+unrelated); PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.

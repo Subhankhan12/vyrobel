@@ -231,6 +231,11 @@ class FolioService
                     'folio_id' => $folio->getKey(),
                     'reservation_id' => $folio->reservation_id,
                     'gateway' => $this->gateway->name(),
+                    // QA D2-OBS-1 — the REAL method (cash / bank_transfer / card / …) the caller chose, stored as a
+                    // distinct, queryable column rather than only inside metadata (where the generic `gateway`
+                    // hid it). Label only — the amount/reconciliation are untouched. Null when a caller records
+                    // no explicit method (the gateway still identifies the rail).
+                    'method' => is_string($storedMetadata['method'] ?? null) ? $storedMetadata['method'] : null,
                     'gateway_ref' => $result->reference,
                     'idempotency_key' => $idempotencyKey,
                     'type' => 'payment',

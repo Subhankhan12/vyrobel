@@ -491,9 +491,13 @@ class ReservationDetail extends Component
         if (in_array($type, ['payment', 'capture'], true) && in_array($status, ['succeeded', 'captured'], true)) {
             $remaining = app(FolioService::class)->remainingRefundableMinor($payment);
 
+            // QA D2-OBS-1 — surface the REAL method (Cash / Bank transfer / Card) on the ledger line instead of a
+            // bare "Received", so the folio distinguishes how the money came in.
+            $methodLabel = $payment->methodLabel();
+
             return [
                 'label' => $type === 'capture' ? 'Capture' : 'Payment',
-                'desc' => 'Received',
+                'desc' => 'Received'.($methodLabel !== null ? ' · '.$methodLabel : ''),
                 'date' => $date,
                 'amount' => '−'.$this->money($amount, $currency),
                 'tone' => 'paid',

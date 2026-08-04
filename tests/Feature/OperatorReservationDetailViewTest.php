@@ -93,6 +93,38 @@ it('records a payment append-only through FolioService', function () {
     $this->assertDatabaseHas('folios', ['id' => $f['folio']->id, 'paid_minor' => 15000, 'balance_minor' => 18000]);
 });
 
+// ── 3b. QA D2-OBS-1 — the on-desk collect stores the REAL method (cash vs bank transfer), money unchanged ──
+it('records the on-desk collect with the real chosen method — cash vs bank transfer — money unchanged', function () {
+    $s = seedScenario(1);
+    $member = detailMember($s);
+    $f = resWithFolio($s);   // one reservation, charges €330, nothing paid
+
+    // Cash collect → method 'cash', label "Cash"; amount stored as integer minor (label-only fix).
+    $this->actingAs($member)
+        ->post(route('app.reservations.payment', $f['res']->id), ['amount' => '100.00', 'method' => 'cash', 'idempotency_key' => 'm-cash'])
+        ->assertRedirect();
+    $cashPay = Payment::query()->where('reservation_id', $f['res']->id)->where('idempotency_key', 'm-cash')->sole();
+    expect($cashPay->method)->toBe('cash')
+        ->and($cashPay->methodLabel())->toBe('Cash')
+        ->and((int) $cashPay->amount_minor)->toBe(10000);                  // money untouched (integer minor)
+
+    // Bank-transfer collect on the SAME folio → method 'bank_transfer' — NOT collapsed to a generic 'manual'.
+    $this->actingAs($member)
+        ->post(route('app.reservations.payment', $f['res']->id), ['amount' => '100.00', 'method' => 'bank_transfer', 'idempotency_key' => 'm-bank'])
+        ->assertRedirect();
+    $bankPay = Payment::query()->where('reservation_id', $f['res']->id)->where('idempotency_key', 'm-bank')->sole();
+    expect($bankPay->method)->toBe('bank_transfer')
+        ->and($bankPay->methodLabel())->toBe('Bank transfer')
+        ->and($bankPay->method)->not->toBe('manual');
+
+    // #17 — the two €100 collects reconcile exactly on the folio (paid €200, balance €130), money untouched.
+    $this->assertDatabaseHas('folios', ['id' => $f['folio']->id, 'paid_minor' => 20000, 'balance_minor' => 13000]);
+
+    // The detail ledger surfaces BOTH real methods on the payment lines (not a bare "Received").
+    $this->actingAs($member)->get("/app/reservations/{$f['res']->id}")->assertOk()
+        ->assertSee('Cash')->assertSee('Bank transfer');
+});
+
 // ── 4. Tenant isolation — org B cannot view OR act on org A's reservation/folio ──────────────────
 it('isolates tenants — org B cannot view or act on org A\'s folio', function () {
     $sA = seedScenario(1);
