@@ -48,7 +48,7 @@ The finished product was verified by **three independent QA passes**; every prio
 ## (H) Known tech-debt (test-isolation only — NOT product bugs)
 - **`BookingImportTest` isolation flakes (6)** — fail in the FULL suite but pass **11/11 in isolation**; they avoid `RefreshDatabase` + drive a real queue worker → ORDER-DEPENDENT (OTA import path, unrelated to any finished work).
 - **`OwnerUnitDetailViewTest` (1)** — a random `inventory_block` ULID collision (a data-setup rarity, not product code).
-- Together these are the ~7 non-green in the full suite (e.g. 1616/1623). **Both are test-isolation issues, unrelated to product code** — optional future stabilization (give the import tests `RefreshDatabase` / isolate the worker; deterministic ULIDs in the owner-unit fixture) for a fully-green suite; NEITHER is a blocker.
+- Together these are the 7 non-green in the full suite — **confirmed 2026-08-04: `php artisan test` = 1617/1624 passed, 11,144 assertions, and the 7 non-green are EXACTLY these two flake sets (6 BookingImportTest + 1 OwnerUnitDetailViewTest), no product test.** Both are test-isolation issues, unrelated to product code — optional future stabilization (give the import tests `RefreshDatabase` / isolate the worker; deterministic ULIDs in the owner-unit fixture) for a fully-green suite; NEITHER is a blocker.
 - Optional nicety: an org-slug→property redirect for the storefront (so `/book/{org-slug}` resolves instead of 404 — today it 404s by design; the correct URL is the property slug `/book/seaside-demo`).
 
 ## What remains
