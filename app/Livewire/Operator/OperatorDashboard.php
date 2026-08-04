@@ -9,6 +9,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Channel;
 use App\Models\HousekeepingTask;
 use App\Models\MaintenanceTicket;
+use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\Property;
 use App\Models\RateCalendar;
@@ -18,6 +19,7 @@ use App\Models\Unit;
 use App\Services\FrontDeskService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Property\PropertyOccupancy;
+use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -124,7 +126,10 @@ class OperatorDashboard extends Component
             'maintenance' => $maintenance,
             'occupancyWeek' => $occupancyWeek,
             'tasks' => $this->tasks($workOrders, $housekeeping, $arrivals, $date),
-            'channels' => $this->channels($propertyIds),
+            // F-OP-2 — the Channels card is a Pro-only feature (the page itself 403s on Essential). Show it ONLY
+            // when the org's plan grants channels, so the dashboard never surfaces a channels widget the org
+            // can't reach. Null → the view omits the card entirely.
+            'channels' => $this->channelsAllowed() ? $this->channels($propertyIds) : null,
             'arrivals' => $this->arrivalsList($arrivals),
         ]);
     }
@@ -316,6 +321,15 @@ class OperatorDashboard extends Component
      * @param  list<string>  $propertyIds
      * @return list<array{name: string, connected: bool, last_sync: ?string}>
      */
+    /**
+     * Whether the current org's plan grants the Channels feature (Pro-only) — the SAME gate the /app/channels
+     * route + the nav item use (Organization::planAllows), so the dashboard card can't drift from access (F-OP-2).
+     */
+    private function channelsAllowed(): bool
+    {
+        return Organization::query()->find(app(TenantContext::class)->id())?->planAllows('channels') ?? false;
+    }
+
     private function channels(array $propertyIds): array
     {
         $channels = $propertyIds === []

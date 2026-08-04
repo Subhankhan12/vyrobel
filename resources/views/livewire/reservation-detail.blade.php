@@ -311,7 +311,7 @@
                         Export folio (PDF)
                     </a>
                     <div class="vy-defer-item" style="margin-top:8px;"><span>Export CSV · print</span><span class="vy-soon-tag">Soon</span></div>
-                    <div class="vy-recon" style="margin-top: 6px;">Move room routes through the guarded AssignmentService — deferred until it persists safely from here.</div>
+                    <div class="vy-recon" style="margin-top: 6px;">Room moves route through the guarded AssignmentService (locked, no overbooking) and persist immediately.</div>
                 </div>
             </div>
         </div>

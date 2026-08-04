@@ -186,7 +186,9 @@
                         @endif
                     </div>
 
-                    {{-- Channels — HONEST status (real; "Not connected" when nothing is synced) --}}
+                    {{-- Channels — HONEST status (real; "Not connected" when nothing is synced). F-OP-2: shown ONLY
+                         when the org's plan grants channels (the page itself is Pro-gated); null → omitted. --}}
+                    @if (! empty($channels))
                     <div class="vy-card">
                         <h2 class="vy-card-title" style="margin-bottom: 10px;">Channels</h2>
                         @foreach ($channels as $c)
@@ -201,6 +203,7 @@
                         @endforeach
                         <div class="vy-line-sub" style="margin-top:8px;font-size:11.5px;color:var(--vy-muted)">Channel sync activates with your OTA connection.</div>
                     </div>
+                    @endif
                 </div>
             </div>
         @endif

@@ -27,6 +27,13 @@
     $__acctUser = auth()->user();
     $__acctRole = $__acctUser?->getRoleNames()->first() ?? 'Staff';
     $__acctEmail = (string) ($__acctUser?->email ?? '');
+    // F-OP-3 — the topbar identity chip ALWAYS reflects the REAL signed-in staff user (self only), so the
+    // controller-rendered pages (email-previews / templates / guest-requests / reviews) show the same name as
+    // the Livewire pages, never a generic "Operator / O" placeholder. Derives from auth, not the passed prop.
+    $__viewerName = $__acctUser?->name ?? ($viewer['name'] ?? 'Staff');
+    $__viewerInitials = \Illuminate\Support\Str::of($__viewerName)->explode(' ')
+        ->filter()->take(2)->map(fn ($w) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($w, 0, 1)))->implode('');
+    $__viewerInitials = $__viewerInitials !== '' ? $__viewerInitials : 'S';
     $__searchHref = $__acctUser?->can('reservations.view') ? route('app.search') : null;
     $__todayLabel = \Carbon\CarbonImmutable::now()->format('D · j M');
     // #84 read-only workspace — resolved once, used by BOTH the topbar read-only pill and the banner below.
@@ -177,17 +184,17 @@
                 <div class="vy-acct" x-data="{ open: false }" @keydown.escape.window="open = false">
                     <button type="button" class="vy-acct-btn" @click="open = ! open" :aria-expanded="open ? 'true' : 'false'" aria-haspopup="menu">
                         <span class="vy-acct-id">
-                            <span class="vy-acct-name">{{ $viewer['name'] }}</span>
+                            <span class="vy-acct-name">{{ $__viewerName }}</span>
                             <span class="vy-acct-role">{{ $__acctRole }}</span>
                         </span>
-                        <span class="vy-avatar">{{ $viewer['initials'] }}</span>
+                        <span class="vy-avatar">{{ $__viewerInitials }}</span>
                         <svg class="vy-acct-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" :style="open ? 'transform:rotate(180deg)' : ''"><path d="M6 9l6 6 6-6"/></svg>
                     </button>
                     <div class="vy-acct-menu" x-show="open" x-transition.origin.top.right @click.outside="open = false" role="menu" x-cloak>
                         <div class="vy-acct-head">
-                            <span class="vy-avatar vy-avatar--lg">{{ $viewer['initials'] }}</span>
+                            <span class="vy-avatar vy-avatar--lg">{{ $__viewerInitials }}</span>
                             <span class="vy-acct-hid">
-                                <span class="vy-acct-name">{{ $viewer['name'] }}</span>
+                                <span class="vy-acct-name">{{ $__viewerName }}</span>
                                 @if ($__acctEmail !== '')<span class="vy-acct-email">{{ $__acctEmail }}</span>@endif
                             </span>
                         </div>
