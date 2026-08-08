@@ -318,11 +318,21 @@ activity" table, built from `FolioDocument::data` so it shares the receipt's fol
 - **The reservation page invented arrival hours** — `From 15:00` / `By 11:00` where the property set none (#39).
 - **Two Insights figures lacked their unit** — weekday occupancy tiles, and the owner percentage-point delta.
 
-⚠️ **WAVE 3 IS NOT CLOSED.** Open: operator pagination (Guests / Reservations / Notifications), Maintenance
-Costs property-scope + period selector, housekeeping/technician items, owner chart-scaling and payout-filter
-items, and the public/auth items. **⚠️ TWO OPEN ITEMS ARE NOT WAVE 3** — the login **workspace picker**
-(`active_organization_id` is read and never written) and **password-reset sibling-session termination** touch
-auth/isolation, which WAVE 3 excludes. Flagged for their own gated pass, deliberately not folded in.
+⚠️ **WAVE 3 IS NOT CLOSED.** Open: operator pagination (Guests / Reservations / Notifications),
+housekeeping/technician items, owner chart-scaling and payout-filter items, and the remaining small
+divergences.
+
+⚠️ **THREE OPEN ITEMS ARE NOT WAVE 3 — they need their own gated auth/isolation pass:**
+1. the login **workspace picker** (`active_organization_id` is read and never written);
+2. **password-reset sibling-session termination**;
+3. **Operator Maintenance Costs ignores the property access restriction** (escalated 2026-08-09) —
+   `MaintenanceCostService::resolved()` is tenant-scoped ONLY, with no property constraint, so a
+   pivot-restricted user would see the costs, **unit names** and billable lines of properties they may not
+   work in, while the sibling board scopes through `currentReadIds`. **Latent today** (`property_user` has 0
+   rows and an empty pivot means full org), real the moment anyone is pivoted to a subset. ⚠️ When fixed,
+   `MaintenanceCostExportController` calls the SAME service — the export must take the IDENTICAL scope and
+   period or it will disagree with the screen (#17). The period selector is genuine WAVE-3 work that can ride
+   along with it.
 
 **VERIFIED (2026-08-09, HEAD `35dc05f`):** suite **1758/1765 · 11,751 assertions**; non-green exactly the
 documented **7**; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. Every fix browser-rendered.

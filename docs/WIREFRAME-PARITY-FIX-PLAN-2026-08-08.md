@@ -183,12 +183,31 @@ Every item below is **copy asserting behaviour the code does not implement**. Fo
 > - **500 "support reference"** — no correlation id is generated, so any reference shown could not be looked
 >   up. The view already says the error is logged and never leaks the exception/trace/SQL/path.
 >
+> ### ⛔ ESCALATED OUT OF WAVE 3 → the auth/isolation pass (2026-08-09)
+> - **Operator Maintenance Costs ignores the user's property access restriction.** Verified against code:
+>   `MaintenanceCostService::resolved()` is `MaintenanceTicket::query()->where('status','resolved')` —
+>   **tenant-scoped only, with no property constraint whatsoever**; the same is true of the `parts_on_order`
+>   count. `report()` takes no arguments at all. Meanwhile the sibling board (`MaintenanceList`) scopes through
+>   `currentReadIds`.
+>
+>   **Why this is NOT a cosmetic WAVE-3 tweak.** `PropertyContext` documents `property_user` as *"an OPTIONAL
+>   access restriction … the set the user MAY WORK IN"*, and `readIds()`/`accessibleIds()` are how every other
+>   `/app` read honours it. A screen that bypasses them shows a pivot-restricted user the cost figures, the
+>   **unit names** (`topUnits()`) and the billable lines of properties they may not work in. That is an
+>   access-control gap, not a presentation gap — WAVE 3 explicitly excludes auth/isolation, so it is FLAGGED
+>   rather than fixed here.
+>
+>   **Exposure today is LATENT:** `property_user` has **0 rows**, and an empty pivot means full-org access, so
+>   no user is currently restricted and nothing is leaking. It becomes real the moment anyone is pivoted to a
+>   subset — the same latency profile as the WAVE-2 "Revenue today" scope item.
+>
+>   **When it is fixed (auth pass), the trap still applies:** `MaintenanceCostExportController` calls the SAME
+>   service, so the PDF/CSV must take the IDENTICAL scope and period or the export and the screen will disagree
+>   (the two-readers-drift class, #17). The period selector is a genuine WAVE-3 presentation item and can ride
+>   along with that fix.
+
 > ### 🔎 VERIFIED-AND-CONFIRMED, not yet fixed (next session can start here)
-> - **Operator Maintenance Costs is org-wide.** `MaintenanceCostService::report()` takes NO arguments — no
->   property ids and no period — while the sibling maintenance BOARD is property-scoped. Confirmed against the
->   code 2026-08-09. Fixing it means giving `report()` a property-id + period parameter and wiring
->   `ResolvesCurrentProperty` into `OperatorMaintenanceCosts`; ⚠️ `MaintenanceCostExportController` calls the
->   SAME service, so the PDF/CSV must take the identical scope or the export and the screen will disagree.
+> - *(the Maintenance-Costs entry moved above — escalated)*
 >
 > ### ⬅ STILL OPEN — the rest of the list below is untouched
 > Notably: operator pagination (Guests / Reservations / Notifications), Maintenance Costs property-scope +

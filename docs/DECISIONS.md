@@ -2,6 +2,29 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-09 — Maintenance Costs ESCALATED out of WAVE 3 into the auth/isolation pass
+
+Verified against code, not assumed: `MaintenanceCostService::resolved()` is
+`MaintenanceTicket::query()->where('status','resolved')` — **tenant-scoped only, no property constraint** —
+and `report()` takes no arguments. The sibling board (`MaintenanceList`) scopes through `currentReadIds`.
+
+**The call:** this is an ACCESS gap, not a presentation one, so it is flagged rather than fixed in WAVE 3.
+`PropertyContext` documents `property_user` as *"an OPTIONAL access restriction … the set the user MAY WORK
+IN"*. A screen bypassing it shows a pivot-restricted user the cost figures, the **unit names** and the
+billable lines of properties they may not work in. WAVE 3 explicitly excludes auth/isolation.
+
+**Honest exposure:** LATENT. `property_user` has 0 rows today and an empty pivot grants full-org access, so
+no user is restricted and nothing leaks right now. It becomes real the moment anyone is pivoted to a subset —
+the same latency profile as the WAVE-2 "Revenue today" item (which WAS fixed, because that one was a wrong
+FIGURE on a dashboard whose every sibling KPI was already scoped; this is the whole report being unscoped).
+
+**Carried forward for whoever fixes it:** `MaintenanceCostExportController` calls the SAME service, so the
+PDF/CSV must take the IDENTICAL scope and period or export and screen will disagree (#17). The missing period
+selector is genuine WAVE-3 presentation work and should ride along with that fix rather than be done twice.
+
+This makes THREE items awaiting the auth/isolation pass: the workspace picker, reset sibling-session
+termination, and this.
+
 ## 2026-08-09 — WIREFRAME-PARITY WAVE 3 STARTED (3 gates); the named item list was largely STALE
 
 Gates: `270806f` owner format/timeline · `51c3f9f` guest add-on/refund/arrival-hour · `35dc05f` Insights
