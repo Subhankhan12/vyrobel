@@ -28,14 +28,16 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
         ]);
 
-        // Security response headers on EVERY web response, all five realms (audit 2026-08-07 — the app sent
-        // none at all, so every money surface was framable). Prepended so the headers are set even when a
-        // later middleware short-circuits the request (a 403 from a permission gate, a redirect from an auth
-        // guard, a 429 from the login throttle) — those responses need the headers just as much as a 200.
-        // The policy is built from an inventory of what the app really loads; see the class docblock.
-        $middleware->web(prepend: [
-            SecurityHeaders::class,
-        ]);
+        // Security response headers on EVERY response, all five realms (audit 2026-08-07 — the app sent none
+        // at all, so every money surface was framable). The policy is built from an inventory of what the app
+        // really loads; see the class docblock.
+        //
+        // ⚠️ GLOBAL, not `web(prepend:)`. Group middleware only runs once a route has MATCHED, so an
+        // unmatched-route 404 — including the branded error page — came back with ZERO headers while every
+        // real page had five. Measured during the final sweep. Global placement also covers the responses a
+        // short-circuit produces: a 403 from a permission gate, a redirect from an auth guard, a 429 from the
+        // login throttle. Non-document responses (PDF/CSV streams) are skipped inside the middleware itself.
+        $middleware->prepend(SecurityHeaders::class);
 
         // Unauthenticated web requests to guarded routes redirect to the correct realm's login form: the PLATFORM
         // admin (/admin*) bounces to the admin login, the GUEST portal (/guest/*) to the guest login, everything

@@ -48,6 +48,27 @@ it('sends every security header on every realm', function (string $path) {
     '/admin/login',
 ]);
 
+it('sends the headers on an UNMATCHED-route 404 too', function () {
+    // ⚠️ Group middleware only runs once a route has MATCHED. Registered on the `web` group, an
+    // unmatched-route 404 — including the branded error page — came back with ZERO headers while every real
+    // page had five. Measured during the final sweep, then moved to global. This pins it.
+    $response = $this->get('/no-such-page-here');
+
+    $response->assertStatus(404);
+
+    foreach (['Content-Security-Policy', 'X-Frame-Options', 'X-Content-Type-Options', 'Referrer-Policy', 'Permissions-Policy'] as $header) {
+        expect($response->headers->get($header))->not->toBeNull("missing {$header} on a 404");
+    }
+});
+
+it('permits NO external origin at all', function () {
+    // Inter and Sora are self-hosted (audit F6-6), so the two Google font origins were the last externals
+    // and are gone. Anything reaching for a third party is now a CSP violation by definition.
+    $csp = (string) $this->get('/login')->headers->get('Content-Security-Policy');
+
+    expect($csp)->not->toContain('https://');
+});
+
 it('blocks cross-origin framing of the money surfaces', function () {
     $csp = (string) $this->get('/login')->headers->get('Content-Security-Policy');
 
@@ -67,7 +88,8 @@ it('keeps the four relaxations the app actually needs', function () {
 
     // 2. The design system is inline <style> blocks plus ~97 inline style="…" attributes on one operator
     //    page. Inline style ATTRIBUTES cannot carry a nonce or hash — there is no mechanism.
-    expect($csp)->toContain("style-src 'self' 'unsafe-inline'");
+    //    (No font origin here any more — Inter/Sora are self-hosted.)
+    expect($csp)->toContain("style-src 'self' 'unsafe-inline';");
 
     // 3. frame-ancestors is 'self', NOT 'none': the Email Previews page frames a SAME-ORIGIN
     //    /app/email-previews/{key} so the email CSS cannot leak into /app. 'none' would break that page.
