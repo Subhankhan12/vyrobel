@@ -40,8 +40,9 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **The pricing model is unresolved.** Two contradictory definitions run simultaneously and only the flat
 > tier price (€49/€99) reaches Stripe; the per-unit figure (units × €9 × VAT ≈ €44) does not. At the live-key
 > flip a customer would be **billed roughly double what the app quoted them**. Both are honest code — what is
-> missing is the *product decision*. Escalated to the founder, who chose to defer it to go-live. It is a
-> **blocker on the Stripe live-key flip**, not a backlog item. See `DECISIONS.md` (2026-08-08) for both
+> missing is the *product decision*. Escalated to the founder and **still OPEN** — the
+> recommendation to settle it at go-live is the assistant's, not a founder ruling. It is a **blocker on the Stripe
+> live-key flip**, not a backlog item. See `DECISIONS.md` (2026-08-08) for both
 > resolution paths and their real cost.
 >
 > Still outstanding beyond that: **deployment** and the **scale-perf workstream** (composite indexes, N+1 hot
@@ -91,33 +92,64 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-## (superseded header) Vyrobel finish-to-100 COMPLETE **+ QA-COMPLETE (3 passes, 0 open defects)** (2026-08-04; last code commit `b2e1d7b`)
+## (A) IDENTITY + CURRENT STATUS — finish-to-100 COMPLETE · AUDITED · blockers + hardening + polish FIXED (2026-08-08; HEAD `c40fef4`)
 
-**Vyrobel is a multi-tenant, AI-native hotel/apartment management SaaS (PMS + channel manager + booking engine + guest/owner/operator apps + owner accounting + AI seams) for operators running a MIX of hotels, aparthotels, serviced apartments, villas and multi-unit rentals.** The design-fidelity finish-to-100 is **COMPLETE across all three realms + the platform super-admin console**, and the product is **QA-COMPLETE** — every page matches its validated wireframe on REAL, tenant-scoped, reconciling data; every wireframe fabrication is REFUSED with an honest empty/Soon state; all invariants hold; and **three independent QA passes (broad E2E → deep-coverage → final mutating-ops + motion video/trace) converged on ZERO open defects**, all prior findings resolved and re-confirmed live. **The ONLY remaining work is the founder's external-infra go-live flips + deployment — NOT UI, fidelity, backend, or QA.** (Section map below: A identity+status · B stack · C realms+surfaces · D engines · E invariants · **F the 3-pass QA history+result** · G honest deferrals · H tech-debt · I process lessons · J founder pattern · **K marketing site**. The dated per-gate build log with hashes is the `## Status` section further below; the "why" is `docs/DECISIONS.md`; per-page fidelity is `docs/design/DIVERGENCE-REGISTER.md`; the audit + resolution logs are `docs/FULL-AUDIT-OPERATOR-GUEST.md`; the three QA reports are `docs/QA-FULL-REPORT-2026-08-04.md`, `docs/QA-DEEP-REPORT-2026-08-04.md`, `docs/QA-THIRD-REPORT-2026-08-04.md`.)
+**Vyrobel is a multi-tenant, AI-native hotel / apartment / short-stay property-management SaaS** (PMS + channel
+manager + booking engine + operator/owner/guest apps + owner accounting + AI seams), for operators running a MIX
+of hotels, aparthotels, serviced apartments, villas and multi-unit rentals. **Three tenant realms — Operator
+(`/app`) · Owner (`/owner`) · Guest (`/guest`) — plus a platform Super-Admin console (`/admin`).**
 
-## Stack + architecture
+⚠️ **DO NOT REPEAT THE OLD CLAIM "QA-COMPLETE, 0 OPEN DEFECTS."** It was honest for what the three QA passes
+probed and is now superseded. The **CURRENT, CORRECTED status is:**
+
+> **Finish-to-100 COMPLETE across all realms → independently AUDITED (7-layer, A/B dual-method × prototype
+> parity) → ALL launch-blockers, ALL hardening, and ALL polish RESOLVED.** What remains is **(1) ONE OPEN
+> BILLING DECISION — the founder's business call, and a blocker on the Stripe live-key flip · (2) the
+> DEPLOYMENT sprint · (3) the SCALE-PERF workstream · (4) the founder's go-live flips · (5) the marketing site.**
+
+The audit is why the status changed: all three QA passes tested behaviour **through the UI**, and the two worst
+findings live exactly where UI testing cannot reach — **a queue worker rendering outside tenant context** (100%
+of booking-confirmation emails failed permanently; hidden because `Mail::fake()` + `assertQueued` asserts a job
+was *enqueued*, never that it *renders*) and **a race window inside a service** (the #27 refund bound had no row
+lock). Both are fixed. **Section map: A identity+status · B stack · C realms+surfaces · D engines · E invariants ·
+F the COMPLETE history (finish-to-100 + 3 QA passes + the audit + the 3 remediation passes) · G ⚠️ OPEN DECISIONS ·
+H honest deferrals · I the roadmap · J tech-debt · K marketing site · L process lessons · M founder pattern.**
+The dated per-gate build log with hashes is the `## Status` section further below; the "why" is
+`docs/DECISIONS.md`; per-page fidelity is `docs/design/DIVERGENCE-REGISTER.md`; the full audit + its resolution
+log is `docs/AUDIT-COMPLETE-2026-08-07.md`; earlier per-page audits are `docs/FULL-AUDIT-OPERATOR-GUEST.md`; the
+three QA reports are `docs/QA-FULL-REPORT-2026-08-04.md`, `docs/QA-DEEP-REPORT-2026-08-04.md`,
+`docs/QA-THIRD-REPORT-2026-08-04.md`; the deploy runbook is `docs/DEPLOYMENT.md`.
+
+## (B) Stack + architecture (incl. the POST-HARDENING security posture)
 - **Laravel 13 · PHP 8.3+ · MySQL 8/InnoDB (genuine MySQL, NOT MariaDB) · Livewire 4 + Blade + Tailwind 4 (Vite) · Alpine (bundled by Livewire) · Redis + Horizon queues · Pest 4 / PHPUnit 12 · PHPStan L5 · Laravel Pint.** Money = integer minor units + ISO-4217 (`Money` cast; NEVER floats). PKs = ULIDs on tenant tables. Time = store UTC, compute guest-facing "today" in the property timezone; stays are half-open `[check_in, check_out)`.
 - **Multi-tenancy:** shared-DB, `organization_id` on every business table via the `BelongsToOrganization` trait (global scope + auto-fill + a guard that THROWS on an unscoped tenant query outside super-admin). **RBAC:** `spatie/laravel-permission` teams-mode (team = organization).
 - **Design system (warm-glass `--vy-*`):** Sora (display) + Inter (sans); warm cream/terracotta palette + the `#E8703A→#C2410C` orange gradient; glass blur + hairlines + `--vy-r-*` radii + `--vy-shadow*`; motion primitives `vyFadeUp`/`vyDrift`/`vyShimmer` (honour `prefers-reduced-motion`).
 - **Three shells (all real):** the **parameterized shared OPERATOR shell** (`components/layouts/operator.blade.php` — the GATE-0 decision was to parameterize it, NOT fork 42 per-page chromes; carries the property switcher **#38**, read-only mode **#84**, role-gated nav **#104**, tenant scope); the **owner shell**; the **760px GUEST shell** (`x-guest.shell`, peach/warm-glass) — a SEPARATE guest guard (refused from `/app` + `/owner`), every page guest-isolated (foreign reservation/guest/thread → **404**). **⚠️ The GUEST realm has NO Alpine** → all interactivity is native GET / progressive enhancement (tabs, search, filters, month pickers), never client JS state.
 
-## The three realms + their surfaces (all at genuine 100%)
+- **⚠️ POST-HARDENING SECURITY POSTURE (2026-08-08, `6c390ad`→`505627a`):** global **security response headers on EVERY response in all five realms — including unmatched-route 404s** (`SecurityHeaders` is registered GLOBALLY, not on the `web` group, because group middleware only runs once a route has MATCHED): CSP · HSTS (only when the request is genuinely secure) · X-Frame-Options · X-Content-Type-Options · Referrer-Policy. **The CSP permits ZERO external origins** — all fonts are self-hosted (`public/fonts/`), no CDN, no Google Fonts. Four documented relaxations only (style/script `unsafe-inline`, `unsafe-eval` for Alpine, `frame-ancestors 'self'` for the same-origin email-preview iframe, `img-src data: blob:`). Plus: `SESSION_SECURE_COOKIE` + `TrustProxies` + HTTPS scheme forcing driven from **`config/security.php`, NOT `env()`** (⚠️ `env()` returns NULL under `config:cache`, which the deploy runbook runs); sensitive fields (`iban`, `account_holder`, `tax_id`, secrets, 2FA codes) globally excluded from validation-error flash so an **IBAN can never be written in plaintext to the `sessions` table**; `CsvSafe` on **all 49** `fputcsv` calls; branded, self-contained, realm-aware error views that **never print the exception**; rotating logs; production-guarded seeders; 0 dependency advisories.
+- **⚠️ DESIGN-TOKEN + SHELL CHANGES FROM THE POLISH PASS (2026-08-08):** `--vy-muted` and `--vy-faint` were **DARKENED to meet WCAG AA** (`4f27c81` — muted 3.77→5.66, faint 2.68→4.60, computed against the TRUE worst-case background: the card's `rgba(255,252,248,.58)` composited over all four gradient stops → `rgb(249,223,207)`), across 13 files. The **760px guest shell is now RESPONSIVE** (`c5babfc`) — it previously had **ZERO viewport breakpoints** (its only `@media` was `prefers-reduced-motion`), so the header forced a 615px document at 390px: a **225px horizontal overflow on all 14 guest screens**. It now carries a `max-width: 640px` breakpoint (nav scrolls inside itself, 44px tap targets) plus an `html, body { overflow-x: hidden }` guard; **0px overflow on all 14 pages**, reduced-motion intact.
+
+## (C) The three realms + their surfaces (all at genuine 100%)
 - **OPERATOR (`/app`, ~43 surfaces):** Dashboard · Calendar/Rack · Front Desk · Inbox · New Reservation · Group Booking · Maintenance (board / costs / settings) · Work Order · Housekeeping · Team Schedule · Reports (+ PDF) · Owners / Owner-Detail / Payout-Run · Notification Preferences · Email Templates (+ editor) · Channels · Billing (+ checkout/paywall) · Insights · Guests / Guest-Profile · Rates · Refund · Reservations / Detail · Reviews · Roles · Security · Search · Profile · Portfolio · Settings (one combined `/app/settings` hub) · Units · Unit-Requests · Notifications feed · the PDFs. **13 gates + FINAL, HEAD `d8e5255`.**
 - **GUEST (`/guest` + `/book`/`/stay`):** Browse/storefront · Booking · Room · Checkout · Account · Check-in · Arrival Info (+ PDF) · Add-ons · Trips · Reservation · Manage · Payments · Wallet/Credits · Messages · Saved (Wishlist+Waitlist) · Review · Receipt · the 9 transactional emails · the guest auth (blind-index login, booking-tied claim, reset). **Phase-4 pixel-diff G0–G4 + G-FINAL, HEAD `9efeb99`.**
 - **OWNER (`/owner`, completed earlier):** Overview · My Units / Unit Detail · Bookings (+ PDF) · Statement (+ PDF) · Payouts / Payout Method / Balance · Expenses · Block Calendar · Documents · Reports / Insights · Tax Center · Settings hub · Security · Team · owner sub-tenancy + staff rostering.
 - **PLATFORM SUPER-ADMIN (`/admin`, the dark console — a SEPARATE `admin` guard, 2FA-MANDATORY):** Overview (platform KPIs) · Customers (suspend/reactivate/assign-plan) · Plans (edit price + feature toggles that gate tenant `planAllows`) · Security & activity · Integrations (credentials encrypted at rest, write-only). First admin sign-in is FORCED through 2FA enrollment; created out-of-band via `admin:create`, never a public route.
 
-## The certified engines (the ANTI-DRIFT core — reused everywhere, all real + tested; NEVER reimplement per-caller)
+## (D) The certified engines (the ANTI-DRIFT core — reused everywhere, all real + tested; NEVER reimplement per-caller)
 `AssignmentService` (single inventory write path — createBooking/assignUnit/reschedule under `SELECT…FOR UPDATE`; the no-double-booking guarantee; the `Unit::isBookable()` OOS/paused guard on create/move/reschedule) · `UnitAvailabilityService`/`AvailabilityService` · `FolioService`/`FolioTotals` (money #17) · `OwnerRateService`/`RateAndRestrictionService` (rates, weekend-uplift) · the **payout engine #71** (test-mode, Connect rail, double-transfer-guarded) · the **#83 Mailables** (branded, preference-gated) · `HousekeepingService`/`HousekeepingTask` · `MaintenanceService` · **#66 security** (trusted devices / login-approval / passkeys) · `InboxService` (unified inbox) · `StaffRoster`/`ShiftRosterService`/`RosterWeek` · `ArrivalPack::for` (**#33** door code) · `ReviewRating` (**#76**) · `GuestWalletService` (append-only credit ledger) · `CancellationPolicy` · `GuestDeletionService` (14-day archive-not-destroy) · `GuestIdDocumentService` (encrypted ID, 30-day purge) · `PdfService` · `CsvSafe` (CSV-injection-safe exports) · `ReportPeriod`/`OperatorReportData` · the shared data helpers `GuestTrip`/`GuestReservationView`/`GuestPayments`/`GuestHistory`/`PerformanceMetrics`/`OwnerLedgerAttribution`/`OwnerStatementBreakdown` (ONE definition per concept — two `match`es WILL drift).
 
-## The load-bearing INVARIANTS (held across ALL THREE realms)
+- **⚠️ CHANGES FROM THE REMEDIATION PASSES (2026-08-08) — a future session must not reintroduce the old shapes:** `FolioService::refundPayment()` now runs inside a **transaction + `lockForUpdate` on the original payment + a deterministic idempotency key**, mirroring `OwnerPayoutService::pay()` (which remains **the reference implementation** for any new money path). `FolioTotals::for()` now ALSO returns **`received_minor` + `refunded_minor`** — the two halves it always computed and discarded — so the guest statement's "Credited" tile cannot become a second derivation of refunds (the three original keys are byte-identical). The **#83 booking-confirmation Mailable is dispatched as a tenant-restoring queued job** (scalars-only payload, recipient resolved in-context so PII stays out of the payload). The **technician-assignment pool is STAFF-ONLY** via `StaffRoster::staffUserIds()`/`assignableStaff()` — **including the three server-side write guards**, not just the pickers. `Guest::anonymize()` covers three further stores (`reservations.notes_internal`/`expected_arrival`, `reviews.operator_response`, `GuestChangeRequest.payload`, converted `BookingQuote` fields). `WithholdingService`/`OwnerVatService` look a rate up by **`owners.tax_country` as an ISO CODE** — the residency UI now emits codes and normalises legacy names on save (`Countries`). **NEW shared definitions:** `OperatorLetterhead` (the ONE operator registered-identity block — 5 hand-rolled copies existed and had already drifted), `Countries` (the ISO ⇄ name contract), `StayTime` (property check-in/out display — replaced hardcoded, partly FALSE times).
+
+## (E) The load-bearing INVARIANTS (held across ALL THREE realms — proven under the audit's crafted attacks)
 - **#17 — money reconciles to the cent** (folio/receipt/payments/statements; integer minor units; never sum across currencies).
 - **#28 — privacy perimeter:** operator sees full guest contact ONLY on the Guests CRM (front-desk/inbox name-only); OWNER is name-only everywhere; guest ID docs owner-NEVER + encrypted; every free-text store ABOUT a guest is added to `anonymize()` in the same change (incl. PII in JSON columns).
 - **#33 — door code is guest-only + window-gated:** shown to the guest for THEIR stay within the release window (48h); owner NEVER; withheld before the window (proven).
 - **#39 — NO fabrication:** reproduce the design with REAL data, an honest empty state, or an honest "Soon" — NEVER faked figures/history/reviews/sync/positions/cards.
 - **#27 refund bounded** (cumulative ≤ original, same-currency, guard before the gateway). **#29 re-termination bounded** (a terminal reservation can't be re-terminated). **#30 permission-escalation closed** (route-gated `can:`, gate the role-granting route too). **Archive-not-destroy** (guest 14-day undo + anonymize; owner/property scheduled, financials retained).
 
-## (F) The COMPLETE QA history + result — 3 independent passes → 0 open defects (all 2026-08-04)
+- **⚠️ INVARIANTS STRENGTHENED BY THE 2026-08-08 PASSES:** **#27 is now CONCURRENCY-SAFE** (transaction + `lockForUpdate` + idempotency key — the bound held logically but had no row lock, so two simultaneous refunds could each see the same "already refunded" total). **#28 expanded twice** — `anonymize()` now covers three further free-text stores, and the **technician pool excludes owner-realm users at the WRITE GUARD, not just the picker** (a Membership is NOT operator access; External Owners hold one because it is how their org resolves). **#30 closed on the Guests CRM + 21 writes** (`can:` gates; nav controls gated too, so the UI no longer invites a 403). **Booking-confirmation emails now genuinely DELIVER** (previously 100% failed on the worker). **#39 held throughout the polish pass** — the 40 RATIFIED divergences were NOT touched, and three reported "gaps" were closed by investigation rather than by inventing content.
+
+## (F) The COMPLETE history — finish-to-100 · 3 QA passes · the 7-layer AUDIT · the 3 remediation passes
 The finished product was verified by **three independent QA passes**; every prior finding is RESOLVED and re-confirmed live. Full reports: `docs/QA-FULL-REPORT-2026-08-04.md`, `docs/QA-DEEP-REPORT-2026-08-04.md`, `docs/QA-THIRD-REPORT-2026-08-04.md`. Memories: [[project-qa-fix-pass]], [[project-qa-third-pass]].
 - **Pass 1 — broad E2E (`QA-FULL-REPORT`):** every page across all realms driven in a real browser (Playwright MCP). Found **7**: **F-GUEST-1 (HIGH** — storefront "pay on arrival" fabricated a paid folio), **F-OP-1 (MED** — Front Desk/Calendar defaulted to the furthest-future booking, not today), **F-OP-2/F-OP-3/F-OP-5 (LOW)**, **F-OP-4/F-DOC-1 (TRIVIAL)**.
 - **The fix pass (commits `1e564df` → `e492537` → `9b8828d` → `1f47ee3` → `8b06081`):** all 7 fixed, one per gate, each browser-verified + test-covered. F-GUEST-1 removed the fabricated `recordPayment('offline')` so pay-on-arrival leaves the balance DUE (reconciles #17) **and corrected the two tests that had ENCODED the bug**. F-OP-1 = shared `App\Support\Schedule\BoardDate` today-default. F-DOC-1 = docs corrected to the `/book/seaside-demo` property slug (org slug `vyrobel-demo` 404s by design).
@@ -125,21 +157,116 @@ The finished product was verified by **three independent QA passes**; every prio
 - **Pass 3 — final mutating-ops + motion (`QA-THIRD-REPORT`):** the remaining ~22 mutating operations driven through the real controller routes to **persistence + #17 reconciliation + isolation + bounded-guard** checks (calendar reschedule · maintenance OOS→return-to-sale→owner-cost→CSV-injection-safe · schedule move/publish/leave-conflict · inbox send/note/link/**real deferred-retry** · group-booking 5-step atomic · rates→folio + consent gate · owner #68 expense-approval net-drop + re-approve idempotent + IBAN encrypted · super-admin plan-gate/suspend/encrypted-integration), **plus a real Playwright VIDEO/TRACE motion pass** (7 `.webm` + 7 traces + 28 frames in `.playwright-mcp/qa3/`; `vyFadeUp` staggers, count-ups 0→value settle, **prefers-reduced-motion honoured on video**, modals centered / popovers anchored — no `x-show` mis-center). **0 new defects; 1 candidate (a stale `/book/vyrobel-demo` demo URL) correctly investigated-and-retracted against the live file** (CLAUDE.md already reads `/book/seaside-demo`; the 404 came from a stale system-reminder snapshot).
 - **Net:** 3 passes → **0 open QA defects**; every prior finding resolved + re-confirmed. Money reconciles to the cent (#17) on every path; every bounded guard held (#27/#29/#30/#68, no-double-booking, no-double-charge); every privacy rule held (#28/#33 + encryption at rest + full `anonymize()` coverage); every honest deferral stayed honest (deferred sends fail visibly, payout engine test-mode, no fabricated figures).
 
-## HONEST DEFERRALS — the ONLY remaining work (each a founder go-live FLIP, honestly surfaced in-product TODAY, NOT unbuilt)
+
+### F.2 — THE COMPLETE 7-LAYER AUDIT (2026-08-07 · `docs/AUDIT-COMPLETE-2026-08-07.md`)
+An independent, READ-ONLY, full-depth audit run on **A/B dual-method** (every material claim verified BOTH by
+driving the real browser/DB AND by reading the code — **a disagreement between the two IS a finding**) ×
+**prototype-vs-built parity** (every page scored FAITHFUL / RATIFIED-DIVERGENCE / GAP / NO-WIREFRAME).
+**446 routes enumerated · 152 pages captured · 183 parity verdicts.**
+
+**Result: 66 findings — 0 CRITICAL · 7 raised → 5 distinct HIGH · 35 MEDIUM · 20 LOW · 3 TRIVIAL.**
+**Parity: 66 FAITHFUL · 40 RATIFIED-DIVERGENCE · 26 GAP · 51 NO-WIREFRAME.**
+
+Two calibrations materially shaped that result and must be preserved by any future audit:
+- **A #39 refusal is CORRECT, never a GAP.** The prototypes are populated with invented data; the product
+  deliberately ships real data or an honest empty/"Soon". Scoring that naively would have produced ~40 false
+  findings. **The 40 RATIFIED divergences are deliberate and MUST NOT be "fixed" into fabrication.**
+- **Every HIGH was handed to an agent instructed to REFUTE it**, defaulting to RETRACTED if it could not
+  independently reproduce the claim. **14 verdicts: 13 upheld, 1 retracted, 6 severities corrected DOWNWARD.**
+  No severity was inflated — which is why there are no CRITICALs.
+
+**The audit's own key insight:** *the guards that exist are excellent; the gaps are where a guard was never
+placed.* Every HIGH was a **missing** control on a path whose sibling path already has the correct control —
+the refund lacked the lock the payout has; the guest CRM lacked the `can:` gate 115 other routes have; the
+queued mail lacked the tenancy restoration `RetryableSyncJob` has. **The correct pattern was already adjacent
+to every defect**, which is what made remediation cheap and low-risk.
+
+The honest-deferral and no-fabrication claims **survived a determined falsification attempt** (the Channex
+"it's a stub" claim was investigated and RETRACTED — it is a real 6,398-line surface that fails closed).
+
+### F.3 — THE THREE REMEDIATION PASSES (all 2026-08-08 — ALL COMPLETE)
+| Pass | Commits | What |
+|---|---|---|
+| **1 · BLOCKERS** | `e4775ec` `6c10049` `f1c6513` `209b1f3` `8d0ad62` `42829e7` `7d4aed0` | The 5 HIGH + 2 launch-blocking deployment gaps. **H1 refund race** → mirrored `OwnerPayoutService::pay()` (transaction + `lockForUpdate` + idempotency key), **sequenced FIRST because it is inert today and unrecoverable at the Stripe live-key flip**; verified by racing **two real OS processes**. **H2 emails** → a tenant-restoring queued job; ⚠️ the audit's stated cause was wrong — it was a **RENDER** failure, not deserialization. **H3** → `can:` gates on the Guests CRM + 21 writes (coverage 92/124 → 113/124; the remaining 11 are exactly the enumerated self-only routes). **H4/H5** → `anonymize()` extended over three surviving stores. Plus the **cron ENTRY** (the schedule existed; only `schedule:run` was absent — without it GDPR deletion and the ID purge never run) and the **per-IP login throttle** (the per-credential one already existed). |
+| **2 · HARDENING** | `6c390ad` → `505627a` | Security headers on every realm **including unmatched-route 404s** (group middleware runs only after a route matches — measured), secure cookie + TrustProxies + HTTPS forcing (**config:cache-safe** — `env()` under `config:cache` returns NULL, caught before shipping), the **plaintext IBAN flashed into the `sessions` table** (raw-row verified), `CsvSafe` on all 49 `fputcsv` calls, branded error views, 18 dependency advisories → 0, npm lockfile, complete `.env.example`, production-guarded seeders, 15 Google Fonts → self-hosted (**CSP now permits 0 external origins**). **4 silent-failure config traps caught before shipping.** |
+| **3 · POLISH** | `78de41d` `4f27c81` `c5babfc` `f0e606c` `0925714` `c6b6788` `4142a05` `82506bb` `be1b345` `c40fef4` | **All 26 parity GAPs closed — 23 fixed, 3 reclassified as never-gaps** — plus the technician pool, WCAG AA contrast, and guest-portal responsiveness. ⚠️ **Verifying against the code found FOUR items WORSE than the audit reported:** the technician fix needed the **server-side write guards** (a crafted POST still assigned work to an External Owner after the pickers were clean); the owner booking detail was not a date-format bug but a **hardcoded check-out time that was simply FALSE** (10:00 where the property stores 11:00); the tax-residency dropdown was **a MONEY defect** (`tax_country` is the withholding lookup key, so choosing a residency wrote `"Portugal"`, matched nothing, and **silently computed a ZERO withholding on a real payout** — proven: `rateFor('Portugal')` → null, `rateFor('PT')` → the rate); and the guest portal had **ZERO viewport breakpoints** (a 225px overflow on all 14 screens — not in the audit at all). **Three "gaps" were closed by INVESTIGATION, not code** (guest email preferences and the documents hub already existed at a different location; guest Help got a real destination rather than invented FAQ content). **Five shared definitions were extracted rather than copied** — `OperatorLetterhead` (5 hand-rolled copies existed and had ALREADY drifted), `Countries`, `StayTime`, the `StaffRoster` helpers, and `FolioTotals` now returning the two halves it already computed and discarded. |
+
+**FINAL VERIFICATION (2026-08-08, HEAD `c40fef4`):** suite **1692/1699 · 11,540 assertions**; PHPStan L5 (0);
+Pint clean; `migrate:fresh --seed` clean. The 7 non-green are exactly the documented pre-existing set (see **J**).
+
+## (G) ⚠️ OPEN DECISIONS — the founder's call, NOT defects
+
+### ⛔ G.1 — THE BILLING / PRICING MODEL (a GO-LIVE BLOCKER; **UNRESOLVED**)
+**Two contradictory pricing models run simultaneously, and only ONE reaches Stripe:**
+
+| | Definition | Shown on | Reaches Stripe? |
+|---|---|---|---|
+| **A · flat tier** | `config('billing.tiers')` — Essential €49/mo, Pro €99/mo | paywall · checkout · tier cards | **YES** — a subscription is created against `stripe_prices[tier][interval]` |
+| **B · per-unit** | `SubscriptionPricing` — active units × `per_unit_minor` (€9) × VAT | operator Billing "what you pay" · Settings "Your plan" | no |
+
+For the demo org they disagree materially: **B quotes ~€44/mo where A charges €99/mo.** Harmless today because
+no charge is live. **At the Stripe live-key flip it becomes a customer billed roughly DOUBLE what the app told
+them.** Both figures are honest, real code; neither is fabricated. What is missing is the **product decision**
+about which model Vyrobel sells.
+
+⚠️ **THIS IS THE FOUNDER'S BUSINESS DECISION — a future session must NOT pick a side.** Picking one silently
+would be inventing a product decision, which is worse than inventing data. **Surface it; do not resolve it.**
+**Resolution paths and their real cost are recorded in `docs/DECISIONS.md` (2026-08-08).** Adopting **A** is a
+UI-only change (nothing reaching Stripe moves). Adopting **B** additionally requires moving the Stripe
+integration to quantity/metered prices, because the tier Price IDs would no longer describe the charge — a real
+billing-integration workstream.
+
+⚠️ **RECORD-KEEPING CORRECTION:** an earlier revision of these notes described this as "deferred by the
+founder." It was not a founder ruling — **deferring to go-live is the assistant's RECOMMENDATION, pending the
+founder's confirmation.** Read it as **OPEN** until the founder states their choice.
+
+⛔ **BLOCKS:** the Stripe live-key flip (alongside the already-fixed H1 refund race). The marketing site's
+Pricing page (**K**) must also match whichever model is chosen.
+
+## (H) HONEST DEFERRALS (each a founder go-live FLIP — honestly surfaced in-product TODAY, NOT unbuilt; verified correct even under falsification)
 - **Channex / OTA live sync** — unblocks OTA brand-split, channel two-way sync, rate push, Expedia insight, OTA inbox channels (today: real `channels.status`, honest "connect Channex", never a fabricated last-sync).
 - **Live Stripe charge + payout go-live** — the live-key flip + Connect KYC + SEPA + IBAN verification (today: TEST-MODE-first hosted Checkout across all 3 seams — subscription / guest card / owner payout — webhook-driven, SAQ A no raw PAN, `StripeSafetyGuard` forbids a live key outside production; the payout-engine `PAYOUT_ENGINE_ENABLED` flip; `docs/STRIPE-PRODUCTION.md`).
 - **SMS (Twilio)** — door code by EMAIL meanwhile. **Push (FCM/APNs)** — no VAPID. **Websockets/presence** — Messages has no realtime/typing. **Live LLM** — currently a `FakeLlmClient`. **Third-party ID scan / KYC** — capture-only, `verification_status=pending` (never "verified"). **Production email** is LIT (Postmark, `MailSafetyGuard`); **OAuth server** (Passport, owner-scoped) is built — keys are a per-env flip. **Tax rates** are founder-configured per jurisdiction (`tax:set-rate` — the seeded rates are EXAMPLE only).
 
-## (H) Known tech-debt (test-isolation only — NOT product bugs)
-- **`BookingImportTest` isolation flakes (6)** — fail in the FULL suite but pass **11/11 in isolation**; they avoid `RefreshDatabase` + drive a real queue worker → ORDER-DEPENDENT (OTA import path, unrelated to any finished work).
-- **`OwnerUnitDetailViewTest` (1)** — a random `inventory_block` ULID collision (a data-setup rarity, not product code).
-- Together these are the 7 non-green in the full suite — **confirmed 2026-08-04: `php artisan test` = 1617/1624 passed, 11,144 assertions, and the 7 non-green are EXACTLY these two flake sets (6 BookingImportTest + 1 OwnerUnitDetailViewTest), no product test.** Both are test-isolation issues, unrelated to product code — optional future stabilization (give the import tests `RefreshDatabase` / isolate the worker; deterministic ULIDs in the owner-unit fixture) for a fully-green suite; NEITHER is a blocker.
-- Optional nicety: an org-slug→property redirect for the storefront (so `/book/{org-slug}` resolves instead of 404 — today it 404s by design; the correct URL is the property slug `/book/seaside-demo`).
+## (I) WHAT REMAINS — the roadmap
 
-## What remains
-**Deployment + the founder's external-infra go-live flips (above).** NOT UI / fidelity / backend. Suite: guest 233/233; full ~1609/1616 (flakes only); PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.
+1. ⛔ **THE BILLING DECISION (G.1) — the founder's business call.** Blocks the Stripe live-key flip. Do NOT
+   pick a side; surface it.
+2. **THE DEPLOYMENT SPRINT** — there are currently **NO deploy artifacts**: no Dockerfile, no CI/CD, no deploy
+   script, no backup strategy. `docs/DEPLOYMENT.md` is the runbook and includes the two traps the earlier
+   passes surfaced: the **ONE `* * * * * php artisan schedule:run` cron entry** without which all 8 scheduled
+   commands silently never run (**including the GDPR 14-day guest deletion and the 30-day ID purge**), and the
+   **`config:cache` gotcha** (`env()` outside a config file returns NULL once cached). ⚠️ **NEVER `db:seed`
+   production** — the seeders create a demo super-admin with password `password` (now production-guarded).
+3. **THE SCALE-PERF WORKSTREAM** — *before the first large tenant, NOT a launch blocker.* Measured by the
+   audit: **composite indexes worth 73×–200× at 500k rows**, N+1 on heavy pages (**210 queries on
+   `/app/insights`, 116 on the PUBLIC storefront**), **zero pagination and zero caching app-wide**, unbounded
+   table growth.
+4. **THE FOUNDER GO-LIVE FLIPS** — see **H**. ⚠️ The Stripe flip is gated on **both** the already-fixed H1
+   refund race **and** the still-open billing decision (**G.1**).
+5. **THE MARKETING WEBSITE** — see **K**; its Pricing page must match whichever billing model is chosen.
 
-## Process lessons that governed the build (and should govern all future work)
+## (J) Known tech-debt (NOT product bugs)
+
+**Suite: 1692/1699 · 11,540 assertions (2026-08-08, HEAD `c40fef4`). The 7 non-green are two distinct things —
+⚠️ the older "both are flakes" label was HALF WRONG and is corrected here:**
+
+- **`BookingImportTest` (6) — a genuine TEST-ORDERING ARTIFACT.** Fails only inside a large batch; **passes
+  11/11 in isolation**, re-confirmed 2026-08-08. Order-dependent (it avoids `RefreshDatabase` and drives a real
+  queue worker on the OTA import path). Not a product defect.
+- **`OwnerUnitDetailViewTest` (1) — a REAL DETERMINISTIC DEFECT, not a flake.** Fails **11/12 in isolation on
+  every run** (`inventory_block` over the requested dates). On the audit backlog. Confirmed identical on clean
+  HEAD with each remediation pass's changes stashed, so none of those passes introduced it.
+
+Optional nicety: an org-slug → property redirect for the storefront (today `/book/{org-slug}` 404s by design;
+the correct URL is the PROPERTY slug, e.g. `/book/seaside-demo`).
+
+## (K) The marketing website (a SEPARATE track — not in this application repo)
+*(Status per the founder; verify against that track's own workspace — this app repo contains no marketing-site files today. `docs/DECISIONS.md` only forward-references "the later marketing-site work" + a marketing pricing page.)* A **Claude Design marketing site** is being built using **Vyrobel's exact `--vy-*` design tokens** (same warm-glass system as the app, for visual continuity). Planned pages: **Home / Product / Features / Modules / How-it-works / Pricing / About / Contact** (+ nice-to-haves). **`login` / `signup` / `forgot-password` already exist in the app and are NOT rebuilt** by the marketing track. A future session helping refine it should reuse the app's `--vy-*` tokens and NOT duplicate the auth pages.
+
+---
+
+## (L) Process lessons that governed the build (and should govern all future work)
 1. **VERIFY AGAINST THE CODE** — the audit, a reviewer, AND a docblock are guides, not gospel. Read the code first. (Caught: false "gaps" [whole gates already exact-match], a stale Payments docblock ["Soon" when charge was LIVE], a reviewer's own wrong premise [`PropertyContext::id()`], an understated docblock [a complete backend].)
 2. **BROWSER-VERIFY THE REAL FLOW** — green tests + a correct DOM can BOTH hide a real-browser bug. Caught this program: a nested `<form>` dropping fields; `toISOString()` UTC day-roll; an `hkEnd()` URL-ordering 404; Alpine `x-show` stripping inline `display:flex`; a HARDCODED "Verified" badge lying about real state; the RAW-BLADE trap (`word@if(…)…}}@endif` → the `@if` doesn't compile but the `@endif` does → orphaned-endif 500). ⚠️ Dates from JS use LOCAL components or server strings, never `toISOString()`; status badges must reflect REAL state; centre modals via a shared class that survives `x-show`, not inline `display:flex`.
 3. **ONE SHARED RULE** — no two paths that should agree may compute independently (compose-drift, receipt-vs-folio, pricing-rail-vs-server, page-vs-PDF). Reuse the certified engines/helpers.
@@ -148,13 +275,34 @@ The finished product was verified by **three independent QA passes**; every prio
 6. **GATE DISCIPLINE** — one surface per gate to genuine 100%; browser-verify side-by-side with the wireframe; commit + push at each clean boundary; adversarial-review money/PII/auth/security diffs; append the "why" to `DECISIONS.md`.
 7. **INVESTIGATE-BEFORE-REPORTING / UNDER-REPORT CONFIDENCE** (earned across the 3 QA passes) — verify a suspected bug against the real mechanics/live file before writing it up. This disproved **2 false alarms** in Pass 2 (a modal's `undefined` action that Alpine binds on open; a regex matching dropdown text) and **1 phantom finding** in Pass 3 (a "stale storefront URL" that the live file already had correct — the 404 came from a stale recalled/system-reminder snapshot, not the code). Recalled context + system-reminder doc snapshots can be STALE vs the live file — grep the source first.
 
-## The founder's working pattern (for future sessions — "Subhan", solo founder/builder; see memory `user-subhan`)
+
+### L.bis — the lessons the AUDIT + the three remediation passes added (2026-08-07/08)
+8. **VERIFY AGAINST THE CODE BEFORE ACCEPTING A FINDING — including the audit's own.** A finding's *symptom* is
+   usually right and its *stated cause* often is not. Across the fix + polish passes the stated root cause was
+   off roughly **seven times**, and **four items were WORSE than reported** (a money defect, a crafted-POST
+   bypass, a false stated fact, a 14-screen overflow). It also caught **three bugs introduced by the fixes
+   themselves**. Reproduce → read the path → then fix. When a fix and an existing test disagree, **fix the fix,
+   not the test**, until proven otherwise. Before calling a failure pre-existing, confirm it fails identically
+   on clean HEAD (`git stash`).
+9. **A/B DUAL-METHOD: browser AND code/DB — a disagreement IS a finding.** `Mail::fake()` + `assertQueued`
+   asserts a job was *enqueued*, never that it *renders*: 1,617 green tests sat on top of a 100% email-delivery
+   failure. Green tests are necessary, never sufficient.
+10. **SERVER-SIDE GUARDS, NOT JUST UI.** A crafted POST walks straight past a clean picker. Fixing the list
+    without the guard is theatre — proven by the technician pool, where the pickers were only half the defect.
+11. **SILENT-FAILURE VIGILANCE AT THE CONFIG/DEPLOY LAYER.** `env()` under `config:cache` returns NULL; a
+    middleware on the `web` group never runs on an unmatched-route 404; a framework middleware running later
+    silently reset a custom `TrustProxies` subclass. Four such traps were caught before shipping — each would
+    have failed silently in production.
+12. **NEVER "FIX" A RATIFIED REFUSAL INTO FABRICATION (#39).** The 40 RATIFIED divergences are deliberate
+    honest-empty/"Soon" states. If closing a gap would require inventing data, it is a refusal — **stop, and
+    correct the note instead.** Three "gaps" were closed by INVESTIGATION rather than code.
+13. **DON'T DECIDE THE FOUNDER'S BUSINESS.** The billing model is a commercial decision, not a defect. Picking
+    one silently would be inventing a *product* decision — worse than inventing data. **Surface it (G.1).**
+14. **CORRECT YOUR OWN RECORD.** These notes previously said the billing deferral was the founder's ruling; it
+    was the assistant's recommendation. Record-keeping errors get corrected in the record, not defended.
+
+## (M) The founder's working pattern (for future sessions — "Subhan", solo founder/builder; see memory `user-subhan`)
 Propose-before-build (STOP at ⛔ gates); **NO fabricated data** (honest empty/Soon, flag demo seeds as demo); **extend, don't duplicate** (reuse the certified engines — anti-drift); **gate-per-phase** with explicit GATE REPORTs + an append-only `DECISIONS.md`; outputs saved as files; adversarial-review passes on risky diffs; validate a design against real stakeholders before treating it as definitive. Works across macOS/Windows; uses Claude for planning/architecture/prompt-authoring while Claude Code/Codex executes. Founder owns the go-live cutovers (Stripe live-key, email DNS+token, payout-engine flip, OAuth keys, tax rates, Channex/SMS/KYC accounts).
-
-## (K) The marketing website (a SEPARATE track — not in this application repo)
-*(Status per the founder; verify against that track's own workspace — this app repo contains no marketing-site files today. `docs/DECISIONS.md` only forward-references "the later marketing-site work" + a marketing pricing page.)* A **Claude Design marketing site** is being built using **Vyrobel's exact `--vy-*` design tokens** (same warm-glass system as the app, for visual continuity). Planned pages: **Home / Product / Features / Modules / How-it-works / Pricing / About / Contact** (+ nice-to-haves). **`login` / `signup` / `forgot-password` already exist in the app and are NOT rebuilt** by the marketing track. A future session helping refine it should reuse the app's `--vy-*` tokens and NOT duplicate the auth pages.
-
----
 
 ## Status (verified against the repo)
 

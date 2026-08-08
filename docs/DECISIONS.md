@@ -5545,7 +5545,11 @@ double what the app told them** — the same shape as the H1 refund race: inert 
 Both figures are honest, real code; neither is fabricated. What is missing is the *product decision* about
 which model Vyrobel actually sells.
 
-**DECISION (founder, 2026-08-08): DEFER — decide at go-live. No pricing code changed in this pass.**
+**STATUS: ⚠️ OPEN — AWAITING THE FOUNDER'S DECISION. No pricing code changed in this pass.**
+
+⚠️ **RECORD-KEEPING CORRECTION (2026-08-08).** An earlier revision of this entry read "DECISION (founder): DEFER."
+That overstated it: the recommendation to defer is the **assistant's**, pending the founder's confirmation. Treat
+this as **UNRESOLVED and awaiting the founder** until they confirm in their own words.
 Choosing between A and B is a commercial decision, not a defect fix, and picking one silently would have
 been inventing a product decision — worse than inventing data. Recorded here rather than resolved.
 
@@ -5589,7 +5593,8 @@ given a real destination rather than a page of invented FAQ answers. Nothing was
 
 ⛔ **ONE GAP WAS DELIBERATELY NOT CLOSED** — the pricing-model contradiction (see the entry above). Closing it
 required choosing what Vyrobel sells, which is a product decision, not a defect fix. Escalated to the founder,
-who deferred it to go-live; it is now a **blocker on the Stripe live-key flip**, not a backlog item.
+for decision; the assistant's recommendation is to settle it at go-live. It is a **blocker on the Stripe live-key
+flip**, not a backlog item, and it remains **OPEN** until the founder confirms which model Vyrobel sells.
 
 **FINAL VERIFICATION:** full suite **1692/1699 · 11,540 assertions**. The 7 non-green are EXACTLY the
 documented pre-existing set — 6 × `BookingImportTest` (which **pass in isolation**: a test-ordering artifact)
