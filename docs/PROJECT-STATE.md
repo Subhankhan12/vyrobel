@@ -6,7 +6,47 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **LAUNCH BLOCKERS FIXED (2026-08-08)** · hardening + deployment + scale-perf REMAIN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH ALL DONE (2026-08-08)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+
+> ## ✅ ALL THREE POST-AUDIT PASSES ARE COMPLETE (2026-08-08)
+>
+> The audit's findings have been worked to completion in three sequenced passes, each gate committed and
+> pushed separately, each dual-method verified (code read **and** real browser), each shipping a regression
+> test aimed at the exact blind spot that let the defect through:
+>
+> 1. **BLOCKERS** — the 5 HIGH findings + the cron/scheduler gap + the per-IP login throttle.
+>    Headline: the **refund race** (H1), fixed FIRST because it is inert today and unrecoverable the moment
+>    the Stripe live key is switched on.
+> 2. **HARDENING** — security headers/CSP (0 external origins), cookie + proxy config, the **plaintext IBAN
+>    flashed into the sessions table**, CSV injection, branded error views, dependency advisories, 15 Google
+>    Fonts → self-hosted, seeder production guard.
+> 3. **POLISH** — the technician pool (owners offered as staff), WCAG AA contrast, guest-portal
+>    responsiveness, and **all 26 parity GAPS closed or honestly reclassified**
+>    (`docs/design/DIVERGENCE-REGISTER.md`, `DECISIONS.md` 2026-08-08).
+>
+> **Four defects were worse than the audit reported**, found by verifying against the code before accepting a
+> finding: the technician-pool fix needed the **server-side write guards**, not just the pickers; the owner
+> booking detail wasn't a date-format bug but a **hardcoded check-out time that was simply wrong** (10:00
+> where the property says 11:00); the tax-residency dropdown wasn't cosmetic but a **money defect** (a country
+> name matched no configured rate → a silent ZERO withholding on a real payout); and the guest portal had
+> **zero viewport breakpoints** — a 225px overflow on all 14 screens, which the audit hadn't measured.
+>
+> **Three reported gaps were closed by INVESTIGATION, not code** — guest email preferences and the documents
+> hub already existed at a different location, and guest Help was given a real destination rather than a page
+> of invented FAQ answers. Nothing was fabricated to fill a gap, and the **40 RATIFIED divergences were not
+> touched** (#39).
+>
+> ### ⛔ ONE BLOCKER REMAINS OPEN — BY DECISION, NOT BY OVERSIGHT
+> **The pricing model is unresolved.** Two contradictory definitions run simultaneously and only the flat
+> tier price (€49/€99) reaches Stripe; the per-unit figure (units × €9 × VAT ≈ €44) does not. At the live-key
+> flip a customer would be **billed roughly double what the app quoted them**. Both are honest code — what is
+> missing is the *product decision*. Escalated to the founder, who chose to defer it to go-live. It is a
+> **blocker on the Stripe live-key flip**, not a backlog item. See `DECISIONS.md` (2026-08-08) for both
+> resolution paths and their real cost.
+>
+> Still outstanding beyond that: **deployment** and the **scale-perf workstream** (composite indexes, N+1 hot
+> spots, pagination/caching — before the first large tenant), plus the founder's other go-live flips.
+
 
 > ## ⚠️ STATUS CORRECTED 2026-08-08 — READ THIS BEFORE THE BLOCK BELOW
 >

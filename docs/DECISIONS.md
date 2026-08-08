@@ -5561,3 +5561,36 @@ a live key, and it is now listed alongside the founder's other cutovers. Resolvi
 Everything else about billing is unchanged and remains correct: the trial is real, access-gating fails
 open on a missing record, the live charge stays account-gated, and no org is ever flipped to active off a
 fake payment (#41).
+
+## 2026-08-08 — POST-AUDIT POLISH PASS: all 26 parity gaps closed (or honestly reclassified)
+
+The last of the three post-audit passes (blockers → hardening → **polish**). Six gates, each committed and
+pushed on its own, each dual-method verified (code read + real browser) and each shipping a regression test
+aimed at the exact blind spot that let the defect through.
+
+| Gate | Commit | What |
+|---|---|---|
+| 1 | `78de41d` | **Technician pool** — 3 pickers **+ 3 server-side write guards** onto the shared `StaffRoster`. The guards were the half that mattered: a crafted POST still assigned work to an External Owner after the lists were fixed. Owners excluded by ROLE, not by a missing membership (#28). |
+| 2 | `4f27c81` | **WCAG AA contrast** — `--vy-muted` 3.77→5.66, `--vy-faint` 2.68→4.60, computed against the TRUE worst-case background (the card's `rgba(255,252,248,.58)` composited over all four gradient stops → `rgb(249,223,207)`), across 13 files. |
+| 3 | `c5babfc` | **Guest portal responsiveness** — the shell had ZERO viewport breakpoints; the header forced a 615px document at 390px, a **225px overflow on all 14 guest screens**. Now 0px on all 14, nav scrolls inside itself, 44px tap targets, reduced-motion intact. |
+| 4 | `f0e606c` `0925714` | **Guest PDFs** — the VAT invoice's statutory supplier identifiers (the data was already seeded; it just never rendered), and the Statement of Account rebuilt as a statement with a real **Credited** tile from the same `FolioTotals` pass. |
+| 5 | `c6b6788` `4142a05` | **Owner + admin/auth** — the tax-residency identifier defect (a **money** defect: a name matched no configured rate → silent ZERO withholding), the payment-reminder brand regression, the arithmetically impossible preview, and System-states verified closed in all 5 realms. |
+| 6 | `82506bb` | **LOW/TRIVIAL sweep** — the corrupted date format **and the hardcoded stay times underneath it** (check-out said 10:00 where the property says 11:00 — a false fact, not a formatting bug), the double-escaped heading, raw JSON on a legal document, and the guest Help/Preferences/Documents trio resolved by evidence. |
+
+**Four shared definitions were extracted, never a copy added** — `OperatorLetterhead` (5 hand-rolled letterhead
+copies existed and had ALREADY drifted), `Countries` (the ISO code ⇄ name contract), `StayTime`, and
+`StaffRoster::staffUserIds()/assignableStaff()`. `FolioTotals` gained `received_minor`/`refunded_minor` — the
+two halves it already computed and discarded — so the new Credited tile could not become a second derivation.
+
+**Honesty held throughout (#39).** Three of the reported "gaps" were closed by INVESTIGATION rather than code:
+guest email preferences and the documents hub already existed at a different location, and guest Help was
+given a real destination rather than a page of invented FAQ answers. Nothing was fabricated to fill a gap; the
+40 RATIFIED divergences were not touched.
+
+⛔ **ONE GAP WAS DELIBERATELY NOT CLOSED** — the pricing-model contradiction (see the entry above). Closing it
+required choosing what Vyrobel sells, which is a product decision, not a defect fix. Escalated to the founder,
+who deferred it to go-live; it is now a **blocker on the Stripe live-key flip**, not a backlog item.
+
+Suite green apart from the two documented pre-existing non-green (`OwnerUnitDetailViewTest`, already on the
+audit backlog, and a `BookingImportTest` ordering artifact that passes in isolation — both confirmed identical
+on clean HEAD with the pass's changes stashed). PHPStan L5 (0); Pint clean.

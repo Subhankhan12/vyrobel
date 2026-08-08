@@ -292,18 +292,31 @@ Detailed in the layer sections and §5.
 
 ### The 9 MEDIUM gaps
 
-| Realm | Page | Gap |
-|---|---|---|
-| Operator | **Maintenance board · Work order · Maintenance settings** | **One systemic defect across three surfaces:** the technician-assignment pool offers **External-Owner-realm users** (Demo Owner, Demo Owner Accountant, Demo Owner Viewer). Most consequential on Settings, where auto-assignment **routes new work orders to an owner**. |
-| Admin/auth | **System states (404/500/offline)** | The entire prototype is unimplemented — `resources/views/errors/` does not exist; every realm serves stock Laravel error pages. |
-| Admin/auth | Subscription paywall / billing | Two independent, contradictory pricing definitions run simultaneously. |
-| Admin/auth | Email — payment reminder | Brand regression: a live guest money email renders the generic Vyrobel brand while its siblings render the property. |
-| Guest | **VAT Invoice PDF** | Carries **no supplier VAT number and no registered legal name**, though both are real, stored, operator-editable org values. A tax document missing its statutory identifiers. |
-| Guest | Statement of Account PDF | Is the Folio Receipt relabelled; the prototype specifies a materially different document (4-tile KPI band incl. Credited, activity table). |
-| Owner | Tax Center | Identifier-contract defect — the residency `<select>` emits **country names** as option values. |
+> ### ✅ POLISH PASS — ALL GAPS IN THIS SECTION ARE CLOSED (2026-08-08)
+> Every row below has been RESOLVED, or RECLASSIFIED after investigation showed it was never a gap.
+> The one row that could only be closed by inventing a product decision was escalated to the founder
+> and recorded as an explicit **⛔ go-live blocker** instead of being silently resolved.
 
-### Notable LOW/TRIVIAL gaps worth a sweep
-Owner Booking Detail renders `format('D j M · 3:00 PM')` — in PHP `P` is the UTC offset and `M` the month, so the literal is corrupted · Owner Team heading double-escaped (`Team &amp; access`) · Owner Agreement leaks raw JSON (`["other"]`) · payment-reminder preview shows arithmetically impossible totals (Total − Paid = €0 but Balance = full) · Guest Help, Email Preferences and Documents hub have **no route at all** and are logged as open in the project's own docs, not ratified.
+| Realm | Page | Gap | Resolution |
+|---|---|---|---|
+| Operator | **Maintenance board · Work order · Maintenance settings** | **One systemic defect across three surfaces:** the technician-assignment pool offers **External-Owner-realm users** (Demo Owner, Demo Owner Accountant, Demo Owner Viewer). Most consequential on Settings, where auto-assignment **routes new work orders to an owner**. | ✅ **RESOLVED** `78de41d` — all 6 sites (3 pickers **+ 3 server-side write guards**, which were the half that mattered: a crafted POST was still accepted after the lists were fixed) now read the shared `StaffRoster`. Owners excluded by ROLE, not by a missing membership. |
+| Admin/auth | **System states (404/500/offline)** | The entire prototype is unimplemented — `resources/views/errors/` does not exist; every realm serves stock Laravel error pages. | ✅ **RESOLVED** (hardening sprint) — branded views shipped; **verified in all 5 realms** (operator/owner/guest/public/admin): 404 · branded · realm-aware back link · no exception leaked · CSP present. *Offline stays an honest deferral — no service worker; an offline page that can't be served offline is theatre.* |
+| Admin/auth | Subscription paywall / billing | Two independent, contradictory pricing definitions run simultaneously. | ⛔ **ESCALATED — GO-LIVE BLOCKER, deliberately NOT resolved.** The flat tier price (€49/€99) reaches Stripe; the per-unit figure (units × €9 × VAT ≈ €44) does not. At the live-key flip a customer would be **billed roughly double what the app quoted**. Both are honest code — what's missing is the *product decision*, and picking one silently would be inventing a product decision. Founder chose to **defer to go-live**; recorded in `DECISIONS.md` with both resolution paths. |
+| Admin/auth | Email — payment reminder | Brand regression: a live guest money email renders the generic Vyrobel brand while its siblings render the property. | ✅ **RESOLVED** `4142a05` — now uses the shared `BrandsGuestMail` like its five siblings. *A payment request from a different sender than the booking confirmation is the exact shape guests are taught to read as phishing.* |
+| Guest | **VAT Invoice PDF** | Carries **no supplier VAT number and no registered legal name**, though both are real, stored, operator-editable org values. A tax document missing its statutory identifiers. | ✅ **RESOLVED** `f0e606c` — **the data was already seeded** (`Vyrobel Demo Hospitality, Lda` / `PT 512 034 776`); the invoice simply never rendered it. Honest-empty when unset, and the document stops calling itself a "VAT invoice" when it isn't one. Letterhead extracted to ONE shared `OperatorLetterhead` (5 hand-rolled copies existed and had already drifted). |
+| Guest | Statement of Account PDF | Is the Folio Receipt relabelled; the prototype specifies a materially different document (4-tile KPI band incl. Credited, activity table). | ✅ **RESOLVED** `0925714` — 4-tile band over the activity table. **Credited is real** (Σ succeeded refunds), returned by the same `FolioTotals` pass that produces `paid` rather than derived a second time. `paid` deliberately stays NET so the receipt's shipped figure did not move. |
+| Owner | Tax Center | Identifier-contract defect — the residency `<select>` emits **country names** as option values. | ✅ **RESOLVED** `c6b6788` — **this was a MONEY defect, not cosmetic.** `owners.tax_country` is the key `WithholdingService` looks a rate up by, so choosing a residency wrote "Portugal", matched nothing, and **silently computed a ZERO withholding on a real payout**. Proven: `rateFor('Portugal')` → null, `rateFor('PT')` → the rate. |
+
+### Notable LOW/TRIVIAL gaps worth a sweep — ✅ ALL CLOSED `82506bb`
+- **Owner Booking Detail `format('D j M · 3:00 PM')`** — ✅ resolved, and **worse than reported**: escaping the literal was the reported fix, but underneath it the hour was HARDCODED on a page that had the real value. `check_out_time` is 11:00 and the page said **"by 10:00 AM"** — a false fact told to owners. Both fixed by passing a real time through a real format (shared `StayTime`); unset renders nothing.
+- **Owner Team heading double-escaped** — ✅ resolved.
+- **Owner Agreement leaks raw JSON (`["other"]`)** — ✅ resolved; a list now reads as a list on what is a legal document.
+- **Payment-reminder preview arithmetically impossible** — ✅ resolved; previews now build over a booking that genuinely OWES money, so the figures come from one folio and reconcile by construction (browser: €664.20 − €332.10 = €332.10).
+- **Guest Help / Email Preferences / Documents hub have no route** — ✅ **RECLASSIFIED after investigation: two were never gaps.** Email preferences are REAL on `/guest/account` (the #87 marketing-consent gate); the documents hub is REAL on `/guest/payments`, linked as "Receipts & documents". Both are LOCATION divergences. Only Help was genuinely absent — and nothing linked to it, so there was never a 404, only an undiscoverable support path; it now has a real destination (the operator relay). **No FAQ content was invented (#39).**
+
+### Two further defects found *while fixing*, not in the original audit
+- **Guest portal had ZERO viewport breakpoints** — its only `@media` was `prefers-reduced-motion`, so the header forced a 615px document at 390px: a **225px horizontal overflow on all 14 guest screens**. ✅ resolved `c5babfc` (0px on all 14, 44px tap targets).
+- **A pre-existing TEST-ORDERING artifact** — two `BookingImportTest` cases pass in isolation and fail only inside a large filtered batch. Confirmed identical on clean HEAD; logged, not introduced.
 
 ---
 
