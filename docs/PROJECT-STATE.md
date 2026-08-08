@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH ALL DONE · WIREFRAME-PARITY WAVE 1 (5 HIGH) DONE (2026-08-08)** · WAVES 2–3 + deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH ALL DONE · WIREFRAME-PARITY WAVES 1+2 DONE (2026-08-09)** · WAVE 3 + deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
 > ## ✅ WIREFRAME-PARITY SWEEP — all 124 wireframes swept; **WAVE 1 (the 5 HIGH) FIXED + PUSHED** (2026-08-08, HEAD `bca3679`)
 >
@@ -17,9 +17,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 > ways, and pushed** — one per gate, each with a regression test proven to fail without its fix. Details +
 > two corrections to the sweep's own figures: **§F.4** and `docs/WIREFRAME-PARITY-SWEEP-2026-08-08.md` §2b.
 >
-> **⬅ STILL OPEN: WAVE 2** — the "false sentences" honesty sweep (~23 surfaces where the copy asserts
-> behaviour the code does not implement) + 3 structural MEDIUMs — and **WAVE 3** (minor). Neither touches
-> money, auth or isolation.
+> ✅ **WAVE 2 IS ALSO COMPLETE (2026-08-09, HEAD `9620b95`)** — all 3 structural MEDIUMs and all 23
+> false-copy items fixed across nine gates (**§F.5**). **#6 and #10 are COPY-ONLY by founder decision**:
+> the rates guardrail now promises only the proposal path it genuinely enforces, and the real team limit
+> is displayed — neither is ENFORCED, both deferred (the first as an operator/owner power decision, the
+> second with the billing decision). **⬅ WAVE 3 (minor/low) remains.**
 
 > ## ✅ ALL THREE POST-AUDIT PASSES ARE COMPLETE (2026-08-08)
 >
@@ -246,6 +248,52 @@ pre-existing set** (`BookingImportTest` 6 + `OwnerUnitDetailViewTest` 1 — see 
 
 **⬅ STILL OPEN: WAVE 2** (the "false sentences" honesty sweep — ~23 surfaces + 3 structural MEDIUMs) and **WAVE 3**
 (minor gaps). Neither touches money, auth or isolation. §5 refusals and §6 extra work were preserved untouched.
+
+### F.5 — WIREFRAME-PARITY WAVE 2 (2026-08-09 — COMPLETE: the 3 structural MEDIUMs + all 23 false-copy items)
+
+The sweep's headline finding — *"the money reconciles and the privacy perimeter holds; what fails is COPY
+THAT ASSERTS BEHAVIOUR THE CODE DOESN'T IMPLEMENT"* — is now **closed**. Nine gates, each with a regression
+test **proven to fail without its fix**:
+
+| Gate | What | Commit |
+|---|---|---|
+| S1 | Guest wallet: check-then-act with NO transaction and NO lock; the UNIQUE `idempotency_key` unused. A raced promo redemption returned **success TWICE** — free money, `max_redemptions=1` blown past | `00a9fe5` |
+| S2 | `notes_guest`/`notes_internal` written by 3 paths, rendered by NONE — a guest's "please leave a cot" reached no member of staff | `47cf1ff` |
+| S3 | "Switch to yearly" hardcoded `plan=pro` — an Essential org was silently upgraded | `cb4dec0` |
+| #17 · #21 | "Revenue today" summed the WHOLE ORG beside one property's occupancy · "Latest payout" was a tied sort returning the OLDEST (April €442.80 for August €721.60) | `8deb066` |
+| #11 · #12 · #14 | "This month" was the month of the latest BOOKING · "Nightly rate" showed achieved ADR (€180 configured vs €193.33 ADR) · the add-on STAY TOTAL sat under a per-night label | `8437a93` |
+| #3 · #5 · #8 | Two refund ETAs for one refund · two payout-frequency labels, one of them arithmetically wrong · "All 12 months" on any year | `599a452` |
+| #2 · #6 · #10 · #13 · #20 · #22 | Unenforced or unqualified claims | `f930dda` |
+| #4 · #7 · #9 · #15 · #19 | Prototype fiction: `VYR-…`, "All systems operational", Apple Pay, a waitlist email with no trigger, a guest-only footnote on owner threads | `babbb74` |
+| #1 · #16 · #18 · #23 | Controls wired to nothing: a template switch that still sent, a dead SLA signal, write buttons shown to view-only roles, a guest language setting nothing read | `b44bb64` + `9620b95` |
+
+**⚠️ TWO ITEMS ARE COPY-ONLY BY FOUNDER DECISION (2026-08-09) — do NOT "finish" them without a decision:**
+- **#6 Owner Rates.** `RateProposalService` genuinely enforces the guardrail (mode, ±% tolerance, floor and
+  ceiling) — but only on a **proposed** rate; `RateActionController`'s direct write ignores it entirely. The
+  copy now promises exactly the proposal path. **Binding the operator's direct write to an owner's
+  floor/ceiling shifts control between the two parties → deferred as a product decision.**
+- **#10 Team limit.** The real plan limit is now displayed (Essential 5, Pro genuinely unlimited). **Whether
+  it should be ENFORCED belongs with the open billing decision (G.1) → deferred.**
+
+**⚠️ FOUR PRE-EXISTING TESTS WERE HOLDING THE FALSE COPY IN PLACE.** `OwnerDocumentsViewTest` demanded
+`assertSee('All 12 months')`; `OwnerHelpTest` demanded `assertSee('All systems operational')` and its own
+comment called that "HONEST"; `OperatorWorkOrderTest` asserted a fresh org shows no SLA card; and
+`MaintenanceDetailViewTest` asserted the SLA card's ABSENCE as "no fabricated SLA" on a ticket that genuinely
+had an 8h target. **A green suite was actively defending the claims the sweep found.** All four were
+corrected toward the truth (they now demand the true copy AND forbid the false), never relaxed. Same lesson
+as the five READ-found security holes (#26–#30), on a new axis: **green tests are necessary, not sufficient.**
+
+**Two self-inflicted bugs, both caught by verification rather than review:** a `@php(...)` directive that
+compiled to a malformed `<?php(` and **500'd the Payout Method page** while Pint, PHPStan and content-matching
+tests all passed over it (the "static checks cannot see a rendered page" rule, live); and the #16 fix being
+incomplete because `firstOrCreate()` ALSO returns a model without schema defaults — the same trap one level
+down, caught only by running the full suite and noticing the non-green count had gone 7 → 8.
+
+**VERIFIED (2026-08-09, HEAD `9620b95`):** suite **1748/1755 · 11,722 assertions**; PHPStan L5 (0); Pint
+clean; `migrate:fresh --seed` clean. The 7 non-green are the SAME documented pre-existing set.
+
+**⬅ REMAINING: WAVE 3** (minor/low), plus deployment, scale-perf, the billing decision and the founder's
+go-live flips.
 
 ## (G) ⚠️ OPEN DECISIONS — the founder's call, NOT defects
 

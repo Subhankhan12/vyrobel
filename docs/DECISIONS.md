@@ -2,6 +2,41 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-09 — WIREFRAME-PARITY WAVE 2 CLOSED: the 3 structural MEDIUMs + all 23 false-copy items
+
+Nine gates: `00a9fe5` S1 wallet concurrency · `47cf1ff` S2 write-only notes · `cb4dec0` S3 yearly-switch ·
+`8deb066` wrong figures · `8437a93` mislabelled figures · `599a452` anti-drift copy · `f930dda` unenforced
+claims · `babbb74` prototype fiction · `b44bb64` + `9620b95` unwired controls. Each carries a regression test
+proven to fail without its fix. Detail in `PROJECT-STATE.md` §F.5 and the sweep report §2c.
+
+**⛔ TWO ITEMS DELIBERATELY LEFT AS COPY-ONLY — the founder's decision (2026-08-09), NOT to be "finished"
+by a later session without an explicit call:**
+
+- **#6 — the Owner Rates guardrail.** Verified before rewording, and the picture was more nuanced than the
+  sweep recorded: `RateProposalService` genuinely enforces the pricing mode, the ±% auto-approve tolerance
+  AND the floor/ceiling — but only on a **proposed** rate. `RateActionController`, the operator's direct
+  rate write, never consults the guardrail. The copy now promises exactly the proposal path and says plainly
+  that the operator can still set a rate directly. **Making the guardrail bind the operator's direct write
+  is a real shift of control between operator and owner — a product decision, deferred.**
+- **#10 — the plan team limit.** The page claimed "unlimited" for every plan; Essential's plan sets 5. The
+  REAL limit is now displayed (and Pro's genuine null still reads "unlimited" — a test pins both directions).
+  **Whether the limit should BIND is part of the open billing decision (G.1), deferred.**
+
+**Method notes worth keeping.**
+1. **Four pre-existing tests were holding the false copy in place** — `OwnerDocumentsViewTest`,
+   `OwnerHelpTest`, `OperatorWorkOrderTest`, `MaintenanceDetailViewTest`. Two of them described the
+   fabrication as "HONEST" in their own comments. A green suite was defending exactly what the sweep found.
+   All four were corrected toward the truth, never relaxed.
+2. **Static checks cannot see a rendered page — again.** A `@php(...)` directive compiled to a malformed
+   `<?php(` and 500'd the Payout Method page while Pint, PHPStan and the new tests all passed, because those
+   tests matched file CONTENT rather than a rendered page.
+3. **The obvious fix can hide the same bug one level down.** #16's cause was that an unsaved Eloquent model
+   carries no schema defaults; the fix routed through `firstOrCreate()`, which returns a model that ALSO
+   lacks them. Only running the FULL suite (non-green 7 → 8) surfaced it.
+
+**Verified:** suite **1748/1755 · 11,722 assertions**; PHPStan L5 (0); Pint clean; `migrate:fresh --seed`
+clean; the 7 non-green are the SAME documented pre-existing set.
+
 ## 2026-08-08 — WIREFRAME-PARITY SWEEP + WAVE 1: the 5 HIGH findings are CLOSED
 
 A full parity sweep of **all 124 wireframes** (`docs/WIREFRAME-PARITY-SWEEP-2026-08-08.md`, plan in
