@@ -73,4 +73,49 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        // ⚠️ NEVER FLASH A SECRET INTO THE SESSION (audit 2026-08-07 · F6-3).
+        //
+        // On a validation failure Laravel flashes ALL old input so the form can be repopulated. The app
+        // defined no exclusions, so the framework default (password fields only) applied — and the owner
+        // payout form's IBAN and account-holder name were written in PLAINTEXT to the `sessions` table.
+        // Reproduced against the raw row before the fix:
+        //     "account_holder":"Ada Lovelace SecretHolder","iban":"PT50000000000000000000999"
+        // `payout_methods.iban` is an ENCRYPTED column precisely because an IBAN is sensitive; flashing it
+        // in the clear defeats that control entirely, and the session store is not encrypted
+        // (SESSION_ENCRYPT=false, correct for a database driver holding only an id — but not for this).
+        // It is the codebase's own rule, one layer over: an encrypted column is undone the moment its value
+        // is copied somewhere plaintext.
+        //
+        // Declared GLOBALLY rather than per-controller so it covers every form that uses these field names —
+        // including ones not yet written. The cost is that a rejected payout form no longer repopulates the
+        // IBAN; retyping it is the correct trade for not storing it in the clear.
+        $exceptions->dontFlash([
+            'current_password',
+            'password',
+            'password_confirmation',
+            // Owner payout / banking (the reported leak).
+            'iban',
+            'account_holder',
+            'account_number',
+            'routing_number',
+            'swift',
+            'bic',
+            // Tax identifiers — personal data in most jurisdictions.
+            'tax_id',
+            'vat_id',
+            'vat_number',
+            // Card data never reaches the server (SAQ A / hosted Checkout), but if a field is ever added,
+            // it must not be the flash that first persists it.
+            'card_number',
+            'cvc',
+            'cvv',
+            // Credentials for the platform integrations + the 2FA/recovery flows.
+            'api_key',
+            'secret',
+            'client_secret',
+            'webhook_secret',
+            'two_factor_code',
+            'recovery_code',
+        ]);
     })->create();
