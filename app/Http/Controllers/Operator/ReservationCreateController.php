@@ -18,6 +18,7 @@ use App\Services\AssignmentService;
 use App\Services\FolioService;
 use App\Services\FrontDeskService;
 use App\Services\GuestWalletService;
+use App\Services\OwnerAttributionService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Folio\PropertyCharges;
 use App\Support\Folio\StayEstimator;
@@ -228,6 +229,11 @@ class ReservationCreateController extends Controller
         // #98 GATE 2 — configured non-optional fees (cleaning) now POST to the folio (applyFee was never called);
         // reconciles with the Property-Settings sample-stay via the shared StayEstimator rules.
         $this->postFees($folios, $folio, (string) $roomType->property_id, $taxableBase, $nights, max(1, $adults + $children), $currency);
+
+        // OWNER ATTRIBUTION — after the folio is complete, never before. Attribution reads the folio's room
+        // revenue, and `createBooking()` does not post it, so attributing any earlier would bank a zero.
+        // Idempotent and a no-op for operator-owned inventory (see OwnerAttributionService).
+        app(OwnerAttributionService::class)->attributeReservation($reservation->refresh());
 
         $notice = 'Reservation '.$reservation->reference.' created.';
         if ($creditMinor > 0) {

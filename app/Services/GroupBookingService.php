@@ -141,6 +141,13 @@ class GroupBookingService
                 PropertyCharges::postTaxes($this->folios, $folio, (string) $reservation->property_id, $base, $nights, $persons, $currency);
                 PropertyCharges::postFees($this->folios, $folio, (string) $reservation->property_id, $base, $nights, $persons, $currency);
             }
+
+            // OWNER ATTRIBUTION — once THIS member's folio lines are on. Attribution reads folio room revenue,
+            // which `createGroupBooking()` does not post, so it must run here and not at booking time.
+            // ⚠️ On a MASTER folio every member shares one folio, so its room total covers the whole block;
+            // attribution allocates across the reservation's own active lines, so each member is attributed
+            // its own share. Idempotent; a no-op for operator-owned inventory.
+            app(OwnerAttributionService::class)->attributeReservation($reservation->refresh());
         }
 
         return $masterFolio;   // the deposit takes THIS exact folio — never re-derived (the same-second ordering trap)

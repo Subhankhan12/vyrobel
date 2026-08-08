@@ -200,6 +200,11 @@ class BookingEngineService
         PropertyCharges::postFees($this->folios, $folio, (string) $quote->property_id, $total, $nights, $persons, (string) $quote->currency);
         PropertyCharges::postTaxes($this->folios, $folio, (string) $quote->property_id, $total, $nights, $persons, (string) $quote->currency);
 
+        // OWNER ATTRIBUTION — after the folio is complete, never before. Attribution reads the folio's room
+        // revenue and `createBooking()` does not post it, so attributing earlier would bank a zero and latch.
+        // Idempotent; a no-op for operator-owned inventory (see OwnerAttributionService::attributeReservation).
+        app(OwnerAttributionService::class)->attributeReservation($reservation->refresh());
+
         // The TRUE amount owed after fees + taxes (nothing paid yet → balance == total).
         $balanceMinor = FolioTotals::for($folio->refresh())['balance_minor'];
 

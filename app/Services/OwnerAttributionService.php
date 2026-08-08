@@ -59,6 +59,14 @@ class OwnerAttributionService
     /**
      * First attribution for a booking (idempotent — safe to re-run). No-op if already attributed at
      * the live version; attributes at version 1 otherwise.
+     *
+     * ⚠️ REFUSES TO ATTRIBUTE A BOOKING WITH NO ROOM REVENUE YET, and this guard is load-bearing. Room
+     * revenue is read from the folio, but the certified `AssignmentService::createBooking()` does NOT post
+     * the folio room charge — every caller posts it afterwards. So a call made too early (before the folio
+     * is written, or on an OTA import that never gets one) would attribute ZERO, write a `room_revenue` row
+     * at version 1, and permanently latch: `liveVersion` becomes 1 and every later call returns above,
+     * pinning that owner at €0 for the life of the booking. Skipping instead leaves the booking attributable
+     * later — a retry, a backfill or the next entry-point call all still work.
      */
     public function attributeReservation(Reservation $reservation): void
     {
@@ -68,7 +76,50 @@ class OwnerAttributionService
             return; // already attributed; idempotency keys would collide anyway
         }
 
+        if ($this->roomRevenueMinor($reservation) <= 0) {
+            return; // folio not posted yet — stay attributable rather than latching a zero
+        }
+
         $this->attributeAtVersion($reservation, 1);
+    }
+
+    /**
+     * Is this booking attributable to an owner AND still unattributed? (Read-only — the backfill's filter.)
+     */
+    public function needsAttribution(Reservation $reservation): bool
+    {
+        return $this->liveVersion($reservation) === 0
+            && $this->roomRevenueMinor($reservation) > 0
+            && $this->hasOwnedLine($reservation);
+    }
+
+    /** Room revenue posted on the folio, in minor units (0 when no folio/room line exists yet). */
+    private function roomRevenueMinor(Reservation $reservation): int
+    {
+        $folio = Folio::query()->where('reservation_id', $reservation->getKey())->first();
+
+        if ($folio === null) {
+            return 0;
+        }
+
+        return (int) FolioItem::query()
+            ->where('folio_id', $folio->getKey())
+            ->where('type', 'room')
+            ->sum('amount_minor');
+    }
+
+    /** Does any ACTIVE line sit on an owner-owned unit? (Operator-only bookings are never attributed.) */
+    private function hasOwnedLine(Reservation $reservation): bool
+    {
+        $reservation->loadMissing('reservationUnits');
+
+        $unitIds = $reservation->reservationUnits
+            ->where('status', 'active')
+            ->pluck('unit_id')
+            ->filter()
+            ->all();
+
+        return $unitIds !== [] && Unit::query()->whereIn('id', $unitIds)->whereNotNull('owner_id')->exists();
     }
 
     /**
