@@ -137,7 +137,15 @@
 
                 <div class="vy-rt-eyebrow" style="margin-bottom:7px">Auto-approve changes within <span class="vy-mono" style="color:var(--vy-accent)">±<span x-text="auto"></span>%</span></div>
                 <input type="range" name="auto_approve_pct" min="0" max="25" step="1" x-model="auto" style="width:100%;accent-color:var(--vy-accent);margin-bottom:6px">
-                <p style="font-size:11px;color:#A69A92;margin:0 0 16px" x-text="Number(auto) === 0 ? 'Every change needs your sign-off before it goes live.' : ('Changes within ±' + auto + '% go live automatically; anything larger waits for your approval.')"></p>
+                {{-- WAVE 2 · #6 — scoped to what is ACTUALLY enforced. This said "Every change needs your
+                     sign-off before it goes live", which is not true of every change: RateProposalService
+                     really does enforce the mode, the ±% tolerance AND the floor/ceiling on a PROPOSED rate,
+                     but the operator's direct rate write (RateActionController) never consults the guardrail.
+                     The copy now promises exactly the proposal path. Binding the operator's direct changes to
+                     an owner's floor/ceiling is a real shift of control between operator and owner and is a
+                     PRODUCT DECISION, deliberately not made here — see DECISIONS.md. --}}
+                <p style="font-size:11px;color:#A69A92;margin:0 0 6px" x-text="Number(auto) === 0 ? 'Every rate your operator proposes needs your sign-off before it goes live.' : ('Proposed changes within ±' + auto + '% go live automatically; anything larger waits for your approval.')"></p>
+                <p style="font-size:11px;color:#A69A92;margin:0 0 16px">These limits apply to rates your operator <strong>proposes</strong>. Your operator can still set a rate directly — you’ll see it here and on your calendar.</p>
 
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
                     <div>

@@ -43,7 +43,7 @@
         <section class="vy-card vy-fade" style="padding:20px;margin-top:14px;animation-delay:.12s">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
                 <span style="width:26px;height:26px;border-radius:8px;background:{{ $hasPayout ? 'rgba(34,120,60,.14)' : 'rgba(224,146,30,.16)' }};color:{{ $hasPayout ? '#227a3c' : 'var(--vy-amber)' }};display:grid;place-items:center;font-weight:700;font-size:13px">3</span>
-                <h2 class="vy-card-title" style="margin:0">Add your payout account</h2>
+                <h2 class="vy-card-title" style="margin:0">{{ $hasPayout ? 'Your payout account' : 'Add your payout account' }}</h2>
             </div>
             @if ($hasPayout)
                 <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 8px">A payout account is on file — you’re all set to receive money.</p>

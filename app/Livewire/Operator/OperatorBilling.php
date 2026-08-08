@@ -8,6 +8,8 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Channel;
 use App\Models\Membership;
 use App\Models\Organization;
+use App\Models\PlanFeature;
+use App\Models\Subscription;
 use App\Models\Unit;
 use App\Services\BillingService;
 use App\Support\Billing\SubscriptionPricing;
@@ -91,6 +93,13 @@ class OperatorBilling extends Component
             'counts' => [
                 'units' => $pricing['units'],
                 'team' => Membership::query()->where('status', 'active')->count(),
+                // ⚠️ The plan's REAL team limit (wireframe-parity WAVE 2 · #10). The page printed
+                // "· unlimited" unconditionally, so an ESSENTIAL org — whose plan sets a limit of 5 — was
+                // told it had no limit at all. null genuinely means unlimited (Pro).
+                //
+                // ⚠️ DISPLAY ONLY. Nothing enforces this limit today, and whether it SHOULD be enforced is
+                // part of the founder's open billing decision — deliberately not built here.
+                'team_limit' => $this->teamLimit($current),
                 'channels' => Channel::query()->where('status', 'connected')->count(),
             ],
             'billingDetails' => [
@@ -109,6 +118,25 @@ class OperatorBilling extends Component
             'invoices' => $this->invoices($org, $currency),
             'tiers' => $this->tierCards($billing),
         ]);
+    }
+
+    /**
+     * The org's plan limit on team members — null when the plan genuinely sets none (Pro), and null when
+     * there is no plan to read. `plan_features` is authoritative (a platform admin edits it), matching
+     * {@see BillingService::catalog()}.
+     */
+    private function teamLimit(?Subscription $current): ?int
+    {
+        if ($current === null) {
+            return null;
+        }
+
+        $feature = PlanFeature::query()
+            ->where('plan_id', $current->plan_id)
+            ->where('key', 'team')
+            ->first();
+
+        return $feature?->limit;
     }
 
     /**

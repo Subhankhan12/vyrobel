@@ -125,7 +125,7 @@
                     <section class="vy-card">
                         <h2 class="vy-card-title" style="margin-bottom:10px">What you’re paying for</h2>
                         <div class="vy-mini-row"><span class="vy-mini-k">Units on the rack</span><span class="vy-mini-v">{{ $counts['units'] }} × {{ $pricing['per_unit'] }}</span></div>
-                        <div class="vy-mini-row"><span class="vy-mini-k">Team members</span><span class="vy-mini-v">{{ $counts['team'] }} · unlimited</span></div>
+                        <div class="vy-mini-row"><span class="vy-mini-k">Team members</span><span class="vy-mini-v">{{ $counts['team'] }}{{ $counts['team_limit'] !== null ? ' of '.$counts['team_limit'] : ' · unlimited' }}</span></div>
                         <div class="vy-mini-row"><span class="vy-mini-k">Channels</span><span class="vy-mini-v">{{ $counts['channels'] }} connected</span></div>
                         <div class="vy-mini-row"><span class="vy-mini-k">Adding a unit</span><span class="vy-mini-v">+{{ $pricing['per_unit'] }}/mo · prorated</span></div>
                     </section>

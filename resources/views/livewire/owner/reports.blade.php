@@ -237,7 +237,10 @@
                 <span class="vy-rep-kpi-val">{{ $kpis['net'] }}</span>
                 @if ($kpis['net_delta'])<span class="vy-rep-kpi-delta">{{ $kpis['net_delta'] }}</span>@endif
             </div>
-            <div class="vy-kpi-sub">Reconciles to your statements</div>
+            {{-- WAVE 2 · #20 — this figure is Σ statements PLUS ledger not yet statemented, so "reconciles to
+                 your statements" was a narrower claim than the number. Tax Center prints the statement-only
+                 figure for the same year, and the two differed. --}}
+            <div class="vy-kpi-sub">Your statements plus earnings not yet statemented</div>
         </div>
         <div class="vy-card" style="padding:18px 20px">
             <div class="vy-kpi-label">Avg occupancy</div>
@@ -356,7 +359,7 @@
                 <div class="vy-rep-hero-card">
                     <div class="vy-rep-hero-eyebrow">{{ $hero['eyebrow'] }}</div>
                     <div class="vy-rep-hero-fig">{{ $hero['net'] }}</div>
-                    <div class="vy-rep-hero-sub">Net earned · reconciles to your statements</div>
+                    <div class="vy-rep-hero-sub">Net earned · your statements plus earnings not yet statemented</div>
                     @if ($hero['sub'] !== '')<div class="vy-rep-hero-badge">{{ $hero['sub'] }}</div>@endif
                 </div>
             </div>
@@ -486,7 +489,7 @@
                 </table>
             </div>
             <div style="margin-top:12px;font-size:11.5px;color:var(--vy-muted);line-height:1.6;max-width:720px">
-                Computed from the VAT rates configured for {{ $taxCountry }} ({{ rtrim(rtrim(number_format((float) $vat['accommodation_rate'], 1), '0'), '.') }}% on rental income{{ $vat['service_rate'] !== null ? ', '.rtrim(rtrim(number_format((float) $vat['service_rate'], 1), '0'), '.').'% on the management fee' : '' }}) × your real figures. <strong>Verify with your accountant — this is not tax advice.</strong>
+                Computed from the {{ $vat['is_example'] ? 'EXAMPLE' : 'configured' }} VAT rates for {{ $taxCountry }} ({{ rtrim(rtrim(number_format((float) $vat['accommodation_rate'], 1), '0'), '.') }}% on rental income{{ $vat['service_rate'] !== null ? ', '.rtrim(rtrim(number_format((float) $vat['service_rate'], 1), '0'), '.').'% on the management fee' : '' }}) × your real figures. <strong>Verify with your accountant — this is not tax advice.</strong>
             </div>
         @else
             <div style="margin-top:14px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.5);border:1px solid var(--vy-hairline);font-size:12.5px;color:var(--vy-muted);line-height:1.7;max-width:720px">
