@@ -5591,6 +5591,8 @@ given a real destination rather than a page of invented FAQ answers. Nothing was
 required choosing what Vyrobel sells, which is a product decision, not a defect fix. Escalated to the founder,
 who deferred it to go-live; it is now a **blocker on the Stripe live-key flip**, not a backlog item.
 
-Suite green apart from the two documented pre-existing non-green (`OwnerUnitDetailViewTest`, already on the
-audit backlog, and a `BookingImportTest` ordering artifact that passes in isolation — both confirmed identical
-on clean HEAD with the pass's changes stashed). PHPStan L5 (0); Pint clean.
+**FINAL VERIFICATION:** full suite **1692/1699 · 11,540 assertions**. The 7 non-green are EXACTLY the
+documented pre-existing set — 6 × `BookingImportTest` (which **pass in isolation**: a test-ordering artifact)
+and `OwnerUnitDetailViewTest` (a real pre-existing failure, already on the audit backlog). Both categories were
+confirmed identical on clean HEAD with this pass's changes stashed, so nothing here introduced them. PHPStan L5
+(0); Pint clean; `migrate:fresh --seed` clean.
