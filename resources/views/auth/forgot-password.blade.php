@@ -62,7 +62,11 @@
     <main class="vy-card">
         <div class="vy-brand"><span class="vy-brand-mark">V</span><span class="vy-brand-name">Vyrobel</span></div>
         <h1 class="vy-title">Reset your password</h1>
-        <p class="vy-sub">Enter the email on your account and we’ll send you a link to choose a new password.</p>
+        {{-- WAVE 3 — the link's life is REAL (config/auth.php passwords.expire) and was simply never stated,
+             so a guest who came back to an expired link had no way to know why. Read from config, not
+             hardcoded, so the sentence cannot drift from the setting that governs it. The login-approval
+             page already states its own 30 minutes — this matches that precedent. --}}
+        <p class="vy-sub">Enter the email on your account and we’ll send you a link to choose a new password. The link is valid for {{ config('auth.passwords.users.expire', 60) }} minutes.</p>
 
         @if (session('status'))
             <div class="vy-note is-ok" role="status">

@@ -13,7 +13,7 @@
 <body style="margin:0; padding:0; background-color:#F6EBE2; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
     {{-- Preheader (hidden preview snippet) --}}
     <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#F6EBE2; font-size:1px; line-height:1px;">
-        Set your password to activate your Vyrobel {{ $accountLabel }} — this invitation expires in 7 days.
+        Set your password to activate your Vyrobel {{ $accountLabel }} — this invitation expires in {{ \App\Services\OwnerInviteService::EXPIRY_DAYS }} days.
     </div>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F6EBE2;">
