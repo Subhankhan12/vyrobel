@@ -166,7 +166,14 @@ class OperatorSettings extends Component
             'smoking' => (string) ($policy->smoking ?? 'not_allowed'),
             'min_stay' => $policy->min_stay ?? 1,
             'max_stay' => $policy->max_stay ?? null,
-            'cancellation_tier' => (string) ($cancellation['tier'] ?? 'flexible'),
+            // `type` is the stored key. `tier` is read as a fallback ONLY to recover rows written by the
+            // earlier code path, which replaced the whole column with `['tier' => …]` and dropped the rest.
+            'cancellation_type' => (string) ($cancellation['type'] ?? $cancellation['tier'] ?? 'flexible'),
+            // The value the free-cancellation promise actually hangs on. null → the field renders empty and
+            // the property genuinely has no free-cancel window; never defaulted to a number nobody chose.
+            'free_until_days' => isset($cancellation['free_until_days']) && is_numeric($cancellation['free_until_days'])
+                ? (int) $cancellation['free_until_days']
+                : null,
             'deposit_required' => (bool) ($deposit['required'] ?? false),
             'self_check_in' => (bool) ($policy->self_check_in ?? false),
         ];

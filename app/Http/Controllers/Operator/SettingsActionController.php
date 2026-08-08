@@ -86,16 +86,30 @@ class SettingsActionController extends Controller
             'smoking' => ['required', 'in:allowed,on_request,not_allowed'],
             'min_stay' => ['required', 'integer', 'between:1,365'],
             'max_stay' => ['nullable', 'integer', 'between:1,365'],
-            'cancellation_tier' => ['sometimes', 'in:flexible,moderate,strict'],
+            'cancellation_type' => ['sometimes', 'in:flexible,moderate,strict'],
+            'free_until_days' => ['sometimes', 'nullable', 'integer', 'between:0,365'],
             'deposit_required' => ['sometimes', 'boolean'],
             'self_check_in' => ['sometimes', 'boolean'],
         ]);
 
         // Assemble the JSON policy columns; self-check-in is a bool. ⚠️ #33 — the door CODE is guest-only and is
         // NEVER stored/shown here; this toggle only records whether smart-lock self-check-in is offered.
-        if ($request->filled('cancellation_tier')) {
-            $data['cancellation'] = ['tier' => $data['cancellation_tier']];
+        //
+        // ⚠️ These arrays are MERGED onto the stored column by SettingsService (see POLICY_JSON_FIELDS) — send
+        // only the keys this form owns. `free_until_days` is the load-bearing one: CancellationPolicy and the
+        // storefront read it, so it is submitted explicitly rather than left to be clobbered by a sibling key.
+        $cancellation = [];
+        if ($request->filled('cancellation_type')) {
+            $cancellation['type'] = $data['cancellation_type'];
         }
+        if ($request->has('free_until_days')) {
+            $days = $data['free_until_days'] ?? null;
+            $cancellation['free_until_days'] = $days === null ? null : (int) $days;
+        }
+        if ($cancellation !== []) {
+            $data['cancellation'] = $cancellation;
+        }
+
         $data['deposit'] = ['required' => $request->boolean('deposit_required')];
         $data['self_check_in'] = $request->boolean('self_check_in');
 

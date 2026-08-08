@@ -38,6 +38,21 @@ class SettingsService
     /** @var list<string> */
     public const POLICY_FIELDS = ['pet', 'smoking', 'min_stay', 'max_stay', 'self_check_in', 'cancellation', 'deposit'];
 
+    /**
+     * The policy columns that are JSON MAPS, not scalars.
+     *
+     * ⚠️ These MUST be merged onto the stored value, never assigned wholesale. A caller that submits one key
+     * (say the cancellation tier) would otherwise DESTROY every sibling key in the same column — which is
+     * exactly what happened to `cancellation.free_until_days`, the value `CancellationPolicy` reads to decide
+     * whether a booking is still refundable. One partial form submit silently made every reservation at that
+     * property non-refundable and removed the free-cancellation promise from the confirmation email, the guest
+     * reservation page and the storefront. `fill()` on an array-cast column replaces it; merging is the only
+     * safe write for a shared map.
+     *
+     * @var list<string>
+     */
+    public const POLICY_JSON_FIELDS = ['cancellation', 'deposit'];
+
     /** @var list<string> */
     public const ORG_FIELDS = ['default_currency', 'default_locale', 'billing_email'];
 
@@ -69,6 +84,18 @@ class SettingsService
 
         /** @var PropertyPolicy $policy */
         $policy = $property->policies()->firstOrNew([]);
+
+        // ⚠️ JSON map columns MERGE onto what is stored — a partial submit must never drop a sibling key.
+        // See POLICY_JSON_FIELDS: assigning here once destroyed `cancellation.free_until_days` on every save.
+        foreach (self::POLICY_JSON_FIELDS as $field) {
+            if (! array_key_exists($field, $changes)) {
+                continue;
+            }
+
+            $existing = is_array($policy->{$field}) ? $policy->{$field} : [];
+            $changes[$field] = array_merge($existing, (array) $changes[$field]);
+        }
+
         $policy->fill($changes)->save();
 
         $this->audit->record('property.policies_updated', $property, null, ['fields' => array_keys($changes)]);

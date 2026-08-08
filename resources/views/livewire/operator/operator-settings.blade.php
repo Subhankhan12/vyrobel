@@ -97,16 +97,24 @@
                 <form method="POST" action="{{ route('app.settings.policies') }}">
                     @csrf
                     <div class="vy-field" style="margin: 0 0 14px;">
-                        <label class="vy-field-label">Cancellation policy <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· how much notice guests need</span></label>
+                        <label class="vy-field-label">Cancellation policy <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· the label guests see</span></label>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                             @foreach (['flexible' => 'Flexible', 'moderate' => 'Moderate', 'strict' => 'Strict'] as $val => $label)
                                 <label style="flex: 1; min-width: 90px; text-align: center; padding: 9px 12px; border: 1px solid var(--vy-hairline); border-radius: var(--vy-r-sm); font-size: 13px; cursor: pointer; color: var(--vy-ink);"
-                                       @if (old('cancellation_tier', $policy['cancellation_tier']) === $val) style="border-color: var(--vy-accent); color: var(--vy-accent); background: rgba(194,65,12,.06);" @endif>
-                                    <input type="radio" name="cancellation_tier" value="{{ $val }}" @checked(old('cancellation_tier', $policy['cancellation_tier']) === $val) style="position:absolute;opacity:0;" {{ $disabled }}>
+                                       @if (old('cancellation_type', $policy['cancellation_type']) === $val) style="border-color: var(--vy-accent); color: var(--vy-accent); background: rgba(194,65,12,.06);" @endif>
+                                    <input type="radio" name="cancellation_type" value="{{ $val }}" @checked(old('cancellation_type', $policy['cancellation_type']) === $val) style="position:absolute;opacity:0;" {{ $disabled }}>
                                     {{ $label }}
                                 </label>
                             @endforeach
                         </div>
+                    </div>
+                    {{-- The value the free-cancellation promise ACTUALLY hangs on: CancellationPolicy::freeUntil()
+                         and the storefront both read `free_until_days`. It was previously unsettable from here,
+                         so the card claimed to control cancellation while controlling nothing. --}}
+                    <div class="vy-field" style="margin: 0 0 14px;">
+                        <label class="vy-field-label" for="pol_free_days">Free cancellation window (nights before check-in) <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· optional</span></label>
+                        <input id="pol_free_days" type="number" name="free_until_days" class="vy-input" min="0" max="365" value="{{ old('free_until_days', $policy['free_until_days']) }}" placeholder="No free-cancellation window" {{ $disabled }}>
+                        <span style="font-size: 11px; color: var(--vy-faint);">Guests cancelling on or before this many nights ahead qualify for a full refund. This drives the “free cancellation until …” line on the booking confirmation, the guest reservation page and the storefront. Leave blank for no free-cancellation window.</span>
                     </div>
                     <div class="vyn-grid3">
                         <div class="vy-field" style="margin: 0;">

@@ -122,19 +122,19 @@ it('flows the saved guest brand into a real booking-confirmation email', functio
     $mail->assertFrom(config('mail.from.address'), 'Seaside Front Desk');
 });
 
-// ── POLICIES persist the new fields (self check-in + cancellation tier) ─────────────────────────────
-it('persists the cancellation tier and self check-in toggle', function () {
+// ── POLICIES persist the new fields (self check-in + cancellation type) ─────────────────────────────
+it('persists the cancellation type and self check-in toggle', function () {
     $s = seedScenario(1);
     $this->actingAs(operatorUser($s, [], 'Property Owner'))->post('/app/settings/policies', [
         'pet' => 'allowed',
         'smoking' => 'not_allowed',
         'min_stay' => '1',
-        'cancellation_tier' => 'moderate',
+        'cancellation_type' => 'moderate',
         'self_check_in' => '1',
     ])->assertRedirect()->assertSessionHas('settings_notice');
 
     $policy = PropertyPolicy::query()->where('property_id', $s['property']->id)->firstOrFail();
-    expect($policy->cancellation['tier'] ?? null)->toBe('moderate')
+    expect($policy->cancellation['type'] ?? null)->toBe('moderate')
         ->and((bool) $policy->self_check_in)->toBeTrue();
 });
 
