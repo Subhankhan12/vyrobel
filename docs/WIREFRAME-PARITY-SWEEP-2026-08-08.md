@@ -6,6 +6,8 @@
 
 ## 0. VERDICT
 
+> ✅ **UPDATE 2026-08-08 — all five HIGH findings are FIXED, verified and pushed (§2b).** The MEDIUM waves (§4) remain open. §5 refusals and §6 extra work were preserved untouched.
+
 > **Vyrobel is materially more honest than its own wireframes. The money reconciles, the privacy perimeter holds, and nothing fabricated leaked into the product. What fails is COPY THAT ASSERTS BEHAVIOUR THE CODE DOES NOT IMPLEMENT.**
 
 Five HIGH findings and a long tail of "the page says X, the code does Y". Two of the five are structural (a data-destroying write and a missing production trigger); the other three are a short-circuit, an anti-drift violation, and a compliance gap. **Everything in §5 (refusals) and §6 (extra work) is CORRECT and must not be "fixed".**
@@ -53,9 +55,32 @@ Three non-200s were confirmed **correct by design**: Channels 403 (`EnsurePlanFe
 
 ---
 
+## 2b. WAVE 1 — ALL FIVE HIGH FINDINGS RESOLVED (2026-08-08)
+
+> **All 5 HIGH are FIXED, verified two ways (browser + an independent DB/figure re-read) and pushed — one per gate, each with a regression test proven to FAIL without its fix.** The MEDIUM waves (§4) remain open.
+
+| # | Finding | Commit | Regression test | Verified |
+|---|---|---|---|---|
+| HIGH-1 | Cancellation JSON clobbered on save | `ecf3685` | `PropertyPolicyJsonPreservationTest` (4) | `{"type":"flexible","free_until_days":2}` survives a save; the window renders again |
+| HIGH-2 | Owner attribution had no production trigger | `165dea2` | `OwnerAttributionTriggerTest` (7) | attributed **€5,980.00** == folio room revenue on owner units **€5,980.00**; backfill candidates **0** |
+| HIGH-3 | Owners page short-circuited to "Paid" / €0.00 | `6312df2` | `OperatorOwnersPayableStateTest` (3) | old logic → "Paid" + €0.00 KPI; new → the real **€885.60** outstanding |
+| HIGH-4 | Two disagreeing room-revenue figures | `123bf89` | `OperatorReportRevenueSourceTest` (3) | Revenue panel **€7,080.00** == Top-units Σ **€7,080.00** (was €11,560 vs €7,080) |
+| HIGH-5 | Marketing email with no unsubscribe | `bca3679` | `MarketingUnsubscribeTest` (6) | signed link works logged-out → `marketing_consent` false → send refuses; `List-Unsubscribe` present on marketing, absent on transactional |
+
+**Method that mattered.** Every regression test was run against a stashed working tree first. HIGH-3's original test **passed without the fix** — it asserted the row's money figure, which prints from the statement regardless of pay status — and had to be re-aimed at the pay-status signal. A test that cannot fail guards nothing.
+
+### ⚠️ Two corrections to this report's own figures
+
+1. **HIGH-2's "€1,680.00 unattributed" (§3) measured the wrong thing.** The missing trigger was real and is fixed, but that figure was not the gap it appeared to be. After the fix, attributed revenue equals folio room revenue on owner units **exactly** (€5,980.00 == €5,980.00) and the backfill finds **0 candidates**. The difference came from owner reservations that have **no folio at all** — **15 of 24** on a fresh seed, created by `DemoSeeder::seedAnalyticsHistory` through `createBooking` without posting one. Those bookings have nothing to attribute, which is the **same root cause as HIGH-4**, not a second gap. Wiring attribution to `reservation.confirmed` (the obvious fix, and what §3 suggested) would have been actively harmful: it would have banked €0 and latched `liveVersion` permanently. The shipped trigger fires **after the folio is posted** and refuses to latch a zero.
+2. **HIGH-4's "`/app/portfolio` disagrees with `/app/reports`" is NOT the same defect, and was deliberately left alone.** Portfolio reads `PerformanceMetrics`, which **pro-rates `price_minor` across in-range nights**. A folio carries no per-night split and cannot be pro-rated, and the ADR/RevPAR identities depend on that pro-rating. The two are different bases *by design*, both real and both labelled — forcing them to agree would have broken the metric layer. Only the two figures **on one screen** were unified.
+
+---
+
 ## 3. THE FIVE HIGH FINDINGS
 
-### HIGH-1 · Saving Stay Policies destroys the free-cancellation window
+*(As found. Each is now RESOLVED — see §2b for the fix, commit and verified figures.)*
+
+### HIGH-1 · ✅ RESOLVED (`ecf3685`) · Saving Stay Policies destroys the free-cancellation window
 **Page:** Operator Settings / Property Settings (`/app/settings`) · **Location:** `app/Http/Controllers/Operator/SettingsActionController.php:96-97` + `app/Services/SettingsService.php:66-72`
 
 ```php
@@ -73,17 +98,17 @@ if ($request->filled('cancellation_tier')) {
 - **Fix direction:** MERGE the key into the existing array, never replace the column. Mirror any existing partial-JSON update pattern rather than `fill()`.
 - **Invariant to preserve:** archive-not-destroy; the policy JSON is the single source `CancellationPolicy` reads.
 
-### HIGH-2 · Owner revenue attribution has no production trigger
+### HIGH-2 · ✅ RESOLVED (`165dea2`) · Owner revenue attribution has no production trigger
 **Page:** Owner Reports (symptom surface) · **Location:** `app/Services/OwnerAttributionService.php:63` (`attributeReservation`), `app/Providers/AppServiceProvider.php:389-401`
 
 - **Callers of `attributeReservation()`:** `DemoSeeder` (5) and `tests/` (~60). **Zero in `app/`.** The only wired owner-ledger listener is `AdjustOwnerLedgerOnRefund` (refunds only). No scheduled command touches attribution.
-- **Measured live:** booked room revenue on the owner's own units (2026) **€7,660.00** vs attributed to `owner_ledger` **€5,980.00** → **€1,680.00 unattributed**. Owner Reports therefore feeds its analytics half from all 20 reservation lines and its money half from the 10 that happen to have ledger rows.
+- **Measured live:** booked room revenue on the owner's own units (2026) **€7,660.00** vs attributed to `owner_ledger` **€5,980.00** → **€1,680.00 unattributed**. ⚠️ **This figure was WRONG — see §2b correction 1** (it measured folio-less seed bookings, not an attribution gap). Owner Reports therefore feeds its analytics half from all 20 reservation lines and its money half from the 10 that happen to have ledger rows.
 - **Impact in production (worse than demo, because the seeder fakes the trigger):** a new booking raises occupancy, nights and ADR while **owner earnings, statements, payouts and the annual tax summary stay at zero indefinitely.**
 - ⚠️ **Already documented and still open:** `docs/WAVE2-INVENTORY.md:1068` states verbatim *"Attribution isn't even auto-wired: grep for `attributeReservation` finds only `DemoSeeder.php:366-367` and tests — no listener, no job, no service call."* This sweep re-surfaced and **measured** it; it is not a new discovery.
 - **Fix direction:** wire `attributeReservation` to the real reservation-confirmed/checked-out lifecycle event (the `AdjustOwnerLedgerOnRefund` listener is the adjacent correct pattern), plus a backfill for existing rows.
 - **Invariant to preserve:** #17 (owner earnings must reconcile to the ledger); append-only ledger; `PeriodLockGuard`.
 
-### HIGH-3 · Operator Owners reports €0.00 payable while money is genuinely pending
+### HIGH-3 · ✅ RESOLVED (`6312df2`) · Operator Owners reports €0.00 payable while money is genuinely pending
 **Page:** `/app/owners` · **Location:** `app/Livewire/Operator/OperatorOwners.php:134` (payouts loaded grouped by `owner_id` at `:51`)
 
 ```php
@@ -96,15 +121,15 @@ if ((string) $latest->status === 'paid' || $payouts->contains(fn (Payout $p): bo
 - **Fix direction:** resolve the payout **per statement**. `payouts.owner_statement_id` already exists (`app/Models/Payout.php:34`, migration `2026_07_03_000110:24`) and is unused here.
 - **Invariant to preserve:** #17; the on-hold branch must remain driven by a real blocker (tax hold / no payout method), never invented.
 
-### HIGH-4 · Two disagreeing "room revenue" figures on one screen
+### HIGH-4 · ✅ RESOLVED (`123bf89`) · Two disagreeing "room revenue" figures on one screen
 **Pages:** `/app/reports` (and `/app/portfolio`) · **Location:** `app/Support/Reports/OperatorReportData.php` — `topUnits()` (~:169-192) sums `reservation_units.price_minor`; `revenue()` (~:114-135) sums `folio_items type='room'`
 
-- **Measured (2026, Seaside):** `reservation_units` basis **€11,560.00** vs folio basis **€7,080.00** → **€4,480.00 / 63% overstatement**, on the same screen; `/app/portfolio` shows €11,560 for the same year and property that `/app/reports` reports as €7,080. **The PDF export inherits it.**
+- **Measured (2026, Seaside):** `reservation_units` basis **€11,560.00** vs folio basis **€7,080.00** → **€4,480.00 / 63% overstatement**, on the same screen; `/app/portfolio` shows €11,560 for the same year and property that `/app/reports` reports as €7,080. ⚠️ **The portfolio half of this is NOT the same defect and was deliberately not "fixed" — see §2b correction 2** (Portfolio pro-rates by night; a folio cannot be pro-rated). **The PDF export inherits it.**
 - **Why they diverge in demo:** `DemoSeeder::seedAnalyticsHistory` (~`:1275`) creates 18 backdated reservations through `AssignmentService::createBooking` alone, which posts **no folio room charge**, whereas every real booking entry point does (`ReservationCreateController:216`, `BookingEngineService:192`, `GroupBookingService:123`). **The dual-basis code is nonetheless the defect** — nothing enforces the reconciliation `PerformanceMetrics` asserts in its own docblock (`:31-33`), so any future path that skips a folio post reopens it silently.
 - **Fix direction:** ONE shared revenue source for the concept (the project's own anti-drift rule), plus a reconciliation assertion/test.
 - **Invariant to preserve:** #17; the anti-drift "one definition per concept" family.
 
-### HIGH-5 · Marketing email can be sent, with no way to unsubscribe
+### HIGH-5 · ✅ RESOLVED (`bca3679`) · Marketing email can be sent, with no way to unsubscribe
 **Location:** `app/Http/Controllers/Operator/GuestBulkActionController.php:64-78`; `app/Support/Guest/GuestMarketing.php`
 
 - **No unsubscribe exists anywhere:** no route, no link in any template under `resources/views/emails/`, no `List-Unsubscribe` header. (A repo grep for `unsubscribe|List-Unsubscribe|opt-out` returns only an unrelated tenancy comment.)

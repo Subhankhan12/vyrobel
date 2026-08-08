@@ -8,7 +8,20 @@
 
 ---
 
-## WAVE 1 — the five HIGH findings
+## WAVE 1 — the five HIGH findings · ✅ COMPLETE (2026-08-08)
+
+> **All five are FIXED, verified two ways and pushed** — `ecf3685` (HIGH-1) · `165dea2` (HIGH-2) · `6312df2` (HIGH-3) · `123bf89` (HIGH-4) · `bca3679` (HIGH-5). Each carries a regression test **proven to fail without its fix**. Full evidence + two corrections to the sweep's own figures: `WIREFRAME-PARITY-SWEEP-2026-08-08.md` §2b.
+>
+> **⚠️ NEXT = WAVE 2** (the "false sentences" honesty sweep) — the largest remaining item and the one that decides whether the product's copy tells the truth.
+
+### What changed vs. this plan's fix directions
+
+- **HIGH-2 was NOT wired to `reservation.confirmed`** as suggested below. That would have banked €0 and latched `liveVersion` permanently, because attribution reads folio room revenue that `createBooking()` does not post. It fires **after the folio is posted**, at the three real entry points, and refuses to latch a zero. A `owners:backfill-attribution` command covers existing rows (0 candidates on a clean seed).
+- **HIGH-4 unified only the two figures ON ONE SCREEN.** `/app/portfolio` was deliberately left on its own basis: `PerformanceMetrics` pro-rates `price_minor` by in-range nights, a folio has no per-night split, and the ADR/RevPAR identities depend on that pro-rating.
+
+---
+
+## WAVE 1 — the five HIGH findings (as planned)
 
 Ordered by **severity-if-live**, not by effort.
 

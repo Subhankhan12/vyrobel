@@ -6,7 +6,20 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH ALL DONE (2026-08-08)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH ALL DONE · WIREFRAME-PARITY WAVE 1 (5 HIGH) DONE (2026-08-08)** · WAVES 2–3 + deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+
+> ## ✅ WIREFRAME-PARITY SWEEP — all 124 wireframes swept; **WAVE 1 (the 5 HIGH) FIXED + PUSHED** (2026-08-08, HEAD `bca3679`)
+>
+> A full 124-wireframe parity sweep found **5 HIGH** — a JSON-clobbering write that silently killed every
+> free-cancellation window, owner attribution with **no production trigger**, an Owners page reading "Paid /
+> €0.00" over **€885.60** genuinely outstanding, **two disagreeing room-revenue figures on one screen**
+> (€11,560 vs €7,080), and marketing email with **no unsubscribe at all**. **All five are fixed, verified two
+> ways, and pushed** — one per gate, each with a regression test proven to fail without its fix. Details +
+> two corrections to the sweep's own figures: **§F.4** and `docs/WIREFRAME-PARITY-SWEEP-2026-08-08.md` §2b.
+>
+> **⬅ STILL OPEN: WAVE 2** — the "false sentences" honesty sweep (~23 surfaces where the copy asserts
+> behaviour the code does not implement) + 3 structural MEDIUMs — and **WAVE 3** (minor). Neither touches
+> money, auth or isolation.
 
 > ## ✅ ALL THREE POST-AUDIT PASSES ARE COMPLETE (2026-08-08)
 >
@@ -193,6 +206,46 @@ The honest-deferral and no-fabrication claims **survived a determined falsificat
 
 **FINAL VERIFICATION (2026-08-08, HEAD `c40fef4`):** suite **1692/1699 · 11,540 assertions**; PHPStan L5 (0);
 Pint clean; `migrate:fresh --seed` clean. The 7 non-green are exactly the documented pre-existing set (see **J**).
+
+### F.4 — THE WIREFRAME-PARITY SWEEP + WAVE 1 (2026-08-08 — sweep COMPLETE · WAVE 1 COMPLETE · WAVES 2–3 OPEN)
+
+**The sweep** (`docs/WIREFRAME-PARITY-SWEEP-2026-08-08.md`, plan in `…-FIX-PLAN-…`): all **124** wireframes decoded
+from source (124/124 byte-identical to the prior decodes — nothing trusted an inherited artifact), mapped to live
+routes with **zero unmapped and zero phantom**, captured through real authenticated sessions in 4 auth contexts,
+analysed dual-method (wireframe × DOM × code), then **every finding re-verified against the code by the lead —
+40 verified, 0 retracted.** Verdict: **the product is materially more honest than its own wireframes.** The four
+global checks came back clean — **0** of 16 fabricated prototype values anywhere (#39 holds product-wide), 0
+rendering failures, and the #28 privacy perimeter confined to exactly Guests CRM + Guest Profile. The dominant
+failure mode is **copy that asserts behaviour the code does not implement** (~23 surfaces).
+
+**WAVE 1 — the 5 HIGH: ALL FIXED, verified two ways, one per gate.**
+
+| # | Defect | Commit | Live proof after the fix |
+|---|---|---|---|
+| 1 | `fill()` on a JSON-cast column REPLACED `policies.cancellation` wholesale on every save, silently deleting `free_until_days` → `isRefundable()` false for every reservation at that property | `ecf3685` | `{"type":"flexible","free_until_days":2}` survives a save |
+| 2 | Owner revenue attribution had **no production trigger** (callers: seeder + tests only) — bookings raised occupancy/ADR while owner earnings, statements and payouts stayed at zero | `165dea2` | attributed **€5,980.00** == folio room revenue on owner units **€5,980.00**; backfill candidates **0** |
+| 3 | `/app/owners` tested **every** payout, so one historical `paid` short-circuited every later branch — a finalized-unpaid statement read "Paid" and the payable KPI read €0.00 | `6312df2` | old logic → "Paid" + €0.00; new → the real **€885.60** outstanding |
+| 4 | Two "room revenue" sources on ONE screen (`reservation_units.price_minor` vs folio) — **€11,560 vs €7,080, a 63% overstatement**, inherited by the PDF | `123bf89` | Revenue panel **€7,080.00** == Top-units Σ **€7,080.00** |
+| 5 | Marketing email could be sent with **no opt-out anywhere** — no route, no link, no `List-Unsubscribe`; the only toggle lived inside a *claimed* account | `bca3679` | signed link works logged-out → consent false → send refuses; header on marketing, absent on transactional |
+
+**⚠️ Two corrections to the sweep's own figures** (both now written into the report, §2b): HIGH-2's **"€1,680
+unattributed" was WRONG** — it measured owner bookings with **no folio at all** (15 of 24 on a fresh seed, from
+`seedAnalyticsHistory`), the **same root cause as HIGH-4**, not a second gap; and HIGH-4's **portfolio-vs-reports
+half is NOT the same defect** and was deliberately left alone — `PerformanceMetrics` pro-rates `price_minor` by
+in-range nights, a folio has no per-night split, and the ADR/RevPAR identities depend on that pro-rating.
+
+**Two method lessons worth keeping.** (1) **A regression test must be proven to FAIL without its fix.** HIGH-3's
+first test **passed without the fix** — it asserted the row's money figure, which prints from the statement
+regardless of pay status — and had to be re-aimed at the pay-status signal. (2) **The obvious wiring can be the
+harmful one:** hooking HIGH-2 to `reservation.confirmed` would have banked €0 and latched `liveVersion`
+permanently, because attribution reads folio revenue `createBooking()` does not post.
+
+**VERIFIED (2026-08-08, HEAD `bca3679`):** suite **1715/1722 · 11,610 assertions** (+23 regression tests, all 5
+gates); PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. **The 7 non-green are the SAME documented
+pre-existing set** (`BookingImportTest` 6 + `OwnerUnitDetailViewTest` 1 — see **J**); the count did not move.
+
+**⬅ STILL OPEN: WAVE 2** (the "false sentences" honesty sweep — ~23 surfaces + 3 structural MEDIUMs) and **WAVE 3**
+(minor gaps). Neither touches money, auth or isolation. §5 refusals and §6 extra work were preserved untouched.
 
 ## (G) ⚠️ OPEN DECISIONS — the founder's call, NOT defects
 

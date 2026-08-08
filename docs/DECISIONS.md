@@ -2,6 +2,48 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-08 — WIREFRAME-PARITY SWEEP + WAVE 1: the 5 HIGH findings are CLOSED
+
+A full parity sweep of **all 124 wireframes** (`docs/WIREFRAME-PARITY-SWEEP-2026-08-08.md`, plan in
+`docs/WIREFRAME-PARITY-FIX-PLAN-2026-08-08.md`), then WAVE 1 — the five HIGH findings, one per gate.
+
+**Commits:** `15700b4` the sweep docs (documentation-only) · `ecf3685` HIGH-1 cancellation JSON ·
+`165dea2` HIGH-2 attribution trigger · `6312df2` HIGH-3 per-statement payable · `123bf89` HIGH-4 one
+revenue source · `bca3679` HIGH-5 marketing unsubscribe.
+
+**What the sweep concluded.** The product is materially MORE honest than its own wireframes: 0 of 16
+fabricated prototype values appear anywhere (#39 holds product-wide), 0 rendering failures, and the #28
+perimeter is confined to exactly Guests CRM + Guest Profile. The dominant failure mode is **copy that
+asserts behaviour the code does not implement** — that is WAVE 2, still open.
+
+**Decisions locked in WAVE 1:**
+
+- **HIGH-2 is triggered AFTER the folio is posted, NOT on `reservation.confirmed`.** The obvious wiring
+  would have been actively harmful: attribution reads folio room revenue, which `createBooking()` does not
+  post, so it would have banked €0 and latched `liveVersion` permanently. The trigger sits at the three real
+  entry points after `postFees`/`postTaxes`, refuses to latch a zero, and a `owners:backfill-attribution`
+  command covers existing rows.
+- **`/app/portfolio` was deliberately NOT forced to agree with `/app/reports`.** `PerformanceMetrics`
+  pro-rates `price_minor` across in-range nights; a folio carries no per-night split and cannot be pro-rated,
+  and the ADR/RevPAR identities depend on that pro-rating. Different bases BY DESIGN, both real, both
+  labelled. Only the two figures **on one screen** were unified onto the folio (the authoritative money
+  source, #17).
+- **The unsubscribe covers MARKETING only.** Transactional mail stays outside the consent gate — a guest
+  cannot opt out of their own booking confirmation — and a test pins that boundary. The route is public and
+  signed (it must work from an old email with no login), GET only renders (a prefetching scanner must not opt
+  anyone out), and POST is CSRF-exempt because it is the RFC 8058 one-click target where the signature IS the
+  authorisation. No new external send was enabled.
+- **The sweep's own €1,680 figure was corrected, not quietly dropped.** It measured owner bookings with no
+  folio at all (15 of 24 on a fresh seed) — the same root cause as HIGH-4, not a second gap. The correction is
+  written into the report at the point of the original claim.
+
+**Method lesson (recorded because it nearly cost a real guarantee).** HIGH-3's first regression test **passed
+without the fix** — it asserted the row's money figure, which prints from the statement regardless of pay
+status. Every WAVE-1 test was then run against a stashed tree; a test that cannot fail guards nothing.
+
+**Verified:** suite **1715/1722 · 11,610 assertions** (+23 tests); PHPStan L5 (0); Pint clean;
+`migrate:fresh --seed` clean; the 7 non-green are the SAME documented pre-existing set, unmoved.
+
 ## 2026-08-08 — HARDENING SPRINT: the audit's should-fix-before-launch set is CLOSED
 
 Follows the same day's launch-blocker pass. Closes every item in `AUDIT-COMPLETE-2026-08-07.md` §8
