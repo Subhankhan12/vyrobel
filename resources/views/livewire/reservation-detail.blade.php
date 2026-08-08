@@ -202,6 +202,25 @@
                     </div>
                 @endif
 
+                {{-- NOTES & REQUESTS (wireframe-parity WAVE 2 · S2) — REAL, read-only.
+                     These two columns were WRITE-ONLY: online check-in and New Reservation both wrote them and
+                     no view rendered either, so a guest's "please leave a cot" reached no member of staff.
+                     🪤 Only genuine notes render — the wireframe's sample rows and its "Add note" button are
+                     deliberately absent (reservations have no note-write path; an inert button would assert a
+                     capability that does not exist). No notes ⇒ no card, never an empty shell. --}}
+                @if (count($notes) > 0)
+                    <div class="vy-card">
+                        <span class="vy-eyebrow">Notes &amp; requests</span>
+                        @foreach ($notes as $note)
+                            <div style="margin-top: 12px;">
+                                <div class="vy-field-label">{{ $note['label'] }}</div>
+                                <div class="vy-fact-val" style="white-space: pre-line; font-weight: 400;">{{ $note['body'] }}</div>
+                            </div>
+                        @endforeach
+                        <div class="vy-recon" style="margin-top: 12px;">Captured when the booking was made or at online check-in.</div>
+                    </div>
+                @endif
+
                 {{-- REAL, read-only: the property's CONFIGURED policy (`property_policies.cancellation`).
                      CONTEXT ONLY — no fee is computed against this stay; the copy says so explicitly. --}}
                 @if ($policy !== null)

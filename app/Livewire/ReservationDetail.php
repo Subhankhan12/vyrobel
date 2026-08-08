@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Http\Controllers\Guest\GuestCheckinController;
+use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\AuditEvent;
 use App\Models\Folio;
+use App\Models\Guest;
 use App\Models\InventoryBlock;
 use App\Models\Payment;
 use App\Models\PropertyPolicy;
@@ -144,6 +147,7 @@ class ReservationDetail extends Component
             'policy' => $canCancel || $status === 'cancelled' ? $this->cancellationPolicy($reservation) : null,
             'can_cancel' => $canCancel,
             'can_no_show' => $canNoShow,
+            'notes' => $this->notes($reservation),
             'reservation' => [
                 'id' => $reservation->id,
                 'reference' => (string) $reservation->reference,
@@ -359,6 +363,43 @@ class ReservationDetail extends Component
             'reason' => $e['reason'],
             'is_money' => $e['is_money'],
         ], $entries);
+    }
+
+    /**
+     * The reservation's REAL free-text notes — the wireframe's "Notes & requests" card.
+     *
+     * ⚠️ THESE WERE WRITE-ONLY (wireframe-parity sweep · WAVE 2 · S2). Three paths write them and NO view
+     * rendered either column: the guest's arrival note from online check-in
+     * ({@see GuestCheckinController}) and both notes an operator types on New
+     * Reservation ({@see ReservationCreateController}). So a guest asked for a
+     * cot and no member of staff could ever see it, and the operator's own internal team note was equally lost.
+     *
+     * 🪤 REAL notes only. The wireframe's sample notes ("Late checkout requested", "High floor") and its "Add
+     * note" button are NOT rendered: reservations have no polymorphic note-write path, and an inert button
+     * asserting a capability that does not exist is exactly the false-copy pattern this wave removes. An empty
+     * card is omitted entirely rather than shown as a shell.
+     *
+     * 🔒 OPERATOR-ONLY. `/app` is gated by EnsureBackOfficeAccess, so no owner or guest reaches this. The
+     * internal note in particular is staff-authored context and must never surface on an owner or guest
+     * surface (#28). Both columns are already cleared by {@see Guest::anonymize()} (audit H5).
+     *
+     * @return list<array{kind: string, label: string, body: string}>
+     */
+    private function notes(Reservation $reservation): array
+    {
+        $notes = [];
+
+        $guestNote = trim((string) ($reservation->notes_guest ?? ''));
+        if ($guestNote !== '') {
+            $notes[] = ['kind' => 'guest', 'label' => 'From the guest', 'body' => $guestNote];
+        }
+
+        $internalNote = trim((string) ($reservation->notes_internal ?? ''));
+        if ($internalNote !== '') {
+            $notes[] = ['kind' => 'internal', 'label' => 'Internal team note', 'body' => $internalNote];
+        }
+
+        return $notes;
     }
 
     /**
