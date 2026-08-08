@@ -150,7 +150,8 @@ Every item below is **copy asserting behaviour the code does not implement**. Fo
 ## WAVE 3 — MINOR / LOW gaps · ⏳ IN PROGRESS (2026-08-09) — 3 gates done, the list below still open
 
 > **Gates done:** `270806f` owner format/timeline · `51c3f9f` guest add-on/refund/arrival-hour ·
-> `35dc05f` Insights unit labels. Suite **1758/1765**, non-green exactly the documented **7**.
+> `35dc05f` Insights unit labels · `f36356b` stated expiries + 2 error-page reclassifications.
+> Suite **1758/1765**, non-green exactly the documented **7**.
 >
 > ### ⚠️ FOUR OF THE FIVE "known named items" WERE ALREADY FIXED OR WERE NEVER GAPS — verified, not re-fixed
 > | Named item | Verdict |
@@ -172,6 +173,15 @@ Every item below is **copy asserting behaviour the code does not implement**. Fo
 >   shown only when a refund genuinely exists.
 > - **The reservation page invented arrival hours** — `From 15:00`/`By 11:00` when the property set none (#39).
 > - **Two Insights figures lacked their unit** — weekday occupancy tiles and the owner pp delta.
+> - **Two real expiries were never stated** — the 60-minute reset link (now read from config) and the
+>   invite's hardcoded "7 days" beside a real date (now from `OwnerInviteService::EXPIRY_DAYS`).
+>
+> ### 🚫 RECLASSIFIED AS REFUSALS-TO-PRESERVE (not gaps — they would need invented data)
+> - **404 "popular pages"** — no analytics exist, so nothing can back "popular"; and the 404 copy is
+>   deliberately identical for missing-vs-not-yours, because distinguishing them leaks another org's records
+>   (#38 answers foreign ids with 404, not 403).
+> - **500 "support reference"** — no correlation id is generated, so any reference shown could not be looked
+>   up. The view already says the error is logged and never leaks the exception/trace/SQL/path.
 >
 > ### ⬅ STILL OPEN — the rest of the list below is untouched
 > Notably: operator pagination (Guests / Reservations / Notifications), Maintenance Costs property-scope +

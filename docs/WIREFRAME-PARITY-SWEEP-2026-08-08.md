@@ -126,10 +126,16 @@ Agreement raw-JSON leak (not reproducible), and the Statement-of-Account PDF (**
 since the 2026-08-07 audit: 4-tile KPI band + activity table, sharing `FolioDocument::data` with the receipt
 so the two cannot drift, #17). **None were re-fixed.**
 
-**Six genuine gaps fixed** across `270806f`, `51c3f9f`, `35dc05f`: the commission rate written three ways
+**Eight genuine gaps fixed** across `270806f`, `51c3f9f`, `35dc05f`, `f36356b`: the commission rate written three ways
 (4 call sites, two on one page) · a finished stay advertising an upcoming check-in · pending add-on rows
 rendering BLANK (`add_ons` read vs `add_on_ids` written) · the Payments overview hiding refunds · invented
-arrival hours (#39) · two Insights figures missing their unit.
+arrival hours (#39) · two Insights figures missing their unit · two REAL expiries never stated (the
+60-minute reset link, and the invite's hardcoded "7 days" beside a real date).
+
+**Two items were RECLASSIFIED as refusals-to-preserve, not gaps:** the 404's "popular pages" (no analytics
+exist to back "popular"; and the copy is deliberately identical for missing-vs-not-yours, because
+distinguishing them leaks another org's records) and the 500's "support reference" (no correlation id is
+generated, so any reference shown could not be looked up).
 
 ⚠️ **WAVE 3 IS NOT CLOSED.** The bulk of §4/§8's MINOR rows remain — see the fix plan's WAVE 3 section for
 what is done vs open. **Two open items are NOT WAVE 3 and must be flagged, not folded in:** the login
