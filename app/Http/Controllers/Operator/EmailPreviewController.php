@@ -110,11 +110,15 @@ class EmailPreviewController extends Controller
         $guestName = GuestName::display($reservation->leadGuest);
         $propertyName = (string) ($reservation->property->name ?? 'Your property');
 
+        // ⚠️ The payment reminder previews over a booking that really OWES money, so Total − Paid == Balance
+        // holds (#17). Every other preview uses the shared sample reservation.
+        $payable = $this->samplePayableReservation() ?? $reservation;
+
         return match ($key) {
             'booking-confirmation' => new BookingConfirmationMail($reservation),
             'cancellation' => new CancellationMail($reservation, 'Guest requested cancellation', (int) $reservation->total_minor),
             'refund-confirmation' => new RefundConfirmationMail($this->sampleRefund($reservation)),
-            'payment-reminder' => new PaymentReminderMail($reservation, $this->sampleBalance($reservation)),
+            'payment-reminder' => new PaymentReminderMail($payable, $this->sampleBalance($payable)),
             'pre-arrival' => new PreArrivalMail($reservation),
             'review-request' => new ReviewRequestMail($reservation, url('/')),
             'waitlist-notification' => new WaitlistNotificationMail($guestName, $propertyName, '12–15 Aug 2026', url('/')),
@@ -141,12 +145,48 @@ class EmailPreviewController extends Controller
         return $refund;
     }
 
-    /** The reservation's real outstanding balance, or its total as a sample when the folio is settled/absent. */
+    /**
+     * The reservation's REAL outstanding balance.
+     *
+     * ⚠️ THIS USED TO RENDER AN ARITHMETICALLY IMPOSSIBLE EMAIL (audit 2026-08-07 · §5 parity). When the
+     * sample folio was settled it substituted the reservation TOTAL as the "balance" — but the Mailable
+     * reads Total and Paid from the real {@see FolioTotals}, so the preview showed:
+     *
+     *     Total €369.00  −  Paid €369.00  =  Balance due €369.00
+     *
+     * breaking the mail's own stated invariant (Total − Paid = Balance, #17) on the very screen an operator
+     * uses to check their template. A money email that cannot do arithmetic is worse than an empty one.
+     *
+     * The balance is now always the real one. {@see samplePayableReservation()} picks a booking that
+     * genuinely OWES money, so the preview is both meaningful and coherent — the figures come from one
+     * folio and reconcile by construction rather than being made to look plausible.
+     */
     private function sampleBalance(Reservation $reservation): int
     {
         $folio = Folio::query()->where('reservation_id', $reservation->getKey())->first();
-        $balance = $folio !== null ? FolioTotals::for($folio)['balance_minor'] : 0;
 
-        return $balance > 0 ? $balance : (int) $reservation->total_minor;
+        return $folio !== null ? FolioTotals::for($folio)['balance_minor'] : 0;
+    }
+
+    /**
+     * A reservation that genuinely has an outstanding balance — the honest subject for a PAYMENT REMINDER
+     * preview, since that is the only state in which this email is ever really sent (the sending command
+     * skips a settled folio). Falls back to the general sample when the tenant owes nothing anywhere, in
+     * which case the preview shows a real €0.00 rather than an invented figure.
+     */
+    private function samplePayableReservation(): ?Reservation
+    {
+        $owing = Reservation::query()
+            ->with(['leadGuest', 'property'])
+            ->whereIn('id', Folio::query()->select('reservation_id'))
+            ->latest()
+            ->get()
+            ->first(function (Reservation $r): bool {
+                $folio = Folio::query()->where('reservation_id', $r->getKey())->first();
+
+                return $folio !== null && FolioTotals::for($folio)['balance_minor'] > 0;
+            });
+
+        return $owing ?? $this->sampleReservation();
     }
 }

@@ -5528,3 +5528,36 @@ DB verified (Cash→`cash`, Bank transfer→`bank_transfer`, distinct not `manua
 reconciles); a regression test asserts the method is stored distinctly with money unchanged. Suite
 1617/1624 (the 7 non-green are the documented pre-existing BookingImportTest + OwnerUnitDetailViewTest flakes,
 unrelated); PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean.
+
+## 2026-08-08 — ⛔ PRICING MODEL UNRESOLVED: a hard blocker on the Stripe live-key flip (founder decision: defer)
+
+The post-audit polish pass surfaced that **two independent, contradictory pricing models run
+simultaneously**, and only one of them reaches Stripe:
+
+| | Definition | Where it is shown | Reaches Stripe? |
+|---|---|---|---|
+| **A · flat tier** | `config('billing.tiers')` — Essential €49/mo, Pro €99/mo | paywall · checkout · tier cards | **YES** — `stripe_prices[tier][interval]` is what a subscription is created against |
+| **B · per-unit** | `SubscriptionPricing` — active units × `per_unit_minor` (€9) × VAT | operator Billing "what you pay" · Settings "Your plan" | no |
+
+For the demo org the two disagree materially: **B quotes ~€44/mo where A charges €99/mo.** Today that is
+harmless because no charge is live. **At the live-key flip it becomes a customer being billed roughly
+double what the app told them** — the same shape as the H1 refund race: inert now, unrecoverable later.
+Both figures are honest, real code; neither is fabricated. What is missing is the *product decision* about
+which model Vyrobel actually sells.
+
+**DECISION (founder, 2026-08-08): DEFER — decide at go-live. No pricing code changed in this pass.**
+Choosing between A and B is a commercial decision, not a defect fix, and picking one silently would have
+been inventing a product decision — worse than inventing data. Recorded here rather than resolved.
+
+⛔ **THIS IS A GO-LIVE BLOCKER, not a backlog item.** It must be resolved BEFORE `STRIPE_KEY` is switched to
+a live key, and it is now listed alongside the founder's other cutovers. Resolving it means either:
+
+- **adopt A** — the per-unit figure stops being presented as the bill (UI-only change; nothing that reaches
+  Stripe moves); or
+- **adopt B** — the tier cards/paywall are rebuilt to quote per-unit AND the Stripe integration moves to
+  quantity/metered prices, because the tier Price IDs would no longer describe the charge (a real
+  billing-integration workstream, not a UI fix).
+
+Everything else about billing is unchanged and remains correct: the trial is real, access-gating fails
+open on a missing record, the live charge stays account-gated, and no org is ever flipped to active off a
+fake payment (#41).

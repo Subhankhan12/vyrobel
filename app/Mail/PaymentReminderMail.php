@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use App\Console\Commands\SendPaymentReminders;
+use App\Mail\Concerns\BrandsGuestMail;
 use App\Models\Folio;
 use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
@@ -28,13 +29,21 @@ use Illuminate\Support\Carbon;
  */
 class PaymentReminderMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BrandsGuestMail, Queueable, SerializesModels;
 
     public function __construct(public readonly Reservation $reservation, public readonly int $balanceMinor) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->template()->subject());
+        // ⚠️ BRAND REGRESSION (audit 2026-08-07 · §5 parity). This is a guest MONEY email — it asks the
+        // guest to pay — and it was the only one of its siblings sending as the generic Vyrobel brand.
+        // BookingConfirmation, Cancellation, RefundConfirmation, PreArrival and ReviewRequest all resolve
+        // the property brand through the shared trait; a payment request arriving from a different sender
+        // than the booking confirmation is exactly what a guest is taught to treat as a phishing attempt.
+        return $this->brandedEnvelope(
+            $this->template()->subject(),
+            $this->brandFor($this->reservation->property),
+        );
     }
 
     public function content(): Content
@@ -72,6 +81,8 @@ class PaymentReminderMail extends Mailable
                 'intro' => $tpl->message(),
                 'button' => $tpl->button(),
                 'blocks' => ['totals' => $tpl->block('totals'), 'booking_detail' => $tpl->block('booking_detail')],
+                // The shared emails.layout reads this to render the property's mark/colour (task #98).
+                'brand' => $this->brandFor($r->property),
             ],
         );
     }
