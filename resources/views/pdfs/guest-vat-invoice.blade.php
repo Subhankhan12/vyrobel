@@ -38,7 +38,7 @@
                     <span style="font-size:16px; font-weight:bold; padding-left:6px;">Vyrobel</span>
                 </td>
                 <td style="text-align:right;">
-                    <div class="eyebrow">VAT invoice</div>
+                    <div class="eyebrow">{{ $doc_title }}</div>
                     <h1>{{ $invoice_no }}</h1>
                     <div class="muted" style="margin-top:4px; font-size:11px;">{{ $invoice_date }} · {{ $currency }}</div>
                 </td>
@@ -48,8 +48,22 @@
         <table class="parties">
             <tr>
                 <td>
+                    {{-- ⚠️ THE SUPPLIER BLOCK — the statutory identifiers this tax document was missing.
+                         Every line is a REAL stored org value and appears ONLY when genuinely set; an
+                         operator who has not filled them in simply gets fewer lines (#39 — never a
+                         placeholder VAT number, which on a tax document is worse than none at all). --}}
                     <div class="k">From</div>
-                    {{ $seller }}@if ($property)<div class="muted">{{ $property }}</div>@endif
+                    <strong>{{ $seller }}</strong>
+                    @if ($seller_is_registered)
+                        <div class="muted" style="font-size:10px;">Registered legal name</div>
+                    @endif
+                    @if ($property)<div class="muted">{{ $property }}</div>@endif
+                    @if ($seller_city || $seller_country)
+                        <div class="muted">{{ collect([$seller_city, $seller_country])->filter()->implode(', ') }}</div>
+                    @endif
+                    @if ($seller_vat_id)
+                        <div style="margin-top:3px;">VAT reg. no. <strong>{{ $seller_vat_id }}</strong></div>
+                    @endif
                 </td>
                 <td>
                     <div class="k">Billed to</div>
@@ -84,8 +98,8 @@
         </table>
 
         <div class="foot">
-            A VAT invoice for your booking, generated from Vyrobel's append-only folio ledger; the net, VAT and total
-            reconcile to the figures in your account. Vyrobel · {{ $seller }}.
+            {{ $doc_title }} for your booking, generated from Vyrobel's append-only folio ledger; the net{{ $is_vat_document ? ', VAT' : '' }}
+            and total reconcile to the figures in your account. Issued by {{ $seller }}.
         </div>
     </div>
 </body>

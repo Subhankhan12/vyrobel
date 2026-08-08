@@ -119,7 +119,7 @@ final class OwnerBookingSummaryDocument
         $org = Organization::query()->whereKey($statement->organization_id)->firstOrNew(['id' => $statement->organization_id]);
         $operator = (string) ($org->name ?? 'Vyrobel');
         $operatorCompany = (string) ($org->billing_company ?? $org->name ?? 'Vyrobel');
-        $operatorVat = ($org->billing_vat_id ?? '') !== '' ? (string) $org->billing_vat_id : null;
+        $operatorVat = OperatorLetterhead::vatId($org);
         $operatorCountry = self::countryName(is_string($org->country) ? $org->country : null);
 
         $ownerName = (string) ($statement->owner->name ?? 'Owner');
@@ -130,13 +130,9 @@ final class OwnerBookingSummaryDocument
 
         // Composed presentation strings — built here (not in the Blade) so the PDF view stays logic-free and no
         // top-of-file @php block is needed. Only REAL parts (country / VAT) are appended to the letterhead.
-        $addr = 'Managing agent';
-        if ($operatorCountry !== null) {
-            $addr .= ' · '.$operatorCountry;
-        }
-        if ($operatorVat !== null) {
-            $addr .= ' · VAT '.$operatorVat;
-        }
+        // The ONE letterhead rule (shared) — this document resolves the ISO country to its full name first,
+        // so it passes that resolved form rather than the stored code.
+        $addr = OperatorLetterhead::line($org, OperatorLetterhead::ROLE_MANAGING_AGENT, $operatorCountry);
 
         $reconcile = "This booking summary lists the reservations that generated {$periodLabel}'s gross room revenue of {$grossDisplay}.";
         $reconcile .= $sequenceNo

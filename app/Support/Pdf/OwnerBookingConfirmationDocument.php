@@ -56,16 +56,10 @@ final class OwnerBookingConfirmationDocument
 
         // Letterhead — the operator's REAL registered identity (mirrors the summary PDF). VAT only when set.
         $org = Organization::query()->whereKey($reservation->organization_id)->firstOrNew(['id' => $reservation->organization_id]);
-        $addr = 'Managing agent';
-        if (($org->country ?? '') !== '') {
-            $addr .= ' · '.$org->country;
-        }
-        if (($org->billing_vat_id ?? '') !== '') {
-            $addr .= ' · VAT '.$org->billing_vat_id;
-        }
+        $addr = OperatorLetterhead::line($org);   // the ONE letterhead rule (shared)
 
         return [
-            'operator' => (string) ($org->billing_company ?? $org->name ?? 'Vyrobel'),
+            'operator' => OperatorLetterhead::registeredName($org),
             'operator_addr' => $addr,
             'reference' => (string) $reservation->reference,
             'status' => ReservationStage::meta(ReservationStage::for($reservation))['label'],

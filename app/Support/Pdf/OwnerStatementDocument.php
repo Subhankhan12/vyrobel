@@ -35,7 +35,7 @@ final class OwnerStatementDocument
     {
         $currency = (string) $statement->currency;
         $org = Organization::query()->whereKey($statement->organization_id)->first();
-        $company = $org instanceof Organization ? (string) ($org->billing_company ?: $org->name) : 'Vyrobel';
+        $company = OperatorLetterhead::registeredName($org instanceof Organization ? $org : null);
 
         $gross = (int) $statement->gross_minor;
 

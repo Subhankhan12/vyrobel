@@ -135,20 +135,12 @@ final class OwnerAgreementDocument
 
     private static function operatorName(Organization $org): string
     {
-        return (string) ($org->billing_company ?? $org->name ?? 'Vyrobel');
+        return OperatorLetterhead::registeredName($org);
     }
 
     private static function operatorAddr(Organization $org): string
     {
-        $addr = 'Managing agent';
-        if (($org->country ?? '') !== '') {
-            $addr .= ' · '.$org->country;
-        }
-        if (($org->billing_vat_id ?? '') !== '') {
-            $addr .= ' · VAT '.$org->billing_vat_id;
-        }
-
-        return $addr;
+        return OperatorLetterhead::line($org);
     }
 
     private static function interval(mixed $value): ?string

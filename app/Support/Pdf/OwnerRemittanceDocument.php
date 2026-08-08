@@ -50,13 +50,7 @@ final class OwnerRemittanceDocument
         // Letterhead — the operator's REAL registered identity (same rule as the statement/booking-summary PDFs):
         // VAT + country shown ONLY when set; the wireframe's street/city is not modelled, so only the country.
         $org = Organization::query()->whereKey($payout->organization_id)->firstOrNew(['id' => $payout->organization_id]);
-        $addr = 'Managing agent';
-        if (($org->country ?? '') !== '') {
-            $addr .= ' · '.$org->country;
-        }
-        if (($org->billing_vat_id ?? '') !== '') {
-            $addr .= ' · VAT '.$org->billing_vat_id;
-        }
+        $addr = OperatorLetterhead::line($org);   // the ONE letterhead rule (shared)
 
         // Owner-scoped relation off the already-scoped payout. `owner_statement_id` is a NOT NULL FK, so
         // this resolves for every payout the owner can see; still guarded, so a missing statement OMITS
@@ -77,7 +71,7 @@ final class OwnerRemittanceDocument
             ->all();
 
         return [
-            'operator' => (string) ($org->billing_company ?? $org->name ?? 'Vyrobel'),
+            'operator' => OperatorLetterhead::registeredName($org),
             'operator_addr' => $addr,
             // A period-derived remittance reference (RA-YYYY-MM), like the booking-summary's BS-YYYY-MM — derived,
             // never fabricated; the accompanied statement is cross-referenced by its REAL sequence_no.
