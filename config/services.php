@@ -131,6 +131,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Auth throttle
+    |--------------------------------------------------------------------------
+    |
+    | Per-IP login attempts per minute, applied to all four realms and both 2FA challenges (audit
+    | F-2a-04). This is the CREDENTIAL-STUFFING net: the per-credential limit lives in the login
+    | FormRequests and never trips when every attempt uses a different email address.
+    |
+    | Raise it only if a large office genuinely shares one NAT address.
+    |
+    */
+
+    'auth' => [
+        'login_ip_rate_limit' => env('LOGIN_IP_RATE_LIMIT', 20),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Stripe
     |--------------------------------------------------------------------------
     |

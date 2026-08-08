@@ -22,6 +22,13 @@ class PlatformAdminSeeder extends Seeder
 {
     public function run(): void
     {
+        // ⚠️ Defence in depth: this seeder can be invoked on its own (`db:seed --class=PlatformAdminSeeder`),
+        // so it refuses production independently of DatabaseSeeder. It mints a super-admin whose password is
+        // the literal string "password", in a realm that sits ABOVE tenancy.
+        if (app()->isProduction()) {
+            throw new \RuntimeException('Refusing to seed a DEMO platform admin in production — use `php artisan admin:create`.');
+        }
+
         PlatformAdmin::query()->updateOrCreate(
             ['email' => 'admin@vyrobel-demo.test'],
             [

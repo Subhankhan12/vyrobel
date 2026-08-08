@@ -33,9 +33,10 @@ use Symfony\Component\HttpFoundation\Response;
  *   4. `img-src` MUST allow data: and blob:. The admin shell uses a data: SVG favicon, and the owner
  *      Add-Unit form previews uploads via `URL.createObjectURL` (a blob: URL).
  *
- * Fonts are currently loaded from Google's CDN, so the policy allows those two origins. When the fonts are
- * self-hosted, drop `https://fonts.googleapis.com` / `https://fonts.gstatic.com` from style-src/font-src —
- * they are the only external origins the policy permits.
+ * ⚠️ THE POLICY NOW PERMITS NO EXTERNAL ORIGIN AT ALL. Inter and Sora were self-hosted (audit F6-6), so
+ * fonts.googleapis.com and fonts.gstatic.com were removed from style-src/font-src — they were the last two.
+ * Every asset the app loads is same-origin, which is both the strongest posture and the simplest to reason
+ * about: anything reaching for a third party is now a CSP violation by definition, not a judgement call.
  *
  * HSTS is sent ONLY over a genuinely secure connection: pinning HSTS against a plain-http host (a dev box on
  * localhost) would poison that hostname in the developer's browser for `max-age`, which is not undoable from
@@ -50,16 +51,13 @@ class SecurityHeaders
      */
     private function policy(): array
     {
-        $fontCss = 'https://fonts.googleapis.com';
-        $fontFiles = 'https://fonts.gstatic.com';
-
         return [
             'default-src' => "'self'",
             // See note 2 — Livewire inline scripts + Alpine's `new Function` evaluation.
             'script-src' => "'self' 'unsafe-inline' 'unsafe-eval'",
             // See note 1 — the inline design system + ~97 inline style attributes per page.
-            'style-src' => "'self' 'unsafe-inline' ".$fontCss,
-            'font-src' => "'self' ".$fontFiles.' data:',
+            'style-src' => "'self' 'unsafe-inline'",
+            'font-src' => "'self' data:",
             // See note 4 — data: favicon, blob: upload previews.
             'img-src' => "'self' data: blob:",
             'connect-src' => "'self'",
