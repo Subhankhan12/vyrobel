@@ -50,7 +50,7 @@
             </td>
         </tr>
         <tr>
-            <td align="center" style="padding:10px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#8A8079;">Secure payment · Visa, Mastercard &amp; Apple Pay · receipt by email</td>
+            <td align="center" style="padding:10px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#8A8079;">Secure payment · Visa &amp; Mastercard · receipt by email</td>
         </tr>
     </table>
 

@@ -377,6 +377,10 @@ class OperatorInbox extends Component
             'can_close' => $status !== 'closed',
             'can_reopen' => $status === 'closed',
             'can_snooze' => $status !== 'closed',
+            // ⚠️ WAVE 2 · #19 — the composer footnote said "The guest replies wherever they booked" under
+            // EVERY thread, including the owner↔operator relay, which has no guest and no booking channel.
+            // The sentence branches on what the thread actually is.
+            'is_owner_thread' => $thread->owner_id !== null,
             'guest' => $this->guestCard($thread),
             'reservation' => $this->reservationCard($thread),
             'assignee' => $thread->assignedTo instanceof User ? ['name' => (string) $thread->assignedTo->name, 'initials' => $this->initials((string) $thread->assignedTo->name)] : null,

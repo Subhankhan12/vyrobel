@@ -84,6 +84,6 @@
             <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--vy-muted)"><input type="checkbox" name="notify_similar" value="1"> Notify me about similar rooms too</label>
             <div><button type="submit" class="vy-btn">Join waitlist</button></div>
         </form>
-        <div style="font-size:11.5px;color:var(--vy-faint);margin-top:10px">If a spot opens we’ll email you first. Text alerts and auto-holding a room are coming soon.</div>
+        <div style="font-size:11.5px;color:var(--vy-faint);margin-top:10px">If a spot opens we’ll be in touch. Automatic alerts and auto-holding a room are coming soon.</div>
     </section>
 </x-guest.shell>

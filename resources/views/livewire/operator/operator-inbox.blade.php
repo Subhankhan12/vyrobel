@@ -245,7 +245,13 @@
                                 <form id="close-{{ $active['id'] }}" method="POST" action="{{ route('app.inbox.close', $active['id']) }}">@csrf</form>
                             @endif
                         @endif
-                        <p class="vy-composer-hint">The guest replies wherever they booked · contact details stay private.</p>
+                        <p class="vy-composer-hint">
+                            @if ($active['is_owner_thread'])
+                                Your owner replies in their portal · this thread is not visible to the guest.
+                            @else
+                                The guest replies wherever they booked · contact details stay private.
+                            @endif
+                        </p>
                     </footer>
                 @else
                     <div class="vy-empty" style="padding: 60px 30px;">Pick a conversation, or start a new message.</div>

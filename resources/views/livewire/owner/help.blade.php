@@ -124,7 +124,7 @@
             </div>
             <div class="vy-hlp-ccard" style="justify-content:center">
                 <div class="vy-eyebrow" style="margin-bottom:10px">System status</div>
-                <div class="vy-hlp-status"><span class="dot"></span><span style="font-size:13px;font-weight:500;color:var(--vy-green)">All systems operational</span></div>
+                <div class="vy-hlp-status"><span class="dot"></span><span style="font-size:13px;font-weight:500;color:var(--vy-muted)">Your operator is your first line of support</span></div>
                 <span style="font-size:11.5px;color:var(--vy-faint);margin-top:8px">Payouts, statements and your portal are running normally.</span>
             </div>
         </section>

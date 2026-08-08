@@ -46,7 +46,7 @@
                 @endif
             </div>
             <div style="font-size: 11.5px; color: var(--vy-faint); margin-top: 9px;">
-                Search a guest by name or email, a reservation by reference (VYR-…), or a unit. Phone search isn’t available (numbers are stored encrypted).
+                Search a guest by name or email, a reservation by reference (R-…), or a unit. Phone search isn’t available (numbers are stored encrypted).
             </div>
         </form>
 

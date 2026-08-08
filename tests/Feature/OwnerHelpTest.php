@@ -25,8 +25,13 @@ it('renders the honest help page — real Ask Vyrobel + relay + FAQ, and NO fabr
         ->assertSee('Owner FAQs')
         ->assertSee('When and how do I get paid?')
         ->assertSee(route('owner.payout-method'))
-        // HONEST: a static status line + messaging as the tracked channel (no ticket queue)
-        ->assertSee('All systems operational')
+        // ⚠️ This used to assert "All systems operational" and called it HONEST because the line was static
+        // (wireframe-parity WAVE 2 · #4). Static is exactly the problem: nothing observes system health, so
+        // the words read green during an outage — the one moment they matter. A hardcoded status claim sits
+        // in the same family as the fabrications forbidden below. The check is not weakened: it now demands
+        // the honest line AND forbids the status assertion.
+        ->assertSee('Your operator is your first line of support')
+        ->assertDontSee('All systems operational')
         ->assertSee('no separate ticket queue')
         // ⚠️ NEVER the wireframe's fabrications (#39)
         ->assertDontSee('instant answer')       // the assistant is grounded, not a magic instant oracle
