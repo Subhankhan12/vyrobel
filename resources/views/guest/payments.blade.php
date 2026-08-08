@@ -26,6 +26,12 @@
             <div style="{{ $ptile }}"><span style="{{ $pnum }}">{{ $overview['total_charged'] }}</span><span style="{{ $psub }}">Total charged</span></div>
             <div style="{{ $ptile }}"><span style="{{ $pnum }}">{{ $overview['total_paid'] }}</span><span style="{{ $psub }}">Paid to date</span></div>
             <div style="{{ $ptile }}"><span style="{{ $pnum }};color:{{ $due ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">{{ $due ? $overview['total_balance'] : '€0.00' }}</span><span style="{{ $psub }}">Balance due</span></div>
+            {{-- WAVE 3 — the REAL refunded total, shown only when there IS one. "Paid to date" is net of
+                 refunds, so without this a refunded guest saw a smaller Paid figure and nothing explaining it.
+                 No refund ⇒ no tile, rather than a noisy €0.00. --}}
+            @if ($overview['total_refunded_minor'] > 0)
+                <div style="{{ $ptile }}"><span style="{{ $pnum }}">{{ $overview['total_refunded'] }}</span><span style="{{ $psub }}">Refunded to you</span></div>
+            @endif
         </div>
     </div>
 

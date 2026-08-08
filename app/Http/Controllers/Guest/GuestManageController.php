@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Guest;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
+use App\Models\AddOn;
 use App\Models\GuestChangeRequest;
 use App\Models\Reservation;
 use App\Services\GuestChangeRequestService;
@@ -138,9 +139,31 @@ class GuestManageController extends Controller
 
         return match ((string) $request->type) {
             GuestChangeRequest::TYPE_DATE_CHANGE => (string) ($payload['new_check_in'] ?? '').' → '.(string) ($payload['new_check_out'] ?? ''),
-            GuestChangeRequest::TYPE_ADD_ON => implode(', ', array_map('strval', (array) ($payload['add_ons'] ?? []))),
+            // ⚠️ WAVE 3 — reads `add_on_ids`, the key GuestChangeRequestService actually WRITES (:77) and
+            // reads back (:127). This read `add_ons`, which nothing ever writes, so every pending add-on row
+            // rendered BLANK. Resolved to real NAMES too — the ids are ULIDs and mean nothing to a guest.
+            GuestChangeRequest::TYPE_ADD_ON => $this->addOnNames((array) ($payload['add_on_ids'] ?? [])),
             GuestChangeRequest::TYPE_CANCELLATION => (string) ($payload['reason'] ?? ''),
         };
+    }
+
+    /**
+     * Real add-on names for a pending request. Tenant-scoped (AddOn carries the org scope), so an id that is
+     * not this org's simply does not resolve; an unresolvable id is omitted rather than printed raw.
+     *
+     * @param  list<mixed>  $ids
+     */
+    private function addOnNames(array $ids): string
+    {
+        if ($ids === []) {
+            return '';
+        }
+
+        return AddOn::query()
+            ->whereIn('id', array_map('strval', $ids))
+            ->orderBy('name')
+            ->pluck('name')
+            ->implode(', ');
     }
 
     private function backWith(Reservation $reservation, string $message): RedirectResponse

@@ -27,7 +27,7 @@ final class GuestPayments
 {
     /**
      * @return array{
-     *   currency: string, total_balance: string, total_balance_minor: int, total_paid: string, total_charged: string,
+     *   currency: string, total_balance: string, total_balance_minor: int, total_paid: string, total_charged: string, total_refunded: string, total_refunded_minor: int,
      *   bookings: list<array<string, mixed>>, history: list<array<string, mixed>>
      * }
      */
@@ -47,17 +47,23 @@ final class GuestPayments
         $totalBalance = 0;
         $totalPaid = 0;
         $totalCharged = 0;
+        $totalRefunded = 0;
         $bookings = [];
         $history = [];
 
         foreach ($reservations as $reservation) {
             $folio = $folios->get($reservation->id);
-            $totals = $folio !== null ? FolioTotals::for($folio) : ['charges_minor' => 0, 'paid_minor' => 0, 'balance_minor' => 0];
+            $totals = $folio !== null ? FolioTotals::for($folio) : ['charges_minor' => 0, 'paid_minor' => 0, 'balance_minor' => 0, 'refunded_minor' => 0];
             $bookingCurrency = (string) $reservation->currency;
 
             $totalBalance += $totals['balance_minor'];
             $totalPaid += $totals['paid_minor'];
             $totalCharged += $totals['charges_minor'];   // real Σ charges (pixel-diff hero tile — not a fabricated "card on file")
+            // ⚠️ WAVE 3 — the REAL refunded total. "Paid to date" is NET of refunds, so a guest who was
+            // refunded saw a smaller Paid figure with nothing saying why. FolioTotals already returned
+            // `refunded_minor` (added for the Statement of Account); it simply was not surfaced here. Same
+            // single pass as `paid`, never a second walk over the payments — that is how two figures drift (#17).
+            $totalRefunded += (int) $totals['refunded_minor'];
 
             $bookings[] = [
                 'id' => (string) $reservation->getKey(),
@@ -89,6 +95,8 @@ final class GuestPayments
             'total_balance' => MoneyFormatter::display($totalBalance, $currency),
             'total_balance_minor' => $totalBalance,
             'total_paid' => MoneyFormatter::display($totalPaid, $currency),
+            'total_refunded' => MoneyFormatter::display($totalRefunded, $currency),
+            'total_refunded_minor' => $totalRefunded,
             'total_charged' => MoneyFormatter::display($totalCharged, $currency),
             'bookings' => $bookings,
             'history' => array_map(fn (array $e): array => array_diff_key($e, ['ts' => 0]), $history),

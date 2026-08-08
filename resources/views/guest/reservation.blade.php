@@ -79,8 +79,16 @@
         <section id="sec-arrival" class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .16s both">
             <div class="vy-eyebrow" style="margin-bottom:12px">Arrival info</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-                <div style="padding:10px 12px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline)"><div style="font-size:11px;color:var(--vy-muted)">Check-in</div><div style="font-size:14px;font-weight:600;color:var(--vy-ink);margin-top:2px">{{ $arrival['check_in_time'] ?? 'From 15:00' }}</div></div>
-                <div style="padding:10px 12px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline)"><div style="font-size:11px;color:var(--vy-muted)">Check-out</div><div style="font-size:14px;font-weight:600;color:var(--vy-ink);margin-top:2px">{{ $arrival['check_out_time'] ?? 'By 11:00' }}</div></div>
+                {{-- WAVE 3 — no invented hour (#39). These fell back to "From 15:00" / "By 11:00" when the property
+                     had published no time, so a guest was told an arrival hour the operator never set — and the
+                     Arrival page beside it correctly showed nothing. ArrivalPack::time() already returns null;
+                     the tile is simply omitted rather than filled with a plausible guess. --}}
+                @if ($arrival['check_in_time'] !== null)
+                    <div style="padding:10px 12px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline)"><div style="font-size:11px;color:var(--vy-muted)">Check-in</div><div style="font-size:14px;font-weight:600;color:var(--vy-ink);margin-top:2px">{{ $arrival['check_in_time'] }}</div></div>
+                @endif
+                @if ($arrival['check_out_time'] !== null)
+                    <div style="padding:10px 12px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline)"><div style="font-size:11px;color:var(--vy-muted)">Check-out</div><div style="font-size:14px;font-weight:600;color:var(--vy-ink);margin-top:2px">{{ $arrival['check_out_time'] }}</div></div>
+                @endif
             </div>
             @if ($arrival['released'] && $arrival['door_code'] !== null)
                 <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px"><span style="color:var(--vy-muted)">Door code</span><span style="font-weight:700;font-variant-numeric:tabular-nums;color:var(--vy-ink)">{{ $arrival['door_code'] }}</span></div>
