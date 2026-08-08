@@ -9,6 +9,7 @@ use App\Models\Owner;
 use App\Services\OwnerTaxService;
 use App\Services\OwnerVatService;
 use App\Services\PdfService;
+use App\Support\Countries;
 use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
 use App\Support\Pdf\OwnerAnnualTaxDocument;
@@ -37,6 +38,14 @@ class OwnerTaxController extends Controller
             'vat_number' => ['nullable', 'string', 'max:100'],
             'vat_registered' => ['nullable', 'boolean'],
         ]);
+
+        // ⚠️ NORMALISE THE RESIDENCY TO ITS ISO CODE (audit 2026-08-07). `tax_country` is the key that
+        // WithholdingService and OwnerVatService look a configured rate up by, so a display name stored
+        // here matches nothing and silently yields a ZERO withholding on a real payout. The form now
+        // submits codes; this is the second line of defence, because a stale cached page — or any future
+        // caller of this route — must not be able to poison the column. An unrecognised value is passed
+        // through rather than discarded, so nothing an operator typed is silently lost.
+        $data['tax_country'] = Countries::toCode($data['tax_country'] ?? null);
 
         // The checkbox/toggle only submits when on; normalise to an explicit boolean, and never keep a VAT
         // number on file for an owner who isn't registered (the flag is the source of truth).

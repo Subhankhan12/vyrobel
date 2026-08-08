@@ -119,14 +119,22 @@
 
                             <div>
                                 <label class="vy-tax-lbl" for="tax_country">Tax residency</label>
-                                @php $countries = ['Portugal', 'Ireland', 'Spain', 'France', 'United Kingdom', 'Germany', 'Italy', 'Netherlands']; @endphp
+                                {{-- ⚠️ THE OPTION VALUE IS THE ISO CODE, THE LABEL IS THE NAME (audit 2026-08-07).
+                                     This select used to emit `value="Portugal"`, but `owners.tax_country` is an ISO
+                                     code by contract — it is the key WithholdingService and OwnerVatService look a
+                                     rate up by (`tax:set-rate PT …`). A name matched nothing, so choosing a
+                                     residency here silently produced a ZERO withholding on a real payout. Codes
+                                     come from the ONE shared list so this cannot drift from the display side. --}}
+                                @php $selectedCountry = \App\Support\Countries::toCode(old('tax_country', $profile['tax_country'])); @endphp
                                 <select id="tax_country" name="tax_country" class="vy-input" style="width:100%;cursor:pointer">
                                     <option value="">—</option>
-                                    @foreach ($countries as $c)
-                                        <option value="{{ $c }}" @selected(old('tax_country', $profile['tax_country']) === $c)>{{ $c }}</option>
+                                    @foreach (\App\Support\Countries::options() as $code => $name)
+                                        <option value="{{ $code }}" @selected($selectedCountry === $code)>{{ $name }}</option>
                                     @endforeach
-                                    @if ($profile['tax_country'] !== '' && ! in_array($profile['tax_country'], $countries, true))
-                                        <option value="{{ $profile['tax_country'] }}" selected>{{ $profile['tax_country'] }}</option>
+                                    {{-- A stored value this list does not know still renders selected, rather than
+                                         silently resetting the owner's residency to blank on the next save. --}}
+                                    @if ($selectedCountry !== null && ! \App\Support\Countries::isKnownCode($selectedCountry))
+                                        <option value="{{ $selectedCountry }}" selected>{{ $selectedCountry }}</option>
                                     @endif
                                 </select>
                             </div>

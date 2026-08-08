@@ -12,6 +12,7 @@ use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Services\OwnerStatementService;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\Countries;
 use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
@@ -458,18 +459,7 @@ final class OwnerBookingSummaryDocument
      */
     private static function countryName(?string $code): ?string
     {
-        if ($code === null || $code === '') {
-            return null;
-        }
-
-        $code = strtoupper($code);
-
-        return [
-            'PT' => 'Portugal', 'ES' => 'Spain', 'GB' => 'United Kingdom', 'FR' => 'France', 'DE' => 'Germany',
-            'IT' => 'Italy', 'NL' => 'Netherlands', 'IE' => 'Ireland', 'BE' => 'Belgium', 'CH' => 'Switzerland',
-            'AT' => 'Austria', 'GR' => 'Greece', 'SE' => 'Sweden', 'DK' => 'Denmark', 'PL' => 'Poland',
-            'US' => 'United States', 'CA' => 'Canada',
-        ][$code] ?? $code;
+        return Countries::name($code);   // the ONE country list (shared)
     }
 
     /**
