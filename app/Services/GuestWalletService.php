@@ -16,6 +16,7 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -30,6 +31,14 @@ use Illuminate\Support\Facades\DB;
  * that spendable balance. (Scope note: expiry is a query-time exclusion of unspent expired credits; per-lot FIFO
  * allocation of debits to specific credits is not tracked — the no-overdraw guard + expiry exclusion cover the
  * real cases; strict FIFO lot accounting is a documented seam, not built here.)
+ *
+ * 🔒 CONCURRENCY (wireframe-parity WAVE 2 · S1). A DERIVED balance is only safe if it is read under the same lock
+ * that writes it. Every debit path — {@see debit()}, {@see reverse()}, {@see applyToBooking()} — now opens a
+ * transaction, takes a row lock via {@see lockWallet()}, and RE-READS its bound inside that lock; {@see
+ * redeemCode()} locks the promo row it is bounded by. Writes carry a deterministic `idempotency_key`, so the
+ * table's UNIQUE index is the backstop when two replays race past the fast path. This mirrors
+ * {@see FolioService::refundPayment()} (itself mirroring {@see OwnerPayoutService::pay()}) — the same fix, the
+ * same order: lock, re-read, then write.
  */
 class GuestWalletService
 {
@@ -77,28 +86,44 @@ class GuestWalletService
     }
 
     /**
-     * Post a DEBIT (spend) — GUARDED against overdraw. Throws {@see WalletOverdrawException} before any write when
-     * the amount exceeds the derived spendable balance.
+     * Post a DEBIT (spend) — GUARDED against overdraw, and the guard is re-read INSIDE the guest row-lock so two
+     * concurrent debits cannot both pass it. Throws {@see WalletOverdrawException} before any write.
      */
     public function debit(Guest $guest, string $type, string $reason, Money $amount, ?Model $source = null): GuestCreditEntry
     {
-        $this->assertSpendable($guest, $amount->amountMinor());
+        return DB::transaction(function () use ($guest, $type, $reason, $amount, $source): GuestCreditEntry {
+            $this->lockWallet($guest);
+            $this->assertSpendable($guest, $amount->amountMinor());
 
-        return $this->post($guest, GuestCreditEntry::DIRECTION_DEBIT, $type, $reason, $amount, $source);
+            return $this->post($guest, GuestCreditEntry::DIRECTION_DEBIT, $type, $reason, $amount, $source);
+        });
     }
 
     /**
      * Reverse a credit — correct-by-reversal: a NEW debit with `reverses_id` set (the original row is untouched).
-     * Guarded like any debit (can't reverse below the spendable balance).
+     * Guarded like any debit, under the same lock.
+     *
+     * ⚠️ A credit can be reversed ONCE. Two concurrent reversals of one credit would otherwise both pass the
+     * balance guard and post two debits — the append-only ledger cannot then be tidied up (the same shape as the
+     * bounded-refund and bounded-termination guards: append-only bounds EDITS, it does not bound the COUNT).
      */
     public function reverse(GuestCreditEntry $credit, string $reason): GuestCreditEntry
     {
-        $this->assertSpendable($credit->guest, (int) $credit->amount_minor);
+        return DB::transaction(function () use ($credit, $reason): GuestCreditEntry {
+            $guest = $credit->guest;
+            $this->lockWallet($guest);
 
-        $entry = $this->post($credit->guest, GuestCreditEntry::DIRECTION_DEBIT, GuestCreditEntry::TYPE_REVERSAL, $reason, Money::of((int) $credit->amount_minor, (string) $credit->currency));
-        $entry->update(['reverses_id' => $credit->getKey()]);
+            if (GuestCreditEntry::query()->where('reverses_id', $credit->getKey())->exists()) {
+                throw new WalletOverdrawException('That credit has already been reversed.');
+            }
 
-        return $entry->refresh();
+            $this->assertSpendable($guest, (int) $credit->amount_minor);
+
+            $entry = $this->post($guest, GuestCreditEntry::DIRECTION_DEBIT, GuestCreditEntry::TYPE_REVERSAL, $reason, Money::of((int) $credit->amount_minor, (string) $credit->currency));
+            $entry->update(['reverses_id' => $credit->getKey()]);
+
+            return $entry->refresh();
+        });
     }
 
     /**
@@ -106,23 +131,48 @@ class GuestWalletService
      * credit that reduces what's owed (through {@see FolioService::applyWalletCredit()}, the single folio write
      * path). Can't overdraw the wallet, and can't apply more than the folio balance owed.
      */
-    public function applyToBooking(Guest $guest, Reservation $reservation, Money $amount): GuestCreditEntry
+    public function applyToBooking(Guest $guest, Reservation $reservation, Money $amount, ?string $idempotencyKey = null): GuestCreditEntry
     {
         $amountMinor = $amount->amountMinor();
         if ($amountMinor <= 0) {
             throw new \InvalidArgumentException('The applied amount must be positive.');
         }
 
-        $folio = Folio::query()->where('reservation_id', $reservation->getKey())->with(['items', 'payments'])->first();
-        $owedMinor = $folio !== null ? FolioTotals::for($folio)['balance_minor'] : 0;
-        if ($amountMinor > $owedMinor) {
-            throw new WalletOverdrawException("A wallet credit of {$amountMinor} exceeds the {$owedMinor} owed on this booking.");
+        // 🔒 Cheap fast path for a replayed submit (the refundPayment() discipline). The UNIQUE index on
+        // guest_credit_ledger.idempotency_key is the real backstop if two replays race past this.
+        if ($idempotencyKey !== null && ($existing = $this->findByIdempotencyKey($idempotencyKey)) !== null) {
+            return $existing;
         }
 
-        $this->assertSpendable($guest, $amountMinor);
+        return DB::transaction(function () use ($guest, $reservation, $amount, $amountMinor, $idempotencyKey): GuestCreditEntry {
+            // 🔒 Serialize every wallet write for this guest, then RE-READ both bounds inside the lock. Both
+            // checks used to run before the transaction opened, so two concurrent applies could each see the
+            // full balance, both pass, and both post — spending the same credit twice and over-crediting the
+            // folio. A derived balance is only safe if it is read under the same lock that writes it.
+            $this->lockWallet($guest);
 
-        return DB::transaction(function () use ($guest, $reservation, $amount, $folio): GuestCreditEntry {
-            $debit = $this->post($guest, GuestCreditEntry::DIRECTION_DEBIT, GuestCreditEntry::TYPE_APPLIED, 'Applied to booking '.$reservation->reference, $amount, $reservation);
+            $folio = Folio::query()->where('reservation_id', $reservation->getKey())->lockForUpdate()->first();
+            $folio?->load(['items', 'payments']);
+
+            $owedMinor = $folio !== null ? FolioTotals::for($folio)['balance_minor'] : 0;
+            if ($amountMinor > $owedMinor) {
+                // Throwing here rolls the transaction back: a refused apply writes NOTHING.
+                throw new WalletOverdrawException("A wallet credit of {$amountMinor} exceeds the {$owedMinor} owed on this booking.");
+            }
+
+            $spendable = $this->spendableMinor($guest);
+            if ($amountMinor > $spendable) {
+                throw WalletOverdrawException::forShortfall($amountMinor, $spendable);
+            }
+
+            // Deterministic per LOGICAL apply: the same guest applying the same amount to the same booking at
+            // the same wallet state replays to ONE debit, while a genuine second apply (different balance) gets
+            // a distinct key. Same construction as the folio refund key.
+            $key = $idempotencyKey ?? $this->keyFor('wallet_apply', implode(':', [
+                (string) $guest->getKey(), (string) $reservation->getKey(), $spendable, $amountMinor,
+            ]));
+
+            $debit = $this->post($guest, GuestCreditEntry::DIRECTION_DEBIT, GuestCreditEntry::TYPE_APPLIED, 'Applied to booking '.$reservation->reference, $amount, $reservation, null, $key);
             $this->folios->applyWalletCredit($folio, $amount, $debit);
 
             return $debit;
@@ -145,16 +195,40 @@ class GuestWalletService
             return ['ok' => false, 'message' => 'That code isn’t valid.', 'entry' => null];
         }
 
-        $mineAlready = GuestCreditEntry::query()->where('guest_id', $guest->getKey())
-            ->where('source_type', $promo->getMorphClass())->where('source_id', $promo->getKey())->exists();
-        $totalRedemptions = GuestCreditEntry::query()
-            ->where('source_type', $promo->getMorphClass())->where('source_id', $promo->getKey())->count();
+        // 🔒 Both bounds — once-per-guest AND the total `max_redemptions` cap — used to be counted with no
+        // transaction and no lock, so two concurrent redemptions could each see the pre-redemption count, both
+        // pass, and both post a credit: free money, twice, and a cap silently exceeded. The promo row is the
+        // natural serialization point (it is what the cap belongs to), and the counts are re-read inside it.
+        try {
+            $entry = DB::transaction(function () use ($guest, $promo): ?GuestCreditEntry {
+                PromoCode::query()->lockForUpdate()->findOrFail($promo->getKey());
 
-        if ($mineAlready || $totalRedemptions >= (int) $promo->max_redemptions) {
-            return ['ok' => false, 'message' => 'That code has already been used.', 'entry' => null];
+                $mineAlready = GuestCreditEntry::query()->where('guest_id', $guest->getKey())
+                    ->where('source_type', $promo->getMorphClass())->where('source_id', $promo->getKey())->exists();
+                $totalRedemptions = GuestCreditEntry::query()
+                    ->where('source_type', $promo->getMorphClass())->where('source_id', $promo->getKey())->count();
+
+                if ($mineAlready || $totalRedemptions >= (int) $promo->max_redemptions) {
+                    return null;
+                }
+
+                // Deterministic, so once-per-guest is enforced by the UNIQUE index too, not only by the count
+                // above — the database is the last line, exactly as it is for payments.
+                $key = $this->keyFor('wallet_promo', $promo->getKey().':'.$guest->getKey());
+
+                return $this->post($guest, GuestCreditEntry::DIRECTION_CREDIT, GuestCreditEntry::TYPE_PROMO, 'Promo code '.$promo->code, Money::of((int) $promo->amount_minor, (string) $promo->currency), $promo, $promo->expires_at, $key);
+            });
+        } catch (QueryException $e) {
+            // The UNIQUE idempotency_key fired — a concurrent redemption won the race. Honest refusal, not a 500.
+            if (! $this->isUniqueViolation($e)) {
+                throw $e;
+            }
+            $entry = null;
         }
 
-        $entry = $this->credit($guest, GuestCreditEntry::TYPE_PROMO, 'Promo code '.$promo->code, Money::of((int) $promo->amount_minor, (string) $promo->currency), $promo, $promo->expires_at);
+        if ($entry === null) {
+            return ['ok' => false, 'message' => 'That code has already been used.', 'entry' => null];
+        }
 
         return ['ok' => true, 'message' => 'Credit added to your wallet.', 'entry' => $entry];
     }
@@ -166,6 +240,37 @@ class GuestWalletService
         if ($amountMinor > $spendable) {
             throw WalletOverdrawException::forShortfall($amountMinor, $spendable);
         }
+    }
+
+    /**
+     * 🔒 Serialize every wallet mutation for ONE guest.
+     *
+     * The wallet balance is DERIVED (Σ credits − Σ debits) with no balance column, so there is no single row to
+     * lock the way {@see FolioService::refundPayment()} locks the payment it bounds. The guest row is the
+     * aggregate root the ledger hangs off, so locking it makes every debit path mutually exclusive per guest —
+     * which is what the derived-balance guards need in order to mean anything.
+     */
+    private function lockWallet(Guest $guest): void
+    {
+        Guest::query()->lockForUpdate()->findOrFail($guest->getKey());
+    }
+
+    /** An existing entry for a replayed idempotency key, or null. */
+    private function findByIdempotencyKey(string $key): ?GuestCreditEntry
+    {
+        return GuestCreditEntry::query()->where('idempotency_key', $key)->first();
+    }
+
+    /** A deterministic, collision-safe key that fits the column (the ledger's UNIQUE index does the enforcing). */
+    private function keyFor(string $scope, string $discriminator): string
+    {
+        return $scope.'_'.hash('sha256', $discriminator);
+    }
+
+    /** MySQL 1062 = duplicate entry for a UNIQUE key. */
+    private function isUniqueViolation(QueryException $e): bool
+    {
+        return (int) ($e->errorInfo[1] ?? 0) === 1062;
     }
 
     private function post(Guest $guest, string $direction, string $type, string $reason, Money $amount, ?Model $source = null, ?CarbonInterface $expiresAt = null, ?string $idempotencyKey = null): GuestCreditEntry

@@ -28,7 +28,7 @@
     {{-- ── Redeem a code ──────────────────────────────────────────────────────────────────────────────── --}}
     <section class="vy-card" style="margin-bottom:14px;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .1s both">
         <div class="vy-eyebrow" style="margin-bottom:10px">Redeem a code</div>
-        <form method="POST" action="{{ route('guest.wallet.redeem') }}" style="display:flex;gap:8px;flex-wrap:wrap">
+        <form method="POST" action="{{ route('guest.wallet.redeem') }}" style="display:flex;gap:8px;flex-wrap:wrap" data-guard-submit>
             @csrf
             <input class="vy-input" type="text" name="code" placeholder="Enter a code" maxlength="64" style="flex:1;min-width:160px">
             <button type="submit" class="vy-btn">Redeem</button>
@@ -40,7 +40,7 @@
         <section class="vy-card" style="margin-bottom:14px;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .14s both">
             <div class="vy-eyebrow" style="margin-bottom:10px">Apply to a booking</div>
             @foreach ($owed as $booking)
-                <form method="POST" action="{{ route('guest.wallet.apply', $booking['id']) }}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--vy-hairline)">
+                <form method="POST" action="{{ route('guest.wallet.apply', $booking['id']) }}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--vy-hairline)" data-guard-submit>
                     @csrf
                     <div style="flex:1;min-width:150px">
                         <div style="font-size:13.5px;color:var(--vy-ink)">{{ $booking['property'] }}</div>
