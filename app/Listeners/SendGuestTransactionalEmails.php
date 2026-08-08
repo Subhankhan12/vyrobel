@@ -100,11 +100,28 @@ class SendGuestTransactionalEmails
         // also resolves the recipient address in-context rather than serialising it, keeping guest PII out
         // of jobs/failed_jobs.
         // No `guest?->email` pre-check here: the address is resolved at send time, inside the job.
+        //
+        // ⚠️ WRAPPED, and the wrap is load-bearing. `reservation.confirmed` fires INSIDE the booking
+        // transaction, and this listener's whole contract is that a mail side effect NEVER breaks the
+        // operation that triggered it (see the class docblock + MailDeliveryBoundaryTest). On the `sync`
+        // driver the dispatched job executes INLINE, so a provider outage would throw straight through and
+        // roll the booking back. Catching here restores the boundary that `sendToGuest()` provides for the
+        // inline sends.
+        // On a REAL queue the exception is NOT swallowed — it happens on the worker, where it correctly
+        // fails the job and triggers the retry/backoff the job declares.
         if ($reservation->leadGuest !== null) {
-            SendBookingConfirmationEmail::dispatch(
-                (string) $reservation->organization_id,
-                (string) $reservation->getKey(),
-            )->delay(now()->addSeconds(self::CONFIRMATION_DELAY_SECONDS));
+            try {
+                SendBookingConfirmationEmail::dispatch(
+                    (string) $reservation->organization_id,
+                    (string) $reservation->getKey(),
+                )->delay(now()->addSeconds(self::CONFIRMATION_DELAY_SECONDS));
+            } catch (Throwable $e) {
+                // Log the class + reason, never the address (no PII in logs) — same rule as sendToGuest().
+                Log::warning('Guest transactional email failed to send', [
+                    'mailable' => SendBookingConfirmationEmail::class,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 
