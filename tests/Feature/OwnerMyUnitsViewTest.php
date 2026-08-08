@@ -38,7 +38,10 @@ it('computes owner-scoped occupancy that excludes a non-owner unit in the same r
     book($s, ['unit_id' => $a['unit']->id]);          // owner's unit — 2 nights (2026-09-01..03)
     book($s, ['unit_id' => $foreign->id]);            // non-owner unit — 2 nights, same room type
 
-    $this->actingAs($a['user'])->get('/owner/units')  // focus month resolves to Sep 2026 (owner's booking)
+    // ⚠️ The month is now selected EXPLICITLY. My Units used to default to the month of the owner's latest
+    // booking while captioning it "This month" (wireframe-parity WAVE 2 · #11); it now defaults to the
+    // CURRENT month, so a test whose data lives in Sep 2026 must ask for Sep 2026 — as a user would.
+    $this->actingAs($a['user'])->get('/owner/units?month=2026-09')
         ->assertOk()
         ->assertSee('OWNEDUNIT')                      // owner's unit shown
         ->assertDontSee('FOREIGNUNIT')                // non-owner unit hidden (isolation)
@@ -77,7 +80,7 @@ it('renders REAL per-unit revenue, nightly rate, best performer and a real atten
     $s['units'][1]->update(['owner_id' => $a['owner']->id, 'code' => 'UNITBETA']);   // owner owns both
     book($s, ['unit_id' => $a['unit']->id]);   // only ALPHA is booked → it is the best performer
 
-    $this->actingAs($a['user'])->get('/owner/units')
+    $this->actingAs($a['user'])->get('/owner/units?month=2026-09')   // see #11 above — month is explicit now
         ->assertOk()
         ->assertSee('Earned this month')            // the real ledger-net KPI (Batch B)
         ->assertSee('Nightly rate')                 // the per-unit nightly-rate row is wired (was "Soon")

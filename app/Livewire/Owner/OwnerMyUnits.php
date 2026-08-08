@@ -66,7 +66,7 @@ class OwnerMyUnits extends Component
         $units = $portal->units();   // owner-scoped, fail-closed when empty
         $currency = $this->currency($units);
 
-        $month = $this->resolveMonth($units);
+        $month = $this->resolveMonth();
         $occupancy = $this->occupancy($units, $month);
 
         // Batch B — REAL per-unit month metrics (gross revenue · ADR · occupancy) + the best-performer
@@ -120,26 +120,21 @@ class OwnerMyUnits extends Component
         return (string) ($units->first()?->property->currency ?? 'EUR');
     }
 
-    /**
-     * The calendar month: `?month=YYYY-MM` if valid, else the month of the owner's most recent active
-     * booking, else the current month.
-     *
-     * @param  Collection<int, Unit>  $units
-     */
-    private function resolveMonth(Collection $units): Carbon
+    /** The calendar month: `?month=YYYY-MM` when valid, otherwise the CURRENT month. */
+    private function resolveMonth(): Carbon
     {
         $param = request()->query('month');
         if (is_string($param) && preg_match('/^\d{4}-\d{2}$/', $param) === 1) {
             return Carbon::parse($param.'-01')->startOfMonth();
         }
 
-        $unitIds = $units->pluck('id')->all();
-        $latest = $unitIds === [] ? null : ReservationUnit::query()
-            ->whereIn('unit_id', $unitIds)
-            ->where('status', 'active')
-            ->max('check_in');
-
-        return $latest !== null ? Carbon::parse($latest)->startOfMonth() : Carbon::now()->startOfMonth();
+        // ⚠️ THE CURRENT month (wireframe-parity WAVE 2 · #11). This used to default to the month of the
+        // owner's LATEST booking (`max(check_in)`) while the caption said "This month" — so a forward booking
+        // in December made the page report December's occupancy as though it were now, and the operator
+        // Dashboard and My Units printed different occupancy for the same unit on the same day. A page that
+        // says "this month" must mean this month; `?month=` still navigates, and the caption now prints the
+        // real month it is showing rather than asserting "This month" whatever is on screen.
+        return Carbon::now()->startOfMonth();
     }
 
     /**
@@ -243,10 +238,15 @@ class OwnerMyUnits extends Component
                 'active' => $u->is_active !== false,
                 'nights' => $nights,
                 'occupancy_pct' => $days > 0 ? (int) round($nights / $days * 100) : 0,
-                // Batch B — REAL per-unit revenue (GROSS room revenue, for comparability) + nightly rate
-                // (the achieved ADR). No nights sold → no ADR figure ("—"), never a fake €0.
+                // Batch B — REAL per-unit revenue (GROSS room revenue, for comparability).
                 'revenue' => $this->money($m['gross_minor'], $currency),
-                'nightly_rate' => $m['nights'] > 0 ? $this->money($m['adr_minor'], $currency) : null,
+                // ⚠️ "Nightly rate" now means the CONFIGURED rate (wireframe-parity WAVE 2 · #12). It used to
+                // be fed the achieved ADR, so a unit priced at €120 that sold two discounted nights displayed
+                // "Nightly rate €95" — an owner reads that as the price on their calendar and it isn't. The
+                // configured rate was already loaded (it fills the editor's "Reset to …"). The ADR is still
+                // shown, under its own name, so nothing is lost — only the two stop wearing one label.
+                'nightly_rate' => $rate['display'] ?? null,
+                'adr' => $m['nights'] > 0 ? $this->money($m['adr_minor'], $currency) : null,
                 'is_best' => $bestUnitId !== null && $id === $bestUnitId,
                 // Cover derives from the room-type (the sellable entity); null → gradient fallback.
                 'cover' => $u->roomType->coverPhoto()?->url,

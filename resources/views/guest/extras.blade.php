@@ -58,8 +58,13 @@
                         <label class="ex-item" data-minor="{{ $item['total_minor'] }}">
                             <input class="ex-cbx" type="checkbox" name="add_ons[]" value="{{ $item['id'] }}" onchange="exUpdate(this)">
                             <span class="ex-name">{{ $item['name'] }}</span>
-                            <span class="ex-basis">{{ $item['basis'] }}</span>
+                            {{-- WAVE 2 · #14 — the basis describes the UNIT price, so show the unit price next
+                                 to it. This card printed the basis ("per guest · night") immediately above the
+                                 STAY TOTAL, so a guest read €132.84 as a nightly per-person rate. The unit
+                                 price was already computed by the controller and simply never rendered. --}}
+                            <span class="ex-basis">{{ $item['unit_price'] }} {{ $item['basis'] }}</span>
                             <span class="ex-price">{{ $item['total'] }}</span>
+                            <span class="ex-basis">total for your stay</span>
                             <span class="ex-add">Add to stay</span>
                         </label>
                     @endforeach

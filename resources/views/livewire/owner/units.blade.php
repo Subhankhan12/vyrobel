@@ -238,7 +238,7 @@
                             <span style="font-size:13px;font-weight:500;font-variant-numeric:tabular-nums">{{ $u['occupancy_pct'] }}%</span>
                         </div>
                         <div class="vy-track"><span style="width:{{ $u['occupancy_pct'] }}%"></span></div>
-                        <div style="font-size:11px;color:var(--vy-faint);margin-top:5px">This month</div>
+                        <div style="font-size:11px;color:var(--vy-faint);margin-top:5px">{{ $month['label'] }}</div>
                     </div>
 
                     <div class="vy-mu-stat2">
@@ -250,6 +250,11 @@
                         <div style="display:flex;align-items:baseline;gap:8px">
                             <span style="font-size:11px;color:var(--vy-faint)">Nightly rate</span>
                             <span style="font-family:var(--vy-display);font-weight:500;font-size:15px;font-variant-numeric:tabular-nums">{{ $u['nightly_rate'] ?? '—' }}</span>
+                            {{-- WAVE 2 · #12 — the ACHIEVED average, under its own name. It used to be printed
+                                 as "Nightly rate", which is the configured price, not what the nights sold for. --}}
+                            @if ($u['adr'] !== null)
+                                <span style="font-size:11px;color:var(--vy-faint)">· ADR {{ $u['adr'] }}</span>
+                            @endif
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:11px">
                             <button type="button" class="vy-mu-cardbtn" title="Edit pricing" @click="panel = panel === 'price' ? null : 'price'">
