@@ -56,7 +56,14 @@
                             {{ $pricing['net'] }} + {{ $pricing['vat'] }} VAT{{ $plan['period_end'] ? ' · next invoice '.$plan['period_end'] : '' }}
                         </div>
                         <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-                            <a href="{{ route('app.billing.checkout', ['plan' => 'pro', 'interval' => 'yearly']) }}" class="vy-btn vy-btn--ghost">Switch to yearly · save {{ $pricing['yearly_saving'] }}</a>
+                            {{-- WAVE 2 · S3 — the switch changes the INTERVAL, never the tier. This linked to a
+                                 hardcoded `plan=pro`, so an Essential org landed on the PRO yearly checkout (a
+                                 silent upgrade); it now carries the org's own plan code. And it only appears to
+                                 an org actually on MONTHLY — offering "switch to yearly" to someone already on
+                                 yearly is an affordance that does nothing. --}}
+                            @if ($plan['interval'] !== 'yearly')
+                                <a href="{{ route('app.billing.checkout', ['plan' => $plan['code'], 'interval' => 'yearly']) }}" class="vy-btn vy-btn--ghost">Switch to yearly · save {{ $pricing['yearly_saving'] }}</a>
+                            @endif
                             <a href="#vy-plans" class="vy-btn vy-btn--ghost">Change plan</a>
                         </div>
                         <div class="vy-fx-note" style="margin-top:12px">Test mode — no card is charged until live billing is enabled. The figure is your real unit count at placeholder pricing.</div>

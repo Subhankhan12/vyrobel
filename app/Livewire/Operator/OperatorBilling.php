@@ -14,6 +14,7 @@ use App\Support\Billing\SubscriptionPricing;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -65,6 +66,15 @@ class OperatorBilling extends Component
             // ── The active-subscription management view (exact-match) ───────────────────────────────
             'plan' => ($current === null || $current->plan === null) ? null : [
                 'name' => (string) $current->plan->name,
+                // ⚠️ The org's REAL TIER code (wireframe-parity WAVE 2 · S3). "Switch to yearly" used to link
+                // to a hardcoded `plan=pro`, so an ESSENTIAL org clicking it landed on the PRO yearly checkout
+                // — a silent upgrade to a tier they never chose. The interval is the only thing that switch
+                // changes; the tier must come from the subscription.
+                //
+                // ⚠️ A `plans.code` is `{tier}_{interval}` ("essential_monthly"), NOT the tier code the
+                // checkout takes. Passing it raw would fail OperatorBillingCheckout::resolveTier()'s
+                // whitelist and fall back to… 'pro' — reproducing the very bug. Strip the interval suffix.
+                'code' => Str::beforeLast((string) $current->plan->code, '_'),
                 'interval' => (string) $current->plan->interval,
                 'subscribed_on' => CarbonImmutable::parse($current->created_at)->format('j M Y'),
                 'period_end' => $current->current_period_end !== null ? CarbonImmutable::parse($current->current_period_end)->format('j M Y') : null,
