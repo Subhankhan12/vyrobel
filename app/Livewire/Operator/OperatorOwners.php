@@ -131,10 +131,17 @@ class OperatorOwners extends Component
         if ($latest === null) {
             return ['key' => 'none', 'label' => 'No statement', 'due' => false, 'attention' => false];
         }
-        if ((string) $latest->status === 'paid' || $payouts->contains(fn (Payout $p): bool => (string) $p->status === 'paid')) {
+        // ⚠️ Judge THIS statement's payout, not "any payout this owner has ever had". Testing the whole
+        // collection meant one historical PAID payout short-circuited every branch below: a finalized-unpaid
+        // statement read "Paid", `needs_attention` and the net-payable KPI collapsed to 0, and the payout run
+        // reported "0 owners scheduled" — while Owner Detail showed the real pending figure on the same rows.
+        // `payouts.owner_statement_id` is the link that makes this exact.
+        $statementPayouts = $payouts->where('owner_statement_id', $latest->getKey());
+
+        if ((string) $latest->status === 'paid' || $statementPayouts->contains(fn (Payout $p): bool => (string) $p->status === 'paid')) {
             return ['key' => 'paid', 'label' => 'Paid', 'due' => false, 'attention' => false];
         }
-        if ($payouts->contains(fn (Payout $p): bool => (string) $p->status === 'held')) {
+        if ($statementPayouts->contains(fn (Payout $p): bool => (string) $p->status === 'held')) {
             return ['key' => 'hold', 'label' => 'On hold', 'due' => false, 'attention' => true];
         }
         // Finalized-unpaid: on hold if the owner can't be paid yet (no tax details, or no payout method on file).
