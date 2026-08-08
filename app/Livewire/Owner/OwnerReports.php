@@ -397,7 +397,15 @@ class OwnerReports extends Component
      */
     private function payoutSummary(string $currency): array
     {
-        $payouts = Payout::query()->orderByDesc('created_at')->get();
+        // ⚠️ "Latest payout" was ordered by `created_at` alone (wireframe-parity WAVE 2 · #21). Payouts are
+        // written in batches — every demo payout shares an identical `created_at` to the second — so the sort
+        // was a full TIE and `->first()` returned an arbitrary row: in practice the OLDEST payout (April
+        // €442.80) under a heading that says "Latest". Order by when the money actually moved, falling back to
+        // `created_at` only for a payout that has not been paid yet.
+        $payouts = Payout::query()
+            ->orderByRaw('COALESCE(paid_at, created_at) DESC')
+            ->orderByDesc('created_at')
+            ->get();
         $latest = $payouts->first();
 
         $paidYear = (int) $payouts

@@ -22,6 +22,7 @@ use App\Support\Property\PropertyOccupancy;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
@@ -117,7 +118,7 @@ class OperatorDashboard extends Component
                 'arrivals' => $arrivals->count(),
                 'departures' => $departures->count(),
                 'in_house' => $inHouse->count(),
-                'payments' => $this->money($this->paymentsOn($date), $currency),
+                'payments' => $this->money($this->paymentsOn($propertyIds, $date), $currency),
                 'work_orders' => $workOrders['open'],
                 'work_orders_urgent' => $workOrders['urgent'],
                 'adr' => $adr,
@@ -418,18 +419,35 @@ class OperatorDashboard extends Component
      * Money actually received on the date: settled payments/captures − succeeded refunds, tenant-scoped.
      * A real figure from the payments ledger (not accrual).
      */
-    private function paymentsOn(string $date): int
+    /**
+     * "Revenue today" — payments received minus refunds, for the CURRENT PROPERTY SCOPE.
+     *
+     * ⚠️ This was the ONLY KPI on the dashboard that ignored `$propertyIds` (wireframe-parity WAVE 2 · #17).
+     * Every sibling — occupancy, arrivals, departures, housekeeping, work orders, ADR — is property-scoped,
+     * so with "Demo Seaside Property" selected the page showed Seaside's occupancy beside the WHOLE ORG's
+     * takings. Latent while one property trades on a given day; wrong the moment two do (#38).
+     *
+     * @param  list<string>  $propertyIds
+     */
+    private function paymentsOn(array $propertyIds, string $date): int
     {
-        $received = (int) Payment::query()
+        if ($propertyIds === []) {
+            return 0;
+        }
+
+        // Scope through the reservation the payment belongs to — a subquery, so this stays one round trip.
+        $scoped = fn (): Builder => Payment::query()
+            ->whereIn('reservation_id', Reservation::query()->whereIn('property_id', $propertyIds)->select('id'))
+            ->whereDate('processed_at', $date);
+
+        $received = (int) $scoped()
             ->whereIn('type', ['payment', 'capture'])
             ->whereIn('status', ['succeeded', 'captured'])
-            ->whereDate('processed_at', $date)
             ->sum('amount_minor');
 
-        $refunded = (int) Payment::query()
+        $refunded = (int) $scoped()
             ->where('type', 'refund')
             ->where('status', 'succeeded')
-            ->whereDate('processed_at', $date)
             ->sum('amount_minor');
 
         return $received - $refunded;
