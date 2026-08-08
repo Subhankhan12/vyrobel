@@ -2,6 +2,28 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-09 — WIREFRAME-PARITY WAVE 3 STARTED (3 gates); the named item list was largely STALE
+
+Gates: `270806f` owner format/timeline · `51c3f9f` guest add-on/refund/arrival-hour · `35dc05f` Insights
+unit labels. Suite 1758/1765, non-green exactly the documented 7. **WAVE 3 is NOT closed** — the fix plan's
+WAVE 3 section records done-vs-open.
+
+**The finding worth recording: verify-first invalidated 4 of the 5 named items.** The corrupted date literal
+was already fixed by the polish pass; `Team &amp; access` renders correctly; the Agreement JSON leak is not
+reproducible on current data; and the Statement-of-Account PDF has been its own document since the
+2026-08-07 audit (4-tile KPI band + activity table, built from `FolioDocument::data`, so it shares the
+receipt's folio source and cannot drift, #17). Re-fixing any of them would have been churn — or worse, would
+have "fixed" something that was already right.
+
+**Six real gaps closed**, of which two were functional rather than cosmetic: pending add-on rows rendered
+BLANK because the controller read `payload['add_ons']` while the service writes `add_on_ids`; and the guest
+Payments overview never surfaced `FolioTotals::refunded_minor`, so "Paid to date" (which is NET of refunds)
+appeared smaller with nothing explaining it.
+
+**A decision recorded for the remaining list:** the login **workspace picker** and **password-reset
+sibling-session termination** are in the sweep's WAVE 3 rows but touch **auth/isolation**, which WAVE 3
+explicitly excludes. They are flagged, not folded in, and need their own gated pass.
+
 ## 2026-08-09 — WIREFRAME-PARITY WAVE 2 CLOSED: the 3 structural MEDIUMs + all 23 false-copy items
 
 Nine gates: `00a9fe5` S1 wallet concurrency · `47cf1ff` S2 write-only notes · `cb4dec0` S3 yearly-switch ·

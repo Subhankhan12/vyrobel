@@ -118,6 +118,28 @@ were strengthened (they now demand the true copy AND forbid the false), never re
 
 ---
 
+## 2d. WAVE 3 — IN PROGRESS (2026-08-09): 3 gates done, and the named list was largely STALE
+
+**Verify-first paid for itself: 4 of the 5 "known named items" were already fixed or were never gaps** —
+the corrupted date literal (polish pass), the `Team &amp; access` double-escape (renders correctly), the
+Agreement raw-JSON leak (not reproducible), and the Statement-of-Account PDF (**already its own document**
+since the 2026-08-07 audit: 4-tile KPI band + activity table, sharing `FolioDocument::data` with the receipt
+so the two cannot drift, #17). **None were re-fixed.**
+
+**Six genuine gaps fixed** across `270806f`, `51c3f9f`, `35dc05f`: the commission rate written three ways
+(4 call sites, two on one page) · a finished stay advertising an upcoming check-in · pending add-on rows
+rendering BLANK (`add_ons` read vs `add_on_ids` written) · the Payments overview hiding refunds · invented
+arrival hours (#39) · two Insights figures missing their unit.
+
+⚠️ **WAVE 3 IS NOT CLOSED.** The bulk of §4/§8's MINOR rows remain — see the fix plan's WAVE 3 section for
+what is done vs open. **Two open items are NOT WAVE 3 and must be flagged, not folded in:** the login
+workspace picker (`active_organization_id` is read and never written) and password-reset sibling-session
+termination — both touch auth/isolation.
+
+**Suite at the documented baseline throughout: 1758/1765, non-green exactly 7.**
+
+---
+
 ## 3. THE FIVE HIGH FINDINGS
 
 *(As found. Each is now RESOLVED — see §2b for the fix, commit and verified figures.)*

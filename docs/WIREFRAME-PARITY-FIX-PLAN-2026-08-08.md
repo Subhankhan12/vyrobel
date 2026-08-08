@@ -147,7 +147,41 @@ Every item below is **copy asserting behaviour the code does not implement**. Fo
 
 ---
 
-## WAVE 3 — MINOR / LOW gaps (quick wins, grouped)
+## WAVE 3 — MINOR / LOW gaps · ⏳ IN PROGRESS (2026-08-09) — 3 gates done, the list below still open
+
+> **Gates done:** `270806f` owner format/timeline · `51c3f9f` guest add-on/refund/arrival-hour ·
+> `35dc05f` Insights unit labels. Suite **1758/1765**, non-green exactly the documented **7**.
+>
+> ### ⚠️ FOUR OF THE FIVE "known named items" WERE ALREADY FIXED OR WERE NEVER GAPS — verified, not re-fixed
+> | Named item | Verdict |
+> |---|---|
+> | Owner Booking Detail corrupted date literal `format('D j M · 3:00 PM')` + hardcoded times | **Already fixed** (polish pass) — the code documents why (`P` = UTC offset, `M` = month) |
+> | Owner Team `Team &amp; access` double-escape | **Not a gap** — renders `Team & access`; no double-escaped entity on the page |
+> | Owner Agreement raw-JSON leak `["other"]` | **Not reproducible** on current data — no raw array reaches the page |
+> | Statement-of-Account PDF = folio receipt relabelled | **Already fixed** (2026-08-07 audit) — `pdfs/guest-statement.blade.php` is its own document: 4-tile KPI band (Charges/Paid/Credited/Balance due) + "Account activity" table, built from `FolioDocument::data` so it shares the receipt's folio source (#17) |
+> | Guest Help / Email-prefs / Documents routing | **Closed by investigation** earlier (they exist at other routes) — see PROJECT-STATE F.3 |
+>
+> ### ✅ Fixed in these three gates
+> - **The commission rate was written THREE ways** — 4 call sites, two on the SAME page (`18.00%` beside
+>   `18%`). All now route through one shared `OwnerCommissionRate::trim()/display()`.
+> - **A finished stay advertised an upcoming check-in** — the timeline never consulted terminal status; now
+>   gated on the certified `AssignmentService::TERMINAL_STATUSES`.
+> - **Pending add-on rows rendered BLANK** — the controller read `payload['add_ons']`; the service writes
+>   `add_on_ids`. Now reads the right key AND resolves real names (not ULIDs).
+> - **The Payments overview hid refunds** — `FolioTotals::refunded_minor` existed and was never surfaced;
+>   shown only when a refund genuinely exists.
+> - **The reservation page invented arrival hours** — `From 15:00`/`By 11:00` when the property set none (#39).
+> - **Two Insights figures lacked their unit** — weekday occupancy tiles and the owner pp delta.
+>
+> ### ⬅ STILL OPEN — the rest of the list below is untouched
+> Notably: operator pagination (Guests / Reservations / Notifications), Maintenance Costs property-scope +
+> period selector, the housekeeping/technician items, the owner chart-scaling and payout-filter items, and the
+> public/auth items (workspace picker, reset-session termination, 404/500 copy). **⚠️ Two of those touch data
+> scope or sessions — treat the workspace picker and the reset-session termination as NOT WAVE 3 (they are
+> auth/isolation) and flag them rather than folding them in.**
+
+### The original list (unchanged, for working through)
+
 
 **Operator** — pagination on Guests / Reservations / Notifications (all unbounded `->get()`) · property-scope + a period selector on Maintenance Costs · per-lane "Assign all" and the assign-all plan preview on Housekeeping · "Suggested" technician should mean least-loaded, not alphabetically first · priority chip after "Clean next" · consistent Pending/Dirty vocabulary · assignee at creation + `notify` on the board's assign modal · undo on maintenance resolve · Open-shifts + published/provisional state on the Schedule PDF (both stale refusals — the models now exist) · revenue-on-hold on the Work Order hero (stale refusal — `RevenueOnHold` exists and the board already uses it) · rate-plan rows indistinguishable ("Flexible" ×2) · `intdiv` truncation on the rates average (one cent, display-only) · nav unread badges · Portfolio cross-currency roll-up (latent) · Insights By-property table clipped; weekday tiles missing `%`; "pts" vs "pp".
 

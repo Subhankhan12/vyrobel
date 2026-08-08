@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH ALL DONE · WIREFRAME-PARITY WAVES 1+2 DONE (2026-08-09)** · WAVE 3 + deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH ALL DONE · WIREFRAME-PARITY WAVES 1+2 DONE · WAVE 3 IN PROGRESS (2026-08-09)** · WAVE 3 tail + deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
 > ## ✅ WIREFRAME-PARITY SWEEP — all 124 wireframes swept; **WAVE 1 (the 5 HIGH) FIXED + PUSHED** (2026-08-08, HEAD `bca3679`)
 >
@@ -294,6 +294,38 @@ clean; `migrate:fresh --seed` clean. The 7 non-green are the SAME documented pre
 
 **⬅ REMAINING: WAVE 3** (minor/low), plus deployment, scale-perf, the billing decision and the founder's
 go-live flips.
+
+### F.6 — WIREFRAME-PARITY WAVE 3 (2026-08-09 — IN PROGRESS: 3 gates done, list not closed)
+
+**The headline is a method result: verify-first invalidated FOUR of the five named items.** They were already
+fixed or were never gaps, and none was re-fixed — the corrupted date literal (`P` = UTC offset, `M` = month;
+fixed by the polish pass), the `Team &amp; access` double-escape (renders correctly), the Agreement raw-JSON
+leak (not reproducible on current data), and the **Statement-of-Account PDF**, which has been its own document
+since the 2026-08-07 audit: a 4-tile KPI band (Charges / Paid / Credited / Balance due) above an "Account
+activity" table, built from `FolioDocument::data` so it shares the receipt's folio source and cannot drift (#17).
+
+**Six genuine gaps fixed** — `270806f`, `51c3f9f`, `35dc05f`:
+- **The commission rate was written THREE ways** — four call sites, two of them on the SAME page (`18.00%`
+  beside `18%`), because `commission_pct` is a `decimal:2` and a string cast yields "18.00". All now route
+  through one shared `OwnerCommissionRate`.
+- **A finished stay advertised an upcoming check-in** — the timeline never consulted terminal status, so a
+  checked-out booking rendered "Check-in — upcoming" above its own "Checked out". One demo row is genuinely in
+  that state. Now gated on the certified `AssignmentService::TERMINAL_STATUSES` (#29's list).
+- **Pending add-on rows rendered BLANK** (functional) — the controller read `payload['add_ons']`; the service
+  writes `add_on_ids`. Now the right key, resolved to real names rather than ULIDs.
+- **The Payments overview hid refunds** — `FolioTotals::refunded_minor` already existed and was never
+  surfaced, so "Paid to date" (NET of refunds) looked smaller with no explanation. Same single pass as `paid`.
+- **The reservation page invented arrival hours** — `From 15:00` / `By 11:00` where the property set none (#39).
+- **Two Insights figures lacked their unit** — weekday occupancy tiles, and the owner percentage-point delta.
+
+⚠️ **WAVE 3 IS NOT CLOSED.** Open: operator pagination (Guests / Reservations / Notifications), Maintenance
+Costs property-scope + period selector, housekeeping/technician items, owner chart-scaling and payout-filter
+items, and the public/auth items. **⚠️ TWO OPEN ITEMS ARE NOT WAVE 3** — the login **workspace picker**
+(`active_organization_id` is read and never written) and **password-reset sibling-session termination** touch
+auth/isolation, which WAVE 3 excludes. Flagged for their own gated pass, deliberately not folded in.
+
+**VERIFIED (2026-08-09, HEAD `35dc05f`):** suite **1758/1765 · 11,751 assertions**; non-green exactly the
+documented **7**; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. Every fix browser-rendered.
 
 ## (G) ⚠️ OPEN DECISIONS — the founder's call, NOT defects
 
