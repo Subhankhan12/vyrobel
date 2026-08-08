@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTenantForWebRequest;
 use App\Support\Auth\TrustedDeviceService;
@@ -25,6 +26,15 @@ return Application::configure(basePath: dirname(__DIR__))
             // Apply the signed-in user's saved language preference (English-only strings today; the
             // preference is real and persists — see App\Http\Middleware\SetLocale).
             SetLocale::class,
+        ]);
+
+        // Security response headers on EVERY web response, all five realms (audit 2026-08-07 — the app sent
+        // none at all, so every money surface was framable). Prepended so the headers are set even when a
+        // later middleware short-circuits the request (a 403 from a permission gate, a redirect from an auth
+        // guard, a 429 from the login throttle) — those responses need the headers just as much as a 200.
+        // The policy is built from an inventory of what the app really loads; see the class docblock.
+        $middleware->web(prepend: [
+            SecurityHeaders::class,
         ]);
 
         // Unauthenticated web requests to guarded routes redirect to the correct realm's login form: the PLATFORM

@@ -82,6 +82,12 @@ SESSION_SECURE_COOKIE=true       # audit: absent from .env.example; ships insecu
 QUEUE_CONNECTION=redis
 ```
 
+⚠️ **`APP_URL` MUST match the host the app is actually served on.** `Storage::url()` builds ABSOLUTE media
+URLs from `APP_URL`, so a mismatch makes every room photo cross-origin — and with the CSP now in place
+(`img-src 'self'`) the browser BLOCKS them rather than merely loading them from the wrong host. Found while
+verifying the CSP: serving on `:8901` while `APP_URL` said `:8000` produced exactly this. Same-origin in
+production is the correct posture; the fix is a correct `APP_URL`, not a looser policy.
+
 **Behind a load balancer or reverse proxy**, configure trusted proxies before enabling the operator IP
 allowlist — otherwise every request appears to come from the proxy and the allowlist blocks everyone
 (audit F6-10; the direction is safe, but the control silently stops working).
@@ -131,8 +137,10 @@ Then confirm: `php artisan schedule:list` (8 commands) · `php artisan about` ·
 
 Tracked in `docs/AUDIT-COMPLETE-2026-08-07.md` — these are real work, not config:
 
-- **No security headers** anywhere (CSP / HSTS / X-Frame-Options / X-Content-Type-Options / Referrer-Policy).
-  The money surfaces are framable. One middleware on the `web` group.
+- ✅ ~~No security headers~~ — **DONE 2026-08-08** (`App\Http\Middleware\SecurityHeaders`, prepended to the
+  `web` group): CSP, X-Frame-Options SAMEORIGIN, nosniff, Referrer-Policy, Permissions-Policy on every realm;
+  HSTS only over a genuinely secure connection. The CSP is built from an inventory of what the app really
+  loads — see the class docblock for the four relaxations it needs and what each would take to tighten.
 - **No custom error views** — `resources/views/errors/` does not exist, so every realm serves stock
   unbranded Laravel error pages.
 - **No npm lockfile**, so `npm ci` above will fail until one is committed (`npm install` then commit
