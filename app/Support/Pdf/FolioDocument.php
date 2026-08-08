@@ -36,7 +36,7 @@ final class FolioDocument
             ->first();
 
         $lines = [];
-        $totals = ['charges_minor' => 0, 'paid_minor' => 0, 'balance_minor' => 0];
+        $totals = ['charges_minor' => 0, 'paid_minor' => 0, 'balance_minor' => 0, 'received_minor' => 0, 'refunded_minor' => 0];
 
         if ($folio !== null) {
             $lines = self::ledger($folio, $currency);
@@ -56,6 +56,13 @@ final class FolioDocument
             'paid' => MoneyFormatter::display($totals['paid_minor'], $currency),
             'balance' => MoneyFormatter::display($totals['balance_minor'], $currency),
             'balance_minor' => $totals['balance_minor'],
+            // The Statement of Account's KPI band (audit 2026-08-07 · parity). Both come from the SAME
+            // FolioTotals pass that produces `paid` — never a second walk over the payments, which is how
+            // two documents come to state different money (#17). `paid` stays NET, exactly as the folio
+            // receipt and the on-screen folio show it, so no existing figure moves.
+            'credited' => MoneyFormatter::display($totals['refunded_minor'], $currency),
+            'credited_minor' => $totals['refunded_minor'],
+            'received' => MoneyFormatter::display($totals['received_minor'], $currency),
         ];
     }
 

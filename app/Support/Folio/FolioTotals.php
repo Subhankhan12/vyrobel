@@ -16,7 +16,16 @@ use App\Models\Folio;
 final class FolioTotals
 {
     /**
-     * @return array{charges_minor: int, paid_minor: int, balance_minor: int}
+     * ⚠️ `received_minor` and `refunded_minor` are the two halves this class ALREADY computed and then
+     * threw away, now returned as well (audit 2026-08-07 · the statement-of-account parity gap). The
+     * guest Statement of Account needs a real "Credited" figure, and the only honest source for it is
+     * the same pass over the same rows that produces `paid_minor` — deriving refunds a second time
+     * elsewhere is precisely how two surfaces come to disagree about money (#17).
+     *
+     * The existing three keys are UNCHANGED, so every current caller reconciles exactly as before:
+     *     paid_minor === received_minor − refunded_minor
+     *
+     * @return array{charges_minor: int, paid_minor: int, balance_minor: int, received_minor: int, refunded_minor: int}
      */
     public static function for(Folio $folio): array
     {
@@ -45,6 +54,8 @@ final class FolioTotals
             'charges_minor' => $charges,
             'paid_minor' => $paid,
             'balance_minor' => $charges - $paid,
+            'received_minor' => $received,
+            'refunded_minor' => $refunded,
         ];
     }
 }

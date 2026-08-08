@@ -1,6 +1,14 @@
-{{-- Guest STATEMENT OF ACCOUNT PDF (Phase 4c · SG1). Same real append-only ledger as the folio receipt
-     (FolioDocument::data), framed as a statement. PDF-SAFE (dompdf): table-based, inline CSS, DejaVu Sans for
-     € / U+2212. Every row is a real folio_item or payment; totals reconcile to the cent. No invented lines. --}}
+{{-- Guest STATEMENT OF ACCOUNT PDF (Phase 4c · SG1 · rebuilt to the prototype 2026-08-07).
+
+     It shares FolioDocument::data with the folio receipt — the SAME real append-only ledger — but it is no
+     longer the receipt relabelled (the audit's parity gap): it opens with the prototype's 4-tile KPI band
+     (Charges · Paid · Credited · Balance due) over the activity table, which is what makes it a statement.
+
+     ⚠️ ALL FOUR TILES COME FROM THE ONE FolioTotals PASS, including the real "Credited" figure (Σ succeeded
+     refunds) — never a second walk over the payments, which is how two documents come to state different
+     money (#17). "Paid" stays NET, exactly as the receipt and the on-screen folio show it, so nothing that
+     already shipped moved. PDF-SAFE (dompdf): table-based, inline CSS, DejaVu Sans for € / U+2212. Every
+     row is a real folio_item or payment. No invented lines. --}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,16 +26,21 @@
         .meta td { padding: 4px 0; font-size: 12px; }
         .meta .k { color: #8A8079; width: 120px; }
         .flag { display: inline-block; font-size: 8.5px; font-weight: bold; text-transform: uppercase; color: #B26A08; background-color: #FBEFD8; border-radius: 8px; padding: 1px 7px; }
+        /* The 4-tile KPI band. dompdf has no flex/grid, so it is a real table with fixed-width cells. */
+        table.kpis { width: 100%; border-collapse: separate; border-spacing: 8px 0; margin: 20px -8px 4px; }
+        table.kpis td { width: 25%; vertical-align: top; padding: 11px 12px; background-color: #FDF8F4; border: 1px solid #F2E4D9; border-radius: 9px; }
+        table.kpis td.kpi-due { background-color: #FBEFE7; border-color: #EBCDB9; }
+        .kpi-k { font-size: 8.5px; font-weight: bold; letter-spacing: .07em; text-transform: uppercase; color: #8A8079; }
+        .kpi-v { font-size: 16px; font-weight: bold; margin-top: 4px; }
+        td.kpi-due .kpi-v { color: #C2410C; }
+        .kpi-s { font-size: 8.5px; color: #A69A92; margin-top: 3px; }
+        .section-k { font-size: 9px; font-weight: bold; letter-spacing: .07em; text-transform: uppercase; color: #8A8079; margin-top: 22px; }
         table.lines { width: 100%; border-collapse: collapse; margin-top: 14px; }
         table.lines th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #8A8079; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
         table.lines th.r, table.lines td.r { text-align: right; }
         table.lines th.c, table.lines td.c { text-align: center; width: 60px; }
         table.lines td { padding: 9px 4px; font-size: 12.5px; border-bottom: 1px solid #F2E9E1; }
         .neg { color: #8A8079; }
-        table.totals { width: 46%; border-collapse: collapse; margin-top: 18px; margin-left: 54%; }
-        table.totals td { padding: 6px 4px; font-size: 12.5px; }
-        table.totals td.r { text-align: right; }
-        table.totals tr.bal td { border-top: 2px solid #C2410C; font-weight: bold; font-size: 14px; padding-top: 10px; }
         .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #A69A92; }
     </style>
 </head>
@@ -56,6 +69,40 @@
         @if (! $has_folio || count($lines) === 0)
             <p class="muted" style="margin-top:20px;">No account activity yet — no charges or payments have been posted.</p>
         @else
+            {{-- The KPI band (audit 2026-08-07 · parity — the statement was the folio receipt relabelled).
+                 All four tiles come from the ONE FolioTotals pass, so they cannot disagree with the receipt,
+                 the on-screen folio or each other: Charges − Paid = Balance due, exactly (#17).
+
+                 ⚠️ "Credited" is a REAL figure — the sum of succeeded refunds on this folio, not a new
+                 quantity invented for a fourth tile. It is ALREADY inside Paid (which is net), and the
+                 caption says so rather than leaving the guest to reconcile two numbers that look like they
+                 should add up but don't. A zero is shown honestly; the tile never disappears to hide it. --}}
+            <table class="kpis">
+                <tr>
+                    <td>
+                        <div class="kpi-k">Charges</div>
+                        <div class="kpi-v">{{ $charges }}</div>
+                        <div class="kpi-s">posted to your account</div>
+                    </td>
+                    <td>
+                        <div class="kpi-k">Paid</div>
+                        <div class="kpi-v">{{ $paid }}</div>
+                        <div class="kpi-s">net of any credit</div>
+                    </td>
+                    <td>
+                        <div class="kpi-k">Credited</div>
+                        <div class="kpi-v">{{ $credited }}</div>
+                        <div class="kpi-s">refunds issued to you</div>
+                    </td>
+                    <td class="kpi-due">
+                        <div class="kpi-k">Balance due</div>
+                        <div class="kpi-v">{{ $balance }}</div>
+                        <div class="kpi-s">charges less paid</div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="section-k">Account activity</div>
             <table class="lines">
                 <thead>
                     <tr><th>Item</th><th class="c">Date</th><th class="r">Amount</th></tr>
@@ -73,12 +120,6 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
-
-            <table class="totals">
-                <tr><td class="muted">Charges</td><td class="r">{{ $charges }}</td></tr>
-                <tr><td class="muted">Paid</td><td class="r">{{ $paid }}</td></tr>
-                <tr class="bal"><td>Balance due</td><td class="r">{{ $balance }}</td></tr>
             </table>
         @endif
 
