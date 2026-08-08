@@ -208,7 +208,12 @@ return [
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 128,
-            'tries' => 1,
+            // Audit 2026-08-07 (P5-04): tries=1 discarded EVERY transient failure platform-wide — an SMTP
+            // 4xx, a provider blip or a DB deadlock permanently dead-lettered the job with no retry. Jobs
+            // that must not repeat carry their own idempotency (deterministic keys + UNIQUE indexes), so
+            // retrying is safe; jobs may still override `$tries`/`$backoff` per class.
+            'tries' => 3,
+            'backoff' => [30, 120],
             'timeout' => 60,
             'nice' => 0,
         ],

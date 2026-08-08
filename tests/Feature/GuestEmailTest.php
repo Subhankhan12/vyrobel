@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\SendBookingConfirmationEmail;
 use App\Mail\BookingConfirmationMail;
 use App\Mail\CancellationMail;
 use App\Mail\PaymentReminderMail;
@@ -13,8 +14,10 @@ use App\Services\AssignmentService;
 use App\Services\FolioService;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
@@ -33,13 +36,22 @@ function emailGuest(array $s, string $email = 'ada@example.test'): void
 
 // ── Booking confirmation — on the real reservation.confirmed, to the guest ─────────────────────────
 it('emails the guest a booking confirmation on a confirmed booking', function () {
+    Bus::fake([SendBookingConfirmationEmail::class]);
     Mail::fake();
     $s = seedScenario(1);
     emailGuest($s);
 
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
-    Mail::assertQueued(BookingConfirmationMail::class, fn (BookingConfirmationMail $mail): bool => $mail->hasTo('ada@example.test') && $mail->reservation->is($reservation));
+    // The confirmation is DELAYED so it renders after the folio is committed, and is dispatched as a JOB
+    // carrying scalar ids — never a queued Mailable holding a tenant-scoped model, which failed to
+    // deserialize on the worker (audit H2). Delivery itself is proven in ConfirmationEmailDeliveryTest,
+    // which runs the job across a real serialize/deserialize boundary and RENDERS the mail.
+    Bus::assertDispatched(
+        SendBookingConfirmationEmail::class,
+        fn (SendBookingConfirmationEmail $job): bool => $job->reservationId === (string) $reservation->getKey()
+            && $job->organizationId === (string) $reservation->organization_id,
+    );
 });
 
 // ── Cancellation — on the real reservation.cancelled, to the guest ─────────────────────────────────
@@ -75,9 +87,16 @@ it('sends a guest email to exactly the guest and nobody else', function () {
     $s = seedScenario(1);
     emailGuest($s);
 
-    book($s, ['unit_id' => $s['units'][0]->id]);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
-    Mail::assertQueued(BookingConfirmationMail::class, function (BookingConfirmationMail $mail): bool {
+    // Run the delayed confirmation job for real (it resolves the recipient itself, in tenant context) and
+    // assert the SENT message reaches exactly one address — the guest's own.
+    (new SendBookingConfirmationEmail(
+        (string) $reservation->organization_id,
+        (string) $reservation->getKey(),
+    ))->handle(app(TenantContext::class));
+
+    Mail::assertSent(BookingConfirmationMail::class, function (BookingConfirmationMail $mail): bool {
         return $mail->hasTo('ada@example.test')
             && count($mail->to) === 1        // exactly one recipient
             && count($mail->cc) === 0

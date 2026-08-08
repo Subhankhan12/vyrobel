@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Listeners;
 
 use App\Events\DomainEventRecorded;
-use App\Mail\BookingConfirmationMail;
+use App\Jobs\SendBookingConfirmationEmail;
 use App\Mail\CancellationMail;
 use App\Mail\RefundConfirmationMail;
 use App\Mail\ReviewRequestMail;
@@ -90,8 +90,22 @@ class SendGuestTransactionalEmails
         if (app(BookingNotificationIntent::class)->confirmationSuppressed()) {
             return;
         }
-        // Delayed so it renders AFTER the caller posts the folio (see sendToGuest) — the Total/breakdown reconcile.
-        $this->sendToGuest($reservation->leadGuest, new BookingConfirmationMail($reservation), self::CONFIRMATION_DELAY_SECONDS);
+        // Delayed so it renders AFTER the caller posts the folio — the Total/breakdown reconcile (#17).
+        //
+        // ⚠️ Dispatched as a JOB carrying SCALAR ids, never `Mail::later(new BookingConfirmationMail($res))`.
+        // That queued a Mailable holding a tenant-scoped Reservation via SerializesModels. The payload
+        // restores fine on the worker, but RENDERING it touches leadGuest/property — tenant-scoped, with no
+        // ambient TenantContext there — so every confirmation threw and failed permanently (audit H2 /
+        // F-2b-01 / P5-04). The job restores tenancy FIRST and does the whole load-and-send inside it. It
+        // also resolves the recipient address in-context rather than serialising it, keeping guest PII out
+        // of jobs/failed_jobs.
+        // No `guest?->email` pre-check here: the address is resolved at send time, inside the job.
+        if ($reservation->leadGuest !== null) {
+            SendBookingConfirmationEmail::dispatch(
+                (string) $reservation->organization_id,
+                (string) $reservation->getKey(),
+            )->delay(now()->addSeconds(self::CONFIRMATION_DELAY_SECONDS));
+        }
     }
 
     private function cancellation(DomainEvent $domainEvent): void

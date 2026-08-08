@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\SendBookingConfirmationEmail;
 use App\Mail\BookingConfirmationMail;
 use App\Mail\CancellationMail;
 use App\Models\Reservation;
@@ -9,6 +10,7 @@ use App\Services\FolioService;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
@@ -64,18 +66,21 @@ it('threads the booking confirmation through the #86 editor and honors the on/of
     app(EmailTemplateService::class)->save((string) $s['org']->id, 'booking-confirmation', ['heading' => 'Your Faro escape is booked'], null);
     expect((new BookingConfirmationMail($res))->render())->toContain('Your Faro escape is booked');
 
-    // ON (default): the trigger QUEUES the confirmation with a delay — NOT sent inline (so it never renders
-    // before the caller posts the folio; the delayed job re-renders once total_minor/the folio are committed).
+    // ON (default): the trigger DISPATCHES the delayed confirmation JOB — never an inline send (so it can't
+    // render before the caller posts the folio; the job re-reads once total_minor/the folio are committed).
+    // Since audit H2 this is a job carrying scalar ids, not a queued Mailable holding a tenant-scoped model —
+    // see ConfirmationEmailDeliveryTest, which proves the job actually renders and delivers.
+    Bus::fake([SendBookingConfirmationEmail::class]);
     Mail::fake();
     book($s, ['unit_id' => $s['units'][0]->id, 'check_in' => '2026-09-04', 'check_out' => '2026-09-06']);
-    Mail::assertQueued(BookingConfirmationMail::class);
+    Bus::assertDispatched(SendBookingConfirmationEmail::class);
     Mail::assertNotSent(BookingConfirmationMail::class);   // deferred, never inline (#17 — the €0.00-before-folio bug)
 
     // OFF: disabling stops the send on its real trigger.
-    Mail::fake();
+    Bus::fake([SendBookingConfirmationEmail::class]);
     app(EmailTemplateService::class)->setEnabled((string) $s['org']->id, 'booking-confirmation', false, null);
     book($s, ['unit_id' => $s['units'][0]->id, 'check_in' => '2026-09-07', 'check_out' => '2026-09-09']);
-    Mail::assertNotQueued(BookingConfirmationMail::class);
+    Bus::assertNotDispatched(SendBookingConfirmationEmail::class);
 });
 
 // ── 3. Cancellation — Case A: a real refund figure, branded, no fabricated card/promo ───────────────
