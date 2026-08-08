@@ -96,6 +96,7 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
@@ -229,8 +230,40 @@ class AppServiceProvider extends ServiceProvider
         //
         // Production-only, so local http dev is untouched. FORCE_HTTPS can enable it elsewhere (a staging box
         // behind a proxy) or disable it in production if TLS genuinely terminates at the app.
-        if ((bool) env('FORCE_HTTPS', $this->app->environment('production'))) {
+        //
+        // ⚠️ Read through config(), NOT env(). `config:cache` — which the deploy runbook runs — makes Laravel
+        // skip loading .env, so an env() call here returns NULL in production and this would silently never
+        // fire. See config/security.php.
+        if ((bool) config('security.force_https')) {
             URL::forceScheme('https');
+        }
+
+        // TRUSTED PROXIES (audit 2026-08-07 · F6-10). With none configured Laravel trusts NO proxy — safe (a
+        // spoofed X-Forwarded-For is ignored) but behind a real load balancer three controls break QUIETLY:
+        // EnforceIpAllowlist compares the PROXY's address so the operator IP allowlist blocks everyone; the
+        // per-IP login rate limiter collapses into one bucket for the internet; and isSecure() reads false,
+        // suppressing HSTS and defeating the secure session cookie.
+        //
+        // ⚠️ SET VIA THE STATIC, FROM boot(), AND BOTH HALVES OF THAT MATTER — each learned by getting it
+        // wrong and watching the header disappear:
+        //   • NOT `$middleware->trustProxies(...)` in bootstrap/app.php reading config(): that closure runs
+        //     before the container has a `config` binding and fatals outright.
+        //   • NOT a custom TrustProxies subclass either: the framework registers its OWN TrustProxies in the
+        //     global stack, which runs after a prepended subclass and RESETS the trusted set to empty.
+        //     `::at()` writes the static the framework's own middleware reads, so it survives.
+        //   • NOT env() anywhere outside config/: `config:cache` (in the deploy runbook) stops .env loading,
+        //     so it would be NULL in production — silently dead exactly where it is needed.
+        $proxies = trim((string) config('security.trusted_proxies', ''));
+
+        if ($proxies !== '') {
+            TrustProxies::at($proxies === '*' ? '*' : array_values(array_filter(array_map('trim', explode(',', $proxies)))));
+            TrustProxies::withHeaders(
+                Request::HEADER_X_FORWARDED_FOR
+                | Request::HEADER_X_FORWARDED_HOST
+                | Request::HEADER_X_FORWARDED_PORT
+                | Request::HEADER_X_FORWARDED_PROTO
+                | Request::HEADER_X_FORWARDED_AWS_ELB,
+            );
         }
 
         // Phase 8 · production email — THE #1 GUARD: a real-sending mail transport (Postmark/SES/…) is refused
