@@ -4,6 +4,38 @@
 
 ---
 
+## 0. ✅ RESOLUTION LOG — the launch blockers are FIXED (2026-08-08)
+
+> The five HIGH findings and the two launch-blocking deployment gaps were fixed in a gated pass the day
+> after this audit. Each gate: verified against the code first, fixed by MIRRORING the correct pattern that
+> already existed adjacent to the defect, verified BOTH in a real browser/runtime AND by a DB re-read, and
+> shipped with a regression test aimed at the exact blind spot that hid it. Every invariant, refusal and
+> honest deferral was preserved — no live Stripe enabled, no new external send, no fabricated data.
+
+| # | Finding | Commit | What fixed it | Proof |
+|---|---|---|---|---|
+| **H1** | Refund bound `#27` not concurrency-safe | `e4775ec` | `refundPayment()` now runs in a transaction that ROW-LOCKS the original payment and re-reads the cumulative total INSIDE the lock — mirroring `OwnerPayoutService::pay()`. Deterministic Stripe `Idempotency-Key` threaded through (refund was the only money op without one); optional caller key persisted, backed by the existing UNIQUE index. Two lying comments corrected. | New `ConcurrentRefundTest` races **two real OS processes** on separate MySQL connections: one succeeds, one is **rejected**, one row, total ≤ original, folio reconciles (#17). **Verified to FAIL pre-fix** (statuses were `[error, success]`, both past the bound). Browser-drove a real €100 refund; DB re-read reconciles both ways. |
+| **H2** | Every booking confirmation failed permanently | `6c10049` | New `SendBookingConfirmationEmail` job carries **scalars only** and does the whole load-render-send inside `TenantContext::forOrganization()` — mirroring `RetryableSyncJob`. Horizon `tries 1 → 3` with backoff. | ⚠️ **Mechanism corrected**: the audit said "fails on deserialization"; it actually fails on **RENDER** (which is why production named `[App\Models\Guest]`). New `ConfirmationEmailDeliveryTest` renders across a real serialize/deserialize boundary with the context cleared, through a **real transport**. Runtime: with `hasContext=false`, Mailpit received the confirmation. **A fresh seed now yields 0 failed jobs, was 36.** |
+| **H3** | Guests CRM + guest writes ungated | `f1c6513` | `can:guests.view` / `guests.manage` on the CRM and its 9 writes; `guests.view` on the inbox + its 8 writes; `units.manage` on the 4 storefront-photo routes. **Nav controls gated too** — `guests`/`inbox` were the only two entries with an unconditional route, so the UI was inviting a 403. | Gate coverage on `/app` writes **92/124 → 113/124**; the remaining 11 are exactly the self-only routes, enumerated. Housekeeper gets **403 with a valid CSRF token** (so it is the authz gate) and no PII is reachable; Hotel Manager still 200. +4 tests. |
+| **H4** | Erasure left the guest's name on a **public** review reply | `209b1f3` | `anonymize()` now clears `reviews.operator_response` + `responded_at`, keeping the rating so #76 aggregates don't move. | Bidirectional on the live public page: **before** it rendered *"Thank you Sofia — lovely to host you!"*; **after**, 0 matches for the reply and 0 for the name, page intact. |
+| **H5** | Erasure left staff notes (name/phone/allergies) | `209b1f3` | `anonymize()` now clears `reservations.notes_internal` + `expected_arrival`. | Plant-every-column → erase → assert all cleared against **raw DB rows**, plus a whole-row JSON check that no name/surname/phone/companion survives. |
+| **F6-4** | No cron entry → 8 scheduled commands never run | `8d0ad62` | New `docs/DEPLOYMENT.md` runbook, linked from `CLAUDE.md`. | ⚠️ **Sharpened**: the commands *were* correctly scheduled (`schedule:list` shows 8) — only `schedule:run` was absent from the repo. Without it the **GDPR 14-day deletion and 30-day ID purge silently never execute**, which would have quietly undone H4/H5. |
+| **F-2a-04** | No login rate limit | `8d0ad62` | Per-IP limiter (20/min) on all 5 auth POSTs incl. **both 2FA challenges**. | ⚠️ **The finding was half right**: a per-credential limit already existed in the FormRequests with better UX. Only the **per-IP** dimension was missing — which is exactly why 30 distinct-email attempts passed. Fixed only that; my first pass added a redundant duplicate and broke the existing test, and was corrected rather than the test. Live: spray → 429 at 6; stuffing → 429. |
+| — | GATE 2 regression | `42829e7` | The dispatch sat outside the listener's try/catch; on `sync` a provider outage rolled the **booking** back. Re-wrapped (not swallowed inside the job, so worker retries still fire). | Caught by the existing `MailDeliveryBoundaryTest` — the net worked. |
+
+**Suite after the pass: 1640 tests, 1633 passed, 11,238 assertions.** The 7 non-green are **exactly** the two
+documented files and nothing else. PHPStan L5 (0) · Pint clean · `migrate:fresh --seed` clean.
+
+⚠️ **Tech-debt correction, now measured 3× in isolation:** `OwnerUnitDetailViewTest` fails **11/12 alone, on
+every run** — a **real deterministic defect**, not the "random ULID collision flake" the project docs claim.
+`BookingImportTest` does pass 11/11 in isolation, so that half of the claim holds.
+
+**Still open — the SHOULD-FIX and POST-LAUNCH lists in §8 are unchanged** (security headers, error views,
+npm lockfile, dependency bumps, IBAN in sessions, the 26 parity gaps, the performance layer). This pass
+closed the launch blockers only.
+
+---
+
 ## 1. EXECUTIVE SUMMARY
 
 ### Verdict in one line

@@ -2,6 +2,65 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-08 — AUDIT FIX PASS: the launch blockers (5 HIGH + cron + rate-limit) are CLOSED
+
+**Context.** `docs/AUDIT-COMPLETE-2026-08-07.md` (7 layers × 5 realms, 24 agents, 66 findings, 0 CRITICAL)
+found 5 distinct HIGH issues plus 2 launch-blocking deployment gaps. This pass fixed exactly those, one per
+gate, and nothing else — the SHOULD-FIX/POST-LAUNCH lists are deliberately untouched.
+
+**The governing method, and why it mattered.** Every HIGH was a MISSING control where the sibling path
+already had the right one, so each fix MIRRORED the adjacent pattern rather than inventing a mechanism:
+H1 → `OwnerPayoutService::pay()` (lock + idempotency); H2 → `RetryableSyncJob` (tenant restore across the
+queue boundary); H3 → the `can:` middleware 115 routes already use; H4/H5 → the `anonymize()` that already
+cleared 8 stores. No new abstraction was introduced anywhere.
+
+**Three findings were SHARPENED against the code before being fixed — the corrections changed the work:**
+1. **H2 is a RENDER failure, not a deserialization failure.** The ModelIdentifier restores fine; the Blade
+   then touches `leadGuest`/`property` on a context-less worker. (Production named `[App\Models\Guest]`, not
+   `[Reservation]` — the tell.) Wrapping only the deserialize would not have fixed it.
+2. **F6-4 is a missing CRON ENTRY, not a missing schedule.** All 8 commands are correctly registered and
+   `schedule:list` shows them; `schedule:run` simply appears nowhere in the repo. Without it the GDPR 14-day
+   deletion and 30-day ID purge silently never execute — which would have quietly undone H4/H5.
+3. **F-2a-04 was half right.** A per-credential login throttle already existed in the FormRequests with
+   better UX; only the PER-IP dimension was missing, which is precisely why 30 distinct-email attempts
+   passed. Fixed only that. A first pass added a redundant duplicate and broke the pre-existing test — the
+   fix was corrected, not the test.
+
+**Decisions locked.**
+- **The BOUND, not the key, protects the refund total.** `refundPayment()` gains an OPTIONAL caller
+  idempotency key; it is deliberately NOT auto-derived onto the row, because two sequential PARTIAL refunds
+  of equal amount are legitimate and must not be silently collapsed. The row lock is the correctness fix.
+- **The gateway call stays INSIDE the refund lock**, matching the payout rail — correctness of the money
+  bound outranks lock duration (the network-in-lock cost is tracked separately as audit P5-02).
+- **The inbox gates on `guests.view`, not `guests.manage`** — a Guest Support Agent holds view only and
+  replying IS their job; both gates exclude the same low-privilege roles anyway.
+- **`reviews.body` is RETAINED on erasure and flagged**, not silently kept: it is the guest's opinion OF THE
+  PROPERTY, the author is already anonymised, and destroying it changes published content. The one-line
+  change is documented in-code if policy decides otherwise.
+- **Nothing was enabled.** Live Stripe stays off (the Idempotency-Key only matters once the founder flips
+  live keys); no new external send; no fabricated data; every honest deferral preserved.
+
+**Regression tests target the exact blind spots**, not the symptoms: a TWO-PROCESS refund race (proven to
+FAIL pre-fix); a queued mailable RENDERED across a real serialize/deserialize boundary with the context
+cleared, through a real transport — closing the `Mail::fake()`/`assertQueued` hole that let a 100% delivery
+failure pass 1,617 green tests; plant-every-column erasure verified against RAW DB rows; and both throttle
+dimensions. **Four pre-existing tests that ENCODED the H2 bug were corrected.**
+
+**Commits:** `e4775ec` (H1) · `6c10049` (H2) · `f1c6513` (H3) · `209b1f3` (H4+H5) · `8d0ad62` (cron +
+throttle) · `42829e7` (restore the mail side-effect boundary that GATE 2 broke — caught by the existing
+`MailDeliveryBoundaryTest`, which did its job).
+
+**State:** suite 1640 tests / 1633 passed / 11,238 assertions; the 7 non-green are EXACTLY the two documented
+files. PHPStan L5 (0) · Pint clean · `migrate:fresh --seed` clean and now yielding **0 failed jobs (was 36)**.
+
+⚠️ **Tech-debt correction:** `OwnerUnitDetailViewTest` fails 11/12 **in isolation on every run** — a real
+deterministic defect, NOT the "random ULID collision flake" the docs claimed. `BookingImportTest` genuinely
+is an ordering flake (11/11 isolated).
+
+⚠️ **Vyrobel is no longer "QA-COMPLETE, 0 open defects."** Correct status: **launch blockers fixed; a
+hardening + deployment sprint and the scale-performance work remain** (see the audit's §8).
+
+
 ## Locked as of 2 July 2026
 
 - **Product name:** Vyrobel — an independent hotel management SaaS platform.

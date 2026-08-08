@@ -6,7 +6,49 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ✅ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE **+ QA-COMPLETE (3 passes, 0 open defects)** (2026-08-04; last code commit `b2e1d7b`)
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **LAUNCH BLOCKERS FIXED (2026-08-08)** · hardening + deployment + scale-perf REMAIN
+
+> ## ⚠️ STATUS CORRECTED 2026-08-08 — READ THIS BEFORE THE BLOCK BELOW
+>
+> **Vyrobel is NO LONGER "QA-COMPLETE, 0 open defects."** A full-depth 7-layer audit
+> (`docs/AUDIT-COMPLETE-2026-08-07.md` — 24 agents, 446 routes, 152 pages, 183 parity verdicts) found **66
+> findings: 0 CRITICAL, 5 distinct HIGH, 35 MEDIUM, 20 LOW**. The three prior QA passes were thorough and
+> their verdict was honest for what they probed — but all three tested BEHAVIOUR THROUGH THE UI, and the two
+> worst findings live exactly where UI testing cannot reach: a queue worker rendering outside tenant context,
+> and a race window inside a service. `Mail::fake()` + `assertQueued` let a **100% booking-confirmation
+> delivery failure** pass 1,617 green tests.
+>
+> **The 5 HIGH + the 2 launch-blocking deployment gaps are now FIXED** (commits `e4775ec`, `6c10049`,
+> `f1c6513`, `209b1f3`, `8d0ad62`, `42829e7` — see the audit's §0 RESOLUTION LOG and the 2026-08-08
+> `DECISIONS.md` entry). Suite **1640 / 1633 passed / 11,238 assertions**; PHPStan L5 (0); Pint clean;
+> `migrate:fresh --seed` clean and now yielding **0 failed jobs (was 36)**.
+>
+> **STILL OPEN — production-readiness is CONDITIONAL, not achieved:**
+> - **SHOULD-FIX before launch:** no security headers of any kind (CSP/HSTS/X-Frame-Options/nosniff — the
+>   money surfaces are framable) · no custom error views · `SESSION_SECURE_COOKIE` + TrustProxies + HTTPS
+>   forcing · 18 dependency advisories (5 HIGH) · owner IBAN written plaintext into `sessions` on a failed
+>   validation · seeders have NO environment guard (`db:seed` in prod would mint a demo super-admin).
+> - **POST-LAUNCH / scale:** 210 queries on `/app/insights` and **116 on the PUBLIC unauthenticated
+>   storefront** on 40 reservations; missing composite indexes measured at **73×–200× at 500k**; **zero
+>   pagination and zero caching app-wide**; 26 prototype-parity gaps (9 MEDIUM); WCAG AA contrast failures on
+>   two shared tokens; the guest portal has **zero viewport breakpoints**.
+> - **DEPLOYMENT is a real sprint, not a flip:** there is no Dockerfile, CI workflow, deploy script or backup
+>   strategy in the repo. `docs/DEPLOYMENT.md` (new) carries the runbook, including the ONE cron entry
+>   without which the GDPR deletion and ID purge never run.
+>
+> ⚠️ **TECH-DEBT CORRECTION:** `OwnerUnitDetailViewTest` fails **11/12 in isolation on every run** — a REAL
+> deterministic defect, not the "random ULID collision flake" recorded below. `BookingImportTest` genuinely
+> is an ordering flake (11/11 isolated). The "7 documented flakes" framing was half wrong.
+>
+> ⚠️ **SEQUENCING:** fix H1 (the refund race) **before** the Stripe live-key flip — it was the one finding
+> that converts from harmless to unrecoverable at that moment. *(Done: `e4775ec`.)*
+>
+> The block below is the pre-audit record. It remains accurate about what was BUILT; treat its
+> "QA-COMPLETE / 0 defects" and "only flips + deployment remain" claims as superseded by this header.
+
+---
+
+## (superseded header) Vyrobel finish-to-100 COMPLETE **+ QA-COMPLETE (3 passes, 0 open defects)** (2026-08-04; last code commit `b2e1d7b`)
 
 **Vyrobel is a multi-tenant, AI-native hotel/apartment management SaaS (PMS + channel manager + booking engine + guest/owner/operator apps + owner accounting + AI seams) for operators running a MIX of hotels, aparthotels, serviced apartments, villas and multi-unit rentals.** The design-fidelity finish-to-100 is **COMPLETE across all three realms + the platform super-admin console**, and the product is **QA-COMPLETE** — every page matches its validated wireframe on REAL, tenant-scoped, reconciling data; every wireframe fabrication is REFUSED with an honest empty/Soon state; all invariants hold; and **three independent QA passes (broad E2E → deep-coverage → final mutating-ops + motion video/trace) converged on ZERO open defects**, all prior findings resolved and re-confirmed live. **The ONLY remaining work is the founder's external-infra go-live flips + deployment — NOT UI, fidelity, backend, or QA.** (Section map below: A identity+status · B stack · C realms+surfaces · D engines · E invariants · **F the 3-pass QA history+result** · G honest deferrals · H tech-debt · I process lessons · J founder pattern · **K marketing site**. The dated per-gate build log with hashes is the `## Status` section further below; the "why" is `docs/DECISIONS.md`; per-page fidelity is `docs/design/DIVERGENCE-REGISTER.md`; the audit + resolution logs are `docs/FULL-AUDIT-OPERATOR-GUEST.md`; the three QA reports are `docs/QA-FULL-REPORT-2026-08-04.md`, `docs/QA-DEEP-REPORT-2026-08-04.md`, `docs/QA-THIRD-REPORT-2026-08-04.md`.)
 
