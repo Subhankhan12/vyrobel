@@ -166,10 +166,20 @@ class OwnerDocuments extends Component
                 $earliest = $group->sortBy(fn (OwnerStatement $s): string => $s->period_start->toDateString())->first();
                 $taxNetMinor = (int) $group->sum(fn (OwnerStatement $s): int => (int) $s->net_source_minor);
 
+                // ⚠️ WAVE 2 · #5 — the card used to say "All 12 months" unconditionally. A year with three
+                // finalized statements is not twelve months, and the annual PDF beside it prints the REAL
+                // span, so the card and its own document disagreed. Report what is actually in the year.
+                $latest = $group->sortByDesc(fn (OwnerStatement $s): string => $s->period_start->toDateString())->first();
+                $statementCount = $group->count();
+
                 return [
                     'year' => (int) $year,
                     // DERIVED: how many documents this year genuinely generates.
                     'count' => array_sum(array_map(static fn (array $p): int => count($p['docs']), $periods)),
+                    'statement_count' => $statementCount,
+                    'span_label' => $statementCount === 1
+                        ? $earliest?->period_start->format('F') ?? ''
+                        : ($earliest?->period_start->format('M') ?? '').'–'.($latest?->period_start->format('M') ?? ''),
                     'periods' => $periods,
                     'tax_net_display' => $this->money($taxNetMinor, (string) $earliest?->source_currency),
                 ];

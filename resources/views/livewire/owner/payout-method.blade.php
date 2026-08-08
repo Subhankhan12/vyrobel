@@ -170,7 +170,10 @@
                         @csrf
                         <div class="vy-pm-flabel">Frequency</div>
                         <div class="vy-pm-seg">
-                            @foreach (['monthly' => 'Monthly', 'twice_monthly' => 'Every 2 weeks', 'weekly' => 'Weekly'] as $val => $label)
+                            {{-- WAVE 2 · #3 — ONE canonical list. These two pickers hardcoded their own arrays and had drifted:
+                                 this one said "Every 2 weeks" (26 runs/yr) where the other said "Twice monthly", while
+                                 PayoutSchedule actually runs the 1st and the 16th (24). --}}
+                            @foreach (\App\Models\OwnerPayoutPreference::frequencyOptions() as $val => $label)
                                 <label class="vy-pm-seg-opt"><input type="radio" name="frequency" value="{{ $val }}" @checked($preferences['frequency'] === $val)><span>{{ $label }}</span></label>
                             @endforeach
                         </div>

@@ -11,6 +11,7 @@ use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Money\RefundEta;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -67,7 +68,7 @@ class RefundConfirmationMail extends Mailable
                 'stay' => $stay,
                 'processedOn' => $processedAt->format('j M Y'),
                 // HONEST ETA — a range, never a guaranteed arrival date.
-                'etaLabel' => '5–10 business days',
+                'etaLabel' => RefundEta::WINDOW,
                 'reservationUrl' => route('guest.manage', $reservation->getKey()),
                 'messagesUrl' => route('guest.messages'),
                 // Operator-customizable template (#86)

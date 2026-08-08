@@ -109,7 +109,7 @@
                     <span style="flex:none;width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.14);display:grid;place-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--vy-peach)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span>
                     <div>
                         <div style="font-family:var(--vy-display);font-weight:600;font-size:14.5px;color:#fff">{{ $yearGroup['year'] }} annual tax summary</div>
-                        <div style="font-size:12.5px;color:rgba(255,255,255,.72);margin-top:2px">All 12 months · net {{ $yearGroup['tax_net_display'] }} · one PDF for your accountant</div>
+                        <div style="font-size:12.5px;color:rgba(255,255,255,.72);margin-top:2px">{{ $yearGroup['statement_count'] }} {{ \Illuminate\Support\Str::plural('month', $yearGroup['statement_count']) }} ({{ $yearGroup['span_label'] }}) · net {{ $yearGroup['tax_net_display'] }} · one PDF for your accountant</div>
                     </div>
                 </div>
                 @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)

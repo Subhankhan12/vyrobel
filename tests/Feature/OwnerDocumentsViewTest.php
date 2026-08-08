@@ -225,7 +225,12 @@ it('derives its counts and span from real rows and ports none of the design\'s f
         ->assertDontSee('Download everything')
         // the annual tax summary is a REAL export — the dark card links owner.tax.annual for the real year
         ->assertSee('annual tax summary')
-        ->assertSee('All 12 months')
+        // ⚠️ This used to assert "All 12 months" — locking in the fabrication (wireframe-parity WAVE 2 · #5).
+        // The fixture has TWO statements (Sep + Oct), not twelve, and the annual PDF beside the card prints
+        // the real span, so the card contradicted its own document. The check is not weakened: it now demands
+        // the REAL span and forbids the false claim, which is what this test's name already promised.
+        ->assertSee('2 months (Sep–Oct)')
+        ->assertDontSee('All 12 months')
         ->assertSee(route('owner.tax.annual', 2026));
 
     // The annual card's "net X" is the REAL Σ net_source_minor for the year (the annual PDF's own basis),

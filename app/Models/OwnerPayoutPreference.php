@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\BelongsToOwner;
+use App\Payouts\PayoutSchedule;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -83,5 +84,24 @@ class OwnerPayoutPreference extends Model
             'weekly' => 'Weekly',
             default => 'Monthly',
         };
+    }
+
+    /**
+     * The selectable frequencies AND their labels — the ONE list every picker renders from
+     * (wireframe-parity WAVE 2 · #3).
+     *
+     * Two pickers hardcoded their own arrays and had already drifted: Payout Method offered "Every 2 weeks"
+     * where Payouts offered "Twice monthly" for the identical `twice_monthly` value. "Every 2 weeks" was also
+     * simply WRONG — {@see PayoutSchedule} runs the Nth business day from the 1st and again from
+     * the 16th, which is 24 runs a year, not 26.
+     *
+     * @return array<string, string>
+     */
+    public static function frequencyOptions(): array
+    {
+        return array_combine(
+            self::FREQUENCIES,
+            array_map(static fn (string $f): string => self::frequencyLabel($f), self::FREQUENCIES),
+        );
     }
 }

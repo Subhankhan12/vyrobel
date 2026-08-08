@@ -10,6 +10,7 @@ use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\ResolvedEmailTemplate;
 use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Money\RefundEta;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -74,7 +75,7 @@ class CancellationMail extends Mailable
                 'refund' => $refund,
                 // HONEST: no card_last4 stored (#28) — never a fabricated masked number.
                 'refundMethod' => 'your original payment method',
-                'refundEta' => '3–5 business days',
+                'refundEta' => RefundEta::WINDOW,
                 'sourceLine' => $this->sourceLine($r),
                 'browseUrl' => $this->browseUrl($r),
                 'messagesUrl' => route('guest.messages'),
