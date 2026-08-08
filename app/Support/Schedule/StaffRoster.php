@@ -106,6 +106,44 @@ final class StaffRoster
         return array_map(fn (array $s): string => $s['id'], $this->housekeepers());
     }
 
+    /**
+     * The ids of everyone who counts as STAFF in the active org — the assignable pool for any operational
+     * work, not just a roster shift.
+     *
+     * ⚠️ THIS EXISTS BECAUSE THREE MAINTENANCE SURFACES BUILT THEIR OWN POOL AND GOT IT WRONG (audit
+     * 2026-08-07, the parity matrix's systemic MEDIUM). The Maintenance board, the Work Order reassign
+     * picker and Maintenance Settings each selected users by ACTIVE MEMBERSHIP ALONE — and a Membership is
+     * NOT operator access: External Owners hold one, because it is how their organisation resolves. So all
+     * three offered "Demo Owner", "Demo Owner Accountant" and "Demo Owner Viewer" as technicians.
+     *
+     * Most consequential on Settings, where category AUTO-ASSIGNMENT routes new work orders to the chosen
+     * user: an owner could have been handed operational work and the guest-adjacent detail that comes with
+     * it — a #28 perimeter breach, not merely a cosmetic list bug.
+     *
+     * The roster already had the correct definition (active Membership ∩ a back-office role, so portal-only
+     * users are excluded); the maintenance surfaces simply never used it. Rather than repeat the role filter
+     * a fourth time, they now all read THIS. Any future "who can be assigned work" question belongs here too.
+     *
+     * @return list<string>
+     */
+    public function staffUserIds(): array
+    {
+        return array_map(fn (array $s): string => $s['id'], $this->staff());
+    }
+
+    /**
+     * The same set as {@see staffUserIds()}, shaped for a picker: id + display name, name-ordered.
+     *
+     * @return list<array{id: string, name: string}>
+     */
+    public function assignableStaff(): array
+    {
+        return array_map(
+            fn (array $s): array => ['id' => $s['id'], 'name' => $s['name']],
+            $this->staff(),
+        );
+    }
+
     private function initials(string $name): string
     {
         $parts = preg_split('/\s+/', trim($name)) ?: [];

@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Services\MaintenanceService;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Maintenance\RevenueOnHold;
+use App\Support\Schedule\StaffRoster;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -295,16 +296,20 @@ class MaintenanceList extends Component
     }
 
     /** @return list<array{id: string, name: string}> */
+    /**
+     * The assignable pool — real STAFF only, via the ONE shared definition.
+     *
+     * ⚠️ This used to select by ACTIVE MEMBERSHIP alone, which offered External Owners as technicians: a
+     * Membership is NOT operator access (owners hold one — it is how their org resolves). See
+     * {@see StaffRoster::staffUserIds()} for the full account.
+     */
     private function orgStaff(): array
     {
-        $orgId = app(TenantContext::class)->id();
-        if ($orgId === null) {
+        if (app(TenantContext::class)->id() === null) {
             return [];
         }
-        $memberIds = Membership::query()->where('organization_id', $orgId)->where('status', 'active')->pluck('user_id');
 
-        return User::query()->whereIn('id', $memberIds)->orderBy('name')->get()
-            ->map(fn (User $u): array => ['id' => (string) $u->id, 'name' => (string) $u->name])->all();
+        return app(StaffRoster::class)->assignableStaff();
     }
 
     /** @param  list<string>  $readIds */

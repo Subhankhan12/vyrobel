@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Services\MaintenanceService;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Schedule\StaffRoster;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -304,10 +305,10 @@ class MaintenanceTicketDetail extends Component
             return [];
         }
 
-        $memberIds = Membership::query()
-            ->where('organization_id', $orgId)
-            ->where('status', 'active')
-            ->pluck('user_id');
+        // ⚠️ STAFF ONLY, via the ONE shared definition. This used to select by active Membership alone, which
+        // offered External Owners in the Reassign picker — a Membership is NOT operator access (owners hold
+        // one; it is how their org resolves). See {@see StaffRoster::staffUserIds()}.
+        $memberIds = app(StaffRoster::class)->staffUserIds();
 
         // Real open-load per member: active tickets assigned to them + the urgent subset (one grouped query).
         $open = MaintenanceTicket::query()

@@ -16,7 +16,7 @@ use App\Services\MaintenanceService;
 use App\Support\Export\CsvSafe;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
-use App\Support\Tenancy\TenantContext;
+use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -96,16 +96,12 @@ class MaintenanceActionController extends Controller
 
         $userId = $validated['user_id'] ?? null;
         if ($userId !== null && $userId !== '') {
-            // The assignee must be an active member of THIS org — a foreign/unknown user is rejected.
-            $orgId = app(TenantContext::class)->id();
-            $isMember = Membership::query()
-                ->where('organization_id', $orgId)
-                ->where('user_id', $userId)
-                ->where('status', 'active')
-                ->exists();
-
-            if (! $isMember) {
-                abort(422, 'That user is not a member of this organization.');
+            // ⚠️ The assignee must be real STAFF of THIS org — not merely an active member. A Membership is
+            // NOT operator access: External Owners hold one, so the old membership-only check ACCEPTED a
+            // POSTed owner id even after the picker stopped offering it. Fixing the picker alone would have
+            // been cosmetic; this is the guard that makes it real. See {@see StaffRoster::staffUserIds()}.
+            if (! in_array((string) $userId, app(StaffRoster::class)->staffUserIds(), true)) {
+                abort(422, 'That user is not assignable staff in this organization.');
             }
         } else {
             $userId = null;   // "— Unassigned —"
@@ -154,10 +150,9 @@ class MaintenanceActionController extends Controller
 
         $userId = is_string($validated['user_id'] ?? null) && $validated['user_id'] !== '' ? (string) $validated['user_id'] : null;
         if ($userId !== null) {
-            $isMember = Membership::query()->where('organization_id', app(TenantContext::class)->id())
-                ->where('user_id', $userId)->where('status', 'active')->exists();
-            if (! $isMember) {
-                abort(422, 'That user is not a member of this organization.');
+            // Staff-only, same reasoning as the single assign above (bulk path).
+            if (! in_array((string) $userId, app(StaffRoster::class)->staffUserIds(), true)) {
+                abort(422, 'That user is not assignable staff in this organization.');
             }
         }
 

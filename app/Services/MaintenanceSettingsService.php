@@ -10,7 +10,7 @@ use App\Models\Membership;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Maintenance\MaintenanceSla;
-use App\Support\Tenancy\TenantContext;
+use App\Support\Schedule\StaffRoster;
 
 /**
  * The write path for the operator MAINTENANCE SETTINGS surface (Phase 1 · Sub-gate 4) — mirrors
@@ -42,7 +42,6 @@ class MaintenanceSettingsService
     ];
 
     public function __construct(
-        private TenantContext $tenant,
         private AuditEventRecorder $audit,
     ) {}
 
@@ -100,17 +99,11 @@ class MaintenanceSettingsService
      */
     public function technicians(): array
     {
-        $userIds = Membership::query()
-            ->where('organization_id', $this->orgId())
-            ->where('status', 'active')
-            ->pluck('user_id');
-
-        return User::query()
-            ->whereIn('id', $userIds)
-            ->orderBy('name')
-            ->get()
-            ->map(fn (User $u): array => ['id' => (string) $u->getKey(), 'name' => (string) $u->name])
-            ->all();
+        // ⚠️ STAFF ONLY, via the ONE shared definition. This used to select by active Membership alone,
+        // which offered External Owners in the category-assignee pickers — and this surface drives AUTO
+        // ASSIGNMENT, so a new work order could have been routed to an owner (#28). See
+        // {@see StaffRoster::staffUserIds()}.
+        return app(StaffRoster::class)->assignableStaff();
     }
 
     /**
@@ -141,7 +134,11 @@ class MaintenanceSettingsService
             ->groupBy('assigned_to')
             ->pluck('cnt', 'assigned_to');
 
-        $ids = collect(array_keys($assignedCategories))->merge($load->keys())->unique()->values();
+        // Restricted to real staff for the same reason as technicians(): a stale assignee row pointing at an
+        // owner (configured before the fix) must not resurface here as a "technician".
+        $staffIds = app(StaffRoster::class)->staffUserIds();
+        $ids = collect(array_keys($assignedCategories))->merge($load->keys())->unique()
+            ->filter(fn ($id): bool => in_array((string) $id, $staffIds, true))->values();
         if ($ids->isEmpty()) {
             return [];
         }
@@ -167,17 +164,10 @@ class MaintenanceSettingsService
             return null;
         }
 
-        $isMember = Membership::query()
-            ->where('organization_id', $this->orgId())
-            ->where('user_id', $userId)
-            ->where('status', 'active')
-            ->exists();
-
-        return $isMember ? $userId : null;
-    }
-
-    private function orgId(): string
-    {
-        return (string) $this->tenant->id();
+        // ⚠️ Staff-only. This is the AUTO-ASSIGNMENT config: a membership-only check let an owner be saved
+        // as a category assignee, and every new work order in that category would then be routed to them
+        // (#28). Silently returns null for a non-staff id rather than throwing — the caller treats that as
+        // "no assignee", which is the safe outcome for a settings save.
+        return in_array((string) $userId, app(StaffRoster::class)->staffUserIds(), true) ? $userId : null;
     }
 }
