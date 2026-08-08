@@ -151,7 +151,7 @@ it('reports a labor/parts split that reconciles to total spend', function () {
     $svc->start($t2->refresh());
     $svc->resolve($t2->refresh(), Money::of(5000, 'EUR'));   // legacy single-cost path → all labour
 
-    $report = app(MaintenanceCostService::class)->report();
+    $report = app(MaintenanceCostService::class)->report([(string) $s['property']->id]);
 
     expect($report['total_minor'])->toBe(13000)
         ->and($report['labor_minor'] + $report['parts_minor'])->toBe($report['total_minor'])
@@ -170,7 +170,7 @@ it('billable line items equal the owner-billed cost', function () {
     $svc->start($t->refresh());
     $svc->resolve($t->refresh(), null, Money::of(8000, 'EUR'), Money::of(3000, 'EUR'));
 
-    $report = app(MaintenanceCostService::class)->report();
+    $report = app(MaintenanceCostService::class)->report([(string) $s['property']->id]);
     $line = collect($report['billable'])->firstWhere('id', $t->id);
 
     $expense = OwnerExpense::withoutGlobalScopes()->where('source_type', $t->fresh()->getMorphClass())->where('source_id', $t->id)->first();

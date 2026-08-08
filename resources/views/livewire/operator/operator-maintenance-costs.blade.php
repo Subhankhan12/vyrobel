@@ -10,13 +10,27 @@
 
         {{-- Header row --}}
         <div class="vy-rack-toolbar vy-fade">
-            <div class="vy-left"><a class="vy-convo-back" href="{{ route('app.maintenance') }}">‹ Board</a></div>
+            <div class="vy-left" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                <a class="vy-convo-back" href="{{ route('app.maintenance') }}">‹ Board</a>
+                {{-- PERIOD SELECTOR (auth/isolation pass rider) — the report was ALL-TIME with no way to narrow
+                     it. Plain GET links, so every switch re-runs the property-context middleware (a Livewire
+                     action would bypass it). The EXPORT links below carry the same `period`, so the PDF/CSV
+                     always covers the window on screen (#17). --}}
+                <span style="display:inline-flex;gap:4px">
+                    @foreach ($period['options'] as $opt)
+                        <a href="{{ route('app.maintenance.costs', ['period' => $opt]) }}"
+                           style="font-size:12px;padding:4px 10px;border-radius:999px;text-decoration:none;{{ $period['active'] === $opt ? 'background:var(--vy-accent);color:#fff;font-weight:600' : 'color:var(--vy-muted);border:1px solid var(--vy-hairline)' }}">
+                            {{ $opt === 'all' ? 'All time' : strtoupper($opt) }}
+                        </a>
+                    @endforeach
+                </span>
+            </div>
             <div class="vy-right" style="position: relative;">
                 <button type="button" class="vy-btn vy-btn--accent" @click="exOpen = !exOpen">Export ▾</button>
                 <div x-show="exOpen" x-cloak @click.outside="exOpen = false"
                      style="position: absolute; right: 0; top: 42px; z-index: 30; width: 250px; background: var(--vy-glass); border: 1px solid var(--vy-glass-border); border-radius: 12px; box-shadow: 0 14px 40px rgba(150,90,50,.16); padding: 6px;">
-                    <a href="{{ route('app.maintenance.costs.pdf') }}" class="vy-menu-item" style="display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--vy-ink); font-size: 13px;">PDF report <span style="color: var(--vy-faint); font-size: 11px;">· formatted</span></a>
-                    <a href="{{ route('app.maintenance.costs.csv') }}" class="vy-menu-item" style="display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--vy-ink); font-size: 13px;">CSV <span style="color: var(--vy-faint); font-size: 11px;">· billable line items</span></a>
+                    <a href="{{ route('app.maintenance.costs.pdf', ['period' => $period['active']]) }}" class="vy-menu-item" style="display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--vy-ink); font-size: 13px;">PDF report <span style="color: var(--vy-faint); font-size: 11px;">· formatted</span></a>
+                    <a href="{{ route('app.maintenance.costs.csv', ['period' => $period['active']]) }}" class="vy-menu-item" style="display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--vy-ink); font-size: 13px;">CSV <span style="color: var(--vy-faint); font-size: 11px;">· billable line items</span></a>
                     <div style="padding: 9px 12px; color: var(--vy-faint); font-size: 13px;">Excel <span style="font-size: 11px;">· coming soon (use CSV)</span></div>
                     <form method="POST" action="{{ route('app.maintenance.costs.email') }}" style="border-top: 1px solid var(--vy-hairline); margin-top: 4px; padding-top: 4px;">
                         @csrf

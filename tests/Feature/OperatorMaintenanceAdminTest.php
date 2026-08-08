@@ -45,7 +45,9 @@ it('derives real maintenance cost aggregates that reconcile', function () {
     resolvedTicket($s, 0, 'electrical', 5000);   // operator unit
     resolvedTicket($s, 1, 'plumbing', 10000);    // owner unit
 
-    $report = app(MaintenanceCostService::class)->report();
+    // The report is now property-scoped (auth/isolation pass) — pass the scenario's property, which is the
+    // full set this test's org has, so the assertions below are unchanged.
+    $report = app(MaintenanceCostService::class)->report([(string) $s['property']->id]);
 
     expect($report['total_minor'])->toBe(30000)
         ->and($report['orders_closed'])->toBe(3)

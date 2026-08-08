@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Livewire\MaintenanceList;
 use App\Models\MaintenanceTicket;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,8 +32,19 @@ class MaintenanceCostService
     /**
      * @return array{currency: string, total_minor: int, labor_minor: int, parts_minor: int, orders_closed: int, avg_minor: ?int, parts_on_order: int, owner_units_minor: int, operator_units_minor: int, by_category: list<array{category: string, total_minor: int, count: int}>, top_units: list<array{code: string, name: string, total_minor: int, count: int}>, by_month: list<array{month: string, total_minor: int, count: int}>, billable: list<array{id: string, date: string, title: string, unit: string, category: string, labor_minor: int, parts_minor: int, total_minor: int}>}
      */
-    public function report(): array
+    /** @var list<string> the property read-set for this report — set by report(), read by every helper. */
+    private array $propertyIds = [];
+
+    private ?string $from = null;
+
+    private ?string $to = null;
+
+    public function report(array $propertyIds, ?string $from = null, ?string $to = null): array
     {
+        $this->propertyIds = array_values(array_map('strval', $propertyIds));
+        $this->from = $from;
+        $this->to = $to;
+
         $ordersClosed = $this->resolved()->count();
         $totalMinor = (int) $this->resolved()->sum('cost_minor');
 
@@ -50,7 +62,13 @@ class MaintenanceCostService
             'avg_minor' => $ordersClosed > 0 ? intdiv($totalMinor, $ordersClosed) : null,
             // Real count of active tickets waiting on a part (the "Parts on order" KPI). A part on order has no
             // cost yet (the ticket isn't resolved), so a count is the honest figure — never a fabricated €.
-            'parts_on_order' => MaintenanceTicket::query()->where('awaiting_parts', true)->whereIn('status', ['open', 'in_progress'])->count(),
+            // Property-scoped like everything else, but deliberately NOT period-filtered: a part on order is a
+            // CURRENT state, not something that happened inside the selected window.
+            'parts_on_order' => MaintenanceTicket::query()
+                ->where('awaiting_parts', true)
+                ->whereIn('status', ['open', 'in_progress'])
+                ->whereHas('unit', fn (Builder $q) => $q->whereIn('property_id', $this->propertyIds))
+                ->count(),
             'owner_units_minor' => $this->spendOnUnits(true),
             'operator_units_minor' => $this->spendOnUnits(false),
             'by_category' => $this->byCategory(),
@@ -96,10 +114,36 @@ class MaintenanceCostService
             })->all();
     }
 
-    /** The base set: resolved tickets in the acting org. */
+    /**
+     * The base set: resolved tickets the acting user MAY SEE, within the selected period.
+     *
+     * ⚠️ THIS WAS TENANT-SCOPED ONLY (auth/isolation pass, 2026-08-09). It carried no property constraint at
+     * all, so the whole report — totals, unit NAMES, billable lines — was org-wide while the sibling board
+     * ({@see MaintenanceList}) scoped through `currentReadIds`. A user restricted by the
+     * `property_user` pivot ("the set the user MAY WORK IN", per {@see PropertyContext}) therefore saw the
+     * costs of properties they may not work in.
+     *
+     * The scope MIRRORS the board exactly — `whereHas('unit', property_id ∈ readIds)` — rather than inventing
+     * a second mechanism, so the two surfaces cannot diverge.
+     *
+     * ⚠️ An EMPTY read-set means "no properties in scope" and yields NOTHING. That is deliberate and is NOT
+     * the documented empty-pivot case: PropertyContext resolves an empty `property_user` pivot to the FULL
+     * org before this is ever called, so an unrestricted user still sees everything.
+     */
     private function resolved(): Builder
     {
-        return MaintenanceTicket::query()->where('status', 'resolved');
+        $query = MaintenanceTicket::query()
+            ->where('status', 'resolved')
+            ->whereHas('unit', fn (Builder $q) => $q->whereIn('property_id', $this->propertyIds));
+
+        if ($this->from !== null) {
+            $query->whereDate('resolved_at', '>=', $this->from);
+        }
+        if ($this->to !== null) {
+            $query->whereDate('resolved_at', '<=', $this->to);
+        }
+
+        return $query;
     }
 
     /** @return list<array{category: string, total_minor: int, count: int}> */

@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Livewire\Operator\OperatorMaintenanceCosts;
 use App\Mail\MaintenanceCostReportMail;
 use App\Services\MaintenanceCostService;
 use App\Services\PdfService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Export\CsvSafe;
+use App\Support\Maintenance\MaintenancePeriod;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -29,9 +32,34 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class MaintenanceCostExportController extends Controller
 {
+    /**
+     * The EXACT scope + period the screen uses (auth/isolation pass, 2026-08-09).
+     *
+     * ⚠️ THE TWO-READERS TRAP: this controller and {@see OperatorMaintenanceCosts}
+     * call the SAME service, so if the export resolved its scope or period differently the PDF/CSV would
+     * quietly disagree with the screen it claims to export (#17). Both read the SAME period query params and
+     * the SAME {@see PropertyContext::readIds()} — never a request-supplied property id, which would be an
+     * isolation hole (#38).
+     *
+     * ⚠️ ONE param name, ONE resolution. An earlier cut of this fix had the screen read `?period=` while the
+     * export read `?from=`/`?to=` — which would have reintroduced the very drift it exists to prevent (the
+     * export links carry no dates, so every export would have silently been ALL-TIME beside a 6-month page).
+     *
+     * @return array{0: list<string>, 1: ?string, 2: ?string}
+     */
+    private function scope(Request $request): array
+    {
+        return [
+            app(PropertyContext::class)->readIds(),
+            MaintenancePeriod::presetFrom($request->query('period', '6m')),
+            null,
+        ];
+    }
+
     public function csv(Request $request, MaintenanceCostService $costs, AuditEventRecorder $audit): StreamedResponse
     {
-        $report = $costs->report();
+        [$ids, $from, $to] = $this->scope($request);
+        $report = $costs->report($ids, $from, $to);
         $currency = $report['currency'];
         $audit->record('maintenance.costs_exported', null, null, ['format' => 'csv', 'orders' => $report['orders_closed']]);
 
@@ -57,7 +85,8 @@ class MaintenanceCostExportController extends Controller
 
     public function pdf(Request $request, MaintenanceCostService $costs, PdfService $pdf, AuditEventRecorder $audit): SymfonyResponse
     {
-        $report = $costs->report();
+        [$ids, $from, $to] = $this->scope($request);
+        $report = $costs->report($ids, $from, $to);
         $audit->record('maintenance.costs_exported', null, null, ['format' => 'pdf', 'orders' => $report['orders_closed']]);
 
         return $pdf->download('pdfs.maintenance-costs', ['report' => $report], 'Vyrobel-maintenance-costs.pdf');
@@ -71,7 +100,8 @@ class MaintenanceCostExportController extends Controller
             return redirect()->route('app.maintenance.costs')->with('mt_error', 'Your account has no email address.');
         }
 
-        $report = $costs->report();
+        [$ids, $from, $to] = $this->scope($request);
+        $report = $costs->report($ids, $from, $to);
         $bytes = $pdf->raw('pdfs.maintenance-costs', ['report' => $report]);
         Mail::to($email)->send(new MaintenanceCostReportMail($bytes));
 
