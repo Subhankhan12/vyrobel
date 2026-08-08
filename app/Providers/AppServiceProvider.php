@@ -368,6 +368,23 @@ class AppServiceProvider extends ServiceProvider
             (int) config('services.booking.rate_limit', 60)
         )->by($request->ip() ?? 'unknown'));
 
+        // PER-IP AUTH THROTTLE (audit 2026-08-07 · F-2a-04).
+        //
+        // ⚠️ THE FINDING WAS HALF RIGHT, and the difference decides the fix. The audit reported "no rate limit
+        // on ANY of the four login endpoints". Verified against the code: a PER-CREDENTIAL limit already exists
+        // and works — LoginRequest / GuestLoginRequest / AdminLoginRequest and both 2FA challenge controllers
+        // each throttle at 5 attempts on `email|ip`, and answer with a friendly "try again in N seconds"
+        // validation error rather than a bare 429.
+        //
+        // What was genuinely missing is the PER-IP net. Every attempt in a CREDENTIAL-STUFFING run uses a
+        // DIFFERENT email, so it fills a different per-credential bucket and none of them ever trips — which is
+        // exactly why the audit's 30 attempts from one IP were all accepted. This limiter adds ONLY that
+        // missing dimension; the per-credential limit deliberately stays in the FormRequests, where it keeps
+        // its better UX and its existing test.
+        RateLimiter::for('login', fn (Request $request): Limit => Limit::perMinute(
+            (int) config('services.auth.login_ip_rate_limit', 20)
+        )->by($request->ip() ?? 'unknown'));
+
         // Phase 7c · SG2 — owner-team UI gating. ONE source of truth with the route gate ({@see
         // EnsureOwnerCapability}): both read the acting role from OwnerContext, so a control is shown only
         // when the route would allow it (never inviting a 403). @ownercan hides a capability-scoped control;

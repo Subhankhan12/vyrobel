@@ -47,6 +47,7 @@ Keep this file lean and high-signal — it loads into context every session. Det
 - Assets: `npm run dev` / `npm run build`
 - Queue (Phase 2+): `php artisan horizon`
 - Dev email (demo): `mailpit` (SMTP `127.0.0.1:1025`, UI `http://127.0.0.1:8025`) + `.env` `MAIL_MAILER=smtp` — catches invite emails locally. **Prod needs a real provider** (Mailpit is dev/demo only).
+- **Deploy: `docs/DEPLOYMENT.md`** — ⚠️ includes the ONE cron entry (`* * * * * php artisan schedule:run`) without which all 8 scheduled commands silently never run, **including the GDPR 14-day guest deletion and the 30-day ID purge**. Never `db:seed` production (the seeders create a demo super-admin with password `password`).
 
 ## How to DEMO it (credentials live only in `database/seeders/DemoSeeder.php` — here they are)
 `php artisan migrate:fresh --seed` · `php artisan serve` · log in at `/login`:

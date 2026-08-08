@@ -209,7 +209,7 @@ Route::get('/', function () {
  * (redirect here when unauthenticated); `/book/*` stays public.
  */
 Route::get('/login', [LoginController::class, 'create'])->name('login');
-Route::post('/login', [LoginController::class, 'store']);
+Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login');
 
 /*
  * Vyrobel self-signup / ONBOARDING (Phase 7a) — PUBLIC, pre-auth. Provisions a brand-new operator org
@@ -240,7 +240,7 @@ Route::middleware('auth')->group(function () {
  */
 Route::middleware(RequireTwoFactorPending::class)->group(function () {
     Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'create'])->name('two-factor.challenge');
-    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])->name('two-factor.login');
+    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])->middleware('throttle:login')->name('two-factor.login');
 });
 
 /*
@@ -294,7 +294,7 @@ Route::prefix('guest')->name('guest.')->group(function () {
 
     // Login + password reset (SG3) — on the guest guard/broker. Rate-limited; reset is no-enumeration + hashed tokens.
     Route::get('/login', [GuestLoginController::class, 'create'])->name('login');
-    Route::post('/login', [GuestLoginController::class, 'store']);
+    Route::post('/login', [GuestLoginController::class, 'store'])->middleware('throttle:login');
     Route::post('/logout', [GuestLoginController::class, 'destroy'])->name('logout');
     Route::middleware('throttle:6,1')->group(function () {
         Route::get('/forgot-password', [GuestPasswordResetController::class, 'showForgot'])->name('password.request');
@@ -1225,12 +1225,12 @@ Route::get('/owner/account/email/verify/{user}/{hash}', [OwnerAccountController:
 Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(function () {
     // Unauthenticated — the login form + the hardened, rate-limited attempt (throttle lives in AdminLoginRequest).
     Route::get('login', [AdminLoginController::class, 'create'])->name('login');
-    Route::post('login', [AdminLoginController::class, 'store'])->name('login.store');
+    Route::post('login', [AdminLoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
 
     // The 2FA login CHALLENGE — reachable ONLY while a pending state exists (RequirePlatformAdminTwoFactorPending).
     Route::middleware(RequirePlatformAdminTwoFactorPending::class)->group(function () {
         Route::get('two-factor', [AdminTwoFactorChallengeController::class, 'create'])->name('2fa.challenge');
-        Route::post('two-factor', [AdminTwoFactorChallengeController::class, 'store'])->name('2fa.challenge.store');
+        Route::post('two-factor', [AdminTwoFactorChallengeController::class, 'store'])->middleware('throttle:login')->name('2fa.challenge.store');
     });
 
     // Authenticated on the `admin` guard.

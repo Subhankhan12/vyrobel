@@ -151,3 +151,63 @@ it('redirects an already-authenticated user away from the login form', function 
 
     $this->actingAs($user)->get('/login')->assertRedirect('/app/dashboard');
 });
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+// AUTH THROTTLE (audit 2026-08-07 · F-2a-04) — none of the four login endpoints had ANY rate limit.
+// Password-reset and signup were throttled, and the Lockout event was already being recorded, so the
+// design expected this; only the middleware was missing. 30 attempts across DISTINCT emails from one IP
+// were all accepted.
+//
+// TWO limits, because either alone leaves a hole — and this file pins BOTH, since a single-limit fix
+// would pass a naive test while leaving credential stuffing wide open.
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('keeps the per-credential throttle in the FormRequest, with its friendly error', function () {
+    $s = seedScenario(1);
+    operatorUser($s, ['email' => 'spray@vyrobel.test', 'password' => 'password']);
+    RateLimiter::clear(Str::lower('spray@vyrobel.test').'|127.0.0.1');
+
+    // The PRE-EXISTING per-credential limit (LoginRequest::ensureIsNotRateLimited) answers with a validation
+    // error, not a 429 — deliberately better UX. The new per-IP limiter must not swallow that.
+    for ($i = 0; $i < 5; $i++) {
+        $this->post('/login', ['email' => 'spray@vyrobel.test', 'password' => 'WRONG'])
+            ->assertSessionHasErrors('email');
+    }
+
+    $this->post('/login', ['email' => 'spray@vyrobel.test', 'password' => 'password'])
+        ->assertSessionHasErrors('email');
+    $this->assertGuest();
+})->group('throttle');
+
+it('throttles CREDENTIAL STUFFING, where every attempt uses a different email', function () {
+    // THE HOLE THE PER-CREDENTIAL LIMIT NEVER CLOSES: each attempt uses a DIFFERENT email, so it fills a
+    // different bucket and the per-credential limiter never trips. The audit ran 30 such attempts from one
+    // IP and every one was accepted. The per-IP limiter is what catches it.
+    $status = null;
+
+    for ($i = 1; $i <= 30; $i++) {
+        $status = $this->post('/login', ['email' => "user{$i}@example.test", 'password' => 'x'])->getStatusCode();
+
+        if ($status === 429) {
+            break;
+        }
+    }
+
+    expect($status)->toBe(429);
+})->group('throttle');
+
+it('applies the per-IP throttle to the guest and platform-admin logins too', function () {
+    foreach (['/guest/login', '/admin/login'] as $endpoint) {
+        $status = null;
+
+        for ($i = 1; $i <= 30; $i++) {
+            $status = $this->post($endpoint, ['email' => "u{$i}@example.test", 'password' => 'x'])->getStatusCode();
+
+            if ($status === 429) {
+                break;
+            }
+        }
+
+        expect($status)->toBe(429, "no per-IP throttle on {$endpoint}");
+    }
+})->group('throttle');
