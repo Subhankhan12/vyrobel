@@ -107,6 +107,52 @@
         .vy-top a:focus-visible, .vy-top button:focus-visible {
             outline: 2px solid var(--vy-accent); outline-offset: 2px;
         }
+
+        /* ── PHONE (audit 2026-08-07 · L3-06) ────────────────────────────────────────────────────────────
+           This shell had NO viewport breakpoint at all — its only @media was prefers-reduced-motion — while
+           still declaring <meta viewport width=device-width, which promises adaptation. At a 390px iPhone
+           viewport every one of the 14 guest pages side-scrolled by 225px, because `.vy-top-in` is a
+           space-between flex row and `.vy-nav` is a non-wrapping flex row of links (476px wide on its own).
+
+           That mattered more here than anywhere else in the product: the guest portal is the surface most
+           likely to be opened on a phone — a traveller mid-trip checking arrival info or a door code.
+
+           Kept in the guest design language: same tokens, same glass, no layout rewrite. The nav becomes a
+           horizontally-scrollable pill row (the standard mobile pattern) rather than wrapping into a tall
+           stack that would push content below the fold. */
+        @media (max-width: 640px) {
+            .vy-top-in { flex-wrap: wrap; gap: 8px 12px; padding: 11px 16px; }
+
+            /* Brand and sign-out hold the first row; the nav takes the full width beneath them. */
+            .vy-brand { flex: 0 0 auto; }
+            .vy-signout { margin-left: auto; }
+
+            .vy-nav {
+                order: 3; flex: 1 0 100%;
+                overflow-x: auto; -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;                    /* Firefox */
+                margin: 0 -16px; padding: 2px 16px 4px;   /* bleed to the screen edge so it reads as scrollable */
+            }
+            .vy-nav::-webkit-scrollbar { display: none; }
+            .vy-nav a {
+                flex: 0 0 auto; white-space: nowrap;
+                padding: 12px 14px;                       /* 44px tall — the iOS/WCAG touch-target guideline */
+            }
+
+            .vy-wrap { padding: 20px 16px 48px; }
+            .vy-h1 { font-size: 22px; }
+            .vy-card { padding: 16px; border-radius: var(--vy-r-md); }
+
+            /* Safety net for CONTENT, not just chrome: a wide table or a fixed-width media block inside any
+               of the 14 pages scrolls inside its own box rather than pushing the whole document sideways. */
+            .vy-wrap img, .vy-wrap svg { max-width: 100%; height: auto; }
+            .vy-wrap table { display: block; width: 100%; overflow-x: auto; }
+            .vy-wrap pre { overflow-x: auto; }
+        }
+
+        /* Belt-and-braces: nothing in the portal may force the document wider than the screen. Catches a
+           fixed width added to a page later, which is exactly how this regressed in the first place. */
+        html, body { max-width: 100%; overflow-x: hidden; }
     </style>
     @if ($brandAccent !== null)
         <style>:root { --vy-accent: {{ $brandAccent }}; --vy-shadow-accent: {{ $brandAccent }}47 0 4px 12px; }</style>
