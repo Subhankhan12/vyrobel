@@ -90,7 +90,7 @@ it('renders the unit\'s real facts and the real month occupancy', function () {
         ->assertSee('2 nights')           // DERIVED occupancy — this unit, this month
         ->assertSee('Confirmed')          // the REAL reservation status enum
         ->assertSee('Direct')             // the REAL source enum
-        ->assertSee('15.00%');            // the REAL effective agreement's commission_pct
+        ->assertSee('15%');            // the REAL effective agreement's commission_pct
 
     assertNoRawBlade($response);
 });

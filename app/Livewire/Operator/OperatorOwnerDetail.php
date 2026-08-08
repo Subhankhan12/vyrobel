@@ -21,6 +21,7 @@ use App\Models\User;
 use App\Services\OwnerInviteService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Payouts\Iban;
 use App\Support\Payouts\RailLabel;
@@ -491,11 +492,10 @@ class OperatorOwnerDetail extends Component
      * The REAL commission, e.g. "15.00%" — the `decimal:2` cast already renders the stored scale, so the
      * figure is never re-rounded here. A null column → null → the view says "Not set", NEVER "0%".
      */
+    /** Via the ONE shared formatter (wireframe-parity WAVE 3) — a raw `decimal:2` cast printed "15.00%". */
     private function commissionDisplay(ManagementAgreement $a): ?string
     {
-        $pct = $a->commission_pct;
-
-        return $pct === null ? null : ((string) $pct).'%';
+        return OwnerCommissionRate::display($a->commission_pct);
     }
 
     /** The REAL fixed management fee in its OWN currency (money(), never a float). Null → "Not set". */

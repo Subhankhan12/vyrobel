@@ -14,6 +14,7 @@ use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Services\OwnerAttributionService;
 use App\Support\Owner\OwnerAgreementTerms;
+use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerTeamRole;
 use App\Support\Tenancy\TenantContext;
@@ -325,10 +326,10 @@ class OwnerAgreement extends Component
         return ['amendments' => $amendments];
     }
 
-    /** Trim a decimal percent to its shortest form: 18.00 → "18%". */
+    /** Trim a decimal percent to its shortest form: 18.00 → "18%" — via the ONE shared formatter. */
     private function pct(float $value): string
     {
-        return rtrim(rtrim(number_format($value, 2), '0'), '.').'%';
+        return (string) OwnerCommissionRate::display($value);
     }
 
     /**
@@ -430,11 +431,15 @@ class OwnerAgreement extends Component
      * The REAL commission, e.g. "15.00%" — the `decimal:2` cast already renders the stored scale, so
      * the figure is never re-rounded here. A null column → null → the view says "Not set", NEVER "0%".
      */
+    /**
+     * ⚠️ Via the SHARED formatter (wireframe-parity WAVE 3). This used to cast the decimal straight to a
+     * string and append the unit — and `commission_pct` is a DB decimal, so it printed "18.00%" while
+     * {@see pct()} below printed "18%" for the same agreement. One page, one legally-meaningful rate,
+     * written two ways.
+     */
     private function commissionDisplay(ManagementAgreement $a): ?string
     {
-        $pct = $a->commission_pct;
-
-        return $pct === null ? null : ((string) $pct).'%';
+        return OwnerCommissionRate::display($a->commission_pct);
     }
 
     /**

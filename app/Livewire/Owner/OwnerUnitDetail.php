@@ -22,6 +22,7 @@ use App\Services\OwnerPortalService;
 use App\Services\OwnerRateService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Guest\GuestName;
+use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Owner\OwnerOccupancy;
@@ -822,9 +823,10 @@ class OwnerUnitDetail extends Component
         $pct = $agreement->commission_pct;
 
         return [
-            // The `decimal:2` cast already renders the stored scale, so the figure is never re-rounded.
-            // Null → null → the view says "Not set", NEVER "0%".
-            'display' => $pct === null ? null : ((string) $pct).'%',
+            // ⚠️ Via the SHARED formatter (wireframe-parity WAVE 3) — the `decimal:2` cast renders "15.00",
+            // so casting it straight to a string printed "15.00%" here while the Agreement page printed
+            // "15%" for the same rate. Null → null → the view says "Not set", NEVER "0%".
+            'display' => OwnerCommissionRate::display($pct),
             'scope_label' => $agreement->unit_id === null ? 'Portfolio-wide terms' : 'Terms for this unit',
         ];
     }

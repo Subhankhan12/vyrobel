@@ -12,6 +12,7 @@ use App\Models\Payout;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
+use App\Services\AssignmentService;
 use App\Services\OwnerPortalService;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerCommissionRate;
@@ -345,7 +346,12 @@ class OwnerBookingDetail extends Component
 
         if ($reservation->guest_checked_in_at !== null) {
             $events[] = ['label' => 'Checked in', 'when' => Carbon::parse($reservation->guest_checked_in_at)->format('j M · g:i A'), 'state' => 'done'];
-        } elseif ($checkIn->isFuture()) {
+            // ⚠️ TERMINAL STATUS IS CONSULTED (wireframe-parity WAVE 3). This branch used to fire on any
+            // future-dated check-in, so a booking already cancelled / no-show / checked out rendered
+            // "Check-in — upcoming" directly ABOVE its own completed "Checked out" row. One demo reservation is
+            // genuinely in that state today. A stay that has ended has no upcoming check-in; TERMINAL_STATUSES is
+            // the certified list AssignmentService bounds re-termination with (#29).
+        } elseif ($checkIn->isFuture() && ! in_array((string) $reservation->status, AssignmentService::TERMINAL_STATUSES, true)) {
             // ⚠️ Was `format('D j M · 3:00 PM')` — Carbon read the literal, where P is the UTC offset and
             // M the month, yielding "Sat 5 Sep · 3:00 +00:00Sep". And the hour itself was hardcoded while
             // the property stores a real check_in_time. Both are fixed by passing a real time through a

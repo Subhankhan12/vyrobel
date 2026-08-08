@@ -117,7 +117,7 @@ it('renders the owner’s real record, units, agreement, statements and payouts,
         // — the real unit
         ->assertSee('AMARAUNIT')
         // — the real agreement terms
-        ->assertSee('15.00%')                                    // real commission_pct — never "0%"
+        ->assertSee('15%')                                    // real commission_pct — never "0%"
         ->assertSee('Portfolio-wide')                            // unit_id null = portfolio scope
         ->assertSee('Monthly')                                   // real payout_schedule
         ->assertSee('Open-ended')                                // effective_to null, honestly

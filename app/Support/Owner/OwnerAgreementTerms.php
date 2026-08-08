@@ -80,6 +80,6 @@ final class OwnerAgreementTerms
     /** Trim a decimal percent to its shortest honest form: 18.00 → "18%", 17.50 → "17.5%". */
     private static function pct(float $value): string
     {
-        return rtrim(rtrim(number_format($value, 2), '0'), '.').'%';
+        return (string) OwnerCommissionRate::display($value);
     }
 }

@@ -61,7 +61,7 @@ it('renders the real agreement in effect and never invents a signing flow', func
     $this->actingAs($a['user'])->get('/owner/agreement')
         ->assertOk()
         ->assertSee('Active agreement')
-        ->assertSee('15.00%')          // REAL commission_pct
+        ->assertSee('15%')          // REAL commission_pct
         ->assertSee('€100.00')         // REAL management fee via money() — integer minor, never a float
         ->assertSee('Monthly')         // REAL management_fee_interval
         ->assertSee('Quarterly')       // REAL payout_schedule (distinct from the fee interval)
@@ -93,7 +93,7 @@ it('scopes agreements explicitly, hides another owner in the same tenant, and fa
 
     $this->actingAs($a['user'])->get('/owner/agreement')
         ->assertOk()
-        ->assertSee('15.00%')
+        ->assertSee('15%')
         ->assertDontSee('22.75');
 
     $this->actingAs($b['user'])->get('/owner/agreement')
@@ -161,14 +161,14 @@ it('renders earlier and upcoming agreements in history using the real status enu
     $this->actingAs($a['user'])->get('/owner/agreement')
         ->assertOk()
         ->assertSee('Agreement history')
-        ->assertSee('9.50%')            // the REAL ended agreement
+        ->assertSee('9.5%')            // the REAL ended agreement
         ->assertSee('Ended')            // the REAL status enum
         ->assertSee('1 Jan 2024')
         ->assertSee('31 Dec 2024')
         ->assertSee('Ran to 31 Dec 2024')  // factual DATE context, not an invented phase
         ->assertSee('11.25%')           // the REAL future agreement
         ->assertSee('Starts 1 Jan 2027')
-        ->assertSee('15.00%')           // the in-effect agreement still headlines
+        ->assertSee('15%')           // the in-effect agreement still headlines
         // the design's non-existent lifecycle vocabulary must not be invented as a status
         ->assertDontSee('Expired')
         ->assertDontSee('Renewed')
