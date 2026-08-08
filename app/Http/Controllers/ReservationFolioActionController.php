@@ -171,10 +171,14 @@ class ReservationFolioActionController extends Controller
         try {
             $folios->refundPayment($payment, new Money($minor, (string) $payment->currency), $reason);
         } catch (RefundExceedsPaymentException) {
-            // The service is the authority — it re-reads the cumulative total inside the call, so it also
-            // covers a concurrent refund landing between the read above and this one. Surfaced cleanly,
-            // never a 500 and NEVER silently clamped down to what would fit: refunding less than was asked
-            // for, without saying so, is its own money bug.
+            // The service is the authority. It ROW-LOCKS the original payment and re-reads the cumulative
+            // total INSIDE that lock (FolioService::refundPayment), so a concurrent refund landing between
+            // the read above and this one blocks, then loses the bound check and lands here — and because
+            // the throw rolls its transaction back, the refused attempt writes nothing.
+            // ⚠️ Until 2026-08-08 this comment claimed that safety while the service had NO lock at all
+            //    (audit H1 / L1-01 / F4-2); the mechanism named above is what now makes the claim true.
+            // Surfaced cleanly, never a 500 and NEVER silently clamped down to what would fit: refunding
+            // less than was asked for, without saying so, is its own money bug.
             $left = $folios->remainingRefundableMinor($payment->fresh() ?? $payment);
 
             return $this->back($model->id, $left > 0

@@ -75,9 +75,13 @@ class StripeGateway implements PaymentGateway
         return new GatewayResult($intent->status === 'canceled', $intent->id, 'voided');
     }
 
-    public function refund(string $reference, Money $amount): GatewayResult
+    public function refund(string $reference, Money $amount, ?string $idempotencyKey = null): GatewayResult
     {
-        $refund = $this->stripe->refund($reference, $amount->amountMinor());
+        // Keyed like charge/authorize/capture: a replayed refund returns Stripe's ORIGINAL refund rather
+        // than issuing a second one. The caller (FolioService) derives the key from the payment id + the
+        // cumulative-refunded state read INSIDE its row lock, so a genuine second PARTIAL refund gets a
+        // distinct key while a duplicate submit of the SAME logical refund collapses.
+        $refund = $this->stripe->refund($reference, $amount->amountMinor(), $idempotencyKey);
 
         return new GatewayResult($refund->status === 'succeeded', $refund->id, 'succeeded');
     }

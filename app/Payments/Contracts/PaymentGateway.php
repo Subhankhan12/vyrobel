@@ -22,7 +22,12 @@ interface PaymentGateway
      */
     public function charge(Money $amount, ?string $token, array $metadata = []): GatewayResult;
 
-    public function refund(string $reference, Money $amount): GatewayResult;
+    /**
+     * $idempotencyKey — a deterministic key for the LOGICAL refund, so a retry (double-submit, network
+     * retry, job re-run) returns the ORIGINAL refund instead of moving money twice. Mirrors the key
+     * charge/authorize/capture already pass; refund was the only money operation without one.
+     */
+    public function refund(string $reference, Money $amount, ?string $idempotencyKey = null): GatewayResult;
 
     /**
      * @param  array<string, mixed>  $metadata

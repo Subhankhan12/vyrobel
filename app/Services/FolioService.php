@@ -15,6 +15,7 @@ use App\Models\Reservation;
 use App\Models\Tax;
 use App\Payments\Contracts\PaymentGateway;
 use App\Payments\GatewayResult;
+use App\Payments\Stripe\StripeIdempotency;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Money\Money;
@@ -354,9 +355,30 @@ class FolioService
      * refunds (docs/DECISIONS.md 2026-07-16). Enforced HERE, in the single write path, so every caller is
      * covered rather than each controller re-implementing it.
      *
+     * 🔒 CONCURRENCY-SAFE (audit 2026-08-07 · H1/L1-01/F4-2). The bound used to be a check-then-act with no
+     * lock: two concurrent refunds both read alreadyRefunded=0, both passed, and both called the gateway — so
+     * the SUM could exceed the original, which is exactly what this invariant exists to forbid. It now mirrors
+     * {@see OwnerPayoutService::pay()} — the sibling money-OUT path that already had the right shape: the whole
+     * operation runs in a DB transaction that ROW-LOCKS the original payment and RE-READS the cumulative total
+     * INSIDE the lock, so the check and the write are serialised. A second concurrent caller blocks on the lock,
+     * then re-reads the now-updated total and is refused; the throw rolls the transaction back, so a refused
+     * refund writes NOTHING (no partial rows, folio still reconciles #17).
+     *
+     * ⚠️ The gateway call is deliberately INSIDE the lock, exactly as the payout rail is, so money can never be
+     * moved by a caller that would fail the bound. That does hold the lock across network I/O once live Stripe
+     * is flipped on — a known, separately-tracked cost (audit P5-02, same as the payout rail), accepted here
+     * because correctness of the money bound outranks lock duration.
+     *
+     * @param  string|null  $idempotencyKey  OPTIONAL caller token that collapses a double-submit of the SAME
+     *                                       logical refund (mirrors {@see recordPayment()}, backed by the UNIQUE
+     *                                       index on payments.idempotency_key). Deliberately NOT auto-derived:
+     *                                       two sequential PARTIAL refunds of equal amount are legitimate and
+     *                                       must not be silently collapsed — the bound, not the key, is what
+     *                                       protects the total.
+     *
      * @throws RefundExceedsPaymentException when the cumulative bound or the currency rule is broken
      */
-    public function refundPayment(Payment $original, Money $amount, ?string $reason = null): Payment
+    public function refundPayment(Payment $original, Money $amount, ?string $reason = null, ?string $idempotencyKey = null): Payment
     {
         if (! in_array($original->type, ['payment', 'capture'], true)) {
             throw new InvalidArgumentException('Only a payment/capture can be refunded.');
@@ -377,19 +399,17 @@ class FolioService
             );
         }
 
-        // THE CUMULATIVE BOUND. Subsumes the old per-call `amount > original` check: with no prior refunds
-        // the remainder IS the original. Runs BEFORE the gateway call below — ordering is load-bearing, or
-        // we would move real money and only then reject.
-        $alreadyRefunded = $this->refundedTotalMinor($original);
-        $remaining = (int) $original->amount_minor - $alreadyRefunded;
+        // 🔒 Caller-supplied idempotency (the recordPayment() discipline): a replayed submit returns the
+        // ORIGINAL refund instead of issuing a second one. Checked before the lock as a cheap fast path; the
+        // UNIQUE index on payments.idempotency_key is the real backstop if two replays race here.
+        if ($idempotencyKey !== null) {
+            $existing = Payment::query()->where('idempotency_key', $idempotencyKey)->first();
 
-        if ($amount->amountMinor() > $remaining) {
-            throw RefundExceedsPaymentException::forPayment(
-                (string) $original->getKey(), $amount->amountMinor(), $alreadyRefunded, (int) $original->amount_minor,
-            );
+            if ($existing !== null) {
+                return $existing;
+            }
         }
 
-        $result = $this->gateway->refund((string) $original->gateway_ref, $amount);
         $folio = $original->folio;
 
         // #100 — the operator's refund reason is recorded on the refund row's metadata (JSON — no schema change),
@@ -399,10 +419,37 @@ class FolioService
             $metadata['reason'] = trim($reason);
         }
 
-        $refund = DB::transaction(function () use ($original, $amount, $result, $folio, $metadata): Payment {
+        $refund = DB::transaction(function () use ($original, $amount, $folio, $metadata, $idempotencyKey): Payment {
+            // 🔒 Row-lock THE ORIGINAL payment; a concurrent refundPayment() for it waits here until we commit.
+            $locked = Payment::query()->lockForUpdate()->findOrFail($original->getKey());
+
+            // THE CUMULATIVE BOUND, re-read INSIDE the lock. Subsumes the old per-call `amount > original`
+            // check: with no prior refunds the remainder IS the original. Still runs BEFORE the gateway call
+            // below — ordering is load-bearing, or we would move real money and only then reject.
+            $alreadyRefunded = $this->refundedTotalMinor($locked);
+            $remaining = (int) $locked->amount_minor - $alreadyRefunded;
+
+            if ($amount->amountMinor() > $remaining) {
+                // Throwing here rolls the transaction back: a refused refund writes NOTHING.
+                throw RefundExceedsPaymentException::forPayment(
+                    (string) $locked->getKey(), $amount->amountMinor(), $alreadyRefunded, (int) $locked->amount_minor,
+                );
+            }
+
+            // Deterministic per LOGICAL refund: the same payment at the same cumulative-refunded state for the
+            // same amount replays to one gateway refund, while a genuine second PARTIAL refund (different
+            // $alreadyRefunded) gets a distinct key. Only meaningful once live Stripe is flipped on; the manual
+            // gateway ignores it.
+            $gatewayKey = $idempotencyKey ?? StripeIdempotency::keyFor(
+                'folio_refund',
+                $locked->getKey().':'.$alreadyRefunded.':'.$amount->amountMinor(),
+            );
+
+            $result = $this->gateway->refund((string) $locked->gateway_ref, $amount, $gatewayKey);
+
             $refund = Payment::create([
-                'folio_id' => $original->folio_id,
-                'reservation_id' => $original->reservation_id,
+                'folio_id' => $locked->folio_id,
+                'reservation_id' => $locked->reservation_id,
                 'gateway' => $this->gateway->name(),
                 'gateway_ref' => $result->reference,
                 'type' => 'refund',
@@ -410,6 +457,7 @@ class FolioService
                 'currency' => $amount->currency(),
                 'status' => $result->successful ? 'succeeded' : 'failed',
                 'metadata' => $metadata,
+                'idempotency_key' => $idempotencyKey,
                 'processed_at' => now(),
             ]);
 

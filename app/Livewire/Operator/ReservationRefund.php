@@ -48,12 +48,14 @@ use Livewire\Component;
  *   • DERIVED  — Σ refunded + remaining refundable, from the service helpers; charges/paid/balance from the
  *                SHARED FolioTotals formula — the same source the reservation detail and the folio PDF use,
  *                so all three reconcile to the cent.
- *   • DEFERRED — the refund REASON. `refundPayment()` has NO `$reason` param, `payments` has no reason
- *                column, and the design's 5 chips (service/goodwill/duplicate/cancellation/price) map to no
- *                enum anywhere — invented vocabulary. Threading a reason through the service is a SERVICE
- *                change and was not approved for this gate, so the input is a disabled "Soon" row. The
- *                design's "Recorded on the folio and in reports." promise is NOT rendered: it would be
- *                false twice over (nothing stores it, no report consumes it).
+ *   • ⚠️ STALE-CORRECTED 2026-08-08 — this block used to read "the refund REASON is DEFERRED:
+ *                `refundPayment()` has NO `$reason` param". That has been untrue since #100: the signature is
+ *                `refundPayment(Payment $original, Money $amount, ?string $reason = null, ?string $idempotencyKey = null)`,
+ *                {@see ReservationFolioActionController} passes a composed reason, and it is stored on the
+ *                refund row's `metadata` JSON (no schema column — hence "payments has no reason column" was
+ *                the only accurate half). The reason input is LIVE, not a "Soon" row. Corrected during the
+ *                audit H1 fix pass, which touched this signature again — a docblock asserting a parameter
+ *                does not exist, next to the parameter, is exactly the trap that hid the refund race.
  *   • DEFERRED — emailing the guest a refund confirmation: no operator→guest send exists (app/Mail holds
  *                only OwnerInviteMail + PasswordResetMail). A disabled "Soon" row, never a silent no-op.
  *   • OMITTED  — "By charge" mode: it needs a `folio_items` ↔ `payments` link that does not exist. That is
