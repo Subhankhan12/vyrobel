@@ -78,7 +78,34 @@ Ordered by **severity-if-live**, not by effort.
 
 ---
 
-## WAVE 2 — the "false sentences" honesty sweep
+## WAVE 2 — the "false sentences" honesty sweep · ✅ COMPLETE (2026-08-09)
+
+> **All 23 false-copy items AND all 3 structural MEDIUMs are fixed, verified and pushed**, in six gates:
+> `00a9fe5` S1 wallet concurrency · `47cf1ff` S2 write-only notes · `cb4dec0` S3 yearly-switch ·
+> `8deb066` wrong figures (#17, #21) · `8437a93` mislabelled figures (#11, #12, #14) ·
+> `599a452` anti-drift copy (#3, #5, #8) · `f930dda` unenforced claims (#2, #6, #10, #13, #20, #22) ·
+> `babbb74` prototype fiction (#4, #7, #9, #15, #19) · `b44bb64` unwired controls (#1, #16, #18, #23).
+> Every gate carries a regression test proven to FAIL without its fix.
+>
+> **Two items are deliberately COPY-ONLY, by founder decision (2026-08-09):**
+> - **#6** — the copy now promises only the PROPOSAL path, which `RateProposalService` genuinely enforces
+>   (mode, ±% tolerance AND floor/ceiling). Binding the operator's DIRECT rate write to an owner's
+>   floor/ceiling shifts control between the two parties → **deferred as a product decision**.
+> - **#10** — the real plan limit is now displayed (Essential 5, Pro unlimited). Whether it should be
+>   **enforced** → **deferred with the open billing decision**.
+>
+> ### Corrections made while fixing
+> - **#6 was more nuanced than recorded.** `RateProposalService` DOES enforce the guardrail — on proposals.
+>   Only `RateActionController`'s direct write ignores it. The copy was true of one path, false of the other.
+> - **#20 had a SECOND copy** of the claim in the hero sub-label that the first pass missed; the browser
+>   caught it. The test now asserts case-insensitively.
+> - **Three pre-existing tests asserted the fabrications** they were meant to guard against —
+>   `OwnerDocumentsViewTest` ("All 12 months"), `OwnerHelpTest` ("All systems operational") and
+>   `OwnerMyUnitsViewTest` (relying on the wrong-month default). All three were strengthened, not weakened.
+
+---
+
+## WAVE 2 — the "false sentences" honesty sweep (as planned)
 
 Every item below is **copy asserting behaviour the code does not implement**. For each, the decision axis is: **make the COPY honest**, or **make the CODE match the copy**. The recommendation column says which is right *for that item*; where it is a product call it says so.
 

@@ -45,10 +45,20 @@ class MaintenanceSettingsService
         private AuditEventRecorder $audit,
     ) {}
 
-    /** The acting org's settings row, created with defaults on first read. */
+    /**
+     * The acting org's settings row, created with defaults on first read.
+     *
+     * ⚠️ THE REFRESH IS LOAD-BEARING (wireframe-parity WAVE 2 · #16). `firstOrCreate()` returns the model it
+     * just INSERTed, populated only with the attributes it wrote — the `sla_*_hours` DEFAULTS live in the
+     * schema and are applied by MySQL, so they are absent from that in-memory instance until it is re-read.
+     * Without this, the very first caller on a fresh org still saw null targets and reported "No SLA target
+     * set" — the same unhydrated-defaults trap that caused the bug this fixed, one level down.
+     */
     public function forOrg(): MaintenanceSetting
     {
-        return MaintenanceSetting::query()->firstOrCreate([]);
+        $setting = MaintenanceSetting::query()->firstOrCreate([]);
+
+        return $setting->wasRecentlyCreated ? $setting->refresh() : $setting;
     }
 
     /**

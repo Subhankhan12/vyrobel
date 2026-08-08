@@ -47,8 +47,13 @@ it('renders real facts and a real activity timeline', function () {
         ->assertSee('Assigned')
         ->assertSee('Rosa Delacroix')      // real assignee, surfaced on the assigned entry
         ->assertSee('Work started')
-        ->assertDontSee('Same-day target') // no fabricated SLA
-        ->assertDontSee('Parts on order'); // no fabricated panel
+        // ⚠️ The SLA card is REAL now (wireframe-parity WAVE 2 · #16). This asserted its ABSENCE and called
+        // that "no fabricated SLA" — but the absence came from a bug, not from honesty: the board resolved
+        // settings as `first() ?? new MaintenanceSetting`, and an unsaved model carries no schema defaults.
+        // `sla_high_hours` is NOT NULL and defaults to 8h, so this High ticket genuinely HAS a same-day
+        // target. Showing a real configured target is not fabrication — hiding it was the defect.
+        ->assertSee('Same-day target')
+        ->assertDontSee('Parts on order'); // still no fabricated panel — that one has no data source at all
 });
 
 // ── 2. Lifecycle actions are state-gated + persist through the service ───────────────────────────

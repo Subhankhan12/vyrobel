@@ -76,6 +76,48 @@ Three non-200s were confirmed **correct by design**: Channels 403 (`EnsurePlanFe
 
 ---
 
+## 2c. WAVE 2 — ALL 23 FALSE-COPY ITEMS + THE 3 STRUCTURAL MEDIUMS RESOLVED (2026-08-09)
+
+> **WAVE 2 is COMPLETE.** The sweep's headline finding — *"the code is honest, the copy is not"* — is closed:
+> every sentence in §4 either states what the code does, or is gone.
+
+| Gate | Items | Commit |
+|---|---|---|
+| S1 | Guest wallet: no transaction, no lock, unused UNIQUE key | `00a9fe5` |
+| S2 | Reservation notes write-only (a guest's check-in note reached nobody) | `47cf1ff` |
+| S3 | "Switch to yearly" silently upgraded Essential → Pro | `cb4dec0` |
+| Wrong figures | #17 "Revenue today" org-wide · #21 "Latest payout" was the oldest | `8deb066` |
+| Mislabelled figures | #11 "This month" wasn't · #12 rate-vs-ADR · #14 add-on price | `8437a93` |
+| Anti-drift copy | #3 payout frequency · #5 "All 12 months" · #8 two refund ETAs | `599a452` |
+| Unenforced claims | #2 · #6 · #10 · #13 · #20 · #22 | `f930dda` |
+| Prototype fiction | #4 · #7 · #9 · #15 · #19 | `babbb74` |
+| Unwired controls | #1 · #16 · #18 · #23 | `b44bb64` |
+
+**Two items are COPY-ONLY by founder decision (2026-08-09)** — the behaviour deliberately unchanged:
+**#6** (binding the operator's direct rate write to the owner's floor/ceiling is a shift of control between
+the parties) and **#10** (whether the Essential team limit should BIND belongs with the open billing
+decision). Both now *describe* reality precisely; neither pretends to enforce it.
+
+### ⚠️ Corrections to this report, found while fixing
+
+1. **#6 was more nuanced than recorded.** `RateProposalService` genuinely DOES enforce the guardrail — mode,
+   ±% tolerance AND floor/ceiling — but only on a PROPOSED rate. Only `RateActionController`'s direct write
+   ignores it. The promise was true of one path and false of the other, not false outright.
+2. **#20 had a SECOND copy** of "reconciles to your statements" in the hero sub-label, missed by the first
+   (case-sensitive) pass and caught in the browser.
+3. **#16 was not a missing seed** but an unsaved-model trap: `new MaintenanceSetting` carries no SCHEMA
+   defaults, so the real 4/8/48/168h targets never applied.
+
+### ⚠️ THREE PRE-EXISTING TESTS ASSERTED THE FABRICATIONS THEY EXISTED TO PREVENT
+
+`OwnerDocumentsViewTest` demanded `assertSee('All 12 months')`; `OwnerHelpTest` demanded
+`assertSee('All systems operational')` and its own comment called that "HONEST"; `OwnerMyUnitsViewTest`
+depended on the page defaulting to the wrong month. **A green suite was actively holding the false copy in
+place** — the same lesson as the five READ-found security holes (#26–#30), on a different axis. All three
+were strengthened (they now demand the true copy AND forbid the false), never relaxed.
+
+---
+
 ## 3. THE FIVE HIGH FINDINGS
 
 *(As found. Each is now RESOLVED — see §2b for the fix, commit and verified figures.)*

@@ -117,23 +117,35 @@ it('reassigns the work order to a real staff member from the detail', function (
 });
 
 // ── 5. The SLA card is REAL — surfaced only when a target is configured (the ONE MaintenanceSla) ─────
-it('surfaces the real SLA card only when a resolution target is configured', function () {
+it('surfaces the real SLA card from the org’s configured target, including the defaults', function () {
     $s = seedScenario(1);
     $manager = operatorUser($s, [], 'Hotel Manager');
     $ticket = workOrder($s);   // urgent
 
-    // No MaintenanceSetting → no target → no SLA card (honest, never fabricated).
-    $this->actingAs($manager)->get("/app/maintenance/{$ticket->id}")
-        ->assertDontSee('Same-day target')
-        ->assertDontSee('Due by');
-
-    // Configure a real 4h urgent target → the card computes a real due-by + countdown.
+    // ⚠️ REWRITTEN (wireframe-parity WAVE 2 · #16). This used to assert that a fresh org shows NO SLA card,
+    // and called that honest. It was not: `maintenance_settings.sla_*_hours` are NOT NULL with real defaults
+    // (4/8/48/168h), so an org ALWAYS has targets. "No target" was reachable only through the bug this fixed
+    // — the board resolved settings as `first() ?? new MaintenanceSetting`, and an UNSAVED model carries no
+    // schema defaults. So the test was pinning a bug-state as intended behaviour, and the SLA signal stayed
+    // dead from install until someone happened to open Settings.
+    //
+    // What is worth asserting is what the card is FOR: that it reflects the org's real target.
     app(TenantContext::class)->set($s['org']->id);
-    MaintenanceSetting::create(['organization_id' => $s['org']->id, 'sla_urgent_hours' => 4]);
+    expect(MaintenanceSetting::query()->count())->toBe(0);   // genuinely fresh
 
+    // Fresh org → the REAL default urgent target (4h) applies, and the card computes from it.
     $this->actingAs($manager)->get("/app/maintenance/{$ticket->id}")
         ->assertSee('Same-day target')
         ->assertSee('Due by');
+
+    expect((int) MaintenanceSetting::query()->firstOrFail()->sla_urgent_hours)->toBe(4);
+
+    // And a CHANGED target really moves the card — it is driven by the setting, not hardcoded.
+    MaintenanceSetting::query()->firstOrFail()->update(['sla_urgent_hours' => 72]);
+
+    $this->actingAs($manager)->get("/app/maintenance/{$ticket->id}")
+        ->assertSee('Due by')
+        ->assertDontSee('Same-day target');   // 72h is no longer a same-day promise
 });
 
 // ── 6. Real ticket photos are surfaced on the detail ─────────────────────────────────────────────────
