@@ -183,6 +183,13 @@ Every item below is **copy asserting behaviour the code does not implement**. Fo
 > - **500 "support reference"** — no correlation id is generated, so any reference shown could not be looked
 >   up. The view already says the error is logged and never leaks the exception/trace/SQL/path.
 >
+> ### 🔎 VERIFIED-AND-CONFIRMED, not yet fixed (next session can start here)
+> - **Operator Maintenance Costs is org-wide.** `MaintenanceCostService::report()` takes NO arguments — no
+>   property ids and no period — while the sibling maintenance BOARD is property-scoped. Confirmed against the
+>   code 2026-08-09. Fixing it means giving `report()` a property-id + period parameter and wiring
+>   `ResolvesCurrentProperty` into `OperatorMaintenanceCosts`; ⚠️ `MaintenanceCostExportController` calls the
+>   SAME service, so the PDF/CSV must take the identical scope or the export and the screen will disagree.
+>
 > ### ⬅ STILL OPEN — the rest of the list below is untouched
 > Notably: operator pagination (Guests / Reservations / Notifications), Maintenance Costs property-scope +
 > period selector, the housekeeping/technician items, the owner chart-scaling and payout-filter items, and the
