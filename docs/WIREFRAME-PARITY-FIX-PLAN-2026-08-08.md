@@ -207,7 +207,15 @@ Every item below is **copy asserting behaviour the code does not implement**. Fo
 >   along with that fix.
 
 > ### 🔎 VERIFIED-AND-CONFIRMED, not yet fixed (next session can start here)
-> - *(the Maintenance-Costs entry moved above — escalated)*
+> - **Operator pagination — confirmed absent, and there is NO paginated operator list to mirror.** Verified
+>   2026-08-09: `GuestsList`, `ReservationsList` and `OperatorNotifications` have **0** `paginate()` calls
+>   between them, and a repo-wide search finds **no paginated Livewire list in the operator realm at all**.
+>   ⚠️ So this is NOT the usual "mirror the adjacent correct pattern" fix — pagination does not exist in `/app`
+>   yet. Adding it means introducing a NEW pattern (`WithPagination` on each component + pagination links
+>   styled to the operator design system + `#[Locked]`/property-context care on re-render) across three
+>   screens, plus tests. **Treat it as its own gate with a real budget, not a quick win** — and do all three
+>   together, because a half-paginated realm is worse than a consistently unpaginated one.
+> - *(the Maintenance-Costs entry moved above — escalated to the auth pass)*
 >
 > ### ⬅ STILL OPEN — the rest of the list below is untouched
 > Notably: operator pagination (Guests / Reservations / Notifications), Maintenance Costs property-scope +
