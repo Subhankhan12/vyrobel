@@ -667,21 +667,27 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // Unified Inbox — the 3-pane operator MESSAGES page (#90 exact-match, OperatorInbox). Tenant-scoped;
     // the active thread rides ?c={id} (scoped find → cross-org null). The legacy /inbox/{thread} deep-link
     // redirects into the 3-pane so existing links keep working.
-    Route::get('/inbox', OperatorInbox::class)->name('inbox');
+    // ⚠️ GATED 2026-08-08 (audit H3 / F-2a-02). The inbox is GUEST CORRESPONDENCE and its writes send
+    // OUTBOUND guest-facing messages, yet the page and all 8 writes were ungated — a Housekeeping account
+    // could read every thread and send as the property.
+    // Gate is `guests.view`, NOT `guests.manage`: a Guest Support Agent holds guests.view only, and replying
+    // IS their job — gating writes on `guests.manage` would lock the role out of its core function while
+    // adding nothing (both gates already exclude Housekeeping/Maintenance/Accountant/Revenue Manager).
+    Route::get('/inbox', OperatorInbox::class)->middleware('can:guests.view')->name('inbox');
     Route::get('/inbox/{thread}', fn (string $thread) => redirect()->route('app.inbox', ['c' => $thread]))->name('inbox.show');
     // NEW MESSAGE — start a thread with a real guest (current/upcoming stay), optionally seeded from a #83 template.
-    Route::post('/inbox/start', [InboxActionController::class, 'start'])->name('inbox.start');
+    Route::post('/inbox/start', [InboxActionController::class, 'start'])->middleware('can:guests.view')->name('inbox.start');
     // Inbox writes — REAL reply + lifecycle via POST → controller → InboxService → redirect (PRG).
     // Cross-org {thread} 404s; a deferred channel leaves an honest failed record + clean flash (never 500).
-    Route::post('/inbox/{thread}/reply', [InboxActionController::class, 'reply'])->name('inbox.reply');
-    Route::post('/inbox/{thread}/assign', [InboxActionController::class, 'assign'])->name('inbox.assign');
-    Route::post('/inbox/{thread}/close', [InboxActionController::class, 'close'])->name('inbox.close');
-    Route::post('/inbox/{thread}/reopen', [InboxActionController::class, 'reopen'])->name('inbox.reopen');
-    Route::post('/inbox/{thread}/snooze', [InboxActionController::class, 'snooze'])->name('inbox.snooze');
-    Route::post('/inbox/{thread}/link-reservation', [InboxActionController::class, 'linkReservation'])->name('inbox.link-reservation');
+    Route::post('/inbox/{thread}/reply', [InboxActionController::class, 'reply'])->middleware('can:guests.view')->name('inbox.reply');
+    Route::post('/inbox/{thread}/assign', [InboxActionController::class, 'assign'])->middleware('can:guests.view')->name('inbox.assign');
+    Route::post('/inbox/{thread}/close', [InboxActionController::class, 'close'])->middleware('can:guests.view')->name('inbox.close');
+    Route::post('/inbox/{thread}/reopen', [InboxActionController::class, 'reopen'])->middleware('can:guests.view')->name('inbox.reopen');
+    Route::post('/inbox/{thread}/snooze', [InboxActionController::class, 'snooze'])->middleware('can:guests.view')->name('inbox.snooze');
+    Route::post('/inbox/{thread}/link-reservation', [InboxActionController::class, 'linkReservation'])->middleware('can:guests.view')->name('inbox.link-reservation');
     // Retry a FAILED outbound — a REAL re-send over the channel (delivers on manual; a deferred channel fails
     // again, honestly — never the prototype's fake flip-to-delivered).
-    Route::post('/inbox/{thread}/messages/{message}/retry', [InboxActionController::class, 'retryMessage'])->name('inbox.retry');
+    Route::post('/inbox/{thread}/messages/{message}/retry', [InboxActionController::class, 'retryMessage'])->middleware('can:guests.view')->name('inbox.retry');
     // Maintenance module — styled work-order board + detail (design pass · Maintenance UI). Tenant-scoped;
     // the detail resolves {ticket} via a scoped findOrFail in render() → cross-org 404.
     Route::get('/maintenance', MaintenanceList::class)->name('maintenance');
@@ -727,10 +733,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     });
     // Demo-readiness · Part A — operator room-type PHOTO management (secure upload; the operator-mutation
     // pattern POST→controller→PRG). {roomType}/{photo} are string ids resolved tenant-scoped → cross-org 404.
-    Route::post('/room-types/{roomType}/photos', [RoomTypePhotoController::class, 'store'])->name('room-types.photos.store');
-    Route::post('/room-types/{roomType}/photos/{photo}/cover', [RoomTypePhotoController::class, 'setCover'])->name('room-types.photos.cover');
-    Route::post('/room-types/{roomType}/photos/{photo}/move', [RoomTypePhotoController::class, 'move'])->name('room-types.photos.move');
-    Route::delete('/room-types/{roomType}/photos/{photo}', [RoomTypePhotoController::class, 'destroy'])->name('room-types.photos.destroy');
+    // ⚠️ GATED 2026-08-08 (audit H3 / F-2a-05). These mutate the imagery shown on the PUBLIC storefront and
+    // were ungated — any back-office account could upload, reorder or delete a property's public photos.
+    // `units.manage` is the existing gate for room/unit content.
+    Route::post('/room-types/{roomType}/photos', [RoomTypePhotoController::class, 'store'])->middleware('can:units.manage')->name('room-types.photos.store');
+    Route::post('/room-types/{roomType}/photos/{photo}/cover', [RoomTypePhotoController::class, 'setCover'])->middleware('can:units.manage')->name('room-types.photos.cover');
+    Route::post('/room-types/{roomType}/photos/{photo}/move', [RoomTypePhotoController::class, 'move'])->middleware('can:units.manage')->name('room-types.photos.move');
+    Route::delete('/room-types/{roomType}/photos/{photo}', [RoomTypePhotoController::class, 'destroy'])->middleware('can:units.manage')->name('room-types.photos.destroy');
     // Wave 2 · Sub-gate 1 — the operator RESERVATIONS LIST (tenant-scoped, read-only). Declared BEFORE
     // the {reservation} detail so the literal path wins. Stage filters come from the shared
     // App\Support\Reservations\ReservationStage — the same resolver the badge uses, so a chip can never
@@ -769,26 +778,36 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // HERE and nowhere else — the front desk, the reservations list and the inbox stay name-only.
     // "Total billed" comes from the shared App\Support\Guest\GuestSpend and the status badge from the shared
     // App\Support\Reservations\ReservationStage, so this page and the guest profile cannot disagree.
-    Route::get('/guests', GuestsList::class)->name('guests');
+    // ⚠️ GATED 2026-08-08 (audit H3 / F-2a-01). This page renders FULL guest contact PII — the #28 rule says
+    // it renders HERE and nowhere else — yet it carried no permission at all, so a Housekeeping account (which
+    // holds only units.view/housekeeping.*/schedule.view) loaded the entire guest database and could bulk-export
+    // it. `guests.view` already existed and is already withheld from Housekeeping/Maintenance/Accountant/Revenue
+    // Manager: the intent was modelled, only the enforcement was missing.
+    Route::get('/guests', GuestsList::class)->middleware('can:guests.view')->name('guests');
     // Wave 2 · Sub-gate 5 — the guest PROFILE + its REAL writes. The design's "Save changes" fired a toast
     // and persisted nothing; these POSTs go through GuestService (the single path that records the audit +
     // domain events). {guest} is a plain string resolved tenant-scoped in the component/controller (never
     // RMB) → cross-org 404. Contact fields are encrypted casts — the cast does the encrypting.
-    // #87 — Add guest (real create) + the list BULK actions (Message · Delete[erasure] · Export). Message/Export
-    // carry no extra gate (any back-office user on the CRM); the bulk DELETE is `guests.erase` (#30), like the
-    // single erase. All behind #26; every write re-resolves ids tenant-scoped + respects read-only (#84).
-    Route::post('/guests', [GuestActionController::class, 'store'])->name('guests.store');
-    Route::post('/guests-bulk/message', [GuestBulkActionController::class, 'message'])->name('guests.bulk.message');
-    Route::post('/guests-bulk/tag', [GuestBulkActionController::class, 'tag'])->name('guests.bulk.tag');
-    Route::post('/guests-bulk/export', [GuestBulkActionController::class, 'export'])->name('guests.bulk.export');
+    // #87 — Add guest (real create) + the list BULK actions (Message · Delete[erasure] · Export). The bulk
+    // DELETE is `guests.erase` (#30), like the single erase.
+    // ⚠️ CORRECTED 2026-08-08 (audit H3 / F-2a-01). This block used to read "Message/Export carry no extra gate
+    // (any back-office user ON THE CRM)". That reasoning was sound but its premise was false: reaching the CRM
+    // was itself ungated, so "any back-office user on the CRM" meant EVERY back-office user, including
+    // Housekeeping. With the list now behind `guests.view`, the premise holds — and each write additionally
+    // carries the gate its action deserves. Export stays at `guests.view`: it exports exactly what the reader
+    // can already see (Marketing Manager / Guest Support Agent legitimately export their own CRM).
+    Route::post('/guests', [GuestActionController::class, 'store'])->middleware('can:guests.manage')->name('guests.store');
+    Route::post('/guests-bulk/message', [GuestBulkActionController::class, 'message'])->middleware('can:guests.manage')->name('guests.bulk.message');
+    Route::post('/guests-bulk/tag', [GuestBulkActionController::class, 'tag'])->middleware('can:guests.manage')->name('guests.bulk.tag');
+    Route::post('/guests-bulk/export', [GuestBulkActionController::class, 'export'])->middleware('can:guests.view')->name('guests.bulk.export');
     Route::post('/guests-bulk/anonymize', [GuestBulkActionController::class, 'anonymize'])
         ->middleware('can:guests.erase')->name('guests.bulk.anonymize');
-    Route::get('/guests/{guest}', GuestProfile::class)->name('guests.show');
-    Route::post('/guests/{guest}', [GuestActionController::class, 'updateProfile'])->name('guests.update');
-    Route::post('/guests/{guest}/message', [GuestActionController::class, 'startThread'])->name('guests.message');
-    Route::post('/guests/{guest}/notes', [GuestActionController::class, 'addNote'])->name('guests.notes.store');
-    Route::post('/guests/{guest}/tags', [GuestActionController::class, 'addTag'])->name('guests.tags.store');
-    Route::delete('/guests/{guest}/tags', [GuestActionController::class, 'removeTag'])->name('guests.tags.destroy');
+    Route::get('/guests/{guest}', GuestProfile::class)->middleware('can:guests.view')->name('guests.show');
+    Route::post('/guests/{guest}', [GuestActionController::class, 'updateProfile'])->middleware('can:guests.manage')->name('guests.update');
+    Route::post('/guests/{guest}/message', [GuestActionController::class, 'startThread'])->middleware('can:guests.manage')->name('guests.message');
+    Route::post('/guests/{guest}/notes', [GuestActionController::class, 'addNote'])->middleware('can:guests.manage')->name('guests.notes.store');
+    Route::post('/guests/{guest}/tags', [GuestActionController::class, 'addTag'])->middleware('can:guests.manage')->name('guests.tags.store');
+    Route::delete('/guests/{guest}/tags', [GuestActionController::class, 'removeTag'])->middleware('can:guests.manage')->name('guests.tags.destroy');
     // ⚠️ GDPR ERASURE (2026-07-17) — the trigger `Guest::anonymize()` never had. It was called from NOWHERE:
     // the erase was correct and tested, and no operator could run it, so a data-subject request could not
     // actually be served. Gated on `can:guests.erase` (Property Owner / Group Admin only — invariant #30):

@@ -237,3 +237,97 @@ it('hides the refund control from a role that may not refund, and shows it to on
         ->assertOk()
         ->assertSee('Refund');
 });
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+// AUDIT 2026-08-07 · H3 (F-2a-01/02/05) — THE GUEST-PII PERIMETER WAS NOT ACTUALLY GATED
+//
+// The catalog modelled the intent correctly: `guests.view` / `guests.manage` / `guests.erase` exist, and
+// Housekeeping/Maintenance/Accountant/Revenue Manager deliberately hold NONE of them. But the Guests CRM
+// route carried no permission at all, so the whole guest contact database — the ONE surface #28 allows
+// full PII on — was readable, editable and BULK-EXPORTABLE by the lowest-privilege back-office role.
+// Proven end-to-end before the fix: demo-housekeeper loaded /app/guests and read real emails and phone
+// numbers. Only `guests-bulk/anonymize` was gated: the DESTRUCTIVE route was protected while the
+// EXFILTRATION routes were not.
+//
+// Same shape on the inbox (8 ungated writes that send OUTBOUND guest-facing mail) and the room-type photo
+// routes (which mutate PUBLIC storefront imagery).
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('refuses the Guests CRM and every guest write to a role without guests.view', function () {
+    $s = seedScenario(1);
+    $org = (string) $s['org']->id;
+
+    $housekeeper = operatorUser($s, ['name' => 'Rosa Housekeeper'], 'Housekeeping');
+    expect(canInOrg($housekeeper, $org, 'guests.view'))->toBeFalse()
+        ->and(canInOrg($housekeeper, $org, 'guests.manage'))->toBeFalse()
+        // …but they DO hold housekeeping.view — proof the team context resolves and these are real
+        // refusals, not a null-team silent false.
+        ->and(canInOrg($housekeeper, $org, 'housekeeping.view'))->toBeTrue();
+
+    $guest = $s['guest'];
+
+    $this->actingAs($housekeeper)->get('/app/guests')->assertForbidden();
+    $this->actingAs($housekeeper)->get('/app/guests/'.$guest->id)->assertForbidden();
+
+    // The exfiltration routes specifically — a full-database export was one POST away.
+    $this->actingAs($housekeeper)->post('/app/guests-bulk/export', ['ids' => [$guest->id]])->assertForbidden();
+    $this->actingAs($housekeeper)->post('/app/guests-bulk/message', ['ids' => [$guest->id]])->assertForbidden();
+    $this->actingAs($housekeeper)->post('/app/guests-bulk/tag', ['ids' => [$guest->id]])->assertForbidden();
+
+    // …and the silent-tamper routes.
+    $this->actingAs($housekeeper)->post('/app/guests', ['first_name' => 'X'])->assertForbidden();
+    $this->actingAs($housekeeper)->post('/app/guests/'.$guest->id, ['first_name' => 'Tampered'])->assertForbidden();
+    $this->actingAs($housekeeper)->post('/app/guests/'.$guest->id.'/notes', ['body' => 'x'])->assertForbidden();
+    $this->actingAs($housekeeper)->post('/app/guests/'.$guest->id.'/tags', ['tag' => 'x'])->assertForbidden();
+
+    // A 403 that still mutated would be worse than no gate.
+    expect($guest->fresh()->first_name)->not->toBe('Tampered');
+});
+
+it('still admits the roles the catalog intends to the Guests CRM', function () {
+    $s = seedScenario(1);
+    $org = (string) $s['org']->id;
+
+    $manager = operatorUser($s, ['name' => 'Mia Manager'], 'Hotel Manager');
+    expect(canInOrg($manager, $org, 'guests.view'))->toBeTrue();
+    $this->actingAs($manager)->get('/app/guests')->assertOk();
+    $this->actingAs($manager)->get('/app/guests/'.$s['guest']->id)->assertOk();
+
+    // Marketing Manager holds guests.view but NOT guests.manage: they may read and export their own CRM,
+    // and must NOT be able to edit a guest record.
+    $marketing = operatorUser($s, ['name' => 'Mo Marketing'], 'Marketing Manager');
+    expect(canInOrg($marketing, $org, 'guests.view'))->toBeTrue()
+        ->and(canInOrg($marketing, $org, 'guests.manage'))->toBeFalse();
+    $this->actingAs($marketing)->get('/app/guests')->assertOk();
+    $this->actingAs($marketing)->post('/app/guests/'.$s['guest']->id, ['first_name' => 'Nope'])->assertForbidden();
+});
+
+it('gates the inbox on guests.view WITHOUT locking out the Guest Support Agent whose job it is', function () {
+    $s = seedScenario(1);
+    $org = (string) $s['org']->id;
+
+    $housekeeper = operatorUser($s, ['name' => 'Rosa Housekeeper'], 'Housekeeping');
+    $this->actingAs($housekeeper)->get('/app/inbox')->assertForbidden();
+    // Sending as the property to a guest — the write that mattered most.
+    $this->actingAs($housekeeper)->post('/app/inbox/start', ['guest' => $s['guest']->id, 'body' => 'hi'])->assertForbidden();
+
+    // ⚠️ The gate is guests.view, NOT guests.manage, precisely so this role keeps working: a Guest Support
+    // Agent holds guests.view only, and replying to guests IS their function. Gating writes on guests.manage
+    // would have locked them out while excluding exactly the same low-privilege roles.
+    $support = operatorUser($s, ['name' => 'Sam Support'], 'Guest Support Agent');
+    expect(canInOrg($support, $org, 'guests.view'))->toBeTrue()
+        ->and(canInOrg($support, $org, 'guests.manage'))->toBeFalse();
+    $this->actingAs($support)->get('/app/inbox')->assertOk();
+});
+
+it('refuses public storefront imagery mutations to a role without units.manage', function () {
+    $s = seedScenario(1);
+    $roomType = $s['roomTypes'][0] ?? $s['units'][0]->roomType;
+
+    $housekeeper = operatorUser($s, ['name' => 'Rosa Housekeeper'], 'Housekeeping');
+    expect(canInOrg($housekeeper, (string) $s['org']->id, 'units.manage'))->toBeFalse();
+
+    // These change what the PUBLIC booking storefront shows.
+    $this->actingAs($housekeeper)->post('/app/room-types/'.$roomType->id.'/photos')->assertForbidden();
+    $this->actingAs($housekeeper)->delete('/app/room-types/'.$roomType->id.'/photos/whatever')->assertForbidden();
+});

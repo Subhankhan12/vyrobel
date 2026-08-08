@@ -1,6 +1,6 @@
 <?php
 
-use App\Mail\BookingConfirmationMail;
+use App\Jobs\SendBookingConfirmationEmail;
 use App\Models\Guest;
 use App\Models\Payment;
 use App\Models\RatePlan;
@@ -9,7 +9,7 @@ use App\Models\ReservationUnit;
 use App\Services\RateAndRestrictionService;
 use App\Support\Money\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Schema;
 
 uses(RefreshDatabase::class);
@@ -279,23 +279,26 @@ it('ignores a nonsense country code rather than storing a fabricated one', funct
 });
 
 it('sends the guest confirmation by default but suppresses it when the operator unchecks the box', function () {
-    Mail::fake();
+    // Since audit H2 the confirmation is a JOB carrying scalar ids, not a queued Mailable holding a
+    // tenant-scoped model (which failed to render on every worker). Delivery itself is proven in
+    // ConfirmationEmailDeliveryTest; here we assert only the operator's suppress checkbox.
+    Bus::fake([SendBookingConfirmationEmail::class]);
     $s = ratedScenario(2);
 
-    // default (checkbox checked) → the certified confirmation is queued to the guest's own email
+    // default (checkbox checked) → the certified confirmation is dispatched for the guest's own email
     $this->actingAs(operatorUser($s, [], 'Front Desk'))
         ->post('/app/reservations/create', bookingPayload($s, ['guest_email' => 'grace@example.test', 'send_confirmation' => '1']))
         ->assertRedirect();
-    Mail::assertQueued(BookingConfirmationMail::class);
+    Bus::assertDispatched(SendBookingConfirmationEmail::class);
 
     // unchecked (hidden "0" submits) → THIS booking's confirmation is suppressed
-    Mail::fake();
+    Bus::fake([SendBookingConfirmationEmail::class]);
     $this->actingAs(operatorUser($s, [], 'Front Desk'))
         ->post('/app/reservations/create', bookingPayload($s, [
             'unit_id' => $s['units'][1]->id, 'check_in' => '2026-09-06', 'check_out' => '2026-09-08',
             'guest_email' => 'ada@example.test', 'send_confirmation' => '0',
         ]))->assertRedirect();
-    Mail::assertNotQueued(BookingConfirmationMail::class);
+    Bus::assertNotDispatched(SendBookingConfirmationEmail::class);
 });
 
 // ── GATE 1 B.2 — the rate-plan selector books at the CHOSEN plan's server-derived price (real plans only) ──
