@@ -69,7 +69,7 @@
                                 <div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end" title="{{ $m['label'] }} · {{ $m['occ_pct'] }}%{{ $m['forward'] ? ' (on the books)' : '' }}{{ $m['ly_pct'] !== null ? ' · last year '.$m['ly_pct'].'%' : '' }}">
                                     {{-- REAL "vs last year" delta (GATE 4) — only where prior-year data exists, never fabricated (#39) --}}
                                     @if ($m['delta_pts'] !== null)
-                                        <span style="font-size:9.5px;font-weight:700;color:{{ $m['delta_pts'] >= 0 ? '#15803d' : '#b91c1c' }}">{{ $m['delta_pts'] >= 0 ? '▲' : '▼' }}{{ abs($m['delta_pts']) }}</span>
+                                        <span style="font-size:9.5px;font-weight:700;color:{{ $m['delta_pts'] >= 0 ? '#15803d' : '#b91c1c' }}">{{ $m['delta_pts'] >= 0 ? '▲' : '▼' }}{{ abs($m['delta_pts']) }} pts</span>
                                     @endif
                                     <div class="bar" style="height:{{ max(2, $m['occ_pct']) }}%;background:{{ $m['forward'] ? 'rgba(232,112,58,.35)' : 'var(--vy-grad)' }}"></div>
                                     <span style="font-size:10px;color:var(--vy-muted)">{{ $m['label'] }}</span>

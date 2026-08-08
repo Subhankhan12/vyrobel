@@ -174,7 +174,7 @@
                 <div style="display: flex; gap: 8px;">
                     @foreach ($weekday['weekdays'] as $w)
                         <div style="flex: 1; text-align: center;">
-                            <div style="border-radius: 8px; padding: 14px 0; color: {{ $w['pct'] >= 85 ? '#fff' : 'var(--vy-ink)' }}; background: rgba(217,102,46,{{ max(0.08, min(0.95, $w['pct'] / 100)) }}); font-family: 'Sora', sans-serif; font-weight: 700;">{{ $w['pct'] }}</div>
+                            <div style="border-radius: 8px; padding: 14px 0; color: {{ $w['pct'] >= 85 ? '#fff' : 'var(--vy-ink)' }}; background: rgba(217,102,46,{{ max(0.08, min(0.95, $w['pct'] / 100)) }}); font-family: 'Sora', sans-serif; font-weight: 700;">{{ $w['pct'] }}%</div>
                             <div style="font-size: 11px; color: var(--vy-muted); margin-top: 4px;">{{ $w['label'] }}</div>
                         </div>
                     @endforeach
