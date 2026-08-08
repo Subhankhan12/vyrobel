@@ -57,10 +57,15 @@ return Application::configure(basePath: dirname(__DIR__))
         // stays exempt. The STYLED public checkout form (design pass · Booking Screen 3) is a
         // session, browser-rendered POST — it is deliberately NOT exempt, so it is session-CSRF-
         // protected (it carries @csrf) on top of the group's `throttle:booking` rate limit.
+        // The marketing unsubscribe POST is the RFC 8058 `List-Unsubscribe-Post` one-click target: an inbox
+        // provider posts to it from outside any browser session, so there is no CSRF token to send. The native
+        // HMAC `signed` middleware IS the authorisation, and the action is idempotent and self-only (it can only
+        // ever clear ONE guest's marketing consent), so a forged post achieves nothing an attacker wants.
         $middleware->validateCsrfTokens(except: [
             'webhooks/*',
             'book/*/quote',
             'book/*/book',
+            'unsubscribe/*',
         ]);
 
         // The trusted-device cookie (Wave B · GATE 4) is a RANDOM bearer token, verified server-side by its

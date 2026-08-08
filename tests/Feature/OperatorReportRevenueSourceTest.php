@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Services\AssignmentService;
 use App\Support\Reports\OperatorReportData;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,7 +47,7 @@ it('splits a multi-unit booking’s folio across its units without inventing or 
     $s = seedScenario(2);
 
     // One reservation over two units, priced unevenly.
-    $reservation = app(App\Services\AssignmentService::class)->createBooking(
+    $reservation = app(AssignmentService::class)->createBooking(
         [
             'property_id' => $s['property']->id, 'currency' => 'EUR',
             'check_in' => '2026-09-01', 'check_out' => '2026-09-03',

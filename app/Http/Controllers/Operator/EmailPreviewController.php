@@ -19,6 +19,7 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Support\Folio\FolioTotals;
 use App\Support\Guest\GuestName;
+use App\Support\Guest\MarketingUnsubscribe;
 use App\Support\Mail\MailSafetyGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -122,7 +123,12 @@ class EmailPreviewController extends Controller
             'pre-arrival' => new PreArrivalMail($reservation),
             'review-request' => new ReviewRequestMail($reservation, url('/')),
             'waitlist-notification' => new WaitlistNotificationMail($guestName, $propertyName, '12–15 Aug 2026', url('/')),
-            'winback' => new WinbackMail($guestName, $propertyName),
+            'winback' => new WinbackMail(
+                $guestName,
+                $propertyName,
+                $reservation->leadGuest !== null ? MarketingUnsubscribe::url($reservation->leadGuest) : null,
+                $reservation->leadGuest !== null ? MarketingUnsubscribe::oneClickUrl($reservation->leadGuest) : null,
+            ),
             'verify-email' => new VerifyEmailMail($guestName, url('/verify-email/sample-token')),
             default => abort(404),   // unreachable — callers guard on the CATALOG first
         };

@@ -15,6 +15,7 @@ use App\Support\Events\AuditEventRecorder;
 use App\Support\Export\CsvSafe;
 use App\Support\Guest\GuestMarketing;
 use App\Support\Guest\GuestName;
+use App\Support\Guest\MarketingUnsubscribe;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
@@ -75,7 +76,17 @@ class GuestBulkActionController extends Controller
             }
 
             // The real send (MailSafetyGuard → log/Mailpit outside production).
-            Mail::to($email)->send(new OperatorGuestMessageMail(GuestName::display($guest), $data['body'], $property));
+            //
+            // ⚠️ A MARKETING send carries a working opt-out — the footer link plus the RFC 8058 headers — so the
+            // consent gate above is something the guest can actually reach. A SERVICE message carries neither:
+            // it is not marketing, and offering to unsubscribe from it would be a promise we don't honour.
+            Mail::to($email)->send(new OperatorGuestMessageMail(
+                GuestName::display($guest),
+                $data['body'],
+                $property,
+                $marketing ? MarketingUnsubscribe::url($guest) : null,
+                $marketing ? MarketingUnsubscribe::oneClickUrl($guest) : null,
+            ));
 
             // Record it in the inbox so the operator keeps a thread and a future inbound reply attaches.
             $thread = $this->manualThreadFor($guest, $inbox, $request);

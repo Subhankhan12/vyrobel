@@ -12,3 +12,11 @@
 
     <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">Reply any time and we’ll help you find the perfect dates.</p>
 @endsection
+
+{{-- MARKETING footer: a working, signed opt-out that needs no login. Rendered ONLY when the sender supplied a
+     URL, so this template can never claim an unsubscribe it cannot honour. --}}
+@if (! empty($unsubscribeUrl))
+    @section('unsubscribe')
+        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A99E95;">You're receiving this because you opted in to hear from us. <a href="{{ $unsubscribeUrl }}" style="color:#A99E95; text-decoration:underline;">Unsubscribe</a> at any time — you'll still get emails about your bookings.</p>
+    @endsection
+@endif

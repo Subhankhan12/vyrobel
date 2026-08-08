@@ -53,7 +53,15 @@
                             @if ($brand->poweredBy)
                                 <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A99E95;">Powered by Vyrobel · hotel management, done properly.</p>
                             @endif
-                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A99E95;">You’re receiving this because it relates to your booking with us.</p>
+                            {{-- MARKETING vs TRANSACTIONAL footer. A marketing template fills `unsubscribe` with a
+                                 signed opt-out link; a transactional one never does, and correctly keeps the
+                                 service-message line with no unsubscribe (a guest cannot opt out of their own
+                                 booking confirmation). --}}
+                            @hasSection('unsubscribe')
+                                @yield('unsubscribe')
+                            @else
+                                <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A99E95;">You’re receiving this because it relates to your booking with us.</p>
+                            @endif
                         </td>
                     </tr>
                 </table>

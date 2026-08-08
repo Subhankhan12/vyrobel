@@ -42,6 +42,7 @@ use App\Http\Controllers\Guest\GuestReviewController;
 use App\Http\Controllers\Guest\GuestSavedController;
 use App\Http\Controllers\Guest\GuestTripsController;
 use App\Http\Controllers\Guest\GuestWalletController;
+use App\Http\Controllers\Guest\MarketingUnsubscribeController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -276,6 +277,25 @@ Route::middleware('throttle:6,1')->group(function () {
     Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->name('password.email');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
     Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+});
+
+/*
+ * MARKETING UNSUBSCRIBE — public, no login, no realm (wireframe-parity sweep · HIGH-5).
+ *
+ * Marketing email had NO opt-out route: the only toggle lived inside a CLAIMED guest account, so a guest who
+ * never claimed one could not unsubscribe at all. Authorised purely by the native HMAC `signed` middleware — the
+ * link must work from an old email, on any device, with no session — so it sits OUTSIDE the guest realm rather
+ * than pretending to be part of it. Deliberately unauthenticated: requiring a login here is the very defect.
+ *
+ * GET only renders (a prefetching scanner must not opt anyone out); POST performs it and is also the RFC 8058
+ * one-click target, so it is CSRF-exempt — an inbox provider posts from outside any session and the signature,
+ * not a token, is the authorisation. Throttled per-IP against signature-guessing.
+ */
+Route::middleware('throttle:20,1')->group(function () {
+    Route::get('/unsubscribe/{guest}', [MarketingUnsubscribeController::class, 'show'])
+        ->middleware('signed')->name('marketing.unsubscribe');
+    Route::post('/unsubscribe/{guest}', [MarketingUnsubscribeController::class, 'update'])
+        ->middleware('signed')->name('marketing.unsubscribe.confirm');
 });
 
 /*
