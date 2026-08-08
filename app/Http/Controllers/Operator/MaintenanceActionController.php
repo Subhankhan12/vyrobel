@@ -231,21 +231,21 @@ class MaintenanceActionController extends Controller
 
         return response()->streamDownload(function () use ($tickets): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Title', 'Unit', 'Category', 'Priority', 'Status', 'Assignee', 'Reported', 'Cost']);
+            fputcsv($out, CsvSafe::row(['Title', 'Unit', 'Category', 'Priority', 'Status', 'Assignee', 'Reported', 'Cost']));
             foreach ($tickets as $t) {
                 $currency = (string) ($t->unit->property->currency ?? 'EUR');
-                fputcsv($out, [
+                fputcsv($out, CsvSafe::row([
                     // Free-text (user-controllable) columns pass through the ONE CSV formula-injection guard
                     // (App\Support\Export\CsvSafe — the same guard the costs export uses; never a raw =/+/-/@).
-                    CsvSafe::field((string) $t->title),
-                    CsvSafe::field((string) ($t->unit->code ?? '—')),
+                    (string) $t->title,
+                    (string) ($t->unit->code ?? '—'),
                     (string) $t->category,   // enum — safe
                     (string) $t->priority,   // enum — safe
                     (string) $t->status,     // enum — safe
-                    CsvSafe::field((string) ($t->assignedTo->name ?? '—')),
+                    (string) ($t->assignedTo->name ?? '—'),
                     CarbonImmutable::parse($t->opened_at)->toDateString(),
                     $t->cost_minor !== null ? number_format(((int) $t->cost_minor) / 100, 2).' '.$currency : '',
-                ]);
+                ]));
             }
             fclose($out);
         }, 'work-orders-'.now()->format('Ymd').'.csv', ['Content-Type' => 'text/csv']);

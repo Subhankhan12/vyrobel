@@ -10,6 +10,7 @@ use App\Models\AuditEvent;
 use App\Models\IpAllowRule;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Export\CsvSafe;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -115,14 +116,14 @@ class OperatorSecurityController extends Controller
         if ($format === 'csv') {
             return response()->streamDownload(function () use ($user, $roles, $activity, $rangeLabel): void {
                 $out = fopen('php://output', 'w');
-                fputcsv($out, [$this->csvSafe('Vyrobel account export'), $this->csvSafe($rangeLabel)]);
-                fputcsv($out, ['Name', 'Email', 'Locale', 'Roles']);
-                fputcsv($out, [$this->csvSafe((string) $user->name), $this->csvSafe((string) $user->email), $this->csvSafe((string) ($user->locale ?? '')), $this->csvSafe(implode(', ', $roles))]);
-                fputcsv($out, []);
-                fputcsv($out, [$this->csvSafe('Activity'), '']);
-                fputcsv($out, ['When', 'Action']);
+                fputcsv($out, CsvSafe::row(['Vyrobel account export', $rangeLabel]));
+                fputcsv($out, CsvSafe::row(['Name', 'Email', 'Locale', 'Roles']));
+                fputcsv($out, CsvSafe::row([(string) $user->name, (string) $user->email, (string) ($user->locale ?? ''), implode(', ', $roles)]));
+                fputcsv($out, CsvSafe::row([]));
+                fputcsv($out, CsvSafe::row(['Activity', '']));
+                fputcsv($out, CsvSafe::row(['When', 'Action']));
                 foreach ($activity as $e) {
-                    fputcsv($out, [CarbonImmutable::parse($e->created_at)->toIso8601String(), $this->csvSafe((string) $e->action)]);
+                    fputcsv($out, CsvSafe::row([CarbonImmutable::parse($e->created_at)->toIso8601String(), (string) $e->action]));
                 }
                 fclose($out);
             }, $filename, ['Content-Type' => 'text/csv']);
@@ -166,13 +167,6 @@ class OperatorSecurityController extends Controller
         }
 
         return filter_var($value, FILTER_VALIDATE_IP) !== false;
-    }
-
-    private function csvSafe(string $value): string
-    {
-        $value = str_replace(["\r", "\n"], ' ', $value);
-
-        return preg_match('/^[=+\-@\t]/', $value) === 1 ? "'".$value : $value;
     }
 
     private function back(string $key, string $message): RedirectResponse

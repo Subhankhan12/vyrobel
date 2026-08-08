@@ -37,20 +37,20 @@ class MaintenanceCostExportController extends Controller
 
         return response()->streamDownload(function () use ($report, $currency): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Date', 'Work order', 'Unit', 'Category', 'Labor', 'Parts', 'Total']);
+            fputcsv($out, CsvSafe::row(['Date', 'Work order', 'Unit', 'Category', 'Labor', 'Parts', 'Total']));
             foreach ($report['billable'] as $row) {
-                fputcsv($out, [
+                fputcsv($out, CsvSafe::row([
                     $row['date'],
-                    CsvSafe::field($row['title']),
-                    CsvSafe::field($row['unit']),
-                    CsvSafe::field(ucfirst($row['category'])),
+                    $row['title'],
+                    $row['unit'],
+                    ucfirst($row['category']),
                     MoneyFormatter::display($row['labor_minor'], $currency),
                     MoneyFormatter::display($row['parts_minor'], $currency),
                     MoneyFormatter::display($row['total_minor'], $currency),
-                ]);
+                ]));
             }
             // The reconciling totals row (labor + parts === total).
-            fputcsv($out, ['', 'Total', '', '', MoneyFormatter::display($report['labor_minor'], $currency), MoneyFormatter::display($report['parts_minor'], $currency), MoneyFormatter::display($report['total_minor'], $currency)]);
+            fputcsv($out, CsvSafe::row(['', 'Total', '', '', MoneyFormatter::display($report['labor_minor'], $currency), MoneyFormatter::display($report['parts_minor'], $currency), MoneyFormatter::display($report['total_minor'], $currency)]));
             fclose($out);
         }, 'Vyrobel-maintenance-costs.csv', ['Content-Type' => 'text/csv']);
     }

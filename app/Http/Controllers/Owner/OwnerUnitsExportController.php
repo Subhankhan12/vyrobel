@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Services\OwnerPortalService;
+use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
 use App\Support\Owner\OwnerOccupancy;
 use Illuminate\Http\Request;
@@ -38,22 +39,22 @@ class OwnerUnitsExportController extends Controller
 
         return response()->streamDownload(function () use ($occ, $month, $watermark): void {
             $out = fopen('php://output', 'wb');
-            fputcsv($out, ['# '.$watermark]);
-            fputcsv($out, ['Date', 'Units booked', 'Total units', 'Booked %']);
+            fputcsv($out, CsvSafe::row(['# '.$watermark]));
+            fputcsv($out, CsvSafe::row(['Date', 'Units booked', 'Total units', 'Booked %']));
 
             for ($d = 1; $d <= $occ['days']; $d++) {
                 $count = $occ['heat'][$d] ?? 0;
                 $pct = $occ['unit_count'] > 0 ? (int) round($count / $occ['unit_count'] * 100) : 0;
-                fputcsv($out, [
+                fputcsv($out, CsvSafe::row([
                     $month->copy()->day($d)->toDateString(),
                     $count,
                     $occ['unit_count'],
                     $pct.'%',
-                ]);
+                ]));
             }
 
-            fputcsv($out, []);
-            fputcsv($out, ['Month total', $occ['nights'].' nights', $occ['unit_count'].' units', $occ['pct'].'%']);
+            fputcsv($out, CsvSafe::row([]));
+            fputcsv($out, CsvSafe::row(['Month total', $occ['nights'].' nights', $occ['unit_count'].' units', $occ['pct'].'%']));
             fclose($out);
         }, $filename, [
             'Content-Type' => 'text/csv',

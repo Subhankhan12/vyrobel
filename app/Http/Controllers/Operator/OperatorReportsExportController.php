@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\PdfService;
+use App\Support\Export\CsvSafe;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Property\PropertyContext;
 use App\Support\Reports\OperatorReportData;
@@ -50,25 +51,25 @@ class OperatorReportsExportController extends Controller
         return response()->streamDownload(function () use ($channels, $months, $currency, $range): void {
             $out = fopen('php://output', 'w');
 
-            fputcsv($out, [$this->csvSafe('Vyrobel report'), $this->csvSafe($range['label'])]);
-            fputcsv($out, []);
+            fputcsv($out, CsvSafe::row(['Vyrobel report', $range['label']]));
+            fputcsv($out, CsvSafe::row([]));
 
-            fputcsv($out, [$this->csvSafe('Revenue by channel')]);
-            fputcsv($out, ['Channel', 'Bookings', 'Revenue', 'Share %']);
+            fputcsv($out, CsvSafe::row(['Revenue by channel']));
+            fputcsv($out, CsvSafe::row(['Channel', 'Bookings', 'Revenue', 'Share %']));
             foreach ($channels as $c) {
-                fputcsv($out, [
-                    $this->csvSafe($this->sourceLabel($c['source'])),
+                fputcsv($out, CsvSafe::row([
+                    $this->sourceLabel($c['source']),
                     $c['bookings'],
                     MoneyFormatter::display($c['revenue_minor'], $currency),
                     $c['share'],
-                ]);
+                ]));
             }
-            fputcsv($out, []);
+            fputcsv($out, CsvSafe::row([]));
 
-            fputcsv($out, [$this->csvSafe('Revenue by month')]);
-            fputcsv($out, ['Month', 'Revenue']);
+            fputcsv($out, CsvSafe::row(['Revenue by month']));
+            fputcsv($out, CsvSafe::row(['Month', 'Revenue']));
             foreach ($months as $m) {
-                fputcsv($out, [$this->csvSafe((string) $m['label']), MoneyFormatter::display($m['revenue_minor'], $currency)]);
+                fputcsv($out, CsvSafe::row([(string) $m['label'], MoneyFormatter::display($m['revenue_minor'], $currency)]));
             }
 
             fclose($out);
@@ -115,13 +116,5 @@ class OperatorReportsExportController extends Controller
     private function sourceLabel(string $source): string
     {
         return OperatorRevenueBreakdown::sourceLabel($source);   // the ONE operator source-label map (anti-drift)
-    }
-
-    /** Neutralise CSV formula injection: a field beginning with = + - @ (or a control char) is quote-prefixed. */
-    private function csvSafe(string $value): string
-    {
-        $value = str_replace(["\r", "\n"], ' ', $value);
-
-        return preg_match('/^[=+\-@\t]/', $value) === 1 ? "'".$value : $value;
     }
 }

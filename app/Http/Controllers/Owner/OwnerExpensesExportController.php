@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\OwnerExpense;
 use App\Models\Scopes\OwnerScope;
+use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Http\Request;
@@ -38,13 +39,13 @@ class OwnerExpensesExportController extends Controller
 
         return response()->streamDownload(function () use ($expenses, $watermark): void {
             $out = fopen('php://output', 'wb');
-            fputcsv($out, ['# '.$watermark]);
-            fputcsv($out, ['Date', 'Unit', 'Category', 'Description', 'Vendor', 'Amount', 'Deductible', 'Voided']);
+            fputcsv($out, CsvSafe::row(['# '.$watermark]));
+            fputcsv($out, CsvSafe::row(['Date', 'Unit', 'Category', 'Description', 'Vendor', 'Amount', 'Deductible', 'Voided']));
 
             foreach ($expenses as $e) {
                 $unit = $e->unit;
 
-                fputcsv($out, [
+                fputcsv($out, CsvSafe::row([
                     Carbon::parse($e->expense_date)->format('Y-m-d'),
                     $unit === null ? 'Unassigned' : (string) ($unit->name ?? $unit->code),
                     ucfirst((string) $e->category),
@@ -56,7 +57,7 @@ class OwnerExpensesExportController extends Controller
                         default => $e->deductible ? 'deductible' : 'not deductible',
                     },
                     $e->voided_at !== null ? 'yes' : 'no',
-                ]);
+                ]));
             }
 
             fclose($out);

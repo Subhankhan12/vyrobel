@@ -9,6 +9,7 @@ use App\Models\Owner;
 use App\Services\OwnerTaxService;
 use App\Services\OwnerVatService;
 use App\Services\PdfService;
+use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
 use App\Support\Pdf\OwnerAnnualTaxDocument;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -104,16 +105,16 @@ class OwnerTaxController extends Controller
 
         return response()->streamDownload(function () use ($vat, $watermark, $year): void {
             $out = fopen('php://output', 'wb');
-            fputcsv($out, ['# '.$watermark]);
-            fputcsv($out, ['# Computed from the rates configured for '.$vat['jurisdiction'].' — verify with your accountant; this is not tax advice.']);
+            fputcsv($out, CsvSafe::row(['# '.$watermark]));
+            fputcsv($out, CsvSafe::row(['# Computed from the rates configured for '.$vat['jurisdiction'].' — verify with your accountant; this is not tax advice.']));
             if (($vat['is_example'] ?? false) === true) {
-                fputcsv($out, ['# ⚠️ BASED ON EXAMPLE RATES — real rates are not configured for this jurisdiction. NOT FOR FILING.']);
+                fputcsv($out, CsvSafe::row(['# ⚠️ BASED ON EXAMPLE RATES — real rates are not configured for this jurisdiction. NOT FOR FILING.']));
             }
-            fputcsv($out, ['Quarter', 'Rental income', 'Output VAT', 'Agency fee', 'Input VAT', 'Net VAT']);
+            fputcsv($out, CsvSafe::row(['Quarter', 'Rental income', 'Output VAT', 'Agency fee', 'Input VAT', 'Net VAT']));
             foreach ($vat['quarters'] as $q) {
-                fputcsv($out, [$q['label'], $q['gross_display'], $q['output_display'], '', $q['input_display'], $q['net_display']]);
+                fputcsv($out, CsvSafe::row([$q['label'], $q['gross_display'], $q['output_display'], '', $q['input_display'], $q['net_display']]));
             }
-            fputcsv($out, [$year.' total', '', $vat['annual']['output_display'], '', $vat['annual']['input_display'], $vat['annual']['net_display']]);
+            fputcsv($out, CsvSafe::row([$year.' total', '', $vat['annual']['output_display'], '', $vat['annual']['input_display'], $vat['annual']['net_display']]));
             fclose($out);
         }, 'vyrobel-vat-return-'.$year.'.csv', ['Content-Type' => 'text/csv']);
     }

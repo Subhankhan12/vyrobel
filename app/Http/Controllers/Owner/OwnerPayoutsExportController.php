@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\Scopes\OwnerScope;
+use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Payouts\RailLabel;
@@ -41,19 +42,19 @@ class OwnerPayoutsExportController extends Controller
 
         return response()->streamDownload(function () use ($payouts, $months, $watermark): void {
             $out = fopen('php://output', 'wb');
-            fputcsv($out, ['# '.$watermark]);
-            fputcsv($out, ['Month', 'Rail', 'Date', 'Status', 'Amount']);
+            fputcsv($out, CsvSafe::row(['# '.$watermark]));
+            fputcsv($out, CsvSafe::row(['Month', 'Rail', 'Date', 'Status', 'Amount']));
 
             foreach ($payouts as $p) {
                 $when = $p->paid_at ?? $p->failed_at ?? ($p->status === 'pending' ? null : $p->created_at);
 
-                fputcsv($out, [
+                fputcsv($out, CsvSafe::row([
                     $months[(string) $p->owner_statement_id] ?? '—',
                     RailLabel::for((string) $p->rail),
                     $when !== null ? Carbon::parse($when)->format('j M Y') : 'Pending',
                     ucfirst((string) $p->status),
                     MoneyFormatter::display((int) $p->amount_minor, (string) $p->currency),
-                ]);
+                ]));
             }
 
             fclose($out);

@@ -12,6 +12,7 @@ use App\Models\Property;
 use App\Services\GuestService;
 use App\Services\InboxService;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Export\CsvSafe;
 use App\Support\Guest\GuestMarketing;
 use App\Support\Guest\GuestName;
 use App\Support\Operator\OperatorWorkspace;
@@ -169,34 +170,22 @@ class GuestBulkActionController extends Controller
 
         return response()->streamDownload(function () use ($guests): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Name', 'Email', 'Phone', 'City', 'Nationality', 'Stays', 'VIP', 'Marketing consent']);
+            fputcsv($out, CsvSafe::row(['Name', 'Email', 'Phone', 'City', 'Nationality', 'Stays', 'VIP', 'Marketing consent']));
             foreach ($guests as $guest) {
                 $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name)) ?: ($guest->isAnonymized() ? 'Anonymized guest' : 'Unnamed guest');
-                fputcsv($out, [
-                    $this->csvSafe($name),
-                    $this->csvSafe((string) $guest->email),
-                    $this->csvSafe((string) $guest->phone),
-                    $this->csvSafe((string) $guest->city),
-                    $this->csvSafe((string) $guest->nationality),
+                fputcsv($out, CsvSafe::row([
+                    $name,
+                    (string) $guest->email,
+                    (string) $guest->phone,
+                    (string) $guest->city,
+                    (string) $guest->nationality,
                     (string) $guest->reservations()->whereNotIn('status', ['cancelled', 'no_show'])->count(),
                     $guest->is_vip ? 'Yes' : 'No',
                     $guest->marketing_consent ? 'Yes' : 'No',
-                ]);
+                ]));
             }
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv']);
-    }
-
-    /**
-     * Neutralise CSV formula injection: a guest-controlled field beginning with = + - @ (or a control char) is
-     * prefixed with a single quote, so a spreadsheet renders it as text instead of executing it as a formula.
-     * Embedded CR/LF are stripped so a value cannot break out into new rows.
-     */
-    private function csvSafe(string $value): string
-    {
-        $value = str_replace(["\r", "\n"], ' ', $value);
-
-        return preg_match('/^[=+\-@\t]/', $value) === 1 ? "'".$value : $value;
     }
 
     /** Reuse the guest's latest MANUAL thread (or open one) so a bulk send doesn't spawn a thread per message. */

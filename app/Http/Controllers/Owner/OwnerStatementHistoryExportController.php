@@ -9,6 +9,7 @@ use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\OwnerStatement;
 use App\Models\Scopes\OwnerScope;
 use App\Services\PdfService;
+use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Pdf\OwnerStatementHistoryDocument;
@@ -42,17 +43,17 @@ class OwnerStatementHistoryExportController extends Controller
 
         return response()->streamDownload(function () use ($rows, $watermark): void {
             $out = fopen('php://output', 'wb');
-            fputcsv($out, ['# '.$watermark]);
-            fputcsv($out, ['Month', 'Period', 'Gross', 'Net payable', 'Status']);
+            fputcsv($out, CsvSafe::row(['# '.$watermark]));
+            fputcsv($out, CsvSafe::row(['Month', 'Period', 'Gross', 'Net payable', 'Status']));
 
             foreach ($rows as $s) {
-                fputcsv($out, [
+                fputcsv($out, CsvSafe::row([
                     $s->period_start->format('F Y'),
                     $s->period_start->format('j M Y').' – '.$s->period_end->format('j M Y'),
                     MoneyFormatter::display((int) $s->gross_minor, (string) $s->source_currency),
                     MoneyFormatter::display((int) $s->net_payable_minor, (string) $s->currency),
                     $this->statusMeta((string) $s->status)['label'],
-                ]);
+                ]));
             }
 
             fclose($out);

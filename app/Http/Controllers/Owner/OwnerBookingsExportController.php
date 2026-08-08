@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
 use App\Support\Owner\OwnerBookingsReader;
 use Illuminate\Http\Request;
@@ -38,11 +39,11 @@ class OwnerBookingsExportController extends Controller
 
         return response()->streamDownload(function () use ($rows, $watermark): void {
             $out = fopen('php://output', 'wb');
-            fputcsv($out, ['# '.$watermark]);
-            fputcsv($out, ['Guest', 'Reference', 'Unit', 'Check-in', 'Check-out', 'Nights', 'Source', 'Status', 'Net to you']);
+            fputcsv($out, CsvSafe::row(['# '.$watermark]));
+            fputcsv($out, CsvSafe::row(['Guest', 'Reference', 'Unit', 'Check-in', 'Check-out', 'Nights', 'Source', 'Status', 'Net to you']));
 
             foreach ($rows as $row) {
-                fputcsv($out, [
+                fputcsv($out, CsvSafe::row([
                     $row['guest'] ?? '',                          // NAME only — never contact PII (#28)
                     $row['reference'],
                     $row['unit_label'],
@@ -53,7 +54,7 @@ class OwnerBookingsExportController extends Controller
                     $row['status_badge']['label'],
                     // Per-currency net displays joined; empty ⇒ honestly "Not yet attributed", never €0.
                     $row['net_displays'] === [] ? 'Not yet attributed' : implode(' / ', $row['net_displays']),
-                ]);
+                ]));
             }
 
             fclose($out);

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\OwnerLedgerEntry;
 use App\Models\Scopes\OwnerScope;
+use App\Support\Export\CsvSafe;
 use App\Support\Exports\ExportAudit;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Http\Request;
@@ -38,8 +39,8 @@ class OwnerBalanceExportController extends Controller
 
         return response()->streamDownload(function () use ($entries, $watermark): void {
             $out = fopen('php://output', 'wb');
-            fputcsv($out, ['# '.$watermark]);
-            fputcsv($out, ['Date', 'Activity', 'Type', 'Amount', 'Running balance', 'On a statement']);
+            fputcsv($out, CsvSafe::row(['# '.$watermark]));
+            fputcsv($out, CsvSafe::row(['Date', 'Activity', 'Type', 'Amount', 'Running balance', 'On a statement']));
 
             /** @var array<string, int> $running */
             $running = [];
@@ -49,14 +50,14 @@ class OwnerBalanceExportController extends Controller
                 $signed = $e->signedMinor();
                 $running[$currency] = ($running[$currency] ?? 0) + $signed;
 
-                fputcsv($out, [
+                fputcsv($out, CsvSafe::row([
                     $e->service_date->format('Y-m-d'),
                     (string) $e->description,
                     (string) $e->entry_type,
                     MoneyFormatter::display($signed, $currency, signed: true),
                     MoneyFormatter::display($running[$currency], $currency),
                     $e->statement_id !== null ? 'yes' : 'not yet',
-                ]);
+                ]));
             }
 
             fclose($out);
