@@ -7,7 +7,7 @@
      financial export is stamped with the downloader + recorded in the real download log (ExportDownload). (Old note:
      implemented, #39). Shell from <x-owner.shell active="team">.
      RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click passes through to Alpine). --}}
-<x-owner.shell active="team" title="Team &amp; access" subtitle="Give a co-owner or your accountant their own sign-in — scoped to what they need." :viewer="$viewer">
+<x-owner.shell active="team" title="Team & access" subtitle="Give a co-owner or your accountant their own sign-in — scoped to what they need." :viewer="$viewer">
     <style>
         .vy-tm-row { display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start; }
         .vy-tm-left { flex:999 1 420px; min-width:0; display:flex; flex-direction:column; gap:20px; }

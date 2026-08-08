@@ -19,6 +19,7 @@ use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Owner\OwnerTeamRole;
 use App\Support\Reservations\ReservationStage;
+use App\Support\StayTime;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -111,6 +112,10 @@ class OwnerBookingDetail extends Component
                 'head_sub' => $this->headSub($ownedUnits, $nights, (string) $reservation->source),
                 'ci_day' => $checkIn->format('j'),
                 'ci_sub' => $checkIn->format('M Y · D'),
+                // The property's REAL check-in/out times (was a hardcoded "from 3:00 PM"); null ⇒ the
+                // view renders no time line at all rather than inventing an hour.
+                'ci_time' => StayTime::labelled($reservation->property?->check_in_time),
+                'co_time' => StayTime::labelled($reservation->property?->check_out_time, 'by '),
                 'co_day' => $checkOut->format('j'),
                 'co_sub' => $checkOut->format('M Y · D'),
                 'nights' => $nights,
@@ -341,7 +346,12 @@ class OwnerBookingDetail extends Component
         if ($reservation->guest_checked_in_at !== null) {
             $events[] = ['label' => 'Checked in', 'when' => Carbon::parse($reservation->guest_checked_in_at)->format('j M · g:i A'), 'state' => 'done'];
         } elseif ($checkIn->isFuture()) {
-            $events[] = ['label' => 'Check-in', 'when' => $checkIn->format('D j M · 3:00 PM'), 'state' => 'next'];
+            // ⚠️ Was `format('D j M · 3:00 PM')` — Carbon read the literal, where P is the UTC offset and
+            // M the month, yielding "Sat 5 Sep · 3:00 +00:00Sep". And the hour itself was hardcoded while
+            // the property stores a real check_in_time. Both are fixed by passing a real time through a
+            // real format; an unset time simply omits the hour rather than inventing one (#39).
+            $ciTime = StayTime::display($reservation->property?->check_in_time);
+            $events[] = ['label' => 'Check-in', 'when' => $checkIn->format('D j M').($ciTime !== null ? ' · '.$ciTime : ''), 'state' => 'next'];
         }
 
         if ((string) $reservation->status === 'checked_out') {

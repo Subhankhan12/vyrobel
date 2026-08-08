@@ -525,7 +525,18 @@ class OwnerAgreement extends Component
             return Str::headline((string) $value);
         }
 
-        return (string) json_encode($value);
+        // ⚠️ A LIST OF VALUES IS A LIST, NOT JSON (audit 2026-08-07 · GATE 6). This fell straight through
+        // to json_encode, so an owner reading the commercial terms of their own agreement saw the literal
+        // `["other"]` — the real stored value of `non_deductible_categories`, rendered as a debug dump on
+        // a legal document. Each element goes through the same headline treatment a scalar gets, so a list
+        // reads exactly like the single value it would have been.
+        if (is_array($value) && array_is_list($value) && $value !== [] && ! array_filter($value, fn ($v): bool => ! is_scalar($v))) {
+            return implode(', ', array_map(fn (mixed $v): string => Str::headline((string) $v), $value));
+        }
+
+        // Anything genuinely structured (a nested object) has no honest one-line rendering; say so rather
+        // than dumping JSON at the owner.
+        return $value === [] || $value === null ? '—' : 'See agreement document';
     }
 
     /**

@@ -170,6 +170,15 @@
                     <span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:500">Receipts &amp; documents</span><span style="display:block;font-size:11.5px;color:var(--vy-muted)">Invoices, folios and receipts</span></span>
                     <span style="color:var(--vy-faint)">›</span>
                 </a>
+                {{-- Help & support (audit 2026-08-07 · GATE 6). The prototype's standalone Help page was
+                     never built and nothing linked to it, so a guest had no discoverable support route
+                     from their account. It points at the REAL operator relay rather than a new page of
+                     invented FAQ answers — a help centre whose content we'd have to make up is worse than
+                     a direct line to the people who can actually answer (#39). --}}
+                <a href="{{ route('guest.messages') }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;text-decoration:none;color:var(--vy-ink)">
+                    <span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:500">Help &amp; support</span><span style="display:block;font-size:11.5px;color:var(--vy-muted)">Message your property directly</span></span>
+                    <span style="color:var(--vy-faint)">›</span>
+                </a>
                 <form method="POST" action="{{ route('guest.logout') }}" style="margin:0">
                     @csrf
                     <button type="submit" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:none;border:none;width:100%;text-align:left;cursor:pointer;font-family:var(--vy-sans);color:var(--vy-ink)">

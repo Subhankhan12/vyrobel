@@ -58,7 +58,7 @@
                         <div class="vy-bd-eyebrow" style="margin-bottom:6px">Check-in</div>
                         <div style="font-family:var(--vy-display);font-weight:600;font-size:34px;letter-spacing:-.02em;line-height:1">{{ $reservation['ci_day'] }}</div>
                         <div style="font-size:12.5px;color:#8A8079;margin-top:5px">{{ $reservation['ci_sub'] }}</div>
-                        <div style="font-size:11.5px;color:#A69A92;margin-top:2px">from 3:00 PM</div>
+                        @if ($reservation['ci_time'])<div style="font-size:11.5px;color:#A69A92;margin-top:2px">{{ $reservation['ci_time'] }}</div>@endif
                     </div>
                     <div style="flex:1.2;position:relative;display:flex;align-items:center;justify-content:center;min-width:84px;align-self:flex-start;margin-top:30px">
                         <div style="position:absolute;left:4px;right:4px;top:50%;height:0;border-top:2px dashed rgba(120,70,40,.22)"></div>
@@ -71,7 +71,7 @@
                         <div class="vy-bd-eyebrow" style="margin-bottom:6px">Check-out</div>
                         <div style="font-family:var(--vy-display);font-weight:600;font-size:34px;letter-spacing:-.02em;line-height:1">{{ $reservation['co_day'] }}</div>
                         <div style="font-size:12.5px;color:#8A8079;margin-top:5px">{{ $reservation['co_sub'] }}</div>
-                        <div style="font-size:11.5px;color:#A69A92;margin-top:2px">by 10:00 AM</div>
+                        @if ($reservation['co_time'])<div style="font-size:11.5px;color:#A69A92;margin-top:2px">{{ $reservation['co_time'] }}</div>@endif
                     </div>
                 </div>
 
