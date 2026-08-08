@@ -2,6 +2,56 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-08 — HARDENING SPRINT: the audit's should-fix-before-launch set is CLOSED
+
+Follows the same day's launch-blocker pass. Closes every item in `AUDIT-COMPLETE-2026-08-07.md` §8
+"SHOULD FIX BEFORE LAUNCH". Explicitly NOT in scope (later workstreams): the deployment sprint (CI/CD,
+Docker, backups), the scale-performance work, the 26 parity gaps, the founder go-live flips.
+
+**Commits:** `6c390ad` headers · `33e585d`+`a2c7632` cookie/proxy/HTTPS · `260e17c` IBAN · `20aa3b9` CsvSafe ·
+`65f0edf` error views + logging · `b9d697d` deps · `00862df` lockfile · `8a7487f` fonts/seeder/env ·
+`f222c03` headers on 404s.
+
+**Decisions locked.**
+- **The CSP is built from an inventory, and its relaxations are documented, not accidental.** `style-src`
+  keeps `'unsafe-inline'` because ~97 inline style ATTRIBUTES cannot carry a nonce (no mechanism exists);
+  `script-src` keeps `'unsafe-eval'` because Livewire's Alpine evaluates via `new Function`. Stated honestly
+  in-code: with both, script-src is NOT meaningful XSS protection here — the real wins are `frame-ancestors`,
+  `object-src`, `base-uri`, `form-action`. Tightening either needs code work, not a header edit.
+- **`frame-ancestors 'self'`, not `'none'`** — the Email Previews page frames a SAME-ORIGIN app URL so email
+  CSS cannot leak into `/app`. `'none'` would have silently broken it. `'self'` still blocks the actual
+  threat (cross-origin clickjacking).
+- **The CSP now permits NO external origin**, which is only true because the fonts were self-hosted. Anything
+  reaching for a third party is now a violation by definition rather than a judgement call.
+- **`CsvSafe::row()` replaces per-cell `field()`** as the contract: a per-column judgement call is what let 7
+  owner exports ship with no sanitisation at all. Two tests are STRUCTURAL (no private copies; no unwrapped
+  `fputcsv`), so the gap cannot reopen.
+- **Sensitive input is excluded from the flash GLOBALLY**, not per-controller, so it covers forms not yet
+  written. The cost — a rejected payout form no longer repopulates the IBAN — is the correct trade.
+- **Seeders refuse production in two places** (DatabaseSeeder and PlatformAdminSeeder independently, since the
+  latter can be invoked alone). It minted a super-admin whose password was the literal string `password`.
+- **`.env.example` documents app-specific vars only.** Listing all 101 framework knobs would bury the 15 that
+  matter.
+
+**⚠️ Three self-inflicted problems were caught by verification rather than shipped — worth recording because
+each looked correct:**
+1. `env()` outside `config/` returns NULL under `config:cache`, which the deploy runbook runs — HTTPS forcing
+   and trusted proxies would have been silently dead in production. PHPStan caught it; `config/security.php`
+   fixes it.
+2. Reading `config()` inside `bootstrap/app.php`'s middleware closure FATALS (no `config` binding yet), and a
+   custom TrustProxies subclass is silently RESET by the framework's own. The working lever is the static
+   `TrustProxies::at()` from `boot()`.
+3. The security headers were registered on the `web` GROUP, so an unmatched-route 404 — the branded page most
+   likely to be probed — returned ZERO headers while every real page returned five. Found in the final sweep.
+
+**State:** suite 1667 / 1660 passed / 11,377 assertions; the 7 non-green are exactly the two documented files.
+PHPStan L5 (0) · Pint clean · `migrate:fresh --seed` clean · `composer audit` clean · `npm audit` clean.
+
+**Remaining after this sprint:** the deployment sprint (CI/CD, Docker/deploy artefact, backups), the
+scale-performance workstream (indexes, N+1, pagination, caching), the 26 parity gaps, and the founder's
+go-live flips.
+
+
 ## 2026-08-08 — AUDIT FIX PASS: the launch blockers (5 HIGH + cron + rate-limit) are CLOSED
 
 **Context.** `docs/AUDIT-COMPLETE-2026-08-07.md` (7 layers × 5 realms, 24 agents, 66 findings, 0 CRITICAL)

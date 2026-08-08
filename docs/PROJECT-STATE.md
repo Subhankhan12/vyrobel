@@ -23,12 +23,15 @@ conflicts with the repo, **trust the repo** and fix this file.
 > `DECISIONS.md` entry). Suite **1640 / 1633 passed / 11,238 assertions**; PHPStan L5 (0); Pint clean;
 > `migrate:fresh --seed` clean and now yielding **0 failed jobs (was 36)**.
 >
+> **✅ THE HARDENING SPRINT IS ALSO DONE (2026-08-08).** Every "should-fix before launch" item is closed:
+> security headers on all five realms (CSP built from a real asset inventory, no external origin permitted) ·
+> secure cookie + TrustProxies + HTTPS forcing (all `config:cache`-safe) · the owner IBAN no longer flashed
+> into `sessions` · `CsvSafe` on **49/49** `fputcsv` calls · branded error views · rotating logs · **0**
+> dependency advisories · npm lockfile · seeders refuse production · self-hosted fonts. See the audit's §8
+> table and the 2026-08-08 `DECISIONS.md` entry.
+>
 > **STILL OPEN — production-readiness is CONDITIONAL, not achieved:**
-> - **SHOULD-FIX before launch:** no security headers of any kind (CSP/HSTS/X-Frame-Options/nosniff — the
->   money surfaces are framable) · no custom error views · `SESSION_SECURE_COOKIE` + TrustProxies + HTTPS
->   forcing · 18 dependency advisories (5 HIGH) · owner IBAN written plaintext into `sessions` on a failed
->   validation · seeders have NO environment guard (`db:seed` in prod would mint a demo super-admin).
-> - **POST-LAUNCH / scale:** 210 queries on `/app/insights` and **116 on the PUBLIC unauthenticated
+> - **POST-LAUNCH / scale (unchanged):** 210 queries on `/app/insights` and **116 on the PUBLIC unauthenticated
 >   storefront** on 40 reservations; missing composite indexes measured at **73×–200× at 500k**; **zero
 >   pagination and zero caching app-wide**; 26 prototype-parity gaps (9 MEDIUM); WCAG AA contrast failures on
 >   two shared tokens; the guest portal has **zero viewport breakpoints**.

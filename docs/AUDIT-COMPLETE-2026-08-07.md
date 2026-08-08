@@ -366,8 +366,28 @@ The same discipline **withdrew** six suspicions, and these are reported because 
 5. **Login rate limiting** on all four realms.
 6. **Cron entry** for the 8 scheduled commands — without it, GDPR deletion and ID purge never run.
 
-### SHOULD FIX BEFORE LAUNCH (hardening)
-Security headers (CSP/HSTS/X-Frame-Options/nosniff) · `SESSION_SECURE_COOKIE` + `TrustProxies` + HTTPS forcing · custom error views for all four realms · `CsvSafe` applied to the 7 owner exports (unauthenticated input reaches them) · dependency bumps (18 advisories, 5 HIGH) · IBAN out of `sessions` · guard `DemoSeeder`/`PlatformAdminSeeder` against production · complete `.env.example` · self-host fonts.
+### ✅ SHOULD FIX BEFORE LAUNCH — **ALL RESOLVED 2026-08-08** (the hardening sprint)
+
+| Item | Commit | Verified by |
+|---|---|---|
+| Security headers (CSP/HSTS/X-Frame-Options/nosniff/Referrer/Permissions) | `6c390ad` + `f222c03` | 5/5 on all five realms **and** on a 403 and an unmatched-route 404; CSP built from a real asset inventory; Alpine proven to still *evaluate* (`x-text="n + 41"` → `42`); the same-origin email-preview iframe still renders |
+| `SESSION_SECURE_COOKIE` + `TrustProxies` + HTTPS forcing | `33e585d`, `a2c7632` | secure=false local / true in production; `X-Forwarded-Proto` **ignored** when unset and **honoured** at `TRUSTED_PROXIES=*`; proven to survive `config:cache` (the bug PHPStan caught) |
+| IBAN plaintext in `sessions` | `260e17c` | raw session row: leak reproduced before, absent after; valid IBAN still saves **and still stores as ciphertext** |
+| `CsvSafe` on every export | `20aa3b9` | **49/49** `fputcsv` calls routed through the one guard; 3 private copies deleted; an unauthenticated storefront name `=HYPERLINK(…)` lands quote-prefixed in the owner export |
+| Custom error views | `65f0edf` | branded 404/403/419/429/500/503; real 404 and real 403 driven in the browser; zero trace/SQL/path leakage; realm-aware back links |
+| Logging hygiene | `65f0edf` | stack defaults to `daily` (was unrotated `single`); level env-aware (`warning` in production) |
+| Dependency advisories (18, 5 HIGH) | `b9d697d` | dompdf 3.1.5→3.1.6, guzzle→7.15.3, commonmark→2.9.0; `composer audit` clean; a **real 879 KB PDF** still renders |
+| npm lockfile | `00862df` | `npm audit` now runs (0 vulnerabilities); `npm ci` + `npm run build` succeed |
+| Seeder production guard | `8a7487f` | production **refuses**; local `migrate:fresh --seed` still clean |
+| `.env.example` completeness | `8a7487f` | every app-specific var documented (framework knobs deliberately excluded) |
+| Self-host fonts | `8a7487f` | 9 woff2 served locally; Sora **measurably** applied; `externalRequests: []`; **CSP now permits no external origin at all** |
+
+**Suite after the sprint: 1667 tests, 1660 passed, 11,377 assertions** — the 7 non-green remain exactly the two
+documented files. PHPStan L5 (0) · Pint clean · `migrate:fresh --seed` clean.
+
+**Three self-inflicted problems were caught by verification rather than shipped**: `env()` outside config would
+have been NULL under `config:cache` (PHPStan); a custom TrustProxies subclass was silently overwritten by the
+framework's own; and the security headers were missing from exactly the 404 page they most needed to cover.
 
 ### POST-LAUNCH (quality & scale)
 Composite indexes and the N+1 hot spots (before the first large tenant) · pagination and caching · the 3-surface technician-pool defect (owners offered as technicians — **arguably a should-fix**, since auto-assignment routes work orders to an owner) · WCAG AA token contrast · guest-portal responsive breakpoints · the 26 parity gaps (VAT invoice identifiers first — it is a statutory document) · `MoneyFormatter` de-duplication · append-only DB-level enforcement · the 6 stale docblocks · `OwnerUnitDetailViewTest` (a real failure, not a flake).

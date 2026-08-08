@@ -141,8 +141,9 @@ Tracked in `docs/AUDIT-COMPLETE-2026-08-07.md` — these are real work, not conf
   `web` group): CSP, X-Frame-Options SAMEORIGIN, nosniff, Referrer-Policy, Permissions-Policy on every realm;
   HSTS only over a genuinely secure connection. The CSP is built from an inventory of what the app really
   loads — see the class docblock for the four relaxations it needs and what each would take to tighten.
-- **No custom error views** — `resources/views/errors/` does not exist, so every realm serves stock
-  unbranded Laravel error pages.
-- **No npm lockfile**, so `npm ci` above will fail until one is committed (`npm install` then commit
-  `package-lock.json`).
-- No Dockerfile / CI workflow / deploy script / backup strategy in the repository.
+- ✅ ~~No custom error views~~ — **DONE** (`resources/views/errors/`, branded 404/403/419/429/500/503).
+- ✅ ~~No npm lockfile~~ — **DONE**; `npm ci` and `npm audit` both work.
+- ✅ ~~Dependency advisories~~ — **DONE**; `composer audit` is clean.
+- ✅ ~~Seeders have no production guard~~ — **DONE**; they now refuse outright.
+- ⬜ **Still missing: Dockerfile / CI workflow / deploy script / backup strategy.** These are the remaining
+  deployment sprint, not config.
