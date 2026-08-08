@@ -11,8 +11,11 @@ use App\Models\MaintenanceTicket;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
+use App\Services\OwnerAttributionService;
 use App\Support\Analytics\PerformanceMetrics;
+use App\Support\Money\Money;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 
 /**
  * GATE 10.2 — THE one assembler of the operator Reports payload. The screen ({@see OperatorReports})
@@ -163,6 +166,18 @@ final class OperatorReportData
     /**
      * Top units by REAL room revenue among the arriving reservations.
      *
+     * ⚠️ ONE REVENUE SOURCE. This used to sum `reservation_units.price_minor` while {@see self::revenue()}
+     * summed `folio_items` of type `room`, so the SAME screen printed two different "room revenue" figures for
+     * the same period — measured at €11,560 against €7,080, a 63% overstatement — and `/app/portfolio`
+     * disagreed with `/app/reports` for the same year and property, with the PDF inheriting it.
+     *
+     * The folio is authoritative for money (#17), so this now reads the same folio room revenue the Revenue
+     * panel does and ALLOCATES it across the reservation's active lines by their `price_minor` weights — the
+     * same allocation {@see OwnerAttributionService} uses to split a folio across owned units.
+     * Σ(top units) therefore equals the Revenue panel's room figure by construction; the two cannot drift.
+     *
+     * Nights stay on the stay-night basis, which is what a night IS — only the money changed source.
+     *
      * @param  list<string>  $reservationIds
      * @return list<array{code: string, name: string, nights: int, revenue_minor: int}>
      */
@@ -172,22 +187,62 @@ final class OperatorReportData
             return [];
         }
 
-        return ReservationUnit::query()
-            ->join('units', 'units.id', '=', 'reservation_units.unit_id')
-            ->whereIn('reservation_units.reservation_id', $reservationIds)
-            ->where('reservation_units.status', 'active')
-            ->where('reservation_units.currency', $currency)
-            ->selectRaw('units.code AS code, units.name AS name, SUM(reservation_units.price_minor) AS revenue, SUM(DATEDIFF(reservation_units.check_out, reservation_units.check_in)) AS nights')
-            ->groupBy('units.id', 'units.code', 'units.name')
-            ->orderByDesc('revenue')
-            ->limit(6)
-            ->get()
-            ->map(fn ($row): array => [
-                'code' => (string) $row->getAttribute('code'),
-                'name' => (string) ($row->getAttribute('name') ?? $row->getAttribute('code')),
-                'nights' => (int) $row->getAttribute('nights'),
-                'revenue_minor' => (int) $row->getAttribute('revenue'),
-            ])
-            ->all();
+        // Folio room revenue per reservation — the same source (and filters) as revenue().
+        $roomByReservation = FolioItem::query()
+            ->join('folios', 'folios.id', '=', 'folio_items.folio_id')
+            ->whereIn('folios.reservation_id', $reservationIds)
+            ->where('folio_items.type', 'room')
+            ->where('folio_items.currency', $currency)
+            ->groupBy('folios.reservation_id')
+            ->selectRaw('folios.reservation_id AS rid, SUM(folio_items.amount_minor) AS total')
+            ->pluck('total', 'rid');
+
+        /** @var Collection<int, ReservationUnit> $lines */
+        $lines = ReservationUnit::query()
+            ->with('unit:id,code,name')
+            ->whereIn('reservation_id', $reservationIds)
+            ->where('status', 'active')
+            ->where('currency', $currency)
+            ->get();
+
+        $byUnit = [];   // unit id => ['code','name','nights','revenue_minor']
+
+        foreach ($lines->groupBy('reservation_id') as $reservationId => $reservationLines) {
+            $roomMinor = (int) ($roomByReservation[$reservationId] ?? 0);
+
+            // Weight by the line's own price so a multi-unit booking splits the folio the way it was priced;
+            // fall back to nights when nothing is priced, so a zero-priced booking still splits evenly.
+            $allPriced = $reservationLines->every(fn (ReservationUnit $l): bool => (int) $l->price_minor > 0);
+            $weights = $reservationLines
+                ->map(fn (ReservationUnit $l): int => $allPriced
+                    ? (int) $l->price_minor
+                    : max(1, (int) CarbonImmutable::parse($l->check_in)->diffInDays(CarbonImmutable::parse($l->check_out))))
+                ->values()
+                ->all();
+
+            $parts = Money::of($roomMinor, $currency)->allocate($weights);
+
+            foreach ($reservationLines->values() as $i => $line) {
+                $unit = $line->unit;
+                if ($unit === null) {
+                    continue;   // unassigned line — no unit to attribute it to
+                }
+
+                $id = (string) $unit->getKey();
+                $byUnit[$id] ??= [
+                    'code' => (string) $unit->code,
+                    'name' => (string) ($unit->name ?: $unit->code),
+                    'nights' => 0,
+                    'revenue_minor' => 0,
+                ];
+                $byUnit[$id]['nights'] += (int) CarbonImmutable::parse($line->check_in)->diffInDays(CarbonImmutable::parse($line->check_out));
+                $byUnit[$id]['revenue_minor'] += $parts[$i]->amountMinor();
+            }
+        }
+
+        $rows = array_values($byUnit);
+        usort($rows, fn (array $a, array $b): int => $b['revenue_minor'] <=> $a['revenue_minor']);
+
+        return array_slice($rows, 0, 6);
     }
 }
