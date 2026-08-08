@@ -79,10 +79,16 @@
                     <button type="button" class="vy-btn vy-btn--ghost" :class="selectMode && 'vy-btn--accent'" @click="toggleMode()">
                         <span x-text="selectMode ? 'Done' : 'Select'">Select</span>
                     </button>
+                    {{-- WAVE 2 · #18 — gate the CONTROL on the same permission as the route ("never invite a
+                         403"). The server gate already held, so this is UX, not security: a view-only role was
+                         shown Add / Message / Add tag and only found out on submit. The Erase block below has
+                         always done this correctly — this matches it. --}}
+                    @can('guests.manage')
                     <button type="button" class="vy-btn vy-btn--accent" @click="addOpen = true">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                         Add guest
                     </button>
+                    @endcan
                 </div>
             </div>
 
@@ -197,8 +203,10 @@
                 <button type="button" @click="clear()" style="background: none; border: none; color: #F0A57A; font-size: 12.5px; cursor: pointer;">Clear</button>
                 <span style="width: 1px; height: 20px; background: rgba(255,255,255,.18);"></span>
 
-                <button type="button" @click="msgOpen = true; marketing = false" class="vy-bulk-act">Message</button>
-                <button type="button" @click="tagOpen = true" class="vy-bulk-act">Add tag</button>
+                @can('guests.manage')
+                    <button type="button" @click="msgOpen = true; marketing = false" class="vy-bulk-act">Message</button>
+                    <button type="button" @click="tagOpen = true" class="vy-bulk-act">Add tag</button>
+                @endcan
 
                 {{-- Export — a real audited CSV download --}}
                 <form method="POST" action="{{ route('app.guests.bulk.export') }}">

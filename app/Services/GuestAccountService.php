@@ -9,6 +9,7 @@ use App\Mail\VerifyEmailMail;
 use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Scopes\OrganizationScope;
+use App\Support\Email\EmailTemplateResolver;
 use App\Support\Guest\GuestName;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -81,6 +82,19 @@ class GuestAccountService
             'guest' => $guest->getKey(),
             'hash' => sha1($email),
         ]);
+
+        // ⚠️ HONOUR THE OPERATOR'S TOGGLE (wireframe-parity WAVE 2 · #1). The email editor showed this
+        // template as "○ Off" and it sent anyway — the ONLY one of the seven templates whose send path
+        // ignored the flag (the other six all gate on it, in SendGuestTransactionalEmails and the two
+        // scheduled commands). A switch that visibly does nothing is worse than no switch.
+        //
+        // ⚠️ Turning it off DOES stop guests being able to claim an account — that is the operator's
+        // decision to make, exactly as it already is for booking confirmations, and it is now the decision
+        // the UI actually describes. The claim flow's response is deliberately unchanged: it stays neutral
+        // either way (no enumeration), so a disabled template cannot be probed from outside.
+        if (! EmailTemplateResolver::enabled((string) $guest->organization_id, 'verify-email')) {
+            return;
+        }
 
         Mail::to($email)->send(new VerifyEmailMail(GuestName::display($guest), $url, '1 hour', $email, (string) $guest->organization_id));
     }

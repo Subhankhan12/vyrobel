@@ -15,6 +15,7 @@ use App\Models\OwnerExpense;
 use App\Models\ReservationUnit;
 use App\Models\User;
 use App\Services\MaintenanceService;
+use App\Services\MaintenanceSettingsService;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Schedule\StaffRoster;
@@ -93,7 +94,11 @@ class MaintenanceTicketDetail extends Component
         $canManage = (bool) auth()->user()?->can('maintenance.manage');
 
         // The SAME real SLA clock the board shows (MaintenanceSla over the property's configured targets).
-        $setting = MaintenanceSetting::query()->first() ?? new MaintenanceSetting;
+        // ⚠️ WAVE 2 · #16 — via the SHARED accessor, which firstOrCreate()s the row so the schema defaults
+        // (4/8/48/168h) actually apply. This used to be `first() ?? new MaintenanceSetting`, and an UNSAVED
+        // Eloquent model carries no schema defaults — so every ticket on a fresh org read "No SLA target set"
+        // while the org genuinely had targets. The signal was dead from install until someone opened Settings.
+        $setting = app(MaintenanceSettingsService::class)->forOrg();
         $sla = MaintenanceSla::evaluate($ticket, $setting, $now);
         $deadline = $sla['deadline'];   // ?CarbonImmutable, from the shared SLA helper
 

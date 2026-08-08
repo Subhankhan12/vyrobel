@@ -16,6 +16,7 @@ use App\Models\Property;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\MaintenanceService;
+use App\Services\MaintenanceSettingsService;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Maintenance\RevenueOnHold;
 use App\Support\Schedule\StaffRoster;
@@ -55,7 +56,11 @@ class MaintenanceList extends Component
         $readIds = $this->currentReadIds;
         $now = CarbonImmutable::now();
         $today = $now->toDateString();
-        $setting = MaintenanceSetting::query()->first() ?? new MaintenanceSetting;
+        // ⚠️ WAVE 2 · #16 — via the SHARED accessor, which firstOrCreate()s the row so the schema defaults
+        // (4/8/48/168h) actually apply. This used to be `first() ?? new MaintenanceSetting`, and an UNSAVED
+        // Eloquent model carries no schema defaults — so every ticket on a fresh org read "No SLA target set"
+        // while the org genuinely had targets. The signal was dead from install until someone opened Settings.
+        $setting = app(MaintenanceSettingsService::class)->forOrg();
 
         $filterParam = request()->query('filter');
         $filter = is_string($filterParam) && in_array($filterParam, self::FILTERS, true) ? $filterParam : null;
