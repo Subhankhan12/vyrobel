@@ -102,6 +102,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Events\AccessTokenCreated;
 use Laravel\Passport\Passport;
@@ -220,6 +221,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // HTTPS SCHEME FORCING (audit 2026-08-07 · F6-10). Every generated URL — form actions, redirects,
+        // password-reset and email-verification signed links, the assets in a transactional email — is built
+        // from the request scheme. Behind a TLS-terminating proxy that scheme reads `http`, so links would be
+        // emitted as http:// even on an https:// site: mixed content in the browser, and http links inside
+        // guest emails.
+        //
+        // Production-only, so local http dev is untouched. FORCE_HTTPS can enable it elsewhere (a staging box
+        // behind a proxy) or disable it in production if TLS genuinely terminates at the app.
+        if ((bool) env('FORCE_HTTPS', $this->app->environment('production'))) {
+            URL::forceScheme('https');
+        }
+
         // Phase 8 · production email — THE #1 GUARD: a real-sending mail transport (Postmark/SES/…) is refused
         // outside `production`, downgraded to `log`, so no dev/CI run can ever email a real person — even with
         // MAIL_MAILER=postmark in a stray .env. Enforced in code, not by convention. See MailSafetyGuard.

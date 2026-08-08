@@ -37,6 +37,31 @@ return Application::configure(basePath: dirname(__DIR__))
             SecurityHeaders::class,
         ]);
 
+        // TRUSTED PROXIES (audit 2026-08-07 · F6-10). There was no configuration at all, so Laravel trusted
+        // NO proxy — a safe default (a spoofed X-Forwarded-For is ignored, so no bypass), but behind a real
+        // load balancer it means every request appears to come from the LB. Three things then break QUIETLY:
+        //   • EnforceIpAllowlist compares the PROXY's address, so the operator IP allowlist blocks everyone
+        //     (that middleware's own docblock names this as its deployment prerequisite);
+        //   • per-IP rate limiting collapses into a single bucket for the whole internet;
+        //   • $request->isSecure() reads false behind a TLS-terminating LB, which would suppress HSTS and
+        //     defeat the secure-cookie default above.
+        //
+        // Still opt-in and still safe by default: with TRUSTED_PROXIES unset the behaviour is exactly as
+        // before (trust nothing). Set it to '*' when the app is only reachable through the LB, or to a
+        // comma-separated list of proxy addresses.
+        $proxies = trim((string) env('TRUSTED_PROXIES', ''));
+
+        if ($proxies !== '') {
+            $middleware->trustProxies(
+                at: $proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)),
+                headers: Request::HEADER_X_FORWARDED_FOR
+                    | Request::HEADER_X_FORWARDED_HOST
+                    | Request::HEADER_X_FORWARDED_PORT
+                    | Request::HEADER_X_FORWARDED_PROTO
+                    | Request::HEADER_X_FORWARDED_AWS_ELB,
+            );
+        }
+
         // Unauthenticated web requests to guarded routes redirect to the correct realm's login form: the PLATFORM
         // admin (/admin*) bounces to the admin login, the GUEST portal (/guest/*) to the guest login, everything
         // else (/app, /owner) to the operator/owner login. Realm separation extends to the redirect target — a

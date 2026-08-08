@@ -169,7 +169,13 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // ⚠️ SECURE BY DEFAULT IN PRODUCTION (audit 2026-08-07 · F6-3-adjacent). This read used to be a bare
+    // env() with NO default: unset → null → falsy → the session cookie shipped WITHOUT the Secure flag, and
+    // the variable was absent from .env.example too, so a deploy copying that template got insecure cookies
+    // silently. It now defaults to true in production and false elsewhere, so local http dev still works
+    // untouched while a production deploy is safe without having to remember the variable. An explicit
+    // SESSION_SECURE_COOKIE still wins in either direction.
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
 
     /*
     |--------------------------------------------------------------------------

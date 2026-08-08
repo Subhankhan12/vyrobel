@@ -92,3 +92,34 @@ it('leaves non-document responses alone', function () {
     $response = $this->get('/login');
     expect($response->headers->get('Content-Type'))->toContain('text/html');
 });
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+// SESSION / COOKIE / PROXY HARDENING (audit 2026-08-07 · F6-10 and the SESSION_SECURE_COOKIE gap).
+//
+// `session.secure` was a bare env() with NO default: unset → null → falsy → the session cookie shipped
+// WITHOUT the Secure flag, and the variable was absent from .env.example, so a deploy copying that template
+// got insecure cookies silently. And with no TrustProxies configuration, three controls break QUIETLY behind
+// a load balancer: the operator IP allowlist compares the PROXY's address, per-IP rate limiting collapses
+// into one bucket, and isSecure() reads false so HSTS is suppressed.
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('does not mark the session cookie secure in local development', function () {
+    // The whole point of the env-driven default: plain-http local dev must keep working untouched.
+    expect(config('app.env'))->not->toBe('production');
+    expect(config('session.secure'))->toBeFalse();
+})->group('hardening');
+
+it('keeps the session cookie httpOnly and same-site', function () {
+    // These were already correct — pinned so a future edit cannot quietly loosen them.
+    expect(config('session.http_only'))->toBeTrue();
+    expect(config('session.same_site'))->toBe('lax');
+})->group('hardening');
+
+it('trusts no proxy by default, so a spoofed forwarded header cannot lie about the scheme', function () {
+    // The safe default is preserved: with TRUSTED_PROXIES unset, X-Forwarded-Proto is IGNORED, so an
+    // attacker cannot make the app believe a plain request was secure. Verified live both ways: unset →
+    // no HSTS on a forwarded-https request; TRUSTED_PROXIES=* → HSTS present.
+    $response = $this->withHeaders(['X-Forwarded-Proto' => 'https'])->get('/login');
+
+    expect($response->headers->get('Strict-Transport-Security'))->toBeNull();
+})->group('hardening');
