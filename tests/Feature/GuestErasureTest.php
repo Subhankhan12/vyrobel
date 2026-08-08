@@ -1,16 +1,20 @@
 <?php
 
+use App\Models\BookingQuote;
 use App\Models\Guest;
+use App\Models\GuestChangeRequest;
 use App\Models\Message;
 use App\Models\MessageThread;
 use App\Models\Note;
 use App\Models\Reservation;
+use App\Models\Review;
 use App\Models\User;
 use App\Services\GuestService;
 use App\Services\InboxService;
 use App\Support\Guest\GuestSpend;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -228,4 +232,118 @@ it('refuses to re-erase an already anonymized guest', function () {
 
     $this->actingAs($admin)->post('/app/guests/'.$guest->id.'/anonymize', ['confirm' => 'ERASE'])
         ->assertSessionHas('guest_error');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+// AUDIT 2026-08-07 · H4 + H5 — THE ERASURE WAS INCOMPLETE IN THREE STORES
+//
+// anonymize() cleared eight stores and MISSED:
+//   • `reviews.operator_response` (H4/F-2b-02) — the operator's PUBLIC reply kept the guest's first name on
+//     an indexable storefront page tied to a specific stay. The byline said "A guest" while the reply below
+//     said "Thank you Sofia": visibly incomplete to anyone reading the page.
+//   • `reservations.notes_internal` + `expected_arrival` (H5/F-2b-03) — the STAFF-authored half of a row
+//     whose guest half was already cleared. Full name, phone, allergies, companions survived verbatim,
+//     defeating the encrypted `guests.phone` column by plaintext copy.
+//
+// An adversarial schema sweep for the same class of miss then found two more (change-request payloads and
+// converted booking quotes), which this test also pins.
+//
+// THE SHAPE OF THE TEST IS THE POINT: plant a value in EVERY store, erase once, assert ALL are gone —
+// verified against the RAW DB rows, not the model (a cast could hide a survivor). Adding a store later
+// without adding it to anonymize() fails here.
+// ══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('clears EVERY free-text store about the guest — raw-DB verified', function () {
+    $s = seedScenario(1);
+    [$guest, $reservation] = erasableGuest($s);
+
+    $reservation->update([
+        'notes_guest' => 'Please leave a cot — travelling with my daughter Mia',
+        'arrival_window' => '18:00-20:00',
+        'notes_internal' => 'VIP. Ada Lovelace, +351 910 000 001. Nut allergy. Partner Charles joining.',
+        'expected_arrival' => '19:30',
+    ]);
+
+    $review = Review::create([
+        'organization_id' => $s['org']->id,
+        'guest_id' => $guest->id,
+        'reservation_id' => $reservation->id,
+        'unit_id' => $s['units'][0]->id,
+        'room_type_id' => $s['units'][0]->room_type_id,
+        'rating' => 5,
+        'body' => 'Lovely stay.',
+        'operator_response' => 'Thank you Ada — a pleasure hosting you and Charles!',
+        'responded_at' => now(),
+        'status' => 'published',
+    ]);
+
+    $guest->anonymize();
+
+    // RAW rows — bypass every cast/accessor, so nothing can be hidden by presentation.
+    $rawRes = DB::table('reservations')->where('id', $reservation->id)->first();
+    $rawRev = DB::table('reviews')->where('id', $review->id)->first();
+
+    expect($rawRes->notes_guest)->toBeNull()
+        ->and($rawRes->arrival_window)->toBeNull()
+        ->and($rawRes->notes_internal)->toBeNull()        // H5
+        ->and($rawRes->expected_arrival)->toBeNull();     // H5
+
+    expect($rawRev->operator_response)->toBeNull()        // H4 — the public leak
+        ->and($rawRev->responded_at)->toBeNull();
+
+    // The rating survives: erasure must not move the derived #76 aggregates.
+    expect((int) $rawRev->rating)->toBe(5);
+
+    // Nothing anywhere in those rows still spells the erased identity.
+    foreach ([$rawRes, $rawRev] as $row) {
+        $blob = strtolower(json_encode((array) $row, JSON_THROW_ON_ERROR));
+        expect($blob)->not->toContain('ada')
+            ->and($blob)->not->toContain('lovelace')
+            ->and($blob)->not->toContain('910 000 001')
+            ->and($blob)->not->toContain('charles');
+    }
+});
+
+it('clears a converted booking quote and a change-request payload on erasure', function () {
+    $s = seedScenario(1);
+    [$guest, $reservation] = erasableGuest($s);
+
+    $quote = BookingQuote::create([
+        'organization_id' => $s['org']->id,
+        'property_id' => $s['property']->id,
+        'reference' => 'Q-'.Str::upper(Str::random(6)),
+        'session_token' => Str::random(40),
+        'check_in' => '2026-09-01', 'check_out' => '2026-09-03',
+        'adults' => 2, 'currency' => 'EUR', 'total_minor' => 20000,
+        'requested' => ['room_type_id' => null],
+        'email' => 'ada@example.test', 'phone' => '+351910000001',
+        'guest_snapshot' => ['first_name' => 'Ada', 'last_name' => 'Lovelace'],
+        'status' => 'converted',
+        'converted_reservation_id' => $reservation->id,
+    ]);
+
+    $request = GuestChangeRequest::create([
+        'organization_id' => $s['org']->id,
+        'guest_id' => $guest->id,
+        'reservation_id' => $reservation->id,
+        'type' => 'date_change',
+        'status' => 'pending',
+        'payload' => ['note' => 'Arriving late with my daughter Mia'],
+    ]);
+
+    $guest->anonymize();
+
+    $rawQuote = DB::table('booking_quotes')->where('id', $quote->id)->first();
+    $rawReq = DB::table('guest_change_requests')->where('id', $request->id)->first();
+
+    expect($rawQuote->email)->toBeNull()
+        ->and($rawQuote->phone)->toBeNull()
+        ->and($rawQuote->guest_snapshot)->toBeNull();
+    // payload is NOT NULL at the schema level, so erasure EMPTIES it (redact-don't-delete).
+    expect(json_decode((string) $rawReq->payload, true))->toBe([]);
+    expect((string) $rawReq->payload)->not->toContain('Mia');
+
+    // The money/audit skeleton survives — erasure strips PII, it does not delete history.
+    expect((int) $rawQuote->total_minor)->toBe(20000);
+    expect($rawReq->status)->toBe('pending');
 });

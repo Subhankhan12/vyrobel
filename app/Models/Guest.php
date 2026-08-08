@@ -310,7 +310,50 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
             // arrival-preparation note the guest types at online check-in ("allergies, a cot, parking…"); clear
             // it (and the coarse arrival window) on erase. Added WITH the online-check-in writer that first
             // populates it (Guest Portal batch 2 · GATE 2) — never a store the erase silently leaves behind.
-            $this->reservations()->update(['notes_guest' => null, 'arrival_window' => null]);
+            //
+            // ⚠️ `notes_internal` + `expected_arrival` ADDED 2026-08-08 (audit H5 / F-2b-03). They were the
+            // STAFF-authored half of the same row and survived erasure verbatim — full name, phone number,
+            // allergies, travel companions. `guests.phone` is an encrypted column precisely because a phone
+            // number is sensitive; copying it into a plaintext `notes_internal` and never clearing it defeated
+            // that control, which is exactly what this file's own rule forbids ("an encrypted column is undone
+            // the moment its value is copied somewhere plaintext").
+            $this->reservations()->update([
+                'notes_guest' => null,
+                'arrival_window' => null,
+                'notes_internal' => null,
+                'expected_arrival' => null,
+            ]);
+
+            // GDPR: the operator's PUBLIC reply to this guest's review (audit H4 / F-2b-02). The byline already
+            // renders "A guest" after erasure, but the reply underneath kept the guest's first name — on a
+            // public, indexable, unauthenticated storefront page tied to a specific stay, unit and date. An
+            // erasure that leaves "Thank you Sofia" visible is not an erasure. Keep the rating + row skeleton so
+            // the derived #76 aggregates are unchanged; only the identifying free text goes.
+            //
+            // ⚠️ `reviews.body` is DELIBERATELY RETAINED and flagged for a founder decision, not silently kept:
+            // it is the guest's own opinion OF THE PROPERTY, it is what other travellers rely on, and destroying
+            // it changes published content. It is not known to contain identifiers (the author is already
+            // anonymised). If policy says an Art.17 erasure must take the review text too, add `'body' => null`
+            // here — one line, and GuestErasureTest already plants a value in it.
+            Review::query()->where('guest_id', $this->getKey())
+                ->update(['operator_response' => null, 'responded_at' => null]);
+
+            // GDPR: a change request is free text the GUEST wrote about their own stay (dates, occupancy, a
+            // reason). Cleared with the same reasoning as notes_guest; the row skeleton + status survive so the
+            // operator's decision history stays auditable.
+            // (`payload` is NOT NULL at the schema level, so it is EMPTIED rather than nulled — the same
+            // redact-don't-delete shape as `notes.body => ''` above.)
+            GuestChangeRequest::query()->where('guest_id', $this->getKey())->update(['payload' => '[]']);
+
+            // GDPR: an abandoned-booking QUOTE carries the guest's encrypted email/phone and a guest_snapshot.
+            // Only the quotes that converted into THIS guest's reservations are reachable by id — an abandoned
+            // quote has no guest link at all (audit F-2b-07), so those are cleared by the scheduled retention
+            // purge, not from here. Clearing what IS reachable is strictly better than clearing none of it.
+            $reservationIds = $this->reservations()->pluck('id');
+            if ($reservationIds->isNotEmpty()) {
+                BookingQuote::query()->whereIn('converted_reservation_id', $reservationIds)
+                    ->update(['email' => null, 'phone' => null, 'guest_snapshot' => null]);
+            }
 
             // GDPR: the block-organiser NAME copied into `groups.contact` (plaintext json, for display) is this
             // guest's PII too. Redact just the name (company is a business, not PII) via the organiser FK — added
