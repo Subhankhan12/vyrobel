@@ -115,6 +115,9 @@
 
         {{-- #104 fidelity — the property switcher lives in the sidebar (below the brand), matching the decoded
              operator wireframe. Same Livewire-free POST switcher, relocated from the topbar. --}}
+        {{-- Auth/isolation pass · item 2 — the WORKSPACE switcher sits ABOVE the property switcher: you pick
+             the organization first, then the property within it. Renders only for a genuinely multi-org user. --}}
+        <x-operator.workspace-switcher />
         <x-operator.property-switcher />
 
         @foreach ($navGroups as [$group, $items])

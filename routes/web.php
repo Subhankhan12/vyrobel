@@ -78,6 +78,7 @@ use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Operator\UnitRequestActionController;
+use App\Http\Controllers\Operator\WorkspaceSwitchController;
 use App\Http\Controllers\Owner\OwnerAccountController;
 use App\Http\Controllers\Owner\OwnerAgreementController;
 use App\Http\Controllers\Owner\OwnerAgreementPdfController;
@@ -482,6 +483,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // they can access; the controller re-validates the id against that set (defence in depth — the
     // middleware validates again on the next request), so a foreign/stale id can never take effect.
     Route::post('/property/switch', [PropertySwitchController::class, 'update'])->name('property.switch');
+
+    // Auth/isolation pass · item 2 — the WORKSPACE (organization) switcher. `active_organization_id` was
+    // READ by SetTenantForWebRequest and NEVER WRITTEN anywhere, so a user in two orgs was permanently
+    // pinned to whichever membership came back first. Same shape as the property switcher above: the
+    // controller validates the target against the user's OWN active memberships (a crafted org id is
+    // rejected, never stored), and the middleware re-validates on the next request (#38).
+    Route::post('/workspace/switch', [WorkspaceSwitchController::class, 'update'])->name('workspace.switch');
 
     // Phase 6a · Step 2 — the PORTFOLIO overview + property CRUD. The overview is gated `properties.view`
     // (every back-office role sees it); creating/editing a property is gated `properties.manage` (Property
