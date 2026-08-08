@@ -26,8 +26,8 @@
         /* ---- Formalized design tokens (shared Vyrobel system; see owner-portal-spec.md) ---------- */
         :root {
             --vy-ink: rgb(43, 35, 32);
-            --vy-muted: rgb(138, 128, 121);
-            --vy-faint: rgb(166, 154, 146);
+            --vy-muted: rgb(95, 88, 83);
+            --vy-faint: rgb(108, 100, 95);
             --vy-accent: rgb(194, 65, 12);       /* terracotta primary (#C2410C) */
             --vy-accent-2: rgb(217, 102, 46);
             --vy-accent-3: rgb(232, 112, 58);    /* (#E8703A) */

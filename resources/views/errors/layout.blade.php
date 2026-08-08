@@ -58,7 +58,7 @@
             background: {{ $isAdmin ? 'linear-gradient(140deg,#6366F1,#4338CA)' : 'linear-gradient(140deg,#E8703A,#C2410C)' }};
         }
         .code { font-size: 13px; font-weight: 700; letter-spacing: .10em; text-transform: uppercase;
-                color: {{ $isAdmin ? '#8C93A6' : 'rgb(138, 128, 121)' }}; margin: 0 0 8px; }
+                color: {{ $isAdmin ? '#8C93A6' : 'rgb(95, 88, 83)' }}; margin: 0 0 8px; }
         h1 { font-size: 25px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 10px; }
         p  { font-size: 14.5px; line-height: 1.6; margin: 0 0 26px;
              color: {{ $isAdmin ? '#A8AEC0' : 'rgb(110, 100, 94)' }}; }
@@ -68,7 +68,7 @@
             background: {{ $isAdmin ? 'linear-gradient(140deg,#6366F1,#4338CA)' : 'linear-gradient(140deg,#E8703A,#C2410C)' }};
         }
         a.btn:focus-visible { outline: 3px solid rgba(232,112,58,.5); outline-offset: 2px; }
-        .foot { margin-top: 22px; font-size: 11.5px; color: {{ $isAdmin ? '#6B7285' : 'rgb(166, 154, 146)' }}; }
+        .foot { margin-top: 22px; font-size: 11.5px; color: {{ $isAdmin ? '#6B7285' : 'rgb(108, 100, 95)' }}; }
         @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
     </style>
 </head>

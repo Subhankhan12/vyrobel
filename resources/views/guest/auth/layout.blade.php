@@ -11,7 +11,7 @@
     <link href="/fonts/fonts.css" rel="stylesheet">
     <style>
         :root {
-            --vy-ink: rgb(43, 35, 32); --vy-muted: rgb(138, 128, 121); --vy-faint: rgb(166, 154, 146);
+            --vy-ink: rgb(43, 35, 32); --vy-muted: rgb(95, 88, 83); --vy-faint: rgb(108, 100, 95);
             --vy-accent: rgb(194, 65, 12); --vy-accent-3: rgb(232, 112, 58); --vy-amber: rgb(178, 106, 8);
             --vy-glass: rgba(255, 252, 248, 0.62); --vy-glass-border: rgba(255, 255, 255, 0.75);
             --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
