@@ -23,9 +23,22 @@
                      labelled per state (a no-show stamps the same shared column); the reason row is OMITTED
                      when there is none (a no-show has none) rather than faked with a dash. --}}
                 @if ($terminal !== null)
-                    <div class="vy-card">
+                    {{-- The design states a terminal reservation as a TINTED BANNER, keyed by which terminal
+                         state it is — rose for a cancellation, amber for a no-show. The state is read from
+                         the real at_label the component already derives, not from a second status read. --}}
+                    @php $vyTerm = $terminal['at_label'] === 'Marked no-show at' ? 'is-no-show' : 'is-cancelled'; @endphp
+                    <div class="vy-card vy-term {{ $vyTerm }}">
                         <div class="vy-detail-head">
-                            <span class="vy-eyebrow">{{ $terminal['label'] }}</span>
+                            <span class="vy-term-head">
+                                <span class="vy-term-ico" aria-hidden="true">
+                                    @if ($vyTerm === 'is-no-show')
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                                    @else
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6"/><path d="M15 9l-6 6"/></svg>
+                                    @endif
+                                </span>
+                                <span class="vy-eyebrow">{{ $terminal['label'] }}</span>
+                            </span>
                             <span class="vy-tag tone-{{ $terminal['stage_tone'] }}"><span class="vy-dot"></span>{{ $terminal['stage_label'] }}</span>
                         </div>
 

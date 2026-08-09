@@ -57,7 +57,8 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 4 | Operator Reports | `/app/reports` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
 | 5 | Operator Front Desk | `/app/front-desk` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
 | 6a | Operator Reservations (list) | `/app/reservations` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
-| 6b | Operator Reservation Detail | `/app/reservations/{id}` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) + ⚠️ Cancelled/No-show **not observable on this seed** |
+| 6b | Operator Reservation Detail | `/app/reservations/{id}` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
+| 6c | ↳ Cancelled + No-show variants | same | Hotel Manager | ✅ matched | **0** (both refusals held) |
 
 ---
 
@@ -299,13 +300,12 @@ plain `<a href>` links. Nothing was converted to a wire-action.
 `No-show` variants (all decoded 2026-08-09, byte-identical to the 2026-08-07 audit decodes).
 **Live component:** `App\Livewire\ReservationDetail`. **Design pass:** complete for the main detail.
 
-### ⚠️ The Cancelled and No-show variants could NOT be observed
+### ✅ The Cancelled and No-show variants are CLOSED (2026-08-09, `4490b42` + the design gate)
 
-`reservations` contains **no `cancelled` and no `no_show` row** on the current seed (checked directly:
-confirmed ✓, checked_out ✓, checked_in ✗, cancelled ✗, no_show ✗). Producing one means driving a real
-cancel or no-show, which mutates the folio and the seed — so it was **not** done. Those two states are
-**unverified**, not passed. To close them: seed a genuinely cancelled and a genuinely no-show reservation
-(a `DemoSeeder` addition), then re-run this page's diff against the two variant prototypes.
+They were unobservable at 6b — the seed held no `cancelled` and no `no_show` row. GATE A added one of each
+**through the certified services the UI itself posts to** (`ReservationCancellationService::cancelWithPolicyRefund`
+and `AssignmentService::markNoShow`), never a raw status write, so the folio, the availability spine and the
+audit trail are genuinely consistent. Both variants were then diffed against their prototypes — see §6c.
 
 ### Verified before touching anything
 
@@ -338,3 +338,38 @@ cancel or no-show, which mutates the folio and the seed — so it was **not** do
   after the change.
 - **The guest check-in note (WAVE-2) is intact** — `ReservationDetail` still builds a "From the guest" note
   row. It does not render on the two seeded reservations because neither has one, not because it regressed.
+
+---
+
+## 6c · Reservation Detail — CANCELLED + NO-SHOW variants
+
+**Prototypes:** `Operator Reservation Cancelled.html` + `Operator Reservation No-show.html` (decoded
+2026-08-09, byte-identical to the audit decodes). **Live:** the two reservations GATE A seeded through the
+certified path. **Design pass:** complete. **No backend gaps — both prototype asks are refusals.**
+
+### Verified live on both states
+
+| | Cancelled `R-NFUVRUON` | No-show `R-YINKVAQR` |
+|---|---|---|
+| **#17 reconciles** | €246.00 − €0.00 = **€246.00** ✓ | €246.00 − €123.00 = **€123.00** ✓ |
+| **Refund visible** | ledger shows `Payment −€246.00` **and** `Refund +€246.00` — correct-by-reversal, both lines present | n/a (no refund; the policy produced none) |
+| **#29 re-terminate bound** | **no cancel/no-show form rendered** — only `/payments` and `/charge` remain | same |
+| **Invented fee** | none — probed | none — probed |
+| **#33 door code / #28 contact** | none / none | none / none |
+
+| # | What the prototype shows | Live | Verdict |
+|---|---|---|---|
+| — | **Cancelled banner:** "Flexible policy — **1-night fee applied** · … · confirmation emailed to the guest". | The banner states the real `cancelled_at`, the real stored reason, and the real inventory release. The fee line reads **"Cancellation fee · Soon — No fee was calculated or charged"**. | **RATIFIED REFUSAL** — §5 *"no cancellation / no-show fee figure — no fee engine"*. |
+| — | **No-show banner:** "**2 calls and a message went unanswered** · **1-night fee charged to the Expedia virtual card** · auto-marked at end of arrival day". | Real `marked no-show at` + the real inventory release. No call log exists, no OTA virtual card is modelled, and nothing auto-marks a no-show — a human does. | **RATIFIED REFUSAL** — every clause is fabricated. |
+| — | **Waive fee modal** on the no-show. | Absent; the live card reads "No-show fee · waiver — Soon". | **RATIFIED REFUSAL** — §5 *"No waive-fee modal on no-show — waiving a fee that was never posted would create a phantom credit."* |
+| ✅ | Terminal state announced as a **tinted banner** with a round icon — rose for cancelled, amber for no-show. | Was a plain glass card with a small eyebrow. | **FIXED** — the tint + icon now key off the real terminal state, and the state is **also named in words**, so colour is never the only carrier (WCAG 1.4.1). |
+
+### Also noted
+
+- **A no-show's stage chip reads "Cancelled" — deliberate, not a defect.** `ReservationStage` buckets
+  `no_show` into the Cancelled *stage*, and the detail takes it from that shared resolver **so this screen
+  can never disagree with the list** (the list's chip counts them together too). The precise status
+  ("No-show") is shown separately in the header card and the sub-title. Changing it here would reintroduce
+  exactly the two-readers drift the shared resolver exists to prevent.
+- **A cancelled reservation carries a real outstanding balance** (charges stand, the payment was reversed).
+  That is the append-only, correct-by-reversal ledger being honest — not a display bug.

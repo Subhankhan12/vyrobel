@@ -340,6 +340,18 @@
         /* A settled balance is not an alarm — it reads as ink, not accent. */
         .vy-det .vy-total-row.is-balance.is-settled .vy-t-label { color: var(--vy-muted); }
         .vy-det .vy-total-row.is-balance.is-settled .vy-t-val { color: var(--vy-ink); }
+        /* Terminal-state banner (cancelled / no-show). The design tints the whole strip and leads with a
+           round icon; the state is ALSO named in words beside it, so colour is never the only carrier
+           (WCAG 1.4.1). Rose reads "cancelled", amber reads "no-show" — the design's own pairing. */
+        .vy-det .vy-term { border-width: 1px; border-style: solid; }
+        .vy-det .vy-term.is-cancelled { background: rgba(143, 49, 16, 0.08); border-color: rgba(143, 49, 16, 0.20); }
+        .vy-det .vy-term.is-no-show { background: rgba(217, 154, 61, 0.14); border-color: rgba(217, 154, 61, 0.35); }
+        .vy-det .vy-term-head { display: inline-flex; align-items: center; gap: 12px; min-width: 0; }
+        .vy-det .vy-term-ico { width: 36px; height: 36px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; }
+        .vy-det .vy-term.is-cancelled .vy-term-ico { background: rgba(143, 49, 16, 0.12); color: #8F3110; }
+        .vy-det .vy-term.is-no-show .vy-term-ico { background: rgba(217, 154, 61, 0.25); color: #8F6414; }
+        .vy-det .vy-term.is-cancelled .vy-eyebrow { color: #8F3110; }
+        .vy-det .vy-term.is-no-show .vy-eyebrow { color: #8F6414; }
         .vy-card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
         .vy-card-head h3 { margin: 0; font-family: var(--vy-display, inherit); font-size: 14px; font-weight: 600; color: var(--vy-ink); }
         .vy-card-note { font-size: 11.5px; color: var(--vy-faint); }
