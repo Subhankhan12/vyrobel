@@ -80,10 +80,11 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 22 | **Operator Owner DETAIL** ⚠️ deepest owner PII + the #6 guarded proposal | `/app/owners/{id}` | GET ungated · writes `can:users.manage` / `can:rates.manage` | ✅ matched | **4** (2 real gaps · 2 refusals) — **Owners area COMPLETE** |
 | 23 | **Operator Roles & permissions** ⚠️ RBAC / privilege | `/app/roles` | GET+assign `can:users.manage` · **matrix `can:roles.manage`** | ✅ matched | **3** (1 real gap · 2 refusals) + **a self-escalation test gap closed** |
 | 24 | **Operator Security** ⚠️ auth surface | `/app/security` | per-user (auth + back-office, **no fine-grained permission**) | ✅ matched | **2** (1 real gap · 1 refusal) + ⚠️ **a hardcoded safety badge fixed** |
+| 25 | **Operator Reviews** — guest-authored content | `/app/reviews` | `can:reviews.view` · writes `can:reviews.manage` | ✅ matched | **4** (2 real gaps · 2 refusals) + ⚠️ **3 AA failures fixed + the page tokenised** |
 
-**Operator: 32 of 42 prototypes covered · 10 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+**Operator: 33 of 42 prototypes covered · 9 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
 remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
-**⬅ NEXT PAGE: Operator Reviews (`/app/reviews`)** — guest-authored content; no fabricated reviews or ratings.
+**⬅ NEXT PAGE: Operator Channels (`/app/channels`)** — ⚠️ OTA claims (#37); never a fabricated sync state.
 
 ---
 
@@ -1705,3 +1706,72 @@ and **§22** (Owner Detail) — **the code is right, the comment is out of date.
   payload is byte-identical (verified: `usernameSubmitted: false` on all three). Console is now **0 messages**.
 - **No API-key section exists on this page**, so the Page-14 shown-once ruling has nothing to violate here.
 - **Responsive:** 0px horizontal overflow at **1440** and **1000**. **0 console messages of any level.**
+
+---
+
+## 25 · Operator Reviews — `/app/reviews` — GUEST-AUTHORED CONTENT
+
+**Prototype:** `docs/design/raw/Operator Reviews.html` (decoded fresh 2026-08-10; it opens on a **"Review
+requests"** automation modal). **Live:** `OperatorReviewsController@index` →
+`resources/views/operator/reviews.blade.php` — ⚠️ **a controller-rendered page**, one of the four wrapped into
+the document layout at `c0ce419`. **Role:** `can:reviews.view` to see; **`can:reviews.manage`** for respond /
+publish / reject, and the whole action row is `@can`-gated so the UI never invites a 403 (#30).
+
+### ⚠️ THE FINDING — THE PAGE HAD NEVER BEEN TOKENISED, AND CARRIED THREE AA FAILURES
+
+The review card was written in **raw hex with zero `--vy-*` tokens** (measured: `var(--vy-` count **0** in the
+card markup). Because it never picked up the design system, it still carried the **pre-AA greys** the
+accessibility gates darkened everywhere else — and the measurements confirmed three genuine failures:
+
+| Element | Colour | Measured | |
+|---|---|---|---|
+| **The star rating** | `#E8703A` (the brand FILL, used as 18px text) | **3.08** | ❌ |
+| Room type | `#8A8079` (the old `--vy-muted`) | **3.86** | ❌ |
+| Date | `#A69A92` (the old `--vy-faint`) | **2.74** | ❌ |
+
+⚠️ **The stars mattered most: they are the RATING**, the single most important fact on the card — and the
+rating was carried by **stars alone**, with no numeric value anywhere on the row (WCAG 1.4.1).
+
+**Fixed:** the card is tokenised (`--vy-ink` / `--vy-muted` / `--vy-faint` / `--vy-accent-text` /
+`--vy-hairline` / `--vy-accent-wash`), the empty state with it, and **the numeric rating now sits beside the
+stars** (`5/5`), with the stars themselves `aria-hidden` decoration. **Re-measured: 0 AA failures, 10 passing.**
+⚠️ `rating` was already in the controller payload — this is **not** a second derivation of the shared
+`ReviewRating` (#76), which remains the only source of the AGGREGATE.
+
+### ⚠️ THE AGGREGATE IS THE SHARED `ReviewRating` (#76) — verified, not assumed
+
+`OperatorReviewsController` calls **`ReviewRating::operatorSummary()`** and passes it straight through; the view
+only **formats** it (`number_format($summary['average'], 1)`). **No parallel average is computed anywhere.**
+The one piece of in-view arithmetic is a **bar-width percentage** (`distribution[$star] * 100 / count`) derived
+from the shared summary's own numbers — a bar length, not a second rating.
+**The figures reconcile:** 5★×5 + 4★×1 + 3★×1 = 32 ÷ 7 = 4.57 → the rendered **4.6**; replies 5 of 7 → **71%**.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D25-1 | A **BY CHANNEL** card — per-source ratings (Booking.com 4.8 ·61, Airbnb 4.9 ·42, Direct 4.7 ·25) — plus "via Booking.com" on each review and *"Posts to Booking.com publicly"* under the reply box. | Reviews carry no channel attribution, and nothing posts a reply to an OTA. Same unmodelled attribution as **D2-2** — `reservations.channel_id` is unset on every row until the import path runs. | Live OTA review sync (read AND write-back) — the **Channex** cutover. | **ACCOUNT-GATED / RATIFIED REFUSAL — CHANNEX-TIED.** Verified absent: **0** occurrences of Booking.com / Airbnb / Expedia / "via …". ⚠️ A per-channel rating would be a fabricated breakdown, and *"posts publicly to Booking.com"* would promise a write the product cannot perform. |
+| D25-2 | **Generated reply drafts** — chips reading *Draft a reply · Warm thanks · Make it right · Short & kind* above the reply box. | No reply generation of any kind; the operator writes their own text. | A live LLM (§H — today a `FakeLlmClient`). | **RATIFIED REFUSAL** (sweep §5, and the same refusal the Inbox gate recorded: *no AI or suggested reply*). Verified: **0** draft chips on the page. |
+| D25-3 | **"+0.2"** beside the overall rating, and **"Avg. reply in 4h"** on the reply-rate card. | No rating history and no reply-latency measurement exist — a review has a created time, but no responded-at is tracked for a duration. | A ratings snapshot history; a `responded_at` timestamp for latency. | **RATIFIED REFUSAL** — the same class as **D18-2** (rate trends) and **D3-4**: a delta with no baseline is a fabricated figure. Verified: no trend, no latency claim rendered. |
+| D25-4 | A **two-column master/detail** layout (a compact review LIST with *Needs reply · 2 / All / Replied* tabs beside a full detail pane), plus a **char counter** and a **"Signed — Sofia, Seaside Villas"** line on the reply box. | The live page is a single column of full cards, filtered by the real moderation status (*All / Published / Pending / Rejected*). | A master/detail restructure, a `needs-reply` filter (derivable — 5 of 7 answered), and the reply-box affordances. | **REAL GAP (presentation)** — logged rather than built: it restructures the whole page, and the live filter axis is the real `status` enum, which is *more* honest than a reply-state-only view. ⚠️ Both axes are legitimate; a future gate could offer both. |
+
+### Also noted on this page (not backend gaps)
+
+- ⚠️ **The design's automation modal is ALREADY honestly deferred, in copy, on the page.** The prototype opens
+  on *"Review requests"* — auto-request after checkout, **SMS**, and *"Catch unhappy guests first — under 4★
+  routes to the manager, not the public site"* (**review-gating**). The live subtitle states plainly:
+  *"Auto-responses and review-gating are coming soon — for now, every response and publish decision is yours."*
+  ⚠️ Review-gating is also an **ethically loaded** feature (suppressing negative reviews from the public site);
+  it should not be built without an explicit founder decision, and SMS is a standing §H deferral.
+- **#39 — every review is real.** 7 real `Review` rows, all `published`, 5 with a real `operator_response`;
+  the honest empty state is *"No reviews yet."* **No fabricated review, reviewer, quote or star count.**
+- **#28 — guest NAME only.** Verified: **0 email addresses and 0 phone numbers** anywhere on the page. The
+  reviewer's display name is content they authored; their contact is not shown.
+- **Nothing was submitted.** All 14 write forms (7 × respond, 7 × reject) POST their real
+  `can:reviews.manage` routes with CSRF and were **read, never fired** — proven after: reviews **7**, published
+  **7**, responses **5**, unchanged. `ReviewRating` and the controllers are byte-identical.
+- **Status is never colour-only** — PUBLISHED / PENDING / REJECTED / PRIVATE each print as a word, and the
+  rating now carries its number.
+- ⚠️ **Noted, not changed:** an already-answered card shows the response **twice** — once as *"Your response:
+  …"* and again pre-filled in the edit input beneath it. It is not dishonest (the input is the edit affordance),
+  but it reads as duplication. Folding it into a single "edit" affordance is part of the D25-4 restructure.
+- **Responsive:** 0px horizontal overflow at **1440** and **1000** (the KPI strip reflows to 2 columns).
+  **0 console errors/warnings.**

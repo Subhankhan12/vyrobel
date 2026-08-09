@@ -55,13 +55,23 @@
     </div>
 
     @forelse ($reviews as $review)
-        <section class="vy-card" style="margin-bottom:12px;padding:16px 18px;border-radius:14px;background:#fff;border:1px solid rgba(120,70,40,.10)">
+        <section class="vy-card" style="margin-bottom:12px;padding:16px 18px;border-radius:14px;background:var(--vy-card,#fff);border:1px solid var(--vy-hairline)">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+                {{-- ⚠️ Tokenised + AA-corrected. This card was written in raw hex and never picked up the
+                     design tokens, so it still carried the PRE-AA greys: the room type used #8A8079 (the old
+                     --vy-muted, measured 3.86) and the date #A69A92 (the old --vy-faint, 2.74). The stars
+                     used the brand fill #E8703A as 18px TEXT and measured 3.08 — and 18px regular is NOT
+                     "large text" under WCAG, so 4.5 is the real bar.
+                     ⚠️ AND THE RATING WAS CARRIED BY STARS ALONE. The numeric value now sits beside them
+                     so the score is never conveyed by shape or colour alone (1.4.1); the stars themselves are aria-hidden decoration.
+                     `rating` is already in the controller payload — it is NOT a second derivation of the
+                     shared ReviewRating (#76), which stays the only source of the AGGREGATE. --}}
                 <div>
-                    <span style="font-size:18px;color:#E8703A;letter-spacing:2px">{{ $review['stars'] }}</span>
-                    <span style="font-size:13px;color:#2B2320;font-weight:600;margin-left:8px">{{ $review['guest'] }}</span>
-                    @if ($review['room'] !== '')<span style="font-size:12px;color:#8A8079"> · {{ $review['room'] }}</span>@endif
-                    <span style="font-size:11px;color:#A69A92"> · {{ $review['at'] }}</span>
+                    <span style="font-size:18px;color:var(--vy-accent-text);letter-spacing:2px" aria-hidden="true">{{ $review['stars'] }}</span>
+                    <span style="font-size:12.5px;color:var(--vy-muted);font-weight:600;margin-left:4px">{{ $review['rating'] }}/5</span>
+                    <span style="font-size:13px;color:var(--vy-ink);font-weight:600;margin-left:8px">{{ $review['guest'] }}</span>
+                    @if ($review['room'] !== '')<span style="font-size:12px;color:var(--vy-muted)"> · {{ $review['room'] }}</span>@endif
+                    <span style="font-size:11px;color:var(--vy-faint)"> · {{ $review['at'] }}</span>
                 </div>
                 <div style="display:flex;gap:6px;align-items:center">
                     @if ($review['private'])
@@ -77,22 +87,22 @@
             </div>
 
             @if (count($review['tags']) > 0)
-                <div style="margin-top:10px">@foreach ($review['tags'] as $tag)<span style="display:inline-block;padding:3px 9px;border-radius:14px;background:#F6EBE2;font-size:11px;color:#6b6b6b;margin:0 5px 5px 0">{{ $tag }}</span>@endforeach</div>
+                <div style="margin-top:10px">@foreach ($review['tags'] as $tag)<span style="display:inline-block;padding:3px 9px;border-radius:14px;background:var(--vy-accent-wash,#F6EBE2);font-size:11px;color:var(--vy-muted);margin:0 5px 5px 0">{{ $tag }}</span>@endforeach</div>
             @endif
             @if ($review['body'] !== '')
-                <div style="font-size:13.5px;color:#2B2320;margin-top:10px;line-height:1.5">{{ $review['body'] }}</div>
+                <div style="font-size:13.5px;color:var(--vy-ink);margin-top:10px;line-height:1.5">{{ $review['body'] }}</div>
             @endif
 
             @if ($review['response'] !== '')
-                <div style="margin-top:12px;padding:10px 13px;border-radius:10px;background:#F6EBE2;font-size:13px;color:#4A4038"><strong style="color:#2B2320">Your response:</strong> {{ $review['response'] }}</div>
+                <div style="margin-top:12px;padding:10px 13px;border-radius:10px;background:var(--vy-accent-wash,#F6EBE2);font-size:13px;color:var(--vy-ink)"><strong style="color:var(--vy-ink)">Your response:</strong> {{ $review['response'] }}</div>
             @endif
 
             @can('reviews.manage')
-                <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(120,70,40,.10);display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
+                <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--vy-hairline);display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
                     <form method="POST" action="{{ route('app.reviews.respond', $review['id']) }}" style="flex:1;min-width:220px;display:flex;gap:8px">
                         @csrf
-                        <input type="text" name="response" maxlength="2000" placeholder="Write a response…" value="{{ $review['response'] }}" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(120,70,40,.18);font-family:inherit;font-size:13px">
-                        <button type="submit" style="padding:9px 15px;border-radius:20px;border:none;background:#C2410C;color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Respond</button>
+                        <input type="text" name="response" maxlength="2000" placeholder="Write a response…" value="{{ $review['response'] }}" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--vy-hairline);font-family:inherit;font-size:13px">
+                        <button type="submit" style="padding:9px 15px;border-radius:20px;border:none;background:var(--vy-accent);color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Respond</button>
                     </form>
                     @if (! $review['private'] && $review['status'] !== 'published')
                         <form method="POST" action="{{ route('app.reviews.publish', $review['id']) }}">@csrf<button type="submit" style="padding:9px 15px;border-radius:20px;border:1px solid rgba(70,120,60,.35);background:#fff;color:rgb(60,105,52);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Publish</button></form>
@@ -104,7 +114,7 @@
             @endcan
         </section>
     @empty
-        <section class="vy-card" style="padding:30px;text-align:center;color:#8A8079;font-size:14px;background:#fff;border-radius:14px;border:1px solid rgba(120,70,40,.10)">No reviews yet.</section>
+        <section class="vy-card" style="padding:30px;text-align:center;color:var(--vy-muted);font-size:14px;background:var(--vy-card,#fff);border-radius:14px;border:1px solid var(--vy-hairline)">No reviews yet.</section>
     @endforelse
 </x-operator.shell>
 </x-layouts.operator>

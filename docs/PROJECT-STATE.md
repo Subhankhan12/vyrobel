@@ -760,12 +760,12 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **32 of 42** covered, **10 remaining** (`0aa9ede`→`b9f26d0`, all pushed)
+## N.4 Progress — OPERATOR **33 of 42** covered, **9 remaining** (`0aa9ede`→`PENDINGHASH`, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
-**P22 Owner Detail**, **P23 Roles** and **P24 Security**, so the current figure is **32 covered /
-10 remaining** (32 + 10 = 42). Notes saying
+**P22 Owner Detail**, **P23 Roles**, **P24 Security** and **P25 Reviews**, so the current figure is
+**33 covered / 9 remaining** (33 + 9 = 42). Notes saying
 "22/42 … 19 remaining" are the pre-GATE-B count and do not add up.
 
 | Gate | Page(s) | Commit |
@@ -801,6 +801,7 @@ Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Gro
 | P22 | **Operator Owner DETAIL** ⚠️ deepest owner PII + the #6 guarded proposal (1 design fix · 4 backend items; ⚠️ **the guardrail silence is CORRECT — no `RateGuardrail` binds this owner**) — **Owners area COMPLETE** | `e4e3dfa` |
 | P23 | **Operator Roles & permissions** ⚠️ RBAC (1 design fix · 3 backend items · **the matrix verified against the real pivot — 0 fabricated grants** · **a self-escalation test gap closed + proven**) | `5446885` |
 | P24 | **Operator Security** ⚠️ auth (⚠️ **a hardcoded “Protected” badge that lied with 2FA OFF — now derived + tested** · 2 a11y fixes · 2 backend items) — **Settings' deferred pair now complete (Billing §17 + Security)** | `b9f26d0` |
+| P25 | **Operator Reviews** (⚠️ **the page had never been tokenised — 3 measured AA failures incl. the STAR RATING at 3.08; now 0** · the rating gained its number · 4 backend items) | `PENDINGHASH` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -845,20 +846,21 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Reviews.**
+## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Channels.**
 
-⚠️ **Reviews is guest-authored content.** No fabricated review, rating or response; the derived rating is the
-shared `ReviewRating` (#76) and must not be re-derived; moderation actions POST their real gated routes.
-Guest identity on an operator review surface follows #28 (the CRM is the permitted PII surface).
+⚠️ **Channels is the OTA-claim surface (#37).** `channels.status` must never show a fabricated "Synced" or a
+last-sync time; the page is Pro-gated (`plan.feature:channels`), so on the Essential demo org it renders the
+honest not-in-your-plan state. Everything OTA is **Channex-tied** (§H) — the same refusal recorded at D2-2,
+D18-3/4 and D25-1.
 
-⚠️ **NOTE CARRIED FROM P24 — a badge that asserts SAFETY must be derived.** The Security page carried a
-hardcoded green "Protected" that rendered with 2FA OFF; it is now derived from the real 2FA state and tested
-in both directions. Watch for the same shape anywhere a badge claims a state (the third such find after the
-finish-to-100 "Verified" badge and this one).
+⚠️ **NOTE CARRIED FROM P25 — the controller-rendered pages may never have been tokenised.** Reviews used raw
+hex with ZERO `--vy-*` tokens and still carried the pre-AA greys, giving three real AA failures (the star
+rating measured 3.08). **Measure the other `c0ce419` controller pages rather than assuming they inherited the
+token fixes.**
 
-**10 OPERATOR prototypes remain:** **1 Reviews** · **2 Channels** (OTA claims #37) · **3 Portfolio** (#38) ·
-**4 Search** · **5 Notifications** · **6 Notification Preferences** · **7 Email Templates** ·
-**8 Email Editor** · **9 Profile** · **10 Schedule PDF**.
+**9 OPERATOR prototypes remain:** **1 Channels** (OTA claims #37) · **2 Portfolio** (#38) · **3 Search** ·
+**4 Notifications** · **5 Notification Preferences** · **6 Email Templates** · **7 Email Editor** ·
+**8 Profile** · **9 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 
