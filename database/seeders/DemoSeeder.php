@@ -55,6 +55,7 @@ use App\Services\OwnerExpenseService;
 use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
 use App\Services\RateDerivationService;
+use App\Services\ReservationCancellationService;
 use App\Services\ReviewService;
 use App\Services\ShiftRosterService;
 use App\Services\TaxRateService;
@@ -391,6 +392,29 @@ class DemoSeeder extends Seeder
         $availability->recompute($doubleRoom->id, $pastIn->toDateString(), $pastOut->toDateString());
         $pastStay = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest1, $pastIn->toDateString(), $pastOut->toDateString(), $vat, fullyPaid: true);
         app(CheckOutReservation::class)->handle($pastStay);
+
+        // DEMO TERMINAL STATES (flagged demo, like every row here) — one CANCELLED and one NO-SHOW so both
+        // reservation-detail variants are demoable. ⚠️ Each is driven through the SAME certified service the
+        // operator UI posts to, never a raw `status` write: a hand-set status would leave the folio, the
+        // availability spine and the audit trail describing a booking that never actually terminated.
+        //   · cancel   → ReservationCancellationService::cancelWithPolicyRefund (policy-driven, #27-bounded
+        //                refund when inside the free-cancellation window — the fully-paid stay below is far
+        //                enough out that the flexible policy refunds it, so the folio shows a REAL reversal)
+        //   · no-show  → AssignmentService::markNoShow (takes no reason by design, so none is invented)
+        // Both funnel through the private terminate(), so the #29 re-termination bound covers them too.
+        $cancelIn = CarbonImmutable::today()->addDays(40);
+        $cancelOut = $cancelIn->addDays(2);
+        $this->seedCalendarRange($roomRate, 10000, $cancelIn->toDateString(), $cancelOut->toDateString());
+        $availability->recompute($doubleRoom->id, $cancelIn->toDateString(), $cancelOut->toDateString());
+        $toCancel = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[0], $guest2, $cancelIn->toDateString(), $cancelOut->toDateString(), $vat, fullyPaid: true);
+        app(ReservationCancellationService::class)->cancelWithPolicyRefund($toCancel, 'Demo — guest cancelled within the free-cancellation window');
+
+        $noShowIn = CarbonImmutable::today()->addDays(44);
+        $noShowOut = $noShowIn->addDays(2);
+        $this->seedCalendarRange($roomRate, 10000, $noShowIn->toDateString(), $noShowOut->toDateString());
+        $availability->recompute($doubleRoom->id, $noShowIn->toDateString(), $noShowOut->toDateString());
+        $toNoShow = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest3, $noShowIn->toDateString(), $noShowOut->toDateString(), $vat, fullyPaid: false);
+        app(AssignmentService::class)->markNoShow($toNoShow);
 
         // Batch B — DEMO ANALYTICS DATA (clearly demo, like every row here): a spread of PAST-CREATED bookings
         // so the operator + owner Insights render a MEANINGFUL, REAL lead-time distribution + day-of-week
