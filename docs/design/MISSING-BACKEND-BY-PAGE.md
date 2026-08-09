@@ -52,6 +52,7 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | # | Page | Route | Role | Design status | Backend items logged |
 |---|---|---|---|---|---|
 | 1 | Operator Dashboard | `/app/dashboard` | Hotel Manager | ✅ matched | **3** (1 real gap · 1 real gap · 1 refusal) |
+| 2 | Operator Calendar | `/app/calendar` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 account-gated) |
 
 ---
 
@@ -75,15 +76,47 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 
 ### Also noted on this page (not backend gaps)
 
-- **Sidebar group labels fail WCAG AA.** `.vy-nav-label` and `.vy-nav-item` hardcode the prototype's greys
-  (`#9C9089`, `#8A8079`). Measured in the browser against the sampled gradient behind them:
-  **≈2.0:1**, well under the 4.5:1 the polish pass held everything else to. It is **pre-existing** and
-  **realm-wide** (the shared operator shell, ~43 pages), so it was reported rather than swept into this
-  page's turn. The 2026-08-07 audit's contrast sweep excluded gradient-background cases as false
-  positives, which is likely why it survived. **Founder's call whether to darken it realm-wide.**
+- **Sidebar group labels failed WCAG AA — ✅ RESOLVED 2026-08-09 (`93247e7`).** `.vy-nav-label` and
+  `.vy-nav-item` hardcoded the prototype's greys (`#9C9089`, `#8A8079`) and measured **1.82:1 / 2.23:1**
+  against the real sampled gradient. Fixed realm-wide in **both** shells via two new semantic tokens
+  (`--vy-on-grad`, `--vy-on-grad-soft`): now **4.74 / 4.93** operator and **4.71 / 4.93** owner, with the
+  active (4.62) and hover (6.52) states measured too. See `DECISIONS.md` 2026-08-09 — it also closes the
+  2026-08-07 audit's gradient-background exclusion.
 - **Topbar subtitle.** The shell renders a subtitle under the H1 ("Demo Seaside Property · Sunday, 9 Aug
   2026") that the prototype does not have. Left in place: it is shell chrome shared by every operator
   page, and other pages use the slot for their own real context.
 - **Property switcher clips its label** ("Demo Seaside Propert…") at 190px. Shell-level, pre-existing.
 - **Main content width.** Prototype `max-width: 1180px`; the live shell uses `1480px` (content 1150px vs
   ~1124px). Shell-level and realm-wide — left alone, noted.
+
+---
+
+## 2 · Operator Calendar — `/app/calendar` (Hotel Manager)
+
+**Prototype:** `docs/design/raw/Operator Calendar.html` (decoded 2026-08-09; byte-identical to the
+2026-08-07 audit decode). **Live component:** `App\Livewire\ReservationRack`. **Design pass:** complete.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D2-1 | **Unit capacity on each rack row.** Under the unit name, a bed glyph and a capacity string (`u.cap`), so an operator can size a booking against the row without leaving the rack. | `units.max_occupancy` **is a real, populated column**, but `ReservationRack`'s `unit_rows` payload exposes only `code`, `name`, `state` and `state_label` — the capacity never reaches the view, so there is nothing to render. | Add `max_occupancy` to the `unit_rows` payload in `ReservationRack` and render it under the unit code. Purely additive; no query shape change (the units are already loaded). ⚠️ Render nothing when the column is null rather than a default — do not invent a "sleeps 2". | **REAL GAP** (small) |
+| D2-2 | **OTA brand badge on the bar.** A white circular letter badge (e.g. `B`) inside the booking bar, plus an `OTA` entry in the legend keyed to that badge. | ⚠️ **The earlier "OTA brand is unmodelled" phrasing is imprecise — corrected here.** The brand **is** modelled: `channels.provider` + `channels.name` exist (the demo row is literally `Booking.com (demo)`), and `reservations.channel_id` links a booking to it. What is missing is the **attribution**: **0 of 40 reservations carry a `channel_id`**, because bookings are only channel-attributed by the live OTA import path, which is the account-gated Channex cutover. A badge today would render for nothing, or would have to invent the brand. | Nothing to build now. It becomes a small, genuinely-backed feature once Channex is live and the import writes `channel_id`: expose the channel name on the bar payload and render the badge from its first letter. | **ACCOUNT-GATED** — not a defect, not "unmodelled". See `PROJECT-STATE.md` §H (Channex). **Do not fabricate a badge before the cutover** (sweep §5). |
+
+### Also noted on this page (not backend gaps)
+
+- **Room-type filter stays a native `<select>`, not the prototype's custom popover.** The prototype opens a
+  JS popover with checkmarks. The live control is a GET form because `SetCurrentPropertyForWebRequest` does
+  not run on `/livewire/update` (**#20**) — a scope-dependent read must ride a GET link. It was **restyled**
+  to the prototype's glass pill, so it reads the same; the behaviour is deliberately the safer one.
+- **The room-type availability strip is EXTRA and was kept.** The prototype has only a plain text group
+  label above each block of unit rows. The live product renders a full header row with the room type, its
+  kind, its unit count and **real per-night availability** from `AvailabilityService`. That is real capability
+  beyond the wireframe (§6) — not removed.
+- **The legend carries 6 states to the prototype's 5** (it adds *Checked out* and *No-show*, and drops the
+  OTA badge entry per D2-2). Real `reservations.status` values — kept.
+- **Drag-to-reschedule is EXTRA and untouched.** The prototype has no drag affordance at all. The live bar is
+  `draggable` and drops POST to the certified `AssignmentService::reschedule` (server-rendered dates, stay
+  length preserved, `Unit::isBookable()` OOS guard). Nothing in this pass went near it — verified after the
+  change: bars still carry `draggable="true"` and the "drag to reschedule" affordance.
+- **Main content width.** This prototype specifies `max-width: 1280px` where the Dashboard prototype says
+  `1180px`; the shared shell uses one `1480px` for every page. A per-page content width would be a shell
+  change affecting ~43 pages — left alone, noted.

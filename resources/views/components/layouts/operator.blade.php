@@ -444,6 +444,37 @@
         .vy-unit-name { font-size: 10px; color: var(--vy-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .vy-unit-row .vy-lane { min-height: 38px; border-bottom: 1px solid var(--vy-hairline); }
         .vy-unit-row .vy-lane-bars { min-height: 38px; z-index: 2; }
+
+        /* ---- Operator Calendar — wireframe parity -----------------------------------------------
+           Scoped to .vy-cal: .vy-bar, .vy-day and .vy-unit-row are shared with other rack-like
+           surfaces, so only the calendar takes the design's proportions. */
+        /* The design's range switcher: a segmented pill in the right-hand control group. */
+        .vy-cal .vy-seg-range { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); }
+        .vy-cal .vy-seg-btn { padding: 6px 13px; border-radius: var(--vy-r-pill); font-size: 12px; font-weight: 500; color: var(--vy-muted); text-decoration: none; transition: background .16s, color .16s; }
+        .vy-cal .vy-seg-btn:hover { color: var(--vy-ink); }
+        .vy-cal .vy-seg-btn.is-on { background: #fff; color: var(--vy-accent); box-shadow: var(--vy-shadow-sm); }
+        .vy-cal .vy-seg-btn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+
+        /* The design's room-type control reads as a glass pill with a chevron, not a bare select. */
+        .vy-cal .vy-rack-filter { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px 7px 15px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); transition: background .16s; }
+        .vy-cal .vy-rack-filter:hover { background: rgba(255, 255, 255, 0.75); }
+        .vy-cal .vy-rack-filter .vy-propsw-select { font-size: 12.5px; color: var(--vy-muted); }
+
+        /* Today's column head carries a short gradient rule, inset from the edges. */
+        .vy-cal .vy-day.is-today { position: relative; }
+        .vy-cal .vy-day.is-today::before { content: ''; position: absolute; top: 0; left: 18%; right: 18%; height: 3px; border-radius: 0 0 3px 3px; background: var(--vy-grad); }
+        .vy-cal .vy-day.is-today .vy-day-num { color: var(--vy-accent); }
+
+        /* Row rhythm + the design's two-line booking bar (name over a smaller detail line). */
+        .vy-cal .vy-unit-row .vy-lane, .vy-cal .vy-unit-row .vy-lane-bars { min-height: 52px; }
+        .vy-cal .vy-bar { height: 38px; align-items: center; gap: 6px; }
+        .vy-cal .vy-bar .vy-bar-txt { min-width: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+        .vy-cal .vy-bar .vy-bar-guest { display: block; font-size: 12px; font-weight: 500; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; }
+        .vy-cal .vy-bar .vy-bar-sub { display: block; font-size: 9.5px; font-weight: 500; opacity: .75; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
+
+        /* New-reservation modal — the design's round glyph on each unit row. */
+        .vy-cal .vy-newres-room-ico { width: 34px; height: 34px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; background: rgba(217, 102, 46, 0.12); color: var(--vy-accent); }
+        .vy-cal .vy-newres-room.is-sel .vy-newres-room-ico { background: var(--vy-grad); color: #fff; }
         .vy-unit-row--unassigned .vy-unit-code { color: var(--vy-accent); }
 
         /* Out-of-order / block bars — a muted hatch UNDER the bookings (real inventory_blocks, never faked). */

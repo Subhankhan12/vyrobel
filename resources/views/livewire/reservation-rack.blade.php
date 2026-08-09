@@ -2,7 +2,7 @@
      Styled on the shared Vyrobel design system via <x-operator.shell>. All data is REAL and
      tenant-scoped (availability from AvailabilityService; bars from active reservation_unit lines).
      Presentation only — this view READS, it never mutates inventory. --}}
-<div>
+<div class="vy-cal">
     <x-operator.shell active="calendar" title="Calendar"
         :subtitle="$property['name'] ?? 'No property yet'" :viewer="$viewer">
 
@@ -20,14 +20,17 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                 </a>
                 <a class="vy-pill" href="?start={{ $window['today'] }}&days={{ $window['selected_days'] }}">Today</a>
-                {{-- #104 GATE 3d — view-range switcher (7 / 14 / 30 nights), preserving the current window start. --}}
-                <span style="display:inline-flex; gap:4px; margin-left:4px;">
-                    @foreach ([7, 14, 30] as $d)
-                        <a class="vy-pill @if ($window['selected_days'] === $d) is-on @endif" href="?start={{ $window['start'] }}&days={{ $d }}">{{ $d }}n</a>
-                    @endforeach
-                </span>
             </div>
             <div class="vy-right">
+                {{-- #104 GATE 3d — view-range switcher (7 / 14 / 30 nights), preserving the current window
+                     start. The design places it in the right-hand control group as a segmented pill. --}}
+                <span class="vy-seg-range" role="group" aria-label="Nights in view">
+                    @foreach ([7, 14, 30] as $d)
+                        <a class="vy-seg-btn @if ($window['selected_days'] === $d) is-on @endif"
+                           @if ($window['selected_days'] === $d) aria-current="true" @endif
+                           href="?start={{ $window['start'] }}&days={{ $d }}">{{ $d }}n</a>
+                    @endforeach
+                </span>
                 {{-- REAL room-type filter (GET; RMB-safe) --}}
                 @if (! empty($roomTypeOptions))
                     <form method="GET" class="vy-rack-filter">
@@ -121,6 +124,10 @@
                                                 data-label="{{ $u['room_type_name'] }} · {{ $u['unit_label'] }}"
                                                 :class="sel === '{{ $u['unit_id'] }}' ? 'is-sel' : ''"
                                                 @click="sel = $event.currentTarget.dataset.unit; selTotal = $event.currentTarget.dataset.total; selLabel = $event.currentTarget.dataset.label">
+                                            {{-- The design leads each unit row with a round glyph. Decorative. --}}
+                                            <span class="vy-newres-room-ico" aria-hidden="true">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+                                            </span>
                                             <span class="vy-newres-room-info">
                                                 <span class="vy-newres-room-name">{{ $u['room_type_name'] }} · {{ $u['unit_label'] }}</span>
                                                 <span class="vy-newres-room-sub">{{ $newRes['nights'] }}-night stay</span>
@@ -222,7 +229,9 @@
                             <div class="vy-rack-corner vy-rack-labelcol">Room type</div>
                             <div class="vy-nights">
                                 @foreach ($dates as $d)
-                                    <div class="vy-day @if ($d['weekend']) is-weekend @endif">
+                                    {{-- The design marks today with a short gradient rule across the top of
+                                         the column head. Real comparison against the window's own today. --}}
+                                    <div class="vy-day @if ($d['weekend']) is-weekend @endif @if ($d['date'] === $window['today']) is-today @endif">
                                         <div class="vy-day-dow">{{ $d['dow'] }}</div>
                                         <div class="vy-day-num">{{ $d['day'] }}</div>
                                         <div class="vy-day-mon">{{ $d['mon'] }}</div>
@@ -313,8 +322,13 @@
                                                        @if (! $readOnly) draggable="true" @dragstart="onStart($event, '{{ $bar['id'] }}', '{{ $bar['line_id'] }}')" @dragend="dragging = false" @endif
                                                        style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
                                                        title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}{{ ! $readOnly ? ' · drag to reschedule' : '' }}">
-                                                        <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
-                                                        <span class="vy-bar-flag">{{ $bar['status_label'] }}</span>
+                                                        <span class="vy-bar-txt">
+                                                            <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
+                                                            {{-- The design's second line. Status stays as TEXT here, not colour-only:
+                                                                 the design encodes status purely by bar colour, which would make the
+                                                                 legend the sole key (WCAG 1.4.1). Same two-line shape, still readable. --}}
+                                                            <span class="vy-bar-sub">{{ $bar['status_label'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }}</span>
+                                                        </span>
                                                     </a>
                                                 @endforeach
                                             </div>
@@ -343,8 +357,13 @@
                                                        href="{{ route('app.reservations.show', $bar['id']) }}"
                                                        style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
                                                        title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }} · not yet assigned to a unit">
-                                                        <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
-                                                        <span class="vy-bar-flag">{{ $bar['status_label'] }}</span>
+                                                        <span class="vy-bar-txt">
+                                                            <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
+                                                            {{-- The design's second line. Status stays as TEXT here, not colour-only:
+                                                                 the design encodes status purely by bar colour, which would make the
+                                                                 legend the sole key (WCAG 1.4.1). Same two-line shape, still readable. --}}
+                                                            <span class="vy-bar-sub">{{ $bar['status_label'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }}</span>
+                                                        </span>
                                                     </a>
                                                 @endforeach
                                             </div>
