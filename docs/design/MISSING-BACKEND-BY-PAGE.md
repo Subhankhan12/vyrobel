@@ -609,3 +609,48 @@ the DOM measures the current *state*, not the page's *capability*; the source is
 - **Fixed:** the conversation gained the design's **reservation context strip** under the thread header —
   real dates + real unit + a right-aligned guest-profile link — replacing a bare reference button, so a
   replier can see who they are answering without leaving the thread.
+
+---
+
+## 11. Operator Maintenance board (`/app/maintenance`)
+
+**Prototype:** `docs/design/raw/Operator Maintenance.html` — 1,631 lines, decoded **byte-identical** to the
+audit copy. **Role:** Hotel Manager. *(The work-order DETAIL — `Operator Work Order.html` → `/app/maintenance/{id}`
+— is NOT covered here; it is the next page-area. Costs and Settings are their own screens.)*
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D11-1 | A **"Recommended"** technician in the Assign modal. | No recommendation. The modal pre-checks the **first** staff member (`$i === 0`) — but it makes **no claim**, so nothing on screen is false today. | A genuinely computed pick — least-loaded by real open-ticket count. The panel beside it already shows each technician's real load ("2 open · 1 urgent"), so the recommendation must agree with that number. | **REAL GAP.** ⚠️ **Do NOT pin a "Recommended" badge onto the existing first-item default** — that is the exact bug §8 records fixing on Housekeeping, where a badge contradicted the load printed next to it (#39). |
+| D11-2 | **"logged by Marco Reyes"** on a work-order card. | The card payload has no reporter field (verified against `MaintenanceList::card()`: id/title/description/unit/category/priority/status/assignee/oos/parts/sla only). | Carrying the ticket's reporter onto the card. | **REAL GAP** — small. |
+| D11-3 | **"Sends the work order to their phone right away"** under the technician picker. | No device push exists. | Push (FCM/APNs) — an §H account-gated deferral. | **RATIFIED REFUSAL / ACCOUNT-GATED.** The live copy is already the honest version: *"The work order appears in their task list. (Device push isn't wired — no fabricated notification.)"* **Do not restore the prototype's sentence.** |
+
+### Also noted on this page (not backend gaps)
+
+- **REAL work orders, #38-scoped** — five real `MaintenanceTicket` rows through the live board query,
+  restricted to the readable properties, with a real property switcher.
+- **The technician pool is staff-only and excludes owners — verified at BOTH layers.** In the browser the
+  Assign modal offers exactly **4 back-office staff and no owner**. In the source, the pool is
+  `StaffRoster::assignableStaff()`, whose docblock records that this **used to select by active membership
+  alone and therefore offered External Owners as technicians**; and `MaintenanceActionController` independently
+  `abort(422, 'That user is not assignable staff in this organization.')` on **both** assign paths (single and
+  bulk). The server guard was not touched.
+- **Cost is REAL, not fabricated (#17).** The out-of-order card shows **€100.00 / night · revenue on hold**
+  over **1 unit blocked (101)** — a real figure derived from the blocked unit, not a placeholder. Where there
+  is nothing to show the page says so ("Nothing on order.", "Awaiting parts 0").
+- **Parts-on-order is already at parity** — `part_name` and `part_eta` are real card fields and the panel
+  renders "{part} · {unit} · arrives {eta}" exactly as the design does. The current "Nothing on order." is an
+  **honest empty** (Awaiting parts = 0), not a missing feature. Checked before classifying.
+- **Status is never colour-only** — every chip carries its word (Out of order · Urgent · In progress · Open ·
+  Resolved · High · Normal · Low).
+- **#28 — no guest contact on a work-order card**; no email or phone appears anywhere on the board.
+- **All mutations still POST their real gated routes** (create, bulk assign, bulk resolve, bulk export);
+  search and the status filter stay **GET** (scoped reads, #20). Observed read-only; nothing was submitted.
+- **Kept, not removed (§6 extra work):** the real **SLA** bar with "Due in 1h" / "5h to target" breach states,
+  the property switcher, bulk **Select** mode, the Costs report and Settings links, and the honest footer
+  ("Showing 5 orders from the last 7 days · older history lives in the costs report").
+- **Fixed:** the empty state took the design's two-line form — **"No work orders match" + "Try a different
+  status filter, or search by unit, issue, or technician."** — but only when a search or filter is actually
+  active. A genuinely empty board now says **"No work orders yet"**, so the page never implies a filter is
+  hiding work orders that do not exist. ⚠️ The first version of this compared `$filter !== 'all'`; the real
+  default is **`null`**, which would have shown the filter message on an empty board. Caught by reading the
+  component, and corrected before it shipped.

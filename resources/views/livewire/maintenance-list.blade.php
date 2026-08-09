@@ -141,7 +141,19 @@
                             </div>
                         </div>
                     @empty
-                        <div class="vy-empty" style="margin: 12px;">No work orders match this view.</div>
+                        {{-- The design's empty state names a way OUT, not just the absence. Two cases, kept
+                             distinct: a filter/search that hides real rows (offer the recovery the design
+                             spells out) versus a genuinely empty board (say so plainly — never imply a filter
+                             is hiding work orders that do not exist). --}}
+                        <div class="vy-empty" style="margin: 12px;">
+                            @if ($query !== '' || $filter !== null)
+                                <strong style="display: block; font-size: 14px; color: var(--vy-ink); margin-bottom: 5px;">No work orders match</strong>
+                                Try a different status filter, or search by unit, issue, or technician.
+                            @else
+                                <strong style="display: block; font-size: 14px; color: var(--vy-ink); margin-bottom: 5px;">No work orders yet</strong>
+                                Nothing needs fixing right now — raise one with “New work order”.
+                            @endif
+                        </div>
                     @endforelse
                     <div class="vy-fl-note" style="padding: 12px 16px; border-top: 1px solid var(--vy-hairline);">Showing {{ count($rows) }} {{ \Illuminate\Support\Str::plural('order', count($rows)) }} from the last 7 days · older history lives in the costs report.</div>
                 </div>
