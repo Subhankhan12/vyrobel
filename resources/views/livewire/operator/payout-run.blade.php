@@ -46,6 +46,19 @@
             <x-owner.payout-test-mode />
         @endif
 
+        {{-- Breadcrumb — the design's `‹ Owners / Payout run`. Reuses the SHAPE already established on the
+             work-order detail rather than writing a second breadcrumb rule (anti-drift). The design's
+             period tail ("· Sep 2025") is NOT reproduced: a payout run here is not scoped to a month, and
+             stamping one on would state a period this page does not actually filter by (#39). --}}
+        <div class="vy-fade" style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin-bottom:10px;">
+            <a href="{{ route('app.owners') }}" style="display:inline-flex;align-items:center;gap:4px;color:var(--vy-muted);text-decoration:none;font-weight:500;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+                Owners
+            </a>
+            <span style="color:var(--vy-faint);">/</span>
+            <span style="color:var(--vy-faint);">Payout run</span>
+        </div>
+
         {{-- Run header + the REAL persisted run + the run action (certified PayoutRunService, test-mode) --}}
         <div class="vy-rack-toolbar vy-fade" style="margin-bottom: 12px;">
             <div class="vy-left">
@@ -70,8 +83,14 @@
 
         {{-- ── Stat strip — DERIVED per currency. An empty bucket is "—": a zero must be a zero of SOME
              currency, and this page spans every owner in the tenant, so there is none to pick. ──────── --}}
-        <div class="vy-dash-kpis vy-fade">
-            <div class="vy-dash-kpi is-feature">
+        {{-- ⚠️ `vy-dash-kpis` is a FOUR-column grid; this strip has THREE tiles, so it was laying them out
+             across 3 of 4 columns and leaving 292px of dead space at 1440 (measured, not eyeballed — the
+             class name reads fine in the source). The design's three tiles span the full content width, so
+             this takes the existing `--3` modifier. --}}
+        <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade">
+            {{-- The design's three stat tiles are all LIGHT glass; its one dark surface is the run-summary
+                 card in the right rail, which is where the dark treatment now lives. --}}
+            <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Ready to pay</div>
                 @forelse ($kpis['ready']['lines'] as $line)
                     <div class="vy-dk-val" @if (! $loop->first) style="font-size: 22px;" @endif>{{ $line }}</div>
@@ -207,14 +226,25 @@
                                 <tbody>
                                     @foreach ($pending as $row)
                                         <tr>
+                                            {{-- The design's row anatomy: an initial disc beside the owner name.
+                                                 Initials are derived from the owner's REAL name only — a row with
+                                                 no resolvable owner renders "—" and gets no disc rather than an
+                                                 invented placeholder. --}}
                                             <td>
-                                                @if ($row['owner_id'])
-                                                    <a class="vy-assign-link" href="{{ route('app.owners.show', $row['owner_id']) }}">{{ $row['owner_name'] }}</a>
-                                                @else
-                                                    {{ $row['owner_name'] }}
-                                                @endif
-                                                <div class="vy-u-sub">
-                                                    <span class="vy-tag tone-{{ $row['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['status_meta']['label'] }}</span>
+                                                <div class="vy-po-who">
+                                                    @if ($row['owner_name'] !== '—')
+                                                        <span class="vy-mini-avatar" aria-hidden="true">{{ \Illuminate\Support\Str::of($row['owner_name'])->explode(' ')->filter()->take(2)->map(fn ($w) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($w, 0, 1)))->implode('') }}</span>
+                                                    @endif
+                                                    <div>
+                                                        @if ($row['owner_id'])
+                                                            <a class="vy-assign-link" href="{{ route('app.owners.show', $row['owner_id']) }}">{{ $row['owner_name'] }}</a>
+                                                        @else
+                                                            {{ $row['owner_name'] }}
+                                                        @endif
+                                                        <div class="vy-u-sub">
+                                                            <span class="vy-tag tone-{{ $row['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['status_meta']['label'] }}</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td class="vy-u-code">{{ $row['sequence_no'] !== null ? '#' . $row['sequence_no'] : '—' }}</td>
@@ -289,8 +319,56 @@
                 </div>
             </div>
 
-            {{-- ═══════════════ RIGHT RAIL: the run's rail · not payable ═════════════════════════ --}}
+            {{-- ═══════════════ RIGHT RAIL: run summary · the run's rail · not payable ═══════════ --}}
             <div class="vy-stack">
+
+                {{-- Run summary — the design's DARK card at the top of the rail. Structure matched; content
+                     is the REAL run state.
+
+                     ⚠️ THE DESIGN'S HEADLINE FIGURE IS DELIBERATELY NOT REPRODUCED. Its "€96,400" is a
+                     cross-bucket total (ready + held). Every money figure on this page is formatted PER
+                     CURRENCY by the component and handed here as a STRING — so a combined total cannot be
+                     assembled in Blade without re-deriving money in the view, which is exactly the
+                     second-definition drift this project keeps consolidating (#17). Building it properly
+                     means a per-currency run total in the component: logged as a backend gap, not faked.
+                     What IS shown here is real: the persisted run's own status and counts, or an honest
+                     statement that no run has happened yet. --}}
+                <div class="vy-card vy-fade vy-runsum">
+                    <div class="vy-runsum-label">Run summary</div>
+
+                    @if ($latestRun)
+                        <div class="vy-runsum-head">{{ ucfirst($latestRun['status']) }}</div>
+                        <div class="vy-runsum-sub">
+                            {{ $latestRun['created'] }} created · {{ $latestRun['paid'] }} paid · {{ $latestRun['held'] }} held
+                            @if ($latestRun['when'])
+                                <span class="vy-sep">·</span> {{ $latestRun['when'] }}
+                            @endif
+                        </div>
+                        @if ($latestRun['mode'] !== 'live')
+                            <div class="vy-runsum-note">Ran in {{ $latestRun['mode'] }} mode — no real funds moved.</div>
+                        @endif
+                    @else
+                        <div class="vy-runsum-head">No run yet</div>
+                        <div class="vy-runsum-sub">Nothing has been run this period.</div>
+                    @endif
+
+                    {{-- The real composition of what a run would touch. Counts are real integers, so they can
+                         be shown together; the AMOUNTS stay in the per-currency stat strip above. --}}
+                    <div class="vy-runsum-grid">
+                        <div>
+                            <div class="vy-runsum-k">Ready</div>
+                            <div class="vy-runsum-v">{{ $kpis['ready']['count'] }}</div>
+                        </div>
+                        <div>
+                            <div class="vy-runsum-k">Pending</div>
+                            <div class="vy-runsum-v">{{ $kpis['pending']['count'] }}</div>
+                        </div>
+                        <div>
+                            <div class="vy-runsum-k">Held</div>
+                            <div class="vy-runsum-v">{{ count($heldRows) }}</div>
+                        </div>
+                    </div>
+                </div>
 
                 {{-- How this run pays — the rail is read from the CONTAINER, so this is what the write will
                      really use, not a config guess. --}}

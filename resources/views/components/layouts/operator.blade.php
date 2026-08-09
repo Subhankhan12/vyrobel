@@ -1130,6 +1130,29 @@
         .vy-tonight-cell .vy-tc-k { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); }
         .vy-tonight-cell .vy-tc-v { font-family: var(--vy-display); font-size: 17px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
 
+        /* Payout-run transfer row — the design's initial disc beside the owner name. */
+        .vy-po-who { display: flex; align-items: flex-start; gap: 10px; }
+        .vy-po-who .vy-mini-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center; flex: none; font-family: var(--vy-display); }
+
+        /* Right-rail dark "Run summary" panel (Operator Payout Run exact-match — the design's one dark
+           surface sits at the TOP of the rail, not in the stat strip). Deliberately mirrors .vy-tonight's
+           tokens and shape rather than defining a second dark-panel treatment: two dark rail panels styled
+           independently is exactly how the drift this project keeps consolidating starts. */
+        .vy-runsum { background: var(--vy-grad-dark); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: var(--vy-shadow-dark); color: rgba(255, 255, 255, 0.92); }
+        /* ⚠️ .58 not .50 — MEASURED, not copied. Light text on this gradient composites against the SAME
+           stop it sits on, so the worst case is the LIGHTEST stop rgb(58,46,39): at alpha .50 (the value
+           .vy-tonight uses) a 9.5px uppercase label lands on exactly 4.50 — the AA boundary, with nothing
+           in hand. At .58 it measures 5.51. These labels are 9.5px, i.e. NORMAL text for WCAG (large is
+           ≥24px, or ≥18.66px bold), so 4.5 is the real bar. See the realm-wide note in MISSING-BACKEND. */
+        .vy-runsum-label { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: rgba(255, 255, 255, 0.58); }
+        .vy-runsum-head { font-family: var(--vy-display); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-top: 12px; }
+        .vy-runsum-sub { font-size: 12px; color: rgba(255, 255, 255, 0.62); margin-top: 7px; }
+        .vy-runsum-note { font-size: 11.5px; color: rgba(255, 255, 255, 0.5); margin-top: 8px; }
+        .vy-runsum-grid { display: flex; gap: 22px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+        .vy-runsum-k { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: rgba(255, 255, 255, 0.58); }
+        .vy-runsum-v { font-family: var(--vy-display); font-size: 17px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+        .vy-runsum .vy-sep { color: rgba(255, 255, 255, 0.35); }
+
         /* Cross-cutting READ-ONLY "workspace paused" banner (Operator Dashboard/Calendar exact-match) */
         .vy-readonly-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; padding: 14px 18px; border-radius: var(--vy-r-lg); background: rgba(224, 146, 30, 0.10); border: 1px solid rgba(224, 146, 30, 0.30); }
         .vy-ro-body { display: flex; align-items: flex-start; gap: 12px; }

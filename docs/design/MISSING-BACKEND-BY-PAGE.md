@@ -71,10 +71,12 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 14 | Operator Settings *(+ Property Settings, the 2nd prototype of the same page)* | `/app/settings` | ⚠️ `properties.manage` | ✅ matched | **4** (2 real gaps · 1 refusal · 1 ⛔ tied to the billing decision) |
 | 15A | **Operator coverage sweep** (enumeration + reconciliation) | — | — | — | **0** — 42 prototypes reconciled |
 | 15B | Operator Refund | `/app/reservations/{id}/refund` | ⚠️ `payments.refund` | ✅ **at parity, 0 code** | **4** (1 real gap · 3 refusals) |
+| 16 | **Operator Payout Run** ⚠️ real owner money | `/app/payouts/run` | ⚠️ `payouts.manage` on the WRITES | ✅ matched | **6** (3 real gaps · 3 refusals) + ⚠️ **1 money-visibility finding** |
 
-**Operator: 23 of 42 prototypes covered · 19 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
-remaining" — that was the count **before GATE B closed Refund**. The current figure is **23 / 19**.
-**⬅ NEXT PAGE: Operator Payout Run (`/app/payouts/run`)** — see §15's ranked remaining table.
+**Operator: 24 of 42 prototypes covered · 18 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
+**⬅ NEXT PAGE: Operator Billing (`/app/billing`)** — ⚠️ it carries the **OPEN billing decision (G.1)**: show
+the org's REAL price, never the prototype's mock €99, and do **not** resolve which pricing model wins.
 
 ---
 
@@ -912,3 +914,113 @@ better than the mock does.
 - **Test mode is honest:** *"Card refunds run in test mode until go-live — no real money moves yet."*
 - **Contrast:** only one raw-accent text node on the page ("Open all notifications →" in the bell panel),
   measured **5.06** on its opaque panel background — passes AA. No fix needed here.
+
+---
+
+## 16 · Operator Payout Run — `/app/payouts/run` ⚠️ REAL OWNER MONEY
+
+**Prototype:** `docs/design/raw/Operator Payout Run.html` (decoded fresh 2026-08-09 by rendering the
+`__bundler` bundle; matches `/tmp/audit/Operator Payout Run.decoded.html`).
+**Live:** `App\Livewire\Operator\PayoutRun` → `resources/views/livewire/operator/payout-run.blade.php`.
+**Role:** ⚠️ the **GET is not `can:`-gated** (back-office + active subscription only); all three **WRITES are
+`can:payouts.manage`**, held by **Property Owner / Group Admin / Accountant — NOT Hotel Manager**. Reviewed as
+`demo-admin@vyrobel-demo.test` (Property Owner). The controls are `@can`-gated in the view too, so an
+unpermitted viewer sees the page read-only rather than buttons that would 403 (**#30** "gate the control too").
+
+⚠️ **TWO CORRECTIONS TO THIS PAGE'S OWN RECORD — both found by verifying, and both worth carrying.**
+
+1. **The prototype's figures DO reconcile.** `PayoutRun`'s class docblock states *"its numbers do not
+   reconcile: six rows summing to 66,000 plus '+6 more · €24,000' implies 90,000 while its header claims
+   89,990"*. Recomputed from the rendered design: the **five READY rows** total **65,990**; `+ 24,000` =
+   **89,990**, which is exactly *"READY TO SEND €89,990"* and *"Send 11 transfers · €89,990"*; `+ 6,410` held
+   = **96,400**, exactly the RUN SUMMARY; `5 shown + 6 more = 11 transfers`; `11 + 1 held = 12 statements`.
+   **All four tie out.** The docblock counted the **on-hold row** among the ready rows. The design's *data* is
+   still fabricated demo data and is still correctly refused — but *"its numbers do not reconcile"* is not a
+   sound reason to dismiss its **structure**, and this pass matched that structure.
+2. **"On hold" is no longer an invented word.** The docblock and `OperatorPayoutRunTest`'s comment call
+   `Scheduled` / `On hold` fictions *"in neither real enum"*. Since the payout engine (**#71**, migration
+   `2026_08_20_000001`) the enum is `pending, processing, paid, failed, reversed, **held**` — so the live
+   "On hold" card is genuinely backed. The test correctly forbids only **`Scheduled`** and **`In review`**;
+   both remain absent (verified on the rendered page).
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D16-1 | A **run headline total** — "€96,400 · 12 statements · €89,990 sending · €6,410 held" — one figure spanning ready + held. | The component formats every bucket **per currency** and hands the view **strings** (`kpis.*.lines`). There is no combined total, and one cannot be assembled in Blade without re-deriving money in the view — a second definition of a money figure (**#17**). | A per-currency run total computed **in the component** (or in a shared helper) alongside the existing buckets, so page and any future run receipt cannot drift. ⚠️ It must stay per-currency: this page spans every owner in the tenant, and currencies are never summed. | **REAL GAP** — the dark Run-summary card built this gate shows the run's REAL status and counts and stops honestly where the money math stops. |
+| D16-2 | A **3-step lifecycle track** — `Finalized → In review → Sent`. | Two of those three words are not states anything can hold. | — | **RATIFIED REFUSAL.** `In review` and `Sent` are the design's invented vocabulary; `OperatorPayoutRunTest` asserts their literal absence. **Do not add a lifecycle track using these words.** A genuine progression does exist (statement finalized → payout pending → paid) and could be drawn from real counts, but it must use the **real** vocabulary. |
+| D16-3 | **"Export SEPA file"** as a live primary control, and **"SENDS · 3 Nov · SEPA batch 09:00"**. | No SEPA generator and no scheduled batch exist. | — | **RATIFIED REFUSAL** (sweep §5 "no SEPA export"). ⚠️ **Implementation-vs-docblock drift worth noting:** the component docblock says SEPA was *"omitted entirely rather than shown as a disabled 'Soon' — naming SEPA would itself be the lie"*, but the page **does** render a disabled `Export SEPA · Soon` pill. That matches the product-wide honest-deferral convention (the same page disables "Pay via Stripe Connect · Soon"), so it was **left as-is** — but the docblock is stale on the point. The design's *scheduled batch date* is not rendered and must not be. |
+| D16-4 | An **"AFTER SENDING"** checklist: *"Owners are notified · receipts appear in their portal"* · *"Bank references attach to each payout automatically"* · *"The run locks — corrections post as new adjustments"*. | Claim 2 is **false for the bound rail**: `ManualPayoutRail`'s own docblock states a reference is *"not generated by the system; the operator may attach one"*. Claim 1 is backed (`PayoutSentNotification`). | Nothing — the card must not be ported as written. | **RATIFIED REFUSAL (partial).** ⚠️ This is the **WAVE-2 class exactly** — copy asserting behaviour the code doesn't implement. Porting the card wholesale would ship one true claim, one false one, and one unverified one. **Not built.** If it is ever wanted, render only claims verified true against the *bound* rail. |
+| D16-5 | Per-transfer **bank identity** on every row — `PT50 ···· 7218`, `IE64 ···· 4821`, and a footer *"Debited from Seaside Group operational · Revolut ····9034"*. | The masked owner IBAN **is** real and rendered (`Iban::masked(iban_last4)`, `payouts.manage`-gated, last-4 only). What does not exist is the **operator's own funding account** — no such column anywhere. | A funding/operational-account model on the organization. ⚠️ Genuine product weight: it is the account money leaves *from*, and it belongs with the live-payout cutover, not a design pass. | **REAL GAP** — and ⚠️ **the country-prefix form (`PT50 ····`) must NOT be reproduced for owners**: only `iban_last4` is stored, so a prefix would have to be invented or the full IBAN decrypted. Last-4 masking is the #28 boundary and it holds. |
+| D16-6 | An **"On hold · 1"** rail with **"Request IBAN"** and **"Carry forward"** as buttons. | "Request IBAN" renders as a disabled affordance; there is no route that sends such a prompt. Carry-forward is **not** an operator action — it happens inside `OwnerPayoutService` for a negative net. | A real "request payout details" notification to the owner would make control 1 genuine. | **SPLIT — "Request IBAN" is a REAL GAP (small, and a real notification class already exists); "Carry forward" is a RATIFIED REFUSAL** (offering a button for something the service does automatically would misrepresent who decides). |
+
+### ⚠️ D16-7 · A MONEY-VISIBILITY FINDING (surfaced, NOT fixed — it is backend)
+
+**A payout with status `processing` appears NOWHERE on this page, and in none of its three KPIs.**
+
+The component builds five sets: finalized statements · `pending` · `paid` · `recent` (`paid|failed|reversed`) ·
+`held`. **`processing` is in none of them** — verified by reading `PayoutRun::render()` lines 134–139.
+
+- **It is a REAL state, not hypothetical.** The enum is
+  `pending, processing, paid, failed, reversed, held`, and `OwnerPayoutService::confirmByTransfer()` resolves a
+  webhook by `where('external_ref', $transferId)->where('status', 'processing')` — i.e. `processing` is exactly
+  **"a transfer has left and we are awaiting its webhook"**, the Stripe-Connect in-flight state.
+- **Consequence:** on the live rail, money genuinely in flight would be invisible on the operator's
+  disbursement desk **and** excluded from Ready / Pending / Paid — so the three tiles would not account for it.
+  ⚠️ **No figure shown is wrong (#17 is not violated) — but the page would be incomplete about real money.**
+- **Latent today:** the demo has `pending: 1, paid: 5` and no `processing` row, so nothing is visibly missing.
+  That is the same shape as the auth-pass items — invisible to a demo walkthrough, real under live conditions.
+- **What it needs:** a `processing` bucket (its own "In flight" section, or folded into Pending with its real
+  status chip) plus inclusion in the KPI strip. **Backend — deliberately not built in a design pass.**
+
+### Also noted on this page (not backend gaps)
+
+- **#17 RECONCILES — re-read from the rendered page, not assumed.** Recent transfers
+  `442.80 + 656.00 + 467.40 + 516.60 + 721.60 = **2,804.40**` = the **PAID** tile exactly; the single pending
+  row `885.60` = the **PENDING TRANSFERS** tile. **READY** shows **"—"**, not `€0.00` — the documented
+  per-currency honesty (a zero must be a zero of *some* currency, and this page spans every owner).
+- **The money path was NOT touched.** All three writes still POST their real gated routes with CSRF
+  (`payouts/run`, `payouts/pay` ×2 — the batch and the per-row control), `OwnerPayoutService::pay()` and its
+  transaction + `lockForUpdate` + idempotency key are unchanged, and the **#71 test-mode banner** still renders.
+  **Restyled, not rewired — and nothing was submitted:** the run/pay controls were observed read-only, because
+  a real submit moves money and mutates the seed.
+- **#28 holds and was not widened** — verified on the rendered page: **0 raw IBANs** (regex for the full
+  `XX00…` form), the only bank identity is the masked **`···· 1000`**, and **0 email addresses / 0 phone
+  numbers** anywhere. Owner rows are **name + money**.
+- **#38** — the page is **tenant**-scoped, not owner-scoped, and that is deliberate and correct (an operator
+  pays every owner they manage in one pass). Isolation comes from `BelongsToOrganization`'s global scope plus
+  the controller's scoped `findOrFail`, so a foreign statement is not in the collection at all. **Not changed.**
+- **#39** — every status rendered is the real enum (`Pending` / `Paid`), and the invented `Scheduled` /
+  `In review` are absent from the rendered page (checked with word boundaries). Status is never colour-only:
+  each chip carries its word.
+- **Fixed (1) — a measured layout defect, invisible in the source.** The stat strip used `.vy-dash-kpis`, a
+  **four**-column grid, with **three** tiles — laying them across 3 of 4 columns and leaving **292px of dead
+  space** at 1440. The class name reads perfectly fine; only the computed `grid-template-columns`
+  (`274px 274px 274px 274px`) showed it. Now takes the existing `--3` modifier → `371px × 3`, filling the
+  content width as the design does.
+- **Fixed (2) — the dark surface was on the wrong element.** The design's three stat tiles are all light
+  glass and its **one** dark surface is the **Run summary at the top of the right rail** (measured at
+  x=838, y=292, w=568). The live page had it inverted: a dark KPI tile, an all-light rail. The dark treatment
+  now sits on a new `.vy-runsum` rail card and the strip is uniform. `.vy-runsum` deliberately **mirrors
+  `.vy-tonight`'s tokens** rather than defining a second dark-panel treatment.
+- **Fixed (3) — the design's row anatomy**: an initial disc beside the owner name on transfer rows. Initials
+  derive from the **real** name only; a row with no resolvable owner renders "—" and gets no disc.
+- **Fixed (4) — breadcrumb** `‹ Owners / Payout run`, reusing the shape already established on the work-order
+  detail. ⚠️ The design's period tail (`· Sep 2025`) is **not** reproduced — this page is not scoped to a
+  month, and stamping one on would state a filter it does not apply.
+- ⚠️ **CONTRAST — a defect I introduced and caught by measuring, worth recording as a pattern.** `.vy-runsum`
+  first copied `.vy-tonight`'s `rgba(255,255,255,.5)` for its 9.5px uppercase labels. Modelled correctly —
+  light text composites against **the same gradient stop it sits on**, so the worst case is the **lightest**
+  stop `rgb(58,46,39)` — that lands on **exactly 4.50**, the AA boundary with nothing in hand. Raised to
+  `.58` → **5.51**. All five text roles now measure 5.51–11.33. ⚠️ **REALM-WIDE, LOGGED NOT SWEPT:
+  `.vy-tonight` still carries the marginal `.5`** on its own labels; it deserves the same measurement, with
+  the other dark panels, in one pass — not a blind find-and-replace (the 248-accent-declaration lesson).
+- **Documented adaptation — the column split was NOT matched.** The design is roughly **50/50** (left card
+  568px, rail 568px); the live page is ~2:1. The live left column carries **three five-column tables**
+  (ready / pending / recent) where the design has one flat list, and a 568px column would force them all into
+  permanent horizontal scroll. Kept the wider column — the same call P9 recorded for the Team Schedule rail.
+- **Kept, not removed (§6 extra work):** the split into **Ready to pay / Pending transfers / Recent transfers**
+  (the design conflates all three into one list, and the split maps to the real payout lifecycle); the
+  **"How this run pays"** rail explaining that marking paid **records** a transfer rather than sending one; the
+  **"Not payable"** card explaining zero and negative nets; the per-row **"Rail not connected"** disabled state;
+  and the real failure/reversal reporting with its reason.
+- **Responsive:** 0px horizontal overflow at **1440** and **1000**; the KPI strip reflows to 2 columns and the
+  wide table scrolls inside its own `overflow-x: auto` container. **0 console errors/warnings.**

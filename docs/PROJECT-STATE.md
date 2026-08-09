@@ -760,11 +760,11 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **23 of 42** covered, **19 remaining** (`0aa9ede`→`ee0121a`, all pushed)
+## N.4 Progress — OPERATOR **24 of 42** covered, **18 remaining** (`0aa9ede`→`bd58333`, all pushed)
 
-⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, so the
-current figure is **23 covered / 19 remaining** (23 + 19 = 42). Notes saying "22/42 … 19 remaining" are the
-pre-GATE-B count and are off by one.
+⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund** and
+**P16 closed Payout Run**, so the current figure is **24 covered / 18 remaining** (24 + 18 = 42). Notes saying
+"22/42 … 19 remaining" are the pre-GATE-B count and do not add up.
 
 | Gate | Page(s) | Commit |
 |---|---|---|
@@ -789,6 +789,8 @@ pre-GATE-B count and are off by one.
 | P13 | Maintenance Settings | `f3f8c1d` |
 | P14 | Operator Settings (all 13 blocks; + Property Settings, the 2nd prototype of the same page) | `279ea80` |
 | P15 | **GATE A** operator coverage sweep + **GATE B** Refund (**verified AT PARITY, 0 code**) | `ee0121a` |
+| — | **TEST GATE — the 8th non-green closed** (J.bis; a contrast guard tightened to its intent, proven still live) | `9696b9c` |
+| P16 | **Operator Payout Run** ⚠️ real owner money (4 design fixes · 6 backend items · **D16-7** a money-visibility finding) | `bd58333` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -833,19 +835,19 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue (ranked by stakes)
+## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Billing.**
 
-⚠️ **BEFORE the next page: close the 8th non-green (J.bis)** — `DesignTokenContrastTest`, broken by this pass's
-own P8 commit and carried silently through P9–P15.
+⚠️ **Billing carries the OPEN billing decision (G.1).** Show the org's **REAL** stored price; the prototype's
+**€99 is a mock constant** and must not be wired. **Do NOT resolve which pricing model is authoritative** —
+that is the founder's call and a Stripe-flip blocker. (P14 already verified the mock price does not leak onto
+Settings; the same check applies here.)
 
-**THEN: NEXT PAGE = Operator Payout Run.**
-
-**19 OPERATOR prototypes remain:** **1 Payout Run** (`/app/payouts/run` — ⚠️ real owner money) · **2 Billing**
-(`/app/billing` — ⚠️ **the OPEN billing decision, G.1**) · **3 Rates** · **4 New Reservation** (money +
-`AssignmentService` inventory) · **5 Group Booking** · **6 Owners** (PII / owner isolation #28/#42) ·
-**7 Owner Detail** · **8 Roles** (RBAC escalation #30) · **9 Security** · **10 Reviews** · **11 Channels**
-(OTA claims #37) · **12 Portfolio** (#38) · **13 Search** · **14 Notifications** · **15 Notification
-Preferences** · **16 Email Templates** · **17 Email Editor** · **18 Profile** · **19 Schedule PDF**.
+**18 OPERATOR prototypes remain:** **1 Billing** (`/app/billing` — ⚠️ **G.1**) · **2 Rates** · **3 New
+Reservation** (money + `AssignmentService` inventory) · **4 Group Booking** · **5 Owners** (PII / owner
+isolation #28/#42) · **6 Owner Detail** · **7 Roles** (RBAC escalation #30) · **8 Security** · **9 Reviews** ·
+**10 Channels** (OTA claims #37) · **11 Portfolio** (#38) · **12 Search** · **13 Notifications** ·
+**14 Notification Preferences** · **15 Email Templates** · **16 Email Editor** · **17 Profile** ·
+**18 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 
