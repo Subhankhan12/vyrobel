@@ -760,7 +760,7 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **24 of 42** covered, **18 remaining** (`0aa9ede`→`bd58333`, all pushed)
+## N.4 Progress — OPERATOR **24 of 42** covered, **18 remaining** (`0aa9ede`→`4458f52`, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund** and
 **P16 closed Payout Run**, so the current figure is **24 covered / 18 remaining** (24 + 18 = 42). Notes saying
@@ -790,7 +790,7 @@ finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A
 | P14 | Operator Settings (all 13 blocks; + Property Settings, the 2nd prototype of the same page) | `279ea80` |
 | P15 | **GATE A** operator coverage sweep + **GATE B** Refund (**verified AT PARITY, 0 code**) | `ee0121a` |
 | — | **TEST GATE — the 8th non-green closed** (J.bis; a contrast guard tightened to its intent, proven still live) | `9696b9c` |
-| P16 | **Operator Payout Run** ⚠️ real owner money (4 design fixes · 6 backend items · **D16-7** a money-visibility finding) | `bd58333` |
+| P16 | **Operator Payout Run** ⚠️ real owner money (4 design fixes · 6 backend items · **D16-7** a money-visibility finding) | `4458f52` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
