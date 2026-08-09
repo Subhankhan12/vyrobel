@@ -71,6 +71,7 @@
         .foot { margin-top: 22px; font-size: 11.5px; color: {{ $isAdmin ? '#6B7285' : 'rgb(108, 100, 95)' }}; }
         @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
     </style>
+    <x-vy-scrollbar />
 </head>
 <body>
     <main class="card">

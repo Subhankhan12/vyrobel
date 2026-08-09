@@ -27,6 +27,7 @@
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 30px;
             font-weight: 600; font-size: 14px; color: #fff; text-decoration: none; background: linear-gradient(140deg,#E8703A,#C2410C); box-shadow: rgba(194,65,12,.3) 0 4px 12px; }
     </style>
+    <x-vy-scrollbar />
 </head>
 <body>
     <main class="card">

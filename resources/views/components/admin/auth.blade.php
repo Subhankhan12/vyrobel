@@ -70,6 +70,7 @@
         .ad-secure { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 20px; color: var(--ad-faint); font-size: 11.5px; }
         .ad-secure svg { color: var(--ad-accent); }
     </style>
+    <x-vy-scrollbar />
 </head>
 <body>
     <main class="ad-card">

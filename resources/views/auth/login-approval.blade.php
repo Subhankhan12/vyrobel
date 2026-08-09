@@ -23,6 +23,7 @@
         .hint{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5}
         .hint a{color:var(--accent);text-decoration:none;font-weight:500}
     </style>
+    <x-vy-scrollbar />
 </head>
 <body>
     <main class="card">

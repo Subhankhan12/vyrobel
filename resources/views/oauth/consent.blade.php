@@ -43,6 +43,7 @@
         .btn--allow { background: var(--vy-grad); color: #fff; border: none; box-shadow: 0 8px 20px -6px rgba(194, 65, 12, .5); }
         .who { font-size: 11.5px; color: var(--vy-faint); text-align: center; margin-top: 18px; }
     </style>
+    <x-vy-scrollbar />
 </head>
 <body>
     <div class="card">

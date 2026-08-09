@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Vyrobel — Contract Stub' }}</title>
     @livewireStyles
+    <x-vy-scrollbar />
 </head>
 <body>
     <main>

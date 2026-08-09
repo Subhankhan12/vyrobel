@@ -149,6 +149,7 @@
         .ad-dl dd { margin: 0; font-weight: 500; }
         @media (max-width: 820px) { .ad-layout { grid-template-columns: 1fr; } .ad-side { flex-direction: row; overflow-x: auto; align-items: center; } .ad-nav { flex-direction: row; } .ad-nav-label { display: none; } }
     </style>
+    <x-vy-scrollbar />
 </head>
 <body>
     <div class="ad-layout">

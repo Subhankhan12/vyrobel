@@ -86,6 +86,7 @@
         /* No-JS: all steps shown at once — no per-step animation (nothing toggles `.on`). */
         .no-js [data-step] > * { animation: none; }
     </style>
+    <x-vy-scrollbar />
 </head>
 <body class="no-js">
     <main class="vy-card">

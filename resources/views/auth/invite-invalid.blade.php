@@ -40,6 +40,7 @@
         body::before { content: ""; position: fixed; inset: -20% -10% auto auto; width: 44vw; height: 44vw; background: radial-gradient(circle, rgba(255, 210, 170, .45), transparent 70%); filter: blur(10px); z-index: 0; pointer-events: none; animation: vyDrift 28s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
     </style>
+    <x-vy-scrollbar />
 </head>
 <body>
     <main class="vy-card">

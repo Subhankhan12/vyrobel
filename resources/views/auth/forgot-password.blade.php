@@ -57,6 +57,7 @@
         .vy-foot a { color: var(--vy-accent); text-decoration: none; font-weight: 600; }
         .vy-foot a:hover { text-decoration: underline; }
     </style>
+    <x-vy-scrollbar />
 </head>
 <body>
     <main class="vy-card">

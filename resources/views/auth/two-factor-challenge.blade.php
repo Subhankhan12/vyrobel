@@ -83,6 +83,7 @@
         .vy-hint a:hover { text-decoration: underline; }
         .vy-foot { text-align: center; color: var(--vy-faint); font-size: 11.5px; margin-top: 20px; }
     </style>
+    <x-vy-scrollbar />
 </head>
 <body>
     <main class="vy-card">

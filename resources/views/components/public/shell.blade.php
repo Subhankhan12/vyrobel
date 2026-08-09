@@ -234,6 +234,7 @@
         }
     </style>
     {{ $head }}
+    <x-vy-scrollbar />
 </head>
 <body class="vy-body">
     <header class="vy-store-header">
