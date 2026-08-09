@@ -316,6 +316,16 @@
 
         /* A control with no backend yet: visible, clearly non-functional, never a fake action. */
         .vy-btn.is-soon, .vy-icobtn.is-soon, .vy-pill.is-soon { opacity: .5; cursor: not-allowed; }
+        /* PAGER (WAVE 3 pagination gate) — the realm's one pagination control, in the same warm-glass
+           tokens as .vy-date-chip above; Laravel's stock Tailwind/Bootstrap pagination views are not used
+           anywhere here and would not match. */
+        .vy-pager { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--vy-hairline); }
+        .vy-pager-count { font-size: 12px; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
+        .vy-pager-links { display: inline-flex; align-items: center; gap: 8px; }
+        .vy-pager-page { font-size: 12px; color: var(--vy-muted); font-variant-numeric: tabular-nums; padding: 0 2px; }
+        .vy-pager-btn { display: inline-flex; align-items: center; padding: 7px 13px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); font-size: 12.5px; font-weight: 500; color: var(--vy-ink); text-decoration: none; white-space: nowrap; transition: background var(--vy-t-fast), transform var(--vy-t-fast); }
+        .vy-pager-btn:hover { background: rgba(255, 252, 248, 0.85); }
+        .vy-pager-btn.is-off { color: var(--vy-faint); background: transparent; box-shadow: none; cursor: default; }
         .vy-soon-tag { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); border: 1px dashed var(--vy-hairline); border-radius: 6px; padding: 2px 6px; }
 
         .vy-pill {

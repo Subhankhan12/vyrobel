@@ -15,6 +15,7 @@ use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -114,6 +115,9 @@ use Livewire\Component;
 class GuestsList extends Component
 {
     use FormatsOperatorData;
+
+    /** Rows per page — the same size across the three operator lists, so the realm feels consistent. */
+    public const PER_PAGE = 25;
 
     /** Bound the search term: a LIKE pattern is not a place to accept unbounded user input. */
     private const MAX_QUERY = 100;
@@ -242,7 +246,18 @@ class GuestsList extends Component
      *
      * @return list<array<string, mixed>>
      */
-    private function rows(?string $filter, ?string $tag, string $search, CarbonImmutable $today): array
+    /**
+     * One PAGE of guests (WAVE 3 pagination gate) — this list was unbounded.
+     *
+     * ⚠️ GET-PAGED, not wire-paged: Laravel's paginator reads `?page` from the request and
+     * `withQueryString()` carries `?filter=`/`?tag=`/`?q=` onto the page links, so a page change is an
+     * ordinary request that re-runs EVERY middleware. Livewire's WithPagination would change pages over
+     * /livewire/update, where SetCurrentPropertyForWebRequest does not run (invariant #20) — the same
+     * reason this component's filters already ride GET links.
+     *
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
+    private function rows(?string $filter, ?string $tag, string $search, CarbonImmutable $today): LengthAwarePaginator
     {
         $guests = $this->baseQuery($filter, $tag, $search)
             ->with([
@@ -256,13 +271,17 @@ class GuestsList extends Component
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->orderBy('id')
-            ->get();
+            ->paginate(self::PER_PAGE)
+            ->withQueryString();
 
-        // ONE batched call for the whole page — not a per-row query (GuestSpend::forGuestIds exists for
-        // exactly this), and the same definition the profile reads for a single guest.
-        $spend = GuestSpend::forGuestIds($guests->map(fn (Guest $guest): string => (string) $guest->getKey())->all());
+        // ONE batched call for the page — not a per-row query (GuestSpend::forGuestIds exists for exactly
+        // this), and the same definition the profile reads for a single guest. Now genuinely per-PAGE: it
+        // used to run across every guest in the tenant.
+        $spend = GuestSpend::forGuestIds(
+            collect($guests->items())->map(fn (Guest $guest): string => (string) $guest->getKey())->all(),
+        );
 
-        return $guests->map(fn (Guest $guest): array => $this->row($guest, $spend[(string) $guest->getKey()] ?? [], $today))->all();
+        return $guests->through(fn (Guest $guest): array => $this->row($guest, $spend[(string) $guest->getKey()] ?? [], $today));
     }
 
     /**

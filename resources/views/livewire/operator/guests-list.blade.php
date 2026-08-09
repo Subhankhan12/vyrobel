@@ -187,6 +187,9 @@
                                         </td>
                                     </tr>
                                 @endforeach
+
+                {{-- WAVE 3 — the realm's shared pager (GET links; carries ?filter=/?tag=/?q=). --}}
+                <x-pager :paginator="$rows" label="guests" />
                             </tbody>
                         </table>
                     </div>

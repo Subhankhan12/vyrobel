@@ -211,6 +211,9 @@
                                     </td>
                                 </tr>
                             @endforeach
+
+                {{-- WAVE 3 — the realm's shared pager (GET links; carries ?stage=/?q=). --}}
+                <x-pager :paginator="$rows" label="reservations" />
                         </tbody>
                     </table>
                 </div>

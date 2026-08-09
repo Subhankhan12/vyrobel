@@ -12,6 +12,7 @@ use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -203,9 +204,15 @@ class ReservationsList extends Component
     /**
      * The table's rows. Ordering per decision 1 (see the class docblock).
      *
-     * @return list<array<string, mixed>>
+     * ⚠️ GET-PAGED (WAVE 3 pagination gate) — this list was unbounded. Laravel's paginator reads `?page`
+     * and `withQueryString()` carries `?stage=`/`?q=` onto the page links, so a page change is an ordinary
+     * request that re-runs EVERY middleware. Livewire's WithPagination would page over /livewire/update,
+     * where SetCurrentPropertyForWebRequest does not run (invariant #20) — the same reason this component's
+     * filters already ride GET links.
+     *
+     * @return LengthAwarePaginator<int, array<string, mixed>>
      */
-    private function rows(?string $stage, string $search, CarbonImmutable $today): array
+    private function rows(?string $stage, string $search, CarbonImmutable $today): LengthAwarePaginator
     {
         $query = $this->baseQuery($search);
 
@@ -224,9 +231,10 @@ class ReservationsList extends Component
             ])
             ->orderByDesc('check_in')
             ->orderByDesc('id')
-            ->get();
+            ->paginate(GuestsList::PER_PAGE)
+            ->withQueryString();
 
-        return $reservations->map(fn (Reservation $reservation): array => $this->row($reservation, $today))->all();
+        return $reservations->through(fn (Reservation $reservation): array => $this->row($reservation, $today));
     }
 
     /**
