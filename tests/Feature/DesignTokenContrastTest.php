@@ -79,7 +79,29 @@ it('declares the AA values in every shell', function (string $shell) {
     expect($css)->toContain('--vy-muted: rgb(95, 88, 83)');
     expect($css)->toContain('--vy-faint: rgb(108, 100, 95)');
 
-    // The failing originals must not creep back in.
-    expect($css)->not->toContain('rgb(138, 128, 121)');
-    expect($css)->not->toContain('rgb(166, 154, 146)');
+    /*
+     * The failing originals must not creep back in — guarded in the two ways that actually matter:
+     * as the TOKEN VALUES themselves, and as a hardcoded TEXT colour anywhere in the shell.
+     *
+     * ⚠️ SCOPED TO THE TEXT ROLE ON PURPOSE (2026-08-09). This was a bare whole-file substring match
+     * (`not->toContain('rgb(138, 128, 121)')`), and it fired on `--vy-hk-ooo: rgb(138, 128, 121)` — the
+     * housekeeping "Out of order" STATUS-DOT token added by the design-parity pass, which happens to equal
+     * the pre-AA `--vy-muted` value. That token is painted as a 9px `background` on `.vy-hk-dot`, never as
+     * text, and every dot is printed beside its status WORD — so 1.4.1 is satisfied and the 4.5:1 text bar
+     * (1.4.3) does not apply to it at all. A decorative fill is not what this guard is for; the guard is
+     * about SECONDARY TEXT reverting to an unreadable grey.
+     *
+     * ⚠️ The lookbehind is load-bearing: a naive `color:` match also hits `background-color:`,
+     * `border-color:` and `outline-color:`, which are decorative. (Same trap the P14 accent-token sweep
+     * recorded — a naive replace matched property names ENDING in "color:".)
+     */
+    foreach (['rgb(138, 128, 121)', 'rgb(166, 154, 146)'] as $failing) {
+        expect($css)->not->toContain("--vy-muted: {$failing}", "--vy-muted reverted to a pre-AA value in {$shell}");
+        expect($css)->not->toContain("--vy-faint: {$failing}", "--vy-faint reverted to a pre-AA value in {$shell}");
+
+        expect($css)->not->toMatch(
+            '/(?<![-\w])color:\s*'.preg_quote($failing, '/').'/',
+            "a pre-AA grey is hardcoded as TEXT colour in {$shell}"
+        );
+    }
 })->with($shells);

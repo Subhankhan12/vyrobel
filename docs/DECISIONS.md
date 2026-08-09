@@ -2,6 +2,39 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-09 — The 8th non-green CLOSED: a contrast guard tightened to its intent, not relaxed (GATE A)
+
+**The decision: fix the TEST, not the design value — and prove the tightened guard still fires.**
+
+`DesignTokenContrastTest` forbade the literal `rgb(138, 128, 121)` anywhere in a shell, to stop the pre-AA
+`--vy-muted` grey creeping back. The design-parity pass's P8 gate (`3bf9c02`) added
+**`--vy-hk-ooo: rgb(138, 128, 121)`** — the "Out of order" housekeeping **status-dot** token — which is the same
+triple by coincidence of palette, and the suite went 7 → 8 non-green.
+
+**Verified before deciding** (the finding, not the label): the token is consumed in exactly one place,
+`housekeeping-board.blade.php:110`, as the **`background` of a 9px `.vy-hk-dot`** — the rule sets only
+width/height/border-radius, no `color` — and every dot is printed beside its status **word**. So **1.4.1 holds
+and the 4.5:1 text bar does not apply to a decorative fill.** The failure was a real false positive.
+
+**Two honest options existed.** **(b) re-pick `--vy-hk-ooo`** was **rejected**: it changes a *correct design
+value* to satisfy an *over-broad test*, which is backwards, and a warm neutral is the right colour for an
+out-of-order dot. **(a) tighten the assertion to what it actually guards** was taken: each failing triple is now
+forbidden **as a `--vy-muted` / `--vy-faint` token value** and **as a text `color:`**, with a `(?<![-\w])`
+lookbehind so `background-color:` / `border-color:` / `outline-color:` do not false-positive — the same trap the
+P14 accent sweep recorded. **Nothing was baselined, suppressed or deleted.**
+
+**The guard was proven STILL LIVE by four observed mutations**, two of which exist only to show it goes RED:
+`--vy-muted` reverted → **FAILED (79)** · `--vy-faint` reverted → **FAILED (80)** · a pre-AA grey hardcoded as
+text `color:` → **FAILED (102)** · the same greys as `background-color:`+`border-color:` → **PASSED**. The result
+is **strictly stronger** than the original: it still catches both token regressions, it now *also* catches a
+hardcoded pre-AA text grey, and it no longer fires on decoration.
+
+⚠️ **The lesson worth more than the fix: it survived SEVEN gates (P9→P15) because the baseline count was
+QUOTED FROM NOTES rather than MEASURED.** An asserted baseline goes stale exactly like an asserted finding.
+Recorded as **L.31** (`PROJECT-STATE.md` §N.8) and in §J/§J.bis.
+
+Baseline restored to **7** (6 `BookingImportTest` + 1 `OwnerUnitDetailViewTest`); PHPStan L5 (0); Pint clean.
+
 ## 2026-08-09 — ⬅ A PER-PAGE DESIGN-PARITY PASS IS THE ACTIVE TRACK (started; IN PROGRESS)
 
 Recorded here because the two a11y token gates below (`93247e7`, `81c5d18`) were **produced by this pass** and
@@ -28,16 +61,16 @@ remaining**; the owner (32) and guest (32) sets untouched. **⬅ Next page: Oper
 per-gate commit table, the two realm-wide tokens, the seeder gate, the D3-4 figure-honesty finding and the
 pass's own process lessons are **`docs/PROJECT-STATE.md` §N**.
 
-**⚠️ CORRECTION TO THE RECORD, measured this turn: the suite baseline is 8, not 7 — and this pass caused the
-8th.** A full run at `ee0121a` gives **1795 / 1803**. The documented seven are unmoved; the eighth is
+**⚠️ CORRECTION TO THE RECORD, measured 2026-08-09: the suite baseline was 8, not 7 — and this pass caused the
+8th.** A full run at `ee0121a` gave **1795 / 1803**. The documented seven were unmoved; the eighth was
 **`DesignTokenContrastTest`**, broken by **`3bf9c02` (P8, Housekeeping)**, which promoted the housekeeping status
 colours to `--vy-hk-*` tokens — and `--vy-hk-ooo: rgb(138, 128, 121)` is **the exact literal that test forbids**,
-because that triple is the pre-AA `--vy-faint` original. **It is not an AA regression** (the token is used once,
-as a 9px status **dot**, never as text, and every dot carries its status word). The test's guard is a whole-file
-substring match, broader than its stated intent. **It rode through seven subsequent gates unnoticed — exactly
-the failure mode the "know your baseline count" lesson exists to prevent.** Logged, not fixed here (this was a
-documentation-only turn); **it is the first item of the next turn, before Payout Run.** See `PROJECT-STATE.md`
-**§J.bis**.
+because that triple is the pre-AA **`--vy-muted`** original. **It is not an AA regression** (the token is used
+once, as a 9px status **dot** background, never as text, and every dot carries its status word). The test's
+guard was a whole-file substring match, broader than its stated intent. **It rode through seven subsequent gates
+unnoticed — exactly the failure mode the "know your baseline count" lesson exists to prevent.**
+**✅ CLOSED at `9e1d3d1`** — see the dedicated entry below and `PROJECT-STATE.md` **§J.bis**.
+⚠️ *A prior revision of this entry said the triple was the pre-AA `--vy-faint`; it is `--vy-muted`. Corrected.*
 
 **One finding logged, deliberately NOT fixed — D3-4.** Operator Insights' "Last year" occupancy divides by the
 availability spine's **coverage**, not by the month, so three nights of 2025 data print as "50%" under a month

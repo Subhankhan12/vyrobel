@@ -558,6 +558,9 @@ be removed in the name of parity.
 corrected here. THE COUNT IS THE BASELINE: if a run shows 8, you broke something — go and find it (that is
 exactly how the incomplete `firstOrCreate` fix in WAVE 2 was caught).**
 
+⚠️ **THE COUNT IS 7 AGAIN AS OF `9e1d3d1` — but it WAS 8 for seven gates and nobody noticed (J.bis).** The rule
+above only works if the number is **MEASURED each gate, not quoted from these notes.** Re-measure it.
+
 - **`BookingImportTest` (6) — a genuine TEST-ORDERING ARTIFACT.** Fails only inside a large batch; **passes
   11/11 in isolation**, re-confirmed 2026-08-08. Order-dependent (it avoids `RefreshDatabase` and drives a real
   queue worker on the OTA import path). Not a product defect.
@@ -570,30 +573,56 @@ exactly how the incomplete `firstOrCreate` fix in WAVE 2 was caught).**
   producing a transient failure. Confirmed by isolating the test (fails 8/8 on the colliding seed) and
   re-running the suite. If the count rises unexpectedly, isolate before assuming a regression.
 
-### ⚠️ J.bis — THE BASELINE IS **8**, NOT 7, AND THE 8th IS A REAL OPEN ITEM (measured 2026-08-09)
+### ✅ J.bis — THE 8th NON-GREEN: found, understood, and CLOSED (2026-08-09, `9e1d3d1`)
 
-**A full run at HEAD `ee0121a` returns `1795 passed / 1803 · 11,857 assertions` — EIGHT non-green.** The
-documented seven are unmoved (`BookingImportTest` 6 · `OwnerUnitDetailViewTest` 1). **The eighth is new and was
-introduced by the design-parity pass itself:**
+**A full run at `ee0121a` returned `1795 / 1803 · 11,857` — EIGHT non-green, not the seven every note asserted.**
+The documented seven were unmoved (`BookingImportTest` 6 · `OwnerUnitDetailViewTest` 1). **The eighth was
+introduced by the design-parity pass itself and is now fixed. The baseline is back to 7.**
 
-- **`DesignTokenContrastTest › it declares the AA values in every shell`** (operator shell) —
-  *"Expecting … not to contain `rgb(138, 128, 121)`."*
-- **Introduced by `3bf9c02` (design-parity P8, Housekeeping)**, which promoted the five housekeeping status
-  colours from raw hexes in the view to shared `--vy-hk-*` tokens. One of them —
-  **`--vy-hk-ooo: rgb(138, 128, 121)`** — is **the exact literal the test forbids**, because that triple is the
-  **pre-AA `--vy-faint` original** the polish pass darkened away from.
-- **It is NOT an AA regression.** `--vy-hk-ooo` is consumed in exactly one place —
-  `housekeeping-board.blade.php:110`, as the **9px status DOT swatch** (`'dot' => 'var(--vy-hk-ooo)'`) — never
-  as text, and every dot is paired with its status **word** (1.4.1 holds). The test's guard is a **whole-file
-  substring match**, so it fires on any token that happens to share the value, which is broader than its own
-  stated intent (*"the failing originals must not creep back in"* — i.e. **as the muted/faint tokens**).
-- ⚠️ **It survived SEVEN subsequent gates (P9→P15) unnoticed** — which is precisely the failure mode **L.18**
-  ("know the baseline non-green count") exists to catch, and it was missed. **Notes asserting "the baseline is
-  7; an 8 means you broke something" were correct as a rule and stale as a number.**
-- **Not fixed here** (that turn was documentation-only). **⬅ FIRST ITEM FOR THE NEXT TURN, before Payout Run.**
-  The likely-correct fix is to tighten the assertion to the **token declaration** it means
-  (`--vy-faint: rgb(138, 128, 121)`) rather than the bare literal; the alternative is to re-pick
-  `--vy-hk-ooo`. ⚠️ Decide by reading the test's intent — do not simply relax it (**L.12**, **L.16**).
+**What it was.** `DesignTokenContrastTest › it declares the AA values in every shell` (operator shell) —
+*"Expecting … not to contain `rgb(138, 128, 121)`."* **`3bf9c02` (design-parity P8, Housekeeping)** promoted the
+five housekeeping status colours from raw hexes in the view to shared `--vy-hk-*` tokens, and one of them —
+**`--vy-hk-ooo: rgb(138, 128, 121)`** — is the exact literal the test forbade.
+
+⚠️ **CORRECTION TO THIS FILE'S OWN PRIOR ENTRY:** `rgb(138,128,121)` is the pre-AA **`--vy-muted`** original,
+**not `--vy-faint`** (the test's own header records `--vy-muted` 3.77 and `--vy-faint` `rgb(166,154,146)` 2.68).
+The earlier note here, in `DECISIONS.md` and in memory said "faint" and was wrong. Corrected in all three.
+
+**Why it was NOT an AA regression — verified, not assumed.** `--vy-hk-ooo` is consumed in exactly ONE place:
+`housekeeping-board.blade.php:110`, as `'dot' => 'var(--vy-hk-ooo)'`, painted as the **`background` of a 9px
+`.vy-hk-dot`** (the rule sets only width/height/border-radius — no `color`). It is **never text**, and every dot
+is printed beside its status **word**, so **1.4.1 holds and the 4.5:1 text bar (1.4.3) does not apply to it at
+all**. The failure was a **whole-file substring match firing on a decorative fill** — broader than the guard's
+own stated intent, which is about *secondary TEXT reverting to an unreadable grey*.
+
+**The fix — option (a), the assertion tightened to what it actually guards (`tests/Feature/DesignTokenContrastTest.php`).**
+The bare `not->toContain(...)` became **two precise guards per failing triple**: it may not appear **as the
+`--vy-muted` / `--vy-faint` token value**, and it may not appear **as a text `color:`** anywhere in the shell.
+⚠️ The `color:` match uses a **`(?<![-\w])` lookbehind** so `background-color:` / `border-color:` /
+`outline-color:` — which are decorative — do not false-positive; that is the same trap the P14 accent sweep
+recorded (a naive replace matched property names *ending* in `color:`).
+
+⚠️ **Option (b) — re-picking `--vy-hk-ooo` — was considered and REJECTED:** it would change a *correct design
+value* to satisfy an *over-broad test*, which is backwards, and the warm-neutral grey is the right colour for an
+"Out of order" dot. **Nothing was baselined, suppressed or deleted.**
+
+**The tightened guard was PROVEN still live — four ways, each run and observed, not reasoned about:**
+
+| Mutation | Required | Observed |
+|---|---|---|
+| `--vy-muted` reverted to `rgb(138, 128, 121)` | RED | **FAILED** (line 79) |
+| `--vy-faint` reverted to `rgb(166, 154, 146)` | RED | **FAILED** (line 80) |
+| a pre-AA grey hardcoded as a text `color:` | RED | **FAILED** (line 102) |
+| the same greys as `background-color:` + `border-color:` | PASS | **PASSED** — the lookbehind, not permissiveness |
+
+**The net result is a STRICTLY STRONGER guard than before:** it still catches both token regressions, it now
+*also* catches a pre-AA grey hardcoded as text (which the old check caught only incidentally), and it no longer
+fires on decorative fills.
+
+⚠️ **THE REAL LESSON — it survived SEVEN subsequent gates (P9→P15) unnoticed.** That is exactly the failure mode
+**L.18** ("know the baseline non-green count") exists to catch, and it was missed because the count was
+*asserted from notes* rather than *measured*. **An asserted baseline goes stale exactly like an asserted
+finding: RE-MEASURE it each gate.** (Recorded as **L.31** in §N.8.)
 
 Optional nicety: an org-slug → property redirect for the storefront (today `/book/{org-slug}` 404s by design;
 the correct URL is the PROPERTY slug, e.g. `/book/seaside-demo`).
@@ -855,6 +884,15 @@ Preferences** · **16 Email Templates** · **17 Email Editor** · **18 Profile**
 30. **KEEP THE INVARIANT VISIBLE.** The Refund page **surfaces #27** — "€369.00 still refundable … anything
     above that is **refused, not trimmed to fit**" — plus a folio-reconciliation badge and an append-only
     explanation. That is **better than the mock**, and it is why the page needed no design change at all.
+31. **AN ASSERTED BASELINE GOES STALE EXACTLY LIKE AN ASSERTED FINDING — MEASURE IT EACH GATE.** The suite
+    went 7 → 8 non-green at **P8** and rode through **seven** further gates unnoticed, because every note
+    (including this file) *asserted* "the baseline is 7" and each gate trusted the note instead of running the
+    count (**J.bis**). The lesson that catches a regression is worthless if its input is quoted rather than
+    re-measured. **Corollary, from the same fix: when a guard false-positives, tighten it to its stated intent
+    and PROVE it still fires** — a test that passes because it now checks nothing is worse than the false
+    positive it replaced. Four mutations were run and observed; two of them existed only to prove the guard
+    still went RED. ⚠️ **And a false positive is not automatically the test's fault — but here it was**, and the
+    alternative (changing a correct design value to satisfy an over-broad test) was rejected as backwards.
 
 ## Status (verified against the repo)
 
