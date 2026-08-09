@@ -73,10 +73,11 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 15B | Operator Refund | `/app/reservations/{id}/refund` | ⚠️ `payments.refund` | ✅ **at parity, 0 code** | **4** (1 real gap · 3 refusals) |
 | 16 | **Operator Payout Run** ⚠️ real owner money | `/app/payouts/run` | ⚠️ `payouts.manage` on the WRITES | ✅ matched | **6** (3 real gaps · 3 refusals) + ⚠️ **1 money-visibility finding** |
 | 17 | **Operator Billing** ⚠️ the OPEN billing decision | `/app/billing` | ⚠️ `can:billing.manage` on the GET | ✅ matched | **5** (2 real gaps · 3 refusals) + ⚠️ **1 G.1 observation** |
+| 18 | **Operator Rates & availability** ⚠️ what guests are charged | `/app/rates` | `can:rates.view` · writes `can:rates.manage` | ✅ matched | **6** (2 real gaps · 4 refusals) |
 
-**Operator: 25 of 42 prototypes covered · 17 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+**Operator: 26 of 42 prototypes covered · 16 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
 remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
-**⬅ NEXT PAGE: Operator Rates (`/app/rates`)** — ⚠️ money: what guests are charged.
+**⬅ NEXT PAGE: Operator New Reservation (`/app/reservations/create`)** — ⚠️ money + inventory (`AssignmentService`).
 
 ---
 
@@ -1118,3 +1119,77 @@ bug (`resolveTier()` falling back to `'pro'`).
   disclosure with "VAT included" — it fails if the disclosure is dropped or flipped to an exclusive figure.
 - **Responsive:** 0px horizontal overflow at **1440** and **1000**; the plan header wraps, the sub-nav fits,
   the price stays visible. **0 console errors/warnings.** Contrast on every new element **5.48–13.38** (AA).
+
+---
+
+## 18 · Operator Rates & availability — `/app/rates` ⚠️ WHAT GUESTS ARE CHARGED
+
+**Prototype:** `docs/design/raw/Operator Rates.html` (decoded fresh 2026-08-10). ⚠️ **A second Rates prototype
+exists — `Owner Rates.html` — and is NOT covered here:** it belongs to the owner realm, which this pass has not
+started. **Live:** `App\Livewire\Operator\RatesGrid` → `resources/views/livewire/operator/rates-grid.blade.php`.
+**Role:** GET `can:rates.view`; every write `can:rates.manage`. ⚠️ **`rates.view` WITHOUT `rates.manage` is a
+real role here (Reservation Agent)** — the documented #30 separation of duties — so unlike Billing's 403 this
+page has a genuine READ-ONLY state, and `OperatorRatesTest` proves it.
+
+⚠️ **PREMISE CORRECTED — the #6 guardrail copy is NOT on this page, and must not be added to it.**
+The brief assumed the honest #6 copy lives here. Verified: `grep` for guardrail/floor/ceiling/proposal across
+this view returns **nothing**. The **#6 guardrail UI and its honest copy live on the OWNER Rates page**
+(`resources/views/livewire/owner/rates.blade.php`, whose own comment records that *"the operator's direct rate
+write (RateActionController) never consults the guardrail"*), and the operator-side rate-proposal controls live
+on **Owner Detail**. Confirmed at the source: `RateProposalService` rejects below-floor / above-ceiling and
+auto-approves within tolerance; `RateActionController` contains **zero** guardrail references.
+**So on this page #6 means: do NOT add a guardrail, "protected" or "within band" claim of any kind** — this IS
+the unguarded direct-write path. Verified on the rendered page after the changes: **0 guardrail words.**
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D18-1 | A **"Smart pricing · Off"** toggle in the control row, and a **demand curve** behind the grid. | No pricing engine of any kind exists. | A real demand/pricing model. | **RATIFIED REFUSAL** (sweep §5: no smart-pricing / generated suggestions). The component docblock already records the design's curve as a `sin()` function. ⚠️ **The REAL `RateProposalService` operator↔owner proposal workflow is a different thing and is kept** — refuse the fabricated algorithmic suggestion, not the real approval flow. |
+| D18-2 | **"+8% vs Aug"** on the avg-rate tile, **"pacing ahead"** on booked, and **"+9% vs last year"** on the pacing card. | **No historical rate snapshot table exists anywhere**, so no baseline can be computed. | A rate/occupancy snapshot history. ⚠️ Note this is the same class as **D3-4** on Insights, where a comparison WAS rendered off a thin availability spine — the lesson is that a trend needs real coverage, not just a prior row. | **RATIFIED REFUSAL** — a trend without a baseline is a fabricated figure (#39). Verified absent from the rendered page. |
+| D18-3 | A **channel-sync ribbon** ("All changes pushed · 4 channels in sync · Last synced just now · selling live") and **per-channel Synced pills** for Booking.com / Airbnb / Direct / Expedia. | `channels.status` is written by no application code outside a test factory, so Synced/Syncing/Queued are dead enums. The live Channels card shows the **real** state — "1 live · OTA sync needs setup", Direct **Live**, Booking.com (demo) **Connected** — and says live OTA sync activates once the connection is set up. | Live sync arrives with the **Channex** cutover. | **ACCOUNT-GATED / RATIFIED REFUSAL — CHANNEX-TIED.** Verified: the page contains **no** "All synced"/"Everything synced". **Do not fabricate a sync state or a last-synced time.** |
+| D18-4 | Per-rate-plan channel pills — **"All channels"** vs **"Direct only"**. | **No rate_plan ↔ channel model exists**; every plan honestly renders **Direct**. | A rate-plan/channel distribution model, which only means anything once Channex is live. | **ACCOUNT-GATED — CHANNEX-TIED**, and the same unmodelled attribution as **D2-2** (0 of 40 reservations carry a `channel_id`). ⚠️ **Do not invent a per-channel rate or an OTA-specific override.** Verified: 0 "All channels"/"Direct only" pills on the page. |
+| D18-5 | The grid rows are **physical units** — "Villa Azure · 2-bed · sleeps 4", "Apt 101". | The live rows are **ROOM TYPES** ("Double Room · 3 units · Flexible"). ⚠️ Not an oversight: `rate_calendar` is keyed on `rate_plan_id` and a rate plan belongs to a **room type**, so a per-unit grid could only be backed by silently writing every unit under a type. | Per-unit pricing would be a real modelling change (a rate plan per unit), with a genuine product question attached: should two units of the same type be priceable apart? | **REAL GAP / product decision** — documented as STRUCT-1 in `docs/WAVE4-INVENTORY.md`. The live sub-label states how many physical units a row touches, so the operator is never misled about what a save covers. **Not started.** |
+| D18-6 | Three visually distinct rate plans (Base · flexible / Non-refundable −10% / Weekly −15%). | ⚠️ **The live list renders "Flexible" TWICE with identical text.** Verified as REAL data, not a display duplicate: there are genuinely two active Flexible plans in scope, one per room type (Double Room, One-Bedroom Apartment). `ratePlanList()` returns only `name`/`sub`/`refundable`/`is_derived`/`channel` — **the room type is not in the payload**, so two different plans are indistinguishable on screen. | Carrying the plan's room type into the payload (`with('roomType')` + a field) and rendering it as the row's sub-label. Small and purely additive. | **REAL GAP** — a genuine clarity defect. ⚠️ **Not built here on purpose:** it extends the component's read payload, which is the same line drawn at **D16-1** on Payout Run. Logged for the backend phase. |
+
+### Also noted on this page (not backend gaps)
+
+- ⚠️ **#6 — NOTHING was added.** No guardrail, floor, ceiling, "protected" or "within band" claim appears on
+  this direct-write surface, and none was introduced. The guardrail is **not enforced** on this path and the
+  page makes no claim that it is. **Enforcement remains the founder's deferred call (G.2).**
+- **The rate engines were NOT touched.** `RateAndRestrictionService` and `RateProposalService` are unchanged;
+  both writes still POST their real `can:rates.manage` routes with CSRF (`/app/rates`, `/app/rates/bulk`).
+  **Restyled, not rewired — and nothing was submitted:** the Bulk-edit panel was opened READ-ONLY, because a
+  real rate write mutates rates and can ripple into folio pricing.
+- **#17 / #39 — the figures are real.** Avg nightly rate **€142.85** is a real mean of set rates **per
+  currency** (never summed across); Booked 21% is sold ÷ published inventory; Open nights 36 is real
+  unit-nights. Rates in the grid are real `rate_calendar` values (€100.00 / €180.00 / €140.00 / €220.00), and
+  a date with **no rate set renders "—"**, never an invented price — the WAVE-3 invented-arrival-hour lesson.
+- **#38** — the grid resolves through `currentReadIds` (the property read-set). A third "Flexible" plan exists
+  on **City Studio** in another property and correctly does **not** appear.
+- **#28** — units, dates and prices only; **0 email addresses**, no guest contact anywhere.
+- **#20** — the window nav, the room-type filter and the jump link all ride **GET links**, unchanged.
+- **WCAG 1.4.1** — every legend swatch is followed by its **word** (Open / Booked / Weekend), and a full cell
+  prints "Full" as text, so no grid state is carried by colour alone.
+- **The grid scrolls inside its own `overflow-x: auto` container** (table 1305px in a narrower wrapper) — all
+  14 day columns render; the un-scrolled screenshot simply shows the first nine. **Not a defect.**
+- **Reviewed and KEPT, worth recording because it is borderline:** the pacing card's *"36 open nights —
+  consider a promotion."* It is a plain observation derived from a real figure, with no invented specifics —
+  materially different from the design's *"Weekends nearly sold out — the +15% uplift is holding. Softest
+  nights: Wed 17 & Wed 24 Sep."*, which is a generated narrative with fabricated detail and is **refused**.
+- **Fixed (1) — the page title wrapped onto two lines.** MEASURED: `.vy-topbar` is a space-between flex row
+  and BOTH sides were `flex: 0 1 auto`, so the actions cluster (search 227 + date chip 174 + bell 38 +
+  account 165 ≈ 639px) won and squeezed the lead to **255px**, breaking **"Rates & availability"** across two
+  lines (255×81 instead of ~259×35). It is the longest operator title, which is why no earlier page showed it.
+  Fixed with `white-space: nowrap` + a growing lead: one line needs ~259px and the actions' min-content is
+  ~623px = 898 of the 910 available. Now **1 line at 259px — exactly the prototype's width** — and still 1
+  line with 0 overflow at 1000px.
+- **Fixed (2) — the legend and Bulk edit moved into the CONTROL ROW**, where the design carries them; they sat
+  on a separate line below the stat tiles. ⚠️ Bulk edit is an Alpine action, so the `x-data="ratesEditor()"`
+  scope was lifted to open above the toolbar; the editor itself is otherwise untouched.
+- ⚠️ **A test was STRENGTHENED because a gated control moved.** `OperatorRatesTest`'s read-only case asserted
+  only that the *editor* is hidden from a `rates.view`-only role; **Bulk edit is the second `rates.manage`
+  control and was not covered.** Since this gate relocated it, the test now also asserts
+  `assertDontSee('Bulk edit')` for a Reservation Agent and `assertSee('Bulk edit')` for a Hotel Manager —
+  **proven to discriminate** by removing the `@can` wrapper (RED) and restoring it (green). A relocated control
+  that quietly loses its gate is exactly the #30 "the UI invites a 403" defect.
+- **Responsive:** 0px horizontal overflow at **1440** and **1000**; the toolbar wraps, the grid keeps its own
+  scroll container. **0 console errors/warnings.** Contrast on the new/affected elements **5.48–12.09** (AA).

@@ -170,7 +170,15 @@
         /* Main column */
         .vy-main { padding: 22px 30px 60px; max-width: 1480px; }
         .vy-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
-        .vy-topbar h1 { font-family: var(--vy-display); font-weight: 600; font-size: 28px; letter-spacing: -0.02em; margin: 0; }
+        /* ⚠️ `white-space: nowrap` + a growing lead — MEASURED, not cosmetic. `.vy-topbar` is a
+           space-between flex row and BOTH sides were `flex: 0 1 auto`, so the actions cluster (search 227 +
+           date chip 174 + bell 38 + account 165 ≈ 639px) won the negotiation and squeezed the lead to 255px.
+           Every operator title is short enough to survive that except the longest one — "Rates &
+           availability" — which wrapped onto TWO lines (255×81 instead of ~259×35). On one line the title
+           needs ~259px and the actions' min-content is ~623px = 898 of the 910 available, so it fits; the
+           search pill keeps its own 210px floor. Other pages are unaffected — their titles never reached
+           the wrap point. */
+        .vy-topbar h1 { font-family: var(--vy-display); font-weight: 600; font-size: 28px; letter-spacing: -0.02em; margin: 0; white-space: nowrap; }
         .vy-topbar-sub { font-size: 12.5px; color: var(--vy-muted); margin-top: 3px; }
         .vy-topbar-actions { display: flex; align-items: center; gap: 12px; }
 
@@ -182,7 +190,7 @@
 
         /* GATE 0 — bespoke-chrome topbar (prototype-exact): read-only pill · search pill · date chip · account dropdown */
         [x-cloak] { display: none !important; }
-        .vy-topbar-lead { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .vy-topbar-lead { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
         .vy-ro-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: var(--vy-r-pill); background: rgba(217, 154, 61, 0.18); color: #8F6414; font-size: 11.5px; font-weight: 500; white-space: nowrap; flex: none; }
         .vy-glass-pill { display: inline-flex; align-items: center; gap: 8px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); }
         .vy-search-pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); color: var(--vy-faint); font-size: 13px; min-width: 210px; text-decoration: none; transition: color .15s; }
@@ -1427,6 +1435,14 @@
         .vyr-navbtn { width: 34px; height: 34px; display: inline-grid; place-items: center; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); text-decoration: none; }
         .vyr-navbtn:hover { background: rgba(255,255,255,.9); }
         .vyr-jump { font-size: 12.5px; color: var(--vy-accent-text); text-decoration: none; font-weight: 600; }
+        /* Rates legend + bulk action — the design carries both in the CONTROL ROW, not on a separate line
+           below the stat tiles. `margin-left: auto` pushes the pair to the right of the window nav and the
+           room-type filter. Each swatch is followed by its WORD in the markup, so a grid state is never
+           conveyed by colour alone (WCAG 1.4.1). */
+        .vyr-legend { display: flex; gap: 16px; font-size: 12px; color: var(--vy-muted); margin-left: auto; }
+        .vyr-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+        .vyr-legend-sw { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+        .vyr-bulk { flex: none; }
         .vyr-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .vyr-grid { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 760px; }
         .vyr-grid th, .vyr-grid td { border-bottom: 1px solid var(--vy-hairline); }

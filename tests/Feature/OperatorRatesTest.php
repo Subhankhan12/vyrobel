@@ -173,13 +173,18 @@ it('shows the grid to a rates.view role but hides the editor control from it', f
         ->assertOk()
         ->assertSee('€100.00')
         // …but may NOT manage them → the write form is absent (no dead-end 403 to walk into).
-        ->assertDontSee('Set rates & availability');
+        ->assertDontSee('Set rates & availability')
+        // ⚠️ BULK EDIT is the SECOND rates.manage control, and the design-parity pass MOVED it into the
+        // control row. It is gated by the same permission, and this asserts the gate travelled with it —
+        // a relocated control that quietly loses its gate is exactly the #30 "the UI invites a 403" defect.
+        ->assertDontSee('Bulk edit');
 
-    // A manager DOES see the editor.
+    // A manager DOES see the editor — and the bulk control.
     $this->actingAs(operatorUser($s, ['name' => 'Mo Manager'], 'Hotel Manager'))
         ->get('/app/rates?from=2026-09-01')
         ->assertOk()
-        ->assertSee('Set rates & availability');
+        ->assertSee('Set rates & availability')
+        ->assertSee('Bulk edit');
 });
 
 // ── 6. THE PAGE ITSELF is gated on rates.view; the nav never dead-ends a role that lacks it ──────

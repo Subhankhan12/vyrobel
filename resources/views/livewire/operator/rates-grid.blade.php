@@ -18,7 +18,15 @@
             </div>
         @endif
 
-        {{-- ── Toolbar: the two-week window, pageable. Real dates only; no fabricated "sync" ribbon. ──── --}}
+        {{-- ⚠️ The Alpine scope starts HERE (it used to open below the stat tiles) so that the design's
+             control row can carry Bulk edit — which is an Alpine action (`bulkOpen`) and must sit inside
+             `ratesEditor()`. Nothing else about the editor changed; the KPI tiles simply fall inside the
+             scope now, which is inert for them. --}}
+        <div x-data="ratesEditor()">
+
+        {{-- ── Toolbar: the two-week window, pageable. Real dates only; no fabricated "sync" ribbon.
+             The design puts the legend and the bulk-edit action in this control row, not on a separate
+             line below the stat tiles. ─────────────────────────────────────────────────────────────── --}}
         <div class="vyr-toolbar vy-fade">
             <div class="vyr-winnav">
                 <a class="vyr-navbtn" href="{{ $window['prev'] }}" aria-label="Previous two weeks" title="Previous two weeks">
@@ -43,6 +51,21 @@
             @endif
             @if ($window['jump'])
                 <a class="vyr-jump" href="{{ $window['jump']['href'] }}">Jump to rates from {{ \Carbon\CarbonImmutable::parse($window['jump']['date'])->format('j M Y') }} →</a>
+            @endif
+
+            {{-- The design's legend sits in the control row. ⚠️ Each swatch is paired with its WORD, so the
+                 grid's cell states are never carried by colour alone (WCAG 1.4.1). --}}
+            @if (count($rows) > 0)
+                <div class="vyr-legend">
+                    <span><span class="vyr-legend-sw" style="background: rgba(120,70,40,.10);"></span> Open</span>
+                    <span><span class="vyr-legend-sw" style="background: rgba(194,65,12,.20);"></span> Booked</span>
+                    <span><span class="vyr-legend-sw" style="background: rgba(178,106,8,.14);"></span> Weekend</span>
+                </div>
+                @can('rates.manage')
+                    @unless ($readOnly)
+                        <button type="button" class="vy-btn vy-btn--ghost vyr-bulk" style="padding: 8px 14px; font-size: 12.5px;" x-on:click="bulkOpen = true">Bulk edit</button>
+                    @endunless
+                @endcan
             @endif
         </div>
 
@@ -74,24 +97,6 @@
                 <div class="vy-dk-sub">bookable unit-nights left in this window</div>
             </div>
         </div>
-
-        <div x-data="ratesEditor()">
-
-            {{-- ── Header: legend + Bulk edit ───────────────────────────────────────────────────────── --}}
-            @if (count($rows) > 0)
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
-                    <div style="display: flex; gap: 16px; font-size: 12px; color: var(--vy-muted);">
-                        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: rgba(120,70,40,.10);"></span> Open</span>
-                        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: rgba(194,65,12,.20);"></span> Booked</span>
-                        <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: rgba(178,106,8,.14);"></span> Weekend</span>
-                    </div>
-                    @can('rates.manage')
-                        @unless ($readOnly)
-                            <button type="button" class="vy-btn vy-btn--ghost" style="padding: 8px 14px; font-size: 12.5px;" x-on:click="bulkOpen = true">Bulk edit</button>
-                        @endunless
-                    @endcan
-                </div>
-            @endif
 
             {{-- ── The grid ─────────────────────────────────────────────────────────────────────────── --}}
             <div class="vy-card vy-card--flush vy-fade" style="margin-bottom: 18px;">

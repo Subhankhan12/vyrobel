@@ -760,10 +760,11 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **25 of 42** covered, **17 remaining** (`0aa9ede`→`3f86270`, all pushed)
+## N.4 Progress — OPERATOR **26 of 42** covered, **16 remaining** (`0aa9ede`→`PENDINGHASH`, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
-Payout Run** and **P17 Billing**, so the current figure is **25 covered / 17 remaining** (25 + 17 = 42). Notes saying
+Payout Run**, **P17 Billing** and **P18 Rates**, so the current figure is **26 covered / 16 remaining**
+(26 + 16 = 42). Notes saying
 "22/42 … 19 remaining" are the pre-GATE-B count and do not add up.
 
 | Gate | Page(s) | Commit |
@@ -792,6 +793,7 @@ Payout Run** and **P17 Billing**, so the current figure is **25 covered / 17 rem
 | — | **TEST GATE — the 8th non-green closed** (J.bis; a contrast guard tightened to its intent, proven still live) | `9696b9c` |
 | P16 | **Operator Payout Run** ⚠️ real owner money (4 design fixes · 6 backend items · **D16-7** a money-visibility finding) | `4458f52` |
 | P17 | **Operator Billing** ⚠️ the OPEN billing decision (6 design fixes incl. a pre-existing modal bug · 5 backend items · a **G.1** observation) | `3f86270` |
+| P18 | **Operator Rates & availability** ⚠️ what guests are charged (2 design fixes · 6 backend items · a strengthened #30 gate test) | `PENDINGHASH` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -836,18 +838,18 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Rates.**
+## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator New Reservation.**
 
-⚠️ **Rates is a money surface** — it sets what guests are charged. Same discipline as Payout Run: restyle,
-never rewire; the guarded rate/restriction write and `OwnerRateService`/`RateAndRestrictionService` stay
-untouched; the **#6 owner rate-guardrail copy stays honest** (it promises only the proposal path the code
-enforces — see **G.2**).
+⚠️ **New Reservation is money AND inventory** — it creates a booking through the certified
+`AssignmentService` (the single inventory write path, the no-double-booking guarantee, the `isBookable()`
+OOS/paused guard). Same discipline: restyle, never rewire; **observe the create flow READ-ONLY and never
+submit** — a real booking mutates inventory, the folio and the seed.
 
-**17 OPERATOR prototypes remain:** **1 Rates** · **2 New Reservation** (money + `AssignmentService`
-inventory) · **3 Group Booking** · **4 Owners** (PII / owner isolation #28/#42) · **5 Owner Detail** ·
-**6 Roles** (RBAC escalation #30) · **7 Security** · **8 Reviews** · **9 Channels** (OTA claims #37) ·
-**10 Portfolio** (#38) · **11 Search** · **12 Notifications** · **13 Notification Preferences** ·
-**14 Email Templates** · **15 Email Editor** · **16 Profile** · **17 Schedule PDF**.
+**16 OPERATOR prototypes remain:** **1 New Reservation** (money + inventory) · **2 Group Booking** ·
+**3 Owners** (PII / owner isolation #28/#42) · **4 Owner Detail** · **5 Roles** (RBAC escalation #30) ·
+**6 Security** · **7 Reviews** · **8 Channels** (OTA claims #37) · **9 Portfolio** (#38) · **10 Search** ·
+**11 Notifications** · **12 Notification Preferences** · **13 Email Templates** · **14 Email Editor** ·
+**15 Profile** · **16 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 
