@@ -134,6 +134,7 @@ class HousekeepingBoard extends Component
             'rows' => $cards,
             'tallies' => $this->tallies($allCards, $outOfOrder),
             'crew' => $crew,
+            'suggestedCrewId' => $this->suggestedHousekeeperId($crew),
             'outOfOrder' => $outOfOrder,
             'crewFilter' => $crewFilter,
             'query' => $search,
@@ -262,6 +263,35 @@ class HousekeepingBoard extends Component
             'load' => (int) ($load[$hk['id']] ?? 0),
             'active' => $crewFilter === $hk['id'],
         ], app(StaffRoster::class)->housekeepers());
+    }
+
+    /**
+     * The genuinely LEAST-LOADED housekeeper — what "Suggested" claims to mean (WAVE 3 tail).
+     *
+     * ⚠️ The assign picker badged and pre-selected `$i === 0`, i.e. whoever `StaffRoster::housekeepers()`
+     * happened to return first (name order) — while the SAME row displayed that person's real open-task
+     * load right beside it. A "suggestion" that ignores the number printed next to it is a false claim (#39).
+     *
+     * Computed rather than re-sorting `$crew`, because that list also drives the filter chips and the crew
+     * panel: ordering those by load would make the filters shuffle as work is assigned. Ties break on the
+     * existing order, so the pick is stable between renders.
+     *
+     * @param  list<array{id: string, name: string, initials: string, load: int, active: bool}>  $crew
+     */
+    private function suggestedHousekeeperId(array $crew): ?string
+    {
+        if ($crew === []) {
+            return null;
+        }
+
+        $best = $crew[0];
+        foreach ($crew as $member) {
+            if ($member['load'] < $best['load']) {
+                $best = $member;
+            }
+        }
+
+        return (string) $best['id'];
     }
 
     /** Real out-of-order unit count in scope — the certified availability source (`condition_status`). */

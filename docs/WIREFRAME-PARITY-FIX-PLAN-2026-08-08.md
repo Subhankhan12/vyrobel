@@ -206,6 +206,32 @@ Every item below is **copy asserting behaviour the code does not implement**. Fo
 >   (the two-readers-drift class, #17). The period selector is a genuine WAVE-3 presentation item and can ride
 >   along with that fix.
 
+> ### ✅ HOUSEKEEPING "Suggested" — FIXED (this gate)
+> The assign picker badged AND pre-selected `$i === 0` (name order) while printing that person's real
+> open-task load beside it — a suggestion contradicting its own number (#39). Now computes the genuinely
+> least-loaded housekeeper. Computed rather than re-sorting `$crew`, because that list also drives the
+> filter chips and the crew panel; ordering those by load would shuffle the filters as work is assigned.
+>
+> ### 🔎 OWNER PAYOUT YEAR FILTER — verified real, IMPLEMENTED then REVERTED (next session: finish it)
+> **The gap is real and confirmed:** `OwnerPayouts::distinctYears()` builds a genuine list of the owner's
+> payout years and exposes it as `years`; **nothing renders it and the component never filters by year**, so
+> the wireframe's filter does not exist.
+>
+> A working implementation was written (a `?year=` GET filter + real-years-only chips that render only when
+> there is more than one year) and then **deliberately reverted**, because the regression test could not be
+> made to discriminate within budget and this project does not ship a feature without a fail-first test.
+>
+> **⚠️ WHAT THE NEXT SESSION NEEDS TO KNOW (this is where the time went):**
+> - `/owner/payouts` is a FULL-PAGE Livewire component, so `$response->viewData(...)` throws *"The response
+>   is not a view"*. Assert on rendered content, or drive `Livewire::test()` — but note `OwnerPayouts`
+>   resolves through `OwnerContext`, which `Livewire::test` does NOT activate (it fails closed).
+> - `ownerRoleUser($s)` creates its OWN `Owner` and links the unit to it. Payouts attached to a separately
+>   created `ownUnit()` owner are invisible to that user — build the payouts against
+>   `Owner::where('user_id', $user->id)`.
+> - Asserting on bare money strings does not discriminate: the page renders amounts in the KPI band and the
+>   next-payout card as well as the history rows, so `assertDontSee('111.00')` fails even when the history
+>   IS correctly filtered. Assert on the history region specifically (or on component data).
+>
 > ### 🔎 VERIFIED-AND-CONFIRMED, not yet fixed (next session can start here)
 > ### ⏳ PAGINATION — 2 of 3 DONE (`f12dbe3`), Notifications OPEN
 > Guests and Reservations are paginated. The pattern is built and reusable: a realm-neutral

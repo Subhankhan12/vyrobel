@@ -241,10 +241,14 @@
                         @foreach ($crew as $i => $member)
                             <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; border: 1px solid var(--vy-hairline); border-radius: 8px; cursor: pointer;">
                                 <span style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="radio" name="user_id" value="{{ $member['id'] }}" @if ($i === 0) checked @endif>
+                                    {{-- WAVE 3 — "Suggested" now means genuinely LEAST-LOADED, not "first in the
+                                         list". It badged and pre-selected $i === 0 (name order) while showing
+                                         that person's real load right beside it — a suggestion contradicting
+                                         its own number (#39). --}}
+                                    <input type="radio" name="user_id" value="{{ $member['id'] }}" @checked($member['id'] === $suggestedCrewId)>
                                     <span class="vy-avatar" style="width: 26px; height: 26px; font-size: 11px;">{{ $member['initials'] }}</span>
                                     {{ $member['name'] }}
-                                    @if ($i === 0) <span class="vy-tag tone-vip" style="padding: 1px 7px;">Suggested</span> @endif
+                                    @if ($member['id'] === $suggestedCrewId) <span class="vy-tag tone-vip" style="padding: 1px 7px;">Suggested</span> @endif
                                 </span>
                                 <span class="vy-muted" style="font-size: 12px;">{{ $member['load'] }} today</span>
                             </label>
