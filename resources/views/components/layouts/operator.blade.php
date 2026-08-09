@@ -303,6 +303,19 @@
         .vy-rep-ch-total > :first-child { font-size: 14px; }
         .vy-rep-ch-total > :last-child { font-size: 16px; color: var(--vy-accent-text); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
         .vy-rep .vy-num { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+
+        /* ---- Operator Reservations (list) — wireframe parity (scoped to .vy-res) ----------------- */
+        /* This wireframe's stat tile is tighter than the Dashboard's; scoped, not pushed at the token. */
+        .vy-res .vy-dash-kpi { padding: 15px 18px; }
+        .vy-res .vy-dk-val { font-size: 26px; }
+        /* The design's search is ONE integrated pill (icon + field + inline clear), not a field beside a
+           button. The form stays a GET form — the search is a scope-dependent read (#20). */
+        .vy-res .vy-input-group { align-items: center; gap: 0; padding: 3px 4px 3px 15px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); }
+        .vy-res .vy-search-ico { flex: none; margin-right: 9px; color: var(--vy-muted); }
+        .vy-res .vy-input-group .vy-input { flex: 1; min-width: 0; border: none; background: transparent; box-shadow: none; padding: 7px 0; font-size: 13px; }
+        .vy-res .vy-input-group .vy-input:focus { outline: none; }
+        .vy-res .vy-input-group:focus-within { border-color: var(--vy-accent-border); }
+        .vy-res .vy-input-group .vy-btn, .vy-res .vy-input-group .vy-pill { flex: none; padding: 6px 14px; font-size: 12.5px; }
         .vy-card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
         .vy-card-head h3 { margin: 0; font-family: var(--vy-display, inherit); font-size: 14px; font-weight: 600; color: var(--vy-ink); }
         .vy-card-note { font-size: 11.5px; color: var(--vy-faint); }

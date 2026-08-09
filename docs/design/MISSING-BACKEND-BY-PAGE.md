@@ -56,6 +56,7 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 3 | Operator Insights | `/app/insights` | Hotel Manager | ✅ matched | **3** (2 real gaps · 1 refusal) + ⚠️ **1 figure-honesty finding** |
 | 4 | Operator Reports | `/app/reports` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
 | 5 | Operator Front Desk | `/app/front-desk` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
+| 6a | Operator Reservations (list) | `/app/reservations` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
 
 ---
 
@@ -250,3 +251,41 @@ phone appears anywhere on the rendered page. **#33** untouched — this surface 
   Deliberate divergence.
 - **The wireframe's Walk-in CTA inside the empty state** was not duplicated: the walk-in trigger is
   permission-gated and already sits in the toolbar; repeating it would mean duplicating that gate.
+
+---
+
+## 6a · Operator Reservations — LIST — `/app/reservations` (Hotel Manager)
+
+**Prototype:** `docs/design/raw/Operator Reservations.html` (decoded 2026-08-09; byte-identical to the
+2026-08-07 audit decode). **Live component:** `App\Livewire\Operator\ReservationsList`.
+**Design pass:** complete. ⚠️ **The reservation DETAIL is a separate, larger surface (1,310-line prototype
+plus Cancelled and No-show variants) and is the NEXT turn — it is not covered here.**
+
+**Checked first — the #20 contract is intact.** The pager is still plain GET links (`?page=2`), **zero
+wire-actions**, and page 2 was driven in the browser: it returned 15 rows (25 + 15 = 40) whose units were
+**102 / 103 / A1 / A2 — all belonging to the selected property**, so the property scope genuinely survives a
+page change. The search is still a GET form that carries the active stage, and the stage chips are still
+plain `<a href>` links. Nothing was converted to a wire-action.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D6-1 | **Select mode + bulk actions.** A "Select" toggle turns the rows into checkboxes, with a floating bulk-action bar and a **bulk message composer** for the selected reservations. | No selection mode, no bulk bar, no bulk composer on this list. (Bulk *guest* actions do exist on the Guests CRM — this is the reservations equivalent, which does not.) | A selection state + a gated bulk endpoint per action. ⚠️ Each bulk action must run through the SAME certified service as its single-row equivalent (no bulk path that bypasses `AssignmentService` / the cancellation policy), and a bulk message must respect the marketing-consent gate and `MarketingUnsubscribe` the same way single sends do. Bulk cancel in particular must stay inside the #29 terminal-status bound per row. | **REAL GAP** |
+| D6-2 | **Row hover quick-actions** — a floating pill over the hovered row offering check-in, check-out, message guest and open-full-reservation. | The row links to the detail page; there are no per-row shortcut actions. The underlying actions all exist (Front Desk check-in/out, the inbox, the detail page) — they are simply not surfaced here. | Surface the existing gated actions as row shortcuts. ⚠️ Each must POST to its real route with the real permission gate (`reservations.checkin` / `reservations.checkout`) — a shortcut that skips a guard is worse than no shortcut, and a control shown to a role that cannot use it invites a 403 (the "gate the control too" rule, #30). | **REAL GAP** |
+| D6-3 | **Month scope button** ("Sep 2025") beside the filters, scoping the list to a chosen month. | The list has stage chips + search, but no month/date-range narrowing. | A `?month=` (or from/to) GET param threaded into the existing query. ⚠️ It must ride a GET link like every other scope-dependent read here (#20), and the three stat tiles state their own scope ("arrivals this month") — either the tiles follow the chosen month or they keep saying exactly what they measure. Today they are deliberately NOT re-scoped by the chips, and that decision is documented in the view. | **REAL GAP** |
+
+### Also noted on this page (not backend gaps)
+
+- **The "Refunded" chip already exists** (`#104 GATE 3c`): the row payload carries a real
+  `payment_status === 'refunded'` flag and renders the wireframe's pill — it simply never appears on the
+  current seed because no demo reservation is fully refunded. **Not a gap.** It deliberately shows no figure
+  (the amount lives on the folio, #39).
+- **Kept, not removed (§6 extra work):** a **BALANCE DUE** column the wireframe does not have, **seven**
+  stage chips against the wireframe's five (each labelled from the shared `ReservationStage::meta()` with a
+  count that matches what the click actually returns), the "Clear search and filters" empty state, and the
+  two honest empty states (fresh tenant vs no-match).
+- **Row click navigates to the full detail page**, where the wireframe opens a slide-over drawer. The
+  wireframe *also* has a full detail page, so this is a navigation divergence, not a missing surface.
+- **Shared `<x-pager>` restyled (not rewired).** Prev/next became the wireframe's round icon buttons across
+  all four consumers. ⚠️ The visible **"Page N of M"** was KEPT even though the wireframe omits it — a bare
+  chevron pair tells you neither where you are nor whether another page exists, and assistive-tech users
+  lose position entirely. GET links, `withQueryString()` and the self-contained inline styles are unchanged.

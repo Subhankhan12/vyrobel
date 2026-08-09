@@ -17,9 +17,14 @@
 @props(['paginator', 'label' => 'results'])
 
 @php
-    $vyBtn = 'display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;background:rgba(255,252,248,.58);border:1px solid var(--vy-glass-border);font-size:12.5px;font-weight:500;color:var(--vy-ink);text-decoration:none;white-space:nowrap';
-    $vyOff = 'display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:500;color:var(--vy-faint);white-space:nowrap';
+    // The wireframes render prev/next as round icon buttons. The visible "Page N of M" between them is
+    // KEPT even though the wireframe omits it — a bare chevron pair tells you neither where you are nor
+    // whether another page exists, and screen-reader users lose the position entirely.
+    $vyBtn = 'display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.55);border:1px solid var(--vy-glass-border);color:var(--vy-ink);text-decoration:none;flex:none';
+    $vyOff = 'display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.28);border:1px solid var(--vy-glass-border);color:var(--vy-faint);flex:none';
     $vyMeta = 'font-size:12px;color:var(--vy-muted);font-variant-numeric:tabular-nums';
+    $vyPrevIco = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>';
+    $vyNextIco = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
 @endphp
 
 @if ($paginator->hasPages())
@@ -31,17 +36,17 @@
 
         <span style="display:inline-flex;align-items:center;gap:8px">
             @if ($paginator->onFirstPage())
-                <span style="{{ $vyOff }}" aria-disabled="true">‹ Previous</span>
+                <span style="{{ $vyOff }}" aria-disabled="true" aria-label="Previous page">{!! $vyPrevIco !!}</span>
             @else
-                <a style="{{ $vyBtn }}" href="{{ $paginator->previousPageUrl() }}" rel="prev">‹ Previous</a>
+                <a style="{{ $vyBtn }}" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="Previous page" title="Previous page">{!! $vyPrevIco !!}</a>
             @endif
 
             <span style="{{ $vyMeta }};padding:0 2px">Page {{ $paginator->currentPage() }} of {{ $paginator->lastPage() }}</span>
 
             @if ($paginator->hasMorePages())
-                <a style="{{ $vyBtn }}" href="{{ $paginator->nextPageUrl() }}" rel="next">Next ›</a>
+                <a style="{{ $vyBtn }}" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="Next page" title="Next page">{!! $vyNextIco !!}</a>
             @else
-                <span style="{{ $vyOff }}" aria-disabled="true">Next ›</span>
+                <span style="{{ $vyOff }}" aria-disabled="true" aria-label="Next page">{!! $vyNextIco !!}</span>
             @endif
         </span>
     </nav>

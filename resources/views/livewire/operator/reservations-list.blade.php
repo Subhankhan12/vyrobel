@@ -21,7 +21,7 @@
      RAW-BLADE RULE: never write `word@directive` — Blade guards with \B, so a directive whose `@` follows a
      word character ships the RAW SOURCE to the page as ordinary text, invisible to assertSee. Every `@`
      below follows a space, a newline or a tag. --}}
-<div>
+<div class="vy-res">
     <x-operator.shell active="reservations" title="Reservations" :subtitle="$subtitle" :viewer="$viewer">
 
         {{-- ── Stat strip — DERIVED. The CURRENT CALENDAR MONTH, keyed on check-in, excluding cancelled and
@@ -74,6 +74,8 @@
                     {{-- The placeholder promises EXACTLY what the query does: reference + guest name. It does
                          not offer email/phone (encrypted — a LIKE would match nothing) or unit (not in this
                          gate's scope). --}}
+                    {{-- The design carries the magnifier inside the field. Decorative. --}}
+                    <svg class="vy-search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                     <input class="vy-input" type="search" name="q" value="{{ $query }}"
                            placeholder="Search by guest or reference…" aria-label="Search reservations">
                     <button type="submit" class="vy-btn vy-btn--ghost">Search</button>
