@@ -185,6 +185,35 @@
                         </div>
                     </header>
 
+                    {{-- The design carries a reservation CONTEXT strip under the thread header, so a replier can
+                         see who they are answering without leaving the conversation. Every field here is already
+                         in reservationCard() — dates, unit, status — so this renders real data or nothing; the
+                         design's "Party" and "Balance" are NOT in that payload and are logged, never invented
+                         (#39). The guest-profile link is gated on a real guest_id and goes to the CRM, which
+                         sits behind the SAME guests.view permission as this inbox — no widening (#28). --}}
+                    @if ($active['reservation'])
+                        <div class="vy-thread-context">
+                            <span class="vy-tc-item">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+                                {{ $active['reservation']['dates'] }}
+                            </span>
+                            @if ($active['reservation']['unit'])
+                                <span class="vy-tc-item">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5"/></svg>
+                                    {{ $active['reservation']['unit'] }}
+                                </span>
+                            @endif
+                            {{-- No stage chip here: reservationCard() carries the RAW status, and the shared
+                                 ReservationStage::meta() takes a computed STAGE — feeding it a status renders
+                                 "Unknown". Re-deriving the vocabulary in Blade would be a second definition of
+                                 a concept this project deliberately keeps in one resolver, so the stage is
+                                 LOGGED as a gap instead of guessed at here. --}}
+                            @if ($active['guest']['guest_id'] ?? null)
+                                <a class="vy-tc-link" href="{{ route('app.guests.show', $active['guest']['guest_id']) }}">View guest profile</a>
+                            @endif
+                        </div>
+                    @endif
+
                     {{-- Latest INTERNAL note — staff-only (guests never see this); name-only author (#28). --}}
                     @if ($active['note'])
                         <div class="vy-thread-note" title="Internal — the guest never sees this">

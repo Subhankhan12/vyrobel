@@ -562,3 +562,50 @@ audit copy. **Role:** Hotel Manager (`schedule.view` to see, `schedule.manage` t
 - **Checked and NOT a defect:** a full-page screenshot shows the warm gradient stopping partway down. The
   gradient is `background-attachment: fixed`, so that is a screenshot-stitching artefact — scrolled in a
   real viewport the gradient covers the full page. Verified before reporting.
+
+---
+
+## 10. Operator Messages / Inbox (`/app/inbox`)
+
+**Prototypes:** three decode to this one page — `Operator Messages.html` (thread list + the assign / new-message
+modals, 856 lines), `Operator Conversation.html` (the conversation pane, 646 lines) and `Operator Inbox.html`
+(a filters variant, 586 lines). **Role:** Hotel Manager (`guests.view` gates every inbox route).
+
+⚠️ **Correction worth recording for later pages:** a first pass probing rendered TEXT reported internal notes,
+templates and Retry as "missing". They are all **built** — they simply were not being exercised by the thread
+on screen (no failed message, no note on that thread, templates live inside the New-message modal). Probing
+the DOM measures the current *state*, not the page's *capability*; the source is the authority.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D10-1 | **Party** and **Balance** in the conversation's reservation panel. | `reservationCard()` returns id / reference / unit / dates / status only. Party size and folio balance are genuinely absent. | Adding occupancy (adults+children) and a balance to `reservationCard()`, the balance read through the shared `FolioTotals` so it can never disagree with the folio screen (#17). | **REAL GAP** — the strip built this pass renders dates + unit, and stops honestly where the payload stops. |
+| D10-2 | A reservation **stage** on the conversation (the design badges the stay). | `reservationCard()` carries the RAW `status`; the shared `ReservationStage::meta()` takes a computed STAGE, so feeding it a status renders "Unknown". | One line in `reservationCard()`: `ReservationStage::for($reservation)`. It must come from that resolver — re-deriving stage words in Blade would be a second definition of a concept this project deliberately keeps in one place. | **REAL GAP** — deliberately not guessed at in the view. |
+| D10-3 | **Teammate presence** in the Assign modal — "online", "3 conversations open", "off shift · back tomorrow 08:00". | The assign modal lists real staff with no presence or load at all. | Three different things: live "online" needs websockets (**Reverb is running idle** — §H deferral); "N conversations open" is a countable over real threads; "off shift · back tomorrow" is derivable from the REAL roster (`StaffRoster` / `RosterWeek`). | **SPLIT — "online" is a DEFERRED CHANNEL; the load count and the shift state are REAL GAPS.** Do not fake presence. |
+| D10-4 | A **"Suggested"** assignee in the Assign modal. | No suggestion is offered. | The same shape Housekeeping already uses: genuinely least-loaded by real open-thread count. ⚠️ It must be computed, not "first in the list" — that exact bug was fixed on Housekeeping (see §8), and the fix note explains why a badge that contradicts the number beside it is a false claim (#39). | **REAL GAP** — small, with a proven pattern to copy. |
+| D10-5 | A **VIP** badge on threads. | Not surfaced in the inbox, although `guests.vip` is a real column the CRM already renders. | Carrying the real flag into the thread/guest card. | **REAL GAP** — small. |
+| D10-6 | **"Booking.com"** as a guest's channel in the New-message picker. | Every live thread is `Direct`; no OTA channel appears. | Live OTA message sync (Channex) — the same account-gated integration behind the Channels page. | **ACCOUNT-GATED** (§H) — a channel chip that claims an OTA thread the product cannot send or receive on would be a fabrication (#37/#39). |
+
+### Also noted on this page (not backend gaps)
+
+- **REAL threads, #38-scoped.** Four real `MessageThread` rows through `InboxService`, tenant + property
+  scoped, with honest empty states ("No conversations yet." / "No conversations match.").
+- **#28 verified and NOT widened.** No email or phone appears anywhere on the page — the inbox is
+  **name-only**, and the component docblock states the perimeter explicitly. The strip added this pass shows
+  dates + unit, no contact. Its "View guest profile" link points at `app.guests.show`, which is gated by the
+  **same `guests.view` permission as the inbox itself** — a link to an already-permitted page, not a new
+  disclosure. The page also carries the honest footnote *"contact details stay private."*
+- **No owner path to guest threads** — an owner thread renders its own footnote, *"Your owner replies in
+  their portal · this thread is not visible to the guest."*
+- **Deferred channels stayed honest — nothing fabricated.** Verified with word-boundary checks: **no AI or
+  suggested reply, no SMS, no WhatsApp, no presence/typing indicator**. The only channel chip rendered is the
+  real `Direct`. ⚠️ A first probe reported an "AI" hit — that was a case-insensitive regex matching
+  "det**ai**ls"; re-checked precisely before reporting.
+- **All six mutations still POST their real gated routes** — reply, assign, close, snooze, link-reservation,
+  start. Search stays a **GET** (a scoped read, #20). Observed read-only; nothing was submitted.
+- **Already at parity (not gaps):** the three compose templates (Pre-arrival details · Payment reminder ·
+  Thanks & review, each pre-merged through the ONE shared `MessageTemplate`), internal notes ("guests never
+  see this"), the failed-delivery **Retry**, delivery states (Delivered / Sent / Sending… / Failed), snooze /
+  close / reopen, link-reservation, and the read-only workspace mode.
+- **Fixed:** the conversation gained the design's **reservation context strip** under the thread header —
+  real dates + real unit + a right-aligned guest-profile link — replacing a bare reference button, so a
+  replier can see who they are answering without leaving the thread.

@@ -346,6 +346,16 @@
             .vy-sch-rail { width: auto; margin-top: 18px; }
         }
 
+        /* ---- Inbox: the conversation's reservation context strip -----------------------------------
+           Sits under the thread header so a replier can see who they are answering. Quiet by design —
+           it is context, not a headline; the conversation stays the loud thing on the page. */
+        .vy-thread-context { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 10px 18px; border-bottom: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.28); }
+        .vy-tc-item { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--vy-muted); }
+        .vy-tc-item svg { color: var(--vy-faint); flex: none; }
+        .vy-tc-link { margin-left: auto; font-size: 11.5px; color: var(--vy-accent-text); text-decoration: none; }
+        .vy-tc-link:hover { text-decoration: underline; }
+        @media (max-width: 700px) { .vy-tc-link { margin-left: 0; } }
+
         .vy-hk-tally { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
         .vy-hk-tal { display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6); }
         .vy-hk-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
