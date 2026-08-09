@@ -33,6 +33,10 @@
             --vy-on-grad: rgb(84, 74, 68);
             --vy-on-grad-soft: rgb(88, 78, 72);
 
+            /* Accent used as TEXT on glass. --vy-accent stays the BRAND fill (gradients/buttons/chips/
+               borders) and is unchanged; see the operator shell for the measurements. */
+            --vy-accent-text: rgb(176, 56, 8);
+
             --vy-accent: rgb(194, 65, 12);      /* terracotta primary  (#C2410C) */
             --vy-accent-2: rgb(217, 102, 46);
             --vy-accent-3: rgb(232, 112, 58);   /* (#E8703A) */
@@ -193,8 +197,8 @@
         .vy-acct-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 11px; border: none; background: transparent; border-radius: var(--vy-r-sm); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); text-decoration: none; text-align: left; cursor: pointer; transition: background .14s ease; }
         .vy-acct-item:hover { background: rgba(120, 70, 40, .06); }
         .vy-acct-item svg { width: 16px; height: 16px; color: var(--vy-muted); flex: none; }
-        .vy-acct-item.is-danger { color: var(--vy-accent); }
-        .vy-acct-item.is-danger svg { color: var(--vy-accent); }
+        .vy-acct-item.is-danger { color: var(--vy-accent-text); }
+        .vy-acct-item.is-danger svg { color: var(--vy-accent-text); }
         .vy-acct-sep { height: 1px; background: var(--vy-hairline); margin: 5px 6px; }
         .vy-chip { display: flex; align-items: center; gap: 9px; padding: 5px 12px 5px 6px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
         .vy-chip-name { font-size: 13px; font-weight: 500; }
@@ -291,10 +295,10 @@
         .vy-line-label { font-size: 13.5px; font-weight: 500; }
         .vy-line-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; }
         .vy-line-amt { font-family: var(--vy-display); font-size: 15px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
-        .vy-line-amt.is-neg { color: var(--vy-accent); }
+        .vy-line-amt.is-neg { color: var(--vy-accent-text); }
         .vy-line--net { margin-top: 4px; padding-top: 18px; border-top: 1.5px solid rgba(120, 70, 40, 0.16); }
         .vy-line--net .vy-line-label { font-family: var(--vy-display); font-size: 15px; font-weight: 600; }
-        .vy-line--net .vy-line-amt { color: var(--vy-accent); font-size: 22px; }
+        .vy-line--net .vy-line-amt { color: var(--vy-accent-text); font-size: 22px; }
 
         /* History table */
         .vy-table { width: 100%; border-collapse: collapse; }
@@ -305,7 +309,7 @@
         .vy-table tbody tr.is-current { background: rgba(232, 112, 58, 0.09); }
         .vy-table td { padding: 13px 14px; border-top: 1px solid var(--vy-hairline); font-size: 13.5px; vertical-align: middle; }
         .vy-table .vy-mono { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
-        .vy-table .vy-net { color: var(--vy-accent); }
+        .vy-table .vy-net { color: var(--vy-accent-text); }
         .vy-row-month { font-weight: 600; }
         .vy-row-sub { font-size: 11px; color: var(--vy-muted); margin-top: 2px; }
         .vy-row-link { display: block; }
@@ -353,7 +357,7 @@
 
         .vy-list-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--vy-hairline); }
         .vy-list-row:last-child { border-bottom: none; }
-        .vy-list-row:hover .vy-row-month { color: var(--vy-accent); }
+        .vy-list-row:hover .vy-row-month { color: var(--vy-accent-text); }
 
         /* ============================================================================================
            OWNER OVERVIEW — exact-match components (decoded from docs/design/raw/Owner Dashboard.html).
@@ -379,7 +383,7 @@
             cursor: pointer; transition: transform .14s ease, box-shadow .14s ease;
         }
         .vy-ov-qa-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(150, 90, 50, .16), inset 0 1px 0 rgba(255, 255, 255, .6); }
-        .vy-ov-qa-btn svg { color: var(--vy-accent); flex: none; }
+        .vy-ov-qa-btn svg { color: var(--vy-accent-text); flex: none; }
 
         /* Needs-your-attention bar. */
         .vy-ov-attn {
@@ -395,7 +399,7 @@
         .vy-ov-attn-t h2 { margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 16.5px; letter-spacing: -.01em; }
         .vy-ov-attn-count { min-width: 21px; height: 21px; padding: 0 6px; box-sizing: border-box; border-radius: 20px; background: var(--vy-grad); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
         .vy-ov-attn-sub { font-size: 12.5px; color: var(--vy-faint); margin-top: 2px; }
-        .vy-ov-attn-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--vy-accent); text-decoration: none; flex: none; transition: gap .14s ease; }
+        .vy-ov-attn-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--vy-accent-text); text-decoration: none; flex: none; transition: gap .14s ease; }
         .vy-ov-attn-link:hover { gap: 8px; }
         .vy-ov-chips { display: flex; gap: 12px; flex-wrap: wrap; }
         .vy-ov-chip { flex: 1; min-width: 240px; display: flex; align-items: center; gap: 11px; padding: 12px 13px; border-radius: 14px; background: rgba(255, 255, 255, .5); border: 1px solid rgba(255, 255, 255, .72); text-decoration: none; color: var(--vy-ink); transition: transform .14s ease, box-shadow .14s ease, background .14s ease; }
@@ -427,7 +431,7 @@
         .vy-ov-metric-val.is-deferred { color: var(--vy-faint); }
         .vy-ov-occ { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
         .vy-ov-occ-fig { display: flex; align-items: baseline; gap: 8px; }
-        .vy-ov-occ-delta { font-size: 13px; font-weight: 500; color: var(--vy-accent); }
+        .vy-ov-occ-delta { font-size: 13px; font-weight: 500; color: var(--vy-accent-text); }
 
         /* Section title (Recent statements / Earnings) — Sora 500 16. */
         .vy-ov-sec-title { font-family: var(--vy-display); font-weight: 500; font-size: 16px; margin: 0; }
@@ -492,7 +496,7 @@
         .vy-ov-stay-date { font-size: 11.5px; color: var(--vy-faint); }
         .vy-ov-stays-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(120, 70, 40, .09); }
         .vy-ov-stays-foot-l { font-size: 10.5px; color: #9C9089; letter-spacing: .01em; }
-        .vy-ov-viewall { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 500; color: var(--vy-accent); text-decoration: none; flex: none; }
+        .vy-ov-viewall { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 500; color: var(--vy-accent-text); text-decoration: none; flex: none; }
 
         /* Download-statements pill (bottom of the right rail). */
         .vy-ov-dl { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow); color: var(--vy-ink); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 500; cursor: pointer; text-decoration: none; transition: transform .14s ease, box-shadow .14s ease; }
@@ -515,7 +519,7 @@
         .vy-mu-stat:hover { transform: translateY(-2px); box-shadow: 0 18px 48px rgba(150, 90, 50, .22), inset 0 1px 0 rgba(255, 255, 255, .65); }
         .vy-mu-stat-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 8px; }
         .vy-mu-stat-val { font-family: var(--vy-display); font-weight: 600; font-size: 32px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-        .vy-mu-stat-delta { font-size: 13px; font-weight: 500; color: var(--vy-accent); }
+        .vy-mu-stat-delta { font-size: 13px; font-weight: 500; color: var(--vy-accent-text); }
 
         /* action center */
         .vy-mu-ac { position: relative; background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); padding: 18px 22px; margin-bottom: 20px; }
@@ -585,7 +589,7 @@
         .vy-mu-step:hover { background: #fff; }
         .vy-mu-rate-input { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; padding: 0 12px; height: 34px; border-radius: 10px; background: #fff; border: 1px solid rgba(217, 102, 46, .28); }
         .vy-mu-rate-input input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: var(--vy-display); font-weight: 500; font-size: 16px; color: var(--vy-ink); font-variant-numeric: tabular-nums; padding: 0; }
-        .vy-mu-view { display: inline-flex; align-items: center; gap: 4px; margin-top: 13px; font-size: 13px; font-weight: 500; color: var(--vy-accent); text-decoration: none; }
+        .vy-mu-view { display: inline-flex; align-items: center; gap: 4px; margin-top: 13px; font-size: 13px; font-weight: 500; color: var(--vy-accent-text); text-decoration: none; }
         .vy-mu-addcard { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; min-height: 180px; border-radius: var(--vy-r-lg); border: 1.5px dashed rgba(120, 70, 40, .28); background: rgba(255, 252, 248, .35); text-decoration: none; color: #B4400F; cursor: pointer; transition: transform .14s ease, background .14s ease; }
         .vy-mu-addcard:hover { transform: translateY(-2px); background: rgba(255, 252, 248, .55); }
 
@@ -716,7 +720,7 @@
 
         /* ---- Add-Unit wizard (Screen · Owner Add Unit) — .vy-au-* --------------------------------- */
         .vy-au-back { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--vy-muted); text-decoration: none; font-weight: 500; margin-bottom: 10px; }
-        .vy-au-back:hover { color: var(--vy-accent); }
+        .vy-au-back:hover { color: var(--vy-accent-text); }
         .vy-au-back svg { width: 13px; height: 13px; }
         .vy-au-steplabel { font-size: 12.5px; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
         .vy-au-wrap { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-start; }

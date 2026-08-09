@@ -36,6 +36,14 @@
                cold grey, so the shell still reads warm. */
             --vy-on-grad: rgb(84, 74, 68);
             --vy-on-grad-soft: rgb(88, 78, 72);
+
+            /* Accent used as TEXT (links, accent labels) on a glass/card surface. --vy-accent itself is
+               the BRAND fill — gradients, buttons, chips, borders, icons — and is deliberately unchanged.
+               As text it measured 4.09–4.46:1 across real sampled card backgrounds, under AA; the worst
+               was rgb(252,223,204). This darker terracotta clears it at 4.85:1 there. Same family, ~10%
+               deeper. Only applied where accent is text WITHOUT its own background (a tinted chip carries
+               its own surface and already measured 4.61). */
+            --vy-accent-text: rgb(176, 56, 8);
             --vy-accent: rgb(194, 65, 12);       /* terracotta primary (#C2410C) */
             --vy-accent-2: rgb(217, 102, 46);
             --vy-accent-3: rgb(232, 112, 58);    /* (#E8703A) */
@@ -193,7 +201,7 @@
         /* Property switcher (Phase 6a · multi-property) — #104 fidelity: now a full-width frosted block in the
            sidebar (below the brand), matching the decoded operator wireframe. */
         .vy-propsw { display: flex; align-items: center; gap: 8px; margin: 0 4px; padding: 9px 12px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.5); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); color: var(--vy-muted); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .vy-propsw-ico { color: var(--vy-accent); flex: none; }
+        .vy-propsw-ico { color: var(--vy-accent-text); flex: none; }
         .vy-propsw-select { flex: 1; min-width: 0; border: 0; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--vy-ink); padding: 2px 0; cursor: pointer; }
         .vy-propsw-select:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; border-radius: 4px; }
         .vy-propsw-static { font-size: 13px; font-weight: 500; color: var(--vy-ink); }
@@ -256,7 +264,7 @@
         .vy-ins-ob-t { font-size: 13.5px; font-weight: 500; color: var(--vy-ink); }
         .vy-ins-ob-b { font-size: 12.5px; color: var(--vy-muted); line-height: 1.55; margin: 3px 0 0; }
         /* The design's #B4400F measures 4.48:1 here — just under AA at this size. --vy-accent clears it. */
-        .vy-ins-ob-a { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; font-size: 12px; font-weight: 500; color: var(--vy-accent); text-decoration: none; }
+        .vy-ins-ob-a { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; font-size: 12px; font-weight: 500; color: var(--vy-accent-text); text-decoration: none; }
 
         /* By-property, as the design's compact rail table (the shared .vy-utable forces min-width:720px,
            which is why this clipped inside the rail). */
@@ -322,7 +330,7 @@
         .vy-subnav { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid var(--vy-hairline); }
         .vy-subnav-tab { padding: 9px 14px; font-size: 13.5px; font-weight: 600; color: var(--vy-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
         .vy-subnav-tab:hover { color: var(--vy-ink); }
-        .vy-subnav-tab.is-active { color: var(--vy-accent); border-bottom-color: var(--vy-accent); }
+        .vy-subnav-tab.is-active { color: var(--vy-accent-text); border-bottom-color: var(--vy-accent); }
         .vy-inv-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--vy-hairline); }
         .vy-inv-row:last-child { border-bottom: none; }
         .vy-inv-ref { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; }
@@ -511,7 +519,7 @@
         /* Today's column head carries a short gradient rule, inset from the edges. */
         .vy-cal .vy-day.is-today { position: relative; }
         .vy-cal .vy-day.is-today::before { content: ''; position: absolute; top: 0; left: 18%; right: 18%; height: 3px; border-radius: 0 0 3px 3px; background: var(--vy-grad); }
-        .vy-cal .vy-day.is-today .vy-day-num { color: var(--vy-accent); }
+        .vy-cal .vy-day.is-today .vy-day-num { color: var(--vy-accent-text); }
 
         /* Row rhythm + the design's two-line booking bar (name over a smaller detail line). */
         .vy-cal .vy-unit-row .vy-lane, .vy-cal .vy-unit-row .vy-lane-bars { min-height: 52px; }
@@ -523,7 +531,7 @@
         /* New-reservation modal — the design's round glyph on each unit row. */
         .vy-cal .vy-newres-room-ico { width: 34px; height: 34px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; background: rgba(217, 102, 46, 0.12); color: var(--vy-accent); }
         .vy-cal .vy-newres-room.is-sel .vy-newres-room-ico { background: var(--vy-grad); color: #fff; }
-        .vy-unit-row--unassigned .vy-unit-code { color: var(--vy-accent); }
+        .vy-unit-row--unassigned .vy-unit-code { color: var(--vy-accent-text); }
 
         /* Out-of-order / block bars — a muted hatch UNDER the bookings (real inventory_blocks, never faked). */
         .vy-lane-ooo { position: absolute; inset: 0; z-index: 1; display: grid; grid-template-columns: var(--night-cols); align-items: center; }
@@ -602,11 +610,11 @@
         .vy-source-pill.on { color: var(--vy-accent); background: rgba(232,112,58,.10); border-color: var(--vy-accent-border); font-weight: 600; }
         .vy-newres-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 13px 15px; border-radius: var(--vy-r-md); background: rgba(232,112,58,.07); border: 1px solid var(--vy-accent-border); }
         .vy-newres-total-lbl { font-size: 12.5px; font-weight: 500; color: var(--vy-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .vy-newres-total-amt { font-family: var(--vy-display); font-size: 18px; font-weight: 700; color: var(--vy-accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .vy-newres-total-amt { font-family: var(--vy-display); font-size: 18px; font-weight: 700; color: var(--vy-accent-text); white-space: nowrap; font-variant-numeric: tabular-nums; }
         .vy-newres-foot .vy-btn--accent[disabled] { opacity: .5; cursor: not-allowed; }
         .vy-newres-cancel { background: rgba(255,255,255,.6); border: 1px solid var(--vy-glass-border); color: var(--vy-muted); }
         .vy-newres-note { padding: 0 24px 22px; font-size: 11.5px; color: var(--vy-faint); line-height: 1.5; }
-        .vy-newres-note a { color: var(--vy-accent); font-weight: 600; text-decoration: none; }
+        .vy-newres-note a { color: var(--vy-accent-text); font-weight: 600; text-decoration: none; }
 
         /* Warm status tones (no green/red) — mapped ONLY to real reservation statuses */
         .vy-bar.tone-confirmed { background: var(--vy-grad); }
@@ -633,7 +641,7 @@
             border: 1px solid var(--vy-accent-border); border-left: 3px solid var(--vy-accent);
             font-size: 13px; font-weight: 500; color: var(--vy-ink); box-shadow: var(--vy-shadow-sm);
         }
-        .vy-toast svg { color: var(--vy-accent); flex: none; }
+        .vy-toast svg { color: var(--vy-accent-text); flex: none; }
 
         .vy-summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
         .vy-summary-chip {
@@ -645,7 +653,7 @@
         .vy-summary-chip .vy-sc-num { font-family: var(--vy-display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
         .vy-summary-chip .vy-sc-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-summary-chip.is-due { border-color: var(--vy-accent-border); }
-        .vy-summary-chip.is-due .vy-sc-num { color: var(--vy-accent); }
+        .vy-summary-chip.is-due .vy-sc-num { color: var(--vy-accent-text); }
 
         .vy-fd-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; align-items: start; }
         .vy-fd-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--vy-hairline); }
@@ -664,7 +672,7 @@
         .vy-fd-actions form { margin: 0; }
 
         .vy-balance { font-family: var(--vy-display); font-weight: 600; font-size: 13.5px; font-variant-numeric: tabular-nums; }
-        .vy-balance.is-due { color: var(--vy-accent); }
+        .vy-balance.is-due { color: var(--vy-accent-text); }
         .vy-balance.is-settled { color: var(--vy-muted); font-weight: 500; }
 
         /* Warm status tags (no green/red) — keyed to the real reservation enum */
@@ -695,7 +703,7 @@
         /* Unit assignment chip / unassigned + assign link */
         .vy-unit-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--vy-ink); background: rgba(120, 70, 40, 0.07); border-radius: 6px; padding: 2px 7px; }
         .vy-unassigned { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--vy-amber); background: rgba(224, 146, 30, 0.12); border: 1px dashed rgba(224, 146, 30, 0.4); border-radius: 6px; padding: 1px 7px; }
-        .vy-assign-link { font-size: 11px; font-weight: 600; color: var(--vy-accent); }
+        .vy-assign-link { font-size: 11px; font-weight: 600; color: var(--vy-accent-text); }
         .vy-assign-link:hover { text-decoration: underline; }
 
         /* Small row action buttons */
@@ -756,7 +764,7 @@
         /* Maintenance board — reuses the housekeeping card/kanban; a few work-order-specific bits. */
         .vy-prio.tone-urgent { color: var(--vy-amber); background: rgba(224, 146, 30, 0.16); }
         .vy-mt-title { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; line-height: 1.3; color: var(--vy-ink); text-decoration: none; display: block; }
-        .vy-mt-title:hover { color: var(--vy-accent); }
+        .vy-mt-title:hover { color: var(--vy-accent-text); }
         .vy-mt-sub { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--vy-muted); flex-wrap: wrap; }
         .vy-mt-cat { color: var(--vy-faint); }
         .vy-mt-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; padding-top: 6px; border-top: 1px solid var(--vy-hairline); }
@@ -786,7 +794,7 @@
         .vy-tl-item:not(:last-child) .vy-tl-line { width: 2px; flex: 1; background: var(--vy-hairline); margin-top: 3px; }
         .vy-tl-body { flex: 1; min-width: 0; }
         .vy-tl-label { font-size: 13px; font-weight: 600; color: var(--vy-ink); }
-        .vy-tl-label .vy-tl-who { font-weight: 500; color: var(--vy-accent); }
+        .vy-tl-label .vy-tl-who { font-weight: 500; color: var(--vy-accent-text); }
         .vy-tl-meta { font-size: 11px; color: var(--vy-faint); margin-top: 2px; }
         /* Work-order detail — an in-card callout (warm-dark for OOS impact, accent for the cost card). */
         .vy-callout { border-radius: var(--vy-r-md); padding: 13px 15px; font-size: 12.5px; line-height: 1.5; }
@@ -836,7 +844,7 @@
         /* Conversation (thread view) */
         .vy-convo-head { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; flex-wrap: wrap; }
         .vy-convo-back { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--vy-muted); text-decoration: none; }
-        .vy-convo-back:hover { color: var(--vy-accent); }
+        .vy-convo-back:hover { color: var(--vy-accent-text); }
         .vy-convo-who { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
         .vy-convo-name { font-family: var(--vy-display); font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
         .vy-convo-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -868,7 +876,7 @@
         .vy-ctx-line:last-child { border-bottom: none; }
         .vy-ctx-line .k { color: var(--vy-faint); }
         .vy-ctx-line .v { color: var(--vy-ink); font-weight: 500; text-align: right; }
-        .vy-ctx-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--vy-accent); text-decoration: none; margin-top: 10px; font-weight: 600; }
+        .vy-ctx-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--vy-accent-text); text-decoration: none; margin-top: 10px; font-weight: 600; }
 
         /* ---- Reservation detail (folio ledger) ------------------------------------------------- */
         .vy-detail-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
@@ -900,7 +908,7 @@
         .vy-ledger-date { font-size: 11px; color: var(--vy-faint); flex: none; font-variant-numeric: tabular-nums; }
         .vy-ledger-amt { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; min-width: 92px; text-align: right; }
         .vy-ledger-amt.tone-charge { color: var(--vy-ink); }
-        .vy-ledger-amt.tone-paid { color: var(--vy-accent); }
+        .vy-ledger-amt.tone-paid { color: var(--vy-accent-text); }
         .vy-ledger-amt.tone-refund { color: var(--vy-amber); }
         .vy-ledger-amt.tone-hold, .vy-ledger-amt.tone-muted { color: var(--vy-muted); }
         .vy-ledger-flag { font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-muted); background: rgba(120, 70, 40, 0.08); border-radius: 5px; padding: 1px 6px; }
@@ -913,7 +921,7 @@
         .vy-total-row .vy-t-val { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
         .vy-total-row.is-balance { margin-top: 4px; padding-top: 11px; border-top: 1px solid var(--vy-hairline); font-size: 15px; }
         .vy-total-row.is-balance .vy-t-label { color: var(--vy-ink); font-weight: 600; font-family: var(--vy-display); }
-        .vy-total-row.is-balance .vy-t-val { font-size: 20px; color: var(--vy-accent); }
+        .vy-total-row.is-balance .vy-t-val { font-size: 20px; color: var(--vy-accent-text); }
         .vy-total-row.is-balance.is-settled .vy-t-val { color: var(--vy-muted); }
 
         /* Payment form + inputs */
@@ -926,7 +934,7 @@
         .vy-action-list .vy-defer-item:last-child { border-bottom: none; }
 
         .vy-recon { font-size: 11px; color: var(--vy-muted); display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; }
-        .vy-recon svg { color: var(--vy-accent); }
+        .vy-recon svg { color: var(--vy-accent-text); }
 
         /* ---- Operator dashboard ---------------------------------------------------------------- */
         /* KPI band. Default 4-up (wraps for the 6-tile Insights → 4+2). Per-count modifiers let a page pick a
@@ -964,7 +972,7 @@
         .vy-arr-row:hover { background: rgba(255, 255, 255, 0.4); }
         .vy-arr-name { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; }
         .vy-arr-ref { font-size: 11px; color: var(--vy-muted); margin-top: 2px; }
-        .vy-arr-link { font-size: 11.5px; font-weight: 600; color: var(--vy-accent); }
+        .vy-arr-link { font-size: 11.5px; font-weight: 600; color: var(--vy-accent-text); }
 
         .vy-hk-snapshot { display: flex; flex-direction: column; gap: 10px; }
         .vy-hk-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
@@ -998,11 +1006,11 @@
 
         /* Dashboard — urgent count on the work-orders KPI */
         /* The design sets both of these as plain text on the value's baseline, not as chips. */
-        .vy-dk-urgent { display: inline; font-size: 13px; font-weight: 500; color: var(--vy-accent); margin-left: 8px; }
+        .vy-dk-urgent { display: inline; font-size: 13px; font-weight: 500; color: var(--vy-accent-text); margin-left: 8px; }
         /* Size/weight follow the design; the up/down colour pair is kept — the design has only one
            styling for this slot, and collapsing them would drop the direction signal. */
         .vy-dk-delta { font-size: 13px; font-weight: 500; color: #3d6b3d; margin-left: 8px; }
-        .vy-dk-delta.is-down { color: var(--vy-accent); }
+        .vy-dk-delta.is-down { color: var(--vy-accent-text); }
 
         /* Dashboard — Today's tasks */
         .vy-task-groups { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -1019,7 +1027,7 @@
         /* GATE 7 — an ACTIONABLE task row (links to where it's resolved). */
         .vy-task-row.is-actionable { text-decoration: none; color: inherit; cursor: pointer; border-radius: 8px; padding: 10px 8px; margin: 0 -8px; border-bottom: 1px solid var(--vy-hairline); transition: background .14s; }
         .vy-task-row.is-actionable:hover { background: rgba(232, 112, 58, 0.06); }
-        .vy-task-go { margin-left: 10px; color: var(--vy-accent); font-weight: 700; opacity: 0; transition: opacity .14s, transform .14s; }
+        .vy-task-go { margin-left: 10px; color: var(--vy-accent-text); font-weight: 700; opacity: 0; transition: opacity .14s, transform .14s; }
         .vy-task-row.is-actionable:hover .vy-task-go { opacity: 1; transform: translateX(2px); }
         /* GATE 7 — Housekeeping / Maintenance per-status rail cards (real status counts). */
         .vy-stat-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -1053,7 +1061,7 @@
         .vy-dash .vy-task-sec:first-child .vy-task-sec-head { padding-top: 4px; }
         .vy-dash .vy-task-sec-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
         .vy-dash .vy-task-sec-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
-        .vy-dash .vy-task-pri-ink.is-urgent { color: var(--vy-accent); }
+        .vy-dash .vy-task-pri-ink.is-urgent { color: var(--vy-accent-text); }
         .vy-dash .vy-task-pri-ink.is-high { color: var(--vy-amber-2); }
         .vy-dash .vy-task-pri-ink.is-normal { color: var(--vy-muted); }
         .vy-dash .vy-task-sec-count { font-size: 11px; color: var(--vy-faint); font-variant-numeric: tabular-nums; }
@@ -1107,7 +1115,7 @@
         .vy-chan-status.is-synced { color: #3d6b3d; } .vy-chan-status.is-synced .vy-dot { background: var(--vy-accent-3); }
         .vy-chan-status.is-off { color: var(--vy-muted); } .vy-chan-status.is-off .vy-dot { background: var(--vy-muted); }
         .vy-chan-status.is-pending { color: var(--vy-amber); } .vy-chan-status.is-pending .vy-dot { background: var(--vy-amber-2); }
-        .vy-chan-status.is-error { color: var(--vy-accent); } .vy-chan-status.is-error .vy-dot { background: var(--vy-accent); }
+        .vy-chan-status.is-error { color: var(--vy-accent-text); } .vy-chan-status.is-error .vy-dot { background: var(--vy-accent); }
 
         /* Operator Channels exact-match — channel rows + connect grid */
         .vy-chan-item { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--vy-hairline); }
@@ -1230,7 +1238,7 @@
         .vy-pm-btn { width: 24px; height: 24px; border-radius: 6px; border: none; background: rgba(255,255,255,.92); color: var(--vy-ink); font-size: 13px; line-height: 1; cursor: pointer; display: inline-grid; place-items: center; }
         .vy-pm-btn:hover:not(:disabled) { background: #fff; }
         .vy-pm-btn:disabled { opacity: .4; cursor: default; }
-        .vy-pm-btn--danger { color: var(--vy-accent); }
+        .vy-pm-btn--danger { color: var(--vy-accent-text); }
         .vy-pm-empty { font-size: 12.5px; color: var(--vy-faint); padding: 6px 2px; }
 
         /* ---- Rates & availability grid (Wave 4) ------------------------------------------------ */
@@ -1239,7 +1247,7 @@
         .vyr-winlabel { font-family: var(--vy-display); font-weight: 600; font-size: 14px; padding: 0 8px; min-width: 156px; text-align: center; }
         .vyr-navbtn { width: 34px; height: 34px; display: inline-grid; place-items: center; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); text-decoration: none; }
         .vyr-navbtn:hover { background: rgba(255,255,255,.9); }
-        .vyr-jump { font-size: 12.5px; color: var(--vy-accent); text-decoration: none; font-weight: 600; }
+        .vyr-jump { font-size: 12.5px; color: var(--vy-accent-text); text-decoration: none; font-weight: 600; }
         .vyr-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .vyr-grid { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 760px; }
         .vyr-grid th, .vyr-grid td { border-bottom: 1px solid var(--vy-hairline); }
@@ -1261,7 +1269,7 @@
         .vyr-rate { font-family: var(--vy-display); font-weight: 600; font-size: 13px; color: var(--vy-ink); }
         .vyr-rate.is-empty { color: var(--vy-faint); font-weight: 500; }
         .vyr-avail { font-size: 10.5px; color: var(--vy-muted); margin-top: 3px; }
-        .vyr-avail.is-out { color: var(--vy-accent); font-weight: 600; }
+        .vyr-avail.is-out { color: var(--vy-accent-text); font-weight: 600; }
         .vyr-flags { display: flex; gap: 3px; justify-content: center; margin-top: 4px; min-height: 13px; }
         .vyr-flag { font-size: 9px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; padding: 1px 5px; border-radius: var(--vy-r-pill); }
         .vyr-flag--min { background: rgba(178,106,8,.12); color: var(--vy-amber); }
@@ -1276,7 +1284,7 @@
         .vyn-rt:first-child { border-top: none; padding-top: 2px; }
         .vyn-rt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
         .vyn-rt-name { font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
-        .vyn-rt-price { font-family: var(--vy-display); font-weight: 600; font-size: 14px; color: var(--vy-accent); white-space: nowrap; }
+        .vyn-rt-price { font-family: var(--vy-display); font-weight: 600; font-size: 14px; color: var(--vy-accent-text); white-space: nowrap; }
         .vyn-units { display: flex; flex-wrap: wrap; gap: 8px; }
         .vyn-unit { display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); font-size: 13px; cursor: pointer; transition: border-color .12s ease, background .12s ease; }
         .vyn-unit:has(input:checked) { border-color: var(--vy-accent); box-shadow: var(--vy-shadow-accent); background: #fff; }

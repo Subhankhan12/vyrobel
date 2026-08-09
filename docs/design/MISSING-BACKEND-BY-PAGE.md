@@ -169,11 +169,11 @@ any data at all*, presented under a label that reads as the month's occupancy. F
 - **Property filter chips.** The prototype puts per-property chips on the page. The live product routes
   property selection through the topbar `PropertyContext` switcher (the certified #38 mechanism) and links
   to it — a ratified divergence, kept.
-- **⚠️ REALM-WIDE: accent links on glass measure 4.06:1, under AA.** `var(--vy-accent)` (`rgb(194,65,12)`)
-  is the app's standard link colour (`.vy-arr-link` and every accent link); on the composited card
-  background it measures **4.06:1** against the 4.5 bar. The prototype's own `#B4400F` is **4.48:1** — also
-  under. This pass did **not** make it worse (the new observation link uses the same token as every other
-  link rather than inventing a one-off hex), but it is the same shape as the sidebar finding that became
-  Gate A. **Founder's call** whether to add an accent-text-on-glass token realm-wide.
+- **REALM-WIDE: accent links on glass were under AA — ✅ RESOLVED 2026-08-09 (`d9b2ad8`).** `var(--vy-accent)`
+  as TEXT measured **4.09–4.46:1** across real sampled card backgrounds (the prototype's own `#B4400F` was
+  4.48 — also under). Fixed with a new **`--vy-accent-text: rgb(176,56,8)`** token pointed at the 41 rules
+  where accent is text **without its own background**; the 31 chip/tag rules that carry their own tint were
+  left alone (measured 4.61, passing), and **`--vy-accent` itself is untouched** so every gradient, button,
+  border and icon fill is byte-identical. After: **4.92–5.47** operator, **5.45** owner.
 - **KPI label size.** The Insights prototype specifies 10.5px where the Dashboard prototype specifies 11px
   for the same shared `.vy-dk-label`. Left at 11px — a 0.5px scoped override is not worth the drift.

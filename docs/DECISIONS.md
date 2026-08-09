@@ -2,6 +2,45 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-09 — Accent-as-TEXT brought to AA via a new `--vy-accent-text` token (brand fills untouched)
+
+The second half of the realm-wide contrast work, surfaced by the design-parity pass on Insights.
+
+**The gap.** `--vy-accent` (`rgb(194,65,12)`) is both the brand fill *and* the link/label text colour. As
+**text on a glass card** it measured, by sampling real rendered pixels with the glyphs blanked:
+
+| Surface | Before | After |
+|---|---|---|
+| `.vy-arr-link` on a card | **4.40–4.46:1** | **5.22–5.30:1** |
+| `.vy-task-go`, `.vy-ins-ob-a` | **4.27–4.45:1** | **5.28–5.35:1** |
+| `.vy-task-sec-label` (worst) | **4.09:1** | **4.92:1** |
+| owner `.vy-ov-attn-link` | — | **5.45:1** |
+
+⚠️ The wireframes' own `#B4400F` is **4.48:1** here — also under AA, so matching the prototype literally
+would not have fixed it.
+
+**The decision: a second token, not a change to `--vy-accent`.** `--vy-accent-text: rgb(176,56,8)` (~10%
+deeper, same terracotta family) is applied to the **41** declarations where accent is text; the **31**
+chip/tag declarations that paint their own tinted surface were deliberately left on `--vy-accent` (measured
+**4.61**, passing — and their tint is part of the brand look). **`--vy-accent` itself did not move**, proven
+in-browser: the token still reads `rgb(194,65,12)` and the brand mark's gradient is byte-identical, so every
+button, gradient, border and icon fill is unchanged.
+
+**Two traps worth recording.**
+1. **A naive replace of `color: var(--vy-accent)` also matches `border-bottom-color:` and `border-color:`,**
+   because those property names *end in* `color:`. Five border declarations were silently retargeted and had
+   to be reverted — borders are fill, not text. A follow-up grep now asserts the token appears **only** as a
+   plain `color:` declaration (41/41).
+2. **Verifying corrected the fix direction.** On Page 3 the assumption was that `--vy-accent` would be
+   *better* than the prototype's `#B4400F`; measured, it is **worse** (4.06 vs 4.48). Both failed, which is
+   what made a new token the right answer rather than a swap.
+
+Together with `--vy-on-grad`/`--vy-on-grad-soft` (the sidebar fix earlier today) this closes the realm-wide
+contrast gaps that the 2026-08-07 audit's gradient-background exclusion left open on both surfaces —
+text on the page gradient, and accent text on glass.
+
+Suite 1796/1803 · 11,858 assertions (the documented 7 non-green, unmoved); PHPStan L5 (0); Pint clean.
+
 ## 2026-08-09 — Sidebar nav contrast brought to AA in BOTH shells (closes the sweep's gradient-bg exclusion)
 
 Surfaced by the design-parity pass on the Operator Dashboard and fixed realm-wide before continuing.
