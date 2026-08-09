@@ -760,10 +760,10 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **24 of 42** covered, **18 remaining** (`0aa9ede`→`4458f52`, all pushed)
+## N.4 Progress — OPERATOR **25 of 42** covered, **17 remaining** (`0aa9ede`→`PENDINGHASH`, all pushed)
 
-⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund** and
-**P16 closed Payout Run**, so the current figure is **24 covered / 18 remaining** (24 + 18 = 42). Notes saying
+⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
+Payout Run** and **P17 Billing**, so the current figure is **25 covered / 17 remaining** (25 + 17 = 42). Notes saying
 "22/42 … 19 remaining" are the pre-GATE-B count and do not add up.
 
 | Gate | Page(s) | Commit |
@@ -791,6 +791,7 @@ finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A
 | P15 | **GATE A** operator coverage sweep + **GATE B** Refund (**verified AT PARITY, 0 code**) | `ee0121a` |
 | — | **TEST GATE — the 8th non-green closed** (J.bis; a contrast guard tightened to its intent, proven still live) | `9696b9c` |
 | P16 | **Operator Payout Run** ⚠️ real owner money (4 design fixes · 6 backend items · **D16-7** a money-visibility finding) | `4458f52` |
+| P17 | **Operator Billing** ⚠️ the OPEN billing decision (6 design fixes incl. a pre-existing modal bug · 5 backend items · a **G.1** observation) | `PENDINGHASH` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -835,19 +836,18 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Billing.**
+## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Rates.**
 
-⚠️ **Billing carries the OPEN billing decision (G.1).** Show the org's **REAL** stored price; the prototype's
-**€99 is a mock constant** and must not be wired. **Do NOT resolve which pricing model is authoritative** —
-that is the founder's call and a Stripe-flip blocker. (P14 already verified the mock price does not leak onto
-Settings; the same check applies here.)
+⚠️ **Rates is a money surface** — it sets what guests are charged. Same discipline as Payout Run: restyle,
+never rewire; the guarded rate/restriction write and `OwnerRateService`/`RateAndRestrictionService` stay
+untouched; the **#6 owner rate-guardrail copy stays honest** (it promises only the proposal path the code
+enforces — see **G.2**).
 
-**18 OPERATOR prototypes remain:** **1 Billing** (`/app/billing` — ⚠️ **G.1**) · **2 Rates** · **3 New
-Reservation** (money + `AssignmentService` inventory) · **4 Group Booking** · **5 Owners** (PII / owner
-isolation #28/#42) · **6 Owner Detail** · **7 Roles** (RBAC escalation #30) · **8 Security** · **9 Reviews** ·
-**10 Channels** (OTA claims #37) · **11 Portfolio** (#38) · **12 Search** · **13 Notifications** ·
-**14 Notification Preferences** · **15 Email Templates** · **16 Email Editor** · **17 Profile** ·
-**18 Schedule PDF**.
+**17 OPERATOR prototypes remain:** **1 Rates** · **2 New Reservation** (money + `AssignmentService`
+inventory) · **3 Group Booking** · **4 Owners** (PII / owner isolation #28/#42) · **5 Owner Detail** ·
+**6 Roles** (RBAC escalation #30) · **7 Security** · **8 Reviews** · **9 Channels** (OTA claims #37) ·
+**10 Portfolio** (#38) · **11 Search** · **12 Notifications** · **13 Notification Preferences** ·
+**14 Email Templates** · **15 Email Editor** · **16 Profile** · **17 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

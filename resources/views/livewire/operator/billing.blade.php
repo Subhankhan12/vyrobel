@@ -41,20 +41,40 @@
                 <div class="vy-stack">
                     {{-- Plan card --}}
                     <section class="vy-card">
-                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                            <span class="vy-bill-badge vy-bill-{{ $status['active'] ? 'ok' : 'trial' }}"><span class="vy-status-dot"></span>{{ $plan['name'] }}</span>
-                            <span class="vy-status" style="font-size:12px;color:var(--vy-muted)">{{ $status['label'] }}</span>
+                        {{-- The design's plan header: the plan NAME as the heading with the status as a pill
+                             beside it, and the price right-aligned on the same row. (This was inverted — the
+                             plan name sat in the chip and the status was plain text.) --}}
+                        <div class="vy-bill-head">
+                            <div style="min-width:0">
+                                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                                    <span class="vy-bill-plan">{{ $plan['name'] }}</span>
+                                    <span class="vy-bill-badge vy-bill-{{ $status['active'] ? 'ok' : 'trial' }}"><span class="vy-status-dot"></span>{{ $status['label'] }}</span>
+                                </div>
+                                <div class="vy-bill-line" style="margin-top:8px;color:var(--vy-muted);font-size:12.5px">
+                                    {{ ucfirst($plan['interval']) }} · {{ $pricing['units'] }} {{ \Illuminate\Support\Str::plural('unit', $pricing['units']) }} × {{ $pricing['per_unit'] }} · subscribed {{ $plan['subscribed_on'] }}
+                                </div>
+                            </div>
+                            <div class="vy-bill-price">
+                                <div><span class="vy-bill-amt">{{ $pricing['gross'] }}</span><span class="vy-bill-per">/mo</span></div>
+                                <div class="vy-bill-vat">incl. {{ $pricing['vat_pct'] }}% VAT</div>
+                            </div>
                         </div>
-                        <div class="vy-bill-line" style="margin-top:10px;color:var(--vy-muted);font-size:12.5px">
-                            {{ ucfirst($plan['interval']) }} · {{ $pricing['units'] }} {{ \Illuminate\Support\Str::plural('unit', $pricing['units']) }} × {{ $pricing['per_unit'] }} · subscribed {{ $plan['subscribed_on'] }}
-                        </div>
-                        <div style="display:flex;align-items:baseline;gap:8px;margin-top:12px">
-                            <span style="font-family:var(--vy-display);font-size:32px;font-weight:700">{{ $pricing['gross'] }}</span>
-                            <span style="color:var(--vy-muted);font-size:13px">/mo · incl {{ $pricing['vat_pct'] }}% VAT</span>
-                        </div>
-                        <div class="vy-bill-line" style="margin-top:4px;color:var(--vy-muted);font-size:12px">
-                            {{ $pricing['net'] }} + {{ $pricing['vat'] }} VAT{{ $plan['period_end'] ? ' · next invoice '.$plan['period_end'] : '' }}
-                        </div>
+
+                        {{-- The design's next-invoice STRIP. Content is the real period end + the real
+                             net/VAT split. ⚠️ The design's version also names the card it will charge
+                             ("to Visa ····4242") and promises a reminder email 3 days before — neither is
+                             reproduced: no card is stored (SAQ A) and no such reminder is scheduled. --}}
+                        @if ($plan['period_end'])
+                            <div class="vy-bill-next">
+                                <span class="vy-bill-next-ico" aria-hidden="true">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+                                </span>
+                                <span>Next invoice <strong>{{ $plan['period_end'] }}</strong> · {{ $pricing['net'] }} + {{ $pricing['vat'] }} VAT</span>
+                            </div>
+                        @else
+                            <div class="vy-bill-line" style="margin-top:12px;color:var(--vy-muted);font-size:12px">{{ $pricing['net'] }} + {{ $pricing['vat'] }} VAT</div>
+                        @endif
+
                         <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
                             {{-- WAVE 2 · S3 — the switch changes the INTERVAL, never the tier. This linked to a
                                  hardcoded `plan=pro`, so an Essential org landed on the PRO yearly checkout (a
@@ -62,7 +82,10 @@
                                  an org actually on MONTHLY — offering "switch to yearly" to someone already on
                                  yearly is an affordance that does nothing. --}}
                             @if ($plan['interval'] !== 'yearly')
-                                <a href="{{ route('app.billing.checkout', ['plan' => $plan['code'], 'interval' => 'yearly']) }}" class="vy-btn vy-btn--ghost">Switch to yearly · save {{ $pricing['yearly_saving'] }}</a>
+                                {{-- The design makes this the primary action. The LINK is unchanged — it still
+                                     carries the org's OWN plan code (the WAVE-2 · S3 fix), so restyling it
+                                     cannot reintroduce the silent-upgrade-to-Pro bug. --}}
+                                <a href="{{ route('app.billing.checkout', ['plan' => $plan['code'], 'interval' => 'yearly']) }}" class="vy-btn vy-btn--accent">Switch to yearly · save {{ $pricing['yearly_saving'] }}</a>
                             @endif
                             <a href="#vy-plans" class="vy-btn vy-btn--ghost">Change plan</a>
                         </div>
@@ -84,39 +107,6 @@
                         <div class="vy-fx-note" style="margin-top:10px">Paid invoices &amp; PDFs appear here once live billing is enabled — nothing is charged in test mode, so no invoice is invented.</div>
                     </section>
 
-                    {{-- Cancel subscription (the real pause/cancel flow) --}}
-                    <section class="vy-card" x-data="{ open: false }">
-                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-                            <div>
-                                <h2 class="vy-card-title">Cancel subscription</h2>
-                                <div class="vy-line-sub">Pause for the off-season, or cancel — your data is kept either way.</div>
-                            </div>
-                            @unless ($lifecycle['is_paused'] || $lifecycle['is_canceling'])
-                                <button type="button" class="vy-btn vy-btn--ghost" x-on:click="open = true">Cancel…</button>
-                            @endunless
-                        </div>
-
-                        {{-- Retention modal (Pause instead / Cancel for good / yearly offer) --}}
-                        <div x-show="open" x-cloak class="vy-modal-scrim" x-on:click.self="open = false">
-                            <div class="vy-modal">
-                                <h3 style="font-family:var(--vy-display);font-size:18px;font-weight:600;margin:0">Before you go</h3>
-                                <p class="vy-line-sub" style="margin:6px 0 16px">{{ $plan['name'] }} · {{ $pricing['units'] }} {{ \Illuminate\Support\Str::plural('unit', $pricing['units']) }}. Everything you’ve built is kept.</p>
-
-                                <div class="vy-retain-opt">
-                                    <div><strong>Pause instead · €0</strong><div class="vy-line-sub">Up to 3 months. Units, rates, owners &amp; history kept. Channels stop selling, the workspace goes read-only, and you restart with one click.</div></div>
-                                    <form method="POST" action="{{ route('app.billing.pause') }}"><br>@csrf<input type="hidden" name="months" value="3"><button type="submit" class="vy-btn vy-btn--accent">Pause 3 months</button></form>
-                                </div>
-
-                                <div class="vy-retain-opt">
-                                    <div><strong>Cancel for good</strong><div class="vy-line-sub">You keep full access until your paid period ends, then the workspace is read-only, owners lose portal access, channels disconnect. Data export stays available for 90 days.</div></div>
-                                    <form method="POST" action="{{ route('app.billing.cancel') }}"><br>@csrf<button type="submit" class="vy-btn vy-btn--ghost">Cancel for good</button></form>
-                                </div>
-
-                                <div class="vy-fx-note" style="margin-top:8px">Cost the reason? Yearly billing saves {{ $pricing['yearly_saving'] }} a year. No fees either way — you can come back any time.</div>
-                                <div style="text-align:right;margin-top:14px"><button type="button" class="vy-btn vy-btn--ghost" x-on:click="open = false">Keep my plan</button></div>
-                            </div>
-                        </div>
-                    </section>
                 </div>
 
                 {{-- Right rail --}}
@@ -159,6 +149,56 @@
                             <button type="submit" class="vy-btn vy-btn--accent">Save</button>
                         </form>
                     </section>
+
+                    {{-- Cancel subscription — the design places this LAST IN THE RIGHT RAIL and subdues it,
+                         rather than giving it a full-width card in the main column. The flow itself (the real
+                         pause/cancel POSTs and the retention modal) is unchanged.
+
+                         ⚠️ THE MODAL MUST LIVE OUTSIDE THE CARD — a PRE-EXISTING bug, made visible by moving
+                         this card into the narrow rail and fixed here rather than carried forward.
+                         `.vy-card` sets `backdrop-filter: blur(22px)`, and a backdrop-filter creates a
+                         CONTAINING BLOCK for `position: fixed` descendants. So `.vy-modal-scrim` — which is
+                         `position: fixed` and expects the viewport — resolved against the CARD instead:
+                         measured 338×132 at (1071,840) rather than 1440×1000 at (0,0), i.e. the "centred"
+                         retention modal rendered squashed inside the rail column. Confirmed identical on
+                         clean HEAD with this gate's changes stashed (the culprit ancestor is the same
+                         `.vy-card`), so it predates this gate — it was simply less obvious in a wide column.
+                         The `x-data` scope moves to a plain wrapper with no filter, so the scrim escapes to
+                         the viewport while the Alpine binding and every real POST stay exactly as they were. --}}
+                    <div x-data="{ open: false }">
+                        <section class="vy-card vy-bill-cancel">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                                <div style="min-width:0">
+                                    <h2 class="vy-card-title" style="font-size:13px">Cancel subscription</h2>
+                                    <div class="vy-line-sub">Pause for the off-season, or cancel — your data is kept either way.</div>
+                                </div>
+                                @unless ($lifecycle['is_paused'] || $lifecycle['is_canceling'])
+                                    <button type="button" class="vy-btn vy-btn--ghost" style="flex:none" x-on:click="open = true">Cancel…</button>
+                                @endunless
+                            </div>
+                        </section>
+
+                        {{-- Retention modal (Pause instead / Cancel for good / yearly offer) --}}
+                        <div x-show="open" x-cloak class="vy-modal-scrim" x-on:click.self="open = false">
+                            <div class="vy-modal">
+                                <h3 style="font-family:var(--vy-display);font-size:18px;font-weight:600;margin:0">Before you go</h3>
+                                <p class="vy-line-sub" style="margin:6px 0 16px">{{ $plan['name'] }} · {{ $pricing['units'] }} {{ \Illuminate\Support\Str::plural('unit', $pricing['units']) }}. Everything you’ve built is kept.</p>
+
+                                <div class="vy-retain-opt">
+                                    <div><strong>Pause instead · €0</strong><div class="vy-line-sub">Up to 3 months. Units, rates, owners &amp; history kept. Channels stop selling, the workspace goes read-only, and you restart with one click.</div></div>
+                                    <form method="POST" action="{{ route('app.billing.pause') }}">@csrf<input type="hidden" name="months" value="3"><button type="submit" class="vy-btn vy-btn--accent">Pause 3 months</button></form>
+                                </div>
+
+                                <div class="vy-retain-opt">
+                                    <div><strong>Cancel for good</strong><div class="vy-line-sub">You keep full access until your paid period ends, then the workspace is read-only, owners lose portal access, channels disconnect. Data export stays available for 90 days.</div></div>
+                                    <form method="POST" action="{{ route('app.billing.cancel') }}">@csrf<button type="submit" class="vy-btn vy-btn--ghost">Cancel for good</button></form>
+                                </div>
+
+                                <div class="vy-fx-note" style="margin-top:8px">Cost the reason? Yearly billing saves {{ $pricing['yearly_saving'] }} a year. No fees either way — you can come back any time.</div>
+                                <div style="text-align:right;margin-top:14px"><button type="button" class="vy-btn vy-btn--ghost" x-on:click="open = false">Keep my plan</button></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

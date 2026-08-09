@@ -100,7 +100,10 @@ it('renders the management view with a real figure and honest (never fabricated)
     $this->actingAs($owner)->get('/app/billing')
         ->assertOk()
         ->assertSee('What you’re paying for', false)
-        ->assertSee('incl 23% VAT')            // the real VAT-inclusive figure
+        // The real VAT-INCLUSIVE figure. ⚠️ "incl." gained its full stop in the design-parity pass, which
+        // matched the prototype's plan-card copy; the assertion tracks the shipped copy and keeps its
+        // strength — it still fails if the VAT disclosure is dropped, or flipped to an exclusive figure.
+        ->assertSee('incl. 23% VAT')
         ->assertSee('No card on file')         // HONEST — card is account-gated
         ->assertSee('Free')                    // the real trial invoice (€0.00)
         // 🔒 #39 — never a fabricated card or paid invoice:

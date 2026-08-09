@@ -462,10 +462,19 @@
         .vy-bill-disclaimer { font-size: 11.5px; color: var(--vy-faint); margin-top: 14px; }
 
         /* Operator Billing exact-match — settings sub-nav, invoices, retention modal */
-        .vy-subnav { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid var(--vy-hairline); }
-        .vy-subnav-tab { padding: 9px 14px; font-size: 13.5px; font-weight: 600; color: var(--vy-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-        .vy-subnav-tab:hover { color: var(--vy-ink); }
-        .vy-subnav-tab.is-active { color: var(--vy-accent-text); border-bottom-color: var(--vy-accent); }
+        /* Settings sub-nav (General / Team / Billing) — the design's SEGMENTED PILL control, not an
+           underline tab row. Spec taken from the decoded Operator Billing prototype: a glass pill container
+           (3px pad, 2px gap, 30px radius, blur 22px) with 7px/16px pills; the active pill is a raised white
+           surface. Rendered by the Billing page only, so this is page-local, not shared chrome — the
+           Operator Settings prototype has no such control at all.
+           ⚠️ The prototype's own colours are NOT copied: its #8A8079 label is the pre-AA --vy-muted value and
+           its #C2410C active label is accent-as-text, which measured under AA in the P3 sweep. Both use the
+           AA tokens instead (--vy-muted, --vy-accent-text) — matching the design's INTENT, not its contrast
+           defect. */
+        .vy-subnav { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); margin-bottom: 22px; }
+        .vy-subnav-tab { padding: 7px 16px; border-radius: var(--vy-r-pill); font-size: 12.5px; font-weight: 500; color: var(--vy-muted); text-decoration: none; transition: background .15s, color .15s; }
+        .vy-subnav-tab:hover { background: rgba(255, 255, 255, 0.45); color: var(--vy-ink); }
+        .vy-subnav-tab.is-active { background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 8px rgba(150, 90, 50, 0.14); color: var(--vy-accent-text); }
         .vy-inv-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--vy-hairline); }
         .vy-inv-row:last-child { border-bottom: none; }
         .vy-inv-ref { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; }
@@ -1129,6 +1138,18 @@
         .vy-tonight-row { display: flex; gap: 22px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
         .vy-tonight-cell .vy-tc-k { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); }
         .vy-tonight-cell .vy-tc-v { font-family: var(--vy-display); font-size: 17px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+        /* Operator Billing — the design's plan-card header (name + status pill left, price right), its
+           next-invoice strip, and the subdued rail "Cancel subscription" card. */
+        .vy-bill-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .vy-bill-plan { font-family: var(--vy-display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--vy-ink); }
+        .vy-bill-price { text-align: right; flex: none; }
+        .vy-bill-amt { font-family: var(--vy-display); font-size: 32px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+        .vy-bill-per { font-size: 13px; color: var(--vy-muted); margin-left: 2px; }
+        .vy-bill-vat { font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-bill-next { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 14px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.42); border: 1px solid var(--vy-hairline); font-size: 12.5px; color: var(--vy-ink); }
+        .vy-bill-next-ico { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: rgba(232, 112, 58, 0.12); color: var(--vy-accent-text); }
+        .vy-bill-cancel .vy-card-title { color: var(--vy-muted); }
 
         /* Payout-run transfer row — the design's initial disc beside the owner name. */
         .vy-po-who { display: flex; align-items: flex-start; gap: 10px; }

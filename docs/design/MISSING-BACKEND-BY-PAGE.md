@@ -72,11 +72,11 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 15A | **Operator coverage sweep** (enumeration + reconciliation) | — | — | — | **0** — 42 prototypes reconciled |
 | 15B | Operator Refund | `/app/reservations/{id}/refund` | ⚠️ `payments.refund` | ✅ **at parity, 0 code** | **4** (1 real gap · 3 refusals) |
 | 16 | **Operator Payout Run** ⚠️ real owner money | `/app/payouts/run` | ⚠️ `payouts.manage` on the WRITES | ✅ matched | **6** (3 real gaps · 3 refusals) + ⚠️ **1 money-visibility finding** |
+| 17 | **Operator Billing** ⚠️ the OPEN billing decision | `/app/billing` | ⚠️ `can:billing.manage` on the GET | ✅ matched | **5** (2 real gaps · 3 refusals) + ⚠️ **1 G.1 observation** |
 
-**Operator: 24 of 42 prototypes covered · 18 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+**Operator: 25 of 42 prototypes covered · 17 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
 remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
-**⬅ NEXT PAGE: Operator Billing (`/app/billing`)** — ⚠️ it carries the **OPEN billing decision (G.1)**: show
-the org's REAL price, never the prototype's mock €99, and do **not** resolve which pricing model wins.
+**⬅ NEXT PAGE: Operator Rates (`/app/rates`)** — ⚠️ money: what guests are charged.
 
 ---
 
@@ -1024,3 +1024,97 @@ The component builds five sets: finalized statements · `pending` · `paid` · `
   and the real failure/reversal reporting with its reason.
 - **Responsive:** 0px horizontal overflow at **1440** and **1000**; the KPI strip reflows to 2 columns and the
   wide table scrolls inside its own `overflow-x: auto` container. **0 console errors/warnings.**
+
+---
+
+## 17 · Operator Billing — `/app/billing` ⚠️ THE OPEN BILLING DECISION LIVES HERE
+
+**Prototype:** `docs/design/raw/Operator Billing.html` (decoded fresh 2026-08-09; matches
+`/tmp/audit/Operator Billing.decoded.html`). ⚠️ It **opens on its "Before you go" cancel modal** — the base
+page is behind the scrim.
+**Live:** `App\Livewire\Operator\OperatorBilling` → `resources/views/livewire/operator/billing.blade.php`.
+**Role:** ⚠️ **the GET itself is `can:billing.manage`** — stricter than Payout Run, whose GET is ungated. Held
+by **Super Admin and Property Owner ONLY** (not Group Admin, not Accountant, not Hotel Manager), so an
+unpermitted viewer gets a clean **403** rather than a read-only page — #30 satisfied at the route, not merely
+by hiding controls. Reviewed as `demo-admin@vyrobel-demo.test` (Property Owner).
+⚠️ The prototype's own user chip reads **"Marco Reyes · Front desk manager"** — a front-desk role on a billing
+screen. The live gate is stricter and correct; **do not widen it to match the mock.**
+
+### ⚠️ THE G.1 OBSERVATION — surfaced, deliberately NOT resolved
+
+**Both pricing models are rendered on this one screen, and the design endorses the per-unit one.**
+
+- The plan card shows **€88.56/mo** — `SubscriptionPricing`: the org's **real** active-unit count (8) ×
+  a **placeholder** €9.00 per unit, + 23% VAT (€72.00 + €16.56). Reconciles (#17), flagged placeholder.
+- The tier catalog below shows **Essential €49.00 / Pro €99.00** — `BillingService::catalog()`, and
+  **Essential is the plan this org is actually on**.
+- So the page simultaneously tells this operator *"you pay €88.56/mo"* and *"Essential is €49.00/mo"*.
+
+⚠️ **A NEW FACT FOR THE FOUNDER'S DECISION, worth recording precisely: the discrepancy has FLIPPED DIRECTION.**
+`PROJECT-STATE.md` **G.1** describes per-unit as the *cheaper* figure ("B quotes ~€44 where A charges €99").
+At the demo org's current **8 units** the per-unit model is **€72.00 net vs the tier's €49.00 — 47% HIGHER**.
+The direction depends entirely on unit count (break-even is ~5.4 units at €9). **So the live-key risk is not
+simply "the customer is undercharged" or "overcharged" — it is either, depending on the tenant.** This is
+evidence for the decision, **not** a resolution of it.
+
+⚠️ **Nothing about the model was changed, and no price was wired.** Verified on the rendered page: the real
+€88.56 shows, and the prototype's mock **€66,42 does not leak** (nor its "6 units", nor its "#S-0001").
+⚠️ Also confirmed the **"Switch to yearly" link still carries `plan=essential`** — the org's OWN tier — after
+being restyled to the design's primary button. Restyling did not reintroduce the WAVE-2 · S3 silent-upgrade
+bug (`resolveTier()` falling back to `'pro'`).
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D17-1 | A **paid invoice** — "#S-0001 · Pro monthly · 5 Jul 2026 · Visa ····4242 · ✓ Paid · €66,42" with a **PDF download** — plus "Invoices are also emailed to billing@… the moment they're paid". | No charge is ever taken in test mode, so **there is no paid invoice**; the live list shows the REAL trial line (Free, €0.00) and says so. The `invoices` table exists but has **0 rows**, and the component does not read it — it synthesises the trial row from the subscription. | Real invoices arrive with the Stripe live-key flip (invoice objects + a PDF route + the "emailed when paid" hook). | **RATIFIED REFUSAL today / ACCOUNT-GATED — TIED TO THE STRIPE-LIVE FLIP.** Fabricating a paid invoice with a PDF would be the single most dishonest thing on this page. **Do not build before the flip.** |
+| D17-2 | A **stored card** — "PAYMENT METHOD · Visa ····4242 · Default · Expires 08/28 · Update", and a next-invoice line naming the card it will charge. | No PAN, no card token, no card metadata is stored anywhere (SAQ A — hosted Checkout only). The live rail says **"No card on file"** and explains the card is added on Stripe's page. | A Stripe payment-method reference + a portal/update flow, after the flip. | **RATIFIED REFUSAL / ACCOUNT-GATED — TIED TO THE STRIPE-LIVE FLIP** (sweep §5 "no raw PAN, no stored-card ····4242"). Verified absent from the rendered page: no "4242", no "Visa", no "Expires". |
+| D17-3 | "**reminder email 3 days before**" the next invoice, inside the next-invoice strip. | No such reminder is scheduled — there is no pre-invoice notification anywhere. | A scheduled pre-billing notification, which only makes sense once invoices are real. | **RATIFIED REFUSAL** — the strip was built to the design's SHAPE but this clause was **not** reproduced. It is the WAVE-2 class (copy asserting behaviour the code doesn't implement). |
+| D17-4 | A **street address** in Billing details — "Av. da Marina 14, 8000-114 Faro, Portugal". | The org stores `billing_company`, `billing_vat_id`, `billing_email` and `country` — **no street address**. The live card renders company / country / VAT / email. | Address columns on `organizations` + fields in the billing-details form. Genuinely useful for a compliant invoice. | **REAL GAP** — small and additive; it belongs with the invoicing work (D17-1). |
+| D17-5 | **"Team members · 4 · unlimited"** on an org the mock calls Pro. | Nothing missing — and **the live page is better**: it shows the org's REAL limit from `plan_features`, rendering **"7 of 5"**, i.e. this Essential org is genuinely OVER its plan limit. | — | **EXTRA / HONEST-BY-DESIGN — ⚠️ TIED TO THE OPEN DECISION (#10).** The limit is **displayed, not enforced**, and whether it *should* be enforced is a paywall lever belonging with G.1. **Do not enforce it, and do not "tidy" 7-of-5 away** — it is the true state. |
+
+### Also noted on this page (not backend gaps)
+
+- **#17** — the plan figure reconciles on the rendered page: **8 × €9.00 = €72.00 net, + €16.56 VAT (23%) =
+  €88.56 gross**, and the rail's "Units on the rack 8 × €9.00" agrees with the plan card's sub-line.
+- **#28 not widened** — the only email address anywhere on the page is the org's **own billing contact**
+  (`billing@vyrobel-demo.test`); **0 phone numbers**, no guest or owner contact. Billing is the org's account.
+- **#38** — the whole page resolves through `TenantContext::id()`; nothing is cross-org.
+- **The VAT ID matches the prototype's exactly ("PT 512 034 776") — checked, and it is NOT a leak.** It is a
+  flagged demo value seeded at `DemoSeeder.php:117` and rendered from the DB; the only hardcoded copy is a
+  `placeholder=` example on the checkout form. (Worth checking rather than assuming — the whole point of the
+  mock-doesn't-leak rule.)
+- **All four billing writes still POST their real `can:billing.manage` routes with CSRF** — `billing/company`,
+  `billing/pause`, `billing/cancel`, `billing/dev-expire` — and the checkout links are unchanged.
+  **Restyled, not rewired; the retention modal was opened READ-ONLY and nothing was submitted** (the
+  subscription is still `Active` and `stripe_subscription_id` is still null).
+- **Fixed (1) — the sub-nav became the design's SEGMENTED PILL control** (glass container, 3px pad, 30px
+  radius, raised white active pill) instead of an underline tab row. ⚠️ Page-local: `.vy-subnav` is rendered
+  **only** by Billing, and the Operator Settings prototype has no such control — checked before touching what
+  looked like shared chrome. ⚠️ The prototype's own colours were **not** copied: its `#8A8079` label is the
+  pre-AA `--vy-muted` value and its `#C2410C` active label is accent-as-text, both of which measured under AA
+  in earlier gates; the AA tokens are used instead (measured 5.48 / 5.93).
+- **Fixed (2) — the plan header was inverted.** The design puts the plan NAME as the heading with the status
+  as a pill beside it and the price **right-aligned** on the same row; the live page had the plan name inside
+  the chip, the status as plain text, and the price stacked below on the left.
+- **Fixed (3) — the design's next-invoice STRIP** (bordered, calendar glyph), carrying the real period end and
+  the real net/VAT split — and **not** the design's card reference or reminder-email promise (D17-2, D17-3).
+- **Fixed (4) — "Switch to yearly" is the design's primary action** (accent), "Change plan" stays secondary.
+- **Fixed (5) — Cancel subscription moved to the RAIL**, subdued, as the design places it (it was a full-width
+  card in the main column), and **two stray `<br>` tags** inside the retention forms were removed.
+- ⚠️ **Fixed (6) — A PRE-EXISTING MODAL BUG, found only because the card moved into a narrow column.**
+  `.vy-card` sets `backdrop-filter: blur(22px)`, and **a backdrop-filter creates a containing block for
+  `position: fixed` descendants**. The retention modal's `.vy-modal-scrim` is `position: fixed` and expects
+  the viewport — but it was resolving against the CARD: measured **338×132 at (1071,840)** instead of
+  **1440×1000 at (0,0)**, so the "centred" modal rendered squashed inside the rail. **Proven pre-existing by
+  stashing this gate's changes and re-measuring on clean HEAD — the culprit ancestor is the same `.vy-card`;**
+  it was simply invisible while the card was full-width. Fixed by moving the `x-data` scope to a plain wrapper
+  so the modal is a sibling of the card rather than its child; the scrim now measures 1440×1000 with **no
+  containing-block ancestor above it**, and every POST is untouched.
+  ⚠️ **REALM-WIDE, LOGGED NOT SWEPT:** any other `position: fixed` element nested inside a `.vy-card` has the
+  same latent bug. Worth one audit pass — not a blind change.
+- **One test string updated, deliberately and provably not weakened.** `OperatorBillingLifecycleTest`
+  asserted `'incl 23% VAT'`; the design's copy is `'incl. 23% VAT'`, so the assertion now tracks the shipped
+  copy. Its three #39 guards (`assertDontSee('····4242')`, `assertDontSee('Visa ')`, `assertSee('No card on
+  file')`) are untouched, and **the updated assertion was proven to still go RED** by replacing the VAT
+  disclosure with "VAT included" — it fails if the disclosure is dropped or flipped to an exclusive figure.
+- **Responsive:** 0px horizontal overflow at **1440** and **1000**; the plan header wraps, the sub-nav fits,
+  the price stays visible. **0 console errors/warnings.** Contrast on every new element **5.48–13.38** (AA).
