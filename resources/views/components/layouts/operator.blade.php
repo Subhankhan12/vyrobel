@@ -316,6 +316,30 @@
         .vy-res .vy-input-group .vy-input:focus { outline: none; }
         .vy-res .vy-input-group:focus-within { border-color: var(--vy-accent-border); }
         .vy-res .vy-input-group .vy-btn, .vy-res .vy-input-group .vy-pill { flex: none; padding: 6px 14px; font-size: 12.5px; }
+
+        /* ---- Operator Reservation DETAIL — wireframe parity (scoped to .vy-det) ------------------ */
+        /* The design's folio line: date | description | amount. Same real rows, ordered as designed. */
+        .vy-det .vy-ledger-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 12px 10px; margin: 0 -10px; border-radius: 12px; transition: background .14s; }
+        .vy-det .vy-ledger-row:hover { background: rgba(255, 255, 255, 0.45); }
+        .vy-det .vy-ledger-date { font-size: 12px; color: var(--vy-muted); white-space: nowrap; }
+        .vy-det .vy-ledger-main { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; min-width: 0; }
+        .vy-det .vy-ledger-label { font-size: 13.5px; font-weight: 500; }
+        .vy-det .vy-ledger-sub { font-size: 11.5px; color: var(--vy-muted); }
+        .vy-det .vy-ledger-amt { font-weight: 500; min-width: 0; }
+        /* The design's totals band: the three figures side by side, the balance carrying the emphasis. */
+        .vy-det .vy-totals { flex-direction: row; align-items: flex-end; gap: 26px; flex-wrap: wrap; padding-top: 18px; }
+        .vy-det .vy-total-row { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+        /* `.vy-total-row.is-balance` (shared) sets a border-top + margin for the STACKED layout and is
+           declared later in this file at equal specificity, so it must be out-specified, not just restated:
+           in a row that border draws a stray rule over one cell. The band's own border already divides it. */
+        .vy-det .vy-total-row.is-balance { border-top: none; margin-top: 0; padding-top: 0; }
+        .vy-det .vy-t-label { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-det .vy-t-val { font-family: var(--vy-display); font-weight: 500; font-size: 16px; font-variant-numeric: tabular-nums; }
+        .vy-det .vy-total-row.is-balance .vy-t-label { color: var(--vy-accent-text); }
+        .vy-det .vy-total-row.is-balance .vy-t-val { font-weight: 600; font-size: 24px; letter-spacing: -0.02em; color: var(--vy-accent-text); }
+        /* A settled balance is not an alarm — it reads as ink, not accent. */
+        .vy-det .vy-total-row.is-balance.is-settled .vy-t-label { color: var(--vy-muted); }
+        .vy-det .vy-total-row.is-balance.is-settled .vy-t-val { color: var(--vy-ink); }
         .vy-card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
         .vy-card-head h3 { margin: 0; font-family: var(--vy-display, inherit); font-size: 14px; font-weight: 600; color: var(--vy-ink); }
         .vy-card-note { font-size: 11.5px; color: var(--vy-faint); }

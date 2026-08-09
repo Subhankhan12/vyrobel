@@ -57,6 +57,7 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 4 | Operator Reports | `/app/reports` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
 | 5 | Operator Front Desk | `/app/front-desk` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
 | 6a | Operator Reservations (list) | `/app/reservations` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
+| 6b | Operator Reservation Detail | `/app/reservations/{id}` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) + ⚠️ Cancelled/No-show **not observable on this seed** |
 
 ---
 
@@ -289,3 +290,51 @@ plain `<a href>` links. Nothing was converted to a wire-action.
   all four consumers. ⚠️ The visible **"Page N of M"** was KEPT even though the wireframe omits it — a bare
   chevron pair tells you neither where you are nor whether another page exists, and assistive-tech users
   lose position entirely. GET links, `withQueryString()` and the self-contained inline styles are unchanged.
+
+---
+
+## 6b · Operator Reservation DETAIL — `/app/reservations/{id}` (Hotel Manager)
+
+**Prototype:** `docs/design/raw/Operator Reservation Detail.html` (1,310 lines) + the `Cancelled` and
+`No-show` variants (all decoded 2026-08-09, byte-identical to the 2026-08-07 audit decodes).
+**Live component:** `App\Livewire\ReservationDetail`. **Design pass:** complete for the main detail.
+
+### ⚠️ The Cancelled and No-show variants could NOT be observed
+
+`reservations` contains **no `cancelled` and no `no_show` row** on the current seed (checked directly:
+confirmed ✓, checked_out ✓, checked_in ✗, cancelled ✗, no_show ✗). Producing one means driving a real
+cancel or no-show, which mutates the folio and the seed — so it was **not** done. Those two states are
+**unverified**, not passed. To close them: seed a genuinely cancelled and a genuinely no-show reservation
+(a `DemoSeeder` addition), then re-run this page's diff against the two variant prototypes.
+
+### Verified before touching anything
+
+- **#17 reconciles**, re-read live on two reservations: settled — Charges €369.00 − Paid €369.00 = Balance
+  €0.00; outstanding — Charges €664.20 − Paid €332.10 = Balance **€332.10**. Both carry the component's own
+  "Reconciled to the folio ledger" check.
+- **Refunds stay visible.** `FolioTotals` defines `paid_minor === received_minor − refunded_minor`, so
+  "Paid" is NET — but a refund posts **its own offsetting ledger line** ("Refund · Reverses a payment",
+  correct-by-reversal, the original payment row untouched), so the net figure is always explained by a
+  visible row. Confirmed by reading the ledger builder; it could not be observed live because the seed
+  contains **zero refunds**.
+- **#28 / #33 probed on the rendered page:** no email, no phone, **no door code**.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D6b-1 | **Modify** (dates / guests) and **Void** as first-class actions in the title row. | Both are present in the live rail but honestly marked **"SOON"** — there is no modify-stay or void-line action behind them. | Modify = a date/occupancy change that must go through `AssignmentService` (re-checking availability and the no-overlap lock) and re-price the folio through `FolioService`; Void = an append-only reversing entry, never a delete (the ledger is append-only). ⚠️ Neither may bypass the certified path, and a modify that moves dates must respect the same OOS/paused `isBookable()` guard a move does. | **REAL GAP** (honestly deferred today) |
+| D6b-2 | **A cancellation / no-show fee** on the cancelled and no-show variants. | Nothing missing. There is **no fee engine**, and the live cancellation card states the real policy on file plus "Nothing has been calculated against this booking." | — | **RATIFIED REFUSAL** — sweep §5: *"No cancellation / no-show fee figure — no fee engine; a label marked 'Soon' plus an explicit 'no fee was calculated or charged'."* **Do not invent one.** The cancellation outcome must stay the real policy + the #27-bounded refund. |
+
+### Also noted on this page (not backend gaps)
+
+- **Kept, not removed (§6 extra work):** the **Cancellation policy** card (the real policy JSON, stating
+  plainly that nothing has been calculated), the **Lifecycle** card (mark-no-show + cancel-with-reason, each
+  explaining its own consequence), the per-payment inline **Refund** gated on `payments.refund` *and* real
+  remaining headroom (#27), the dedicated refund screen, **Export folio (PDF)**, and the "Reconciled to the
+  folio ledger" badge. The wireframe has none of these.
+- **Action placement diverges deliberately.** The wireframe puts Modify / Move room / Take payment / ⋯ in
+  the title row; the live product keeps them as real, gated forms in the right rail. They were **not**
+  moved: relocating them means converting working forms into modal triggers, which is a behaviour change,
+  not styling. All five (`no-show`, `cancel`, `payments`, `move`, `charge`) were re-verified POST + CSRF
+  after the change.
+- **The guest check-in note (WAVE-2) is intact** — `ReservationDetail` still builds a "From the guest" note
+  row. It does not render on the two seeded reservations because neither has one, not because it regressed.

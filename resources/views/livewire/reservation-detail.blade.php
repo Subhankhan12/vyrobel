@@ -2,8 +2,10 @@
      the shared operator design system via <x-operator.shell>. The folio is rendered as the real
      APPEND-ONLY ledger; totals reconcile to the cent. The page READS; record-payment/refund post to
      the real FolioService action (append-only) and persist. Presentation only otherwise. --}}
-<div>
-    <x-operator.shell active="reservations" title="Reservation"
+<div class="vy-det">
+    {{-- The design titles this page with the GUEST'S NAME and puts the reference in the sub-line. The name
+         is already shown on the page — this is presentation, not a widening of the #28 perimeter. --}}
+    <x-operator.shell active="reservations" :title="$reservation['guest'] ?: $reservation['reference']"
         :subtitle="$reservation['reference'] . ' · ' . $reservation['status_label']" :viewer="$viewer">
 
         @if (session('folio_notice'))
@@ -107,7 +109,10 @@
                     @else
                         <div class="vy-ledger">
                             @forelse ($folio['ledger'] as $line)
+                                {{-- The design leads each folio line with its DATE, then the description,
+                                     then the amount. Same real line, same real figure — order only. --}}
                                 <div class="vy-ledger-row">
+                                    <span class="vy-ledger-date">{{ $line['date'] }}</span>
                                     <div class="vy-ledger-main">
                                         <div class="vy-ledger-label">
                                             {{ $line['label'] }}
@@ -115,7 +120,6 @@
                                         </div>
                                         <div class="vy-ledger-sub">{{ $line['desc'] }}</div>
                                     </div>
-                                    <span class="vy-ledger-date">{{ $line['date'] }}</span>
                                     <span class="vy-ledger-amt tone-{{ $line['tone'] }}">{{ $line['amount'] }}</span>
                                     {{-- `can` as well as `refundable`: the route is gated on payments.refund
                                          (2026-07-17), which Hotel Manager and Front Desk deliberately do NOT
@@ -135,6 +139,8 @@
                             @endforelse
                         </div>
 
+                        {{-- The design sets the three totals SIDE BY SIDE with the balance carrying the
+                             emphasis. Same three real figures from FolioTotals — layout only. --}}
                         <div class="vy-totals">
                             <div class="vy-total-row"><span class="vy-t-label">Charges</span><span class="vy-t-val">{{ $folio['charges'] }}</span></div>
                             <div class="vy-total-row"><span class="vy-t-label">Paid</span><span class="vy-t-val">{{ $folio['paid'] }}</span></div>
@@ -142,6 +148,9 @@
                                 <span class="vy-t-label">Balance due</span><span class="vy-t-val">{{ $folio['balance'] }}</span>
                             </div>
                         </div>
+                        {{-- "Paid" is NET of refunds by construction (paid = received − refunded). A refund is
+                             never hidden: it posts its OWN offsetting ledger line above (correct-by-reversal),
+                             so the net figure is always explained by a visible row (the WAVE-1 lesson). --}}
 
                         @if ($folio['reconciles'])
                             <span class="vy-recon">
