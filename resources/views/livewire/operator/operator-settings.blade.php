@@ -40,7 +40,7 @@
                         <div class="vy-field" style="margin: 0;">
                             <label class="vy-field-label" for="p_name">Display name</label>
                             <input id="p_name" type="text" name="name" class="vy-input" value="{{ old('name', $property['name']) }}" required {{ $disabled }}>
-                            @error('name') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                            @error('name') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
                         </div>
                         <div class="vy-field" style="margin: 0;">
                             <label class="vy-field-label" for="p_ci">Check-in from</label>
@@ -100,9 +100,16 @@
                         <label class="vy-field-label">Cancellation policy <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· the label guests see</span></label>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                             @foreach (['flexible' => 'Flexible', 'moderate' => 'Moderate', 'strict' => 'Strict'] as $val => $label)
-                                <label style="flex: 1; min-width: 90px; text-align: center; padding: 9px 12px; border: 1px solid var(--vy-hairline); border-radius: var(--vy-r-sm); font-size: 13px; cursor: pointer; color: var(--vy-ink);"
-                                       @if (old('cancellation_type', $policy['cancellation_type']) === $val) style="border-color: var(--vy-accent); color: var(--vy-accent); background: rgba(194,65,12,.06);" @endif>
-                                    <input type="radio" name="cancellation_type" value="{{ $val }}" @checked(old('cancellation_type', $policy['cancellation_type']) === $val) style="position:absolute;opacity:0;" {{ $disabled }}>
+                                {{-- ⚠️ The selected state used to live in a SECOND `style` attribute on this label.
+                                     HTML keeps the first duplicate attribute and discards the rest, so it never
+                                     applied — and because the radio itself is `opacity:0`, there was NO visible
+                                     indicator of which policy was active. One style attribute, appended
+                                     conditionally. `aria-checked` is on the radio, which stays the accessible
+                                     source of truth; the ring is the visual one (never colour alone — the
+                                     selected option also gets a heavier border and a tint). --}}
+                                @php $vySel = old('cancellation_type', $policy['cancellation_type']) === $val; @endphp
+                                <label style="flex: 1; min-width: 90px; text-align: center; padding: 9px 12px; border: 1px solid {{ $vySel ? 'var(--vy-accent)' : 'var(--vy-hairline)' }}; border-radius: var(--vy-r-sm); font-size: 13px; cursor: pointer; color: {{ $vySel ? 'var(--vy-accent-text)' : 'var(--vy-ink)' }};{{ $vySel ? ' background: rgba(194,65,12,.06); font-weight: 600; box-shadow: inset 0 0 0 1px var(--vy-accent);' : '' }}">
+                                    <input type="radio" name="cancellation_type" value="{{ $val }}" @checked($vySel) style="position:absolute;opacity:0;" {{ $disabled }}>
                                     {{ $label }}
                                 </label>
                             @endforeach
@@ -157,7 +164,7 @@
             <div class="vy-card vy-fade" style="margin-bottom: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h2 class="vy-card-title" style="margin: 0;">Tax &amp; fees</h2>
-                    <a href="#tax-detail" style="font-size: 12.5px; color: var(--vy-accent); text-decoration: none;">Edit tax &amp; fees ↓</a>
+                    <a href="#tax-detail" style="font-size: 12.5px; color: var(--vy-accent-text); text-decoration: none;">Edit tax &amp; fees ↓</a>
                 </div>
                 @if ($taxes === [] && $fees === [])
                     <div style="font-size: 12.5px; color: var(--vy-muted);">No taxes or fees are configured for this property.</div>
@@ -220,7 +227,7 @@
                  net-new + not built; SMS/Push have no provider) ─────────────────────────────────────────────── --}}
             <div class="vy-card vy-fade" style="margin-bottom: 16px;">
                 <h2 class="vy-card-title" style="margin-bottom: 4px;">Notification routing</h2>
-                <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 10px;">Email and in-app notifications are on and configurable per person in <a href="{{ route('app.notification-preferences') }}" style="color:var(--vy-accent);">notification preferences</a>.</p>
+                <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 10px;">Email and in-app notifications are on and configurable per person in <a href="{{ route('app.notification-preferences') }}" style="color: var(--vy-accent-text);">notification preferences</a>.</p>
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid var(--vy-hairline);font-size:12.5px;color:var(--vy-muted);">
                     <span>Route events to a specific role · SMS · Push</span>
                     <span class="vy-btn is-soon" aria-disabled="true" style="padding:4px 11px;font-size:11.5px;">Soon</span>
@@ -230,7 +237,7 @@
             {{-- ── #104b GATE 2 · GUEST MESSAGES — REAL (reuse the #83/#86 email templates) ─────────────────── --}}
             <div class="vy-card vy-fade" style="margin-bottom: 16px;">
                 <h2 class="vy-card-title" style="margin-bottom: 4px;">Guest messages</h2>
-                <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 10px;">The automated emails guests receive. Edit the wording in <a href="{{ route('app.email-templates') }}" style="color:var(--vy-accent);">email templates</a>.</p>
+                <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 10px;">The automated emails guests receive. Edit the wording in <a href="{{ route('app.email-templates') }}" style="color: var(--vy-accent-text);">email templates</a>.</p>
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px;"><span>Booking confirmation</span><span class="vy-muted" style="font-size:12px;">Email · instant</span></div>
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px;"><span>Pre-arrival details</span><span class="vy-muted" style="font-size:12px;">Email · before check-in</span></div>
             </div>
@@ -245,7 +252,7 @@
                             <div style="font-size: 14px; font-weight: 600; color: var(--vy-ink);">{{ $owner['name'] }}</div>
                             <div style="font-size: 12.5px; color: var(--vy-muted);">{{ $owner['units'] }} {{ \Illuminate\Support\Str::plural('unit', $owner['units']) }} · {{ $owner['commission'] }}</div>
                         </div>
-                        <a href="{{ route('app.owners.show', $owner['id']) }}" style="font-size: 13px; color: var(--vy-accent); text-decoration: none;">View ›</a>
+                        <a href="{{ route('app.owners.show', $owner['id']) }}" style="font-size: 13px; color: var(--vy-accent-text); text-decoration: none;">View ›</a>
                     </div>
                 </div>
             @endif
@@ -334,7 +341,7 @@
 
                 @foreach ($team as $m)
                     <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--vy-hairline);">
-                        <span style="width: 34px; height: 34px; border-radius: 50%; background: rgba(194,65,12,.10); color: var(--vy-accent); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">{{ $m['initials'] }}</span>
+                        <span style="width: 34px; height: 34px; border-radius: 50%; background: rgba(194,65,12,.10); color: var(--vy-accent-text); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">{{ $m['initials'] }}</span>
                         <div style="flex: 1;">
                             <div style="font-size: 13.5px; color: var(--vy-ink);">{{ $m['name'] }}@if ($m['you']) <span style="color: var(--vy-faint); font-size: 12px;">· You</span>@endif</div>
                             <div style="font-size: 12px; color: var(--vy-muted);">{{ $m['scope'] }}</div>
@@ -357,7 +364,7 @@
                 <div style="margin-top: 16px; border-top: 1px solid var(--vy-hairline); padding-top: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 12.5px; font-weight: 600; color: var(--vy-ink);">What each role can do here</span>
-                        <a href="{{ route('app.roles') }}" style="font-size: 12px; color: var(--vy-accent); text-decoration: none;">View full permissions ›</a>
+                        <a href="{{ route('app.roles') }}" style="font-size: 12px; color: var(--vy-accent-text); text-decoration: none;">View full permissions ›</a>
                     </div>
                     @foreach ($roleDefinitions as $rd)
                         <div style="padding: 7px 0; font-size: 12.5px;">
@@ -382,7 +389,7 @@
                                 <input id="b_accent" type="color" name="brand_accent" value="{{ old('brand_accent', $brand['accent']) }}" style="width: 44px; height: 38px; border: 1px solid var(--vy-hairline); border-radius: var(--vy-r-sm); background: none; cursor: pointer;" {{ $disabled }}>
                                 <span style="font-size: 12px; color: var(--vy-muted);">{{ $brand['accent'] }}</span>
                             </div>
-                            @error('brand_accent') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                            @error('brand_accent') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
                         </div>
                         <div class="vy-field">
                             <label class="vy-field-label" for="b_logo">Logo <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· PNG or JPG, square, ≥ 240px</span></label>
@@ -390,7 +397,7 @@
                                 <img src="{{ $brand['logo_url'] }}" alt="Current logo" style="width: 40px; height: 40px; border-radius: var(--vy-r-sm); object-fit: cover; margin-bottom: 6px;">
                             @endif
                             <input id="b_logo" type="file" name="logo" accept="image/png,image/jpeg,image/webp" class="vy-input" {{ $disabled }}>
-                            @error('logo') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                            @error('logo') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
                         </div>
                         <div class="vy-field">
                             <label class="vy-field-label" for="b_from">Emails show sender name</label>
@@ -400,7 +407,7 @@
                         <div class="vy-field">
                             <label class="vy-field-label" for="b_reply">Reply-to address</label>
                             <input id="b_reply" type="email" name="brand_reply_to" class="vy-input" placeholder="hello@yourhotel.com" value="{{ old('brand_reply_to', $brand['reply_to']) }}" {{ $disabled }}>
-                            @error('brand_reply_to') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                            @error('brand_reply_to') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
                         </div>
                         <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--vy-ink); margin-top: 4px;">
                             <input type="checkbox" name="brand_powered_by" value="1" @checked(old('brand_powered_by', $brand['powered_by'])) {{ $disabled }}>
@@ -530,7 +537,7 @@
                         @endforeach
                         <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0 0; margin-top: 6px; border-top: 1px solid var(--vy-hairline); font-size: 14px; font-weight: 700;">
                             <span style="color: var(--vy-ink);">Guest pays</span>
-                            <span style="font-family: var(--vy-display); color: var(--vy-accent);">{{ $sample['total'] }}</span>
+                            <span style="font-family: var(--vy-display); color: var(--vy-accent-text);">{{ $sample['total'] }}</span>
                         </div>
                     </div>
                 @endif
@@ -548,7 +555,7 @@
                             <div class="vy-field" style="margin: 0;">
                                 <label class="vy-field-label" for="o_cur">Default currency</label>
                                 <input id="o_cur" type="text" name="default_currency" class="vy-input" maxlength="3" style="text-transform: uppercase;" value="{{ old('default_currency', $org['default_currency']) }}" required {{ $disabled }}>
-                                @error('default_currency') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                                @error('default_currency') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
                             </div>
                             <div class="vy-field" style="margin: 0;">
                                 <label class="vy-field-label" for="o_loc">Default locale</label>
@@ -557,7 +564,7 @@
                             <div class="vy-field" style="margin: 0;">
                                 <label class="vy-field-label" for="o_email">Billing email <span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">· optional</span></label>
                                 <input id="o_email" type="email" name="billing_email" class="vy-input" value="{{ old('billing_email', $org['billing_email']) }}" {{ $disabled }}>
-                                @error('billing_email') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                                @error('billing_email') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
                             </div>
                         </div>
                         @unless ($readOnly)

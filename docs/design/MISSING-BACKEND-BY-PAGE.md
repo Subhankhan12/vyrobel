@@ -760,3 +760,62 @@ their values (the settings-write discipline). None of this was touched.
   from the stored settings. **Proven in the browser, not assumed:** the Urgent-hours field was edited to 99,
   Discard was clicked, and the field came back as the stored **4** with **no "saved" flash** — i.e. it
   reverted the form and wrote nothing. It makes no claim to undo anything already saved.
+
+---
+
+## 14. Operator Settings (`/app/settings`)
+
+**Prototype:** `docs/design/raw/Operator Settings.html` — 1,282 lines, decoded **byte-identical** to the audit
+copy. ⚠️ **Role: `properties.manage` — held by `Property Owner` (the ORG ADMIN) and `Group Admin`, NOT by
+Hotel Manager.** The demo Hotel Manager gets a clean **403** here; this page was reviewed as
+`demo-admin@vyrobel-demo.test` (Property Owner). Worth knowing before anyone reports Settings as "broken".
+
+**Sections covered this turn:** the whole of `/app/settings` — Property basics · Policies · Tax & fees ·
+Invoice details · Your plan · Notification routing · Guest messages · Owner · Property status · Who can
+access · Guest-facing brand · Taxes & fees editor · Organization.
+**Sections REMAINING (their own pages, next turn):** **`/app/billing`** (`billing.manage`) and
+**`/app/security`**. Integrations are **platform-admin** (`/admin/integrations`), not an operator section.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D14-1 | A **hero KPI strip** — "VAT rates % · Alerts routed · Free-cancel days · Min-stay nights". | No hero strip. Two of the four are real and on the page (free-cancel days, min-stay nights); **the other two are not available as scalars**: a property can carry several percentage taxes, so "VAT rates %" is a list not a number, and "Alerts routed" counts a per-event routing model whose per-role routing is honestly **"Soon"**. | A single canonical VAT rate (a modelling decision) and a real routing model to count. | **REAL GAP — deliberately NOT half-built.** Rendering two real tiles and inventing the other two is exactly the fabrication this pass refuses (#39). |
+| D14-2 | Staff **email addresses** in the team list (`elena@seasidegroup.pt` …). | The access list payload is `{id, name, initials, roles, scope, you}` — **email is not even loaded**. | Nothing technical; it is a deliberate narrowing. | **REFUSAL-PRESERVE.** The live surface is narrower than the design on purpose. **Do not add staff emails** to match the mock. (Pending *invites* do carry an email, because an invite is addressed to one.) |
+| D14-3 | **"Owner statements"** block — "Statements finalize 1st of the month · Payouts sent 3rd business day". | The Owner card shows the real owner, unit count and **real 18% commission**, but not the statement/payout cadence. | Reading the real `PayoutSchedule` cadence into this component — it exists and already drives the owner-side "next payout" date, so this is wiring, not invention. | **REAL GAP** — small, and the data is genuinely there. |
+| D14-4 | A plan card reading **"Vyrobel Pro · 45 rooms · 3 channels · €99/month · renews 1 Oct 2025"**. | The live card shows the org's **real** subscription: "Vyrobel Essential · €88.56/mo · Active". | — | ⚠️ **TIED TO THE OPEN BILLING DECISION — not a plain gap.** The prototype's €99 is a mock constant; the live figure is the real stored one. **Do not wire the prototype's price, and do not resolve which pricing model is authoritative** — that is the founder's open go-live blocker. Verified the mock price does **not** leak onto the page. |
+
+### Also noted on this page (not backend gaps)
+
+- ⚠️ **JSON-MERGE, NOT REPLACE — confirmed at the source and untouched.** `SettingsService` merges the policy
+  JSON columns: `$changes[$field] = array_merge($existing, (array) $changes[$field])`, above a comment
+  recording the WAVE-1 HIGH-1 defect verbatim — *"assigning here once destroyed `cancellation.free_until_days`
+  on every save."* The controller matches it: *"send only the keys this form owns … `free_until_days` is the
+  load-bearing one … rather than left to be clobbered by a sibling key."* The recovery fallback that reads a
+  legacy `tier` key is still present. **None of this was changed.**
+- **All 10 saves POST their real gated routes with CSRF** — property · policies · invoice · tax-fees ·
+  fees/add · brand · pause · remove/schedule · organization (+ the property switcher). **Nothing submitted.**
+- ⚠️ **API keys are NOT surfaced here, and the "shown once" rule is intact by construction.** `ApiKey`
+  persists **only `hashed_key`**, which is in `$hidden`, and its docblock states *"Only the hash is persisted;
+  the plaintext is shown once at creation."* **No Livewire component or controller references `ApiKey` at
+  all** — there is no operator API-key UI. Nothing to weaken, and none was built. No reveal control exists.
+- **#28 — the team list shows STAFF, not guests:** name + initials + role + scope, **no email**, no guest PII.
+  The only `@` on the page is the brand **reply-to placeholder** (`hello@example.com`).
+- **Honest deferrals kept:** 2 × "Soon" (per-role notification routing · SMS/Push), and the SAF-T line —
+  *"the details above are saved now, but no certified invoice or SAF-T file is generated yet."*
+- **Figures reconcile:** the sample 4-night stay computes Room €600.00 + City tax €20.00 + VAT €138.00 +
+  Cleaning €45.00 = **Guest pays €803.00**.
+- **Fixed (1) — a real defect, not a style tweak.** The cancellation-policy selector had **two `style`
+  attributes** on the same `<label>`. HTML keeps the first duplicate and discards the rest, so the selected
+  state never applied — and because the radio is `position:absolute;opacity:0`, there was **no visible
+  indicator of which policy was active at all**. Proven in the DOM (all three labels carried an identical
+  style attribute while `flexible` was genuinely checked). Now one conditional style attribute; the selected
+  option is distinguished by **border + background + weight**, not colour alone (WCAG 1.4.1).
+- **Fixed (2) — accent-as-text contrast.** 14 inline `color: var(--vy-accent)` declarations were retargeted to
+  `--vy-accent-text`; the "Edit tax & fees" and "View full permissions" links now measure **6.01** against the
+  glass (AA needs 4.5; accent-as-text measured ~4.06 on Page 4). `border-color: var(--vy-accent)` was left
+  untouched — verified 1 → 1, using a lookbehind, because the Page-4 lesson is that a naive replace also
+  matches property names ending in "color:".
+- ⚠️ **REALM-WIDE FINDING (logged, not swept):** **248** inline `color: var(--vy-accent)` declarations remain
+  across `resources/views/`, concentrated in the owner realm (bookings 13, owner-settings 9, help 9,
+  messages 8, welcome 7, unit-detail 7). **A blanket replace would be WRONG** — many sit on tinted chip
+  backgrounds where the accent is the correct foreground, which is exactly why 31 chip/tag rules were left
+  during the Page-4 pass. Each site needs its real composited background measured. Worth its own pass.
