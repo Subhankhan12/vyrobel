@@ -2,6 +2,35 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-09 — THE AUTH/ISOLATION PASS IS COMPLETE: all three flagged items fixed
+
+`8ddd389` Maintenance-Costs scope + period + export parity · `5f27085` workspace-picker write ·
+`306715f` password-reset session termination. Each dual-method verified (browser AND code/DB) and
+adversarially; each carries a regression test proven to fail without the fix. Detail in PROJECT-STATE.
+
+**What made these worth escalating out of WAVE 3.** All three were latent — nothing leaked in the seeded
+demo, because `property_user` had 0 rows and no demo user belongs to two orgs. They needed tests and
+deliberately-seeded adversarial state to expose, which a cosmetic pass would never have produced.
+
+**Decisions locked.**
+- The Maintenance-Costs scope MIRRORS the board (`whereHas('unit', property_id ∈ readIds)`) rather than
+  inventing a second mechanism, and `report()` REQUIRES the read-set — PHPStan then fails any caller that
+  forgets it (it caught all four immediately). An empty read-set yields NOTHING; it must never fall back to
+  org-wide, which would reopen the hole.
+- The export and the screen resolve ONE period param through ONE helper. An earlier cut had the screen read
+  `?period=` and the export `?from=`/`?to=` — and the export links carry no dates, so every export would
+  silently have been ALL-TIME beside a 6-month page. That is the two-readers-drift trap (#17) reappearing
+  inside its own fix.
+- The workspace picker lists only workspaces the user can ENTER (membership AND a back-office role). This
+  HIDES a dead end; `EnsureBackOfficeAccess` remains the boundary and is untouched.
+- Session termination lives in the shared `changePasswordTo()`, so reset and in-app change cannot drift;
+  the reset kills all sessions, the in-app change spares the current browser.
+
+**Preserved:** empty-pivot = full-org access (documented and intended); a reset is scoped to the resetting
+user and is not a global sign-out (tested).
+
+**Suite:** 1775/1782 · 11,795 assertions, non-green exactly the documented 7 throughout.
+
 ## 2026-08-09 — Maintenance Costs ESCALATED out of WAVE 3 into the auth/isolation pass
 
 Verified against code, not assumed: `MaintenanceCostService::resolved()` is

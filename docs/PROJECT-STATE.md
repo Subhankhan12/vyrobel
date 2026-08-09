@@ -322,7 +322,35 @@ activity" table, built from `FolioDocument::data` so it shares the receipt's fol
 housekeeping/technician items, owner chart-scaling and payout-filter items, and the remaining small
 divergences.
 
-⚠️ **THREE OPEN ITEMS ARE NOT WAVE 3 — they need their own gated auth/isolation pass:**
+### ✅ THE AUTH/ISOLATION PASS IS COMPLETE (2026-08-09) — all three flagged items fixed
+
+| # | Gap | Commit | Adversarially verified |
+|---|---|---|---|
+| 1 | **Maintenance Costs ignored the property access restriction** — `resolved()` was tenant-scoped ONLY, no property constraint, so a pivot-restricted user saw the costs, **unit names** and billable lines of properties they may not work in | `8ddd389` | Real `property_user` row: user pivoted to Vista (€0.00) saw **no** Seaside €225 on screen **or in the CSV**; unrestricted user saw €225 on both. Export + screen agree (#17) |
+| 2 | **Workspace picker had no write path** — `active_organization_id` was read and never written, pinning a two-org user to `first()` forever | `5f27085` | Real second membership: picker listed both, switch persisted and moved the tenant; foreign org id refused; single-workspace user gets **no** control |
+| 3 | **A password reset left live sessions alive** — the hash and remember-token rotated, but server-side sessions were untouched, so an attacker holding a session was unaffected | `306715f` | Seated a real attacker session, changed the password through the UI: attacker's session **gone**, own browser still signed in |
+
+**Design notes worth keeping.** (1) The cost scope MIRRORS the board's `whereHas('unit', property_id ∈
+readIds)` rather than inventing a second mechanism, and `report()` now REQUIRES the read-set so PHPStan
+fails any caller that forgets it. (2) The workspace switch mirrors `PropertySwitchController` exactly and
+clears `current_property_id`, so no foreign property id survives the move. (3) Session termination lives in
+the SHARED `changePasswordTo()`, and `OwnerSecurityController` was pointed at the same helper, so
+"sign out others" and "reset kills siblings" cannot diverge.
+
+**Two things the BROWSER caught that the tests did not:** switching to a workspace where the user holds a
+Membership but no back-office role landed on a 403 — correct behaviour (a Membership is not operator access)
+but an invited 403, so the picker now lists only workspaces the user can enter (#30); and the role-pivot
+query first 500'd on `model_has_roles.team_id`, because spatie's teams column is configurable and is
+`organization_id` here.
+
+**Riders delivered:** the Maintenance-Costs **period selector** (3M/6M/12M/All time) the report never had —
+with the export links carrying the active period, so the PDF/CSV always covers the window on screen.
+
+**Empty-pivot behaviour preserved** as documented: an empty `property_user` still means full-org access.
+
+---
+
+⚠️ **(historical — now resolved) THREE OPEN ITEMS WERE NOT WAVE 3:**
 1. the login **workspace picker** (`active_organization_id` is read and never written);
 2. **password-reset sibling-session termination**;
 3. **Operator Maintenance Costs ignores the property access restriction** (escalated 2026-08-09) —
