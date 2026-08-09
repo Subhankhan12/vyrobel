@@ -760,11 +760,11 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **28 of 42** covered, **14 remaining** (`0aa9ede`→`1b435a7`, all pushed)
+## N.4 Progress — OPERATOR **29 of 42** covered, **13 remaining** (`0aa9ede`→`PENDINGHASH`, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
-Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation** and **P20 Group Booking**, so the
-current figure is **28 covered / 14 remaining** (28 + 14 = 42). Notes saying
+Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking** and **P21
+Owners**, so the current figure is **29 covered / 13 remaining** (29 + 13 = 42). Notes saying
 "22/42 … 19 remaining" are the pre-GATE-B count and do not add up.
 
 | Gate | Page(s) | Commit |
@@ -796,6 +796,7 @@ current figure is **28 covered / 14 remaining** (28 + 14 = 42). Notes saying
 | P18 | **Operator Rates & availability** ⚠️ what guests are charged (2 design fixes · 6 backend items · a strengthened #30 gate test) | `252cb67` |
 | P19 | **Operator New Reservation** ⚠️ money + inventory (3 design fixes · 4 backend items · create NEVER submitted, counts proven unchanged) | `de83bd4` |
 | P20 | **Operator Group Booking** ⚠️ money + inventory, multi-unit (2 design fixes incl. the **shared `.vy-wiz-*` stepper consolidation** · 3 backend items · block NEVER submitted) | `1b435a7` |
+| P21 | **Operator Owners (LIST)** ⚠️ owner PII + isolation (2 design fixes · 3 backend items · **a real LIST-isolation coverage gap closed**; ⚠️ its €0.00 is a REAL computed zero and was NOT changed) | `PENDINGHASH` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -840,17 +841,19 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Owners.**
+## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Owner Detail.**
 
-⚠️ **Owners is a PII + isolation surface (#28/#42)** — owner rows are **name + money**, never guest contact,
-and an owner's data must not cross to another owner or org. The page also carries the operator-side
-**rate-proposal** controls (the #6 counterpart to the owner Rates page). Restyle, never rewire; verify the
-privacy perimeter is not widened.
+⚠️ **Owner Detail carries the #6 RATE-PROPOSAL controls — the GUARDED path** (verified in P21: they are NOT
+on the Owners list). `RateProposalService` really does enforce mode / tolerance / floor / ceiling, so a
+guardrail claim there is HONEST — unlike the direct-write Rates page, where the guardrail is correctly
+absent. Do not weaken the enforcement, do not turn a guarded proposal into a direct write, keep the copy
+truthful (below-floor / above-ceiling is REJECTED, not applied), and observe the propose modal READ-ONLY —
+a proposal is a real record. It is also an owner-PII surface: measure the perimeter before and after.
 
-**14 OPERATOR prototypes remain:** **1 Owners** (PII / owner isolation #28/#42) · **2 Owner Detail** ·
-**3 Roles** (RBAC escalation #30) · **4 Security** · **5 Reviews** · **6 Channels** (OTA claims #37) ·
-**7 Portfolio** (#38) · **8 Search** · **9 Notifications** · **10 Notification Preferences** ·
-**11 Email Templates** · **12 Email Editor** · **13 Profile** · **14 Schedule PDF**.
+**13 OPERATOR prototypes remain:** **1 Owner Detail** (owner PII + the guarded #6 proposal path) ·
+**2 Roles** (RBAC escalation #30) · **3 Security** · **4 Reviews** · **5 Channels** (OTA claims #37) ·
+**6 Portfolio** (#38) · **7 Search** · **8 Notifications** · **9 Notification Preferences** ·
+**10 Email Templates** · **11 Email Editor** · **12 Profile** · **13 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

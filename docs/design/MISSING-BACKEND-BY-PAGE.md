@@ -76,10 +76,11 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 18 | **Operator Rates & availability** ⚠️ what guests are charged | `/app/rates` | `can:rates.view` · writes `can:rates.manage` | ✅ matched | **6** (2 real gaps · 4 refusals) |
 | 19 | **Operator New Reservation** ⚠️ money + inventory | `/app/reservations/create` | `can:reservations.create` (GET **and** POST) | ✅ matched | **4** (2 real gaps · 2 refusals) |
 | 20 | **Operator Group Booking** ⚠️ money + inventory, multi-unit | `/app/group-booking` | `can:reservations.create` (GET **and** POST) | ✅ matched | **3** (2 real gaps · 1 refusal) |
+| 21 | **Operator Owners (LIST)** ⚠️ owner PII + isolation | `/app/owners` | GET ungated · writes `can:users.manage` | ✅ matched | **3** (2 real gaps · 1 refusal) |
 
-**Operator: 28 of 42 prototypes covered · 14 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+**Operator: 29 of 42 prototypes covered · 13 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
 remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
-**⬅ NEXT PAGE: Operator Owners (`/app/owners`)** — ⚠️ PII + owner isolation (#28/#42).
+**⬅ NEXT PAGE: Operator Owner Detail (`/app/owners/{id}`)** — ⚠️ owner PII + the **#6 rate-proposal controls** (the GUARDED path).
 
 ---
 
@@ -1355,3 +1356,86 @@ master-invoice only. They simply do not appear on step 1 because nothing is sele
   2–5 are client-side Alpine over units this render already scoped.
 - **Responsive:** 0px horizontal overflow at **1440** and **1000**; the 5-node stepper fits. **0 console
   errors/warnings.** Contrast on the shared stepper label and the rail **5.33–14.18** (AA).
+
+---
+
+## 21 · Operator Owners — LIST — `/app/owners` ⚠️ OWNER PII + ISOLATION
+
+**Prototype:** `docs/design/raw/Operator Owners.html` (decoded fresh 2026-08-10; it opens on its **Add owner**
+modal — the base list is behind the scrim). ⚠️ **`Operator Owner Detail.html` is a SEPARATE prototype and is
+NOT covered here — the detail page is the next gate.** **Live:** `App\Livewire\Operator\OperatorOwners` →
+`resources/views/livewire/operator/owners.blade.php`.
+**Role:** ⚠️ the **GET carries no `can:` gate** (back-office + active subscription only — any operator role may
+SEE the owner list); every **write** is `can:users.manage` (invite / update / pause-payouts / note / remove).
+The invite modal is gated **as a whole**, not just its button — *"a form an unpermitted user could never submit
+has no business in their DOM"*.
+
+### ⚠️ THE OWNER-PII PERIMETER — MEASURED BEFORE AND AFTER, UNCHANGED
+
+| Probe | BEFORE | AFTER |
+|---|---|---|
+| Owner email addresses | **0** | **0** |
+| Phone numbers | **0** | **0** |
+| Raw IBAN (`XX00…`) | **0** | **0** |
+| Masked IBAN (`····1000`) | **0** | **0** |
+| Tax / VAT / SSN / reg numbers | **0** | **0** |
+| Postal addresses | **0** | **0** |
+| Money figures | `€0.00`, `€885.60` | `€0.00`, `€885.60` |
+| Commission % | `18%` | `18%` |
+
+**No field was added, nothing is decrypted that wasn't, and no guest PII appears.** The list is **name + money
+only** — and so is the prototype: the design shows no owner email, phone or IBAN either (it refers to *"no
+verified IBAN"* as a **status**, never a number). The perimeter already matched the design.
+⚠️ **One conditional exception, verified and left exactly as-is:** the *Pending invites* card renders the
+**invitee's email**, which is legitimate — an invite is addressed to someone (the same reasoning P14 recorded
+for Settings). It shows 0 today only because there are no pending invites.
+
+### ⚠️ #17 — "€0.00" HERE IS A REAL COMPUTED ZERO, AND WAS DELIBERATELY **NOT** CHANGED
+
+The last three gates all converted a placeholder `€0.00` to `"—"`. **This page is the opposite case and the
+distinction matters.** Net payable is *"the current period's finalized-but-not-yet-paid net — what a run would
+send"*. Demo Owner's statement (**seq 6, €885.60, finalized**) is **on hold** because the owner has **no tax
+details** (`hasTaxDetails() === false` — the real tax-hold), so what a run would send genuinely **is €0.00**,
+and the page says why: *"1 hold · 0 draft"*, *"0 owners scheduled · 1 on hold"*, and the row's **On hold** pill
+beside its real €885.60. Converting that to `"—"` would hide a real figure — and would re-break precisely the
+**WAVE-1 HIGH-3** defect this page was already fixed for (`6312df2`, *"judge payable state per statement, not
+per owner"*, whose comment records the KPI once wrongly *"collapsed to 0"*). **A zero that is computed is not a
+zero that is missing.**
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D21-1 | An **"All owners ▾" filter** on the statements card, and the list *"sorted by net payable"*. | The live card is titled *"Statements · all owners"* with **no filter control**, and the footer says *"sorted by name"*. | A `?owner=` / `?sort=` GET parameter through the component's query. ⚠️ It must ride a **GET link** (#20) like every other scope-dependent read on `/app`. | **REAL GAP** — small, with an established pattern to copy, but it changes the component's query, so logged rather than built. |
+| D21-2 | Each statement row carries **two** states — a statement status pill (**Finalized** / **Draft**) *and* a separate pay-status line (**Scheduled** / **Awaits finalize** / **On hold · no IBAN**). | The live row merges them into a single pill (**On hold**). Both facts are real and already computed — the component judges statement status and pay-state separately (the WAVE-1 HIGH-3 fix). | Surfacing the statement status alongside the pay-state in the row payload. Genuinely backed; purely a payload + markup change. | **REAL GAP** (small). ⚠️ Worth doing precisely because the two states can disagree — that disagreement *was* the WAVE-1 defect. |
+| D21-3 | **"Preview the owner portal ›"** beside the invite-welcome link. | There is **no operator route into the owner realm** — `routes/web.php` records *"No impersonation (deferred)"*. | Impersonation / a read-only owner-portal preview — a real auth-boundary feature, not a link. | **RATIFIED REFUSAL / DEFERRED.** ⚠️ **Not reproduced.** A link that goes nowhere, or that implies an operator can enter the owner realm, would misstate the product's auth boundary. The sibling **"See the invite welcome flow →"** IS kept, because `app.owners.invite.preview` is a real route. |
+
+### Also noted on this page (not backend gaps)
+
+- **#42 / #38 isolation — and a REAL COVERAGE GAP CLOSED.** The list is tenant-scoped (`Owner` is
+  `BelongsToOrganization`), and **scope survives `?page=2`** (verified: still one org's owner, no foreign row,
+  still 0 emails / 0 IBANs). ⚠️ `OperatorOwnerDetailViewTest` already proved *"an owner in another organization
+  404s"* for the DETAIL page — **the LIST had no such assertion**, and the list is the surface that
+  **enumerates** owners, where a scope slip leaks the existence and net-payable of every owner in another
+  tenant at once. `OperatorOwnersListTest` now asserts a foreign org's owner never appears, **proven to
+  discriminate**: forcing `Owner::query()->withoutGlobalScopes()` turns it RED, restoring turns it green.
+  *(The demo has only one org, so this is invisible to a browser walkthrough — the same latent shape as the
+  auth-pass findings.)*
+- **The mock does NOT leak.** The prototype's **15% commission** is absent — the page shows the real **18%**
+  from `OwnerCommissionRate` (and `OperatorOwnersListTest` already asserts `assertDontSee('15% of gross')`).
+  None of the design's invented amounts (€96,400 / €18,240 / …) appear.
+- ⚠️ **The #6 rate-proposal controls are NOT on this page** — verified (0 occurrences of "propos"). They live
+  on **Owner Detail**, which is the next gate; that is where the *guarded* proposal path (floor / ceiling /
+  tolerance enforced by `RateProposalService`) will need its copy checked for honesty.
+- **Writes restyled, not rewired:** the only page write is **POST `/app/owners/invite`** with CSRF
+  ("Send invite"), behind `can:users.manage` + a throttle. **Nothing was submitted.**
+- **Fixed (1) — the KPI strip was a FOUR-column grid carrying a fourth tile the design does not have.** The
+  design has **three** tiles (Owners / Net payable / Needs attention) and gives owner-portal adoption its own
+  rail card. The strip now takes `--3` and spans the content width. *(Same family as the P16 Payout Run
+  finding, but the opposite cause: there a 3-tile strip sat in a 4-column grid; here a genuine 4th tile was
+  removed to match the design.)*
+- **Fixed (2) — the design's dedicated Owner-portal rail card**, with a **real progress bar** (active ÷ total
+  owners) and the real pending-invite count, replacing a one-line row inside the schedule card. ⚠️ The bar
+  carries an **`aria-label` text equivalent**, so adoption is never conveyed by bar length alone.
+- **#39** — every figure is real: owners, units managed, net payable, needs-attention (`1 hold · 0 draft`),
+  portal adoption, and the 18% commission. Status is never colour-only — **On hold** prints as a word.
+- **Responsive:** 0px horizontal overflow at **1440** and **1000** (the KPI strip reflows to 2 columns).
+  **0 console errors/warnings.** Contrast on the new card **5.49–6.24** (AA).

@@ -51,6 +51,15 @@
             .vy-paystatus--draft { background: rgba(224,146,30,.16); color: #8A6410; }
             .vyo-sched { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
             .vyo-sched:last-child { border-bottom: none; }
+            /* Owner-portal adoption card (the design's dedicated rail card with a progress bar). */
+            .vyo-portal-figure { display: flex; align-items: baseline; gap: 7px; margin-top: 10px; }
+            .vyo-portal-figure strong { font-family: var(--vy-display); font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--vy-ink); }
+            .vyo-portal-figure span { font-size: 12.5px; color: var(--vy-muted); }
+            .vyo-portal-track { height: 6px; border-radius: 6px; background: var(--vy-hairline); overflow: hidden; margin-top: 12px; }
+            .vyo-portal-track > span { display: block; height: 100%; border-radius: 6px; background: var(--vy-grad); }
+            .vyo-portal-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 9px; line-height: 1.45; }
+            .vyo-portal-link { display: inline-block; margin-top: 10px; font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; }
+            .vyo-portal-link:hover { text-decoration: underline; }
             .vyo-sched span { color: var(--vy-muted); }
         </style>
 
@@ -64,12 +73,13 @@
             </div>
         </div>
 
-        {{-- KPIs — REAL (owners · units managed · net-payable current period · needs-attention) --}}
-        <div class="vy-dash-kpis vy-dash-kpis--4 vy-fade">
+        {{-- KPIs — REAL (owners · units managed · net-payable current period · needs-attention).
+             THREE tiles, as the design has: owner-portal adoption is its own rail card (with a progress bar),
+             not a fourth tile, so the strip spans the content width instead of leaving a quarter empty. --}}
+        <div class="vy-dash-kpis vy-dash-kpis--3 vy-fade">
             <div class="vy-dash-kpi"><div class="vy-dk-label">Owners</div><div class="vy-dk-val">{{ $kpis['owners'] }}</div><div class="vy-dk-sub">{{ $kpis['units'] }} units managed</div></div>
             <div class="vy-dash-kpi"><div class="vy-dk-label">Net payable</div><div class="vy-dk-val">{{ $kpis['net'][0] }}</div>@if (count($kpis['net']) > 1)<div class="vy-dk-sub">{{ implode(' · ', array_slice($kpis['net'], 1)) }}</div>@else<div class="vy-dk-sub">this period</div>@endif</div>
             <div class="vy-dash-kpi"><div class="vy-dk-label">Needs attention</div><div class="vy-dk-val">{{ $kpis['needs_attention'] }}</div><div class="vy-dk-sub">{{ $kpis['attention_sub'] }}</div></div>
-            <div class="vy-dash-kpi"><div class="vy-dk-label">Owner portal</div><div class="vy-dk-val">{{ $schedule['portal_active'] }} / {{ $schedule['portal_total'] }}</div><div class="vy-dk-sub">{{ count($pending) }} invites pending</div></div>
         </div>
 
         <div class="vy-ins-grid vy-fade" style="margin-top: 16px;">
@@ -116,7 +126,38 @@
                     <div class="vyo-sched"><span>Statements finalize</span><strong>1st of the month</strong></div>
                     <div class="vyo-sched"><span>Payouts sent</span><strong>3rd business day</strong></div>
                     <div class="vyo-sched"><span>Commission</span><strong>{{ $schedule['commission'] }} of gross</strong></div>
-                    <div class="vyo-sched"><span>Owner portal</span><strong>{{ $schedule['portal_active'] }} of {{ $schedule['portal_total'] }} active</strong></div>
+                </div>
+
+                {{-- Owner portal — the design gives adoption its OWN rail card with a progress bar, rather than
+                     a one-line row inside the schedule. Every figure is real: active vs total owners and the
+                     real pending-invite count, all already in this payload.
+
+                     ⚠️ The design's "Preview the owner portal ›" link is NOT reproduced: there is no operator
+                     route into the owner realm — impersonation is explicitly deferred (`routes/web.php`:
+                     "No impersonation (deferred)"), so that link would go nowhere or imply a capability the
+                     product does not have. The invite-welcome link IS kept, because
+                     `app.owners.invite.preview` is a real route. --}}
+                <div class="vy-card">
+                    <div class="vy-dk-label">Owner portal</div>
+                    <div class="vyo-portal-figure">
+                        <strong>{{ $schedule['portal_active'] }} of {{ $schedule['portal_total'] }}</strong>
+                        <span>{{ \Illuminate\Support\Str::plural('owner', $schedule['portal_total']) }} active</span>
+                    </div>
+                    @php
+                        $__pct = $schedule['portal_total'] > 0
+                            ? (int) round($schedule['portal_active'] / $schedule['portal_total'] * 100)
+                            : 0;
+                    @endphp
+                    <div class="vyo-portal-track" role="img"
+                         aria-label="{{ $schedule['portal_active'] }} of {{ $schedule['portal_total'] }} owners active in the portal">
+                        <span style="width: {{ $__pct }}%;"></span>
+                    </div>
+                    <div class="vyo-portal-sub">
+                        {{ count($pending) }} {{ \Illuminate\Support\Str::plural('invite', count($pending)) }} pending · owners see statements &amp; payouts the moment they finalize
+                    </div>
+                    @can('users.manage')
+                        <a class="vyo-portal-link" href="{{ route('app.owners.invite.preview') }}">See the invite welcome flow →</a>
+                    @endcan
                 </div>
 
                 @if (count($pending) > 0)

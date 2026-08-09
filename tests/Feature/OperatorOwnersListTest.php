@@ -90,3 +90,24 @@ it('filters the notifications feed to unread rows', function () {
     $user->unreadNotifications->markAsRead();
     expect(count(NotificationFeed::forUser($user->fresh(), 'unread')['items']))->toBe(0);
 });
+
+// ── #42/#38 — THE LIST IS TENANT-SCOPED: another org's owner never appears ────────────────────────
+// The DETAIL page already had this (OperatorOwnerDetailViewTest "isolates tenants — an owner in another
+// organization 404s"); the LIST did not, and the list is the surface that ENUMERATES owners — a scope slip
+// here leaks the existence and the net-payable of every owner in another tenant at once. Added when the
+// design-parity pass reworked this page's rail and KPI strip.
+it('isolates tenants — an owner in another organization never appears in the list', function () {
+    $other = seedScenario(1);                       // org A …
+    listedOwner($other);                            // … with a real owner + finalized statement
+    Owner::where('organization_id', $other['org']->id)->update(['name' => 'Foreign Owner']);
+
+    $s = seedScenario(1);                           // org B — the tenant context now points here
+    $mine = listedOwner($s);
+    Owner::where('organization_id', $s['org']->id)->update(['name' => 'Mine Okafor']);
+
+    $this->actingAs(ownersListStaff($s))
+        ->get('/app/owners')
+        ->assertOk()
+        ->assertSee('Mine Okafor')                  // my own owner IS listed …
+        ->assertDontSee('Foreign Owner');           // … the other tenant's is not, at all
+});
