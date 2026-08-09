@@ -6,7 +6,7 @@
      invented "Filters"/"Print" affordances are NOT rendered (they were never in the design). Room moves, on-desk
      Collect, the check-in/out modals and Walk-in are wired to their real routes in the following GATE-2 sub-gates.
      RAW-BLADE RULE: Alpine uses x-on:/x-model/x-bind (no `@click`). --}}
-<div>
+<div class="vy-fd">
     <x-operator.shell active="front-desk" title="Front desk"
         :subtitle="($property['name'] ?? 'No property yet') . ' · ' . $day['label']" :viewer="$viewer">
 
@@ -35,6 +35,19 @@
                 @unless ($day['is_today'])
                     <a class="vy-pill" href="?date={{ $day['today'] }}">Today</a>
                 @endunless
+                {{-- The design carries a relative-day pill beside the date. Derived from the two real dates
+                     already in scope — no new data, and it says nothing the date doesn't. --}}
+                @php
+                    $vyRel = (int) \Illuminate\Support\Carbon::parse($day['today'])->diffInDays(\Illuminate\Support\Carbon::parse($day['date']), false);
+                    $vyRelLabel = match (true) {
+                        $vyRel === 0 => 'Today',
+                        $vyRel === 1 => 'Tomorrow',
+                        $vyRel === -1 => 'Yesterday',
+                        $vyRel > 1 => 'In '.$vyRel.' days',
+                        default => abs($vyRel).' days ago',
+                    };
+                @endphp
+                <span class="vy-fd-rel">{{ $vyRelLabel }}</span>
             </div>
             <div class="vy-right">
                 @if ($property !== null && auth()->user()?->can('reservations.create'))
@@ -159,6 +172,9 @@
                                 ];
                             @endphp
                             <div class="vy-fd-row">
+                                {{-- The design leads each row with an initials avatar. Derived from the guest
+                                     NAME already shown — no contact PII is added to this surface (#28). --}}
+                                <span class="vy-fd-av" aria-hidden="true">{{ \Illuminate\Support\Str::of($row['guest'])->explode(' ')->filter()->take(2)->map(fn ($p) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($p, 0, 1)))->implode('') }}</span>
                                 <div class="vy-fd-main">
                                     <div class="vy-fd-guest">
                                         {{ $row['guest'] }}
@@ -225,7 +241,21 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="vy-empty">No {{ \Illuminate\Support\Str::lower($heading) }} on this day.</div>
+                            {{-- The design gives this an illustrated empty state. Its STRUCTURE is matched;
+                                 its copy is NOT — the wireframe asserts "the last guest was welcomed at 15:00
+                                 · tomorrow brings 9 arrivals", which are invented figures this page does not
+                                 compute (#39). The line below states only what is true. --}}
+                            <div class="vy-fd-empty">
+                                <span class="vy-fd-empty-ico" aria-hidden="true">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/><path d="M3 20h18"/></svg>
+                                </span>
+                                <div class="vy-fd-empty-t">Nothing on the {{ \Illuminate\Support\Str::lower($heading) }} board</div>
+                                <div class="vy-fd-empty-b">No {{ \Illuminate\Support\Str::lower($heading) }} are scheduled for {{ $day['label'] }}.</div>
+                                <a class="vy-fd-empty-cta" href="?date={{ $day['next'] }}">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9.5h18"/><path d="M8 2.5v4"/><path d="M16 2.5v4"/></svg>
+                                    See the next day
+                                </a>
+                            </div>
                         @endforelse
                     </div>
                 @endforeach
@@ -470,6 +500,39 @@
 
     {{-- GATE-2 board chrome: the segmented control + KPI-as-tab affordance. Presentation only. --}}
     <style>
+        /* ---- Front Desk — wireframe parity ------------------------------------------------------
+           Scoped to .vy-fd: .vy-summary / .vy-summary-chip are shared with Units and the public
+           booking views, which keep their compact chip form. */
+        .vy-fd .vy-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+        .vy-fd .vy-summary-chip {
+            /* column-reverse seats the label ABOVE the figure, as the design does, without reordering
+               the markup (the figure stays first in the DOM, so it is read first). */
+            display: flex; flex-direction: column-reverse; align-items: flex-start; justify-content: flex-end;
+            gap: 5px; padding: 15px 18px; border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow);
+            /* restated because .vy-fd-kpi (a later rule, for the three tab-switching tiles) zeroes the
+               background — all four tiles must read as the design's glass cards */
+            background: var(--vy-glass); border: 1px solid var(--vy-glass-border);
+        }
+        .vy-fd .vy-summary-chip .vy-sc-num { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .vy-fd .vy-summary-chip .vy-sc-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; }
+        /* The design tints the Unassigned tile. Kept CONDITIONAL on a real non-zero count — tinting a
+           "0 unassigned" tile would draw attention to nothing. */
+        .vy-fd .vy-summary-chip.is-due { background: rgba(217, 102, 46, 0.13); border-color: rgba(232, 112, 58, 0.30); }
+        .vy-fd .vy-summary-chip.is-due .vy-sc-label { color: var(--vy-accent-text); }
+        @media (max-width: 900px) { .vy-fd .vy-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        /* Relative-day pill beside the date. */
+        .vy-fd-rel { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--vy-r-pill); background: rgba(217, 102, 46, 0.13); border: 1px solid rgba(232, 112, 58, 0.30); color: var(--vy-accent-text); font-size: 11px; font-weight: 500; white-space: nowrap; }
+        /* Row initials avatar. */
+        .vy-fd-av { width: 32px; height: 32px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, #F0A57A, #D9662E); color: #fff; font-size: 11px; font-weight: 500; }
+        /* The design's illustrated empty board. */
+        .vy-fd-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 24px 30px; }
+        .vy-fd-empty-ico { position: relative; width: 72px; height: 72px; border-radius: 22px; background: rgba(217, 102, 46, 0.12); color: var(--vy-accent-text); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .vy-fd-empty-ico::before { content: ''; position: absolute; inset: -12px; border-radius: 50%; background: radial-gradient(circle, rgba(232, 112, 58, .18), transparent 70%); filter: blur(9px); pointer-events: none; }
+        .vy-fd-empty-t { font-family: var(--vy-display); font-weight: 600; font-size: 17px; letter-spacing: -.01em; color: var(--vy-ink); }
+        .vy-fd-empty-b { font-size: 13px; color: var(--vy-muted); margin-top: 7px; max-width: 340px; line-height: 1.55; }
+        .vy-fd-empty-cta { display: inline-flex; align-items: center; gap: 7px; margin-top: 20px; padding: 10px 18px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, .65); border: 1px solid var(--vy-hairline); color: var(--vy-ink); font-size: 13px; font-weight: 500; text-decoration: none; transition: transform .14s; }
+        .vy-fd-empty-cta:hover { transform: translateY(-1px); }
+
         .vy-fd-kpi { cursor: pointer; border: 1px solid transparent; background: none; font: inherit; text-align: left; transition: border-color 0.14s, background 0.14s, transform 0.1s; }
         .vy-fd-kpi:hover { transform: translateY(-1px); }
         .vy-fd-kpi.is-active { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.06); box-shadow: 0 0 0 1px var(--vy-accent-border) inset; }

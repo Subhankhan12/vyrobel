@@ -55,6 +55,7 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 2 | Operator Calendar | `/app/calendar` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 account-gated) |
 | 3 | Operator Insights | `/app/insights` | Hotel Manager | ✅ matched | **3** (2 real gaps · 1 refusal) + ⚠️ **1 figure-honesty finding** |
 | 4 | Operator Reports | `/app/reports` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
+| 5 | Operator Front Desk | `/app/front-desk` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
 
 ---
 
@@ -212,3 +213,40 @@ PDF via `PdfService`) renders from the same `OperatorReportData` the screen buil
   a 2px floor so a small real value stays visible). A `valueTop` opt-in prop was added for this wireframe's
   value-above-the-bar order; the other consumer (owner Insights) does not pass it and was confirmed
   unchanged in-browser — same column order, chart intact.
+
+---
+
+## 5 · Operator Front Desk — `/app/front-desk` (Hotel Manager)
+
+**Prototype:** `docs/design/raw/Operator Front Desk.html` (decoded 2026-08-09; byte-identical to the
+2026-08-07 audit decode; 7 declared states incl. Check-in / Check-out / Assign-unit / Walk-in modals).
+**Live component:** `App\Livewire\FrontDesk` + `FrontDeskActionController`. **Design pass:** complete.
+
+**Checked first — nothing was rewired.** The check-in / check-out / collect / walk-in forms still carry
+their real bound actions (`x-bind:action="'/app/front-desk/' + row.id + '/check-in'"`, POST + CSRF, gated
+`reservations.checkin` / `reservations.checkout` / `payments.record`). ⚠️ The literal `action` attribute
+reads `.../undefined/...` before a modal opens — that is the **documented Alpine bind-on-open pattern**
+which QA Pass 2 investigated and disproved as a defect, not a bug. **#28 verified by probe:** no email or
+phone appears anywhere on the rendered page. **#33** untouched — this surface shows no door code.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D5-1 | **Housekeeping readiness on the arrival row.** Each arriving guest can carry a room-status chip (`hkShow` / `hkLabel` / dot), so the desk can see whether the room is clean before handing keys. | `HousekeepingTask` status **is real and already rendered on the Housekeeping board**, but `FrontDeskService`'s arrival rows do not join it, so the front desk cannot show whether the arriving guest's unit is ready. | Join the unit's current housekeeping status into the arrival row payload and render it as a chip. ⚠️ Status must be **text as well as colour** (WCAG 1.4.1), and must render nothing when a unit is unassigned rather than guessing. No new table — the data exists. | **REAL GAP** |
+| D5-2 | **Empty-state specifics** — "the last guest was welcomed at 15:00. Tomorrow brings 9 arrivals." | Nothing missing. The empty state was rebuilt to the wireframe's **structure** (icon tile, headline, supporting line, CTA) with copy that states only what is true: "No arrivals are scheduled for {the real date}", and a real next-day link. | — | **RATIFIED REFUSAL** — those two figures are invented; the page computes neither a "last welcomed at" time nor a next-day arrival count. **Do not build the sentence; build the count first if it is ever wanted.** |
+
+### Also noted on this page (not backend gaps)
+
+- **Kept, not removed (§6 extra work):** the guest **preference chips** (Sea view / High floor / Late
+  checkout), the in-place **Move / Assign** actions through `AssignmentService`, the **Collect** on-desk
+  payment (cash / bank transfer, `payments.record`-gated, with the card terminal honestly named as the
+  deferred Stripe seam), the per-tab counts on the segmented control, and the "LIVE INTEGRATIONS" footnote.
+  The wireframe has none of these.
+- **The timeline rail was already at parity** — the live card already implements the wireframe's axis
+  baseline, hour gridlines, arrivals-above / departures-below split, and a pulsing now-line with a "Now
+  HH:MM" flag (today only). It renders only when the day genuinely has points, which is why it is absent on
+  an empty day.
+- **The Unassigned tile is tinted CONDITIONALLY.** The wireframe tints it always; the live product tints it
+  only when the count is genuinely non-zero — tinting a "0 unassigned" tile would draw attention to nothing.
+  Deliberate divergence.
+- **The wireframe's Walk-in CTA inside the empty state** was not duplicated: the walk-in trigger is
+  permission-gated and already sits in the toolbar; repeating it would mean duplicating that gate.
