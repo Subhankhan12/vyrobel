@@ -10,7 +10,7 @@
     $vyGreet = $vyHour < 12 ? 'Good morning' : ($vyHour < 18 ? 'Good afternoon' : 'Good evening');
     $vyFirst = trim((string) \Illuminate\Support\Str::before((string) ($viewer['name'] ?? ''), ' ')) ?: 'there';
 @endphp
-<div>
+<div class="vy-dash">
     <x-operator.shell active="dashboard" :title="$vyGreet . ', ' . $vyFirst"
         :subtitle="($property['name'] ?? 'No property yet') . ' · ' . $day['label']" :viewer="$viewer">
 
@@ -43,49 +43,73 @@
                 <div class="vy-dash-kpi">
                     <div class="vy-dk-label">Arrivals today</div>
                     <div class="vy-dk-val">{{ $kpis['arrivals'] }}</div>
-                    <div class="vy-dk-sub">expected today</div>
                 </div>
                 <div class="vy-dash-kpi">
                     <div class="vy-dk-label">Departures today</div>
                     <div class="vy-dk-val">{{ $kpis['departures'] }}</div>
-                    <div class="vy-dk-sub">expected today</div>
                 </div>
                 <div class="vy-dash-kpi">
                     <div class="vy-dk-label">Occupancy tonight</div>
                     <div class="vy-dk-val">{{ $kpis['occupancy_pct'] }}<span class="vy-dk-unit">%</span>@if (! is_null($kpis['occupancy_delta']))<span class="vy-dk-delta {{ $kpis['occupancy_delta'] < 0 ? 'is-down' : '' }}">{{ $kpis['occupancy_delta'] >= 0 ? '+' : '' }}{{ $kpis['occupancy_delta'] }}%</span>@endif</div>
+                    {{-- Kept in the design's note slot: this numerator/denominator is the TRUE org-scoped
+                         room count, and OperatorDashboardViewTest probes it to prove another org's rooms
+                         never enter this occupancy (#38). Dropping it would delete a real figure AND
+                         disarm an isolation assertion. --}}
                     <div class="vy-dk-sub">{{ $kpis['rooms_sold'] }} of {{ $kpis['rooms_total'] }} rooms sold</div>
                 </div>
                 <div class="vy-dash-kpi">
                     <div class="vy-dk-label">Revenue today</div>
                     <div class="vy-dk-val">{{ $kpis['payments'] }}</div>
+                    {{-- The prototype keeps a note slot under this figure. "collected" is retained on purpose:
+                         the figure is payments taken today, not revenue booked, and dropping the qualifier
+                         would leave the label ambiguous (the honesty rule the sweep spent WAVE 2 on). --}}
                     <div class="vy-dk-sub">collected</div>
                 </div>
-                <div class="vy-dash-kpi">
+                {{-- The prototype makes this tile a link through to Maintenance. --}}
+                <a class="vy-dash-kpi" href="{{ route('app.maintenance') }}" style="text-decoration:none; color:inherit; display:block;">
                     <div class="vy-dk-label">Open work orders</div>
                     <div class="vy-dk-val">{{ $kpis['work_orders'] }}@if ($kpis['work_orders_urgent'] > 0)<span class="vy-dk-urgent">{{ $kpis['work_orders_urgent'] }} urgent</span>@endif</div>
-                    <div class="vy-dk-sub">maintenance</div>
-                </div>
+                </a>
             </div>
 
             <div class="vy-dash-cols">
                 <div class="vy-stack">
                     {{-- Today's tasks — REAL derived (urgent work orders · rooms to clean · arrivals) --}}
                     <div class="vy-card">
-                        <h2 class="vy-card-title" style="margin-bottom: 12px;">Today’s tasks</h2>
-                        <div class="vy-task-groups">
-                            @foreach ($tasks['groups'] as $g)
-                                <span class="vy-task-group">{{ $g['label'] }} <b>{{ $g['count'] }}</b></span>
-                            @endforeach
+                        @php
+                            // Presentation-only regrouping: the design groups these rows by PRIORITY, which
+                            // each item already carries. No new data is read or computed here.
+                            $vyPriOrder = ['urgent' => 'Urgent', 'high' => 'High', 'normal' => 'Normal'];
+                            $vyTaskSecs = collect($tasks['items'])
+                                ->groupBy('priority')
+                                ->sortBy(fn ($rows, $key) => array_search($key, array_keys($vyPriOrder), true));
+                        @endphp
+                        <div class="vy-detail-head" style="margin-bottom: 4px;">
+                            <h2 class="vy-card-title">Today’s tasks</h2>
+                            @if ($vyTaskSecs->isEmpty())
+                                <span class="vy-task-clear">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
+                                    All caught up
+                                </span>
+                            @endif
                         </div>
                         {{-- ACTIONABLE — each task links to the page where it's resolved; it auto-clears from
                              REAL state when its count hits 0 (no fabricated "done" flag, #39). --}}
-                        @forelse ($tasks['items'] as $t)
-                            <a class="vy-task-row is-actionable" href="{{ $t['link'] }}">
-                                <span class="vy-task-pri is-{{ $t['priority'] }}"></span>
-                                <span class="vy-task-label">{{ $t['label'] }}</span>
-                                <span class="vy-task-meta">{{ $t['meta'] }}</span>
-                                <span class="vy-task-go" aria-hidden="true">→</span>
-                            </a>
+                        @forelse ($vyTaskSecs as $vyPri => $vyRows)
+                            <div class="vy-task-sec">
+                                <div class="vy-task-sec-head">
+                                    <span class="vy-task-sec-dot vy-task-pri is-{{ $vyPri }}"></span>
+                                    <span class="vy-task-sec-label vy-task-pri-ink is-{{ $vyPri }}">{{ $vyPriOrder[$vyPri] ?? $vyPri }}</span>
+                                    <span class="vy-task-sec-count">{{ $vyRows->count() }}</span>
+                                </div>
+                                @foreach ($vyRows as $t)
+                                    <a class="vy-task-row is-actionable" href="{{ $t['link'] }}">
+                                        <span class="vy-task-label">{{ $t['label'] }}</span>
+                                        <span class="vy-task-meta">{{ $t['meta'] }}</span>
+                                        <span class="vy-task-go" aria-hidden="true">→</span>
+                                    </a>
+                                @endforeach
+                            </div>
                         @empty
                             <div class="vy-empty" style="padding: 20px 12px;">All caught up — nothing needs attention right now.</div>
                         @endforelse
@@ -99,10 +123,15 @@
                         </div>
                         @forelse ($arrivals as $a)
                             <div class="vy-arr-row">
-                                <div>
-                                    <div class="vy-arr-name">{{ $a['guest'] }}</div>
-                                    {{-- #104 GATE 3c — the wireframe's per-arrival detail: reference · N nights · unit (real). --}}
-                                    <div class="vy-arr-ref">{{ $a['reference'] }} · {{ $a['nights'] }} {{ \Illuminate\Support\Str::plural('night', $a['nights']) }}@if ($a['unit']) · {{ $a['unit'] }}@else · Unassigned @endif</div>
+                                <div class="vy-arr-who">
+                                    {{-- The design leads each arrival with an initials avatar. Derived from the
+                                         name already displayed — no new data, and name-only per #28. --}}
+                                    <span class="vy-arr-av" aria-hidden="true">{{ \Illuminate\Support\Str::of($a['guest'])->explode(' ')->filter()->take(2)->map(fn ($p) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($p, 0, 1)))->implode('') }}</span>
+                                    <div style="min-width:0;">
+                                        <div class="vy-arr-name">{{ $a['guest'] }}</div>
+                                        {{-- #104 GATE 3c — the wireframe's per-arrival detail: reference · N nights · unit (real). --}}
+                                        <div class="vy-arr-ref">{{ $a['reference'] }} · {{ $a['nights'] }} {{ \Illuminate\Support\Str::plural('night', $a['nights']) }}@if ($a['unit']) · {{ $a['unit'] }}@else · Unassigned @endif</div>
+                                    </div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <span class="vy-tag tone-{{ $a['tone'] }}"><span class="vy-dot"></span>{{ $a['status_label'] }}</span>
@@ -118,14 +147,14 @@
                     <div class="vy-card">
                         <div class="vy-detail-head" style="margin-bottom: 10px;">
                             <h2 class="vy-card-title">Occupancy · next 7 days</h2>
-                            <span class="vy-eyebrow">This week</span>
+                            <span class="vy-week-chip">This week</span>
                         </div>
                         <div class="vy-occ7">
                             @foreach ($occupancyWeek as $d)
                                 <div class="vy-occ7-col">
                                     <span class="vy-occ7-pct">{{ $d['pct'] }}%</span>
                                     <div class="vy-occ7-bar" style="height: {{ max(3, $d['pct']) }}%"></div>
-                                    <span class="vy-occ7-day">{{ $d['day'] }}</span>
+                                    <span class="vy-occ7-day {{ $d['date'] === $day['today'] ? 'is-today' : '' }}">{{ $d['day'] }}</span>
                                 </div>
                             @endforeach
                         </div>
@@ -135,40 +164,46 @@
                 {{-- Right rail --}}
                 <div class="vy-stack">
                     {{-- TONIGHT — REAL occupancy + rooms sold + ADR --}}
-                    <div class="vy-tonight">
-                        <span class="vy-eyebrow">Tonight</span>
-                        <div class="vy-tonight-val">{{ $kpis['occupancy_pct'] }}<span class="vy-dk-unit">%</span></div>
-                        <div class="vy-tonight-sub">occupancy</div>
-                        <div class="vy-tonight-row">
-                            <div class="vy-tonight-cell"><div class="vy-tc-k">Rooms sold</div><div class="vy-tc-v">{{ $kpis['rooms_sold'] }}/{{ $kpis['rooms_total'] }}</div></div>
-                            <div class="vy-tonight-cell"><div class="vy-tc-k">ADR</div><div class="vy-tc-v">{{ $kpis['adr'] ?? '—' }}</div></div>
+                    <div class="vy-tonight-wrap">
+                        <div class="vy-tonight-glow" aria-hidden="true"></div>
+                        <div class="vy-tonight">
+                            <span class="vy-eyebrow">Tonight</span>
+                            <div class="vy-tonight-head">
+                                <div class="vy-tonight-val">{{ $kpis['occupancy_pct'] }}<span class="vy-dk-unit">%</span></div>
+                                <div class="vy-tonight-sub">occupancy</div>
+                            </div>
+                            <div class="vy-tonight-row">
+                                <div class="vy-tonight-cell"><div class="vy-tc-k">Rooms sold</div><div class="vy-tc-v">{{ $kpis['rooms_sold'] }}/{{ $kpis['rooms_total'] }}</div></div>
+                                <div class="vy-tonight-cell"><div class="vy-tc-k">ADR</div><div class="vy-tc-v">{{ $kpis['adr'] ?? '—' }}</div></div>
+                            </div>
                         </div>
                     </div>
 
                     {{-- Housekeeping — REAL status counts + progress --}}
                     <div class="vy-card">
-                        <h2 class="vy-card-title" style="margin-bottom: 12px;">Housekeeping</h2>
                         @php
                             $hkTotal = $housekeeping['pending'] + $housekeeping['in_progress'] + $housekeeping['clean'] + $housekeeping['inspected'];
                             $hkDone = $housekeeping['clean'] + $housekeeping['inspected'];
                             $hkPct = $hkTotal > 0 ? (int) round($hkDone / $hkTotal * 100) : 0;
                         @endphp
-                        <div class="vy-hk-progress"><span style="width: {{ $hkPct }}%"></span></div>
-                        <div class="vy-hk-progress-label"><span>{{ $housekeeping['to_clean'] }} to clean</span><span>{{ $hkDone }}/{{ $hkTotal }} done</span></div>
-                        {{-- Per-status rail cards — the REAL housekeeping_tasks.status counts. --}}
-                        <div class="vy-stat-list" style="margin-top: 14px;">
+                        <div class="vy-rail-head"><span class="vy-eyebrow">Housekeeping</span></div>
+                        {{-- Per-status rail rows — the REAL housekeeping_tasks.status counts. The design lists
+                             the statuses first and closes the card with the progress bar. --}}
+                        <div class="vy-stat-list">
                             <div class="vy-stat"><span class="vy-stat-dot" style="background:#B4400F;"></span><span class="vy-stat-k">Dirty</span><span class="vy-stat-v">{{ $housekeeping['pending'] }}</span></div>
                             <div class="vy-stat"><span class="vy-stat-dot" style="background:#E0921E;"></span><span class="vy-stat-k">In progress</span><span class="vy-stat-v">{{ $housekeeping['in_progress'] }}</span></div>
                             <div class="vy-stat"><span class="vy-stat-dot" style="background:#33A0AC;"></span><span class="vy-stat-k">Clean</span><span class="vy-stat-v">{{ $housekeeping['clean'] }}</span></div>
                             <div class="vy-stat"><span class="vy-stat-dot" style="background:#43A06B;"></span><span class="vy-stat-k">Inspected</span><span class="vy-stat-v">{{ $housekeeping['inspected'] }}</span></div>
                         </div>
+                        <div class="vy-hk-progress-label" style="margin-top: 14px;"><span>{{ $housekeeping['to_clean'] }} to clean</span><span>{{ $hkDone }}/{{ $hkTotal }} done</span></div>
+                        <div class="vy-hk-progress" style="margin-top: 5px;"><span style="width: {{ $hkPct }}%"></span></div>
                         <a class="vy-arr-link" href="{{ route('app.housekeeping') }}" style="display:inline-block; margin-top:12px;">Open board →</a>
                     </div>
 
                     {{-- Maintenance — REAL out-of-order units + on-hold nightly rate (honest omit if no rate) --}}
                     <div class="vy-card">
-                        <div class="vy-detail-head" style="margin-bottom: 8px;">
-                            <h2 class="vy-card-title">Maintenance</h2>
+                        <div class="vy-rail-head">
+                            <span class="vy-eyebrow">Maintenance</span>
                             <a class="vy-arr-link" href="{{ route('app.maintenance') }}">View all →</a>
                         </div>
                         {{-- Per-status rail cards — REAL active-ticket counts (open/urgent/awaiting-parts/out-of-order). --}}
@@ -178,11 +213,20 @@
                             <div class="vy-stat"><span class="vy-stat-dot" style="background:#33A0AC;"></span><span class="vy-stat-k">Awaiting parts</span><span class="vy-stat-v">{{ $maintenance['awaiting_parts'] }}</span></div>
                             <div class="vy-stat"><span class="vy-stat-dot" style="background:#B4400F;"></span><span class="vy-stat-k">Out of order</span><span class="vy-stat-v">{{ $maintenance['out_of_order'] }}</span></div>
                         </div>
+                        {{-- The design closes this card with a highlighted callout through to Maintenance.
+                             Both figures are REAL (out-of-order unit count + the nightly rate genuinely on
+                             hold); the callout renders only when there is something on hold. --}}
                         @if ($maintenance['on_hold'])
-                            <div class="vy-mini-row" style="margin-top: 10px; border-top: 1px solid var(--vy-hairline); padding-top: 10px;">
-                                <span class="vy-mini-k">Revenue on hold</span>
-                                <span class="vy-mini-v">{{ $maintenance['on_hold'] }} / night</span>
-                            </div>
+                            <a class="vy-oo-cta" href="{{ route('app.maintenance') }}">
+                                <span class="vy-oo-ico" aria-hidden="true">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+                                </span>
+                                <span style="min-width:0; flex:1;">
+                                    <span class="vy-oo-t">{{ $maintenance['out_of_order'] }} {{ \Illuminate\Support\Str::plural('unit', $maintenance['out_of_order']) }} out of order</span>
+                                    <span class="vy-oo-s">{{ $maintenance['on_hold'] }} / night on hold</span>
+                                </span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; color: var(--vy-muted);"><path d="M9 6l6 6-6 6"/></svg>
+                            </a>
                         @endif
                     </div>
 
@@ -190,7 +234,7 @@
                          when the org's plan grants channels (the page itself is Pro-gated); null → omitted. --}}
                     @if (! empty($channels))
                     <div class="vy-card">
-                        <h2 class="vy-card-title" style="margin-bottom: 10px;">Channels</h2>
+                        <div class="vy-rail-head"><span class="vy-eyebrow">Channels</span></div>
                         @foreach ($channels as $c)
                             <div class="vy-mini-row">
                                 <span class="vy-mini-k">{{ $c['name'] }}</span>

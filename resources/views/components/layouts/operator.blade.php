@@ -143,7 +143,7 @@
         /* Main column */
         .vy-main { padding: 22px 30px 60px; max-width: 1480px; }
         .vy-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
-        .vy-topbar h1 { font-family: var(--vy-display); font-weight: 600; font-size: 24px; letter-spacing: -0.02em; margin: 0; }
+        .vy-topbar h1 { font-family: var(--vy-display); font-weight: 600; font-size: 28px; letter-spacing: -0.02em; margin: 0; }
         .vy-topbar-sub { font-size: 12.5px; color: var(--vy-muted); margin-top: 3px; }
         .vy-topbar-actions { display: flex; align-items: center; gap: 12px; }
 
@@ -844,7 +844,7 @@
         /* ---- Operator dashboard ---------------------------------------------------------------- */
         /* KPI band. Default 4-up (wraps for the 6-tile Insights → 4+2). Per-count modifiers let a page pick a
            full-width row: --5 (Dashboard), --3 (Reservations). The design shows each KPI row spanning full width. */
-        .vy-dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .vy-dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
         .vy-dash-kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .vy-dash-kpis--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
         /* #104 GATE 2 — the KPI stat tiles read as full glass cards (radius 20px + the full warm shadow +
@@ -853,15 +853,17 @@
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
             -webkit-backdrop-filter: blur(22px) saturate(1.15);
             border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg);
-            box-shadow: var(--vy-shadow); padding: 16px 18px;
+            box-shadow: var(--vy-shadow); padding: 18px 20px;
             transition: transform .18s ease, box-shadow .18s ease;
         }
         .vy-dash-kpi:hover { transform: translateY(-2px); }
         .vy-dash-kpi.is-feature { background: var(--vy-grad-dark); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: var(--vy-shadow-dark); color: rgba(255, 255, 255, 0.92); }
         .vy-dash-kpi.is-feature .vy-dk-label { color: rgba(255, 255, 255, 0.55); }
         .vy-dash-kpi.is-feature .vy-dk-sub { color: rgba(255, 255, 255, 0.6); }
-        .vy-dk-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; }
-        .vy-dk-val { font-family: var(--vy-display); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-top: 8px; }
+        /* The prototype's own #9C9089 is NOT copied literally: measured 2.44:1 on the composited card
+           background, below AA. --vy-muted carries the darkened value the polish pass computed (5.48:1). */
+        .vy-dk-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-dk-val { font-family: var(--vy-display); font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; font-variant-numeric: tabular-nums; }
         .vy-dk-val .vy-dk-unit { font-size: 16px; font-weight: 600; color: var(--vy-muted); margin-left: 2px; }
         .vy-dash-kpi.is-feature .vy-dk-val .vy-dk-unit { color: rgba(255,255,255,.6); }
         .vy-dk-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 5px; }
@@ -908,8 +910,11 @@
         .vy-ro-arrow { margin-left: 2px; }
 
         /* Dashboard — urgent count on the work-orders KPI */
-        .vy-dk-urgent { display: inline-block; font-size: 10.5px; font-weight: 700; color: var(--vy-accent); background: rgba(194, 65, 12, 0.10); border-radius: var(--vy-r-pill); padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
-        .vy-dk-delta { font-size: 12px; font-weight: 600; color: #3d6b3d; margin-left: 5px; }
+        /* The design sets both of these as plain text on the value's baseline, not as chips. */
+        .vy-dk-urgent { display: inline; font-size: 13px; font-weight: 500; color: var(--vy-accent); margin-left: 8px; }
+        /* Size/weight follow the design; the up/down colour pair is kept — the design has only one
+           styling for this slot, and collapsing them would drop the direction signal. */
+        .vy-dk-delta { font-size: 13px; font-weight: 500; color: #3d6b3d; margin-left: 8px; }
         .vy-dk-delta.is-down { color: var(--vy-accent); }
 
         /* Dashboard — Today's tasks */
@@ -947,6 +952,63 @@
         .vy-occ7-bar { width: 100%; max-width: 30px; border-radius: 6px 6px 0 0; background: var(--vy-grad); min-height: 3px; }
         .vy-occ7-pct { font-size: 10.5px; font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
         .vy-occ7-day { font-size: 10px; color: var(--vy-muted); }
+
+        /* ---- Operator Dashboard — wireframe parity ----------------------------------------------
+           Scoped to .vy-dash on purpose: .vy-dash-cols, .vy-tonight and .vy-stat-list are shared with
+           Channels, Billing, Reservation Detail, Maintenance and Owners, which keep their own sizing.
+           Colours resolve through the --vy-* tokens; the prototype's lighter greys are NOT copied
+           literally because --vy-muted carries the WCAG-AA value the polish pass computed. */
+        .vy-dash .vy-dash-cols { grid-template-columns: minmax(0, 1fr) 250px; gap: 20px; }
+        .vy-dash .vy-dash-cols > .vy-stack:first-child .vy-card-title { font-size: 16px; font-weight: 500; }
+
+        /* Today's tasks — grouped by priority (the prototype's default grouping) */
+        .vy-dash .vy-task-sec-head { display: flex; align-items: center; gap: 8px; padding: 15px 2px 5px; }
+        .vy-dash .vy-task-sec:first-child .vy-task-sec-head { padding-top: 4px; }
+        .vy-dash .vy-task-sec-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+        .vy-dash .vy-task-sec-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+        .vy-dash .vy-task-pri-ink.is-urgent { color: var(--vy-accent); }
+        .vy-dash .vy-task-pri-ink.is-high { color: var(--vy-amber-2); }
+        .vy-dash .vy-task-pri-ink.is-normal { color: var(--vy-muted); }
+        .vy-dash .vy-task-sec-count { font-size: 11px; color: var(--vy-faint); font-variant-numeric: tabular-nums; }
+        .vy-dash .vy-task-sec .vy-task-row.is-actionable { border-bottom: none; border-top: 1px solid var(--vy-hairline); }
+        .vy-dash .vy-task-clear { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--vy-r-pill); background: rgba(217, 102, 46, 0.13); color: #B4400F; font-size: 11px; font-weight: 500; }
+
+        /* Arrivals — the prototype's initials avatar */
+        .vy-dash .vy-arr-who { display: flex; align-items: center; gap: 11px; min-width: 0; }
+        .vy-dash .vy-arr-av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 500; flex: none; }
+
+        /* Occupancy — the prototype's 130px chart, wider gutters, today emphasised */
+        .vy-dash .vy-occ7 { height: 130px; gap: 14px; }
+        .vy-dash .vy-occ7-col { gap: 8px; }
+        .vy-dash .vy-occ7-bar { max-width: none; }
+        .vy-dash .vy-occ7-day.is-today { color: var(--vy-ink); font-weight: 600; }
+        .vy-dash .vy-week-chip { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.55); border: 1px solid var(--vy-glass-border); font-size: 12px; font-weight: 500; color: var(--vy-muted); }
+
+        /* Tonight — 34px figure with its label on the same baseline, plus the prototype's glow */
+        .vy-dash .vy-tonight-wrap { position: relative; }
+        .vy-dash .vy-tonight-glow { position: absolute; top: -28px; left: -30px; right: -30px; bottom: -34px; background: radial-gradient(ellipse at 50% 55%, rgba(232, 112, 58, 0.38), transparent 70%); filter: blur(26px); pointer-events: none; }
+        .vy-dash .vy-tonight { position: relative; padding: 20px; }
+        .vy-dash .vy-tonight-head { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; }
+        .vy-dash .vy-tonight-val { font-size: 34px; font-weight: 600; margin-top: 0; }
+        .vy-dash .vy-tonight-val .vy-dk-unit { font-size: 16px; }
+        .vy-dash .vy-tonight-sub { margin-top: 0; }
+        .vy-dash .vy-tonight-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .vy-dash .vy-tonight-cell .vy-tc-k { font-size: 10.5px; font-weight: 400; letter-spacing: normal; text-transform: none; color: rgba(255, 255, 255, 0.62); }
+        .vy-dash .vy-tonight-cell .vy-tc-v { font-weight: 600; margin-top: 3px; }
+
+        /* Right rail — the prototype heads these cards with an eyebrow and lists status as plain rows */
+        .vy-dash .vy-rail-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+        .vy-dash .vy-stat-list { grid-template-columns: 1fr; gap: 10px; }
+        .vy-dash .vy-stat { padding: 0; background: none; border: none; border-radius: 0; }
+        .vy-dash .vy-stat-k { font-size: 13px; }
+        .vy-dash .vy-stat-v { font-size: 13px; font-weight: 500; }
+
+        /* Maintenance — the prototype's highlighted out-of-order callout */
+        .vy-dash .vy-oo-cta { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: rgba(217, 102, 46, 0.08); border: 1px solid rgba(232, 112, 58, 0.22); text-decoration: none; transition: background .14s; }
+        .vy-dash .vy-oo-cta:hover { background: rgba(217, 102, 46, 0.13); }
+        .vy-dash .vy-oo-ico { width: 28px; height: 28px; border-radius: 8px; background: rgba(217, 102, 46, 0.14); color: #B4400F; display: flex; align-items: center; justify-content: center; flex: none; }
+        .vy-dash .vy-oo-t { display: block; font-size: 12px; font-weight: 500; color: var(--vy-ink); }
+        .vy-dash .vy-oo-s { display: block; font-size: 11px; color: var(--vy-muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
 
         /* Dashboard — Maintenance + Channels rows */
         .vy-mini-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
@@ -1149,6 +1211,8 @@
             .vy-detail-cols { grid-template-columns: minmax(0, 1fr); }
             .vy-dash-kpis, .vy-dash-kpis--3, .vy-dash-kpis--5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .vy-dash-cols { grid-template-columns: minmax(0, 1fr); }
+            /* the .vy-dash-scoped rule above out-specifies the line above it, so restate it here */
+            .vy-dash .vy-dash-cols { grid-template-columns: minmax(0, 1fr); }
         }
         @media (max-width: 860px) {
             .vy-shell { grid-template-columns: 1fr; }
