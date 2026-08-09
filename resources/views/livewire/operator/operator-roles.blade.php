@@ -208,8 +208,21 @@
         .vyr-role-meta { font-size: 11px; color: var(--vy-faint); margin-top: 4px; }
         .vyr-section { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 8px; }
         .vyr-perms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 12px; }
-        .vyr-toggle { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--vy-ink); }
-        .vyr-toggle.is-locked { color: var(--vy-faint); }
+        /* The design renders each permission as a SWITCH rather than a bare checkbox. The input stays a real
+           `input[type=checkbox]` — only its appearance changes — so the form payload, the x-model binding and
+           every disabled/locked rule are untouched.
+           ⚠️ RBAC-SAFE BY CONSTRUCTION: the permission's LABEL always sits beside the switch, so granted vs
+           denied is never carried by colour or position alone (WCAG 1.4.1), and a LOCKED row keeps a visibly
+           distinct treatment (dimmed + not-allowed) so an actor can tell "off" from "you may not change this"
+           — a distinction that matters more on a permissions matrix than anywhere else in the product. */
+        .vyr-toggle { display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: var(--vy-ink); cursor: pointer; }
+        .vyr-toggle input[type="checkbox"] { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 32px; height: 18px; border-radius: 999px; background: rgba(120, 70, 40, 0.16); border: 1px solid var(--vy-hairline); cursor: pointer; transition: background .16s, border-color .16s; margin: 0; }
+        .vyr-toggle input[type="checkbox"]::after { content: ''; position: absolute; top: 1px; left: 1px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(60, 40, 24, 0.28); transition: transform .16s; }
+        .vyr-toggle input[type="checkbox"]:checked { background: var(--vy-grad); border-color: transparent; }
+        .vyr-toggle input[type="checkbox"]:checked::after { transform: translateX(14px); }
+        .vyr-toggle input[type="checkbox"]:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vyr-toggle input[type="checkbox"]:disabled { cursor: not-allowed; opacity: .55; }
+        .vyr-toggle.is-locked { color: var(--vy-faint); cursor: not-allowed; }
         .vyr-assign { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
         @media (max-width: 980px) { .vyr-cols { grid-template-columns: 1fr; } .vyr-assign { grid-template-columns: 1fr; } }
     </style>

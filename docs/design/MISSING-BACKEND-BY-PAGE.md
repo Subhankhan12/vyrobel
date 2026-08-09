@@ -78,10 +78,11 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 20 | **Operator Group Booking** ⚠️ money + inventory, multi-unit | `/app/group-booking` | `can:reservations.create` (GET **and** POST) | ✅ matched | **3** (2 real gaps · 1 refusal) |
 | 21 | **Operator Owners (LIST)** ⚠️ owner PII + isolation | `/app/owners` | GET ungated · writes `can:users.manage` | ✅ matched | **3** (2 real gaps · 1 refusal) |
 | 22 | **Operator Owner DETAIL** ⚠️ deepest owner PII + the #6 guarded proposal | `/app/owners/{id}` | GET ungated · writes `can:users.manage` / `can:rates.manage` | ✅ matched | **4** (2 real gaps · 2 refusals) — **Owners area COMPLETE** |
+| 23 | **Operator Roles & permissions** ⚠️ RBAC / privilege | `/app/roles` | GET+assign `can:users.manage` · **matrix `can:roles.manage`** | ✅ matched | **3** (1 real gap · 2 refusals) + **a self-escalation test gap closed** |
 
-**Operator: 30 of 42 prototypes covered · 12 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+**Operator: 31 of 42 prototypes covered · 11 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
 remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
-**⬅ NEXT PAGE: Operator Roles (`/app/roles`)** — ⚠️ RBAC escalation (#30); the New-role / Delete-role refusals must hold.
+**⬅ NEXT PAGE: Operator Security (`/app/security`)** — auth surface; the firm rulings apply.
 
 ---
 
@@ -1531,3 +1532,95 @@ must show that owner's REAL floor/ceiling — never a generic "within your owner
   shown, rendered only when an address exists. Message deliberately omitted (D22-3).
 - **Responsive:** 0px horizontal overflow at **1440** and **1000**. **0 console errors/warnings.** The new
   action button measures **14.72** contrast (AA).
+
+---
+
+## 23 · Operator Roles & permissions — `/app/roles` ⚠️ RBAC / PRIVILEGE
+
+**Prototype:** `docs/design/raw/Operator Roles.html` (decoded fresh 2026-08-10; it opens on its **Delete role**
+modal). **Live:** `App\Livewire\Operator\OperatorRoles` →
+`resources/views/livewire/operator/operator-roles.blade.php`.
+**Role:** ⚠️ **a two-tier gate, and the distinction is load-bearing.** The screen and the **assign/revoke**
+writes are `can:users.manage`; the **permission-matrix save is `can:roles.manage`** — held by **Super Admin and
+Property Owner ONLY**, *not* Group Admin (who has `users.manage`). Reviewed as `demo-admin` (Property Owner).
+
+### ⚠️ FIXED OR CUSTOM? — BOTH, AND THE ANSWER IS PRECISE
+
+- **The role CATALOGUE is FIXED.** Evidence: the only role routes that exist are `GET /app/roles`,
+  `POST /roles/assign`, `POST /roles/revoke`, `POST /roles/permissions` — **there is no create-role or
+  delete-role route anywhere.**
+- **The permission MATRIX is EDITABLE**, for **non-wildcard back-office roles only**, under `roles.manage`.
+  Evidence: `RolePermissionService::editableRoleNames()` returns exactly the ten roles the page lists —
+  Group Admin · Hotel Manager · Revenue Manager · Front Desk · Reservation Agent · Housekeeping · Maintenance ·
+  Accountant · Marketing Manager · Guest Support Agent. **Super Admin / Property Owner (wildcard `['*']`) and
+  the portal roles (External Owner / Guest) are LOCKED and correctly absent** — the service's own note explains
+  why: editing a wildcard role would silently convert it to an explicit list (drift) or strip the org's top
+  tier (lockout).
+
+### ⚠️ THE MATRIX WAS VERIFIED AGAINST THE REAL RBAC — NOT EYEBALLED
+
+Every rendered switch was extracted and diffed against the real team-scoped `role_has_permissions` pivot for
+**Group Admin**:
+
+| | |
+|---|---|
+| Permissions in the catalogue | **49** (49 switches rendered) |
+| Granted in the **database** | **42** |
+| Rendered **on** | **42** |
+| In the DB but not shown on | **NONE** |
+| **Shown on but NOT in the DB** (a fabricated grant) | **NONE** |
+
+**✅ The matrix matches the real RBAC exactly**, and the page's own counters agree (*"42 of 49 on"*,
+*"42 permissions granted"*). **Member counts are real too** — checked against `model_has_roles`: Hotel Manager 1,
+Housekeeping 1, Accountant 1, everything else 0, exactly as rendered.
+
+### ⚠️ A SELF-ESCALATION TEST GAP — FOUND AND CLOSED
+
+`RolePermissionService::save()` carries four real bounds: **editable-roles-only**, **catalog-only**
+(`array_intersect`), **the SUBSET RULE** (*"the actor may only grant a permission they already hold"*), and
+**last-admin safety** — all audited (recording *which* permissions changed, never values).
+`OperatorRolesMatrixTest` already covered editable-only, last-admin, the `roles.manage` gate and read-only —
+**but the SUBSET RULE, the self-escalation guard, had no test at all**, even though it is the most dangerous
+bound here: a granted permission applies to **every member of the role at once**, not to one user.
+
+**Closed.** ⚠️ The setup has to build the actor through the **real chain**, because no seeded role holds
+`roles.manage` *without* being a wildcard that holds everything: a Property Owner first grants Group Admin
+`roles.manage` via a genuine matrix save (legal — the PO holds it), and that Group Admin, who still lacks
+`billing.manage`, then tries to hand it out → **refused**, and the test asserts **the capability did not
+move** (not merely that a message appeared). **Proven to discriminate**: removing the subset-rule block turns
+it RED, restoring turns it green, and `RolePermissionService` is byte-identical afterwards.
+
+*(⚠️ My first draft of this test asserted Group Admin holds `roles.manage`. It does not — my own earlier probe
+had already shown `roles.manage=-` for that role. Verify the premise, including your own.)*
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D23-1 | **"New role"** and **"Delete role"** as working controls, the delete modal offering *"MOVE MEMBERS TO"* another role. | No create/delete route exists — the catalogue is fixed by design. | A custom-role model, plus a members-migration step on delete. ⚠️ A real product decision, not a control. | **RATIFIED REFUSAL — and already handled well.** The buttons exist (matching the design's affordance) but open **honest explanations**: *"The role catalogue is fixed — …new roles aren't created here. Instead, edit an existing role's permissions above"* and *"Roles can't be deleted here — …un-toggle its permissions above; to move a person off a role, revoke it from them"*. **No form, no inputs, nothing inert.** Verified in the DOM. |
+| D23-2 | Permissions as **friendly capability names grouped by domain** — OPERATIONS / FINANCE / SYSTEM, with rows like *"Manage team & roles"*, *"Run payouts"*, *"Billing & subscription"*. | The live matrix groups by **resource** (ADDONS / AMENITIES / API / …) with terse verbs (View · Manage · Erase), mapping **1:1 onto the real permission keys**. | A curated label map from permission key → human phrase. | **REAL GAP — deliberately NOT taken in this gate, and worth stating why.** ⚠️ On a permissions matrix, **precision beats friendliness**: the design's *"Manage team & roles"* conflates `users.manage` **and** `roles.manage`, which this product deliberately separates (they are exactly the two tiers gating this page). A label that blurs two permissions on the screen that grants them is a correctness risk, not a copy improvement. If it is ever done, each friendly label must map to **exactly one** permission key. |
+| D23-3 | The roles rendered as a **card grid** (5 across) with an icon per role, and a **dark** selected-role card in the rail. | The live roles are a vertical list in a narrow column; the selected-role rail card is light. | Nothing — pure layout. | **REAL GAP (presentation)** — logged rather than built because it restructures the page's three-column shape, which deserves its own gate rather than being folded into an RBAC-sensitive change. |
+
+### Also noted on this page (not backend gaps)
+
+- ⚠️ **NOTHING WAS CREATED, ASSIGNED OR TOGGLED.** Baseline and after are identical:
+  **roles 14 · permissions 49 · role_has_permissions 250 · model_has_roles 7.** The New-role and Delete-role
+  modals were opened read-only; no matrix save, no assign, no revoke was submitted.
+- **#30 — the control is gated, not just the route.** The matrix switches bind
+  `x-bind:disabled="!canEdit || readOnly || !canToggle(perm.key)"` — a three-way gate where **`canToggle()`
+  surfaces the SUBSET RULE in the UI itself**, so an actor never sees a toggle they could not legally flip.
+  A viewer without `roles.manage` gets the honest line *"Editing a role's permissions needs the
+  organization-admin permission (roles.manage)."* rather than a dead Save button.
+- ⚠️ **A subtle correctness guard worth not breaking:** a locked-but-granted permission is preserved on save
+  via a hidden input — an actor who *cannot* toggle a permission must not silently **drop** it by saving.
+- **The assign form states the rule it enforces:** *"Only roles whose access you already hold are listed — you
+  can't grant more than your own."* — the escalation bound, surfaced rather than merely enforced.
+- **#28 / #42** — the surface shows **staff only** (name + role + member counts); no guest PII. Existing tests
+  cover *"cannot assign a role to a user in another organization"* and *"the assign path never mutates the
+  role→permission catalog"*.
+- **Fixed — permissions render as the design's SWITCHES** rather than bare checkboxes. The input stays a real
+  `input[type=checkbox]`, so the payload, the `x-model` binding and every disabled rule are untouched.
+  ⚠️ **RBAC-safe by construction:** the permission label always sits beside the switch (granted vs denied is
+  never colour- or position-only, WCAG 1.4.1), and a **locked** row stays visibly distinct from a merely
+  **off** row — verified by measurement (opacity 1 → 0.55, cursor `pointer` → `not-allowed`, label
+  `rgb(43,35,32)` → `rgb(108,100,95)`). That distinction matters more here than anywhere else in the product.
+- **Responsive:** 0px horizontal overflow at **1440** and **1000**. **0 console errors/warnings.** Permission
+  label contrast **13.75** (AA).

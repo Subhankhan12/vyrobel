@@ -97,3 +97,42 @@ it('refuses a matrix save when the workspace is read-only', function () {
 
     expect(userCan(operatorUser($s, [], 'Front Desk'), $s, 'reviews.manage'))->toBeFalse();   // nothing written
 });
+
+// ── ⚠️ THE SUBSET RULE — an actor may not grant a permission they do not hold themselves ───────────
+// This is the SELF-ESCALATION guard, and it was the one matrix bound with no test. The assign path has an
+// equivalent ("refuses to assign a role with MORE access than the actor's own"); the MATRIX path did not,
+// even though it is the more dangerous of the two — a granted permission applies to every member of the
+// role at once, not to one user. Added when the design-parity pass restyled the matrix control.
+//
+// ⚠️ The setup has to build the actor through the REAL chain, because no seeded role holds `roles.manage`
+// WITHOUT also being a wildcard role that holds everything (Super Admin / Property Owner are `['*']`).
+// So: a Property Owner first grants Group Admin `roles.manage` via a genuine matrix save — which is itself
+// legal, because the Property Owner does hold it — and the Group Admin, who still lacks `billing.manage`,
+// then tries to hand that out.
+it('refuses to grant a permission the actor does not hold themselves — no self-escalation', function () {
+    $s = seedScenario(1);
+    $owner = operatorUser($s, ['name' => 'Ada Admin'], 'Property Owner');    // wildcard — holds everything
+    $admin = operatorUser($s, ['name' => 'Gia GroupAdmin'], 'Group Admin');
+
+    // Group Admin starts WITHOUT roles.manage (verified, not assumed) — give it to them for real.
+    expect(userCan($admin, $s, 'roles.manage'))->toBeFalse();
+    $withRoles = collect((array) config('authorization.roles')['Group Admin'])->push('roles.manage')->unique()->values()->all();
+    $this->actingAs($owner)->post(route('app.roles.permissions'), ['role' => 'Group Admin', 'permissions' => $withRoles])
+        ->assertRedirect();
+    expect(userCan($admin, $s, 'roles.manage'))->toBeTrue()
+        ->and(userCan($admin, $s, 'billing.manage'))->toBeFalse();   // …but still NOT billing.manage
+
+    $target = operatorUser($s, ['name' => 'Finn Desk'], 'Front Desk');
+    expect(userCan($target, $s, 'billing.manage'))->toBeFalse();
+
+    // Now the Group Admin tries to hand out a permission they do NOT hold → refused, with the real message.
+    $granted = collect((array) config('authorization.roles')['Front Desk'])->push('billing.manage')->unique()->values()->all();
+    $this->actingAs($admin)->post(route('app.roles.permissions'), ['role' => 'Front Desk', 'permissions' => $granted])
+        ->assertRedirect(route('app.roles'))
+        ->assertSessionHas('roles_notice', fn ($m) => str_contains($m, 'grant a permission you don'));
+
+    // ⚠️ AND THE CAPABILITY DID NOT MOVE — the refusal is real, not just a message.
+    expect(userCan($target, $s, 'billing.manage'))->toBeFalse()
+        ->and(Role::where('name', 'Front Desk')->where('organization_id', $s['org']->getKey())
+            ->first()->permissions->pluck('name')->all())->not->toContain('billing.manage');
+});
