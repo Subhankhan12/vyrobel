@@ -760,7 +760,7 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **27 of 42** covered, **15 remaining** (`0aa9ede`→`PENDINGHASH`, all pushed)
+## N.4 Progress — OPERATOR **27 of 42** covered, **15 remaining** (`0aa9ede`→`de83bd4`, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates** and **P19 New Reservation**, so the current figure is
@@ -794,7 +794,7 @@ Payout Run**, **P17 Billing**, **P18 Rates** and **P19 New Reservation**, so the
 | P16 | **Operator Payout Run** ⚠️ real owner money (4 design fixes · 6 backend items · **D16-7** a money-visibility finding) | `4458f52` |
 | P17 | **Operator Billing** ⚠️ the OPEN billing decision (6 design fixes incl. a pre-existing modal bug · 5 backend items · a **G.1** observation) | `3f86270` |
 | P18 | **Operator Rates & availability** ⚠️ what guests are charged (2 design fixes · 6 backend items · a strengthened #30 gate test) | `252cb67` |
-| P19 | **Operator New Reservation** ⚠️ money + inventory (3 design fixes · 4 backend items · create NEVER submitted, counts proven unchanged) | `PENDINGHASH` |
+| P19 | **Operator New Reservation** ⚠️ money + inventory (3 design fixes · 4 backend items · create NEVER submitted, counts proven unchanged) | `de83bd4` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
