@@ -6,7 +6,24 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · **⬅ A PER-PAGE DESIGN-PARITY PASS IS NOW IN PROGRESS (§N)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+
+> ## ⬅ A NEW TRACK IS ACTIVE ON TOP OF EVERYTHING BELOW — the per-page **DESIGN-PARITY PASS** (started 2026-08-09, **IN PROGRESS**)
+>
+> **Read §N before quoting "what remains is only a decision + infrastructure" — that line is no longer the
+> whole picture.** A deliberate, page-by-page design-parity pass is running against the **125 standalone
+> prototypes in `docs/design/raw/`**: **ONE page per turn**, make the live page's design match the prototype
+> **exactly**, and **LOG — never build — every backend the prototype implies** to
+> **`docs/design/MISSING-BACKEND-BY-PAGE.md`**, which drives a SEPARATE later backend phase.
+>
+> **State: OPERATOR 23 of 42 prototypes covered (Pages 1–15, `0aa9ede`→`ee0121a`), 19 remaining. ⬅ NEXT PAGE =
+> Operator Payout Run (`/app/payouts/run`).** The OWNER (32) and GUEST (32) prototype sets are entirely
+> untouched by this pass.
+>
+> It does **not** contradict the closed sweep — it is presentation work and it preserves every §5 refusal and
+> ratified divergence (**H.bis**, **#39**). But it has surfaced things the sweep did not, including a duplicate
+> `style` attribute that left the Settings cancellation-policy selector with **no visible selected state at
+> all**, and **D3-4**, a figure-honesty finding on Insights that is logged for the backend phase, not fixed here.
 
 > ## 🏁 THE WIREFRAME-PARITY SWEEP IS **FULLY CLOSED** — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)
 >
@@ -133,13 +150,21 @@ isolation, parity, honesty-in-copy, UX and the minor gaps — is addressed and v
 quality work:** billing is a *decision*, deployment is *infrastructure*, scale-perf is a *pre-large-tenant*
 workstream, and the flips are the *founder's*.
 
+⚠️ **ONE QUALIFIER, ADDED 2026-08-09:** a **DESIGN-PARITY PASS is now running on top of all of the above (§N)** —
+per-page, presentation-only, one page per turn. It is **not** a reopening of the parity sweep (that closed, and
+this pass preserves its refusals); it is a finer-grained design-fidelity track whose second output is a **logged
+backend backlog** (`docs/design/MISSING-BACKEND-BY-PAGE.md`) for a later phase. **Operator 23/42 prototypes
+covered; owner + guest untouched.** So "the remainder is only a decision + infrastructure" is true of *quality*,
+and incomplete as a description of *what is being worked*.
+
 The audit is why the status changed: all three QA passes tested behaviour **through the UI**, and the two worst
 findings live exactly where UI testing cannot reach — **a queue worker rendering outside tenant context** (100%
 of booking-confirmation emails failed permanently; hidden because `Mail::fake()` + `assertQueued` asserts a job
 was *enqueued*, never that it *renders*) and **a race window inside a service** (the #27 refund bound had no row
 lock). Both are fixed. **Section map: A identity+status · B stack · C realms+surfaces · D engines · E invariants ·
 F the COMPLETE history (finish-to-100 + 3 QA passes + the audit + the 3 remediation passes) · G ⚠️ OPEN DECISIONS ·
-H honest deferrals · I the roadmap · J tech-debt · K marketing site · L process lessons · M founder pattern.**
+H honest deferrals · I the roadmap · J tech-debt · K marketing site · L process lessons · M founder pattern ·
+⬅ N THE DESIGN-PARITY PASS (the ACTIVE track — method, progress, the next page, its own lessons).**
 The dated per-gate build log with hashes is the `## Status` section further below; the "why" is
 `docs/DECISIONS.md`; per-page fidelity is `docs/design/DIVERGENCE-REGISTER.md`; the full audit + its resolution
 log is `docs/AUDIT-COMPLETE-2026-08-07.md`; earlier per-page audits are `docs/FULL-AUDIT-OPERATOR-GUEST.md`; the
@@ -505,6 +530,10 @@ be removed in the name of parity.
 
 ## (I) WHAT REMAINS — the roadmap
 
+0. ⬅ **THE DESIGN-PARITY PASS — IN PROGRESS, and it is the ACTIVE track (§N).** Operator **23/42** prototypes
+   covered; **19 operator remain (next: Payout Run)**, then the untouched **32 owner + 32 guest** sets. It
+   also accumulates **the backend backlog** (`docs/design/MISSING-BACKEND-BY-PAGE.md`) that becomes a
+   separate later phase. Presentation-only — it changes nothing on items 1–5.
 1. ⛔ **THE BILLING DECISION (G.1) — the founder's business call.** Blocks the Stripe live-key flip. Do NOT
    pick a side; surface it.
 2. **THE DEPLOYMENT SPRINT** — there are currently **NO deploy artifacts**: no Dockerfile, no CI/CD, no deploy
@@ -538,8 +567,33 @@ exactly how the incomplete `firstOrCreate` fix in WAVE 2 was caught).**
 
 - **⚠️ ONE KNOWN TRANSIENT — do NOT chase it.** `OwnerSettingsTest` asserts `assertDontSee('4242')` (no
   fabricated stored card) and can collide with a **randomly generated IBAN** that happens to contain `4242`,
-  producing a transient **8th** failure. Confirmed by isolating the test (fails 8/8 on the colliding seed) and
-  re-running the suite (back to 7). If you see 8, isolate before assuming a regression.
+  producing a transient failure. Confirmed by isolating the test (fails 8/8 on the colliding seed) and
+  re-running the suite. If the count rises unexpectedly, isolate before assuming a regression.
+
+### ⚠️ J.bis — THE BASELINE IS **8**, NOT 7, AND THE 8th IS A REAL OPEN ITEM (measured 2026-08-09)
+
+**A full run at HEAD `ee0121a` returns `1795 passed / 1803 · 11,857 assertions` — EIGHT non-green.** The
+documented seven are unmoved (`BookingImportTest` 6 · `OwnerUnitDetailViewTest` 1). **The eighth is new and was
+introduced by the design-parity pass itself:**
+
+- **`DesignTokenContrastTest › it declares the AA values in every shell`** (operator shell) —
+  *"Expecting … not to contain `rgb(138, 128, 121)`."*
+- **Introduced by `3bf9c02` (design-parity P8, Housekeeping)**, which promoted the five housekeeping status
+  colours from raw hexes in the view to shared `--vy-hk-*` tokens. One of them —
+  **`--vy-hk-ooo: rgb(138, 128, 121)`** — is **the exact literal the test forbids**, because that triple is the
+  **pre-AA `--vy-faint` original** the polish pass darkened away from.
+- **It is NOT an AA regression.** `--vy-hk-ooo` is consumed in exactly one place —
+  `housekeeping-board.blade.php:110`, as the **9px status DOT swatch** (`'dot' => 'var(--vy-hk-ooo)'`) — never
+  as text, and every dot is paired with its status **word** (1.4.1 holds). The test's guard is a **whole-file
+  substring match**, so it fires on any token that happens to share the value, which is broader than its own
+  stated intent (*"the failing originals must not creep back in"* — i.e. **as the muted/faint tokens**).
+- ⚠️ **It survived SEVEN subsequent gates (P9→P15) unnoticed** — which is precisely the failure mode **L.18**
+  ("know the baseline non-green count") exists to catch, and it was missed. **Notes asserting "the baseline is
+  7; an 8 means you broke something" were correct as a rule and stale as a number.**
+- **Not fixed here** (that turn was documentation-only). **⬅ FIRST ITEM FOR THE NEXT TURN, before Payout Run.**
+  The likely-correct fix is to tighten the assertion to the **token declaration** it means
+  (`--vy-faint: rgb(138, 128, 121)`) rather than the bare literal; the alternative is to re-pick
+  `--vy-hk-ooo`. ⚠️ Decide by reading the test's intent — do not simply relax it (**L.12**, **L.16**).
 
 Optional nicety: an org-slug → property redirect for the storefront (today `/book/{org-slug}` 404s by design;
 the correct URL is the PROPERTY slug, e.g. `/book/seaside-demo`).
@@ -615,6 +669,192 @@ the correct URL is the PROPERTY slug, e.g. `/book/seaside-demo`).
 
 ## (M) The founder's working pattern (for future sessions — "Subhan", solo founder/builder; see memory `user-subhan`)
 Propose-before-build (STOP at ⛔ gates); **NO fabricated data** (honest empty/Soon, flag demo seeds as demo); **extend, don't duplicate** (reuse the certified engines — anti-drift); **gate-per-phase** with explicit GATE REPORTs + an append-only `DECISIONS.md`; outputs saved as files; adversarial-review passes on risky diffs; validate a design against real stakeholders before treating it as definitive. Works across macOS/Windows; uses Claude for planning/architecture/prompt-authoring while Claude Code/Codex executes. Founder owns the go-live cutovers (Stripe live-key, email DNS+token, payout-engine flip, OAuth keys, tax rates, Channex/SMS/KYC accounts).
+
+---
+
+# (N) ⬅ THE DESIGN-PARITY PASS — **THE ACTIVE TRACK** (started 2026-08-09 · IN PROGRESS)
+
+*Memories: `project-design-parity-pass` (state) · `design-parity-technique` (method + traps).
+Deliverable + per-page record: **`docs/design/MISSING-BACKEND-BY-PAGE.md`**.*
+
+## N.1 The method (unchanged between turns)
+
+Walk the **standalone prototypes in `docs/design/raw/`** — decoding the `__bundler` bundle **fresh** each time
+(`/tmp/audit/*.decoded.html` holds decoded copies; verify byte-identity where one exists) — **ONE page per
+turn**, opening the prototype and the live page **side-by-side in a real browser (Playwright MCP)**, and produce
+**two strictly separated outputs**:
+
+1. **Fix the live page's design/UI/UX to match the prototype exactly** — down to px, weight and gap.
+   **Markup and styling ONLY.**
+2. **LOG every piece of implied backend to `MISSING-BACKEND-BY-PAGE.md` — logged, NEVER built.**
+
+Then **report and STOP**, and wait. Clean-incomplete beats rushed — that is why 6a/6b/6c, 7a/7b and 12a/12b were
+split rather than crammed into one turn.
+
+**Every diff is classified into exactly one of four buckets:**
+
+| Bucket | Action |
+|---|---|
+| **DESIGN-GAP** | Fix now, through the `--vy-*` tokens |
+| **REFUSAL-TO-PRESERVE** | **Keep the honest version.** The prototype is showing fabricated data the product deliberately refuses (#39 / sweep §5 / the 40 ratified divergences) |
+| **EXTRA-WORK** | Keep. A capability the product has that the wireframe never asked for (sweep §6) — never removed "for parity" |
+| **MISSING-BACKEND** | Log it; do not build it |
+
+**The standing rules:** the prototype is the **DESIGN source of truth, NEVER the DATA source of truth** — real
+data or an honest empty state, always (#39) · **never disturb the real backend** (no service, guard, engine or
+computation touched to close a design gap) · match hexes by **intent through the token system**, keeping
+`--vy-muted`/`--vy-faint` at their WCAG-AA darkened values · **#17 · #20 · #27 · #28 · #29 · #33 · #38 · #39
+all hold** · browser-verify each page before *and* after · hold the **baseline 7 non-green** (**J**), PHPStan
+L5 (0), Pint clean · **commit + push per page**.
+
+⚠️ **The single most frequent judgement call, stated plainly: when the "gap" is the live page honestly refusing
+the prototype's invented data, the gap IS the feature.** Match the layout; never the fabrication.
+
+⚠️ **THE "HOLD THE BASELINE" RULE WAS NOT ACTUALLY HELD — see J.bis.** `3bf9c02` (P8) took the suite from 7
+non-green to **8**, and seven further gates shipped on top without anyone noticing. **Re-measure the count each
+gate; do not assume it.**
+
+## N.2 The deliverable — `docs/design/MISSING-BACKEND-BY-PAGE.md`
+
+The running, per-page **backend backlog** that will drive a **separate later backend phase**. Each page gets a
+section whose table states, per item: **what the prototype shows · what the live product verifiably lacks**
+(read against the code, never assumed) **· what it would need** (route/controller/service/model/migration/job,
+named concretely) **· a verdict** — `REAL GAP` (build later) · `RATIFIED REFUSAL` (do NOT build; it would be
+fabrication) · `ACCOUNT-GATED` (a founder go-live flip, **H**, not missing code). Recording the refusals
+explicitly is deliberate: it stops the backend phase "discovering" one and building a fabrication.
+
+## N.3 The enumeration (this — not any earlier candidate list — is the source of truth)
+
+`docs/design/raw/` holds **125 prototypes**: **42 OPERATOR · 32 OWNER · 32 GUEST · 19 shell/email/PDF/auth**
+(plus an `Archive.zip`). ⚠️ **Some are many-to-one:** `Operator Inbox` + `Messages` + `Conversation` decode onto
+**one** live page, and `Property Settings` is a **second prototype of `/app/settings`** — prototype variants, not
+missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
+finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
+
+## N.4 Progress — OPERATOR **23 of 42** covered, **19 remaining** (`0aa9ede`→`ee0121a`, all pushed)
+
+⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, so the
+current figure is **23 covered / 19 remaining** (23 + 19 = 42). Notes saying "22/42 … 19 remaining" are the
+pre-GATE-B count and are off by one.
+
+| Gate | Page(s) | Commit |
+|---|---|---|
+| P1 | Operator Dashboard | `0aa9ede` |
+| — | **a11y GATE — sidebar nav to AA in BOTH shells** (`--vy-on-grad`, `--vy-on-grad-soft`) | `93247e7` |
+| P2 | Operator Calendar | `114f04b` |
+| P3 | Operator Insights ⚠️ (surfaced **D3-4**, §N.6) | `6e6d980` |
+| — | **a11y GATE — accent-as-TEXT to AA** (`--vy-accent-text`) | `81c5d18` |
+| P4 | Operator Reports | `415c28f` |
+| P5 | Operator Front Desk | `9755cad` |
+| P6a | Reservations list | `f60cecd` |
+| P6b | Reservation detail | `1a4eea6` |
+| — | **SEED GATE — a real cancelled + a real no-show, through the certified path** | `4490b42` |
+| P6c | Reservation Cancelled + No-show variants | `2a997a6` |
+| P7a | Guests CRM list | `6cd171d` |
+| P7b | Guest Profile | `6aa7dea` |
+| P8 | Housekeeping | `3bf9c02` |
+| P9 | Team Schedule | `c3d72bd` |
+| P10 | Inbox (Messages + Conversation + Inbox → one page) | `1fe2233` |
+| P11 | Maintenance board | `b49d98d` |
+| P12a/b | Work-order detail (**at parity**) + Maintenance Costs | `5403bd2` |
+| P13 | Maintenance Settings | `f3f8c1d` |
+| P14 | Operator Settings (all 13 blocks; + Property Settings, the 2nd prototype of the same page) | `279ea80` |
+| P15 | **GATE A** operator coverage sweep + **GATE B** Refund (**verified AT PARITY, 0 code**) | `ee0121a` |
+
+## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
+
+- **`--vy-on-grad` / `--vy-on-grad-soft`** (`93247e7`) — the sidebar nav labels and items hardcoded the
+  prototype's greys (`#9C9089` / `#8A8079`) and measured **1.82 : 1 / 2.23 : 1** against the **real sampled
+  gradient pixel**. Fixed realm-wide in **both** shells: now **4.74 / 4.93** operator and **4.71 / 4.93** owner
+  (active 4.62, hover 6.52). ⚠️ `--vy-muted` cannot serve both the gradient and the glass — hence a token pair.
+  This also closes the 2026-08-07 audit's gradient-background exclusion.
+- **`--vy-accent-text: rgb(176,56,8)`** (`81c5d18`) — accent used **as TEXT on glass** measured **4.09–4.46**
+  (the prototype's own `#B4400F` was 4.48 — also under AA). A new token was pointed at the **41 rules where the
+  accent is text with no background of its own**; the **31 chip/tag rules that carry their own tint were left
+  alone** (measured 4.61, passing), and **`--vy-accent` itself is UNTOUCHED**, so every gradient, button, border
+  and icon fill is byte-identical. After: **4.92–5.47** operator, **5.45** owner.
+  ⚠️ **248 inline `color: var(--vy-accent)` declarations REMAIN** across `resources/views/`, concentrated in the
+  owner realm (bookings 13 · owner-settings 9 · help 9 · messages 8 · welcome 7 · unit-detail 7). **A blanket
+  replace would be WRONG** — many sit on tinted backgrounds where the accent IS the correct foreground. **Each
+  site needs its real composited background measured. This deserves its own pass.** (Also: a naive replace
+  matches property names ending in `color:` — use a lookbehind; `border-color: var(--vy-accent)` stays.)
+- **Anti-drift consolidations made during the pass:** the integrated search pill was promoted to **ONE opt-in
+  `.vy-input-group--pill`** and the `.vy-res` / `.vy-gst` copies **deleted** (this was the *third* page to want
+  it); and Maintenance Costs' hand-rolled month chart moved onto the shared **`<x-charts.bars>`**.
+- **The SEED GATE (`4490b42`)** — the Cancelled and No-show variant prototypes had no live state to match, so a
+  **real cancelled and a real no-show reservation were seeded THROUGH the certified services** (never a raw
+  status write), so folio, availability spine, audit trail and **#29** are genuinely consistent. Demo goes
+  **40 → 42 reservations**; the list and its GET-link pagination were re-confirmed still property-scoped after.
+
+## N.6 ⚠️ D3-4 — the FIGURE-HONESTY finding (SURFACED, deliberately NOT fixed)
+
+**Operator Insights' "Last year" occupancy is divided by the availability spine's COVERAGE, not by the month.**
+The `availability` table holds **9 rows in all of 2025** (earliest `2025-08-21`); September 2025 has **3 rows for
+a 30-day month**, each `total=2, sold=1` — so the chart prints **"Last year 50%"** under a label that reads as
+*the month's* occupancy. Four LY months (Aug/Sep/Oct/Nov) read exactly 50% for this reason, **and it feeds the
+KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin window).
+
+- **Why it was not fixed here:** the figure comes out of `PerformanceMetrics::monthlyTrendForProperties` — **a
+  computation**, and this pass is design-only. Recorded, not touched.
+- **What it needs (backend phase):** a **coverage guard** on the LY series — compute the spine's day-coverage
+  per comparison window and omit the LY bar **and** its delta below a threshold, exactly as the product already
+  omits vs-LY where prior-year data is **absent**. The honest states already exist (`has_ly`, `enough`); this
+  extends them from *absent* coverage to *partial* coverage.
+- ⚠️ **It is NOT merely a demo artifact.** The thin 2025 spine comes from `DemoSeeder::seedAnalyticsHistory`,
+  but **the same hole opens for any tenant in its first year — which is every new tenant.**
+- It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
+
+## N.7 ⬅ REMAINING — the resume queue (ranked by stakes)
+
+⚠️ **BEFORE the next page: close the 8th non-green (J.bis)** — `DesignTokenContrastTest`, broken by this pass's
+own P8 commit and carried silently through P9–P15.
+
+**THEN: NEXT PAGE = Operator Payout Run.**
+
+**19 OPERATOR prototypes remain:** **1 Payout Run** (`/app/payouts/run` — ⚠️ real owner money) · **2 Billing**
+(`/app/billing` — ⚠️ **the OPEN billing decision, G.1**) · **3 Rates** · **4 New Reservation** (money +
+`AssignmentService` inventory) · **5 Group Booking** · **6 Owners** (PII / owner isolation #28/#42) ·
+**7 Owner Detail** · **8 Roles** (RBAC escalation #30) · **9 Security** · **10 Reviews** · **11 Channels**
+(OTA claims #37) · **12 Portfolio** (#38) · **13 Search** · **14 Notifications** · **15 Notification
+Preferences** · **16 Email Templates** · **17 Email Editor** · **18 Profile** · **19 Schedule PDF**.
+
+**Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
+
+## N.8 The process lessons this pass earned (extend **L**)
+
+21. **MEASURE COMPUTED VALUES, NOT THE SOURCE.** Three real bugs were invisible to file-reading and only
+    appeared when the *rendered computed value* disagreed with the source: a cascade fight lost to a later
+    equal-specificity duplicate; a stray `*/` eating its own rule; and **two `style` attributes on one element**
+    — HTML keeps the first and silently discards the rest, so the Settings cancellation-policy selector had
+    **no visible selected state at all** (its radio is `position:absolute;opacity:0`).
+22. **THE DOM MEASURES CURRENT STATE, NOT CAPABILITY.** A built-but-dormant feature reads as "missing" on a
+    probe — internal notes (none on that thread), Retry (no failed message), templates (inside a modal), the
+    resolve modal (absent for an `open` ticket), the density toggle (`x-show="view === 'board'"` while the page
+    loads in List). **Re-check against the source before classifying.**
+23. **VERIFY THE PROMPT'S OWN PREMISE.** A flagged hazard may not apply: the "SettingsService JSON-merge"
+    warning did not hold on Maintenance Settings, whose table is **typed columns** with `array_key_exists`
+    guards — the wholesale-replace hazard is **structurally absent** there. Likewise a grep for ID-doc/erase
+    terms returned zero: nothing to match, so nothing to invent.
+24. **PROMOTE A SHARED RULE AT THE THIRD COPY — and know that a hand-rolled duplicate MISSES the shared
+    component's honesty fixes.** Moving Maintenance Costs onto `<x-charts.bars>` fixed two real defects for
+    free: the local copy printed its figure **only in a `title` tooltip** (invisible on touch entirely), and
+    floored bars at `max(3, …)` so **a genuinely €0 month drew a stub that reads as real spend** (#39).
+25. **DON'T REPRODUCE THE PROTOTYPE'S DEFICIENCY.** Where matching the mock would break AA (status or
+    department carried by **colour alone**) or state something false (a per-property header on **org-wide**
+    settings; a populated country column that is really empty), keep the honest/accessible version **and log**.
+26. **SEED THROUGH THE REAL PATH.** A raw status write produces an **impossible state**; driving the certified
+    service makes the demo data genuinely consistent (`4490b42`).
+27. **PROVE PROPERTY SCOPE THREE WAYS** on an isolation-critical surface — structural diff (view-only) +
+    service-signature enforcement (a required argument makes PHPStan fail any forgetful caller) + the
+    adversarial test (`MaintenanceCostScopeTest`).
+28. **PROVE A BASELINE FAILURE IS PRE-EXISTING BY STASHING**, not by name-matching.
+29. **A REFUSAL CAN BE STRUCTURAL, AND HALF-FABRICATION IS FABRICATION.** An API key is not re-displayable
+    because **only its hash persists**; and an element with 2 real tiles beside 2 invented ones is refused
+    **whole** — rendering the real half and inventing the rest is exactly the fabrication this pass exists to
+    avoid (Settings' hero KPI strip).
+30. **KEEP THE INVARIANT VISIBLE.** The Refund page **surfaces #27** — "€369.00 still refundable … anything
+    above that is **refused, not trimmed to fit**" — plus a folio-reconciliation badge and an append-only
+    explanation. That is **better than the mock**, and it is why the page needed no design change at all.
 
 ## Status (verified against the repo)
 

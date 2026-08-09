@@ -61,6 +61,20 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 6c | ↳ Cancelled + No-show variants | same | Hotel Manager | ✅ matched | **0** (both refusals held) |
 | 7a | Operator Guests (CRM list) | `/app/guests` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
 | 7b | Operator Guest Profile | `/app/guests/{id}` | Hotel Manager | ✅ matched | **1** (1 refusal) — Guests area COMPLETE |
+| 8 | Operator Housekeeping | `/app/housekeeping` | Hotel Manager | ✅ matched | **2** (2 real gaps) |
+| 9 | Operator Team Schedule | `/app/schedule` | Hotel Manager | ✅ matched | **2** (2 real gaps) |
+| 10 | Operator Inbox *(Messages + Conversation + Inbox → one page)* | `/app/inbox` | Hotel Manager | ✅ matched | **6** (4 real gaps · 1 split · 1 account-gated) |
+| 11 | Operator Maintenance board | `/app/maintenance` | Hotel Manager | ✅ matched | **3** (2 real gaps · 1 refusal) |
+| 12a | Operator Work Order detail | `/app/maintenance/{id}` | Hotel Manager | ✅ **at parity, 0 code** | **1** (1 real gap) |
+| 12b | Operator Maintenance Costs | `/app/maintenance/costs` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
+| 13 | Operator Maintenance Settings | `/app/maintenance/settings` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
+| 14 | Operator Settings *(+ Property Settings, the 2nd prototype of the same page)* | `/app/settings` | ⚠️ `properties.manage` | ✅ matched | **4** (2 real gaps · 1 refusal · 1 ⛔ tied to the billing decision) |
+| 15A | **Operator coverage sweep** (enumeration + reconciliation) | — | — | — | **0** — 42 prototypes reconciled |
+| 15B | Operator Refund | `/app/reservations/{id}/refund` | ⚠️ `payments.refund` | ✅ **at parity, 0 code** | **4** (1 real gap · 3 refusals) |
+
+**Operator: 23 of 42 prototypes covered · 19 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+remaining" — that was the count **before GATE B closed Refund**. The current figure is **23 / 19**.
+**⬅ NEXT PAGE: Operator Payout Run (`/app/payouts/run`)** — see §15's ranked remaining table.
 
 ---
 
@@ -827,7 +841,8 @@ access · Guest-facing brand · Taxes & fees editor · Organization.
 `docs/design/raw/` holds **125** prototypes: **42 OPERATOR** · 32 OWNER · 32 GUEST · 19 shell/email/PDF/other
 (`index`, `System States`, the 8 transactional emails, the `Vyrobel *` auth/onboarding/checkout set).
 
-**Operator set: 22 covered, 20 remaining.**
+**Operator set: 22 covered, 20 remaining** *(as at the moment GATE A was written — **GATE B below then closed
+Refund**, so the standing figure is **23 covered / 19 remaining**; see the page index at the top of this file).*
 
 ✅ **Covered (22):** Dashboard (P1) · Calendar (P2) · Insights (P3) · Reports (P4) · Front Desk (P5) ·
 Reservations (P6a) · Reservation Detail (P6b) · Reservation Cancelled + No-show (P6c) · Guests (P7a) ·

@@ -2,6 +2,49 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-09 — ⬅ A PER-PAGE DESIGN-PARITY PASS IS THE ACTIVE TRACK (started; IN PROGRESS)
+
+Recorded here because the two a11y token gates below (`93247e7`, `81c5d18`) were **produced by this pass** and
+otherwise read as free-standing, and because a fresh session reading this log needs to know a track is open.
+
+**The decision.** After the wireframe-parity sweep closed, run a **finer-grained, per-page design-parity pass**
+over the **125 standalone prototypes in `docs/design/raw/`** — **ONE page per turn**, prototype and live page
+side-by-side in a real browser — with **two strictly separated outputs**: (1) **fix the design NOW**, markup and
+styling only; (2) **LOG the implied backend, never build it**, to **`docs/design/MISSING-BACKEND-BY-PAGE.md`**,
+which will drive a **separate later backend phase**.
+
+**Why the separation is the whole point.** Fixing design and building backend in the same turn is how a
+presentation pass quietly becomes a feature pass and starts touching money, guards and engines. Splitting them
+keeps each turn reviewable, keeps the certified services untouched, and turns "what this page implies it can do"
+into a written backlog instead of an improvisation.
+
+**What is deliberately NOT done.** No service, guard, engine or computation is changed to close a design gap.
+The prototype is the **DESIGN source of truth, never the DATA source of truth** — every §5 refusal and every one
+of the 40 ratified divergences is preserved (#39). ⚠️ **The recurring judgement call: where the "gap" is the
+live page honestly refusing the prototype's invented data, the gap IS the feature.**
+
+**State at this entry.** **Operator 23 of 42 prototypes covered** (Pages 1–15, `0aa9ede`→`ee0121a`), **19
+remaining**; the owner (32) and guest (32) sets untouched. **⬅ Next page: Operator Payout Run.** Full method,
+per-gate commit table, the two realm-wide tokens, the seeder gate, the D3-4 figure-honesty finding and the
+pass's own process lessons are **`docs/PROJECT-STATE.md` §N**.
+
+**⚠️ CORRECTION TO THE RECORD, measured this turn: the suite baseline is 8, not 7 — and this pass caused the
+8th.** A full run at `ee0121a` gives **1795 / 1803**. The documented seven are unmoved; the eighth is
+**`DesignTokenContrastTest`**, broken by **`3bf9c02` (P8, Housekeeping)**, which promoted the housekeeping status
+colours to `--vy-hk-*` tokens — and `--vy-hk-ooo: rgb(138, 128, 121)` is **the exact literal that test forbids**,
+because that triple is the pre-AA `--vy-faint` original. **It is not an AA regression** (the token is used once,
+as a 9px status **dot**, never as text, and every dot carries its status word). The test's guard is a whole-file
+substring match, broader than its stated intent. **It rode through seven subsequent gates unnoticed — exactly
+the failure mode the "know your baseline count" lesson exists to prevent.** Logged, not fixed here (this was a
+documentation-only turn); **it is the first item of the next turn, before Payout Run.** See `PROJECT-STATE.md`
+**§J.bis**.
+
+**One finding logged, deliberately NOT fixed — D3-4.** Operator Insights' "Last year" occupancy divides by the
+availability spine's **coverage**, not by the month, so three nights of 2025 data print as "50%" under a month
+label and feed the KPI deltas. It is produced by `PerformanceMetrics::monthlyTrendForProperties` — **a
+computation**, outside a design pass — so it is recorded for the backend phase. ⚠️ It is **not** a demo artifact
+alone: the same hole opens for **any tenant in its first year**.
+
 ## 2026-08-09 — Accent-as-TEXT brought to AA via a new `--vy-accent-text` token (brand fills untouched)
 
 The second half of the realm-wide contrast work, surfaced by the design-parity pass on Insights.
