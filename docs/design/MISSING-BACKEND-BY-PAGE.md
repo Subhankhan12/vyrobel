@@ -59,6 +59,7 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 6a | Operator Reservations (list) | `/app/reservations` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
 | 6b | Operator Reservation Detail | `/app/reservations/{id}` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
 | 6c | ↳ Cancelled + No-show variants | same | Hotel Manager | ✅ matched | **0** (both refusals held) |
+| 7a | Operator Guests (CRM list) | `/app/guests` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
 
 ---
 
@@ -373,3 +374,48 @@ certified path. **Design pass:** complete. **No backend gaps — both prototype 
   exactly the two-readers drift the shared resolver exists to prevent.
 - **A cancelled reservation carries a real outstanding balance** (charges stand, the payment was reversed).
   That is the append-only, correct-by-reversal ledger being honest — not a display bug.
+
+---
+
+## 7a · Operator Guests — CRM LIST — `/app/guests` (Hotel Manager)
+
+**Prototype:** `docs/design/raw/Operator Guests.html` (decoded 2026-08-09; byte-identical to the
+2026-08-07 audit decode). **Live component:** `App\Livewire\Operator\GuestsList` (`can:guests.view`).
+**Design pass:** complete. ⚠️ **The Guest PROFILE is the NEXT turn — not covered here.**
+
+### ⚠️ #28 PII perimeter — measured before and after, unchanged
+
+This is the primary operator PII surface, so the perimeter was **recorded as a baseline before touching
+anything** and re-probed after:
+
+| Probe | Before | After |
+|---|---|---|
+| distinct emails rendered | 4 | **4** |
+| distinct phones rendered | 4 | **4** |
+| passport / ID / document number | none | **none** |
+| card / masked PAN | none | **none** |
+| loyalty tier / "member since" | none | **none** |
+| "lifetime value" / LTV label | none | **none** |
+
+**No field was added, nothing is decrypted that was not already, and the honest note survives:** *"Search
+matches name, city and an exact email address — phone and partial email are encrypted at rest, so they
+cannot be searched."* Search remains a **GET** form (#20); the list renders **no pager at 10 rows**, which
+is the shared component's documented contract, not a defect.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D7-1 | **"Repeat guests" delta** — the stat carries a `+4%` change chip against a prior period. | The live tile shows the real ratio (**33%**) with its real basis spelled out ("3 of 9 guests who have stayed booked again"), but no prior-period comparison is computed. | A prior-window repeat-rate over the same span, diffed. ⚠️ Only render where a prior window genuinely has guests — a first-year tenant has no comparison, and the WAVE-3 Insights finding is the warning: a delta computed against a thin or empty prior window states something it cannot support. | **REAL GAP** (small) |
+| D7-2 | **A "Country" column populated for every row**, and a fuller identity block per guest. | Nothing missing structurally — the live column is `Nationality` and is genuinely **empty ("—") for guests who have no nationality on file**. The prototype shows every row populated because its data is invented. | — | **RATIFIED REFUSAL** (#39) — the honest "—" stays. **Do not backfill a nationality to make the column look full.** |
+
+### Also noted on this page (not backend gaps)
+
+- **The live list shows MORE contact than the wireframe, deliberately kept.** The wireframe's row sub-line
+  is the email alone; the live row shows `email · phone`. That is real capability on a permitted surface
+  (#28 allows contact on the Guests CRM). It was **not** removed — narrowing an operator's contact reach is
+  a product decision, not a styling fix.
+- **Kept, not removed (§6 extra work):** the segment chips with real counts (All / In-house / Upcoming /
+  VIP), the per-guest tag chips (Corporate / VIP / Repeat / At risk), the **balance-due** line under the
+  lifetime figure, the "A–Z by surname" ordering note, and the encryption disclosure above.
+- **Fixed:** the stat tiles took this wireframe's tighter 15px/18px padding and 26px figure (scoped to
+  `.vy-gst`), and the search became the wireframe's single integrated pill with the magnifier inside the
+  field — still a GET form.

@@ -317,6 +317,18 @@
         .vy-res .vy-input-group:focus-within { border-color: var(--vy-accent-border); }
         .vy-res .vy-input-group .vy-btn, .vy-res .vy-input-group .vy-pill { flex: none; padding: 6px 14px; font-size: 12.5px; }
 
+        /* ---- Operator Guests (CRM list) — wireframe parity (scoped to .vy-gst) ------------------- */
+        /* Same tighter stat tile this wireframe specifies (15px/18px, 26px figure) as Reports/Reservations. */
+        .vy-gst .vy-dash-kpi { padding: 15px 18px; }
+        .vy-gst .vy-dk-val { font-size: 26px; }
+        /* The design's search is ONE integrated pill; the form stays a GET form (#20). */
+        .vy-gst .vy-input-group { align-items: center; gap: 0; padding: 3px 4px 3px 15px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); }
+        .vy-gst .vy-search-ico { flex: none; margin-right: 9px; color: var(--vy-muted); }
+        .vy-gst .vy-input-group .vy-input { flex: 1; min-width: 0; border: none; background: transparent; box-shadow: none; padding: 7px 0; font-size: 13px; }
+        .vy-gst .vy-input-group .vy-input:focus { outline: none; }
+        .vy-gst .vy-input-group:focus-within { border-color: var(--vy-accent-border); }
+        .vy-gst .vy-input-group .vy-btn, .vy-gst .vy-input-group .vy-pill { flex: none; padding: 6px 14px; font-size: 12.5px; }
+
         /* ---- Operator Reservation DETAIL — wireframe parity (scoped to .vy-det) ------------------ */
         /* The design's folio line: date | description | amount. Same real rows, ordered as designed. */
         .vy-det .vy-ledger-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 12px 10px; margin: 0 -10px; border-radius: 12px; transition: background .14s; }
