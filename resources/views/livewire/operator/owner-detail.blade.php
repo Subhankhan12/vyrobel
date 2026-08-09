@@ -438,6 +438,21 @@
                         @elseif ($canPayout)
                             <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--vy-faint);">No payout method on file — the owner adds their IBAN in the portal.</div>
                         @endif
+
+                        {{-- The design pairs the contact block with an action row (Email · Message).
+                             ⚠️ Only EMAIL is reproduced, and only when an address actually exists: a `mailto:`
+                             is genuinely functional — it opens the operator's own mail client against the
+                             address already shown above, so it adds an affordance, not a claim.
+                             ⚠️ The design's "Message" button is NOT reproduced. An owner↔operator thread is a
+                             real concept (`message_threads.owner_id`), but reaching THIS owner's thread from
+                             here would need either a deep link that does not exist or a thread-start WRITE
+                             (`app.inbox.start`) — a button that opens an unrelated inbox would misstate what
+                             it does. Logged, not faked. --}}
+                        @if ($owner['email'])
+                            <div class="vyod-contact-actions">
+                                <a class="vyod-contact-btn" href="mailto:{{ $owner['email'] }}">Email</a>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -528,6 +543,10 @@
 
     <style>
         [x-cloak] { display: none !important; }
+        /* Contact action row (the design pairs the contact block with actions). */
+        .vyod-contact-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .vyod-contact-btn { flex: 1; text-align: center; padding: 9px 14px; border-radius: var(--vy-r-md); border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); font-size: 12.5px; font-weight: 600; text-decoration: none; }
+        .vyod-contact-btn:hover { border-color: var(--vy-accent-border, var(--vy-hairline)); background: rgba(255, 255, 255, 0.85); }
         .vyo-net-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .vyo-net-label { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 6px; }
         .vyo-net-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 12.5px; }

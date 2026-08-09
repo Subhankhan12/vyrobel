@@ -77,10 +77,11 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 19 | **Operator New Reservation** ⚠️ money + inventory | `/app/reservations/create` | `can:reservations.create` (GET **and** POST) | ✅ matched | **4** (2 real gaps · 2 refusals) |
 | 20 | **Operator Group Booking** ⚠️ money + inventory, multi-unit | `/app/group-booking` | `can:reservations.create` (GET **and** POST) | ✅ matched | **3** (2 real gaps · 1 refusal) |
 | 21 | **Operator Owners (LIST)** ⚠️ owner PII + isolation | `/app/owners` | GET ungated · writes `can:users.manage` | ✅ matched | **3** (2 real gaps · 1 refusal) |
+| 22 | **Operator Owner DETAIL** ⚠️ deepest owner PII + the #6 guarded proposal | `/app/owners/{id}` | GET ungated · writes `can:users.manage` / `can:rates.manage` | ✅ matched | **4** (2 real gaps · 2 refusals) — **Owners area COMPLETE** |
 
-**Operator: 29 of 42 prototypes covered · 13 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+**Operator: 30 of 42 prototypes covered · 12 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
 remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
-**⬅ NEXT PAGE: Operator Owner Detail (`/app/owners/{id}`)** — ⚠️ owner PII + the **#6 rate-proposal controls** (the GUARDED path).
+**⬅ NEXT PAGE: Operator Roles (`/app/roles`)** — ⚠️ RBAC escalation (#30); the New-role / Delete-role refusals must hold.
 
 ---
 
@@ -1439,3 +1440,94 @@ zero that is missing.**
   portal adoption, and the 18% commission. Status is never colour-only — **On hold** prints as a word.
 - **Responsive:** 0px horizontal overflow at **1440** and **1000** (the KPI strip reflows to 2 columns).
   **0 console errors/warnings.** Contrast on the new card **5.49–6.24** (AA).
+
+---
+
+## 22 · Operator Owner DETAIL — `/app/owners/{id}` ⚠️ DEEPEST OWNER PII + THE #6 GUARDED PROPOSAL
+
+**Prototype:** `docs/design/raw/Operator Owner Detail.html` (decoded fresh 2026-08-10).
+**Live:** `App\Livewire\Operator\OperatorOwnerDetail` → `resources/views/livewire/operator/owner-detail.blade.php`,
+reviewed on the real seeded owner (2 units, **6 statements**, 6 payouts).
+**Role:** the **GET carries no `can:` gate** (as with the list); the writes are `can:users.manage`
+(update / note / pause-payouts / remove) and **`can:rates.manage`** (the rate proposal).
+**⬅ With this page the OWNERS AREA IS COMPLETE (list §21 + detail §22).**
+
+### ⚠️ THE OWNER-PII PERIMETER — MEASURED BEFORE AND AFTER, UNCHANGED
+
+| Probe | BEFORE | AFTER |
+|---|---|---|
+| Owner email | **1** — `demo-owner@vyrobel-demo.test` (the owner's own) | **1** — identical |
+| Phone | **0** (the column is genuinely NULL → renders *"Not set"*) | **0** |
+| **Raw IBAN** | **0** | **0** |
+| Masked IBAN | **1** — `···· 1000` | **1** — identical |
+| BIC / bank name | **0** | **0** |
+| Tax / VAT / SSN / reg | **0** | **0** |
+| Postal address · DOB | **0** · **0** | **0** · **0** |
+
+**No field added, nothing decrypted that wasn't, no guest PII.** The owner's own name/email/phone are rendered
+by design — the component's triage records why: *"the operator's own CRM record for a business counterparty
+THEY invited"* — while **`tax_id` (encrypted) and the raw `address` JSON are never read at all**.
+
+⚠️ **THE IBAN IS STRUCTURALLY SAFE, verified at the source rather than by eye.** `Iban::masked(string $last4)`
+takes **only the last-4 string** and returns `'···· '.$last4` — it *cannot* emit a full IBAN, and the encrypted
+`payout_methods.iban` column is never read. It is additionally gated on **`payouts.manage`** (the Payout Run
+bar). ⚠️ **The design's `Revolut Business · IBAN ····4821 · verified` is refused twice over:** the bank NAME is
+unmodelled, and **"verified" would be fabricated** — the Payout Run gate established there is no verification
+column. The live line is the honest `IBAN ···· 1000 · on file`.
+
+⚠️ **A STALE DOCBLOCK, corrected here (not a defect).** `OperatorOwnerDetail`'s triage still says *"IBAN …
+NO bank-account field exists anywhere in the schema. Never rendered."* That predates the owner payout-method
+work (**#58**); a masked IBAN **is** rendered now, correctly and capability-gated. Same class as the Payout Run
+docblock drift found at §16 — **the code is right, the comment is out of date.**
+
+### ⚠️ THE #6 GUARDED PROPOSAL PATH — and the finding that matters
+
+The propose control POSTs the real guarded route **`POST /app/rate-proposals`** (CSRF, `can:rates.manage`,
+throttled) → `RateProposalService`, which rejects below-floor / above-ceiling and auto-approves within
+tolerance. **`RateProposalService` is byte-identical — untouched.** The modal was opened **READ-ONLY** and
+**nothing was submitted** (`rate_proposals` count **0** after, notes **0**).
+
+**The copy is honest as it stands:** the control reads *"Propose a change"*, the field *"Proposed nightly
+rate"*, the submit *"Send proposal"* — it never implies an instant apply.
+
+⚠️ **AND THE PAGE'S SILENCE ABOUT THE GUARDRAIL IS CORRECT, NOT A GAP — this is the subtle one.**
+`RateProposalService` enforces floor/ceiling/tolerance **only when a `RateGuardrail` row exists for that
+owner**. **This owner has none** (verified: 0 rows), so for them the bounds **do not bind at all**. Adding the
+kind of guardrail copy the direct-write Rates page correctly omits would, here, assert limits that do not
+exist for this owner. **If bounds copy is ever added it must render ONLY when a real guardrail row exists, and
+must show that owner's REAL floor/ceiling — never a generic "within your owner's limits".**
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D22-1 | **"View her portal ›"** as the header's primary action. | There is **no operator route into the owner realm** — `routes/web.php` records *"No impersonation (deferred)"*. | Impersonation or a read-only owner-portal view — a real auth-boundary feature. | **RATIFIED REFUSAL / DEFERRED** — the same refusal as **D21-3** on the list. A link that goes nowhere, or that implies an operator can enter the owner realm, misstates the auth boundary. |
+| D22-2 | **"Her units · September"** — per-unit rows with an occupancy **progress bar**, an occupancy %, and per-unit revenue (Villa Azure 82% · €4,120). | The live Units card lists code / type / sleeps only. Per-unit occupancy and revenue are **not** in this component's payload — although `PerformanceMetrics::forOwnerUnits` already powers the page's portfolio-level occupancy, and `OwnerUnitAnalytics` exists for the owner realm. | Per-unit metrics threaded into this payload (the shared analytics helpers already compute them for the owner's own pages — reuse, never a second definition). | **REAL GAP** — genuinely backed and reusable; a payload change, so logged not built. |
+| D22-3 | An **Email** and a **Message** button under the contact block. | No operator→owner messaging entry point from here. An owner↔operator thread is real (`message_threads.owner_id`), but reaching **this** owner's thread would need a deep link that does not exist, or a thread-start **write** (`app.inbox.start`). | A deep link to the owner's existing thread, or a gated start-thread action. | **SPLIT — Email is now REAL (a `mailto:` on the address already displayed, rendered only when one exists); Message is a REAL GAP, deliberately not faked.** A button that opens an unrelated inbox would misstate what it does. |
+| D22-4 | An **"Edit owner" modal** (commission stepper + portal-access / statement-PDF / pause-payouts toggles), a **"Remove owner"** type-to-confirm, a **"Next payout · est. 3 Nov"** date, and **"owner since 2023"**. | The component's own triage records each as omitted: the toggles have **no columns**, an **estimated payout date has no column** (a payout date is real only once `paid_at` is set), and the design's own modal is broken (it opens on the destructive Remove view with an inert button). ⚠️ *Live does have real `update` / `pause-payouts` / `remove` POSTs — the refusal is the design's unbacked toggles and the fake date, not the actions.* | Columns for the toggles; a scheduled-payout projection for the date. | **RATIFIED REFUSAL** (pre-existing, re-confirmed). ⚠️ **Do not add an estimated payout date** — the Payout Run gate refused the same thing. |
+
+### Also noted on this page (not backend gaps)
+
+- **#17 RECONCILES, MEASURED — three ways.** ⑴ **Every one of the 6 statements** ties exactly:
+  `1080−194.40=885.60`, `880−158.40=721.60`, `630−113.40=516.60`, `570−102.60=467.40`, `800−144=656`,
+  `540−97.20=442.80` — all at the **real 18%** agreement rate. ⑵ **Σ paid statements = €2,804.40** = the
+  **PAID OUT** and **PAID THIS YEAR** tiles; the pending **€885.60** = the **PENDING PAYOUTS** tile. ⑶ The
+  **BALANCE €4,653.60** ties to the ledger: Σ `signedMinor()` over the owner's **29 real `owner_ledger` rows**
+  = **465360 minor**. The "Net to owner · Sep 2026" card carries its own *"Reconciles to the cent"* badge and
+  proves it inline: credited €1,080.00 − commission €194.40 = **€885.60**.
+- ⚠️ **The one `€0.00` on the page is a REAL computed zero and was left alone** — it is **OTA cost**, genuinely
+  zero because no booking carried a channel cost. Same ruling as the Owners list: *a zero that is computed is
+  not a zero that is missing.*
+- **The tax-hold is visible and real** — the Sep statement is **Finalized** with a **pending** payout, and the
+  Owners list explains the hold (no tax details). Nothing here contradicts it.
+- **#42 / #38 isolation holds** — `OperatorOwnerDetailViewTest`'s *"an owner in another organization 404s"*
+  still passes (re-run). Everything rendered belongs to this owner in this org. ⚠️ Incidentally confirmed the
+  tenant guard is live: querying `RateGuardrail` outside a tenant context **throws
+  `TenantContextMissingException`** rather than returning cross-tenant rows.
+- **Writes restyled, not rewired** — 5 real gated POSTs (`rate-proposals`, `note`, `update`, `pause-payouts`,
+  `remove`), all CSRF-protected. **None submitted.**
+- **#39** — statement rows carry their real enum status plus the real `has_unverified` / `locked` badges;
+  "Not set" is rendered for a null commission or fee, never "0%". Status is never colour-only (**Active**,
+  **Finalized**, **Paid** all print as words).
+- **Fixed — the design's contact ACTION ROW**, with **Email** as a genuine `mailto:` on the address already
+  shown, rendered only when an address exists. Message deliberately omitted (D22-3).
+- **Responsive:** 0px horizontal overflow at **1440** and **1000**. **0 console errors/warnings.** The new
+  action button measures **14.72** contrast (AA).
