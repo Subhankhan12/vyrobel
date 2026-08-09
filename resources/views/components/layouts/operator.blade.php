@@ -281,6 +281,28 @@
         .vy-ins-night-lbl { font-size: 10px; color: var(--vy-muted); }
 
         @media (max-width: 1100px) { .vy-ins-cols { grid-template-columns: minmax(0, 1fr); } }
+
+        /* ---- Operator Reports — wireframe parity (scoped to .vy-rep) ----------------------------- */
+        /* This wireframe's KPI tile is tighter than the Dashboard's; scoped, not pushed at the shared token. */
+        .vy-rep .vy-dash-kpi { padding: 15px 18px; }
+        .vy-rep .vy-dk-val { font-size: 25px; }
+        /* Revenue by channel — the design's share list. */
+        .vy-rep-ch-head, .vy-rep-ch-row { display: grid; grid-template-columns: 1.1fr .7fr .8fr 1.2fr; align-items: center; gap: 14px; }
+        .vy-rep-ch-head { padding: 8px 10px 10px; font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-rep-ch-row { padding: 12px 10px; margin: 0 -10px; border-radius: 12px; border-top: 1px solid var(--vy-hairline); transition: background .14s; }
+        .vy-rep-ch-row:hover { background: rgba(255, 255, 255, 0.45); }
+        .vy-rep-ch-name { display: flex; align-items: center; gap: 9px; min-width: 0; }
+        .vy-rep-ch-dot { width: 9px; height: 9px; border-radius: 3px; background: var(--vy-grad); flex: none; }
+        .vy-rep-ch-lbl { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vy-rep-ch-rev { font-family: var(--vy-display); font-weight: 500; font-size: 13.5px; }
+        .vy-rep-ch-share { display: flex; align-items: center; gap: 8px; }
+        .vy-rep-ch-track { flex: 1; height: 6px; border-radius: 4px; background: rgba(120, 70, 40, 0.10); overflow: hidden; display: block; }
+        .vy-rep-ch-track > span { display: block; height: 100%; border-radius: 4px; background: var(--vy-grad); }
+        .vy-rep-ch-pct { font-size: 11px; color: var(--vy-muted); font-variant-numeric: tabular-nums; width: 34px; text-align: right; }
+        .vy-rep-ch-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0 2px; border-top: 1px solid rgba(120, 70, 40, 0.16); margin-top: 2px; font-family: var(--vy-display); font-weight: 600; }
+        .vy-rep-ch-total > :first-child { font-size: 14px; }
+        .vy-rep-ch-total > :last-child { font-size: 16px; color: var(--vy-accent-text); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+        .vy-rep .vy-num { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
         .vy-card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
         .vy-card-head h3 { margin: 0; font-family: var(--vy-display, inherit); font-size: 14px; font-weight: 600; color: var(--vy-ink); }
         .vy-card-note { font-size: 11.5px; color: var(--vy-faint); }

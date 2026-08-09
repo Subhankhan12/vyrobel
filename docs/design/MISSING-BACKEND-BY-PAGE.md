@@ -54,6 +54,7 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 1 | Operator Dashboard | `/app/dashboard` | Hotel Manager | ✅ matched | **3** (1 real gap · 1 real gap · 1 refusal) |
 | 2 | Operator Calendar | `/app/calendar` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 account-gated) |
 | 3 | Operator Insights | `/app/insights` | Hotel Manager | ✅ matched | **3** (2 real gaps · 1 refusal) + ⚠️ **1 figure-honesty finding** |
+| 4 | Operator Reports | `/app/reports` | Hotel Manager | ✅ matched | **3** (3 real gaps) |
 
 ---
 
@@ -169,7 +170,7 @@ any data at all*, presented under a label that reads as the month's occupancy. F
 - **Property filter chips.** The prototype puts per-property chips on the page. The live product routes
   property selection through the topbar `PropertyContext` switcher (the certified #38 mechanism) and links
   to it — a ratified divergence, kept.
-- **REALM-WIDE: accent links on glass were under AA — ✅ RESOLVED 2026-08-09 (`d9b2ad8`).** `var(--vy-accent)`
+- **REALM-WIDE: accent links on glass were under AA — ✅ RESOLVED 2026-08-09 (`81c5d18`).** `var(--vy-accent)`
   as TEXT measured **4.09–4.46:1** across real sampled card backgrounds (the prototype's own `#B4400F` was
   4.48 — also under). Fixed with a new **`--vy-accent-text: rgb(176,56,8)`** token pointed at the 41 rules
   where accent is text **without its own background**; the 31 chip/tag rules that carry their own tint were
@@ -177,3 +178,37 @@ any data at all*, presented under a label that reads as the month's occupancy. F
   border and icon fill is byte-identical. After: **4.92–5.47** operator, **5.45** owner.
 - **KPI label size.** The Insights prototype specifies 10.5px where the Dashboard prototype specifies 11px
   for the same shared `.vy-dk-label`. Left at 11px — a 0.5px scoped override is not worth the drift.
+
+---
+
+## 4 · Operator Reports — `/app/reports` (Hotel Manager)
+
+**Prototype:** `docs/design/raw/Operator Reports.html` (decoded 2026-08-09; byte-identical to the
+2026-08-07 audit decode). **Live component:** `App\Livewire\Operator\OperatorReports`. **Design pass:**
+complete.
+
+**Checked first:** figures reconcile (#17) — the channel Total renders **€7,080.00**, identical to the
+Gross-revenue KPI, because both read the one folio source (`OperatorReportData`, the WAVE-1 HIGH-4 fix).
+Isolation (#38) holds — the report resolves through the property context, and no guest identity appears in
+any row. **The export generation was not touched**: `OperatorReportsExportController` (CSV via `CsvSafe`,
+PDF via `PdfService`) renders from the same `OperatorReportData` the screen builds, so screen == export.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D4-1 | **Excel workbook export** in the export menu ("Trend + channels tabs"). | Genuinely absent, and **honestly labelled "Soon"** in the live menu with "Use the CSV meanwhile" — not a fake download. | A spreadsheet writer (e.g. `phpoffice/phpspreadsheet` — a new dependency, so a founder call) emitting the same `OperatorReportData` rows the CSV already produces, two sheets. ⚠️ Must route through the same assembler so screen == export == workbook. | **REAL GAP** (honestly deferred today) |
+| D4-2 | **"Email to owners"** — send the report as a PDF attachment. | Present in the live menu as an honest "Soon". No mail job exists for it. | A queued Mailable attaching the existing `reports.export.pdf` output, plus a recipient rule. ⚠️ Must be tenant-restoring (the #83 pattern — a queued mailable that renders outside tenant context is exactly the 2026-08-07 H2 defect), and owner-scoped so an operator cannot mail one owner another's figures (#28). | **REAL GAP** (honestly deferred today) |
+| D4-3 | **Owner statements list in the right rail** — per-owner rows (avatar, name, unit, net) linking to a statement, with a **"Download all 12 (ZIP)"** bundle, plus a net/fee summary line. | The per-owner statement data is **real and already built** — it simply lives on `/app/owners` + Payout run + the owner realm's own statement PDFs, not on Reports. What genuinely does not exist anywhere is the **ZIP bundle** of a period's statements. | To surface the list here: read the existing owner-statement source (no new computation). For the ZIP: a streamed archive of the already-generated per-statement PDFs, `reports.view`-gated and property/tenant-scoped, with `ExportAudit::stamp` like the other bundled exports. ⚠️ Owner figures on an operator surface stay name + money only (#28). | **REAL GAP** (the list is a location divergence; the ZIP is genuinely missing) |
+
+### Also noted on this page (not backend gaps)
+
+- **Kept, not removed (§6 extra work):** the **Revenue breakdown** card (room / ancillary / gross / tax
+  pass-through), the **Costs** card (real maintenance cost, with the untracked lines honestly marked
+  "NOT TRACKED YET" rather than fabricated), the **Top units** table, and the basis footnote. The wireframe
+  has none of these.
+- **The wireframe's dark "month so far" hero** is not reproduced: the live KPI band already carries the same
+  real figures, and the hero's second line is a narrative sentence. A layout divergence, not a data gap.
+- **Shared chart component changed (both consumers verified):** `<x-charts.bars>` had `max(4, pct)%`, so a
+  genuinely **€0.00** month drew a visible stub under a "€0.00" label. It now draws nothing (non-zero keeps
+  a 2px floor so a small real value stays visible). A `valueTop` opt-in prop was added for this wireframe's
+  value-above-the-bar order; the other consumer (owner Insights) does not pass it and was confirmed
+  unchanged in-browser — same column order, chart intact.

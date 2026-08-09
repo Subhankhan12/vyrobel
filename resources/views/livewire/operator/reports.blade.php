@@ -2,7 +2,7 @@
      property context. Revenue is Σ REAL folio items (reconciles to FolioTotals); the only real operator
      cost captured today is MAINTENANCE; the prototype's other expense lines have NO data source and are
      HONESTLY listed as "not tracked yet", never fabricated. No "best month on record" narrative. --}}
-<div>
+<div class="vy-rep">
     <x-operator.shell active="reports" title="Reports"
         :subtitle="$scopeLabel . ' · arrivals in ' . $activeRange['label']" :viewer="$viewer">
 
@@ -122,26 +122,40 @@
                 @if (count($byChannel) === 0)
                     <div class="vy-empty">No channel revenue in this range yet.</div>
                 @else
-                    <table class="vy-table">
-                        <thead><tr><th>Channel</th><th class="vy-num">Bookings</th><th class="vy-num">Revenue</th><th class="vy-num">Share</th></tr></thead>
-                        <tbody>
-                            @foreach ($byChannel as $c)
-                                <tr>
-                                    <td>{{ $c['label'] }}</td>
-                                    <td class="vy-num">{{ $c['bookings'] }}</td>
-                                    <td class="vy-num">{{ $c['revenue'] }}</td>
-                                    <td class="vy-num">{{ $c['share'] }}%</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    {{-- The design renders this as a share list: a swatch per channel and a proportion bar,
+                         closing on the total. The share bar is a second reading of the same real `share`
+                         figure printed beside it — it never carries information the number doesn't. --}}
+                    <div class="vy-rep-ch-head">
+                        <span>Channel</span>
+                        <span class="vy-num">Bookings</span>
+                        <span class="vy-num">Revenue</span>
+                        <span>Share</span>
+                    </div>
+                    @foreach ($byChannel as $c)
+                        <div class="vy-rep-ch-row">
+                            <span class="vy-rep-ch-name">
+                                <span class="vy-rep-ch-dot" aria-hidden="true"></span>
+                                <span class="vy-rep-ch-lbl">{{ $c['label'] }}</span>
+                            </span>
+                            <span class="vy-num">{{ $c['bookings'] }}</span>
+                            <span class="vy-num vy-rep-ch-rev">{{ $c['revenue'] }}</span>
+                            <span class="vy-rep-ch-share">
+                                <span class="vy-rep-ch-track"><span style="width: {{ $c['share'] }}%"></span></span>
+                                <span class="vy-rep-ch-pct">{{ $c['share'] }}%</span>
+                            </span>
+                        </div>
+                    @endforeach
+                    <div class="vy-rep-ch-total">
+                        <span>Total</span>
+                        <span>{{ $revenue['gross'] }}</span>
+                    </div>
                 @endif
             </div>
 
             {{-- #104 GATE 2 — REAL revenue-by-month chart (same folio basis; every month a real bucket) --}}
             <div class="vy-card vy-fade" style="margin-top: 14px;">
                 <div class="vy-card-head"><h3>Revenue by month</h3><span class="vy-card-note">{{ $activeRange['label'] }}</span></div>
-                <x-charts.bars :bars="$byMonth" height="140px" />
+                <x-charts.bars :bars="$byMonth" height="150px" valueTop />
             </div>
         @endif
     </x-operator.shell>
