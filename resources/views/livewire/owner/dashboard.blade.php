@@ -224,7 +224,7 @@
                              shown only when the owner has set a target, never a fabricated goal (#39). --}}
                         @if ($series['goal'])
                             <div title="Monthly goal · {{ $series['goal']['display'] }}" style="position:absolute;left:0;right:0;bottom:{{ min(99, max(1, $series['goal']['pct'])) }}%;height:0;border-top:1.5px dashed var(--vy-accent);z-index:2;pointer-events:none">
-                                <span style="position:absolute;right:0;top:-16px;font-size:10.5px;font-weight:600;color:var(--vy-accent);background:var(--vy-surface,#fff);padding:0 4px;border-radius:4px">Goal {{ $series['goal']['display'] }}</span>
+                                <span style="position:absolute;right:0;top:-16px;font-size:10.5px;font-weight:600;color:var(--vy-accent);background:var(--vy-surface,#fff);padding:0 4px;border-radius:4px">Goal {{ $series['goal']['display'] }}@if ($series['goal']['above_range']) · above this range @endif</span>
                             </div>
                         @endif
                         @foreach ($series['bars'] as $i => $bar)

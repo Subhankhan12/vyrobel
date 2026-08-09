@@ -246,7 +246,7 @@ class OwnerDashboard extends Component
      * (in the chart's currency); otherwise the series carries `goal => null` and the view draws no line.
      *
      * @param  Collection<int, OwnerStatement>  $statements
-     * @return array{bars: list<array{label: string, net_display: string, pct: int}>, count: int, goal: array{pct: int, display: string}|null}
+     * @return array{bars: list<array{label: string, net_display: string, pct: int}>, count: int, goal: array{pct: int, display: string, above_range: bool}|null}
      */
     private function earningsSeries(Collection $statements, string $currency): array
     {
@@ -259,9 +259,14 @@ class OwnerDashboard extends Component
         $goalMinor = (int) (OwnerMonthlyTarget::query()->where('currency', $currency)->max('target_minor') ?? 0);
 
         $maxNet = (int) $chrono->max(fn (OwnerStatement $s): int => max(0, (int) $s->net_payable_minor));
-        // Scale bars AND the goal line against the same max so the goal is always visible above/among the bars.
-        $scale = max($maxNet, $goalMinor);
-        $scale = $scale > 0 ? $scale : 1;
+
+        // ⚠️ SCALE TO THE DATA, NOT THE GOAL (WAVE 3 tail). This used to scale against
+        // max($maxNet, $goalMinor) so the goal line always sat inside the chart — but a goal well above
+        // actual earnings then crushed every real bar. Measured on the demo: a €6,000 goal against a
+        // €885.60 best month rendered the bars at 7–15% height; against the data max they are 50–100%.
+        // The chart's job is to make the REAL months readable.
+        $scale = $maxNet > 0 ? $maxNet : 1;
+        $goalAboveRange = $goalMinor > $maxNet;
 
         $bars = $chrono->map(fn (OwnerStatement $s): array => [
             'label' => $s->period_start->format('M'),
@@ -269,8 +274,15 @@ class OwnerDashboard extends Component
             'pct' => (int) round(max(0, (int) $s->net_payable_minor) / $scale * 100),
         ])->values()->all();
 
+        // A goal above the plotted range pins to the top — so the caption SAYS so, rather than letting a
+        // dashed line near the top imply the owner is nearly there (#39: the figure is real either way, but
+        // the position must not imply a proximity that isn't real).
         $goal = $goalMinor > 0
-            ? ['pct' => (int) round($goalMinor / $scale * 100), 'display' => $this->money($goalMinor, $currency)]
+            ? [
+                'pct' => (int) round($goalMinor / $scale * 100),
+                'display' => $this->money($goalMinor, $currency),
+                'above_range' => $goalAboveRange,
+            ]
             : null;
 
         return ['bars' => $bars, 'count' => count($bars), 'goal' => $goal];
