@@ -132,7 +132,13 @@
             </div>{{-- /right stack --}}
             </div>{{-- /detail-cols --}}
 
-            <div style="display: flex; justify-content: flex-end; margin-top: 22px;">
+            {{-- The design pairs Save with a Discard. Discard is a plain GET link back to this same route:
+                 re-reading the page IS the discard, because every control above renders from the stored
+                 settings. That keeps it honest — it makes no claim to "undo" anything already saved, and it
+                 needs no backend. Ordered Discard-then-Save so the destructive-ish control is not the one
+                 under the thumb. --}}
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 22px;">
+                <a class="vy-btn vy-btn--ghost" style="padding: 12px 20px;" href="{{ route('app.maintenance.settings') }}">Discard</a>
                 <button type="submit" class="vy-btn vy-btn--accent" style="padding: 12px 22px;">Save changes</button>
             </div>
         </form>

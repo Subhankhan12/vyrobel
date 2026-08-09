@@ -716,3 +716,47 @@ the audit copy. **Role:** Hotel Manager (`maintenance.manage`).
   and it floored every bar at **`max(3, …)`**, so a genuinely **€0 month would draw a visible stub that reads
   as real spend** — exactly the #39 fix already recorded in the shared component's comments. The month now
   shows its label **and** its figure on the page.
+
+---
+
+## 13. Operator Maintenance Settings (`/app/maintenance/settings`)
+
+**Prototype:** `docs/design/raw/Operator Maintenance Settings.html` — 537 lines, decoded **byte-identical** to
+the audit copy. **Role:** Hotel Manager (`maintenance.manage`).
+
+**It IS its own page**, in both the design and the product — a standalone prototype and a standalone route
+(`OperatorMaintenanceSettings`). Nothing needed folding into the main Settings screen.
+
+⚠️ **Storage-shape correction, recorded because it changes what the risk here actually is.** These settings
+are **NOT** a JSON map. `maintenance_settings` is a table of **typed columns** (four `sla_*_hours` smallints,
+five nullable `assignee_*_id` FKs, eight booleans), one row per org (`organization_id` is **unique**).
+`MaintenanceSettingsService::update()` assigns **field by field behind `array_key_exists`** guards, so a key
+absent from the request leaves the stored column untouched. The WAVE-1 HIGH-1 hazard — a JSON blob
+wholesale-replaced, losing sibling keys — **cannot occur here**, because there is no blob to clobber; the
+same protective property is achieved structurally. The service also audits **which** fields changed, never
+their values (the settings-write discipline). None of this was touched.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D13-1 | The header scoped to a **property** — "Seaside Villas" beside the page title. | Settings are **org-wide**: `organization_id` is unique on the table, so one row governs every property. | Re-keying the table per property (or per-property overrides over an org default) plus a scope selector. A real product decision, not a styling one. | **REAL GAP / product decision** — logged, not started. ⚠️ Do NOT add a property name to this header while the setting is org-wide; that would tell the operator these rules are per-property when they are not. |
+| D13-2 | A technician **"Invite"** button in the Technicians card. | No invite here. | Nothing — see below; the live copy is the honest form. | **REFUSAL-PRESERVE.** There is no separate technician role to invite: any active team member can be assigned work. The live card says exactly that and links to Roles & access. **Do not add an "Invite" that would imply a technician-specific invite the product does not have.** |
+
+### Also noted on this page (not backend gaps)
+
+- **The settings values are REAL and org-scoped (#38)** — every rendered control matches the stored row:
+  SLA 4 / 8 / 48 / 168 hours, auto-assign off with all five categories unassigned, block-room-from-sale on,
+  notify-front-desk on, require-photo off, and the five notify toggles at their stored states.
+- **The save still POSTs its real gated route** — one `POST /app/maintenance/settings` with CSRF, straight to
+  the `maintenance.manage`-gated controller → `MaintenanceSettingsService::update()`. Observed read-only;
+  **nothing was submitted**. The saved confirmation is a real flash (`maintenance_settings_notice`) that the
+  view already renders — absent on a fresh load because there is no flash, not because it is missing.
+- **The honesty markers survived the change and must be preserved** — 2 × **"NOT DISPATCHED YET"**
+  ("Preference stored; maintenance doesn't send this alert yet — nothing is sent"), 1 × **"NOT ENFORCED YET"**
+  ("Photos on work orders are live, but resolve doesn't require one yet"), and the contrasting **"Already
+  enforced — an out-of-service unit is excluded from availability and can't be booked"**. These distinguish a
+  stored preference from an enforced rule, which is the whole point (#39).
+- **Fixed:** the design's **Discard** control, which the page lacked, now sits beside Save. It is a plain
+  **GET link back to the same route** — re-reading the page *is* the discard, because every control renders
+  from the stored settings. **Proven in the browser, not assumed:** the Urgent-hours field was edited to 99,
+  Discard was clicked, and the field came back as the stored **4** with **no "saved" flash** — i.e. it
+  reverted the form and wrote nothing. It makes no claim to undo anything already saved.
