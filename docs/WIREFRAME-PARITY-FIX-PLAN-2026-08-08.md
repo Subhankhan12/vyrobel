@@ -207,7 +207,30 @@ Every item below is **copy asserting behaviour the code does not implement**. Fo
 >   along with that fix.
 
 > ### 🔎 VERIFIED-AND-CONFIRMED, not yet fixed (next session can start here)
-> - **Operator pagination — confirmed absent, and there is NO paginated operator list to mirror.** Verified
+> ### ⏳ PAGINATION — 2 of 3 DONE (`f12dbe3`), Notifications OPEN
+> Guests and Reservations are paginated. The pattern is built and reusable: a realm-neutral
+> **`<x-pager>`** partial + Laravel's paginator + `withQueryString()`, page size `GuestsList::PER_PAGE` (25),
+> styled in the `--vy-*` warm-glass tokens in BOTH layouts' CSS.
+>
+> **⚠️ THE DESIGN DECISION (do not "upgrade" this to WithPagination):** pages ride **GET links**.
+> `SetTenantForWebRequest` is global, but `SetCurrentPropertyForWebRequest` is on the `/app` ROUTE GROUP and
+> does NOT run on `/livewire/update` (#20) — the same reason these lists' filters already ride GET links. A
+> GET page change re-runs every middleware, so page 2 is freshly tenant- AND property-scoped.
+>
+> **⬅ NOTIFICATIONS REMAINS.** Attempted and REVERTED deliberately, so nothing half-done shipped. The blocker
+> is not the list — it is that `NotificationFeed::forUser()` is **shared by the operator AND owner** pages:
+> - Paginating it without also giving the OWNER page a pager would hide owners' older notifications with no
+>   way to reach them — so both views must gain the pager in the same change (the `<x-pager>` is already
+>   realm-neutral and both layouts already have the CSS staged for it... *the owner CSS was reverted with the
+>   rest; re-add it*).
+> - PHPStan L5 blocks the obvious shape: `LengthAwarePaginator`'s `TValue` template is **invariant**, so a
+>   paginator of mapped rows will not satisfy a declared paginator-of-row-shape, and neither `->through()`
+>   nor explicit construction resolved it. Options for the next session: return the paginator as its own
+>   value rather than nested inside the `array{items:…}` shape, or paginate in the two COMPONENTS (typed
+>   locally) and leave the shared reader's contract alone. **Do not reach for a cast, a widened type, or a
+>   baseline entry** — the project forbids all three.
+>
+> - **(historical) Operator pagination — confirmed absent, and there was NO paginated operator list to mirror.** Verified
 >   2026-08-09: `GuestsList`, `ReservationsList` and `OperatorNotifications` have **0** `paginate()` calls
 >   between them, and a repo-wide search finds **no paginated Livewire list in the operator realm at all**.
 >   ⚠️ So this is NOT the usual "mirror the adjacent correct pattern" fix — pagination does not exist in `/app`
