@@ -2,6 +2,49 @@
 
 A running record of locked decisions — what was decided and why — so the project stays honest across gated phases. Append new decisions with a date as we lock them.
 
+## 2026-08-09 — Sidebar nav contrast brought to AA in BOTH shells (closes the sweep's gradient-bg exclusion)
+
+Surfaced by the design-parity pass on the Operator Dashboard and fixed realm-wide before continuing.
+
+**The gap.** `.vy-nav-label` and `.vy-nav-item` hardcoded the prototype's greys (`#9C9089` / `#8A8079`).
+Measured by **sampling the real rendered pixels** out of a Playwright screenshot (the nav text hidden so
+the capture shows the true composited background, orbs and light-streaks included):
+
+| | Before | After |
+|---|---|---|
+| Operator group labels | **1.82:1** | **4.74:1** |
+| Operator nav items | **2.23:1** | **4.93:1** |
+| Owner group labels | **1.81:1** | **4.71:1** |
+| Owner nav items | **2.21:1** | **4.93:1** |
+
+**Why the 2026-08-07 audit missed it.** That sweep's contrast pass **excluded gradient-background cases
+as false positives** (it had produced 90 raw "failures", cut to 2 real token failures). The exclusion was
+about mis-measurement, not an exemption — and it took the sidebar with it. The polish pass then darkened
+`--vy-muted`/`--vy-faint` for text on **glass cards**, which is a different and lighter basis. This closes
+that gap.
+
+**The decision: two new semantic tokens, not a darker `--vy-muted`.**
+`--vy-on-grad: rgb(84,74,68)` and `--vy-on-grad-soft: rgb(88,78,72)` name the real distinction — *text
+sitting directly on the page gradient* vs *text on a glass card*. `--vy-muted` cannot serve both: measured
+against the gradient's darkest sampled stop `rgb(241,185,150)` it reaches only **4.03:1** and fails AA,
+while it is correct (5.48:1) on a card. Two tokens keep the group-label/item tonal step and both clear 4.5.
+Warm stone, deliberately not a cold grey, so the shell still reads warm.
+
+**States verified, not assumed:** active (terracotta on the frosted pill) **4.62:1**, hover **6.52:1** —
+both AA, both still clearly distinguishable from rest state. The `aria-disabled` Pro item keeps its
+`opacity:.55` and is exempt (WCAG 1.4.3 inactive components), but its hover colour was routed through the
+token too so no raw hex survives in either nav.
+
+**Applied to BOTH shells because `--vy-bg` is byte-identical between them** — verified, not assumed, and
+the owner realm was then measured independently rather than inheriting the operator numbers.
+
+⚠️ **Still carrying raw prototype greys** (`#9C9089` ×5, `#A69A92` ×2) on owner *card* labels
+(`.vy-ov-metric-label`, `.vy-mu-stat-label`, `.vy-mu-uplabel`, `.vy-mu-calhead`, `.vy-ov-stays-foot-l`,
+`.vy-au-cta--wait`). Those sit on **glass**, not the gradient, so they are a different measurement and were
+left for the owner-realm pages of the design pass rather than swept in blind.
+
+Suite 1796/1803 · 11,858 assertions (the documented 7 non-green, unmoved); PHPStan L5 (0); Pint clean.
+
 ## 2026-08-09 — THE AUTH/ISOLATION PASS IS COMPLETE: all three flagged items fixed
 
 `8ddd389` Maintenance-Costs scope + period + export parity · `5f27085` workspace-picker write ·

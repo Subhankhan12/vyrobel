@@ -26,6 +26,13 @@
             --vy-ink: rgb(43, 35, 32);          /* espresso near-black */
             --vy-muted: rgb(95, 88, 83);
             --vy-faint: rgb(108, 100, 95);
+
+            /* Text that sits DIRECTLY on the page gradient rather than on a glass card. --vy-bg here is
+               byte-identical to the operator shell's, so these carry the same measured values: 4.97:1 and
+               4.67:1 against the gradient's darkest sampled stop, rgb(241,185,150). Warm stone, not grey. */
+            --vy-on-grad: rgb(84, 74, 68);
+            --vy-on-grad-soft: rgb(88, 78, 72);
+
             --vy-accent: rgb(194, 65, 12);      /* terracotta primary  (#C2410C) */
             --vy-accent-2: rgb(217, 102, 46);
             --vy-accent-3: rgb(232, 112, 58);   /* (#E8703A) */
@@ -125,10 +132,10 @@
         .vy-brand-name { font-family: var(--vy-display); font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
         .vy-nav { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; min-height: 0; }
         .vy-nav-group { display: flex; flex-direction: column; gap: 3px; }
-        .vy-nav-label { font-size: 10.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #9C9089; padding: 0 12px 6px; }
+        .vy-nav-label { font-size: 10.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--vy-on-grad-soft); padding: 0 12px 6px; }
         .vy-nav-item {
             display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--vy-r-md);
-            font-size: 13.5px; font-weight: 500; color: #8A8079; cursor: pointer;
+            font-size: 13.5px; font-weight: 500; color: var(--vy-on-grad); cursor: pointer;
             transition: background .16s ease, color .16s ease;
         }
         .vy-nav-item .vy-ico { width: 16px; height: 16px; flex: none; }
@@ -139,7 +146,7 @@
             box-shadow: 0 4px 14px rgba(150, 90, 50, 0.14); border: 1px solid rgba(255, 255, 255, 0.8);
         }
         .vy-nav-item[aria-disabled="true"] { cursor: default; opacity: .55; }
-        .vy-nav-item[aria-disabled="true"]:hover { background: transparent; color: #8A8079; }
+        .vy-nav-item[aria-disabled="true"]:hover { background: transparent; color: var(--vy-on-grad); }
 
         /* Main column */
         .vy-main { padding: 30px 34px 40px 22px; max-width: 1314px; }
