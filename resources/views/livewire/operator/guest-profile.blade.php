@@ -5,7 +5,7 @@
 
      RAW-BLADE RULE: every `@` follows a space, newline or tag. The guest's EMAIL renders here (a literal `@`)
      but is echoed through {{ }} as data, never written into the template. --}}
-<div>
+<div class="vy-gst">
     <x-operator.shell active="guests" :title="$guest['name']" :subtitle="$history['stat'] ?? 'No stays yet'" :viewer="$viewer">
 
         @if (session('guest_notice'))

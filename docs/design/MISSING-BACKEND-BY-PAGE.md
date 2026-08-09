@@ -60,6 +60,7 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 6b | Operator Reservation Detail | `/app/reservations/{id}` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
 | 6c | ↳ Cancelled + No-show variants | same | Hotel Manager | ✅ matched | **0** (both refusals held) |
 | 7a | Operator Guests (CRM list) | `/app/guests` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 refusal) |
+| 7b | Operator Guest Profile | `/app/guests/{id}` | Hotel Manager | ✅ matched | **1** (1 refusal) — Guests area COMPLETE |
 
 ---
 
@@ -419,3 +420,58 @@ is the shared component's documented contract, not a defect.
 - **Fixed:** the stat tiles took this wireframe's tighter 15px/18px padding and 26px figure (scoped to
   `.vy-gst`), and the search became the wireframe's single integrated pill with the magnifier inside the
   field — still a GET form.
+
+---
+
+## 7b · Operator Guest PROFILE — `/app/guests/{id}` (Hotel Manager)
+
+**Prototype:** `docs/design/raw/Operator Guest Profile.html` (decoded 2026-08-09; byte-identical to the
+2026-08-07 audit decode). **Live component:** `App\Livewire\Operator\GuestProfile` (`can:guests.view`).
+**Design pass:** complete. **With 7a, the Guests area is COMPLETE.**
+
+### ⚠️ #28 PII perimeter — measured before and after on the deepest single-guest view
+
+| Probe | Before | After |
+|---|---|---|
+| distinct emails | 1 | **1** |
+| distinct phones | 1 | **1** |
+| passport / document / national-ID number | none | **none** |
+| card / masked PAN | none | **none** |
+| home address | none | **none** |
+| date of birth | none | **none** |
+| ID-document images rendered | **0** | **0** |
+| fabricated "ID verified" / KYC badge | none | **none** |
+
+**No field added, nothing decrypted that was not already.** The page shows email · phone · city — the
+contact set it already showed. Owner isolation is structural: this is an operator-only route
+(`can:guests.view`), and the owner realm has no path to it.
+
+### The ID-document and erasure seams
+
+⚠️ **The wireframe has neither.** Grepped for `passport` / `identity` / `verified` / `delete` / `erase` /
+`forget` / `GDPR` across the decoded prototype: **zero matches**. So there was no ID-document treatment to
+match and no erase control to restyle — and, importantly, **nothing tempting the pass to invent a
+"verified" badge**. The real seams remain exactly where they were: `GuestIdDocumentService` (encrypted,
+30-day purge) surfaces no raw image here, and `GuestDeletionService`'s 14-day scheduled anonymise is
+reached from its own gated control elsewhere, untouched by this pass.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D7b-1 | **Stat-card sub-lines that assert facts the page cannot support** — "3rd underway now", "across 2 units", "2 direct · 1 Booking.com". | The live sub-lines state only what is computed: "cancellations excluded", "across every stay", "3 Direct". The per-brand split ("1 Booking.com") is the same unmodelled OTA-brand attribution logged at D2-2. | — | **RATIFIED REFUSAL** (#39 / §5) — an OTA **brand** split needs channel attribution that no reservation carries until the Channex cutover. **Do not invent the brand breakdown to fill the sub-line.** |
+
+### Also noted on this page (not backend gaps)
+
+- **"Lifetime value" is a real aggregate, not an invented LTV.** Verified in the browser: the three stay
+  rows sum to **€1,107.00**, exactly the figure the dark card shows, and its own basis line ("3 stays ·
+  9 nights · avg €123.00 a night") divides out to €123.00 at 9 nights. It reconciles (#17) and is a *sum of
+  real stays*, not a predictive lifetime-value model.
+- **Marketing consent is real and unchanged** — "Prefers email · marketing consent on file" reflects the
+  real consent field; nothing on this page implies a send that bypasses `GuestMarketing::canReceive`.
+- **All five write forms still POST to their real gated routes** (`/message`, `/notes`, `/tags` ×2, and the
+  profile update) — restyled, not rewired; none was submitted.
+- **Kept, not removed (§6 extra work):** the **Latest review** card with the operator's own response, the
+  **Tags** catalogue control with its "shared across this workspace" disclosure, the internal-notes composer
+  marked **INTERNAL ONLY**, the open-folio line on the lifetime card, and the segment/status chips. The
+  wireframe has the review and preferences but none of the rest.
+- **Fixed:** the stat tiles took this wireframe's tighter 15px/18px padding and 26px figure (scoped to the
+  same `.vy-gst` hook 7a introduced).
