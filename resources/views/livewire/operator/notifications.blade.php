@@ -48,6 +48,11 @@
             @empty
                 <div class="vy-empty">All caught up — no notifications.</div>
             @endforelse
+
+                {{-- WAVE 3 — the realm-neutral shared pager. BOTH notification pages get it in the same
+                     change: NotificationFeed::forUser() is shared, so paginating one realm and not the
+                     other would hide that realm's older notifications with no way to reach them. --}}
+                <x-pager :paginator="$feed['paginator']" label="notifications" />
         </div>
 
         <p class="vy-line-sub" style="font-size:12px;margin-top:14px;color:var(--vy-muted)">

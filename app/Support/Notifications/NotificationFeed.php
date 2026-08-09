@@ -7,6 +7,7 @@ namespace App\Support\Notifications;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Maps a user's OWN notifications to the shape the in-app feed renders (Phase 3). Reads only through
@@ -16,36 +17,48 @@ use Illuminate\Notifications\DatabaseNotification;
  */
 final class NotificationFeed
 {
-    /**
-     * @return array{items: list<array{id: string, title: string, context: string, url: ?string, category: string, read: bool, when: ?string}>, unread: int, categories: list<string>}
-     */
-    public static function forUser(User $user, ?string $category = null): array
-    {
-        /** @var Collection<int, DatabaseNotification> $all */
-        $all = $user->notifications;   // newest first (Laravel default order)
+    /** Rows per page — the same size the operator lists use, so the realm feels consistent. */
+    public const PER_PAGE = 25;
 
+    /**
+     * ⚠️ PAGED (WAVE 3 tail) — this loaded the user's ENTIRE notification history into memory on every
+     * render and filtered it in PHP. `items` is now one PAGE, filtered in SQL.
+     *
+     * ⚠️ THE SHAPE IS DELIBERATE. `items` stays a plain LIST of mapped rows (what both views already
+     * iterate) and the paginator is returned SEPARATELY, still typed as a paginator of MODELS — which is
+     * exactly what `paginate()` produces. An earlier attempt returned a paginator OF MAPPED ROWS and could
+     * not satisfy PHPStan: `LengthAwarePaginator`'s TValue template is INVARIANT, so a re-mapped paginator
+     * never matches a declared paginator-of-row-shape, and neither `->through()` nor explicit construction
+     * resolves it. Splitting the two removes the conflict instead of suppressing it.
+     *
+     * The COUNTS stay whole-set on purpose: `unread` is a badge for everything unread, not "unread on this
+     * page", and `categories` must offer every filter the user has, not only those on page 1.
+     *
+     * @return array{items: list<array{id: string, title: string, context: string, url: ?string, category: string, read: bool, when: ?string}>, paginator: LengthAwarePaginator<int, DatabaseNotification>, unread: int, categories: list<string>}
+     */
+    public static function forUser(User $user, ?string $category = null, int $perPage = self::PER_PAGE): array
+    {
         $filter = ($category === null || $category === '' || $category === 'all') ? null : $category;
 
-        // #93 — the "Unread" filter is a real read-state filter (not a category); every other value is a category.
-        $items = $all
-            ->filter(function (DatabaseNotification $n) use ($filter): bool {
-                if ($filter === null) {
-                    return true;
-                }
-                if ($filter === 'unread') {
-                    return $n->read_at === null;
-                }
+        $query = $user->notifications()->getQuery()->orderByDesc('created_at');
 
-                return ($n->data['category'] ?? 'general') === $filter;
-            })
-            ->map(fn (DatabaseNotification $n): array => self::map($n))
-            ->values()
-            ->all();
+        if ($filter === 'unread') {
+            $query->whereNull('read_at');
+        } elseif ($filter !== null) {
+            // The category lives in the JSON payload; 'general' is the documented default for a row with none.
+            $filter === 'general'
+                ? $query->where(fn ($q) => $q->whereNull('data->category')->orWhere('data->category', 'general'))
+                : $query->where('data->category', $filter);
+        }
+
+        /** @var LengthAwarePaginator<int, DatabaseNotification> $page */
+        $page = $query->paginate($perPage)->withQueryString();
 
         return [
-            'items' => $items,
-            'unread' => $all->whereNull('read_at')->count(),
-            'categories' => $all
+            'items' => array_map(static fn (DatabaseNotification $n): array => self::map($n), $page->items()),
+            'paginator' => $page,
+            'unread' => $user->notifications()->whereNull('read_at')->count(),
+            'categories' => $user->notifications()->get(['data'])
                 ->map(fn (DatabaseNotification $n): string => (string) ($n->data['category'] ?? 'general'))
                 ->unique()
                 ->sort()
