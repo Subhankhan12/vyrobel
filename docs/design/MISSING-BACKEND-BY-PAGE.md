@@ -75,10 +75,11 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 17 | **Operator Billing** ⚠️ the OPEN billing decision | `/app/billing` | ⚠️ `can:billing.manage` on the GET | ✅ matched | **5** (2 real gaps · 3 refusals) + ⚠️ **1 G.1 observation** |
 | 18 | **Operator Rates & availability** ⚠️ what guests are charged | `/app/rates` | `can:rates.view` · writes `can:rates.manage` | ✅ matched | **6** (2 real gaps · 4 refusals) |
 | 19 | **Operator New Reservation** ⚠️ money + inventory | `/app/reservations/create` | `can:reservations.create` (GET **and** POST) | ✅ matched | **4** (2 real gaps · 2 refusals) |
+| 20 | **Operator Group Booking** ⚠️ money + inventory, multi-unit | `/app/group-booking` | `can:reservations.create` (GET **and** POST) | ✅ matched | **3** (2 real gaps · 1 refusal) |
 
-**Operator: 27 of 42 prototypes covered · 15 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+**Operator: 28 of 42 prototypes covered · 14 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
 remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
-**⬅ NEXT PAGE: Operator Group Booking (`/app/group-booking`)** — ⚠️ money + inventory, multi-unit.
+**⬅ NEXT PAGE: Operator Owners (`/app/owners`)** — ⚠️ PII + owner isolation (#28/#42).
 
 ---
 
@@ -1275,3 +1276,82 @@ a pure read and #20-compliant.)*
   in the current demo state; left untouched rather than changed blind.
 - **Responsive:** 0px horizontal overflow at **1440** and **1000**; the 7-step stepper fits. **0 console
   errors/warnings.**
+
+---
+
+## 20 · Operator Group Booking — `/app/group-booking` ⚠️ MONEY + INVENTORY, MULTI-UNIT
+
+**Prototype:** `docs/design/raw/Operator Group Booking.html` (decoded fresh 2026-08-10) — a **5-step wizard**
+(Block · Units · Organiser · Terms · Review) in the focused full-screen layout. **Live:**
+`App\Livewire\Operator\GroupBooking` → `resources/views/livewire/operator/group-booking.blade.php` — **also a
+5-step wizard with the same step names**, so it was already close.
+**Role:** `can:reservations.create` on **both** verbs — the same gate as a single booking; an unpermitted role
+gets a clean **403** at the route. The write goes POST → `GroupBookingController` → `GroupBookingService::create()`
+→ **`AssignmentService::createGroupBooking()` (atomic, all-or-nothing)**.
+
+⚠️ **THE BLOCK WAS NEVER SUBMITTED.** Verified by inspection: reading the bound form action, and driving the
+Alpine wizard's own `toggleUnit()` client-side. **Proven, not asserted** — identical before and after:
+`reservations 42 · reservation_units 42 · guests 10 · folios 20 · folio_items 40 · groups 0`.
+*(`reservation_units` is the one that matters here — a block would add several at once.)*
+
+### The multi-unit guarantees — verified, not assumed
+
+- **Availability is real and #38-scoped.** For 20–23 Aug the group picker offered exactly **2** units
+  (103, A1) — **the identical set New Reservation offers**, and every exclusion traces to a real cause:
+  **101 is `out_of_service`**, **102 and A2 each hold a real overlapping `inventory_block`**. No OOS, paused
+  or blocked unit is ever offered.
+- **No intra-group double-book — structurally impossible, and proven.** Units render as **checkboxes** (one
+  row per unit), and `toggleUnit()` guards with `if (! this.selected.some(x => x.id === u.id))`. Driving it to
+  add unit 103 **twice** left exactly **one** entry in `selected`.
+- **The group price reconciles across units (#17), in integer minor units.** With 103 (€300.00) + A1
+  (€540.00): per-unit sum **84000** = `blockSubMinor` **84000** = `afterDiscMinor` **84000**. With a real 10%
+  group discount: `discountMinor` **8400**, `afterDiscMinor` **75600** = 84000 − 8400.
+- **Server-side re-derivation.** The controller re-derives every price, and the discount/deposit percentages
+  come from **fixed sets** ({0,5,10,15} and {0,25,50,100}) — a crafted value collapses to 0, so a client
+  cannot inject a price, a discount, or a taken unit.
+
+⚠️ **The prototype's "Group discount (10%)" and "Deposit €266.03 (25%)" are NOT refusals — both are REAL.**
+`discount_pct` posts a genuine negative `discount` folio line that also **lowers the taxable base** (so
+percentage taxes fall on room − discount — exactly the design's VAT-on-after-discount), and `deposit_pct` is
+master-invoice only. They simply do not appear on step 1 because nothing is selected yet.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D20-1 | Stay dates as **one combined field** — `CHECK-IN → CHECK-OUT / 18 Sep – 21 Sep` with a **"3 nights"** count. | The live step 1 uses **two native `dd/mm` date inputs** plus a "Check availability" button and a "Pick the block dates" hint; the nights count is not shown on this step. | A styled range control plus a nights readout. ⚠️ Same shape as **D19-1** on New Reservation, and the two wizards **disagree with each other** — New Reservation uses a full dual-month calendar here, Group Booking uses native inputs. A single shared date-range control would fix the design gap and the inconsistency together. | **REAL GAP** — logged rather than built because it is an interaction control shared by two wizards, which deserves its own gate rather than a third variant. |
+| D20-2 | A **block summary identity card** — an avatar tile with the group name and *"Wedding · 14 guests"*, then dates + nights and *"2 units · Sleeps 10"*. | The live rail shows the units/sleeps line and the money, but no name/occasion identity block — the group name and occasion are captured on step 1 and never mirrored into the rail. | Mirroring the already-captured `name` / `occasion` / `headcount` into the rail. Purely presentational over Alpine state that already exists. | **REAL GAP** (small). Deliberately not built in this gate, which was already carrying a shared-component consolidation. |
+| D20-3 | The stay-dates block implies an inline **occasion → package** relationship (Wedding / Corporate retreat / …) driving pricing. | Occasion is stored as a real free label on the group; it drives **nothing** — there is no package or occasion-based rate model. | An occasion→package/rate model. | **RATIFIED REFUSAL for any pricing implication.** The live chips set a real label and make no pricing claim. **Do not wire occasion to a rate or imply a package discount** — the group discount is its own explicit, real control. |
+
+### Also noted on this page (not backend gaps)
+
+- ⚠️ **Fixed (1) — "€0.00" where nothing was priced, and its follow-on, handled together.** The block summary
+  showed **Accommodation €0.00 / Block total €0.00** and *"0 units · sleeps 0"* before any unit was chosen.
+  All now render **"—"** and *"No units selected yet"* until `count > 0`. ⚠️ **The discount and deposit lines
+  are gated on `count` too, not just on their own percentage** — both are a % OF the accommodation, so a
+  percentage chosen on a later step and then revisited with an empty block would have rendered *"Group
+  discount (10%) −€0.00"* against an Accommodation of "—". That is precisely the follow-on the New Reservation
+  gate uncovered, applied here **up front rather than after the fact**.
+- ⚠️ **Fixed (2) — the stepper was PROMOTED to one shared definition rather than copied.** The design draws the
+  same panel stepper on both operator wizards: circular nodes joined by connector bars, labels beneath. New
+  Reservation already had it (prototype-exact) as `.vy-nr-*`; Group Booking had a **compact variant matching
+  neither its own design nor its sibling**. Restyling the group one would have manufactured a **second copy of
+  ~15 rules for one concept** — the exact drift this project keeps consolidating — so the rule moved into the
+  operator layout once as **`.vy-wiz-*`** and both wizards now point at it (16 + 10 page-local rules deleted).
+  ⚠️ **New Reservation was re-verified as unchanged by the rename** — same padding `18px 26px`, radius 20px,
+  7 nodes, 14 bars, 34×34 circles, active ring present.
+- **WAVE-3 holds — no invented default.** The rooming inputs carry a **placeholder** (*"Lead guest — TBC"*),
+  the group-name field a placeholder (*"e.g. Okafor–Bello Wedding"*); headcount defaults to 10 (party size,
+  not property policy). **0 invented check-in hours.**
+- **#28 permitted but NOT widened.** The organiser block collects first/last/company/email/phone — legitimate
+  lead-guest contact. The **rooming list is NAME-ONLY** per unit (`rooming[<unit_id>]` → a real
+  `lead_guest_id`, falling back to the organiser), i.e. genuinely modelled. ⚠️ **No per-occupant passport / ID
+  / DOB / nationality field exists or was added** (verified 0). **0 email addresses render** on the page.
+- **No channel and no allotment concept** — verified 0 occurrences of Booking.com/Airbnb/Expedia/"channel" and
+  0 of allotment/release/hold-inventory. A block here is real units held as real reservations, not an
+  unmodelled allotment. *(A channel source would be the D2-2 Channex-tied attribution.)*
+- **ONE form, one submit:** **POST `/app/group-booking`** with CSRF and a single **"Confirm block"** button —
+  the real gated route. **Read, never fired.** `AssignmentService`, `UnitAvailabilityService`,
+  `GroupBookingService` and `FolioService` are untouched.
+- **#20** — the dates ride a **GET** (`?check_in=/?check_out=`), re-run through the tenant middleware; steps
+  2–5 are client-side Alpine over units this render already scoped.
+- **Responsive:** 0px horizontal overflow at **1440** and **1000**; the 5-node stepper fits. **0 console
+  errors/warnings.** Contrast on the shared stepper label and the rail **5.33–14.18** (AA).

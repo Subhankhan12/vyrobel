@@ -91,13 +91,25 @@
             <div class="vy-gb-ro vy-fade" role="status">Your workspace is paused — new blocks are off until you resume from Billing.</div>
         @endif
 
-        {{-- Clickable 5-node stepper --}}
-        <div class="vy-gb-stepper vy-fade">
-            @foreach (['Block', 'Units', 'Organiser', 'Terms', 'Review'] as $i => $label)
-                <button type="button" class="vy-gb-node" x-bind:class="{ 'is-on': step === {{ $i + 1 }}, 'is-done': step > {{ $i + 1 }} }" x-on:click="goto({{ $i + 1 }})">
-                    <span class="vy-gb-circle"><span class="vy-gb-circle-num">{{ $i + 1 }}</span><svg class="vy-gb-circle-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg></span>
-                    <span class="vy-gb-node-label">{{ $label }}</span>
-                </button>
+        {{-- Clickable 5-node stepper — the SHARED `.vy-wiz-*` stepper (see the operator layout), the same
+             control New Reservation uses and the one both wizard prototypes draw: circular nodes joined by
+             connector bars, with the labels beneath. This page previously had a compact variant that matched
+             neither its own design nor its sibling wizard. --}}
+        @php $__gbSteps = ['Block', 'Units', 'Organiser', 'Terms', 'Review']; @endphp
+        <div class="vy-wiz-stepper vy-fade">
+            @foreach ($__gbSteps as $i => $label)
+                @php $n = $i + 1; @endphp
+                <div class="vy-wiz-node" x-bind:class="step === {{ $n }} ? 'is-on' : (step > {{ $n }} ? 'is-done' : '')">
+                    <div class="vy-wiz-node-row">
+                        <span class="vy-wiz-bar" @if ($i === 0) style="visibility:hidden" @endif></span>
+                        <button type="button" class="vy-wiz-circle" x-on:click="goto({{ $n }})" aria-label="Go to {{ $label }}">
+                            <span class="vy-wiz-circle-num">{{ $n }}</span>
+                            <svg class="vy-wiz-circle-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
+                        </button>
+                        <span class="vy-wiz-bar" @if ($i === count($__gbSteps) - 1) style="visibility:hidden" @endif></span>
+                    </div>
+                    <span class="vy-wiz-node-label">{{ $label }}</span>
+                </div>
             @endforeach
         </div>
 
@@ -307,11 +319,19 @@
             <aside class="vy-gb-rail">
                 <div class="vy-gb-rail-card">
                     <div class="vy-gb-rail-title">Block summary</div>
-                    <div class="vy-gb-rail-line"><span x-text="count + (count === 1 ? ' unit' : ' units') + ' · sleeps ' + cap"></span><span></span></div>
-                    <div class="vy-gb-rail-line"><span>Accommodation</span><span class="vy-u-code" x-text="fmt(blockSubMinor)"></span></div>
-                    <div class="vy-gb-rail-line" x-show="discountPct > 0" x-cloak style="color:#1F8A5B;"><span x-text="'Group discount (' + discountPct + '%)'"></span><span class="vy-u-code" x-text="'−' + fmt(discountMinor)"></span></div>
-                    <div class="vy-gb-rail-total"><span x-text="discountPct > 0 ? 'After discount' : 'Block total'"></span><span class="vy-u-code" x-text="fmt(afterDiscMinor)"></span></div>
-                    <div class="vy-gb-rail-line" x-show="billingMode === 'master' && depositPct > 0" x-cloak style="color:var(--vy-accent);"><span x-text="'Deposit ' + depositPct + '% to confirm'"></span><span x-text="depositMethod === 'card' ? 'soon' : depositMethod"></span></div>
+                    {{-- ⚠️ Until at least one unit is in the block there is NO priced stay, so no figure and no
+                         COMPONENT of one is stated — "—", never "€0.00" (a zero price is a claim).
+                         The discount and deposit lines are gated on `count` too, not just on their own
+                         percentage: both are a % OF the accommodation, so a percentage chosen on a later step
+                         and then revisited with an empty block would otherwise render "Group discount (10%)
+                         −€0.00" against an Accommodation of "—". That is exactly the follow-on the New
+                         Reservation gate uncovered (a date-derived tax rendering against an empty total),
+                         applied here up front. --}}
+                    <div class="vy-gb-rail-line"><span x-text="count > 0 ? count + (count === 1 ? ' unit' : ' units') + ' · sleeps ' + cap : 'No units selected yet'"></span><span></span></div>
+                    <div class="vy-gb-rail-line"><span>Accommodation</span><span class="vy-u-code" x-text="count > 0 ? fmt(blockSubMinor) : '—'"></span></div>
+                    <div class="vy-gb-rail-line" x-show="count > 0 && discountPct > 0" x-cloak style="color:#1F8A5B;"><span x-text="'Group discount (' + discountPct + '%)'"></span><span class="vy-u-code" x-text="'−' + fmt(discountMinor)"></span></div>
+                    <div class="vy-gb-rail-total"><span x-text="count > 0 && discountPct > 0 ? 'After discount' : 'Block total'"></span><span class="vy-u-code" x-text="count > 0 ? fmt(afterDiscMinor) : '—'"></span></div>
+                    <div class="vy-gb-rail-line" x-show="count > 0 && billingMode === 'master' && depositPct > 0" x-cloak style="color:var(--vy-accent-text);"><span x-text="'Deposit ' + depositPct + '% to confirm'"></span><span x-text="depositMethod === 'card' ? 'soon' : depositMethod"></span></div>
                     <div class="vy-gb-rail-note">Taxes &amp; fees are posted to the real folio on confirm — the authoritative total is the folio.</div>
                 </div>
             </aside>
@@ -383,16 +403,6 @@
             .vy-gb-flash { padding: 11px 16px; border-radius: 12px; background: rgba(232, 112, 58, 0.1); border: 1px solid var(--vy-accent-border); color: var(--vy-ink); font-size: 13px; margin-bottom: 14px; }
             .vy-gb-ro { padding: 11px 16px; border-radius: 12px; background: rgba(217, 158, 61, 0.1); border: 1px solid rgba(217, 158, 61, 0.3); color: #7A5A1E; font-size: 13px; margin-bottom: 14px; }
             /* stepper */
-            .vy-gb-stepper { display: flex; align-items: center; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
-            .vy-gb-node { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border: none; background: none; cursor: pointer; }
-            .vy-gb-circle { position: relative; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--vy-hairline); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--vy-faint); background: rgba(255, 255, 255, 0.5); transition: all 0.15s; }
-            .vy-gb-node.is-on .vy-gb-circle { border-color: transparent; background: var(--vy-grad); color: #fff; box-shadow: var(--vy-shadow-accent); }
-            .vy-gb-node.is-done .vy-gb-circle { border-color: transparent; background: rgba(31, 122, 82, 0.15); color: #1F7A52; }
-            .vy-gb-circle-check { position: absolute; opacity: 0; }
-            .vy-gb-node.is-done .vy-gb-circle-num { opacity: 0; }
-            .vy-gb-node.is-done .vy-gb-circle-check { opacity: 1; }
-            .vy-gb-node-label { font-size: 12.5px; font-weight: 500; color: var(--vy-faint); }
-            .vy-gb-node.is-on .vy-gb-node-label, .vy-gb-node.is-done .vy-gb-node-label { color: var(--vy-ink); }
             /* body: steps + rail */
             .vy-gb-body { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
             .vy-gb-steps { background: rgba(255, 252, 248, 0.72); backdrop-filter: blur(26px) saturate(1.2); -webkit-backdrop-filter: blur(26px) saturate(1.2); border: 1px solid var(--vy-glass-border); border-radius: 20px; padding: 26px 28px; }
@@ -460,7 +470,7 @@
             .vy-gb-rail-total { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: var(--vy-ink); padding: 10px 0 6px; border-top: 1px solid var(--vy-hairline); margin-top: 4px; }
             .vy-u-code { font-variant-numeric: tabular-nums; }
             .vy-gb-rail-note { font-size: 11px; color: var(--vy-faint); line-height: 1.45; margin-top: 8px; }
-            @media (max-width: 900px) { .vy-gb-body { grid-template-columns: 1fr; } .vy-gb-rail { position: static; } .vy-gb-row2 { grid-template-columns: 1fr; } .vy-gb-node-label { display: none; } }
+            @media (max-width: 900px) { .vy-gb-body { grid-template-columns: 1fr; } .vy-gb-rail { position: static; } .vy-gb-row2 { grid-template-columns: 1fr; } }
         </style>
     </div>
 @endif

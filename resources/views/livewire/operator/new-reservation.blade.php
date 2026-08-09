@@ -128,19 +128,19 @@
                 {{-- Progress stepper — circular numbered nodes joined by connector bars, CLICKABLE to jump
                      to any step (prototype-exact); gradient fill + check on done, ring on active. --}}
                 @php $__nrSteps = ['When & unit', 'Who’s staying', 'Rate & extras', 'Arrival & transfer', 'House rules', 'Review', 'Payment']; @endphp
-                <div class="vy-nr-stepper vy-fade">
+                <div class="vy-wiz-stepper vy-fade">
                     @foreach ($__nrSteps as $i => $label)
                         @php $n = $i + 1; @endphp
-                        <div class="vy-nr-node" x-bind:class="step === {{ $n }} ? 'is-on' : (step > {{ $n }} ? 'is-done' : '')">
-                            <div class="vy-nr-node-row">
-                                <span class="vy-nr-bar" @if ($i === 0) style="visibility:hidden" @endif></span>
-                                <button type="button" class="vy-nr-circle" x-on:click="step = {{ $n }}" aria-label="Go to {{ $label }}">
-                                    <span class="vy-nr-circle-num">{{ $n }}</span>
-                                    <svg class="vy-nr-circle-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
+                        <div class="vy-wiz-node" x-bind:class="step === {{ $n }} ? 'is-on' : (step > {{ $n }} ? 'is-done' : '')">
+                            <div class="vy-wiz-node-row">
+                                <span class="vy-wiz-bar" @if ($i === 0) style="visibility:hidden" @endif></span>
+                                <button type="button" class="vy-wiz-circle" x-on:click="step = {{ $n }}" aria-label="Go to {{ $label }}">
+                                    <span class="vy-wiz-circle-num">{{ $n }}</span>
+                                    <svg class="vy-wiz-circle-check" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
                                 </button>
-                                <span class="vy-nr-bar" @if ($i === count($__nrSteps) - 1) style="visibility:hidden" @endif></span>
+                                <span class="vy-wiz-bar" @if ($i === count($__nrSteps) - 1) style="visibility:hidden" @endif></span>
                             </div>
-                            <span class="vy-nr-node-label">{{ $label }}</span>
+                            <span class="vy-wiz-node-label">{{ $label }}</span>
                         </div>
                     @endforeach
                 </div>
@@ -695,25 +695,9 @@
         .vy-nr-ro { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px; background: rgba(217, 154, 61, 0.16); border: 1px solid rgba(217, 154, 61, 0.4); color: #8F6414; font-size: 13px; margin-bottom: 16px; }
 
         /* clickable circular stepper */
-        .vy-nr-stepper { display: flex; background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); border-radius: 20px; box-shadow: 0 14px 40px rgba(150, 90, 50, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.65); padding: 18px 26px; margin-bottom: 20px; }
-        .vy-nr-node { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 9px; min-width: 0; }
-        .vy-nr-node-row { display: flex; align-items: center; width: 100%; }
-        .vy-nr-bar { flex: 1; height: 2px; border-radius: 2px; background: var(--vy-hairline); }
-        .vy-nr-node.is-done .vy-nr-bar { background: var(--vy-grad); }
-        .vy-nr-node.is-on .vy-nr-bar:first-child { background: var(--vy-grad); }
-        .vy-nr-circle { position: relative; width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); color: var(--vy-faint); cursor: pointer; flex: none; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 13px; transition: background 0.2s, box-shadow 0.2s, transform 0.12s; }
-        .vy-nr-circle:hover { transform: translateY(-1px); }
-        .vy-nr-node.is-on .vy-nr-circle { background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: 0 0 0 4px rgba(232, 112, 58, 0.18); }
-        .vy-nr-node.is-done .vy-nr-circle { background: var(--vy-grad); color: #fff; border-color: transparent; }
-        .vy-nr-circle-num { transition: opacity 0.15s; }
-        .vy-nr-circle-check { position: absolute; opacity: 0; transition: opacity 0.15s; }
-        .vy-nr-node.is-done .vy-nr-circle-num { opacity: 0; }
-        .vy-nr-node.is-done .vy-nr-circle-check { opacity: 1; }
-        .vy-nr-node-label { font-size: 12px; font-weight: 500; color: var(--vy-faint); white-space: nowrap; }
-        .vy-nr-node.is-on .vy-nr-node-label, .vy-nr-node.is-done .vy-nr-node-label { color: var(--vy-ink); }
 
         @media (max-width: 900px) { .vy-nr-body { grid-template-columns: 1fr; } }
-        @media (max-width: 760px) { .vy-nr-node-label { display: none; } .vy-nr-standalone { padding: 18px 16px 48px; } }
+        @media (max-width: 760px) { .vy-nr-standalone { padding: 18px 16px 48px; } }
     </style>
 </div>
 @endif

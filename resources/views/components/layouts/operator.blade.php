@@ -1147,6 +1147,34 @@
         .vy-tonight-cell .vy-tc-k { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); }
         .vy-tonight-cell .vy-tc-v { font-family: var(--vy-display); font-size: 17px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
 
+        /* ── THE SHARED WIZARD STEPPER (New Reservation + Group Booking) ─────────────────────────────
+           ONE definition of the progress stepper: circular numbered nodes joined by connector bars,
+           clickable to jump, gradient fill + check when done, ring when active. Both operator wizard
+           prototypes draw the identical control.
+
+           ⚠️ PROMOTED RATHER THAN COPIED. New Reservation already had this (prototype-exact) as
+           `.vy-nr-*`; Group Booking had a compact `.vy-gb-*` variant that did not match its own design.
+           Restyling the group one would have MANUFACTURED a second copy of ~15 rules for a single
+           concept — precisely the drift this project keeps consolidating — so the rule moved here once
+           and both wizards point at it. Values are the design-matching New Reservation ones, unchanged. */
+        .vy-wiz-stepper { display: flex; background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); border-radius: 20px; box-shadow: 0 14px 40px rgba(150, 90, 50, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.65); padding: 18px 26px; margin-bottom: 20px; }
+        .vy-wiz-node { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 9px; min-width: 0; }
+        .vy-wiz-node-row { display: flex; align-items: center; width: 100%; }
+        .vy-wiz-bar { flex: 1; height: 2px; border-radius: 2px; background: var(--vy-hairline); }
+        .vy-wiz-node.is-done .vy-wiz-bar { background: var(--vy-grad); }
+        .vy-wiz-node.is-on .vy-wiz-bar:first-child { background: var(--vy-grad); }
+        .vy-wiz-circle { position: relative; width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); color: var(--vy-faint); cursor: pointer; flex: none; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 13px; transition: background 0.2s, box-shadow 0.2s, transform 0.12s; }
+        .vy-wiz-circle:hover { transform: translateY(-1px); }
+        .vy-wiz-node.is-on .vy-wiz-circle { background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: 0 0 0 4px rgba(232, 112, 58, 0.18); }
+        .vy-wiz-node.is-done .vy-wiz-circle { background: var(--vy-grad); color: #fff; border-color: transparent; }
+        .vy-wiz-circle-num { transition: opacity 0.15s; }
+        .vy-wiz-circle-check { position: absolute; opacity: 0; transition: opacity 0.15s; }
+        .vy-wiz-node.is-done .vy-wiz-circle-num { opacity: 0; }
+        .vy-wiz-node.is-done .vy-wiz-circle-check { opacity: 1; }
+        .vy-wiz-node-label { font-size: 12px; font-weight: 500; color: var(--vy-faint); white-space: nowrap; }
+        .vy-wiz-node.is-on .vy-wiz-node-label, .vy-wiz-node.is-done .vy-wiz-node-label { color: var(--vy-ink); }
+        @media (max-width: 760px) { .vy-wiz-node-label { display: none; } }
+
         /* Operator Billing — the design's plan-card header (name + status pill left, price right), its
            next-invoice strip, and the subdued rail "Cancel subscription" card. */
         .vy-bill-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
