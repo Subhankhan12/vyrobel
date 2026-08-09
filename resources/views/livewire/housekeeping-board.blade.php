@@ -2,7 +2,7 @@
      the same model read-only). Board + List views, crew panel with real load, assign / assign-all (real writes),
      room-detail MODAL with real proof photos + elapsed. Every mutation is a guarded controller POST.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-<div x-data="{
+<div class="vy-hk" x-data="{
         view: localStorage.getItem('vy:hk:view') || 'list',
         density: localStorage.getItem('vy:hk:density') || 'cozy',
         detail: null, assign: null, assignAllOpen: false,
@@ -72,9 +72,16 @@
                     <button type="button" class="vy-seg-opt" :class="density === 'cozy' && 'is-checked'" @click="setDensity('cozy')">Cozy</button>
                     <button type="button" class="vy-seg-opt" :class="density === 'compact' && 'is-checked'" @click="setDensity('compact')">Compact</button>
                 </div>
-                <form method="GET" action="{{ route('app.housekeeping') }}" class="vy-input-group" style="max-width: 260px;">
+                <form method="GET" action="{{ route('app.housekeeping') }}" class="vy-input-group vy-input-group--pill" style="max-width: 260px;">
+                    {{-- The design carries the magnifier inside the field. Decorative. --}}
+                    <svg class="vy-search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                     <input class="vy-input" type="search" name="q" value="{{ $query }}" placeholder="Search rooms…" aria-label="Search rooms">
+                    {{-- Searching must not silently drop the active crew filter (#20 — a scoped read
+                         rides the GET link, so the filter has to travel with it). --}}
                     @if ($crewFilter) <input type="hidden" name="crew" value="{{ $crewFilter }}"> @endif
+                    @if ($query !== '')
+                        <a class="vy-pill" href="{{ route('app.housekeeping') }}{{ $crewFilter ? '?crew='.$crewFilter : '' }}">Clear</a>
+                    @endif
                 </form>
             </div>
             <div class="vy-right">
@@ -89,29 +96,32 @@
         </div>
 
         {{-- ── Status summary strip (5 real tallies) ──────────────────────────────────────────────── --}}
-        <div class="vy-seg vy-fade" style="margin: 4px 0 18px; flex-wrap: wrap; gap: 6px; background: none; padding: 0;">
+        <div class="vy-hk-tally vy-fade">
             {{-- The app's real status vocabulary (Pending = the wireframe's "Dirty"; kept consistent with the
-                 lanes + the existing view test, a documented divergence). --}}
+                 lanes + the existing view test, a documented divergence). Each dot's colour now comes from
+                 the shared --vy-hk-* palette; the status WORD is always printed beside it, so colour is
+                 never the sole carrier of the state (WCAG 1.4.1). --}}
             @php
                 $chips = [
-                    ['k' => 'pending', 'label' => 'Pending', 'dot' => '#E8703A'],
-                    ['k' => 'in_progress', 'label' => 'In progress', 'dot' => '#E0A63A'],
-                    ['k' => 'clean', 'label' => 'Clean', 'dot' => '#33A0AC'],
-                    ['k' => 'inspected', 'label' => 'Inspected', 'dot' => '#43A06B'],
-                    ['k' => 'out_of_order', 'label' => 'Out of order', 'dot' => '#8A8079'],
+                    ['k' => 'pending', 'label' => 'Pending', 'dot' => 'var(--vy-hk-pending)'],
+                    ['k' => 'in_progress', 'label' => 'In progress', 'dot' => 'var(--vy-hk-progress)'],
+                    ['k' => 'clean', 'label' => 'Clean', 'dot' => 'var(--vy-hk-clean)'],
+                    ['k' => 'inspected', 'label' => 'Inspected', 'dot' => 'var(--vy-hk-inspected)'],
+                    ['k' => 'out_of_order', 'label' => 'Out of order', 'dot' => 'var(--vy-hk-ooo)'],
                 ];
             @endphp
             @foreach ($chips as $chip)
-                <span class="vy-card" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: {{ $chip['dot'] }};"></span>
-                    <span style="font-size: 12.5px; color: var(--vy-muted);">{{ $chip['label'] }}</span>
-                    <span style="font-family: 'Sora', sans-serif; font-weight: 700; color: var(--vy-ink);">{{ $tallies[$chip['k']] ?? 0 }}</span>
+                @php $vyN = $tallies[$chip['k']] ?? 0; @endphp
+                <span class="vy-hk-tal @if ($vyN === 0) is-zero @endif">
+                    <span class="vy-hk-dot" style="background: {{ $chip['dot'] }};"></span>
+                    <span class="vy-hk-tal-label">{{ $chip['label'] }}</span>
+                    <span class="vy-hk-tal-n">{{ $vyN }}</span>
                 </span>
             @endforeach
         </div>
 
         {{-- ── Crew filter row (real housekeepers + Unassigned) ───────────────────────────────────── --}}
-        <div class="vy-seg vy-fade" style="margin-bottom: 16px; flex-wrap: wrap;">
+        <div class="vy-seg vy-seg--inline vy-fade" style="margin-bottom: 16px; flex-wrap: wrap;">
             <a class="vy-seg-opt @if ($crewFilter === null) is-checked @endif" href="{{ route('app.housekeeping', array_filter(['q' => $query])) }}">All housekeepers</a>
             @foreach ($crew as $member)
                 <a class="vy-seg-opt @if ($member['active']) is-checked @endif" href="{{ route('app.housekeeping', array_filter(['crew' => $member['id'], 'q' => $query])) }}">

@@ -47,6 +47,17 @@
             --vy-accent: rgb(194, 65, 12);       /* terracotta primary (#C2410C) */
             --vy-accent-2: rgb(217, 102, 46);
             --vy-accent-3: rgb(232, 112, 58);    /* (#E8703A) */
+
+            /* ---- Housekeeping status palette -----------------------------------------------------
+               The five room states, as tokens rather than hexes repeated in the view. `pending` is
+               deliberately the same hue as --vy-accent-3 (the design uses the warm accent for "needs
+               work"). These carry MEANING, so nothing here may be the sole carrier of it — every
+               surface that uses a dot also prints the status word (WCAG 1.4.1). */
+            --vy-hk-pending: rgb(232, 112, 58);
+            --vy-hk-progress: rgb(224, 166, 58);
+            --vy-hk-clean: rgb(51, 160, 172);
+            --vy-hk-inspected: rgb(67, 160, 107);
+            --vy-hk-ooo: rgb(138, 128, 121);
             --vy-peach: rgb(240, 165, 122);
             --vy-amber: rgb(178, 106, 8);
             --vy-amber-2: rgb(224, 146, 30);
@@ -308,26 +319,42 @@
         /* This wireframe's stat tile is tighter than the Dashboard's; scoped, not pushed at the token. */
         .vy-res .vy-dash-kpi { padding: 15px 18px; }
         .vy-res .vy-dk-val { font-size: 26px; }
-        /* The design's search is ONE integrated pill (icon + field + inline clear), not a field beside a
-           button. The form stays a GET form — the search is a scope-dependent read (#20). */
-        .vy-res .vy-input-group { align-items: center; gap: 0; padding: 3px 4px 3px 15px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); }
-        .vy-res .vy-search-ico { flex: none; margin-right: 9px; color: var(--vy-muted); }
-        .vy-res .vy-input-group .vy-input { flex: 1; min-width: 0; border: none; background: transparent; box-shadow: none; padding: 7px 0; font-size: 13px; }
-        .vy-res .vy-input-group .vy-input:focus { outline: none; }
-        .vy-res .vy-input-group:focus-within { border-color: var(--vy-accent-border); }
-        .vy-res .vy-input-group .vy-btn, .vy-res .vy-input-group .vy-pill { flex: none; padding: 6px 14px; font-size: 12.5px; }
+        /* ---- Housekeeping (.vy-hk) -----------------------------------------------------------------
+           The design's status strip is a row of standalone COUNT PILLS, not cards: a 9px dot, the
+           status word, then the tally in the display face. Sizing per the prototype (9px 16px, pill
+           radius, 15px/600 count) — the count sits at 600 like every other figure in this realm. */
+        /* .vy-seg-opt is flex:1, which is right for a full-width two-up toggle but stretches a short
+           filter row across the whole page. Opt-in modifier: size the options to their own labels.
+           NOTE the doubled class: .vy-seg is declared TWICE in this file (pre-existing), and the later
+           `display: flex` would beat a single-class modifier at equal specificity. Out-specify, don't
+           reorder — moving a shared rule to win a cascade fight breaks whatever relied on the old order. */
+        .vy-seg.vy-seg--inline { display: inline-flex; }
+        .vy-seg--inline > .vy-seg-opt { flex: 0 0 auto; padding-left: 14px; padding-right: 14px; }
+
+        .vy-hk-tally { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
+        .vy-hk-tal { display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+        .vy-hk-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+        .vy-hk-tal-label { font-size: 12.5px; color: var(--vy-muted); }
+        .vy-hk-tal-n { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
+        /* A zero tally is real information, but it should not compete with the states that need work. */
+        .vy-hk-tal.is-zero { opacity: .62; }
+
+        /* ---- The design's search control: ONE integrated pill (icon + field + inline action) ------
+           An OPT-IN modifier on the shared .vy-input-group, defined ONCE. Three wireframes specify it
+           (Reservations, Guests, Housekeeping); writing it per-page would be three copies of one rule,
+           which is exactly how the drift this project keeps consolidating starts.
+           The form stays a GET form — a search is a scope-dependent read (#20). */
+        .vy-input-group--pill { align-items: center; gap: 0; padding: 3px 4px 3px 15px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); }
+        .vy-input-group--pill:focus-within { border-color: var(--vy-accent-border); }
+        .vy-input-group--pill .vy-search-ico { flex: none; margin-right: 9px; color: var(--vy-muted); }
+        .vy-input-group--pill .vy-input { flex: 1; min-width: 0; border: none; background: transparent; box-shadow: none; padding: 7px 0; font-size: 13px; }
+        .vy-input-group--pill .vy-input:focus { outline: none; }
+        .vy-input-group--pill .vy-btn, .vy-input-group--pill .vy-pill { flex: none; padding: 6px 14px; font-size: 12.5px; }
 
         /* ---- Operator Guests (CRM list) — wireframe parity (scoped to .vy-gst) ------------------- */
         /* Same tighter stat tile this wireframe specifies (15px/18px, 26px figure) as Reports/Reservations. */
         .vy-gst .vy-dash-kpi { padding: 15px 18px; }
         .vy-gst .vy-dk-val { font-size: 26px; }
-        /* The design's search is ONE integrated pill; the form stays a GET form (#20). */
-        .vy-gst .vy-input-group { align-items: center; gap: 0; padding: 3px 4px 3px 15px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); }
-        .vy-gst .vy-search-ico { flex: none; margin-right: 9px; color: var(--vy-muted); }
-        .vy-gst .vy-input-group .vy-input { flex: 1; min-width: 0; border: none; background: transparent; box-shadow: none; padding: 7px 0; font-size: 13px; }
-        .vy-gst .vy-input-group .vy-input:focus { outline: none; }
-        .vy-gst .vy-input-group:focus-within { border-color: var(--vy-accent-border); }
-        .vy-gst .vy-input-group .vy-btn, .vy-gst .vy-input-group .vy-pill { flex: none; padding: 6px 14px; font-size: 12.5px; }
 
         /* ---- Operator Reservation DETAIL — wireframe parity (scoped to .vy-det) ------------------ */
         /* The design's folio line: date | description | amount. Same real rows, ordered as designed. */

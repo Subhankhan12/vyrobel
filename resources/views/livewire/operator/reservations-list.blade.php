@@ -66,7 +66,7 @@
         {{-- ── Control row — a GET search (a scoped read must re-run the route middleware, invariant #20) ── --}}
         <div class="vy-rack-toolbar vy-fade" style="margin-top: 22px;">
             <div class="vy-left" style="flex: 1; min-width: 260px;">
-                <form method="GET" action="{{ route('app.reservations') }}" class="vy-input-group" style="width: 100%; max-width: 420px;">
+                <form method="GET" action="{{ route('app.reservations') }}" class="vy-input-group vy-input-group--pill" style="width: 100%; max-width: 420px;">
                     {{-- Searching must not silently drop the active stage. --}}
                     @if ($stage !== null)
                         <input type="hidden" name="stage" value="{{ $stage }}">

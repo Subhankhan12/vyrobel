@@ -66,7 +66,7 @@
             {{-- ── Control row — GET search (a scoped read must re-run the route middleware, #20) ───────── --}}
             <div class="vy-rack-toolbar vy-fade" style="margin-top: 22px;">
                 <div class="vy-left" style="flex: 1; min-width: 260px;">
-                    <form method="GET" action="{{ route('app.guests') }}" class="vy-input-group" style="width: 100%; max-width: 420px;">
+                    <form method="GET" action="{{ route('app.guests') }}" class="vy-input-group vy-input-group--pill" style="width: 100%; max-width: 420px;">
                         {{-- The design carries the magnifier inside the field. Decorative. --}}
                         <svg class="vy-search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
                         <input class="vy-input" type="search" name="q" value="{{ $query }}"

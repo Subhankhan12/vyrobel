@@ -475,3 +475,45 @@ reached from its own gated control elsewhere, untouched by this pass.
   wireframe has the review and preferences but none of the rest.
 - **Fixed:** the stat tiles took this wireframe's tighter 15px/18px padding and 26px figure (scoped to the
   same `.vy-gst` hook 7a introduced).
+
+---
+
+## 8. Operator Housekeeping (`/app/housekeeping`)
+
+**Prototype:** `docs/design/raw/Operator Housekeeping.html` — 1,596 lines, decoded byte-identical to the
+audit copy. Four declared states: `Operator Housekeeping` · `Assign housekeeper modal` · `Assign all modal` ·
+`Room detail modal`.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D8-1 | A **Filter dropdown** (popover listing each status as a dot / label / count row, click to filter the board). | The live page has the five status tallies as **display-only** pills — they are not links, so a status cannot be filtered on. The crew filter beside them *is* real (GET links, `crew=`). Verified: `tallyAreLinks: 0`, `crewAreLinks: 2`. | A `status=` GET parameter on the board query, mirroring the existing `crew=` filter — the same shape, no new backend concept. Must ride a **GET link**, not a Livewire action: the property middleware does not run on `/livewire/update` (#20). | **REAL GAP** — small, and the pattern to copy already exists on this page. |
+| D8-2 | A **"Ready by" time** on each room row (the design shows a clock target per room). | The live `READY` column renders **"—"** on every row. The column exists and is honest; there is no ready-by value to put in it. | A target-ready timestamp on `housekeeping_tasks` (or derived from the arriving reservation's check-in time + the property timezone). Nothing today computes or stores it. | **REAL GAP** — the column is already there and honestly empty, which is the right holding state (#39). Do not fill it with a guess. |
+
+### Also noted on this page (not backend gaps)
+
+- **"Suggested" is genuinely computed, not fabricated.** `HousekeepingBoard::suggestedHousekeeperId()`
+  picks the **least-loaded** crew member by real open-task load, with a stable tie-break. Its docblock
+  records that this was a WAVE-3 fix: the picker used to badge whoever came back first from
+  `StaffRoster::housekeepers()` *while displaying that person's real load beside it* — a suggestion that
+  contradicted the number printed next to it (#39). Confirmed by reading, not assumed.
+- **Every mutation still POSTs a real gated route** — 7 live `…/status` forms on the page, and the assign
+  forms build their action from the real `app.housekeeping.assign` route when the modal opens. The status
+  route is gated `can:housekeeping.manage`. **Restyled, not rewired**; nothing was submitted.
+- **Status is never carried by colour alone.** Each tally dot is paired with its status **word**
+  (verified `everyDotHasLabel: true`), so the strip satisfies WCAG 1.4.1.
+- **No guest contact on this surface** (verified: no email/phone pattern anywhere in the rendered text) —
+  the #28 perimeter holds; housekeeping sees rooms and crew, not guests.
+- **Vocabulary divergence, deliberate:** the app's `pending` is the wireframe's "Dirty". The app's own
+  status enum wins — the lanes, the tallies and the existing view test all speak it consistently.
+- **Kept, not removed (§6 extra work):** the **Cozy/Compact density toggle** (board view only — my first
+  probe read it as absent because it is `x-show="view === 'board'"` and the page loads in List), the
+  **drag-to-advance** lane move (forward-only, one lane at a time, POSTing the same certified status route
+  as the buttons), the **crew load panel**, and the room-detail modal's **proof photos + elapsed**.
+- **Fixed:** the search became the design's integrated pill (icon inside, inline Clear, pill radius) and the
+  status tallies became the design's count pills (9px dot, `9px 16px`, 15px/600 figure) with the five status
+  colours promoted from **raw hexes in the view** to shared `--vy-hk-*` tokens; the crew filter row stopped
+  stretching the full page width. The search's Clear link carries the active `crew=` filter with it (#20).
+- **Anti-drift note:** this was the **third** page to need the "integrated search pill". Rather than write
+  the rule a third time it was promoted to ONE opt-in `.vy-input-group--pill`, and the `.vy-res` / `.vy-gst`
+  copies were deleted and repointed at it — three copies of one rule is exactly how the drift this project
+  keeps consolidating starts.
