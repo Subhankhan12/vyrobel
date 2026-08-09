@@ -517,3 +517,48 @@ audit copy. Four declared states: `Operator Housekeeping` · `Assign housekeeper
   the rule a third time it was promoted to ONE opt-in `.vy-input-group--pill`, and the `.vy-res` / `.vy-gst`
   copies were deleted and repointed at it — three copies of one rule is exactly how the drift this project
   keeps consolidating starts.
+
+---
+
+## 9. Operator Team Schedule (`/app/schedule`)
+
+**Prototype:** `docs/design/raw/Operator Team Schedule.html` — 1,111 lines, decoded byte-identical to the
+audit copy. **Role:** Hotel Manager (`schedule.view` to see, `schedule.manage` to change).
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D9-1 | **Per-person hours** on each staff row — the design's row sub-line is `{{ r.hours }}` beside the department dot. | The live sub-line carries the department **name** instead. `RosterWeek::hours()` computes only a WEEK-WIDE total (`shiftCount() × HOURS_PER_SHIFT`); there is no per-person accessor. | A per-staff hours accessor on `RosterWeek`, derived from the same worked cells the grid already renders (that person's shift count × the shared `HOURS_PER_SHIFT`). It must live in `RosterWeek` — the grid and the schedule PDF both read that builder, and a second definition of "hours per shift" in a Blade file is exactly the drift this project keeps consolidating. | **REAL GAP** — small and purely derived; deliberately **not** built in this presentation pass. |
+| D9-2 | An **"Open shifts" row inside the grid**, aligned to the seven day columns, with a per-day **Assign** button. | The live open shifts are a **separate card** (now in the rail) listing slots as rows, not aligned to the day columns. The data is real either way, and the honest empty state is correct. | No new backend — `$openShifts` already carries a date per slot. This is a grid-composition change: an eighth row whose cells map open slots onto the day columns. | **REAL GAP (presentation-shaped)** — logged rather than built because it restructures the grid body, which is beyond a styling pass and deserves its own gate. |
+
+### Also noted on this page (not backend gaps)
+
+- **REAL staff, REAL shifts.** The four rostered people are the real team from `StaffRoster` (an **active
+  `Membership`** ∩ a **back-office role**, team-scoped), and the shifts are real `Shift` rows through
+  `RosterWeek`. Nothing on the page is a fabricated person, role or shift.
+- **No owner and no guest leaks into the roster (#28).** Verified two ways: no email/phone pattern appears
+  anywhere in the rendered text, and `StaffRoster`'s own docblock states that portal-only users
+  (**`External Owner` / `Guest`**) hold none of the back-office roles and therefore never appear.
+  ⚠️ **Naming trap, checked rather than assumed:** the roster row reading **"Demo Admin · Property Owner"**
+  is *not* an external owner — `Property Owner` is the **org-admin operator role**
+  (`config/authorization.php` flags this exact trap in a comment), and it is a legitimate back-office role.
+- **All six schedule actions still POST their real gated routes** with CSRF — `publish`, `shift`,
+  `shift/move`, `open-shifts`, `time-off`, `leave`. **Restyled, not rewired**; nothing was submitted.
+- **Role is never carried by colour alone** — each department dot sits beside its role word
+  (Accountant / Property Owner / Hotel Manager / Housekeeping), so the grid satisfies WCAG 1.4.1.
+  ⚠️ This is a place where the **live page is better than the prototype**: the design puts *hours* in that
+  slot, which would leave the department encoded in the dot colour alone. Kept the label (see D9-1).
+- **Honest empty states throughout** — "No open shifts — every slot is covered.", "No one scheduled",
+  "0 people", "Everyone is working.", and a real "No staff on your team yet" that links to Roles & access.
+- **Kept, not removed (§6 extra work):** drag-to-move/swap, the leave **conflict flag** (a shift that later
+  clashes with approved leave is marked, never silently dropped), Publish week, the Day view, the PDF, the
+  read-only mode, and the department filter.
+- **Fixed:** the page took the design's **two-column shape** — the roster grid beside a **224px rail**
+  carrying coverage + open shifts, instead of three stacked full-width cards; the rail's Open-shifts heading
+  took the design's dot + uppercase-label form (with the **real** count); and the grid's column floor was
+  relaxed 92px→88px so the seven days fit beside the rail instead of forcing a permanent 10px scroll that
+  clipped Sunday.
+- **Documented adaptation:** the design's rail also holds "Time off". The live **time-off forms stay
+  full-width below** — they carry two date pickers and a select, which a 224px column cannot hold usably.
+- **Checked and NOT a defect:** a full-page screenshot shows the warm gradient stopping partway down. The
+  gradient is `background-attachment: fixed`, so that is a screenshot-stitching artefact — scrolled in a
+  real viewport the gradient covers the full page. Verified before reporting.

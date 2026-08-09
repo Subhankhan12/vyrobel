@@ -61,6 +61,12 @@
                 </div>
             </div>
 
+            {{-- The design's two-column shape: the roster grid, then a 224px rail carrying the at-a-glance
+                 coverage + open shifts. The wrapper opens OUTSIDE the empty-roster branch on purpose —
+                 coverage and open shifts render whether or not anyone is rostered. Stacks below 1100px. --}}
+            <div class="vy-sch-cols">
+            <div class="vy-sch-main">
+
             @if (count($rows) === 0)
                 <div class="vy-card" style="padding:30px;text-align:center;color:var(--vy-muted);font-size:14px">
                     @if ($dept === 'all')
@@ -78,7 +84,12 @@
                         'housekeeping' => ['bar' => '#D99A3D', 'dot' => '#D99A3D', 'bg' => 'rgba(217,154,61,.13)', 'color' => '#8F6414', 'border' => '1px solid rgba(217,154,61,.34)'],
                         'manager' => ['bar' => '#6B6058', 'dot' => '#6B6058', 'bg' => 'rgba(43,35,32,.06)', 'color' => '#5C5049', 'border' => '1px solid rgba(120,70,40,.18)'],
                     ];
-                    $gridCols = '184px repeat(7, minmax(92px, 1fr))';
+                    // The design's grid is 184px + 7 × minmax(92px, 1fr). Its 92px floor was drawn for a
+                    // full-width grid; with the design's own 224px rail beside it the seven columns land at
+                    // ~89px, so a 92px floor forced a permanent 10px horizontal scroll that clipped Sunday.
+                    // Relaxing the floor to 88px costs nothing on desktop (the columns are 1fr there anyway)
+                    // and keeps the scroll for genuinely narrow viewports, which is what it is for.
+                    $gridCols = '184px repeat(7, minmax(88px, 1fr))';
                 @endphp
 
                 @if ($view === 'day')
@@ -172,7 +183,8 @@
                         </div>
 
                         <div style="overflow-x:auto">
-                            <div style="min-width:880px">
+                            {{-- Matches the relaxed column floor above (184 + 7×88 + 8×8 gaps = 864). --}}
+                            <div style="min-width:864px">
                                 {{-- header --}}
                                 <div style="display:grid;grid-template-columns:{{ $gridCols }};gap:8px;margin-bottom:8px">
                                     <div style="display:flex;align-items:flex-end;padding:0 4px 4px;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint)">Team</div>
@@ -296,6 +308,9 @@
                 @endif
             @endif
 
+            </div>{{-- /.vy-sch-main --}}
+            <div class="vy-sch-rail">
+
             {{-- GATE 9.2 — "Coverage this week": HONEST per-department bars = the number of days (of 7) with at least
                  one person from that team working (never an invented staffing target — the prototype's 14/16 was
                  fabricated). Footer keeps the real team / shifts / rostered-hours totals from the SAME builder. --}}
@@ -326,12 +341,16 @@
                  creates a real Shift via the certified service). --}}
             @if ($canManage)
                 <div class="vy-card vy-fade" style="margin-top:18px" x-data="{ addOpen: false }">
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-                        <h2 class="vy-card-title" style="margin:0">Open shifts</h2>
-                        @unless ($readOnly)
-                            <button type="button" class="vy-btn vy-btn--ghost" style="font-size:12px;padding:5px 12px" @click="addOpen = !addOpen">Add open shift</button>
-                        @endunless
+                    {{-- The design's rail heading: a status dot + a small uppercase label, with the count in
+                         the label itself. The count is the REAL number of open slots — the same $openShifts
+                         the list below renders, so the heading can never promise a row that isn't there. --}}
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px">
+                        <span style="width:9px;height:9px;border-radius:50%;background:var(--vy-hk-pending);flex-shrink:0"></span>
+                        <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--vy-faint)">Open shifts · {{ count($openShifts) }}</span>
                     </div>
+                    @unless ($readOnly)
+                        <button type="button" class="vy-btn vy-btn--ghost" style="width:100%;font-size:11.5px;padding:7px 0;justify-content:center;margin-bottom:4px" @click="addOpen = !addOpen">Add open shift</button>
+                    @endunless
                     @unless ($readOnly)
                         <form x-show="addOpen" x-cloak method="POST" action="{{ route('app.schedule.open.create') }}" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px">
                             @csrf
@@ -371,6 +390,9 @@
                     @endforelse
                 </div>
             @endif
+
+            </div>{{-- /.vy-sch-rail --}}
+            </div>{{-- /.vy-sch-cols --}}
 
             {{-- ── Time off — request (anyone) + the manager approval queue ─────────────────────────── --}}
             <div style="display:grid;grid-template-columns:{{ $canManage ? '1fr 1fr' : '1fr' }};gap:16px;margin-top:18px">

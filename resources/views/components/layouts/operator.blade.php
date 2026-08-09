@@ -331,6 +331,21 @@
         .vy-seg.vy-seg--inline { display: inline-flex; }
         .vy-seg--inline > .vy-seg-opt { flex: 0 0 auto; padding-left: 14px; padding-right: 14px; }
 
+        /* ---- Team schedule (.vy-sch) ---------------------------------------------------------------
+           The design puts the roster grid beside a 224px rail (coverage + open shifts) rather than
+           stacking full-width cards down the page — the at-a-glance numbers belong next to the grid
+           they describe. The time-off FORMS stay full-width below: they carry date pickers and a
+           select, which a 224px column cannot hold usably. */
+        .vy-sch-cols { display: flex; gap: 18px; align-items: flex-start; }
+        .vy-sch-main { flex: 1; min-width: 0; }
+        .vy-sch-rail { width: 224px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+        /* The rail's cards are stacked by the flex gap, so their own stacking margin must go. */
+        .vy-sch-rail > .vy-card { margin-top: 0 !important; }
+        @media (max-width: 1100px) {
+            .vy-sch-cols { display: block; }
+            .vy-sch-rail { width: auto; margin-top: 18px; }
+        }
+
         .vy-hk-tally { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
         .vy-hk-tal { display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6); }
         .vy-hk-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
