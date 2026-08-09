@@ -31,6 +31,43 @@ user and is not a global sign-out (tested).
 
 **Suite:** 1775/1782 · 11,795 assertions, non-green exactly the documented 7 throughout.
 
+## 2026-08-09 — 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED (WAVES 1/2/3 + the auth/isolation pass)
+
+The last three tail items landed: `fb51b40` owner payout YEAR filter · `c0b31ab` owner chart scaling ·
+`a54bfea` Notifications pagination (both realms). With them, **every item from the 124-wireframe sweep is
+resolved, verified-already-fixed, or reclassified as a refusal — 0 unaddressed gaps.**
+
+**Final tally:** 5 HIGH · 3 structural MEDIUMs · 23 false-copy items · the minor/low tail · 3 escalated
+auth/isolation items. Suite **1796/1803**, non-green exactly the documented 7 throughout.
+
+**Decisions locked in this last pass.**
+- **The chart scales to the DATA, not the goal.** `earningsSeries()` scaled bars against
+  `max($maxNet, $goalMinor)` to keep the goal line inside the chart — but a €6,000 target against an €885.60
+  best month rendered the real bars at 7–15%. They are now 50–100%. The goal line still renders (it is the
+  owner's real target) and pins to the top when above range, with the caption SAYING "above this range" so
+  its position cannot imply a proximity that isn't real (#39).
+- **The payout year filter narrows the HISTORY only.** The KPI band and next-payout card describe the
+  owner's whole position; filtering them by a browsed year would make their labels false.
+- **Notifications: `items` is a LIST, the paginator is returned separately as a paginator of MODELS.** That
+  is what resolved PHPStan's invariant `TValue` — by shape, not by cast, widening, or a baseline entry.
+  Both realms were paginated in the SAME change because the feed is shared.
+
+**Method notes worth keeping (all three cost real time and were caught the same way — by rendering).**
+1. **A test must discriminate, not merely pass.** The payout filter was reverted last session because the
+   assertion used money strings, which the KPI band also satisfies. It now counts HISTORY ROWS and checks
+   per-row remittance links. And the row counter itself over-counted by a constant until it matched
+   `class="vy-row-month"` rather than the bare class name, which the stylesheet also contains.
+2. **The Blade `@`-trap from an unexpected direction:** writing a directive's NAME inside a CSS comment is
+   still compiled. That produced the second of two 500s while Pint, PHPStan and the tests all passed.
+3. **Static checks cannot see a rendered page** — stated in CLAUDE.md, and it earned its place again twice
+   in this single gate.
+
+**Not "fixed", by design:** the §5 refusals (fabricating them is worse than absent) and the two
+founder-deferred items (#6 rates guardrail, #10 team limit) — honest in copy, awaiting a product decision.
+
+**Remaining Vyrobel work is no longer parity:** the ⛔ OPEN BILLING DECISION · the deployment sprint · the
+scale-performance workstream · the founder's go-live flips.
+
 ## 2026-08-09 — Maintenance Costs ESCALATED out of WAVE 3 into the auth/isolation pass
 
 Verified against code, not assumed: `MaintenanceCostService::resolved()` is

@@ -118,7 +118,23 @@ were strengthened (they now demand the true copy AND forbid the false), never re
 
 ---
 
-## 2d. WAVE 3 — IN PROGRESS (2026-08-09): 3 gates done, and the named list was largely STALE
+## 2d. WAVE 3 — ✅ COMPLETE (2026-08-09) · THE SWEEP IS FULLY CLOSED
+
+> ## 🏁 FINAL PARITY HEADLINE
+> **All 124 wireframes swept; WAVES 1, 2 and 3 plus the auth/isolation pass are COMPLETE.**
+> **5 HIGH** fixed · **3 structural MEDIUMs** fixed · **23 false-copy items** fixed · **the minor/low tail**
+> fixed, verified-already-fixed, or reclassified · **3 escalated auth/isolation items** fixed.
+> **0 unaddressed gaps remain.**
+>
+> The sweep's verdict held all the way through: *the money reconciled and the privacy perimeter held; what
+> failed was copy asserting behaviour the code did not implement* — and that is now closed.
+>
+> Two classes were deliberately NOT "fixed", and must not be: the **§5 refusals-to-preserve** (fabricating
+> them is worse than absent — including the newly-recorded 404 "popular pages" and 500 "support reference",
+> which have no analytics and no correlation id behind them), and the **two founder-deferred items** (#6 the
+> rates guardrail, #10 the team-limit) which are honest in copy and await a product decision.
+
+### (the WAVE 3 record)
 
 **Verify-first paid for itself: 4 of the 5 "known named items" were already fixed or were never gaps** —
 the corrupted date literal (polish pass), the `Team &amp; access` double-escape (renders correctly), the

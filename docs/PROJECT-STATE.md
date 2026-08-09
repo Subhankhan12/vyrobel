@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH ALL DONE · WIREFRAME-PARITY WAVES 1+2 DONE · WAVE 3 IN PROGRESS (2026-08-09)** · WAVE 3 tail + deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
 > ## ✅ WIREFRAME-PARITY SWEEP — all 124 wireframes swept; **WAVE 1 (the 5 HIGH) FIXED + PUSHED** (2026-08-08, HEAD `bca3679`)
 >
@@ -364,6 +364,41 @@ with the export links carrying the active period, so the PDF/CSV always covers t
 
 **VERIFIED (2026-08-09, HEAD `35dc05f`):** suite **1758/1765 · 11,751 assertions**; non-green exactly the
 documented **7**; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. Every fix browser-rendered.
+
+### F.7 — 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED (2026-08-09)
+
+**All 124 wireframes swept; every finding resolved, verified-already-fixed, or reclassified as a refusal —
+0 unaddressed gaps.**
+
+| Wave | Scope | Outcome |
+|---|---|---|
+| **1** | 5 HIGH | fixed (`ecf3685`→`bca3679`) |
+| **2** | 3 structural MEDIUMs + 23 false-copy | fixed (`00a9fe5`→`b44bb64`, `9620b95`) |
+| **3** | the minor/low tail | fixed / already-fixed / reclassified (`270806f`, `51c3f9f`, `35dc05f`, `f36356b`, `9d90cc1`, `f12dbe3`, `fb51b40`, `c0b31ab`, `a54bfea`) |
+| **auth/isolation** | 3 escalated items | fixed (`8ddd389`, `5f27085`, `306715f`) |
+
+**The final three (this pass).** The owner **payout year filter** (real years, history-only narrowing) · the
+owner **chart scaling** — bars scaled to the goal crushed real data (a €6,000 target rendered an €885.60 best
+month at 7–15%; now 50–100%, with an above-range goal line captioned as such) · **Notifications pagination**
+across BOTH realms, with PHPStan's invariant `TValue` resolved by SHAPE (items = a list, paginator = of
+models) rather than any cast, widening, or baseline entry.
+
+**⚠️ NOT "fixed", by design — do not close these:** the **§5 refusals-to-preserve** (fabricating them is
+worse than absent — including 404 "popular pages" and 500 "support reference", which have no analytics and no
+correlation id behind them) and the **two founder-deferred items**: **#6** the rates guardrail (honest copy;
+binding the operator's direct write is a shift of control between parties) and **#10** the team limit (real
+limit displayed; enforcing it belongs with the billing decision).
+
+**The lesson the whole sweep taught, restated:** a green suite is necessary and not sufficient. Four
+pre-existing tests were actively *defending* false copy; roughly four more passed without their fix; and
+across the sweep the browser caught what every static check missed — including, in the final gate alone, two
+separate 500s (one from a Blade directive name written inside a CSS comment).
+
+**VERIFIED (2026-08-09, HEAD `a54bfea`):** suite **1796/1803 · 11,8xx assertions**; non-green exactly the
+documented **7**; PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean; both realms browser-rendered.
+
+**⬅ REMAINING VYROBEL WORK IS NO LONGER PARITY:** the ⛔ **OPEN BILLING DECISION** (G.1) · the **deployment
+sprint** · the **scale-performance workstream** · the founder's **go-live flips**.
 
 ## (G) ⚠️ OPEN DECISIONS — the founder's call, NOT defects
 

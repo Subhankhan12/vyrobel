@@ -147,7 +147,20 @@ Every item below is **copy asserting behaviour the code does not implement**. Fo
 
 ---
 
-## WAVE 3 — MINOR / LOW gaps · ⏳ IN PROGRESS (2026-08-09) — 3 gates done, the list below still open
+## WAVE 3 — MINOR / LOW gaps · ✅ COMPLETE (2026-08-09)
+
+> **Every WAVE 3 item is now resolved, verified-already-fixed, or reclassified as a refusal.** With WAVES 1
+> and 2 and the auth/isolation pass, **THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED.**
+>
+> Final gates: `270806f` owner format/timeline · `51c3f9f` guest add-on/refund/arrival-hour · `35dc05f`
+> Insights units · `f36356b` stated expiries · `9d90cc1` housekeeping "Suggested" · `f12dbe3` pagination
+> (Guests + Reservations) · `fb51b40` payout year filter · `c0b31ab` chart scaling · `a54bfea` Notifications
+> pagination (both realms).
+>
+> **The three items escalated to the auth/isolation pass are also done** — `8ddd389` Maintenance-Costs scope
+> + period + export parity · `5f27085` workspace-picker write · `306715f` reset kills sibling sessions.
+
+## (historical) WAVE 3 — the working list
 
 > **Gates done:** `270806f` owner format/timeline · `51c3f9f` guest add-on/refund/arrival-hour ·
 > `35dc05f` Insights unit labels · `f36356b` stated expiries + 2 error-page reclassifications.
