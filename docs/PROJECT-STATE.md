@@ -760,7 +760,7 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **31 of 42** covered, **11 remaining** (`0aa9ede`→`PENDINGHASH`, all pushed)
+## N.4 Progress — OPERATOR **31 of 42** covered, **11 remaining** (`0aa9ede`→`5446885`, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
@@ -798,7 +798,7 @@ Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Gro
 | P20 | **Operator Group Booking** ⚠️ money + inventory, multi-unit (2 design fixes incl. the **shared `.vy-wiz-*` stepper consolidation** · 3 backend items · block NEVER submitted) | `1b435a7` |
 | P21 | **Operator Owners (LIST)** ⚠️ owner PII + isolation (2 design fixes · 3 backend items · **a real LIST-isolation coverage gap closed**; ⚠️ its €0.00 is a REAL computed zero and was NOT changed) | `19f8ec4` |
 | P22 | **Operator Owner DETAIL** ⚠️ deepest owner PII + the #6 guarded proposal (1 design fix · 4 backend items; ⚠️ **the guardrail silence is CORRECT — no `RateGuardrail` binds this owner**) — **Owners area COMPLETE** | `e4e3dfa` |
-| P23 | **Operator Roles & permissions** ⚠️ RBAC (1 design fix · 3 backend items · **the matrix verified against the real pivot — 0 fabricated grants** · **a self-escalation test gap closed + proven**) | `PENDINGHASH` |
+| P23 | **Operator Roles & permissions** ⚠️ RBAC (1 design fix · 3 backend items · **the matrix verified against the real pivot — 0 fabricated grants** · **a self-escalation test gap closed + proven**) | `5446885` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
