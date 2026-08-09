@@ -760,7 +760,7 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **29 of 42** covered, **13 remaining** (`0aa9ede`→`PENDINGHASH`, all pushed)
+## N.4 Progress — OPERATOR **29 of 42** covered, **13 remaining** (`0aa9ede`→`19f8ec4`, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking** and **P21
@@ -796,7 +796,7 @@ Owners**, so the current figure is **29 covered / 13 remaining** (29 + 13 = 42).
 | P18 | **Operator Rates & availability** ⚠️ what guests are charged (2 design fixes · 6 backend items · a strengthened #30 gate test) | `252cb67` |
 | P19 | **Operator New Reservation** ⚠️ money + inventory (3 design fixes · 4 backend items · create NEVER submitted, counts proven unchanged) | `de83bd4` |
 | P20 | **Operator Group Booking** ⚠️ money + inventory, multi-unit (2 design fixes incl. the **shared `.vy-wiz-*` stepper consolidation** · 3 backend items · block NEVER submitted) | `1b435a7` |
-| P21 | **Operator Owners (LIST)** ⚠️ owner PII + isolation (2 design fixes · 3 backend items · **a real LIST-isolation coverage gap closed**; ⚠️ its €0.00 is a REAL computed zero and was NOT changed) | `PENDINGHASH` |
+| P21 | **Operator Owners (LIST)** ⚠️ owner PII + isolation (2 design fixes · 3 backend items · **a real LIST-isolation coverage gap closed**; ⚠️ its €0.00 is a REAL computed zero and was NOT changed) | `19f8ec4` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
