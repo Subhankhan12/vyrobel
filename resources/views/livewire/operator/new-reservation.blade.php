@@ -221,7 +221,13 @@
                                 </div>
                             </div>
 
-                            <div class="vy-nr-sub" style="margin-top: 16px;">Unit · availability for these dates</div>
+                            {{-- The design pairs this label with a "Check the rack ›" escape hatch, so an
+                                 operator can see the whole grid without losing the wizard. Points at the REAL
+                                 calendar route; opens in a new tab so the in-progress draft is not discarded. --}}
+                            <div class="vy-nr-availhead" style="margin-top: 16px;">
+                                <span class="vy-nr-sub" style="margin: 0;">Unit · availability for these dates</span>
+                                <a class="vy-nr-racklink" href="{{ route('app.calendar') }}" target="_blank" rel="noopener">Check the rack ›</a>
+                            </div>
                             @unless ($datesValid)
                                 <div class="vyn-empty">Choose dates above to see what’s available.</div>
                             @else
@@ -396,8 +402,10 @@
                                 <input type="hidden" name="payment_method" x-bind:value="depositChoice === 'nothing' ? 'later' : payMethod">
                                 <div class="vy-nr-deposit">
                                     <button type="button" class="vy-nr-dep" x-bind:class="depositChoice === 'nothing' ? 'is-on' : ''" x-on:click="setDeposit('nothing')"><strong>Nothing</strong><span>collect at check-in</span></button>
-                                    <button type="button" class="vy-nr-dep" x-bind:class="depositChoice === 'deposit' ? 'is-on' : ''" x-on:click="setDeposit('deposit')"><strong>Deposit · 30%</strong><span x-text="fmt(Math.round(totalMinor() * 0.3))"></span></button>
-                                    <button type="button" class="vy-nr-dep" x-bind:class="depositChoice === 'full' ? 'is-on' : ''" x-on:click="setDeposit('full')"><strong>Full</strong><span x-text="fmt(totalMinor())"></span></button>
+                                    {{-- ⚠️ "—" until a unit is chosen, for the same reason as the summary: with
+                                         nothing priced, "€0.00" would state that a 30% deposit really is zero. --}}
+                                    <button type="button" class="vy-nr-dep" x-bind:class="depositChoice === 'deposit' ? 'is-on' : ''" x-on:click="setDeposit('deposit')"><strong>Deposit · 30%</strong><span x-text="unitId ? fmt(Math.round(totalMinor() * 0.3)) : '—'"></span></button>
+                                    <button type="button" class="vy-nr-dep" x-bind:class="depositChoice === 'full' ? 'is-on' : ''" x-on:click="setDeposit('full')"><strong>Full</strong><span x-text="unitId ? fmt(totalMinor()) : '—'"></span></button>
                                 </div>
                                 <div x-show="depositChoice !== 'nothing'" x-cloak>
                                     <div class="vy-field" style="margin-top: 12px;"><label class="vy-field-label" for="pm">Method</label>
@@ -429,11 +437,21 @@
                     {{-- ══ BOOKING SUMMARY (client estimate from REAL prices) ══ --}}
                     <aside class="vy-card vy-nr-summary">
                         <h3 class="vy-card-title" style="font-size: 14px;">Booking summary</h3>
-                        <div class="vy-nr-sumline"><span>Accommodation</span><span class="vy-u-code" x-text="fmt(roomMinor)"></span></div>
-                        <div class="vy-nr-sumline" x-show="extrasMinor() > 0"><span>Extras</span><span class="vy-u-code" x-text="fmt(extrasMinor())"></span></div>
-                        <div class="vy-nr-sumline" x-show="applyCredit && guestMode === 'existing'"><span>Returning-guest credit</span><span class="vy-u-code" style="color:#1F8A5B;">applied on confirm</span></div>
-                        <div class="vy-nr-sumline" x-show="taxMinor() > 0"><span>Taxes</span><span class="vy-u-code" x-text="fmt(taxMinor())"></span></div>
-                        <div class="vy-nr-sumline vy-nr-sumtotal"><span>Estimated total</span><span class="vy-u-code" x-text="fmt(Math.round(animTotal))"></span></div>
+                        {{-- ⚠️ "—" until a unit is actually chosen, NOT "€0.00". Before a selection there is no
+                             price yet, and €0.00 asserts a real zero — the same distinction the Payout Run
+                             stat strip makes ("a zero has to be a zero of SOME currency"). Once a unit IS
+                             chosen the real figure renders, including a genuine zero. --}}
+                        <div class="vy-nr-sumline"><span>Accommodation</span><span class="vy-u-code" x-text="unitId ? fmt(roomMinor) : '—'"></span></div>
+                        {{-- ⚠️ The component lines are gated on `unitId` too, not just on being non-zero.
+                             Taxes include flat / per-night modes that compute a figure from the DATES alone,
+                             so without this a summary with no unit chosen rendered "Accommodation —,
+                             Taxes €15.00, Estimated total —" — a tax on a stay that has no accommodation and
+                             no total. Until a unit is picked there is no priced stay, so no component of one
+                             should be stated either. --}}
+                        <div class="vy-nr-sumline" x-show="unitId && extrasMinor() > 0"><span>Extras</span><span class="vy-u-code" x-text="fmt(extrasMinor())"></span></div>
+                        <div class="vy-nr-sumline" x-show="unitId && applyCredit && guestMode === 'existing'"><span>Returning-guest credit</span><span class="vy-u-code" style="color:#1F8A5B;">applied on confirm</span></div>
+                        <div class="vy-nr-sumline" x-show="unitId && taxMinor() > 0"><span>Taxes</span><span class="vy-u-code" x-text="fmt(taxMinor())"></span></div>
+                        <div class="vy-nr-sumline vy-nr-sumtotal"><span>Estimated total</span><span class="vy-u-code" x-text="unitId ? fmt(Math.round(animTotal)) : '—'"></span></div>
                         <p class="vy-nr-esthint">An estimate — the exact total (with any wallet credit) is on the reservation folio once created.</p>
                     </aside>
                 </div>
@@ -583,6 +601,10 @@
         .vy-nr-main { display: flex; flex-direction: column; gap: 14px; }
         .vy-nr-hint { font-size: 12.5px; color: var(--vy-muted); margin: 2px 0 0; }
         .vy-nr-sub { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-faint); }
+        /* The design's availability header: the section label with a "Check the rack" link opposite. */
+        .vy-nr-availhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+        .vy-nr-racklink { font-size: 12px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; white-space: nowrap; }
+        .vy-nr-racklink:hover { text-decoration: underline; }
         .vy-nr-daterow { font-size: 12px; color: var(--vy-muted); margin-top: 10px; }
         .vyn-rt { border: 1px solid var(--vy-hairline); border-radius: 12px; padding: 12px; margin-top: 10px; }
         .vyn-rt-head { display: flex; justify-content: space-between; font-size: 13.5px; }

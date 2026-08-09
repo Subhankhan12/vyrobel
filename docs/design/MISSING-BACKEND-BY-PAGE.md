@@ -74,10 +74,11 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 16 | **Operator Payout Run** ⚠️ real owner money | `/app/payouts/run` | ⚠️ `payouts.manage` on the WRITES | ✅ matched | **6** (3 real gaps · 3 refusals) + ⚠️ **1 money-visibility finding** |
 | 17 | **Operator Billing** ⚠️ the OPEN billing decision | `/app/billing` | ⚠️ `can:billing.manage` on the GET | ✅ matched | **5** (2 real gaps · 3 refusals) + ⚠️ **1 G.1 observation** |
 | 18 | **Operator Rates & availability** ⚠️ what guests are charged | `/app/rates` | `can:rates.view` · writes `can:rates.manage` | ✅ matched | **6** (2 real gaps · 4 refusals) |
+| 19 | **Operator New Reservation** ⚠️ money + inventory | `/app/reservations/create` | `can:reservations.create` (GET **and** POST) | ✅ matched | **4** (2 real gaps · 2 refusals) |
 
-**Operator: 26 of 42 prototypes covered · 16 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+**Operator: 27 of 42 prototypes covered · 15 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
 remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
-**⬅ NEXT PAGE: Operator New Reservation (`/app/reservations/create`)** — ⚠️ money + inventory (`AssignmentService`).
+**⬅ NEXT PAGE: Operator Group Booking (`/app/group-booking`)** — ⚠️ money + inventory, multi-unit.
 
 ---
 
@@ -1193,3 +1194,84 @@ the unguarded direct-write path. Verified on the rendered page after the changes
   that quietly loses its gate is exactly the #30 "the UI invites a 403" defect.
 - **Responsive:** 0px horizontal overflow at **1440** and **1000**; the toolbar wraps, the grid keeps its own
   scroll container. **0 console errors/warnings.** Contrast on the new/affected elements **5.48–12.09** (AA).
+
+---
+
+## 19 · Operator New Reservation — `/app/reservations/create` ⚠️ MONEY + INVENTORY
+
+**Prototype:** `docs/design/raw/Operator New Reservation.html` (decoded fresh 2026-08-10) — a **7-step wizard**
+in a focused full-screen layout. **Live:** `App\Livewire\Operator\NewReservation` →
+`resources/views/livewire/operator/new-reservation.blade.php` — **also a 7-step wizard in the same layout**,
+so this page was already close to parity.
+**Role:** `can:reservations.create` on **both** the GET and the POST — held by Super Admin / Property Owner /
+Group Admin / Hotel Manager / Front Desk / Reservation Agent (i.e. every front-of-house role). A role without
+it gets a clean **403** at the route, so #30 needs no separate control-hiding here.
+
+⚠️ **THE CREATE WAS NEVER SUBMITTED.** The whole flow was verified by **inspection**: reading the bound form
+action, flipping the Alpine `step` client-side, and selecting a unit via its own change handler. Nothing was
+POSTed. **Proven, not asserted** — the five counts are identical before and after:
+`reservations 42 · reservation_units 42 · guests 10 · folios 20 · folio_items 40`.
+*(The draft-restore is `localStorage` only — `vyrobel:new-reservation:draft`, cleared on confirm — so "Start
+over" and step changes persist nothing server-side. `calApply()` is a **GET** navigation with `?check_in=…`,
+a pure read and #20-compliant.)*
+
+### The three documented guards — all re-verified end to end
+
+- **GUARD 1 · honest availability.** For 20–23 Aug the picker offered exactly **2** units (103, A1). Traced
+  every exclusion to a real cause: **101 is `out_of_service`** and is dropped at source by
+  `Unit::query()->bookable()`; **102 and A2 each have a real overlapping `inventory_block`**. No OOS, paused
+  or blocked unit is ever offered. An unpriced room type renders *"N free — no rate set. Set a rate first →"*
+  linking to the real rates page, rather than an unbookable option.
+- **GUARD 2 · PII.** The guest search is **name-only** — verified 0 email addresses render anywhere on the
+  page. `guests.email`/`phone` are encrypted casts, never echoed back.
+- **GUARD 3 · no raw PAN.** **0 card/PAN/CVV fields** in the DOM. Payment is Nothing / Deposit 30% / Full,
+  recorded as a manual folio payment; the copy states *"no card number is entered or stored here"*.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D19-1 | The stay dates as **two compact fields** — `CHECK-IN Thu 18 Sep → CHECK-OUT Sun 21 Sep` with a **"3 nights"** pill — implying a popover picker. | The live step 1 uses a **dual-month inline calendar** (~450px tall) with drag-range selection and a "Check availability" apply. The nights figure IS shown, in the row beneath (`20 Aug 2026 → 23 Aug 2026 · 3 nights`) and in the calendar footer. | Collapsing the calendar into two compact fields + a popover. ⚠️ It is an **interaction-model change, not a restyle**: the apply step is a real server read that re-derives availability, and the calendar is what makes the range draggable. | **REAL GAP (presentation-shaped) — deliberately NOT done in a styling pass.** The information is all present; the container differs. Deserves its own gate. |
+| D19-2 | A **"Draft saved"** pill (green, always-on) in the header. | The live pill reads **"Draft restored"** and appears only when a draft actually was restored. | — | **EXTRA / HONEST-BY-DESIGN.** ⚠️ The design's always-on "Draft saved" would imply server-side persistence; the draft is `localStorage` only and the view comment says so. **Do not change it to "Draft saved".** |
+| D19-3 | A per-unit **"1 left"** scarcity badge (Apt 202). | The live rows carry `Available` state from the real availability read; there is no remaining-count badge per unit. | Exposing the room type's real remaining count for the window onto the row. The figure exists (`Availability::available()` drives Level A) — it is just not carried to the unit row. | **REAL GAP** (small, and genuinely backed). ⚠️ It must come from the real availability count — a fabricated "1 left" is a scarcity claim, which is worse than a fabricated figure. |
+| D19-4 | The booking summary itemised as **Accommodation / Extras / City tax / VAT (10%) / Total**, plus a **"€410.00 deposit · €955.00 at check-in"** split line. | The live summary is Accommodation / Extras / Taxes / Estimated total — **taxes are not split into named components**, and there is no deposit-split line in the summary (the deposit choice lives on step 7). | Splitting the tax line per configured `Tax` row (the modes are real: flat / per-night / per-person-night / percentage), and mirroring the chosen deposit into the summary. | **REAL GAP** (small). The current single "Taxes" line is honest and reconciles; the split is a presentation refinement over data that already exists. |
+
+### Also noted on this page (not backend gaps)
+
+- **#17 RECONCILES — measured on a real selection, not assumed.** With unit 103 over 20–23 Aug:
+  `roomMinor 30000 + extras 0 + tax 8400 = 38400` = the rendered **Accommodation €300.00 + Taxes €84.00 =
+  Estimated total €384.00**, in integer minor units throughout.
+- ⚠️ **Fixed (1) — "€0.00" where nothing was priced.** Before a unit is chosen the summary showed
+  **Accommodation €0.00 / Estimated total €0.00**, and step 7 showed **Deposit · 30% €0.00 / Full €0.00**.
+  A zero price is a *claim*; nothing was priced yet. All four now render **"—"** until `unitId` is set, which
+  is the same distinction the Payout Run stat strip makes. Once a unit IS chosen the real figures render,
+  including a genuine zero.
+- ⚠️ **Fixed (2) — a follow-on the first fix EXPOSED.** With Accommodation and Total showing "—", the
+  **Taxes line still rendered €15.00**, because flat / per-night taxes compute from the DATES alone — a tax on
+  a stay with no accommodation and no total. The Extras / credit / Taxes lines are now gated on `unitId` too,
+  so until a unit is picked no *component* of a price is stated either. **Found by looking at the rendered
+  result of my own change rather than assuming it was complete.**
+- **Fixed (3) — the design's "Check the rack ›" link** beside the availability heading, pointing at the REAL
+  calendar route and opening in a new tab so an in-progress draft is not discarded.
+- **WAVE-3 lesson holds — no invented default.** `arrival_window` carries a **placeholder** (`e.g. 3–6 PM`),
+  not a value; there is no fabricated "From 15:00". Adults defaults to 2 and children to 0, which are party
+  size, not property policy.
+- **#28 permitted but NOT widened.** A create flow legitimately collects contact: first/last name, email,
+  phone, country, note, VIP, marketing consent. ⚠️ **No passport / ID / DOB / nationality field was added** —
+  verified 0 such fields. `guest_note` is free text ABOUT a guest and the controller annotates it
+  `#28 — in anonymize()`; `Guest::anonymize()` covers it along with `notes.body` and thread notes.
+- **#38 / #20** — the whole page resolves through `currentReadIds`; the availability re-check rides a **GET**.
+- **ONE form, one submit.** The page has exactly one `<form>`: **POST `/app/reservations/create`** with CSRF
+  and a single **"Confirm reservation"** button — the real gated route. **Read, never fired.**
+- **Honest empty states throughout:** "Choose dates above to see what's available." · "No units are free for
+  those dates. Try a different range." · "N free — no rate set. Set a rate first →" · "No guests match … Switch
+  to New guest to add them." · "No extras configured for this property." · "Payment is taken later from the
+  reservation's folio."
+- ⚠️ **CONTRAST — measured, and deliberately NOT changed.** This page has 8 inline `color: var(--vy-accent)`
+  sites. Four render in the current state and **all pass AA on their real composited backgrounds**
+  (`.vyn-rt-price` 4.63 · `.vy-nr-counter button` 5.10 · `.vy-cal-nav` 5.09 · `.vy-cal-day.is-weekend` 4.87) —
+  they sit on near-white card interiors, not the darker glass. Three more are accent **backgrounds** with
+  white text, and one is a tinted avatar chip. **Nothing was changed**, which is the P14 rule working as
+  intended: each site needs its own measurement, never a blanket replace. ⚠️ One site — the
+  `.vyn-unpriced a` "Set a rate first →" link — **could not be measured** because no unpriced room type exists
+  in the current demo state; left untouched rather than changed blind.
+- **Responsive:** 0px horizontal overflow at **1440** and **1000**; the 7-step stepper fits. **0 console
+  errors/warnings.**
