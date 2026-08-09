@@ -31,3 +31,31 @@ it('renders the real active-sessions panel with the user’s sessions, not a Soo
     $res->assertSee('IP allowlist')->assertSee('No IP restrictions')
         ->assertSee('Connected apps')->assertSee('No apps connected');
 });
+
+// ── ⚠️ THE SAFETY BADGE MUST TRACK THE REAL 2FA STATE ────────────────────────────────────────────
+// The "Account security" badge used to be a HARDCODED green "Protected", rendered unconditionally — so an
+// account with two-factor OFF was told it was protected. On an auth page that is a safety CLAIM, not
+// decoration (the same class as the hardcoded "Verified" badge the finish-to-100 pass removed from Owners).
+// It is now derived from $twoFactor['state']; this proves it genuinely flips, in BOTH directions.
+it('derives the account-security badge from the REAL two-factor state, never a fixed “Protected”', function () {
+    $s = seedScenario(1);
+    $manager = operatorUser($s, [], 'Hotel Manager');
+
+    // 2FA OFF (the seeded default) → the badge must NOT claim protection.
+    expect($manager->hasTwoFactorEnabled())->toBeFalse();
+    $this->actingAs($manager)->get(route('app.security'))->assertOk()
+        ->assertSee('Two-factor off')
+        ->assertDontSee('Protected');
+
+    // Turn 2FA genuinely ON (the real columns the panel reads) → the badge flips to Protected.
+    $manager->forceFill([
+        'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['aaaa-bbbb'])),
+        'two_factor_confirmed_at' => now(),
+    ])->save();
+    expect($manager->fresh()->hasTwoFactorEnabled())->toBeTrue();
+
+    $this->actingAs($manager->fresh())->get(route('app.security'))->assertOk()
+        ->assertSee('Protected')
+        ->assertDontSee('Two-factor off');
+});

@@ -15,11 +15,34 @@
 
         {{-- ── OVERVIEW — "Account security · Protected" + the four real counts ─────────────────────────── --}}
         <div class="vy-card vy-fade" style="margin-bottom:16px;">
+            {{-- ⚠️ THIS BADGE IS DERIVED FROM THE REAL 2FA STATE — it used to be a hardcoded green
+                 "Protected" that rendered unconditionally, so an account with two-factor OFF was still told
+                 it was protected. On an auth page that is a SAFETY claim, not decoration: it tells someone
+                 they are covered when the strongest control this page offers is switched off. Same class as
+                 the hardcoded "Verified" badge the finish-to-100 pass removed from Owners, and the reason the
+                 owner realm's equivalent was built as a DERIVED checklist rather than a score.
+                 `$twoFactor['state']` is the authoritative enabled|pending|disabled flag. The state is always
+                 carried by a WORD as well as colour (WCAG 1.4.1). --}}
+            @php
+                // ⚠️ The inks are MEASURED against each badge's own composited wash, not eyeballed. The
+                // original hardcoded green (#1a7f4b on its 10% wash) measured 3.95 — under AA — and the
+                // obvious amber (--vy-amber = rgb(178,106,8) on a 12% wash) measured 3.30. Darkened until
+                // both clear 4.5 with headroom: green 5.75, amber 5.39.
+                $__sec = match ($twoFactor['state']) {
+                    'enabled' => ['label' => 'Protected', 'ink' => 'rgb(18, 99, 58)', 'wash' => 'rgba(26,127,75,.10)'],
+                    'pending' => ['label' => 'Finish two-factor setup', 'ink' => 'rgb(133, 76, 4)', 'wash' => 'rgba(178,106,8,.12)'],
+                    default   => ['label' => 'Two-factor off', 'ink' => 'rgb(133, 76, 4)', 'wash' => 'rgba(178,106,8,.12)'],
+                };
+            @endphp
             <div style="display:flex;align-items:center;gap:10px;">
                 <h2 class="vy-card-title" style="margin:0;">Account security</h2>
-                <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#1a7f4b;background:rgba(26,127,75,.10);border-radius:999px;padding:3px 11px;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
-                    Protected
+                <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:{{ $__sec['ink'] }};background:{{ $__sec['wash'] }};border-radius:999px;padding:3px 11px;">
+                    @if ($twoFactor['state'] === 'enabled')
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+                    @else
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M12 9v4M12 16h.01"/></svg>
+                    @endif
+                    {{ $__sec['label'] }}
                 </span>
             </div>
             <div class="vy-dash-kpis" style="margin-top:14px;">
@@ -36,6 +59,13 @@
             <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 12px;">Use a long, unique passphrase. You’ll stay signed in on this device.</p>
             <form method="POST" action="{{ route('app.security.password') }}">
                 @csrf
+                {{-- A hidden USERNAME field so a password manager can associate the credential with the right
+                     account. Chrome advises this on every password form ("Password forms should have
+                     (optionally hidden) username fields") and it was the only console output this page
+                     produced. It is display-only: `autocomplete` + `readonly`, no `name`, so it is NEVER
+                     submitted and the change-password payload is byte-identical. --}}
+                <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly
+                       aria-hidden="true" tabindex="-1" style="display:none;">
                 <input type="password" name="current_password" class="vy-input" placeholder="Current password" autocomplete="current-password" required style="margin-bottom:8px;">
                 <input type="password" name="password" class="vy-input" placeholder="New password" autocomplete="new-password" required style="margin-bottom:8px;">
                 <input type="password" name="password_confirmation" class="vy-input" placeholder="Confirm new password" autocomplete="new-password" required style="margin-bottom:12px;">
@@ -172,6 +202,9 @@
                 <p style="font-size:12.5px;color:var(--vy-muted);margin:4px 0 12px;">This ends every session except this one. Confirm your password.</p>
                 <form method="POST" action="{{ route('app.profile.sign-out-others') }}">
                     @csrf
+                    {{-- Hidden username for password managers (see the change-password form above). --}}
+                    <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly
+                           aria-hidden="true" tabindex="-1" style="display:none;">
                     <input type="password" name="current_password" class="vy-input" placeholder="Current password" autocomplete="current-password" required>
                     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="signOutOpen = false">Cancel</button>
@@ -189,6 +222,9 @@
                 <form method="POST" action="{{ route('app.security.trusted.revoke') }}">
                     @csrf
                     <input type="hidden" name="device_id" :value="revokeId">
+                    {{-- Hidden username for password managers (see the change-password form above). --}}
+                    <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly
+                           aria-hidden="true" tabindex="-1" style="display:none;">
                     <input type="password" name="current_password" class="vy-input" placeholder="Current password" autocomplete="current-password" required>
                     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="revokeId = null">Cancel</button>
