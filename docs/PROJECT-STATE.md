@@ -558,7 +558,7 @@ be removed in the name of parity.
 corrected here. THE COUNT IS THE BASELINE: if a run shows 8, you broke something — go and find it (that is
 exactly how the incomplete `firstOrCreate` fix in WAVE 2 was caught).**
 
-⚠️ **THE COUNT IS 7 AGAIN AS OF `9e1d3d1` — but it WAS 8 for seven gates and nobody noticed (J.bis).** The rule
+⚠️ **THE COUNT IS 7 AGAIN AS OF `9696b9c` — but it WAS 8 for seven gates and nobody noticed (J.bis).** The rule
 above only works if the number is **MEASURED each gate, not quoted from these notes.** Re-measure it.
 
 - **`BookingImportTest` (6) — a genuine TEST-ORDERING ARTIFACT.** Fails only inside a large batch; **passes
@@ -573,7 +573,7 @@ above only works if the number is **MEASURED each gate, not quoted from these no
   producing a transient failure. Confirmed by isolating the test (fails 8/8 on the colliding seed) and
   re-running the suite. If the count rises unexpectedly, isolate before assuming a regression.
 
-### ✅ J.bis — THE 8th NON-GREEN: found, understood, and CLOSED (2026-08-09, `9e1d3d1`)
+### ✅ J.bis — THE 8th NON-GREEN: found, understood, and CLOSED (2026-08-09, `9696b9c`)
 
 **A full run at `ee0121a` returned `1795 / 1803 · 11,857` — EIGHT non-green, not the seven every note asserted.**
 The documented seven were unmoved (`BookingImportTest` 6 · `OwnerUnitDetailViewTest` 1). **The eighth was

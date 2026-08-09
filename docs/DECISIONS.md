@@ -69,7 +69,7 @@ because that triple is the pre-AA **`--vy-muted`** original. **It is not an AA r
 once, as a 9px status **dot** background, never as text, and every dot carries its status word). The test's
 guard was a whole-file substring match, broader than its stated intent. **It rode through seven subsequent gates
 unnoticed — exactly the failure mode the "know your baseline count" lesson exists to prevent.**
-**✅ CLOSED at `9e1d3d1`** — see the dedicated entry below and `PROJECT-STATE.md` **§J.bis**.
+**✅ CLOSED at `9696b9c`** — see the dedicated entry below and `PROJECT-STATE.md` **§J.bis**.
 ⚠️ *A prior revision of this entry said the triple was the pre-AA `--vy-faint`; it is `--vy-muted`. Corrected.*
 
 **One finding logged, deliberately NOT fixed — D3-4.** Operator Insights' "Last year" occupancy divides by the
