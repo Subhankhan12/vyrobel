@@ -654,3 +654,65 @@ audit copy. **Role:** Hotel Manager. *(The work-order DETAIL — `Operator Work 
   hiding work orders that do not exist. ⚠️ The first version of this compared `$filter !== 'all'`; the real
   default is **`null`**, which would have shown the filter message on an empty board. Caught by reading the
   component, and corrected before it shipped.
+
+---
+
+## 12a. Operator Work Order detail (`/app/maintenance/{id}`)
+
+**Prototype:** `docs/design/raw/Operator Work Order.html` — 896 lines, decoded **byte-identical** to the audit
+copy. **Role:** Hotel Manager. *(Deferred from Page 11 and completed here.)*
+
+**Verdict: essentially AT PARITY — no design fix needed.** The live detail already carries the design's
+breadcrumb, title + status + priority chips, the facts grid, "Reported issue" with Add-photo, the Activity
+timeline with a Note / Progress / Part-ordered composer, and the right rail's dark STATUS card, ASSIGNED TO +
+Reassign, RESOLUTION TARGET bar, and MANAGE block. It also already implements the design's two most
+consequential flows: the **mark-resolved** modal capturing real cost + hours + notes + return-to-sale + notify
+(#17), and **Reassign** with "Notify both technicians".
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D12a-1 | An **Area** line — "Living room · Wall unit" — a sub-location within the unit. | No area/sub-location field exists on the ticket. | A nullable area/location column on `maintenance_tickets` plus a field in the create + edit flows. | **REAL GAP** — small, purely additive. |
+
+- **Already at parity (checked in source, not inferred from the screen):** the out-of-order impact block is
+  driven by **real `condition_status` + real affected bookings**, and the resolved-cost block posts a **real
+  `owner_expense`** — including the honest note *"Operator cost — this unit isn't owner-managed, so no owner
+  expense was posted."* ⚠️ The resolve modal is absent from the DOM for an `open` ticket; that is STATE, not
+  a missing feature (the §10 lesson).
+- **All six mutations POST real gated routes** (start, photos, notes, parts, cancel, assign); none submitted.
+  No guest contact anywhere (#28); status carries its word, never colour alone.
+
+---
+
+## 12b. Operator Maintenance Costs (`/app/maintenance/costs`)
+
+**Prototype:** `docs/design/raw/Operator Maintenance Costs.html` — 861 lines, decoded **byte-identical** to
+the audit copy. **Role:** Hotel Manager (`maintenance.manage`).
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D12b-1 | An **Excel workbook** export — "Summary + line-item tabs". | Export offers **PDF** and **CSV** only. | A spreadsheet writer (a new dependency) plus a second sheet for the summary. Both existing exports already share `MaintenanceCostService`'s property-scoped source, so a third must too — screen scope == export scope. | **REAL GAP** — needs a package decision, so explicitly not started here. |
+| D12b-2 | A **"Reporting month" / "Year peak" / "2024 ›"** period navigator with year drill-down. | Range pills (3M · 6M · 12M · All time) with no month or year drill. | A month/year parameter through `report()`'s existing `$from`/`$to`, plus the navigator. ⚠️ It must ride a **GET link** — the property middleware does not run on `/livewire/update` (#20). | **REAL GAP.** |
+| D12b-3 | A **6-month trend** chart. | `byMonth()` groups by month and returns **only months that have data**, so a single month of spend renders as a single bar rather than a trend. | Padding the series with genuine **zero** months across the selected range. That is a service-shape change, not a styling one — and zero is a true value, so it would not be fabrication. | **REAL GAP** — deliberately left to the backend phase. |
+
+### Also noted on this page (not backend gaps)
+
+- ⚠️ **THE PROPERTY SCOPE WAS NOT WIDENED — verified three ways.** (1) The diff is **one view file, the chart
+  block only**, reading the same `$report['by_month']` the old markup read — no query, service or scope was
+  touched. (2) `MaintenanceCostService::report(array $propertyIds, …)` still **requires** the read-set and
+  still filters `whereHas('unit', property_id ∈ $propertyIds)`; its own comment records that the scope
+  "MIRRORS the board exactly … rather than inventing" one. (3) **`MaintenanceCostScopeTest` passes 6/6** — the
+  adversarial proof from the auth pass, which is the test that would break if screen and export scopes
+  diverged. On screen, the costs shown (units 103 and A2) are both inside the current read-set: the demo
+  operator has no `property_user` pivot rows, so the pivot-or-all rule gives the full org (#38).
+- **Costs reconcile to the cent (#17), checked on the rendered page:** rows €45.00 + €180.00 = the **€225.00**
+  total; Avg/order €112.50 = 225 ÷ 2; Spend-by-category Appliance €180 + Structural €45 = €225; Owner-billed
+  €180 + Operator-borne €45 = €225; Top units A2 €180 + 103 €45 = €225; Labour €225 + Parts €0 = €225.
+- **The export was NOT touched** — PDF and CSV generation, and their shared property-scoped source, are
+  unchanged.
+- **#28** — no guest contact on any cost line. Money is never colour-only; every figure is printed.
+- **Fixed (presentation, and an anti-drift consolidation):** "Spend by month" was a **second hand-rolled bar
+  chart** and is now rendered through the shared `<x-charts.bars>`. Two real defects went with it: the local
+  copy printed its figure only in a **`title` tooltip** (invisible without a mouse, and on touch entirely),
+  and it floored every bar at **`max(3, …)`**, so a genuinely **€0 month would draw a visible stub that reads
+  as real spend** — exactly the #39 fix already recorded in the shared component's comments. The month now
+  shows its label **and** its figure on the page.

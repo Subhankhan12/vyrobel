@@ -126,17 +126,26 @@
                     {{-- 6-month trend --}}
                     <div class="vy-card">
                         <h2 class="vy-card-title" style="margin-bottom: 12px;">Spend by month</h2>
-                        @php $months = array_reverse($report['by_month']); $mMax = collect($months)->max('total_minor') ?: 1; @endphp
-                        <div style="display: flex; align-items: flex-end; gap: 6px; height: 100px;">
-                            @forelse ($months as $m)
-                                <div style="flex: 1; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; height: 100%;">
-                                    <div style="width: 100%; height: {{ max(3, (int) round($m['total_minor'] / $mMax * 100)) }}%; background: var(--vy-accent); border-radius: 3px 3px 0 0;" title="{{ $money($m['total_minor']) }}"></div>
-                                    <div style="font-size: 10px; color: var(--vy-muted); margin-top: 4px;">{{ $monthLabel($m['month']) }}</div>
-                                </div>
-                            @empty
-                                <div class="vy-empty">No monthly history yet.</div>
-                            @endforelse
-                        </div>
+                        {{-- Rendered through the SHARED <x-charts.bars>, not a second hand-rolled bar chart.
+                             Two reasons beyond consistency: the local copy printed its figure only in a
+                             `title` tooltip (invisible to anyone not hovering, and to touch entirely), and it
+                             floored every bar at `max(3, …)` — so a genuinely €0 month drew a visible stub
+                             that reads as real spend. The shared component draws nothing for a true zero,
+                             which is the #39 fix already recorded in its own comments. --}}
+                        @php
+                            $months = array_reverse($report['by_month']);
+                            $mMax = collect($months)->max('total_minor') ?: 1;
+                            $monthBars = array_map(fn (array $m): array => [
+                                'label' => $monthLabel($m['month']),
+                                'display' => $money($m['total_minor']),
+                                'pct' => (int) round($m['total_minor'] / $mMax * 100),
+                            ], $months);
+                        @endphp
+                        @if ($monthBars === [])
+                            <div class="vy-empty">No monthly history yet.</div>
+                        @else
+                            <x-charts.bars :bars="$monthBars" height="100px" />
+                        @endif
                     </div>
 
                     {{-- Top units --}}
