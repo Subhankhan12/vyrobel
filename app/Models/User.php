@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Mail\PasswordResetMail;
+use App\Support\Security\ActiveSessions;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -86,12 +87,22 @@ class User extends Authenticatable implements OAuthenticatable
      * invalidates any "remember me" cookie held by OTHER sessions (a password change must end other remembered
      * sessions), while the CURRENT request's session stays valid — the caller keeps the user signed in here.
      */
-    public function changePasswordTo(string $plainPassword): void
+    /**
+     * @param  ?string  $keepSessionId  the session to SPARE (the browser doing the change); null kills them all
+     */
+    public function changePasswordTo(string $plainPassword, ?string $keepSessionId = null): void
     {
         $this->forceFill([
             'password' => $plainPassword,
             'remember_token' => Str::random(60),
         ])->save();
+
+        // ⚠️ TERMINATE THE OTHER SESSIONS (auth pass, item 3). Rotating the remember-token kills "remember me"
+        // COOKIES, but an attacker holding a live server-side session was completely unaffected — so a
+        // password reset did not actually lock them out, which is the entire reason someone resets a
+        // compromised password. This lives in the SHARED path (both PasswordResetController and
+        // ChangePasswordController call it), so neither flow can forget it or drift from the other.
+        ActiveSessions::terminateFor((string) $this->getKey(), $keepSessionId);
     }
 
     /**

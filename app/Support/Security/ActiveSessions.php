@@ -37,6 +37,30 @@ final class ActiveSessions
     }
 
     /** An honest device label from a user-agent — "Chrome · Mac", "Unknown device" when absent (never invented). */
+    /**
+     * Terminate a user's sessions — the ONE place a session is killed server-side (auth pass, item 3).
+     *
+     * A password change rotated the hash and the remember-token, which kills "remember me" COOKIES — but an
+     * attacker holding a live server-side session was completely unaffected, so a reset did not actually lock
+     * them out. That is the whole point of resetting a compromised password.
+     *
+     * Deletes the rows from the `sessions` table (database driver), so they cannot be restored. Pass the
+     * current session id to KEEP it — the in-app change-password flow must not log you out of the browser
+     * you are typing in; a reset passes null, because the user is signed in fresh immediately afterwards.
+     *
+     * @return int how many sessions were terminated
+     */
+    public static function terminateFor(string $userId, ?string $keepSessionId = null): int
+    {
+        $query = DB::table('sessions')->where('user_id', $userId);
+
+        if ($keepSessionId !== null) {
+            $query->where('id', '!=', $keepSessionId);
+        }
+
+        return $query->delete();
+    }
+
     public static function describeUserAgent(string $ua): string
     {
         $browser = match (true) {

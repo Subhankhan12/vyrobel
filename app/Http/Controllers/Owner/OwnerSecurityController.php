@@ -10,10 +10,10 @@ use App\Models\Payout;
 use App\Models\Unit;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Security\ActiveSessions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -34,10 +34,9 @@ class OwnerSecurityController extends Controller
 
         $request->validate(['current_password' => ['required', 'current_password']]);
 
-        $deleted = DB::table('sessions')
-            ->where('user_id', $user->getKey())
-            ->where('id', '!=', $request->session()->getId())
-            ->delete();
+        // Via the SHARED terminator (auth pass, item 3) — the same code the password paths use, so
+        // "sign out others" and "reset kills siblings" can never diverge in what they actually delete.
+        $deleted = ActiveSessions::terminateFor((string) $user->getKey(), $request->session()->getId());
 
         // Rotate the remember-token so any "remember me" cookie on those devices is dead too.
         $user->forceFill(['remember_token' => Str::random(60)])->save();

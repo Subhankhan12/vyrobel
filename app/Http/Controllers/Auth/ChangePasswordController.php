@@ -57,7 +57,8 @@ class ChangePasswordController extends Controller
 
         // The ONE shared hash + remember-token-rotate path: invalidates other remembered sessions; this
         // session stays valid (the user is NOT logged out on the current device).
-        $user->changePasswordTo((string) $request->string('password'));
+        // Keep the browser doing the change; every OTHER session is terminated.
+        $user->changePasswordTo((string) $request->string('password'), $request->session()->getId());
 
         return redirect()->to($back)->with('password_status', 'Your password has been changed.');
     }
