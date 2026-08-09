@@ -67,6 +67,14 @@ class OwnerPayouts extends Component
         $byId = $statements->keyBy('id');
         $focus = $payouts->first(fn (Payout $p): bool => $p->status === 'pending') ?? $payouts->first();
 
+        // ⚠️ WAVE 3 — the YEAR filter. `distinctYears()` already built a real list of the owner's payout
+        // years and NOTHING rendered or used it, so the wireframe's filter did not exist. Rides a GET link
+        // like every other owner filter (a wire-action would bypass the owner middleware, #20).
+        $requestedYear = request()->query('year');
+        $activeYear = is_string($requestedYear) && preg_match('/^\d{4}$/', $requestedYear) === 1
+            ? (int) $requestedYear
+            : null;
+
         $ctx = app(OwnerContext::class);
         $rail = OwnerNextPayout::rail($ctx);   // {iban_masked (CAP_PAYOUT only), paused (the real tax-hold)}
 
@@ -74,7 +82,10 @@ class OwnerPayouts extends Component
             'viewer' => $this->viewer(),
             'currency' => $currency,
             'currencySymbol' => $this->currencySymbol($currency),
-            'payouts' => $this->historyRows($payouts, $byId),
+            // Only the HISTORY narrows: the KPI band and the next-payout card describe the owner's whole
+            // position, and filtering them by a browsed year would make their labels false.
+            'payouts' => $this->historyRows($this->applyYear($payouts, $activeYear), $byId),
+            'activeYear' => $activeYear,
             'metrics' => $this->metrics($payouts, $currency),
             'nextPayout' => $this->nextPayoutCard($focus, $byId, $currency),
             'lifecycle' => $this->lifecycle($focus),
@@ -370,6 +381,23 @@ class OwnerPayouts extends Component
      * @param  Collection<int, Payout>  $payouts
      * @return list<int>
      */
+    /**
+     * Narrow the HISTORY to one year. Null — or a malformed `?year=` — yields every payout, so a junk query
+     * string widens rather than silently emptying the screen. A valid year the owner has no payouts in
+     * legitimately shows none: that is a true empty, not a bug.
+     *
+     * @param  Collection<int, Payout>  $payouts
+     * @return Collection<int, Payout>
+     */
+    private function applyYear(Collection $payouts, ?int $year): Collection
+    {
+        if ($year === null) {
+            return $payouts;
+        }
+
+        return $payouts->filter(fn (Payout $p): bool => $this->payoutDate($p)['year'] === $year)->values();
+    }
+
     private function distinctYears(Collection $payouts): array
     {
         $years = [];

@@ -109,6 +109,20 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:10px">
                     <h2 class="vy-card-title">Payout history</h2>
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        {{-- WAVE 3 — the YEAR filter. distinctYears() already computed the owner's REAL payout
+                             years and nothing rendered them. Real years only (never a fabricated range), and
+                             only when there is more than one to choose between. A plain GET link — a
+                             wire-action would bypass the owner middleware (#20). --}}
+                        @if (count($years) > 1)
+                            <span style="display:inline-flex;gap:4px">
+                                <a href="{{ route('owner.payouts') }}"
+                                   style="font-size:12px;padding:5px 11px;border-radius:999px;text-decoration:none;{{ $activeYear === null ? 'background:var(--vy-accent);color:#fff;font-weight:600' : 'color:var(--vy-muted);border:1px solid var(--vy-glass-border)' }}">All</a>
+                                @foreach ($years as $y)
+                                    <a href="{{ route('owner.payouts', ['year' => $y]) }}"
+                                       style="font-size:12px;padding:5px 11px;border-radius:999px;text-decoration:none;{{ $activeYear === $y ? 'background:var(--vy-accent);color:#fff;font-weight:600' : 'color:var(--vy-muted);border:1px solid var(--vy-glass-border)' }}">{{ $y }}</a>
+                                @endforeach
+                            </span>
+                        @endif
                         <input type="search" x-model="q" placeholder="Search month or status" aria-label="Search payouts"
                                style="padding:8px 12px;border-radius:var(--vy-r-sm);border:1px solid var(--vy-glass-border);background:rgba(255,255,255,.6);font-size:13px;font-family:var(--vy-sans)">
                         @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
