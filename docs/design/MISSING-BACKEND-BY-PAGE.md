@@ -819,3 +819,81 @@ access · Guest-facing brand · Taxes & fees editor · Organization.
   messages 8, welcome 7, unit-detail 7). **A blanket replace would be WRONG** — many sit on tinted chip
   backgrounds where the accent is the correct foreground, which is exactly why 31 chip/tag rules were left
   during the Page-4 pass. Each site needs its real composited background measured. Worth its own pass.
+
+---
+
+## 15 · GATE A — OPERATOR-REALM COVERAGE SWEEP (enumeration + reconciliation)
+
+`docs/design/raw/` holds **125** prototypes: **42 OPERATOR** · 32 OWNER · 32 GUEST · 19 shell/email/PDF/other
+(`index`, `System States`, the 8 transactional emails, the `Vyrobel *` auth/onboarding/checkout set).
+
+**Operator set: 22 covered, 20 remaining.**
+
+✅ **Covered (22):** Dashboard (P1) · Calendar (P2) · Insights (P3) · Reports (P4) · Front Desk (P5) ·
+Reservations (P6a) · Reservation Detail (P6b) · Reservation Cancelled + No-show (P6c) · Guests (P7a) ·
+Guest Profile (P7b) · Housekeeping (P8) · Team Schedule (P9) · **Messages + Conversation + Inbox** (P10,
+three prototypes → one live page) · Maintenance (P11) · Work Order (P12a) · Maintenance Costs (P12b) ·
+Maintenance Settings (P13) · Settings (P14) · **Property Settings (P14 — a SECOND prototype of the same live
+page; its title, Policies, Tax & fees, Owner and Property-status blocks all match `/app/settings`)**.
+
+⬜ **Remaining (20), ordered by stakes:**
+
+| # | Prototype | Live route | Why it ranks here |
+|---|---|---|---|
+| 1 | Operator Refund | `/app/reservations/{id}/refund` | ⚠️ real money · #27 refund bound — **closed in GATE B below** |
+| 2 | Operator Payout Run | `/app/payouts/run` | ⚠️ real money · owner payouts |
+| 3 | Operator Billing | `/app/billing` | ⚠️ money · **the OPEN billing decision** |
+| 4 | Operator Rates | `/app/rates` | ⚠️ money · what guests are charged |
+| 5 | Operator New Reservation | `/app/reservations/create` | ⚠️ money + inventory (`AssignmentService`) |
+| 6 | Operator Group Booking | `/app/group-booking` | ⚠️ money + inventory |
+| 7 | Operator Owners | `/app/owners` | ⚠️ PII · owner isolation (#28/#42) |
+| 8 | Operator Owner Detail | `/app/owners/{id}` | ⚠️ PII · owner isolation |
+| 9 | Operator Roles | `/app/roles` | ⚠️ RBAC escalation (#30) |
+| 10 | Operator Security | `/app/security` | auth · the firm rulings |
+| 11 | Operator Reviews | `/app/reviews` | guest-authored content |
+| 12 | Operator Channels | `/app/channels` | OTA claims (#37) |
+| 13 | Operator Portfolio | `/app/portfolio` | multi-property isolation (#38) |
+| 14 | Operator Search | `/app/search` | cross-entity · isolation |
+| 15 | Operator Notifications | `/app/notifications` | self-only feed |
+| 16 | Operator Notification Preferences | `/app/notification-preferences` | preferences |
+| 17 | Operator Email Templates | `/app/email-templates` | guest-facing copy |
+| 18 | Operator Email Editor | `/app/email-templates/{key}/edit` | guest-facing copy |
+| 19 | Operator Profile | `/app/profile` | account |
+| 20 | Operator Schedule PDF | `/app/schedule/pdf` | a PDF, not a screen |
+
+**No operator prototype lacks a live equivalent** — every one of the 42 maps to a real route. (`Operator
+Inbox`/`Messages`/`Conversation` collapse onto one live page, and `Property Settings`/`Settings` onto another;
+those are prototype variants, not missing surfaces.)
+
+---
+
+## 15 · GATE B — Operator Refund (`/app/reservations/{id}/refund`)
+
+**Prototype:** `docs/design/raw/Operator Refund.html`. ⚠️ **Role: `payments.refund`** — the route comment notes
+the GET screen is gated too, so an unpermitted role never opens a form that would 403 on submit. Reviewed as
+`demo-admin` (Property Owner).
+
+**Verdict: AT PARITY — no design fix needed, 0 code changed.** This page already states its own money bounds
+better than the mock does.
+
+| # | What the prototype shows | Live | Verdict |
+|---|---|---|---|
+| D15-1 | A stored card — **"Original card · Visa ····4242 · Back to the card on file · 2–5 business days"**, and SEPA **"1–2 business days"**. | "Original method · Manual / offline" and "Manual bank transfer · recorded, no gateway". | **REFUSAL-PRESERVE.** No card is stored (SAQ A — no raw PAN), and no gateway means **no delivery ETA exists**. Verified absent: no "Visa", no "4242", no "business days", no "Arrives". **Do not add a card or an ETA to match the mock.** |
+| D15-2 | The guest's **email** (`amara.okafor@mail.com`) on the refund card. | Guest **name only**. | **REFUSAL-PRESERVE (#28).** The CRM is the one PII surface; a refund screen is not. Verified: no email or phone anywhere on the page. |
+| D15-3 | **Per-charge refunding** — a charge list with "Posted {date}" and a "Selected total". | An honest **"Refund by individual charge — SOON"** card: *"Refunds attach to a payment, not to individual charges — a per-charge credit note is a separate concept."* | **RATIFIED REFUSAL, already stated.** |
+| D15-4 | The **unit** ("Villa Azure") in the reservation header. | Header shows Guest + Stay; the payload is `{id, reference, status_label, check_in, check_out, guest, folio, payments}` — **no unit**. | **REAL GAP** — small, but it needs the unit loading into the component, so it is backend, not markup. Logged, not built. |
+
+### Safety line — verified on the rendered page
+
+- ⚠️ **#27, the cumulative refund bound, is SURFACED not just enforced:** Original **€369.00** − Already
+  refunded **€0.00** = Still refundable **€369.00**, arithmetically consistent, with the rule stated in copy:
+  *"Up to €369.00 is still refundable against this payment. Anything above that is refused, **not trimmed to
+  fit**."* (This is the very payment that once took three full refunds before #27 existed.)
+- **#17 reconciles:** Charges €369.00 − Paid €369.00 = Balance due €0.00, with a *"Reconciled to the folio
+  ledger"* badge.
+- **Append-only (#7) is explained, not just implemented:** *"A reversing entry is appended … The original
+  payment is never edited or removed"*, and *"Refunds cannot be reversed once issued."*
+- **Both refund forms POST** the real `payments.refund`-gated route. **Nothing was submitted.**
+- **Test mode is honest:** *"Card refunds run in test mode until go-live — no real money moves yet."*
+- **Contrast:** only one raw-accent text node on the page ("Open all notifications →" in the bell panel),
+  measured **5.06** on its opaque panel background — passes AA. No fix needed here.
