@@ -53,6 +53,7 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 |---|---|---|---|---|---|
 | 1 | Operator Dashboard | `/app/dashboard` | Hotel Manager | ✅ matched | **3** (1 real gap · 1 real gap · 1 refusal) |
 | 2 | Operator Calendar | `/app/calendar` | Hotel Manager | ✅ matched | **2** (1 real gap · 1 account-gated) |
+| 3 | Operator Insights | `/app/insights` | Hotel Manager | ✅ matched | **3** (2 real gaps · 1 refusal) + ⚠️ **1 figure-honesty finding** |
 
 ---
 
@@ -120,3 +121,59 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 - **Main content width.** This prototype specifies `max-width: 1280px` where the Dashboard prototype says
   `1180px`; the shared shell uses one `1480px` for every page. A per-page content width would be a shell
   change affecting ~43 pages — left alone, noted.
+
+---
+
+## 3 · Operator Insights — `/app/insights` (Hotel Manager)
+
+**Prototype:** `docs/design/raw/Operator Insights.html` (decoded 2026-08-09; byte-identical to the
+2026-08-07 audit decode). **Live component:** `App\Livewire\Operator\OperatorInsights`. **Design pass:**
+complete.
+
+**Isolation checked first (#38/#28):** every figure resolves through
+`PerformanceMetrics::forProperties($this->currentReadIds, …)` / `BookingCadence::*ForProperties($ids, …)`,
+and the per-property rows pass a single `[$pid]`. **No aggregate spans properties or orgs**, and no guest
+identity appears anywhere on the page. Nothing to escalate.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D3-1 | **Custom date range.** The range popover offers presets *and* a From/To month-chip grid (12 + 12 chips), so an operator can ask for any arbitrary window. | `resolveRange()` accepts exactly **5 preset keys** (`ytd`, `6m`, `summer`, `q4`, default this-year) via `?range=`. There is no way to express an arbitrary start/end. | Accept `?from=`/`?to=` (validated, clamped, tenant-safe) alongside `range`, and thread them through the existing `PerformanceMetrics`/`BookingCadence` calls — those already take explicit start/end, so the metric layer needs no change. ⚠️ Whatever is chosen must also drive the "vs last year" window, or the delta silently compares mismatched spans. | **REAL GAP** |
+| D3-2 | **Per-channel delta + warning dot.** Each channel-mix row carries a change figure beside its share, and a red dot flags a channel needing attention. | `channelMix` returns `label` + `pct` only. There is no prior-period share computed, and no channel-health signal on this page. | A prior-period channel mix over the same-length preceding window, diffed per source; the "needs attention" dot would key off real `channels.status` / `last_synced_at` rather than a threshold on the share. ⚠️ Only render a delta where a prior period genuinely has bookings — an empty prior window must omit it, not print `+100%`. | **REAL GAP** |
+| D3-3 | **"Suggested next step" dark card + three narrative observations** ("The Expedia disconnect is costing Marina Suites", "Saturdays sell out group-wide", "Turnover load piles up on Fridays"), each with a euro/percentage figure and a prescriptive action. | Nothing missing. The live "Worth a look" renders only **real derived** observations, and the channel-level one states plainly that per-channel gap analysis needs a connected channel manager rather than estimating a figure. | — | **RATIFIED REFUSAL** — `WIREFRAME-PARITY-SWEEP-2026-08-08.md` §5: *"No generated narrative / 'suggested next step' / smart-pricing suggestions / comp-set benchmark."* **Do not build.** |
+
+### ⚠️ D3-4 · A FIGURE-HONESTY FINDING (not a design gap — surfaced, not fixed)
+
+**The "Last year" series is divided by the availability spine's coverage, not by the month.**
+
+Measured on the live demo data: the `availability` table holds **9 rows in the whole of 2025**, and the
+earliest is `2025-08-21`. September 2025 has **3 rows for a 30-day month**, each `total=2, sold=1`. The
+chart therefore renders **"Last year 50%"** for September — which is 50% *of the three nights that have
+any data at all*, presented under a label that reads as the month's occupancy. Four LY months
+(Aug/Sep/Oct/Nov) all read exactly 50% for this reason.
+
+- **Why it is not a design fix:** the number is produced by `PerformanceMetrics::monthlyTrendForProperties`.
+  This pass is design-only and explicitly must not change a computation, so it is recorded, not touched.
+- **Why it matters:** it is the WAVE-2 class exactly — *a figure under a label that means something else* —
+  and it feeds the KPI deltas too (`−40 pts` occupancy is measured against that same thin LY window).
+- **What it would need:** a **coverage guard** on the LY series — compute the spine's day-coverage for each
+  comparison window and omit the LY bar (and the delta) when coverage is below a threshold, exactly as the
+  product already omits vs-LY where no prior-year data exists at all. The honest states already exist in the
+  codebase (`has_ly`, `enough`); this is the same idea applied to *partial* coverage rather than *absent*
+  coverage.
+- **Demo-vs-production note:** the thin 2025 spine is an artifact of `DemoSeeder::seedAnalyticsHistory`
+  backdating a handful of bookings. In production the spine is dense going forward — but the same hole opens
+  for **any** tenant in its first year, which is every new tenant.
+
+### Also noted on this page (not backend gaps)
+
+- **Property filter chips.** The prototype puts per-property chips on the page. The live product routes
+  property selection through the topbar `PropertyContext` switcher (the certified #38 mechanism) and links
+  to it — a ratified divergence, kept.
+- **⚠️ REALM-WIDE: accent links on glass measure 4.06:1, under AA.** `var(--vy-accent)` (`rgb(194,65,12)`)
+  is the app's standard link colour (`.vy-arr-link` and every accent link); on the composited card
+  background it measures **4.06:1** against the 4.5 bar. The prototype's own `#B4400F` is **4.48:1** — also
+  under. This pass did **not** make it worse (the new observation link uses the same token as every other
+  link rather than inventing a one-off hex), but it is the same shape as the sidebar finding that became
+  Gate A. **Founder's call** whether to add an accent-text-on-glass token realm-wide.
+- **KPI label size.** The Insights prototype specifies 10.5px where the Dashboard prototype specifies 11px
+  for the same shared `.vy-dk-label`. Left at 11px — a 0.5px scoped override is not worth the drift.

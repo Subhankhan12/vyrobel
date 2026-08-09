@@ -225,6 +225,54 @@
         /* Analytics — Insights + Reports (Phase 6b). */
         .vy-ins-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-top: 14px; }
         @media (max-width: 900px) { .vy-ins-grid { grid-template-columns: 1fr; } }
+
+        /* ---- Operator Insights — wireframe parity ------------------------------------------------
+           Scoped to .vy-ins. The page previously reused the shared .vy-ins-grid (also used by Reports,
+           Owners, Billing-checkout, Profile and Maintenance-costs), which is left untouched. */
+        .vy-ins-cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+        .vy-ins-main, .vy-ins-rail { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .vy-ins .vy-dk-val { font-size: 32px; }
+        .vy-ins .vy-ins-sub { font-size: 11.5px; color: var(--vy-muted); margin: 2px 0 12px; }
+        /* The delta reads as a pill beside the figure. */
+        .vy-ins-delta { padding: 3px 8px; border-radius: var(--vy-r-pill); background: rgba(217, 102, 46, 0.14); color: #B4400F; font-size: 11px; font-weight: 500; white-space: nowrap; }
+        .vy-ins-delta.is-down { background: rgba(143, 49, 16, 0.12); color: #8F3110; }
+
+        /* Occupancy-by-month chart. Fixed-width bars as in the design; the axis is a true 0-100%. */
+        .vy-ins-chart { display: flex; align-items: flex-end; gap: 6px; height: 170px; margin-top: 16px; }
+        .vy-ins-chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0; }
+        .vy-ins-chart-plot { width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px; height: 140px; }
+        .vy-ins-bar { border-radius: 4px 4px 2px 2px; }
+        .vy-ins-bar.is-ly { width: 10px; background: rgba(120, 70, 40, 0.18); }
+        .vy-ins-bar.is-ty { width: 12px; background: linear-gradient(180deg, #E8703A, #C2410C); }
+        .vy-ins-bar.is-otb { width: 12px; background: repeating-linear-gradient(135deg, rgba(232,112,58,.8) 0 3px, rgba(232,112,58,.3) 3px 6px); }
+        .vy-ins-chart-lbl { font-size: 10.5px; color: var(--vy-muted); }
+
+        /* "Worth a look" — the design's icon-tile rows, divided, not a grid of mini-cards. */
+        .vy-ins-obs { display: flex; flex-direction: column; margin-top: 8px; }
+        .vy-ins-ob { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(120, 70, 40, 0.08); }
+        .vy-ins-ob:last-child { border-bottom: none; padding-bottom: 4px; }
+        .vy-ins-ob-ico { width: 36px; height: 36px; border-radius: 12px; background: rgba(217, 102, 46, 0.14); color: #B4400F; display: flex; align-items: center; justify-content: center; flex: none; }
+        .vy-ins-ob.is-deferred .vy-ins-ob-ico { background: rgba(120, 70, 40, 0.08); color: var(--vy-muted); }
+        .vy-ins-ob-t { font-size: 13.5px; font-weight: 500; color: var(--vy-ink); }
+        .vy-ins-ob-b { font-size: 12.5px; color: var(--vy-muted); line-height: 1.55; margin: 3px 0 0; }
+        /* The design's #B4400F measures 4.48:1 here — just under AA at this size. --vy-accent clears it. */
+        .vy-ins-ob-a { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; font-size: 12px; font-weight: 500; color: var(--vy-accent); text-decoration: none; }
+
+        /* By-property, as the design's compact rail table (the shared .vy-utable forces min-width:720px,
+           which is why this clipped inside the rail). */
+        .vy-ins-bp { display: grid; grid-template-columns: minmax(0, 1fr) 40px 46px 52px; gap: 4px 8px; align-items: center; margin-top: 4px; }
+        .vy-ins-bp-h { font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-muted); text-align: right; }
+        .vy-ins-bp-c { font-size: 12.5px; padding: 7px 0; border-top: 1px solid rgba(120, 70, 40, 0.08); text-align: right; font-variant-numeric: tabular-nums; color: var(--vy-ink); }
+        .vy-ins-bp-c.is-name { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vy-ins-bp-c.is-group { font-weight: 600; }
+
+        /* Nights that fill first — the design's near-square tiles with the value seated at the bottom. */
+        .vy-ins-nights { display: flex; gap: 5px; }
+        .vy-ins-night { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+        .vy-ins-night-tile { width: 100%; aspect-ratio: 1 / 1.25; border-radius: 9px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; box-sizing: border-box; font-size: 10px; font-weight: 500; font-variant-numeric: tabular-nums; }
+        .vy-ins-night-lbl { font-size: 10px; color: var(--vy-muted); }
+
+        @media (max-width: 1100px) { .vy-ins-cols { grid-template-columns: minmax(0, 1fr); } }
         .vy-card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
         .vy-card-head h3 { margin: 0; font-family: var(--vy-display, inherit); font-size: 14px; font-weight: 600; color: var(--vy-ink); }
         .vy-card-note { font-size: 11.5px; color: var(--vy-faint); }
