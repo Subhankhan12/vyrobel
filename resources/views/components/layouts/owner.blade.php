@@ -822,8 +822,35 @@
         /* ---- Motion & accessibility floor ---------------------------------------------------- */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }
+            html { scroll-behavior: auto; }
             .vy-fade { opacity: 1; }
         }
+
+        /* ---- Scrollbars ------------------------------------------------------------------------
+           The page scroller and the sidebar's own scroller, themed to the terracotta accent instead of
+           the browser default grey. Thin, rounded, track-less, with a soft hover lift.
+           Styled twice on purpose: scrollbar-width/color is the standards track (Firefox), the
+           ::-webkit-scrollbar rules cover Chrome/Safari. Both read the SAME --vy-accent tokens, so the
+           bar can never drift from the palette. */
+        html { scrollbar-width: thin; scrollbar-color: var(--vy-accent-2) transparent; scroll-behavior: smooth; }
+
+        ::-webkit-scrollbar { width: 11px; height: 11px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--vy-accent-3, rgb(232,112,58)), var(--vy-accent));
+            border-radius: 999px;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            transition: background var(--vy-t-fast, .18s ease);
+        }
+        ::-webkit-scrollbar-thumb:hover { border-width: 2px; background-clip: padding-box; }
+        ::-webkit-scrollbar-corner { background: transparent; }
+
+        /* The sidebar keeps a slimmer bar so it never competes with the nav. */
+        .vy-side { scrollbar-width: thin; scrollbar-color: var(--vy-accent-2) transparent; }
+        .vy-side::-webkit-scrollbar { width: 8px; }
+        .vy-side::-webkit-scrollbar-thumb { border-width: 2px; }
+
     </style>
 </head>
 <body class="vy-body">

@@ -53,7 +53,7 @@
             background-attachment: fixed;
         }
         @keyframes vyFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; } html { scroll-behavior: auto; } }
         .vy-top { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); background: rgba(251, 243, 236, 0.72); border-bottom: 1px solid var(--vy-hairline); }
         .vy-top-in { max-width: 760px; margin: 0 auto; padding: 13px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
         .vy-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; }
@@ -153,6 +153,32 @@
         /* Belt-and-braces: nothing in the portal may force the document wider than the screen. Catches a
            fixed width added to a page later, which is exactly how this regressed in the first place. */
         html, body { max-width: 100%; overflow-x: hidden; }
+
+        /* ---- Scrollbars ------------------------------------------------------------------------
+           The page scroller and the sidebar's own scroller, themed to the terracotta accent instead of
+           the browser default grey. Thin, rounded, track-less, with a soft hover lift.
+           Styled twice on purpose: scrollbar-width/color is the standards track (Firefox), the
+           ::-webkit-scrollbar rules cover Chrome/Safari. Both read the SAME --vy-accent tokens, so the
+           bar can never drift from the palette. */
+        html { scrollbar-width: thin; scrollbar-color: var(--vy-accent-2) transparent; scroll-behavior: smooth; }
+
+        ::-webkit-scrollbar { width: 11px; height: 11px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--vy-accent-3, rgb(232,112,58)), var(--vy-accent));
+            border-radius: 999px;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            transition: background var(--vy-t-fast, .18s ease);
+        }
+        ::-webkit-scrollbar-thumb:hover { border-width: 2px; background-clip: padding-box; }
+        ::-webkit-scrollbar-corner { background: transparent; }
+
+        /* The sidebar keeps a slimmer bar so it never competes with the nav. */
+        .vy-side { scrollbar-width: thin; scrollbar-color: var(--vy-accent-2) transparent; }
+        .vy-side::-webkit-scrollbar { width: 8px; }
+        .vy-side::-webkit-scrollbar-thumb { border-width: 2px; }
+
     </style>
     @if ($brandAccent !== null)
         <style>:root { --vy-accent: {{ $brandAccent }}; --vy-shadow-accent: {{ $brandAccent }}47 0 4px 12px; }</style>
