@@ -16,9 +16,9 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **exactly**, and **LOG — never build — every backend the prototype implies** to
 > **`docs/design/MISSING-BACKEND-BY-PAGE.md`**, which drives a SEPARATE later backend phase.
 >
-> **State: OPERATOR 23 of 42 prototypes covered (Pages 1–15, `0aa9ede`→`ee0121a`), 19 remaining. ⬅ NEXT PAGE =
-> Operator Payout Run (`/app/payouts/run`).** The OWNER (32) and GUEST (32) prototype sets are entirely
-> untouched by this pass.
+> **State: 🏁 THE OPERATOR REALM IS COMPLETE — 42 of 42 prototypes, 34 numbered gates
+> (`0aa9ede`→`edb7cce`). ⬅ NEXT = the OWNER realm (32 prototypes).** The OWNER (32) and GUEST (32)
+> prototype sets are entirely untouched by this pass.
 >
 > It does **not** contradict the closed sweep — it is presentation work and it preserves every §5 refusal and
 > ratified divergence (**H.bis**, **#39**). But it has surfaced things the sweep did not, including a duplicate
@@ -153,8 +153,8 @@ workstream, and the flips are the *founder's*.
 ⚠️ **ONE QUALIFIER, ADDED 2026-08-09:** a **DESIGN-PARITY PASS is now running on top of all of the above (§N)** —
 per-page, presentation-only, one page per turn. It is **not** a reopening of the parity sweep (that closed, and
 this pass preserves its refusals); it is a finer-grained design-fidelity track whose second output is a **logged
-backend backlog** (`docs/design/MISSING-BACKEND-BY-PAGE.md`) for a later phase. **Operator 23/42 prototypes
-covered; owner + guest untouched.** So "the remainder is only a decision + infrastructure" is true of *quality*,
+backend backlog** (`docs/design/MISSING-BACKEND-BY-PAGE.md`) for a later phase. **🏁 Operator 42/42 COMPLETE;
+owner (32) + guest (32) untouched.** So "the remainder is only a decision + infrastructure" is true of *quality*,
 and incomplete as a description of *what is being worked*.
 
 The audit is why the status changed: all three QA passes tested behaviour **through the UI**, and the two worst
@@ -530,8 +530,8 @@ be removed in the name of parity.
 
 ## (I) WHAT REMAINS — the roadmap
 
-0. ⬅ **THE DESIGN-PARITY PASS — IN PROGRESS, and it is the ACTIVE track (§N).** Operator **23/42** prototypes
-   covered; **19 operator remain (next: Payout Run)**, then the untouched **32 owner + 32 guest** sets. It
+0. ⬅ **THE DESIGN-PARITY PASS — the ACTIVE track (§N).** 🏁 **The OPERATOR realm is COMPLETE (42/42, 34
+   gates, `0aa9ede`→`edb7cce`)**; **next is the OWNER realm**, then the untouched **32 guest** set. It
    also accumulates **the backend backlog** (`docs/design/MISSING-BACKEND-BY-PAGE.md`) that becomes a
    separate later phase. Presentation-only — it changes nothing on items 1–5.
 1. ⛔ **THE BILLING DECISION (G.1) — the founder's business call.** Blocks the Stripe live-key flip. Do NOT

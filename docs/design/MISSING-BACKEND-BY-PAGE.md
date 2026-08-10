@@ -874,7 +874,8 @@ access · Guest-facing brand · Taxes & fees editor · Organization.
 (`index`, `System States`, the 8 transactional emails, the `Vyrobel *` auth/onboarding/checkout set).
 
 **Operator set: 22 covered, 20 remaining** *(as at the moment GATE A was written — **GATE B below then closed
-Refund**, so the standing figure is **23 covered / 19 remaining**; see the page index at the top of this file).*
+Refund**. ⚠️ **That figure is historical — the operator realm is now COMPLETE at 42/42**; see the STATUS
+header at the top of this file).*
 
 ✅ **Covered (22):** Dashboard (P1) · Calendar (P2) · Insights (P3) · Reports (P4) · Front Desk (P5) ·
 Reservations (P6a) · Reservation Detail (P6b) · Reservation Cancelled + No-show (P6c) · Guests (P7a) ·
