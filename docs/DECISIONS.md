@@ -6696,3 +6696,65 @@ shipped and are on this page.
 
 **Gates:** suite **1833 / 12,024 · 9 non-green** — the identical documented set, no new failures. PHPStan L5
 (0); Pint clean; 1440×1000, **0 horizontal overflow**, 0 console errors. No schema touched.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER gate O5: Owner My Units (5 of 32)
+
+**Route** `/owner/units` (`OwnerMyUnits`, `$capCalendar`), role `External Owner`. Prototype
+`docs/design/raw/Owner My Units.html`, decoded fresh (byte-identical to `/tmp/audit`). Record §O5.
+**Markup/CSS only — no service, engine, metric, unit or rate touched.** ⚠️ `Owner Unit Detail` and
+`Owner Add Unit` are separate prototypes for their own gates.
+
+### ⚠️ The keyboard defect logged at O4 for this gate is closed — and it had siblings
+
+`.vy-mu-rate-input` carried `outline:none` with **no** `:focus` rule, so the inline nightly-rate editor had
+**no visible focus indicator at all** (WCAG 2.4.7). Fixed on the wrapper (`:focus-within`) and **confirmed
+live with the editor open**. ⚠️ **Two more instances of the same pattern were on this page** — the
+weekend-uplift / min-stay inputs (same wrapper) and the per-unit **message textarea**. Additionally, **three
+inputs in the pricing editor had no accessible name** (their captions are `<div>`s and unassociated
+`<label>`s); each now carries a unit-specific `aria-label`. Final: **65 controls with both editors open,
+0 unreachable / 0 unnamed / 0 without a ring.**
+
+### ⚠️ A real figure-honesty finding — two "August" figures, both correct
+
+The tile reads **"Earned this month · €541.60 · Net · August 2026"**; the Statements page reads
+**"August 2026 · €721.60"**. Traced to the rows: the statement sums the **3 lines it CLAIMED** at finalize
+(72,160 — matching `net_payable_minor` exactly, #17 holds), while `earnedThisMonth()` sums **every** ledger
+line with a `service_date` in the month (54,160). **The €180.00 gap is a real, unstatemented expense dated
+9 Aug.** Neither figure is fabricated; they answer different questions.
+
+⚠️ **This is the WAVE-2 class — a figure under a label that means something else.** **Logged, not
+re-worded**: whether the tile should exclude unstatemented items, or say so, is a product decision, and
+inventing a caption would be guessing at intent.
+
+### Decided
+
+- **Contrast 29 → 10** across two passes (all 10 remaining being the known gradient family). ⚠️ **The three
+  pre-AA greys logged at Owner-1 as "carried to the My Units gate" are closed here** —
+  `.vy-mu-stat-label` / `.vy-mu-uplabel` / `.vy-mu-calhead` measured **2.28–2.78** on the portfolio KPI
+  labels and per-unit occupancy captions. ⚠️ And **the booked calendar day NUMBERS measured 3.57** — those
+  numerals are the **dates**, the one thing every cell must carry; darkened to 5.47–9.07 while white
+  numerals stay only on the deep cells.
+- ⚠️ **The dark "Best performer" panel passed** — the O2 dark-context mirror holds, and no light-tuned token
+  was applied to it.
+- **Refused:** the mock's bulk **"Approve all"** on the attention list. One click spanning a rate change and
+  a €340 expense is a dangerous affordance, not a missing feature; the live per-item Approve/Query stands.
+  Also recorded: the mock's per-unit **"Message guest"** implies a guest channel — **the live control
+  messages the management team, which is the correct behaviour** (#28), and must not be "fixed" toward the
+  mock.
+
+### Verified, not changed
+
+**#42/#38** — the database holds 8 units (`101, 102, 103, A1, A2, V1, V2, V3`); this owner owns **A1 and
+A2**, and the rendered page mentions **none of the other six**. **Figures real, denominator right** — avg
+occupancy 13% = 8 booked unit-nights ÷ (2 × 31); per-unit 19% and 6% agree; ⚠️ this is **not** the D3-4
+class (the divisor is the full month across the real unit count, not the spine's coverage). **#28** — no
+guest email/phone anywhere (regex-checked) and **no IBAN at all**. **READ-ONLY honoured** — the editors were
+*revealed* (a UI toggle), nothing submitted: `units.updated_at` and `rate_calendar.updated_at` are still the
+seed timestamp and **`owner_attention_states` is still empty** (no Approve, Snooze or Mark-read fired).
+⚠️ **`toContain` sweep — clean negative** (fourth gate running): the one call in the unit tests is
+needle-only.
+
+**Gates:** suite **1833 / 12,024 · 9 non-green** — the identical documented set. PHPStan L5 (0); Pint clean;
+1440×1000, 0 horizontal overflow, 0 console errors. No schema touched.

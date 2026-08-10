@@ -117,7 +117,7 @@
                                 <div style="flex:1;min-width:0">
                                     <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
                                         <span class="vy-mu-item-title">{{ $item['title'] }}</span>
-                                        <span class="vy-mu-item-tag" style="background:{{ $warn ? 'rgba(224,146,30,.15)' : 'rgba(232,112,58,.13)' }};color:{{ $warn ? 'var(--vy-amber)' : 'var(--vy-accent)' }}">{{ $warn ? 'Action' : 'Review' }}</span>
+                                        <span class="vy-mu-item-tag" style="background:{{ $warn ? 'rgba(224,146,30,.15)' : 'rgba(232,112,58,.13)' }};color:{{ $warn ? 'var(--vy-amber-text)' : 'var(--vy-accent-tint-text)' }}">{{ $warn ? 'Action' : 'Review' }}</span>
                                         @if ($item['read'])<span class="vy-mu-item-tag" style="background:rgba(90,120,80,.13);color:#4a7a3d">Read</span>@endif
                                     </div>
                                     <div class="vy-mu-item-sub">{{ $item['body'] }}</div>
@@ -248,7 +248,7 @@
 
                     <div class="vy-mu-rate-row">
                         <div style="display:flex;align-items:baseline;gap:8px">
-                            <span style="font-size:11px;color:var(--vy-faint)">Nightly rate</span>
+                            <span style="font-size:11px;color:var(--vy-muted)">Nightly rate</span>
                             <span style="font-family:var(--vy-display);font-weight:500;font-size:15px;font-variant-numeric:tabular-nums">{{ $u['nightly_rate'] ?? '—' }}</span>
                             {{-- WAVE 2 · #12 — the ACHIEVED average, under its own name. It used to be printed
                                  as "Nightly rate", which is the configured price, not what the nights sold for. --}}
@@ -278,12 +278,12 @@
                                         <input type="hidden" name="redirect" value="units">
                                         <input type="hidden" name="start_date" value="{{ \Carbon\CarbonImmutable::today()->toDateString() }}">
                                         <input type="hidden" name="end_date" value="{{ \Carbon\CarbonImmutable::today()->addDays(179)->toDateString() }}">
-                                        <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#9C9089;margin-bottom:9px">Set nightly rate</div>
+                                        <div style="font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--vy-muted);margin-bottom:9px">Set nightly rate</div>
                                         <div style="display:flex;align-items:center;gap:8px">
                                             <button type="button" class="vy-mu-step" aria-label="Decrease rate" @click="rate = Math.max(0, rate - 5)">−</button>
                                             <div class="vy-mu-rate-input">
-                                                <span style="font-family:var(--vy-display);font-weight:500;font-size:16px;color:#9C9089">{{ $currencySymbol }}</span>
-                                                <input type="text" inputmode="numeric" name="rate" x-model="rate">
+                                                <span style="font-family:var(--vy-display);font-weight:500;font-size:16px;color:var(--vy-muted)">{{ $currencySymbol }}</span>
+                                                <input type="text" inputmode="numeric" name="rate" x-model="rate" aria-label="Nightly rate per night for {{ $u['name'] }}">
                                                 <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap">/ night</span>
                                             </div>
                                             <button type="button" class="vy-mu-step" aria-label="Increase rate" @click="rate = rate + 5">+</button>
@@ -293,16 +293,16 @@
                                              writes the higher price onto Fri/Sat nights — a real change, not a flag (#39). --}}
                                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
                                             <div>
-                                                <label style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#9C9089;display:block;margin-bottom:6px">Weekend uplift</label>
+                                                <label style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-muted);display:block;margin-bottom:6px">Weekend uplift</label>
                                                 <div class="vy-mu-rate-input" style="padding:6px 10px">
-                                                    <input type="text" inputmode="numeric" name="weekend_uplift" x-model="weekend" style="width:100%;border:none;background:none;outline:none;font-family:var(--vy-display);font-weight:500;font-size:15px;color:var(--vy-ink)">
+                                                    <input type="text" inputmode="numeric" name="weekend_uplift" x-model="weekend" aria-label="Weekend uplift percent for {{ $u['name'] }}" style="width:100%;border:none;background:none;outline:none;font-family:var(--vy-display);font-weight:500;font-size:15px;color:var(--vy-ink)">
                                                     <span style="font-size:12px;color:var(--vy-faint)">%</span>
                                                 </div>
                                             </div>
                                             <div>
-                                                <label style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#9C9089;display:block;margin-bottom:6px">Min stay</label>
+                                                <label style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-muted);display:block;margin-bottom:6px">Min stay</label>
                                                 <div class="vy-mu-rate-input" style="padding:6px 10px">
-                                                    <input type="text" inputmode="numeric" name="min_stay" x-model="minstay" style="width:100%;border:none;background:none;outline:none;font-family:var(--vy-display);font-weight:500;font-size:15px;color:var(--vy-ink)">
+                                                    <input type="text" inputmode="numeric" name="min_stay" x-model="minstay" aria-label="Minimum stay in nights for {{ $u['name'] }}" style="width:100%;border:none;background:none;outline:none;font-family:var(--vy-display);font-weight:500;font-size:15px;color:var(--vy-ink)">
                                                     <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap">nights</span>
                                                 </div>
                                             </div>
@@ -335,7 +335,7 @@
                                 @csrf
                                 <input type="hidden" name="subject" value="About {{ $u['name'] }}">
                                 <div style="font-size:12.5px;line-height:1.5;color:#6E635C;margin-bottom:11px">Message your management team about <strong style="color:var(--vy-ink);font-weight:600">{{ $u['name'] }}</strong> — they'll relay anything to the current or upcoming guest. (Guests are contacted through your team, never directly.)</div>
-                                <textarea name="body" rows="3" required x-ref="mbody{{ $i }}" placeholder="Message your management team about {{ $u['name'] }}…" style="width:100%;box-sizing:border-box;resize:none;border:1px solid rgba(217,102,46,.28);border-radius:11px;background:#fff;padding:10px 12px;font-family:var(--vy-sans);font-size:12.5px;line-height:1.5;color:var(--vy-ink);outline:none"></textarea>
+                                <textarea name="body" rows="3" required x-ref="mbody{{ $i }}" placeholder="Message your management team about {{ $u['name'] }}…" style="width:100%;box-sizing:border-box;resize:none;border:1px solid rgba(217,102,46,.28);border-radius:11px;background:#fff;padding:10px 12px;font-family:var(--vy-sans);font-size:12.5px;line-height:1.5;color:var(--vy-ink);outline:none" class="vy-mu-msg-input"></textarea>
                                 <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px">
                                     @foreach (['Please share an update on this unit', 'Is everything okay with the current stay?', 'Can we schedule a visit?'] as $chip)
                                         <button type="button" @click="$refs.mbody{{ $i }}.value = @js($chip)" style="padding:5px 10px;border-radius:var(--vy-r-pill);background:rgba(255,255,255,.7);border:1px solid rgba(120,70,40,.16);color:#7A2E08;font-family:var(--vy-sans);font-size:11px;font-weight:500;cursor:pointer">{{ $chip }}</button>
@@ -412,7 +412,11 @@
                 $heatFg = function (int $count, int $total): string {
                     $t = $total > 0 ? $count / $total : ($count > 0 ? 1 : 0);
 
-                    return $t >= 0.6 ? '#fff' : '#7A2E08';                  // white numerals only on the deep cells
+                    // ⚠️ #7A2E08 measured 3.57 on the mid tint (a half-booked day) — and these numerals are
+                    // the DATES, the one piece of information every cell must carry. Darkened to #4A1B05:
+                    // 5.47 on the darkest non-white cell and 7.09-9.07 on the lighter ones. White numerals
+                    // still only on the deep cells, where they measure well above AA.
+                    return $t >= 0.6 ? '#fff' : '#4A1B05';
                 };
             @endphp
 

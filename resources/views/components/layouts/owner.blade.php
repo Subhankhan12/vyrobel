@@ -589,7 +589,9 @@
         @media (max-width: 640px) { .vy-mu-stats { grid-template-columns: 1fr; } }
         .vy-mu-stat { background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); padding: 18px 20px; transition: transform .14s ease, box-shadow .14s ease; }
         .vy-mu-stat:hover { transform: translateY(-2px); box-shadow: 0 18px 48px rgba(150, 90, 50, .22), inset 0 1px 0 rgba(255, 255, 255, .65); }
-        .vy-mu-stat-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 8px; }
+        /* ⚠️ The pre-AA #9C9089 logged at Owner-1 as 'carried to the My Units gate'. Measured HERE: 2.28-2.78
+           on the portfolio KPI + per-unit occupancy labels. --vy-muted reads 5.12 on the worst of them. */
+        .vy-mu-stat-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 8px; }
         .vy-mu-stat-val { font-family: var(--vy-display); font-weight: 600; font-size: 32px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
         .vy-mu-stat-delta { font-size: 13px; font-weight: 500; color: var(--vy-accent-text); }
 
@@ -647,9 +649,10 @@
         .vy-mu-card-body { padding: 16px 18px 18px; }
         .vy-mu-card-name { font-family: var(--vy-display); font-weight: 500; font-size: 16px; }
         .vy-mu-card-sub { font-size: 12.5px; color: var(--vy-faint); margin-top: 3px; }
-        .vy-mu-badge { display: inline-flex; padding: 4px 11px; border-radius: var(--vy-r-pill); background: rgba(217, 102, 46, .13); color: #B4400F; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+        /* Accent text on its OWN tint -> the tint-safe token (4.13-4.26 -> 5.33-5.50). */
+        .vy-mu-badge { display: inline-flex; padding: 4px 11px; border-radius: var(--vy-r-pill); background: rgba(217, 102, 46, .13); color: var(--vy-accent-tint-text); font-size: 11px; font-weight: 500; flex-shrink: 0; }
         .vy-mu-badge--best { background: var(--vy-grad); color: #fff; }
-        .vy-mu-uplabel { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; }
+        .vy-mu-uplabel { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-mu-stat2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--vy-hairline); }
         .vy-mu-stat2 .k { font-size: 11px; color: var(--vy-faint); margin-bottom: 2px; }
         .vy-mu-stat2 .v { font-family: var(--vy-display); font-weight: 500; font-size: 15px; font-variant-numeric: tabular-nums; }
@@ -660,6 +663,12 @@
         .vy-mu-step { width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px; background: rgba(255, 255, 255, .8); border: 1px solid rgba(120, 70, 40, .16); color: #6B5D54; font-size: 19px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .14s ease; }
         .vy-mu-step:hover { background: #fff; }
         .vy-mu-rate-input { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; padding: 0 12px; height: 34px; border-radius: 10px; background: #fff; border: 1px solid rgba(217, 102, 46, .28); }
+        /* ⚠️ THE DEFECT LOGGED AT OWNER-4 FOR THIS GATE: `outline:none` with no `:focus` rule left the inline
+           nightly-rate editor with NO visible focus indicator at all (WCAG 2.4.7). The ring goes on the
+           WRAPPER via :focus-within, matching .vy-input:focus. */
+        .vy-mu-rate-input:focus-within { border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232, 112, 58, .10); }
+        /* Same defect on the per-unit message box — a bare `outline:none` with no :focus rule. */
+        .vy-mu-msg-input:focus { border-color: var(--vy-accent-border) !important; box-shadow: 0 0 0 3px rgba(232, 112, 58, .10); }
         .vy-mu-rate-input input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: var(--vy-display); font-weight: 500; font-size: 16px; color: var(--vy-ink); font-variant-numeric: tabular-nums; padding: 0; }
         .vy-mu-view { display: inline-flex; align-items: center; gap: 4px; margin-top: 13px; font-size: 13px; font-weight: 500; color: var(--vy-accent-text); text-decoration: none; }
         .vy-mu-addcard { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; min-height: 180px; border-radius: var(--vy-r-lg); border: 1.5px dashed rgba(120, 70, 40, .28); background: rgba(255, 252, 248, .35); text-decoration: none; color: #B4400F; cursor: pointer; transition: transform .14s ease, background .14s ease; }
@@ -672,10 +681,11 @@
         .vy-mu-calnav:hover { background: rgba(255, 255, 255, .95); }
         .vy-mu-calbtn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px 7px 11px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, .55); border: 1px solid rgba(120, 70, 40, .16); color: #7A2E08; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; cursor: pointer; text-decoration: none; transition: background .14s ease, transform .1s ease; }
         .vy-mu-calbtn:hover { background: rgba(255, 255, 255, .9); }
-        .vy-mu-calbtn--accent { background: rgba(232, 112, 58, .1); border-color: rgba(194, 65, 12, .28); color: var(--vy-accent); font-weight: 600; }
+        /* Accent text on its own tint -> the tint-safe token (3.94 -> 5.61). */
+        .vy-mu-calbtn--accent { background: rgba(232, 112, 58, .1); border-color: rgba(194, 65, 12, .28); color: var(--vy-accent-tint-text); font-weight: 600; }
         .vy-mu-calbtn--accent:hover { background: rgba(232, 112, 58, .18); transform: translateY(-1px); }
         .vy-mu-calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .vy-mu-calhead { text-align: center; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #9C9089; padding: 4px 0; }
+        .vy-mu-calhead { text-align: center; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-muted); padding: 4px 0; }
         .vy-mu-day { aspect-ratio: 1.35; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums; border: 1px solid rgba(120, 70, 40, .06); cursor: pointer; transition: transform .1s ease, box-shadow .12s ease; }
         .vy-mu-day:hover { transform: translateY(-1px); }
         .vy-mu-day.is-empty { border: none; cursor: default; }

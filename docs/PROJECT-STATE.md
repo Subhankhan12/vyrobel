@@ -919,7 +919,7 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.4b OWNER realm progress — **4 of 32**
+## N.4b OWNER realm progress — **5 of 32**
 
 | Gate | Page(s) | Commit |
 |---|---|---|
@@ -927,6 +927,7 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
 | O2 | **Owner Statement** (`/owner/statements/{id}`) — the realm's MONEY DOCUMENT, rendering twice (screen + PDF). ⚠️ **The PDF still carried the PRE-AA greys** — `#8A8079` **3.86** on white was the `.neg` class, i.e. **the commission/deduction figures**, and `#A69A92` **2.74** the footer → 6.98 / 5.79 (the dark band's greys correctly left alone at 8.21 / 7.05) · ⚠️ **a regression I introduced at O1**: `--vy-amber-text` was tuned to ONE sample, measured 4.45–4.50 here and **1.87 on the dark payout rail** (darkening is backwards on dark; the rail was ALREADY failing at 2.72 pre-O1, and **all three tones failed** — paid 1.77, draft 1.65) → token re-tuned to the worst sample + a **dark-context trio** `--vy-amber/green/muted-on-dark` (5.10/5.07/6.00) · documents rebuilt to icon rows · history rows to the design's cards (**kept a real `<table>`**, scoped to `.vy-st-hist` not the shared `.vy-table`) · a genuinely **0% occupancy month now draws nothing** + the series gained a real accessible name (its figures lived only in `title` on an `aria-hidden` container) · **contrast 8 → 3** · ⚠️ **restyling Export PDF to the design's accent pill ADDED a 4th instance of the white-on-gradient family — reverted rather than widen a known AA failure** · **SCREEN == PDF proven figure-by-figure**; a stale "DEFERRED/stubbed" docblock corrected | O2 |
 | O3 | **Owner Payouts** (`/owner/payouts`) — ⚠️⚠️ **D16-7 RECURS ON THE OWNER'S OWN PAYOUTS PAGE**: `OwnerPayoutService::pay()` writes **`processing`** on the real-transfer path, but all three tiles are built from `status==='paid'` and `status==='pending'` — **a payout genuinely in flight appears in NO tile** (`held` likewise, though it drives the banner). Verified by construction; **logged, not fixed** (a computation) · ⚠️ **a second real defect: the payout history has no deterministic order** — `payouts()` sorts by `created_at` DESC alone and **all six demo rows share one timestamp** (the engine creates a run in a single pass, so ties are the NORMAL case), rendering oldest-first; needs a ULID tiebreaker in the ONE shared read · ⚠️ **`--vy-green-text` re-tuned — the SAME single-sample mistake as the amber one gate earlier** (4.31–4.44 on the warmer payout rows → 5.86–6.04; Statement re-measured, no regression) · **contrast 21 → 6** (pre-AA `#9C9089` prefs labels 2.66 · 8 accent-as-text sites · the shared `.vy-table` header at 4.47) · summary line + Pending/preferences state pills from REAL state · projections / retry-ETA / verification-hold **REFUSED** · **READ-ONLY honoured — no bank update, no preference row, statuses unchanged** · stale docblock (`status ∈ …` omitted `processing`/`held` — D16-7's blind spot, written down) corrected | O3 |
 | O4 | **Owner Rates** (`/owner/rates`) — the GUARDED sibling. ⚠️ **THE GATE BRIEF'S PREMISE WAS INVERTED and the code + the wireframe agree with each other, not with it**: `RateProposalService::propose()` is the **OPERATOR** side (the guardrail constrains what the MANAGER may propose — floor/ceiling reject, ±tolerance auto-applies); the owner APPROVES/DECLINES/COUNTERS, sets the guardrail, and prices their own units by **DIRECT apply** (`owner.rates.apply` → certified `OwnerRateService`). The prototype's own header says so. · ⚠️ **Fixture truth: 0 `RateGuardrail` rows in the whole DB and 0 `rate_proposals`** — so live can only show the UNGUARDED case (guarded enforcement is covered non-vacuously by `RateProposalTest`, which seeds real rows; none seeded here — that would be mutating demo data for a screenshot). **The honesty check PASSES**: with no row `propose()` leaves every proposal `pending`, which is exactly what the ±0% card says — no "within policy" badge, no fabricated limit · **wireframe's TWO COLUMNS restored** (the guardrail sat below the fold of what it governs) + **a 1537px-vs-1440px horizontal overflow the restructure exposed** (`1fr` → `minmax(0,1fr)`) · **contrast 21 → 3, the realm's worst** — the page hardcoded the pre-AA greys (`#A69A92` ×10, `#8A8079` ×7 at **1.89–3.74**) on the copy explaining the guardrail; + 2 SHELL fixes (`.vy-topbar-sub` sits on the GRADIENT → `--vy-on-grad`; active nav 4.49 → `--vy-accent-text`), Payouts re-measured, no regression · **2 real keyboard defects**: `outline:none` with no `:focus` left the floor/ceiling + counter inputs with NO focus indicator, and the auto-approve **slider had no accessible name** · comp-set/market + Peak tier **REFUSED** · **READ-ONLY honoured — 0 proposals, 0 guardrails, no rate written** · stale docblock ("Guardrails … unmodelled") corrected | O4 |
+| O5 | **Owner My Units** (`/owner/units`) — ⚠️ **THE OWNER-4-LOGGED FOCUS-RING DEFECT IS CLOSED AND CONFIRMED LIVE**: `.vy-mu-rate-input` had `outline:none` with no `:focus`, so the inline nightly-rate editor had **no focus indicator at all**; **two more instances of the same pattern found here** (weekend/min-stay + the message textarea) · **3 pricing inputs had no accessible name** → per-unit `aria-label`s (65 controls with both editors open: 0/0/0) · ⚠️ **a REAL figure-honesty finding, WAVE-2 class**: the tile says *"Earned this month €541.60 · Net · August 2026"* while Statements says *"August 2026 €721.60"* — **both correct**, different bases (all ledger lines by `service_date` vs the 3 lines the statement CLAIMED); the €180 gap is a real **unstatemented expense** dated 9 Aug. **Logged, not re-worded** — the basis is a product call · **contrast 29 → 10** (all 10 the gradient family): **the three pre-AA greys logged at Owner-1 for THIS page closed** (`.vy-mu-stat-label`/`-uplabel`/`-calhead`, 2.28–2.78) + ⚠️ **the booked calendar DAY NUMBERS at 3.57** (they are the dates) → 5.47–9.07 · **the dark "Best performer" panel PASSED** (the Owner-2 mirror holds) · bulk **"Approve all" REFUSED** (one click over a rate change + a €340 expense) · **READ-ONLY honoured — units/rate_calendar `updated_at` still the seed time, `owner_attention_states` still empty** | O5 |
 
 ## N.4c ⚠️⚠️ `expect(...)->not->toContain($needle, $message)` IS AN ALWAYS-PASSING ASSERTION
 
@@ -1012,7 +1013,24 @@ badge, no invented limit, no implied protection.** Guarded enforcement is covere
 which seeds **real** guardrail rows — so it is not vacuous, and none was seeded here just to enrich a
 screenshot.
 
-## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 4/32 UNDERWAY**, then GUEST (32).
+## N.4g ⚠️ `outline:none` WITHOUT A `:focus` RULE — a repeating, invisible keyboard defect
+
+O4 found it on Rates and **logged it for the My Units gate**; O5 closed it there and found **two more
+instances on the same page**. The pattern is a styling reset (`outline:none` on an inner input so the wrapper
+can carry the visual) where **no replacement `:focus` rule was ever written** — leaving the control with **no
+visible focus indicator at all** (WCAG 2.4.7). It is invisible to a contrast sweep and to any test that does
+not drive focus, and it lands on **editors**: the nightly rate, the weekend uplift, the min stay, the
+counter-offer, the message box.
+
+**Grep for `outline:\s*none` and check for the paired `:focus` / `:focus-within` rule; the fix belongs on the
+WRAPPER.** ⚠️ A probe that only reads `outline` will miss controls whose ring is a `box-shadow` — check both,
+or it reports false failures (it did, on `.vy-input`).
+
+⚠️ **Companion lesson from the same probe:** an accessible-name check must resolve **`label[for=]`**, not just
+ancestor `<label>`s — O4's probe reported two FALSE "unnamed" date inputs, while O5's reported three that were
+genuinely unnamed. **Correct the probe, then trust it.**
+
+## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 5/32 UNDERWAY**, then GUEST (32).
 
 **The operator realm is finished.** 42 prototypes, 34 gates (`0aa9ede`→P34), every page decoded, diffed in a
 real browser, fixed where it was a design gap, and **logged where the product honestly refuses**.
@@ -1039,7 +1057,7 @@ PROMPT's premise**: "Housekeeping lacks schedule.view" was false (9 roles hold i
 #30 assertion vacuous. ⒂ ⚠️ **NEW (P34) — a PDF's palette is read on PAPER**: the pre-AA greys survived there
 long after the screens were fixed, on the very figures a rota exists to communicate.
 
-**⬅ THE OWNER REALM IS UNDERWAY — 4 of 32 (O1 Dashboard, O2 Statement, O3 Payouts, O4 Rates).** Then **GUEST (32)**, untouched.
+**⬅ THE OWNER REALM IS UNDERWAY — 5 of 32 (O1 Dashboard, O2 Statement, O3 Payouts, O4 Rates, O5 My Units).** Then **GUEST (32)**, untouched.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

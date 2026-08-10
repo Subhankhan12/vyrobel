@@ -2866,3 +2866,85 @@ note — *"Your operator can still set a rate directly"* — is also true (that 
 - ⚠️ **A stale docblock corrected** (principle 5): `OwnerRates` still declared that Guardrails were
   "unmodelled … NOT rendered as real" and that proposals lived only in the attention feed. **Both shipped and
   are on this page.** Only the comp-set and the Peak tier remain unmodelled — and both stay refused.
+
+---
+
+## §O5 — Owner My Units (`/owner/units`, `App\Livewire\Owner\OwnerMyUnits`) · OWNER 5/32
+
+**Prototype** `docs/design/raw/Owner My Units.html` (decoded fresh; byte-identical to `/tmp/audit`,
+156,461 chars). **Role** the real `External Owner`; the route carries `$capCalendar`. ⚠️ `Owner Unit
+Detail.html` and `Owner Add Unit.html` are **separate prototypes** for `/owner/units/{unit}` and the add-unit
+flow — noted for their own gates, not touched here.
+
+### ⚠️ A REAL figure-honesty finding: two different "August" figures for the same owner
+
+The portfolio tile reads **"EARNED THIS MONTH · €541.60 · Net · August 2026"**. The Statements page shows
+**"August 2026 · €721.60"**. Both are correct, and they answer different questions — traced to the exact
+rows:
+
+| Source | What it sums | August 2026 |
+|---|---|---|
+| The August **statement** | the 3 ledger lines it CLAIMED at finalize (`statement_id` stamped) | **72,160** = €721.60 — matching `net_payable_minor` exactly (#17 holds) |
+| **"Earned this month"** (`earnedThisMonth()`) | **every** owner-ledger line with a `service_date` in the month | **54,160** = €541.60 |
+
+The €180.00 gap is a **real, unstatemented expense dated 9 Aug** that the statement did not claim. Neither
+figure is fabricated and neither is wrong.
+
+⚠️ **But this is the WAVE-2 class exactly — *a figure under a label that means something else*.** An owner
+who compares the two screens sees two "August" numbers £180 apart with nothing on either page explaining why.
+**Logged, not re-worded**: choosing the right label (or whether the tile should exclude unstatemented items)
+is a product decision, and inventing a caption here would be guessing at the intent.
+
+### The backend this page implies but does not have
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| DO5-1 | Two "August" figures reconciled — the mock has one revenue number per unit and no statement cross-reference. | Nothing is missing; the two REAL figures use different bases (claimed-by-statement vs all-ledger-in-month) and neither page says so. | A decision on the tile's basis, then a caption or an aligned basis. | **REAL GAP — labelling (WAVE-2 class).** ⚠️ Do not "fix" it by changing a figure; both are correct. |
+| DO5-2 | A photo **thumbnail band** on every unit card. | No unit photography model on this surface — the live card shows an honest accent band + house glyph. | Unit media on the owner card (the polymorphic `media` already exists elsewhere). | **REAL GAP — cosmetic.** |
+| DO5-3 | **"Sort: Revenue"** and a per-unit filter chip row above the cards. | Neither exists; the live list renders every owned unit unsorted. | A client-side sort/filter over the already-loaded rows (must ride GET if it ever becomes server-side, #20). | **REAL GAP — small.** ⚠️ With 2 units it is invisible; it matters at portfolio scale. |
+| DO5-4 | **"Approve all"** on the attention list, and an **"All units / All statuses"** dropdown pair. | Live offers All / Action / Review chips + "Mark all read" + "Snooze all" — no bulk *approve*. | — | **RATIFIED REFUSAL.** ⚠️ Bulk-approving money decisions (a rate change and a €340 expense in one click) is a dangerous affordance, not a missing feature. The live per-item Approve/Query is the safer shape and is kept. |
+| DO5-5 | A **"Snoozed 0"** tab beside "Needs attention". | Snooze exists and is real (`owner_attention_states`), but there is no snoozed VIEW to return to. | A snoozed filter over the existing store. | **REAL GAP — small.** |
+| DO5-6 | Per-unit **"Message guest"**. | Real — it opens the owner↔operator relay, not a guest thread. ⚠️ The mock's label implies messaging the GUEST; the live control messages the management team. | — | **VERIFIED — the live behaviour is the correct one** (#28: an owner has no guest channel). Recorded so the sweep does not "fix" the label toward the mock. |
+
+### Fixed this gate (design + a11y; markup/CSS only — no service, engine, metric, unit or rate touched)
+
+- ⚠️ **THE FOCUS-RING DEFECT LOGGED AT OWNER-4 FOR THIS GATE IS FIXED AND CONFIRMED LIVE.**
+  `.vy-mu-rate-input` carried `outline:none` with **no** `:focus` rule — the inline nightly-rate editor had
+  **no visible focus indicator at all** (WCAG 2.4.7). A `:focus-within` ring now sits on the wrapper
+  (measured live with the editor open: `box-shadow: rgba(232,112,58,.1) 0 0 0 3px`). ⚠️ **Two more instances
+  of the same pattern were found on this page and fixed**: the weekend-uplift / min-stay inputs (covered by
+  the same wrapper rule) and the per-unit **message textarea** (`.vy-mu-msg-input:focus`).
+- ⚠️ **Three inputs in the pricing editor had no accessible name** — nightly rate, weekend uplift, min stay
+  (their captions are `<div>`s and unassociated `<label>`s). Each now carries a unit-specific `aria-label`.
+  **Final: 65 controls with both editors open — 0 unreachable, 0 unnamed, 0 without a focus indicator.**
+- **Contrast 29 → 10** across two viewport passes (90 + 94 elements), all 10 remaining being the known
+  gradient family. Fixed:
+  - ⚠️ **The three pre-AA greys logged at Owner-1 as "carried to the My Units gate"** — `.vy-mu-stat-label`,
+    `.vy-mu-uplabel`, `.vy-mu-calhead` (`#9C9089`, measured **2.28–2.78** on the portfolio KPI labels and the
+    per-unit occupancy captions), plus 4 inline copies in the view. **This was their page; they are closed.**
+  - ⚠️ **The booked calendar DAY NUMBERS at 3.57** — `#7A2E08` on a half-booked cell's tint. These numerals
+    are the **dates**, the one thing every cell must carry. Darkened to `#4A1B05`: **5.47** on the darkest
+    non-white cell, 7.09–9.07 on lighter ones; white numerals still only on the deep cells.
+  - The attention item tags (`--vy-amber` 2.91–3.00), the "Active" unit badge (4.13–4.26) and the
+    "Block dates" button (3.94) → the tint-safe `--vy-amber-text` / `--vy-accent-tint-text`.
+- ⚠️ **The dark "Best performer" panel PASSED** — the Owner-2 dark-context mirror holds; no light-tuned token
+  was applied to it.
+
+### ⚠️ Verified, not changed
+
+- **#42 / #38** — the database holds **8 units** (`101, 102, 103, A1, A2, V1, V2, V3`); this owner owns
+  **A1 and A2**, and a scan of the rendered page finds **no mention of any of the other six**. The rollup
+  does not leak.
+- **Per-unit figures real (#39), and the denominator is right** — avg occupancy **13%** = 8 booked
+  unit-nights ÷ (2 units × 31 days = 62) = 12.9%; per-unit 19% (6/31) and 6% (2/31) agree. ⚠️ This is
+  **not** the D3-4 denominator class: the divisor is the full month across the real unit count, not the
+  spine's coverage. Revenue/nights/ADR are per-unit reals; a unit with nothing shows honest zeros.
+- **#28** — no guest email or phone anywhere on the page (regex-checked), and **no IBAN at all** (owner
+  banking stays on payouts/statements). "Message guest" opens the owner↔operator relay, not a guest thread.
+- **READ-ONLY honoured** — the pricing editors were *revealed* (a UI toggle) but nothing was submitted.
+  Verified after the gate: `units.updated_at` and `rate_calendar.updated_at` are both still the seed
+  timestamp (2026-08-09 07:17:59), and **`owner_attention_states` is still empty** — no Approve, Snooze or
+  Mark-read fired.
+- **0 horizontal overflow at 1440×1000; 0 console errors.**
+- ⚠️ **`toContain` sweep — clean negative** (fourth gate running): the only `not->toContain(...)` in the
+  unit tests (`OwnerUnitRequestTest:175`) is **needle-only**.
