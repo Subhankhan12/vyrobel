@@ -30,7 +30,12 @@
             /* Text that sits DIRECTLY on the page gradient rather than on a glass card. --vy-bg here is
                byte-identical to the operator shell's, so these carry the same measured values: 4.97:1 and
                4.67:1 against the gradient's darkest sampled stop, rgb(241,185,150). Warm stone, not grey. */
-            --vy-on-grad: rgb(84, 74, 68);
+            /* ⚠️ Re-tuned at Owner-7. Set from ONE sampled gradient pixel (4.68 there), it measured 4.42
+               on a LIGHTER point of the same gradient — the page background is a gradient, so a token
+               placed on it has a RANGE of backgrounds, not one. Tuned to the lightest sampled point:
+               5.01 there and 5.31 at the original sample. (Same lesson as the amber at O2 and the green
+               at O3 — tune to the worst case, not the first sample.) */
+            --vy-on-grad: rgb(76, 66, 60);
             --vy-on-grad-soft: rgb(88, 78, 72);
 
             /* Accent used as TEXT on glass. --vy-accent stays the BRAND fill (gradients/buttons/chips/

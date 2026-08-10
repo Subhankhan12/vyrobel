@@ -6819,3 +6819,64 @@ unread. **Keyboard 40 / 0 / 0 / 0.** ⚠️ **`toContain` sweep — clean negati
 
 **Gates:** suite **1834 / 12,032 · 9 non-green** (+1 test, the new 1.4.1 guard) — the identical documented
 set. PHPStan L5 (0); Pint clean; 0 overflow, 0 console errors. No schema touched.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER gate O7: Owner Notification Preferences (7 of 32) — the claims surface
+
+**Route** `/owner/notification-preferences`, role `External Owner`. Prototype `Owner Notifications.html` —
+the file Owner-6 identified as the preferences design. Record §O7. **Markup/CSS only — no service, storage
+or save semantics touched.**
+
+### The #1 rule, verified against the code
+
+**`NotificationPreferences::CHANNELS = ['in_app', 'email']`** — identical to the operator's. **Email is
+REAL** (`allows()` genuinely gates the owner Mailables). **SMS and PUSH are STRUCTURALLY UNSETTABLE**: not
+in the channel set, so no preference row can ever exist — verified, **0 rows for `sms`/`push` and 0 rows
+overall**. The page shows SMS with an honest "not set up", a disabled switch, **no submitting input at all**,
+and (now) a per-event text announcement. Push is not offered, which is equally honest.
+
+⚠️ **Brief correction:** it said "in-app is real — a real toggle". On the OWNER page in-app is **deliberately
+not a toggle** — the wireframe's grid is Email + SMS and the portal feed always records. The in-app
+preference is **preserved via hidden inputs**, and those inputs are **load-bearing**: `save()` reads
+`$enabled[$key]['in_app']` and defaults a missing key to `false`, so removing them would silently disable
+every in-app notification. Recorded so nobody tidies them away.
+
+### Storage model verified
+
+`notification_preferences` is a **typed per-(user, event, channel) pivot**, written with `updateOrCreate`
+keyed on all three and iterating only the audience's catalog and only `CHANNELS`. **No JSON blob, no
+wholesale replace, no delete** — the WAVE-1 merge-vs-replace hazard is *structurally absent*, the same
+ruling as Maintenance Settings. `always_on` is forced true **at save time**, so the urgent bypass lives in
+the service, not just the UI.
+
+### Decided
+
+- ⚠️ **The per-event SMS cells announced their state with an `aria-label` on a non-interactive `<span>`** —
+  the same unreliable pattern P29 found on the unread dot. Replaced with real `.vy-sr-only` text, matching
+  the operator prefs page. ⚠️ **This fix was only possible because O6 added `.vy-sr-only` to the owner
+  shell** — backlog items compound.
+- ⚠️ **The SMS column header measured 1.63, the worst contrast on the page**, on the label of the column the
+  owner most needs explained — and it said only "SMS", leaving the empty column unexplained inside the grid.
+  Now `--vy-muted` and carrying "· not set up".
+- **Contrast 17 → 2** (the 2 being the known gradient family): the page hardcoded the pre-AA `#A69A92` ×9 and
+  `#8A8079` ×5, measured **1.93–3.32**, across every event description, the owner's own email address,
+  "Always on" and the guarantee sentence.
+- ⚠️ **`--vy-on-grad` re-tuned shell-wide — the third token to need it.** Set at O4 from one sampled gradient
+  pixel (4.68), it measured **4.42** on a lighter point of the same gradient. **A token placed on a gradient
+  has a range of backgrounds, not one.**
+
+### Verified, not changed
+
+**Every toggle state is a real catalog default** — the six rendered states match `catalogFor('owner')`
+exactly, and **0 preference rows exist**, so this is genuinely the fresh-owner state. **Self-scoped** — the
+save writes `user_id = $request->user()`. **READ-ONLY honoured** — the form POSTs the real gated route, read
+but never submitted: still **0 rows**. **Keyboard 33 / 0 / 0 / 0** — ⚠️ the **GATE-30 defect is not present**
+(email cells are real named `<button>`s, the master switch carries `aria-pressed`, quiet hours is a real
+checkbox); the 15 `display:none` elements are `input[type=hidden]`, including the load-bearing in-app ones.
+**Quiet hours is REAL** (Wave B GATE 6) and the prototype omits it — kept as EXTRA. ⚠️ **`toContain` sweep —
+clean negative** (sixth gate running), and one operator guard already asserts a **CSS rule** rather than a
+class name, which is the Owner-6 lesson applied.
+
+**Gates:** suite **1834 / 12,034 · 9 non-green** — the identical documented set. PHPStan L5 (0); Pint clean;
+0 overflow, 0 console errors. No schema touched.

@@ -38,6 +38,13 @@ it('renders the exact sections with the owner’s real email and an honestly-gat
     $response->assertDontSee('prefs[statement_ready][sms]', false)
         ->assertDontSee('prefs[payout_sent][sms]', false);
 
+    // ⚠️ …and the deferred state is announced in TEXT, per event, not by the greyed cell alone.
+    // An aria-label on a non-interactive <span> is not reliably exposed — the same P29 finding as the
+    // unread dot — so each SMS cell carries real visually-hidden text, matching the operator prefs page.
+    // Asserted as the STATE (the announcement itself), never as a class name.
+    $response->assertSee('Statement ready — SMS not set up')
+        ->assertSee('Payout sent — SMS not set up');
+
     assertNoRawBlade($response);
 });
 

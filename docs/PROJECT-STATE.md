@@ -919,7 +919,7 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.4b OWNER realm progress — **6 of 32**
+## N.4b OWNER realm progress — **7 of 32**
 
 | Gate | Page(s) | Commit |
 |---|---|---|
@@ -929,6 +929,7 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
 | O4 | **Owner Rates** (`/owner/rates`) — the GUARDED sibling. ⚠️ **THE GATE BRIEF'S PREMISE WAS INVERTED and the code + the wireframe agree with each other, not with it**: `RateProposalService::propose()` is the **OPERATOR** side (the guardrail constrains what the MANAGER may propose — floor/ceiling reject, ±tolerance auto-applies); the owner APPROVES/DECLINES/COUNTERS, sets the guardrail, and prices their own units by **DIRECT apply** (`owner.rates.apply` → certified `OwnerRateService`). The prototype's own header says so. · ⚠️ **Fixture truth: 0 `RateGuardrail` rows in the whole DB and 0 `rate_proposals`** — so live can only show the UNGUARDED case (guarded enforcement is covered non-vacuously by `RateProposalTest`, which seeds real rows; none seeded here — that would be mutating demo data for a screenshot). **The honesty check PASSES**: with no row `propose()` leaves every proposal `pending`, which is exactly what the ±0% card says — no "within policy" badge, no fabricated limit · **wireframe's TWO COLUMNS restored** (the guardrail sat below the fold of what it governs) + **a 1537px-vs-1440px horizontal overflow the restructure exposed** (`1fr` → `minmax(0,1fr)`) · **contrast 21 → 3, the realm's worst** — the page hardcoded the pre-AA greys (`#A69A92` ×10, `#8A8079` ×7 at **1.89–3.74**) on the copy explaining the guardrail; + 2 SHELL fixes (`.vy-topbar-sub` sits on the GRADIENT → `--vy-on-grad`; active nav 4.49 → `--vy-accent-text`), Payouts re-measured, no regression · **2 real keyboard defects**: `outline:none` with no `:focus` left the floor/ceiling + counter inputs with NO focus indicator, and the auto-approve **slider had no accessible name** · comp-set/market + Peak tier **REFUSED** · **READ-ONLY honoured — 0 proposals, 0 guardrails, no rate written** · stale docblock ("Guardrails … unmodelled") corrected | O4 |
 | O5 | **Owner My Units** (`/owner/units`) — ⚠️ **THE OWNER-4-LOGGED FOCUS-RING DEFECT IS CLOSED AND CONFIRMED LIVE**: `.vy-mu-rate-input` had `outline:none` with no `:focus`, so the inline nightly-rate editor had **no focus indicator at all**; **two more instances of the same pattern found here** (weekend/min-stay + the message textarea) · **3 pricing inputs had no accessible name** → per-unit `aria-label`s (65 controls with both editors open: 0/0/0) · ⚠️ **a REAL figure-honesty finding, WAVE-2 class**: the tile says *"Earned this month €541.60 · Net · August 2026"* while Statements says *"August 2026 €721.60"* — **both correct**, different bases (all ledger lines by `service_date` vs the 3 lines the statement CLAIMED); the €180 gap is a real **unstatemented expense** dated 9 Aug. **Logged, not re-worded** — the basis is a product call · **contrast 29 → 10** (all 10 the gradient family): **the three pre-AA greys logged at Owner-1 for THIS page closed** (`.vy-mu-stat-label`/`-uplabel`/`-calhead`, 2.28–2.78) + ⚠️ **the booked calendar DAY NUMBERS at 3.57** (they are the dates) → 5.47–9.07 · **the dark "Best performer" panel PASSED** (the Owner-2 mirror holds) · bulk **"Approve all" REFUSED** (one click over a rate change + a €340 expense) · **READ-ONLY honoured — units/rate_calendar `updated_at` still the seed time, `owner_attention_states` still empty** | O5 |
 | O6 | **Owner Notifications** (`/owner/notifications`) — 🏁 **THE OPERATOR REALM'S LAST OPEN P29 ITEM IS CLOSED.** The colour-only unread state (WCAG 1.4.1) was still live on BOTH logged surfaces: the owner feed page and the **SHARED `bell.blade.php`** (both shells). Fixed with the GATE-29 pattern (`aria-hidden` dot + `.vy-sr-only` word, never a `title=` on a non-interactive span) — **the shared partial fixed ONCE**, reaching both bells; ✓ controls named. **Mutation-proven 3 ways** · ⚠️ **A third defect surfaced: `.vy-sr-only` was defined ONLY in the operator layout**, so the shared partial's hidden text was **visible in the owner shell** — *a shared partial cannot depend on a class only one shell defines* · ⚠️ **PREMISE CORRECTION: `Owner Notifications.html` is the PREFERENCES page, not the feed** (Settings/Notifications, channels, per-event Email/SMS matrix) → it belongs to `/owner/notification-preferences` and **the live feed has NO prototype**; also the feed is **self-scoped by query root**, not by a 404 · **contrast 6 → 3** (both non-family failures were text-on-the-page-GRADIENT again — the footer link needed `--vy-accent-tint-text` since even `--vy-accent-text` reads only 3.77 there) · ⚠️ **Blade compiles component tags inside CSS comments** — naming the bell with `<x-…>` syntax in a comment 500'd every owner page · **242 notifications across 5 users, owner sees exactly their own 6**; **READ-ONLY honoured (still 6 of 6 unread)** | O6 |
+| O7 | **Owner Notification Preferences** (`/owner/notification-preferences`) — the CLAIMS surface, using the prototype O6 identified. ⚠️ **Verified against the code: `CHANNELS = ['in_app','email']`**, so **SMS and PUSH are STRUCTURALLY UNSETTABLE** (no row can exist — 0 verified) and the page shows SMS honestly gated with no submitting input · ⚠️ **BRIEF CORRECTION: in-app is NOT a toggle here** — the wireframe's grid is Email+SMS and the feed always records, so in-app is **preserved via hidden inputs** which are **load-bearing** (`save()` defaults a missing key to FALSE, so removing them would silently disable every in-app notification) · **storage verified: a typed `(user,event,channel)` pivot via `updateOrCreate`, no JSON blob, no wholesale replace** — the WAVE-1 merge hazard is structurally absent; `always_on` forced at SAVE time · ⚠️ **the per-event SMS cells announced via `aria-label` on a NON-INTERACTIVE span** (the P29 pattern) → real `.vy-sr-only` text, matching the operator page — **this fix depended on O6 putting `.vy-sr-only` in the owner shell** · ⚠️ **the SMS column header measured 1.63, the worst on the page**, and said only "SMS" → `--vy-muted` + "· not set up" · **contrast 17 → 2** (pre-AA `#A69A92`×9 + `#8A8079`×5 at 1.93–3.32) · ⚠️ **`--vy-on-grad` re-tuned shell-wide — the THIRD token to need it**: set from ONE gradient pixel at O4 (4.68), it read **4.42** on a lighter point of the same gradient. **A token on a gradient has a RANGE of backgrounds** · **GATE-30 defect NOT present** (real buttons; the 15 `display:none` are hidden inputs) · **READ-ONLY honoured — still 0 preference rows** | O7 |
 
 ## N.4c ⚠️⚠️ `expect(...)->not->toContain($needle, $message)` IS AN ALWAYS-PASSING ASSERTION
 
@@ -1055,7 +1056,23 @@ later gate does not restyle a feed into a preferences page. (2) **Blade compiles
 comments** — writing the bell's `<x-…>` tag name in a comment inside the layout's `<style>` block rendered the
 whole component into the stylesheet and 500'd every owner page. **Comments are not inert to Blade.**
 
-## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 6/32 UNDERWAY**, then GUEST (32).
+## N.4i ⚠️ A TOKEN PLACED ON A GRADIENT HAS A RANGE OF BACKGROUNDS — the third token to need re-tuning
+
+`--vy-on-grad` was set at O4 from **one** sampled gradient pixel (4.68 there). At O7 the same token measured
+**4.42** on a lighter point of the *same* gradient, on the same element class. Re-tuned to the lightest
+sampled point: **5.01** there, **5.31** back at O4's sample.
+
+That is now **three tokens in a row** fitted to a single sample and wrong on the next page — `--vy-amber-text`
+(O2), `--vy-green-text` (O3), `--vy-on-grad` (O7). **The rule is settled: sample a token's background at
+several points across the surfaces it lands on, tune to the WORST, and re-measure the pages already passed.**
+A page background that is itself a gradient guarantees a range, not a value.
+
+⚠️ **A second O7 lesson — a fix can depend on an earlier gate.** The per-event SMS cells announced their
+deferred state with an `aria-label` on a **non-interactive `<span>`** (the P29 pattern again). The correct
+fix — real `.vy-sr-only` text, as the operator prefs page already used — was only possible because **O6 had
+just added `.vy-sr-only` to the owner shell**. Backlog items compound: closing one unlocked the next.
+
+## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 7/32 UNDERWAY**, then GUEST (32).
 
 **The operator realm is finished.** 42 prototypes, 34 gates (`0aa9ede`→P34), every page decoded, diffed in a
 real browser, fixed where it was a design gap, and **logged where the product honestly refuses**.
@@ -1082,7 +1099,7 @@ PROMPT's premise**: "Housekeeping lacks schedule.view" was false (9 roles hold i
 #30 assertion vacuous. ⒂ ⚠️ **NEW (P34) — a PDF's palette is read on PAPER**: the pre-AA greys survived there
 long after the screens were fixed, on the very figures a rota exists to communicate.
 
-**⬅ THE OWNER REALM IS UNDERWAY — 6 of 32 (O1 Dashboard, O2 Statement, O3 Payouts, O4 Rates, O5 My Units, O6 Notifications).** Then **GUEST (32)**, untouched.
+**⬅ THE OWNER REALM IS UNDERWAY — 7 of 32 (O1 Dashboard, O2 Statement, O3 Payouts, O4 Rates, O5 My Units, O6 Notifications, O7 Notification Preferences).** Then **GUEST (32)**, untouched.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

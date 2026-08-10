@@ -3043,3 +3043,85 @@ bell markup, so it passed with the CSS rule deleted. Tightened to assert the **r
   errors at 1440×1000.
 - ⚠️ **`toContain` sweep — clean negative** (fifth gate running): the one call in `NotificationPanelTest` is
   needle-only.
+
+---
+
+## §O7 — Owner Notification Preferences (`/owner/notification-preferences`) · OWNER 7/32
+
+**Prototype** `docs/design/raw/Owner Notifications.html` — the file Owner-6 identified as the PREFERENCES
+design, not the feed. **Role** the real `External Owner`; prefs are per-user and self-scoped.
+**Markup/CSS only — no service, storage or save semantics touched.**
+
+### ⚠️ The #1 rule verified against the code — and one brief correction
+
+**`NotificationPreferences::CHANNELS = ['in_app', 'email']`** — identical to the operator's. Therefore:
+
+| Channel | State in the code | How the page shows it |
+|---|---|---|
+| **Email** | **REAL** — `allows()` genuinely gates the owner Mailables | a real, focusable, named toggle per event + a master switch |
+| **In-app** | **REAL** in the model | ⚠️ **NOT a toggle here** — see the correction below |
+| **SMS** | **STRUCTURALLY UNSETTABLE** — not in `CHANNELS`, so no row can ever exist (verified: 0 rows) | honest "not set up", disabled switch, no submitting input, and now a per-event text announcement |
+| **Push** | **STRUCTURALLY UNSETTABLE** — same, and the owner page does not offer the column at all | absent |
+
+⚠️ **Correction to the brief.** It stated "IN-APP / the feed is real — a real toggle." On the OWNER page
+in-app is **deliberately not a toggle**: the wireframe's grid is Email + SMS, and the portal feed always
+records ("statements are always kept in your portal regardless"). The in-app preference is **preserved
+through hidden inputs** so dropping the column can never silently switch the feed off. ⚠️ Those hidden
+inputs are **load-bearing** — `save()` reads `$enabled[$key]['in_app']` and defaults a missing key to
+`false`, so removing them would silently disable every in-app notification. Recorded so nobody "tidies"
+them away.
+
+### ⚠️ Storage model verified (the WAVE-1 JSON hazard is structurally absent)
+
+`notification_preferences` is a **typed per-(user, event, channel) pivot** (`user_id`, `event_key`,
+`channel`, `enabled`), written with `updateOrCreate` keyed on all three, iterating **only** the audience's
+catalog and **only** `CHANNELS`. **No JSON blob, no wholesale replace, no delete.** The
+SettingsService merge-vs-replace hazard cannot arise here — the same ruling as Maintenance Settings.
+`always_on` is forced `true` **at save time**, so the urgent bypass is enforced in the service, not merely
+in the UI.
+
+### The backend this page implies but does not have
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| DO7-1 | An **SMS column with live per-event toggles** and a real number (`+353 87 555 4407`). | No SMS provider; SMS is not in `CHANNELS`, so a preference is **structurally unsettable**. | Twilio (or equivalent) + an `sms` channel in the model. | **ACCOUNT-GATED — deferred (Twilio, §H).** ⚠️ A live-looking SMS toggle would assert a delivery that cannot happen. |
+| DO7-2 | — (the prototype has no push column) | Push is likewise absent from `CHANNELS`. | FCM/APNs + VAPID. | **ACCOUNT-GATED — deferred (FCM/APNs, §H).** Recorded because the operator page shows a push column honestly gated; the owner page omits it entirely, which is also honest. |
+| DO7-3 | A **quiet-hours** window. | ⚠️ **Present and REAL** (Wave B · GATE 6) — a stored window that genuinely holds routine EMAIL, keeps in-app, and exempts always-on security. The prototype omits it; the live page keeps it. | — | **EXTRA-WORK — kept.** Not a gap in either direction. |
+| DO7-4 | Per-event rows for events the product notifies on. | All six rendered rows are the REAL catalog (`statement_ready`, `payout_sent`, `performance_digest`, `terms_changed`, `unit_request_reviewed`, `account_security`). | — | **NOT A GAP — verified.** No invented event type. |
+
+### Fixed this gate (design + a11y; markup/CSS only)
+
+- ⚠️ **The per-event SMS cells announced their state with an `aria-label` on a NON-INTERACTIVE `<span>`** —
+  the same unreliable pattern P29 found on the unread dot. The operator prefs page already uses real
+  `.vy-sr-only` text for exactly this; **matched here** (the class only reached the owner shell at Owner-6,
+  so this fix depended on that one). Each cell now announces e.g. *"Statement ready — SMS not set up"*.
+- ⚠️ **The SMS column header measured 1.63 — the worst contrast on the page**, on the label of the column the
+  owner most needs explained, and it said only "SMS", leaving the empty column unexplained inside the grid.
+  Now `--vy-muted` **and** carrying "· not set up", so the state travels with the header.
+- **Contrast 17 → 2** (the 2 being the known gradient family). The page hardcoded the pre-AA greys —
+  `#A69A92` ×9 and `#8A8079` ×5, measured **1.93–3.32**, on every event description, the owner's own email
+  address, "not set up", "Always on" and the guarantee sentence.
+- ⚠️ **`--vy-on-grad` re-tuned (shell-wide, third token to need it).** Set at Owner-4 from ONE sampled
+  gradient pixel (4.68 there), it measured **4.42** on a lighter point of the same gradient here. **A token
+  placed on a gradient has a RANGE of backgrounds, not one** — tuned to the lightest sampled point:
+  **5.01** here, **5.31** at the original sample. (Same lesson as the amber at O2 and the green at O3.)
+
+### ⚠️ Verified, not changed
+
+- **Every toggle state is a REAL catalog default**, not a fabrication: the six rendered states match
+  `catalogFor('owner')` exactly (`performance_digest` off; `account_security` always-on; the rest on).
+  ⚠️ **0 preference rows exist for any user**, so this is genuinely the fresh-owner default state.
+- **Self-scoped** — the save writes `user_id = $request->user()`; the read is keyed on the same. A user can
+  only ever write their own row.
+- **READ-ONLY honoured** — the form POSTs the real gated route
+  (`owner.notification-preferences.update`, audience defaulted server-side), **read but never submitted**:
+  `notification_preferences` still holds **0 rows** for every user.
+- **Keyboard: 33 visible controls, 0 unreachable / 0 unnamed / 0 without a focus indicator.** ⚠️ The
+  **GATE-30 defect is NOT present** — the email cells are real `<button>`s with `aria-label`s, the master
+  switch is a button with `aria-pressed`, quiet hours is a real checkbox. The 15 `display:none` elements are
+  `input[type=hidden]` form fields (including the load-bearing in-app ones), not controls.
+- **The SMS column never submits** — no `prefs[...][sms]` input exists in the form at all.
+- 0 horizontal overflow at 1440×1000; 0 console errors.
+- ⚠️ **`toContain` sweep — clean negative** (sixth gate running). All three calls in
+  `OperatorNotifPrefsGateTest` are needle-only, and one of them correctly asserts a **CSS rule**
+  (`.vy-np-check { display: none; }`) rather than a class name — the Owner-6 lesson, already applied there.

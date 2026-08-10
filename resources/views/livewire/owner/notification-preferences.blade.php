@@ -49,7 +49,7 @@
                         <span class="vy-nt-ricon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2.5"/><path d="M22 7 12 13 2 7"/></svg></span>
                         <span style="min-width:0;flex:1">
                             <span style="display:block;font-size:12.5px;font-weight:500">Email</span>
-                            <span style="display:block;font-size:11px;color:#A69A92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $email }}</span>
+                            <span style="display:block;font-size:11px;color:var(--vy-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $email }}</span>
                         </span>
                         <button type="button" class="vy-nt-sw" @click="emailOn = ! emailOn; touch()" :style="emailOn ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" :aria-pressed="emailOn ? 'true' : 'false'" aria-label="Email channel">
                             <span class="vy-nt-sw-knob" :style="emailOn ? 'left:19px' : 'left:3px'"></span>
@@ -60,30 +60,33 @@
                     <div class="vy-nt-reach" style="opacity:.72" title="SMS delivery isn't set up yet">
                         <span class="vy-nt-ricon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 18.5h4"/></svg></span>
                         <span style="min-width:0;flex:1">
-                            <span style="display:block;font-size:12.5px;font-weight:500">SMS <span style="font-size:10px;color:#A69A92;font-weight:400">· not set up</span></span>
-                            <span style="display:block;font-size:11px;color:#A69A92;font-variant-numeric:tabular-nums">{{ $phone ?? 'No number on file yet' }}</span>
+                            <span style="display:block;font-size:12.5px;font-weight:500">SMS <span style="font-size:10px;color:var(--vy-muted);font-weight:400">· not set up</span></span>
+                            <span style="display:block;font-size:11px;color:var(--vy-muted);font-variant-numeric:tabular-nums">{{ $phone ?? 'No number on file yet' }}</span>
                         </span>
                         <span class="vy-nt-sw" style="background:rgba(120,70,40,.14);cursor:not-allowed" aria-hidden="true">
                             <span class="vy-nt-sw-knob" style="left:3px;opacity:.6"></span>
                         </span>
                     </div>
                 </div>
-                <div style="font-size:11px;color:#A69A92;margin-top:10px">SMS delivery isn’t active yet — we’ll use these preferences once it’s set up.</div>
+                <div style="font-size:11px;color:var(--vy-muted);margin-top:10px">SMS delivery isn’t active yet — we’ll use these preferences once it’s set up.</div>
             </div>
 
             {{-- ══ WHAT YOU HEAR ABOUT — the per-event × Email/SMS matrix ══ --}}
             <div class="vy-nt-card" style="padding:8px 22px 16px;margin-bottom:20px">
                 <div class="vy-nt-row" style="padding:16px 0 10px">
                     <span class="vy-nt-h2">What you hear about</span>
-                    <span style="text-align:center;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase" :style="emailOn ? 'color:#B4400F' : 'color:#C4B8AE'">Email</span>
-                    <span style="text-align:center;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#C4B8AE">SMS</span>
+                    <span style="text-align:center;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase" :style="emailOn ? 'color:var(--vy-accent-text)' : 'color:var(--vy-muted)'">Email</span>
+                    {{-- ⚠️ This header measured 1.63 — the worst contrast on the page, on the label of the column
+                         the owner most needs explained. It also said only "SMS", leaving the whole empty column
+                         unexplained inside the grid; the state now travels with the header. --}}
+                    <span style="text-align:center;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-muted)">SMS <span style="text-transform:none;letter-spacing:0;font-weight:400">· not set up</span></span>
                 </div>
 
                 @foreach ($events as $e)
                     <div class="vy-nt-row" style="padding:14px 0;border-top:1px solid rgba(120,70,40,.1)">
                         <span style="min-width:0">
-                            <span style="display:block;font-size:13.5px;font-weight:500">{{ $e['label'] }}@if ($e['always_on'])<span style="font-size:10px;color:#A69A92;font-weight:400;margin-left:6px">Always on</span>@endif</span>
-                            <span style="display:block;font-size:11.5px;color:#A69A92;margin-top:1px">{{ $e['description'] }}</span>
+                            <span style="display:block;font-size:13.5px;font-weight:500">{{ $e['label'] }}@if ($e['always_on'])<span style="font-size:10px;color:var(--vy-muted);font-weight:400;margin-left:6px">Always on</span>@endif</span>
+                            <span style="display:block;font-size:11.5px;color:var(--vy-muted);margin-top:1px">{{ $e['description'] }}</span>
                         </span>
 
                         {{-- Preserve the current IN-APP pref (column dropped from the UI, feed unaffected). --}}
@@ -112,8 +115,11 @@
                         @endif
 
                         {{-- SMS cell — HONEST-GATED: display-only, disabled, off-appearance. No name → never submitted. --}}
+                        {{-- ⚠️ An aria-label on a NON-INTERACTIVE span is not reliably exposed — the same P29
+                             finding as the unread dot. The operator prefs page already announces this state with
+                             real .vy-sr-only TEXT; matched here (the class reached the owner shell at Owner-6). --}}
                         <span style="display:flex;justify-content:center" title="Not active until SMS is set up">
-                            <span class="vy-nt-cell" style="border:1px solid rgba(120,70,40,.16);background:rgba(255,255,255,.4);cursor:not-allowed;opacity:.55" aria-label="{{ $e['label'] }} · SMS (not active)"></span>
+                            <span class="vy-nt-cell" style="border:1px solid rgba(120,70,40,.16);background:rgba(255,255,255,.4);cursor:not-allowed;opacity:.55"><span class="vy-sr-only">{{ $e['label'] }} — SMS not set up</span></span>
                         </span>
                     </div>
                 @endforeach
@@ -121,8 +127,8 @@
 
             {{-- ══ THE GUARANTEE (real — account_security is always_on; no marketing event exists) ══ --}}
             <div class="vy-nt-note" style="margin-bottom:18px">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A69A92" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 3a6 6 0 0 0-6 6c0 4-1.5 5-2 6h16c-.5-1-2-2-2-6a6 6 0 0 0-6-6z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>
-                <span style="min-width:0;flex:1;font-size:12px;color:#8A8079;line-height:1.5">We never send marketing without asking, and urgent account or payout alerts always come through even if a channel is off.</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 3a6 6 0 0 0-6 6c0 4-1.5 5-2 6h16c-.5-1-2-2-2-6a6 6 0 0 0-6-6z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>
+                <span style="min-width:0;flex:1;font-size:12px;color:var(--vy-muted);line-height:1.5">We never send marketing without asking, and urgent account or payout alerts always come through even if a channel is off.</span>
             </div>
 
             {{-- ══ QUIET HOURS (real, kept — the wireframe omits it; a shipped feature we don't drop) ══ --}}
@@ -131,16 +137,16 @@
                     <input type="checkbox" name="quiet_hours_enabled" value="1" x-model="on" @change="touch()" style="width:16px;height:16px;accent-color:var(--vy-accent)">
                     <span style="font-weight:600;font-size:13.5px;color:var(--vy-ink)">Quiet hours</span>
                 </label>
-                <p style="font-size:11.5px;color:#8A8079;margin:6px 0 10px">Hold routine emails during these hours — you’ll still see everything in-app, and urgent alerts always come through.</p>
+                <p style="font-size:11.5px;color:var(--vy-muted);margin:6px 0 10px">Hold routine emails during these hours — you’ll still see everything in-app, and urgent alerts always come through.</p>
                 <div x-show="on" x-cloak style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                    <label style="font-size:12px;color:#8A8079">From <input type="time" name="quiet_start" value="{{ $quiet['start'] }}" @change="touch()" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(120,70,40,.18)"></label>
-                    <label style="font-size:12px;color:#8A8079">to <input type="time" name="quiet_end" value="{{ $quiet['end'] }}" @change="touch()" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(120,70,40,.18)"></label>
+                    <label style="font-size:12px;color:var(--vy-muted)">From <input type="time" name="quiet_start" value="{{ $quiet['start'] }}" @change="touch()" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(120,70,40,.18)"></label>
+                    <label style="font-size:12px;color:var(--vy-muted)">to <input type="time" name="quiet_end" value="{{ $quiet['end'] }}" @change="touch()" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(120,70,40,.18)"></label>
                 </div>
             </div>
 
             {{-- ══ SAVE ══ --}}
             <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px">
-                <span style="font-size:12px;margin-right:auto" :style="dirty ? 'color:#B4400F' : 'color:#A69A92'" x-text="dirty ? 'Unsaved changes' : 'All preferences saved'">All preferences saved</span>
+                <span style="font-size:12px;margin-right:auto" :style="dirty ? 'color:#B4400F' : 'color:var(--vy-muted)'" x-text="dirty ? 'Unsaved changes' : 'All preferences saved'">All preferences saved</span>
                 <button type="submit" style="padding:11px 22px;border-radius:30px;background:linear-gradient(140deg,#E8703A,#C2410C);border:none;color:#fff;font-family:var(--vy-body,Inter),sans-serif;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 6px 18px rgba(194,65,12,.35)">Save changes</button>
             </div>
         </form>
@@ -152,9 +158,9 @@
             </span>
             <span style="min-width:0">
                 <span style="display:block;font-size:13px;font-weight:600;color:var(--vy-ink)">Preferences saved</span>
-                <span style="display:block;font-size:11.5px;color:#A69A92;margin-top:1px">Your notification preferences are live</span>
+                <span style="display:block;font-size:11.5px;color:var(--vy-muted);margin-top:1px">Your notification preferences are live</span>
             </span>
-            <button type="button" @click="toast = false" aria-label="Dismiss" style="width:26px;height:26px;border-radius:50%;background:rgba(120,70,40,.07);border:none;color:#8A8079;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <button type="button" @click="toast = false" aria-label="Dismiss" style="width:26px;height:26px;border-radius:50%;background:rgba(120,70,40,.07);border:none;color:var(--vy-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
             </button>
         </div>
