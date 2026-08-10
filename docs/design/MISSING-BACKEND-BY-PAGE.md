@@ -81,10 +81,11 @@ live LLM, KYC, tax rates and email DNS are honest deferrals awaiting the founder
 | 23 | **Operator Roles & permissions** ⚠️ RBAC / privilege | `/app/roles` | GET+assign `can:users.manage` · **matrix `can:roles.manage`** | ✅ matched | **3** (1 real gap · 2 refusals) + **a self-escalation test gap closed** |
 | 24 | **Operator Security** ⚠️ auth surface | `/app/security` | per-user (auth + back-office, **no fine-grained permission**) | ✅ matched | **2** (1 real gap · 1 refusal) + ⚠️ **a hardcoded safety badge fixed** |
 | 25 | **Operator Reviews** — guest-authored content | `/app/reviews` | `can:reviews.view` · writes `can:reviews.manage` | ✅ matched | **4** (2 real gaps · 2 refusals) + ⚠️ **3 AA failures fixed + the page tokenised** |
+| 26 | **Operator Channels** ⚠️ the OTA-claim ROOT (#37) | `/app/channels` | **Pro-gated** (`plan.feature:channels`) | ✅ matched | **5** (1 real gap · 4 refusals) — ⚠️ **almost the whole prototype is Channex-tied** |
 
-**Operator: 33 of 42 prototypes covered · 9 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
+**Operator: 34 of 42 prototypes covered · 8 remaining.** ⚠️ §15 GATE A below records "22 covered / 20
 remaining" — that was the count **before GATE B closed Refund** and before §16 closed Payout Run.
-**⬅ NEXT PAGE: Operator Channels (`/app/channels`)** — ⚠️ OTA claims (#37); never a fabricated sync state.
+**⬅ NEXT PAGE: Operator Portfolio (`/app/portfolio`)** — ⚠️ multi-property isolation (#38).
 
 ---
 
@@ -1775,3 +1776,67 @@ from the shared summary's own numbers — a bar length, not a second rating.
   but it reads as duplication. Folding it into a single "edit" affordance is part of the D25-4 restructure.
 - **Responsive:** 0px horizontal overflow at **1440** and **1000** (the KPI strip reflows to 2 columns).
   **0 console errors/warnings.**
+
+---
+
+## 26 · Operator Channels — `/app/channels` ⚠️ THE OTA-CLAIM ROOT (#37)
+
+**Prototype:** `docs/design/raw/Operator Channels.html` (decoded fresh 2026-08-10). **Live:**
+`App\Livewire\Operator\OperatorChannels` → `resources/views/livewire/operator/channels.blade.php`.
+**Role:** ⚠️ **Pro-gated** — the route carries `EnsurePlanFeature:channels`.
+
+⚠️ **A METHOD CONSTRAINT, STATED PLAINLY: the live page could NOT be browsed for this gate.** The demo org is
+on **Essential**, so `/app/channels` returns a real **HTTP 403** and renders the honest feature-locked page
+(*"Channel manager isn't in your plan … your data and settings stay exactly as they are"* + *View plans &
+upgrade*). **I deliberately did not change the org's plan to see the unlocked page** — that mutates real
+subscription state, and the pricing model is an **open founder decision (G.1)**. The channel UI was therefore
+verified by **source reading plus its existing tests**, which render it against a Pro org.
+*(The single console "error" on the locked page is the 403 response itself being logged — not a JS error.)*
+
+### ⚠️ THE CARRY-FORWARD FROM REVIEWS — MEASURED, AND IT DOES NOT APPLY HERE
+
+P25 found the Reviews page (a `c0ce419` **controller**-rendered page) had never been tokenised: raw hex, the
+pre-AA greys, three measured AA failures. **Measured here rather than assumed:** this page is a **Livewire**
+component, and its view contains **0 raw hex** and **0 pre-AA greys** (`#8A8079` / `#A69A92`), using classes
+plus `var(--vy-*)`. **The carry-forward concern is genuinely absent on this page.**
+
+### ⚠️ ALMOST THE ENTIRE PROTOTYPE IS CHANNEX-TIED FABRICATION
+
+This is the **root** of the D2-2 finding that has recurred on Calendar, Rates, Reviews and the Dashboard. At
+source: **`channels.last_synced_at` is NULL**, and **0 of 42 reservations carry a `channel_id`** — no import
+has ever run. The design asserts, on one screen: a **"Sync all now"** action · a **"Expedia disconnected —
+sync stopped 41 min ago"** alert · **"Synced"** dots with **"last sync 3 min ago / 5 min ago"** ·
+**"6 listings mapped · rates & availability"** · per-channel **booking counts** (22 / 12 / 7) and **commission
+%** (15 / 14 / 18) · **"OTA BOOKINGS · SEP 41 of 64"** · **"DIRECT SHARE 36% +4%"** · **"SYNC STATUS 2 of 3"** ·
+a dark **"3 bookings waiting to import"** card · a **BOOKING MIX** with per-OTA splits and *"23 this month
+kept ≈ €1,050 in house"* · and a live **Sync activity feed** (*"Rates pushed to Booking.com"*, *"Booking
+imported from Airbnb — K. Novak · Apt 102 · 6 nights"*, *"Availability updated everywhere"*).
+
+**None of it can be produced today.** The live page's honest treatment is correct and already documented in the
+component: **Direct is REAL** (`reservations.source='direct'`), an OTA channel's **status is real**
+(`channels.status`), live sync is surfaced as *"activates with your Channex account"*, and the **booking mix is
+the REAL by-source split** — genuinely ~0 for OTA.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D26-1 | **"Synced" status + "last sync 3 min ago"** per channel, a **"Sync all now"** action, and the *"sync stopped 41 min ago"* alert. | `last_synced_at` is **NULL** on every row and no sync process exists (`ChannexClient` throws without a partner key; the fake client is bound). | The **Channex** cutover (§H). | **RATIFIED REFUSAL — CHANNEX-TIED.** ⚠️ This is precisely the **F-OP-2** fabrication closed in the 2026-08-04 QA fix and refused on the Dashboard (sweep §5). The live page shows the **real** `channels.status` — *Connected* for the demo row, *Live* for Direct — and **renders no timestamp at all**, because there is none. `OperatorChannelsTest` already asserts `assertDontSee('last sync 3 min ago')`. |
+| D26-2 | **"6 listings mapped · rates & availability"** per channel, plus *"Rates pushed to Booking.com"* and *"Availability updated everywhere"* in the activity feed. | Nothing maps a room or a rate plan to an OTA, and nothing pushes ARI outward. | Channex mapping + ARI push. | **RATIFIED REFUSAL — CHANNEX-TIED.** ⚠️ **And this gate found the one place the live page over-claimed it:** the Sync-activity card labelled its channel COUNT **"Channels mapped"**. The figure is real (`$channels->count()`), but *"mapped"* asserts a mapping step that has never run — on the one surface where that claim matters most. **Fixed → "Channels configured"**, with a test now guarding it. |
+| D26-3 | **Per-channel booking counts and commission %** (Booking.com 22 · 15%, Airbnb 12 · 14%, Expedia 7 · 18%), the **OTA BOOKINGS 41 of 64** tile, and the **BOOKING MIX** per-OTA split with *"≈ €1,050 kept in house"*. | ⚠️ **0 of 42 reservations carry a `channel_id`** — this is the D2-2 root. Any per-OTA count or commission figure would be invented outright. | Channel attribution on import (Channex). | **RATIFIED REFUSAL — CHANNEX-TIED.** The live booking mix uses the **real `reservations.source`**, so Direct is real and OTA is honestly ~0. ⚠️ **Do not "fill in" the mix**, and do not derive a commission saving from counts that do not exist. |
+| D26-4 | A **Sync activity feed** naming guests and units — *"Booking imported from Airbnb · K. Novak · Apt 102 · 6 nights"*, *"J. Chen · Villa Coralis · 4 nights"*. | No import events exist to list. | Channex import events. | **RATIFIED REFUSAL — CHANNEX-TIED**, and ⚠️ note the **#28 shape** even post-cutover: a channel-operations feed naming guests and their units would put guest-identifying detail on a surface that does not otherwise carry it. If this is ever built, the row should carry the reservation reference, not a guest name + unit + length of stay. The live card is the honest *"Live sync events (rate pushes, booking imports) appear here once your Channex connection is active."* |
+| D26-5 | **"+ Connect Vrbo, Agoda, Google…"** and per-channel **Manage / Reconnect** actions. | There is no connection flow to initiate — no OAuth/partner handshake exists. | The Channex partner integration. | **REAL GAP / ACCOUNT-GATED.** ⚠️ Verify before ever wiring: a *Connect* button that opens nothing, or implies a partner handshake that does not exist, is the same class of claim as a fake sync state. |
+
+### Also noted on this page (not backend gaps)
+
+- ⚠️ **The plan gate is REAL and honest** — an Essential org gets a genuine **403** and a locked page that
+  explicitly reassures *"your data and settings stay exactly as they are"*. `OperatorChannelsTest` asserts it
+  (*"gates /app/channels to Pro — an Essential org gets the feature-locked page"*). #38-scoped throughout.
+- **Connection status is never colour-only** — each pill carries its word: **Live** (Direct), **Connected**
+  (the real `channels.status`), **Action needed** (error).
+- **Fixed — "Channels mapped" → "Channels configured"** (D26-2), the only over-claim found on the page.
+- ⚠️ **A test guard was added AND scoped correctly the second time.** `assertDontSee('listings mapped')` +
+  `assertDontSee('Channels mapped')` + `assertSee('Channels configured')`, **proven to discriminate**
+  (restoring the old label turns it RED). My first attempt used a bare `assertDontSee('mapped')` — which
+  **failed against a CSS comment in the operator layout's `<style>` block** (*"mapped ONLY to real reservation
+  statuses"*): **CSS comments render, Blade comments do not.** Same trap as the contrast guard fixed at
+  `9696b9c` — scope a guard to the CLAIM, not to a bare word.
+- **No app/ code changed at all** this gate — the diff is one Blade label and one test file.

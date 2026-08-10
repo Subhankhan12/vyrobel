@@ -46,7 +46,17 @@ it('renders the channels page with a real Direct channel and honestly-gated OTA 
         // 🔒 #39 — never a fabricated sync/import/last-sync:
         ->assertDontSee('bookings imported')
         ->assertDontSee('last sync 3 min ago')
-        ->assertDontSee('3 bookings waiting to import');
+        ->assertDontSee('3 bookings waiting to import')
+        // 🔒 #37 — and never a fabricated MAPPING. The design claims "6 listings mapped" per channel and the
+        // page once labelled its channel COUNT "Channels mapped"; nothing in the product maps a room or a
+        // rate plan to an OTA until Channex, so no surface may say a mapping happened. The count itself is
+        // real and still shown — as "Channels configured".
+        // ⚠️ Scoped to the CLAIM, not the bare word: a plain assertDontSee('mapped') also matched a CSS
+        // comment in the operator layout's <style> block ("mapped ONLY to real reservation statuses") —
+        // CSS comments render, Blade comments do not. Same trap as the contrast guard fixed at 9696b9c.
+        ->assertDontSee('listings mapped')
+        ->assertDontSee('Channels mapped')
+        ->assertSee('Channels configured');
 });
 
 // ── 2. 🔒 FEATURE GATE — an Essential org cannot reach /app/channels (channels is Pro-only) ────────

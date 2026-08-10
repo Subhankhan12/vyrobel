@@ -149,7 +149,11 @@
                 <div class="vy-card">
                     <h2 class="vy-card-title" style="margin-bottom:8px">Sync activity</h2>
                     @if ($stats['channel_count'] > 0)
-                        <div class="vy-mini-row"><span class="vy-mini-k">Channels mapped</span><span class="vy-mini-v">{{ $stats['channel_count'] }}</span></div>
+                        {{-- ⚠️ "configured", not "mapped". The figure is `$channels->count()` — how many channel
+                             ROWS exist — and nothing in the product maps rooms or rate plans to an OTA yet
+                             (that arrives with Channex). "Mapped" would claim a mapping step that has never
+                             run, on the one surface where that claim matters most (#37). --}}
+                        <div class="vy-mini-row"><span class="vy-mini-k">Channels configured</span><span class="vy-mini-v">{{ $stats['channel_count'] }}</span></div>
                         <div class="vy-line-sub" style="margin-top:8px;font-size:12px">Live sync events (rate pushes, booking imports) appear here once your Channex connection is active.</div>
                     @else
                         <div class="vy-empty" style="padding:16px 12px">No sync activity yet — connect a channel to begin.</div>

@@ -558,7 +558,7 @@ be removed in the name of parity.
 corrected here. THE COUNT IS THE BASELINE: if a run shows 8, you broke something — go and find it (that is
 exactly how the incomplete `firstOrCreate` fix in WAVE 2 was caught).**
 
-⚠️ **THE COUNT IS 7 AGAIN AS OF `9696b9c` — but it WAS 8 for seven gates and nobody noticed (J.bis).** The rule
+⚠️ **THE COUNT WAS 7 AS OF `9696b9c` — and moved to 9 on 2026-08-10 (J.ter, a date-roll collision, not a regression).** The rule
 above only works if the number is **MEASURED each gate, not quoted from these notes.** Re-measure it.
 
 - **`BookingImportTest` (6) — a genuine TEST-ORDERING ARTIFACT.** Fails only inside a large batch; **passes
@@ -572,6 +572,24 @@ above only works if the number is **MEASURED each gate, not quoted from these no
   fabricated stored card) and can collide with a **randomly generated IBAN** that happens to contain `4242`,
   producing a transient failure. Confirmed by isolating the test (fails 8/8 on the colliding seed) and
   re-running the suite. If the count rises unexpectedly, isolate before assuming a regression.
+
+### ⚠️ J.ter — THE BASELINE MOVED 7 → 9 ON 2026-08-10 (a DATE-ROLL collision, NOT a regression)
+
+**During the design-parity session of 2026-08-09/10 the clock rolled past midnight, and `StubViewsTest`
+began failing 2 of 3** — taking the suite from the documented **7** non-green to **9**.
+
+- **Proven pre-existing / not caused by the gate that found it** (P26 Channels): the two failures reproduce
+  on **clean HEAD with the gate's changes stashed**, and that gate touched only a Blade label and a test file.
+- **The cause:** `StubViewsTest` runs `$this->seed(DemoSeeder::class)` — whose reservations are seeded
+  **relative to "today"** — and then books into `$s['units'][0]` itself. Once the date advanced, a seeded stay
+  overlapped the range the test books, so `AssignmentService` correctly raised
+  **`UnitUnavailableException` — "already occupied over the requested dates"**. ⚠️ **The engine is behaving
+  correctly; the TEST is date-coupled to the seeder.**
+- **Not fixed here** — it is seeder/test date-coupling, outside a presentation gate, and papering over it
+  could mask a genuine collision. **The honest fix is to decouple the test's booking window from the demo
+  seeder's relative dates** (pin a clock, or book outside the seeded span).
+- ⚠️ **THE BASELINE IS THEREFORE 9 UNTIL THIS IS FIXED**: `BookingImportTest` 6 · `OwnerUnitDetailViewTest` 1 ·
+  **`StubViewsTest` 2**. Re-measure it each gate rather than quoting this number (**L.31**).
 
 ### ✅ J.bis — THE 8th NON-GREEN: found, understood, and CLOSED (2026-08-09, `9696b9c`)
 
@@ -760,12 +778,12 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **33 of 42** covered, **9 remaining** (`0aa9ede`→`101e1e6`, all pushed)
+## N.4 Progress — OPERATOR **34 of 42** covered, **8 remaining** (`0aa9ede`→`PENDINGHASH`, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
-**P22 Owner Detail**, **P23 Roles**, **P24 Security** and **P25 Reviews**, so the current figure is
-**33 covered / 9 remaining** (33 + 9 = 42). Notes saying
+**P22 Owner Detail**, **P23 Roles**, **P24 Security**, **P25 Reviews** and **P26 Channels**, so the current
+figure is **34 covered / 8 remaining** (34 + 8 = 42). Notes saying
 "22/42 … 19 remaining" are the pre-GATE-B count and do not add up.
 
 | Gate | Page(s) | Commit |
@@ -802,6 +820,7 @@ Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Gro
 | P23 | **Operator Roles & permissions** ⚠️ RBAC (1 design fix · 3 backend items · **the matrix verified against the real pivot — 0 fabricated grants** · **a self-escalation test gap closed + proven**) | `5446885` |
 | P24 | **Operator Security** ⚠️ auth (⚠️ **a hardcoded “Protected” badge that lied with 2FA OFF — now derived + tested** · 2 a11y fixes · 2 backend items) — **Settings' deferred pair now complete (Billing §17 + Security)** | `b9f26d0` |
 | P25 | **Operator Reviews** (⚠️ **the page had never been tokenised — 3 measured AA failures incl. the STAR RATING at 3.08; now 0** · the rating gained its number · 4 backend items) | `101e1e6` |
+| P26 | **Operator Channels** ⚠️ the OTA-claim ROOT (1 over-claim fixed: “Channels mapped”→“configured” + a scoped guard · 5 backend items, **4 refusals — almost the whole prototype**; ⚠️ live page NOT browsable: Pro-gated, plan deliberately unchanged) | `PENDINGHASH` |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -846,21 +865,23 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Channels.**
+## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Portfolio.**
 
-⚠️ **Channels is the OTA-claim surface (#37).** `channels.status` must never show a fabricated "Synced" or a
-last-sync time; the page is Pro-gated (`plan.feature:channels`), so on the Essential demo org it renders the
-honest not-in-your-plan state. Everything OTA is **Channex-tied** (§H) — the same refusal recorded at D2-2,
-D18-3/4 and D25-1.
+⚠️ **Portfolio is the multi-property surface (#38).** Every figure is per-property or an all-properties
+aggregate through `PropertyContext` / `PerformanceMetrics` — never `Property::first()`, never a blend across
+properties an operator cannot access (the pivot-or-all rule). Watch for a fabricated comparison or a
+cross-property total that ignores the read-set.
 
-⚠️ **NOTE CARRIED FROM P25 — the controller-rendered pages may never have been tokenised.** Reviews used raw
-hex with ZERO `--vy-*` tokens and still carried the pre-AA greys, giving three real AA failures (the star
-rating measured 3.08). **Measure the other `c0ce419` controller pages rather than assuming they inherited the
-token fixes.**
+⚠️ **NOTES CARRIED FORWARD.** ⑴ **Measure tokens, don't assume** — Reviews (a `c0ce419` CONTROLLER page) had
+never been tokenised and carried 3 AA failures; Channels (a LIVEWIRE page) was clean. The distinction that
+predicted it was **controller-rendered vs Livewire**. ⑵ **Scope a test guard to the CLAIM, not a bare word** —
+a bare `assertDontSee('mapped')` failed against a CSS comment in the layout (CSS comments render; Blade
+comments do not). ⑶ ⚠️ **The suite baseline is 9, not 7 (J.ter)** — a date-roll collision in `StubViewsTest`,
+proven pre-existing.
 
-**9 OPERATOR prototypes remain:** **1 Channels** (OTA claims #37) · **2 Portfolio** (#38) · **3 Search** ·
-**4 Notifications** · **5 Notification Preferences** · **6 Email Templates** · **7 Email Editor** ·
-**8 Profile** · **9 Schedule PDF**.
+**8 OPERATOR prototypes remain:** **1 Portfolio** (#38) · **2 Search** · **3 Notifications** ·
+**4 Notification Preferences** · **5 Email Templates** · **6 Email Editor** · **7 Profile** ·
+**8 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 
