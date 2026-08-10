@@ -10,6 +10,22 @@
         <form method="POST" action="{{ route('app.notification-preferences.update') }}" x-data="{ quietOn: @js($quietOn), digest: @js($digest && $digest['state']['email'] ? 'on' : 'off') }">
             @csrf
 
+            {{-- The design's breadcrumb + a top-right Save (it sat only at the foot of a long page). --}}
+            <div class="vy-np-top vy-fade">
+                {{-- ⚠️ #30 — gate the CONTROL, not just the route. This page is self-only and carries NO
+                     permission gate, but /app/settings requires `properties.manage`. An ungated crumb would
+                     invite a 403 for every user who can set their own preferences but cannot manage the
+                     property — which is most of them. Link it only when the route would actually open. --}}
+                <nav class="vy-np-crumb" aria-label="Breadcrumb">
+                    @can('properties.manage')
+                        <a href="{{ route('app.settings') }}">Settings</a>
+                        <span aria-hidden="true">/</span>
+                    @endcan
+                    <span aria-current="page">Notifications</span>
+                </nav>
+                <button type="submit" class="vy-btn vy-btn--accent vy-np-save-top">Save changes</button>
+            </div>
+
             {{-- ── Channel cards: Email (real) · Push (honest) · SMS (honest) ─────────────────────────── --}}
             <div class="vy-np-channels vy-fade">
                 <div class="vy-np-chan">
@@ -33,6 +49,8 @@
                 </div>
             </div>
 
+            {{-- The design's two-column body: the matrix on the left, quiet hours + digest in a right rail. --}}
+            <div class="vy-np-cols">
             {{-- ── Notify-me grid: Email real · Push / SMS honest-gated ───────────────────────────────── --}}
             <div class="vy-card vy-fade" style="margin-top: 16px;">
                 <div class="vy-np-grid vy-np-head">
@@ -54,28 +72,37 @@
                             {{-- Preserve the real IN-APP pref (not a wireframe column; the feed keeps working). --}}
                             @if ($event['state']['in_app'])<input type="hidden" name="prefs[{{ $event['key'] }}][in_app]" value="1">@endif
 
-                            {{-- EMAIL — REAL. Always-on locks on (the service forces it); otherwise a real toggle. --}}
+                            {{-- EMAIL — REAL. Always-on locks on (the service forces it); otherwise a real toggle.
+                                 ⚠️ The checkbox was `display:none`, which removed it from the tab order AND the
+                                 a11y tree — the page's ONLY real controls could not be reached or operated by
+                                 keyboard at all (WCAG 2.1.1, Level A). It is now visually hidden but FOCUSABLE,
+                                 with a visible focus ring on the styled cell. --}}
                             <div style="text-align: center;">
                                 @if ($event['always_on'])
                                     <input type="hidden" name="prefs[{{ $event['key'] }}][email]" value="1">
-                                    <span class="vy-np-cell is-on is-locked" title="Always on">✓</span>
+                                    <span class="vy-np-cell is-on is-locked">✓<span class="vy-sr-only">Email always on for {{ $event['label'] }}</span></span>
                                 @else
                                     <label class="vy-np-cell-wrap">
-                                        <input type="checkbox" name="prefs[{{ $event['key'] }}][email]" value="1" @checked($event['state']['email']) class="vy-np-check">
-                                        <span class="vy-np-cell"></span>
+                                        <input type="checkbox" name="prefs[{{ $event['key'] }}][email]" value="1" @checked($event['state']['email']) class="vy-np-check"
+                                            aria-label="Email me when: {{ $event['label'] }}">
+                                        <span class="vy-np-cell" aria-hidden="true"></span>
                                     </label>
                                 @endif
                             </div>
 
-                            {{-- PUSH — HONEST-GATED: display-only, disabled, never submitted (no name). --}}
-                            <div style="text-align: center;"><span class="vy-np-cell is-disabled" title="Push isn’t set up yet"></span></div>
-                            {{-- SMS — HONEST-GATED. --}}
-                            <div style="text-align: center;"><span class="vy-np-cell is-disabled" title="SMS isn’t set up yet"></span></div>
+                            {{-- PUSH / SMS — HONEST-GATED: display-only, never submitted (no name attribute).
+                                 ⚠️ The "no provider" state was carried by opacity alone with only a `title`,
+                                 which is not announced on a non-interactive span — the same 1.4.1 gap found on
+                                 the feed at P29. The state now has real text for assistive tech. --}}
+                            <div style="text-align: center;"><span class="vy-np-cell is-disabled"><span class="vy-sr-only">Push not set up</span></span></div>
+                            <div style="text-align: center;"><span class="vy-np-cell is-disabled"><span class="vy-sr-only">SMS not set up</span></span></div>
                         </div>
                     @endforeach
                 @endforeach
             </div>
 
+            {{-- The right rail (the design's second column). --}}
+            <div class="vy-np-rail">
             {{-- ── Quiet hours (REAL — holds routine EMAIL during the window; in-app unaffected) ──────── --}}
             <div class="vy-card vy-fade" style="margin-top: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -101,7 +128,11 @@
                 </div>
             </div>
             @endif
+            </div>{{-- /.vy-np-rail --}}
+            </div>{{-- /.vy-np-cols --}}
 
+            {{-- The foot Save is kept as well as the new top one: the matrix is long, and losing the
+                 bottom control would make a keyboard user tab back up the whole grid to submit. --}}
             <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
                 <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 22px;">Save changes</button>
             </div>
@@ -110,6 +141,16 @@
     </x-operator.shell>
 
     <style>
+        /* The design's header row: breadcrumb left, Save right. */
+        .vy-np-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+        .vy-np-crumb { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--vy-muted); }
+        .vy-np-crumb a { color: var(--vy-accent-text); text-decoration: none; font-weight: 600; }
+        .vy-np-crumb a:hover { text-decoration: underline; }
+        .vy-np-save-top { padding: 9px 20px; font-size: 13px; }
+        /* The design's two columns: the matrix left, quiet hours + digest in a rail. */
+        .vy-np-cols { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+        .vy-np-rail { display: flex; flex-direction: column; }
+        @media (max-width: 1100px) { .vy-np-cols { grid-template-columns: 1fr; } }
         .vy-np-channels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         .vy-np-chan { display: flex; gap: 11px; align-items: center; background: var(--vy-glass, rgba(255,252,248,.6)); border: 1px solid var(--vy-hairline); border-radius: 14px; padding: 14px; }
         .vy-np-chan.is-off { opacity: .72; }
@@ -127,7 +168,10 @@
         .vy-np-ev-sub { font-size: 11.5px; color: var(--vy-muted); }
         .vy-np-always { font-size: 10px; color: var(--vy-muted); font-weight: 400; margin-left: 6px; }
         .vy-np-cell-wrap { display: inline-flex; cursor: pointer; }
-        .vy-np-check { display: none; }
+        /* ⚠️ WCAG 2.1.1 — this was `display: none`, which takes the input out of the tab order and the a11y
+           tree: the page's only real controls were unoperable by keyboard. Visually hidden but FOCUSABLE. */
+        .vy-np-check { position: absolute; opacity: 0; width: 26px; height: 26px; margin: 0; cursor: pointer; }
+        .vy-np-check:focus-visible + .vy-np-cell { outline: 2px solid var(--vy-accent-text); outline-offset: 2px; }
         .vy-np-cell { width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(120,70,40,.2); background: rgba(255,255,255,.7); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; }
         .vy-np-check:checked + .vy-np-cell { background: linear-gradient(140deg, #E8703A, #C2410C); border-color: transparent; }
         .vy-np-check:checked + .vy-np-cell::after { content: '✓'; }
@@ -140,6 +184,8 @@
         .vyms-switch-knob { width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .15s; }
         .vyms-switch input:checked + .vyms-switch-track { background: var(--vy-accent); }
         .vyms-switch input:checked + .vyms-switch-track .vyms-switch-knob { transform: translateX(18px); }
-        @media (max-width: 760px) { .vy-np-channels { grid-template-columns: 1fr; } }
+        /* Three channel cards need real width — below this the "not set up" tag and the email address wrap
+           mid-phrase, so they stack at the same breakpoint the two columns collapse. */
+        @media (max-width: 1100px) { .vy-np-channels { grid-template-columns: 1fr; } }
     </style>
 </div>

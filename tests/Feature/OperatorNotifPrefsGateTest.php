@@ -101,3 +101,47 @@ it('saves the operator email prefs and quiet hours through the shared controller
     expect(app(NotificationPreferences::class)->allows($operator->fresh(), 'new_booking', 'email'))->toBeTrue()
         ->and($operator->fresh()->quiet_hours_start)->not->toBeNull();
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// P30 (design-parity) — this page's CONTROLS must be operable and its states must not ride on colour.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('keeps the email toggles operable by KEYBOARD (WCAG 2.1.1)', function () {
+    $s = seedScenario(1);
+    $operator = operatorUser($s, ['name' => 'Ops']);
+
+    $html = $this->actingAs($operator)->get(route('app.notification-preferences'))->assertOk()->getContent();
+
+    // ⚠️ `display: none` on the checkbox removes it from the tab order AND the a11y tree — the page's only
+    // real controls become unoperable by keyboard. It must stay visually hidden but FOCUSABLE.
+    expect($html)->not->toContain('.vy-np-check { display: none; }');
+    expect($html)->toContain('.vy-np-check:focus-visible + .vy-np-cell');
+    // …and each toggle carries a real accessible name (the styled cell is decoration).
+    expect($html)->toContain('aria-label="Email me when: New booking"');
+});
+
+it('gives the no-provider Push/SMS cells real text, not colour alone (1.4.1)', function () {
+    $s = seedScenario(1);
+    $operator = operatorUser($s, ['name' => 'Ops']);
+
+    $this->actingAs($operator)->get(route('app.notification-preferences'))->assertOk()
+        ->assertSee('Push not set up')
+        ->assertSee('SMS not set up');
+});
+
+it('links the Settings breadcrumb only for a viewer the Settings route would admit (#30)', function () {
+    $s = seedScenario(1);
+
+    // A Group Admin holds properties.manage → the crumb links, and the target really opens.
+    $admin = operatorUser($s, [], 'Group Admin');
+    $this->actingAs($admin)->get(route('app.notification-preferences'))->assertOk()
+        ->assertSee(route('app.settings'), false);
+    $this->actingAs($admin)->get(route('app.settings'))->assertOk();
+
+    // ⚠️ Front Desk can set their OWN preferences (the page carries no permission gate) but cannot open
+    // Settings — so the crumb must not offer a link that would 403.
+    $desk = operatorUser($s, [], 'Front Desk');
+    $this->actingAs($desk)->get(route('app.notification-preferences'))->assertOk()
+        ->assertDontSee(route('app.settings'), false);
+    $this->actingAs($desk)->get(route('app.settings'))->assertForbidden();
+});

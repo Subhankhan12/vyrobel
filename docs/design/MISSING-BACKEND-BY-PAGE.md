@@ -2025,3 +2025,69 @@ The identical dot-only pattern is still present at
 **`resources/views/components/notifications/bell.blade.php:46`**. Fixing them needs `.vy-sr-only` in the owner
 layout too. **Logged, not fixed** (one page per turn), but they are the same defect and should be closed
 together so the panel and the page do not disagree about how the unread state is announced.
+
+---
+
+## §30 — Operator **Notification Preferences** (`/app/notification-preferences`) · P30
+
+**Prototype:** `docs/design/raw/Operator Notification Preferences.html`. **Live:** Livewire
+`OperatorNotificationPreferences`; the write is `POST /app/notification-preferences` →
+`NotificationPreferenceController@update`.
+
+**⚠️ CHANNELS — what actually persists and delivers (read from the code, not inferred):**
+`NotificationPreferences::CHANNELS = ['in_app', 'email']`. **Only two.** SMS and push are not merely disabled —
+**they do not exist in the persistence model**, so a preference for them structurally *cannot* be stored. Email
+delivery is real (Mailables, mutation-proven in `NotificationEmailChannelTest`); in-app is real (the P29 feed).
+
+**⚠️ STORAGE MODEL — typed rows, not JSON.** `notification_preferences (user_id, event_key, channel, enabled)`
+is a per-user × event × channel pivot, written with a targeted `updateOrCreate` per row. **The WAVE-1
+wholesale-replace hazard is structurally absent here** (the Maintenance-Settings case, not the WAVE-1 one). The
+controller iterates the CATALOG rather than the submitted keys, so an unknown submitted key is ignored and
+always-on events are forced enabled in the service. **Save semantics untouched this gate.**
+
+**⚠️ SELF-SCOPE.** Prefs are saved for `$request->user()` — auth-resolved, **never a request id** — and the
+AUDIENCE comes from the *route default*, not the request, so a user cannot set another audience's events. **No
+save was submitted this gate:** `notification_preferences` is unchanged at **0 rows** (checksum
+`d751713988987e9331980363e24189ce`), with 0 users carrying quiet hours.
+
+**Tokens measured (regardless of render type): 0 contrast failures, before and after.**
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D30-1 | **Push presented as LIVE** — *"This device · Chrome"* with a green **On** dot — and its grid column **checked** on 8 rows. | No FCM/APNs, no device registration, no push transport. `CHANNELS` has no `push` member. | The **FCM / APNs** cutover (§H) + device-token storage. | 🚫 **REFUSAL-PRESERVE — DEFERRED.** A live-looking push toggle asserts a delivery that cannot happen. Live shows the card as **"not set up · Off"** and the grid cells as disabled, **never submitted** (no `name` attribute). |
+| D30-2 | **SMS presented as LIVE** — a real phone number *"+351 91 244 1180"* with a **Verified** dot — and its column checked on 4 rows. | No Twilio, no provider, no verified-number store. `CHANNELS` has no `sms` member. | The **Twilio** cutover (§H) + number verification. | 🚫 **REFUSAL-PRESERVE — DEFERRED.** ⚠️ Note the compounding claim: the prototype does not just enable SMS, it shows a **verified number**, which asserts a verification flow that has never run. |
+| D30-3 | A **daily digest at 18:00** (Off / 08:00 / 18:00). | The digest stores a real `daily_summary` email preference but only Off / Morning; and **no digest job dispatches yet** (the live page says so). | A send-time column + the digest job. | **LOGGED — REAL GAP (small).** The live page is already honest that the preference is stored *"for when the digest job ships"* — do not add a second send-time that is equally undispatched. |
+| D30-4 | Event rows with **no description**, and a shorter catalogue (12 rows). | — (live has 15 rows, each with a description sub-line) | — | **EXTRA-KEEP.** The descriptions say what actually triggers each notification; the extra rows are real wired events (`Work order resolved`, `Work order reassigned`, `Schedule published`). Trimming to match the mock would remove real, preference-able events. |
+
+### Fixed this gate — layout, and two REAL accessibility defects
+
+- **The design's two-column body** (matrix left, Quiet hours + Daily digest in a right rail) — it was one
+  full-width stack — plus the design's **breadcrumb** and a **top-right Save**. The foot Save is kept as well:
+  the matrix is long, and removing it would make a keyboard user tab back up the whole grid to submit.
+- ⚠️ **WCAG 2.1.1 (Level A) — the page's only real controls were unoperable by keyboard.** `.vy-np-check`
+  was `display: none`, which removes the input from the tab order **and** the accessibility tree. **Proven in
+  the browser**: `focus()` left `document.activeElement` as `BODY`, and the label wrapper was not focusable
+  either — so a keyboard-only user **could not change any notification preference at all**, on the page whose
+  entire purpose is changing them. Now visually hidden but **focusable**, with a `:focus-visible` ring on the
+  styled cell and a real `aria-label` per toggle ("Email me when: New booking"). 15/15 now in the tab order.
+- ⚠️ **WCAG 1.4.1 — the "no provider" state rode on opacity alone.** The disabled Push/SMS cells were empty
+  spans carrying only a `title`, which is not announced on a non-interactive element — **the same defect found
+  on the feed at P29**. They now carry real `.vy-sr-only` text ("Push not set up" / "SMS not set up"), reusing
+  the utility P29 added to the layout.
+- ⚠️ **#30 — the new breadcrumb is GATED.** `/app/settings` requires `properties.manage`, but **this page has
+  no permission gate** (it is self-only), so most users who can set their own preferences cannot open Settings.
+  An ungated crumb would have invited a 403. It links only under `@can('properties.manage')` — tested **both
+  ways** (Group Admin: link present and the route opens; Front Desk: no link and the route 403s).
+- **Channel cards stack at 1100px** — below that the "not set up" tag and the email address wrapped mid-phrase.
+
+### ⚠️ Realm-wide note
+
+The P29 1.4.1 finding still stands at `resources/views/livewire/owner/notifications.blade.php:33` and
+`resources/views/components/notifications/bell.blade.php:46` — still open.
+
+⚠️ **The keyboard defect, by contrast, was swept and is NOT realm-wide.** I checked whether other custom
+controls hide their input the same way: **no other class matching `*check/radio/switch/toggle` uses
+`display: none`**. The sibling pattern — `.vyms-switch input` (quiet hours, and the switches reused elsewhere) —
+uses `position: absolute; opacity: 0`, which stays focusable and is correct. **`.vy-np-check` was the only
+instance.** (Recorded because the sweep was actually run: an unverified "this is probably everywhere" would be
+a guess dressed as a finding.)

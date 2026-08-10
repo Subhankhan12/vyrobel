@@ -6119,3 +6119,61 @@ contrast measured **0 failures** before and after (this page was already clean �
 which failed 8×: **render type predicts neither risk**); PHPStan L5 **0**; Pint clean; **0 console**,
 **0 overflow** at 1440 and 1000; states checked: feed, filtered, honest empty. Schema untouched — no
 `migrate:fresh` needed.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY **P30 · Operator Notification Preferences** (`/app/notification-preferences`)
+
+**Presentation + two real accessibility fixes.** No backend, no save semantics, no channel behaviour changed.
+`docs/design/MISSING-BACKEND-BY-PAGE.md` §30.
+
+**⚠️ Channels, read from the code:** `NotificationPreferences::CHANNELS = ['in_app', 'email']` — **only two**.
+SMS and push are not merely disabled; **they do not exist in the persistence model**, so a preference for them
+structurally cannot be stored. Email delivery is real (Mailables, mutation-proven); in-app is real (P29).
+
+**⚠️ Storage model verified: TYPED per-user rows, not JSON.**
+`notification_preferences (user_id, event_key, channel, enabled)` written with a targeted `updateOrCreate` per
+row; the controller iterates the CATALOG rather than the submitted keys, and always-on events are forced enabled
+in the service. **The WAVE-1 wholesale-replace hazard is structurally absent** (the Maintenance-Settings case).
+Self-only: saved for `$request->user()` with the audience from the *route default*, never the request.
+**No save was submitted:** the table is unchanged at 0 rows (checksum `d751713988987e9331980363e24189ce`).
+
+**⚠️ WCAG 2.1.1 (Level A) — the page's ONLY real controls were unoperable by keyboard.** `.vy-np-check` was
+`display: none`, which removes an input from the tab order *and* the accessibility tree. **Proven in the
+browser:** `focus()` left `document.activeElement` as `BODY`, and the label wrapper was not focusable either —
+so a keyboard-only user could not change a single notification preference, on the page that exists to change
+them. Now visually hidden but **focusable**, with a `:focus-visible` ring and a real `aria-label` per toggle;
+15/15 in the tab order. ⚠️ **Contrast measured 0 failures on this same page, before and after** — an
+accessibility pass that only measures colour would have missed a Level-A failure entirely.
+
+**⚠️ WCAG 1.4.1 — the "no provider" state rode on opacity alone.** The disabled Push/SMS cells were empty spans
+carrying only a `title` (not announced on a non-interactive element) — **the same defect found on the feed at
+P29**. They now carry real `.vy-sr-only` text, reusing the utility P29 added.
+
+**⚠️ #30 — the new breadcrumb is gated.** `/app/settings` requires `properties.manage`, but this page carries
+**no permission gate** (it is self-only), so most users who can set their own preferences cannot open Settings.
+An ungated crumb would have invited a 403. Linked only under `@can('properties.manage')`, tested **both ways**
+(Group Admin: link present, route opens; Front Desk: no link, route 403s).
+
+**Fixed (design):** the two-column body (matrix left; Quiet hours + Daily digest in a right rail), the
+breadcrumb, and a **top-right Save** — the foot Save is deliberately kept too, since the matrix is long and
+removing it would make a keyboard user tab back up the whole grid to submit. Channel cards stack at 1100px
+(below that the "not set up" tag and the email address wrapped mid-phrase).
+
+**Refused / logged (4):** **Push shown as live** — *"This device · Chrome"* + a green **On**, with 8 grid cells
+checked (no FCM/APNs) · **SMS shown as live** with a **verified phone number** (no Twilio) — ⚠️ note the
+compounding claim: it asserts not just delivery but a *verification flow that has never run* · a **18:00
+digest** send-time (the digest job does not dispatch at all yet, and the page says so) · the mock's shorter,
+description-less event list (**EXTRA-KEEP** — live's descriptions say what actually triggers each notification,
+and its extra rows are real wired events).
+
+**⚠️ Sweep run, and it came back negative — recorded because it was actually checked.** The keyboard defect is
+**not** realm-wide: no other class matching `*check/radio/switch/toggle` uses `display: none`; the sibling
+`.vyms-switch input` uses `position: absolute; opacity: 0`, which stays focusable and is correct.
+`.vy-np-check` was the only instance. (The P29 1.4.1 finding at `owner/notifications.blade.php:33` and
+`bell.blade.php:46` does remain open.)
+
+**Verification:** prefs + notification suites + the token-contrast guard **29/29 · 155 assertions** (3 added,
+all mutation-proven); contrast **0 failures** before and after; PHPStan L5 **0**; Pint clean; **0 console**,
+**0 overflow** at 1440 (3 channel cards, 683/440 two-column) and 1000 (single column). Schema untouched — no
+`migrate:fresh` needed.
