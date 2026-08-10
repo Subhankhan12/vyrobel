@@ -6010,3 +6010,59 @@ assertions**, with **5–9** pre-existing failures depending on run order and da
 gave different failure sets.** `BookingImportTest` **passes 11/11 in isolation** and fails only in-suite (ordering
 / pollution); `OwnerUnitDetailViewTest` + `StubViewsTest` fail on the date-coupled seeder collision. None touch
 Portfolio. **Stop citing a fixed baseline integer — isolate a failing file before calling it a regression.**
+
+---
+
+## 2026-08-10 — DESIGN-PARITY **P28 · Operator Search** (`/app/search`, `can:reservations.view`)
+
+**Presentation-only.** No query, scope or row projection changed — `SearchService` is untouched.
+`docs/design/MISSING-BACKEND-BY-PAGE.md` §28.
+
+**⚠️ THE REFUSAL THAT DEFINES THIS PAGE.** The design's guest row carries **`lukas.meyer@mail.com · Munich,
+Germany`**. Contact PII renders on the **Guests CRM only** (list + profile); search is **not** a permitted PII
+surface, and it is the one screen that aggregates guests, reservations, owners and units into a single list —
+the easiest place to widen #28 by accident. Refused, and now **pinned by three mutation-proven tests**: no guest
+contact on a guest row, none riding along on a reservation row, and no owner contact **or IBAN — not even the
+masked `iban_last4`** on an owner row. Adding the design's email back turns them red.
+
+**PII perimeter — measured before AND after, unchanged:** 0 emails · 0 phones · 0 IBANs · 0 masked accounts ·
+0 `mailto:`/`tel:` links. No field added; nothing decrypted that was not already.
+
+**Fixed (design):** the single pill query bar (leading magnifier, in-field clear ×); **filter chip rows**
+(Status / Source / Occupancy) replacing native selects, plus a labelled Dates range; the results header
+(*"N results for "q""* + Sort segmented + Clear all filters); group headings with counts; rows rebuilt with the
+design's icon tile, two-line title/sub and chevron; Recent searches restyled.
+
+**⚠️ #20 — the chips are LINKS, deliberately.** Every chip is a plain `<a href>` GET carrying `q` **and every
+other active filter**, so filters compose rather than clobber and the tenant/property middleware re-runs on each
+change. **Zero `wire:click` on the page**: `/livewire/update` does not run the property-context middleware, so a
+wire-action filter would silently drop the scope. Verified live (`?q=Demo&status=confirmed&source=direct`;
+42 → 38 results).
+
+**⚠️ Tokens — the render-type predictor is NOT the whole story.** This is a Livewire page with **zero raw hex**
+that still failed AA **8×**: `.vys-badge` used `color: var(--vy-accent)` at 10.5px and measured **4.41**. The
+controller-vs-Livewire predictor tracks *un-tokenised hex*; **accent-as-text is an independent risk**. Now
+`--vy-accent-text`, 0 failures. **Measure regardless of render type.**
+
+**#38 verified:** results are org-scoped (the existing cross-org test is genuinely discriminating — dropping the
+`Guest` global scope makes it fail), and a **foreign drill-down 404s** (new test, asserting the actor's OWN
+records 200 first so the 404 cannot be a masked 403). ⚠️ **Note the contrast with P27:** Portfolio's isolation
+survives losing either of two layers; **Search's is single-layer** — the model global scope is the only net.
+There is also **no Scout/Meilisearch dependency**, so no shared index to mis-scope.
+
+**Refused / logged (6):** the guest-row email + city (#28) · a **Documents** result group (⚠️ if built, a folio
+receipt needs its own permission, not the page's `reservations.view`) · reservation-row stay dates + unit name ·
+a per-guest "2 stays" count · Dates month-presets · a **"Relevance"** sort (nothing scores relevance — offering
+it would be a false claim about ordering).
+
+**⚠️ Recorded, not fixed:** *"Recent searches"* persists **guest names** in `localStorage`, surviving logout —
+and a shared front-desk terminal is the normal deployment, so the next operator can read the previous one's
+searched guest names. Real feature, browser-local, but a genuine #28-adjacent exposure that deserves a
+deliberate decision (clear on logout, or drop it). Also recorded: **reflected input is not disclosure** —
+searching *by* an email echoes it into the input; the test therefore asserts on a value the operator did not
+type (the phone).
+
+**Verification:** `OperatorSearchTest` + `OperatorScheduleSearchGate2Test` **15/15 · 70 assertions** (5 added);
+PHPStan L5 **0**; Pint clean; **0 console**, **0 horizontal overflow** at 1440 and 1000; contrast re-measured
+(8 → 0). States checked: results, **no-results** (honest, no fabricated "did you mean"), **no-query** (recent +
+real upcoming arrivals). Schema untouched — no `migrate:fresh` needed. No app/ code changed.

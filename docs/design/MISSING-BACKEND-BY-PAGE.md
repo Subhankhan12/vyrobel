@@ -1920,3 +1920,53 @@ one alone leaves the page correct**; the test only goes red when **both** are re
 ⚠️ **Also found:** **no provisioned role holds `properties.view` without `reports.view`**, so the "Full report"
 gate's negative branch is unreachable through the stock catalogue. The test revokes the permission directly so
 the assertion still discriminates instead of quietly testing nothing.
+
+---
+
+## §28 — Operator **Search** (`/app/search`, `can:reservations.view`) · P28
+
+**Prototype:** `docs/design/raw/Operator Search.html`. **Live:** Livewire `OperatorSearch` + `SearchService`.
+**Tokens measured:** the page's own `<style>` block carried **`.vys-badge { color: var(--vy-accent) }`**, which
+measured **4.41** on the card wash at 10.5px (the 4.5 bar applies) — **8 occurrences, now `--vy-accent-text`,
+0 failures.** So the controller-vs-Livewire predictor is **not** the whole story: this is a Livewire page with no
+raw hex that still failed AA, because the failure came from the **accent-as-text** family, not from un-tokenised
+hex. ⚠️ **Measure regardless of render type** — the two risks are independent.
+
+⚠️ **No Scout / Meilisearch dependency exists** — search is direct Eloquent, so there is no shared index to
+mis-scope. Tenant isolation rests on the models' `BelongsToOrganization` global scope.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D28-1 | The guest row's contact sub-line: **`lukas.meyer@mail.com · Munich, Germany`**. | — (the data exists; it is deliberately not rendered) | — | 🚫 **REFUSED — #28, and this is the whole point of the page.** Contact PII renders on the **Guests CRM only** (list + profile); front desk / reservations / inbox are name-only. A search row is **not** a permitted PII surface, and search is the one screen that aggregates guests, reservations, owners and units into a single list — so it is the easiest place to widen the perimeter by accident. `SearchService` returns name-only rows **by construction**. Now pinned by three tests, **mutation-proven** (adding the email to the guest row turns them red). |
+| D28-2 | A **Documents** result group (`Folio receipt · Meyer` · *Guest receipt · PDF · VYR-10430*), counted in the type pills. | Search covers reservations / guests / units / owners; documents are not indexed or matched. | Extending `SearchService` to the `documents` polymorph, with per-document authorization. | **LOGGED — REAL GAP.** ⚠️ If built, note the shape: a document row named after a guest puts guest-identifying text on this surface, and a folio receipt is a money document — it needs its own permission check, not the page's `reservations.view`. |
+| D28-3 | Reservation rows carrying **stay dates and the unit name** (*"L. Meyer · Villa Coralis" · "12–16 Sep 2025 · VYR-10430 · Booking.com"*). | `SearchService::reservations()` returns reference / guest name / status / source — no dates, no unit. | Widening the row projection (dates are on the reservation; the unit needs the assignment join). | **LOGGED — REAL GAP (small).** Honest and cheap; it is a projection change, not a new capability. The live row now shows guest name + `reference · source`, which is what is really there. |
+| D28-4 | A per-guest **"2 stays"** count on the guest row. | Not computed for search rows. | The shared `GuestHistory` helper, per result. | **LOGGED — REAL GAP (small).** ⚠️ Keep it a COUNT — a stay count is not contact data, but do not let it grow into "last stay · room · spend" on this surface. |
+| D28-5 | **DATES presets** — *September · October · Upcoming · Custom*. | The service filters on a real check-in range (`from`/`to`); it has no named-period semantics. | Period presets resolved to ranges in the service. | **LOGGED — MINOR.** The live control is the real range, which is the honest equivalent; presets are sugar over it. |
+| D28-6 | A **"Relevance"** sort option. | Nothing scores relevance — the service sorts by newest / check-in / reference. | A scoring function (and a defensible definition of relevance across four entity types). | 🚫 **REFUSED.** Offering a "Relevance" order that is really "newest" is a false claim about how results are ordered. The three REAL orders are shown. |
+
+### Fixed this gate (presentation only — no query, scope or projection changed)
+
+- **The design's single query bar** — pill, leading magnifier, an in-field **clear (×)**, submit inside the bar.
+- **Filter chip rows** (Status / Source / Occupancy) replacing native `<select>`s, plus a labelled **Dates**
+  range. ⚠️ **Every chip is a plain `<a href>` GET link that carries `q` and every OTHER active filter**, so
+  filters compose instead of clobbering, and the tenant/property middleware re-runs on each change (#20).
+  **Zero `wire:click`** on this page — `/livewire/update` does not run the property-context middleware, so a
+  wire-action filter would silently drop the scope. Verified live: `?q=Demo&status=confirmed&source=direct`.
+- **Results header** — *"N results for "q""* + a **Sort** segmented control + *× Clear all filters*.
+- **Group headings carry their count**; **rows** gained the design's icon tile, two-line title/sub, and chevron.
+- **Recent searches** restyled to the design's row list (clock tile + term + ↗).
+- **`.vys-badge` → `--vy-accent-text`** (4.41 → AA), and **status keeps its word**, never colour alone (1.4.1).
+
+### ⚠️ Findings recorded, not fixed
+
+- ⚠️ **"Recent searches" persists GUEST NAMES in `localStorage`** (`vy_recent_search`), which survives logout.
+  The feature is real and browser-local — but a **shared front-desk terminal** is the normal deployment, and the
+  next person to use it can read the previous operator's searched guest names. **Not a rendering bug and not
+  this pass's to change** (clearing on logout is behaviour), but it is a genuine #28-adjacent exposure and
+  should be decided deliberately: clear on logout, or drop the feature.
+- **Reflected input is not disclosure.** Searching *by* an email echoes it into the input's `value`. That is the
+  operator's own input coming back, not the product volunteering stored PII — the test asserts the distinction
+  by requiring that a contact value the operator did **not** type (the phone) never appears.
+- ⚠️ **Search's tenant isolation is SINGLE-layer.** Unlike Portfolio (where two independent guards had to fall),
+  disabling the `Guest` global scope alone leaks another org's guest — proven by mutation, and the existing
+  cross-org test correctly catches it. Correct today, but there is no second net here.

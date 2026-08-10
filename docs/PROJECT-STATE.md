@@ -797,12 +797,12 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **35 of 42** covered, **7 remaining** (`0aa9ede`→P27, all pushed)
+## N.4 Progress — OPERATOR **36 of 42** covered, **6 remaining** (`0aa9ede`→P28, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
-**P22 Owner Detail**, **P23 Roles**, **P24 Security**, **P25 Reviews**, **P26 Channels** and **P27
-Portfolio**, so the current figure is **35 covered / 7 remaining** (35 + 7 = 42). Notes saying
+**P22 Owner Detail**, **P23 Roles**, **P24 Security**, **P25 Reviews**, **P26 Channels**, **P27
+Portfolio** and **P28 Search**, so the current figure is **36 covered / 6 remaining** (36 + 6 = 42). Notes saying
 "22/42 … 19 remaining" are the pre-GATE-B count and do not add up.
 
 | Gate | Page(s) | Commit |
@@ -841,6 +841,7 @@ Portfolio**, so the current figure is **35 covered / 7 remaining** (35 + 7 = 42)
 | P25 | **Operator Reviews** (⚠️ **the page had never been tokenised — 3 measured AA failures incl. the STAR RATING at 3.08; now 0** · the rating gained its number · 4 backend items) | `101e1e6` |
 | P26 | **Operator Channels** ⚠️ the OTA-claim ROOT (1 over-claim fixed: “Channels mapped”→“configured” + a scoped guard · 5 backend items, **4 refusals — almost the whole prototype**; ⚠️ live page NOT browsable: Pro-gated, plan deliberately unchanged) | `638e67a` |
 | P27 | **Operator Portfolio** ⚠️ the multi-property ROLLUP (#38): band/stats/occupancy-rail/chips restyled · the never-rendered **arrivals** chip + **“Full report ›”** (gate was already computed) now rendered · the design's **“—” for an average over zero** (computed zeros kept) · **AA 4.43→5.18** · ⚠️ found the **#17 test was VACUOUS** — replaced + mutation-proven; #38 shown to hold across **two independent layers**; 5 backend items | P27 |
+| P28 | **Operator Search** ⚠️ the cross-entity PII surface: query bar / filter CHIP LINKS (#20, zero wire:click) / results header / tiled rows · **the design's guest-row EMAIL + city REFUSED (#28)** — pinned by 3 mutation-proven tests · `.vys-badge` **4.41→AA** (accent-as-text on a Livewire page — the predictor isn't the whole story) · foreign drill-down→404 · 6 backend items | P28 |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -885,24 +886,23 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Search.**
+## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Notifications.**
 
-⚠️ **Search is a CROSS-ENTITY read surface.** It reaches reservations, guests and units at once, so it is where
-the **#28 perimeter** is easiest to widen by accident (a result row is a great place for an email address to
-leak onto a non-CRM surface) and where **#38** must hold per result. Expect the honest-empty and
-no-results states to matter more than the styling.
+⚠️ **Notifications is a self-only feed (#28/#26).** The panel + page already share ONE `NotificationFeed`
+helper; the risk is a design that shows cross-user or cross-tenant rows, or fabricated categories/channels
+(the bell rebuild already refused the mock's fake "Channels"/"Housekeeping" pills — do not reintroduce them).
 
-⚠️ **NOTES CARRIED FORWARD.** ⑴ **Measure tokens, don't assume** — but the predictor is now **two-for-two**:
-`c0ce419` **controller** pages carry raw pre-AA hex (Reviews: 3 failures); **Livewire** pages are clean
-(Channels, Portfolio: 0 raw hex). Still measure. ⑵ **Scope a test guard to the CLAIM, not a bare word.**
-⑶ ⚠️ **The suite baseline is a RANGE, 5–9, not a fixed 9 (J.quater)** — `BookingImportTest` passes in isolation and fails only in-suite (ordering), while `OwnerUnitDetailViewTest`/`StubViewsTest` are date-coupled. **Isolate before calling anything a regression.** ⑷ ⚠️ **NEW (P27) — a green test can be defending nothing:**
-Portfolio's "#17 reconciles" test asserted `€0.00` on a page of zeros and stayed green with the rollup inflated
-by €9,999.99. **On any page with a total, check the fixture actually produces a non-zero figure**, then break
-it by one cent to prove the assertion discriminates. ⑸ ⚠️ **NEW (P27) — match the design's structure, not its
-contrast defect:** the prototype's card band sets white ink on a stop measuring 3.10.
+⚠️ **NOTES CARRIED FORWARD.** ⑴ ⚠️ **MEASURE TOKENS REGARDLESS OF RENDER TYPE — the controller-vs-Livewire
+predictor is NOT the whole story (P28).** Search is a Livewire page with zero raw hex that still failed AA 8×,
+because the failure came from the **accent-as-text** family (`color: var(--vy-accent)` at small sizes), which is
+independent of un-tokenised hex. Two separate risks; measure for both. ⑵ **Scope a test guard to the CLAIM.**
+⑶ ⚠️ **The suite baseline is a RANGE, 5–9 (J.quater)** — isolate before calling anything a regression.
+⑷ ⚠️ **A green test can be defending nothing (P27)** — check the fixture produces a non-zero figure.
+⑸ ⚠️ **NEW (P28) — reflected input is not disclosure:** a query echoed into the search box is the operator's own
+input, not the product volunteering PII. Assert on a value the user did NOT type.
 
-**7 OPERATOR prototypes remain:** **1 Search** · **2 Notifications** · **3 Notification Preferences** ·
-**4 Email Templates** · **5 Email Editor** · **6 Profile** · **7 Schedule PDF**.
+**6 OPERATOR prototypes remain:** **1 Notifications** · **2 Notification Preferences** · **3 Email Templates** ·
+**4 Email Editor** · **5 Profile** · **6 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 
