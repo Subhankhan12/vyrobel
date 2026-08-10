@@ -185,3 +185,22 @@ it('forbids the owner-party (business) write to a user who is not the primary ow
 
     expect(Owner::query()->where('name', 'Hacker')->exists())->toBeFalse();
 });
+
+// ── 6. The "Verified" pill must follow the VERIFICATION, not the absence of a pending change ──────
+// These are different facts. The badge was rendered whenever `pending_email === ''`, so a user whose
+// `email_verified_at` is null would have been shown a green "Verified" beside an unverified address. Every
+// owner-realm path happens to set `email_verified_at` on invite-accept today, so it was truthful by accident
+// rather than by construction — this locks it to the fact it claims.
+it('shows the Verified pill only when the login email is genuinely verified', function () {
+    $s = seedScenario(2);
+    $a = inboxOwner($s, 'Amara Okafor', 0);
+
+    $this->actingAs($a['user'])->get('/owner/settings')->assertOk()->assertSee('Verified');
+
+    // Same user, same absence of a pending change — but not verified: the badge must be gone.
+    $a['user']->forceFill(['email_verified_at' => null])->save();
+
+    $response = $this->actingAs($a['user'])->get('/owner/settings');
+    $response->assertOk()->assertDontSee('Verified');
+    assertNoRawBlade($response);
+});

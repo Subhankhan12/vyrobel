@@ -1167,11 +1167,13 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // 🔒 SG2 — "Documents & tax": co-owner + accountant (a view-only sub-user is refused).
     Route::get('/documents', OwnerDocuments::class)->middleware($capDocuments)->name('documents');
 
-    // Wave 4 — owner SELF-PROFILE. The owner edits their OWN contact details (name + encrypted
-    // email/phone). ⚠️ Owner is BelongsToOrganization, NOT BelongsToOwner, so OwnerScope does not scope it:
-    // the write resolves the owner by an EXPLICIT `where('user_id', auth id)` (no owner id in the request),
-    // so an owner can only ever edit their own row. The payout account/IBAN, notification prefs, team and 2FA
-    // are net-new subsystems, stubbed "Soon".
+    // Wave 4 — owner SELF-PROFILE, since rebuilt as the settings HUB (#62). The owner edits their OWN contact
+    // details (name + encrypted email/phone). ⚠️ Owner is BelongsToOrganization, NOT BelongsToOwner, so
+    // OwnerScope does not scope it: the write resolves the owner by an EXPLICIT `where('user_id', auth id)`
+    // (no owner id in the request), so an owner can only ever edit their own row.
+    // ⚠️ The note that used to sit here — "the payout account/IBAN, notification prefs, team and 2FA are
+    // net-new subsystems, stubbed 'Soon'" — is STALE: all four shipped and the hub REUSES them (the masked
+    // IBAN is CAP_PAYOUT-only, prefs are a typed pivot, the team is real, 2FA lives on /owner/security).
     Route::get('/settings', OwnerSettings::class)->name('settings');
 
     // Per-USER self-profile (name / language / avatar / login-email) — 🔒 self-only via auth(), NO capability

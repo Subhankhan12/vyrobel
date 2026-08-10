@@ -3579,3 +3579,110 @@ the fix.*
   statement net/gross and `updated_at` unchanged (`2026-08-09 07:17:58`), lines and ledger untouched.
   Recorded because "observe READ-ONLY" does not mean "no row is written" on an audited export.
 - ⚠️ **`toContain` sweep — clean negative** (tenth gate); the new guard is needle-only, chained with `->and()`.
+
+---
+
+## §O12 — Owner Settings hub (`/owner/settings`, `App\Livewire\Owner\OwnerSettings`) · OWNER 12/32
+
+**Prototype:** `docs/design/raw/Owner Settings.html` (decoded fresh — 13 sections). **Role:** `External
+Owner`. ⚠️ **`Owner Security.html` is a SEPARATE prototype for `/owner/security` — its own gate, not this one.**
+
+### ⚠️ Premise correction — password-change is NOT on this page
+
+The brief asked where password-change lives. **It is on `/owner/security`**, not the profile/settings hub:
+`POST /owner/security/password` → `ChangePasswordController@owner` (throttled 6/1, self-only, current password
+verified, and the shared hash-rotate path that terminates sibling sessions). 2FA enrolment, recovery codes and
+disable all live there too. So this gate touched **no** password or 2FA surface, and the firm rulings on
+`changePasswordTo` were not in scope — the operator precedent (GATE 24, `/app/security`) holds for the owner
+realm as well.
+
+### The two identities on this page — worth keeping straight
+
+- **MY PROFILE** — per-USER, resolved from `auth()`, **no capability gate**: every owner-realm user *including
+  accountant and view-only sub-users* edits their OWN login (name / language / avatar / login-email).
+- **OWNER-PARTY / business details** — the entity that gets paid — is **PRIMARY-OWNER-ONLY** (`EnsurePrimaryOwner`,
+  #42), resolved by an explicit `where('user_id', auth id)` with no owner id in the request.
+
+### Fixed on this page (design / markup / styling only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | The avatar upload rendered as the **raw browser widget** ("Choose File / No file chosen") — the only unstyled control on the page — and carried **no accessible name** | a design-system `.vy-set-file` pill (icon + "Choose photo"), `aria-label`, `opacity:0` **never `display:none`** (a hidden control is an unreachable one — the GATE-30 defect), ring on the label since the input is invisible |
+| 2 | ⚠️ **The "Verified" pill was gated on `pending_email === ''`** — i.e. *"no change is pending"*, **not** *"this address is verified"* | gated on `email_verified_at`; new guard, **mutation-proven** |
+| 3 | 7 accent-as-text links (`Statement & fee documents →`, `Your agreement →`, `Manage in Payouts →`, `Add →` ×2, `Manage team →`, `→`) at **4.25–4.46** | `--vy-accent-text` |
+| 4 | `$lbl` — **every field label on the page** — plus two helper paragraphs, `--vy-faint` on the glass at **4.19–4.44** | `--vy-on-grad-soft` |
+| 5 | `$err` — the **validation-error** style, an accent-as-text site that only renders in a state I could not trigger read-only | `--vy-accent-text`; **probed and measured at 4.81** rather than assumed |
+| 6 | A **stale route comment** claiming "the payout account/IBAN, notification prefs, team and 2FA are net-new subsystems, stubbed 'Soon'" — all four shipped and the hub reuses them | corrected in `routes/web.php` |
+
+**Contrast: 20 AA failures → 9** (173 text + 29 icon candidates). Icons 0 failures.
+
+### 🚫 Refusals preserved (do NOT "fix") — this page is where the prototype fabricates hardest
+
+The wireframe's Settings page is dense with authoritative-looking invention, and the live page refuses all of
+it. Verified present-and-correct this gate:
+
+- **"Visa ···· 4242 · Expires 04 / 27 · Update"** — a stored card the owner does not have. The live page says
+  *"Deducted on each statement — no card needed"*. The owner has **no Vyrobel subscription** — that is the
+  operator's (#41).
+- **"15% management fee"** — the live figure is the owner's **real agreement rate, 18%**, via the shared
+  `OwnerCommissionRate`.
+- ⚠️ **"Session · Signed in on this device · MacBook · Dublin, IE"** — **the operator-Profile GATE-33 refusal,
+  and the prototype commits it here too.** A city beside a sign-in reads as security evidence, and there is no
+  geolocation in the product. The live page shows **no session-location block at all** on this page (real
+  sessions live on `/owner/security`).
+- **"Owner · Seaside Villas · since 2023"** — no fabricated "member since"; the live subtitle is the real role
+  (*"External owner"*).
+- **Data export → "Guests · Guest contacts & lifetime value (CSV)"** — ⚠️ this would hand an owner a **guest
+  contact list**, a direct #28 breach. **Refused**; the live exports are Bookings / Statement history / Full
+  account data, captioned *"owner-scoped, no other party's"*.
+- **Channels "Connected / Disconnect"** — live shows Direct **Always on** and Airbnb/Booking.com/Vrbo
+  **Pending**, with the copy *"we'll never show a channel as connected until it truly syncs"* (**D2-2**, #37).
+- **SMS / Push notification columns** — honest `· soon`; structurally unsettable (`CHANNELS =
+  ['in_app','email']`, O7).
+- **Theme picker** — honest *"Light · dark theme soon"*; no dark palette exists.
+- **Phone "Verified / Verify"** — no phone-verification subsystem, so no badge is shown for phone.
+
+### ✅ Extra work kept (beyond the prototype)
+
+- **Profile completeness** derived from real state (photo / email / tax details / payout account / 2FA), each
+  row linking to the real place to fix it.
+- The hero stats (**Channels live · Team members · Fee invoices**) are real counts.
+- The masked payout IBAN in the rail, **CAP_PAYOUT-only** (#28).
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO12-1 — no phone verification.** The prototype badges phone "Verified/Verify"; nothing verifies a phone
+  number (no SMS provider — the same account-gated dependency as the SMS channel). *Verdict: **ACCOUNT-GATED**.*
+- **DO12-2 — per-user currency and timezone are not settable.** "Language & region" shows currency and
+  timezone as **read-only, inherited from the property**, which is honest (a per-user currency with no FX
+  would be a fabrication — the Wave-A "HONEST HOLD"). The prototype implies they are editable.
+  *Verdict: **RATIFIED REFUSAL** until FX exists.*
+- **DO12-3 — the prototype's "Unsaved changes / All changes saved" live-state bar** does not exist; the live
+  page uses per-section Save buttons (each its own gated POST). Cosmetic, but it is a real UX affordance the
+  design assumes. *Verdict: **REAL GAP** (small).*
+- **DO12-4 — no fee-invoice PDFs per row.** The prototype lists "Recent fee invoices" with a per-row PDF; the
+  live page links to the real statement & fee documents instead (the fee is a statement line, not a separate
+  invoice entity). *Verdict: **RATIFIED REFUSAL** unless invoices become their own entity.*
+
+### ⚠️ Verified, not changed
+
+- **Self-scoped (#28/#38/#42)** — the profile resolves from `auth()`; the owner-party write resolves by an
+  explicit `where('user_id', auth id)` with **no owner id in the request**, so a foreign row is unreachable by
+  construction rather than by a 404. Existing tests are non-vacuous: owner A posts and **owner B is proven
+  untouched**, and A's page shows A's email while **B's is absent**. The owner seeing their OWN email/company
+  is their account, not a #28 widening; **no other user's data and no guest data appear**.
+- **Password-change lives on `/owner/security`** (stated above) — untouched by this gate.
+- **The save was observed READ-ONLY.** All **7 forms** were guarded at capture phase for the whole probe;
+  nothing was submitted. After: `users.updated_at` **unchanged** (`2026-08-10 11:24:07` — ⚠️ note that is
+  *today*, because logging in touches the user row, so the honest baseline is "unchanged from the value before
+  probing", not "still the seed time"), `owners.updated_at` still `2026-08-09 07:17:58`, `owner_users` 2,
+  `payout_methods` 1, and **`export_downloads` still 7** — unlike the statement PDF (O11), *viewing* settings
+  writes no audit row.
+- **No raw IBAN** — the rail shows `···· 1000` via `Iban::masked`, CAP_PAYOUT-gated.
+- **Keyboard: 66 named controls, 0 unnamed** (was 1), **0 `display:none` interactive controls**, **0
+  `div@click`** — the Owner-10 and GATE-30 defect classes are both absent here.
+- ⚠️ **`toContain` sweep — clean negative** (eleventh gate); the new guard uses `assertSee`/`assertDontSee`.
+- ⚠️ **Gradient family — surfaced, none added, none half-fixed.** All 9 remaining failures are
+  white-on-accent-gradient. ⚠️ **This page contributes a new near-worst cluster:** the four team-member /
+  hero initial circles use a *lighter* peach gradient (`#F0A57A → #D9662E`) and measure **2.55–2.63** — the
+  family's worst band is now **2.54–2.63**, and it is four instances on one page. Still awaiting its own gate.

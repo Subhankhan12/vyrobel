@@ -11,8 +11,8 @@
     RAW-BLADE RULE: every `@` follows a space, newline or tag.
 --}}
 @php
-    $lbl = 'display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:7px;';
-    $err = 'font-size:11.5px;color:var(--vy-accent);display:block;margin-top:5px;';
+    $lbl = 'display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-on-grad-soft);margin-bottom:7px;';
+    $err = 'font-size:11.5px;color:var(--vy-accent-text);display:block;margin-top:5px;';
     $btn = 'background:var(--vy-grad);color:#fff;padding:11px 22px;';
     $ghost = 'background:rgba(255,255,255,.6);border:1px solid var(--vy-glass-border);color:var(--vy-ink);padding:9px 16px;';
 @endphp
@@ -24,6 +24,11 @@
         .vy-set-stats { display:flex; gap:26px; flex-wrap:wrap; margin-left:auto; }
         .vy-set-stat-n { font-family:var(--vy-display); font-weight:600; font-size:22px; line-height:1; color:var(--vy-ink); font-variant-numeric:tabular-nums; }
         .vy-set-stat-l { font-size:11px; color:var(--vy-muted); margin-top:5px; }
+        .vy-set-file { position:relative; display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:var(--vy-r-pill); background:rgba(255,255,255,.6); border:1px solid var(--vy-glass-border); color:var(--vy-ink); font-size:12.5px; font-weight:500; cursor:pointer; transition:background .16s, border-color .16s; }
+        .vy-set-file:hover { background:rgba(255,255,255,.85); }
+        .vy-set-file:focus-within { border-color:var(--vy-accent-border); box-shadow:0 0 0 3px rgba(232,112,58,.14); }
+        .vy-set-file input[type=file] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+        .vy-set-file svg { width:14px; height:14px; color:var(--vy-accent-text); flex-shrink:0; }
         .vy-set-h2 { font-family:var(--vy-display);font-size:15px;font-weight:600;margin:0 0 4px; }
         .vy-set-sub { font-size:12.5px;color:var(--vy-muted);margin:0 0 16px; }
         .vy-set-fee { display:flex;align-items:baseline;justify-content:space-between;padding:9px 0;border-top:1px solid var(--vy-hairline);font-size:13px; }
@@ -71,7 +76,16 @@
                     <div>
                         <form method="POST" action="{{ route('owner.account.avatar') }}" enctype="multipart/form-data" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                             @csrf
-                            <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" style="font-size:12.5px;color:var(--vy-muted);max-width:220px">
+                            {{-- The native file widget ("Choose File / No file chosen") was the only unstyled
+                                 control on the page and carried no accessible name. The input keeps its own box
+                                 (opacity, never display:none — a hidden control is an unreachable one), the label
+                                 draws the design's pill, and the ring lives on the label since the input is
+                                 invisible. --}}
+                            <label class="vy-set-file">
+                                <input type="file" name="avatar" aria-label="Choose a profile photo" accept="image/jpeg,image/png,image/webp">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="15" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-4-4-9 7"/></svg>
+                                <span>Choose photo</span>
+                            </label>
                             <button type="submit" class="vy-btn" style="{{ $ghost }}">Upload photo</button>
                         </form>
                         @error('avatar') <span style="{{ $err }}">{{ $message }}</span> @enderror
@@ -79,10 +93,10 @@
                             <form method="POST" action="{{ route('owner.account.avatar.remove') }}" style="margin-top:8px">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" style="background:none;border:none;color:var(--vy-accent);font-size:12px;cursor:pointer;padding:0">Remove photo</button>
+                                <button type="submit" style="background:none;border:none;color:var(--vy-accent-text);font-size:12px;cursor:pointer;padding:0">Remove photo</button>
                             </form>
                         @endif
-                        <p style="font-size:11px;color:var(--vy-faint);margin:8px 0 0">JPG, PNG or WebP · up to 4&nbsp;MB.</p>
+                        <p style="font-size:11px;color:var(--vy-on-grad-soft);margin:8px 0 0">JPG, PNG or WebP · up to 4&nbsp;MB.</p>
                     </div>
                 </div>
 
@@ -112,7 +126,7 @@
                 <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--vy-hairline)">
                     <label style="{{ $lbl }}">Login email</label>
                     <div style="font-size:13.5px;color:var(--vy-ink);margin-bottom:10px">Currently <strong>{{ $account['email'] }}</strong>
-                        @if ($account['pending_email'] === '')<span class="vy-status vy-status--paid" style="margin-left:6px"><span class="vy-dot"></span>Verified</span>@endif
+                        @if ($account['email_verified'])<span class="vy-status vy-status--paid" style="margin-left:6px"><span class="vy-dot"></span>Verified</span>@endif
                     </div>
                     @if ($account['pending_email'] !== '')
                         <div class="vy-card" style="background:rgba(224,146,30,.08);border:1px solid rgba(224,146,30,.25);padding:12px 14px;margin-bottom:10px">
@@ -120,7 +134,7 @@
                         </div>
                         <form method="POST" action="{{ route('owner.account.email.cancel') }}">
                             @csrf
-                            <button type="submit" style="background:none;border:none;color:var(--vy-accent);font-size:12.5px;cursor:pointer;padding:0">Cancel this change</button>
+                            <button type="submit" style="background:none;border:none;color:var(--vy-accent-text);font-size:12.5px;cursor:pointer;padding:0">Cancel this change</button>
                         </form>
                     @else
                         <form method="POST" action="{{ route('owner.account.email') }}" style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
@@ -131,7 +145,7 @@
                             </div>
                             <button type="submit" class="vy-btn" style="{{ $ghost }}">Change email</button>
                         </form>
-                        <span style="font-size:11px;color:var(--vy-faint);display:block;margin-top:8px">We’ll email a confirmation link to the new address. Your email only changes once you click it.</span>
+                        <span style="font-size:11px;color:var(--vy-on-grad-soft);display:block;margin-top:8px">We’ll email a confirmation link to the new address. Your email only changes once you click it.</span>
                     @endif
                 </div>
             </div>
@@ -243,8 +257,8 @@
                     <span class="vy-muted">{{ $fee['invoices_count'] }} on your {{ \Illuminate\Support\Str::plural('statement', $fee['invoices_count']) }}</span>
                 </div>
                 <div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap">
-                    <a href="{{ route('owner.documents') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">Statement &amp; fee documents →</a>
-                    <a href="{{ route('owner.agreement') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">Your agreement →</a>
+                    <a href="{{ route('owner.documents') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">Statement &amp; fee documents →</a>
+                    <a href="{{ route('owner.agreement') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">Your agreement →</a>
                 </div>
             </div>
 
@@ -309,7 +323,7 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
                     <h2 class="vy-set-h2" style="margin:0">Team access <span style="color:var(--vy-faint);font-weight:500">· {{ $team['count'] }}</span></h2>
                     @if ($team['can_manage'])
-                        <a href="{{ route('owner.team') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">Manage team →</a>
+                        <a href="{{ route('owner.team') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">Manage team →</a>
                     @endif
                 </div>
                 <p class="vy-set-sub">People who can access this owner account. Each role sees only what it needs.</p>
@@ -342,7 +356,7 @@
                     <p class="vy-set-sub" style="margin-top:6px">Managed by the account owner.</p>
                 @endif
                 @if ($canPayout)
-                    <a href="{{ route('owner.payout-method') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none;display:inline-block;margin-top:12px">Manage in Payouts →</a>
+                    <a href="{{ route('owner.payout-method') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none;display:inline-block;margin-top:12px">Manage in Payouts →</a>
                 @endif
             </div>
 
@@ -390,7 +404,7 @@
                         </span>
                         <span style="flex:1;{{ $c['done'] ? 'color:var(--vy-muted)' : '' }}">{{ $c['label'] }}</span>
                         @if (! $c['done'] && $c['href'])
-                            <a href="{{ $c['href'] }}" style="color:var(--vy-accent);font-size:12px;text-decoration:none">Add →</a>
+                            <a href="{{ $c['href'] }}" style="color:var(--vy-accent-text);font-size:12px;text-decoration:none">Add →</a>
                         @endif
                     </div>
                 @endforeach
@@ -402,7 +416,7 @@
                     <h2 class="vy-set-h2">Security &amp; privacy</h2>
                     <p style="font-size:12.5px;color:var(--vy-muted);margin:0">Password, two-factor, active sessions and account protection.</p>
                 </div>
-                <span style="color:var(--vy-accent);font-size:18px">→</span>
+                <span style="color:var(--vy-accent-text);font-size:18px">→</span>
             </a>
         </div>
     </div>

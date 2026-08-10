@@ -71,6 +71,10 @@ class OwnerSettings extends Component
                 'name' => (string) $user->name,
                 'email' => (string) $user->email,
                 'pending_email' => (string) ($user->pending_email ?? ''),
+                // The "Verified" pill must read the VERIFICATION, not the absence of a pending change — those
+                // are different facts, and every owner-realm path happens to verify on accept today, so the
+                // badge was truthful by accident rather than by construction.
+                'email_verified' => $user->email_verified_at !== null,
                 'locale' => (string) ($user->locale ?: 'en'),
                 'avatar_url' => $user->avatarUrl(),
                 'initials' => $this->viewer()['initials'],

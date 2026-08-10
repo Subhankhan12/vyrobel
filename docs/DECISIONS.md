@@ -7106,3 +7106,42 @@ the project's own understanding of itself. No application code, tests, migration
   downloadable PDF is the worst-case leak.
 
 **⬅ NEXT = OWNER PAGE 12 of 32.**
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER 12/32 · **Owner Settings hub** (`/owner/settings`)
+
+Design/markup only, plus one view-model addition and one stale comment.
+
+**1. Premise correction — password-change is not on this page.** It lives on `/owner/security`
+(`ChangePasswordController@owner`: throttled, self-only, current password verified, the shared rotate path
+that terminates sibling sessions), together with 2FA. `Owner Security.html` is a **separate prototype for its
+own gate**, so no password or 2FA surface was touched here.
+
+**2. The honesty find — a badge truthful by accident.** The "Verified" pill was gated on
+`pending_email === ''` — *"no change pending"*, not *"this address is verified"*. A user with a null
+`email_verified_at` would have seen a green Verified beside an unverified address. It was **not** lying today,
+because every owner-realm invite path sets `email_verified_at` on accept — so it was truthful by coincidence
+rather than by construction. Recorded as latent, fixed to read the fact it claims, and locked with a
+mutation-proven guard. Generalised as §N.4n — including that **a mutation which does not apply proves
+nothing**: the first attempt used a `perl` substitution whose escaping silently failed, and the "passing" run
+was meaningless until the edit was asserted.
+
+**3. The page's only unstyled control.** The avatar upload rendered as the raw browser widget ("Choose File /
+No file chosen") and had no accessible name. Now a design-system pill with an `aria-label`, using `opacity:0`
+and **never `display:none`** — a hidden control is an unreachable one (the GATE-30 defect).
+
+**4. Contrast 20 → 9.** Seven accent-as-text links, every field label (`$lbl`) and two helper lines moved to
+the right existing tokens. ⚠️ `$err` — the validation-error style — only renders in a state that cannot be
+reached without submitting, so it was **probed and measured (4.81)** rather than assumed correct.
+
+**5. What the prototype fabricates, and the product already refuses.** This is the densest fabrication surface
+in the owner realm: a stored **Visa ···· 4242**, a **15%** fee (real: 18%), **"Signed in … Dublin, IE"** — the
+GATE-33 login-location refusal, committed again by the design — a **"since 2023"**, and a **"Guests · Guest
+contacts & lifetime value"** export that would hand an owner a guest contact list (#28). All were already
+refused; verified present-and-correct and recorded so none is "fixed" later.
+
+**Read-only honoured** across all 7 forms: user and owner rows, `owner_users`, `payout_methods` and
+`export_downloads` all unchanged (⚠️ unlike the O11 statement PDF, *viewing* settings writes no audit row).
+No raw IBAN. Keyboard: 66 named, 0 unnamed, 0 `display:none`, 0 `div@click`. No schema touched. Suite
+**1838 / 12,058 · 9 non-green** (documented set); PHPStan L5 (0); Pint clean.
