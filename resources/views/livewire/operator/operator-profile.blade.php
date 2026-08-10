@@ -11,12 +11,19 @@
 
         {{-- Identity header (read-only) --}}
         <div class="vy-card vy-fade vyp-head" style="margin-bottom: 16px;">
-            <span class="vyp-av">{{ $viewer['initials'] }}</span>
-            <div>
-                <div class="vyp-name">{{ $user->name }}@if ($personal['preferred_name']) <span class="vy-muted" style="font-size: 13px; font-weight: 400;">· “{{ $personal['preferred_name'] }}”</span>@endif</div>
-                <div class="vyp-meta">
+            {{-- ⚠️ Initials, not a photo. The design shows a camera badge over the avatar; `users.avatar_path`
+                 exists and the OWNER realm has a real upload route, but the OPERATOR realm has none — so a
+                 camera badge here would be a control that does nothing. Logged, not faked. --}}
+            <span class="vyp-av" aria-hidden="true">{{ $viewer['initials'] }}</span>
+            <div class="vyp-ident">
+                <div class="vyp-nameline">
+                    <span class="vyp-name">{{ $user->name }}</span>
                     @if ($roles !== '')<span class="vyp-role">{{ $roles }}</span>@endif
-                    <span class="vyp-status">{{ ucfirst((string) $user->status) }}</span>
+                    {{-- Status carries its WORD, never colour alone (1.4.1). --}}
+                    <span class="vyp-status"><span class="vyp-dot" aria-hidden="true"></span>{{ ucfirst((string) $user->status) }}</span>
+                </div>
+                @if ($personal['preferred_name'])<div class="vyp-called">Goes by “{{ $personal['preferred_name'] }}”</div>@endif
+                <div class="vyp-meta">
                     @if ($propertyLabel)<span class="vyp-since">{{ $propertyLabel }}</span>@endif
                     @if ($memberSince)<span class="vyp-since">Member since {{ $memberSince }}</span>@endif
                 </div>
@@ -46,21 +53,29 @@
                             </select>
                         </div>
                     </div>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 16px;"><button type="submit" class="vy-btn vy-btn--accent">Save changes</button></div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                        <a class="vy-btn vy-btn--ghost" href="{{ route('app.profile') }}">Cancel</a>
+                        <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                    </div>
                 </form>
 
                 {{-- ── Preferences (real, stored + applied) ───────────────────────────────────────── --}}
                 <form method="POST" action="{{ route('app.profile.preferences') }}" class="vy-card">
                     @csrf
                     <h2 class="vy-card-title" style="margin-bottom: 12px;">Preferences</h2>
-                    <label class="vyp-pref"><span><strong>Compact density</strong><br><span class="vy-muted">Tighter spacing to fit more on screen.</span></span><input type="checkbox" name="compact_density" value="1" @checked($prefs['compact_density'])></label>
-                    <label class="vyp-pref"><span><strong>Show onboarding tips</strong><br><span class="vy-muted">Contextual hints on new features.</span></span><input type="checkbox" name="onboarding_tips" value="1" @checked($prefs['onboarding_tips'])></label>
-                    <label class="vyp-pref"><span><strong>Interface motion</strong><br><span class="vy-muted">Ambient background animation and transitions.</span></span><input type="checkbox" name="reduce_motion" value="1" @checked($prefs['reduce_motion'])> <span class="vy-muted" style="font-size: 11px;">reduce</span></label>
+                    <label class="vyp-pref"><span><strong>Compact density</strong><br><span class="vy-muted">Tighter spacing to fit more on screen.</span></span><input type="checkbox" class="vyp-switch" name="compact_density" value="1" @checked($prefs['compact_density'])></label>
+                    <label class="vyp-pref"><span><strong>Show onboarding tips</strong><br><span class="vy-muted">Contextual hints on new features.</span></span><input type="checkbox" class="vyp-switch" name="onboarding_tips" value="1" @checked($prefs['onboarding_tips'])></label>
+                    <label class="vyp-pref"><span><strong>Reduce motion</strong><br><span class="vy-muted">Turn off the ambient background animation and transitions.</span></span><input type="checkbox" class="vyp-switch" name="reduce_motion" value="1" @checked($prefs['reduce_motion'])></label>
                     <div class="vyp-pref" style="border-bottom: none;">
                         <span><strong>Date format</strong><br><span class="vy-muted">How dates appear across the workspace.</span></span>
-                        <select name="date_format" class="vy-input" style="width: auto;">
-                            @foreach (['DD/MM/YYYY', 'MM/DD/YYYY'] as $fmt)<option value="{{ $fmt }}" @selected($prefs['date_format'] === $fmt)>{{ $fmt }}</option>@endforeach
-                        </select>
+                        <span class="vyp-seg">
+                            @foreach (['DD/MM/YYYY', 'MM/DD/YYYY'] as $fmt)
+                                <label class="vyp-seg-opt">
+                                    <input type="radio" name="date_format" value="{{ $fmt }}" @checked($prefs['date_format'] === $fmt)>
+                                    <span>{{ $fmt }}</span>
+                                </label>
+                            @endforeach
+                        </span>
                     </div>
                     <div style="display: flex; justify-content: flex-end; margin-top: 14px;"><button type="submit" class="vy-btn vy-btn--ghost">Save preferences</button></div>
                 </form>
@@ -125,11 +140,30 @@
     <style>
         [x-cloak] { display: none !important; }
         .vyp-head { display: flex; align-items: center; gap: 14px; }
-        .vyp-av { width: 52px; height: 52px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 18px; font-weight: 600; display: grid; place-items: center; flex: none; }
-        .vyp-name { font-size: 18px; font-weight: 700; color: var(--vy-ink); font-family: var(--vy-display, inherit); }
-        .vyp-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; font-size: 12px; }
-        .vyp-role { color: var(--vy-accent); font-weight: 600; }
-        .vyp-status { color: var(--vy-muted); }
+        .vyp-av { width: 68px; height: 68px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 23px; font-weight: 600; display: grid; place-items: center; flex: none; }
+        .vyp-ident { min-width: 0; }
+        .vyp-nameline { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+        .vyp-name { font-size: 20px; font-weight: 700; color: var(--vy-ink); font-family: var(--vy-display, inherit); }
+        .vyp-called { font-size: 12.5px; color: var(--vy-muted); margin-top: 2px; }
+        .vyp-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; font-size: 12px; }
+        /* ⚠️ --vy-accent-text: as a chip at 11px the plain accent measured 4.23. */
+        .vyp-role { color: var(--vy-accent-text); font-weight: 600; font-size: 11px; background: rgba(232,112,58,.12); border-radius: 999px; padding: 3px 10px; }
+        .vyp-status { display: inline-flex; align-items: center; gap: 5px; color: var(--vy-muted); font-size: 12px; }
+        .vyp-dot { width: 7px; height: 7px; border-radius: 50%; background: #1F6E4B; flex: none; }
+
+        /* The design's switches. ⚠️ real, FOCUSABLE checkboxes — appearance reset, never display:none (P30). */
+        .vyp-switch { appearance: none; -webkit-appearance: none; margin: 0; flex: none; width: 42px; height: 24px; border-radius: 999px; background: var(--vy-hairline); position: relative; cursor: pointer; transition: background .15s; }
+        .vyp-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .15s; }
+        .vyp-switch:checked { background: var(--vy-accent); }
+        .vyp-switch:checked::after { transform: translateX(18px); }
+        .vyp-switch:focus-visible { outline: 2px solid var(--vy-accent-text); outline-offset: 2px; }
+
+        /* The design's date-format segment — real radios, so it stays keyboard-operable and named. */
+        .vyp-seg { display: inline-flex; background: rgba(255,255,255,.6); border: 1px solid var(--vy-glass-border); border-radius: 999px; padding: 3px; flex: none; }
+        .vyp-seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .vyp-seg-opt span { display: block; padding: 6px 13px; border-radius: 999px; font-size: 12px; color: var(--vy-muted); cursor: pointer; white-space: nowrap; }
+        .vyp-seg-opt input:checked + span { background: #fff; color: var(--vy-ink); font-weight: 600; box-shadow: var(--vy-shadow-sm); }
+        .vyp-seg-opt input:focus-visible + span { outline: 2px solid var(--vy-accent-text); outline-offset: 2px; }
         .vyp-since { color: var(--vy-faint); }
         .vyp-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .vyp-pref { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; cursor: pointer; }

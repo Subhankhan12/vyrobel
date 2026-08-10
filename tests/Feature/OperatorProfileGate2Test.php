@@ -97,3 +97,73 @@ it('refuses sign-out-others with a wrong password', function () {
     $this->actingAs($user)->post(route('app.profile.sign-out-others'), ['current_password' => 'wrong'])->assertSessionHasErrors('current_password');
     expect(DB::table('sessions')->where('id', 'keep-1')->exists())->toBeTrue();   // untouched
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// P33 (design-parity) — the design decorates this page with things the product cannot know, and one
+// live label read the opposite of the control it drove.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('never invents a sign-in LOCATION — there is no geolocation anywhere (#39)', function () {
+    $s = seedScenario(1);
+    $operator = operatorUser($s, ['name' => 'Ops']);
+    $operator->forceFill(['last_login_at' => now()->subHour()])->save();
+
+    // ⚠️ A REAL session row, so the "Active sessions" block actually renders. Without one the block is
+    // empty and any assertion about its contents passes vacuously (the P27 lesson).
+    DB::table('sessions')->insert([
+        'id' => 'p33-session-id', 'user_id' => $operator->getKey(),
+        'ip_address' => '203.0.113.9', 'user_agent' => 'Mozilla/5.0 (Macintosh) Chrome/120',
+        'payload' => '', 'last_activity' => now()->getTimestamp(),
+    ]);
+
+    $html = $this->actingAs($operator)->get(route('app.profile'))->assertOk()
+        ->assertSee('Last sign-in')
+        ->assertSee('Active sessions')
+        ->assertSee('203.0.113.9')          // the REAL ip renders — proving the block is populated
+        ->getContent();
+
+    // ⚠️ The design shows "Today 08:14 · Faro, PT" and "Chrome · macOS · Faro, PT". `sessions` stores an
+    // ip_address and a user_agent and NOTHING else — no geoip package, no location column. A city here
+    // would be invented, and it would read as security evidence.
+    expect($html)->not->toContain('Faro, PT')
+        ->and($html)->not->toContain('Last sign-in from');
+});
+
+it('never claims when the password was last changed — the column does not exist (#39)', function () {
+    $s = seedScenario(1);
+    $operator = operatorUser($s, ['name' => 'Ops']);
+
+    $html = $this->actingAs($operator)->get(route('app.profile'))->assertOk()->getContent();
+
+    // The design says "Changed 3 months ago"; there is no `password_changed_at` on users, so the honest
+    // line points at the page that really does change it.
+    expect($html)->not->toContain('Changed 3 months ago')
+        ->and($html)->not->toContain('Password changed');
+    expect($html)->toContain('Change it on the Security page');
+});
+
+it('labels the motion preference as what the control actually does', function () {
+    $s = seedScenario(1);
+    $operator = operatorUser($s, ['name' => 'Ops']);
+
+    $html = $this->actingAs($operator)->get(route('app.profile'))->assertOk()->getContent();
+
+    // ⚠️ The control is `reduce_motion`: checked = LESS motion. It used to be labelled "Interface motion"
+    // with a tiny trailing "reduce", so switching it on read as turning motion ON.
+    expect($html)->toContain('Reduce motion')
+        ->and($html)->toContain('name="reduce_motion"');
+    expect($html)->not->toContain('<strong>Interface motion</strong>');
+});
+
+it('keeps the preference switches real, focusable inputs (2.1.1)', function () {
+    $s = seedScenario(1);
+    $operator = operatorUser($s, ['name' => 'Ops']);
+
+    $html = $this->actingAs($operator)->get(route('app.profile'))->assertOk()->getContent();
+
+    // Styled as switches/segments but still real checkboxes and radios — never display:none (the P30 defect).
+    expect($html)->toContain('type="checkbox" class="vyp-switch"')
+        ->and($html)->toContain('type="radio" name="date_format"')
+        ->and($html)->not->toContain('.vyp-switch { display: none')
+        ->and($html)->toContain('.vyp-switch:focus-visible');
+});

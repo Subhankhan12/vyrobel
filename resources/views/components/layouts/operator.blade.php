@@ -852,7 +852,9 @@
         /* Warm status tags (no green/red) — keyed to the real reservation enum */
         .vy-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: var(--vy-r-pill); font-size: 11px; font-weight: 600; white-space: nowrap; }
         .vy-tag .vy-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
-        .vy-tag.tone-confirmed { background: rgba(232, 112, 58, 0.14); color: var(--vy-accent); }
+        /* ⚠️ --vy-accent-text, not --vy-accent: at the tag's 11px this measured 4.23 on its own 14% wash,
+           under the 4.5 bar. This is the SHARED tag, so the one fix reaches all five views that use it. */
+        .vy-tag.tone-confirmed { background: rgba(232, 112, 58, 0.14); color: var(--vy-accent-text); }
         .vy-tag.tone-confirmed .vy-dot { background: var(--vy-accent); }
         .vy-tag.tone-in-house { background: rgba(194, 65, 12, 0.14); color: #8f2f08; }
         .vy-tag.tone-in-house .vy-dot { background: #8f2f08; }

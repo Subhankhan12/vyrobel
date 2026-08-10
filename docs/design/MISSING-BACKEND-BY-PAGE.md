@@ -2207,3 +2207,58 @@ looked for `aria-label` / own text / `label[for]`.
 The `#1B7F5C`/`#E7F5EE` "Active" pill exists **twice** — templates list (fixed P31) and this editor (fixed
 here). Two copies of one visual concept, and the first fix did not reach the second. A shared
 `<x-status-pill>` would prevent the next divergence; not extracted here (it would touch other surfaces).
+
+---
+
+## §33 — Operator **Profile** (`/app/profile`) · P33
+
+**Prototype:** `docs/design/raw/Operator Profile.html`. **Live:** Livewire `OperatorProfile`; writes go to
+`OperatorProfileController` (`update` / `preferences` / `signOutOtherSessions`). **No permission gate** — it is
+self-only by nature, inside `/app` behind `EnsureBackOfficeAccess`.
+
+**⚠️ SELF-SCOPE — structural, not a check.** Every write resolves `$request->user()` and **there is no user id
+anywhere in the request**, so there is no foreign id to tamper with; email stays unique *ignoring self*. The
+audit records **which** fields changed, never their values. Already covered by *"ignores a request-supplied id
+and only ever edits the actor's own row"*. **Nothing was saved this gate** — the user row checksum is
+`6d4564c6315add9d447a2c3dda5a1967` before and after, preferences unchanged
+(`density=0 tips=1 reduce=0 fmt=DD/MM/YYYY`).
+
+**Password / 2FA are NOT here.** Change-password is `POST /app/security/password`
+(`ChangePasswordController@operator`) and 2FA enrolment is `/app/security/2fa/*` — the **Security** page
+(GATE 24). This page links to them and does not duplicate them, so the 12-char policy and the
+sibling-session termination in `changePasswordTo` are untouched by this gate.
+
+**Both a11y axes.** **Contrast: 2 failures**, both accent-as-text at **4.23** — the role chip (11px) and the
+"This device" tag (10px). **Both fixed → 0.** **Keyboard: 17 visible controls, 0 unreachable, 0 unnamed**
+(names checked via `aria-label`, `label[for]` **and** the wrapping `<label>`, per P32).
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D33-1 | **"Last sign-in — Today 08:14 · Faro, PT"** and **"This device — Chrome · macOS · Faro, PT · Active now"**. | ⚠️ **No geolocation capability exists anywhere** — no geoip/maxmind/ipinfo package, no config, no location column. `sessions` stores `ip_address`, `user_agent`, `last_activity` and nothing else. | An IP-geolocation service (and the privacy decision that comes with logging user locations). | 🚫 **REFUSED (#39).** ⚠️ **This is the worst class of fabrication on this page**: a city beside a sign-in reads as *security evidence* — it is exactly what a user checks to decide whether an unfamiliar session is theirs. Live shows the **real IP** and the real relative time. The sign-in TIME and the device string are genuinely derivable and already shown. **Guarded by a test — and the first version of that guard was VACUOUS** (the fixture had no `sessions` row, so the block rendered empty); it now seeds a real session and is mutation-proven. |
+| D33-2 | **"Password — Changed 3 months ago"**. | There is **no `password_changed_at` column** on `users`. | The column plus a write on every password change. | 🚫 **REFUSED (#39).** The honest line is *"Change it on the Security page"*, pointing at the surface that really does it. Guarded. |
+| D33-3 | A **camera badge** over the avatar (photo upload). | `users.avatar_path` exists, and the **OWNER** realm has real upload/remove routes (`owner.account.avatar`) — but the **operator realm has no avatar route at all**. | Port the owner's upload/remove to the operator profile. | **LOGGED — REAL GAP (small, and half-built already).** ⚠️ Rendering the badge today would be a control that does nothing. The live avatar shows honest **initials**. |
+| D33-4 | A key-permissions list with ✓/✗ per capability. | — (live already renders the REAL spatie capabilities, read-only, plus "View full permissions") | — | **EXTRA-KEEP / at parity.** Live also states *"Access is managed by your workspace admin"* — true, and it explains why the list is read-only. |
+
+### Fixed this gate
+
+- **The design's hero** — a larger avatar, the role as a **chip**, and status as a **dot + word** (1.4.1),
+  with the preferred name on its own line and the meta row beneath.
+- **Preferences became the design's switches** and **Date format the design's segmented control** — ⚠️ still
+  real, **focusable** `checkbox`/`radio` inputs (`appearance:none` / `opacity:0`, **never `display:none`** —
+  the P30 defect), each with a `:focus-visible` ring and named by its wrapping label. **Cancel** added beside
+  Save, per the design (a GET back to the page, discarding unsaved edits).
+- ⚠️ **A label that read the OPPOSITE of its control.** The motion row was titled **"Interface motion"** with a
+  tiny trailing *"reduce"* doing all the semantic work — but the input is `name="reduce_motion"`, so switching
+  *"Interface motion"* **on** actually turned motion **off**. Relabelled **"Reduce motion"** with a matching
+  description. **Behaviour unchanged; only the label now tells the truth.** Guarded, mutation-proven.
+- **Contrast: the role chip and the "This device" tag, both 4.23 → AA.**
+
+### ⚠️ Realm-wide — one shared class fixed for five views
+
+The "This device" failure was **`.vy-tag.tone-confirmed` in the operator layout** (`color: var(--vy-accent)` on
+its own 14% wash — 4.23 at the tag's 11px). It is a **shared** class, so the single edit reaches all five
+consumers: `components/layouts/operator.blade.php`, `livewire/reservation-rack.blade.php`,
+`livewire/operator/operator-security.blade.php`, `livewire/operator/operator-profile.blade.php`,
+`livewire/operator/schedule.blade.php`. ⚠️ **Note the contrast with P32**, where the same "Active" pill was
+written twice and the first fix reached only one copy: **a shared definition is fixed once; a duplicated one
+has to be found twice.**

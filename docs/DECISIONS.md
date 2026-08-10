@@ -6289,3 +6289,56 @@ named by a **wrapping `<label>`** (implicit association), which my check didn't 
 **Verification:** email-template + preview suites **16/16 · 69 assertions** (4 added; the two structural guards
 mutation-proven); PHPStan L5 **0**; Pint clean; **0 console**; **0 overflow** at 1440 (two columns) and 1000
 (one column, preview un-clipped). Schema untouched — no `migrate:fresh` needed.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY **P33 · Operator Profile** (`/app/profile`, self-only)
+
+**Presentation + one truthful relabel + one shared-token fix.** No account logic, no password path, no
+persistence touched. `docs/design/MISSING-BACKEND-BY-PAGE.md` §33.
+
+**⚠️ Self-scope is structural.** Writes resolve `$request->user()` and **no user id appears anywhere in the
+request**, so there is no foreign id to tamper with; email is unique *ignoring self*; the audit records which
+fields changed, never their values. **Nothing was saved:** the user-row checksum is
+`6d4564c6315add9d447a2c3dda5a1967` before and after, preferences unchanged.
+
+**Password/2FA are on the SECURITY page** (`POST /app/security/password`, `/app/security/2fa/*` — GATE 24).
+This page links to them and does not duplicate them, so the 12-char policy and `changePasswordTo`'s
+sibling-session termination are untouched.
+
+**⚠️ REFUSED — the design's sign-in LOCATION.** It shows *"Last sign-in — Today 08:14 · **Faro, PT**"* and
+*"This device — Chrome · macOS · **Faro, PT**"*. **No geolocation capability exists anywhere** — no
+geoip/maxmind/ipinfo package, no config, no column; `sessions` stores `ip_address`, `user_agent`,
+`last_activity` and nothing else. ⚠️ **This is the worst class of fabrication on this page:** a city beside a
+sign-in reads as *security evidence* — it is precisely what a user checks to judge whether an unfamiliar
+session is theirs. Live shows the **real IP** and the real relative time. Also refused: *"Password — Changed 3
+months ago"* (no `password_changed_at` column), replaced by an honest pointer to Security.
+
+**⚠️ A label that read the OPPOSITE of its control.** The motion row was titled **"Interface motion"** with a
+tiny trailing *"reduce"* carrying all the meaning — but the input is `name="reduce_motion"`, so switching
+*"Interface motion"* **on** actually turned motion **off**. Relabelled **"Reduce motion"** with a matching
+description. **Behaviour unchanged; only the label now tells the truth.**
+
+**Fixed (design):** the hero (larger avatar, role **chip**, status as **dot + word**), preferences as the
+design's **switches**, date format as the design's **segmented control** — all still real, **focusable**
+checkbox/radio inputs (`appearance:none`/`opacity:0`, **never `display:none`**) with `:focus-visible` rings and
+wrapping-label names — plus **Cancel** beside Save.
+
+**⚠️ Contrast 2 → 0, and the fix was SHARED.** Both failures were accent-as-text at **4.23**: the role chip and
+the "This device" tag. The tag is **`.vy-tag.tone-confirmed` in the operator layout**, so one edit reached all
+five consumers (layout, reservation-rack, operator-security, operator-profile, schedule). ⚠️ **Contrast this
+with P32**, where the same "Active" pill was hand-written twice and the first fix reached only one copy: **a
+shared definition is fixed once; a duplicated one has to be found twice.**
+
+**⚠️ MY FIRST GUARD WAS VACUOUS — caught by mutating.** The geolocation test passed even with `Faro, PT`
+injected into the sessions row, because the fixture created a user with **no `sessions` rows**, so the block
+rendered empty (the P27 failure mode again). Rewritten to seed a real session and assert the real IP renders
+first; now **mutation-proven** (injecting the city turns it red).
+
+**Logged:** the avatar **camera badge** — `users.avatar_path` exists and the **owner** realm has real
+upload/remove routes, but the **operator realm has none**, so the badge would be a control that does nothing;
+live shows honest initials.
+
+**Verification:** profile suites + the token guard + a shared-tag consumer **25/25 · 136 assertions**
+(4 added, both refusal guards mutation-proven); PHPStan L5 **0**; Pint clean; **0 console**, **0 overflow** at
+1440 and 1000. Schema untouched — no `migrate:fresh` needed.
