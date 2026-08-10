@@ -10,6 +10,7 @@ use App\Services\GuestService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Assert;
 
 uses(RefreshDatabase::class);
 
@@ -93,8 +94,8 @@ it('never writes guest contact values into the audit or domain event payloads', 
     $domainBlob = json_encode($domain->toArray());
 
     foreach (['secret.old@example.test', 'secret.new@example.test', '+353860000001', '+353860000009'] as $pii) {
-        expect($auditBlob)->not->toContain($pii, "The audit trail leaked PII: {$pii}")
-            ->and($domainBlob)->not->toContain($pii, "The domain event leaked PII: {$pii}");
+        Assert::assertStringNotContainsString($pii, $auditBlob, "The audit trail leaked PII: {$pii}");
+        Assert::assertStringNotContainsString($pii, $domainBlob, "The domain event leaked PII: {$pii}");
     }
 
     // It records enough to answer "who touched this guest's email?" — just never enough to reconstruct it.

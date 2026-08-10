@@ -44,7 +44,7 @@ it('excludes owner-realm users from the shared assignable pool', function () {
     $ids = array_column($pool, 'id');
 
     expect($ids)->toContain((string) $staff->getKey());
-    expect($ids)->not->toContain((string) $owner->getKey(), 'an External Owner is offered as a technician');
+    expect($ids)->not->toContain((string) $owner->getKey());
 
     // The owner DOES hold an active membership — proving the exclusion is by ROLE, not by a missing
     // membership, which is the distinction the original code got wrong.

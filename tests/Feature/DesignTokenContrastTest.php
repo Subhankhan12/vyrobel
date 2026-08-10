@@ -1,5 +1,7 @@
 <?php
 
+use PHPUnit\Framework\Assert;
+
 /*
  * WCAG AA CONTRAST ON THE SHARED TEXT TOKENS (audit 2026-08-07 · L3-03).
  *
@@ -96,8 +98,8 @@ it('declares the AA values in every shell', function (string $shell) {
      * recorded — a naive replace matched property names ENDING in "color:".)
      */
     foreach (['rgb(138, 128, 121)', 'rgb(166, 154, 146)'] as $failing) {
-        expect($css)->not->toContain("--vy-muted: {$failing}", "--vy-muted reverted to a pre-AA value in {$shell}");
-        expect($css)->not->toContain("--vy-faint: {$failing}", "--vy-faint reverted to a pre-AA value in {$shell}");
+        Assert::assertStringNotContainsString("--vy-muted: {$failing}", $css, "--vy-muted reverted to a pre-AA value in {$shell}");
+        Assert::assertStringNotContainsString("--vy-faint: {$failing}", $css, "--vy-faint reverted to a pre-AA value in {$shell}");
 
         expect($css)->not->toMatch(
             '/(?<![-\w])color:\s*'.preg_quote($failing, '/').'/',

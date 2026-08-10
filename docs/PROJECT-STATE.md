@@ -919,7 +919,33 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 🏁 OPERATOR COMPLETE (42/42) — **NEXT: the OWNER realm (32 prototypes), then GUEST (32).**
+## N.4b OWNER realm progress — **1 of 32**
+
+| Gate | Page(s) | Commit |
+|---|---|---|
+| O1 | **Owner Dashboard** (`/owner`) — ⚠️ the earnings chart was **misreporting real money twice**: the tallest bar was silently compressed by `flex-shrink` (September asked 150px, rendered 126px — the current month understated 16%) and the **goal line did not share the bars' baseline** (a goal equal to the best month drew *below* it; ~25% error mid-range). Both fixed via the wireframe's own 78% headroom + a label-block offset · the `max(4, …)` floor that draws a stub for a genuine **€0** month replaced with the shared `<x-charts.bars>` zero rule · value-graduated bar wash · goal **pill on the line** · attention chips capped at 3 + the dashed **"+N more"** · **the guest NAME was truncated on 3 of 4 upcoming stays** by the honest "Not yet attributed" (slot resized, string preserved) · **AA 23 → 5** (real-pixel measured) · a dead duplicate `.vy-delta--up/--down` pair deleted · ⚠️ **realm-wide finding SURFACED, not fixed: white-on-accent-gradient fails AA (3.98–4.02) across BOTH shells** — needs its own a11y gate · ⚠️⚠️ **THREE VACUOUS GUARDS FOUND AND REPAIRED** (below) | O1 |
+
+## N.4c ⚠️⚠️ `expect(...)->not->toContain($needle, $message)` IS AN ALWAYS-PASSING ASSERTION
+
+Found at gate **O1** while tightening a false-positive #39 guard. Pest's `toContain()` is **variadic over
+needles** — a "message" passed as a second argument becomes a **second needle**, so the expectation reads
+*"does not contain BOTH"*, which is true whenever the message sentence is absent. **It can never fail.**
+
+**Mutation-proven, twice:** a literal `expenses@endif` was rendered into the owner Dashboard and
+**`assertNoRawBlade()` — the shared guard for the `word@directive` Blade trap, called by 36 test files
+across the owner AND operator realms — stayed GREEN.** ⚠️ That trap **fired on this very gate** (it 500'd
+the page); had it degraded to *raw source on the page* instead, nothing in the suite would have caught it.
+
+A sweep found **10 dead assertions in 5 files**, several load-bearing: **`GuestServiceTest`** (#28 — guest
+PII in `audit_events` / `domain_events`), **`BackOfficeAccessTest`** (#42 — cross-owner name/money/unit on
+operator routes), `DesignTokenContrastTest` (the AA token floor), `MaintenanceAssigneePoolTest`. **All were
+repaired to `Assert::assertStringNotContainsString()` and every test still passes** — the invariants hold;
+the assertions were simply unable to fail. The security-relevant ones were re-mutated and observed to fire.
+
+**Standing rule from here on:** never write `expect(...)->not->toContain($needle, $message)`. Use PHPUnit's
+`assertStringNotContainsString($needle, $haystack, $message)`, which takes a real message argument.
+
+## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 1/32 UNDERWAY**, then GUEST (32).
 
 **The operator realm is finished.** 42 prototypes, 34 gates (`0aa9ede`→P34), every page decoded, diffed in a
 real browser, fixed where it was a design gap, and **logged where the product honestly refuses**.
@@ -946,7 +972,7 @@ PROMPT's premise**: "Housekeeping lacks schedule.view" was false (9 roles hold i
 #30 assertion vacuous. ⒂ ⚠️ **NEW (P34) — a PDF's palette is read on PAPER**: the pre-AA greys survived there
 long after the screens were fixed, on the very figures a rota exists to communicate.
 
-**⬅ NEXT REALM: OWNER (32 prototypes)** — then **GUEST (32)**. Both entirely untouched by this pass.
+**⬅ THE OWNER REALM IS UNDERWAY — 1 of 32 (O1 Owner Dashboard).** Then **GUEST (32)**, untouched.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

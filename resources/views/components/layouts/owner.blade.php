@@ -37,6 +37,16 @@
                borders) and is unchanged; see the operator shell for the measurements. */
             --vy-accent-text: rgb(176, 56, 8);
 
+            /* Text that sits on its OWN low-alpha TINT (status pills, tag chips, the delta pill). The
+               operator realm left its tinted chips alone because they measured 4.61 — but the OWNER glass
+               is warmer and darker, so the SAME tint+text pairs measure 3.26–3.85 here (real-pixel
+               sampled, not computed from the declared background). These three are the tint-safe
+               counterparts; the plain --vy-green / --vy-amber / --vy-accent stay the BRAND fills (dots,
+               icons, gradients, borders) and are unchanged. Measured after: 4.71 / 4.76 / 4.75. */
+            --vy-green-text: rgb(27, 106, 78);
+            --vy-amber-text: rgb(141, 84, 6);
+            --vy-accent-tint-text: rgb(151, 54, 13);
+
             --vy-accent: rgb(194, 65, 12);      /* terracotta primary  (#C2410C) */
             --vy-accent-2: rgb(217, 102, 46);
             --vy-accent-3: rgb(232, 112, 58);   /* (#E8703A) */
@@ -261,9 +271,9 @@
         /* Status badges */
         .vy-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: var(--vy-r-pill); font-size: 12px; font-weight: 600; }
         .vy-status .vy-dot { width: 7px; height: 7px; border-radius: 50%; }
-        .vy-status--pending { background: rgba(224, 146, 30, 0.14); color: var(--vy-amber); }
+        .vy-status--pending { background: rgba(224, 146, 30, 0.14); color: var(--vy-amber-text); }
         .vy-status--pending .vy-dot { background: var(--vy-amber-2); }
-        .vy-status--paid { background: rgba(31, 122, 90, 0.13); color: var(--vy-green); }
+        .vy-status--paid { background: rgba(31, 122, 90, 0.13); color: var(--vy-green-text); }
         .vy-status--paid .vy-dot { background: var(--vy-green); }
         .vy-status--draft { background: rgba(138, 128, 121, 0.15); color: var(--vy-muted); }
         .vy-status--draft .vy-dot { background: var(--vy-muted); }
@@ -346,8 +356,10 @@
         .vy-kpi-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 4px; }
 
         .vy-delta { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: var(--vy-r-pill); font-size: 12px; font-weight: 600; }
-        .vy-delta--up { background: rgba(31, 122, 90, .12); color: var(--vy-green); }
-        .vy-delta--down { background: rgba(224, 146, 30, .14); color: var(--vy-amber); }
+        {{-- ⚠️ The `.vy-delta--up/--down` tone pair that used to sit here was DEAD: the Overview block
+             below redeclares both at equal specificity, so the later rule won every property on every
+             page that uses the class (only this layout + the Overview do). Two definitions of one
+             concept is exactly the drift hazard — the single live pair is now in the Overview block. --}}
 
         .vy-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 8px; }
         .vy-chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; height: 100%; }
@@ -370,7 +382,9 @@
         @media (max-width: 1100px) { .vy-ov-cols { grid-template-columns: minmax(0, 1fr); } }
 
         /* Hero delta pill (Overview-only) — the wireframe's terracotta "+8% vs …" accent for a positive MoM. */
-        .vy-delta--up { background: rgba(217, 102, 46, .13); color: #B4400F; }
+        .vy-delta--up { background: rgba(217, 102, 46, .13); color: var(--vy-accent-tint-text); }
+        /* --down keeps the wireframe's deeper #8F3110 (already darker than --vy-accent-tint-text on a
+           lighter .09 tint); measured 6.05 — changing it would have been a regression, so it stands. */
         .vy-delta--down { background: rgba(143, 49, 16, .09); color: #8F3110; }
 
         /* Quick actions — 4 frosted glass pill buttons with a terracotta icon. */
@@ -398,7 +412,7 @@
         .vy-ov-attn-t { display: flex; align-items: center; gap: 9px; }
         .vy-ov-attn-t h2 { margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 16.5px; letter-spacing: -.01em; }
         .vy-ov-attn-count { min-width: 21px; height: 21px; padding: 0 6px; box-sizing: border-box; border-radius: 20px; background: var(--vy-grad); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-        .vy-ov-attn-sub { font-size: 12.5px; color: var(--vy-faint); margin-top: 2px; }
+        .vy-ov-attn-sub { font-size: 12.5px; color: var(--vy-muted); margin-top: 2px; }
         .vy-ov-attn-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--vy-accent-text); text-decoration: none; flex: none; transition: gap .14s ease; }
         .vy-ov-attn-link:hover { gap: 8px; }
         .vy-ov-chips { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -410,9 +424,12 @@
         .vy-ov-chip-sub { display: block; font-size: 11.5px; color: var(--vy-faint); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .vy-ov-chip-tag { flex: none; padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 600; }
         .vy-ov-chip.is-warn .vy-ov-chip-ic { background: rgba(224, 146, 30, .15); color: var(--vy-amber); }
-        .vy-ov-chip.is-warn .vy-ov-chip-tag { background: rgba(224, 146, 30, .15); color: var(--vy-amber); }
+        .vy-ov-chip.is-warn .vy-ov-chip-tag { background: rgba(224, 146, 30, .15); color: var(--vy-amber-text); }
         .vy-ov-chip.is-info .vy-ov-chip-ic { background: rgba(232, 112, 58, .13); color: var(--vy-accent); }
-        .vy-ov-chip.is-info .vy-ov-chip-tag { background: rgba(232, 112, 58, .13); color: var(--vy-accent); }
+        .vy-ov-chip.is-info .vy-ov-chip-tag { background: rgba(232, 112, 58, .13); color: var(--vy-accent-tint-text); }
+        /* The wireframe's dashed "+N more" chip — the attention row shows at most 3 and counts the rest. */
+        .vy-ov-chip-more { display: inline-flex; align-items: center; justify-content: center; gap: 5px; align-self: stretch; min-width: 92px; padding: 12px 16px; border-radius: 14px; background: rgba(255, 255, 255, .35); border: 1px dashed rgba(120, 70, 40, .22); text-decoration: none; color: var(--vy-accent-text); font-size: 12.5px; font-weight: 600; white-space: nowrap; transition: background .14s ease; }
+        .vy-ov-chip-more:hover { background: rgba(255, 255, 255, .6); }
 
         /* Metric row — 3 glass link-cards with a ↗ corner + optional occupancy sparkline. */
         .vy-ov-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
@@ -425,7 +442,7 @@
         }
         .vy-ov-metric:hover { transform: translateY(-2px); box-shadow: 0 18px 48px rgba(150, 90, 50, .22), inset 0 1px 0 rgba(255, 255, 255, .65); }
         .vy-ov-metric-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-        .vy-ov-metric-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; }
+        .vy-ov-metric-label { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-ov-metric-arrow { color: #C0B3A9; flex: none; }
         .vy-ov-metric-val { font-family: var(--vy-display); font-weight: 600; font-size: 32px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
         .vy-ov-metric-val.is-deferred { color: var(--vy-faint); }
@@ -440,12 +457,29 @@
         .vy-ov-seg { display: inline-flex; align-items: center; gap: 3px; padding: 3px; border-radius: var(--vy-r-pill); background: rgba(120, 70, 40, .06); border: 1px solid var(--vy-glass-border); }
         .vy-ov-seg-btn { padding: 5px 13px; border: none; border-radius: var(--vy-r-pill); cursor: pointer; font-family: var(--vy-sans); font-size: 11.5px; font-weight: 500; color: var(--vy-muted); background: transparent; box-shadow: none; transition: color .16s, background .16s, box-shadow .16s; }
         .vy-ov-seg-btn.is-active { font-weight: 600; color: var(--vy-ink); background: #fff; box-shadow: var(--vy-shadow-sm); }
-        .vy-ov-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; position: relative; }
+        /* ⚠️ CHART GEOMETRY — the two numbers below are load-bearing, not decoration.
+           `--vy-ov-bar-scale` is the wireframe's 78% headroom: the tallest bar stops at 78% of the
+           150px box so the hover tooltip and the goal line have room. It is ALSO what keeps the chart
+           LINEAR — the bar is a flex item beside the month label, so at ~84%+ flex-shrink silently
+           compressed it (the tallest, most-read bar measured 126px where 150px was asked for, a 16%
+           understatement of the current month). Capped at 78% nothing shrinks.
+           `--vy-ov-label-block` is the month label (16px, pinned below) + the 8px gap, expressed as a
+           % of the 150px box: the bars' baseline sits that far above the chart's own bottom, so the
+           goal line — which is positioned against the chart — must be offset by it or it draws at a
+           height that is NOT the value it labels. */
+        .vy-ov-chart { --vy-ov-bar-scale: .78; --vy-ov-label-block: 16%; display: flex; align-items: flex-end; gap: 10px; height: 150px; position: relative; }
         .vy-ov-barcol { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; text-decoration: none; cursor: pointer; }
-        .vy-ov-bar { position: relative; width: 100%; border-radius: 6px 6px 0 0; background: var(--vy-grad-peach); transition: opacity .16s ease, filter .16s ease; }
+        /* Non-current months: the wireframe's VERTICAL translucent wash whose top-stop alpha rises with
+           the bar's own real value (--vy-bar-a, set per bar from the same pct that drives its height) —
+           not a flat saturated fill that makes every month read like the best one. */
+        .vy-ov-bar { position: relative; width: 100%; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, rgba(232, 112, 58, var(--vy-bar-a, .42)), rgba(240, 165, 122, .18)); transition: opacity .16s ease, filter .16s ease; }
         .vy-ov-bar.is-last { background: var(--vy-grad); }
         .vy-ov-barcol:hover .vy-ov-bar { filter: brightness(1.04); }
-        .vy-ov-bar-month { font-size: 11px; color: var(--vy-faint); }
+        .vy-ov-bar-month { font-size: 11px; line-height: 16px; height: 16px; color: var(--vy-muted); }
+        /* Goal line + the wireframe's pill label sitting ON the line (was plain text floating above the
+           chart, where it collided with the card header). */
+        .vy-ov-goal { position: absolute; left: 0; right: 0; height: 0; border-top: 1.5px dashed rgba(194, 65, 12, .5); z-index: 6; pointer-events: none; }
+        .vy-ov-goal-tag { position: absolute; right: 0; top: 0; transform: translateY(-50%); padding: 2px 8px; border-radius: 20px; background: #FBEFE7; border: 1px solid rgba(194, 65, 12, .22); color: var(--vy-accent-text); font-size: 9.5px; font-weight: 600; white-space: nowrap; }
         .vy-ov-tip { position: absolute; left: 50%; bottom: calc(100% + 9px); transform: translateX(-50%) translateY(4px); opacity: 0; transition: opacity .16s ease, transform .16s ease; pointer-events: none; white-space: nowrap; z-index: 20; }
         .vy-ov-barcol:hover .vy-ov-tip { opacity: 1; transform: translateX(-50%) translateY(0); }
         .vy-ov-tip-inner { position: relative; background: #2A211C; border-radius: 10px; padding: 7px 11px; box-shadow: 0 8px 22px rgba(60, 30, 10, .30); }
@@ -485,17 +519,22 @@
         .vy-ov-stay { display: block; text-decoration: none; color: inherit; margin: 0 -8px; padding: 7px 8px; border-radius: var(--vy-r-sm); transition: background .15s ease; }
         .vy-ov-stay:hover { background: rgba(120, 70, 40, .05); }
         .vy-ov-stay-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .vy-ov-stay-guest { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+        .vy-ov-stay-guest { display: inline-flex; align-items: center; gap: 7px; min-width: 0; flex: 1 1 auto; }
         .vy-ov-stay-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
         .vy-ov-stay-name { font-size: 13.5px; font-weight: 500; color: var(--vy-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .vy-ov-stay-val { font-size: 13px; font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; flex: none; }
+        /* ⚠️ The wireframe gives this slot `flex-shrink: 0` because it only ever holds a short money
+           figure. Ours also carries the HONEST "Not yet attributed" (a stay with no owner-ledger rows
+           yet — #39, never a fake €0), which is ~2× wider and was pushing the guest NAME into an
+           ellipsis on 3 of 4 rows. Capped + allowed to wrap: a money figure still sits on one line,
+           the honest absence wraps instead of eating the name. */
+        .vy-ov-stay-val { font-size: 13px; font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; flex: 0 1 auto; max-width: 38%; text-align: right; white-space: normal; line-height: 1.25; }
         .vy-ov-stay-bot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 3px; }
         .vy-ov-stay-detail { font-size: 11.5px; color: var(--vy-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .vy-ov-stay-meta { display: inline-flex; align-items: center; gap: 8px; flex: none; }
         .vy-ov-stay-status { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 600; }
         .vy-ov-stay-date { font-size: 11.5px; color: var(--vy-faint); }
         .vy-ov-stays-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(120, 70, 40, .09); }
-        .vy-ov-stays-foot-l { font-size: 10.5px; color: #9C9089; letter-spacing: .01em; }
+        .vy-ov-stays-foot-l { font-size: 10.5px; color: var(--vy-muted); letter-spacing: .01em; }
         .vy-ov-viewall { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 500; color: var(--vy-accent-text); text-decoration: none; flex: none; }
 
         /* Download-statements pill (bottom of the right rail). */

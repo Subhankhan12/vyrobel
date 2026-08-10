@@ -84,8 +84,15 @@ it('renders real dashboard data, shows upcoming stays name-only, and fabricates 
         ->assertSee('Confirm your payout bank account')
         // No fabrication (#39): occupancy is no longer a stub; no invented earnings goal or estimated payout date
         ->assertDontSee('Not yet available')
-        ->assertDontSee('Occupancy soon')
-        ->assertDontSee('goal');
+        ->assertDontSee('Occupancy soon');
+
+    // ⚠️ This owner has set NO monthly target, so NO goal line may be drawn (#39 — never an invented goal).
+    // Asserted over the page CONTENT: the raw-body form of this guard also matched the `.vy-ov-goal` CSS
+    // class in the layout's inline stylesheet, which is a style rule, not something the owner is shown.
+    // Scoped to the claim, not weakened — see assertDontSeeInContent(). The positive case (a REAL target
+    // renders "Goal €5,000.00") is pinned by the test directly above.
+    assertDontSeeInContent($response, 'goal');
+    assertDontSeeInContent($response, 'Goal');
 
     assertNoRawBlade($response);   // the word@directive Blade trap never ships raw source
 

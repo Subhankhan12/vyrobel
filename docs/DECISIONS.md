@@ -6410,3 +6410,78 @@ was presentational, and **logged where the product honestly refuses**. What the 
 - **Comments go stale faster than code** (P34).
 
 **⬅ NEXT: the OWNER realm (32 prototypes), then GUEST (32) — both entirely untouched.**
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · **OWNER realm begins** · Gate O1: Owner Dashboard (1 of 32)
+
+**Method unchanged** (`docs/PROJECT-STATE.md` §N; per-page record `docs/design/MISSING-BACKEND-BY-PAGE.md`
+§O1). Prototype decoded fresh from `docs/design/raw/Owner Dashboard.html` (byte-identical to the `/tmp/audit`
+copy). Live page opened as the real `External Owner`. Design/markup/styling only — **no service, guard,
+engine, figure or scope was changed.**
+
+### Decided
+
+1. **The chart's geometry is load-bearing, and it was wrong in two ways.** Bars were silently compressed by
+   `flex-shrink` above ~84% (the current, largest month understated by 16%), and the goal line was
+   positioned against the chart while the bars were positioned against the column — so the line did not sit
+   at the value it labels. Fixed with the wireframe's own **78% headroom** plus a label-block offset.
+   ⚠️ The prototype carries the **same** baseline offset: this is a **lesson-25** case — *do not reproduce
+   the prototype's deficiency* when doing so states something false about real money.
+2. **A genuinely €0 month must draw nothing.** The bespoke Overview chart still had the `max(4, …)` floor
+   that the shared `<x-charts.bars>` had already removed. The shared rule is adopted verbatim. The chart was
+   **not** migrated onto that component — it carries a period toggle, tooltip and goal line the shared one
+   lacks, and replacing it would have lost real capability.
+3. **The honest refusal keeps its words; only its slot was resized.** "Not yet attributed" (#39 — a stay
+   with no owner-ledger rows) was truncating the guest NAME on 3 of 4 rows. The name is the #28-relevant
+   identifier; the string is unchanged.
+4. **Owner tint colours needed their own AA tokens.** The operator realm left tinted status/tag pills alone
+   at a measured 4.61; on the **warmer owner glass the same pairs measure 3.26–3.85**. Added
+   `--vy-green-text` / `--vy-amber-text` / `--vy-accent-tint-text` (4.71 / 4.76 / 4.75). The brand
+   `--vy-green` / `--vy-amber` / `--vy-accent` fills are untouched. **AA 23 → 5**, real-pixel measured.
+5. ⚠️ **SURFACED, DELIBERATELY NOT FIXED — white text on the accent gradient fails AA** (3.98–4.02) on the
+   brand mark, the account avatar, `.vy-btn--accent`, and two page-local pills. It is **one concept crossing
+   BOTH shells**, and the operator realm never measured it (its two a11y gates covered text-on-page-gradient
+   and accent-as-text-on-glass; **accent-as-background under white text is the gap between them**). It needs
+   its **own realm-wide a11y gate**, exactly as `--vy-on-grad` and `--vy-accent-text` got. Fixing only the
+   two page-local instances would have left the page inconsistent *and* duplicated the concept.
+
+### ⚠️⚠️ Found while doing it — three guards that could never fail
+
+`expect(...)->not->toContain($needle, $message)` is an **always-passing assertion** in this codebase: Pest's
+`toContain()` is variadic over needles, so the message becomes a second needle and the negation is satisfied
+by its absence. **Mutation-proven:** a literal `expenses@endif` was rendered into the owner Dashboard and
+**`assertNoRawBlade()` — the shared guard for the `word@directive` Blade trap, used by 36 test files across
+the owner AND operator realms — stayed GREEN.** ⚠️ That trap **fired on this gate** and 500'd the page; had
+it degraded to raw source on the page instead, nothing in the suite would have caught it.
+
+A sweep found **10 dead assertions across 5 files**, including **#28 guest-PII-in-audit/domain-events** and
+**#42 cross-owner name/money/unit on operator routes**. All repaired to
+`Assert::assertStringNotContainsString()`; **every affected test still passes**, so the invariants hold — the
+assertions were simply unable to fail. The two security-relevant ones were re-mutated and observed to fire.
+**Standing rule: never `expect(...)->not->toContain($needle, $message)`.**
+
+### Also closed
+
+- **A dashboard money-leak coverage gap.** `OwnerPortalIsolationTest` asserted unit **codes** across the
+  owner boundary but nothing about **money**, on a page whose whole purpose is a money rollup. A new case
+  pins the perimeter (B's net never renders for A) and **#17** (Earned YTD == Σ of A's own nets), guarded
+  against fixture vacuity. **Mutation-proven** — neutering `OwnerScope::apply()` turns it red.
+- **A pre-existing Pint failure** in `OperatorEmailTemplatesTest` (introduced at `e7c2641`, operator P32,
+  and stash-proven pre-existing) — the "Pint clean" claim had gone stale. Formatting only.
+
+### Verified, not changed
+
+**#42** owner isolation is structural (`BelongsToOwner` → `OwnerScope`, fails **closed**; 2 of 8 units
+visible; cross-owner statement 404s) · **#17** reconciles on the rendered page (six statement rows sum to
+€3,690.00 = the Earned-YTD tile, to the cent) · **#28** the IBAN is **structurally** un-emittable raw
+(`OwnerNextPayout` passes only `iban_last4` into `Iban::masked()`), no guest contact on the page ·
+**#39** no fabricated figure, trend, verification state or estimated payout date · **keyboard** 60 visible
+controls, 0 unreachable / 0 unnamed / 0 without a focus indicator, including the two states this gate
+introduces.
+
+**Gates:** suite **1833 tests / 12,024 assertions · 9 non-green** — all four documented pre-existing groups
+(`BookingImportTest` order-dependent ×6, `OwnerUnitDetailViewTest`, `StubViewsTest` ×2), the **top of the
+documented 5–9 range (J.quater)**, re-measured this gate rather than quoted. ⚠️ Making `assertNoRawBlade`
+real across 36 files produced **no** new failures — no page ships raw Blade today. PHPStan L5 (0); Pint
+clean; page browser-verified at 1440×1000 and 1440×1500, 0 horizontal overflow, 0 console errors.

@@ -2351,3 +2351,182 @@ I first wrote the #30 test with **Housekeeping** as the unpermitted viewer — i
 `schedule.view` is **deliberately broad** (#43: anyone rostered should be able to read the rota). **9 of the
 back-office roles hold it**; only **Accountant** and **Marketing Manager** do not. The test now uses Accountant
 — had I not checked, the assertion would have been meaningless.
+
+---
+
+# ═══ OWNER REALM — begins here (32 prototypes) ═══
+
+⚠️ **The operator realm is closed at §34.** Owner pages are numbered **§O1 …** so the two realms never
+collide in this file. The method, the four buckets and the verdict vocabulary are unchanged.
+
+## §O1 — Owner Dashboard (`/owner`, `App\Livewire\Owner\OwnerDashboard`) · OWNER 1/32
+
+**Prototype** `docs/design/raw/Owner Dashboard.html` (decoded fresh; byte-identical to the
+`/tmp/audit` copy, 85,155 chars). **Role** the real `External Owner` (`demo-owner@vyrobel-demo.test`).
+
+The live page was already a close rebuild (invariant #54, the Owner-Overview exact-match pass), so this
+gate is mostly **measurement**: the diff that mattered was not layout but **an unmeasured accessibility
+surface and a chart whose geometry misreported its own figures**.
+
+### ⚠️ The chart was misreporting real money — two independent geometry defects
+
+Both were invisible to file-reading and only appeared when the **rendered computed value** was measured
+(lesson 21).
+
+1. **The tallest bar was silently compressed.** `.vy-ov-bar` is a flex item beside the month label, so a
+   height above ~84% lost the remainder to `flex-shrink`: **September asked for 150px and rendered 126px —
+   the current month, the largest and most-read bar, understated by 16%** while every smaller bar was
+   exactly linear. Applying the wireframe's own **78% headroom** puts the max at 117px, below the shrink
+   point, so the series is linear end-to-end (measured after: 39 / 57.7 / 41.3 / 45.2 / 63.2 / 78 %).
+2. **The goal line did not sit at the value it labels.** Bars are positioned from the **column** bottom
+   (which sits 24px up, above the month label + gap); the goal line was positioned from the **chart**
+   bottom. The two never shared a baseline: a goal exactly equal to the best month drew *below* that
+   month's bar, and at mid-range the error reached ~25% of the plotted height. Now offset by the same
+   label block (`16% + pct × 0.78`), so a goal equal to the max lands exactly on the max bar's top —
+   verified by measurement (goal 93.22% → 141px; September bar top → 141px).
+
+⚠️ The prototype has the **same** baseline offset. This is a **lesson-25 case — do not reproduce the
+prototype's deficiency** when reproducing it would state something false about real money.
+
+### ⚠️ A €0 month still drew a bar
+
+The bespoke Overview chart carried `max(4, $pct)`, the exact floor the shared `<x-charts.bars>` already
+removed ("a genuinely ZERO bucket draws NOTHING; the old floor put a visible stub under a €0.00 label,
+which reads as a small non-zero value"). The shared component's rule is now adopted verbatim here.
+⚠️ The chart was **not** moved onto `<x-charts.bars>`: the Overview chart carries a 3M/6M/12M period
+toggle, a hover tooltip and the goal line, none of which that component has — replacing it would have
+**lost real capability**. Logged as a deliberate divergence, with the honesty rule shared.
+
+### The backend this page implies but does not have
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| DO1-1 | **"Next payout €10,370 · Est. 3 Nov 2025"** — an estimated payout DATE, in the hero and again on the dark rail. | No scheduled-date field is read here. The payout **engine** now computes a real `nextRunDate` (`PayoutSchedule`, #71) and the **Payouts** page already shows it — the Dashboard does not. | Surfacing `PayoutSchedule::nextRunDate()` through the shared `OwnerNextPayout` rail so the Dashboard and the Payouts page cannot disagree. | **REAL GAP.** ⚠️ **Partly STALE refusal**: the component docblock still says *"a next-payout ESTIMATED DATE (no scheduled-date field)"*, which was true when written and is no longer. ⚠️ Do **not** query the schedule in the Dashboard — it belongs on the shared rail (the D9-1 second-computation trap). |
+| DO1-2 | **"IBAN ···4821"** on the dark rail beside a **"Payout account verified"** notification. | The masked IBAN is real and CAP_PAYOUT-gated. There is **no verification state at all** — no column, no micro-deposit flow. | A real bank-verification state + rail (Stripe Connect / micro-deposits). | **ACCOUNT-GATED** (#58 already ruled this: a fake "Verified" on a bank account is dangerous, not merely dishonest). ⚠️ **The masking is STRUCTURAL** — `OwnerNextPayout` passes only `iban_last4` into `Iban::masked()`, so a raw IBAN **cannot** be emitted from this page. |
+| DO1-3 | A per-bar **hover tooltip** and a **3M / 6M / 12M** period toggle over a 12-month series. | Present and real — but the toggle filters **client-side** over whatever finalized statements exist, so "12M" shows 6 bars when 6 statements exist. The prototype implies a fixed 12-month window with zero-filled months. | A zero-filled month series (a month with no finalized statement is a real €0, not an absent bar). | **REAL GAP — small.** ⚠️ Whoever builds it must keep the zero rule above: a zero-filled month must draw **nothing**, not a stub. |
+| DO1-4 | **"+8% vs August"**, and per-unit occupancy **82% / 74% / 78%** with a "hit 82% occupancy · your best-performing unit" notification. | The MoM delta and per-unit occupancy are REAL (`OwnerOccupancyTrend`, owner-unit-keyed). The "best-performing unit" **notification** does not exist. | A derived best-performer signal on the shared `OwnerAttention` feed. | **REAL GAP — low value.** The figure already exists on My Units (Batch B); only the notification is missing. |
+| DO1-5 | Upcoming stays with a **per-source dot** (Direct / Booking.com / Airbnb) and a per-source **filter with counts**. | Real, but every stay resolves to Direct/Corporate: **no reservation carries a `channel_id`** — the OTA sources can never populate. | Channel attribution on `reservations`. | **ACCOUNT-GATED — the D2-2 Channex root.** Same refusal as the operator realm; recorded so the backend phase does not "discover" it and invent a channel mix. |
+| DO1-6 | A **"Guest refund processed · −€X · deducted from your September statement"** banner under the hero, driven by `localStorage`. | No refund-impact banner on the Dashboard. Refunds **are** real and **do** reduce the statement (they reconcile, #17/#27) — the owner is simply never told on this page. | A derived "this statement includes a €X guest refund" note from the real statement lines. | **REAL GAP.** ⚠️ It must read the **statement's own refund line**, never a client-side value — the prototype literally reads `localStorage`. |
+| DO1-7 | The bell opens a **notification panel** with a per-item **read** state and "Mark all read". | Present and real (the 2026-07-26 shared `NotificationFeed` panel). | — | **NOT A GAP — verified present**, recorded so the sweep does not re-open it. |
+
+### Fixed this gate (design + a11y; markup/CSS only — no service, guard, engine or figure touched)
+
+- **The earnings chart geometry** (both defects above) + the zero-bar rule + the wireframe's **value-graduated
+  vertical bar wash** (`--vy-bar-a`, derived per bar from that bar's own real pct). The live bars were a flat
+  saturated horizontal peach→terracotta, so **every month read like the best one**; the current month keeps the
+  solid accent, as designed.
+- **The goal label became the wireframe's pill sitting ON the line** (it was plain text floating above the
+  chart, colliding with the card header). The honest **"· above this range"** caption is kept.
+- **The attention row now caps at 3 chips + the wireframe's dashed "+N more"** (it rendered every item;
+  `OwnerAttention` can emit 5+). Nothing is hidden — the overflow is counted and links to the action centre.
+- **The guest NAME was being truncated on 3 of 4 upcoming stays.** The wireframe gives the value slot
+  `flex-shrink: 0` because it only ever holds a short money figure; ours also carries the honest
+  **"Not yet attributed"** (#39), ~2× wider, which pushed `Demo Booker` to `Demo…`. Capped + allowed to wrap.
+  ⚠️ The honest string is **preserved** — only the slot was resized. The name is the #28-relevant identifier.
+- **18 of 23 measured AA failures closed** (see below).
+- **A dead duplicate `.vy-delta--up/--down` pair was deleted.** The Overview block redeclared both at equal
+  specificity, so the earlier (green) pair lost every property — two definitions of one concept, the P31/P32
+  drift hazard. The comment claiming ".vy-delta is Overview-only" described a rule that was **not scoped**.
+
+### ⚠️ Realm-wide finding — WHITE TEXT ON THE ACCENT GRADIENT fails AA (its own gate, NOT fixed here)
+
+Real-pixel measurement (text hidden, background sampled from the rendered frame) leaves **exactly 5**
+failures on this page, and they are **one concept**: white text on `linear-gradient(140deg,#E8703A,#C2410C)`.
+
+| Element | Class | Measured |
+|---|---|---|
+| Brand mark "V" | `.vy-brand-mark` | **4.00** |
+| Account avatar "DO" | `.vy-avatar` | **4.02** |
+| Accent button "Approve" | `.vy-btn--accent` | **3.98** |
+| Attention count badge | `.vy-ov-attn-count` | **4.00** |
+| "Add tax details" CTA | `.vy-ov-resume` | **4.02** |
+
+White on the gradient's **light stop** `#E8703A` is **3.08**; on the dark stop `#C2410C` it is 5.18; the
+sampled mid-tone is **4.00**. **This crosses BOTH shells** — `.vy-brand-mark`, `.vy-avatar` and
+`.vy-btn--accent` are shared primitives used across operator, owner and guest — and the operator realm never
+measured it (its two a11y gates covered *text on the page gradient* `--vy-on-grad` and *accent-as-text on
+glass* `--vy-accent-text`; **accent-as-BACKGROUND under white text was the gap between them**).
+
+⚠️ **Deliberately NOT fixed in a page gate.** Two of the five are page-local (`.vy-ov-attn-count`,
+`.vy-ov-resume`) and fixing only those would leave the page visually inconsistent *and* duplicate the concept
+— principle 3 in reverse. It needs the same treatment `--vy-on-grad` and `--vy-accent-text` got: **its own
+realm-wide a11y GATE**, measured across both shells. Sketch of the fix: a `--vy-grad-text` whose light stop is
+deepened (a light stop of ~`rgb(204,98,51)` puts the mid-tone at **4.54**), applied only where the gradient
+carries TEXT; decorative accent gradients (bars, dots, halos, the `is-last` chart bar) untouched.
+
+### ⚠️ Carried, not fixed — the pre-AA grey `#9C9089` survives on three OTHER owner pages
+
+`.vy-mu-stat-label`, `.vy-mu-uplabel`, `.vy-mu-calhead` (My Units) and `.vy-au-cta--wait` (Add Unit) still
+hardcode the prototype's pre-AA greys. On **this** page the same literal measured **2.41–2.66** and is now
+`--vy-muted` (5.43–5.97). **Not blanket-replaced** — each site needs its own composited background measured on
+its own page, which is what those page gates are for. Recorded so they are not missed.
+
+### ⚠️ Verified, not changed
+
+- **#42 owner isolation is STRUCTURAL** — `Unit` / `OwnerStatement` / `Payout` / `OwnerMonthlyTarget` all use
+  `BelongsToOwner`, whose `OwnerScope` constrains to the owner's ids and **fails CLOSED** (`1 = 0`) for a
+  non-linked user. Live: 2 of 8 units visible. A cross-owner statement 404s.
+- **#17 reconciles on the rendered page** — the six statement rows (885.60 + 721.60 + 516.60 + 467.40 +
+  656.00 + 442.80) sum to **€3,690.00**, exactly the "Earned YTD" tile; the hero and the next-payout figure
+  are the September row. "Net to you · €721.60" is the Σ of the stays that ARE attributed.
+- **A test-coverage gap was closed** — `OwnerPortalIsolationTest` asserted unit **codes** across the owner
+  boundary but nothing about **money**, and the Dashboard is a rollup whose most sensitive content is money.
+  A new case pins both the perimeter (B's net never renders for A) and #17 (Earned YTD == Σ of A's own nets),
+  with a `expect($aNet)->not->toBe($bNet)` guard against fixture vacuity. **Mutation-proven**: neutering
+  `OwnerScope::apply()` turns it red.
+- **Keyboard operability: 60 visible controls, 0 unreachable, 0 unnamed, 0 without a focus indicator**,
+  including the filter menu's 5 items and the two states this gate introduced (the "+N more" chip is
+  focusable and measures **5.62**; the goal pill measures **5.45**).
+
+### ⚠️ A trap that bit, worth recording
+
+`Goal {{ … }}@if (…) · above this range@endif` — **`range@endif`** puts `@` after a word character, so the
+directive is **not compiled** (the CLAUDE.md `\B` rule). It left an unbalanced `@if` and the page 500'd
+immediately. Replaced with a ternary expression. The documented failure mode is *raw source shipped to the
+user*; here it was a hard 500 — **either way, the rule is real and it fires on the first careless edit.**
+
+### ⚠️⚠️ TWO GUARDS THAT COULD NEVER FAIL — found while fixing a THIRD (principle 4, twice over)
+
+The owner Dashboard's #39 guard (`assertDontSee('goal')` — *never an invented earnings goal*) went red on
+this gate. It was a **false positive**: the page rendered no goal at all; the substring matched the new
+`.vy-ov-goal` **CSS class name** in the layout's inline stylesheet. The established response to a
+false-positive guard is *tighten it to its stated intent and PROVE it still fires* — so a shared
+`assertDontSeeInContent()` was added that strips `<style>`/`<script>` before asserting.
+
+**Mutating it exposed something far worse.** The new helper was written in the house style —
+`expect($body)->not->toContain($needle, "…message…")` — and **a mutation that rendered the word straight
+onto the page did not turn it red**. Pest's `toContain()` is **VARIADIC OVER NEEDLES**: the "message" is
+read as a **second needle**, so the expectation means *"does not contain BOTH"*, which is true whenever
+the message sentence is absent — i.e. **always**. The assertion cannot fail.
+
+⚠️ **The same line exists in `assertNoRawBlade()` — the shared guard for the `word@directive` Blade trap,
+called by 36 test files across the owner AND operator realms.** Mutation-proven on the owner Dashboard: a
+literal `expenses@endif` was rendered into the page and **`assertNoRawBlade` stayed GREEN**. The guard that
+CLAUDE.md names as the protection against that trap has never been able to fire.
+
+⚠️ **This is not academic — the trap fired on this very gate.** `Goal {{ … }}@if (…) … range@endif` put `@`
+after a word character, the directive was not compiled, and the page 500'd. Had it degraded to *raw source
+on the page* (the documented failure mode) instead of an unbalanced `@if`, **nothing in the suite would have
+caught it.**
+
+Both helpers now use `PHPUnit\Framework\Assert::assertStringNotContainsString()`, which takes a real message
+argument, and **both were re-mutated and observed to go RED**.
+
+**Carry this forward:** in this codebase `expect(...)->not->toContain($needle, $message)` is an
+**always-passing assertion**. It is worth grepping the whole suite for the pattern — every occurrence is a
+guard defending nothing.
+
+**The sweep was run — 8 dead assertions in 4 more files, several load-bearing:**
+
+| File | Assertion | Guards |
+|---|---|---|
+| `GuestServiceTest` ×2 | *"The audit trail leaked PII"* / *"The domain event leaked PII"* | **#28** — guest PII must never be copied into `audit_events` / `domain_events` (no erase clears those tables) |
+| `BackOfficeAccessTest` ×3 | *"leaked owner B's name / money / unit at {route}"* | **#42** — cross-owner leak on operator routes |
+| `DesignTokenContrastTest` ×2 | *"--vy-muted / --vy-faint reverted to a pre-AA value"* | the realm-wide AA token floor |
+| `MaintenanceAssigneePoolTest` ×1 | *"an External Owner is offered as a technician"* | the operator/owner boundary |
+
+**All 8 were repaired and all 30 tests still pass** — so the underlying invariants genuinely hold; the
+assertions were simply unable to fail. The two security-relevant ones were then **mutation-proven to fire**
+(a deliberately-present needle turns each red, carrying its real message). ⚠️ Worth stating plainly: the
+PII guard and the cross-owner guard were **green for their entire existence without ever checking anything**
+— #28 and #42 were being asserted by nothing on those paths.

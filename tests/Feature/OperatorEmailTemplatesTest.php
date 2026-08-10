@@ -5,6 +5,7 @@ use App\Mail\ReviewRequestMail;
 use App\Models\EmailTemplate;
 use App\Models\Reservation;
 use App\Services\EmailTemplateService;
+use App\Support\Email\EmailTemplateCatalog;
 use App\Support\Email\EmailTemplateResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -237,7 +238,7 @@ it('offers only merge variables the send path can actually fill (#39)', function
         ->assertOk()->getContent();
 
     // Every chip comes from the catalogue's real `vars`; each maps to a field the Mailable merges.
-    foreach (\App\Support\Email\EmailTemplateCatalog::get('review-request')['vars'] as $var) {
+    foreach (EmailTemplateCatalog::get('review-request')['vars'] as $var) {
         expect($html)->toContain('{'.$var.'}');
     }
     // ⚠️ And nothing invented — a token with no backing field would render but never fill.

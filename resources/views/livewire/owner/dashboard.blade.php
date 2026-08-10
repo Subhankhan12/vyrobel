@@ -45,8 +45,12 @@
             </a>
         </div>
         @if ($attnCount > 0)
+            {{-- The wireframe shows at most THREE chips and counts the rest into a dashed "+N more"
+                 that opens the action center — the row was rendering every item, so a busy owner got a
+                 wrapped wall of chips instead of the design's single band. Presentation only: nothing
+                 is hidden from the owner, the overflow is counted and linked. --}}
             <div class="vy-ov-chips">
-                @foreach ($attention as $item)
+                @foreach (array_slice($attention, 0, 3) as $item)
                     @php $icon = $item['tone'] === 'warn'
                         ? '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>'
                         : '<circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/>'; @endphp
@@ -80,6 +84,9 @@
                         </a>
                     @endif
                 @endforeach
+                @if ($attnCount > 3)
+                    <a class="vy-ov-chip-more" href="{{ route('owner.notifications') }}">+{{ $attnCount - 3 }} more</a>
+                @endif
             </div>
         @endif
     </section>
@@ -185,7 +192,7 @@
             <section class="vy-card vy-fade" style="animation-delay:.24s">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
                     <h2 class="vy-ov-sec-title">Recent statements</h2>
-                    <a href="{{ route('owner.archive') }}" style="font-size:13px;font-weight:500;color:var(--vy-accent);text-decoration:none">View all</a>
+                    <a href="{{ route('owner.archive') }}" style="font-size:13px;font-weight:500;color:var(--vy-accent-text);text-decoration:none">View all</a>
                 </div>
                 @forelse ($statements as $s)
                     <a class="vy-list-row vy-row-link" href="{{ route('owner.statements.show', $s['id']) }}">
@@ -219,12 +226,23 @@
                     @endif
                 </div>
                 @if ($series['count'] > 0)
-                    <div class="vy-ov-chart" style="position:relative">
+                    @php
+                        // Presentation geometry ONLY — no figure is recomputed here. Both numbers are declared
+                        // on .vy-ov-chart and are documented there: 0.78 is the wireframe's headroom (and what
+                        // keeps the bars linear), 16 is the month-label block the bars sit above, so the goal
+                        // line lands on the SAME baseline as the bars it is compared against.
+                        $barScale = 0.78;
+                        $labelBlock = 16;
+                    @endphp
+                    <div class="vy-ov-chart">
                         {{-- REAL monthly-target goal line (GATE 4) — same OwnerMonthlyTarget the Bookings ring reads (#56);
                              shown only when the owner has set a target, never a fabricated goal (#39). --}}
                         @if ($series['goal'])
-                            <div title="Monthly goal · {{ $series['goal']['display'] }}" style="position:absolute;left:0;right:0;bottom:{{ min(99, max(1, $series['goal']['pct'])) }}%;height:0;border-top:1.5px dashed var(--vy-accent);z-index:2;pointer-events:none">
-                                <span style="position:absolute;right:0;top:-16px;font-size:10.5px;font-weight:600;color:var(--vy-accent);background:var(--vy-surface,#fff);padding:0 4px;border-radius:4px">Goal {{ $series['goal']['display'] }}@if ($series['goal']['above_range']) · above this range @endif</span>
+                            <div class="vy-ov-goal" title="Monthly goal · {{ $series['goal']['display'] }}"
+                                 style="bottom:{{ round($labelBlock + min(99, max(1, $series['goal']['pct'])) * $barScale, 2) }}%">
+                                {{-- ⚠️ NOT `range@endif` — a directive whose `@` follows a word character is not
+                                     compiled (the CLAUDE.md `\B` rule); it cost a 500 here. Expression, no directive. --}}
+                                <span class="vy-ov-goal-tag">Goal {{ $series['goal']['display'] }}{{ $series['goal']['above_range'] ? ' · above this range' : '' }}</span>
                             </div>
                         @endif
                         @foreach ($series['bars'] as $i => $bar)
@@ -235,7 +253,12 @@
                                         <div class="vy-ov-tip-v">{{ $bar['net_display'] }}</div>
                                     </div>
                                 </div>
-                                <div class="vy-ov-bar {{ $i === $series['count'] - 1 ? 'is-last' : '' }}" style="height:{{ max(4, $bar['pct']) }}%"></div>
+                                {{-- A genuinely ZERO month draws NOTHING. This chart still carried the old
+                                     `max(4, …)` floor, which puts a visible stub under a €0.00 month and
+                                     reads as a small real amount (#39) — the same defect the shared
+                                     <x-charts.bars> already fixed; its rule is adopted here verbatim. --}}
+                                <div class="vy-ov-bar {{ $i === $series['count'] - 1 ? 'is-last' : '' }}"
+                                     style="height:{{ round($bar['pct'] * $barScale, 2) }}%{{ $bar['pct'] > 0 ? ';min-height:2px' : '' }};--vy-bar-a:{{ number_format(0.30 + ($bar['pct'] / 100) * 0.25, 2) }}"></div>
                                 <div class="vy-ov-bar-month">{{ $bar['label'] }}</div>
                             </a>
                         @endforeach
@@ -378,7 +401,7 @@
                                 <div class="vy-ov-stay-bot">
                                     <span class="vy-ov-stay-detail">{{ $r['detail'] }}</span>
                                     <span class="vy-ov-stay-meta">
-                                        <span class="vy-ov-stay-status" style="background:{{ $confirmed ? 'rgba(31,122,90,.13)' : 'rgba(224,146,30,.14)' }};color:{{ $confirmed ? 'var(--vy-green)' : 'var(--vy-amber)' }}">
+                                        <span class="vy-ov-stay-status" style="background:{{ $confirmed ? 'rgba(31,122,90,.13)' : 'rgba(224,146,30,.14)' }};color:{{ $confirmed ? 'var(--vy-green-text)' : 'var(--vy-amber-text)' }}">
                                             <span style="width:5px;height:5px;border-radius:50%;background:{{ $confirmed ? 'var(--vy-green)' : 'var(--vy-amber-2)' }}"></span>{{ $r['status_label'] }}
                                         </span>
                                         <span class="vy-ov-stay-date">{{ $r['date'] }}</span>

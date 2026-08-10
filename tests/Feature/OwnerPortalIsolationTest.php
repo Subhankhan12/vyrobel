@@ -126,6 +126,36 @@ it('renders the owner’s real data and 404s a cross-owner statement', function 
     $this->actingAs($a['user'])->get("/owner/statements/{$b['statement']->id}")->assertNotFound();
 });
 
+// ── 4b. The dashboard is a ROLLUP — the thing that leaks MANY rows at once. The unit-code assertion
+// above cannot catch a leaked FIGURE, and the dashboard's most sensitive content is money: the hero
+// net, Earned YTD, the recent-statement rows, the next payout. This pins the MONEY perimeter, and
+// pins #17 on the same page: what the owner sees is A's own net, and Earned YTD is the SUM of the
+// statement rows shown — never a total that quietly includes B.
+// (A's room is 20000 minor and B's 30000, so the two nets are distinct by construction.)
+it('never renders another owner’s money on the dashboard rollup, and reconciles its own', function () {
+    ['a' => $a, 'b' => $b] = portalScenario();
+
+    $aNet = (int) $a['statement']->net_payable_minor;
+    $bNet = (int) $b['statement']->net_payable_minor;
+    expect($aNet)->not->toBe($bNet);   // guard against a vacuous assertion if the fixture ever equalises
+
+    $money = fn (int $minor): string => number_format($minor / 100, 2);
+
+    $this->actingAs($a['user'])->get('/owner')
+        ->assertOk()
+        ->assertSee($money($aNet))          // A's own net — hero + statement row + next payout
+        ->assertDontSee($money($bNet));     // B's net never reaches A's rollup
+
+    // #17 — Earned YTD is Σ of A's OWN statement nets, to the cent, and B contributes nothing.
+    $ytd = OwnerStatement::withoutGlobalScopes()
+        ->where('owner_id', $a['owner']->id)
+        ->whereYear('period_start', (int) $a['statement']->period_start->format('Y'))
+        ->sum('net_payable_minor');
+
+    expect((int) $ytd)->toBe($aNet);
+    $this->actingAs($a['user'])->get('/owner')->assertSee($money((int) $ytd));
+});
+
 // ── 5. An owner cannot read the operator's aggregate financials ─────────────────────────────────
 it('never exposes the operator-wide aggregate to an owner', function () {
     ['a' => $a] = portalScenario();

@@ -8,6 +8,7 @@ use App\Models\Owner;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use PHPUnit\Framework\Assert;
 
 uses(RefreshDatabase::class);
 
@@ -72,9 +73,9 @@ it('refuses an owner-role user every /app route and leaks no operator or cross-o
 
         // The rejection body carries NO operator data and NO trace of the other owner.
         $body = $response->getContent();
-        expect($body)->not->toContain('Bruno Keller', "leaked owner B's name at {$route}")
-            ->and($body)->not->toContain('€425.00', "leaked owner B's money at {$route}")
-            ->and($body)->not->toContain($b['unit']->code, "leaked owner B's unit at {$route}");
+        Assert::assertStringNotContainsString('Bruno Keller', $body, "leaked owner B's name at {$route}");
+        Assert::assertStringNotContainsString('€425.00', $body, "leaked owner B's money at {$route}");
+        Assert::assertStringNotContainsString($b['unit']->code, $body, "leaked owner B's unit at {$route}");
     }
 });
 

@@ -13,6 +13,7 @@ use App\Services\FolioService;
 use App\Services\InboxService;
 use App\Support\Money\Money;
 use Illuminate\Testing\TestResponse;
+use PHPUnit\Framework\Assert;
 
 // Shared owner-accounting test helpers (Phase 3 · Module 1). In a Support file (required from
 // Pest.php) so any owner test can reuse them without depending on cross-file function-load order —
@@ -64,14 +65,51 @@ if (! function_exists('assertNoRawBlade')) {
      * user. That renders as ordinary text, so an assertSee/assertDontSee suite passes straight over
      * it; only scanning the body catches it. Found in the browser on the owner Expenses screen
      * (Wave 1 · Sub-gate 1) — this locks the whole class of bug for every owner screen.
+     *
+     * ⚠️ THIS GUARD WAS VACUOUS UNTIL 2026-08-10 AND COULD NEVER FAIL. It used
+     * `expect($body)->not->toContain($directive, "…message…")`, but Pest's `toContain()` is VARIADIC
+     * OVER NEEDLES — the "message" was read as a SECOND NEEDLE, so the assertion meant "the body does
+     * not contain BOTH the directive AND that sentence", which is true whenever the sentence is absent.
+     * Mutation-proven: a literal `expenses@endif` was rendered into the owner dashboard and this
+     * helper stayed GREEN. It now uses PHPUnit's assertion, which takes a real message argument, and
+     * the same mutation turns it RED. (The `@` here is deliberately not adjacent to a word character.)
      */
     function assertNoRawBlade(TestResponse $response): void
     {
         $body = $response->getContent();
 
         foreach (['@if', '@endif', '@else', '@elseif', '@foreach', '@endforeach', '@forelse', '@empty', '@unless', '@isset', '@php', '@endphp'] as $directive) {
-            expect($body)->not->toContain($directive, "Unrendered Blade directive {$directive} leaked into the rendered page");
+            Assert::assertStringNotContainsString(
+                $directive,
+                $body,
+                "Unrendered Blade directive {$directive} leaked into the rendered page",
+            );
         }
+    }
+}
+
+if (! function_exists('assertDontSeeInContent')) {
+    /**
+     * `assertDontSee` over the page's CONTENT only — inline <style> and <script> blocks are stripped first.
+     *
+     * ⚠️ Why this exists. A fabrication guard states a claim about what the owner is SHOWN
+     * ("no invented earnings goal", #39). A raw `assertDontSee('goal')` also matches a CSS class name
+     * like `.vy-ov-goal` in the layout's inline stylesheet — so adding a correctly-refused element's
+     * STYLES turns the guard red while the page renders nothing at all. That is the same over-broad-guard
+     * trap the operator pass hit twice (the CSS-comment false positives); the fix is to scope the guard to
+     * the CLAIM, never to weaken it. The needle must still be absent from every rendered byte of content.
+     *
+     * ⚠️ It uses PHPUnit's assertion, NOT `expect(...)->not->toContain($needle, $message)` — Pest's
+     * `toContain()` is VARIADIC over needles, so a "message" passed as a second argument becomes a
+     * SECOND NEEDLE. `->not->toContain('goal', 'some message')` then means "does not contain BOTH",
+     * which is true whenever the message string is absent — i.e. always. That assertion can never
+     * fail. Proven by mutation here, and it is why this helper asserts the way it does.
+     */
+    function assertDontSeeInContent(TestResponse $response, string $needle): void
+    {
+        $content = (string) preg_replace('#<(style|script)\b[^>]*>.*?</\1>#is', '', $response->getContent());
+
+        Assert::assertStringNotContainsString($needle, $content, "\"{$needle}\" was rendered to the page content");
     }
 }
 
