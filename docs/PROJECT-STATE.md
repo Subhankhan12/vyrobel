@@ -580,6 +580,12 @@ pre-existing by **stashing and re-running**, never by name-matching.
 
 ### ⚠️ J.quater — THE BASELINE IS NOT A SINGLE NUMBER (measured at P27, 2026-08-10)
 
+**⚠️ Third data point (SAVE v5, 2026-08-10): `1832 tests · 1823 passed · 5 failed · 12,017 assertions` — and
+the ONLY failing file was `BookingImportTest` (5).** Both date-coupled files (`OwnerUnitDetailViewTest`,
+`StubViewsTest`) passed on this run. That is the **low end of the range**, measured on the same working tree
+that produced 9 earlier the same day — which is the clearest possible confirmation that **the count is a
+range, not a number**, and that it moves with run order and the clock, not with the work.
+
 ⚠️ **Two full-suite runs in the SAME session produced DIFFERENT failure sets** — so quoting "the baseline is 9"
 is itself the stale-assertion mistake, one level up. Measured at P27 (`1809 tests · 11,896 assertions`):
 
