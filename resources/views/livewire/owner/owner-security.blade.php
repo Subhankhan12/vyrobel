@@ -6,7 +6,7 @@
     $lbl = 'display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:7px;';
     $h2 = 'font-family:var(--vy-display);font-size:15px;font-weight:600;margin:0 0 4px;';
     $sub = 'font-size:12.5px;color:var(--vy-muted);margin:0 0 16px;';
-    $err = 'font-size:11.5px;color:var(--vy-accent);display:block;margin-top:5px;';
+    $err = 'font-size:11.5px;color:var(--vy-accent-text);display:block;margin-top:5px;';
     $btn = 'background:var(--vy-grad);color:#fff;padding:11px 22px;';
     $ghost = 'background:rgba(255,255,255,.6);border:1px solid var(--vy-glass-border);color:var(--vy-ink);padding:9px 16px;';
 @endphp
@@ -41,7 +41,7 @@
                     </div>
                 </div>
                 <div style="min-width:0;">
-                    <div style="display:inline-flex;align-items:center;gap:7px;padding:3px 11px 3px 9px;border-radius:30px;background:rgba(217,102,46,.12);margin-bottom:8px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--vy-accent);box-shadow:0 0 0 3px rgba(232,112,58,.18);"></span><span style="font-size:11px;font-weight:600;color:#B4400F;">{{ $score['tier'] }}</span></div>
+                    <div style="display:inline-flex;align-items:center;gap:7px;padding:3px 11px 3px 9px;border-radius:30px;background:linear-gradient(rgba(217,102,46,.12),rgba(217,102,46,.12)),rgba(255,252,248,.92);margin-bottom:8px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--vy-accent);box-shadow:0 0 0 3px rgba(232,112,58,.18);"></span><span style="font-size:11px;font-weight:600;color:#B4400F;">{{ $score['tier'] }}</span></div>
                     <div style="font-family:var(--vy-display);font-weight:600;font-size:20px;letter-spacing:-.02em;line-height:1.15;">Account security</div>
                     <div style="font-size:12.5px;color:var(--vy-muted);margin-top:3px;max-width:340px;line-height:1.45;">{{ $score['caption'] }}</div>
                 </div>
@@ -123,7 +123,7 @@
                         <div>
                             <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink);">
                                 {{ $s['device'] }}
-                                @if ($s['current']) <span style="font-size:10.5px;font-weight:600;color:#227a3c;background:rgba(34,120,60,.12);border-radius:20px;padding:2px 9px;margin-left:6px;">This device</span> @endif
+                                @if ($s['current']) <span style="font-size:10.5px;font-weight:600;color:var(--vy-green-text);background:rgba(34,120,60,.12);border-radius:20px;padding:2px 9px;margin-left:6px;">This device</span> @endif
                             </div>
                             <div style="font-size:11.5px;color:var(--vy-muted);">{{ $s['ip'] }} · active {{ $s['last_active']->diffForHumans() }}</div>
                         </div>
@@ -154,7 +154,7 @@
                             <div>
                                 <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink);">
                                     {{ $d['label'] }}
-                                    @if ($d['current']) <span style="font-size:10.5px;font-weight:600;color:#227a3c;background:rgba(34,120,60,.12);border-radius:20px;padding:2px 9px;margin-left:6px;">This device</span> @endif
+                                    @if ($d['current']) <span style="font-size:10.5px;font-weight:600;color:var(--vy-green-text);background:rgba(34,120,60,.12);border-radius:20px;padding:2px 9px;margin-left:6px;">This device</span> @endif
                                 </div>
                                 <div style="font-size:11.5px;color:var(--vy-muted);">@if ($d['ip']){{ $d['ip'] }} · @endif last used {{ $d['last_used'] }} · trust expires {{ $d['expires'] }}</div>
                             </div>
@@ -187,7 +187,7 @@
                     <span x-show="!busy">Add a passkey</span><span x-show="busy" x-cloak>Working…</span>
                 </button>
             </div>
-            <p x-show="msg" x-cloak x-text="msg" style="font-size:12.5px;margin-top:10px;color:var(--vy-accent);"></p>
+            <p x-show="msg" x-cloak x-text="msg" style="font-size:12.5px;margin-top:10px;color:var(--vy-accent-text);"></p>
             @if (count($passkeys) > 0)
                 <div style="display:flex;flex-direction:column;gap:2px;margin-top:10px;">
                     @foreach ($passkeys as $p)
@@ -245,7 +245,7 @@
                     <h2 style="{{ $h2 }}">Login approval for new devices</h2>
                     <p style="{{ $sub }}">When on, signing in from a device you haven’t trusted is held until you approve it from a link we email you. A trusted device skips this, and you can turn it off here — so it can’t lock you out.</p>
                 </div>
-                <span style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:20px;padding:4px 11px;{{ $loginApprovalOn ? 'color:#227a3c;background:rgba(34,120,60,.12);' : 'color:var(--vy-faint);background:rgba(0,0,0,.04);' }}">{{ $loginApprovalOn ? 'On' : 'Off' }}</span>
+                <span style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:20px;padding:4px 11px;{{ $loginApprovalOn ? 'color:var(--vy-green-text);background:rgba(34,120,60,.12);' : 'color:var(--vy-faint);background:rgba(0,0,0,.04);' }}">{{ $loginApprovalOn ? 'On' : 'Off' }}</span>
             </div>
             <form method="POST" action="{{ route('owner.security.login-approval') }}" style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-top:12px;">
                 @csrf
@@ -270,7 +270,7 @@
                         <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink);">{{ $app['name'] }}</div>
                         <div style="display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 5px;">
                             @foreach ($app['scopes'] as $i => $scopeId)
-                                <span title="{{ $app['scope_labels'][$i] ?? '' }}" style="font-size:10.5px;font-weight:600;color:var(--vy-accent);background:rgba(194,65,12,.08);border:1px solid var(--vy-accent-border,rgba(194,65,12,.2));border-radius:20px;padding:2px 9px;font-family:ui-monospace,monospace;">{{ $scopeId }}</span>
+                                <span title="{{ $app['scope_labels'][$i] ?? '' }}" style="font-size:10.5px;font-weight:600;color:var(--vy-accent-text);background:rgba(194,65,12,.08);border:1px solid var(--vy-accent-border,rgba(194,65,12,.2));border-radius:20px;padding:2px 9px;font-family:ui-monospace,monospace;">{{ $scopeId }}</span>
                             @endforeach
                         </div>
                         <div style="font-size:11.5px;color:var(--vy-muted);">@if ($app['authorized_at']) Authorized {{ $app['authorized_at'] }} @else Authorized @endif</div>
@@ -314,7 +314,7 @@
         {{-- ══ Deactivate — PRIMARY-OWNER-ONLY, reversible + non-destructive ═══════════════════════════ --}}
         @if ($isPrimaryOwner)
             <div class="vy-card vy-fade" style="border:1px solid rgba(194,65,12,.25);">
-                <h2 style="{{ $h2 }}color:var(--vy-accent);">Deactivate account</h2>
+                <h2 style="{{ $h2 }}color:var(--vy-accent-text);">Deactivate account</h2>
                 <p style="{{ $sub }}">Pause your portal access. You’ll be signed out and won’t be able to sign in until it’s reactivated. Your statements and payout history are <strong>kept</strong> — nothing is deleted. To reactivate, contact your management team.</p>
                 <form method="POST" action="{{ route('owner.security.deactivate') }}" onsubmit="return confirm('Pause your account? You will be signed out until it is reactivated.');" style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;">
                     @csrf
@@ -323,7 +323,7 @@
                         <input id="de_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" style="max-width:240px;">
                         @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
                     </div>
-                    <button type="submit" class="vy-btn" style="background:none;border:1px solid var(--vy-accent);color:var(--vy-accent);padding:10px 18px;margin-top:26px;">Deactivate</button>
+                    <button type="submit" class="vy-btn" style="background:none;border:1px solid var(--vy-accent);color:var(--vy-accent-text);padding:10px 18px;margin-top:26px;">Deactivate</button>
                 </form>
             </div>
         @endif

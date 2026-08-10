@@ -74,7 +74,11 @@
         </div>
 
         {{-- ── TWO-FACTOR (real #66 shared panel) ──────────────────────────────────────────────────────── --}}
-        @include('livewire.partials.two-factor-panel')
+        {{-- The 560px column is THIS page's layout (every card here uses it), so it is set on the include
+             rather than inside the shared partial, which also renders full-width on the owner page. --}}
+        <div style="max-width:560px;">
+            @include('livewire.partials.two-factor-panel')
+        </div>
 
         {{-- ── IP ALLOWLIST (real — EnforceIpAllowlist genuinely restricts /app) ───────────────────────── --}}
         <div id="sec-ip" class="vy-card vy-fade" style="margin-bottom:16px;max-width:560px;">

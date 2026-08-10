@@ -3686,3 +3686,121 @@ it. Verified present-and-correct this gate:
   white-on-accent-gradient. ⚠️ **This page contributes a new near-worst cluster:** the four team-member /
   hero initial circles use a *lighter* peach gradient (`#F0A57A → #D9662E`) and measure **2.55–2.63** — the
   family's worst band is now **2.54–2.63**, and it is four instances on one page. Still awaiting its own gate.
+
+---
+
+## §O13 — Owner Security (`/owner/security`, `App\Livewire\Owner\OwnerSecurity`) · OWNER 13/32
+
+**Prototype:** `docs/design/raw/Owner Security.html` (decoded fresh). **Role:** `External Owner`, per-USER
+(auth-resolved) — accountant and view-only SUB-USERS manage their OWN password/2FA/sessions here. The one
+primary-owner-only action is **Deactivate** (`EnsurePrimaryOwner`, #42).
+
+### ⚠️ TWO PREMISE CORRECTIONS — one of them would have made the page LIE
+
+**1. There is no 12-character password policy.** The brief said *"the 12+ char policy is honest, never
+weakened"*. **Every password path in the codebase is `min(8)`** — verified across all ten: change-password,
+reset, both invite-accepts, onboarding, guest claim, guest account, guest reset, and admin. The page states
+*"At least 8 characters"*, which is **exactly what the server enforces**. ⚠️ **Had I "restored" a 12+ claim to
+match the brief, I would have made a security surface overstate its own protection** — the same class of
+defect this pass exists to catch, inverted. Nothing was changed.
+
+*(My own probe briefly reported `has12: true`; that was CSS `12px`, not a policy claim — a probe false
+positive, the fourth of the pass.)*
+
+**2. The security SCORE is real and rendered.** An earlier note recorded this page as *"a REAL protection
+checklist (derived, never a score)"*. There **is** a score — **40 / 100 · Basic** — and it is a deterministic
+function of three true facts (password set 40 + 2FA confirmed 40 + unused recovery codes 20). It is derived,
+not fabricated; the note was stale and is corrected here.
+
+### 🔴 The find: a SHARED partial was carrying one page's layout width
+
+Every card on the owner Security page is **1184px** — except the two-factor card, at **560px**. The cause:
+`livewire/partials/two-factor-panel.blade.php` hardcoded `max-width: 560px`. That is the **operator**
+security page's column (every card there is 560px), baked into a partial that renders in **both** shells.
+
+Fixed by moving the constraint to the callers: the operator include wraps it at 560px, the owner include lets
+it fill. **The operator page was measured before and after and is unchanged** — all eight cards still 560px,
+0 overflow. Guard added and **mutation-proven** (with the mutation asserted-as-applied, per the O12 lesson).
+
+⚠️ **The generalisation:** this is the third form of the shared-partial trap. O6: a shared partial cannot
+depend on a class only one shell defines. Now: **a shared partial cannot carry a layout constant only one
+shell's design uses.**
+
+### Fixed on this page (design / markup / styling only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | The shared 2FA panel rendered as a lone **560px** card among eleven 1184px cards | width moved to the callers; owner now one consistent column, **operator verified unchanged** |
+| 2 | The **"This device"** session badge — a real green at **3.69** on the warm surface | `--vy-green-text` → **6.10** |
+| 3 | The **score-tier pill ("Basic")** at **3.84** — the design's tint assumes a card, but this pill sits on the page gradient (the O10 "Active"-pill shape) | same tint composited over a near-white plate → **4.74**, tint and text colour untouched |
+| 4 | 5 accent-as-text sites incl. the **destructive "Deactivate account" heading (4.41) and button (4.47)** | `--vy-accent-text` → **5.23** (hue kept — the danger colour still reads as danger) |
+| 5 | Stale docblock on the shared partial: *"operator (/app/security) + owner (**/owner/settings**)"* | corrected to `/owner/security` |
+
+**Contrast: 10 AA failures → 6** (103 text + 26 icon candidates). Icons 0 failures.
+
+### 🚫 Refusals preserved — this prototype is the most dangerous in the realm
+
+A security mock that invents state is inventing *security evidence*. Every one of these is refused live:
+
+- ⚠️ **A FABRICATED PENDING SIGN-IN**: *"Approval needed · just now · New sign-in · Chrome on Windows ·
+  **Porto, Portugal · IP 82.14.x** · Deny / Approve"*. A fake city **and** a fake IP presented as a live
+  security decision — the GATE-33 refusal at its worst. Live shows the **real** login-approval feature with an
+  honest **OFF** state and no invented request.
+- ⚠️ **"Trusted locations · Skip 2FA when signing in from here · Add current"** — a *location*-based 2FA skip
+  needs geolocation, which the product does not have. Live implements **trusted DEVICES** (a hash-only,
+  revocable cookie) — the real concept, correctly named. **STRUCTURAL refusal.**
+- ⚠️ **"Use at least 8 characters with a number."** — the prototype's own policy copy. Live states the real
+  rule; the "with a number" composition requirement is **not** claimed, because `PasswordRule::min(8)` does
+  not require one. *(Refusing to over-claim, in both directions.)*
+- **No hardcoded green** anywhere — the GATE-24 defect. Two-factor reads **Off** from
+  `hasTwoFactorEnabled()`; recovery codes count only **unused** ones; sessions are the real `sessions` rows;
+  passkeys/trusted devices/connected apps all show honest empty states.
+
+### ✅ Extra work kept (beyond the prototype)
+
+- **Passkeys** (WebAuthn, real), **login approval for new devices**, **trusted devices**, and a **"Coming
+  soon"** card naming the three genuinely-unbuilt items (new-device email alerts, full sign-in history,
+  session timeout) — never a fake toggle.
+- Connected apps carries an explicit #28 statement: *"never your guests' contact details, door codes or
+  Wi-Fi"*.
+- Deactivate is honest about being **reversible and non-destructive** ("statements and payout history are
+  kept") and requires the password.
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO13-1 — no new-device email alert, no full sign-in history, no session timeout.** Named honestly in a
+  "Coming soon" card; no backend exists for any of the three. *Verdict: **REAL GAP** (×3).*
+- **DO13-2 — no geolocation, so no location on any sign-in.** Sessions show IP + relative time only. A
+  "trusted locations" feature (as the prototype shows) would need a geoip provider.
+  *Verdict: **RATIFIED REFUSAL** / account-gated.*
+- **DO13-3 — the export is an immediate JSON download**, not the prototype's *"we'll email a secure download
+  link within a few minutes"* with a JSON/CSV format choice. The live behaviour is simpler **and** more
+  honest (no promised email that never arrives); CSV is not offered. *Verdict: **REAL GAP** (small).*
+- **DO13-4 — password composition rules are not enforced.** `PasswordRule::min(8)` sets length only; the
+  prototype claims "with a number". Whether to require mixed case / numbers / symbols — or `uncompromised()`
+  against HIBP — is a **security-policy decision for the founder**, not a design call. Surfaced, not decided.
+  *Verdict: **REAL GAP** — founder decision.*
+
+### ⚠️ Verified, not changed
+
+- **Every security badge reads the fact it claims** (GATE-24 + the O12 rule): two-factor **Off** from
+  `hasTwoFactorEnabled()`; the score from three real booleans; "Protections on 1/3" from the same; recovery
+  codes counted **unused-only**; "This device" from the real session id; trusted devices / passkeys /
+  connected apps from real rows (all genuinely empty). **No hardcoded state, no proxy-that-coincides.**
+- **The password form POSTs `ChangePasswordController@owner`** (`throttle:6,1`) — read, **never fired**.
+  `changePasswordTo` and its sibling-session termination were not touched.
+- **Observed READ-ONLY across all 7 forms**, guarded at capture phase for the whole probe. After:
+  the password **hash is byte-identical**, `two_factor_secret` still **null**, `two_factor_confirmed_at`
+  **null**, `status` still `active`, `sessions` still **1**, `passkeys` still **0**. **Nothing was changed.**
+- **§N.4k — Enter-safety.** Seven forms, **each with exactly one submit button** scoped to its own action, and
+  no multi-step wizard. Proven empirically: Enter in the new-password field routes to
+  `/owner/security/password`, Enter in the sign-out-others field routes to
+  `/owner/security/sessions/sign-out-others` — **no field can fire another form's action**, and in particular
+  nothing benign can reach **Deactivate**. The one attempt was captured and blocked.
+- **Self-scoped** — the page resolves from `auth()` with **no id in any request**, so another user's security
+  surface is unreachable *by construction* rather than by a 404.
+- **Keyboard: 0 unnamed controls, 0 `display:none` interactive controls, 0 `div@click`**; 0 overflow at
+  1440×1000; 0 console errors.
+- ⚠️ **`toContain` sweep — clean negative** (twelfth gate); the new guard is needle-only with `->and()`.
+- ⚠️ **Gradient family — surfaced, none added.** All 6 remaining are white-on-accent-gradient (avatar, brand
+  mark, and four accent buttons).

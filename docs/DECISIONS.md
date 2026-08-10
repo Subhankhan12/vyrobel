@@ -7145,3 +7145,40 @@ refused; verified present-and-correct and recorded so none is "fixed" later.
 `export_downloads` all unchanged (⚠️ unlike the O11 statement PDF, *viewing* settings writes no audit row).
 No raw IBAN. Keyboard: 66 named, 0 unnamed, 0 `display:none`, 0 `div@click`. No schema touched. Suite
 **1838 / 12,058 · 9 non-green** (documented set); PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER 13/32 · **Owner Security** (`/owner/security`)
+
+Design/markup only. **Two premise corrections and one shared-partial fix.**
+
+**1. ⚠️ There is no 12-character password policy — and acting on the brief would have made the page lie.**
+The gate brief asserted a "12+ char policy, honest, never weakened". Every password path in the codebase is
+`PasswordRule::min(8)` (verified across all ten: change, reset, both invite-accepts, onboarding, guest claim,
+guest account, guest reset, admin). The page says *"At least 8 characters"* — exactly what the server
+enforces. Restoring a 12+ claim would have made a **security** surface overstate its own protection. Nothing
+was changed. Generalised as §N.4o: check copy isn't *stronger* than the code, not only that it isn't weaker.
+
+**2. The security score is real.** An earlier note recorded "a checklist, never a score". There is a score —
+40/100 · Basic — deterministically derived from three true facts. Note corrected.
+
+**3. 🔴 A shared partial was carrying one page's layout width.** `two-factor-panel.blade.php` renders in both
+shells and hardcoded `max-width: 560px`, the operator column; on the owner page it was a lone 560px card among
+eleven 1184px ones. Moved to the callers. **The operator page was measured before and after and is
+unchanged.** Guard mutation-proven, with the mutation asserted-as-applied. Third form of the shared-partial
+trap, after O6's class-only-one-shell-defines.
+
+**4. Contrast 10 → 6.** The real "This device" session badge (3.69 → 6.10 via `--vy-green-text`), the
+score-tier pill (3.84 → 4.74, the O10 tint-assumes-a-card shape), and five accent-as-text sites including the
+destructive Deactivate heading and button (→ 5.23, hue kept so danger still reads as danger).
+
+**5. The prototype is the most dangerous in the realm, and the product already refuses all of it:** a
+**fabricated pending sign-in** ("Chrome on Windows · Porto, Portugal · IP 82.14.x · Deny/Approve") presented
+as a live security decision — GATE-33 at its worst; **"Trusted locations"**, which needs geolocation the
+product doesn't have (live implements trusted *devices*, the real concept); and the mock's own weaker policy
+copy. Every badge reads its real fact — no hardcoded green (GATE-24).
+
+**Read-only honoured across all 7 forms**: password hash byte-identical, `two_factor_secret` null, status
+active, sessions 1, passkeys 0. §N.4k proven empirically — seven forms, each with one submit scoped to its own
+action, so nothing benign can reach Deactivate. No schema touched. Suite **1839 / 12,061 · 9 non-green**
+(documented set); PHPStan L5 (0); Pint clean.

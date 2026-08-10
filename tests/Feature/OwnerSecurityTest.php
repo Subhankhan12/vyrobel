@@ -154,3 +154,20 @@ it('exports the owner data as an owner-scoped JSON download', function () {
     $res->assertHeader('content-type', 'application/json');
     expect($res->streamedContent())->toContain((string) $c['owner']->email);
 });
+
+// ── 6. The SHARED two-factor panel must not carry one page's layout width ────────────────────────
+// The partial renders on BOTH /app/security and /owner/security. It hardcoded `max-width: 560px` — the
+// operator page's column — so on the owner page, where every other card is full-width, the 2FA card
+// rendered as a lone half-width outlier (560px beside eleven 1184px cards). The constraint belongs to the
+// caller: the operator include wraps it, the owner include lets it fill. A shared partial cannot carry a
+// layout constant that only one shell's design uses.
+it('keeps the shared two-factor panel free of a caller-specific width', function () {
+    $c = securityCast();
+
+    $owner = (string) $this->actingAs($c['owner'])->get('/owner/security')->assertOk()->getContent();
+
+    // The panel's own card must not constrain itself…
+    expect($owner)->not->toContain('class="vy-card vy-fade" style="margin-bottom: 16px; max-width: 560px;"')
+        // …and the owner page must still render the real panel.
+        ->and($owner)->toContain('Two-factor authentication');
+});

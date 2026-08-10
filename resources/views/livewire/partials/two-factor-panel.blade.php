@@ -1,12 +1,17 @@
-{{-- SHARED two-factor panel — operator (/app/security) + owner (/owner/settings). Real TOTP (google2fa) +
+{{-- SHARED two-factor panel — operator (/app/security) + owner (/owner/security). Real TOTP (google2fa) +
      QR (bacon). $twoFactor = ['state' => disabled|pending|enabled, 'qr_svg', 'secret', 'recovery_codes',
      'routes' => [enable, confirm, regenerate, disable]]. Self-only writes (auth()-resolved in the controller).
      Styled inline (no vy-field-label) so it renders identically in the operator AND owner layouts.
 
+     ⚠️ WIDTH BELONGS TO THE CALLER, NOT HERE. This panel used to hardcode `max-width:560px`, which is the
+     OPERATOR security page's column — on the owner page, where every other card is full-width, it rendered
+     as a lone half-width card. A shared partial cannot carry one shell's layout constant; each include sets
+     its own width (operator wraps it at 560px, owner lets it fill).
+
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @php $tf = $twoFactor; $tflbl = 'display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:7px;'; @endphp
 
-<div class="vy-card vy-fade" style="margin-bottom: 16px; max-width: 560px;">
+<div class="vy-card vy-fade" style="margin-bottom: 16px;">
     <h2 style="font-family: var(--vy-display); font-size: 15px; font-weight: 600; margin: 0 0 4px;">Two-factor authentication</h2>
     <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">An authenticator app (Google Authenticator, 1Password, …) generates a 6-digit code at each sign-in — a second layer beyond your password.</p>
 
