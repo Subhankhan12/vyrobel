@@ -69,9 +69,15 @@
                                 <div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end" title="{{ $m['label'] }} · {{ $m['occ_pct'] }}%{{ $m['forward'] ? ' (on the books)' : '' }}{{ $m['ly_pct'] !== null ? ' · last year '.$m['ly_pct'].'%' : '' }}">
                                     {{-- REAL "vs last year" delta (GATE 4) — only where prior-year data exists, never fabricated (#39) --}}
                                     @if ($m['delta_pts'] !== null)
-                                        <span style="font-size:9.5px;font-weight:700;color:{{ $m['delta_pts'] >= 0 ? '#15803d' : '#b91c1c' }}">{{ $m['delta_pts'] >= 0 ? '▲' : '▼' }}{{ abs($m['delta_pts']) }} pts</span>
+                                        {{-- The arrow is a glyph, not colour — but a screen reader announces it as a
+                                             symbol name or skips it, so the DIRECTION also travels as a word. --}}
+                                        <span style="font-size:9.5px;font-weight:700;color:{{ $m['delta_pts'] >= 0 ? 'var(--vy-green-text)' : 'var(--vy-accent-tint-text)' }}"><span aria-hidden="true">{{ $m['delta_pts'] >= 0 ? '▲' : '▼' }}</span><span class="vy-sr-only">{{ $m['delta_pts'] >= 0 ? 'up ' : 'down ' }}</span>{{ abs($m['delta_pts']) }} pts</span>
                                     @endif
-                                    <div class="bar" style="height:{{ max(2, $m['occ_pct']) }}%;background:{{ $m['forward'] ? 'rgba(232,112,58,.35)' : 'var(--vy-grad)' }}"></div>
+                                    {{-- ⚠️ A genuinely 0% month draws NOTHING. `max(2, …)` put a visible bar under
+                                         Jan/Feb/Mar/Nov — 4 of 12 — and Nov's own tooltip reads "0% (on the books)"
+                                         beside a drawn bar. Same floor the shared <x-charts.bars> already removed
+                                         (#39); its rule is adopted verbatim. --}}
+                                    <div class="bar" style="height:{{ $m['occ_pct'] }}%{{ $m['occ_pct'] > 0 ? ';min-height:2px' : '' }};background:{{ $m['forward'] ? 'rgba(232,112,58,.35)' : 'var(--vy-grad)' }}"></div>
                                     <span style="font-size:10px;color:var(--vy-muted)">{{ $m['label'] }}</span>
                                 </div>
                             @endforeach
@@ -96,7 +102,8 @@
                                     <span style="font-weight:500">{{ $m['label'] }}</span>
                                     <span class="vy-muted">{{ $m['occ_pct'] }}% on the books</span>
                                 </div>
-                                <div class="vy-track" style="margin-top:6px"><span style="width:{{ max(2, $m['occ_pct']) }}%"></span></div>
+                                {{-- Same zero rule: a month with nothing on the books draws no fill. --}}
+                                <div class="vy-track" style="margin-top:6px"><span style="width:{{ $m['occ_pct'] }}%{{ $m['occ_pct'] > 0 ? ';min-width:2px' : '' }}"></span></div>
                             </div>
                         @endforeach
                     </section>
@@ -113,7 +120,7 @@
                                 <div>
                                     <div style="font-weight:600;font-size:13.5px">{{ $i['title'] }}</div>
                                     <div class="vy-line-sub" style="margin-top:2px">{{ $i['body'] }}</div>
-                                    <a href="{{ $i['href'] }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600;display:inline-block;margin-top:6px">{{ $i['cta'] }} →</a>
+                                    <a href="{{ $i['href'] }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600;display:inline-block;margin-top:6px">{{ $i['cta'] }} →</a>
                                 </div>
                             </div>
                         @endforeach
@@ -155,7 +162,7 @@
                                         <span style="font-weight:500">{{ $b['label'] }}</span>
                                         <span class="vy-muted">{{ $b['pct'] }}%</span>
                                     </div>
-                                    <div class="vy-track"><span style="width:{{ max(2, $b['pct']) }}%"></span></div>
+                                    <div class="vy-track"><span style="width:{{ $b['pct'] }}%{{ $b['pct'] > 0 ? ';min-width:2px' : '' }}"></span></div>
                                 </div>
                             @endforeach
                         </div>

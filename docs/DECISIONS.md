@@ -6880,3 +6880,61 @@ class name, which is the Owner-6 lesson applied.
 
 **Gates:** suite **1834 / 12,034 · 9 non-green** — the identical documented set. PHPStan L5 (0); Pint clean;
 0 overflow, 0 console errors. No schema touched.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER gate O8: Owner Insights (8 of 32) — the analytics surface
+
+**Route** `/owner/insights` (`OwnerInsights`), role `External Owner`. Record §O8. **Markup/CSS only — no
+metric, service or engine touched.**
+
+### ⚠️ The D3-4 premise is inverted for this page — verified, not assumed
+
+The brief called the D3-4 denominator class "the central trap here". It is an **operator-path** defect:
+`PerformanceMetrics::forProperties()` divides by `Availability::sum('total')` — the availability **spine's
+coverage**. The **owner** path, `forOwnerUnits()`, divides by `count($unitIds) * $days` — **units × calendar
+days** — and Owner Insights uses it everywhere, including both the current and prior-year monthly series.
+⚠️ **And the page shows its own denominator**: "57 of 730 unit-nights" (2 units × 365). The strongest form
+of the antidote is the divisor on screen. **Recorded so the backend phase does not "fix" D3-4 here and break
+a correct figure.** The vs-last-year deltas are therefore honest, and attach only to months where the prior
+year genuinely had occupancy.
+
+### ⚠️ A real defect: four genuinely-0% months were drawing bars
+
+`max(2, $pct)` put a visible bar under **Jan, Feb, Mar and Nov** — 4 of 12 columns, all genuinely 0%. Nov's
+own tooltip read *"0% (on the books)"* beside a drawn bar. **Third page carrying this floor** (Dashboard,
+Statement, here); fixed on all three of this page's floors — a zero draws nothing, non-zero keeps 2px.
+
+### 🏁 The `--vy-on-grad` churn is resolved by measurement
+
+Re-tuned from single pixels at O2 and O7. Measured here over **7,502 background pixels sampled behind the
+elements that actually use the tokens**; darkest composited point **rgb(239,174,135)**. ⚠️ **Premise
+correction:** these are DARK text on the **page** gradient (`--vy-bg`), not the accent gradient, so the worst
+case is the **darkest** point. `--vy-on-grad` already cleared (**5.15**, unchanged); **`--vy-on-grad-soft`
+was FAILING at 4.26** and had never been re-tuned in its own right → **4.63**.
+
+⚠️ **Cross-realm finding, logged not fixed:** the **operator** shell's darkest on-grad point is
+**rgb(216,129,89)** and **both** its tokens fail there — **2.95 / 2.77**. Gate `93247e7` claimed
+"4.74 / 4.93" from one sampled pixel. Clearing AA needs ≈ rgb(51,45,41) — a visibly darker sidebar label
+across 42 closed pages, so it belongs to its own gate, not an owner page gate.
+
+### Decided
+
+- The vs-LY **delta arrows** now carry direction as a **word** (`aria-hidden` glyph + `.vy-sr-only`
+  "up"/"down") and use the tint-safe tokens instead of raw hex.
+- The observation CTA moved off `--vy-accent` (4.35) to `--vy-accent-text`.
+- **Refused / preserved:** no market or comp-set benchmark (no data source), no rate recommendation or
+  projected revenue ("decisions stay yours"; the dark CTA links to Rates without proposing a number), no
+  per-channel breakdown (0 reservations carry a `channel_id` — the D2-2 root).
+
+### Verified, not changed
+
+**#42/#38** — the page names **A1 and A2 only**; none of the other six units in the database appears.
+**One source** — every figure comes from `PerformanceMetrics` / `BookingCadence`, the same helpers the
+Dashboard and My Units use; **nothing re-derived in Blade**. **#28** — no guest email/phone and no IBAN.
+**Chart a11y** — series named in a legend (Achieved / On the books), per-bar `title` with month, value and
+prior-year figure; not colour-only. **Keyboard 31 / 0 / 0 / 0.** No export exists on this page, so nothing
+could be fired. ⚠️ **`toContain` sweep — clean negative** (seventh gate running).
+
+**Gates:** suite **1834 / 12,034 · 9 non-green** — the identical documented set (including the date-coupled
+`OwnerUnitDetailViewTest`). PHPStan L5 (0); Pint clean; 0 overflow, 0 console errors. No schema touched.

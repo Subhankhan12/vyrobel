@@ -919,7 +919,7 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.4b OWNER realm progress — **7 of 32**
+## N.4b OWNER realm progress — **8 of 32**
 
 | Gate | Page(s) | Commit |
 |---|---|---|
@@ -930,6 +930,7 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
 | O5 | **Owner My Units** (`/owner/units`) — ⚠️ **THE OWNER-4-LOGGED FOCUS-RING DEFECT IS CLOSED AND CONFIRMED LIVE**: `.vy-mu-rate-input` had `outline:none` with no `:focus`, so the inline nightly-rate editor had **no focus indicator at all**; **two more instances of the same pattern found here** (weekend/min-stay + the message textarea) · **3 pricing inputs had no accessible name** → per-unit `aria-label`s (65 controls with both editors open: 0/0/0) · ⚠️ **a REAL figure-honesty finding, WAVE-2 class**: the tile says *"Earned this month €541.60 · Net · August 2026"* while Statements says *"August 2026 €721.60"* — **both correct**, different bases (all ledger lines by `service_date` vs the 3 lines the statement CLAIMED); the €180 gap is a real **unstatemented expense** dated 9 Aug. **Logged, not re-worded** — the basis is a product call · **contrast 29 → 10** (all 10 the gradient family): **the three pre-AA greys logged at Owner-1 for THIS page closed** (`.vy-mu-stat-label`/`-uplabel`/`-calhead`, 2.28–2.78) + ⚠️ **the booked calendar DAY NUMBERS at 3.57** (they are the dates) → 5.47–9.07 · **the dark "Best performer" panel PASSED** (the Owner-2 mirror holds) · bulk **"Approve all" REFUSED** (one click over a rate change + a €340 expense) · **READ-ONLY honoured — units/rate_calendar `updated_at` still the seed time, `owner_attention_states` still empty** | O5 |
 | O6 | **Owner Notifications** (`/owner/notifications`) — 🏁 **THE OPERATOR REALM'S LAST OPEN P29 ITEM IS CLOSED.** The colour-only unread state (WCAG 1.4.1) was still live on BOTH logged surfaces: the owner feed page and the **SHARED `bell.blade.php`** (both shells). Fixed with the GATE-29 pattern (`aria-hidden` dot + `.vy-sr-only` word, never a `title=` on a non-interactive span) — **the shared partial fixed ONCE**, reaching both bells; ✓ controls named. **Mutation-proven 3 ways** · ⚠️ **A third defect surfaced: `.vy-sr-only` was defined ONLY in the operator layout**, so the shared partial's hidden text was **visible in the owner shell** — *a shared partial cannot depend on a class only one shell defines* · ⚠️ **PREMISE CORRECTION: `Owner Notifications.html` is the PREFERENCES page, not the feed** (Settings/Notifications, channels, per-event Email/SMS matrix) → it belongs to `/owner/notification-preferences` and **the live feed has NO prototype**; also the feed is **self-scoped by query root**, not by a 404 · **contrast 6 → 3** (both non-family failures were text-on-the-page-GRADIENT again — the footer link needed `--vy-accent-tint-text` since even `--vy-accent-text` reads only 3.77 there) · ⚠️ **Blade compiles component tags inside CSS comments** — naming the bell with `<x-…>` syntax in a comment 500'd every owner page · **242 notifications across 5 users, owner sees exactly their own 6**; **READ-ONLY honoured (still 6 of 6 unread)** | O6 |
 | O7 | **Owner Notification Preferences** (`/owner/notification-preferences`) — the CLAIMS surface, using the prototype O6 identified. ⚠️ **Verified against the code: `CHANNELS = ['in_app','email']`**, so **SMS and PUSH are STRUCTURALLY UNSETTABLE** (no row can exist — 0 verified) and the page shows SMS honestly gated with no submitting input · ⚠️ **BRIEF CORRECTION: in-app is NOT a toggle here** — the wireframe's grid is Email+SMS and the feed always records, so in-app is **preserved via hidden inputs** which are **load-bearing** (`save()` defaults a missing key to FALSE, so removing them would silently disable every in-app notification) · **storage verified: a typed `(user,event,channel)` pivot via `updateOrCreate`, no JSON blob, no wholesale replace** — the WAVE-1 merge hazard is structurally absent; `always_on` forced at SAVE time · ⚠️ **the per-event SMS cells announced via `aria-label` on a NON-INTERACTIVE span** (the P29 pattern) → real `.vy-sr-only` text, matching the operator page — **this fix depended on O6 putting `.vy-sr-only` in the owner shell** · ⚠️ **the SMS column header measured 1.63, the worst on the page**, and said only "SMS" → `--vy-muted` + "· not set up" · **contrast 17 → 2** (pre-AA `#A69A92`×9 + `#8A8079`×5 at 1.93–3.32) · ⚠️ **`--vy-on-grad` re-tuned shell-wide — the THIRD token to need it**: set from ONE gradient pixel at O4 (4.68), it read **4.42** on a lighter point of the same gradient. **A token on a gradient has a RANGE of backgrounds** · **GATE-30 defect NOT present** (real buttons; the 15 `display:none` are hidden inputs) · **READ-ONLY honoured — still 0 preference rows** | O7 |
+| O8 | **Owner Insights** (`/owner/insights`) — ⚠️ **THE D3-4 PREMISE IS INVERTED FOR THIS PAGE**: D3-4 is an OPERATOR-path defect (`forProperties` divides by the availability SPINE's coverage); the OWNER path (`forOwnerUnits`) divides by **units × calendar days** and is **structurally immune** — and the page **SHOWS its denominator** ("57 of 730 unit-nights" = 2×365). Verified, recorded so the backend phase doesn't "fix" a correct figure. The vs-LY deltas are therefore honest, and attach only where the prior year had occupancy · ⚠️ **REAL DEFECT: four genuinely-0% months were drawing bars** (`max(2,pct)`; Nov's own tooltip read "0% (on the books)" beside a drawn bar) — **third page with this floor**; fixed on all three floors here · 🏁 **THE `--vy-on-grad` CHURN IS RESOLVED BY MEASUREMENT** — sampled **7,502 background pixels behind the elements that actually use it**; darkest point rgb(239,174,135); ⚠️ **premise correction: it is DARK text on the PAGE gradient, so the worst case is the DARKEST point**; `--vy-on-grad` already cleared (5.15, unchanged) but **`--vy-on-grad-soft` was FAILING at 4.26 and had never been re-tuned** → 4.63 · ⚠️ **CROSS-REALM FINDING: the OPERATOR shell's pair FAILS at 2.95 / 2.77** (its darkest point is rgb(216,129,89); gate `93247e7` measured ONE pixel) — **logged for its own gate**, not changed inside an owner gate · delta arrows gained a WORD; contrast → only the gradient family | O8 |
 
 ## N.4c ⚠️⚠️ `expect(...)->not->toContain($needle, $message)` IS AN ALWAYS-PASSING ASSERTION
 
@@ -1072,7 +1073,29 @@ deferred state with an `aria-label` on a **non-interactive `<span>`** (the P29 p
 fix — real `.vy-sr-only` text, as the operator prefs page already used — was only possible because **O6 had
 just added `.vy-sr-only` to the owner shell**. Backlog items compound: closing one unlocked the next.
 
-## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 7/32 UNDERWAY**, then GUEST (32).
+## N.4j 🏁 THE on-grad CHURN IS RESOLVED BY MEASUREMENT — and the OPERATOR shell fails the same test
+
+**Owner-8 ended three gates of re-tuning by measuring instead of sampling.** `--vy-on-grad` /
+`--vy-on-grad-soft` were fitted to single pixels at O2 and O7. Here the real range was taken empirically:
+**7,502 background pixels sampled from behind every element that actually uses the tokens** (sidebar nav +
+labels + topbar sub-line), darkest composited point **rgb(239,174,135)**.
+
+⚠️ **Premise correction:** these are **DARK text on the PAGE gradient** (`--vy-bg`, peach→grey + ambient
+orbs), not the accent gradient — so the worst case is the **DARKEST** point, not the lightest. Result:
+`--vy-on-grad` already cleared at **5.15** and is unchanged; **`--vy-on-grad-soft` was FAILING at 4.26** and
+had never been re-tuned in its own right → rgb(82,73,67) = **4.63**, the softest value that clears.
+
+⚠️ **The same method exposes a CROSS-REALM failure.** The **operator** shell's darkest on-grad point is
+**rgb(216,129,89)** (its orbs sit under the sidebar), where **both** its tokens fail: **2.95** and **2.77**.
+The operator realm's own a11y gate (`93247e7`) claimed "4.74 / 4.93" — **measured against one pixel**.
+Clearing AA there needs ≈ rgb(51,45,41), a visibly darker sidebar label across all 42 completed pages.
+**LOGGED for its own gate** — a closed realm's shell must not be changed inside an owner page gate.
+
+**The settled rule: SAMPLE a token's real background range across the elements that use it, tune to the
+worst case, and never trust a single pixel.** Three tokens (`--vy-amber-text`, `--vy-green-text`,
+`--vy-on-grad*`) have now needed this.
+
+## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 8/32 UNDERWAY**, then GUEST (32).
 
 **The operator realm is finished.** 42 prototypes, 34 gates (`0aa9ede`→P34), every page decoded, diffed in a
 real browser, fixed where it was a design gap, and **logged where the product honestly refuses**.
@@ -1099,7 +1122,7 @@ PROMPT's premise**: "Housekeeping lacks schedule.view" was false (9 roles hold i
 #30 assertion vacuous. ⒂ ⚠️ **NEW (P34) — a PDF's palette is read on PAPER**: the pre-AA greys survived there
 long after the screens were fixed, on the very figures a rota exists to communicate.
 
-**⬅ THE OWNER REALM IS UNDERWAY — 7 of 32 (O1 Dashboard, O2 Statement, O3 Payouts, O4 Rates, O5 My Units, O6 Notifications, O7 Notification Preferences).** Then **GUEST (32)**, untouched.
+**⬅ THE OWNER REALM IS UNDERWAY — 8 of 32 (O1 Dashboard, O2 Statement, O3 Payouts, O4 Rates, O5 My Units, O6 Notifications, O7 Notification Preferences, O8 Insights).** Then **GUEST (32)**, untouched.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

@@ -30,13 +30,19 @@
             /* Text that sits DIRECTLY on the page gradient rather than on a glass card. --vy-bg here is
                byte-identical to the operator shell's, so these carry the same measured values: 4.97:1 and
                4.67:1 against the gradient's darkest sampled stop, rgb(241,185,150). Warm stone, not grey. */
-            /* ⚠️ Re-tuned at Owner-7. Set from ONE sampled gradient pixel (4.68 there), it measured 4.42
-               on a LIGHTER point of the same gradient — the page background is a gradient, so a token
-               placed on it has a RANGE of backgrounds, not one. Tuned to the lightest sampled point:
-               5.01 there and 5.31 at the original sample. (Same lesson as the amber at O2 and the green
-               at O3 — tune to the worst case, not the first sample.) */
+            /* ⚠️ THESE TWO ARE NOW MEASURED AGAINST THE WHOLE SURFACE, NOT ONE PIXEL — the fix that ends
+               three gates of churn (O2, O7). They are DARK text on the PAGE gradient (--vy-bg, a warm
+               peach→grey) plus three blurred ambient orbs, so the worst case is the DARKEST composited
+               point, not the lightest. Empirically sampled at Owner-8: 7,502 background pixels taken
+               from behind every element that actually uses these tokens (the sidebar nav + labels + the
+               topbar sub-line). Darkest point found: rgb(239,174,135).
+                 --vy-on-grad      5.15 at that point (10.9 at the lightest) — already clear, unchanged.
+                 --vy-on-grad-soft was rgb(88,78,72) = 4.26 — FAILING, and never re-tuned in its own
+                                   right; it is the softest warm grey that still clears at the worst
+                                   case (4.63), so it stays visually softer than --vy-on-grad.
+               ⚠️ Re-measure by SAMPLING, not by picking a pixel, if the gradient or the orbs change. */
             --vy-on-grad: rgb(76, 66, 60);
-            --vy-on-grad-soft: rgb(88, 78, 72);
+            --vy-on-grad-soft: rgb(82, 73, 67);
 
             /* Accent used as TEXT on glass. --vy-accent stays the BRAND fill (gradients/buttons/chips/
                borders) and is unchanged; see the operator shell for the measurements. */

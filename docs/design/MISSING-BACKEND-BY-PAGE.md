@@ -3125,3 +3125,94 @@ in the UI.
 - ⚠️ **`toContain` sweep — clean negative** (sixth gate running). All three calls in
   `OperatorNotifPrefsGateTest` are needle-only, and one of them correctly asserts a **CSS rule**
   (`.vy-np-check { display: none; }`) rather than a class name — the Owner-6 lesson, already applied there.
+
+---
+
+## §O8 — Owner Insights (`/owner/insights`, `App\Livewire\Owner\OwnerInsights`) · OWNER 8/32
+
+**Role** the real `External Owner`. **Markup/CSS only — no metric, service or engine touched.**
+
+### ⚠️ THE D3-4 PREMISE IS INVERTED FOR THIS PAGE — the owner path is structurally immune
+
+The brief called the D3-4 denominator class "the central trap here". Traced through the code, it is an
+**operator-path** defect that the owner path does not share:
+
+| Path | `availableRoomNights` | Consequence |
+|---|---|---|
+| `PerformanceMetrics::forProperties()` (**operator**) | `Availability::sum('total')` — the **availability SPINE's coverage** | **D3-4**: a month with 3 spine rows divides by 3×capacity, so occupancy reads far too high |
+| `PerformanceMetrics::forOwnerUnits()` (**owner**) | `count($unitIds) * $days` — **units × calendar days** | the full window regardless of spine coverage — **immune** |
+
+Owner Insights uses `forOwnerUnits` **everywhere**, including `monthlyTrendForOwnerUnits` for both the
+current and the prior-year series. ⚠️ **And the page SHOWS its denominator** — the occupancy KPI reads
+"57 of 730 unit-nights", where 730 = 2 units × 365 days. That is the strongest available form of the D3-4
+antidote: the divisor is on screen. **Verified, not assumed — recorded so the backend phase does not
+"fix" D3-4 here and change a correct figure.**
+
+⚠️ Consequently the **vs-last-year deltas on this page are honest**: they compare two figures computed the
+same way, and are attached **only** to months where the prior year genuinely had occupancy
+(`if ($lyOcc > 0)`), which is why Jan–Jul and Dec carry no delta while Aug/Sep/Oct/Nov do.
+
+### ⚠️ A real defect found: four genuinely-0% months were drawing bars
+
+`max(2, $m['occ_pct'])` on the occupancy-by-month chart put a visible bar under **Jan, Feb, Mar and Nov —
+4 of 12 columns — all genuinely 0%**. Nov was the clearest tell: its own tooltip read *"Nov · 0% (on the
+books)"* beside a drawn bar. **Third page with this floor** (Dashboard O1, Statement O2, here) — the rule
+the shared `<x-charts.bars>` already encodes. Fixed on all three floors on this page (occupancy chart,
+booking-pace track, lead-time buckets): a zero draws nothing; non-zero keeps a 2px minimum.
+
+### The backend this page implies but does not have
+
+| # | What the page shows / the design implies | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| DO8-1 | A **market/comp-set benchmark** ("you're X% below market"). | No market-rate source of any kind; the page never claims one. | A market-data feed. | **RATIFIED REFUSAL (#39) — market-data class**, consistent with O4's "Where you sit". |
+| DO8-2 | A **rate recommendation / projected revenue** from a change. | The "Worth a look" panel gives REAL derived observations and says *"decisions stay yours"*; the dark CTA links to Rates without proposing a number. | A pricing engine. | **RATIFIED REFUSAL** (the #67 ruling — the owner approves operator proposals; nothing auto-proposes here). |
+| DO8-3 | Per-**channel/OTA** breakdown of bookings. | Not rendered — **0 reservations carry a `channel_id`**. | Channel attribution. | **ACCOUNT-GATED — the D2-2 Channex root.** |
+| DO8-4 | vs-last-year deltas across the whole year. | Real, but only where prior-year occupancy exists (8 of 12 months have none). | More history — it accrues naturally. | **NOT A GAP — the honest trend-without-history handling**, working as designed. |
+
+### Fixed this gate
+
+- ⚠️ **THE `--vy-on-grad` CHURN IS RESOLVED — measured, not guessed.** The token pair was re-tuned at O2 and
+  O7 from *single sampled pixels*. Here it was measured **empirically over 7,502 background pixels sampled
+  from behind every element that actually uses it** (sidebar nav + labels + topbar sub-line). Darkest
+  composited point: **rgb(239,174,135)**. ⚠️ **Premise correction:** these are DARK text on the **page**
+  gradient (`--vy-bg`, peach→grey + ambient orbs), not the accent gradient — so the worst case is the
+  **darkest** point, not the lightest. Result: `--vy-on-grad` (76,66,60) already cleared at **5.15** and is
+  unchanged; **`--vy-on-grad-soft` was FAILING at 4.26** and had never been re-tuned in its own right — now
+  rgb(82,73,67) = **4.63**, the softest value that clears the worst case.
+- **The four zero-bar floors** (above) and the accent-as-text CTA (`--vy-accent` 4.35 → `--vy-accent-text`).
+- **The vs-LY delta arrows** now carry direction as a **word** for assistive tech (`aria-hidden` glyph +
+  `.vy-sr-only` "up"/"down"), and their colours moved from raw hex to the tint-safe tokens.
+- **Contrast: 3 → 1 (top) and 1 → 1 (lower)** — every remaining failure is the known gradient family.
+
+### ⚠️ A CROSS-REALM FINDING — the OPERATOR shell's on-grad pair fails AA, badly
+
+Applying the same empirical method to the **operator** shell (7,807 sampled pixels behind its on-grad text)
+found its darkest composited point is **rgb(216,129,89)** — materially darker than the owner's, because its
+ambient orbs sit under the sidebar. Against it:
+
+| Token | Operator value | Measured at the worst case |
+|---|---|---|
+| `--vy-on-grad` | rgb(84,74,68) | **2.95 — FAIL** |
+| `--vy-on-grad-soft` | rgb(88,78,72) | **2.77 — FAIL** |
+
+⚠️ **The operator realm's own a11y gate (`93247e7`) claimed "4.74 / 4.93 operator" — measured against one
+sampled pixel.** This is that gate's blind spot, demonstrated. Clearing AA there needs roughly
+**rgb(51,45,41)** — a *visibly* darker sidebar label across all 42 completed operator pages.
+
+**LOGGED, NOT FIXED — it needs its own gate.** Changing a closed realm's shell inside an owner page gate
+would ship a visible design change across 42 pages without their own verification. It belongs with the
+white-on-accent-gradient family as a scheduled realm-wide a11y gate.
+
+### ⚠️ Verified, not changed
+
+- **#42/#38** — the page names **A1 and A2 only**; a scan for the other six units in the database
+  (`101, 102, 103, V1, V2, V3`) finds **none**. Every metric runs through `forOwnerUnits($unitIds …)`.
+- **One source** — every figure comes from `PerformanceMetrics` / `BookingCadence`, the same helpers the
+  Dashboard and My Units use. **Nothing is re-derived in the Blade.**
+- **#28** — no guest email or phone (regex-checked) and no IBAN; the page is about units and money only.
+- **Chart a11y** — the series are named in a legend (*Achieved* / *On the books*), each bar carries a
+  `title` with its month, value and prior-year figure, and the delta now carries a word. Not colour-only.
+- **Keyboard: 31 visible controls, 0 unreachable / 0 unnamed / 0 without a focus indicator.**
+- **No export exists on this page** — nothing to fire; nothing was mutated (read-only by construction).
+- 0 horizontal overflow at 1440×1000; 0 console errors.
+- ⚠️ **`toContain` sweep — clean negative** (seventh gate running): `OwnerAnalyticsTest` contains none.
