@@ -44,8 +44,23 @@
                counterparts; the plain --vy-green / --vy-amber / --vy-accent stay the BRAND fills (dots,
                icons, gradients, borders) and are unchanged. Measured after: 4.71 / 4.76 / 4.75. */
             --vy-green-text: rgb(27, 106, 78);
-            --vy-amber-text: rgb(141, 84, 6);
+            /* ⚠️ Re-tuned at the Statement gate. Owner-1 set this to rgb(141,84,6) from ONE sampled
+               background; on the Statement's slightly warmer glass the same pill measured 4.45–4.50 —
+               marginal, one side of AA. Tuned against the WORST of the sampled backgrounds instead of
+               the first: now 5.13–5.22 everywhere it is used. A token tuned to a single sample is a
+               token that will fail on the next page. */
+            --vy-amber-text: rgb(128, 76, 5);
             --vy-accent-tint-text: rgb(151, 54, 13);
+
+            /* The SAME status pill also sits on the dark payout rail (.vy-card--dark), where every tone
+               failed AA — paid 1.77, draft 1.65, pending 2.72 before the tint fix and 1.87 after. On a
+               dark panel the accessible end of each ramp is the LIGHT one, so these are not "darker"
+               variants: they are the mirror. Measured on the rail's sampled pixel: 4.56 / 5.07 / 6.00. */
+            /* ⚠️ Measured against the pill's OWN tinted background (81,57,32), not the bare panel —
+               --vy-amber-2 reads 4.24 there, still short. Tuned to the composited value: 5.10. */
+            --vy-amber-on-dark: rgb(235, 165, 60);
+            --vy-green-on-dark: rgb(90, 190, 150);
+            --vy-muted-on-dark: rgb(201, 184, 172);
 
             --vy-accent: rgb(194, 65, 12);      /* terracotta primary  (#C2410C) */
             --vy-accent-2: rgb(217, 102, 46);
@@ -277,8 +292,18 @@
         .vy-status--paid .vy-dot { background: var(--vy-green); }
         .vy-status--draft { background: rgba(138, 128, 121, 0.15); color: var(--vy-muted); }
         .vy-status--draft .vy-dot { background: var(--vy-muted); }
+        /* ⚠️ ON THE DARK PAYOUT RAIL, DARKENING IS BACKWARDS — every tone of this pill also renders on
+           .vy-card--dark, and every one of them failed AA there (paid 1.77, draft 1.65, pending 1.87).
+           The dot is decorative (each pill already carries its status in WORDS, so this is not
+           colour-only per 1.4.1) but the LABEL has to be readable. Mirrored, not darkened. */
+        .vy-card--dark .vy-status--pending { background: rgba(224, 146, 30, .18); color: var(--vy-amber-on-dark); }
+        .vy-card--dark .vy-status--pending .vy-dot { background: var(--vy-amber-on-dark); }
+        .vy-card--dark .vy-status--paid { background: rgba(90, 190, 150, .16); color: var(--vy-green-on-dark); }
+        .vy-card--dark .vy-status--paid .vy-dot { background: var(--vy-green-on-dark); }
+        .vy-card--dark .vy-status--draft { background: rgba(201, 184, 172, .16); color: var(--vy-muted-on-dark); }
+        .vy-card--dark .vy-status--draft .vy-dot { background: var(--vy-muted-on-dark); }
 
-        .vy-provisional { font-size: 10.5px; font-weight: 600; color: var(--vy-amber); background: rgba(224, 146, 30, 0.12); border-radius: 6px; padding: 2px 7px; letter-spacing: .02em; }
+        .vy-provisional { font-size: 10.5px; font-weight: 600; color: var(--vy-amber-text); background: rgba(224, 146, 30, 0.12); border-radius: 6px; padding: 2px 7px; letter-spacing: .02em; }
 
         /* Progress bar */
         .vy-track { height: 7px; border-radius: 6px; background: rgba(120, 70, 40, 0.1); overflow: hidden; }

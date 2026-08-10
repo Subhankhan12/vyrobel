@@ -36,8 +36,12 @@ use Livewire\Component;
  * the cent) · statement history + net total · period navigation · matched payout (amount + status) ·
  * the three owner-scoped PDF exports (statement · booking summary · remittance advice — the last only
  * when a payout is matched), each export-gated (CAP_EXPORTS) and reconciling to these figures.
- * DEFERRED (visually stubbed, honestly labelled — no fake data): by-unit split, occupancy chart, and
- * the history table's CSV export (no CSV builder yet).
+ * ⚠️ STALE CLAIM CORRECTED (design pass · Owner-2). This block used to read "DEFERRED (visually stubbed,
+ * honestly labelled — no fake data): by-unit split, occupancy chart, and the history table's CSV export
+ * (no CSV builder yet)." All THREE have since shipped and are real: the by-unit split is the shared
+ * {@see OwnerStatementBreakdown} (reconciling, and the PDF reads the same one), the occupancy card is the
+ * shared {@see OwnerOccupancyTrend}, and the CSV export is a real owner-scoped route
+ * (`owner.statements.history.csv`, CAP_EXPORTS). Nothing on this screen is stubbed.
  * The "Payment & ops fees" line is a REAL reconciling bucket (Wave C · GATE 4) — the signed sum of the
  * period's `payment_fee` ledger lines (card-processing / platform-ops fees), included in net by
  * construction. It is NEVER fabricated: until a live-payment writer posts such a line the bucket is a

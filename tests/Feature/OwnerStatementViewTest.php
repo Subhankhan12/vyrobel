@@ -131,9 +131,13 @@ it('offers the remittance PDF only once a payout is matched, otherwise an honest
     // shows and NO remittance link is offered (a link would 404). The booking-summary PDF stays real.
     $a['payout']->delete();
 
+    // ⚠️ The COPY changed at the Owner-2 design gate ("Once paid" → the fuller sentence below) when the
+    // documents list was rebuilt to the wireframe's icon rows. What this test encodes is unchanged and
+    // still load-bearing: the honest state is stated in words, and NO remittance link is offered (a link
+    // would 404). Re-aimed at the new wording, not weakened — the assertDontSee is the real guard.
     $this->actingAs($a['user'])->get("/owner/statements/{$a['statement']->id}")
         ->assertOk()
-        ->assertSee('Once paid')
+        ->assertSee('Available once your payout is issued')
         ->assertDontSee(route('owner.payouts.remittance', $a['payout']->id))
         ->assertSee(route('owner.statements.bookings', $a['statement']->id));
 });

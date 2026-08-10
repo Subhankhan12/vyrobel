@@ -919,11 +919,12 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.4b OWNER realm progress — **1 of 32**
+## N.4b OWNER realm progress — **2 of 32**
 
 | Gate | Page(s) | Commit |
 |---|---|---|
 | O1 | **Owner Dashboard** (`/owner`) — ⚠️ the earnings chart was **misreporting real money twice**: the tallest bar was silently compressed by `flex-shrink` (September asked 150px, rendered 126px — the current month understated 16%) and the **goal line did not share the bars' baseline** (a goal equal to the best month drew *below* it; ~25% error mid-range). Both fixed via the wireframe's own 78% headroom + a label-block offset · the `max(4, …)` floor that draws a stub for a genuine **€0** month replaced with the shared `<x-charts.bars>` zero rule · value-graduated bar wash · goal **pill on the line** · attention chips capped at 3 + the dashed **"+N more"** · **the guest NAME was truncated on 3 of 4 upcoming stays** by the honest "Not yet attributed" (slot resized, string preserved) · **AA 23 → 5** (real-pixel measured) · a dead duplicate `.vy-delta--up/--down` pair deleted · ⚠️ **realm-wide finding SURFACED, not fixed: white-on-accent-gradient fails AA (3.98–4.02) across BOTH shells** — needs its own a11y gate · ⚠️⚠️ **THREE VACUOUS GUARDS FOUND AND REPAIRED** (below) | O1 |
+| O2 | **Owner Statement** (`/owner/statements/{id}`) — the realm's MONEY DOCUMENT, rendering twice (screen + PDF). ⚠️ **The PDF still carried the PRE-AA greys** — `#8A8079` **3.86** on white was the `.neg` class, i.e. **the commission/deduction figures**, and `#A69A92` **2.74** the footer → 6.98 / 5.79 (the dark band's greys correctly left alone at 8.21 / 7.05) · ⚠️ **a regression I introduced at O1**: `--vy-amber-text` was tuned to ONE sample, measured 4.45–4.50 here and **1.87 on the dark payout rail** (darkening is backwards on dark; the rail was ALREADY failing at 2.72 pre-O1, and **all three tones failed** — paid 1.77, draft 1.65) → token re-tuned to the worst sample + a **dark-context trio** `--vy-amber/green/muted-on-dark` (5.10/5.07/6.00) · documents rebuilt to icon rows · history rows to the design's cards (**kept a real `<table>`**, scoped to `.vy-st-hist` not the shared `.vy-table`) · a genuinely **0% occupancy month now draws nothing** + the series gained a real accessible name (its figures lived only in `title` on an `aria-hidden` container) · **contrast 8 → 3** · ⚠️ **restyling Export PDF to the design's accent pill ADDED a 4th instance of the white-on-gradient family — reverted rather than widen a known AA failure** · **SCREEN == PDF proven figure-by-figure**; a stale "DEFERRED/stubbed" docblock corrected | O2 |
 
 ## N.4c ⚠️⚠️ `expect(...)->not->toContain($needle, $message)` IS AN ALWAYS-PASSING ASSERTION
 
@@ -945,7 +946,30 @@ the assertions were simply unable to fail. The security-relevant ones were re-mu
 **Standing rule from here on:** never write `expect(...)->not->toContain($needle, $message)`. Use PHPUnit's
 `assertStringNotContainsString($needle, $haystack, $message)`, which takes a real message argument.
 
-## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 1/32 UNDERWAY**, then GUEST (32).
+## N.4d ⚠️ THE PRE-AA GREYS SURVIVE IN 15 MORE PDF TEMPLATES — and a token needs a NAMED background
+
+Two findings from gate **O2**, both realm-wide.
+
+**(1) Documents are read on paper, and 15 of them still carry the pre-AA palette.** The owner Statement PDF
+was measured from its OWN rendered content stream: `#8A8079` **3.86** and `#A69A92` **2.74** on white — and
+`#8A8079` was the `.neg` class, **the commission and deduction figures themselves**. Fixed here to 6.98 /
+5.79 (the operator Schedule-PDF pair). The same literals remain in **15 other templates** — remittance,
+booking summary, annual tax, statement history, folio, VAT invoice, credit note, guest statement, refund
+receipt, arrival, operator report, maintenance costs, agreement (+ amendment), booking confirmation. **Every
+one is a document a customer reads printed. One sweep, not fifteen page gates.** ⚠️ Also surfaced, untouched
+by the standing rule: `PdfService.php:54` hardcodes the export-audit watermark at `#a99b8e` — **2.70 on
+paper**, on the line that records who took the document.
+
+**(2) A "text" token is meaningless until you name the background it is text on.** `--vy-amber-text` was
+tuned at O1 against a single sampled pixel. On the next page it measured **4.45–4.50** (marginal) and on the
+**dark payout rail 1.87** — because darkening is exactly backwards there. ⚠️ The rail was **already failing
+before O1** (2.72) and **every tone of that pill failed** (paid 1.77, draft 1.65): the tint fix deepened a
+hole it did not create. Now: the token is tuned against the **worst** sampled background, and a dark-context
+trio (`--vy-amber-on-dark` / `--vy-green-on-dark` / `--vy-muted-on-dark`) **mirrors** rather than darkens.
+**Tune against the worst background the token will meet, and measure the pill's own composited pixel — not
+the panel behind it.**
+
+## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 2/32 UNDERWAY**, then GUEST (32).
 
 **The operator realm is finished.** 42 prototypes, 34 gates (`0aa9ede`→P34), every page decoded, diffed in a
 real browser, fixed where it was a design gap, and **logged where the product honestly refuses**.
@@ -972,7 +996,7 @@ PROMPT's premise**: "Housekeeping lacks schedule.view" was false (9 roles hold i
 #30 assertion vacuous. ⒂ ⚠️ **NEW (P34) — a PDF's palette is read on PAPER**: the pre-AA greys survived there
 long after the screens were fixed, on the very figures a rota exists to communicate.
 
-**⬅ THE OWNER REALM IS UNDERWAY — 1 of 32 (O1 Owner Dashboard).** Then **GUEST (32)**, untouched.
+**⬅ THE OWNER REALM IS UNDERWAY — 2 of 32 (O1 Dashboard, O2 Statement).** Then **GUEST (32)**, untouched.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

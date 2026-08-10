@@ -15,10 +15,16 @@
         body { margin: 0; color: #2B2320; font-size: 12px; }
         .wrap { padding: 34px 40px; }
         .brand-mark { display: inline-block; width: 30px; height: 30px; background-color: #C2410C; color: #fff; text-align: center; font-size: 18px; font-weight: bold; border-radius: 7px; }
-        .muted { color: #8A8079; }
+        /* ⚠️ POST-AA GREYS — measured ON WHITE PAPER, which is how a statement is actually read.
+           The document carried the pre-AA #8A8079 (3.86) and #A69A92 (2.74) — the same survival the
+           operator Schedule PDF was fixed for. #8A8079 was carrying the NEGATIVE MONEY (.neg = the
+           commission/deduction figures) and every per-line detail. Now 6.98 / 5.79.
+           ⚠️ The .band .dark greys are NOT touched: they sit on #2A211C and measure 8.21 / 7.05 —
+           darkening them would be backwards, exactly as on the screen's dark payout rail. */
+        .muted { color: #5F5853; }
         .eyebrow { color: #C2410C; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         h1 { font-size: 26px; margin: 14px 0 0; letter-spacing: -0.5px; }
-        .sub { color: #8A8079; margin-top: 5px; font-size: 11.5px; }
+        .sub { color: #5F5853; margin-top: 5px; font-size: 11.5px; }
         .hdr td { vertical-align: top; }
 
         /* Net-payable headline band (dark left + light-peach stats right) */
@@ -34,21 +40,21 @@
 
         h2 { font-size: 14px; margin: 26px 0 0; }
         table.grid { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        table.grid th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #8A8079; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
+        table.grid th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #5F5853; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
         table.grid th.r, table.grid td.r { text-align: right; }
         table.grid td { padding: 9px 4px; font-size: 12.5px; border-bottom: 1px solid #F2E9E1; }
-        table.grid td .d { color: #8A8079; }
+        table.grid td .d { color: #5F5853; }
         table.grid tr.net td { border-top: 2px solid #C2410C; border-bottom: none; font-weight: bold; font-size: 14px; padding-top: 12px; }
         table.grid tr.net td.r { color: #C2410C; }
         table.grid tr.tot td { border-top: 1.5px solid #E4D6CB; border-bottom: none; font-weight: bold; padding-top: 11px; }
-        .neg { color: #8A8079; }
+        .neg { color: #5F5853; }
         .u-name { font-weight: bold; }
-        .u-kind { color: #8A8079; font-weight: normal; }
+        .u-kind { color: #5F5853; font-weight: normal; }
 
         .callout { margin-top: 24px; background-color: #FBF0E8; border-left: 3px solid #C2410C; border-radius: 0 10px 10px 0; padding: 13px 16px; font-size: 11.5px; color: #5A4A40; line-height: 1.6; }
         .callout b { color: #C2410C; }
-        .foot { margin-top: 22px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #A69A92; }
-        .foot td { font-size: 10px; color: #A69A92; }
+        .foot { margin-top: 22px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #6C645F; }
+        .foot td { font-size: 10px; color: #6C645F; }
     </style>
 </head>
 <body>

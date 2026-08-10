@@ -6485,3 +6485,69 @@ introduces.
 documented 5–9 range (J.quater)**, re-measured this gate rather than quoted. ⚠️ Making `assertNoRawBlade`
 real across 36 files produced **no** new failures — no page ships raw Blade today. PHPStan L5 (0); Pint
 clean; page browser-verified at 1440×1000 and 1440×1500, 0 horizontal overflow, 0 console errors.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER gate O2: Owner Statement (2 of 32) — the money document
+
+**Route** `/owner/statements/{statement}` (`OwnerStatementView`), role `External Owner`. Prototype
+`docs/design/raw/Owner Statement.html`, decoded fresh (byte-identical to `/tmp/audit`). ⚠️ `Owner Statement
+PDF.html` and `Owner Archive.html` were decoded and identified as **separate pages** — the archive LIST is
+what the sidebar's "Statements" nav actually points at, and gets its own gate. Per-page record:
+`docs/design/MISSING-BACKEND-BY-PAGE.md` §O2. **Markup/CSS only — no service, engine, money query or
+`PdfService` touched.**
+
+### Decided
+
+1. **The document was measured on PAPER, and it was still pre-AA.** Extracted from the generated PDF's own
+   content stream: `#8A8079` **3.86** on white — the `.neg` class, i.e. **the commission and deduction
+   figures** — and `#A69A92` **2.74** for the footer. Both moved to the operator Schedule-PDF pair
+   (**6.98 / 5.79**). ⚠️ The dark band's greys were deliberately left alone: on `#2A211C` they measure
+   **8.21 / 7.05**, and darkening them would be backwards.
+2. **A "text" token needs a NAMED background — my Owner-1 token was under-tuned.** `--vy-amber-text` was
+   fitted to one sampled pixel; here the same pill measured **4.45–4.50**, and on the **dark payout rail
+   1.87**. ⚠️ The rail was **already failing before Owner-1** (`--vy-amber` = 2.72) and **all three tones
+   failed there** (paid 1.77, draft 1.65) — my tint fix deepened a hole it did not create. Fixed by tuning
+   the token against the **worst** background it meets and adding a dark-context trio
+   (`--vy-amber-on-dark` / `--vy-green-on-dark` / `--vy-muted-on-dark`, measured 5.10 / 5.07 / 6.00 against
+   the pill's OWN composited pixel, not the panel behind it).
+3. **A styling gap is not worth a new accessibility failure.** The wireframe makes "Export PDF" the accent
+   gradient pill; restyling it that way **added a 4th instance** of the white-on-accent-gradient family
+   (measured 4.00 the moment it rendered — the realm-wide gap surfaced at Owner-1, still awaiting its own
+   gate). Reverted to a ghost pill, with the reason recorded in the template: it gets the accent treatment
+   in the same change that makes the gradient accessible, not before.
+4. **A money grid stays a `<table>`.** The mock renders history rows as a `<div>` stack of cards; the card
+   LOOK was adopted, the table semantics kept. ⚠️ And scoped to a new `.vy-st-hist` rather than the shared
+   `.vy-table` — this page's `<style>` is page-local, so a bare `.vy-table tbody tr` rule would have
+   restyled a shared component on exactly one page.
+5. **A genuinely 0% occupancy month draws nothing**, and the sparkline gained a real accessible name — its
+   per-month figures previously existed **only in `title`, on an `aria-hidden` container**, invisible to
+   touch and to assistive tech alike.
+
+### Verified, not changed
+
+**#17 reconciles from ONE source on BOTH surfaces** — 1,080.00 − 194.40 + 0.00 = **885.60** = net payable =
+next payout = by-unit total; history 6 statements → €3,690.00. The page's by-unit split and the PDF's
+"Performance by unit" both read the ONE `OwnerStatementBreakdown::forStatement()`, and the PDF's breakdown
+rows are the same `owner_statement_lines`; **no total is re-derived in Blade**. **SCREEN == PDF proven
+figure by figure** from the PDF's extracted text, at the **real 18% agreement rate** (never the mock's
+hardcoded 15%). **#28** — IBAN masked on both surfaces and **structurally** un-emittable raw
+(`Iban::masked(last4)`); no guest name/email/phone on either. **#42** — owner+tenant-scoped `findOrFail` on a
+string prop; cross-owner 404 on the page **and the PDF**, already covered non-vacuously. **Keyboard** 47
+visible controls, 0 unreachable / 0 unnamed / 0 without a ring. **Screen contrast 8 → 3**, the 3 being the
+known gradient family.
+
+⚠️ **`toContain` sweep — negative recorded.** Every `not->toContain(...)` in the statement tests is
+**needle-only**, so none carries the Owner-1 always-passing defect. No repair was needed here.
+
+⚠️ **A stale docblock corrected** (principle 5): `OwnerStatementView` still declared the by-unit split, the
+occupancy chart and the history CSV export "DEFERRED (visually stubbed…)" — **all three have shipped**.
+
+⚠️ **One test re-aimed, not weakened:** the remittance row's honest copy changed ("Once paid" → "Available
+once your payout is issued"), so its `assertSee` was updated. What the test encodes — the honest state in
+words, and **no remittance link offered** — is unchanged, and the `assertDontSee(route(...))` guard was
+**mutation-proven** to still fire.
+
+**Gates:** suite **1833 / 12,024 · 9 non-green** — the identical documented set (`BookingImportTest` ×6,
+`OwnerUnitDetailViewTest`, `StubViewsTest` ×2), re-measured this gate, no new failures. PHPStan L5 (0); Pint
+clean; screen + PDF browser-verified; 0 horizontal overflow, 0 console errors. No schema touched.

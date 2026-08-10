@@ -2530,3 +2530,124 @@ assertions were simply unable to fail. The two security-relevant ones were then 
 (a deliberately-present needle turns each red, carrying its real message). ⚠️ Worth stating plainly: the
 PII guard and the cross-owner guard were **green for their entire existence without ever checking anything**
 — #28 and #42 were being asserted by nothing on those paths.
+
+---
+
+## §O2 — Owner Statement (`/owner/statements/{statement}`, `App\Livewire\Owner\OwnerStatementView`) · OWNER 2/32
+
+**Prototype** `docs/design/raw/Owner Statement.html` (decoded fresh; byte-identical to `/tmp/audit`, 69,469
+chars). ⚠️ **Two sibling prototypes were decoded but are NOT this route** and get their own gates:
+`Owner Statement PDF.html` (the document — its live counterpart WAS verified here, see below) and
+`Owner Archive.html` (the LIST at `/owner/archive`, which is what the sidebar's "Statements" nav points at).
+**Role** the real `External Owner`.
+
+**This is the owner realm's money document** — #17, #28 (IBAN) and #42 all land on one page, and it renders
+twice: on screen and as a PDF.
+
+### ⚠️ The PDF still carried the PRE-AA greys — the P34 lesson, repeating
+
+Extracted from the generated PDF's own content stream (not from the template — the *rendered* fill colours),
+measured **on white paper**: `#8A8079` **3.86** and `#A69A92` **2.74**. ⚠️ `#8A8079` was the `.neg` class —
+**the negative money**, i.e. the commission and deduction figures — plus every per-line detail; `#A69A92` was
+the whole footer. Both moved to the post-AA pair the operator Schedule PDF used: **6.98 / 5.79**.
+
+⚠️ **The dark band's greys were deliberately NOT touched** (`#C9B8AC`, `#B9ABA0` on `#2A211C`): they measure
+**8.21 / 7.05** there. Darkening them would be backwards — the same mirror-image trap as the screen's dark
+payout rail below.
+
+⚠️ **The same pre-AA greys remain in 15 OTHER PDF templates** (`owner-remittance`, `owner-booking-summary`,
+`owner-annual-tax`, `owner-statement-history`, `folio`, `guest-vat-invoice`, `guest-credit-note`,
+`guest-statement`, `guest-refund-receipt`, `arrival`, `operator-report`, `maintenance-costs`,
+`owner-agreement`, `owner-agreement-amendment`, `owner-booking-confirmation`). **Every one is a document a
+customer reads on paper.** They deserve one sweep, not fifteen page gates — logged, not touched here.
+
+### ⚠️ `PdfService`'s watermark measures 2.70 on paper — SURFACED, deliberately not touched
+
+`app/Services/PdfService.php:54` hardcodes `color:#a99b8e` for the export-audit footer stamped on **every**
+owner PDF ("Downloaded by … on … · Confidential"). On white that is **2.70**. It is the line that records
+*who took the document*, and it is the least readable thing on the page. **Not changed — the standing rule
+for this pass is that `PdfService` is not touched.** It belongs to the PDF-greys sweep above.
+
+### The backend this page implies but does not have
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| DO2-1 | Statement-history rows subtitled **"64 nights · 18 bookings"**. | Real, but only for the CURRENTLY-OPEN statement (the shared breakdown is computed for one statement). Other rows show their date range instead. | Persisting nights/bookings per statement at finalize, or a batched breakdown. ⚠️ **Do NOT compute it per row in Blade** — that is N money/metric computations behind a list, the D9-1 trap. | **REAL GAP.** |
+| DO2-2 | An **"Est. 3 Nov 2025"** payout date on the dark rail, and "Paid {date}" once settled. | The *paid* date is real. The **estimate** is not shown. As at Owner-1 (DO1-1) the payout engine now computes a real `nextRunDate`, so the refusal is partly **STALE**. | Surface `PayoutSchedule::nextRunDate()` through the shared `OwnerNextPayout` rail — one source, so Dashboard / Statement / Payouts cannot disagree. | **REAL GAP** (same item as DO1-1 — one fix serves both pages). |
+| DO2-3 | A **"Payment & ops fees — Card processing & platform"** line, always present. | The bucket is REAL (`payment_fee`, Wave C GATE 4) but **no writer posts one yet**, so it is a genuine €0 and the line is correctly omitted. | The live-payment fee writer. | **ACCOUNT-GATED** — and ⚠️ **do not "restore" this line to match the mock**: rendering a €0 fee line would assert a deduction that never happened. |
+| DO2-4 | A **"Guest refund — Reservation VYR-10428"** line, driven by `localStorage`. | Refunds are real and DO reduce the statement, but no refund line renders here for this period. | Surfacing the period's real refund ledger lines as their own breakdown row. | **REAL GAP** — ⚠️ it must read the statement's own lines; the mock literally reads `localStorage`. |
+| DO2-5 | Hero sub **"Seaside Villas · 3 units"** — the portfolio NAME beside the unit count. | The payload carries the unit COUNT but no property/portfolio name. | Passing the owner's property name(s) into the statement payload. | **REAL GAP — cosmetic.** The live line now shows the real unit count only; a portfolio name is never guessed. |
+| DO2-6 | Statement history spanning **2023–2025** with year chips per year. | Real — the chips are built from the owner's actual statement years (one year in demo). | — | **NOT A GAP — verified real.** |
+| DO2-7 | An **OTA/channel** contribution implied by the mock's revenue split. | The live page renders a real `OTA commission +€0.00 (0% of gross revenue)` line, flagged **Provisional** — genuinely zero because **no reservation carries a `channel_id`**. | Channel attribution. | **ACCOUNT-GATED — the D2-2 Channex root.** ⚠️ The €0 here is a REAL computed zero and was deliberately left rendered (it carries the provisional caveat); it is not the same as the fabricated-fee line in DO2-3. |
+
+### Fixed this gate (design + a11y; markup/CSS only — no service, engine, money query or `PdfService` touched)
+
+- **"More documents"** rebuilt to the wireframe's icon-tile rows (peach tile, title, tabular sub, the whole
+  row is the download link) — it was a text block with a small "PDF" button beside it.
+- **Statement-history rows became the wireframe's cards** (6px gaps, rounded, bordered, the current row
+  accent-tinted). ⚠️ **Kept as a real `<table>`** — a money grid is tabular data and the header/row semantics
+  beat the mock's `<div>` stack; only the LOOK was adopted. ⚠️ And scoped to a new `.vy-st-hist`, **not** to
+  the shared `.vy-table`: this page's `<style>` is page-local, so a bare `.vy-table tbody tr` rule would have
+  restyled a shared component on exactly one page.
+- **Export pair** given the wireframe's divider + icons. ⚠️ **Export PDF was deliberately NOT promoted to the
+  accent pill** — see the a11y note below.
+- **Hero** split into the wireframe's two lines (period eyebrow + portfolio line).
+- **Occupancy card**: bars to the design's 56px and the design's translucent wash; **a genuinely 0% month now
+  draws nothing** (`max(6,pct)` + a 3px `min-height` had put a visible bar under a 0% month — the same floor
+  the shared `<x-charts.bars>` already removed); and the series gained a **real accessible name**
+  (`role="img"` + `aria-label` built from the same real values) — its per-month figures previously existed
+  **only in `title`, on an `aria-hidden` container**, invisible to touch and assistive tech alike.
+- **Screen contrast 8 → 3**, real-pixel measured.
+
+### ⚠️ A REGRESSION I INTRODUCED AT OWNER-1, AND THE LESSON IN IT
+
+`--vy-amber-text` was tuned at Owner-1 against **one** sampled background. On this page the same pill measured
+**4.45–4.50** (marginal, one side of AA) — and on the **dark payout rail** it measured **1.87**, because
+darkening a colour is exactly backwards on a dark panel. ⚠️ The rail was **already failing before Owner-1**
+(`--vy-amber` = 2.72 there), so this was a pre-existing hole that my tint fix deepened.
+
+Both fixed: the token is re-tuned against the **worst** sampled background (5.13–5.22), and a **dark-context
+trio** now mirrors rather than darkens — `--vy-amber-on-dark` / `--vy-green-on-dark` / `--vy-muted-on-dark`,
+measured **5.10 / 5.07 / 6.00** against the pill's own composited background. ⚠️ **All three tones of the
+status pill were failing on that rail** (paid **1.77**, draft **1.65**), not just the one I had touched.
+
+**The lesson: a token tuned to a single sample is a token that fails on the next page — and a "text" token
+has no meaning until you say WHICH background it is text on.**
+
+### ⚠️ The realm-wide white-on-accent-gradient gap RECURS here — and I nearly widened it
+
+3 instances on this page (`.vy-brand-mark`, `.vy-avatar`, and the **masked-IBAN pill**), all **4.00**, all the
+family surfaced at Owner-1 and awaiting its own realm-wide gate. **Not half-fixed.**
+
+⚠️ Restyling the export pair to the wireframe (Export PDF as the accent gradient pill) **added a 4th
+instance** — measured at 4.00 the moment it rendered. It was reverted to a ghost pill: closing a styling gap
+by adding a known AA failure is a bad trade, and the accent treatment can be applied for free in the same
+change that makes the gradient accessible. **Running realm accent-site total: Owner-1 fixed 2, Owner-2 fixed
+0 and refused to add 1; the gradient family stands at 5 known instances (Dashboard) + 3 (Statement).**
+
+### ⚠️ Verified, not changed
+
+- **#17 reconciles, one source, on BOTH surfaces.** Screen: 1,080.00 − 194.40 + 0.00 = **885.60** = net
+  payable = next payout = by-unit total (442.80 + 442.80). History: 6 statements → **€3,690.00** net total.
+  The by-unit split and the PDF's "Performance by unit" both come from the ONE
+  `OwnerStatementBreakdown::forStatement()`; the PDF's breakdown rows are the same `owner_statement_lines`.
+  **No total is re-derived in Blade.**
+- **SCREEN == PDF, verified figure by figure** from the PDF's own extracted text: net €885.60 · gross
+  +€1,080.00 (8 nights · 2 units) · commission −€194.40 (18% of gross room revenue) · OTA +€0.00
+  (provisional) · occupancy 13% · A1 5 nights/17%/€540.00 · A2 3 nights/10%/€540.00 · total gross €1,080.00.
+  ⚠️ The commission rate is the **real agreement rate 18%**, never the wireframe's hardcoded 15%.
+- **#28 — the IBAN is masked on BOTH surfaces** ("IBAN ···· 1000") and is **structurally** un-emittable raw
+  (`OwnerNextPayout` passes only `iban_last4` into `Iban::masked()`). A regex for a full IBAN over the
+  rendered page returns nothing. **No guest name, email or phone appears on either surface.**
+- **#42** — the statement resolves through an owner+tenant-scoped `findOrFail` on a **string** prop (not a
+  route-model-bound one, which Livewire would resolve before the scope middleware). Cross-owner → 404 on the
+  page **and on the PDF route**, already covered non-vacuously by `OwnerStatementPdfTest` (two real owners
+  plus a stranger).
+- **Keyboard: 47 visible controls, 0 unreachable, 0 unnamed, 0 without a focus indicator.**
+- ⚠️ **`toContain` sweep — negative recorded.** Every `not->toContain(...)` in the statement tests
+  (`OwnerStatementViewTest`, `OwnerStatementPdfTest`, `OwnerStatementTest`) is **needle-only**, so none of
+  them carry the Owner-1 always-passing defect. **No repair was needed here** — recorded so the sweep is not
+  repeated.
+- ⚠️ **A stale docblock corrected** (principle 5): `OwnerStatementView` still declared the by-unit split, the
+  occupancy chart and the history CSV export "DEFERRED (visually stubbed…)". **All three have shipped and are
+  real.** Nothing on the screen is stubbed.
