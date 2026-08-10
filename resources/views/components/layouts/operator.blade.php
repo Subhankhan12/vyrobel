@@ -178,6 +178,9 @@
            needs ~259px and the actions' min-content is ~623px = 898 of the 910 available, so it fits; the
            search pill keeps its own 210px floor. Other pages are unaffected — their titles never reached
            the wrap point. */
+        /* Screen-reader-only text. Defined ONCE here (a generic utility, not a page concern) so a state
+           carried visually — an unread dot, a status colour — can still have real text for assistive tech. */
+        .vy-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
         .vy-topbar h1 { font-family: var(--vy-display); font-weight: 600; font-size: 28px; letter-spacing: -0.02em; margin: 0; white-space: nowrap; }
         .vy-topbar-sub { font-size: 12.5px; color: var(--vy-muted); margin-top: 3px; }
         .vy-topbar-actions { display: flex; align-items: center; gap: 12px; }

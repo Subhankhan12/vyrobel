@@ -1970,3 +1970,58 @@ mis-scope. Tenant isolation rests on the models' `BelongsToOrganization` global 
 - ⚠️ **Search's tenant isolation is SINGLE-layer.** Unlike Portfolio (where two independent guards had to fall),
   disabling the `Guest` global scope alone leaks another org's guest — proven by mutation, and the existing
   cross-org test correctly catches it. Correct today, but there is no second net here.
+
+---
+
+## §29 — Operator **Notifications** (`/app/notifications`) · P29
+
+**Prototype:** `docs/design/raw/Operator Notifications.html`. **Live:** Livewire `OperatorNotifications` →
+the shared `NotificationFeed::forUser()`. **Gating:** no extra `can:` — the feed is **self-only by nature**
+(`$user->notifications()`), inside `/app` behind `EnsureBackOfficeAccess`.
+
+**Tokens measured (regardless of render type, per the corrected P28 carry-forward): 0 contrast failures**,
+before and after. This page was already clean — unlike Search, which was also Livewire but failed 8× on
+accent-as-text. **Both risks still have to be measured separately; neither is predicted by render type.**
+
+⚠️ **Self-scope + the mark-read path, READ not fired.** `NotificationController` writes through
+`$request->user()->notifications()->findOrFail(...)`, so a cross-user id **404s by construction** — a user can
+only ever mark their OWN notifications read. Confirmed by reading the controller and by the existing
+`never lets a user read or mark another user's notifications` test. **No mark-read/mark-all-read/dismiss was
+submitted this gate**; the dev feed is byte-identical at **242 total / 242 unread / 0 read**, before and after.
+
+⚠️ **The unread count is single-sourced.** The only unread-count queries in the entire codebase are the two
+inside `NotificationFeed` (`forUser` + `recentForUser`), both on the same per-user relation. No view derives its
+own; the bell badge reads the same value and renders **"9+" as a display cap** with
+`aria-label="{{ $unread }} unread"` carrying the real figure. Counts stay **whole-set, not page-set** (already
+tested) — which is why the unread pill can read "59 unread" while a filtered view shows nothing.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D29-1 | The footer: *"Choose which of these reach you by **email or SMS** in Settings."* | There is no SMS channel — no Twilio, no provider. | The SMS cutover (§H). | 🚫 **REFUSAL-PRESERVE — DEFERRED.** Live already says *"Choose which of these reach you in Notification preferences"* with no SMS claim, and the preferences page shows Push/SMS as honestly pending. Do not re-add "or SMS" as copy: it would promise a delivery channel that cannot fire. |
+| D29-2 | Rows for *"Expedia disconnected — Sync stopped 41 min ago"*, *"New 5-star review · Lukas M."*, *"Owner payout run is due — €10,370"*, *"K. Novak checked in — Apt 102 · €260 balance settled"*. | These are mock rows. | — | 🚫 **REFUSAL-PRESERVE (#39).** The live feed renders only REAL notifications from real events (new booking, statement finalized, unit out of service, urgent work order, new review). ⚠️ The *"Expedia disconnected · sync stopped 41 min ago"* row is the **F-OP-2 / D26-1 fabrication again**, arriving through a different door — a notification asserting a sync that has never run. The live channel-error notification is wired to the REAL `channels.status` (`NotificationWiringTest`). |
+| D29-3 | Category chips **Channels** and **Housekeeping**. | The live categories are whatever real notifications exist — currently Finance / Front Desk / Maintenance / Reputation. | Real events in those categories. | 🚫 **REFUSAL-PRESERVE.** The bell rebuild already refused these exact fabricated pills; the tab row is built from `$feed['categories']`, i.e. the REAL distinct categories present. A category tab that filters to nothing is worse than no tab. |
+| D29-4 | A **circular** 38px icon tile per row. | — (the live tile is the shared rounded square) | — | **DIVERGENCE — DOCUMENTED, deliberately not "fixed".** ⚠️ **The two prototypes disagree with each other:** measured in the browser, *Operator Notifications* renders a **38px circle** while *Owner Notifications* renders a **34px rounded square (10px)** — for the same component. The live product has ONE shared `<x-notifications.category-icon>` (rounded square) used by the operator page, the owner page and the bell panel. Matching the operator prototype would break owner parity and split one concept into two definitions — exactly what the anti-drift rule forbids. **The single shared definition is the more coherent resolution; the design source is internally inconsistent here.** |
+| D29-5 | Per-row **dismiss / delete**. | Only mark-read exists (single + all); nothing deletes a notification. | A dismiss/soft-delete column + a self-only route. | **LOGGED — REAL GAP (small).** ⚠️ If built it must reuse the same self-only pattern (`$request->user()->notifications()->findOrFail()`), never an id-only lookup. |
+
+### Fixed this gate (presentation + one a11y correction; no backend touched)
+
+- **The design's toolbar** — an inline **unread pill** beside the heading, the tabs collapsed into **one
+  segmented shell** with the active tab as a raised white pill (they were loose buttons), mark-all-read right.
+- **Rows rebuilt to the design** — the **category as a chip beside the title** (it was right-aligned uppercase
+  text), the unread dot moved to the row's right edge, and the row/typography moved out of inline styles into
+  `.vyn-*` classes.
+- ⚠️ **WCAG 1.4.1 — the unread state no longer rides on colour alone.** The dot carried only
+  `title="Unread"`, which is **not reliably announced on a non-interactive span**, so for assistive tech the
+  state was colour + font-weight only. The dot is now `aria-hidden` decoration with real
+  `.vy-sr-only` text beside it, and the ✓ button gained a proper `aria-label` naming its notification.
+  Guarded by a test, **mutation-proven** (restoring the `title`-only dot turns it red).
+- **`.vy-sr-only` defined ONCE** in the operator layout — a generic utility, not a page concern.
+- **Tabs stay GET links** (`?filter=`), asserted by a new test alongside `assertDontSee('wire:click')`.
+
+### ⚠️ Realm-wide finding — the SAME 1.4.1 gap remains on two other surfaces
+
+The identical dot-only pattern is still present at
+**`resources/views/livewire/owner/notifications.blade.php:33`** and — shared by BOTH shells —
+**`resources/views/components/notifications/bell.blade.php:46`**. Fixing them needs `.vy-sr-only` in the owner
+layout too. **Logged, not fixed** (one page per turn), but they are the same defect and should be closed
+together so the panel and the page do not disagree about how the unread state is announced.

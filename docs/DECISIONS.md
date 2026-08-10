@@ -6066,3 +6066,56 @@ type (the phone).
 PHPStan L5 **0**; Pint clean; **0 console**, **0 horizontal overflow** at 1440 and 1000; contrast re-measured
 (8 → 0). States checked: results, **no-results** (honest, no fabricated "did you mean"), **no-query** (recent +
 real upcoming arrivals). Schema untouched — no `migrate:fresh` needed. No app/ code changed.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY **P29 · Operator Notifications** (`/app/notifications`, self-only feed)
+
+**Presentation + one a11y correction.** No backend, no `NotificationFeed`, no route touched.
+`docs/design/MISSING-BACKEND-BY-PAGE.md` §29.
+
+**Fixed (design):** the design's toolbar — an inline **unread pill** beside the heading and the tabs collapsed
+into **one segmented shell** (active = raised white pill) instead of loose buttons; rows rebuilt with the
+**category as a chip beside the title**, the unread dot at the row's right edge, and the styling moved out of
+inline attributes into `.vyn-*` classes.
+
+**⚠️ WCAG 1.4.1 — the unread state rode on colour alone.** The dot carried only `title="Unread"`, which is **not
+reliably announced on a non-interactive span**, so for assistive tech "unread" was colour + font-weight only.
+The dot is now `aria-hidden` decoration with real `.vy-sr-only` text, and the ✓ button gained an `aria-label`
+naming its notification. **Mutation-proven** (restoring the `title`-only dot turns the new test red).
+`.vy-sr-only` is defined **once** in the operator layout — a generic utility, not a page concern.
+
+**⚠️ THE DESIGN SOURCE CONTRADICTS ITSELF, and the product is the more coherent side.** Measured in the browser:
+*Operator Notifications* renders the row icon as a **38px circle**; *Owner Notifications* renders the same
+component as a **34px rounded square**. The live product has ONE shared `<x-notifications.category-icon>`
+(rounded square) used by the operator page, the owner page **and** the bell panel. Matching the operator
+prototype would break owner parity and fork one concept into two definitions — precisely what the anti-drift
+rule forbids. **Kept the shared tile; documented the conflict.** New rule: when two prototypes disagree, the
+single shared definition wins.
+
+**⚠️ Self-scope + mark-read, READ NOT FIRED.** `NotificationController` writes through
+`$request->user()->notifications()->findOrFail(...)` — a cross-user id **404s by construction**. Nothing was
+marked read, marked-all-read or dismissed: the dev feed is identical before and after at
+**242 total / 242 unread / 0 read**.
+
+**⚠️ The unread count is single-sourced.** The only unread-count queries in the codebase are the two inside
+`NotificationFeed`; no view derives its own. The bell renders **"9+" as a display cap** with
+`aria-label="{{ $unread }} unread"` carrying the real number, and counts stay **whole-set, not page-set**
+(already tested) — which is why the pill can read "59 unread" while a filtered view shows nothing.
+
+**Refused / logged (5):** the footer's *"or **SMS**"* (no provider — deferred §H; live already omits it) ·
+the mock rows, including *"Expedia disconnected · sync stopped 41 min ago"* — ⚠️ **the F-OP-2 / D26-1 sync
+fabrication arriving through a different door**, a notification asserting a sync that has never run ·
+fabricated **Channels / Housekeeping** category pills (the tab row is built from the REAL distinct categories) ·
+the circular icon (above) · per-row **dismiss/delete** (only mark-read exists).
+
+**⚠️ Realm-wide finding, logged not fixed:** the identical dot-only unread pattern remains at
+`resources/views/livewire/owner/notifications.blade.php:33` and, shared by both shells,
+`resources/views/components/notifications/bell.blade.php:46`. Same defect, two surfaces; they should be closed
+together so the panel and the page do not disagree about how unread is announced.
+
+**Verification:** notification suites + the token-contrast guard **28/28 · 117 assertions** (2 tests added);
+contrast measured **0 failures** before and after (this page was already clean — unlike Search, also Livewire,
+which failed 8×: **render type predicts neither risk**); PHPStan L5 **0**; Pint clean; **0 console**,
+**0 overflow** at 1440 and 1000; states checked: feed, filtered, honest empty. Schema untouched — no
+`migrate:fresh` needed.

@@ -797,7 +797,7 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **36 of 42** covered, **6 remaining** (`0aa9ede`→P28, all pushed)
+## N.4 Progress — OPERATOR **37 of 42** covered, **5 remaining** (`0aa9ede`→P29, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
@@ -842,6 +842,7 @@ Portfolio** and **P28 Search**, so the current figure is **36 covered / 6 remain
 | P26 | **Operator Channels** ⚠️ the OTA-claim ROOT (1 over-claim fixed: “Channels mapped”→“configured” + a scoped guard · 5 backend items, **4 refusals — almost the whole prototype**; ⚠️ live page NOT browsable: Pro-gated, plan deliberately unchanged) | `638e67a` |
 | P27 | **Operator Portfolio** ⚠️ the multi-property ROLLUP (#38): band/stats/occupancy-rail/chips restyled · the never-rendered **arrivals** chip + **“Full report ›”** (gate was already computed) now rendered · the design's **“—” for an average over zero** (computed zeros kept) · **AA 4.43→5.18** · ⚠️ found the **#17 test was VACUOUS** — replaced + mutation-proven; #38 shown to hold across **two independent layers**; 5 backend items | P27 |
 | P28 | **Operator Search** ⚠️ the cross-entity PII surface: query bar / filter CHIP LINKS (#20, zero wire:click) / results header / tiled rows · **the design's guest-row EMAIL + city REFUSED (#28)** — pinned by 3 mutation-proven tests · `.vys-badge` **4.41→AA** (accent-as-text on a Livewire page — the predictor isn't the whole story) · foreign drill-down→404 · 6 backend items | P28 |
+| P29 | **Operator Notifications** — toolbar/segmented tabs/category chips restyled · ⚠️ **WCAG 1.4.1 fixed: unread rode on colour alone** (`title` on a non-interactive span isn't announced) → `aria-hidden` dot + `.vy-sr-only` text, mutation-proven · ⚠️ **the two prototypes CONTRADICT each other on the icon shape** (operator circle vs owner square) → kept the ONE shared tile, documented · SMS-in-footer + fabricated rows/categories refused · **nothing marked read (242/242/0 unchanged)** · 5 backend items | P29 |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -886,23 +887,25 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Notifications.**
+## N.7 ⬅ REMAINING — the resume queue. **NEXT PAGE = Operator Notification Preferences.**
 
-⚠️ **Notifications is a self-only feed (#28/#26).** The panel + page already share ONE `NotificationFeed`
-helper; the risk is a design that shows cross-user or cross-tenant rows, or fabricated categories/channels
-(the bell rebuild already refused the mock's fake "Channels"/"Housekeeping" pills — do not reintroduce them).
+⚠️ **Notification Preferences is a CLAIMS surface.** Every toggle asserts a delivery channel will fire. Email is
+real (Postmark); **Push and SMS are deferred with no provider** — the page already shows them honestly, and
+`OperatorNotifPrefsGateTest` asserts *"renders the operator prefs page with honest Push and SMS and never a
+submitted push/sms field"*. Do not let a design turn a pending channel into an operable toggle.
 
-⚠️ **NOTES CARRIED FORWARD.** ⑴ ⚠️ **MEASURE TOKENS REGARDLESS OF RENDER TYPE — the controller-vs-Livewire
-predictor is NOT the whole story (P28).** Search is a Livewire page with zero raw hex that still failed AA 8×,
-because the failure came from the **accent-as-text** family (`color: var(--vy-accent)` at small sizes), which is
-independent of un-tokenised hex. Two separate risks; measure for both. ⑵ **Scope a test guard to the CLAIM.**
-⑶ ⚠️ **The suite baseline is a RANGE, 5–9 (J.quater)** — isolate before calling anything a regression.
-⑷ ⚠️ **A green test can be defending nothing (P27)** — check the fixture produces a non-zero figure.
-⑸ ⚠️ **NEW (P28) — reflected input is not disclosure:** a query echoed into the search box is the operator's own
-input, not the product volunteering PII. Assert on a value the user did NOT type.
+⚠️ **NOTES CARRIED FORWARD.** ⑴ ⚠️ **MEASURE TOKENS REGARDLESS OF RENDER TYPE (P28)** — un-tokenised hex and
+accent-as-text are independent risks; Notifications measured 0, Search measured 8, both Livewire.
+⑵ **Scope a test guard to the CLAIM.** ⑶ ⚠️ **Baseline is a RANGE, 5–9 (J.quater)** — isolate before calling
+anything a regression. ⑷ ⚠️ **A green test can be defending nothing (P27).** ⑸ **Reflected input is not
+disclosure (P28).** ⑹ ⚠️ **NEW (P29) — the prototypes can CONTRADICT EACH OTHER.** Operator vs Owner
+Notifications render the same component as a circle and a rounded square. When they disagree, the product's ONE
+shared definition wins and the conflict gets documented — do not fork a shared component to match one file.
+⑺ ⚠️ **NEW (P29) — `title="…"` is not an accessible name** on a non-interactive element; a state carried by a
+coloured dot needs real text (`.vy-sr-only`, now defined once in the operator layout).
 
-**6 OPERATOR prototypes remain:** **1 Notifications** · **2 Notification Preferences** · **3 Email Templates** ·
-**4 Email Editor** · **5 Profile** · **6 Schedule PDF**.
+**5 OPERATOR prototypes remain:** **1 Notification Preferences** · **2 Email Templates** · **3 Email Editor** ·
+**4 Profile** · **5 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

@@ -103,3 +103,39 @@ it('marks one and all notifications read', function () {
     $this->actingAs($a['user'])->post('/notifications/read-all')->assertRedirect();
     expect($a['user']->fresh()->unreadNotifications()->count())->toBe(0);
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// P29 (design-parity) — the unread STATE must not ride on colour alone (WCAG 1.4.1). The design marks
+// unread with a coloured dot; the dot previously carried only a `title` attribute, which is not
+// reliably announced on a non-interactive span. The dot stays; the state now also has real text.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('conveys the unread state with TEXT, not colour alone (1.4.1)', function () {
+    $s = seedScenario(1);
+    $operator = operatorUser($s, [], 'Hotel Manager');
+    book($s, ['unit_id' => $s['units'][0]->id]);
+
+    $unreadPage = $this->actingAs($operator)->get('/app/notifications')->assertOk();
+    $unreadPage->assertSee('New booking');
+    // The accessible text for the state, and the dot itself hidden from the a11y tree (it is decoration).
+    $unreadPage->assertSee('vy-sr-only">Unread', false);
+    $unreadPage->assertSee('aria-hidden="true"', false);
+
+    // Once read, the row carries neither the dot nor the "Unread" text — the state really is derived.
+    $operator->fresh()->unreadNotifications->markAsRead();
+    $this->actingAs($operator)->get('/app/notifications')
+        ->assertOk()
+        ->assertSee('New booking')
+        ->assertDontSee('vy-sr-only">Unread', false);
+});
+
+it('drives the feed filter through a GET link, never a wire action (#20)', function () {
+    $s = seedScenario(1);
+    $operator = operatorUser($s, [], 'Hotel Manager');
+    book($s, ['unit_id' => $s['units'][0]->id]);
+
+    $this->actingAs($operator)->get('/app/notifications')
+        ->assertOk()
+        ->assertSee(route('app.notifications', ['filter' => 'unread']), false)
+        ->assertDontSee('wire:click', false);
+});
