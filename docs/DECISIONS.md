@@ -7059,3 +7059,50 @@ the cross-owner test red); a live foreign probe was impossible because the demo 
 seeding a second for a screenshot would mutate demo data. Greyscale-safe (states are words and a minus sign).
 ⚠️ The export writes an `export_downloads` audit row per download, by design; no money row moved. No schema
 touched. Suite **1837 / 12,042 · 9 non-green** (documented set); PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-10 — 💾 SAVE v6 (documentation/memory only) — supersedes SAVE v5
+
+v5 captured the operator design-parity realm complete at the moment the owner realm began. **v6 captures the
+owner realm IN PROGRESS — 11 of 32 (`6d974d7` → `64272cf`)** — plus everything that pass has changed about
+the project's own understanding of itself. No application code, tests, migrations or seeds were touched.
+
+**What v6 adds to the canonical record (`docs/PROJECT-STATE.md`):**
+
+- **§N.4b** — the per-gate owner table, 11 rows, with a summary of what the realm has returned: **three 🔴 real
+  defects** (a chart misreporting money twice; a wizard submittable by Enter from step 1, which filed a
+  genuine `unit_requests` row; a money-affecting calendar unusable by keyboard, 31 of 36 controls
+  `div@click`), **one realm-wide a11y item CLOSED** (P29, fixed once in the shared bell), **one
+  always-passing assertion class** repaired across 36 test files, and **six brief premises corrected**.
+- **§N.8c — THE TWO STANDING TRAPS.** (1) `not->toContain($needle, $message)` can never fail (Pest's
+  `toContain` is variadic). (2) **A CSS comment RENDERS; a Blade comment does not** — three forms now seen,
+  the worst being a fix's own comment shipping the OLD pre-AA hex into every generated statement PDF, which
+  hid the regression for a full pass and made the obvious guard impossible to write.
+- **§N.9 — REOPENED OPERATOR-REALM ITEMS.** The operator realm is 42/42 design-matched, but the owner pass
+  surfaced six items that touch it: the shell's on-grad tokens failing at **2.95 / 2.77** (set from ONE pixel
+  at `93247e7`), §N.4k implicit submit (check New Reservation + Group Booking), keyboard-unreachable
+  `div@click` grids (Calendar, Front Desk, Housekeeping, Maintenance), the `max(2,pct)` min-bar floor (four
+  owner pages → fix once on `<x-charts.bars>`), the realm-wide PDF-contrast sweep (~15 templates +
+  `PdfService.php:54` at 2.70), and the white-on-gradient family + the accent-as-text sweep (**22 fixed**).
+  ⚠️ **Each needs its own gate. None may be half-fixed from inside a page gate.**
+- **§N.10 — the owner running lessons**: verify-don't-assume *but don't over-generalise* · a refusal can be
+  **structural** · **don't seed demo data to enrich a screenshot** · **"read-only" ≠ "writes nothing"** ·
+  **a probe can produce false failures** (three gates running) · backlog items compound.
+- **G.4 / G.5** — two further founder calls surfaced and deliberately **not decided**: **D16-7** (a
+  `processing` payout appears in NO KPI on either realm — a Stripe-live prerequisite) and the Owner-5
+  "earned this month vs statement" figure definition (both figures correct; the €180 gap is a real
+  unstatemented expense).
+- **§J.quater — the baseline widened from 5–9 to a 5–10 RANGE.** One OWNER-10 run added
+  `PublicStorefrontLandingTest`; proven not to be the change (stashed run at HEAD showed nine, a re-run with
+  the change was clean, 14/14 in isolation) and the obvious mechanism was **measured and rejected**
+  (~0.004%). Recorded as **UNKNOWN**, not written up as a finding.
+- **(D)** — the owner-realm engine set is now named explicitly (`OwnerBlockService`,
+  `OwnerStatementBreakdown`, `OwnerOccupancy` *keyed by physical unit id*, `OwnerUnitRequestService` *which
+  creates no unit*, `Iban::masked`, `PdfService` never-touch), together with the corrected **#6 split** and
+  the warning that `SettingsService`'s JSON merge is **not** universal (several stores are typed columns).
+- **(E)** — **#42** sharpened: a per-unit or per-statement surface keyed on a URL id is the classic isolation
+  surface; a foreign id must 404 **including an operator-owned unit in the same organization**, and a
+  downloadable PDF is the worst-case leak.
+
+**⬅ NEXT = OWNER PAGE 12 of 32.**

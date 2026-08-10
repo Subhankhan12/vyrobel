@@ -6,7 +6,20 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · **🏁 THE PER-PAGE DESIGN-PARITY PASS HAS COMPLETED THE OPERATOR REALM — 42/42 (§N); OWNER (32) + GUEST (32) REMAIN** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · **🏁 THE PER-PAGE DESIGN-PARITY PASS HAS COMPLETED THE OPERATOR REALM — 42/42 (§N); ⬅ THE OWNER REALM IS IN PROGRESS — 11/32 (`6d974d7`→`64272cf`); GUEST (32) UNTOUCHED** · ⚠️ **the owner pass has REOPENED several "complete" OPERATOR items (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+
+<!-- SAVE v6 (2026-08-10) — supersedes v5. v5 captured the operator realm complete at the moment the owner
+     realm began; v6 captures the owner realm IN PROGRESS (11/32), the reopened operator items (§N.9), the
+     owner running lessons (§N.10), the two standing traps (§N.8c), the baseline shift 5–9 → 5–10, and the
+     accent-as-text sweep at 22 fixed. -->
+
+> ### ⬅ RESUME HERE — the next unit of work is **OWNER page 12 of 32**
+> One page per turn: decode the prototype in `docs/design/raw/` fresh → open the live page via Playwright as
+> the OWNER role → diff every detail → classify **DESIGN-GAP** (fix now, design/markup only) / **REFUSAL-TO-
+> PRESERVE** / **EXTRA-WORK** / **MISSING-BACKEND** (log to `docs/design/MISSING-BACKEND-BY-PAGE.md`, do not
+> build) → browser-verify + suite + PHPStan + Pint → commit + push → **report and STOP**.
+> **Read before the gate: §N.8 (the five principles) · §N.8c (the two standing traps) · §N.10 (the owner
+> running lessons) · §N.9 (what is reopened and must NOT be half-fixed from inside a page gate).**
 
 > ## ⬅ A NEW TRACK IS ACTIVE ON TOP OF EVERYTHING BELOW — the per-page **DESIGN-PARITY PASS** (started 2026-08-09, **IN PROGRESS**)
 >
@@ -194,6 +207,30 @@ reliable part.)*
 ## (D) The certified engines (the ANTI-DRIFT core — reused everywhere, all real + tested; NEVER reimplement per-caller)
 `AssignmentService` (single inventory write path — createBooking/assignUnit/reschedule under `SELECT…FOR UPDATE`; the no-double-booking guarantee; the `Unit::isBookable()` OOS/paused guard on create/move/reschedule) · `UnitAvailabilityService`/`AvailabilityService` · `FolioService`/`FolioTotals` (money #17) · `OwnerRateService`/`RateAndRestrictionService` (rates, weekend-uplift) · the **payout engine #71** (test-mode, Connect rail, double-transfer-guarded) · the **#83 Mailables** (branded, preference-gated) · `HousekeepingService`/`HousekeepingTask` · `MaintenanceService` · **#66 security** (trusted devices / login-approval / passkeys) · `InboxService` (unified inbox) · `StaffRoster`/`ShiftRosterService`/`RosterWeek` · `ArrivalPack::for` (**#33** door code) · `ReviewRating` (**#76**) · `GuestWalletService` (append-only credit ledger) · `CancellationPolicy` · `GuestDeletionService` (14-day archive-not-destroy) · `GuestIdDocumentService` (encrypted ID, 30-day purge) · `PdfService` · `CsvSafe` (CSV-injection-safe exports) · `ReportPeriod`/`OperatorReportData` · the shared data helpers `GuestTrip`/`GuestReservationView`/`GuestPayments`/`GuestHistory`/`PerformanceMetrics`/`OwnerLedgerAttribution`/`OwnerStatementBreakdown` (ONE definition per concept — two `match`es WILL drift).
 
+- **⚠️ THE OWNER-REALM ENGINE SET (confirmed by the owner design pass, OWNER 1–11 — reuse, never rebuild):**
+  `OwnerBlockService` (owner availability blocks — **real writes that take inventory off-sale**, non-overlap
+  enforced, routed through the certified `AssignmentService`) · `OwnerStatementBreakdown` + the real
+  `owner_statement_lines` (**the** owner-statement source; the screen and the PDF share it, so SCREEN == PDF
+  cannot drift) · `OwnerOccupancy` (⚠️ keyed by **PHYSICAL unit id** — *not* the room-type-wide
+  `AvailabilityService`, which would fold in units this owner does not own; a test locks this) ·
+  `OwnerLedgerAttribution` · `OwnerUnitAnalytics` · `OwnerCommissionRate` · `OwnerPayoutService::pay` (**#71**
+  test-mode) · `OwnerUnitRequestService` (⚠️ files a `unit_requests` row and **creates NO unit** — the
+  operator approves and creates it as their own action) · `Iban::masked` (takes only `iban_last4`, so a raw
+  IBAN is **structurally un-emittable**) · `NotificationFeed` (self-scoped **by its query root**) ·
+  `<x-charts.bars>` (the honest-zero rule — ⚠️ the `max(2, $pct)` min-bar floor recurred on **four** owner
+  pages; the fix belongs on the shared component, §N.9 #4) · `PdfService` (⚠️ **NEVER touched from a page
+  gate** — the render pipeline and the 2.70 watermark belong to the realm-wide PDF sweep).
+  - ⚠️ **The #6 rate split, as verified at OWNER-4 (the brief had it inverted):** `RateProposalService` is the
+    **OPERATOR** path — the guardrail constrains what a manager may propose. The **OWNER** approves, declines,
+    counters, sets the guardrail, and prices exclusively-owned room types by **direct apply**
+    (`owner.rates.apply` → `OwnerRateService`). A room type shared with other inventory is honestly read-only.
+    ⚠️ There are **0 `RateGuardrail` rows** in the demo DB, so only the unguarded case is live — and that is
+    truthful, not a gap.
+  - ⚠️ **`SettingsService`'s JSON `array_merge` is NOT universal** — several settings stores are **typed
+    columns**, not a JSON blob: `maintenance_settings`, and notification preferences in **both** realms (a
+    typed `(user, event, channel)` pivot via `updateOrCreate`). **Verify per surface before assuming a merge
+    hazard exists.**
+
 - **⚠️ CHANGES FROM THE REMEDIATION PASSES (2026-08-08) — a future session must not reintroduce the old shapes:** `FolioService::refundPayment()` now runs inside a **transaction + `lockForUpdate` on the original payment + a deterministic idempotency key**, mirroring `OwnerPayoutService::pay()` (which remains **the reference implementation** for any new money path). `FolioTotals::for()` now ALSO returns **`received_minor` + `refunded_minor`** — the two halves it always computed and discarded — so the guest statement's "Credited" tile cannot become a second derivation of refunds (the three original keys are byte-identical). The **#83 booking-confirmation Mailable is dispatched as a tenant-restoring queued job** (scalars-only payload, recipient resolved in-context so PII stays out of the payload). The **technician-assignment pool is STAFF-ONLY** via `StaffRoster::staffUserIds()`/`assignableStaff()` — **including the three server-side write guards**, not just the pickers. `Guest::anonymize()` covers three further stores (`reservations.notes_internal`/`expected_arrival`, `reviews.operator_response`, `GuestChangeRequest.payload`, converted `BookingQuote` fields). `WithholdingService`/`OwnerVatService` look a rate up by **`owners.tax_country` as an ISO CODE** — the residency UI now emits codes and normalises legacy names on save (`Countries`). **NEW shared definitions:** `OperatorLetterhead` (the ONE operator registered-identity block — 5 hand-rolled copies existed and had already drifted), `Countries` (the ISO ⇄ name contract), `StayTime` (property check-in/out display — replaced hardcoded, partly FALSE times).
 
 - **⚠️ CHANGES FROM THE PARITY SWEEP (2026-08-08/09) — likewise do not reintroduce the old shapes:**
@@ -210,6 +247,15 @@ reliable part.)*
 ## (E) The load-bearing INVARIANTS (held across ALL THREE realms — proven under the audit's crafted attacks)
 - **#17 — money reconciles to the cent** (folio/receipt/payments/statements; integer minor units; never sum across currencies).
 - **#28 — privacy perimeter:** operator sees full guest contact ONLY on the Guests CRM (front-desk/inbox name-only); OWNER is name-only everywhere; guest ID docs owner-NEVER + encrypted; every free-text store ABOUT a guest is added to `anonymize()` in the same change (incl. PII in JSON columns).
+- **#42 — OWNER ISOLATION (sharpened by the owner design pass, OWNER 1–11):** an owner sees ONLY their own
+  properties, units, figures, statements and documents. ⚠️ **A per-unit / per-statement surface keyed on a URL
+  id is the classic isolation surface** — a foreign id must **404**, including an **operator-owned unit inside
+  the SAME organization** (measured at OWNER-10: own units 200 · same-org operator-owned 404 · another
+  property's unit 404 · nonsense 404). It is **structural**: the models carry `BelongsToOwner`, the id is a
+  plain string prop resolved by `findOrFail` under the active scope, never route-model-bound. ⚠️ A downloadable
+  **PDF is the worst-case leak** (a whole statement as a file) — cross-owner 404 there is mutation-proven
+  (OWNER-11). ⚠️ Within the owner realm #28 also means: an owner sees **their own account**, but **never guest
+  contact** (name-only at most) and **never a raw IBAN** (masked, structurally).
 - **#33 — door code is guest-only + window-gated:** shown to the guest for THEIR stay within the release window (48h); owner NEVER; withheld before the window (proven).
 - **#39 — NO fabrication:** reproduce the design with REAL data, an honest empty state, or an honest "Soon" — NEVER faked figures/history/reviews/sync/positions/cards.
 - **#20 — the property middleware does NOT run on `/livewire/update`** (it is on the `/app` route group; the tenant middleware is global). **Therefore every scope-dependent read — filters AND pagination — rides a GET link**, so each page load is freshly tenant + property scoped. See **B**.
@@ -462,6 +508,24 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 
 ## (G) ⚠️ OPEN DECISIONS — the founder's call, NOT defects
 
+> ⚠️ **SAVE v6 — two FURTHER founder calls surfaced by the owner design pass.** Both are recorded here so a
+> future session does not "fix" them unilaterally:
+>
+> - **G.4 — D16-7: money in flight is invisible in the KPIs, on BOTH realms.** `OwnerPayoutService::pay()`
+>   writes **`processing`** on the real-transfer path, but the payout tiles are built from `paid` and
+>   `pending` only — so a payout genuinely in flight appears in **no tile** (confirmed operator-side, then
+>   again owner-side at OWNER-3). ⚠️ **This is a Stripe-live prerequisite**: today the engine is test-mode so
+>   nothing sits in `processing` for long, but the moment real transfers run, an owner's money will vanish
+>   from their own summary while it moves. Surfaced, deliberately NOT fixed (it is a computation, not a
+>   design gap). Related, also logged: the payout history has **no deterministic order** — every demo row
+>   shares one `created_at` because the engine creates a run in a single pass, so ties are the normal case
+>   and a ULID tiebreaker is needed in the ONE shared read.
+> - **G.5 — the "earned this month" figure DEFINITION (OWNER-5).** My Units says *"Earned this month
+>   €541.60"* (all ledger lines by `service_date`) while Statements says *"August 2026 €721.60"* (the three
+>   lines that statement CLAIMED). **Both are correct**; the €180 gap is a real unstatemented expense.
+>   Whether the tile should include unstatemented ledger items is a **product call**, not a bug — logged, not
+>   re-worded.
+
 ### ⛔ G.1 — THE BILLING / PRICING MODEL (a GO-LIVE BLOCKER; **UNRESOLVED**)
 **Two contradictory pricing models run simultaneously, and only ONE reaches Stripe:**
 
@@ -558,7 +622,16 @@ be removed in the name of parity.
 corrected here. THE COUNT IS THE BASELINE: if a run shows 8, you broke something — go and find it (that is
 exactly how the incomplete `firstOrCreate` fix in WAVE 2 was caught).**
 
-⚠️ **THE BASELINE IS A RANGE — 5 to 9 — NOT A NUMBER (J.quater, measured across the design pass).** It was 7 at
+⚠️ **THE BASELINE IS A RANGE — 5 to 10 — NOT A NUMBER (J.quater; widened from 5–9 at SAVE v6).** **Measured
+at SAVE v6 (2026-08-10, HEAD `64272cf` + docs): `1837 tests · 1828 passed · 12,042 assertions` — **9
+non-green**, exactly the documented set (`BookingImportTest` ×6, `OwnerUnitDetailViewTest`, `StubViewsTest`
+×2).** ⚠️ **The
+upper bound moved to 10 during OWNER-10**: one run added `PublicStorefrontLandingTest` to the documented nine.
+It was proven NOT to be the change (a stashed run at HEAD showed nine, a second run with the change was clean
+at nine, and it passes 14/14 in isolation), and the obvious mechanism — its closing `assertDontSee('369')`
+catching a generated identifier — was **measured and REJECTED** (~0.004% per slug/ULID). **The mechanism is
+recorded as UNKNOWN rather than written up as a finding** (§N.4l). Next time it appears, capture the assertion
+message first. It was 7 at
 `9696b9c`, 9 after the 2026-08-10 date roll (J.ter), and **5 on a later full run in the same session**. Which
 tests fail depends on **run order and the current date**, so the count is not well-defined:
 **`BookingImportTest`** passes 11/11 in isolation and fails only in-suite (ordering); **`OwnerUnitDetailViewTest`**
@@ -754,6 +827,21 @@ Propose-before-build (STOP at ⛔ gates); **NO fabricated data** (honest empty/S
 *Memories: `project-design-parity-pass` (state) · `design-parity-technique` (method + traps).
 Deliverable + per-page record: **`docs/design/MISSING-BACKEND-BY-PAGE.md`**.*
 
+> ### 🧭 READING ORDER (the sub-sections were appended per gate, so the numbering is not the reading order)
+> **Status:** 🏁 OPERATOR **42/42** complete · ⬅ OWNER **11/32** in progress · GUEST **0/32**. **NEXT = owner page 12.**
+>
+> | Read | Section | What it gives you |
+> |---|---|---|
+> | 1 | **N.1–N.3** | the method, the deliverable, the 125-prototype enumeration |
+> | 2 | **N.8** | ⚠️ **THE FIVE PRINCIPLES** — apply every one, every gate |
+> | 3 | **N.8c** | ⚠️ **THE TWO STANDING TRAPS** — `toContain` variadic + CSS comments render |
+> | 4 | **N.10** | ⚠️ the **OWNER RUNNING LESSONS** (verify-don't-assume, structural refusals, don't-seed, read-only≠writes-nothing, false probes) |
+> | 5 | **N.9** | ⚠️ the **REOPENED OPERATOR ITEMS** — what must NOT be half-fixed from inside a page gate |
+> | 6 | **N.4 / N.4b** | the per-gate tables: operator 42/42, then owner 1–11 |
+> | 7 | **N.4c–N.4m** | the per-gate lessons in detail (each earned by one gate) |
+> | 8 | **N.5–N.7, N.8b** | realm-wide tokens · surfaced figure-honesty findings · the resume queue · the long-form process lessons |
+
+
 ## N.1 The method (unchanged between turns)
 
 Walk the **standalone prototypes in `docs/design/raw/`** — decoding the `__bundler` bundle **fresh** each time
@@ -919,7 +1007,15 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.4b OWNER realm progress — **11 of 32**
+## N.4b OWNER realm progress — **11 of 32** · `6d974d7` → `64272cf` · ⬅ **NEXT = owner page 12**
+
+**Every gate below is design-matched, browser-verified, backend-logged, baseline-held and pushed.** The
+one-line summary of what the owner realm has cost and returned so far: **three 🔴 real defects** (a chart
+misreporting money, a wizard submittable by Enter from step 1, a money-affecting calendar unusable by
+keyboard), **one realm-wide a11y item CLOSED** (P29 colour-only unread, fixed once in the shared bell),
+**one always-passing assertion class found and repaired across 36 test files**, and **six brief premises
+corrected**. Detail per gate:
+
 
 | Gate | Page(s) | Commit |
 |---|---|---|
@@ -1227,6 +1323,81 @@ measured and handed over, no side picked. ⚠️ **A refusal can be STRUCTURAL**
 (SearchService), an IBAN that **cannot** be emitted raw (`Iban::masked`), a test-send with **no recipient
 input** at all. ⚠️ **An unverified guess is NOT a finding** — when a sweep comes back negative, record the
 negative (P30's `display:none` sweep found exactly one instance).
+
+## N.8c ⚠️ THE TWO STANDING TRAPS — check both on every remaining gate
+
+**TRAP 1 — `expect(...)->not->toContain($needle, $message)` CAN NEVER FAIL.** Pest's `toContain()` is
+**variadic**, so a trailing "message" becomes a SECOND needle and the negation is satisfied by any string
+missing either one. Found at OWNER-1 and mutation-proved: `assertNoRawBlade()` — used in **36 test files
+across both realms** — could never fail, and a raw `expenses@endif` stayed green. **10 dead assertions in 5
+files were repaired**, including **#28 guest-PII-in-audit-events** and **#42 cross-owner money**; all still
+pass. ⚠️ **RULE: write `not->toContain` guards NEEDLE-ONLY, or attach the message via a separate `->and()`.**
+⚠️ And `toContain('.some-class')` matches a **class attribute**, not a CSS **rule** (OWNER-6) — assert the
+rule or the behaviour, never the selector string. **Verified clean for 10 consecutive owner gates.** Detail:
+§N.4c.
+
+**TRAP 2 — A CSS COMMENT IS RENDERED; A BLADE COMMENT IS NOT.** Three distinct forms have now bitten:
+1. **OWNER-6** — a `<x-…>` component tag *named inside a CSS comment* was **compiled by Blade** and rendered
+   into the stylesheet, **500'ing every owner page**.
+2. **`DesignTokenContrastTest`** (§J) — a whole-file substring guard matched a token literal that only
+   appeared *in a comment*, reporting a failure that was not an AA regression.
+3. **OWNER-11** — the comment documenting O2's contrast fix **shipped the OLD pre-AA hex values into every
+   generated statement PDF**, which both hid the regression for a full pass and made the obvious substring
+   guard impossible to write.
+
+⚠️ **RULE: never put design values, component tags, or fix-notes in a CSS comment — use a Blade comment**
+(stripped at compile). ⚠️ **And GUARD a document/PDF contrast fix against the GENERATED output** — O2's fix
+was correct but unguarded, and survived a whole pass unnoticed. Detail: §N.4m.
+
+## N.9 ⚠️ REOPENED OPERATOR-REALM ITEMS — the owner pass found these on the "complete" realm
+
+The operator realm is 42/42 **design-matched**, but the owner pass surfaced six items that touch it. ⚠️ **Each
+needs its OWN gate. None may be half-fixed from inside an owner page gate** — that is the discipline that kept
+`--vy-faint` and the operator shell tokens from being changed under 42 closed pages without verification.
+
+| # | Item | Evidence | Why its own gate |
+|---|---|---|---|
+| 1 | **The operator shell's on-grad tokens FAIL at the true darkest point** | gate `93247e7` set `--vy-on-grad` / `-soft` from **one** sampled pixel and claimed 4.74/4.93; measured against the real darkest point (`rgb(216,129,89)`) they are **2.95 / 2.77**, under AA | the fix needs ≈`rgb(51,45,41)` — a **visibly** darker sidebar label across all 42 closed pages |
+| 2 | **§N.4k implicit submit** — a multi-step form can be submitted from a step that is not its last | OWNER-9: Enter on **step 1** of Add-Unit filed a genuine `unit_requests` row (the server requires only name + kind) | the operator wizards (**New Reservation**, **Group Booking**) and any other multi-step form need the same check |
+| 3 | **Keyboard-unreachable `div@click` interactive grids** | OWNER-10: **31 of 36** controls on the availability calendar were clickable `<div>`s with no tabindex/role/key handler — and clicking a day writes through `OwnerBlockService`, taking inventory off-sale | the operator **Calendar, Front Desk, Housekeeping board, Maintenance board** are the same drag/click shape |
+| 4 | **The `max(2, $pct)` min-bar floor** draws a stub for a genuine 0% | recurred on **FOUR** owner pages (Dashboard, Statement, Insights, Unit Detail ×2) | belongs on the shared `<x-charts.bars>` honest-zero rule — **fix once**, not per page |
+| 5 | **The realm-wide PDF-contrast sweep** | ~**15** templates still carry the pre-AA literals, plus `PdfService.php:54`'s watermark at **2.70** on white | one sweep, not 16 hand-fixes; ⚠️ **never touch `PdfService` from a page gate** |
+| 6 | **White-on-accent-gradient family + the accent-as-text sweep** | the gradient family recurs on every page (worst so far `.vy-au-preview-cover-ph` **2.54**); the accent-as-text sweep stands at **22 fixed** of the ~248 declarations | surfaced every gate, **never half-fixed and never ADDED to** |
+
+## N.10 ⚠️ OWNER-REALM RUNNING LESSONS — carry into every remaining owner and guest page
+
+**(a) VERIFY-DON'T-ASSUME is load-bearing — but do NOT over-generalise a correction.** Six owner gates each
+corrected a premise in their own brief: OWNER-4 (the #6 roles were **inverted** — the operator proposes, the
+owner approves and prices directly), OWNER-6 (the prototype was **mislabeled**, and the scope is structural,
+not a 404), OWNER-7 (in-app is **not a toggle** — the hidden inputs are load-bearing, since `save()` defaults a
+missing key to false), OWNER-8 (**D3-4 does not apply** to the owner path, and `--vy-on-grad`'s worst case is
+the *darkest* point), OWNER-9 (**Add Unit is a REQUEST, not a create**). ⚠️ Then OWNER-10 showed the other
+edge: that last correction **did not generalise** — the Unit Detail's actions really are direct owner writes.
+**Trust the code and the prototype's own copy over any assertion in a brief — and re-verify each surface fresh.**
+
+**(b) A refusal or a scope can be STRUCTURAL.** `Iban::masked` takes only `iban_last4`, so a raw IBAN is
+un-emittable. The notification feed is self-scoped *by its query root*, not by a 404. SMS/Push are unsettable
+because `CHANNELS = ['in_app','email']`. Owners cannot create a unit **at all**. A structural refusal is
+stronger than a guard — say so, and don't "add" a check that already cannot fail.
+
+**(c) DO NOT seed demo data to enrich a screenshot.** OWNER-4 found **0 `RateGuardrail` rows**, so only the
+unguarded case was live; OWNER-11 found **exactly one owner**, so no foreign statement existed to probe.
+In both, seeding would have been mutating demo data for a picture. **The guard proves it; silence is correct.**
+
+**(d) "READ-ONLY" ≠ "WRITES NOTHING."** OWNER-11: every statement PDF download writes an `export_downloads`
+audit row **by design** (Wave B · GATE 5). What must be unchanged is the **money/state** row — disclose the
+audit write rather than claiming a side-effect-free read.
+
+**(e) A PROBE CAN PRODUCE FALSE FAILURES — three gates running.** OWNER-8: two inputs looked unnamed because
+the probe only walked ancestor labels. OWNER-10: a fix looked like it over-blocked because
+`querySelector('[x-data]')` matched the **shell's** Alpine root, not the wizard's. OWNER-11: four "contrast
+failures" were white text and two greys sitting on **dark plates**, scored against white paper. ⚠️ **Scope the
+probe to visible controls, score against the REAL composited background, and when a result contradicts what
+you just reasoned through, suspect the probe first — then correct the probe, not the page.**
+
+**(f) BACKLOG ITEMS COMPOUND.** OWNER-7's fix depended on OWNER-6 having added `.vy-sr-only` to the owner
+shell. A shared partial cannot depend on a class only one shell defines — check every shell a shared file
+renders in.
 
 ## N.8b The process lessons this pass earned, in detail (extend **L**)
 
