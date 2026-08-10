@@ -3360,3 +3360,114 @@ says *why* you cannot continue, so it was made readable anyway. The flat wash, a
   `.vy-au-preview-cover-ph` **2.54** (the *worst* instance found anywhere in the realm so far),
   `.vy-au-cta` ×3 (3.93–3.95), and the shell's `.vy-brand-mark` / `.vy-avatar` (3.88 / 3.83). Still awaiting
   its own realm-wide gate.
+
+---
+
+## §O10 — Owner Unit Detail (`/owner/units/{unit}`, `App\Livewire\Owner\OwnerUnitDetail`) · OWNER 10/32
+
+**Prototype:** `docs/design/raw/Owner Unit Detail.html` (decoded fresh). **Role:** `External Owner`
+(`EnsureOwnerCapability:calendar` — co-owner + view-only). **Writes on the page:** three, all real, all gated.
+
+### 🔴 REAL DEFECT — the availability calendar was mouse-only
+
+**31 of the page's 36 interactive elements were unreachable by keyboard.** Every clickable calendar day was a
+`<div>` carrying an Alpine `@click` with no `tabindex`, no `role` and no key handler — so *tap an open day to
+block it* (a real write through `OwnerBlockService`) and *tap a booked day for its detail* could not be done
+without a mouse. This is the GATE-30 class defect, at scale, on a control that moves inventory off-sale.
+
+Fixed by making the interactive cells real `<button type="button">`s — which restores focusability,
+Enter/Space activation and a focus ring with no JavaScript. **Browser-proven**: the day button takes focus,
+activating it by keyboard sets `sel` and reveals the block composer, and **0 form submissions fired** (the
+block itself was never sent). Regression test added and **mutation-proven** — restoring the `<div>` fails it.
+
+A day's STATE also reached assistive tech only as a fill colour (the interactive cells' `title` said
+*"Tap for detail"*, not *booked*). Each cell now names its date and state (`4 October 2026 — booked. Show
+detail.`); the past cells carry an `.vy-sr-only` state word. ⚠️ Note honestly: this closes the **4.1.2 / AT**
+gap. For the pure-visual **1.4.1** axis the three states already differ by luminance as well as hue (open
+`rgba(255,255,255,.5)`, booked a peach tint, blocked `#3A2E27`), so colour is not the sole visual cue — the
+design's own encoding is kept.
+
+### Fixed on this page (design / markup / styling only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | **31 calendar days keyboard-unreachable** | clickable `<div>` → real `<button>`; 31 → **0** unreachable |
+| 2 | Day state exposed as colour + a misleading `title` | date + state named on every cell |
+| 3 | **Two `max(2, $pct)` chart floors** — the **fourth** page with this bug | 7 genuinely-zero months now render **0px** |
+| 4 | Status block: pill + labelled button squeezed the copy to 5 lines and **duplicated the header's status** | the prototype's compact **toggle switch** (a real gated POST, `role="switch"`, state still in words) |
+| 5 | `.vy-ud-status--live` **3.20** — the design's tint assumes a card, but the pill sits on the page gradient | tint composited over a near-white plate → **4.63** (tint + text colour unchanged) |
+| 6 | ★ rating glyphs `#E8A24A` at **1.85** ×4 — *the stars are the score* | `--vy-amber-text` → **6.07** |
+| 7 | 6 accent-as-text sites (Calendar link, Agreement →, Open inbox →, Open → ×2, the month Net figure) | `--vy-accent-text` → 4.95–5.24 |
+| 8 | `--vy-faint` on the page gradient (`.vy-ud-sync` 3.98, `.vy-ud-dow` 4.13–4.37, `.vy-ud-kpi-k/-s` 4.27–4.48) | `--vy-on-grad-soft` → **6.03–6.63** |
+| 9 | Stale comment: *"weekend uplift NOT offered (unmodelled)"* directly above the editor that **does** offer it (real since Wave A/B) | corrected |
+
+**Contrast: 25 AA failures → 6** (224 text + 27 icon candidates, hidden states revealed). Icons 0 failures
+throughout.
+
+### 🚫 Refusals preserved (do NOT "fix")
+
+- **The prototype's "Guest messages" panel** — named guests, avatars, message snippets, a reply box. The live
+  page renders the owner↔operator **relay** instead (*"message your management team"*, name-free, #28). A
+  guest thread on an owner surface would breach the PII perimeter and does not exist as a feature.
+- **The prototype's cleaner identity** — `{{ cleanerName }}`, initials, "Message", "Schedule a cleaning". Live
+  shows the real `HousekeepingTask` rows **read-only** with *"Coordinated by your management team"*. No
+  fabricated cleaner, no scheduling the owner cannot actually do (#39).
+- **"Direct bookings saved you €X in commission"** — a fabricated `directRev × 0.15`. Still omitted.
+- **Per-unit payout timeline** — payouts are per-STATEMENT / per-OWNER; a per-unit timeline is a fabricated
+  attribution. The rail links the real Payouts, and says so.
+- **Channel sync / "Share listing" / `lastSync`** — no owner-facing sync exists (account-gated Channex,
+  D2-2). Live states *"Channel sync is managed by your operator"* rather than a fake synced badge (#37).
+- **No occupancy delta** — the prototype's `{{ occDelta }}` is omitted rather than invented.
+
+### ✅ Extra work kept (beyond the prototype)
+
+- The **Attribution** table (room revenue / OTA cost / commission → net) reconciling to the cent, and the
+  **Stays** table identifying bookings by their real `reference`.
+- **"Your money"** rail card, and the honest note that payouts are portfolio-wide, not per-unit.
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO10-1 — no occupancy delta vs the prior period.** The prototype shows one. `OwnerOccupancy` can produce
+  a prior month, so this is buildable; it is omitted rather than faked today. *Verdict: **REAL GAP** (small).*
+- **DO10-2 — the owner cannot schedule or request a cleaning.** The prototype offers "Schedule a cleaning";
+  housekeeping is operator-managed and there is no owner-side request entity. *Verdict: **REAL GAP** — needs a
+  request path (the Add-Unit request is the obvious precedent).*
+- **DO10-3 — per-unit channel/OTA brand breakdown.** "Channel mix" uses the real `reservations.source` enum;
+  an OTA *brand* split is unmodelled. **Channex-tied (D2-2)** — 0 reservations carry a `channel_id`.
+  *Verdict: **ACCOUNT-GATED**.*
+- **DO10-4 — the ★ star colour is hand-rolled in 11 view files** (`#E8A24A` here, a different tone in
+  `owner/reviews.blade.php`, others elsewhere). Fixed on this page only; the same 1.85 failure will recur on
+  every star surface until the glyph becomes a shared partial or token. *Verdict: **REAL GAP** (a
+  duplication-defeats-a-fix candidate — Principle 3). The Owner Reviews page is a later gate in this realm.*
+
+### ⚠️ Verified, not changed
+
+- **#42/#38 per-unit isolation — a foreign unit id 404s.** Measured in the authenticated browser: the owner's
+  own two units → **200**; an operator-owned unit in the SAME org → **404**; a unit in another property →
+  **404**; a nonsense id → **404**. Structural (`Unit` carries `BelongsToOwner`; the id is a plain string prop
+  resolved by `findOrFail` in `render()`, never route-model-bound).
+- **What the actions actually ARE** — unlike Add Unit (a request), these are **direct owner writes**, each on
+  a real gated controller route: **pause/resume** → `owner.units.toggle-status` (CAP_ACTIONS, recomputes
+  availability so it genuinely stops taking bookings) · **block a day** → `owner.calendar.block`
+  (CAP_ACTIONS, certified `OwnerBlockService`) · **edit pricing** → `owner.rates.apply` (CAP_ACTIONS **and**
+  only when `editable`). The #6 model holds as Owner-4 established it: the owner prices **directly** because
+  this room type is exclusively theirs; a shared type renders read-only with *"managed by your operator"*.
+- **Observed READ-ONLY** — every form on the page was guarded at capture phase for the whole session. After
+  walking the calendar, the composer, the pricing editor and the toggle: `units.updated_at` still the seed
+  time `2026-08-09 07:17:58`, `inventory_blocks` still 2, `rate_calendar` max `updated_at` unchanged,
+  `restrictions` still 0. **Nothing was written.**
+- **Per-unit figures (#39)** — occupancy/nights via the shared `OwnerOccupancy` **keyed by physical unit id**
+  (not the room-type-wide `AvailabilityService`, which would fold in units this owner does not own — a
+  pre-existing test locks that); net via `OwnerLedgerAttribution`; trends via `OwnerUnitAnalytics`; the badge
+  via the real cross-unit ranking. **One source — nothing re-derived in the Blade.**
+- **#28** — 0 email addresses, 0 IBANs, 0 phone-like strings on the rendered page; the day-detail payload
+  carries no contact keys; the stays table identifies bookings by `reference` only; review bylines are first
+  name + initial.
+- **§N.4k checked** — this page has no multi-step wizard. The block composer is a single-step form whose
+  submit *is* the intent, so implicit Enter submission is correct there.
+- 0 horizontal overflow at 1440×1000; 0 console errors/warnings.
+- ⚠️ **`toContain` sweep — clean negative** (ninth gate); the new guard is needle-only.
+- ⚠️ **Gradient family — surfaced, none added.** The 6 remaining failures are all white-on-accent-gradient:
+  `.vy-brand-mark` 3.88 / `.vy-avatar` 3.83 (shell), "Edit pricing" 3.93, "Save changes" 3.93, "Send message"
+  3.95, and **the SELECTED calendar day 3.95** (a member I surfaced by forcing `.is-sel`; the rule predates
+  this gate). Still awaiting the realm-wide gate.

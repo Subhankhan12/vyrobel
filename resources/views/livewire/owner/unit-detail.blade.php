@@ -12,16 +12,23 @@
     <style>
         .vy-ud-head { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
         .vy-ud-status { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:30px; font-size:11.5px; font-weight:500; }
-        .vy-ud-status--live { background:rgba(217,102,46,.13); color:#B4400F; }
-        .vy-ud-status--off { background:rgba(120,70,40,.1); color:var(--vy-muted); }
+        {{-- The design's tint assumes the pill sits on a light card; in the header it sits on the PAGE GRADIENT,
+             where #B4400F measured 3.20. Compositing the same tint over a near-white plate gives the surface the
+             design assumed (4.63) without changing either the tint or the text colour. --}}
+        .vy-ud-status--live { background:linear-gradient(rgba(217,102,46,.13),rgba(217,102,46,.13)),rgba(255,252,248,.92); color:#B4400F; }
+        .vy-ud-status--off { background:linear-gradient(rgba(120,70,40,.1),rgba(120,70,40,.1)),rgba(255,252,248,.92); color:var(--vy-muted); }
         .vy-ud-status .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+        .vy-ud-switch { width:46px; height:27px; border-radius:30px; border:none; padding:3px; box-sizing:border-box; cursor:pointer; display:inline-flex; align-items:center; justify-content:flex-start; background:rgba(120,70,40,.18); box-shadow:inset 0 1px 3px rgba(120,40,10,.18); transition:background .18s, justify-content .18s; }
+        .vy-ud-switch.is-on { background:var(--vy-grad); justify-content:flex-end; box-shadow:inset 0 1px 3px rgba(120,40,10,.3); }
+        .vy-ud-switch .knob { width:21px; height:21px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(60,30,10,.28); display:block; }
+        .vy-ud-switch:focus-visible { outline:2px solid var(--vy-accent-text); outline-offset:2px; }
         .vy-ud-hbtn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:12px; cursor:pointer; font-family:var(--vy-sans); font-size:13px; font-weight:500; text-decoration:none; }
-        .vy-ud-sync { margin-left:auto; font-size:11.5px; color:var(--vy-faint); }
+        .vy-ud-sync { margin-left:auto; font-size:11.5px; color:var(--vy-on-grad-soft); }
 
         .vy-ud-kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
-        .vy-ud-kpi-k { font-size:11px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--vy-faint); margin-bottom:5px; }
+        .vy-ud-kpi-k { font-size:11px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--vy-on-grad-soft); margin-bottom:5px; }
         .vy-ud-kpi-v { font-family:var(--vy-display); font-weight:600; font-size:26px; letter-spacing:-.02em; }
-        .vy-ud-kpi-s { font-size:11.5px; color:var(--vy-faint); margin-top:3px; }
+        .vy-ud-kpi-s { font-size:11.5px; color:var(--vy-on-grad-soft); margin-top:3px; }
 
         .vy-ud-top { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:18px; align-items:start; margin-bottom:18px; }
         @media (max-width:960px){ .vy-ud-top { grid-template-columns:1fr; } }
@@ -30,8 +37,11 @@
         .vy-ud-stack { display:flex; flex-direction:column; gap:18px; min-width:0; }
 
         .vy-ud-cal { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
-        .vy-ud-dow { text-align:center; font-size:10px; font-weight:600; letter-spacing:.06em; color:var(--vy-faint); }
-        .vy-ud-day { aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:9px; font-size:12.5px; font-variant-numeric:tabular-nums; }
+        .vy-ud-dow { text-align:center; font-size:10px; font-weight:600; letter-spacing:.06em; color:var(--vy-on-grad-soft); }
+        {{-- The interactive days are real <button>s (blocking a day is a real write, and a clickable <div> is
+             unreachable by keyboard). The reset keeps them pixel-identical to the non-interactive cells. --}}
+        .vy-ud-day { aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:9px; font-size:12.5px; font-variant-numeric:tabular-nums; font-family:var(--vy-sans); font-weight:400; padding:0; margin:0; width:100%; box-sizing:border-box; background:none; border:none; color:inherit; text-align:center; }
+        button.vy-ud-day:focus-visible { outline:2px solid var(--vy-accent-text); outline-offset:2px; }
         .vy-ud-day--open { background:rgba(255,255,255,.5); border:1px solid rgba(120,70,40,.1); color:var(--vy-ink); cursor:pointer; }
         .vy-ud-day--open:hover { background:rgba(217,102,46,.1); }
         .vy-ud-day--open.is-sel { background:var(--vy-grad); color:#fff; }
@@ -109,13 +119,16 @@
             </div>
             <div class="vy-ud-cal">
                 @for ($i = 1; $i < $calendar['first_weekday']; $i++)<div></div>@endfor
+                {{-- A day's STATE reaches assistive tech as a word, never as a fill colour alone; the two
+                     interactive states are <button>s so the block/detail actions are keyboard-operable. --}}
                 @foreach ($calendar['days'] as $c)
+                    @php $dayLabel = \Illuminate\Support\Carbon::parse($c['date'])->format('j F Y'); @endphp
                     @if ($c['state'] === 'open')
-                        <div class="vy-ud-day vy-ud-day--open" :class="sel === @js($c['date']) ? 'is-sel' : ''" @click="sel = (sel === @js($c['date']) ? null : @js($c['date'])); detail = null" title="Open — tap to block">{{ $c['day'] }}</div>
+                        <button type="button" class="vy-ud-day vy-ud-day--open" :class="sel === @js($c['date']) ? 'is-sel' : ''" @click="sel = (sel === @js($c['date']) ? null : @js($c['date'])); detail = null" aria-label="{{ $dayLabel }} — open. Select to block this day.">{{ $c['day'] }}</button>
                     @elseif ($c['state'] === 'booked' || $c['state'] === 'blocked')
-                        <div class="vy-ud-day vy-ud-day--{{ $c['state'] }}" style="cursor:pointer" @click="detail = (detail && detail.date === @js($c['date'])) ? null : Object.assign({date: @js($c['date'])}, details[@js($c['date'])] || {}); sel = null" title="Tap for detail">{{ $c['day'] }}</div>
+                        <button type="button" class="vy-ud-day vy-ud-day--{{ $c['state'] }}" style="cursor:pointer" @click="detail = (detail && detail.date === @js($c['date'])) ? null : Object.assign({date: @js($c['date'])}, details[@js($c['date'])] || {}); sel = null" aria-label="{{ $dayLabel }} — {{ $c['state'] }}. Show detail.">{{ $c['day'] }}</button>
                     @else
-                        <div class="vy-ud-day vy-ud-day--{{ $c['state'] }}" title="{{ ucfirst($c['state']) }}">{{ $c['day'] }}</div>
+                        <div class="vy-ud-day vy-ud-day--{{ $c['state'] }}">{{ $c['day'] }}<span class="vy-sr-only"> — {{ $c['state'] }}</span></div>
                     @endif
                 @endforeach
             </div>
@@ -159,7 +172,7 @@
                     <button type="button" class="vy-btn vy-btn--ghost" style="padding:7px 13px;font-size:12.5px" @click="sel = null">Cancel</button>
                 </form>
             @endownercan
-            <p class="vy-line-sub" style="font-size:11px;margin-top:12px">Blocked days hold the unit off-sale. Manage all blocks on your <a href="{{ route('owner.calendar', ['unit' => $unit['id']]) }}" style="color:var(--vy-accent)">Calendar</a>.</p>
+            <p class="vy-line-sub" style="font-size:11px;margin-top:12px">Blocked days hold the unit off-sale. Manage all blocks on your <a href="{{ route('owner.calendar', ['unit' => $unit['id']]) }}" style="color:var(--vy-accent-text)">Calendar</a>.</p>
         </section>
 
         {{-- Pricing & availability — REAL nightly + min-stay + weekend uplift (OwnerRateService, Wave-A/B) --}}
@@ -173,13 +186,18 @@
                     <div style="font-size:13.5px;font-weight:500">{{ $unit['active'] ? 'Open for bookings' : 'Paused' }}</div>
                     <div style="font-size:11.5px;color:var(--vy-faint);margin-top:2px">{{ $unit['active'] ? 'Pause to stop taking new bookings — your existing stays are kept.' : 'This unit isn’t taking new bookings. Resume when you’re ready.' }}</div>
                 </div>
+                {{-- The design's compact toggle. A pill + a labelled button here duplicated the header's status and
+                     squeezed the copy into five lines; the switch restores the wireframe and gives the sentence its
+                     width back. The STATE stays in words to its left ("Open for bookings" / "Paused"), so it is never
+                     carried by the switch's colour alone — and it is still one real gated POST. --}}
                 <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-                    <span class="vy-ud-status {{ $unit['active'] ? 'vy-ud-status--live' : 'vy-ud-status--off' }}"><span class="dot"></span>{{ $unit['active'] ? 'Active' : 'Paused' }}</span>
                     @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
                         <form method="POST" action="{{ route('owner.units.toggle-status', $unit['id']) }}" style="margin:0">
                             @csrf
-                            <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12px">{{ $unit['active'] ? 'Pause' : 'Resume' }}</button>
+                            <button type="submit" class="vy-ud-switch {{ $unit['active'] ? 'is-on' : '' }}" role="switch" aria-checked="{{ $unit['active'] ? 'true' : 'false' }}" aria-label="Open for bookings"><span class="knob"></span></button>
                         </form>
+                    @else
+                        <span class="vy-ud-status {{ $unit['active'] ? 'vy-ud-status--live' : 'vy-ud-status--off' }}"><span class="dot"></span>{{ $unit['active'] ? 'Active' : 'Paused' }}</span>
                     @endownercan
                 </div>
             </div>
@@ -193,9 +211,11 @@
                 @endif
             </div>
 
-            {{-- Edit — REAL: nightly + min-stay → owner.rates.apply (returns here); weekend uplift NOT offered
-                 (unmodelled). The whole edit affordance is CAP_ACTIONS-gated (co-owner only) + editable-only, so a
-                 view-only sub-user or a shared room type never gets a write control (#20/#30 — gate the control). --}}
+            {{-- Edit — REAL: nightly + weekend uplift + min-stay → owner.rates.apply (returns here). The uplift IS
+                 offered and IS real (Wave A/B — RateAndRestrictionService writes the uplifted price onto Fri/Sat
+                 nights); an earlier note here still called it unmodelled. The whole edit affordance is
+                 CAP_ACTIONS-gated (co-owner only) + editable-only, so a view-only sub-user or a shared room type
+                 never gets a write control (#20/#30 — gate the control). --}}
             @if ($pricing['editable'])
                 @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
                     <button type="button" x-show="! editing" class="vy-btn vy-btn--ghost" style="margin-top:14px;padding:8px 14px;font-size:12.5px" @click="editing = true">
@@ -216,7 +236,7 @@
                         <label class="vy-field-label" for="ud_min">Minimum stay (nights)</label>
                         <input id="ud_min" type="number" name="min_stay" min="1" max="365" value="{{ $pricing['min_stay'] }}" class="vy-input" style="width:100%;margin-bottom:8px" placeholder="Optional">
                         {{-- Live preview — the derived Fri/Sat price (base × (1 + uplift%)) before saving --}}
-                        <p x-show="weekend > 0" x-cloak class="vy-line-sub" style="font-size:11.5px;margin:0 0 8px;color:var(--vy-ink)">Fri &amp; Sat nights become <strong style="color:var(--vy-accent)" x-text="'€' + Math.round(rate * (1 + weekend/100))"></strong> / night; weekdays stay <span x-text="'€' + rate"></span>.</p>
+                        <p x-show="weekend > 0" x-cloak class="vy-line-sub" style="font-size:11.5px;margin:0 0 8px;color:var(--vy-ink)">Fri &amp; Sat nights become <strong style="color:var(--vy-accent-text)" x-text="'€' + Math.round(rate * (1 + weekend/100))"></strong> / night; weekdays stay <span x-text="'€' + rate"></span>.</p>
                         <p class="vy-line-sub" style="font-size:11px;margin:0 0 12px">Applies from today across the next year. It’s live immediately.</p>
                         <div style="display:flex;gap:9px">
                             <button type="button" class="vy-btn vy-btn--ghost" style="flex:1;justify-content:center" @click="editing = false">Cancel</button>
@@ -240,7 +260,7 @@
                         @foreach ($revenueTrend['bars'] as $b)
                             <div class="vy-ud-bar-col" title="{{ $b['label'] }} · {{ $b['display'] }}">
                                 <span style="font-size:9.5px;color:var(--vy-faint)">{{ $b['display'] }}</span>
-                                <div class="vy-ud-bar" style="height:{{ max(2, $b['pct']) }}%"></div>
+                                <div class="vy-ud-bar" style="height:{{ $b['pct'] }}%{{ $b['pct'] > 0 ? ';min-height:2px' : '' }}"></div>
                                 <span style="font-size:10px;color:var(--vy-faint)">{{ $b['label'] }}</span>
                             </div>
                         @endforeach
@@ -259,7 +279,7 @@
                 <div class="vy-ud-rev-chart">
                     @foreach ($occupancyTrend['bars'] as $b)
                         <div class="vy-ud-bar-col" title="{{ $b['label'] }} · {{ $b['display'] }}">
-                            <div class="vy-ud-bar vy-ud-bar--occ" style="height:{{ max(2, $b['pct']) }}%"></div>
+                            <div class="vy-ud-bar vy-ud-bar--occ" style="height:{{ $b['pct'] }}%{{ $b['pct'] > 0 ? ';min-height:2px' : '' }}"></div>
                             <span style="font-size:10px;color:var(--vy-faint)">{{ $b['label'] }}</span>
                         </div>
                     @endforeach
@@ -275,7 +295,7 @@
                         <tbody>
                             @foreach ($group['credits'] as $line)<tr><td>{{ $line['label'] }}</td><td class="vy-num vy-mono">{{ $line['display'] }}</td></tr>@endforeach
                             @foreach ($group['deductions'] as $line)<tr><td>{{ $line['label'] }}</td><td class="vy-num vy-mono">{{ $line['display'] }}</td></tr>@endforeach
-                            <tr><td><strong>Net</strong></td><td class="vy-num vy-mono" style="color:var(--vy-accent)">{{ $group['net_display'] }}</td></tr>
+                            <tr><td><strong>Net</strong></td><td class="vy-num vy-mono" style="color:var(--vy-accent-text)">{{ $group['net_display'] }}</td></tr>
                         </tbody>
                     </table>
                 @empty
@@ -315,13 +335,13 @@
                     <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
                         <span class="vy-ud-reviews-score">{{ number_format((float) $reviews['average'], 1) }}</span>
                         <div>
-                            <div style="color:#E8A24A;font-size:15px">{{ str_repeat('★', (int) round((float) $reviews['average'])) }}{{ str_repeat('☆', 5 - (int) round((float) $reviews['average'])) }}</div>
+                            <div style="color:var(--vy-amber-text);font-size:15px">{{ str_repeat('★', (int) round((float) $reviews['average'])) }}{{ str_repeat('☆', 5 - (int) round((float) $reviews['average'])) }}</div>
                             <div class="vy-line-sub">{{ $reviews['count'] }} {{ \Illuminate\Support\Str::plural('review', $reviews['count']) }} · published</div>
                         </div>
                     </div>
                     @foreach ($reviews['list'] as $r)
                         <div class="vy-ud-review">
-                            <div style="display:flex;justify-content:space-between;gap:10px"><span style="font-size:13px;font-weight:600">{{ $r['byline'] }}</span><span style="color:#E8A24A;font-size:12px">{{ $r['stars'] }}</span></div>
+                            <div style="display:flex;justify-content:space-between;gap:10px"><span style="font-size:13px;font-weight:600">{{ $r['byline'] }}</span><span style="color:var(--vy-amber-text);font-size:12px">{{ $r['stars'] }}</span></div>
                             @if ($r['body'])<div class="vy-line-sub" style="font-size:12.5px;margin-top:4px;line-height:1.5">{{ $r['body'] }}</div>@endif
                             <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">{{ $r['at'] }}</div>
                         </div>
@@ -350,7 +370,7 @@
                     <span class="vy-eyebrow">Commission</span>
                     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:8px">
                         <span style="font-family:var(--vy-display);font-weight:600;font-size:20px">{{ $commission['display'] ?? 'Not set' }}</span>
-                        <a href="{{ route('owner.agreement') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Agreement →</a>
+                        <a href="{{ route('owner.agreement') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">Agreement →</a>
                     </div>
                     <div class="vy-line-sub" style="font-size:11.5px;margin-top:4px">{{ $commission['scope_label'] }}, in effect today.</div>
                 </section>
@@ -404,14 +424,14 @@
                     <textarea name="body" rows="3" class="vy-input" style="width:100%;resize:vertical" placeholder="Ask your management team about this unit…" required></textarea>
                     <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:10px">Send message</button>
                 </form>
-                <a href="{{ route('owner.messages') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600;display:inline-block;margin-top:10px">Open inbox →</a>
+                <a href="{{ route('owner.messages') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600;display:inline-block;margin-top:10px">Open inbox →</a>
             </section>
 
             {{-- Your money — payouts are per-statement, not per-unit (honest; no fabricated per-unit timeline #39) --}}
             <section class="vy-card vy-fade vy-ud-rail-card">
                 <span class="vy-eyebrow">Your money</span>
-                <a href="{{ route('owner.balance') }}" style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--vy-hairline);text-decoration:none;color:var(--vy-ink);font-size:13px;margin-top:6px"><span>Balance</span><span style="color:var(--vy-accent)">Open →</span></a>
-                <a href="{{ route('owner.payouts') }}" style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--vy-hairline);text-decoration:none;color:var(--vy-ink);font-size:13px"><span>Payouts</span><span style="color:var(--vy-accent)">Open →</span></a>
+                <a href="{{ route('owner.balance') }}" style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--vy-hairline);text-decoration:none;color:var(--vy-ink);font-size:13px;margin-top:6px"><span>Balance</span><span style="color:var(--vy-accent-text)">Open →</span></a>
+                <a href="{{ route('owner.payouts') }}" style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--vy-hairline);text-decoration:none;color:var(--vy-ink);font-size:13px"><span>Payouts</span><span style="color:var(--vy-accent-text)">Open →</span></a>
                 <p class="vy-line-sub" style="font-size:11px;margin-top:8px">Payouts are made per statement across your whole portfolio, not per unit.</p>
             </section>
         </div>

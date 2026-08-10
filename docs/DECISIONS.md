@@ -6974,3 +6974,46 @@ validation theatre. **Kept beyond the prototype:** "Your requests", and photo up
 `units` 8, `room_types` 3, `media` 6, `rate_calendar` 925, `units.updated_at` still the seed time. No schema
 touched, so no `migrate:fresh`. Suite **1835 / 12,036 · 9 non-green** (the documented non-deterministic set);
 PHPStan L5 (0); Pint clean; 0 overflow, 0 console errors.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER 10/32 · **Owner Unit Detail** (`/owner/units/{unit}`)
+
+Presentation-only gate. **One real defect, one premise that did *not* generalise, one rejected hypothesis.**
+
+**1. 🔴 The availability calendar was mouse-only.** 31 of the page's 36 interactive elements were
+keyboard-unreachable: every clickable day was a `<div>` with an Alpine `@click`, no `tabindex`, no `role`,
+no key handler. *Tap an open day to block it* is a REAL write through the certified `OwnerBlockService` —
+it takes inventory off-sale — so a keyboard user could not perform a money-affecting action at all. This is
+GATE-30's class of defect at scale. Fixed by making the interactive cells real `<button>`s, which restores
+focus, Enter/Space and a ring with no JavaScript. Browser-proven by keyboard **with every form guarded and
+0 submissions fired**; regression test mutation-proven.
+
+Each cell now also names its date and state — the interactive cells' `title` said *"Tap for detail"*, so the
+state reached assistive tech only as a fill colour. Recorded honestly: that closes **4.1.2**; on the visual
+**1.4.1** axis the three states already differ by luminance rather than hue alone, so the design's encoding
+is kept.
+
+**2. The Owner-9 premise does NOT generalise.** Add Unit is a *request*; these are **direct owner writes** —
+pause/resume (`owner.units.toggle-status`), block a day (`owner.calendar.block`) and price
+(`owner.rates.apply`), each CAP_ACTIONS-gated, and pricing additionally only when the room type is
+exclusively owned. #6 holds exactly as Owner-4 established it. Verified rather than assumed.
+
+**3. Contrast 25 → 6.** The ★ rating glyphs measured **1.85** — and the stars *are* the score. The "Active"
+pill measured **3.20** because the design's tint assumes a card while the pill sits on the page gradient;
+compositing the same tint over a near-white plate reaches 4.63 without altering the tint or the text colour.
+The `max(2, $pct)` chart floor appeared for the **fourth** time (7 genuinely-zero months drew stubs). The
+status block was restored to the prototype's compact toggle switch, which had been replaced by a pill plus a
+labelled button that duplicated the header's status and squeezed the copy into five lines.
+
+**4. ⚠️ The baseline set gained a new member, mechanism unknown.** One run showed 10 non-green, the extra
+being `PublicStorefrontLandingTest`. Not this change: the diff cannot render that page, a stashed run at HEAD
+showed the usual nine, a second run with the change was clean at nine, and it passes 14/14 in isolation. A
+hypothesis ("a generated id contains the literal `369`, which the test forbids by substring") was **measured
+and rejected** — ~0.004% per identifier. Recorded as unknown rather than written up. See §N.4l; the baseline
+is now **5–10**.
+
+**#42 measured in-browser:** own units 200 · an operator-owned unit in the same org 404 · another property's
+unit 404 · nonsense 404. **Read-only honoured**: `units.updated_at` still the seed time, `inventory_blocks`
+still 2, `rate_calendar` untouched, `restrictions` 0. No schema touched, so no `migrate:fresh`.
+Suite **1836 / 12,040**; PHPStan L5 (0); Pint clean; 0 overflow, 0 console errors.

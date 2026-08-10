@@ -314,3 +314,19 @@ it('gates the block + edit-pricing writes to CAP_ACTIONS — a view-only sub-use
         ->assertDontSee('owner/rates/apply')
         ->assertDontSee('owner/calendar/block');
 });
+
+// ── The availability calendar must be operable WITHOUT a mouse ────────────────────────────────────
+// Blocking a day is a real write (OwnerBlockService). The interactive cells were clickable <div>s with no
+// tabindex, role or key handler — 31 of the page's 36 interactive elements were unreachable by keyboard, so
+// the whole block-a-day flow was mouse-only. They are real <button>s now, and a day's STATE reaches assistive
+// tech as a word rather than as a fill colour alone.
+it('renders the interactive calendar days as keyboard-operable buttons that name their state', function () {
+    $s = seedScenario(1);
+    $o = unitDetailOwner($s, 0);
+
+    $html = (string) $this->actingAs($o['user'])->get('/owner/units/'.$o['unit']->id)->assertOk()->getContent();
+
+    expect($html)->toContain('<button type="button" class="vy-ud-day vy-ud-day--open"')
+        ->and($html)->toContain('— open. Select to block this day.')
+        ->and($html)->not->toContain('<div class="vy-ud-day vy-ud-day--open"');
+});
