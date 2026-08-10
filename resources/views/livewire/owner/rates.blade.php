@@ -7,20 +7,34 @@
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-owner.shell active="rates" :title="'Rates & pricing'" :subtitle="'Review the pricing your manager proposes and set the limits they work within.'" :viewer="$viewer">
     <style>
+        /* ⚠️ This page was written with the prototype's RAW pre-AA greys (#A69A92, #8A8079) rather than the
+           tokens — 21 measured AA failures, the worst of the owner realm so far, on the copy that explains
+           what the guardrail actually does. All moved to --vy-muted (4.80-6.76 across this page's
+           sampled backgrounds; the old pair measured 1.89-3.74). */
         .vy-rt-card { background:rgba(255,252,248,.58); backdrop-filter:blur(22px) saturate(1.15); border:1px solid rgba(255,255,255,.75); border-radius:20px; box-shadow:0 14px 40px rgba(150,90,50,.16), inset 0 1px 0 rgba(255,255,255,.65); padding:22px 24px; }
+        /* The wireframe's two columns — a wide "decide" column and a narrower "constrain/context" rail.
+           Its own flex values: the main column grows aggressively (999) from a 360px basis, the rail from
+           300px with a 280px floor, so they stack on a narrow screen without a media query. */
+        .vy-rt-cols { display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; }
+        .vy-rt-col-main { flex:999 1 360px; min-width:0; }
+        .vy-rt-col-side { flex:1 1 300px; min-width:280px; display:flex; flex-direction:column; gap:18px; }
         .vy-rt-h2 { margin:0; font-family:var(--vy-display),'Sora',sans-serif; font-weight:500; font-size:16px; letter-spacing:-.01em; }
-        .vy-rt-eyebrow { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:#9C9089; }
+        .vy-rt-eyebrow { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--vy-muted); }
         .vy-rt-prop { border:1px solid rgba(255,255,255,.7); background:rgba(255,255,255,.4); border-radius:15px; padding:16px 18px; }
         .vy-rt-delta { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
         .vy-rt-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:8px 15px; border-radius:11px; font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; border:1px solid transparent; }
         .vy-rt-approve { background:linear-gradient(140deg,#5FA35A,#3F7A38); color:#fff; border:none; }
-        .vy-rt-decline { background:rgba(255,255,255,.7); border:1px solid rgba(120,70,40,.16); color:#8A8079; }
+        .vy-rt-decline { background:rgba(255,255,255,.7); border:1px solid rgba(120,70,40,.16); color:var(--vy-muted); }
         .vy-rt-counter { background:rgba(255,255,255,.7); border:1px solid rgba(120,70,40,.16); color:#C2410C; }
         .vy-rt-seg { display:flex; gap:6px; padding:4px; border-radius:14px; background:rgba(120,70,40,.06); border:1px solid rgba(120,70,40,.10); }
-        .vy-rt-segopt { flex:1; padding:9px 0; border-radius:11px; border:none; background:transparent; color:#8A8079; font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; transition:background .14s; }
+        .vy-rt-segopt { flex:1; padding:9px 0; border-radius:11px; border:none; background:transparent; color:var(--vy-muted); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; transition:background .14s; }
         .vy-rt-segopt.on { background:#fff; color:#C2410C; box-shadow:0 2px 8px rgba(150,90,50,.18); }
         .vy-rt-in { display:flex; align-items:center; gap:6px; border:1px solid rgba(120,70,40,.14); background:rgba(255,255,255,.75); border-radius:12px; padding:9px 12px; }
         .vy-rt-in input { flex:1; min-width:0; border:none; outline:none; background:transparent; font:inherit; font-size:13.5px; color:var(--vy-ink); padding:0; }
+        /* ⚠️ `outline:none` on the inner input left these controls with NO visible focus indicator at all
+           (WCAG 2.4.7) — and they are the guardrail's floor/ceiling and the counter-offer rate. The ring
+           goes on the WRAPPER via :focus-within, matching .vy-input:focus elsewhere in the shell. */
+        .vy-rt-in:focus-within { border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232, 112, 58, .10); }
     </style>
 
     @php $notice = session('owner_notice') ?? session('rate_notice'); $error = session('owner_error') ?? session('rate_error'); @endphp
@@ -32,12 +46,20 @@
     @endif
 
     {{-- ══ 1 · PROPOSED RATE CHANGES (real #67 + the built counter) ══ --}}
+    {{-- ⚠️ The wireframe's TWO COLUMNS: everything the owner READS AND DECIDES on the left (the proposals
+         they act on, then the rates those proposals are about), and everything that CONSTRAINS or
+         CONTEXTUALISES on the right (the guardrails, then where they sit). The page was a stack of
+         full-width bands with one 2-up row in the middle, so the guardrail card — the thing the left
+         column's proposals are judged against — sat below the fold of what it governs. --}}
+    <div class="vy-rt-cols">
+    <div class="vy-rt-col-main">
+
     <section class="vy-rt-card vy-fade" style="margin-bottom:18px">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
             <h2 class="vy-rt-h2">Proposed rate changes</h2>
             @if (count($proposals) > 0)<span class="vy-rt-eyebrow" style="color:var(--vy-accent)">{{ count($proposals) }} to review</span>@endif
         </div>
-        <p style="font-size:12.5px;color:#8A8079;margin:6px 0 0">Your manager suggests these based on demand. Approve, decline, or send a counter.</p>
+        <p style="font-size:12.5px;color:var(--vy-muted);margin:6px 0 0">Your manager suggests these based on demand. Approve, decline, or send a counter.</p>
 
         @forelse ($proposals as $p)
             <div class="vy-rt-prop" style="margin-top:14px" x-data="{ counter: false }">
@@ -45,17 +67,17 @@
                     <div style="min-width:0;flex:1">
                         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
                             <span style="font-size:14px;font-weight:600;color:var(--vy-ink)">{{ $p['villa'] }}</span>
-                            <span class="vy-rt-eyebrow" style="letter-spacing:.02em;text-transform:none;color:#A69A92">{{ $p['window'] }}</span>
+                            <span class="vy-rt-eyebrow" style="letter-spacing:.02em;text-transform:none;color:var(--vy-muted)">{{ $p['window'] }}</span>
                         </div>
-                        @if ($p['rationale'] !== '')<div style="font-size:12.5px;color:#8A8079;margin-top:4px;line-height:1.5">{{ $p['rationale'] }}</div>@endif
-                        <div style="font-size:11.5px;color:#A69A92;margin-top:6px">Effective {{ $p['effective'] }}</div>
+                        @if ($p['rationale'] !== '')<div style="font-size:12.5px;color:var(--vy-muted);margin-top:4px;line-height:1.5">{{ $p['rationale'] }}</div>@endif
+                        <div style="font-size:11.5px;color:var(--vy-muted);margin-top:6px">Effective {{ $p['effective'] }}</div>
                     </div>
                     <div style="text-align:right;flex-shrink:0">
                         <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
-                            <span class="vy-mono" style="font-size:12.5px;color:#A69A92;text-decoration:line-through">{{ $p['from_str'] }}</span>
+                            <span class="vy-mono" style="font-size:12.5px;color:var(--vy-muted);text-decoration:line-through">{{ $p['from_str'] }}</span>
                             <span class="vy-mono" style="font-size:16px;font-weight:600;color:var(--vy-ink)">{{ $p['to_str'] }}</span>
                         </div>
-                        <div style="font-size:10.5px;color:#A69A92;margin-top:1px">per night</div>
+                        <div style="font-size:10.5px;color:var(--vy-muted);margin-top:1px">per night</div>
                         <div style="margin-top:6px"><span class="vy-rt-delta" style="background:{{ $p['up'] ? 'rgba(79,122,70,.14)' : 'rgba(224,146,30,.14)' }};color:{{ $p['up'] ? '#3F6A38' : '#93610C' }}">{{ $p['delta_str'] }}</span></div>
                     </div>
                 </div>
@@ -76,7 +98,7 @@
                         @csrf
                         <div style="flex:1;min-width:150px">
                             <div class="vy-rt-eyebrow" style="margin-bottom:6px">Your counter · € / night</div>
-                            <div class="vy-rt-in"><span style="color:#A69A92">€</span><input type="text" inputmode="decimal" name="counter_rate" required placeholder="e.g. 450" maxlength="12"></div>
+                            <div class="vy-rt-in"><span style="color:var(--vy-muted)">€</span><input type="text" inputmode="decimal" name="counter_rate" required placeholder="e.g. 450" maxlength="12"></div>
                         </div>
                         <div style="flex:2;min-width:180px">
                             <div class="vy-rt-eyebrow" style="margin-bottom:6px">Note <span style="text-transform:none;letter-spacing:0;color:#B7ADA4">· optional</span></div>
@@ -87,17 +109,15 @@
                 @endif
             </div>
         @empty
-            <div style="margin-top:14px;padding:18px;border-radius:14px;background:rgba(120,70,40,.04);font-size:13px;color:#8A8079;text-align:center">No proposed changes right now — you’re all caught up.</div>
+            <div style="margin-top:14px;padding:18px;border-radius:14px;background:rgba(120,70,40,.04);font-size:13px;color:var(--vy-muted);text-align:center">No proposed changes right now — you’re all caught up.</div>
         @endforelse
     </section>
-
-    <div class="vy-cols" style="display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start">
 
         {{-- ══ 2 · CURRENT RATES (real Base/Weekend/Occ — Peak omitted) ══ --}}
         <section class="vy-rt-card vy-fade" style="animation-delay:.04s">
             <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
                 <h2 class="vy-rt-h2">Current rates</h2>
-                <span style="font-size:12px;color:#A69A92">Live nightly rates across your units</span>
+                <span style="font-size:12px;color:var(--vy-muted)">Live nightly rates across your units</span>
             </div>
             @if ($cards === [])
                 <div class="vy-empty" style="margin-top:12px">You don’t have any room types to price here.<div class="vy-line-sub" style="margin-top:6px">Rates are set per room type; where your unit shares a room type with another party, your management team sets the rate.</div></div>
@@ -120,11 +140,15 @@
             @endif
         </section>
 
+    </div>{{-- /vy-rt-col-main --}}
+
+    <div class="vy-rt-col-side">
+
         {{-- ══ 3 · PRICING GUARDRAILS (BUILT, enforcing) ══ --}}
         <section class="vy-rt-card vy-fade" style="animation-delay:.08s"
                  x-data="{ mode: @js($guardrail['mode']), auto: {{ $guardrail['auto_pct'] }} }">
             <h2 class="vy-rt-h2">Pricing guardrails</h2>
-            <p style="font-size:12px;color:#8A8079;margin:6px 0 14px">The limits your manager prices within.</p>
+            <p style="font-size:12px;color:var(--vy-muted);margin:6px 0 14px">The limits your manager prices within.</p>
             <form method="POST" action="{{ route('owner.rates.guardrails') }}">
                 @csrf
                 <input type="hidden" name="pricing_mode" :value="mode">
@@ -136,7 +160,13 @@
                 </div>
 
                 <div class="vy-rt-eyebrow" style="margin-bottom:7px">Auto-approve changes within <span class="vy-mono" style="color:var(--vy-accent)">±<span x-text="auto"></span>%</span></div>
-                <input type="range" name="auto_approve_pct" min="0" max="25" step="1" x-model="auto" style="width:100%;accent-color:var(--vy-accent);margin-bottom:6px">
+                {{-- ⚠️ The visible heading above is a <div>, not a <label for>, so this slider had NO
+                     accessible name — the control that sets how much of the owner's pricing authority is
+                     delegated. aria-label + aria-valuetext so the value is announced as a tolerance. --}}
+                <input type="range" name="auto_approve_pct" min="0" max="25" step="1" x-model="auto"
+                       aria-label="Auto-approve rate changes within this percentage"
+                       :aria-valuetext="'plus or minus ' + auto + ' percent'"
+                       style="width:100%;accent-color:var(--vy-accent);margin-bottom:6px">
                 {{-- WAVE 2 · #6 — scoped to what is ACTUALLY enforced. This said "Every change needs your
                      sign-off before it goes live", which is not true of every change: RateProposalService
                      really does enforce the mode, the ±% tolerance AND the floor/ceiling on a PROPOSED rate,
@@ -144,38 +174,43 @@
                      The copy now promises exactly the proposal path. Binding the operator's direct changes to
                      an owner's floor/ceiling is a real shift of control between operator and owner and is a
                      PRODUCT DECISION, deliberately not made here — see DECISIONS.md. --}}
-                <p style="font-size:11px;color:#A69A92;margin:0 0 6px" x-text="Number(auto) === 0 ? 'Every rate your operator proposes needs your sign-off before it goes live.' : ('Proposed changes within ±' + auto + '% go live automatically; anything larger waits for your approval.')"></p>
-                <p style="font-size:11px;color:#A69A92;margin:0 0 16px">These limits apply to rates your operator <strong>proposes</strong>. Your operator can still set a rate directly — you’ll see it here and on your calendar.</p>
+                <p style="font-size:11px;color:var(--vy-muted);margin:0 0 6px" x-text="Number(auto) === 0 ? 'Every rate your operator proposes needs your sign-off before it goes live.' : ('Proposed changes within ±' + auto + '% go live automatically; anything larger waits for your approval.')"></p>
+                <p style="font-size:11px;color:var(--vy-muted);margin:0 0 16px">These limits apply to rates your operator <strong>proposes</strong>. Your operator can still set a rate directly — you’ll see it here and on your calendar.</p>
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+                {{-- ⚠️ minmax(0,1fr), not 1fr: a grid track's default min-width is `auto`, so these two
+                     inputs refused to shrink below their content and pushed the whole page into
+                     horizontal overflow the moment the guardrail card moved into the narrower rail. --}}
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:16px">
                     <div>
                         <div class="vy-rt-eyebrow" style="margin-bottom:7px">Floor / night</div>
-                        <div class="vy-rt-in"><span style="color:#A69A92">€</span><input type="text" inputmode="decimal" name="floor" value="{{ $guardrail['floor'] }}" placeholder="min" maxlength="12"></div>
+                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">€</span><input type="text" inputmode="decimal" name="floor" value="{{ $guardrail['floor'] }}" placeholder="min" maxlength="12"></div>
                     </div>
                     <div>
                         <div class="vy-rt-eyebrow" style="margin-bottom:7px">Ceiling / night</div>
-                        <div class="vy-rt-in"><span style="color:#A69A92">€</span><input type="text" inputmode="decimal" name="ceiling" value="{{ $guardrail['ceiling'] }}" placeholder="max" maxlength="12"></div>
+                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">€</span><input type="text" inputmode="decimal" name="ceiling" value="{{ $guardrail['ceiling'] }}" placeholder="max" maxlength="12"></div>
                     </div>
                 </div>
 
                 <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center">Save guardrails</button>
             </form>
         </section>
-    </div>
 
-    {{-- ══ 4 · WHERE YOU SIT (real average; comp-set/market honestly omitted) ══ --}}
-    <section class="vy-rt-card vy-fade" style="animation-delay:.12s;margin-top:18px">
-        <h2 class="vy-rt-h2">Where you sit</h2>
-        <div style="display:flex;align-items:center;gap:32px;flex-wrap:wrap;margin-top:14px">
-            <div>
+        {{-- ══ 4 · WHERE YOU SIT (real average; comp-set/market honestly omitted) ══ --}}
+        <section class="vy-rt-card vy-fade" style="animation-delay:.12s">
+            <h2 class="vy-rt-h2">Where you sit</h2>
+            <div style="margin-top:14px">
                 <div class="vy-rt-eyebrow">Your average rate</div>
                 <div class="vy-mono" style="font-family:var(--vy-display),'Sora',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin-top:4px">{{ $avgDisplay ?? '—' }}</div>
+                {{-- ⚠️ The wireframe puts a comp-set average and a "priced 5% below market" bar here. There is
+                     no market-rate source, so there is no comparison to draw — and a market bar is exactly the
+                     kind of authoritative-looking figure that must not be invented (#39). The sentence stays. --}}
+                <p style="font-size:12px;color:var(--vy-muted);line-height:1.55;margin:12px 0 0;padding-top:12px;border-top:1px solid rgba(120,70,40,.12)">
+                    Market benchmarking — how your rates compare to similar local properties — is coming once we connect a market-rate source. We won’t show a comparison until it’s real.
+                </p>
             </div>
-            <div style="flex:1;min-width:200px;font-size:12px;color:#8A8079;line-height:1.55;padding-left:20px;border-left:1px solid rgba(120,70,40,.12)">
-                Market benchmarking — how your rates compare to similar local properties — is coming once we connect a market-rate source. We won’t show a comparison until it’s real.
-            </div>
-        </div>
-    </section>
+        </section>
+    </div>{{-- /vy-rt-col-side --}}
+    </div>{{-- /vy-rt-cols --}}
 
     {{-- ══ DIRECT EDIT (the app's real shipped capability — kept alongside the manager-proposes model) ══ --}}
     @if ($cards !== [])
@@ -188,7 +223,7 @@
                  x-data="{ map: @js($rateMap), rate: '{{ old('rate', $sel['rate']) }}', weekend: {{ old('weekend_uplift', $sel['weekend']) }}, min: '{{ old('min_stay', $sel['min']) }}',
                            prefill(id) { const m = this.map[id]; if (m) { this.rate = m.rate; this.weekend = m.weekend; this.min = m.min; } } }">
             <h2 class="vy-rt-h2">Adjust a rate directly</h2>
-            <p style="font-size:12px;color:#8A8079;margin:6px 0 14px">You can also set your own rate directly — it goes live immediately (no sign-off), for every unit in the room type.</p>
+            <p style="font-size:12px;color:var(--vy-muted);margin:6px 0 14px">You can also set your own rate directly — it goes live immediately (no sign-off), for every unit in the room type.</p>
             <form method="POST" action="{{ route('owner.rates.apply') }}">
                 @csrf
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">

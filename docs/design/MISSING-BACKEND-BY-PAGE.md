@@ -2757,3 +2757,112 @@ still open at Dashboard 5 / Statement 3 / Payouts 6.
 - ⚠️ **A stale docblock corrected** (principle 5) — the class comment declared
   `Payout.status ∈ pending/paid/failed/reversed`, omitting **`processing` and `held`**. That is the *same
   blind spot* that produces D16-7, written down.
+
+---
+
+## §O4 — Owner Rates (`/owner/rates`, `App\Livewire\Owner\OwnerRates`) · OWNER 4/32
+
+**Prototype** `docs/design/raw/Owner Rates.html` (decoded fresh; byte-identical to `/tmp/audit`, 46,216 chars).
+**Role** the real `External Owner`; the route carries `$capActions` (CAP_ACTIONS).
+
+### ⚠️ THE PROMPT'S PREMISE WAS INVERTED — and the code and the wireframe agree with each other, not with it
+
+The gate brief described this page as "the GUARDED path: the owner proposes, `RateProposalService` validates
+against the guardrail". **The real direction is the opposite**, verified in the source:
+
+- `RateProposalService::propose()` is the **OPERATOR** side. The guardrail constrains what the **manager** may
+  propose — below `floor_minor` / above `ceiling_minor` is **rejected**, and a change within
+  ±`auto_approve_pct` **auto-applies**; anything larger stays `pending` for the owner.
+- The **owner** side of that service is `approve()` / `decline()` (and this page's built `counter`).
+- The owner's own pricing here is a **DIRECT apply** — `owner.rates.apply` → `OwnerRateController` →
+  the certified `OwnerRateService`. It is live immediately; it is not a proposal.
+- The owner **CONFIGURES** the guardrail (`owner.rates.guardrails`) — i.e. the owner sets the limits their
+  manager works within.
+
+⚠️ **The prototype's own header says exactly this**: *"Review the pricing your manager proposes and set the
+limits they work within."* The brief's framing was the one thing out of step. Recorded because the wrong
+mental model would have produced a "propose" flow that does not exist and a guardrail pointed at the wrong
+actor.
+
+### ⚠️ Fixture truth first (the guarded/unguarded split, verified before asserting anything)
+
+- **`RateGuardrail` rows in the entire database: 0.** So the demo owner has none — the P22 finding ("the
+  guardrail silence is CORRECT — no `RateGuardrail` binds this owner") still holds, one realm later.
+- **`rate_proposals`: 0** — the proposals card is genuinely empty, not stubbed.
+- The owner's two units (A1, A2) share ONE room type, and **no foreign unit sits on it**, so it is
+  exclusively owned and genuinely priceable by the owner.
+
+**⚠️ Therefore the LIVE page can only demonstrate the UNGUARDED case.** The guarded case was verified in the
+source and in `RateProposalTest`, which seeds **real** `RateGuardrail` rows (floor/ceiling rejection, dynamic
+auto-approve, fixed mode) — so guardrail enforcement is **not** vacuously tested. No guardrail was seeded for
+this gate: that would be mutating demo data to make a screenshot look richer.
+
+### ⚠️ And the honesty question that matters — is the unguarded copy TRUE?
+
+With **no** guardrail row, the card shows mode `Dynamic`, **±0%**, empty floor/ceiling, and says *"Every rate
+your operator proposes needs your sign-off before it goes live."* Traced into `propose()`: with
+`$guardrail === null` there is no floor/ceiling rejection and no auto-approve branch, so **every proposal
+stays `pending`**. The sentence is **literally true**, not a comforting approximation. There is **no
+"within policy" badge, no fabricated limit, and no implied protection** anywhere on the page. The second
+note — *"Your operator can still set a rate directly"* — is also true (that is the operator's unguarded
+`RateActionController` path). **This page passes the trap it was set.**
+
+### The backend this page implies but does not have
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| DO4-1 | **"Where you sit"** — a comp-set average (€465), a position bar, and *"Priced 5% below market — room to grow"*. | No market-rate source of any kind. The live card shows the REAL average alone and says benchmarking arrives "once we connect a market-rate source. We won't show a comparison until it's real." | A market-rate / comp-set data feed. | **RATIFIED REFUSAL (#39) — market-data class.** A comp-set average and a "5% below market" verdict are exactly the authoritative-looking figures that must not be invented on a pricing surface. |
+| DO4-2 | A **Peak** rate column beside Base and Weekend. | Base and Weekend are REAL (weekend is a real per-night uplift, Wave A/B). There is no Peak/seasonal TIER entity. | A seasonal rate-tier model. | **REAL GAP.** ⚠️ Do not render a Peak column off the max of the calendar — that would present a derived maximum as a configured tier. |
+| DO4-3 | Per-proposal **rationale** ("Strong demand for Jul–Aug and your comp set is averaging €465") and a **season** chip. | `rate_proposals` carries a real rationale/window and the live card renders both when present. The comp-set half of the mock's rationale has no source. | — | **PARTIAL — already REAL**, minus the market claim. Recorded so the sweep does not "add" the comp-set sentence. |
+| DO4-4 | Occupancy colour-banded per row (green / amber / terracotta). | Live bands the same way — and always prints the **number**, so it is not colour-only (1.4.1). | — | **NOT A GAP — verified.** |
+| DO4-5 | The guardrail's **floor/ceiling** as plain per-night euros. | Real and enforcing — but they are a **single owner-wide band**, not per room type or per season, while rates are per room type. | Per-room-type (or per-season) guardrail rows. | **REAL GAP — design-level.** ⚠️ Worth deciding deliberately: an owner-wide floor across differently-priced room types is a blunt instrument. |
+
+### Fixed this gate (design + a11y; markup/CSS only — no service, engine, guardrail, rate or proposal touched)
+
+- **The wireframe's TWO COLUMNS restored.** The page was a stack of full-width bands with one 2-up row, so
+  the guardrail card — the thing the left column's proposals are judged against — sat below the fold of what
+  it governs. Now: decide-column (proposals → current rates) + constrain/context rail (guardrails → where you
+  sit), using the wireframe's own flex values (999 1 360px / 1 1 300px, min 280px), so it stacks without a
+  media query.
+- ⚠️ **A horizontal overflow the restructure exposed and closed**: the guardrail's floor/ceiling grid used
+  `1fr 1fr`, whose default track min-width is `auto`, so the inputs refused to shrink in the narrower rail
+  and pushed the document to **1537px against a 1440px viewport**. `minmax(0, 1fr)` — now 0 overflow.
+- **Contrast 21 → 3** (the 3 being the known gradient family). ⚠️ **This page was the worst in the owner realm
+  so far** because it hardcoded the prototype's pre-AA greys instead of the tokens: `#A69A92` ×10 and
+  `#8A8079` ×7 measured **1.89–3.74**, on the copy that explains *what the guardrail actually does*. Plus
+  `.vy-rt-eyebrow`'s `#9C9089`, the inactive segmented option, and two SHELL-level fixes below.
+- **Two shell-level AA fixes** (both re-verified on the Payouts page, which stayed at its 4 known family
+  failures): `.vy-topbar-sub` sits **directly on the page gradient**, not on glass — `--vy-muted` measured
+  **3.80** there, so it moved to `--vy-on-grad` (4.68), the token made for that surface; and
+  `.vy-nav-item.is-active` measured **4.49** on its own frosted pill → `--vy-accent-text` (5.34).
+- **Keyboard: two real defects fixed.** `.vy-rt-in input` carried `outline:none` with **no** `:focus` styling,
+  so the guardrail's floor/ceiling and the counter-offer rate had **no visible focus indicator at all**
+  (WCAG 2.4.7) — a `:focus-within` ring now matches `.vy-input:focus`. And the **auto-approve slider had no
+  accessible name** (its heading is a `<div>`, not a `<label for>`) — the control that decides how much
+  pricing authority is delegated; it now carries an `aria-label` + a live `aria-valuetext`.
+  ⚠️ **Two "unnamed" date inputs were a FALSE POSITIVE of my own probe** — they have proper sibling
+  `<label for>` elements and my resolver only walked ancestors. Corrected the probe, not the page.
+  Final: **37 controls, 0 unreachable / 0 unnamed / 0 without a focus indicator.**
+
+⚠️ **Carried, not fixed:** the same `outline:none`-without-`:focus` pattern exists on `.vy-mu-rate-input input`
+(My Units) and `.vy-au-money input` (Add Unit). Logged for those page gates rather than blind-fixed here.
+
+### ⚠️ Verified, not changed
+
+- **Every control POSTs the real OWNER route** — `owner.rate-proposals.approve|decline|counter`,
+  `owner.rates.guardrails`, `owner.rates.apply`. **Nothing on this page touches the operator's unguarded
+  `RateActionController`.**
+- **READ-ONLY honoured.** Nothing was submitted. Verified after the gate: **`rate_proposals` still 0**,
+  **`rate_guardrails` still 0**, and `rate_calendar`'s newest `updated_at` is still the seed timestamp
+  (2026-08-09 07:17:59) — no rate was written.
+- **#42 / #38** — a foreign `?room_type=` in the URL is ignored outright: "Double Room" appears **nowhere**,
+  the selector offers only the owner's own exclusively-owned type, and the page falls back to it. A shared or
+  foreign room type can neither be seen nor priced (`OwnerRateService::editableRoomTypes()`).
+- **Rate figures real (#39)** — €180.00 base is the real rate; Weekend shows an honest "—" (no uplift set);
+  22% is real occupancy; the average is the owner's real average. No recommended rate, no market figure, no
+  trend without history.
+- ⚠️ **`toContain` sweep — clean negative**, as at Owner-2/3: `OwnerRatesTest` and `RateProposalTest` contain
+  **no** `not->toContain(...)` at all, so none can carry the Owner-1 always-passing defect.
+- ⚠️ **A stale docblock corrected** (principle 5): `OwnerRates` still declared that Guardrails were
+  "unmodelled … NOT rendered as real" and that proposals lived only in the attention feed. **Both shipped and
+  are on this page.** Only the comp-set and the Peak tier remain unmodelled — and both stay refused.

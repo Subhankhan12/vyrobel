@@ -35,11 +35,17 @@ use Livewire\Component;
  * rate is per-room-type, editing a shared one would move someone else's price. `?room_type=` / `?from=` ride GET
  * so the owner middleware re-runs (a wire-action would bypass the owner scope — invariant #20).
  *
- * ⚠️ DIVERGENCE (recorded): the "Owner Rates" design is an approval/guardrails model (the manager proposes,
- * the owner signs off, floor/ceiling guardrails). The decision is FULL DIRECT edit — the owner sets the rate
- * and it is live. Operator→owner RATE PROPOSALS are now REAL (#67 — a `rate_proposal` entity the owner approves/
- * declines), but surfaced in the ATTENTION feed (My Units / Overview / Insights), not on this Rates page. The
- * design's Guardrails, comp-set and the Peak tier remain unmodelled → NOT rendered as real (no fake "pending sign-off").
+ * ⚠️ STALE DIVERGENCE CORRECTED (design pass · Owner-4). This used to read: "the design's Guardrails, comp-set
+ * and the Peak tier remain unmodelled … Operator→owner RATE PROPOSALS are … surfaced in the ATTENTION feed …
+ * not on this Rates page." TWO of those three claims have since shipped and are on THIS page:
+ *   • PROPOSALS are here — the real #67 `rate_proposal` cards with Approve / Decline / Counter, each POSTing
+ *     an `owner.rate-proposals.*` route.
+ *   • GUARDRAILS are here AND ENFORCING — a real {@see RateGuardrail} row, saved via `owner.rates.guardrails`,
+ *     which {@see RateProposalService::propose()} genuinely applies: below floor / above ceiling is REJECTED,
+ *     and a change within ±`auto_approve_pct` auto-applies. ⚠️ With NO row the service leaves every proposal
+ *     `pending` — which is exactly what the card's ±0% state says, so the copy is literally true.
+ * Only the **comp-set / market position** and the **Peak tier** are still unmodelled, and both stay refused.
+ * The DIRECT edit remains real and additional: the owner sets their own rate and it is live immediately.
  *
  * Wave-B (owner completeness sweep · GATE 3): the design's BASE + WEEKEND tiers are now REAL — the editor sets
  * the nightly (weekday) rate, a WEEKEND UPLIFT % (writes the higher price onto Fri/Sat via the Wave-A

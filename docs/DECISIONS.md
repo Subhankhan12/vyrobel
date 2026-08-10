@@ -6624,3 +6624,75 @@ real.
 
 **Gates:** suite **1833 / 12,024 · 9 non-green** — the identical documented set, no new failures. PHPStan L5
 (0); Pint clean; 1440×1000 verified, 0 horizontal overflow, 0 console errors. No schema touched.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER gate O4: Owner Rates (4 of 32) — the guarded sibling
+
+**Route** `/owner/rates` (`OwnerRates`, CAP_ACTIONS), role `External Owner`. Prototype
+`docs/design/raw/Owner Rates.html`, decoded fresh (byte-identical to `/tmp/audit`). Record §O4.
+**Markup/CSS only — no service, engine, guardrail, rate or proposal touched.**
+
+### ⚠️ The gate brief's premise was inverted — corrected before building anything
+
+The brief called this "the GUARDED path: the owner proposes, validated against the guardrail". In fact
+`RateProposalService::propose()` is the **OPERATOR** side — the guardrail constrains what the **manager** may
+propose (below floor / above ceiling **rejected**; within ±`auto_approve_pct` **auto-applies**; larger stays
+`pending`). The **owner** approves / declines / counters, **sets** the guardrail, and prices their own
+exclusively-owned room types by **direct apply** (`owner.rates.apply` → certified `OwnerRateService`). The
+prototype's own header agrees: *"Review the pricing your manager proposes and set the limits they work
+within."* Taken at face value the brief would have produced a propose-flow that does not exist and a
+guardrail pointed at the wrong actor.
+
+### ⚠️ The fabricated-guardrail trap — the page passes it
+
+**Fixture truth established first: 0 `RateGuardrail` rows in the entire database, 0 `rate_proposals`.** So
+live can only demonstrate the UNGUARDED case. Traced into `propose()`: with no row there is no floor/ceiling
+rejection and no auto-approve branch, so **every proposal stays pending** — which is exactly what the card's
+±0% state says (*"Every rate your operator proposes needs your sign-off before it goes live"*). The copy is
+literally true. **No "within policy" badge, no fabricated limit, no implied protection.** Guarded enforcement
+is covered non-vacuously by `RateProposalTest`, which seeds **real** guardrail rows (floor/ceiling rejection,
+dynamic auto-approve, fixed). **No guardrail was seeded for this gate** — that would be mutating demo data to
+make a screenshot look richer.
+
+### Decided
+
+- **The wireframe's two columns restored.** The guardrail card — the thing the left column's proposals are
+  judged against — had been sitting below the fold of what it governs.
+- ⚠️ **A horizontal overflow the restructure exposed and closed**: `1fr 1fr` grid tracks default to an `auto`
+  minimum, so the floor/ceiling inputs refused to shrink in the narrower rail and pushed the document to
+  **1537px against a 1440px viewport**. `minmax(0, 1fr)`.
+- **Contrast 21 → 3 — the realm's worst page so far**, because it hardcoded the prototype's pre-AA greys
+  instead of the tokens (`#A69A92` ×10, `#8A8079` ×7, measured **1.89–3.74**) on the copy that explains what
+  the guardrail actually does.
+- **Two SHELL-level AA fixes, both re-verified on Payouts (no regression):** `.vy-topbar-sub` sits **directly
+  on the page gradient**, not on glass — `--vy-muted` read 3.80 there, so it moved to `--vy-on-grad` (4.68);
+  and `.vy-nav-item.is-active` read 4.49 on its own frosted pill → `--vy-accent-text` (5.34).
+- **Two real keyboard defects fixed:** `.vy-rt-in input` carried `outline:none` with **no** `:focus` styling —
+  the guardrail's floor/ceiling and the counter-offer rate had **no visible focus indicator at all**; and the
+  **auto-approve slider had no accessible name** (its heading is a `<div>`, not a `<label for>`) — the control
+  that decides how much pricing authority is delegated. ⚠️ Two "unnamed" date inputs were a **false positive
+  of my own probe** (proper sibling `<label for>`; the resolver only walked ancestors) — the probe was
+  corrected, not the page.
+- **Refused (#39):** the comp-set average, the market-position bar and *"Priced 5% below market"* — no
+  market-rate source exists; and the **Peak** tier, which is not a modelled entity (deriving it from the
+  calendar's maximum would present a derived number as a configured tier).
+
+### Verified, not changed
+
+Every control POSTs the real **owner** route (`owner.rate-proposals.approve|decline|counter`,
+`owner.rates.guardrails`, `owner.rates.apply`) — **nothing touches the operator's unguarded
+`RateActionController`**. **READ-ONLY honoured**, confirmed after the gate: `rate_proposals` still **0**,
+`rate_guardrails` still **0**, `rate_calendar`'s newest `updated_at` still the seed timestamp — no rate
+written. **#42/#38**: a foreign `?room_type=` is ignored outright ("Double Room" appears nowhere; the
+selector offers only the exclusively-owned type). **Rate figures real**: €180.00 base, an honest "—" weekend
+(no uplift set), 22% real occupancy. **Keyboard 37 / 0 / 0 / 0.** ⚠️ **`toContain` sweep — clean negative**
+(`OwnerRatesTest` and `RateProposalTest` contain none at all). ⚠️ **Stale docblock corrected**: `OwnerRates`
+still declared Guardrails "unmodelled … NOT rendered as real" and proposals as attention-feed-only — both
+shipped and are on this page.
+
+**Carried, not fixed:** the same `outline:none`-without-`:focus` pattern on `.vy-mu-rate-input input`
+(My Units) and `.vy-au-money input` (Add Unit) — logged for those gates.
+
+**Gates:** suite **1833 / 12,024 · 9 non-green** — the identical documented set, no new failures. PHPStan L5
+(0); Pint clean; 1440×1000, **0 horizontal overflow**, 0 console errors. No schema touched.

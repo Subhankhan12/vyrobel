@@ -173,8 +173,10 @@
         }
         .vy-nav-item .vy-ico { width: 16px; height: 16px; flex: none; }
         .vy-nav-item:hover { background: rgba(255, 255, 255, 0.35); }
+        /* ⚠️ --vy-accent measured 4.49 on the active pill's own frosted background — a hair under AA, on the
+           one nav item that tells the owner where they are. --vy-accent-text reads 5.34. */
         .vy-nav-item.is-active {
-            background: rgba(255, 255, 255, 0.72); color: var(--vy-accent); font-weight: 500;
+            background: rgba(255, 255, 255, 0.72); color: var(--vy-accent-text); font-weight: 500;
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 4px 14px rgba(150, 90, 50, 0.14); border: 1px solid rgba(255, 255, 255, 0.8);
         }
@@ -684,7 +686,10 @@
            Built on the OWNER tokens above, not copied from the operator layout: the two design systems
            are deliberately separate files (the owner one is the warmer, calmer of the two). The shapes
            mirror the operator inbox because a conversation is a conversation. */
-        .vy-topbar-sub { font-size: 12px; color: var(--vy-muted); margin-top: 3px; }
+        /* ⚠️ This sub-line sits DIRECTLY ON THE PAGE GRADIENT, not on glass — --vy-muted measured 3.80
+           against the gradient's sampled pixel. --vy-on-grad is the token made for exactly this surface
+           (4.68). The same distinction the sidebar needed at the operator realm's first a11y gate. */
+        .vy-topbar-sub { font-size: 12px; color: var(--vy-on-grad); margin-top: 3px; }
         .vy-flash { display: flex; align-items: center; gap: 9px; padding: 11px 14px; border-radius: var(--vy-r-md); font-size: 13px; font-weight: 500; margin-bottom: 16px; }
         .vy-flash.is-ok { background: rgba(31, 122, 90, 0.10); color: var(--vy-green); border: 1px solid rgba(31, 122, 90, 0.18); }
         .vy-flash.is-err { background: rgba(178, 106, 8, 0.10); color: var(--vy-amber); border: 1px solid rgba(178, 106, 8, 0.2); }
