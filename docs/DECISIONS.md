@@ -6551,3 +6551,76 @@ words, and **no remittance link offered** — is unchanged, and the `assertDontS
 **Gates:** suite **1833 / 12,024 · 9 non-green** — the identical documented set (`BookingImportTest` ×6,
 `OwnerUnitDetailViewTest`, `StubViewsTest` ×2), re-measured this gate, no new failures. PHPStan L5 (0); Pint
 clean; screen + PDF browser-verified; 0 horizontal overflow, 0 console errors. No schema touched.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER gate O3: Owner Payouts (3 of 32) — the payout surface
+
+**Route** `/owner/payouts` (`OwnerPayouts`), role `External Owner`. Prototype
+`docs/design/raw/Owner Payouts.html`, decoded fresh (byte-identical to `/tmp/audit`; 168,102 chars, the
+largest owner prototype). Record: `docs/design/MISSING-BACKEND-BY-PAGE.md` §O3. **Markup/CSS only — no
+service, engine, money query, bank record or preference touched.**
+
+### ⚠️⚠️ The finding: D16-7 recurs on the owner's own payouts page
+
+`OwnerPayoutService::pay()` writes **`processing`** on the real-transfer path. `OwnerPayouts::metrics()`
+builds all three tiles from `status === 'paid'` and `status === 'pending'` only. **A payout genuinely in
+flight is therefore in no tile at all** — the owner's "Pending" drops to zero and "Paid this year" does not
+move, while the money is actually moving. `held` is absent from the tiles too. Verified by construction;
+**logged, not fixed** (it is a computation, and this pass is design-only). It becomes wrong the day Stripe
+goes live, not before.
+
+⚠️ The **same omission was written in the class docblock** (`status ∈ pending/paid/failed/reversed`).
+Corrected. *When a comment enumerates states, a gap there previews the bug in the code beneath it.*
+
+### ⚠️ A second real defect: the payout history has no deterministic order
+
+`OwnerPortalService::payouts()` orders by `created_at` DESC alone, and **all six demo payouts share one
+timestamp** — the sort key distinguishes nothing and the list renders **oldest-first**, the opposite of the
+design and of what a money ledger should show. ⚠️ Not a demo artifact: `PayoutRunService` creates a run's
+payouts in one pass, so ties are the normal case. **Logged, not fixed** — it is an ORDER BY in a shared read
+that the Dashboard, Statement, Payouts page and the CSV export all consume; it must change in one place so a
+page and its export cannot disagree.
+
+### ⚠️ `--vy-green-text` re-tuned — the same single-sample mistake, one gate later
+
+The green pill token set at O2 was fitted to the Statement/Dashboard rows; on the Payouts table's warmer rows
+the "Paid" pills measured **4.31–4.44**. Re-tuned against the worst background it meets (5.86–6.04 there,
+6.41–6.51 on the cooler rows) and **the Statement page was re-measured** — still at its 3 known failures, so
+no regression. **Two gates running, a token fitted to one sample has been wrong on the next page. Tune to the
+worst case, then go back and re-measure the pages already passed.**
+
+### Decided
+
+- **The summary line reuses `$metrics`, it does not re-sum the rows** — the same total must not be computed
+  twice on one page.
+- **The new state pills show only REAL state** (the `$hold` the banner already uses; the stored pause
+  preference) and are absent when there is nothing to say.
+- **Refused (#39):** projected future payouts ("~€9,850 · Projected", a trailing-3-month average), a retry
+  ETA, and the bank-**verification** hold with an "est. release" date. A projected payout amount is a
+  fabricated figure on the most authoritative money surface an owner has.
+- **The live payout-day set (1st–5th business day) is the truthful one** and was kept over the mock's
+  "15th / Last": offering a cadence `PayoutSchedule` cannot run would be a promise the engine breaks.
+- **The white-on-accent-gradient family recurs (6 instances) — not half-fixed, and nothing added to it.**
+
+### Verified, not changed
+
+**#17** — Paid this year **€2,804.40** = the five real `paid` rows to the cent; Pending €885.60 = the one real
+`pending` row; the dark rail's breakdown (1,080.00 − 194.40 + 0.00 = 885.60) matches the statement it links
+to; one source, no Blade re-derivation. **#71** — every status is the real row status, under a standing
+test-mode banner; nothing claims a live transfer. **#28** — destination masked, structurally un-emittable
+raw; no guest data. **#42** — owner-scoped; cross-owner remittance 404s (already covered). **READ-ONLY
+honoured** — verified after the gate: the bank method's `updated_at` is still the seed timestamp, **no payout
+-preference row exists at all**, payout statuses unchanged. **Keyboard** 58 visible controls, 0 unreachable /
+0 unnamed / 0 without a ring / 0 `display:none` inputs. **Contrast 21 → 6**, real-pixel measured across both
+viewport halves. ⚠️ **`toContain` sweep — clean negative** (both payout-test calls are needle-only).
+
+⚠️ **A method note:** this prototype could not be screenshotted (its stacked blurred-glass layers and
+infinite animations exceed the browser tool's render budget), and the live page hit the same wall whenever a
+page-wide `color: transparent` measurement style was injected. The design was read from the decode plus
+rendered text/computed styles, and the contrast sweep was re-cut to hide text on **only the candidate
+elements**. Faithful, but not a screenshot — recorded rather than glossed. Live before/after screenshots are
+real.
+
+**Gates:** suite **1833 / 12,024 · 9 non-green** — the identical documented set, no new failures. PHPStan L5
+(0); Pint clean; 1440×1000 verified, 0 horizontal overflow, 0 console errors. No schema touched.

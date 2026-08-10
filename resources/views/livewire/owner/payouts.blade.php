@@ -32,7 +32,8 @@
         .vy-po-acct-sub { font-size: 12px; color: var(--vy-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
         /* Payout-preferences form — segmented radio pills. */
-        .vy-po-pref-label { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #9C9089; margin: 14px 0 7px; }
+        /* ⚠️ was the prototype's pre-AA #9C9089 — measured 2.66 on this card. */
+        .vy-po-pref-label { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-muted); margin: 14px 0 7px; }
         .vy-po-pref-label:first-child { margin-top: 4px; }
         .vy-po-seg { display: flex; gap: 4px; padding: 4px; border-radius: var(--vy-r-pill); background: rgba(120, 70, 40, .06); border: 1px solid var(--vy-glass-border); flex-wrap: wrap; }
         .vy-po-seg-opt { flex: 1; min-width: 54px; }
@@ -98,7 +99,15 @@
                     <div class="vy-kpi-sub">{{ $metrics['pending_count'] > 0 ? 'Awaiting disbursement' : 'Nothing pending' }}</div>
                 </div>
                 <div class="vy-kpi">
-                    <div class="vy-kpi-label">Pending</div>
+                    {{-- The wireframe puts a state pill beside this label. It shows the REAL hold only —
+                         the same $hold the banner is driven by — so it can never claim a state the row
+                         is not actually in, and it is absent when nothing is held. --}}
+                    <div class="vy-kpi-label" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                        <span>Pending</span>
+                        @if ($hold)
+                            <span class="vy-status vy-status--pending" style="text-transform:none;letter-spacing:0"><span class="vy-dot"></span>On hold</span>
+                        @endif
+                    </div>
                     <div class="vy-kpi-val">{{ $metrics['pending_total_display'] }}</div>
                     <div class="vy-kpi-sub">{{ $metrics['pending_count'] }} {{ \Illuminate\Support\Str::plural('payout', $metrics['pending_count']) }}</div>
                 </div>
@@ -106,8 +115,19 @@
 
             {{-- Payout history — REAL rows; search + status filter client-side; Export = a real CSV (CAP_EXPORTS) --}}
             <section class="vy-card vy-fade" style="animation-delay:.06s" x-data="{ q: '', status: 'all' }">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:10px">
-                    <h2 class="vy-card-title">Payout history</h2>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:10px">
+                    <div>
+                        <h2 class="vy-card-title">Payout history</h2>
+                        {{-- The wireframe's summary line under the title. ⚠️ It REUSES the figures the KPI tiles
+                             already show ($metrics) — it does NOT re-sum the rows, which would be a second money
+                             computation of the same total (the anti-drift rule). Omitted entirely when there is
+                             nothing paid and nothing pending, rather than printing a pair of zeros. --}}
+                        @if ($metrics['paid_count'] > 0 || $metrics['pending_count'] > 0)
+                            <div class="vy-line-sub" style="margin-top:4px">
+                                {{ $metrics['paid_this_year_display'] }} paid across {{ $metrics['paid_count'] }} {{ \Illuminate\Support\Str::plural('payout', $metrics['paid_count']) }}@if ($metrics['pending_count'] > 0) · {{ $metrics['pending_total_display'] }} pending @endif
+                            </div>
+                        @endif
+                    </div>
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                         {{-- WAVE 3 — the YEAR filter. distinctYears() already computed the owner's REAL payout
                              years and nothing rendered them. Real years only (never a fabricated range), and
@@ -163,7 +183,7 @@
                                     <td class="vy-num vy-mono">{{ $p['amount_display'] }}</td>
                                     <td class="vy-num" style="white-space:nowrap">
                                         @if ($p['statement_id'])
-                                            <a href="{{ route('owner.statements.show', $p['statement_id']) }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Statement</a>
+                                            <a href="{{ route('owner.statements.show', $p['statement_id']) }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">Statement</a>
                                         @endif
                                         @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                                             <a href="{{ route('owner.payouts.remittance', $p['id']) }}" class="vy-btn vy-btn--ghost" style="margin-left:8px;padding:5px 10px;font-size:12px" title="Download the remittance advice for this payout as a PDF">Remittance</a>
@@ -233,7 +253,7 @@
                 <div style="display:flex;justify-content:space-between;align-items:center">
                     <span class="vy-eyebrow">Payout account</span>
                     @if ($payoutAccount['can_manage'])
-                        <a href="{{ route('owner.payout-method') }}" style="font-size:12.5px;font-weight:600;color:var(--vy-accent)">Manage</a>
+                        <a href="{{ route('owner.payout-method') }}" style="font-size:12.5px;font-weight:600;color:var(--vy-accent-text)">Manage</a>
                     @endif
                 </div>
                 @if ($payoutAccount['has_method'])
@@ -245,7 +265,7 @@
                         </div>
                     </div>
                 @elseif ($payoutAccount['can_manage'])
-                    <div class="vy-line-sub" style="margin-top:8px">No bank account yet. <a href="{{ route('owner.payout-method') }}" style="color:var(--vy-accent);font-weight:600">Add one →</a></div>
+                    <div class="vy-line-sub" style="margin-top:8px">No bank account yet. <a href="{{ route('owner.payout-method') }}" style="color:var(--vy-accent-text);font-weight:600">Add one →</a></div>
                 @else
                     <div style="font-size:13.5px;font-weight:500;margin-top:8px">Bank transfer</div>
                     <div class="vy-line-sub">Managed by the account owner.</div>
@@ -279,7 +299,14 @@
             {{-- Payout preferences — a REAL owner-scoped store. Editable by a payout-capable owner (CAP_PAYOUT) via a
                  controller POST (#20); read-only for others. A PREFERENCE, not a schedule — labelled so (#39). --}}
             <section class="vy-card vy-fade" style="animation-delay:.15s">
-                <span class="vy-eyebrow">Payout preferences</span>
+                {{-- The wireframe carries a state pill beside this heading. It reflects the owner's REAL
+                     stored pause preference — nothing else. --}}
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                    <span class="vy-eyebrow">Payout preferences</span>
+                    <span class="vy-status vy-status--{{ $preferences['paused'] ? 'pending' : 'paid' }}" style="text-transform:none;letter-spacing:0">
+                        <span class="vy-dot"></span>{{ $preferences['paused'] ? 'Paused' : 'Active' }}
+                    </span>
+                </div>
                 @if ($preferences['can_manage'])
                     <form method="POST" action="{{ route('owner.payouts.preferences') }}" style="margin-top:6px">
                         @csrf

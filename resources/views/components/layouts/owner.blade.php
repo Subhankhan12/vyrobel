@@ -43,7 +43,11 @@
                sampled, not computed from the declared background). These three are the tint-safe
                counterparts; the plain --vy-green / --vy-amber / --vy-accent stay the BRAND fills (dots,
                icons, gradients, borders) and are unchanged. Measured after: 4.71 / 4.76 / 4.75. */
-            --vy-green-text: rgb(27, 106, 78);
+            /* ⚠️ Re-tuned at the Payouts gate, for the SAME reason the amber was at the Statement gate:
+               it was fitted to the Statement/Dashboard rows and read 4.31–4.44 on the Payouts table's
+               warmer rows. Now measured against the WORST background it meets — 5.86–6.04 there, and
+               6.41–6.51 back on the cooler rows. Tune a token to the worst case, never the first. */
+            --vy-green-text: rgb(20, 84, 62);
             /* ⚠️ Re-tuned at the Statement gate. Owner-1 set this to rgb(141,84,6) from ONE sampled
                background; on the Statement's slightly warmer glass the same pill measured 4.45–4.50 —
                marginal, one side of AA. Tuned against the WORST of the sampled backgrounds instead of
@@ -337,7 +341,9 @@
 
         /* History table */
         .vy-table { width: 100%; border-collapse: collapse; }
-        .vy-table thead th { text-align: left; font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--vy-faint); padding: 0 14px 12px; }
+        /* ⚠️ --vy-faint measured 4.47 here (a 9.5px column header on the warm glass) — under AA by a
+           hair, on the labels that say what each money column IS. --vy-muted reads 5.39. */
+        .vy-table thead th { text-align: left; font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--vy-muted); padding: 0 14px 12px; }
         .vy-table thead th.vy-num, .vy-table td.vy-num { text-align: right; }
         .vy-table tbody tr { transition: background .15s ease; }
         .vy-table tbody tr:hover { background: rgba(255, 255, 255, 0.5); }

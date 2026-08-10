@@ -2651,3 +2651,109 @@ change that makes the gradient accessible. **Running realm accent-site total: Ow
 - ⚠️ **A stale docblock corrected** (principle 5): `OwnerStatementView` still declared the by-unit split, the
   occupancy chart and the history CSV export "DEFERRED (visually stubbed…)". **All three have shipped and are
   real.** Nothing on the screen is stubbed.
+
+---
+
+## §O3 — Owner Payouts (`/owner/payouts`, `App\Livewire\Owner\OwnerPayouts`) · OWNER 3/32
+
+**Prototype** `docs/design/raw/Owner Payouts.html` (decoded fresh; byte-identical to `/tmp/audit`, **168,102
+chars** — the largest owner prototype). **Role** the real `External Owner`.
+
+⚠️ **A method note, recorded honestly:** this prototype could not be screenshotted — every attempt exceeded
+the browser tool's render budget (many stacked blurred-glass layers plus infinite spin/pulse animations), and
+the same later happened to the LIVE page whenever a page-wide `color: transparent` measurement style was
+injected. The design was therefore read from the **decoded source + its rendered text/computed styles**, and
+the contrast sweep was re-cut to hide text on **only the candidate elements** rather than `*`. Both are
+faithful; neither is a screenshot. The live before/after screenshots are real.
+
+### ⚠️⚠️ D16-7 RECURS ON THE OWNER'S OWN PAYOUTS PAGE — in-flight money is invisible
+
+The operator finding **D16-7** ("a payout in `processing` appears in none of the Payout-Run KPIs") is **not
+operator-only**. Verified by construction here:
+
+- `OwnerPayoutService::pay()` writes **`processing`** on the real-transfer path (`$result->pending ?
+  'processing' : 'paid'`) — i.e. exactly what happens once Stripe is live.
+- `OwnerPayouts::metrics()` builds every tile from **two** filters: `status === 'paid'` and
+  `status === 'pending'`.
+- The page renders **exactly three tiles** (Paid this year · Next payout · Pending), all fed by those two.
+
+**So a payout that is genuinely in flight appears in NO tile at all.** The owner sees "Pending €0" and
+"Paid this year" unchanged while their money is actually moving. `held` is in no tile either, though it at
+least drives the on-hold banner.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| DO3-1 | KPI band that always accounts for the payout in flight. | Tiles count only `paid` + `pending`; **`processing` and `held` fall through both**. | The bucket set beside `metrics()` — one place, not a fourth tile bolted on in Blade. | **REAL GAP — D16-7, owner-side.** ⚠️ Highest-value item on this page; it becomes wrong the day Stripe goes live, not before. |
+| DO3-2 | **Projected** future payouts — "3 Dec 2025 ~€9,850 · October statement · Projected", built from a *trailing 3-month average*. | No projection exists. The live rail shows the REAL `nextRunDate` + an honest "the automated engine is not yet switched on". | A forecast model over finalized statements. | **RATIFIED REFUSAL (#39).** A projected payout amount is a fabricated figure on the most authoritative money surface an owner has. |
+| DO3-3 | A **failed-payout alert** ("September payout couldn't be sent · Retry payout") and a **retrying** alert with a live ETA. | `failed` / `reversed` ARE real statuses and the stepper renders them, but there is **no alert banner** for either, and no retry control. | A failure banner off the real status + a retry action on the certified service. | **REAL GAP** for the banner. ⚠️ The **"Retry payout" button and the "est. {time}" retry ETA are refusals** — there is no owner-initiated retry rail and no ETA source. |
+| DO3-4 | A **verification hold** ("We're verifying your account details… usually 1–2 business days", "Held since / est. release"). | The only real hold is the **tax-hold**, which the live banner states plainly. Bank verification is not modelled. | Micro-deposit / Connect verification state. | **ACCOUNT-GATED** — already ruled at #58: a fake bank-verification state is dangerous, not merely dishonest. The "est. release" date is a fabricated ETA on top of it. |
+| DO3-5 | **Add bank account** modal — holder name, IBAN entry, *detected bank*, micro-deposit explainer, "Send micro-deposits & verify". | Adding an account is real (`/owner/payout-method`), but bank **detection** and **micro-deposit verification** are not. | A BIC/bank-lookup + a verification rail. | **ACCOUNT-GATED.** Observed READ-ONLY this gate — nothing submitted. |
+| DO3-6 | A **payout receipt modal** (letterhead, amount hero, statement period, paid-to, bank reference, perforated total, Download PDF). | A real per-payout **remittance advice PDF** already exists and every row links to it. The modal preview, the **bank reference** and "Issued by … demo document" do not. | A settlement reference from the rail (only exists once live). | **PARTIAL — REAL GAP** for an in-page receipt preview; the bank reference is **ACCOUNT-GATED**. ⚠️ The live per-row link is the better artefact and is kept. |
+| DO3-7 | Payout-day options **1st / 3rd / 15th / Last**. | Live offers **1st–5th business day**, which is what `PayoutSchedule` actually implements. | — | **NOT A GAP — the live set is the truthful one.** Rendering "15th"/"Last" would offer a cadence the engine cannot run. |
+| DO3-8 | **"Reset to default"** for preferences, and a saved-state toast. | No reset control. | A reset action on the existing preference store. | **REAL GAP — minor.** Not built here (it is a mutation, not styling). |
+
+### ⚠️ A separate REAL defect found while diffing: the payout history has no deterministic order
+
+`OwnerPortalService::payouts()` orders by `created_at` DESC only. **All six demo payouts share an identical
+`created_at`** (they were finalized in one pass), so the sort key does not distinguish any of them and the
+resulting order is unspecified — as rendered it comes out **oldest-first**, the opposite of the design and of
+what a money ledger should show. ⚠️ This is not merely a demo artifact: the **payout engine creates payouts in
+a single run**, so ties are the normal case for anything created by `PayoutRunService`.
+
+**What it needs:** a tiebreaker on the shared read (`->orderByDesc('created_at')->orderByDesc('id')` — ULIDs
+are monotonic). **Verdict: REAL GAP — logged, not fixed.** It is an ORDER BY inside a shared read service
+that the Dashboard, Statement and Payouts pages (and the CSV export) all consume; changing it is a backend
+change, and it must be changed in ONE place so the page and its export cannot disagree.
+
+### Fixed this gate (design + a11y; markup/CSS only — no service, engine, money query, bank record or preference touched)
+
+- **The wireframe's summary line** under "Payout history" (`€2,804.40 paid across 5 payouts · €885.60
+  pending`). ⚠️ It **reuses `$metrics`** — the same figures the tiles show — rather than re-summing the rows,
+  which would be a second computation of the same total.
+- **The Pending tile's state pill** and the **preferences Active/Paused pill**, both driven by REAL state
+  (the same `$hold` the banner uses; the stored pause preference). Absent when there is nothing to say.
+- **Contrast 21 → 6**, real-pixel measured across both viewport halves (120 + 79 elements). Fixed: the
+  pre-AA `#9C9089` on all four preference labels (**2.66**), six "Statement" links + "Manage" +
+  "Add one →" moved to `--vy-accent-text` (**4.22–4.45 → 5.02+**), and the shared `.vy-table` column header
+  off `--vy-faint` (**4.47**, on the labels that say what each money column is).
+
+### ⚠️ `--vy-green-text` re-tuned — the SAME lesson as the amber, one gate later
+
+The green pill token set at Owner-2 was fitted to the Statement/Dashboard rows; on the Payouts table's
+**warmer** rows the "Paid" pills measured **4.31–4.44**. Re-tuned against the worst background it meets:
+**5.86–6.04** here, and **6.41–6.51** back on the cooler rows — **re-measured on the Statement page, which
+stayed at its 3 known failures, so no regression.** Two gates running, a token fitted to one sample has been
+wrong on the next page. **Tune to the worst case, then go back and re-measure the pages you already passed.**
+
+### ⚠️ The white-on-accent-gradient family recurs — 6 instances, none added
+
+`.vy-brand-mark`, `.vy-avatar`, `.vy-ov-iban` (the masked IBAN pill), `.vy-po-hold-cta` (Add tax details) and
+`.vy-btn--accent` (Save preferences), all **4.00**. Still the realm-wide gap surfaced at Owner-1 and awaiting
+its own gate. **Not half-fixed, and nothing new added to it.** Running realm tally: accent-as-TEXT fixed —
+Owner-1 **2**, Owner-2 **0**, Owner-3 **8** (6 Statement links + Manage + Add-one) = **10**; gradient family
+still open at Dashboard 5 / Statement 3 / Payouts 6.
+
+### ⚠️ Verified, not changed
+
+- **#17** — "Paid this year" **€2,804.40** = 442.80 + 656.00 + 467.40 + 516.60 + 721.60, the five real `paid`
+  rows, to the cent; Pending €885.60 = the one real `pending` row; the dark rail's breakdown
+  (1,080.00 − 194.40 + 0.00 = **885.60**) matches the statement it links to. One source
+  (`OwnerPayoutService` rows + the statement's own lines); **no total re-derived in Blade**, including the
+  new summary line.
+- **#71** — every status shown is the REAL row status. The page carries a standing **test-mode banner**
+  ("no real funds move"), and the schedule card states plainly that the automated engine is not switched on.
+  Nothing claims a live transfer.
+- **#28** — the destination is masked (`IBAN ···· 1000`), **structurally** un-emittable raw; no guest data.
+- **#42** — owner-scoped throughout; the remittance route is per-payout and owner-scoped (a cross-owner id
+  404s, already covered by `OwnerPayoutsViewTest`). Year filter + export ride GET (#20).
+- **READ-ONLY honoured** — nothing was submitted. Verified after the gate: the bank method's `updated_at` is
+  still the seed timestamp, **no payout-preference row exists at all**, and the payout statuses are unchanged
+  (`pending` + 5 × `paid`).
+- **Keyboard: 58 visible controls, 0 unreachable, 0 unnamed, 0 without a focus indicator, 0 `display:none`
+  inputs** (the segmented pickers use real radios).
+- ⚠️ **`toContain` sweep — negative recorded**, as at Owner-2. Both `not->toContain(...)` calls in the payout
+  tests (`OwnerPayoutMethodTest`, `OwnerPayoutsViewTest`) are **needle-only**; neither carries the Owner-1
+  always-passing defect. No repair needed.
+- ⚠️ **A stale docblock corrected** (principle 5) — the class comment declared
+  `Payout.status ∈ pending/paid/failed/reversed`, omitting **`processing` and `held`**. That is the *same
+  blind spot* that produces D16-7, written down.

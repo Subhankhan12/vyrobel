@@ -40,8 +40,14 @@ use Livewire\Component;
  *   • DERIVED  — paid-this-year = Σ REAL paid payouts (by paid_at year); next-payout breakdown = the
  *                source statement's REAL lines. No fabricated projections.
  *   • LIFECYCLE— rendered with the REAL states ONLY (statement Finalized → payout Pending → Paid, plus
- *                Failed/Reversed). Payout.status ∈ pending/paid/failed/reversed — the design's
- *                "Scheduled"/"On hold" states DO NOT EXIST and are never invented.
+ *                Failed/Reversed). ⚠️ STALE CLAIM CORRECTED (design pass · Owner-3): this said
+ *                "Payout.status ∈ pending/paid/failed/reversed". It is now
+ *                **pending | held | processing | paid | failed | reversed** — `processing` is written by
+ *                the certified {@see OwnerPayoutService::pay()} on the live-transfer path, and `held` is
+ *                the payout engine's persisted tax-hold (#71). The stepper below already handles both;
+ *                only this comment lagged. ⚠️ The SAME omission is a real defect in {@see self::metrics()}
+ *                — see the note there. The design's "Scheduled" state still does not exist and is never
+ *                invented.
  *   • REAL     — the per-payout REMITTANCE ADVICE PDF (Wave 1 · Sub-gate 2): each row links to
  *                `owner.payouts.remittance`, an owner-scoped download off the real payout + its source
  *                statement's real lines. (Was "Receipt · Soon" — no longer deferred.)
@@ -224,6 +230,15 @@ class OwnerPayouts extends Component
 
     /**
      * Paid-this-year (Σ real paid payouts in the most recent paid year) + next/pending totals. All real.
+     *
+     * ⚠️ SURFACED, NOT FIXED HERE (design pass · Owner-3 — this is a computation, and that pass is
+     * design-only): these tiles count ONLY `paid` and `pending`. A payout in **`processing`** — the state
+     * {@see OwnerPayoutService::pay()} writes the moment a real transfer is in flight — appears in
+     * NEITHER, so once Stripe is live the owner's own money can be invisible on their payouts page while
+     * it is actually moving. `held` is likewise absent from the tiles (it at least drives the on-hold
+     * banner). This is the owner-side recurrence of the operator finding **D16-7**; it is logged in
+     * `docs/design/MISSING-BACKEND-BY-PAGE.md` §O3 for the backend phase. Do not "fix" it by adding a
+     * fourth tile in Blade — the buckets belong in one place, beside these two.
      *
      * @param  Collection<int, Payout>  $payouts
      * @return array<string, mixed>

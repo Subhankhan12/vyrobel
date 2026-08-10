@@ -919,12 +919,13 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.4b OWNER realm progress — **2 of 32**
+## N.4b OWNER realm progress — **3 of 32**
 
 | Gate | Page(s) | Commit |
 |---|---|---|
 | O1 | **Owner Dashboard** (`/owner`) — ⚠️ the earnings chart was **misreporting real money twice**: the tallest bar was silently compressed by `flex-shrink` (September asked 150px, rendered 126px — the current month understated 16%) and the **goal line did not share the bars' baseline** (a goal equal to the best month drew *below* it; ~25% error mid-range). Both fixed via the wireframe's own 78% headroom + a label-block offset · the `max(4, …)` floor that draws a stub for a genuine **€0** month replaced with the shared `<x-charts.bars>` zero rule · value-graduated bar wash · goal **pill on the line** · attention chips capped at 3 + the dashed **"+N more"** · **the guest NAME was truncated on 3 of 4 upcoming stays** by the honest "Not yet attributed" (slot resized, string preserved) · **AA 23 → 5** (real-pixel measured) · a dead duplicate `.vy-delta--up/--down` pair deleted · ⚠️ **realm-wide finding SURFACED, not fixed: white-on-accent-gradient fails AA (3.98–4.02) across BOTH shells** — needs its own a11y gate · ⚠️⚠️ **THREE VACUOUS GUARDS FOUND AND REPAIRED** (below) | O1 |
 | O2 | **Owner Statement** (`/owner/statements/{id}`) — the realm's MONEY DOCUMENT, rendering twice (screen + PDF). ⚠️ **The PDF still carried the PRE-AA greys** — `#8A8079` **3.86** on white was the `.neg` class, i.e. **the commission/deduction figures**, and `#A69A92` **2.74** the footer → 6.98 / 5.79 (the dark band's greys correctly left alone at 8.21 / 7.05) · ⚠️ **a regression I introduced at O1**: `--vy-amber-text` was tuned to ONE sample, measured 4.45–4.50 here and **1.87 on the dark payout rail** (darkening is backwards on dark; the rail was ALREADY failing at 2.72 pre-O1, and **all three tones failed** — paid 1.77, draft 1.65) → token re-tuned to the worst sample + a **dark-context trio** `--vy-amber/green/muted-on-dark` (5.10/5.07/6.00) · documents rebuilt to icon rows · history rows to the design's cards (**kept a real `<table>`**, scoped to `.vy-st-hist` not the shared `.vy-table`) · a genuinely **0% occupancy month now draws nothing** + the series gained a real accessible name (its figures lived only in `title` on an `aria-hidden` container) · **contrast 8 → 3** · ⚠️ **restyling Export PDF to the design's accent pill ADDED a 4th instance of the white-on-gradient family — reverted rather than widen a known AA failure** · **SCREEN == PDF proven figure-by-figure**; a stale "DEFERRED/stubbed" docblock corrected | O2 |
+| O3 | **Owner Payouts** (`/owner/payouts`) — ⚠️⚠️ **D16-7 RECURS ON THE OWNER'S OWN PAYOUTS PAGE**: `OwnerPayoutService::pay()` writes **`processing`** on the real-transfer path, but all three tiles are built from `status==='paid'` and `status==='pending'` — **a payout genuinely in flight appears in NO tile** (`held` likewise, though it drives the banner). Verified by construction; **logged, not fixed** (a computation) · ⚠️ **a second real defect: the payout history has no deterministic order** — `payouts()` sorts by `created_at` DESC alone and **all six demo rows share one timestamp** (the engine creates a run in a single pass, so ties are the NORMAL case), rendering oldest-first; needs a ULID tiebreaker in the ONE shared read · ⚠️ **`--vy-green-text` re-tuned — the SAME single-sample mistake as the amber one gate earlier** (4.31–4.44 on the warmer payout rows → 5.86–6.04; Statement re-measured, no regression) · **contrast 21 → 6** (pre-AA `#9C9089` prefs labels 2.66 · 8 accent-as-text sites · the shared `.vy-table` header at 4.47) · summary line + Pending/preferences state pills from REAL state · projections / retry-ETA / verification-hold **REFUSED** · **READ-ONLY honoured — no bank update, no preference row, statuses unchanged** · stale docblock (`status ∈ …` omitted `processing`/`held` — D16-7's blind spot, written down) corrected | O3 |
 
 ## N.4c ⚠️⚠️ `expect(...)->not->toContain($needle, $message)` IS AN ALWAYS-PASSING ASSERTION
 
@@ -969,7 +970,28 @@ trio (`--vy-amber-on-dark` / `--vy-green-on-dark` / `--vy-muted-on-dark`) **mirr
 **Tune against the worst background the token will meet, and measure the pill's own composited pixel — not
 the panel behind it.**
 
-## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 2/32 UNDERWAY**, then GUEST (32).
+## N.4e ⚠️ D16-7 IS NOT OPERATOR-ONLY — in-flight money is invisible on the OWNER'S payouts page too
+
+Found at gate **O3**, verified by construction. `OwnerPayoutService::pay()` writes **`processing`** on the
+real-transfer path (`$result->pending ? 'processing' : 'paid'`) — i.e. exactly what happens once Stripe is
+live. `OwnerPayouts::metrics()` builds **every** tile from two filters, `status === 'paid'` and
+`status === 'pending'`, and the page renders exactly three tiles. **A payout that is genuinely in flight
+therefore appears in none of them**; `held` is absent from the tiles as well (it at least drives the on-hold
+banner). The owner sees an unchanged "Paid this year" and a "Pending" that has dropped to zero while their
+money is actually moving. **Logged (§O3 DO3-1), not fixed — it is a computation, and this pass is design-only.
+It becomes wrong the day Stripe goes live, not before.**
+
+⚠️ **The same blind spot was written into the class docblock**, which declared
+`Payout.status ∈ pending/paid/failed/reversed` — omitting `processing` and `held`. Corrected in place. *When a
+comment enumerates the states, an omission there is a preview of the bug in the code beneath it.*
+
+⚠️ **A second O3 finding — a money list with no deterministic order.** `OwnerPortalService::payouts()` sorts by
+`created_at` DESC alone, and **all six demo payouts share one timestamp**: the sort key distinguishes nothing,
+and the history renders **oldest-first**. This is not a demo artifact — `PayoutRunService` creates a run's
+payouts in a single pass, so ties are the normal case. Needs a ULID tiebreaker in that ONE shared read (the
+Dashboard, Statement, Payouts page and the CSV export all consume it, so it must not be patched per-page).
+
+## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 3/32 UNDERWAY**, then GUEST (32).
 
 **The operator realm is finished.** 42 prototypes, 34 gates (`0aa9ede`→P34), every page decoded, diffed in a
 real browser, fixed where it was a design gap, and **logged where the product honestly refuses**.
@@ -996,7 +1018,7 @@ PROMPT's premise**: "Housekeeping lacks schedule.view" was false (9 roles hold i
 #30 assertion vacuous. ⒂ ⚠️ **NEW (P34) — a PDF's palette is read on PAPER**: the pre-AA greys survived there
 long after the screens were fixed, on the very figures a rota exists to communicate.
 
-**⬅ THE OWNER REALM IS UNDERWAY — 2 of 32 (O1 Dashboard, O2 Statement).** Then **GUEST (32)**, untouched.
+**⬅ THE OWNER REALM IS UNDERWAY — 3 of 32 (O1 Dashboard, O2 Statement, O3 Payouts).** Then **GUEST (32)**, untouched.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 
