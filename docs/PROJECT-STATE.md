@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · **⬅ A PER-PAGE DESIGN-PARITY PASS IS NOW IN PROGRESS (§N)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · **🏁 THE PER-PAGE DESIGN-PARITY PASS HAS COMPLETED THE OPERATOR REALM — 42/42 (§N); OWNER (32) + GUEST (32) REMAIN** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
 > ## ⬅ A NEW TRACK IS ACTIVE ON TOP OF EVERYTHING BELOW — the per-page **DESIGN-PARITY PASS** (started 2026-08-09, **IN PROGRESS**)
 >
@@ -558,8 +558,13 @@ be removed in the name of parity.
 corrected here. THE COUNT IS THE BASELINE: if a run shows 8, you broke something — go and find it (that is
 exactly how the incomplete `firstOrCreate` fix in WAVE 2 was caught).**
 
-⚠️ **THE COUNT WAS 7 AS OF `9696b9c` — and moved to 9 on 2026-08-10 (J.ter, a date-roll collision, not a regression).** The rule
-above only works if the number is **MEASURED each gate, not quoted from these notes.** Re-measure it.
+⚠️ **THE BASELINE IS A RANGE — 5 to 9 — NOT A NUMBER (J.quater, measured across the design pass).** It was 7 at
+`9696b9c`, 9 after the 2026-08-10 date roll (J.ter), and **5 on a later full run in the same session**. Which
+tests fail depends on **run order and the current date**, so the count is not well-defined:
+**`BookingImportTest`** passes 11/11 in isolation and fails only in-suite (ordering); **`OwnerUnitDetailViewTest`**
+and **`StubViewsTest`** are date-coupled to `DemoSeeder`'s relative dates. The rule above only works if the
+number is **MEASURED each gate, not quoted from these notes** — and a suspected new failure is proven
+pre-existing by **stashing and re-running**, never by name-matching.
 
 - **`BookingImportTest` (6) — a genuine TEST-ORDERING ARTIFACT.** Fails only inside a large batch; **passes
   11/11 in isolation**, re-confirmed 2026-08-08. Order-dependent (it avoids `RefreshDatabase` and drives a real
@@ -797,7 +802,7 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — 🏁 **OPERATOR COMPLETE — 42 of 42** (`0aa9ede`→P34, all pushed)
+## N.4 Progress — 🏁 **OPERATOR COMPLETE — 42 of 42 prototypes, 34 numbered gates** (`0aa9ede` → `edb7cce`, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
@@ -825,6 +830,7 @@ Portfolio** and **P28 Search**, so the current figure is **36 covered / 6 remain
 | P10 | Inbox (Messages + Conversation + Inbox → one page) | `1fe2233` |
 | P11 | Maintenance board | `b49d98d` |
 | P12a/b | Work-order detail (**at parity**) + Maintenance Costs | `5403bd2` |
+| P12 | Work-order detail (at parity) + Maintenance Costs onto the shared `<x-charts.bars>` | `5403bd2` |
 | P13 | Maintenance Settings | `f3f8c1d` |
 | P14 | Operator Settings (all 13 blocks; + Property Settings, the 2nd prototype of the same page) | `279ea80` |
 | P15 | **GATE A** operator coverage sweep + **GATE B** Refund (**verified AT PARITY, 0 code**) | `ee0121a` |
@@ -851,6 +857,11 @@ Portfolio** and **P28 Search**, so the current figure is **36 covered / 6 remain
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
+⚠️ **STILL WANTED — a shared `<x-status-pill>`.** The Active/Off pill was **hand-written twice** (the Email
+Templates list and the Email Editor) and therefore **failed AA twice**, fixed separately at **P31** and
+**P32**. By contrast `.vy-tag.tone-confirmed` is a shared class, so **one edit at P33 fixed five views**. This
+is principle (3) in N.8, and the pill is the outstanding instance of it.
+
 - **`--vy-on-grad` / `--vy-on-grad-soft`** (`93247e7`) — the sidebar nav labels and items hardcoded the
   prototype's greys (`#9C9089` / `#8A8079`) and measured **1.82 : 1 / 2.23 : 1** against the **real sampled
   gradient pixel**. Fixed realm-wide in **both** shells: now **4.74 / 4.93** operator and **4.71 / 4.93** owner
@@ -874,7 +885,17 @@ Portfolio** and **P28 Search**, so the current figure is **36 covered / 6 remain
   status write), so folio, availability spine, audit trail and **#29** are genuinely consistent. Demo goes
   **40 → 42 reservations**; the list and its GET-link pagination were re-confirmed still property-scoped after.
 
-## N.6 ⚠️ D3-4 — the FIGURE-HONESTY finding (SURFACED, deliberately NOT fixed)
+## N.6 ⚠️ SURFACED figure-honesty findings (recorded, deliberately NOT fixed — they belong to the BACKEND phase)
+
+**The register:** **D3-4** (Insights LY occupancy ÷ spine coverage — below) · **D16-7** (a payout in
+`processing` appears in **none** of the Payout-Run KPIs, so in-flight money is invisible the moment Stripe goes
+live) · **D2-2** (per-channel figures have no channel attribution — **0 of 42 reservations carry a
+`channel_id`**; the Channex root) · the **trend-without-history** class (a delta with no comparable prior
+period — refused on Insights, Portfolio and Email Templates). All per-page D-items live in
+`docs/design/MISSING-BACKEND-BY-PAGE.md`; each carries what's shown / what's verifiably missing / what it would
+need / a verdict.
+
+### D3-4 in detail
 
 **Operator Insights' "Last year" occupancy is divided by the availability spine's COVERAGE, not by the month.**
 The `availability` table holds **9 rows in all of 2025** (earliest `2025-08-21`); September 2025 has **3 rows for
@@ -923,7 +944,47 @@ long after the screens were fixed, on the very figures a rota exists to communic
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 
-## N.8 The process lessons this pass earned (extend **L**)
+## N.8 THE FIVE ESTABLISHED PRINCIPLES — the operator realm's distilled lessons (carry into OWNER + GUEST)
+
+These five are what 42 pages actually taught. The numbered lessons below (21+) are the worked detail.
+
+1. ⚠️ **FABRICATION CLUSTERS ON WHATEVER LOOKS MOST AUTHORITATIVE.** The mock invented an email **open-rate**,
+   a **city beside a last sign-in** (which reads as *security evidence* — exactly what a user checks to judge
+   an unfamiliar session), a **"verified" SMS number** (asserting a verification flow that never ran), a
+   **sync** that never ran, **per-channel booking stats** with no channel attribution, and a **permission
+   grant** on an RBAC matrix. *The more a figure would be trusted, the more the prototype invents it — so
+   refuse hardest exactly there.*
+2. ⚠️ **TWO INDEPENDENT ACCESSIBILITY AXES: CONTRAST and OPERABILITY.** They do not predict each other. P30's
+   page measured **0 contrast failures** while its **only controls were unreachable by keyboard**
+   (`display:none` removes an input from the tab order *and* the a11y tree — use `appearance:none`/`opacity:0`
+   and keep a `:focus-visible` ring). P32's preview **clipped real data inside an iframe** while the page
+   reported **no overflow**. Neither axis is predicted by render type (a Livewire page with zero raw hex still
+   failed AA 8×, via accent-as-text). **Measure both, every page**; scope the keyboard probe to **visible**
+   controls; check names via the **wrapping label** too; measure **the states your own change introduces**;
+   and measure **documents as they'll be read — on paper** (P34's PDF still carried the pre-AA greys on the
+   per-cell shift *times*).
+3. ⚠️ **DUPLICATION DEFEATS A FIX.** A shared definition is fixed **once** — `.vy-tag.tone-confirmed` fixed
+   **five views** in one edit (P33). A duplicate must be found **twice** — the same Active pill failed AA at
+   **P31 and again at P32**. Promote at the third copy; and **never a second computation**: the schedule PDF
+   and the grid share `RosterWeek` (D9-1), so a figure the shared source doesn't expose gets **logged**, not
+   recomputed in the template.
+4. ⚠️ **A GREEN TEST CAN BE DEFENDING NOTHING.** Proven twice by mutation: a **#17 rollup assertion** that
+   compared €0.00 to €0.00 on a page of zeros (P27), and a **geolocation guard** that passed with the
+   fabrication injected because the fixture seeded **no `sessions` rows** (P33). **Prove every new guard fails
+   without its fix**, and watch specifically for **empty-fixture vacuity**.
+5. ⚠️ **COMMENTS GO STALE FASTER THAN CODE.** Docblocks claimed a comparison was "deferred" after it shipped,
+   "5 real guest emails" when there were 7, "no unassigned-shift model" and "no published state" after both
+   existed (P34). **Verify prose against current behaviour and correct the comment in the same change.**
+
+**Also established:** ⚠️ **verify the PROMPT's own premise** — a JSON-merge hazard where the table is typed
+columns; a #6 guardrail that lives on another page; an "unpermitted" role that #43 makes broad (9 roles hold
+`schedule.view`). ⚠️ **Surface decision evidence without deciding** — the billing flip's direction was
+measured and handed over, no side picked. ⚠️ **A refusal can be STRUCTURAL** — name-only *by construction*
+(SearchService), an IBAN that **cannot** be emitted raw (`Iban::masked`), a test-send with **no recipient
+input** at all. ⚠️ **An unverified guess is NOT a finding** — when a sweep comes back negative, record the
+negative (P30's `display:none` sweep found exactly one instance).
+
+## N.8b The process lessons this pass earned, in detail (extend **L**)
 
 21. **MEASURE COMPUTED VALUES, NOT THE SOURCE.** Three real bugs were invisible to file-reading and only
     appeared when the *rendered computed value* disagreed with the source: a cascade fight lost to a later

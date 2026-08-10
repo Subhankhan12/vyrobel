@@ -9,6 +9,27 @@ building it** — every piece of functionality/backend the prototype implies tha
 
 ---
 
+## ⚠️ STATUS — 🏁 the OPERATOR REALM IS COMPLETE (2026-08-10)
+
+**All 42 operator prototypes are covered**, across 34 numbered gates (`0aa9ede` → `edb7cce`). Every operator
+page has been decoded, diffed against the live page in a real browser, fixed where the gap was presentational,
+and recorded here where the product honestly refuses or genuinely lacks the backend.
+
+**⬅ NEXT: the OWNER realm (32 prototypes, untouched), then GUEST (32, untouched), then the BACKEND phase that
+this file exists to drive.**
+
+⚠️ **Two heading conventions coexist below** — the earlier pages are `## N · Title` (Page 1–26) and the later
+ones `## §N — Title` (§27–§34). Both are per-page entries with the same table shape; the numbering is
+continuous. Do not renumber.
+
+**The highest-value entries to start the backend phase from** — `D3-4` (Insights LY occupancy divided by spine
+coverage, which misreads for *every tenant's first year*), `D16-7` (a payout in `processing` is invisible in
+every Payout-Run KPI once Stripe is live), `D2-2` (no channel attribution — the Channex root), and `D34-1/2`
+(open shifts and week-publication now EXIST but the shared `RosterWeek` doesn't expose them, so the PDF can't
+show them — ⚠️ they must be added to the shared builder, never queried in the template).
+
+---
+
 ## How to read an entry
 
 Each page gets one section with a table of the backend items that page implies but does not have:
