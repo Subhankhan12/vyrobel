@@ -2091,3 +2091,63 @@ controls hide their input the same way: **no other class matching `*check/radio/
 uses `position: absolute; opacity: 0`, which stays focusable and is correct. **`.vy-np-check` was the only
 instance.** (Recorded because the sweep was actually run: an unverified "this is probably everywhere" would be
 a guess dressed as a finding.)
+
+---
+
+## §31 — Operator **Email Templates** (`/app/email-templates`) · P31
+
+**Prototype:** `docs/design/raw/Operator Email Templates.html`. **Live:** `EmailTemplateController@index` — a
+**controller-rendered** page (the `c0ce419` raw-hex class), view `operator.email-templates`. The page itself
+carries **no permission gate**; the writes do — `save` / `toggle` / `testSend` are all `can:properties.manage`.
+
+**⚠️ The honesty flips on this page: email REALLY sends.** So the checks are merge-variables, the preview
+source, and fabricated engagement — not deferral.
+
+**Merge variables are REAL.** The catalogue's `vars` are `guest_name, first_name, unit, nights, reference,
+balance` — every one a real reservation/guest field the send path fills, proven by the existing
+*"resolves merge variables from the real reservation/guest"* test. **No token without a backing field.**
+
+**⚠️ The preview source — verified, and it is NOT a #28 widening.** `EmailPreviewSample` deliberately builds the
+Mailable over the tenant's **real latest reservation** rather than "Jane Doe" placeholders, so what an operator
+previews is byte-for-byte what the trigger sends. I probed the rendered preview: it carries the guest **NAME**
+("Demo Resident"), the property, dates, reference and money — and **0 email addresses, 0 phone numbers**. That
+is exactly the name-only level the permitted operator surfaces already use, and it is tenant-scoped. **Recorded
+as an observation, not a defect:** it is real customer data on an editor surface, so if the preview chrome ever
+gains a "To:" line it would cross into CRM-only territory.
+
+**Tokens + keyboard (both axes measured).** ⚠️ **Contrast: 7 failures**, all one class — the "● Active" pill at
+**4.41** (raw `#1B7F5C` on `#E7F5EE`, 11px). The controller-page raw-hex risk, realised. **Fixed → 6.23.**
+**Keyboard: 21 visible page controls, 0 unreachable, 0 without an accessible name**, and every control shows a
+focus indicator. ⚠️ My first keyboard probe reported 12 "unreachable" controls — **a false positive**: they were
+all inside the *closed* bell panel and user menu, which correctly cannot take focus while hidden. Scoped to
+visible page controls, the page passes.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D31-1 | An **engagement stat on every card** — *"72% opened"*, *"81% opened"*, *"38% → review"*, *"64% settle early"*. | **No open/click tracking exists anywhere.** No pixel, no redirect wrapper, no per-send record. | Open/click tracking (a tracking pixel + link rewriting) — and the privacy decision that comes with it. | 🚫 **REFUSAL-PRESERVE (#39, founder decision A).** Every one of those figures would be invented, on the surface an operator would most trust for judging an email. The page states plainly *"Open/click tracking isn't collected, so no engagement stats are shown"* — the honest alternative to a blank space. Now guarded by a test. |
+| D31-2 | **"+ New template"**. | The catalogue is a FIXED set of 7 keys, each bound to a real Mailable class and a real trigger. | A user-defined template needs its own Mailable, a trigger to fire it, and a send path. | 🚫 **REFUSED.** A "new template" with no trigger would be a document that never sends. Customization of the 7 real emails is the real capability, and it is fully wired. |
+| D31-3 | A **"Draft"** status (the *"Come back next season"* card). | The model has `enabled` — Active or Off. There is no draft state. | A third state + a rule for what a draft does at trigger time. | **LOGGED — MINOR.** Off already means "does not send"; a draft would need to mean something different to be worth having. |
+| D31-4 | A **"Come back next season"** winback/marketing template, and a **"Email + SMS"** channel chip on Pre-arrival. | **No `WinbackMail` exists**; every catalogue entry is `channel = Email`. SMS has no provider (P30). | A winback Mailable + a campaign trigger; Twilio for SMS. | 🚫 **REFUSED / LOGGED.** ⚠️ **If a winback is ever built it MUST go through `GuestMarketing::canReceive`** (real: consent + not anonymized + has an email) **and the unsubscribe path** — a marketing blast is exactly where a consent bypass would do real damage. The SMS chip is the P30 refusal again. |
+| D31-5 | Cards showing only **6** templates. | — (live shows all **7**) | — | **EXTRA-KEEP.** Refund confirmation and Verify email are real, wired, customizable emails; dropping them to match the mock would hide two real sends. |
+
+### Fixed this gate
+
+- **The design's card grid** with thumbnail headers (it was a flat list of rows), the **breadcrumb**, and the
+  **"Preview emails"** action — which links `app.email-previews`, **a real gallery route that existed and was
+  never linked from this page** (the same "wired but unrendered" shape as P27's Full-report link).
+- **The status toggle became the design's switch** — same form, same guarded route, restyled; now
+  `role="switch"` + `aria-checked` + a real `aria-label`, with the **word** Active/Off still shown separately
+  (1.4.1). Restyled, not rewired.
+- **The "● Active" pill 4.41 → 6.23.**
+- ⚠️ **A defect I introduced and caught before it shipped:** the paused-card thumbnail tint started at
+  `#8C837C`, where the white brand text measures **3.77**. No template is off in the demo, so it would only
+  have appeared the day someone paused one. Darkened to `#7A716A` → **4.78**, verified by forcing the state in
+  the DOM (nothing persisted).
+- **Stale docblock** — it claimed "the 5 real guest emails" long after the catalogue reached seven.
+
+### ⚠️ Realm-wide, logged not fixed
+
+Plain links take the **browser-default blue focus ring** (`rgb(0,95,204)`) while buttons take the design's
+accent outline. Functional and visible, so not a failure — but inconsistent with the design system. A single
+`:focus-visible` rule in the operator layout would unify it; not done here because it is a realm-wide style
+change, not this page's.

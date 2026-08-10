@@ -6177,3 +6177,60 @@ and its extra rows are real wired events).
 all mutation-proven); contrast **0 failures** before and after; PHPStan L5 **0**; Pint clean; **0 console**,
 **0 overflow** at 1440 (3 channel cards, 683/440 two-column) and 1000 (single column). Schema untouched — no
 `migrate:fresh` needed.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY **P31 · Operator Email Templates** (`/app/email-templates`)
+
+**Presentation + one contrast fix + one presentation-only controller field.** No Mailable, no send path, no
+#83 tenant-restore, no save semantics touched. `docs/design/MISSING-BACKEND-BY-PAGE.md` §31.
+
+**⚠️ The honesty flips here — email really sends**, so the checks were merge-variables, the preview source and
+fabricated engagement, not deferral.
+
+**Merge variables verified REAL:** `guest_name, first_name, unit, nights, reference, balance` — each a real
+reservation/guest field the send path fills (existing test: *"resolves merge variables from the real
+reservation/guest"*). No token without a backing field.
+
+**⚠️ Preview source verified — and it is NOT a #28 widening.** `EmailPreviewSample` deliberately renders over
+the tenant's **real latest reservation** rather than placeholders, so preview == what actually sends. Probed
+output: guest **NAME**, property, dates, reference, money — **0 email addresses, 0 phone numbers**. That is the
+same name-only level the permitted operator surfaces use, tenant-scoped. Recorded as an observation: it *is*
+real customer data on an editor surface, so a future "To:" line in the preview chrome would cross into
+CRM-only territory.
+
+**⚠️ Both accessibility axes measured.** **Contrast: 7 failures**, all the "● Active" pill at **4.41** (raw
+`#1B7F5C` on `#E7F5EE`) — the controller-page raw-hex risk realised; **fixed → 6.23**. **Keyboard: 21 visible
+page controls, 0 unreachable, 0 unnamed**, all with a focus indicator. ⚠️ My first keyboard probe reported 12
+"unreachable" — **a false positive**: they were inside the *closed* bell panel and user menu, which correctly
+cannot take focus. **Scope the keyboard probe to visible controls.**
+
+**Fixed (design):** the card grid with thumbnail headers (was a flat list), the breadcrumb (**#30-gated** —
+`/app/settings` needs `properties.manage`, this page has no gate), and **"Preview emails"**, which links
+`app.email-previews` — **a real gallery route that existed and was never linked from here**. The status toggle
+became the design's switch: same form, same guarded route, `role="switch"` + `aria-checked` + `aria-label`,
+with the word Active/Off still shown (1.4.1). Restyled, not rewired.
+
+**⚠️ A defect I introduced and caught before it shipped:** the paused-card thumbnail tint started at `#8C837C`,
+where the white brand text measures **3.77**. No template is off in the demo, so it would only have surfaced
+the day someone paused one. Darkened to `#7A716A` → **4.78**, verified by forcing the state in the DOM.
+**Measure the states your own change introduces, not just the one on screen.**
+
+**Refused / logged (5):** per-card **engagement stats** (*"72% opened"*, *"38% → review"*, *"64% settle
+early"*) — **no open/click tracking exists anywhere**, so every figure would be invented on the surface an
+operator would most trust; the page says why instead · **"+ New template"** (the catalogue is 7 fixed keys each
+bound to a real Mailable + trigger; a template with no trigger never sends) · a **Draft** state (the model has
+Active/Off) · the **winback "Come back next season"** card and the **"Email + SMS"** chip — ⚠️ **no
+`WinbackMail` exists, and if one is ever built it MUST go through `GuestMarketing::canReceive` + the
+unsubscribe path** · the mock's 6 cards (**EXTRA-KEEP** — live shows all 7 real templates).
+
+**⚠️ The CSS-comment trap bit again.** A guard written as `not->toContain('click-through')` failed against a
+**CSS comment** in the operator layout about the drag-to-reschedule drop layer — CSS comments render, Blade
+comments do not, exactly as at `638e67a`. Scoped to the actual claim.
+
+**Nothing fired:** `email_templates` unchanged at 0 rows (checksum `d751713988987e9331980363e24189ce`), and
+**no mail was dispatched** — the newest Mailpit message predates this gate by 16 hours.
+
+**Verification:** email-template + preview + token-contrast suites **21/21 · 107 assertions** (3 added, both new
+guards mutation-proven); PHPStan L5 **0**; Pint clean; **0 console**, **0 overflow** at 1440 and 1000. Schema
+untouched — no `migrate:fresh` needed. Also fixed a stale docblock ("the 5 real guest emails" — it is 7).

@@ -142,3 +142,64 @@ it('404s on an unknown template key', function () {
 
     $this->actingAs($admin)->get(route('app.email-templates.edit', 'not-a-template'))->assertNotFound();
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// P31 (design-parity) — the manager page. The design puts an engagement stat on every card; no open or
+// click tracking is collected anywhere, so each one would be invented. And the new breadcrumb points at
+// a route this page's own viewers may not hold.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('shows no fabricated engagement stat on any template card (#39)', function () {
+    $s = seedScenario(1);
+    $manager = operatorUser($s, [], 'Group Admin');
+
+    $html = $this->actingAs($manager)->get(route('app.email-templates'))->assertOk()
+        ->assertSee('Booking confirmation')          // the real templates render
+        ->getContent();
+
+    // ⚠️ The design's per-card figures: "72% opened", "81% opened", "38% → review", "64% settle early".
+    // Nothing tracks opens or clicks, so any of these would be a number with no source.
+    // ⚠️ Scoped to the CLAIM, not to bare words: a previous attempt asserted `not->toContain('click-through')`
+    // and failed against a CSS COMMENT in the layout's <style> block about the drag-to-reschedule drop layer.
+    // CSS comments render; Blade comments do not. Same trap as the Channels guard at 638e67a.
+    expect($html)->not->toContain('% opened')
+        ->and($html)->not->toContain('opened')
+        ->and($html)->not->toContain('settle early')
+        ->and($html)->not->toContain('→ review');
+    // …and the page says WHY there are none, rather than silently omitting them.
+    expect($html)->toContain('Open/click tracking isn’t collected');
+});
+
+it('links the Settings breadcrumb only for a viewer the Settings route would admit (#30)', function () {
+    $s = seedScenario(1);
+
+    // Group Admin holds properties.manage → the crumb links and the target opens.
+    $admin = operatorUser($s, [], 'Group Admin');
+    $this->actingAs($admin)->get(route('app.email-templates'))->assertOk()
+        ->assertSee(route('app.settings'), false);
+    $this->actingAs($admin)->get(route('app.settings'))->assertOk();
+
+    // ⚠️ Front Desk can VIEW this page (it carries no permission gate) but cannot open Settings.
+    $desk = operatorUser($s, [], 'Front Desk');
+    $this->actingAs($desk)->get(route('app.email-templates'))->assertOk()
+        ->assertDontSee(route('app.settings'), false);
+    $this->actingAs($desk)->get(route('app.settings'))->assertForbidden();
+});
+
+it('keeps the status toggle a real gated POST with an accessible switch, not a rewired control', function () {
+    $s = seedScenario(1);
+
+    // A manager gets the real form posting to the guarded toggle route, as an accessible switch.
+    $html = $this->actingAs(operatorUser($s, [], 'Group Admin'))
+        ->get(route('app.email-templates'))->assertOk()->getContent();
+    expect($html)->toContain('action="'.route('app.email-templates.toggle', 'booking-confirmation').'"')
+        ->and($html)->toContain('role="switch"')
+        ->and($html)->toContain('aria-checked="true"')
+        ->and($html)->toContain('aria-label="Booking confirmation — turn off"');
+
+    // ⚠️ Front Desk sees NO toggle and NO edit — the UI never offers a write the route would 403 (#30).
+    $deskHtml = $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->get(route('app.email-templates'))->assertOk()->getContent();
+    expect($deskHtml)->not->toContain(route('app.email-templates.toggle', 'booking-confirmation'))
+        ->and($deskHtml)->not->toContain('role="switch"');
+});

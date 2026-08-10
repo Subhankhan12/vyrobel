@@ -797,7 +797,7 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **38 of 42** covered, **4 remaining** (`0aa9ede`→P30, all pushed)
+## N.4 Progress — OPERATOR **39 of 42** covered, **3 remaining** (`0aa9ede`→P31, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
@@ -844,6 +844,7 @@ Portfolio** and **P28 Search**, so the current figure is **36 covered / 6 remain
 | P28 | **Operator Search** ⚠️ the cross-entity PII surface: query bar / filter CHIP LINKS (#20, zero wire:click) / results header / tiled rows · **the design's guest-row EMAIL + city REFUSED (#28)** — pinned by 3 mutation-proven tests · `.vys-badge` **4.41→AA** (accent-as-text on a Livewire page — the predictor isn't the whole story) · foreign drill-down→404 · 6 backend items | P28 |
 | P29 | **Operator Notifications** — toolbar/segmented tabs/category chips restyled · ⚠️ **WCAG 1.4.1 fixed: unread rode on colour alone** (`title` on a non-interactive span isn't announced) → `aria-hidden` dot + `.vy-sr-only` text, mutation-proven · ⚠️ **the two prototypes CONTRADICT each other on the icon shape** (operator circle vs owner square) → kept the ONE shared tile, documented · SMS-in-footer + fabricated rows/categories refused · **nothing marked read (242/242/0 unchanged)** · 5 backend items | P29 |
 | P30 | **Operator Notification Preferences** ⚠️ a CLAIMS surface — two-column layout + breadcrumb + top Save · ⚠️ **WCAG 2.1.1 (Level A) FIXED: the page's ONLY real controls were unoperable by keyboard** (`display:none` on the checkbox — `focus()` left activeElement on BODY) · 1.4.1 no-provider cells given text · **#30 the new crumb is gated** (Settings needs `properties.manage`; this page has NO gate) · Push-as-"This device·Chrome·On" + SMS-as-verified-number REFUSED · **nothing saved (0 rows, checksum identical)** · 4 backend items | P30 |
+| P31 | **Operator Email Templates** ⚠️ email REALLY sends — card grid + breadcrumb + switch + the never-linked **Preview-emails gallery** · **Active pill 4.41→6.23** (controller raw-hex risk realised) · merge vars verified REAL · **preview source verified: real reservation but NAME-only, 0 emails/phones — not a #28 widening** · per-card **engagement stats REFUSED** (no tracking exists) + New-template/Draft/winback/Email+SMS refused · **nothing saved, no mail sent** · 5 backend items | P31 |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -888,25 +889,26 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue. **NEXT PAGE = Operator Email Templates.**
+## N.7 ⬅ REMAINING — the resume queue. **NEXT PAGE = Operator Email Editor.**
 
-⚠️ **Email Templates + Email Editor are a PAIR, and email is the one channel that really sends** (Postmark,
-`MailSafetyGuard`). A template surface asserts *"this is what your guests receive"* — so the risk is a preview
-that does not match what the Mailable actually renders, and a template variable that resolves to nothing.
-⚠️ Guest-facing templates are also where **#28** can widen: a preview populated with a real guest's contact.
+⚠️ **The Email Editor is P31's sibling and the higher-stakes half.** It edits the content that really sends,
+carries the **merge-variable palette** (every token must map to a real field — P31 verified the current set),
+and its **live preview runs on a REAL reservation** (verified name-only, 0 contact values — keep it that way).
+⚠️ Its **Test-send genuinely delivers** (`MailSafetyGuard`, operator's own inbox only) — observe READ-ONLY.
+Also watch #83: the Mailable must keep rendering in tenant context.
 
-⚠️ **NOTES CARRIED FORWARD.** ⑴ **MEASURE TOKENS REGARDLESS OF RENDER TYPE** (P28/P29 — neither risk is
-predicted by it). ⑵ **Scope a test guard to the CLAIM.** ⑶ **Baseline is a RANGE, 5–9 (J.quater)** — isolate
-first. ⑷ **A green test can be defending nothing (P27).** ⑸ **Reflected input is not disclosure (P28).**
-⑹ **The prototypes can contradict each other (P29)** — the ONE shared definition wins. ⑺ **`title="…"` is not
-an accessible name (P29).** ⑻ ⚠️ **NEW (P30) — LOOK FOR CONTROLS THAT CANNOT BE OPERATED, not just ones that
-look wrong.** The prefs page's only real toggles were `display: none`, so a keyboard user could not change a
-single preference. Contrast measured 0 failures on that same page — **an a11y pass that only measures colour
-misses Level-A keyboard failures entirely.** ⑼ ⚠️ **NEW (P30) — a breadcrumb/nav link needs the TARGET's gate**:
-this page has no permission gate but `/app/settings` requires `properties.manage`.
+⚠️ **NOTES CARRIED FORWARD.** ⑴ **MEASURE BOTH AXES** — contrast *and* keyboard; neither is predicted by render
+type. ⚠️ **And scope the keyboard probe to VISIBLE controls**: P31's first sweep reported 12 false "unreachable"
+hits that were simply inside a closed popover. ⑵ ⚠️ **Scope a test guard to the CLAIM — this bit AGAIN at P31**:
+`not->toContain('click-through')` failed against a **CSS comment** in the layout (CSS comments render, Blade
+comments do not), exactly as at `638e67a`. ⑶ **Baseline is a RANGE, 5–9 (J.quater)** — isolate first.
+⑷ **A green test can be defending nothing (P27).** ⑸ **Reflected input is not disclosure (P28).**
+⑹ **The prototypes can contradict each other (P29).** ⑺ **`title="…"` is not an accessible name (P29).**
+⑻ **Look for controls that cannot be OPERATED (P30).** ⑼ **A nav link needs the TARGET's gate (P30/P31).**
+⑽ ⚠️ **NEW (P31) — measure the states your own change introduces, not just the one on screen.** The paused-card
+tint I added measured 3.77 and would only have appeared the day someone paused a template.
 
-**4 OPERATOR prototypes remain:** **1 Email Templates** · **2 Email Editor** · **3 Profile** ·
-**4 Schedule PDF**.
+**3 OPERATOR prototypes remain:** **1 Email Editor** · **2 Profile** · **3 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 
