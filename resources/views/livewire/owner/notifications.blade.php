@@ -30,16 +30,22 @@
                         <span style="font-size:13.5px;font-weight:{{ $item['read'] ? '500' : '700' }};color:var(--vy-ink)">{{ $item['title'] }}</span>
                         <span style="display:flex;align-items:center;gap:8px;flex:none">
                             <span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--vy-muted)">{{ ucwords(str_replace('_', ' ', $item['category'])) }}</span>
-                            @unless ($item['read'])<span style="flex:none;width:8px;height:8px;border-radius:50%;background:var(--vy-accent)" title="Unread"></span>@endunless
+                            {{-- ⚠️ 1.4.1 (operator GATE-29's finding, closed here): the dot carried "unread"
+                                 on COLOUR ALONE — a bare `title` on a non-interactive span is not reliably
+                                 announced. The dot stays (it is the design); the state now also has real TEXT. --}}
+                            @unless ($item['read'])
+                                <span aria-hidden="true" style="flex:none;width:8px;height:8px;border-radius:50%;background:var(--vy-accent)"></span>
+                                <span class="vy-sr-only">Unread</span>
+                            @endunless
                         </span>
                     </div>
                     <div style="font-size:12.5px;color:var(--vy-muted);margin-top:2px">{{ $item['context'] }}</div>
-                    <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">{{ $item['when'] }}</div>
+                    <div style="font-size:11px;color:var(--vy-muted);margin-top:3px">{{ $item['when'] }}</div>
                 </a>
                 @unless ($item['read'])
                     <form method="POST" action="{{ route('notifications.read', $item['id']) }}" style="margin:0;flex:none">
                         @csrf
-                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding:4px 9px;font-size:11px" title="Mark read">✓</button>
+                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding:4px 9px;font-size:11px" title="Mark read" aria-label="Mark “{{ $item['title'] }}” as read">✓</button>
                     </form>
                 @endunless
             </div>
@@ -53,7 +59,10 @@
                 <x-pager :paginator="$feed['paginator']" label="notifications" />
     </section>
 
-    <p class="vy-line-sub" style="font-size:12px;margin-top:14px">
-        Choose what we tell you and where in <a href="{{ route('owner.notification-preferences') }}" style="color:var(--vy-accent)">Notification preferences</a>. Statements are always kept in your portal regardless.
+    {{-- ⚠️ This sentence sits DIRECTLY ON THE PAGE GRADIENT, not on a glass card — the same distinction the
+         topbar sub-line needed at Owner-4. Measured on the gradient: --vy-muted 4.43 and the accent LINK
+         3.17; --vy-on-grad reads 5.46, and the accent needs its tint-safe value to clear AA here (4.52). --}}
+    <p class="vy-line-sub" style="font-size:12px;margin-top:14px;color:var(--vy-on-grad)">
+        Choose what we tell you and where in <a href="{{ route('owner.notification-preferences') }}" style="color:var(--vy-accent-tint-text)">Notification preferences</a>. Statements are always kept in your portal regardless.
     </p>
 </x-owner.shell>

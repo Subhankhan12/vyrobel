@@ -2948,3 +2948,98 @@ is a product decision, and inventing a caption here would be guessing at the int
 - **0 horizontal overflow at 1440×1000; 0 console errors.**
 - ⚠️ **`toContain` sweep — clean negative** (fourth gate running): the only `not->toContain(...)` in the
   unit tests (`OwnerUnitRequestTest:175`) is **needle-only**.
+
+---
+
+## §O6 — Owner Notifications (`/owner/notifications`, `App\Livewire\Owner\OwnerNotifications`) · OWNER 6/32
+
+**Role** the real `External Owner`. ⚠️ **This gate closes the operator realm's last still-open P29 item.**
+
+### ⚠️ PREMISE CORRECTION — `Owner Notifications.html` is NOT the feed
+
+The brief called this prototype "the owner's self-only feed". Decoded fresh (byte-identical to `/tmp/audit`,
+35,238 chars), it is unambiguously the **PREFERENCES** page: breadcrumb *"Settings / Notifications"*, the
+subtitle *"Choose what we tell you and where…"*, a channels block (Email `amara@…`, SMS `+353…`), a
+**per-event Email/SMS matrix**, quiet hours and a Save button. There is no feed, no row, no unread state in it.
+
+- The prototype therefore belongs to **`/owner/notification-preferences`** (`OwnerNotificationPreferences`) —
+  which is also what `OwnerNotificationsPageTest` actually tests. **It gets its own gate.**
+- **`/owner/notifications` (the live FEED) has no prototype of its own** — it is a live-only surface built
+  during the Phase-3 notification rebuild. Recorded so a later gate does not "discover" the mismatch and
+  restyle the feed into a preferences page.
+- ⚠️ Amusingly the live feed already carries the prototype's subtitle verbatim in its footer ("Choose what we
+  tell you and where in Notification preferences…"), which is presumably how the two got conflated.
+
+**Second correction, smaller:** the brief's "another user's notification → 404" is not the mechanism. The feed
+is **structurally self-scoped by its query root** — `NotificationFeed` reads `$user->notifications()`, so a
+foreign row is never addressable to 404 in the first place. Verified live: the database holds **242
+notifications across 5 notifiables** and this owner's page renders exactly **their own 6**.
+
+### ⚠️ THE P29 REALM-WIDE ITEM IS NOW CLOSED — on both surfaces
+
+Operator GATE 29 fixed the colour-only unread state on the operator notifications page but logged the
+identical WCAG 1.4.1 defect as **still open** on two surfaces. Both verified still present at the start of
+this gate, and both fixed:
+
+| Surface | Was | Now |
+|---|---|---|
+| `livewire/owner/notifications.blade.php` | `<span … background:var(--vy-accent)" title="Unread">` | `aria-hidden` dot + `<span class="vy-sr-only">Unread</span>` |
+| `components/notifications/bell.blade.php` **(SHARED — both shells)** | the same colour-only dot | the same fix, written **once** |
+
+Plus: the ✓ control now carries `aria-label="Mark “{title}” as read"` (the GATE-29 pattern).
+
+⚠️ **A third defect surfaced while fixing it, and it is the reason the shared fix would otherwise have
+half-worked:** `.vy-sr-only` was defined **only in the operator layout**. The shared bell renders in BOTH
+shells, so any visually-hidden text it emitted was hidden in operator and **plainly visible in owner**. The
+rule is now defined in the owner shell too. *A shared partial cannot depend on a class only one shell
+defines* — Principle 3 has a corollary.
+
+**Verified live:** owner feed → **0** bare `title="Unread"`, 12 hidden "Unread" texts (6 page rows + 6 bell
+rows), every ✓ named. Operator page → **0** bare `title="Unread"`, 31 hidden texts, and **at most one
+`.vy-sr-only` inside any single row — no double-announcement**, so the operator side is unregressed and now
+also covered by the shared fix.
+
+**Mutation-proven three ways** (`NotificationPanelTest`, new case): restore the colour-only dot on the owner
+feed → red; restore it on the shared bell → red; delete `.vy-sr-only` from the owner shell → red. ⚠️ The
+third assertion was **initially vacuous** — `toContain('.vy-sr-only')` matched the class *attribute* in the
+bell markup, so it passed with the CSS rule deleted. Tightened to assert the **rule** and re-mutated.
+
+### The backend this page implies but does not have
+
+| # | What is missing | Verified state | What it would need | Verdict |
+|---|---|---|---|---|
+| DO6-1 | The feed has **no prototype**; the "Owner Notifications" design is the preferences page. | The live feed is a real, self-scoped, category-filtered list with mark-read / mark-all. | A design for the feed, if one is ever wanted. | **NOT A GAP — recorded** so the mismatch is not "discovered" later. |
+| DO6-2 | **Grouping** (Today / Earlier) and relative-time headers, which a long feed needs. | Rows carry a real relative time ("1 day ago") but are ungrouped. | Date bucketing over the existing feed. | **REAL GAP — small.** |
+| DO6-3 | The prototype's channel block shows **SMS with a real number**. | SMS is **honestly pending** on the preferences page (no provider) — and the feed itself never claims a send. | An SMS provider. | **ACCOUNT-GATED** (belongs to the preferences gate). |
+| DO6-4 | Per-notification **dismiss**. | Only mark-read exists; nothing claims dismissal. | A dismissed state on the feed store. | **REAL GAP — small.** |
+
+### Fixed this gate (design + a11y; markup/CSS only — no service, feed or route touched)
+
+- **The P29 1.4.1 closure** on both surfaces + `.vy-sr-only` in the owner shell + the ✓ `aria-label` (above).
+- **Contrast 6 → 3** (all 3 remaining being the known gradient family). ⚠️ Both non-family failures were the
+  **text-on-the-page-gradient** case again (the Owner-4 lesson): the footer sentence measured **4.43** with
+  `--vy-muted` → `--vy-on-grad` (5.46), and its **"Notification preferences" link measured 3.17** with
+  `--vy-accent` — on the gradient even `--vy-accent-text` only reaches 3.77, so it took
+  `--vy-accent-tint-text` (4.52). Plus the row timestamp (`--vy-faint` 4.45 → `--vy-muted` 5.36).
+- ⚠️ **A trap worth recording: Blade compiles component tags inside CSS comments.** Naming the shared bell
+  with its `<x-…>` tag syntax in a comment inside the layout's `<style>` block rendered the entire bell into
+  the stylesheet and **500'd every owner page**. Comments are not inert to Blade.
+
+### ⚠️ Verified, not changed
+
+- **Self-scoped (#28/#38/#42), structurally** — `NotificationFeed` reads `$user->notifications()`; the DB
+  holds **242 notifications across 5 users** and this owner's page shows exactly **their own 6**.
+- **Every notification real (#39)** — all six are `Your statement is ready`, each naming its REAL month and
+  REAL net payable (€516.60 / €442.80 / €467.40 / €885.60 / €721.60 / €656.00), matching the statements to
+  the cent. ⚠️ **No fabricated event**: no channel/OTA "sync" notification (the D2-2 door), and **no
+  "payout sent to your bank"** claiming a live transfer while the engine is test-mode (#71).
+- **References stay within the permitted surface (#28)** — the rows reference statements and money only; **no
+  guest name, email or phone, and no IBAN**, appears anywhere in the feed.
+- **One source for the count** — the page header reads "6 unread" and the bell badge reads **6**, both from
+  `NotificationFeed`; the database agrees (6 of 6 unread). No second derivation.
+- **READ-ONLY honoured** — mark-read / mark-all POST the real gated routes (`notifications/{id}/read`,
+  `notifications/read-all`), **read but never fired**: the owner still has 6 notifications, all 6 unread.
+- **Keyboard 40 controls / 0 unreachable / 0 unnamed / 0 without a ring**; 0 horizontal overflow, 0 console
+  errors at 1440×1000.
+- ⚠️ **`toContain` sweep — clean negative** (fifth gate running): the one call in `NotificationPanelTest` is
+  needle-only.

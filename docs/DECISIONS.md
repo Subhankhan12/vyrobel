@@ -6758,3 +6758,64 @@ needle-only.
 
 **Gates:** suite **1833 / 12,024 · 9 non-green** — the identical documented set. PHPStan L5 (0); Pint clean;
 1440×1000, 0 horizontal overflow, 0 console errors. No schema touched.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER gate O6: Owner Notifications (6 of 32) — 🏁 the P29 item CLOSED
+
+**Route** `/owner/notifications` (`OwnerNotifications`), role `External Owner`. Record §O6.
+**Markup/CSS only — no service, feed or route touched.**
+
+### 🏁 The operator realm's last open P29 item is closed
+
+GATE 29 fixed the colour-only unread state on the operator page and logged the same **WCAG 1.4.1** defect as
+still open on two surfaces. **Both verified still present, both fixed:** the owner feed page and the
+**SHARED `components/notifications/bell.blade.php`** — the shared partial fixed **once**, reaching the
+operator and owner bells together. The pattern is GATE-29's: an `aria-hidden` dot plus real
+`.vy-sr-only` text, **never** a `title=` on a non-interactive span (which is not reliably announced — the
+original finding). The ✓ control now carries `aria-label="Mark “{title}” as read"`.
+
+⚠️ **A third defect surfaced, and it is why the shared fix would otherwise have half-worked:** `.vy-sr-only`
+was defined **only in the operator layout**, so the shared partial's visually-hidden text was hidden in
+operator and **plainly visible in owner**. Now defined in both. *A shared partial cannot depend on a class
+only one shell defines.*
+
+**Verified live:** owner → 0 bare `title="Unread"`, 12 hidden texts, every ✓ named; operator → 0 bare
+`title="Unread"`, 31 hidden texts, **at most one per row (no double-announcement)** — unregressed and now
+covered by the shared fix. **Mutation-proven three ways.** ⚠️ The third assertion was **initially vacuous**
+(`toContain('.vy-sr-only')` matched the class attribute, not the rule) — caught by mutation, tightened, and
+re-mutated.
+
+### ⚠️ Premise corrections (two)
+
+1. **`Owner Notifications.html` is the PREFERENCES page, not the feed.** Decoded fresh: breadcrumb
+   *"Settings / Notifications"*, *"Choose what we tell you and where"*, channels, a per-event **Email/SMS
+   matrix**, quiet hours, Save. It belongs to `/owner/notification-preferences` — which is also what
+   `OwnerNotificationsPageTest` tests — and **the live feed has no prototype of its own**. Recorded so a
+   later gate does not restyle the feed into a preferences page.
+2. **The feed is self-scoped by its query root**, not by a foreign-id 404: `NotificationFeed` reads
+   `$user->notifications()`, so a foreign row is never addressable. Verified: **242 notifications across 5
+   users; this owner's page renders exactly their own 6.**
+
+### Decided
+
+- **Contrast 6 → 3** (the 3 being the known gradient family). ⚠️ Both non-family failures were the
+  **text-on-the-page-gradient** case from O4: the footer sentence measured **4.43** on `--vy-muted` →
+  `--vy-on-grad` (5.46), and its "Notification preferences" **link measured 3.17** — on the gradient even
+  `--vy-accent-text` reaches only 3.77, so it took `--vy-accent-tint-text` (4.52).
+- ⚠️ **Blade compiles component tags inside CSS comments.** Naming the shared bell with its `<x-…>` syntax in
+  a comment inside the layout's `<style>` block rendered the entire component into the stylesheet and 500'd
+  every owner page. **Comments are not inert to Blade.**
+
+### Verified, not changed
+
+**Every notification real (#39)** — all six are `Your statement is ready`, each naming its REAL month and net
+payable (€516.60 / €442.80 / €467.40 / €885.60 / €721.60 / €656.00), matching the statements to the cent; **no
+fabricated channel/OTA "sync"** (the D2-2 door) and **no "payout sent to your bank"** implying a live transfer
+while the engine is test-mode (#71). **#28** — rows reference statements and money only; no guest name, email
+or phone, and no IBAN. **One source for the count** — header "6 unread" = bell badge 6 = the database.
+**READ-ONLY honoured** — mark-read/mark-all POST the real gated routes, read but never fired: still 6 of 6
+unread. **Keyboard 40 / 0 / 0 / 0.** ⚠️ **`toContain` sweep — clean negative** (fifth gate running).
+
+**Gates:** suite **1834 / 12,032 · 9 non-green** (+1 test, the new 1.4.1 guard) — the identical documented
+set. PHPStan L5 (0); Pint clean; 0 overflow, 0 console errors. No schema touched.

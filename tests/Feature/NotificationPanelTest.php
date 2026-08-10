@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\Notifications\NotificationFeed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Assert;
 
 uses(RefreshDatabase::class);
 
@@ -100,4 +101,43 @@ it('shows the honest empty state in the panel when there are no notifications', 
     $this->actingAs($user)->get('/app/dashboard')
         ->assertOk()
         ->assertSee('All caught up — no notifications.');
+});
+
+// ── 6. WCAG 1.4.1 — the UNREAD state is never carried by colour alone (operator GATE-29's still-open item) ──
+// P29 fixed the operator notifications PAGE but logged the same defect as STILL OPEN on two surfaces: the owner
+// feed page and the SHARED bell partial (which renders in BOTH shells). Both are closed now, and this pins them.
+//
+// ⚠️ What the guard asserts is the CLAIM, not the styling: an unread row must carry the WORD "Unread" in
+// visually-hidden text, and must NOT fall back to a bare `title="Unread"` on a non-interactive span — a title
+// there is not reliably announced, which is exactly what P29 found. Mutation-proven: restoring the colour-only
+// dot turns this red.
+it('never conveys the unread state by colour alone — owner feed page and the shared bell', function () {
+    $s = seedScenario(1);
+    $owner = Owner::factory()->create(['name' => 'Amara', 'status' => 'active']);
+    $user = User::factory()->create(['name' => 'Amara']);
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+    $owner->update(['user_id' => $user->id]);
+
+    // A real UNREAD notification — an empty fixture would make every assertion below vacuous.
+    makeNotif($user, ['title' => 'Your statement is ready', 'context' => 'net payable €885.60', 'url' => '/owner', 'category' => 'finance']);
+
+    $feed = $this->actingAs($user)->get('/owner/notifications')->assertOk();
+    $feedHtml = $feed->getContent();
+
+    // The owner FEED page: the state is in words, and the mark-read control names its notification.
+    expect($feedHtml)->toContain('<span class="vy-sr-only">Unread</span>')
+        ->and($feedHtml)->toContain('Mark “Your statement is ready” as read');
+
+    // The SHARED bell renders on every owner page — same rule, one definition.
+    $shellHtml = $this->actingAs($user)->get('/owner')->assertOk()->getContent();
+    expect($shellHtml)->toContain('<span class="vy-sr-only">Unread</span>');
+
+    // ⚠️ And the colour-only form must be GONE from both, not merely supplemented.
+    Assert::assertStringNotContainsString('title="Unread"', $feedHtml, 'the owner feed still marks unread with a bare title attribute (colour-only, WCAG 1.4.1)');
+    Assert::assertStringNotContainsString('title="Unread"', $shellHtml, 'the shared bell still marks unread with a bare title attribute (colour-only, WCAG 1.4.1)');
+
+    // The owner shell must also DEFINE .vy-sr-only, or the shared partial's text would render VISIBLY here.
+    // ⚠️ Assert the CSS RULE, not the string '.vy-sr-only' — the class ATTRIBUTE appears in the bell markup
+    // regardless, so the loose form passed even with the rule deleted (caught by mutation, tightened here).
+    expect($shellHtml)->toContain('.vy-sr-only { position: absolute;');
 });

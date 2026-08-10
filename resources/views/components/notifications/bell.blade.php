@@ -43,7 +43,13 @@
                             <span style="flex:1;min-width:0;font-size:12.5px;font-weight:{{ $item['read'] ? '500' : '700' }};color:var(--vy-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $item['title'] }}</span>
                             <span style="display:flex;align-items:center;gap:6px;flex:none">
                                 <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--vy-muted)">{{ ucwords(str_replace('_', ' ', $item['category'])) }}</span>
-                                @unless ($item['read'])<span style="flex:none;width:7px;height:7px;border-radius:50%;background:var(--vy-accent)" title="Unread"></span>@endunless
+                                {{-- ⚠️ 1.4.1 — SHARED BY BOTH SHELLS, so this single fix reaches the operator
+                                     and the owner bell at once. The dot carried "unread" on colour alone; a
+                                     bare `title` on a non-interactive span is not reliably announced. --}}
+                                @unless ($item['read'])
+                                    <span aria-hidden="true" style="flex:none;width:7px;height:7px;border-radius:50%;background:var(--vy-accent)"></span>
+                                    <span class="vy-sr-only">Unread</span>
+                                @endunless
                             </span>
                         </span>
                         <span style="display:block;font-size:12px;color:var(--vy-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $item['context'] }}</span>

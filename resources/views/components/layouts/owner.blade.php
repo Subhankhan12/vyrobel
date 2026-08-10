@@ -292,6 +292,15 @@
         /* Status badges */
         .vy-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: var(--vy-r-pill); font-size: 12px; font-weight: 600; }
         .vy-status .vy-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+        /* ⚠️ Visually-hidden text. This existed ONLY in the operator layout — and the SHARED notifications
+           bell partial renders in BOTH shells, so any `.vy-sr-only` it emitted was styled in operator and
+           UNSTYLED (i.e. visible) in owner. Defining it here is what makes the shared partial's 1.4.1 fix
+           work on this side too.
+           ⚠️ Do NOT name that partial with its component-tag syntax in a comment: Blade compiles component
+           tags anywhere in the file, including inside a CSS comment — doing so rendered the whole bell into
+           this <style> block and 500'd the layout. */
+        .vy-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
         .vy-status--pending { background: rgba(224, 146, 30, 0.14); color: var(--vy-amber-text); }
         .vy-status--pending .vy-dot { background: var(--vy-amber-2); }
         .vy-status--paid { background: rgba(31, 122, 90, 0.13); color: var(--vy-green-text); }
