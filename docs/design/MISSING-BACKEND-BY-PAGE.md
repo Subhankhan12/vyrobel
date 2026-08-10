@@ -1840,3 +1840,83 @@ the REAL by-source split** — genuinely ~0 for OTA.
   statuses"*): **CSS comments render, Blade comments do not.** Same trap as the contrast guard fixed at
   `9696b9c` — scope a guard to the CLAIM, not to a bare word.
 - **No app/ code changed at all** this gate — the diff is one Blade label and one test file.
+
+---
+
+## §27 — Operator **Portfolio** (`/app/portfolio`, `can:properties.view`) · P27
+
+**Prototype:** `docs/design/raw/Operator Portfolio.html` (bundler-encoded; decoded copy at
+`/tmp/audit/Operator Portfolio.decoded.html`). **Live:** Livewire `OperatorPortfolio` — measured **0 raw hex,
+0 pre-AA greys** (the `c0ce419` carry-forward does **not** apply; that risk tracks *controller*-rendered pages
+like Reviews, not Livewire ones — now two-for-two on that predictor).
+
+⚠️ **This is a rollup surface, so the isolation question is about FIGURES, not just names.** Verified: the
+property set and every rollup come from `PropertyContext::accessibleIds()` (pivot-or-all), captured at `mount()`
+behind `#[Locked]` — the #20 Livewire-boundary fix. The drill-down (`app.property.switch`) validates
+`property_id` **against the accessible set** (foreign → 422) and `SetCurrentPropertyForWebRequest` re-validates
+on the next request. **The page does not paginate or filter**, so there is no `?page=2`/filter path that could
+carry scope — stated as a fact, not assumed.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D27-1 | **"+9%"** beside Revenue · month. | Nothing computes a prior-period comparison here; the literal `+9%` is **hardcoded** in the prototype source. | A prior-month `PerformanceMetrics` pass **and** a rule for partial/absent history. | **RATIFIED REFUSAL — D3-4 CLASS.** A month-over-month delta needs a comparable prior period; a young org's prior month is partial, so the figure would mislead exactly where it looks most authoritative. Same refusal as the owner Insights vs-LY delta, which is shown **only** where prior-year data exists. |
+| D27-2 | A **"4 unread"** flag on a property card. | No per-property unread count is computed for this surface. | A per-property scoped unread read from the inbox. | **LOGGED — REAL GAP (small).** Buildable and honest, but it is a new query, not presentation. ⚠️ If built, it must be the **operator's** scoped unread, and stay name-free on this surface (#28). |
+| D27-3 | Post-add **setup checklist** — *"Name your units & add photos · Set base rates & availability · Connect Booking.com, Airbnb & more"*. | No onboarding checklist entity exists; the third item is Channex. | A setup-progress model + the Channex cutover for item 3. | **LOGGED — PARTLY CHANNEX-TIED.** The live product instead derives an honest **"Finish setup to go live"** status from real inventory (`room_types`/`units` = 0), which is the same information without a fabricated progress state. |
+| D27-4 | The Add-property modal's **"+14 units × €9/mo added to your plan · prorated from today"**, and a **ROOMS stepper** that provisions N rooms at creation. | No proration is computed or charged at property creation, and creation provisions **no units**. | ⛔ **The billing decision** (below), plus bulk unit provisioning. | ⛔ **REFUSAL — TIED TO THE OPEN BILLING DECISION.** The live modal asserts **no price at all** — correct, and deliberately left untouched: quoting a per-unit rate here would *pick* one of the two contradictory pricing models, which is the founder's call. ⚠️ **See the note below** — the live copy still says *"billed per unit"*. |
+| D27-5 | Per-card band **tinted by rank** (deep orange → peach → brown, tracking revenue/occupancy order). | — (presentation) | — | **DIVERGENCE — DELIBERATE.** Rendered with one brand band for every property. Tinting by rank encodes a ranking **in colour alone** (WCAG 1.4.1), and with two properties it reads as a status difference that does not exist. The ranking is already shown numerically in the side-by-side table. |
+
+### Fixed this gate (design-only; no metric math touched)
+
+- **The design's gradient card band** — `.vy-prop-band`, full-bleed, with the mark/name/location on it.
+  ⚠️ **Not a copy of the prototype's band:** the prototype runs `#E8703A→#C2410C` with white ink, and white on
+  the `#E8703A` end measures **3.10** — under the 4.5 bar for the 15px name. Ours runs from the **deep** end
+  (`#C2410C→#9A330A`); measured **5.18** (name/chip) and **4.68** (location) at the band's lightest point.
+  *Match the design's structure, not its contrast defect.*
+- **`.vy-prop-current` ("Working here") was a real AA failure at 4.43** on the pre-change card (9.5px/700 → the
+  4.5 bar applies). Base token moved to `--vy-accent-text`; on the band it is white at 5.18. Also `nowrap` — it
+  wrapped mid-phrase at 1000px.
+- **Label-above-value stats, per the design**, with the design's hairline dividers instead of boxed tiles.
+- **The per-card occupancy rail** (real tonight figure, with an `aria-label` carrying sold/total).
+- **The chip row**, including the **arrivals count that was computed but never rendered**.
+  ⚠️ **Scope-safety divergence:** the prototype deep-links every card to *Dashboard · Calendar*. Our property
+  scope is the **session** `PropertyContext`, so those links from a **non-current** card would silently render
+  the property you are actually working in. They therefore render **only on the current card**; elsewhere the
+  card offers **Open** (the real, validated scope switch). The arrivals chip is never a link.
+- **"Full report ›"** — in the design, absent from the live page, yet the component **already computed its gate**
+  (`canViewAnalytics`) and never rendered it. Now rendered, gated on `reports.view` — **the same permission the
+  `/app/reports` route requires** (#30).
+- **`—` for an average over zero.** ⚠️ This is the **design's own rule**, not an inference: the prototype's
+  freshly-added property renders `adr: '—'` on the card and `occ/adr/revpar: '—'` in the table, while revenue
+  stays a real `€0`. Live now matches — ADR is `—` when `roomNightsSold == 0`; occupancy/RevPAR are `—` when
+  `availableRoomNights == 0`; **revenue keeps its computed zero** (the Owners-list ruling).
+- **Card stat labels carry their period** (`ADR · mo`, `Revenue · mo`). The cards are **this month** while the
+  table below is **this year** — a bare "Revenue" beside a year total that differs by an order of magnitude is
+  the *"two revenue figures differing 63%"* class of confusion.
+- **Stale docblock** — it claimed the ADR/RevPAR comparison was "deferred to Phase 6b, never faked" long after
+  6b shipped it.
+
+### ⚠️ Findings that are NOT this page's to fix
+
+- ⛔ **The live Add-property modal says *"billed per unit"*.** That asserts one of the two contradictory pricing
+  models while the tier price is what actually reaches Stripe. **Surfaced, not changed** — editing it either way
+  is picking a side of the open billing decision. It belongs on the blocker's ledger.
+- ⚠️ **The operator shell's topbar H1 overlaps the search box at ≤1000px** (H1 right 383 vs search left 339).
+  **Proven pre-existing** by stashing this gate's changes and re-measuring on clean HEAD. Realm-wide (the shell,
+  not this page).
+
+### ⚠️ A green test that was defending nothing
+
+The pre-existing **"reconciles the portfolio to the sum of properties" (#17)** test was **vacuous**: `seedScenario()`
+books nothing, so it asserted `€0.00` against a page where every figure is zero. **Proven by mutation** — inflating
+the rollup by €9,999.99 left it **green**. Replaced with a rollup test carrying real, distinct figures
+(€100 + €250 = €350, against a foreign org holding €999), and **proven to discriminate**: breaking the
+independently-computed total by **one cent** turns it red.
+
+⚠️ **What the mutation work also established about #38 here:** the cross-org line is held by **two independent
+layers** — the accessible-set from `PropertyContext` *and* `Property`'s global tenant scope. Disabling **either
+one alone leaves the page correct**; the test only goes red when **both** are removed. That is defence-in-depth
+*verified*, rather than assumed — and it is why a single-point mutation of this page cannot leak.
+
+⚠️ **Also found:** **no provisioned role holds `properties.view` without `reports.view`**, so the "Full report"
+gate's negative branch is unreachable through the stock catalogue. The test revokes the permission directly so
+the assertion still discriminates instead of quietly testing nothing.

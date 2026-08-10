@@ -5947,3 +5947,66 @@ documented pre-existing set — 6 × `BookingImportTest` (which **pass in isolat
 and `OwnerUnitDetailViewTest` (a real pre-existing failure, already on the audit backlog). Both categories were
 confirmed identical on clean HEAD with this pass's changes stashed, so nothing here introduced them. PHPStan L5
 (0); Pint clean; `migrate:fresh --seed` clean.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY **P27 · Operator Portfolio** (`/app/portfolio`, `can:properties.view`)
+
+**Presentation-only.** No metric math, no scope mechanism, no money path changed. `docs/design/MISSING-BACKEND-BY-PAGE.md` §27.
+
+**Fixed (design):** the design's full-bleed gradient card **band**; label-above-value **stats** with the design's
+dividers; a per-card **occupancy rail** (real, `aria-label`led); the design's **chip row** — including the
+**arrivals count that was computed but never rendered**; **"Full report ›"**, which the design has and the
+component **already had a gate for** (`canViewAnalytics`) but never rendered — now gated on `reports.view`, the
+same permission `/app/reports` requires (#30); **card stat labels carry their period** (the cards are *this
+month*, the table below is *this year*); a stale docblock.
+
+**⚠️ Matched the design's structure, NOT its contrast defect.** The prototype's band runs `#E8703A→#C2410C` with
+white ink — white on the `#E8703A` end measures **3.10**, under the 4.5 bar for the 15px name. Ours runs from the
+deep end (`#C2410C→#9A330A`): measured **5.18** / **4.68**. Separately, `.vy-prop-current` ("Working here") was a
+**real pre-existing AA failure at 4.43** — now 5.18, and `nowrap` (it wrapped mid-phrase at 1000px).
+
+**⚠️ "—" for an average over zero — this is the DESIGN's rule, not an inference.** The prototype's freshly-added
+property renders `adr: '—'` and, in the table, `occ/adr/revpar: '—'`, while revenue stays a real `€0`. Live now
+matches: ADR `—` when `roomNightsSold == 0`, occupancy/RevPAR `—` when `availableRoomNights == 0`, and **revenue
+keeps its computed zero** (the Owners-list ruling: a computed zero is not a missing zero).
+
+**⚠️ SCOPE-SAFETY DIVERGENCE (deliberate).** The prototype deep-links each card to *Dashboard · Calendar*. Our
+property scope is the **session** `PropertyContext`, so those links from a non-current card would silently render
+the property the user is actually working in. They render **only on the current card**; elsewhere the card offers
+**Open** — the real switch, validated against the accessible set (foreign → 422).
+
+**⚠️ A GREEN TEST WAS DEFENDING NOTHING.** The pre-existing "#17 reconciles the portfolio to the sum of properties"
+test was **vacuous**: `seedScenario()` books nothing, so it asserted `€0.00` against a page of zeros — **proven by
+mutation** (inflating the rollup by €9,999.99 left it green). Replaced with real, distinct figures
+(€100 + €250 = €350 against a foreign org holding €999), **proven to discriminate**: a **one-cent** break in
+Σ==total turns it red.
+
+**⚠️ #38 is held by TWO independent layers, verified.** `PropertyContext::accessibleIds()` *and* `Property`'s global
+tenant scope. Disabling **either alone** leaves the page correct; the test only goes red when **both** are removed.
+Defence-in-depth measured, not assumed.
+
+**⚠️ Also recorded, NOT fixed here:** ⑴ the Add-property modal says *"billed per unit"*, asserting one of the two
+contradictory pricing models — **surfaced, deliberately unchanged**, because editing it either way picks a side of
+the ⛔ **open billing decision**. The live modal asserts **no price**, unlike the prototype's *"+14 units × €9/mo ·
+prorated from today"*. ⑵ The operator shell's **topbar H1 overlaps the search box at ≤1000px** — **proven
+pre-existing** by stashing and re-measuring on clean HEAD; realm-wide, not this page. ⑶ **No provisioned role holds
+`properties.view` without `reports.view`**, so the "Full report" gate's negative branch is unreachable via the stock
+catalogue; the test revokes the permission directly so it still discriminates.
+
+**Refused / logged (5):** the hardcoded **"+9%"** revenue delta (**D3-4 class** — no comparable prior period);
+per-property **"4 unread"**; the post-add **setup checklist** (partly Channex-tied); the modal's **per-unit price +
+proration** (billing decision); **rank-tinted bands** (encodes a ranking in colour alone, WCAG 1.4.1 — the table
+already ranks numerically).
+
+**Verification:** `OperatorPortfolioTest` + `OperatorPortfolioGate1Test` **14/14 · 58 assertions** (3 added);
+PHPStan L5 **0**; Pint clean; **0 console messages**, **0 horizontal overflow** at 1440 and 1000; contrast measured
+across every visible text node (**0 failures**, band measured against its lightest stop). Schema untouched, so no
+`migrate:fresh` was needed. Seed unchanged (2 properties / 42 reservations) — the Add-property modal was observed
+**read-only** and never submitted.
+
+⚠️ **Baseline correction recorded the same day (J.quater).** The full suite measured **1809 tests / 11,896
+assertions**, with **5–9** pre-existing failures depending on run order and date — **two full runs in one session
+gave different failure sets.** `BookingImportTest` **passes 11/11 in isolation** and fails only in-suite (ordering
+/ pollution); `OwnerUnitDetailViewTest` + `StubViewsTest` fail on the date-coupled seeder collision. None touch
+Portfolio. **Stop citing a fixed baseline integer — isolate a failing file before calling it a regression.**

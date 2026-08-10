@@ -573,6 +573,25 @@ above only works if the number is **MEASURED each gate, not quoted from these no
   producing a transient failure. Confirmed by isolating the test (fails 8/8 on the colliding seed) and
   re-running the suite. If the count rises unexpectedly, isolate before assuming a regression.
 
+### ⚠️ J.quater — THE BASELINE IS NOT A SINGLE NUMBER (measured at P27, 2026-08-10)
+
+⚠️ **Two full-suite runs in the SAME session produced DIFFERENT failure sets** — so quoting "the baseline is 9"
+is itself the stale-assertion mistake, one level up. Measured at P27 (`1809 tests · 11,896 assertions`):
+
+| File | In isolation | In the full suite | What it is |
+|---|---|---|---|
+| `BookingImportTest` | **PASSES 11/11** | **fails 5** | **Ordering / test-pollution artifact** — not a date issue at all. |
+| `OwnerUnitDetailViewTest` | **fails 1** | passed in run 2, failed in run 1 | Date-coupled seeder collision (`UnitUnavailableException` — *blocked (inventory_block)*). |
+| `StubViewsTest` | **fails 2** | passed in run 2, failed in run 1 | Same collision (*already occupied*). |
+
+**So the honest statement is a RANGE, not a count: 5–9 pre-existing failures**, split between an
+**order-dependent** file and two **date-coupled** ones — and which ones fire depends on run order and the
+current date. ⚠️ **Do not cite a fixed baseline number again.** Re-measure each gate, and *isolate* a failing
+file before calling it a regression: a file that passes alone and fails in-suite is pollution, not your change.
+
+⚠️ **This sharpens L.31.** It is not only that an asserted baseline goes stale — **a baseline expressed as a
+single integer was never well-defined here.**
+
 ### ⚠️ J.ter — THE BASELINE MOVED 7 → 9 ON 2026-08-10 (a DATE-ROLL collision, NOT a regression)
 
 **During the design-parity session of 2026-08-09/10 the clock rolled past midnight, and `StubViewsTest`
@@ -778,12 +797,12 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **34 of 42** covered, **8 remaining** (`0aa9ede`→`638e67a`, all pushed)
+## N.4 Progress — OPERATOR **35 of 42** covered, **7 remaining** (`0aa9ede`→P27, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
-**P22 Owner Detail**, **P23 Roles**, **P24 Security**, **P25 Reviews** and **P26 Channels**, so the current
-figure is **34 covered / 8 remaining** (34 + 8 = 42). Notes saying
+**P22 Owner Detail**, **P23 Roles**, **P24 Security**, **P25 Reviews**, **P26 Channels** and **P27
+Portfolio**, so the current figure is **35 covered / 7 remaining** (35 + 7 = 42). Notes saying
 "22/42 … 19 remaining" are the pre-GATE-B count and do not add up.
 
 | Gate | Page(s) | Commit |
@@ -821,6 +840,7 @@ figure is **34 covered / 8 remaining** (34 + 8 = 42). Notes saying
 | P24 | **Operator Security** ⚠️ auth (⚠️ **a hardcoded “Protected” badge that lied with 2FA OFF — now derived + tested** · 2 a11y fixes · 2 backend items) — **Settings' deferred pair now complete (Billing §17 + Security)** | `b9f26d0` |
 | P25 | **Operator Reviews** (⚠️ **the page had never been tokenised — 3 measured AA failures incl. the STAR RATING at 3.08; now 0** · the rating gained its number · 4 backend items) | `101e1e6` |
 | P26 | **Operator Channels** ⚠️ the OTA-claim ROOT (1 over-claim fixed: “Channels mapped”→“configured” + a scoped guard · 5 backend items, **4 refusals — almost the whole prototype**; ⚠️ live page NOT browsable: Pro-gated, plan deliberately unchanged) | `638e67a` |
+| P27 | **Operator Portfolio** ⚠️ the multi-property ROLLUP (#38): band/stats/occupancy-rail/chips restyled · the never-rendered **arrivals** chip + **“Full report ›”** (gate was already computed) now rendered · the design's **“—” for an average over zero** (computed zeros kept) · **AA 4.43→5.18** · ⚠️ found the **#17 test was VACUOUS** — replaced + mutation-proven; #38 shown to hold across **two independent layers**; 5 backend items | P27 |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -865,23 +885,24 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Portfolio.**
+## N.7 ⬅ REMAINING — the resume queue (ranked by stakes). **NEXT PAGE = Operator Search.**
 
-⚠️ **Portfolio is the multi-property surface (#38).** Every figure is per-property or an all-properties
-aggregate through `PropertyContext` / `PerformanceMetrics` — never `Property::first()`, never a blend across
-properties an operator cannot access (the pivot-or-all rule). Watch for a fabricated comparison or a
-cross-property total that ignores the read-set.
+⚠️ **Search is a CROSS-ENTITY read surface.** It reaches reservations, guests and units at once, so it is where
+the **#28 perimeter** is easiest to widen by accident (a result row is a great place for an email address to
+leak onto a non-CRM surface) and where **#38** must hold per result. Expect the honest-empty and
+no-results states to matter more than the styling.
 
-⚠️ **NOTES CARRIED FORWARD.** ⑴ **Measure tokens, don't assume** — Reviews (a `c0ce419` CONTROLLER page) had
-never been tokenised and carried 3 AA failures; Channels (a LIVEWIRE page) was clean. The distinction that
-predicted it was **controller-rendered vs Livewire**. ⑵ **Scope a test guard to the CLAIM, not a bare word** —
-a bare `assertDontSee('mapped')` failed against a CSS comment in the layout (CSS comments render; Blade
-comments do not). ⑶ ⚠️ **The suite baseline is 9, not 7 (J.ter)** — a date-roll collision in `StubViewsTest`,
-proven pre-existing.
+⚠️ **NOTES CARRIED FORWARD.** ⑴ **Measure tokens, don't assume** — but the predictor is now **two-for-two**:
+`c0ce419` **controller** pages carry raw pre-AA hex (Reviews: 3 failures); **Livewire** pages are clean
+(Channels, Portfolio: 0 raw hex). Still measure. ⑵ **Scope a test guard to the CLAIM, not a bare word.**
+⑶ ⚠️ **The suite baseline is a RANGE, 5–9, not a fixed 9 (J.quater)** — `BookingImportTest` passes in isolation and fails only in-suite (ordering), while `OwnerUnitDetailViewTest`/`StubViewsTest` are date-coupled. **Isolate before calling anything a regression.** ⑷ ⚠️ **NEW (P27) — a green test can be defending nothing:**
+Portfolio's "#17 reconciles" test asserted `€0.00` on a page of zeros and stayed green with the rollup inflated
+by €9,999.99. **On any page with a total, check the fixture actually produces a non-zero figure**, then break
+it by one cent to prove the assertion discriminates. ⑸ ⚠️ **NEW (P27) — match the design's structure, not its
+contrast defect:** the prototype's card band sets white ink on a stop measuring 3.10.
 
-**8 OPERATOR prototypes remain:** **1 Portfolio** (#38) · **2 Search** · **3 Notifications** ·
-**4 Notification Preferences** · **5 Email Templates** · **6 Email Editor** · **7 Profile** ·
-**8 Schedule PDF**.
+**7 OPERATOR prototypes remain:** **1 Search** · **2 Notifications** · **3 Notification Preferences** ·
+**4 Email Templates** · **5 Email Editor** · **6 Profile** · **7 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

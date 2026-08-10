@@ -1,8 +1,9 @@
 {{-- Operator Portfolio (Phase 6a · Step 2) — the multi-property overview + property CRUD. Every figure is
      REAL/DERIVED: unit counts, occupancy from the Availability spine, arrivals from the front-desk read, a
      status derived from real inventory ("Finish setup to go live" when a property has no units yet). The
-     prototype's ADR/RevPAR/revenue comparison is ANALYTICS — deferred honestly to Phase 6b, never faked.
-     Add/Edit render only for `properties.manage`. --}}
+     ADR/RevPAR/revenue comparison is REAL via the SG1 metric layer (it was deferred in 6a, built in 6b —
+     this docblock said "deferred" long after it shipped). Add/Edit render only for `properties.manage`.
+     ⚠️ An average over ZERO room-nights renders "—", not a zero — a computed zero (revenue) still shows. --}}
 <div x-data="{ addOpen: {{ $errors->any() && old('_form') === 'add' ? 'true' : 'false' }}, editOpen: false, editing: {} }">
     <x-operator.shell active="portfolio" title="Portfolio"
         :subtitle="$summary['properties'] . ' ' . \Illuminate\Support\Str::plural('property', $summary['properties']) . ' · ' . $summary['units'] . ' ' . \Illuminate\Support\Str::plural('unit', $summary['units'])"
@@ -68,46 +69,72 @@
             <div class="vy-portfolio-grid vy-fade">
                 @foreach ($cards as $p)
                     <div class="vy-prop-card vy-card--tappable @if ($p['is_current']) is-current @endif">
-                        <div class="vy-prop-head">
+                        {{-- The design's full-bleed gradient band (deepened for AA — see .vy-prop-band). --}}
+                        <div class="vy-prop-band">
                             <span class="vy-prop-mark">{{ $p['initial'] }}</span>
                             <div class="vy-prop-id">
                                 <span class="vy-prop-name">{{ $p['name'] }}@if ($p['is_current'])<span class="vy-prop-current">Working here</span>@endif</span>
-                                <span class="vy-prop-loc">{{ $p['location'] }} · {{ $p['type_label'] }}</span>
+                                <span class="vy-prop-loc">{{ $p['location'] }} · {{ $p['type_label'] }} · {{ $p['units'] }} {{ \Illuminate\Support\Str::plural('unit', $p['units']) }}</span>
                             </div>
                         </div>
 
-                        <div class="vy-prop-stats">
-                            <div><span class="vy-ps-val">{{ $p['occupancy_pct'] }}%</span><span class="vy-ps-lab">Occupancy</span></div>
-                            <div><span class="vy-ps-val">{{ $p['adr'] }}</span><span class="vy-ps-lab">ADR</span></div>
-                            <div><span class="vy-ps-val">{{ $p['revenue'] }}</span><span class="vy-ps-lab">Revenue</span></div>
-                        </div>
+                        <div class="vy-prop-body">
+                            {{-- ⚠️ The stat labels carry their PERIOD. The comparison table below spans the YEAR while
+                                 these are THIS MONTH — a bare "Revenue" beside it reads as the same figure and they
+                                 differ by an order of magnitude. Occupancy is tonight (the availability spine). --}}
+                            <div class="vy-prop-stats">
+                                <div><span class="vy-ps-lab">Occupancy</span><span class="vy-ps-val">{{ $p['occupancy_display'] }}</span></div>
+                                <div><span class="vy-ps-lab">ADR · mo</span><span class="vy-ps-val">{{ $p['adr'] }}</span></div>
+                                <div><span class="vy-ps-lab">Revenue · mo</span><span class="vy-ps-val">{{ $p['revenue'] }}</span></div>
+                            </div>
 
-                        <div class="vy-prop-status vy-status-{{ $p['status']['tone'] }}">
-                            <span class="vy-status-dot"></span>{{ $p['status']['label'] }}
-                        </div>
+                            {{-- The design's occupancy rail — the REAL tonight figure, nothing fabricated. --}}
+                            @if ($p['rooms_total'] > 0)
+                                <div class="vy-prop-occ" role="img"
+                                     aria-label="Occupancy tonight {{ $p['occupancy_pct'] }}% — {{ $p['rooms_sold'] }} of {{ $p['rooms_total'] }} units sold">
+                                    <span style="width: {{ min(100, $p['occupancy_pct']) }}%"></span>
+                                </div>
+                            @endif
 
-                        {{-- Fix-sync — HONEST: the REAL channel status (never a fabricated "synced", #85/#39). --}}
-                        <div class="vy-prop-sync vy-status-{{ $p['sync']['tone'] }}" style="font-size: 11.5px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
-                            <span><span class="vy-status-dot"></span>{{ $p['sync']['label'] }}</span>
-                            @if ($p['sync']['needs_fix'])
-                                <a href="{{ route('app.channels') }}" style="color: var(--vy-accent); font-weight: 600;">Fix sync →</a>
-                            @endif
-                        </div>
+                            <div class="vy-prop-status vy-status-{{ $p['status']['tone'] }}">
+                                <span class="vy-status-dot"></span>{{ $p['status']['label'] }}
+                            </div>
 
-                        <div class="vy-prop-actions">
-                            @if (! $p['is_current'])
-                                <form method="POST" action="{{ route('app.property.switch') }}">
-                                    @csrf
-                                    <input type="hidden" name="property_id" value="{{ $p['id'] }}">
-                                    <button type="submit" class="vy-btn vy-btn--ghost">Open</button>
-                                </form>
-                            @else
-                                <a class="vy-btn vy-btn--ghost" href="{{ route('app.dashboard') }}">Dashboard</a>
-                            @endif
-                            @if ($canManage)
-                                <button type="button" class="vy-btn vy-btn--ghost"
-                                    @click="editing = {{ \Illuminate\Support\Js::from(['id' => $p['id'], 'name' => $p['name'], 'type' => $p['type'], 'timezone' => $p['timezone'], 'status' => ($p['status']['label'] === 'Inactive' ? 'inactive' : 'active')]) }}; editOpen = true">Edit</button>
-                            @endif
+                            {{-- Fix-sync — HONEST: the REAL channel status (never a fabricated "synced", #85/#39). --}}
+                            <div class="vy-prop-sync vy-status-{{ $p['sync']['tone'] }}" style="font-size: 11.5px; display: flex; justify-content: space-between; align-items: center;">
+                                <span><span class="vy-status-dot"></span>{{ $p['sync']['label'] }}</span>
+                                @if ($p['sync']['needs_fix'])
+                                    <a href="{{ route('app.channels') }}" style="color: var(--vy-accent-text); font-weight: 600;">Fix sync →</a>
+                                @endif
+                            </div>
+
+                            {{-- The design's chip row. ⚠️ SCOPE-SAFETY (#38): the prototype deep-links each card to
+                                 "Dashboard · Calendar", but OUR property scope is the session PropertyContext — a
+                                 /app/calendar link from a NON-current card would silently render the property you
+                                 are actually working in. So the navigation chips render only on the CURRENT card;
+                                 elsewhere the card offers "Open" (the real, validated scope switch) instead. The
+                                 arrivals chip is a REAL count and never a link. --}}
+                            <div class="vy-prop-chips">
+                                @if ($p['is_current'])
+                                    <a class="vy-prop-chip" href="{{ route('app.dashboard') }}">Dashboard</a>
+                                    <a class="vy-prop-chip" href="{{ route('app.calendar') }}">Calendar</a>
+                                @endif
+                                <span class="vy-prop-chip is-static">{{ $p['arrivals'] }} {{ \Illuminate\Support\Str::plural('arrival', $p['arrivals']) }} today</span>
+                            </div>
+
+                            <div class="vy-prop-actions">
+                                @if (! $p['is_current'])
+                                    <form method="POST" action="{{ route('app.property.switch') }}">
+                                        @csrf
+                                        <input type="hidden" name="property_id" value="{{ $p['id'] }}">
+                                        <button type="submit" class="vy-btn vy-btn--ghost">Open</button>
+                                    </form>
+                                @endif
+                                @if ($canManage)
+                                    <button type="button" class="vy-btn vy-btn--ghost"
+                                        @click="editing = {{ \Illuminate\Support\Js::from(['id' => $p['id'], 'name' => $p['name'], 'type' => $p['type'], 'timezone' => $p['timezone'], 'status' => ($p['status']['label'] === 'Inactive' ? 'inactive' : 'active')]) }}; editOpen = true">Edit</button>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -118,14 +145,28 @@
              year, all REAL via the SG1 metric layer. A property with no data shows honest zeros. --}}
         @if (count($comparison['rows']) > 0)
             <div class="vy-card vy-fade" style="margin-top: 14px;">
-                <div class="vy-card-head"><h3>This year, side by side</h3><span class="vy-card-note">occupancy · ADR · RevPAR · room revenue</span></div>
+                <div class="vy-card-head">
+                    <h3>This year, side by side</h3>
+                    {{-- The design's "Full report ›". The gate was already computed by the component and simply
+                         never rendered — so the control is gated, not merely hidden-if-403 (#30). --}}
+                    @if ($canViewAnalytics)
+                        <a href="{{ route('app.reports') }}" style="font-size:12px;font-weight:600;color:var(--vy-accent-text);text-decoration:none">Full report ›</a>
+                    @else
+                        <span class="vy-card-note">occupancy · ADR · RevPAR · room revenue</span>
+                    @endif
+                </div>
                 <table class="vy-table">
                     <thead><tr><th>Property</th><th class="vy-num">Occupancy</th><th class="vy-num">ADR</th><th class="vy-num">RevPAR</th><th class="vy-num">Room revenue</th></tr></thead>
                     <tbody>
                         @foreach ($comparison['rows'] as $r)
                             <tr>
-                                <td>{{ $r['name'] }}</td>
-                                <td class="vy-num">{{ $r['occupancy_pct'] }}%</td>
+                                <td>
+                                    <span style="display:inline-flex;align-items:center;gap:9px">
+                                        <span class="vy-prop-mark" style="width:26px;height:26px;border-radius:8px;font-size:11px" aria-hidden="true">{{ $r['initial'] }}</span>
+                                        <span>{{ $r['name'] }}<span style="display:block;font-size:11px;color:var(--vy-faint)">{{ $r['units'] }} {{ \Illuminate\Support\Str::plural('unit', $r['units']) }}</span></span>
+                                    </span>
+                                </td>
+                                <td class="vy-num">{{ $r['occupancy_pct'] }}</td>
                                 <td class="vy-num">{{ $r['adr'] }}</td>
                                 <td class="vy-num">{{ $r['revpar'] }}</td>
                                 <td class="vy-num">{{ $r['revenue'] }}</td>
@@ -134,7 +175,7 @@
                         @if (count($comparison['rows']) > 1)
                             <tr style="font-weight:700;border-top:1.5px solid var(--vy-glass-border)">
                                 <td>Portfolio</td>
-                                <td class="vy-num">{{ $comparison['total']['occupancy_pct'] }}%</td>
+                                <td class="vy-num">{{ $comparison['total']['occupancy_pct'] }}</td>
                                 <td class="vy-num">{{ $comparison['total']['adr'] }}</td>
                                 <td class="vy-num">{{ $comparison['total']['revpar'] }}</td>
                                 <td class="vy-num">{{ $comparison['total']['revenue'] }}</td>

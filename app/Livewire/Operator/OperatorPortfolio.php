@@ -104,9 +104,14 @@ class OperatorPortfolio extends Component
                 'units' => $unitCount,
                 'room_types' => $roomTypeCount,
                 'occupancy_pct' => $occ['pct'],
+                // ⚠️ The DESIGN's own rule for a property with nothing to divide by: the prototype's
+                // freshly-added property renders `adr: '—'` (and `occ/revpar: '—'` in the table) while
+                // revenue stays a real €0. An average over ZERO room-nights is UNDEFINED, not zero — so
+                // it shows "—". A genuinely computed zero (revenue, occupancy over real inventory) stays.
+                'occupancy_display' => $occ['total'] > 0 ? $occ['pct'].'%' : '—',
                 'rooms_sold' => $occ['sold'],
                 'rooms_total' => $occ['total'],
-                'adr' => $this->money($m->adrMinor(), $currency),
+                'adr' => $m->roomNightsSold > 0 ? $this->money($m->adrMinor(), $currency) : '—',
                 'revenue' => $this->money($m->roomRevenueMinor, $currency),
                 'arrivals' => $desk->arrivals((string) $property->id, $today)->count(),
                 'status' => $status,
@@ -170,7 +175,7 @@ class OperatorPortfolio extends Component
      * property with no data shows honest zeros; nothing is fabricated.
      *
      * @param  Collection<int, Property>  $properties
-     * @return array{rows: list<array{name: string, occupancy_pct: int, adr: string, revpar: string, revenue: string}>, total: array{occupancy_pct: int, adr: string, revpar: string, revenue: string}}
+     * @return array{rows: list<array{name: string, initial: string, units: int, occupancy_pct: string, adr: string, revpar: string, revenue: string}>, total: array{occupancy_pct: string, adr: string, revpar: string, revenue: string}}
      */
     private function comparison($properties): array
     {
@@ -186,9 +191,12 @@ class OperatorPortfolio extends Component
 
             return [
                 'name' => (string) $property->name,
-                'occupancy_pct' => $m->occupancyPct(),
-                'adr' => $this->money($m->adrMinor(), $currency),
-                'revpar' => $this->money($m->revparMinor(), $currency),
+                'initial' => mb_strtoupper(mb_substr((string) $property->name, 0, 1)),
+                'units' => (int) $property->units_count,
+                // Same undefined-vs-zero rule as the cards (the design's `—`).
+                'occupancy_pct' => $m->availableRoomNights > 0 ? $m->occupancyPct().'%' : '—',
+                'adr' => $m->roomNightsSold > 0 ? $this->money($m->adrMinor(), $currency) : '—',
+                'revpar' => $m->availableRoomNights > 0 ? $this->money($m->revparMinor(), $currency) : '—',
                 'revenue' => $this->money($m->roomRevenueMinor, $currency),
             ];
         })->all();
@@ -199,9 +207,9 @@ class OperatorPortfolio extends Component
         return [
             'rows' => $rows,
             'total' => [
-                'occupancy_pct' => $group->occupancyPct(),
-                'adr' => $this->money($group->adrMinor(), $currency),
-                'revpar' => $this->money($group->revparMinor(), $currency),
+                'occupancy_pct' => $group->availableRoomNights > 0 ? $group->occupancyPct().'%' : '—',
+                'adr' => $group->roomNightsSold > 0 ? $this->money($group->adrMinor(), $currency) : '—',
+                'revpar' => $group->availableRoomNights > 0 ? $this->money($group->revparMinor(), $currency) : '—',
                 'revenue' => $this->money($group->roomRevenueMinor, $currency),
             ],
         ];
