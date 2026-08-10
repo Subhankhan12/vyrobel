@@ -2262,3 +2262,70 @@ consumers: `components/layouts/operator.blade.php`, `livewire/reservation-rack.b
 `livewire/operator/schedule.blade.php`. ⚠️ **Note the contrast with P32**, where the same "Active" pill was
 written twice and the first fix reached only one copy: **a shared definition is fixed once; a duplicated one
 has to be found twice.**
+
+---
+
+## §34 — Operator **Schedule PDF** (`GET /app/schedule/pdf`, `can:schedule.view`) · P34 — **THE LAST OPERATOR PAGE (42/42)**
+
+**Prototype:** `docs/design/raw/Operator Schedule PDF.html`. **Live:** `ScheduleController@pdf` →
+`PdfService->download('pdfs.operator-schedule', …)` (dompdf). A **document**, so this gate was mostly
+verification.
+
+**⚠️ THE ANTI-DRIFT LAW HOLDS — verified, not assumed.** The PDF calls
+**`RosterWeek::build($property, $week, $dept)`** — the *same* builder the on-screen grid calls
+(`OperatorSchedule.php:64`, `ScheduleController.php:217`, and `:314` for the PDF; **four callers, one
+builder, no fifth computation**). Every figure comes from that shared source: `$roster->teamSize()`,
+`shiftCount()`, `hours()`, `conflictCount`, `$cell['hours']`, and `ShiftType::hours()`. **No second
+roster or hours calculation was introduced** to satisfy the design.
+
+**⚠️ SCREEN == PDF — measured cell by cell** on the same week (3–9 Aug 2026, `?week=-1`):
+
+| Staff | On-screen grid | In the PDF |
+|---|---|---|
+| Demo Accountant | Early 07:00–15:00 ×3, On leave ×2 | Early ×3 (Mon–Wed), Leave ×2 (Thu–Fri) |
+| Demo Admin | Late 15:00–23:00 ×2 | Late ×2 (Thu–Fri) |
+| Demo Staff | Day 09:00–17:00 ×5 | Day ×5 (Mon–Fri) |
+| Rosa Fernandes | — | — |
+
+3 + 2 + 5 = **10 shifts**, exactly the document's `SHIFTS 10` / `HOURS 80` (10 × 8h). Same week label, same
+four staff, same ordering.
+
+**#38 + #28:** the property is the **selected context** (`currentProperty()` → `PropertyContext`) — **there is
+no property id in the PDF URL to point at another one**; the filename carries the property key. Now covered by
+a test that rosters two properties in one org and proves each document carries only its own — **mutation-proven**
+(removing the `where('property_id', …)` filter turns it red). **Real staff only:** the roster is
+active-`Membership` ∩ back-office role — **"Demo Owner" (External Owner) does not appear** on the grid or in
+the document, and no guest appears anywhere.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D34-1 | An **"OPEN 3"** summary tile and an **"Open shifts · 3"** section listing unassigned shifts. | ⚠️ Partly stale: an **open-shift model now EXISTS** (`OperatorScheduleInteractiveTest` covers *"posts an open shift and fills it into a real Shift"*), but `RosterWeek` does not expose open shifts and the PDF omits them. | Surfacing the open-shift set through `RosterWeek` so the grid **and** the document read one source. | **LOGGED — REAL GAP (and the template's own note is now out of date:** it says *"no unassigned-shift model"*). ⚠️ **Do NOT query open shifts directly in the PDF blade** — that is exactly the D9-1 second-computation trap. It belongs on `RosterWeek`. |
+| D34-2 | **"Posted by Marco Reyes · Front desk manager"** and *"provisional until published"*. | A **publish** action exists (*"publishes a week, stamping a publication"*), but the PDF does not read the publication, and there is no "posted by" identity on the document. | Reading the week's publication (who/when) through the shared builder. | **LOGGED — REAL GAP.** ⚠️ Also **partly stale**: the footer says *"there is no draft or published state"*, which was true when written. Until it reads the real publication, saying nothing is the honest option — the live footer now states plainly that the rota reflects the LIVE roster. |
+| D34-3 | A legend of **colour swatches** mapping departments (Front desk / Housekeeping / Manager). | The document colours cells by **state** (working / leave / conflict / off), not department. | — | **DIVERGENCE — deliberate.** A department legend would mislabel what the colours mean. ⚠️ And a swatch legend is **colour-only**, which fails on a black-and-white print — the thing a rota is most often reproduced on. The legend now names every state **in words** instead. |
+| D34-4 | A **highlighted "today" column**. | — (not rendered) | — | **LOGGED — COSMETIC.** ⚠️ Note it only makes sense when the printed week contains today; for a past or future week it would highlight nothing, so it needs that condition. |
+
+### Fixed this gate (template + one presentation field; `PdfService` untouched)
+
+- ⚠️ **The document still carried the PRE-AA palette — on paper, where a rota is actually read.** Measured on
+  white: `#8A8079` **3.86** (labels, table headers, legend), `#A69A92` **2.74** (role labels, the **per-cell
+  shift times**, the footer) and `#B8ADA4` **2.20** (off cells). The 2.74 grey was carrying real information —
+  the times a person starts and finishes. Moved to the post-AA equivalents: **6.98** and **5.79**.
+- **The design's document title + a REAL generated-at stamp** — *"Weekly rota / Demo Seaside Property · week
+  of 3 Aug – 9 Aug 2026 · generated Mon 10 Aug 2026 · 05:35"*, produced in the **property's timezone**. A
+  printed rota pinned to a wall has to say how old it is; the document had no production time at all.
+- **A print-safe legend** — *"a cell shows the shift name and its times · **Leave** = approved time off ·
+  **—** = not rostered · **"/ Leave!"** = a shift on an approved-leave day"*, closing with the reason: every
+  state is written out **so it prints correctly in black and white**.
+- **The design's two-part footer** (identity + generated-at left, document + week right).
+
+### ⚠️ Verified, not changed
+
+Every cell state already carried a **word** (`Early` / `Day` / `Late` / `Leave` / `—` / `/ Leave!`), so the
+document was never colour-only. `PdfService`, the render pipeline and the roster query are untouched.
+
+### ⚠️ A premise I had to correct
+
+I first wrote the #30 test with **Housekeeping** as the unpermitted viewer — it returned **200**, because
+`schedule.view` is **deliberately broad** (#43: anyone rostered should be able to read the rota). **9 of the
+back-office roles hold it**; only **Accountant** and **Marketing Manager** do not. The test now uses Accountant
+— had I not checked, the assertion would have been meaningless.

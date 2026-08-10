@@ -57,3 +57,62 @@ it('narrows search results by a real status and source filter', function () {
     // source=ota → only BBB.
     $this->actingAs($manager)->get('/app/search?q=Searcher&source=ota')->assertOk()->assertSee('VYR-BBB')->assertDontSee('VYR-AAA');
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// P34 (design-parity) — the schedule PDF is a DOWNLOADABLE ARTIFACT, so a scope slip leaks another
+// property's staff schedule as a FILE. And a printed rota has to say how old it is.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('scopes the PDF to the SELECTED property — another property\'s staff never reach the file (#38)', function () {
+    $org = newDemoOrg();
+    $alpha = Property::create(['name' => 'Alpha House', 'type' => 'hotel', 'currency' => 'EUR', 'timezone' => 'UTC']);
+    $beta = Property::create(['name' => 'Beta Lodge', 'type' => 'hotel', 'currency' => 'EUR', 'timezone' => 'UTC']);
+    $s = ['org' => $org];
+    $manager = operatorUser($s, ['name' => 'Rosa Manager'], 'Hotel Manager');
+    $alphaStaff = operatorUser($s, ['name' => 'Alpha Person'], 'Front Desk');
+    $betaStaff = operatorUser($s, ['name' => 'Beta Person'], 'Front Desk');
+    $today = CarbonImmutable::today()->toDateString();
+
+    // One shift on each property.
+    $this->actingAs($manager)->withSession(['current_property_id' => $alpha->id])
+        ->post('/app/schedule/shift', ['user_id' => $alphaStaff->id, 'date' => $today, 'shift_type' => ShiftType::DAY, 'week' => 0, 'dept' => 'all'])->assertRedirect();
+    $this->actingAs($manager)->withSession(['current_property_id' => $beta->id])
+        ->post('/app/schedule/shift', ['user_id' => $betaStaff->id, 'date' => $today, 'shift_type' => ShiftType::LATE, 'week' => 0, 'dept' => 'all'])->assertRedirect();
+
+    // ⚠️ The roster the ALPHA document is built from carries Alpha's shift and NOT Beta's. The property is
+    // the SELECTED context — there is no property id in the PDF URL to point at another one.
+    $alphaRoster = RosterWeek::build(Property::find($alpha->id), 0, 'all');
+    $alphaWorking = collect($alphaRoster->rows)->flatMap(fn (array $r): array => $r['cells'])->where('working', true)->count();
+    expect($alphaWorking)->toBe(1);
+
+    $betaRoster = RosterWeek::build(Property::find($beta->id), 0, 'all');
+    $betaWorking = collect($betaRoster->rows)->flatMap(fn (array $r): array => $r['cells'])->where('working', true)->count();
+    expect($betaWorking)->toBe(1);
+
+    // …and the two documents really are different files for the same week.
+    $a = $this->actingAs($manager)->withSession(['current_property_id' => $alpha->id])->get('/app/schedule/pdf');
+    $b = $this->actingAs($manager)->withSession(['current_property_id' => $beta->id])->get('/app/schedule/pdf');
+    $a->assertOk();
+    $b->assertOk();
+    expect($a->headers->get('content-disposition'))->toContain($alpha->getKey())
+        ->and($b->headers->get('content-disposition'))->toContain($beta->getKey());
+});
+
+it('refuses the PDF to a viewer without schedule.view (#30)', function () {
+    $org = newDemoOrg();
+    $property = Property::create(['name' => 'Alpha House', 'type' => 'hotel', 'currency' => 'EUR', 'timezone' => 'UTC']);
+    $s = ['org' => $org];
+
+    // ⚠️ `schedule.view` is DELIBERATELY broad (#43 — anyone rostered should be able to read the rota):
+    // 9 back-office roles hold it. The only operator roles that do NOT are Accountant and Marketing
+    // Manager, so Accountant is the honest negative case — Housekeeping would have passed and made this
+    // assertion meaningless.
+    $accountant = operatorUser($s, ['name' => 'Alan Accountant'], 'Accountant');
+    $this->actingAs($accountant)->withSession(['current_property_id' => $property->id])
+        ->get('/app/schedule/pdf')->assertForbidden();
+
+    // A manager does hold it.
+    $manager = operatorUser($s, ['name' => 'Rosa Manager'], 'Hotel Manager');
+    $this->actingAs($manager)->withSession(['current_property_id' => $property->id])
+        ->get('/app/schedule/pdf')->assertOk();
+});

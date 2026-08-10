@@ -340,6 +340,9 @@ class ScheduleController extends Controller
             'deptLabel' => StaffDepartment::label($dept),
             'brand' => PropertyBrand::for($property),
             'timeOff' => $timeOff,
+            // The REAL production time, in the PROPERTY's timezone (store UTC, show property-local) — a
+            // printed rota needs to say how old it is. Presentation only; nothing derives from it.
+            'generatedAt' => CarbonImmutable::now($property->timezone ?: config('app.timezone'))->format('D j M Y · H:i'),
         ], 'schedule-'.$property->getKey().'-week-'.$week.'.pdf');
     }
 

@@ -797,7 +797,7 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **41 of 42** covered, **1 remaining** (`0aa9ede`→P33, all pushed)
+## N.4 Progress — 🏁 **OPERATOR COMPLETE — 42 of 42** (`0aa9ede`→P34, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
@@ -847,6 +847,7 @@ Portfolio** and **P28 Search**, so the current figure is **36 covered / 6 remain
 | P31 | **Operator Email Templates** ⚠️ email REALLY sends — card grid + breadcrumb + switch + the never-linked **Preview-emails gallery** · **Active pill 4.41→6.23** (controller raw-hex risk realised) · merge vars verified REAL · **preview source verified: real reservation but NAME-only, 0 emails/phones — not a #28 widening** · per-card **engagement stats REFUSED** (no tracking exists) + New-template/Draft/winback/Email+SMS refused · **nothing saved, no mail sent** · 5 backend items | P31 |
 | P32 | **Operator Email Editor** ⚠️ highest-consequence read-only surface — action bar via HTML5 `form=` (nothing rewired) + switch toggles (focusable, not display:none) · **contrast 5→0** (the Active pill was the SAME raw-hex pill as P31 — one concept written twice) · ⚠️ **preview clipped at 1000px** (breakpoint 960→1180; Reference value was hidden) · ⚠️ **found: the preview has TWO sample sources** — subject shows `VY-2043`, body `R-F7ERPHS4` for one booking (logged, preview-only) · **nothing saved, no mail sent** · 4 backend items | P32 |
 | P33 | **Operator Profile** (self-only) — hero/switches/segmented date format · ⚠️ **REFUSED the design's sign-in LOCATION** ("Faro, PT" — NO geolocation exists anywhere; it reads as security evidence) + "password changed 3 months ago" (no column) · ⚠️ **fixed a label that read the OPPOSITE of its control** ("Interface motion" drove `reduce_motion`) · contrast **2→0** via the SHARED `.vy-tag.tone-confirmed` — **one edit fixed 5 views** (vs P32's duplicated pill) · ⚠️ my first geolocation guard was **VACUOUS** (no sessions row) — strengthened + mutation-proven · **nothing saved** · 4 backend items | P33 |
+| P34 | 🏁 **Operator Schedule PDF — THE LAST OPERATOR PAGE (42/42)**. A DOCUMENT: verification over restyle. **Shared `RosterWeek` verified** (4 callers, 1 builder, no 5th computation) · **SCREEN==PDF proven cell-by-cell** (10 shifts / 80h reconcile) · #38 scope + #30 gate mutation-proven · ⚠️ **the document carried the PRE-AA palette** — `#A69A92` **2.74** on the per-cell shift TIMES; now 5.79 · added the **real generated-at** stamp + a **print-safe legend** (black-and-white safe) · 4 backend items, 2 of them **STALE template claims** (open shifts + publish now exist) | P34 |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -891,28 +892,34 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — **the LAST operator page: Schedule PDF.**
+## N.7 🏁 OPERATOR COMPLETE (42/42) — **NEXT: the OWNER realm (32 prototypes), then GUEST (32).**
 
-⚠️ **Schedule PDF is a DOCUMENT, not a screen** — so the pass's usual browser diff mostly does not apply.
-What matters: it renders from the **same `RosterWeek` builder as the grid** (they must reconcile), it is
-**tenant + property scoped**, it shows **real staff** (an active `Membership` ∩ a back-office role — never a
-fabricated person), and it is generated on demand. ⚠️ Contrast still applies (print/PDF palette), keyboard does
-not. Expect this gate to be mostly verification + honest logging rather than restyling.
+**The operator realm is finished.** 42 prototypes, 34 gates (`0aa9ede`→P34), every page decoded, diffed in a
+real browser, fixed where it was a design gap, and **logged where the product honestly refuses**.
 
-⚠️ **NOTES CARRIED FORWARD.** ⑴ **MEASURE BOTH AXES**, visible-scoped, names via the wrapping label too.
-⑵ **Scope a test guard to the CLAIM.** ⑶ **Baseline is a RANGE, 5–9 (J.quater).** ⑷ ⚠️ **A green test can be
-defending nothing — this bit AGAIN at P33**: the geolocation guard passed against an injected fabrication
-because the fixture had no `sessions` row, so the block rendered empty. **Always mutate to prove the guard
-bites.** ⑸ **Reflected input is not disclosure (P28).** ⑹ **Prototypes can contradict each other (P29).**
-⑺ **`title=` is not a name (P29).** ⑻ **Controls that cannot be OPERATED (P30).** ⑼ **A nav link needs the
-TARGET's gate (P30/P31).** ⑽ **Measure the states your change introduces (P31).** ⑾ **Check embedded content's
-responsive state (P32).** ⑿ ⚠️ **NEW (P33) — a shared class is fixed ONCE; a duplicated one must be found
-twice.** `.vy-tag.tone-confirmed` fixed 5 views in one edit; P32's hand-written pill needed two separate fixes.
-⒀ ⚠️ **NEW (P33) — read a label against the CONTROL it drives**: "Interface motion" drove `reduce_motion`, so
-turning it "on" turned motion off.
+⚠️ **What the operator pass actually found** — worth carrying into the owner realm:
+- **Fabrication concentrates on surfaces that look authoritative**: an invented open-rate on an email card, a
+  city beside a last sign-in, a "verified" SMS number, a sync that never ran, engagement stats with no
+  tracking. The pattern: *the more a figure would be trusted, the more the mock invents it.*
+- **Two independent a11y axes** — contrast AND operability. A page can measure 0 contrast failures and still be
+  unusable by keyboard (P30), or clip real data inside an iframe while reporting no overflow (P32).
+- **Duplication is the enemy of a fix**: the same "Active" pill failed AA twice (P31, P32) because it was
+  hand-written twice; one shared class fixed five views at once (P33).
+- **A green test can be defending nothing** — proven twice (P27, P33). Mutate every guard.
+- **Docblocks go stale faster than code**: P34 found the PDF template still claiming "no unassigned-shift
+  model" and "no published state" after both had shipped.
 
-**1 OPERATOR prototype remains:** **Schedule PDF** — then the operator realm is COMPLETE (42/42) and the
-**owner (32) + guest (32)** realms are still entirely untouched.
+⚠️ **NOTES CARRIED FORWARD (all still apply).** ⑴ Measure BOTH axes, visible-scoped, names via wrapping labels.
+⑵ Scope a guard to the CLAIM (the CSS-comment trap, twice). ⑶ Baseline is a RANGE, 5–9 (J.quater). ⑷ A green
+test can defend nothing. ⑸ Reflected input is not disclosure. ⑹ Prototypes can contradict each other. ⑺ `title=`
+is not a name. ⑻ Look for controls that cannot be OPERATED. ⑼ A nav link needs the TARGET's gate. ⑽ Measure the
+states your change introduces. ⑾ Check embedded content's responsive state. ⑿ A shared class is fixed once; a
+duplicate must be found twice. ⒀ Read a label against the CONTROL it drives. ⒁ ⚠️ **NEW (P34) — verify the
+PROMPT's premise**: "Housekeeping lacks schedule.view" was false (9 roles hold it), which would have made the
+#30 assertion vacuous. ⒂ ⚠️ **NEW (P34) — a PDF's palette is read on PAPER**: the pre-AA greys survived there
+long after the screens were fixed, on the very figures a rota exists to communicate.
+
+**⬅ NEXT REALM: OWNER (32 prototypes)** — then **GUEST (32)**. Both entirely untouched by this pass.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

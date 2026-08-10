@@ -6342,3 +6342,71 @@ live shows honest initials.
 **Verification:** profile suites + the token guard + a shared-tag consumer **25/25 · 136 assertions**
 (4 added, both refusal guards mutation-proven); PHPStan L5 **0**; Pint clean; **0 console**, **0 overflow** at
 1440 and 1000. Schema untouched — no `migrate:fresh` needed.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY **P34 · Operator Schedule PDF** — 🏁 **THE OPERATOR REALM IS COMPLETE (42/42)**
+
+**Template + one presentation field.** `PdfService`, the render pipeline and the roster query are untouched.
+`docs/design/MISSING-BACKEND-BY-PAGE.md` §34.
+
+**⚠️ The anti-drift law — VERIFIED.** The PDF calls **`RosterWeek::build($property, $week, $dept)`**, the same
+builder the grid calls. **Four callers, one builder, no fifth computation**; every figure on the document
+(`teamSize()`, `shiftCount()`, `hours()`, `conflictCount`, `$cell['hours']`, `ShiftType::hours()`) comes from
+it. Nothing was recomputed in the Blade to satisfy the design (the D9-1 trap).
+
+**⚠️ SCREEN == PDF — proven cell by cell** on week `-1` (3–9 Aug 2026): Demo Accountant Early ×3 + Leave ×2 ·
+Demo Admin Late ×2 · Demo Staff Day ×5 · Rosa Fernandes none — identical on the grid and in the document, and
+3+2+5 = **10 shifts** = the document's `SHIFTS 10` / `HOURS 80`.
+
+**#38 / #28.** The property is the **selected context** — **there is no property id in the PDF URL**, so a
+foreign property cannot be requested; the filename carries the property key. A new test rosters two properties
+in one org and proves each document carries only its own, **mutation-proven** (dropping the
+`where('property_id', …)` filter turns it red). The roster is active-`Membership` ∩ back-office role, so
+**"Demo Owner" (External Owner) appears on neither the grid nor the document**, and no guest appears anywhere.
+
+**⚠️ The document still carried the PRE-AA palette — and a PDF is read on PAPER.** Measured on white:
+`#8A8079` **3.86**, `#A69A92` **2.74**, `#B8ADA4` **2.20**. The 2.74 grey was carrying the **per-cell shift
+times** — the start and finish times a rota exists to communicate — plus role labels and the footer. Moved to
+the post-AA equivalents (**6.98** / **5.79**). The screens were fixed in the AA pass; this document was missed.
+
+**Fixed (design):** the document title + a **REAL generated-at stamp** in the property's timezone (there was no
+production time at all — a printed rota must say how old it is); a **print-safe legend** naming every cell
+state in words, closing with *"so this prints correctly in black and white"*; and the design's two-part footer.
+**Verified, not changed:** every cell already carried a word (`Early`/`Day`/`Late`/`Leave`/`—`/`/ Leave!`), so
+the document was never colour-only.
+
+**Refused / logged (4)** — and ⚠️ **two are STALE claims in the template's own comments**: the "OPEN 3" tile +
+open-shifts section (an open-shift model **now exists**, but `RosterWeek` does not expose it — ⚠️ **it must be
+added there, never queried in the PDF blade**, which is exactly the D9-1 second-computation trap) · "Posted
+by … · provisional until published" (a **publish action now exists**, unread by the document) · the
+colour-swatch department legend (colours encode STATE, not department — and a swatch legend fails a
+black-and-white print) · a highlighted "today" column (only meaningful when the printed week contains today).
+
+**⚠️ A premise I had to correct:** my first #30 test used **Housekeeping** as the unpermitted viewer and got
+**200** — `schedule.view` is **deliberately broad** (#43); 9 back-office roles hold it, only **Accountant** and
+**Marketing Manager** do not. Corrected to Accountant; unchecked, the assertion would have been vacuous.
+
+**Verification:** schedule suites **22/22 · 154 assertions** (2 added, the #38 scope guard mutation-proven);
+PHPStan L5 **0**; Pint clean; both documents generated through the **real export route** and rendered
+(empty-week and populated). Schema untouched — no `migrate:fresh` needed.
+
+---
+
+### 🏁 THE OPERATOR REALM IS COMPLETE — 42/42 prototypes, 34 gates (`0aa9ede` → P34)
+
+Every operator prototype has been decoded, diffed against the live page in a real browser, fixed where the gap
+was presentational, and **logged where the product honestly refuses**. What the pass established:
+
+- **Fabrication clusters on the surfaces that look most authoritative** — an invented open-rate on an email
+  template, a city beside a last sign-in, a "verified" SMS number, a sync that never ran, per-channel booking
+  stats with no channel attribution. The refusals are recorded per page in §15–§34.
+- **Two independent accessibility axes.** Contrast *and* operability: P30's page measured **0** contrast
+  failures while its only controls were unusable by keyboard; P32's preview clipped real data inside an iframe
+  while the page reported no overflow.
+- **Duplication defeats a fix.** The same "Active" pill failed AA twice (P31, P32) because it was written
+  twice; one shared class fixed five views at once (P33).
+- **A green test can be defending nothing** — proven twice by mutation (P27, P33).
+- **Comments go stale faster than code** (P34).
+
+**⬅ NEXT: the OWNER realm (32 prototypes), then GUEST (32) — both entirely untouched.**
