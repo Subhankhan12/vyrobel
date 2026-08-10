@@ -797,7 +797,7 @@ explicitly is deliberate: it stops the backend phase "discovering" one and build
 missing surfaces. **Every one of the 42 operator prototypes maps to a real live route — no missing-surface
 finding.** The full reconciliation is `MISSING-BACKEND-BY-PAGE.md` **§15 GATE A**.
 
-## N.4 Progress — OPERATOR **39 of 42** covered, **3 remaining** (`0aa9ede`→P31, all pushed)
+## N.4 Progress — OPERATOR **40 of 42** covered, **2 remaining** (`0aa9ede`→P32, all pushed)
 
 ⚠️ **Count correction:** §15 GATE A records "22 covered / 20 remaining"; **GATE B then closed Refund**, **P16
 Payout Run**, **P17 Billing**, **P18 Rates**, **P19 New Reservation**, **P20 Group Booking**, **P21 Owners**,
@@ -845,6 +845,7 @@ Portfolio** and **P28 Search**, so the current figure is **36 covered / 6 remain
 | P29 | **Operator Notifications** — toolbar/segmented tabs/category chips restyled · ⚠️ **WCAG 1.4.1 fixed: unread rode on colour alone** (`title` on a non-interactive span isn't announced) → `aria-hidden` dot + `.vy-sr-only` text, mutation-proven · ⚠️ **the two prototypes CONTRADICT each other on the icon shape** (operator circle vs owner square) → kept the ONE shared tile, documented · SMS-in-footer + fabricated rows/categories refused · **nothing marked read (242/242/0 unchanged)** · 5 backend items | P29 |
 | P30 | **Operator Notification Preferences** ⚠️ a CLAIMS surface — two-column layout + breadcrumb + top Save · ⚠️ **WCAG 2.1.1 (Level A) FIXED: the page's ONLY real controls were unoperable by keyboard** (`display:none` on the checkbox — `focus()` left activeElement on BODY) · 1.4.1 no-provider cells given text · **#30 the new crumb is gated** (Settings needs `properties.manage`; this page has NO gate) · Push-as-"This device·Chrome·On" + SMS-as-verified-number REFUSED · **nothing saved (0 rows, checksum identical)** · 4 backend items | P30 |
 | P31 | **Operator Email Templates** ⚠️ email REALLY sends — card grid + breadcrumb + switch + the never-linked **Preview-emails gallery** · **Active pill 4.41→6.23** (controller raw-hex risk realised) · merge vars verified REAL · **preview source verified: real reservation but NAME-only, 0 emails/phones — not a #28 widening** · per-card **engagement stats REFUSED** (no tracking exists) + New-template/Draft/winback/Email+SMS refused · **nothing saved, no mail sent** · 5 backend items | P31 |
+| P32 | **Operator Email Editor** ⚠️ highest-consequence read-only surface — action bar via HTML5 `form=` (nothing rewired) + switch toggles (focusable, not display:none) · **contrast 5→0** (the Active pill was the SAME raw-hex pill as P31 — one concept written twice) · ⚠️ **preview clipped at 1000px** (breakpoint 960→1180; Reference value was hidden) · ⚠️ **found: the preview has TWO sample sources** — subject shows `VY-2043`, body `R-F7ERPHS4` for one booking (logged, preview-only) · **nothing saved, no mail sent** · 4 backend items | P32 |
 
 ## N.5 The two REALM-WIDE tokens + the shared consolidations + the seeder gate
 
@@ -889,26 +890,26 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.7 ⬅ REMAINING — the resume queue. **NEXT PAGE = Operator Email Editor.**
+## N.7 ⬅ REMAINING — the resume queue. **NEXT PAGE = Operator Profile.**
 
-⚠️ **The Email Editor is P31's sibling and the higher-stakes half.** It edits the content that really sends,
-carries the **merge-variable palette** (every token must map to a real field — P31 verified the current set),
-and its **live preview runs on a REAL reservation** (verified name-only, 0 contact values — keep it that way).
-⚠️ Its **Test-send genuinely delivers** (`MailSafetyGuard`, operator's own inbox only) — observe READ-ONLY.
-Also watch #83: the Mailable must keep rendering in tenant context.
+⚠️ **Profile is a SELF-only account surface.** Expect: the user's own identity/email (a change-email flow that
+must re-verify), password, and possibly 2FA/session links. The risks are #28 (it is the one operator surface
+that legitimately shows the *viewer's own* contact — do not let it show anyone else's), self-scope (never a
+request id), and destructive/auth controls that must be observed READ-ONLY (P24's discipline).
 
-⚠️ **NOTES CARRIED FORWARD.** ⑴ **MEASURE BOTH AXES** — contrast *and* keyboard; neither is predicted by render
-type. ⚠️ **And scope the keyboard probe to VISIBLE controls**: P31's first sweep reported 12 false "unreachable"
-hits that were simply inside a closed popover. ⑵ ⚠️ **Scope a test guard to the CLAIM — this bit AGAIN at P31**:
-`not->toContain('click-through')` failed against a **CSS comment** in the layout (CSS comments render, Blade
-comments do not), exactly as at `638e67a`. ⑶ **Baseline is a RANGE, 5–9 (J.quater)** — isolate first.
-⑷ **A green test can be defending nothing (P27).** ⑸ **Reflected input is not disclosure (P28).**
-⑹ **The prototypes can contradict each other (P29).** ⑺ **`title="…"` is not an accessible name (P29).**
-⑻ **Look for controls that cannot be OPERATED (P30).** ⑼ **A nav link needs the TARGET's gate (P30/P31).**
-⑽ ⚠️ **NEW (P31) — measure the states your own change introduces, not just the one on screen.** The paused-card
-tint I added measured 3.77 and would only have appeared the day someone paused a template.
+⚠️ **NOTES CARRIED FORWARD.** ⑴ **MEASURE BOTH AXES**, contrast *and* keyboard, scoped to VISIBLE controls.
+⚠️ **And check accessible names via the WRAPPING label too** — P32's probe false-flagged 3 checkboxes that were
+correctly named by an implicit `<label>`. ⑵ **Scope a test guard to the CLAIM** (the CSS-comment trap, twice).
+⑶ **Baseline is a RANGE, 5–9 (J.quater).** ⑷ **A green test can be defending nothing (P27).** ⑸ **Reflected
+input is not disclosure (P28).** ⑹ **Prototypes can contradict each other (P29).** ⑺ **`title=` is not a name
+(P29).** ⑻ **Look for controls that cannot be OPERATED (P30).** ⑼ **A nav link needs the TARGET's gate
+(P30/P31).** ⑽ **Measure the states your own change introduces (P31).** ⑾ ⚠️ **NEW (P32) — check the RESPONSIVE
+state of embedded content**: the editor's preview iframe clipped at 1000px and hid a real reference value; the
+page reported no overflow because the clipping was *inside* the iframe. ⑿ ⚠️ **NEW (P32) — one visual concept
+written twice WILL diverge**: the same raw-hex "Active" pill failed AA on the list (fixed P31) and again on the
+editor (fixed P32), because there is no shared status-pill component.
 
-**3 OPERATOR prototypes remain:** **1 Email Editor** · **2 Profile** · **3 Schedule PDF**.
+**2 OPERATOR prototypes remain:** **1 Profile** · **2 Schedule PDF**.
 
 **Then the OWNER (32) and GUEST (32) prototype sets — entirely untouched by this pass.**
 

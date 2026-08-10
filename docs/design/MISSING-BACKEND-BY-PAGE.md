@@ -2151,3 +2151,59 @@ Plain links take the **browser-default blue focus ring** (`rgb(0,95,204)`) while
 accent outline. Functional and visible, so not a failure — but inconsistent with the design system. A single
 `:focus-visible` rule in the operator layout would unify it; not done here because it is a realm-wide style
 change, not this page's.
+
+---
+
+## §32 — Operator **Email Editor** (`/app/email-templates/{key}/edit`) · P32
+
+**Prototype:** `docs/design/raw/Operator Email Editor.html`. **Live:** Livewire `OperatorEmailEditor`. The page
+itself has no permission gate; **both writes do** — `save` and `testSend` are `can:properties.manage`.
+
+**⚠️ NOTHING WAS FIRED.** `email_templates` is unchanged at **0 rows**, checksum
+`d751713988987e9331980363e24189ce`, before and after. **No mail was dispatched** — Mailpit still holds 500
+messages with the same newest timestamp (`2026-08-09T11:17:59`, ~16h before this gate). The one interaction I
+did run — typing into Heading to confirm the live-preview binding survived the restyle — is a **draft-only**
+Livewire round-trip; the component has **no mutating Livewire action**, and a reload discarded it with the
+checksum unchanged.
+
+**Merge variables REAL:** the palette renders the catalogue's own `vars` for the key; each maps to a field the
+Mailable merges. **Test-send recipient:** `$request->user()->email` — **there is no recipient input at all**, so
+it cannot be aimed at a guest even deliberately. **Preview:** probed inside the iframe — **0 emails, 0 phones,
+0 mailto/tel**; name-only ("Alex") plus property/unit/dates/reference. Exactly the P31 bar.
+
+**Both a11y axes.** ⚠️ **Contrast: 5 failures** — the "● Active" pill at **4.41** (the *same raw `#1B7F5C`
+pill the templates LIST carried at P31* — one visual concept written twice, so the P31 fix never reached here)
+and the **variable-insert chips at 4.19** (accent-as-text, 11.5px). **Both fixed → 0.** **Keyboard: 15 visible
+controls, 0 unreachable, all named.** ⚠️ My probe first reported 3 unnamed block checkboxes — **a false
+positive**: they sit inside a **wrapping `<label>`**, which is a valid implicit accessible name; my check only
+looked for `aria-label` / own text / `label[for]`.
+
+| # | What the prototype shows | What the live product lacks | What it would need | Verdict |
+|---|---|---|---|---|
+| D32-1 | A **"Previewing as Lukas · VYR-10430"** pill over the preview. | The identity is not single-valued — see D32-2. | D32-2 fixed first. | **DEFERRED deliberately — see D32-2.** Adding the pill today would assert one identity the preview does not actually have. |
+| D32-2 | (implicit) One coherent sample booking across subject and body. | ⚠️ **The preview has TWO sample sources.** The **subject/prose** merge *hardcoded placeholders* (`OperatorEmailEditor::mergeSample` → `Alex Traveller`, `Apartment 2B`, `VY-2043`) while the **body** renders the **real** sample reservation (`EmailPreviewSample`). Measured live on one screen: reference **VY-2043** in the subject vs **R-F7ERPHS4** in the body; unit **"Apartment 2B"** in the prose vs **A2** in the stay table. | Make `mergeSample` read its values from the same `EmailPreviewSample` the body uses. | **LOGGED — REAL GAP.** ⚠️ It **undercuts the component's own docblock claim** that *"what you see IS the send (same Mailable, same blade — cannot drift)"* — the blade cannot drift, but the merged text does. **Send-time is unaffected** (the Mailable merges real values), so this is preview-only — but an operator proof-reading an email sees two references for one booking. |
+| D32-3 | A **"Sofia's signature"** block and a **hero image band**. | The catalogue's real blocks for this key are Tap-a-star / Stay recap / Team signature. There is no per-user signature and no hero-image asset. | A signature entity + image upload per template. | **LOGGED — REAL GAP.** The live block set is real and each toggle genuinely removes its section from the send (existing test). |
+| D32-4 | The editor **body as free rich text**. | Editing is field-scoped: subject, heading, message, button label, block toggles. | A rich-text/HTML editor plus sanitisation — ⚠️ and a rule for what arbitrary HTML does to a real guest email. | **EXTRA-KEEP / LOGGED.** Field-scoped editing is *safer* than free HTML in an email that really sends; it also guarantees the layout stays the tested one. Not a gap to close casually. |
+
+### Fixed this gate
+
+- **The design's action bar** — back-link, title + status, and **both actions moved to the top-right**. ⚠️ The
+  buttons sit outside their forms and reach them via the HTML5 **`form=` attribute**: the same two real POSTs
+  (guarded save · guarded self-only test-send), repositioned, **nothing rewired**. The foot Save is kept too
+  (long form; a keyboard user should not have to tab back up), and the duplicate foot test button was dropped
+  in favour of the sentence explaining what a test does.
+- **Block toggles became the design's switches** — still real, **focusable** checkboxes with `appearance:none`
+  (**never `display:none`** — the WCAG 2.1.1 defect found at P30) and a `:focus-visible` ring, with the
+  wrapping `<label>` still supplying the name.
+- **Contrast: the Active pill 4.41 → AA and the insert chips 4.19 → `--vy-accent-text`.** Inline error text
+  moved off `--vy-accent` for the same reason.
+- ⚠️ **A real responsive defect fixed:** the two-column breakpoint was `960px`, so at a 1000px viewport each
+  column was ~341px — **the preview iframe clipped**, cutting the message mid-sentence and hiding the
+  Stay/Unit/**Reference values** behind an inner scrollbar. Raised to `1180px`; measured after: single column,
+  653px iframe, **not clipped**, reference visible.
+
+### ⚠️ Realm-wide note
+
+The `#1B7F5C`/`#E7F5EE` "Active" pill exists **twice** — templates list (fixed P31) and this editor (fixed
+here). Two copies of one visual concept, and the first fix did not reach the second. A shared
+`<x-status-pill>` would prevent the next divergence; not extracted here (it would touch other surfaces).

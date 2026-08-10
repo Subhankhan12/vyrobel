@@ -203,3 +203,75 @@ it('keeps the status toggle a real gated POST with an accessible switch, not a r
     expect($deskHtml)->not->toContain(route('app.email-templates.toggle', 'booking-confirmation'))
         ->and($deskHtml)->not->toContain('role="switch"');
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+// P32 (design-parity) — the EDITOR. Its two actions change what real guests receive and genuinely send
+// mail, so the guards are: the repositioned buttons still reach the REAL guarded routes, the variable
+// palette offers only real tokens, and a test-send can only ever reach the operator's OWN address.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+it('reaches the real guarded save and test routes from the repositioned top actions', function () {
+    $s = seedScenario(1);
+    book($s, ['unit_id' => $s['units'][0]->id]);
+    $manager = operatorUser($s, [], 'Group Admin');
+
+    $html = $this->actingAs($manager)->get(route('app.email-templates.edit', 'review-request'))
+        ->assertOk()->getContent();
+
+    // The buttons sit outside their forms and reach them with the HTML5 `form=` attribute — so BOTH the
+    // form ids and the real actions must be present. A missing id would make the top buttons inert.
+    expect($html)->toContain('id="vy-ee-save"')
+        ->and($html)->toContain('id="vy-ee-test"')
+        ->and($html)->toContain('form="vy-ee-save"')
+        ->and($html)->toContain('form="vy-ee-test"')
+        ->and($html)->toContain('action="'.route('app.email-templates.save', 'review-request').'"')
+        ->and($html)->toContain('action="'.route('app.email-templates.test', 'review-request').'"');
+});
+
+it('offers only merge variables the send path can actually fill (#39)', function () {
+    $s = seedScenario(1);
+    book($s, ['unit_id' => $s['units'][0]->id]);
+    $manager = operatorUser($s, [], 'Group Admin');
+
+    $html = $this->actingAs($manager)->get(route('app.email-templates.edit', 'review-request'))
+        ->assertOk()->getContent();
+
+    // Every chip comes from the catalogue's real `vars`; each maps to a field the Mailable merges.
+    foreach (\App\Support\Email\EmailTemplateCatalog::get('review-request')['vars'] as $var) {
+        expect($html)->toContain('{'.$var.'}');
+    }
+    // ⚠️ And nothing invented — a token with no backing field would render but never fill.
+    expect($html)->not->toContain('{loyalty_tier}')
+        ->and($html)->not->toContain('{weather}')
+        ->and($html)->not->toContain('{discount_code}');
+});
+
+it('keeps the section switches real, focusable checkboxes with a label (2.1.1)', function () {
+    $s = seedScenario(1);
+    book($s, ['unit_id' => $s['units'][0]->id]);
+    $manager = operatorUser($s, [], 'Group Admin');
+
+    $html = $this->actingAs($manager)->get(route('app.email-templates.edit', 'review-request'))
+        ->assertOk()->getContent();
+
+    // Styled as a switch, but still a real checkbox inside its <label> — never display:none.
+    expect($html)->toContain('type="checkbox" class="vy-ee-switch"')
+        ->and($html)->toContain('class="vy-ee-blockrow"')
+        ->and($html)->not->toContain('.vy-ee-switch { display: none');
+    expect($html)->toContain('.vy-ee-switch:focus-visible');
+});
+
+it('sends a test only to the operator\'s OWN address, never a guest\'s (#28)', function () {
+    Mail::fake();
+    $s = seedScenario(1);
+    $s['guest']->update(['email' => 'the.guest@hidden.test']);
+    book($s, ['unit_id' => $s['units'][0]->id]);
+    $manager = operatorUser($s, [], 'Group Admin');
+
+    $this->actingAs($manager)->post(route('app.email-templates.test', 'review-request'))->assertRedirect();
+
+    // ⚠️ The recipient comes from $request->user()->email — there is no recipient input at all, so it
+    // cannot be aimed at a guest even deliberately.
+    Mail::assertSent(ReviewRequestMail::class, fn ($mail): bool => $mail->hasTo($manager->email)
+        && ! $mail->hasTo('the.guest@hidden.test'));
+});

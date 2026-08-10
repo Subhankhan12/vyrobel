@@ -6234,3 +6234,58 @@ comments do not, exactly as at `638e67a`. Scoped to the actual claim.
 **Verification:** email-template + preview + token-contrast suites **21/21 · 107 assertions** (3 added, both new
 guards mutation-proven); PHPStan L5 **0**; Pint clean; **0 console**, **0 overflow** at 1440 and 1000. Schema
 untouched — no `migrate:fresh` needed. Also fixed a stale docblock ("the 5 real guest emails" — it is 7).
+
+---
+
+## 2026-08-10 — DESIGN-PARITY **P32 · Operator Email Editor** (`/app/email-templates/{key}/edit`)
+
+**Presentation only.** No Mailable, no #83 tenant-restore, no persistence, no save/test semantics touched.
+`docs/design/MISSING-BACKEND-BY-PAGE.md` §32.
+
+**⚠️ NOTHING FIRED — the whole point of this gate.** `email_templates` unchanged at **0 rows**, checksum
+`d751713988987e9331980363e24189ce` before and after; **no mail dispatched** (Mailpit still 500 messages, newest
+`2026-08-09T11:17:59`, ~16h older than this gate). The single interaction — typing into Heading to prove the
+live-preview binding survived the restyle — is **draft-only**: the component has **no mutating Livewire
+action**, and a reload discarded it with the checksum unchanged.
+
+**Merge variables REAL** (the catalogue's own `vars`, each merged by the Mailable). **Test-send recipient is
+`$request->user()->email` — there is no recipient input at all**, so it cannot be aimed at a guest even
+deliberately; now covered by a `Mail::fake()` test asserting it goes to the operator and NOT to the guest.
+**Preview probed inside the iframe: 0 emails, 0 phones, 0 mailto/tel** — name-only, the P31 bar.
+
+**Fixed (design):** the action bar — back-link, title + status, **both actions at the top-right**. ⚠️ The
+buttons sit outside their forms and reach them with the HTML5 **`form=`** attribute: the same two real POSTs,
+repositioned, **nothing rewired** (guarded by a test asserting both form ids AND both real actions). The foot
+Save stays (long form, keyboard). Block toggles became the design's **switches** — still real, **focusable**
+checkboxes (`appearance:none`, **never `display:none`** — the P30 defect) with a `:focus-visible` ring, named
+by their wrapping `<label>`.
+
+**⚠️ Contrast 5 → 0.** The "● Active" pill measured **4.41** — **the same raw `#1B7F5C` pill the templates LIST
+carried at P31**. One visual concept written twice, so the P31 fix never reached here. The variable-insert
+chips measured **4.19** (accent-as-text at 11.5px). Both fixed; inline error text moved off `--vy-accent` too.
+**Realm-wide note:** a shared `<x-status-pill>` would stop the next divergence; not extracted here.
+
+**⚠️ A real responsive defect fixed.** The two-column breakpoint was `960px`, so at a 1000px viewport each
+column was ~341px and **the preview iframe clipped** — the message cut mid-sentence and the Stay/Unit/
+**Reference values** hidden behind an inner scrollbar. **The page reported no overflow, because the clipping
+was inside the iframe.** Raised to `1180px`; measured after: single column, 653px iframe, not clipped.
+
+**⚠️ FOUND AND LOGGED — the preview has TWO sample sources.** The **subject/prose** merge *hardcoded
+placeholders* (`mergeSample` → `Alex Traveller`, `Apartment 2B`, `VY-2043`) while the **body** renders the
+**real** sample reservation. Measured on one screen: reference **VY-2043** in the subject vs **R-F7ERPHS4** in
+the body; unit **"Apartment 2B"** in the prose vs **A2** in the stay table — two references and two units for
+one booking. It **undercuts the component's own docblock** (*"what you see IS the send … cannot drift"*): the
+blade cannot drift, the merged text does. **Send-time is unaffected** (the Mailable merges real values), so it
+is preview-only — but an operator proof-reading sees a contradiction. **This is why I did NOT add the design's
+"Previewing as Lukas · VYR-10430" pill**: it would assert a single identity the preview does not have.
+
+**Also logged:** the "Sofia's signature" block + hero-image band (no signature entity, no image asset); free
+rich-text body editing (**EXTRA-KEEP** — field-scoped editing is safer in an email that really sends and keeps
+the tested layout).
+
+**⚠️ A false positive I corrected:** the keyboard probe first reported 3 unnamed block checkboxes; they are
+named by a **wrapping `<label>`** (implicit association), which my check didn't consider.
+
+**Verification:** email-template + preview suites **16/16 · 69 assertions** (4 added; the two structural guards
+mutation-proven); PHPStan L5 **0**; Pint clean; **0 console**; **0 overflow** at 1440 (two columns) and 1000
+(one column, preview un-clipped). Schema untouched — no `migrate:fresh` needed.
