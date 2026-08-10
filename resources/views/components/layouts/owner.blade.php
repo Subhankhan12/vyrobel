@@ -824,7 +824,10 @@
         }
 
         /* ---- Add-Unit wizard (Screen · Owner Add Unit) — .vy-au-* --------------------------------- */
-        .vy-au-back { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--vy-muted); text-decoration: none; font-weight: 500; margin-bottom: 10px; }
+        /* The back link, the field labels and the preview captions sit on the PAGE gradient (or on glass thin
+           enough that it shows through), so they take the on-grad tokens, not --vy-muted/--vy-faint: measured
+           against the real composited pixels those failed AA at 3.87–4.36 and now clear at 5.48–6.25. */
+        .vy-au-back { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--vy-on-grad-soft); text-decoration: none; font-weight: 500; margin-bottom: 10px; }
         .vy-au-back:hover { color: var(--vy-accent-text); }
         .vy-au-back svg { width: 13px; height: 13px; }
         .vy-au-steplabel { font-size: 12.5px; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
@@ -839,13 +842,15 @@
         .vy-au-steptitle { font-family: var(--vy-display); font-weight: 600; font-size: 20px; letter-spacing: -.02em; color: var(--vy-ink); }
         .vy-au-stepsub { font-size: 12.5px; color: var(--vy-muted); margin-top: 4px; margin-bottom: 20px; }
         .vy-au-field { margin-bottom: 16px; }
-        .vy-au-flabel { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 7px; }
+        .vy-au-flabel { display: block; font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-on-grad-soft); margin-bottom: 7px; }
         .vy-au-input { width: 100%; box-sizing: border-box; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.78); border-radius: 14px; padding: 12px 14px; font-family: var(--vy-sans); font-size: 14px; color: var(--vy-ink); outline: none; transition: border-color .16s, box-shadow .16s; }
         .vy-au-input:focus { border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232,112,58,.12); }
         .vy-au-chips { display: flex; gap: 8px; flex-wrap: wrap; }
         .vy-au-chip { display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border-radius: var(--vy-r-pill); background: rgba(255,255,255,.6); border: 1px solid rgba(120,70,40,.14); color: #5C534C; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: transform .14s, background .16s, border-color .16s, color .16s; }
         .vy-au-chip:hover { transform: translateY(-1px); }
-        .vy-au-chip.is-sel { background: rgba(232,112,58,.14); border-color: var(--vy-accent); color: var(--vy-accent); }
+        /* Selected chip: accent-as-text on the accent TINT measured 3.64 — the tint-text token is the one built
+           for this pairing (5.18). The selected state is also exposed as aria-pressed, never colour alone. */
+        .vy-au-chip.is-sel { background: rgba(232,112,58,.14); border-color: var(--vy-accent); color: var(--vy-accent-tint-text); }
         .vy-au-chip svg { width: 13px; height: 13px; }
         .vy-au-group { border: 1px solid var(--vy-hairline); background: rgba(255,255,255,.45); border-radius: 14px; padding: 4px 16px; margin-bottom: 20px; }
         .vy-au-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 0; border-bottom: 1px solid rgba(120,70,40,.08); }
@@ -858,7 +863,10 @@
         .vy-au-pm:hover { background: rgba(255,255,255,.95); }
         .vy-au-pm:disabled { opacity: .35; cursor: default; }
         .vy-au-pm svg { width: 13px; height: 13px; }
-        .vy-au-money { display: flex; align-items: center; gap: 6px; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.78); border-radius: 14px; padding: 11px 14px; }
+        /* The money input clears its own outline, so the RING has to live on the wrapper — without this the two
+           rate fields were the only keyboard-reachable controls on the page with no focus indicator at all. */
+        .vy-au-money { display: flex; align-items: center; gap: 6px; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.78); border-radius: 14px; padding: 11px 14px; transition: border-color .16s, box-shadow .16s; }
+        .vy-au-money:focus-within { border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232,112,58,.12); }
         .vy-au-money-cur { font-family: var(--vy-display); font-size: 16px; color: var(--vy-faint); font-weight: 600; }
         .vy-au-money input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: var(--vy-display); font-size: 16px; font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; padding: 0; }
         .vy-au-note { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 14px; background: rgba(217,102,46,.08); border: 1px solid rgba(232,112,58,.24); margin-bottom: 22px; }
@@ -867,8 +875,11 @@
         .vy-au-drops { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
         .vy-au-drop { position: relative; height: 130px; border-radius: 14px; overflow: hidden; border: 1px dashed rgba(120,70,40,.28); background: rgba(255,255,255,.4); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; transition: border-color .16s, background .16s; }
         .vy-au-drop:hover { border-color: var(--vy-accent-border); background: rgba(255,255,255,.6); }
+        /* The file input is opacity:0 over the whole tile, so its own focus ring is invisible too — the tile
+           carries it instead, or the upload is unreachable-looking for a keyboard user. */
+        .vy-au-drop:focus-within { border-color: var(--vy-accent-border); border-style: solid; box-shadow: 0 0 0 3px rgba(232,112,58,.18); }
         .vy-au-drop input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-        .vy-au-drop svg { width: 22px; height: 22px; color: var(--vy-peach); }
+        .vy-au-drop svg { width: 22px; height: 22px; color: var(--vy-accent-text); }
         .vy-au-drop-label { font-size: 11.5px; color: var(--vy-faint); font-weight: 500; padding: 0 8px; }
         .vy-au-drop-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .vy-au-commission { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: var(--vy-grad-dark); margin-bottom: 22px; }
@@ -880,13 +891,15 @@
         .vy-au-commission-net { color: #F3B98E; font-weight: 500; }
         .vy-au-cta { width: 100%; padding: 13px 0; border-radius: var(--vy-r-pill); background: var(--vy-grad); border: none; color: #fff; font-family: var(--vy-sans); font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: rgba(194,65,12,.40) 0 8px 22px; transition: transform .14s; text-align: center; text-decoration: none; display: block; box-sizing: border-box; }
         .vy-au-cta:hover { transform: translateY(-2px); color: #fff; }
-        .vy-au-cta--wait { background: rgba(120,70,40,.12); color: #A69A92; cursor: default; box-shadow: none; }
-        .vy-au-cta--wait:hover { transform: none; color: #A69A92; }
+        /* The waiting CTA is the only place that says WHY you can't continue, so it stays readable (1.79 → 5.71);
+           the flat wash + no shadow + cursor:default still read as inactive. */
+        .vy-au-cta--wait { background: rgba(120,70,40,.12); color: var(--vy-on-grad-soft); cursor: default; box-shadow: none; }
+        .vy-au-cta--wait:hover { transform: none; color: var(--vy-on-grad-soft); }
         .vy-au-cta--ghost { width: 100%; margin-top: 10px; padding: 11px 0; border-radius: var(--vy-r-pill); background: transparent; border: 1px solid rgba(120,70,40,.16); color: var(--vy-muted); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: none; text-align: center; text-decoration: none; display: block; box-sizing: border-box; }
         .vy-au-cta--ghost:hover { background: rgba(120,70,40,.06); transform: none; color: var(--vy-muted); }
         /* live preview */
         .vy-au-preview { flex: 0 0 288px; max-width: 288px; min-width: 260px; position: sticky; top: 20px; }
-        .vy-au-preview-label { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 10px; padding-left: 2px; }
+        .vy-au-preview-label { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-on-grad-soft); margin-bottom: 10px; padding-left: 2px; }
         .vy-au-preview-card { background: rgba(255,252,248,.62); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); overflow: hidden; }
         .vy-au-preview-cover { position: relative; height: 150px; background: linear-gradient(135deg, #F3B98E, #E8703A 60%, #C2410C); display: flex; align-items: center; justify-content: center; }
         .vy-au-preview-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -904,7 +917,7 @@
         .vy-au-preview-rate { display: flex; align-items: baseline; gap: 5px; margin-top: 14px; }
         .vy-au-preview-rate b { font-family: var(--vy-display); font-weight: 600; font-size: 20px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--vy-ink); }
         .vy-au-preview-rate i { font-size: 12px; color: var(--vy-faint); font-style: normal; }
-        .vy-au-preview-cap { text-align: center; font-size: 11px; color: var(--vy-faint); margin-top: 12px; line-height: 1.5; }
+        .vy-au-preview-cap { text-align: center; font-size: 11px; color: var(--vy-on-grad-soft); margin-top: 12px; line-height: 1.5; }
         /* done */
         .vy-au-done { max-width: 560px; margin: 26px auto 0; }
         .vy-au-done-card { background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); border-radius: 22px; box-shadow: rgba(150,90,50,.2) 0 18px 50px, inset rgba(255,255,255,.65) 0 1px 0; padding: 30px 28px; }

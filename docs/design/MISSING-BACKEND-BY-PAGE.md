@@ -3216,3 +3216,147 @@ white-on-accent-gradient family as a scheduled realm-wide a11y gate.
 - **No export exists on this page** — nothing to fire; nothing was mutated (read-only by construction).
 - 0 horizontal overflow at 1440×1000; 0 console errors.
 - ⚠️ **`toContain` sweep — clean negative** (seventh gate running): `OwnerAnalyticsTest` contains none.
+
+---
+
+## §O9 — Owner Add Unit (`/owner/add-unit`, `App\Livewire\Owner\OwnerAddUnit`) · OWNER 9/32
+
+**Prototype:** `docs/design/raw/Owner Add Unit.html` (decoded fresh). **Role:** `External Owner`
+(`EnsureOwnerCapability:actions` — co-owner only). **Write:** `POST /owner/add-unit` →
+`OwnerUnitRequestController@store` → `OwnerUnitRequestService::submit()`.
+
+### ⚠️ The brief's premise, corrected — this is NOT a create
+
+The gate was briefed as "a CREATION flow". **It is not.** An owner **cannot** create a unit anywhere in the
+product. The wizard files a **`unit_requests` row** (`status = pending`) and creates **no** unit, room type,
+rate row or availability — the operator reviews it and creates the real unit as *their own* action
+(`/app/unit-requests` → `UnitRequestActionController@approve`). The page's own copy says so
+("Submit for review", "Pending review", "once … approves it"), and `OwnerUnitRequestService` is explicit:
+*"It creates NO unit."* The read-only discipline still applied in full — the request itself is real work on
+an operator's desk — but the row it would have written is a request, not inventory.
+
+### 🔴 REAL DEFECT FOUND AND FIXED — the wizard could be submitted from step 1 by pressing Enter
+
+The single most consequential finding of the gate, and it is a **markup** defect, so it was in scope.
+
+`Enter` inside any text field triggers **implicit form submission** against the step-4 submit button — *even
+while step 4 is hidden*. From **step 1**, that fires the real POST. Server-side it would have **passed**:
+`store()` requires only `requested_name` and `requested_kind`, and the kind is pre-selected, so the request
+files with a name and four silent defaults (1 bed / 1 bath / sleeps 2 / min 2 nights), no rate and no photos
+— landing on the operator's desk as a genuine pending request the owner never meant to send. Keyboard users,
+who are the likeliest to press Enter to move on, were the ones exposed.
+
+- **Browser-proven both directions.** Before: `Enter` on step 1 → 1 submit attempt (caught by a capture-phase
+  guard installed for the probe, so nothing was ever sent). After: step 1 → **0**; step 4 → **1** (the real
+  path still works). Regression test added and **mutation-proven** — deleting the attribute fails it.
+- ⚠️ **A probe of mine misread this once**: `document.querySelector('[x-data]')` matched the **shell's**
+  Alpine root (the notification popover), so setting `step = 4` there left the wizard on step 1 and made the
+  fix look like it over-blocked. The fix was right; the probe was wrong. *Verify the probe before the page.*
+
+### Fixed on this page (design / markup / styling only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | **Implicit Enter submission before the last step** | fires a real request from step 1 → prevented unless `step === 4` |
+| 2 | **5 inputs named by placeholder only** (`requested_name`, `location`, `street_address`, `nightly_rate`, `cleaning_fee`) — `.vy-au-flabel` was a `<div>`, never associated | → real `<label for>` (also makes the label clickable) |
+| 3 | **8 icon-only stepper buttons with NO accessible name** (beds/baths/sleeps/min-nights ±) | → `aria-label` each; SVGs `aria-hidden` |
+| 4 | Stepper VALUE unannounced on change | → `role="status"` + `aria-labelledby` its row name |
+| 5 | Chip selection was **colour-only** and unexposed to AT (14 chips) | → `aria-pressed` on all 14; the two chip groups get `role="group"` + a name |
+| 6 | **`.vy-au-money` had no focus ring at all** (`outline:none`, nothing else) — the O4-logged defect **for this page** | → `:focus-within` ring on the wrapper (measured live) |
+| 7 | **File input's ring invisible** — it is `opacity:0` over the tile, so its own ring is invisible too | → `.vy-au-drop:focus-within` ring + solid border |
+| 8 | File input loses its name once a photo is chosen (label text swapped for `<img alt="">`) | → persistent `aria-label` on the input |
+| 9 | Error block showed **only the first** message, no announcement | → `role="alert"`, **all** messages, led by a word (not the accent rule alone) |
+| 10 | Progress rail announced as 4 anonymous items | → `aria-hidden` ("Step N of 4" already says it in words) |
+
+**Contrast — 15 AA failures → 6, icons 2 → 0** (real composited pixels, 101 text + 51 icon candidates,
+all four steps revealed):
+
+| Element | Was | Now | Token |
+|---|---|---|---|
+| `.vy-au-flabel` ×6 | 4.13–4.41 | **6.21–7.60** | `--vy-on-grad-soft` |
+| `.vy-au-back` | 4.36 | **5.44** | `--vy-on-grad-soft` |
+| `.vy-au-preview-label` | 4.10 | **6.22** | `--vy-on-grad-soft` |
+| `.vy-au-preview-cap` | 3.87 | **5.86** | `--vy-on-grad-soft` |
+| `.vy-au-chip.is-sel` | 3.64 | **5.18** | `--vy-accent-tint-text` |
+| `.vy-au-cta--wait` ("Name your unit to continue") | 1.79 | **5.71** | `--vy-on-grad-soft` |
+| `.vy-au-drop svg` (1.4.11) | 1.81 | **≥3** | `--vy-accent-text` |
+
+⚠️ **The failing labels were `--vy-faint` / `--vy-muted` used on the PAGE gradient.** The fix is *not* to
+retune those shared tokens — the realm already has `--vy-on-grad` / `--vy-on-grad-soft` built for exactly
+this background. Reaching for the right existing token beat changing a token 8 closed pages depend on.
+
+⚠️ `.vy-au-cta--wait` is a **disabled** control, so 1.4.3 formally exempts it — but it is the only text that
+says *why* you cannot continue, so it was made readable anyway. The flat wash, absent shadow and
+`cursor:default` still read as inactive.
+
+### 🚫 Refusals preserved (do NOT "fix")
+
+- **The prototype's "Location" chips** (`townList`, 3 named towns) — the product has **no town catalogue**;
+  `location` is a free string column. Chips would be a fabricated set of supported places. The live page
+  keeps a free-text **Town / city** field. **RATIFIED REFUSAL.**
+- **The prototype's hardcoded "15% commission"** — the live panel reads the owner's **real** active
+  `ManagementAgreement` (demo: **18%**), and with no agreement shows *"Your team confirms the commission"*
+  rather than any percentage (tested, #39).
+- **No earnings projection.** "You keep about €148 per night after commission" is arithmetic on the rate the
+  owner just typed × their real rate, hedged with *about* — not a forecast of what the unit will earn.
+- **No "looks good ✓" / no client-side validation theatre.** The only gate is `canNext1` (a name exists);
+  everything else is validated **server-side**, and every server message is now shown.
+- **No fabricated field or dropdown option** — see below; every field maps to a real column, and the four
+  property kinds are the real `OwnerUnitRequestService::KINDS`.
+
+### ✅ Extra work kept (beyond the prototype)
+
+- **"Your requests"** — the prototype has no such section; hiding an owner's real pending/decided requests
+  would be a regression. Owner-scoped, real statuses.
+- **Photos really upload** — `media` rows on the request, ULID filenames, content-validated images, capped
+  count and size (reuses the room-type upload posture). Not a placeholder.
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO9-1 — `unit_requests.notes` is written by the backend but has no field in the wizard.** The controller
+  validates it (`max:2000`) and the service persists it; neither the prototype nor the live page exposes it.
+  A free-text "anything else we should know" box is the natural home. *Verdict: **REAL GAP** (small) — a
+  column that exists and is unreachable from the UI.*
+- **DO9-2 — no draft/resume.** Leaving the wizard loses everything typed; there is no draft state on
+  `unit_requests` (`status` is pending/approved/declined only). The prototype implies none either.
+  *Verdict: **REAL GAP** — needs a `draft` status or a client-side persist decision.*
+- **DO9-3 — the owner cannot withdraw a request.** `UnitRequest` has no owner-side cancel path; only the
+  operator approves/declines. *Verdict: **REAL GAP** — a state machine addition, not presentation.*
+- **DO9-4 — the prototype's professional-photo offer ("our team can arrange a shoot — just ask") is copy
+  only.** There is no booking/scheduling entity behind it; the live page keeps the sentence as an invitation
+  to ask, which is honest. *Verdict: **RATIFIED REFUSAL** unless a real scheduling flow is built.*
+- **DO9-5 — the drop tiles are file pickers, not drag-and-drop.** The prototype says "Drop your cover photo
+  onto the preview card"; the live copy correctly says "Add a cover photo". Real DnD + a real preview-card
+  drop target is unbuilt. *Verdict: **REAL GAP** (presentation-adjacent, but genuinely unimplemented).*
+
+### ⚠️ Verified, not changed
+
+- **The action is a REQUEST, not a create** — proven at the DB level: after a full wizard walk (all four
+  steps, typing into every field, both money fields, Enter pressed on step 1 **and** step 4),
+  `unit_requests = 0`, `units = 8`, `room_types = 3`, `media = 6`, `rate_calendar = 925` and the max
+  `units.updated_at` is still the seed time `2026-08-09 07:17:59`. **Nothing was written.**
+- **Every field maps to a real column (#39)** — name→`requested_name`, type→`requested_kind` (4 real KINDS),
+  town→`location`, street→`street_address`, beds/baths/sleeps→`bedrooms`/`bathrooms`/`sleeps`,
+  rate→`requested_rate_minor` + `currency`, cleaning→`cleaning_fee_minor`, min-nights→`min_nights`,
+  amenities→validated against the **real** `amenities` table (`Rule::exists` — an unknown id is rejected,
+  never silently created), photos→`media`. **No field the model doesn't store.**
+- **#17** — money is parsed by `MoneyInput` into integer minor units; an unparseable amount is a validation
+  error, never a silent drop.
+- **#20** — one ordinary gated form POST (`@csrf`, `multipart/form-data`), never `/livewire/update`.
+- **#38/#42/#30** — `EnsureOwnerCapability:actions`; the request files against the owner resolved by
+  `user_id` (never a request id) and a non-linked user fails closed (404). Already mutation-proven by
+  `OwnerTeamCapabilityTest` (view-only role → 403) and `OwnerUnitRequestTest` (own-requests-only; a stranger
+  refused). **No cross-org create is reachable — the owner cannot create at all.**
+- **#28** — the form is about the unit; no guest data anywhere, no IBAN (owner banking lives on Payout
+  method, masked).
+- **Keyboard: 0 unnamed controls** (was 13), every field/stepper/chip/upload operable with a visible focus
+  indicator; `appearance` never `display:none` — the hidden steps are genuinely inapplicable, not
+  unreachable controls.
+- 0 horizontal overflow at 1440×1000; 0 console errors/warnings.
+- ⚠️ **`toContain` sweep — clean negative** (eighth gate running): the four repo matches for
+  `not->toContain(…,…)` are commas *inside a single argument* (a `route()` call, `'Faro, PT'`) plus one
+  comment — no vacuous assertion remains.
+- ⚠️ **Gradient family — surfaced, none added, none half-fixed.** 6 white-on-accent-gradient failures remain:
+  `.vy-au-preview-cover-ph` **2.54** (the *worst* instance found anywhere in the realm so far),
+  `.vy-au-cta` ×3 (3.93–3.95), and the shell's `.vy-brand-mark` / `.vy-avatar` (3.88 / 3.83). Still awaiting
+  its own realm-wide gate.

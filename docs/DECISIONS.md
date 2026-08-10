@@ -6938,3 +6938,39 @@ could be fired. ⚠️ **`toContain` sweep — clean negative** (seventh gate ru
 
 **Gates:** suite **1834 / 12,034 · 9 non-green** — the identical documented set (including the date-coupled
 `OwnerUnitDetailViewTest`). PHPStan L5 (0); Pint clean; 0 overflow, 0 console errors. No schema touched.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER 9/32 · **Owner Add Unit** (`/owner/add-unit`)
+
+Presentation-only gate. **Two corrections and one real defect.**
+
+**1. The brief's premise was wrong: this is not a creation flow.** An owner cannot create a unit anywhere in
+Vyrobel. The wizard files a `unit_requests` row (`pending`); the operator reviews it and creates the real
+unit as their own action. Recorded because the gate was briefed as a create, and because the read-only
+discipline still mattered — a request is real work on someone's desk.
+
+**2. 🔴 The wizard could be submitted from step 1 by pressing Enter.** Implicit form submission targets the
+step-4 submit button even while step 4 is hidden, and the server requires only `requested_name` +
+`requested_kind` (the kind is pre-selected). One Enter on step 1 therefore filed a genuine request with four
+silent defaults, no rate and no photos. Fixed at the markup level (`@keydown.enter` prevented unless
+`step === 4`), **browser-proven both ways** (step 1: 1 submit → 0; step 4: still 1) and covered by a
+**mutation-proven** regression test. Generalised as `PROJECT-STATE.md` §N.4k — *a wizard whose steps are
+client-side is submittable from any step*; the remaining wizards need the same check.
+
+**3. Accessibility — 13 unnamed controls → 0, contrast 15 AA failures → 6, icons 2 → 0.** Five inputs were
+named by placeholder only (the visible label was a `<div>`); eight icon-only steppers had no name at all;
+14 chips conveyed selection by colour alone and exposed nothing to AT. `.vy-au-money`'s missing focus ring —
+logged at O4 **for this gate** — is closed, along with a second instance (the `opacity:0` file input, whose
+own ring is invisible by construction). The failing greys were `--vy-faint`/`--vy-muted` sitting on the page
+gradient: fixed by reaching for the **existing** `--vy-on-grad-soft`, not by retuning a token that eight
+closed pages depend on.
+
+**Refusals preserved:** the prototype's town chips (no town catalogue exists — `location` is a free string),
+its hardcoded 15% (live reads the owner's real agreement, 18%), any earnings projection, any client-side
+validation theatre. **Kept beyond the prototype:** "Your requests", and photo upload that genuinely uploads.
+
+**Read-only honoured** after a full four-step walk including Enter on steps 1 and 4: `unit_requests` still 0,
+`units` 8, `room_types` 3, `media` 6, `rate_calendar` 925, `units.updated_at` still the seed time. No schema
+touched, so no `migrate:fresh`. Suite **1835 / 12,036 · 9 non-green** (the documented non-deterministic set);
+PHPStan L5 (0); Pint clean; 0 overflow, 0 console errors.

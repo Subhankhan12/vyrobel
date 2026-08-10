@@ -23,9 +23,15 @@
 @endphp
 <x-owner.shell active="add-unit" title="Add a unit" :viewer="$viewer">
 
+    {{-- Server validation only — the wizard never invents a client-side "looks good". Every message the server
+         actually returned is shown (the old markup dropped all but the first), announced, and led by a word so
+         the failure is not carried by the accent rule alone. --}}
     @if ($errors->any())
-        <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:16px">
-            <div style="font-size:13px;color:var(--vy-ink)">{{ $errors->first() }}</div>
+        <div class="vy-card vy-fade" role="alert" style="border-left:3px solid var(--vy-accent);margin-bottom:16px">
+            <div style="font-size:13px;font-weight:600;color:var(--vy-accent-text);margin-bottom:2px">We couldn’t send your request</div>
+            @foreach ($errors->all() as $error)
+                <div style="font-size:13px;color:var(--vy-ink)">{{ $error }}</div>
+            @endforeach
         </div>
     @endif
 
@@ -113,7 +119,12 @@
                 <span class="vy-au-steplabel" x-text="stepLabel">Step 1 of 4</span>
             </div>
 
-            <form method="POST" action="{{ route('owner.add-unit.submit') }}" enctype="multipart/form-data">
+            {{-- Enter inside any text field triggers IMPLICIT submission against the step-4 submit button, even
+                 while that step is hidden — from step 1 that files a REAL request on the operator's desk with
+                 nothing but a name and the default kind (the server requires only those two). A wizard must not
+                 be submittable from a step that isn't the last one, so Enter only submits on step 4. --}}
+            <form method="POST" action="{{ route('owner.add-unit.submit') }}" enctype="multipart/form-data"
+                  @keydown.enter="if (step !== 4) $event.preventDefault()">
                 @csrf
                 {{-- Stepper / chip values that have no visible named input post through these mirrors --}}
                 <input type="hidden" name="requested_kind" :value="kind">
@@ -126,7 +137,8 @@
                 <div class="vy-au-wrap">
                     {{-- LEFT — the steps --}}
                     <div class="vy-au-left">
-                        <div class="vy-au-rail">
+                        {{-- Decorative: "Step N of 4" beside the title carries the same information in words. --}}
+                        <div class="vy-au-rail" aria-hidden="true">
                             <span class="vy-au-rail-seg" :class="step >= 1 && 'is-on'"></span>
                             <span class="vy-au-rail-seg" :class="step >= 2 && 'is-on'"></span>
                             <span class="vy-au-rail-seg" :class="step >= 3 && 'is-on'"></span>
@@ -140,27 +152,27 @@
                                 <div class="vy-au-stepsub">Tell us what you’re listing and where it is.</div>
 
                                 <div class="vy-au-field">
-                                    <div class="vy-au-flabel">Unit name</div>
-                                    <input name="requested_name" x-model="name" placeholder="e.g. Villa Marisol" class="vy-au-input" maxlength="120" autocomplete="off">
+                                    <label class="vy-au-flabel" for="au-name">Unit name</label>
+                                    <input id="au-name" name="requested_name" x-model="name" placeholder="e.g. Villa Marisol" class="vy-au-input" maxlength="120" autocomplete="off">
                                 </div>
 
                                 <div class="vy-au-field">
-                                    <div class="vy-au-flabel">Property type</div>
-                                    <div class="vy-au-chips">
+                                    <div class="vy-au-flabel" id="au-kind-label">Property type</div>
+                                    <div class="vy-au-chips" role="group" aria-labelledby="au-kind-label">
                                         @foreach ($kinds as $value => $label)
-                                            <button type="button" @click="kind = '{{ $value }}'" :class="kind === '{{ $value }}' ? 'vy-au-chip is-sel' : 'vy-au-chip'">{{ $label }}</button>
+                                            <button type="button" @click="kind = '{{ $value }}'" :aria-pressed="kind === '{{ $value }}' ? 'true' : 'false'" :class="kind === '{{ $value }}' ? 'vy-au-chip is-sel' : 'vy-au-chip'">{{ $label }}</button>
                                         @endforeach
                                     </div>
                                 </div>
 
                                 <div class="vy-au-field">
-                                    <div class="vy-au-flabel">Town / city</div>
-                                    <input name="location" x-model="town" placeholder="e.g. Split" class="vy-au-input" maxlength="120" autocomplete="off">
+                                    <label class="vy-au-flabel" for="au-town">Town / city</label>
+                                    <input id="au-town" name="location" x-model="town" placeholder="e.g. Split" class="vy-au-input" maxlength="120" autocomplete="off">
                                 </div>
 
                                 <div class="vy-au-field" style="margin-bottom:22px">
-                                    <div class="vy-au-flabel">Street address</div>
-                                    <input name="street_address" x-model="address" placeholder="Street &amp; number" class="vy-au-input" maxlength="200" autocomplete="off">
+                                    <label class="vy-au-flabel" for="au-address">Street address</label>
+                                    <input id="au-address" name="street_address" x-model="address" placeholder="Street &amp; number" class="vy-au-input" maxlength="200" autocomplete="off">
                                 </div>
 
                                 <button type="button" @click="canNext1 && go(2)" :disabled="!canNext1" :class="canNext1 ? 'vy-au-cta' : 'vy-au-cta vy-au-cta--wait'">
@@ -175,36 +187,36 @@
 
                                 <div class="vy-au-group">
                                     <div class="vy-au-row">
-                                        <span class="vy-au-row-name">Bedrooms</span>
+                                        <span class="vy-au-row-name" id="au-beds-label">Bedrooms</span>
                                         <span class="vy-au-stepper">
-                                            <button type="button" class="vy-au-pm" @click="dec('beds', 0)" :disabled="beds <= 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
-                                            <span class="vy-au-num" x-text="beds">1</span>
-                                            <button type="button" class="vy-au-pm" @click="inc('beds', lim.bedrooms)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="One fewer bedroom" @click="dec('beds', 0)" :disabled="beds <= 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                                            <span class="vy-au-num" role="status" aria-labelledby="au-beds-label" x-text="beds">1</span>
+                                            <button type="button" class="vy-au-pm" aria-label="One more bedroom" @click="inc('beds', lim.bedrooms)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
                                         </span>
                                     </div>
                                     <div class="vy-au-row">
-                                        <span class="vy-au-row-name">Bathrooms</span>
+                                        <span class="vy-au-row-name" id="au-baths-label">Bathrooms</span>
                                         <span class="vy-au-stepper">
-                                            <button type="button" class="vy-au-pm" @click="dec('baths', 1)" :disabled="baths <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
-                                            <span class="vy-au-num" x-text="baths">1</span>
-                                            <button type="button" class="vy-au-pm" @click="inc('baths', lim.bathrooms)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="One fewer bathroom" @click="dec('baths', 1)" :disabled="baths <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                                            <span class="vy-au-num" role="status" aria-labelledby="au-baths-label" x-text="baths">1</span>
+                                            <button type="button" class="vy-au-pm" aria-label="One more bathroom" @click="inc('baths', lim.bathrooms)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
                                         </span>
                                     </div>
                                     <div class="vy-au-row">
-                                        <span><span class="vy-au-row-name">Sleeps</span><span class="vy-au-row-sub">Maximum guests</span></span>
+                                        <span><span class="vy-au-row-name" id="au-sleeps-label">Sleeps</span><span class="vy-au-row-sub">Maximum guests</span></span>
                                         <span class="vy-au-stepper">
-                                            <button type="button" class="vy-au-pm" @click="dec('sleeps', 1)" :disabled="sleeps <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
-                                            <span class="vy-au-num" x-text="sleeps">2</span>
-                                            <button type="button" class="vy-au-pm" @click="inc('sleeps', lim.sleeps)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="One fewer guest" @click="dec('sleeps', 1)" :disabled="sleeps <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                                            <span class="vy-au-num" role="status" aria-labelledby="au-sleeps-label" x-text="sleeps">2</span>
+                                            <button type="button" class="vy-au-pm" aria-label="One more guest" @click="inc('sleeps', lim.sleeps)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
                                         </span>
                                     </div>
                                 </div>
 
-                                <div class="vy-au-flabel" style="margin-bottom:10px">Amenities</div>
+                                <div class="vy-au-flabel" style="margin-bottom:10px" id="au-amenities-label">Amenities</div>
                                 @if (count($amenities) > 0)
-                                    <div class="vy-au-chips" style="margin-bottom:22px">
+                                    <div class="vy-au-chips" style="margin-bottom:22px" role="group" aria-labelledby="au-amenities-label">
                                         @foreach ($amenities as $a)
-                                            <button type="button" @click="toggleAm('{{ $a['id'] }}')" :class="isAm('{{ $a['id'] }}') ? 'vy-au-chip is-sel' : 'vy-au-chip'">
+                                            <button type="button" @click="toggleAm('{{ $a['id'] }}')" :aria-pressed="isAm('{{ $a['id'] }}') ? 'true' : 'false'" :class="isAm('{{ $a['id'] }}') ? 'vy-au-chip is-sel' : 'vy-au-chip'">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{!! $amIcons[$a['icon']] ?? $amFallback !!}</svg>
                                                 {{ $a['name'] }}
                                             </button>
@@ -225,7 +237,8 @@
 
                                 <div class="vy-au-drops">
                                     <label class="vy-au-drop">
-                                        <input type="file" name="photos[]" accept="image/jpeg,image/png,image/webp" @change="onCover">
+                                        {{-- The visible label is swapped for the chosen image, so the NAME lives on the input itself. --}}
+                                        <input type="file" name="photos[]" aria-label="Cover photo" accept="image/jpeg,image/png,image/webp" @change="onCover">
                                         <template x-if="coverUrl"><img class="vy-au-drop-img" :src="coverUrl" alt=""></template>
                                         <template x-if="!coverUrl">
                                             <span style="display:flex;flex-direction:column;align-items:center;gap:6px">
@@ -235,7 +248,7 @@
                                         </template>
                                     </label>
                                     <label class="vy-au-drop">
-                                        <input type="file" name="photos[]" accept="image/jpeg,image/png,image/webp" @change="onPhoto2">
+                                        <input type="file" name="photos[]" aria-label="Another photo" accept="image/jpeg,image/png,image/webp" @change="onPhoto2">
                                         <template x-if="photo2Url"><img class="vy-au-drop-img" :src="photo2Url" alt=""></template>
                                         <template x-if="!photo2Url">
                                             <span style="display:flex;flex-direction:column;align-items:center;gap:6px">
@@ -262,28 +275,28 @@
 
                                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
                                     <div>
-                                        <div class="vy-au-flabel">Base rate / night</div>
+                                        <label class="vy-au-flabel" for="au-nightly">Base rate / night</label>
                                         <div class="vy-au-money">
-                                            <span class="vy-au-money-cur">{{ $currencySymbol }}</span>
-                                            <input name="nightly_rate" x-model="nightly" inputmode="decimal" placeholder="0" maxlength="12">
+                                            <span class="vy-au-money-cur" aria-hidden="true">{{ $currencySymbol }}</span>
+                                            <input id="au-nightly" name="nightly_rate" x-model="nightly" inputmode="decimal" placeholder="0" maxlength="12">
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="vy-au-flabel">Cleaning fee</div>
+                                        <label class="vy-au-flabel" for="au-cleaning">Cleaning fee</label>
                                         <div class="vy-au-money">
-                                            <span class="vy-au-money-cur">{{ $currencySymbol }}</span>
-                                            <input name="cleaning_fee" x-model="cleaning" inputmode="decimal" placeholder="0" maxlength="12">
+                                            <span class="vy-au-money-cur" aria-hidden="true">{{ $currencySymbol }}</span>
+                                            <input id="au-cleaning" name="cleaning_fee" x-model="cleaning" inputmode="decimal" placeholder="0" maxlength="12">
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="vy-au-group">
                                     <div class="vy-au-row">
-                                        <span><span class="vy-au-row-name">Minimum nights</span><span class="vy-au-row-sub">Shortest stay you’ll accept</span></span>
+                                        <span><span class="vy-au-row-name" id="au-min-label">Minimum nights</span><span class="vy-au-row-sub">Shortest stay you’ll accept</span></span>
                                         <span class="vy-au-stepper">
-                                            <button type="button" class="vy-au-pm" @click="dec('minNights', 1)" :disabled="minNights <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
-                                            <span class="vy-au-num" x-text="minNights">2</span>
-                                            <button type="button" class="vy-au-pm" @click="inc('minNights', lim.min_nights)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+                                            <button type="button" class="vy-au-pm" aria-label="One fewer minimum night" @click="dec('minNights', 1)" :disabled="minNights <= 1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+                                            <span class="vy-au-num" role="status" aria-labelledby="au-min-label" x-text="minNights">2</span>
+                                            <button type="button" class="vy-au-pm" aria-label="One more minimum night" @click="inc('minNights', lim.min_nights)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
                                         </span>
                                     </div>
                                 </div>

@@ -249,3 +249,18 @@ it('shows an honest commission line when the owner has no agreement (never a fab
         ->assertSee('Your team confirms the commission')   // the honest line
         ->assertDontSee('% commission');                    // NEVER a fabricated percentage
 });
+
+// ── 13. A wizard must not be submittable from a step that isn't its LAST ───────────────────────────
+// Enter inside any text field triggers IMPLICIT submission against the step-4 submit button even while that
+// step is hidden. From step 1 that files a REAL request on the operator's desk off nothing but a name — the
+// server requires only requested_name + requested_kind, and both are present (kind defaults). Browser-proven
+// both ways: before the guard, Enter on step 1 fired a submit; after it, step 1 fires none and step 4 still
+// submits. Keyboard users are the ones who reach for Enter, so this is their accidental-request path.
+it('guards the wizard against implicit Enter submission before the final step', function () {
+    $s = seedScenario(1);
+    $a = urOwner($s, 0, 'Amara Okafor');
+
+    $html = (string) $this->actingAs($a['user'])->get('/owner/add-unit')->assertOk()->getContent();
+
+    expect($html)->toContain('@keydown.enter="if (step !== 4) $event.preventDefault()"');
+});
