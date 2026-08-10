@@ -15,12 +15,15 @@
         body { margin: 0; color: #2B2320; font-size: 12px; }
         .wrap { padding: 34px 40px; }
         .brand-mark { display: inline-block; width: 30px; height: 30px; background-color: #C2410C; color: #fff; text-align: center; font-size: 18px; font-weight: bold; border-radius: 7px; }
-        /* ⚠️ POST-AA GREYS — measured ON WHITE PAPER, which is how a statement is actually read.
-           The document carried the pre-AA #8A8079 (3.86) and #A69A92 (2.74) — the same survival the
-           operator Schedule PDF was fixed for. #8A8079 was carrying the NEGATIVE MONEY (.neg = the
-           commission/deduction figures) and every per-line detail. Now 6.98 / 5.79.
-           ⚠️ The .band .dark greys are NOT touched: they sit on #2A211C and measure 8.21 / 7.05 —
-           darkening them would be backwards, exactly as on the screen's dark payout rail. */
+        {{-- ⚠️ POST-AA GREYS — measured ON WHITE PAPER, which is how a statement is actually read.
+             The document carried the pre-AA greys (3.86 and 2.74) — the same survival the operator
+             Schedule PDF was fixed for. The darker of the two was carrying the NEGATIVE MONEY (.neg =
+             the commission/deduction figures) and every per-line detail. Now 6.98 / 5.79.
+             ⚠️ The .band .dark greys are NOT touched: they sit on #2A211C and measure 8.21 / 7.05 —
+             darkening them would be backwards, exactly as on the screen's dark payout rail.
+             ⚠️ This is a BLADE comment, not a CSS one: a CSS comment is RENDERED, so quoting the old
+             hex values here shipped them inside every generated statement and made the regression
+             guard below impossible to write. --}}
         .muted { color: #5F5853; }
         .eyebrow { color: #C2410C; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         h1 { font-size: 26px; margin: 14px 0 0; letter-spacing: -0.5px; }
@@ -159,11 +162,13 @@
             @if ($has_unverified) Some lines are provisional, pending channel reconciliation.@endif
         </div>
 
-        {{-- Footer --}}
+        {{-- Footer. The two cells share one row, so without an explicit split dompdf broke the date across
+             lines ("generated 9 Aug / 2026") and hyphenated the contact address mid-domain. The right cell is
+             sized to its own content and kept unbreakable; the left takes the remainder. --}}
         <table class="foot" width="100%">
             <tr>
-                <td>{{ $company }} · statement {{ $doc_ref }}@if ($sequence_no) · no. {{ $sequence_no }}@endif · generated {{ $issued }}</td>
-                <td style="text-align:right;">@if ($billing_email)Questions? {{ $billing_email }}@endif</td>
+                <td style="width:62%;">{{ $company }} · statement {{ $doc_ref }}@if ($sequence_no) · no. {{ $sequence_no }}@endif · generated <span style="white-space:nowrap;">{{ $issued }}</span></td>
+                <td style="text-align:right; white-space:nowrap;">@if ($billing_email)Questions? {{ $billing_email }}@endif</td>
             </tr>
         </table>
     </div>

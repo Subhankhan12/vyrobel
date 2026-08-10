@@ -7017,3 +7017,45 @@ is now **5–10**.
 unit 404 · nonsense 404. **Read-only honoured**: `units.updated_at` still the seed time, `inventory_blocks`
 still 2, `rate_calendar` untouched, `restrictions` 0. No schema touched, so no `migrate:fresh`.
 Suite **1836 / 12,040**; PHPStan L5 (0); Pint clean; 0 overflow, 0 console errors.
+
+---
+
+## 2026-08-10 — DESIGN-PARITY · OWNER 11/32 · **Owner Statement PDF** (`/owner/statements/{statement}/pdf`)
+
+Template/markup only. **A premise correction, a trap, and a re-verification that held.**
+
+**1. O2 already covered this document.** The gate was briefed as the separate PDF "Owner-2 flagged", but O2
+decoded this same prototype, measured the generated PDF's content stream and fixed the pre-AA greys. So this
+was a layout diff plus re-verification — and **O2's fix held**: the document's own ink measures 5.18–15.40 on
+white paper.
+
+**2. 🔴 The comment documenting that fix made the guard impossible — and shipped the old values.** No test
+guarded O2's work, and the greys had already survived one full pass undetected. Writing the guard failed
+immediately, because the explanatory note was a **CSS** comment inside `<style>` — and a CSS comment is
+rendered, so `#8A8079` / `#A69A92` were present in every generated statement's markup. Moved to a Blade
+comment (stripped at compile); the guard now exists and is mutation-proven. Generalised as §N.4m — the third
+form of this trap, after O6's component-tags-in-CSS-comments and `DesignTokenContrastTest`.
+
+**3. Footer fixed.** dompdf broke the date across lines and hyphenated the contact address mid-domain
+("billing@vyrobel-/demo.test"). Explicit column split plus `white-space:nowrap`; verified in the regenerated
+PDF.
+
+**4. ⚠️ Four apparent contrast failures were my probe's error** — white text and two greys that sit on the
+document's **dark plates**, scored against paper. Re-scored against the plate each actually sits on: 5.18 /
+15.76 / 8.21 / 7.05, matching the template's own note. The single genuine on-white failure is the shared
+`PdfService` watermark at 2.70 — the logged realm-wide item, explicitly out of scope.
+
+**5. Logged, not fixed.** `MoneyFormatter::display(0, …, signed: true)` returns `"+€0.00"`, so the zero
+OTA row prints a plus on a deduction. **Both** the screen and the PDF pass `signed: !isNet`, so fixing one
+surface would split SCREEN == PDF; it belongs in the shared helper. Blast radius measured for that gate:
+9 call sites, 0 tests asserting the string. Also logged: the `(provisional)` flag and "pending channel
+reconciliation" footnote fire off that same €0.00 line while no reservation carries a `channel_id` (D2-2) —
+a product question about the flag, surfaced not decided.
+
+**Verified:** #17 from the PDF's own content stream — 1,080.00 − 194.40 (the real 18%) = 885.60, printed 3×;
+by-unit 540 + 540 = 1,080; ADR 135.00 = 1,080 ÷ 8; SCREEN == PDF. #28 — masked `IBAN ···· 1000`, no raw IBAN
+(structurally un-emittable), no guest data. #42 — **mutation-proven** (dropping the controller's scope turns
+the cross-owner test red); a live foreign probe was impossible because the demo DB has exactly one owner, and
+seeding a second for a screenshot would mutate demo data. Greyscale-safe (states are words and a minus sign).
+⚠️ The export writes an `export_downloads` audit row per download, by design; no money row moved. No schema
+touched. Suite **1837 / 12,042 · 9 non-green** (documented set); PHPStan L5 (0); Pint clean.

@@ -3471,3 +3471,111 @@ throughout.
   `.vy-brand-mark` 3.88 / `.vy-avatar` 3.83 (shell), "Edit pricing" 3.93, "Save changes" 3.93, "Send message"
   3.95, and **the SELECTED calendar day 3.95** (a member I surfaced by forcing `.is-sel`; the rule predates
   this gate). Still awaiting the realm-wide gate.
+
+---
+
+## §O11 — Owner Statement PDF (`/owner/statements/{statement}/pdf`) · OWNER 11/32
+
+**Prototype:** `docs/design/raw/Owner Statement PDF.html` (decoded fresh). **Role:** `External Owner`
+(`CAP_EXPORTS`; the masked IBAN additionally requires `CAP_PAYOUT`). **Renderer:** `PdfService` →
+`pdfs.owner-statement`, composed by `App\Support\Pdf\OwnerStatementDocument`.
+
+### ⚠️ Premise correction — this document was already covered at O2
+
+The gate was briefed as the separate PDF "Owner-2 flagged". In fact **O2 covered it**: it decoded this same
+prototype, measured the *generated PDF's own content stream*, fixed the pre-AA greys (3.86 / 2.74 → 6.98 /
+5.79) and verified SCREEN == PDF figure-by-figure. So this gate is a **layout diff + re-verification**, not a
+fresh fix — and the re-verification is the point: **O2's fix held**, now proven and, for the first time,
+*guarded*.
+
+### 🔴 The find: the explanatory comment was shipping the pre-AA hex values into every statement
+
+Writing the obvious regression guard ("this document contains neither pre-AA grey") **failed immediately** —
+because the note explaining the fix was a **CSS** comment inside `<style>`, and **a CSS comment is rendered**
+(the O6 lesson, in a new place; a Blade comment is stripped). So every generated statement carried the
+strings `#8A8079` and `#A69A92` in its markup, and no substring guard could ever be written. Converting the
+prose to a Blade comment removes it from the output and makes the guard possible. **Mutation-proven** —
+putting either grey back into a real rule fails it. This is the same shape as the `DesignTokenContrastTest`
+issue recorded in `PROJECT-STATE` §J: *a whole-file substring guard is defeated by the comment that documents
+the fix.*
+
+### Fixed on this page (template/markup only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | Footer broke mid-token — *"generated 9 Aug / 2026"* and the contact address hyphenated across lines (**"billing@vyrobel-/demo.test"**) | explicit 62% split + `white-space:nowrap` on the date and the address — both unbroken, verified in the regenerated PDF |
+| 2 | The pre-AA hex literals shipped inside every statement via a **CSS** comment | moved to a Blade comment (stripped at compile), enabling the guard |
+| 3 | No test guarded O2's contrast fix — it had already survived one full pass undetected | new mutation-proven guard |
+
+### 🚫 Refusals preserved (do NOT "fix")
+
+- **The prototype's "Payment & ops fees" and "Guest refund" rows** are absent because both are **genuinely
+  zero/absent** for this statement. The document's stated rule (#70/#73) is *€0 → omitted, never faked*.
+- **No estimated payout date** — the prototype's `settleLine` becomes the real status ("Payout pending") plus
+  the masked IBAN; no date is invented (no field exists).
+- **The prototype's hardcoded letterhead** (Seaside Villas, a Faro street address, `owners@seasidevillas.ie`)
+  → the real org identity, real country, real `billing_email`. The owner's registered address block renders
+  **only when set** (it is not, here — so no block, no fabricated line).
+- **18%** throughout — the owner's real agreement rate, never the mock 15%.
+
+### ✅ Extra work kept (beyond the prototype)
+
+- **"Performance by unit"** carries real per-unit occupancy; the total row reconciles to gross.
+- The **download watermark + audit** ("Downloaded by … · Confidential") — not in the prototype.
+- The **Withholding tax** line (#73) exists and prints only when non-zero.
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO11-1 — `MoneyFormatter::display(0, …, signed: true)` returns `"+€0.00"`.** The zero OTA-commission row
+  therefore prints a **plus sign on a deduction line**. A zero has no sign. ⚠️ **NOT hand-fixed here**: both
+  the screen and the PDF pass `signed: !isNet`, so fixing one surface would split SCREEN == PDF. The fix
+  belongs in the shared `MoneyFormatter` (fix-once, Principle 3). **Blast radius measured for that gate: 9
+  call sites, and 0 tests assert the string** — so it is cheap and safe when someone takes it.
+  *Verdict: **REAL GAP** (shared-helper gate).*
+- **DO11-2 — the "(provisional)" flag and the "pending channel reconciliation" footnote fire off a €0.00
+  line.** The `unverified` flag on the OTA row is real, so the copy is a true description of the data — but
+  with **0 reservations carrying a `channel_id` (D2-2)** there is no channel reconciliation to wait for, so
+  the statement tells the owner something is pending that never resolves. Whether a €0 line should carry
+  `unverified` is a **product/backend question, not a design one** — surfaced, not decided.
+  *Verdict: **REAL GAP**, Channex-tied.*
+- **DO11-3 — the prototype's footer is a REPEATING page footer** (`doc-page`'s `slot="footer"`), so
+  `genLine` + "Questions?" print on every page. The live footer sits at the end of the content flow. Identical
+  on a single-page statement (which is what realistic data produces); they diverge only if a statement ever
+  spans pages. Not restructured — repaginating a money document is not a design-gate change.
+  *Verdict: **REAL GAP** (low, multi-page only).*
+- **DO11-4 — the PdfService watermark measures 2.70 on white**, the one genuine on-paper failure left on this
+  document. It is `PdfService.php:54`, shared by every PDF. **Explicitly out of scope** (the brief forbids
+  touching PdfService) and already logged at O2 as part of the realm-wide PDF sweep. *Verdict: **REAL GAP**,
+  realm-wide PDF-contrast gate.*
+
+### ⚠️ Verified, not changed
+
+- **#17 reconciles, from the generated PDF's own content stream**: gross **€1,080.00** − commission
+  **€194.40** (the real 18%) = net **€885.60**, which appears **3×** (headline band, net row, payout note);
+  by-unit A1 €540.00 + A2 €540.00 = **€1,080.00** (printed 2×, breakdown and by-unit total); nights 5 + 3 = 8;
+  ADR €135.00 = 1,080 ÷ 8. **SCREEN == PDF** — identical to the Owner Statement screen (O2, `656cc34`).
+- **One source** — the lines are the real `owner_statement_lines`; the stats and by-unit rows come from the
+  shared `OwnerStatementBreakdown`. The blade is logic-free by design; **no total is re-derived in it**.
+- **#28** — the content stream contains `IBAN ···· 1000` and **no raw IBAN** (`Iban::masked` takes only
+  `iban_last4`, so a raw number is structurally un-emittable), and **no guest name, email or phone**. The
+  existing test seeds a real full IBAN and asserts it never appears — non-vacuous.
+- **#42 — mutation-proven this gate.** `OwnerStatementPdfTest` seeds **two real owners** and asserts B → 404
+  on A's PDF (plus a stranger → 404); dropping the scope in the controller turns it red. ⚠️ **A live foreign
+  probe was impossible — the demo DB has exactly ONE owner**, and seeding a second owner's statement purely
+  for a screenshot would be mutating demo data. *Silence is correct* (the O4 precedent).
+- **Contrast ON PAPER — the document's own ink is AA-clean**: 5.18 / 5.79 / 6.98 / 8.44 / 15.40 on white.
+  ⚠️ **Four apparent failures were my probe's error** — white "V", the white net figure, `#C9B8AC` and
+  `#B9ABA0` all sit on **dark plates**, not paper; re-scored against the plate they actually sit on they are
+  **5.18 / 15.76 / 8.21 / 7.05**, matching the template's own note exactly. The only genuine on-white failure
+  is the shared watermark (DO11-4).
+- **Greyscale** — state is never carried by colour: "Payout pending" and "(provisional)" are **words**,
+  negatives carry a **U+2212 minus**, and the net row is bold with a rule above it. A B&W print reads the same.
+- **Generated-at / period real (#39)** — `OS-2026-09`, "September 2026", "issued 9 Aug 2026", "no. 6" all
+  from the real statement.
+- **The export controls are 9 real `<a href>` GET links** (#20) — all keyboard-reachable, all named (text or
+  `aria-label`); no `div@click`, and **no regenerate control exists**, so there was nothing to fire.
+- ⚠️ **The export is NOT side-effect-free, by design.** Each download writes an `export_downloads` audit row
+  (Wave B · GATE 5 made the watermark + download log TRUE); my probes created 6. **No money row moved**:
+  statement net/gross and `updated_at` unchanged (`2026-08-09 07:17:58`), lines and ledger untouched.
+  Recorded because "observe READ-ONLY" does not mean "no row is written" on an audited export.
+- ⚠️ **`toContain` sweep — clean negative** (tenth gate); the new guard is needle-only, chained with `->and()`.

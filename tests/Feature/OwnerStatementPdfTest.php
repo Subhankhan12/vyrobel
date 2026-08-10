@@ -210,3 +210,20 @@ it('fails closed for a non-linked user', function () {
 
     $this->actingAs($stranger)->get("/owner/statements/{$a['statement']->id}/pdf")->assertNotFound();
 });
+
+// ── The document's ink stays post-AA — a statement is read on WHITE PAPER ─────────────────────────
+// The pre-AA greys survived a whole pass on this template before Owner-2 measured the generated PDF's own
+// content stream and found #8A8079 (3.86 on white) carrying the NEGATIVE MONEY — the commission and
+// deduction figures themselves — and #A69A92 (2.74) the footer. Nothing guarded that fix, so it could
+// silently return. Blade comments are stripped at compile time, so this asserts the RENDERED document.
+// (The .band greys are deliberately absent from this check: they sit on #2A211C and measure 8.21 / 7.05,
+// where darkening would be backwards.)
+it('keeps the statement document free of the pre-AA greys', function () {
+    $s = seedScenario(2);
+    $a = pdfStatementOwner($s, 0, 20000);
+
+    $html = view('pdfs.owner-statement', OwnerStatementDocument::data($a['statement']))->render();
+
+    expect($html)->not->toContain('#8A8079')
+        ->and($html)->not->toContain('#A69A92');
+});
