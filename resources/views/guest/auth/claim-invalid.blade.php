@@ -1,5 +1,10 @@
-{{-- Generic invalid/expired link (Phase 4a · SG2) — the SAME page for any bad/expired/spent/mismatched link
-     (no enumeration). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+{{-- Generic invalid link (Phase 4a · SG2) — one page for every reason, so nothing is enumerated.
+     ⚠️ G11 CORRECTION — this docblock used to claim it was "the SAME page for any bad/expired/spent/mismatched
+     link". It is NOT reached for an EXPIRED or TAMPERED or UNSIGNED link: the `signed` middleware rejects those
+     with a 403 BEFORE this controller runs, so the guest gets the shared operator-flavoured 403 page instead
+     (see DO-G11-1). What actually lands here is a link whose signature is VALID but whose row is no longer
+     claimable — already claimed, the email changed so the hash no longer matches, or the booking is gone.
+     ⚠️ Expiry is the COMMON case and it does not arrive here. RAW-BLADE RULE: `@` follows a space/newline/tag. --}}
 @extends('guest.auth.layout')
 @section('title', 'Link expired')
 

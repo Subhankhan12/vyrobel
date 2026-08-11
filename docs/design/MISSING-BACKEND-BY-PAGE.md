@@ -6620,3 +6620,150 @@ the **keyboard** axis this time.
 - **`DO-G10-5` · the wishlist card is name-only.** The prototype shows rating, review count, nightly rate and
   "Book now" per saved room. Rating is available (`ReviewRating`) and rate data exists — a real build, not a
   refusal. The prototype's **share-by-email / shared-link wishlist** has no backend at all.
+
+---
+
+## §G-11 — Guest AUTH chapter · GUEST 11/32 · gate 11 of 12 · 🔑 A DIFFERENT LAYOUT + THE SIGNED LINK
+
+`guest/auth/layout.blade.php` — **NOT** `<x-guest.shell>`. Walked **read-only**: no credential typed, no
+account created, no session started, no verification state changed.
+
+### ⚠️ PREMISE CORRECTIONS (three)
+
+1. **The chapter is NINE views, not three.** `login` · `claim` · `sent` · `set-password` · `claim-invalid` ·
+   `forgot-password` · `reset-password` · **`marketing-unsubscribe`** · **`guest/home`** — the last two also
+   render on this layout, which the recon treated as elsewhere.
+2. **There is no separate "Verify Email" route in the guest realm.** `guest.claim.verify` **is** the email
+   verification *and* the account set-up — one signed route, two jobs. (`account/email/verify` exists only in
+   the owner and admin realms.)
+3. **There is no `GuestAuthController`** — login is `GuestLoginController`, the claim is `GuestClaimController`.
+
+### 🎨 THE SHELL'S FIXES DID NOT CARRY — re-established on this layout's own measurements
+
+⚠️ This layout declares **none** of the realm's text tokens: `--vy-accent-text`, `--vy-amber-text` and
+`--vy-green-text` are all **undefined** here. Both of the shell's headline G1/G9 fixes were present unfixed:
+`.vy-brand-mark` and `.vy-btn` still painted white text on `--vy-grad`.
+
+| run | before | after |
+|---|---|---|
+| **"Sign in" button label**, white 14px on `--vy-grad` | **3.88 ❌** | **5.18 ✅** |
+| brand mark "V", white 21px on `--vy-grad` | 3.76 (passed only as *large* text) | 5.18 ✅ |
+
+**11 → 12 runs, 1 → 0 failures.** Anchors validated **on this layout's render**, both at exactly **5.18**.
+
+⚠️ **A fix was deliberately NOT copied across.** On the shell, `--vy-accent` as link text failed and needed
+`--vy-accent-text`. Here the card plate is lighter (`#FDF5EF` vs the shell's), and the same token measures
+**4.80 / 4.87 / 5.11** — it passes. No `*-text` token was introduced. *A translucent token has no fixed
+contrast; it moves with the plate* (G2) — which cuts **both** ways, so the measurement decides, not the
+precedent.
+
+⚠️ **Conditional states forced (G10):** `.vy-error` and `.vy-notice` never render on a first page load, so both
+were injected and sampled — the error text reads **13.14**. Honest states measured, not assumed.
+
+### 🔒 THE SIGNED LINK — verified live AND defended
+
+`claim.verify` / `claim.complete` / both `unsubscribe` routes carry Laravel's `signed` middleware. Every
+rejection mode confirmed **against the running app**, not only in tests:
+
+| case | live result |
+|---|---|
+| valid signature | 200 |
+| **expired** | **403** |
+| **tampered** | **403** |
+| **missing entirely** | **403** |
+
+The binding is layered: the URL carries `{hash}` = `sha1(email)`, `hash_equals`-compared in
+`resolveClaimable()`, so a link dies if the email changes — **and the hash is inside the signed payload**, so
+it cannot be swapped without breaking the signature. The row must also still be unclaimed and still have a
+booking.
+
+⚠️ **THE GAP THIS GATE CLOSES.** The suite covered a **tampered** signature and a **wrong hash** — but never
+**expiry**. `sendClaimLink()` mints the link with `temporarySignedRoute(..., now()->addHour())` and the "check
+your inbox" page tells the guest *"It expires in an hour."* **Nothing proved either half.** Swapping
+`temporarySignedRoute` for a permanent `signedRoute` left **every test green** — while turning every claim
+link in every old inbox into a **permanent account-takeover key** and the page's sentence into a lie. A
+signed claim link is a **credential in a URL**; its only limit is time, and the limit was undefended.
+
+The new guard drives the **real emailed URL** across the boundary: 200 at 59 minutes, **403 at 61**, on both
+GET and POST, and asserts the account was never claimed. A second guard refuses the **naked** URL.
+
+**Mutation-proven:**
+
+| mutation | result |
+|---|---|
+| `temporarySignedRoute` → permanent `signedRoute` | ❌ **RED** (the previously-undefended regression) |
+| strip `signed` from the two **claim** routes | ❌ RED ×3 (both new guards + the tampered test) |
+| strip `signed` from both **unsubscribe** routes | ❌ RED (its own test) |
+
+⚠️ **AN O32 CATCH — a mutation that PASSED and proved nothing.** My first attempt to strip the middleware used
+a regex for `->middleware(['signed'…])`; the real code is `->middleware('signed')`. The fallback pattern then
+removed the **first two** quoted occurrences in the file — **login-approval and unsubscribe**, not the claim
+routes. The edit "landed" (2 occurrences), the run reported PASSED, and it demonstrated **nothing**. Worse,
+it silently disarmed unsubscribe's guard in a file I wasn't running. Caught only by asking *what did that
+mutation actually remove?* — then redone by line number, which turned three tests red. **G7's silent mutation
+and O32's passing mutation are the same failure seen from two sides: verify the edit landed ON THE TARGET,
+not merely that something changed.**
+
+### 🚩 `DO-G11-1` — THE MOST LIKELY FAILURE AT THIS BOUNDARY SHOWS AN OPERATOR PERMISSIONS PAGE
+
+An **expired** claim link — the ordinary case, an hour after the email — is rejected by the `signed`
+middleware, so the guest never reaches `claim-invalid.blade.php`. They get the shared 403:
+
+> **"You don't have access to this** — Your role doesn't include this area. If you need it, ask an
+> administrator on your team to grant the permission." · *Back to your trips*
+
+A guest has no role, no team and no administrator; the message names a permissions problem when the truth is
+a lapsed link, and offers a signed-out guest a link to a page they cannot open. ⚠️ **The honest page already
+exists** — *"This link isn't valid. It may have expired or already been used. Request a fresh link."* — but
+only the *rarer* paths reach it (valid signature, unclaimable row). **Surfaced, not fixed:** the repair
+belongs in exception rendering (render the guest page for an `InvalidSignatureException` on a guest-realm
+route), which is wiring, not presentation, and this gate is presentation-only. The 403 copy itself must
+**not** be edited — it is correct for the operator realm that shares it.
+
+⚠️ **§N.8b — the docblock asserted the opposite** and is **corrected in place**: `claim-invalid.blade.php`
+claimed to be "the SAME page for any bad/expired/spent/mismatched link". It is not reached for expired,
+tampered or unsigned links at all.
+
+### ✅ HONESTY — the prototypes' fabrications are all refused
+
+The Login/Signup prototypes carry **Google + Apple social sign-in**, a **"Sign up" tab** (open self-signup),
+"Keep me signed in", "Continue as guest", a password-strength meter and Terms/Privacy consent; the Signup
+prototype promises **"{{ creditLabel }} welcome credit — lands in your wallet the moment you join"**. **None
+appear live** — grep-confirmed. The welcome credit is the sharper refusal after §G-10: the only production
+credit writer is promo redemption, so a join-time credit has **no writer at all**.
+
+⚠️ **And the expiry literal was already caught once.** The Verify-Email prototype says *"verification links
+last 24 hours"* twice; `sendClaimLink()`'s own comment records the refusal — *"the email copy states this
+REAL expiry (never a fabricated 24h)"*. **No live page restates 24h**; the "sent" page says **"It expires in
+an hour"**, matching `now()->addHour()` exactly. That accurate sentence is now **defended by the new guard**
+rather than merely true today.
+
+Other honesty checks: the claim response is **neutral either way** (no enumeration, existing test);
+`unsubscribe` **does not act on GET** (existing test — a prefetching scanner cannot opt a guest out); the
+set-password page's *"Your email is confirmed"* is substantively accurate (holding the emailed link **is** the
+proof of control) and `claim()` stamps `email_verified_at` on submit — **not** a fabricated state.
+
+### ⌨️ KEYBOARD + §N.4k — clean
+
+**Every** control across all nine surfaces is focusable, ringed, and carries a **real** accessible name via
+`<label>` — computed strictly (G10's lesson: no fallback to `name`, placeholder or option text). **Zero
+unnamed controls**, in contrast to G10's seven. No `opacity:0` control — the pattern stays at four.
+
+§N.4k judged by stakes: login (email+password), claim (email), forgot (email) and set-password (two
+passwords) all implicitly submit — and in every case **Enter is the form's only action**, so it is the
+intended completion; a premature Enter fails server validation rather than writing anything wrong (G9's
+password-form pattern). `unsubscribe` has **no text input** — safe by construction.
+
+### 🔐 The signed token does not leak
+
+It appears in exactly one place: the set-password form's `action`, which is **required** — the POST must carry
+the same signature for the middleware to re-validate it. It is never rendered as visible text, never in an
+`<a href>`, never in an image request that would leak it via `Referer`.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G11-1`** · the expired-link 403 shows operator role/permission copy to a guest (above).
+- **`DO-G11-2`** · the POST login route's name is `guest.` (an empty suffix) — cosmetic, but a route name that
+  reads as a typo is a trap for the next `route()` call.
+- **`DO-G11-3`** · the prototypes' social sign-in, open self-signup and welcome credit remain **ratified
+  refusals** (booking-tied claim only) — recorded so they are not "fixed" later.

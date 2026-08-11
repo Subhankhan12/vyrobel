@@ -43,7 +43,15 @@
             box-shadow: var(--vy-shadow); padding: 34px 32px; animation: vyFadeUp .6s cubic-bezier(.2, .7, .2, 1) both;
         }
         .vy-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 24px; }
-        .vy-brand-mark { width: 40px; height: 40px; border-radius: var(--vy-r-md); background: var(--vy-grad); color: #fff; font-family: var(--vy-display); font-weight: 700; font-size: 21px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
+        /* G11 · WHITE TEXT NEEDS A SOLID PLATE, NOT THE GRADIENT. --vy-grad runs to #E8703A at its light end,
+           where white measures ~3.8; on solid --vy-accent it is 5.18. The shell learned this at G1/G9 — but
+           this is a SEPARATE layout and none of those fixes carried, so it is re-established here on ITS OWN
+           measurements. The mark passed only because 21px bold counts as large text (3.0); the BUTTON label
+           at 14px did not (3.88 against 4.5). Both now sit on the solid accent. The gradient stays for
+           decorative fills. ⚠️ Measured on THIS layout, not assumed from the shell: --vy-accent as LINK text
+           reads 4.80–5.11 on this lighter card and passes, so no *-text token is introduced here — the same
+           token failed on the shell's darker plate. A translucent token has no fixed contrast. */
+        .vy-brand-mark { width: 40px; height: 40px; border-radius: var(--vy-r-md); background: var(--vy-accent); color: #fff; font-family: var(--vy-display); font-weight: 700; font-size: 21px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
         .vy-brand-name { font-family: var(--vy-display); font-weight: 600; font-size: 18px; letter-spacing: -0.01em; }
         .vy-title { font-family: var(--vy-display); font-weight: 700; font-size: 26px; letter-spacing: -0.02em; margin: 0; }
         .vy-sub { color: var(--vy-muted); font-size: 13.5px; margin: 6px 0 22px; }
@@ -53,7 +61,7 @@
         .vy-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.16); }
         .vy-error { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(224, 146, 30, 0.12); border: 1px solid rgba(224, 146, 30, 0.4); border-left: 3px solid var(--vy-amber); font-size: 13px; font-weight: 500; color: var(--vy-ink); }
         .vy-notice { margin-bottom: 18px; padding: 12px 14px; border-radius: var(--vy-r-md); background: rgba(120, 160, 110, 0.12); border: 1px solid rgba(120, 160, 110, 0.35); border-left: 3px solid rgb(90, 140, 80); font-size: 13px; color: var(--vy-ink); }
-        .vy-btn { width: 100%; margin-top: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 30px; font-family: var(--vy-sans); font-size: 14px; font-weight: 600; color: #fff; background: var(--vy-grad); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); transition: transform .15s ease; }
+        .vy-btn { width: 100%; margin-top: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 30px; font-family: var(--vy-sans); font-size: 14px; font-weight: 600; color: #fff; background: var(--vy-accent); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); transition: transform .15s ease; }
         .vy-btn:hover { transform: translateY(-1px); }
         .vy-btn:focus-visible, .vy-input:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
         .vy-link { font-size: 12.5px; color: var(--vy-accent); text-decoration: none; font-weight: 500; }

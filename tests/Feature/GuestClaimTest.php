@@ -123,3 +123,59 @@ it('rejects a tampered link and shows a generic page for a wrong hash', function
     $badHash = URL::temporarySignedRoute('guest.claim.verify', now()->addHour(), ['guest' => $guest->getKey(), 'hash' => 'not-the-email-hash']);
     $this->get($badHash)->assertOk()->assertSee('isn’t valid');
 });
+
+// ── ⚠️ G11 — THE CLAIM LINK REALLY EXPIRES, AND THE PAGE'S PROMISE IS BOUND TO IT ─────────────────
+// A signed claim link is a CREDENTIAL IN A URL: anyone holding it can set the password on that account. Its
+// only limit is time. `sendClaimLink()` mints it with `temporarySignedRoute(..., now()->addHour())`, and the
+// "check your inbox" page tells the guest in words: "It expires in an hour."
+//
+// ⚠️ NOTHING PROVED EITHER HALF. The suite covered a TAMPERED signature and a wrong hash, but never expiry —
+// so swapping `temporarySignedRoute` for a permanent `signedRoute` would have left every test green while
+// turning every claim link in every old inbox into a permanent account-takeover key, and turning the page's
+// sentence into a lie. This drives the REAL emailed URL across the boundary in both directions.
+it('expires the emailed claim link after the hour the page promises, and refuses it thereafter', function () {
+    Mail::fake();
+    $s = seedScenario(1);
+    bookedGuest($s);
+
+    $this->post('/guest/claim', ['email' => 'ada@example.test']);
+
+    $sentUrl = null;
+    Mail::assertSent(VerifyEmailMail::class, function (VerifyEmailMail $mail) use (&$sentUrl): bool {
+        $sentUrl = $mail->verifyUrl;
+
+        return true;
+    });
+
+    // The page's words, and the link they describe — read from the real "sent" screen, not restated here.
+    $this->get(route('guest.claim.sent'))->assertOk()->assertSee('expires in an hour');
+
+    // INSIDE the window (59 minutes later) — still the set-password form.
+    $this->travelTo(now()->addMinutes(59));
+    $this->get($sentUrl)->assertOk()->assertSee('Set a password');
+
+    // PAST it (61 minutes) — refused by the signature itself, before any controller code runs.
+    $this->travelTo(now()->addMinutes(2));
+    $this->get($sentUrl)->assertForbidden();
+    $this->post($sentUrl, ['password' => 'super secret pw', 'password_confirmation' => 'super secret pw'])
+        ->assertForbidden();
+
+    // …and the account was never claimed by the expired link.
+    expect(Guest::query()->where('email_hash', Guest::emailHash('ada@example.test'))->first()->hasPortalAccount())->toBeFalse();
+
+    $this->travelBack();
+});
+
+// ── ⚠️ G11 — A LINK WITH NO SIGNATURE AT ALL IS REFUSED (the GET-scope exception is not a bare GET) ───
+// `claim.verify` is one of only two signed-URL GETs in the guest realm (#20's exception). Its authorization
+// IS the signature — so the naked URL, which a log or a browser history would preserve, must be worthless.
+it('refuses a claim URL that carries no signature at all', function () {
+    $s = seedScenario(1);
+    $guest = bookedGuest($s);
+    $naked = '/guest/claim/verify/'.$guest->getKey().'/'.sha1('ada@example.test');
+
+    $this->get($naked)->assertForbidden();
+    $this->post($naked, ['password' => 'super secret pw', 'password_confirmation' => 'super secret pw'])->assertForbidden();
+
+    expect($guest->fresh()->hasPortalAccount())->toBeFalse();
+});

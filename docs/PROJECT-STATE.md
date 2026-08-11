@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` · `G8 Review` · `G9 Account` · `G10 Wallet+Saved` DONE (10/32, gate 10 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` · `G8 Review` · `G9 Account` · `G10 Wallet+Saved` · `G11 Auth` DONE (11/32, gate 11 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5487,6 +5487,26 @@ the work.
    invisible to the probe until its condition is true** — the expired chip had to be injected to be
    measured, and that is why it survived earlier sweeps. ⚠️ **The keyboard probe lied too** — 7 unlabelled
    controls reported as named because it fell back to option text and `name`.
+   ⚠️ **G11 — A DIFFERENT LAYOUT, AND A CREDENTIAL WITH AN UNDEFENDED LIFETIME.** The auth chapter is NINE
+   views on `guest/auth/layout.blade.php` (not three, and it includes unsubscribe + guest/home); there is no
+   separate email-verify route — **`claim.verify` IS the verification**. ⚠️ **None of the shell's G1–G10 fixes
+   carried**: the layout declares no text tokens at all, and both headline fixes were here unfixed — the
+   button label measured **3.88 → 5.18**. ⚠️ **But one shell fix was deliberately NOT copied**: `--vy-accent`
+   as link text FAILED on the shell and PASSES here (4.80–5.11) because this card is lighter — *a translucent
+   token has no fixed contrast* cuts BOTH ways, so the measurement decides, never the precedent.
+   ⚠️ **THE GAP: the claim link's EXPIRY was undefended.** Tampering and a wrong hash were tested; expiry was
+   not — so swapping `temporarySignedRoute` for a permanent `signedRoute` left EVERY test green while turning
+   every old claim link into a **permanent account-takeover key** and the page's "expires in an hour" into a
+   lie. Now driven across the boundary (200 at 59 min, 403 at 61) and mutation-proven.
+   ⚠️ **AN O32 CATCH — a mutation that PASSED and proved NOTHING.** A regex written for
+   `->middleware(['signed'])` missed the real `->middleware('signed')` and stripped the first two quoted
+   occurrences instead — **login-approval and unsubscribe**, silently disarming a guard in a file I wasn't
+   running. The edit "landed"; the run passed; it demonstrated nothing. **G7's silent mutation and O32's
+   passing mutation are one failure from two sides: verify the edit landed ON THE TARGET.**
+   ⚠️ **DO-G11-1** — an EXPIRED claim link (the ordinary case) 403s in middleware, so the guest never reaches
+   the honest "link isn't valid" page and instead sees the OPERATOR's *"your role doesn't include this
+   area — ask an administrator on your team"*. The honest page exists; only the rarer paths reach it. The
+   docblock claiming otherwise is corrected in place.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via
