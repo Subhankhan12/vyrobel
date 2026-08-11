@@ -4,7 +4,9 @@ use App\Models\Guest;
 use App\Models\Reservation;
 use App\Services\AssignmentService;
 use App\Services\FolioService;
+use App\Support\Guest\ArrivalPack;
 use App\Support\Money\Money;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -102,6 +104,63 @@ it('refuses the fabricated payment/host UI and withholds the door code before th
         // …and no invented "we reply in ~10 min" support SLA.
         ->assertDontSee('~10 min');
 
-    // #33: the door code / wifi are gated to the release window — a >48h-out stay shows the honest hold, no code.
-    $res->assertSee('unlock 48h before check-in');
+    // #33: with no unit assigned there is no code at all, so this stay shows the honest "no code yet" line.
+    // ⚠️ This assertion proves the COPY, not the window — see the real window guard below.
+    $res->assertSee('Your arrival details appear here before check-in.', false);
+});
+
+// ── #33 THE REAL WINDOW GUARD — the code appears INSIDE the window and never outside it ──────────
+// ⚠️ THE TEST ABOVE WAS VACUOUS AND STAYED GREEN FOR A YEAR. Its docblock claimed the door code was "gated to
+// the release window", but `createBooking` reserves at ROOM-TYPE level and leaves reservation_units.unit_id
+// NULL — so there was no unit, no code, and nothing the gate could withhold. PROVEN: deleting the window
+// check from ArrivalPack entirely (`'door_code' => $code`) left all four tests GREEN. Identical root cause to
+// the vacuous guard caught at G1. A #33 fixture MUST assign a real unit through the certified path.
+//
+// This guard drives the SAME booking across the boundary: one day before the window opens (withheld) and one
+// day after (released), so it fails if the gate is removed in either direction.
+it('withholds the door code until the arrival window opens, then shows it (#33)', function () {
+    $s = seedScenario(1);
+    $a = resvGuest($s['guest'], 'ada@example.test');
+    $reservation = bookLedBy($s, $a);   // check-in 2026-09-01
+    app(AssignmentService::class)->assignUnit($reservation->reservationUnits()->firstOrFail(), $s['units'][0]->id);
+    $s['units'][0]->update(['door_code' => '447291', 'wifi_ssid' => 'SeasideGuest']);
+
+    // The secret is genuinely reachable — without this the guard can only pass vacuously.
+    expect($reservation->fresh()->reservationUnits()->first()->unit->door_code)->toBe('447291');
+
+    $url = route('guest.reservation', $reservation->getKey());
+
+    // ── OUTSIDE the window (LEAD_DAYS + 1 before check-in) — withheld, and honest about WHEN ──
+    $this->travelTo(CarbonImmutable::parse('2026-09-01')->subDays(ArrivalPack::LEAD_DAYS + 1));
+    $this->actingAs($a, 'guest')->get($url)->assertOk()
+        ->assertDontSee('447291')
+        ->assertDontSee('SeasideGuest')
+        ->assertSee('unlock on', false);        // the real released_from date, not a hardcoded interval
+
+    // ── INSIDE the window (the day it opens) — released ──
+    $this->travelTo(CarbonImmutable::parse('2026-09-01')->subDays(ArrivalPack::LEAD_DAYS));
+    $this->actingAs($a, 'guest')->get($url)->assertOk()
+        ->assertSee('447291')
+        ->assertSee('SeasideGuest');
+
+    $this->travelBack();
+});
+
+// ── The unlock date FOLLOWS the engine — it is never a hardcoded interval ─────────────────────────
+// The prototype's mock reads "Door code arrives 48h before check-in", and the page shipped that literal.
+// It equals LEAD_DAYS=2 today, so it looked right; move the constant and the guest is told the wrong day.
+it('derives the unlock date from ArrivalPack, never a hardcoded interval', function () {
+    $s = seedScenario(1);
+    $a = resvGuest($s['guest'], 'ada@example.test');
+    $reservation = bookLedBy($s, $a);
+    app(AssignmentService::class)->assignUnit($reservation->reservationUnits()->firstOrFail(), $s['units'][0]->id);
+    $s['units'][0]->update(['door_code' => '447291']);
+
+    $this->travelTo(CarbonImmutable::parse('2026-08-01'));
+    $expected = CarbonImmutable::parse('2026-09-01')->subDays(ArrivalPack::LEAD_DAYS)->format('D, j M');
+
+    $this->actingAs($a, 'guest')->get(route('guest.reservation', $reservation->getKey()))->assertOk()
+        ->assertSee($expected, false)          // the gate's own released_from
+        ->assertDontSee('48h');                // the prototype's mock interval must not be restated
+    $this->travelBack();
 });

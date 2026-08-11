@@ -33,13 +33,25 @@
         :root {
             --vy-ink: rgb(43, 35, 32); --vy-muted: rgb(95, 88, 83); --vy-faint: rgb(108, 100, 95);
             --vy-accent: rgb(194, 65, 12); --vy-accent-3: rgb(232, 112, 58); --vy-amber: rgb(178, 106, 8);
-            /* TEXT-ONLY variants of the two warm hues. G1 measured the plain tokens on RENDERED PIXELS and
-               both fail AA at badge/label size: --vy-accent at 13px on its own 8% wash = 4.20, and --vy-amber
-               at 11px on the pending badge = 3.79. Same shape as the operator realm's --vy-accent-text.
-               --vy-amber-text is the PROTOTYPE's own amber-on-light (#8F6414, the "Share how your stay went"
-               callout) — measured, not invented: 4.70 on the badge, 5.06 on the card. Use these for TEXT;
-               keep --vy-accent / --vy-amber for fills, borders and rails. */
-            --vy-accent-text: rgb(176, 56, 8); --vy-amber-text: rgb(143, 100, 20);
+            /* TEXT-ONLY variants of the two warm hues. The plain tokens fail AA at badge/label size:
+               --vy-accent at 13px on its own 8% wash = 4.20, --vy-amber at 11px on the pending badge = 3.79.
+               Same shape as the operator realm's --vy-accent-text.
+               ⚠️ CORRECTION TO G1: --vy-amber-text shipped as #8F6414 — the PROTOTYPE's own amber-on-light —
+               measured 4.70 and 5.06 ON THE TRIPS PAGE. G2 measured the SAME token at 4.37 on the Reservation
+               hero's warmer plate (#F8E8D4) and it FAILS there. One page proving a token is not enough:
+               these badges are translucent on a translucent card over the page gradient, so their contrast
+               moves with whatever sits behind them. Darkened to the minimum that clears 4.5 on the WORST
+               backdrop measured so far — 5.35 there, 5.76 on Trips, 6.20 on the balance figure.
+               ⚠️ Word choice here is load-bearing: this is a CSS comment, so it RENDERS into every guest
+               page (Blade comments do not). An earlier draft used a word the check-in honesty guard
+               forbids (#39 — an ID is captured, never 'v-e-r-i-f-i-e-d'), and shipped it site-wide.
+               Use these for TEXT; keep --vy-accent / --vy-amber for fills, borders and rails. */
+            --vy-accent-text: rgb(176, 56, 8); --vy-amber-text: rgb(126, 88, 17);
+            /* G2: the same green measured 4.75 on Trips and 4.26 HERE — a translucent badge on a
+               translucent card over the page gradient has NO fixed contrast, it moves with whatever is
+               behind it. rgb(70,120,60) is hand-written at ELEVEN guest call sites; this is the one
+               definition, dark enough to clear AA on the worst backdrop measured (7.24). */
+            --vy-green-text: rgb(20, 84, 62);
             --vy-card: rgba(255, 253, 251, 0.86); --vy-glass-border: rgba(120, 70, 40, 0.12);
             --vy-wash: #F6EBE2;                   /* Polish Batch 1 — the faint warm-cream tint (incoming chat bubbles, arrival/checkin/review chips). Was undefined → transparent. */
             --vy-hairline: rgba(120, 70, 40, 0.10); --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
@@ -87,7 +99,7 @@
         .vy-row--tappable:hover { background: rgba(120, 70, 40, .05); }
         .vy-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
-        .vy-badge--confirmed { background: rgba(120,160,110,.16); color: rgb(70,120,60); }
+        .vy-badge--confirmed { background: rgba(120,160,110,.16); color: var(--vy-green-text); }   /* 4.26 -> 7.24 (G2, rendered pixels) */
         .vy-badge--in-house { background: rgba(194,65,12,.12); color: var(--vy-accent); }
         .vy-badge--pending { background: rgba(224,146,30,.14); color: var(--vy-amber-text); }   /* 3.79 -> 4.70 (G1, rendered pixels) */
         .vy-badge--departed { background: rgba(120,110,100,.14); color: var(--vy-muted); }

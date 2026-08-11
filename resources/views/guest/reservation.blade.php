@@ -20,7 +20,7 @@
                     <div style="font-size:13px;color:var(--vy-muted);margin-top:5px">{{ $trip['location'] }} · hosted with Vyrobel</div>
                 @endif
                 @if ($active)
-                    <a href="{{ route('guest.checkin', $trip['id']) }}" style="display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:9px 18px;border-radius:30px;background:linear-gradient(140deg,#E8703A,#C2410C);color:#fff;font-size:12.5px;font-weight:500;text-decoration:none;box-shadow:var(--vy-shadow-accent)">Check in online · 2 min<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+                    <a href="{{ route('guest.checkin', $trip['id']) }}" style="display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:9px 18px;border-radius:30px;background:var(--vy-accent);color:#fff;font-size:12.5px;font-weight:500;text-decoration:none;box-shadow:var(--vy-shadow-accent)">Check in online · 2 min<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
                 @endif
             </div>
         </div>
@@ -64,7 +64,7 @@
             <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:13px;color:var(--vy-muted)"><span>Paid</span><span>{{ $folio['paid'] }}</span></div>
             <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-top:10px;padding-top:12px;border-top:1px solid var(--vy-hairline)">
                 <span style="font-family:var(--vy-display);font-size:15px;font-weight:700;color:var(--vy-ink)">{{ $folio['balance_due'] ? 'Remaining balance' : 'Fully settled' }}</span>
-                <span style="font-family:var(--vy-display);font-size:18px;font-weight:700;color:{{ $folio['balance_due'] ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">{{ $folio['balance_due'] ? $folio['balance'] : 'Paid in full' }}</span>
+                <span style="font-family:var(--vy-display);font-size:18px;font-weight:700;color:{{ $folio['balance_due'] ? 'var(--vy-amber-text)' : 'var(--vy-green-text)' }}">{{ $folio['balance_due'] ? $folio['balance'] : 'Paid in full' }}</span>
             </div>
             @if ($folio['balance_due'])
                 <a class="vy-btn" href="{{ route('guest.payments') }}" style="margin-top:14px;width:100%;box-sizing:border-box">Pay your balance →</a>
@@ -96,9 +96,22 @@
                     <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px"><span style="color:var(--vy-muted)">Wi-Fi</span><span style="font-weight:600;color:var(--vy-ink)">{{ $arrival['wifi_ssid'] }}</span></div>
                 @endif
             @else
+                {{-- ⚠️ THE UNLOCK DATE FOLLOWS THE ENGINE, and the promise follows the DATA.
+                     This line used to read a hardcoded "48h before check-in" — the PROTOTYPE's mock value
+                     ("Door code arrives 48h before check-in"), which happens to equal ArrivalPack::LEAD_DAYS
+                     (2 days) today and would silently lie to the guest the moment that constant moved. It now
+                     prints the gate's OWN `released_from`, so the screen can never disagree with the window
+                     that actually withholds the code. (Same shape as the owner realm's mock-rate docblock: a
+                     design literal quoted on the surface whose engine defines the real one.)
+                     `has_code` exists precisely so we do not promise a code that no unit carries — outside the
+                     window we may say WHEN, but only when there is genuinely something to release. --}}
                 <div style="display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:12px;background:var(--vy-wash);border:1px solid var(--vy-hairline);font-size:12.5px;color:var(--vy-muted)">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-                    Your door code &amp; Wi-Fi unlock 48h before check-in.
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+                    @if ($arrival['has_code'])
+                        Your door code &amp; Wi-Fi unlock on {{ $arrival['released_from'] }}.
+                    @else
+                        Your arrival details appear here before check-in.
+                    @endif
                 </div>
             @endif
             <div style="margin-top:12px"><a class="vy-link" href="{{ route('guest.arrival', $trip['id']) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">Full arrival info →</a></div>
@@ -120,7 +133,7 @@
         <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .24s both">
             <div class="vy-eyebrow" style="margin-bottom:8px">Cancellation policy</div>
             @if ($freeUntil !== null)
-                <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--vy-ink)"><span style="width:8px;height:8px;border-radius:50%;background:rgb(70,120,60)"></span>Free cancellation until <strong>{{ $freeUntil }}</strong></div>
+                <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--vy-ink)"><span style="width:8px;height:8px;border-radius:50%;background:var(--vy-green-text)"></span>Free cancellation until <strong>{{ $freeUntil }}</strong></div>
             @else
                 <div style="font-size:13px;color:var(--vy-muted)">Cancellation terms apply to this booking.</div>
             @endif

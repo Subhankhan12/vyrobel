@@ -5621,3 +5621,123 @@ removed — here, nothing.**
 - **Native `<select>` over the prototype's custom popover** — more accessible, and the no-Alpine realm has no
   popover primitive.
 - **Scope-by-relation** — the guest sees only `$this->guest()->reservations()`; a foreign id cannot appear.
+
+---
+
+## §G-2 — Guest Reservation (`/guest/reservation/{r}`) · GUEST 2/32 · gate 2 of 12 · + the SHELL-VERIFICATION fold
+
+`GuestReservationController@show` → `guest/reservation.blade.php` in `<x-guest.shell>`. Auth `auth:guest`.
+Walked as the demo guest against **both** #33 states: a stay 25 days out (window closed) and a stay
+mid-occupancy (window open).
+
+### 🔒 #33 — ⚠️ THE EXISTING WINDOW GUARD WAS VACUOUS, AND SO WAS THE FIRST REPLACEMENT MUTATION
+
+`GuestReservationTest`'s docblock claimed *"the door code / wifi are gated to the release window (#33)"*.
+**It was not testing that.** `bookLedBy()` uses `createBooking`, which reserves at ROOM-TYPE level and leaves
+`reservation_units.unit_id` **NULL** — no unit, no code, nothing for the gate to withhold. **PROVEN: deleting
+the window check from `ArrivalPack` entirely (`'door_code' => $code`) left all four tests GREEN.** Identical
+root cause to the vacuous guard caught at G1, on the realm's most security-sensitive control, and on the
+FIRST surface that renders it.
+
+⚠️ **Then the replacement guard's own first mutation ALSO passed — and that one was NOT vacuity.** The code
+is gated **twice, independently**: `ArrivalPack` nulls `door_code` outside the window, *and* the view's
+`@if ($arrival['released'] && …)` re-checks. Removing either alone changes nothing. Only removing **both**
+produces a real leak — and then the new guard goes RED. **O32 cuts both ways: a passing mutation can mean
+redundancy rather than a vacuous test, and the way to tell them apart is to keep removing defences until the
+leak is real.** The old test stayed green even under that full both-gates removal; the new one does not.
+
+The new guard drives ONE booking across the boundary — `LEAD_DAYS + 1` before check-in (withheld) and the day
+the window opens (released) — with a unit assigned through the certified `assignUnit()` and an assertion that
+the code is genuinely reachable first.
+
+### ⚠️ THE UNLOCK COPY WAS A HARDCODED MOCK VALUE — now it follows the engine
+
+The page read **"Your door code & Wi-Fi unlock 48h before check-in."** That "48h" is the **prototype's** value
+(*"Door code arrives 48h before check-in"*). It equals `ArrivalPack::LEAD_DAYS = 2` **today**, so it looked
+correct — and would have silently told every guest the wrong day the moment that constant moved. It now
+prints the gate's own `released_from` (verified live: a 5 Sep check-in renders *"unlock on Thu, 3 Sep"*).
+
+**Same family as the owner realm's O32** — a design literal quoted on the surface whose engine defines the
+real value. A guard now asserts the derived date is present **and that "48h" is absent**.
+
+`has_code` was also being ignored: the page promised a door code even when no unit carried one. The message
+now only names a code when one genuinely exists; otherwise it says arrival details appear before check-in.
+
+### 🎨 Contrast — 4 real failures across the two states → **0** (53 + 57 runs)
+
+Anchors validated on **both** renders: white on `--vy-grad` = **3.39**, white on solid `--vy-accent` = **5.18**.
+
+| run | was | now | fix |
+|---|---|---|---|
+| `Check in online · 2 min` | white 12.5px on `--vy-grad` = **3.39** | **5.18** | solid `--vy-accent` (the G1 CTA finding, page-level twin) |
+| `Upcoming` badge | `rgb(70,120,60)` = **4.26** | **7.24** | new `--vy-green-text` |
+| `€184.50` balance | `--vy-amber` 18px = **4.08** | pass | `--vy-amber-text` (this call site still used the FILL token as text) |
+| `Arrival due` badge | `--vy-amber-text` **#8F6414** = **4.37** | **5.35** | ⚠️ **darkened to `rgb(126,88,17)` — see below** |
+
+⚠️ **A CORRECTION TO G1, from G1's own token.** G1 introduced `--vy-amber-text` as `#8F6414` — *"the
+prototype's own amber, not invented"* — and recorded **4.70 / 5.06**. Those were measured **on Trips only**.
+The same token measures **4.37** on this page's warmer hero plate (`#F8E8D4`) and **fails**. Root cause worth
+carrying: **these badges are translucent, on a translucent card, over the page gradient — their contrast has
+no fixed value, it moves with whatever is behind them.** The token is darkened to the minimum that clears 4.5
+on the worst backdrop measured so far (5.35 here, 5.76 on Trips, 6.20 on the balance figure), and **G1's
+comment was corrected in place**. G1's page was re-measured after the change: still **0 failures / 44 runs**.
+
+**Lesson for G3–G12: a token verified on one page is not verified.** Re-measure shared tokens on every new
+backdrop.
+
+### ⚙️ THE FOLDED SHELL-VERIFICATION — G1's by-construction fix CONFIRMED
+
+- ⚠️ **`.vy-btn` = 5.18 — CONFIRMED on a real render, but nearly on a false one.** The first three `.vy-btn`
+  elements measured came back as `#C2410C` on near-white — they are all `.vy-btn--ghost`. The **primary**
+  `.vy-btn` renders only when a balance is due, i.e. on the in-window booking: `Pay your balance →`, white on
+  `#C2410C` = **5.18**. Reporting the ghosts as confirmation would have been a false pass on the exact item
+  G1 flagged as unverified.
+- **The four shared-shell fixes hold on this second view**: brand mark 5.18 · `.vy-btn` 5.18 · nav
+  `--vy-accent-text` 4.99 · `--vy-amber-text` — *held only after darkening* (see above).
+- **Both contrast anchors validated on both renders**, so the probe was sound this run.
+
+### ⌨️ Keyboard — clean
+
+20 interactive · **0 unnamed** · 0 unfocusable · **0 `div@click`** · **0 `onclick`/`onchange`** · 0
+`display:none` controls · 0 horizontal overflow at 1440. §N.4k: one form (logout, POST, 1 submit, 0 visible
+inputs) — no implicit-submit ambiguity.
+
+### ✅ VERIFIED / REFUSALS TO PRESERVE
+
+- **Foreign-id → 404**, mutation-proven: replacing `$this->guest()->reservations()->findOrFail()` with a bare
+  `Reservation::query()->findOrFail()` turns the cross-guest test RED. O32: the relation (`lead_guest_id`) is
+  the guard — a global scope would still have resolved another guest in the same org.
+- **#28 inverted:** zero operator internals, owner money or other-guest references in the rendered DOM on
+  either state.
+- **No rating on this page** — so no `<x-star-rating>` call site here; **DO10-4 stays at 10**. The decorative
+  lock icon in the arrival block is now `aria-hidden`.
+- **Already-honest refusals kept:** no Apple Pay / Face ID / saved-card vault (#45, SAQ A), no invented
+  "~10 min" support SLA, no invented check-in/out hour when the property published none, and the prototype's
+  unconditional *"Wifi: CoralisGuest"* stays gated.
+
+### ⚠️ AND THE GATE SHIPPED A FORBIDDEN LITERAL SITE-WIDE — caught by an unrelated honesty guard
+
+The `--vy-amber-text` correction above was written as a **CSS comment in the shared shell**, and it used the
+word the check-in page's #39 guard forbids (an ID is *captured*, never that word — KYC is account-gated).
+**CSS comments RENDER; Blade comments do not** — so the word shipped into *every* guest page and
+`GuestArrivalCheckinTest`'s `assertDontSee` went red. The full-suite count moved 9 → 10, the stash test
+proved it was mine rather than pre-existing, and the comment was reworded.
+
+This is the documented CSS-comment trap, walked into at the first opportunity. Two things it re-teaches:
+**(a)** a comment in a SHARED stylesheet is page content on every page that stylesheet reaches, so its
+word choice is subject to the same honesty guards as copy; **(b)** the baseline discipline earned its keep —
+without knowing the count was 9, a 10 would have looked like the documented range.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G2-1` · `rgb(70,120,60)` is hand-written at ELEVEN guest call sites** (`manage`, `trips`, `payments`
+  ×2, `reservation` ×2 *(fixed here)*, `wallet` ×2, `receipt`, the dead `trip-card`, and the shell *(fixed
+  here)*). §N.8f — same shape as DO10-4's eleven hand-written stars. The shell now defines
+  `--vy-green-text`; the remaining call sites belong to their own gates.
+- **`DO-G2-2` · `--vy-amber` is still used AS TEXT on four guest pages** (`payments` ×2, `wallet`, `receipt`)
+  where G1/G2 replaced it with `--vy-amber-text` on Trips/Reservation. ⚠️ **Unmeasured — a prediction, not a
+  finding.** Those gates must measure it; on this page the same construct read 4.08.
+- **`DO-G2-3` · prototype affordances owed a verdict:** the "Good to know" card's per-item sub-lines ("By
+  message and email — no key pickup needed"), the early-check-in request row with its Pending chip, and the
+  three modals the prototype drives in JS (Manage booking / cancellation / pay-now) which this no-Alpine
+  realm renders as separate GET pages instead.

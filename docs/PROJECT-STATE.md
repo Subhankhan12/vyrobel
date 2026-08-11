@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Guest Trips` DONE (1/32, gate 1 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` + `G2 Reservation` DONE (2/32, gate 2 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5383,6 +5383,14 @@ the work.
    and white on solid `--vy-accent` = **exactly 5.18**. If both do not hold, publish nothing.
    ⚠️ **The GATE-3 records are leads, not conclusions** — G1 found its row denying four shipped features
    (§N.8b, eighth instance) and corrected it in place, exactly as the recon predicted.
+   ⚠️ **G2 added three rules the later gates need.** (a) **A token verified on one page is NOT verified** —
+   `--vy-amber-text` passed at 4.70 on Trips and FAILED at 4.37 on Reservation, because these badges are
+   translucent on a translucent card over the gradient and their contrast moves with the backdrop; G1's
+   token was darkened and G1's comment corrected in place. (b) **O32 cuts both ways** — a passing mutation
+   can mean REDUNDANCY, not a vacuous test: the door code is gated twice (ArrivalPack *and* the view), so
+   only removing BOTH produces a real leak. (c) **Check which VARIANT rendered** — three `.vy-btn`s
+   measured on G2 were all `--ghost`; the primary only draws when a balance is due, and reporting the
+   ghosts would have falsely 'confirmed' the one item G1 left unverified.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via
