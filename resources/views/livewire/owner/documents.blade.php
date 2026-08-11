@@ -29,12 +29,12 @@
 
     <div x-data="{ year: 'all' }">
         {{-- Sub-header — REAL count + REAL span + the archive link (the design's "3 years · 34 documents" refused) --}}
-        <div class="vy-line-sub" style="font-size:13px;margin:-6px 0 20px">
+        <div class="vy-line-sub" style="font-size:13px;margin:-6px 0 20px;color:var(--vy-on-grad-soft)">
             @if ($summary['count'] > 0)
                 {{ $summary['count'] }} {{ \Illuminate\Support\Str::plural('document', $summary['count']) }}
                 @if ($summary['since']) · since {{ $summary['since'] }} @endif
                 ·
-                <a href="{{ route('owner.archive') }}" style="color:var(--vy-accent);font-weight:600">full archive ›</a>
+                <a href="{{ route('owner.archive') }}" style="color:var(--vy-on-grad);font-weight:600;text-decoration:underline">full archive ›</a>
             @else
                 Every document your statements and payouts produce is collected here.
             @endif
@@ -61,7 +61,7 @@
                                 <span class="vy-line-sub" style="margin-left:8px;font-weight:400">{{ $period['number_label'] }}</span>
                             @endif
                         </div>
-                        <div class="vy-line-sub">Net <span class="vy-mono" style="color:var(--vy-accent);font-weight:600">{{ $period['net_display'] }}</span></div>
+                        <div class="vy-line-sub">Net <span class="vy-mono" style="color:var(--vy-accent-text);font-weight:600">{{ $period['net_display'] }}</span></div>
                     </div>
 
                     @foreach ($period['docs'] as $doc)

@@ -287,3 +287,22 @@ it('renders no raw Blade directives', function () {
 
     assertNoRawBlade($this->actingAs($x['a']['user'])->get('/owner/documents')->assertOk());
 });
+
+// ── 7. The page's own ink stays AA — no raw accent as text ───────────────────────────────────────
+// Measured against the real composited pixels, `--vy-accent` as TEXT failed on every site here: the six
+// per-month net figures at 4.38–4.45 on the cards, and "full archive ›" at 2.70 on the page gradient — where
+// NO accent tone reaches AA (the darkest, --vy-accent-tint-text, only gets to 3.85), so that link carries its
+// affordance with an underline instead of colour. Guarding the rendered output, per the Owner-11 lesson that
+// a document contrast fix must be locked against what actually ships.
+it('renders no raw accent-as-text on the documents page', function () {
+    $x = docsScenario();
+
+    $html = (string) $this->actingAs($x['a']['user'])->get('/owner/documents')->assertOk()->getContent();
+
+    // ⚠️ Scoped to THIS page's own markup: the whole-document string still appears via the SHARED
+    // notification bell in the topbar (logged for the shared-partial gate), so a blanket assertion here
+    // would fail on someone else's markup rather than guard this page.
+    expect($html)->not->toContain('<span class="vy-mono" style="color:var(--vy-accent);font-weight:600">')
+        ->and($html)->toContain('color:var(--vy-accent-text);font-weight:600')
+        ->and($html)->toContain('color:var(--vy-on-grad);font-weight:600;text-decoration:underline');
+});

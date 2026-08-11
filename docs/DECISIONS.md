@@ -7182,3 +7182,47 @@ copy. Every badge reads its real fact — no hardcoded green (GATE-24).
 active, sessions 1, passkeys 0. §N.4k proven empirically — seven forms, each with one submit scoped to its own
 action, so nothing benign can reach Deactivate. No schema touched. Suite **1839 / 12,061 · 9 non-green**
 (documented set); PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 14/32 · **Owner Documents** (`/owner/documents`)
+
+Design/markup only. A list of downloadable money documents, so isolation was the core check.
+
+**1. Premise confirmed, plus a sibling.** `/owner/documents` is a distinct route — and `Owner Archive.html`
+is a **second prototype that is also a live page** (`/owner/archive`). That is its own gate; nothing here
+touched it.
+
+**2. A nav "defect" that verified as correct.** The sidebar "Statements" targets `/owner/archive`. There is
+**no `/owner/statements` index route** — the statement *list* IS the archive; only the `{id}` detail and the
+PDF routes exist. Checked before reporting, so it was never written up as a finding.
+
+**3. Contrast 10 → 2, and the page's own ink is now fully AA** (both remaining failures are the shell's
+gradient family — the realm's best result so far). ⚠️ **"full archive ›" measured 2.70**, the worst
+non-family site on any owner page, and **no accent tone reaches AA on that gradient** (the darkest,
+`--vy-accent-tint-text`, only reaches 3.85). So the link takes `--vy-on-grad` **and an underline** — its
+affordance no longer depends on colour at all. The six per-month net figures and the header line were moved
+to the right existing tokens.
+
+**4. #17 reconciles on the page itself:** the six monthly nets sum to €3,690.00, exactly the annual tax
+card's figure.
+
+**5. #42 mutation-proven.** The fixture already seeds a second owner with a distinctive €500 statement,
+asserts his document links are absent from the first owner's list, and asserts a cross-owner PDF fetch 404s.
+Dropping the scope from the statements query turns three tests red.
+
+**6. 📌 DO14-1 — a third form of D16-7, logged not fixed.** `payoutStatusMeta`'s `default =>` collapses
+**`processing`** and **`held`** — both genuinely written by `OwnerPayoutService` — into "Payout pending". So a
+remittance advice for money actually in flight, or held by the tax hold, is **mislabelled** (O3's tiles
+dropped such a payout entirely; here it is merely wrong). The map is a **shared** helper used by several
+closed owner pages, so it belongs to the D16-7 gate.
+
+**7. ⚠️ A suspicion measured and dismissed.** A too-wide guard tripped on `color:var(--vy-accent)` coming
+from the shared notification bell. Rather than log it, I measured it: **5.06 on the panel surface — it
+passes.** Recorded as a negative sweep and the guard re-scoped to this page's own markup. *An unverified
+guess is not a finding — and neither is a guard's scoping artifact.*
+
+**Read-only:** nothing was downloaded this gate — `export_downloads` still 7, statements 6, payouts 6, max
+statement `updated_at` still the seed time; opening the notification panel left 6/6 unread. No PDF template
+touched, `PdfService` not opened. No schema touched. Suite **1840 / 12,068 · 9 non-green** (documented set);
+PHPStan L5 (0); Pint clean.

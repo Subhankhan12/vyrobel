@@ -3804,3 +3804,102 @@ A security mock that invents state is inventing *security evidence*. Every one o
 - ⚠️ **`toContain` sweep — clean negative** (twelfth gate); the new guard is needle-only with `->and()`.
 - ⚠️ **Gradient family — surfaced, none added.** All 6 remaining are white-on-accent-gradient (avatar, brand
   mark, and four accent buttons).
+
+---
+
+## §O14 — Owner Documents (`/owner/documents`, `App\Livewire\Owner\OwnerDocuments`) · OWNER 14/32
+
+**Prototype:** `docs/design/raw/Owner Documents.html` (decoded fresh). **Role:** `External Owner`,
+`$capDocuments` (co-owner + accountant — a **view-only sub-user is refused**).
+
+### ⚠️ Premise check — the page IS distinct, and so is its sibling
+
+`/owner/documents` is a real, separate route. ⚠️ **There is a SECOND prototype, `Owner Archive.html`, and it
+is also a live page** (`/owner/archive`, `OwnerArchive`) — deeper history with lifetime net, per-year bars,
+search with a no-results state, 7-year retention copy and a ZIP download. **That is its own gate; nothing here
+touched it.**
+
+⚠️ **A nav finding that turned out NOT to be a defect:** the sidebar item labelled **"Statements"** points at
+`/owner/archive`, not `/owner/statements`. Verified: **there is no `/owner/statements` index route** — the
+statement *list* IS the archive (`OwnerArchive` = "the owner's FINALIZED statement history"); only
+`/owner/statements/{id}` (detail) and the PDF routes exist. Nav, "full archive ›" and the sibling prototype
+all point at the same real page. **Consistent, not a mis-wire.**
+
+### Fixed on this page (design / markup / styling only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | **"full archive ›" at 2.70** — the worst non-family site measured on an owner page; `--vy-accent` on the raw page gradient | ⚠️ **NO accent tone reaches AA there** (the darkest, `--vy-accent-tint-text`, only gets to **3.85**), so the link takes `--vy-on-grad` (**5.09**) and carries its affordance with an **underline** instead of colour — legible *and* unambiguously a link |
+| 2 | The header line *"18 documents · since April 2026"* at **3.98** (`--vy-muted` on the gradient) | `--vy-on-grad-soft` → **5.01** |
+| 3 | The **six per-month "Net €X" figures** at **4.38–4.45** — money on a document record, in raw accent | `--vy-accent-text` → **5.20** |
+
+**Contrast: 10 AA failures → 2** (141 text + 45 icon candidates) — and **both remaining are the shell's
+gradient family** (avatar 3.83, brand mark 3.88). **The page's own ink is fully AA** — the best result of the
+owner realm so far. Icons 0 failures.
+
+### 🚫 Refusals preserved
+
+- **The design's "RA-2025-09" reference format does not exist** — the row shows the operator's own bank
+  reference **only when they attached one**, never a generated one.
+- **A pending payout gets no estimated settlement date** — the status badge carries the truth instead.
+- **A DRAFT statement is not a document** — excluded, not listed (it has no `sequence_no` and its figures can
+  still move). Locked by an existing test that asserts the draft's distinctive net is absent.
+- **The prototype's fabricated scale** — "34 documents", "3 years", "since June 2023" — is refused; the live
+  counts and span are derived from real rows (existing test asserts all three strings are absent).
+- **The annual card is honest about its span**: the prototype says *"All 12 months"*; live says
+  **"6 months (Apr–Sep)"**, because that is what exists.
+
+### ✅ Extra work kept (beyond the prototype)
+
+- A **remittance advice at every payout status** (the controller filters none), each row labelled with its
+  **real** status rather than filtered out.
+- The **amount note** is derived from status (`net paid` / `net reversed` / `net payable`), so neither the row
+  nor the PDF claims money was paid when it wasn't.
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO14-1 — ⚠️ a THIRD form of D16-7: `payoutStatusMeta`'s `default =>` swallows two real statuses.** The
+  shared owner label map is `paid` / `failed` / `reversed` / **default → "Payout pending"**. But
+  `OwnerPayoutService` genuinely writes **`processing`** (the Connect rail, line 127) and **`held`** (the tax
+  hold, line 189). So a remittance advice for money **actually in flight**, and one **held by the tax hold**,
+  both read *"Payout pending"*. Unlike O3's tiles — where a `processing` payout vanished from every tile —
+  here it is **mislabelled rather than invisible**, on a document the owner keeps. ⚠️ **NOT fixed here:** the
+  map is a **shared** helper (`FormatsOwnerData`) used by several already-closed owner pages, so it belongs to
+  the D16-7 gate, not a page gate. *Verdict: **REAL GAP**, linked to D16-7.*
+- **DO14-2 — no year filter.** The prototype has year pills (`{{ y.label }}`); live renders one flat list
+  because only 2026 exists. Harmless today, needed once there are multiple years — and the Archive page
+  already has per-year grouping. *Verdict: **REAL GAP** (small).*
+- **DO14-3 — no per-document "fee invoice" type.** The prototype's Documents/Settings pair implies fee
+  invoices as documents; the fee is a **statement line**, not a separate artifact, so no such document is
+  listed. *Verdict: **RATIFIED REFUSAL** unless invoices become their own entity (see DO12-4).*
+
+### ⚠️ Verified, not changed
+
+- **#42/#38 — every row is this owner's, and it is MUTATION-PROVEN.** `OwnerDocumentsViewTest` already seeds
+  a **second owner (Bruno) with a distinctive €500 statement**, asserts his net really exists (so the
+  absence assertion is meaningful), asserts **his three document links are absent from A's list**, and
+  asserts **B fetching A's statement PDF and A's remittance → 404**. Dropping the scope from the statements
+  query turns **3 tests red**, including the cross-owner one. ⚠️ A live foreign probe remains impossible —
+  the demo DB has one owner (the O11 finding); the guard is the proof.
+- **#17 reconciles on the page itself:** the six monthly nets (442.80 + 656.00 + 467.40 + 516.60 + 721.60 +
+  885.60) sum to **€3,690.00**, exactly the annual tax card's figure. Every figure comes from the real
+  statement/payout rows; **nothing is re-derived in the Blade**.
+- **21 download links, all GET (#20)**, each an owner-scoped controller route — the statement PDF's
+  cross-owner 404 was mutation-proven at O11 and is asserted again here.
+- **#28** — 0 email addresses, 0 IBANs, 0 phone-like strings on the page; no guest data anywhere.
+- **Status reads its real fact and is a WORD** — "Paid" / "Payout pending" (never colour alone), derived from
+  `payouts.status`, not a proxy. ⚠️ Its *vocabulary* is incomplete — see DO14-1.
+- **Read-only honoured — and nothing was downloaded this gate**: `export_downloads` still **7** (unchanged
+  from the O12 baseline), statements 6, payouts 6, max statement `updated_at` still the seed time. Opening
+  the notification panel changed nothing either (**6/6 still unread**).
+- **Keyboard: 0 unnamed controls, 0 `display:none` interactive controls, 0 `div@click`**; 0 overflow; 0
+  console errors. ⚠️ The 2 "unnamed inputs" my first probe reported were **hidden CSRF tokens** — a probe
+  false positive (the fifth of the pass), not a finding.
+- ⚠️ **A suspicion measured and DISMISSED — recorded as a negative sweep.** The whole-document guard I first
+  wrote failed on `color:var(--vy-accent)`, which comes from the **shared notification bell** in the topbar,
+  not this page. Rather than log it, I measured it: **5.06 on the panel's near-white surface — it PASSES.**
+  Not a finding; the guard was simply scoped too wide and is now scoped to this page's own markup.
+- ⚠️ **No PDF template was touched** — the realm-wide PDF-contrast sweep (~15 templates +
+  `PdfService.php:54` at 2.70) is unchanged and `PdfService` was not opened.
+- ⚠️ **`toContain` sweep — clean negative** (thirteenth gate); the new guard is needle-only with `->and()`.
+- ⚠️ **Gradient family — surfaced, none added** (2 remaining, both shell).
