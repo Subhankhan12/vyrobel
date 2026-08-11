@@ -12,7 +12,7 @@
         body { margin: 0; color: #2B2320; font-size: 12px; }
         .wrap { padding: 36px 40px; }
         .brand-mark { display: inline-block; width: 30px; height: 30px; background-color: #C2410C; color: #fff; text-align: center; font-size: 18px; font-weight: bold; border-radius: 7px; }
-        .muted { color: #8A8079; }
+        .muted { color: #5F5853; }
         .eyebrow { color: #C2410C; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         h1 { font-size: 20px; margin: 2px 0 0; }
         .hdr td { vertical-align: top; }
@@ -22,13 +22,13 @@
         .pill { display: inline-block; font-size: 8.5px; font-weight: bold; text-transform: uppercase; letter-spacing: .06em; border-radius: 8px; padding: 2px 8px; color: #1B6B48; background-color: #E4F2EA; }
         .meta { width: 100%; border-collapse: collapse; margin: 18px 0 6px; }
         .meta td { padding: 4px 0; font-size: 12px; }
-        .meta .k { color: #8A8079; width: 150px; }
+        .meta .k { color: #5F5853; width: 150px; }
         .sec { font-size: 13px; font-weight: bold; margin: 22px 0 4px; }
         table.lines { width: 100%; border-collapse: collapse; margin-top: 6px; }
-        table.lines th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #8A8079; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
+        table.lines th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #5F5853; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
         table.lines th.r, table.lines td.r { text-align: right; }
         table.lines td { padding: 9px 4px; font-size: 12.5px; border-bottom: 1px solid #F2E9E1; }
-        .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #A69A92; }
+        .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #6C645F; }
     </style>
 </head>
 <body>

@@ -4,6 +4,7 @@ use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
 use App\Models\User;
+use App\Support\Pdf\OwnerAgreementDocument;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 
@@ -229,4 +230,21 @@ it('renders no raw Blade directives', function () {
     $a = agreementOwner($s, 0);
 
     assertNoRawBlade($this->actingAs($a['user'])->get('/owner/agreement')->assertOk());
+});
+
+// ── The agreement DOCUMENT's ink stays post-AA — a contract is read on WHITE PAPER ────────────────
+// Owner-32 measured the generated pdf's content stream and found the same pre-AA pair the other owner
+// documents carried: #8A8079 (3.86 across 19 text runs) and #A69A92 (2.74) — the latter carrying the
+// document's own disclaimer, "this is a summary … not a signed legal contract". The least legible line
+// on the most authoritative document was the one disclaiming its authority. Blade comments are stripped
+// at compile time but CSS comments are NOT, so this asserts the RENDERED document.
+it('keeps the agreement document free of the pre-AA greys', function () {
+    $s = seedScenario(1);
+    $a = agreementOwner($s, 0, ['commission_pct' => 15.00]);
+
+    $data = OwnerAgreementDocument::agreement($a['agreement'], $a['owner'], [(string) $a['owner']->id]);
+    $html = view('pdfs.owner-agreement', $data)->render();
+
+    expect($html)->not->toContain('#8A8079')
+        ->and($html)->not->toContain('#A69A92');
 });

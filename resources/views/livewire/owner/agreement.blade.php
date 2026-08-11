@@ -30,7 +30,7 @@
     {{-- ══ Header ══ --}}
     <div class="vy-fade" style="margin-bottom:20px">
         <h1 style="font-family:Sora,sans-serif;font-weight:600;font-size:26px;margin:0">Management agreement</h1>
-        <p style="font-size:13.5px;color:#8A8079;margin:6px 0 0">Your terms with {{ $operatorName }} — commission, what’s included, and renewal.</p>
+        <p style="font-size:13.5px;color:var(--vy-ink);margin:6px 0 0">Your terms with {{ $operatorName }} — commission, what’s included, and renewal.</p>
     </div>
 
     <div class="vy-cols">
@@ -99,21 +99,21 @@
                 <section class="vy-card vy-fade" style="animation-delay:.05s;{{ $amendment['needs'] ? 'border-left:3px solid var(--vy-accent)' : '' }}"
                          x-data="{ preview: false }">
                     @if ($amendment['needs'])
-                        <span class="vy-eyebrow" style="color:var(--vy-accent)">Amendment ready to acknowledge</span>
+                        <span class="vy-eyebrow" style="color:var(--vy-ink)">Amendment ready to acknowledge</span>
                         <div style="font-family:Sora,sans-serif;font-weight:600;font-size:16px;margin-top:6px">{{ $amendment['title'] }}</div>
                         @if ($amendment['summary'])
-                            <p style="font-size:12.5px;color:#8A8079;margin:6px 0 0;line-height:1.5">{{ $amendment['summary'] }} Effective {{ $amendment['effective_display'] }}.</p>
+                            <p style="font-size:12.5px;color:var(--vy-ink);margin:6px 0 0;line-height:1.5">{{ $amendment['summary'] }} Effective {{ $amendment['effective_display'] }}.</p>
                         @else
-                            <p style="font-size:12.5px;color:#8A8079;margin:6px 0 0">Effective {{ $amendment['effective_display'] }}.</p>
+                            <p style="font-size:12.5px;color:var(--vy-ink);margin:6px 0 0">Effective {{ $amendment['effective_display'] }}.</p>
                         @endif
 
                         {{-- Preview — the REAL amendment content --}}
                         <div x-show="preview" x-collapse style="margin-top:12px;padding:12px 14px;background:rgba(194,65,12,.05);border-radius:12px">
-                            <div class="vy-eyebrow" style="color:var(--vy-accent)">What changes</div>
+                            <div class="vy-eyebrow" style="color:var(--vy-accent-text)">What changes</div>
                             @forelse ($amendment['changes'] as $c)
                                 <div class="vy-list-row"><span style="font-size:12.5px;color:var(--vy-muted)">{{ $c['label'] }}</span><span style="font-size:12.5px;font-weight:600">{{ $c['value'] }}</span></div>
                             @empty
-                                <div style="font-size:12.5px;color:#8A8079;margin-top:6px">This amendment updates the terms of your agreement.</div>
+                                <div style="font-size:12.5px;color:var(--vy-ink);margin-top:6px">This amendment updates the terms of your agreement.</div>
                             @endforelse
                         </div>
 
@@ -128,14 +128,14 @@
                             @endif
                             <button type="button" class="vy-btn vy-btn--ghost" x-on:click="preview = !preview" x-text="preview ? 'Hide preview' : 'Preview'">Preview</button>
                         </div>
-                        <div class="vy-fx-note" style="margin-top:12px">
+                        <div class="vy-fx-note" style="color:var(--vy-ink);margin-top:12px">
                             Acknowledging records your review and consent in the portal and applies the new terms on the
                             effective date. It’s a portal acknowledgment, not a legally-binding e-signature.
                         </div>
                     @else
                         <span class="vy-eyebrow" style="color:#1B6B48">{{ $amendment['version'] }} amendment acknowledged</span>
                         <div style="font-family:Sora,sans-serif;font-weight:600;font-size:16px;margin-top:6px">{{ $amendment['title'] }}</div>
-                        <p style="font-size:12.5px;color:#8A8079;margin:6px 0 0">
+                        <p style="font-size:12.5px;color:var(--vy-ink);margin:6px 0 0">
                             Acknowledged{{ $amendment['acknowledged_by'] ? ' by '.$amendment['acknowledged_by'] : '' }}{{ $amendment['acknowledged_display'] ? ' on '.$amendment['acknowledged_display'] : '' }} · takes effect {{ $amendment['effective_display'] }}.
                         </p>
                     @endif

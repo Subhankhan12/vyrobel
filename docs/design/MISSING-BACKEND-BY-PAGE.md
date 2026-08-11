@@ -5312,3 +5312,68 @@ pattern held as a priority, not as a prediction.*
   **excludes `.vy-card--dark` subtrees** and scores them separately. *(12th probe FP.)*
 - **Remaining 4, none added:** the brand mark 3.88 (known family) + three **mis-samples** (the "Save tax
   details" button and the shell badge/avatar), each verified to carry the standard accent gradient.
+
+---
+
+## §O-32 — Owner **Agreement** (`/owner/agreement` + `/owner/agreement/pdf`) — 🏁 THE LAST OWNER PAGE
+
+`App\Livewire\Owner\OwnerAgreement` + `OwnerAgreementController` (acknowledge) + `OwnerAgreementPdfController`
+→ `OwnerAgreementDocument`. Screen + document. The authoritative source of the realm's 18%.
+
+### ⚠️ THE RATE — authoritative, and it FOLLOWS the engine
+
+Live the page shows **18%** and **no 15% anywhere**, matching `management_agreements.commission_pct = 18.00`.
+It is rendered through the shared `OwnerCommissionRate::display()`, never a Blade literal — and the existing
+guard proves it *follows the data* rather than matching a constant: owner A with `15.00` renders "15%" while
+owner B with **22.75** renders "22.75%", a value no hardcoded literal could produce. **Mutation-proven**:
+making `display()` return a fixed `'18%'` turns the cross-owner test red. The PDF shows the same **18%**
+(and per-villa 18% / 18%) — **SCREEN == PDF**.
+
+### 🔴 A SIXTH STALE CLAIM — a duplicate docblock quoting the MOCK rate
+
+`commissionDisplay()` carried **two stacked docblocks**. Only the second binds to the method; the first was
+orphaned text whose worked example read **"15.00%"** — the wireframe's mock rate — sitting on the one page
+that *defines* the real one. Merged into a single accurate block with no example rate quoted at all, since
+the number belongs to the agreement. *(O22/O24/O28/O30/O31 were denials of shipped features; this is the
+same family — a stale claim about the rate, on its source page.)*
+
+### ⚠️ Verified, not changed
+
+- **Acknowledge is observed READ-ONLY and is append-only (#7).** `agreement_amendment_acknowledgments` is
+  still **0**, `management_agreements` and `agreement_amendments` both **1** with `max(updated_at)` unchanged
+  at `2026-08-09 07:17:58`. Nothing was acknowledged. The control POSTs the real `$capActions` route, and an
+  existing guard proves a second acknowledge records no second consent (idempotent — the append-only shape).
+- **#42 — MUTATION-PROVEN, and my first attempt proved nothing.** Swapping `AgreementAmendment::query()` for
+  `withoutGlobalScopes()` left the test **green**, because the real guard is an **explicit
+  `whereIn('owner_id', $ownerIds)`** the swap did not touch. Removing that line turns *"refuses to
+  acknowledge another owner's amendment (owner-scoped 404)"* red. *(The O12 lesson: a mutation that misses the
+  guard proves nothing — check what you actually removed.)*
+- **No fabricated terms.** Five fields render an honest **"Not set"/"—"** where the demo agreement is NULL,
+  and an existing guard forbids rendering those as a zero figure. The amendment history is the one real
+  amendment; no multi-amendment fiction (#60).
+- **The PDF's honest framing is strong and worth preserving**: *"This is a summary of the commercial terms
+  your operator has set, for your reference. **It is not a signed legal contract**; your binding agreement is
+  held by your operator."* An existing guard forbids inventing a signing flow.
+- **No raw IBAN** on either surface; self-scoped; **keyboard: 0 unnamed, 0 unreachable, 0 `display:none`**.
+- ⚠️ **`toContain` sweep — clean negative** (thirty-first gate, and the last of the owner realm).
+
+### 🎨 Contrast — screen 7 → 4, PDF 4 → 2
+
+⚠️ **The honesty text was the worst reading on BOTH surfaces** — the fifth and sixth occurrences of the
+pattern, and the sharpest yet, because here it is the text that *disclaims the document's authority*:
+- **PDF:** `#A69A92` at **2.74** carried *"…not a signed legal contract…"* → `#6C645F` (5.79); `#8A8079`
+  across **19 text runs** at 3.86 → `#5F5853` (6.98). Guarded on the **rendered document** and
+  mutation-proven. **PdfService untouched.**
+- **Screen:** the same `#8A8079` (×5 declarations) at **2.27 / 2.31**, and `.vy-fx-note` at **4.25** — the
+  line explaining *what acknowledging legally does* — both → `--vy-ink`; the amendment eyebrow needed ink too
+  (accent-text stopped at 3.68).
+
+**Screen survivors (4), none added:** the brand mark 3.88 + 3 shell boundary artifacts. **PDF survivors (2):**
+the accent brand plate (probe FP — white on `#C2410C` is 5.18) and `PdfService.php:54`'s watermark at **2.70**.
+
+### 📌 The realm-wide PDF sweep — updated count
+
+Four owner documents are now clear (statement · booking summary · remittance · annual tax · **agreement** —
+five). ⚠️ **11 templates plus `PdfService.php:54`'s watermark remain**, and the recommendation stands
+unchanged from O22: **one dedicated gate**, because the watermark is untouchable from a page gate and each
+template needs its own generated-file measurement.

@@ -428,14 +428,17 @@ class OwnerAgreement extends Component
     }
 
     /**
-     * The REAL commission, e.g. "15.00%" — the `decimal:2` cast already renders the stored scale, so
-     * the figure is never re-rounded here. A null column → null → the view says "Not set", NEVER "0%".
-     */
-    /**
+     * The REAL commission — the owner's contracted rate, and THE source the rest of the realm cites.
+     * A null column → null → the view says "Not set", NEVER "0%".
+     *
      * ⚠️ Via the SHARED formatter (wireframe-parity WAVE 3). This used to cast the decimal straight to a
      * string and append the unit — and `commission_pct` is a DB decimal, so it printed "18.00%" while
      * {@see pct()} below printed "18%" for the same agreement. One page, one legally-meaningful rate,
      * written two ways.
+     *
+     * ⚠️ Owner-32 merged two stacked docblocks here. Only the second bound to this method; the first was
+     * orphaned text whose worked example read "15.00%" — the WIREFRAME'S MOCK RATE — sitting on the one
+     * page that defines the real one. No example rate is quoted now: the number belongs to the agreement.
      */
     private function commissionDisplay(ManagementAgreement $a): ?string
     {

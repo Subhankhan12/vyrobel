@@ -7827,3 +7827,37 @@ This is also the fourth consecutive owner page whose shell greys cannot reach AA
 shared fix remains a candidate for its own gate once the realm closes.
 
 Suite **1856 / 12,130**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 32/32 · Agreement — 🏁 THE OWNER REALM IS COMPLETE
+
+The last owner page, and the one the whole realm's "18% not 15%" rulings trace back to.
+
+**The rate is authoritative here, and it follows the engine.** Live it shows 18% with no 15% anywhere,
+rendered through the shared formatter rather than a Blade literal. The existing guard already proved the
+stronger property — that it follows the *data*, not a constant — by rendering 22.75% for a second owner, a
+value no hardcoded literal could produce. Mutation-proven. The PDF prints the same 18%, so screen and document
+cannot disagree.
+
+**A sixth stale claim, and a new shape of it.** `commissionDisplay()` carried two stacked docblocks; only the
+second binds to the method, and the first was orphaned text whose worked example read "15.00%" — the
+wireframe's mock rate — on the very page that defines the real one. Merged, with no example rate quoted at
+all, because the number belongs to the agreement. The previous five findings were claims that a shipped
+feature did not exist; this one is a stale claim about a *value*, which is the same failure wearing different
+clothes.
+
+**A mutation that proved nothing, caught.** My first #42 attempt swapped `query()` for `withoutGlobalScopes()`
+and the test stayed green — because the real guard is an explicit `whereIn('owner_id', …)` that the swap never
+touched. Removing that line turns the cross-owner 404 red. Worth restating: when a mutation passes,
+the first question is whether it actually removed the thing being tested.
+
+**The honesty-text pattern reached its sharpest form.** On both surfaces the worst reading was the text that
+disclaims the document's own authority: on paper, "…not a signed legal contract…" at 2.74; on screen, the line
+explaining what acknowledging legally does at 4.25. Six occurrences now (O22, O25, O28, O31, and both halves
+of this page). It remains a priority to check first, not a prediction.
+
+**Realm status.** All 32 owner prototypes are design-matched. What remains is explicitly *not* per-page design
+work: O26's Reviews contrast fix, the DO10-4 star migration across ten call sites, and the realm-wide PDF
+sweep (11 templates plus PdfService's watermark) — each scoped, each recommended as its own gate, none
+started. The Owner Invite Email is a separate template, then the guest realm's 32.
+
+Suite **1857 / 12,132**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
