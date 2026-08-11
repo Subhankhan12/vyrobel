@@ -11,6 +11,7 @@ use App\Services\OwnerAttributionService;
 use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
 use App\Services\OwnerTaxService;
+use App\Support\Pdf\OwnerAnnualTaxDocument;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 
@@ -186,4 +187,52 @@ it('renders an honest withholding state and never a fabricated rate', function (
         ->assertDontSee('non-resident rate');
 
     assertNoRawBlade($res);
+});
+
+/** The document's own view data, from an annualSummary()-shaped result — the shape OwnerAnnualTaxDocument takes. */
+function annualTaxHtml(array $categories, array $months = []): string
+{
+    $owner = new Owner(['name' => 'Amara Okafor', 'legal_name' => 'Amara Okafor', 'tax_id' => '', 'tax_country' => '']);
+    $summary = [
+        'currency' => 'EUR', 'year' => 2026, 'period_start' => '1 Jan 2026', 'period_end' => '31 Dec 2026',
+        'statement_count' => 1, 'gross_minor' => 100000, 'deductions_minor' => -25000, 'net_minor' => 75000,
+        'categories' => $categories,
+        'months' => $months !== [] ? $months : [['label' => 'January', 'gross_minor' => 100000, 'commission_minor' => -18000, 'fees_minor' => -7000, 'net_minor' => 75000]],
+    ];
+
+    return view('pdfs.owner-annual-tax', OwnerAnnualTaxDocument::data($owner, $summary))->render();
+}
+
+// ── WITHHOLDING reaches the tax summary — real when posted, silent when genuinely zero ────────────
+// Owner-22 found BOTH docblocks on this document still claiming "no withholding (we don't compute it)".
+// That went stale when the tax engine (#73) shipped: annualSummary() emits a real `withholding_minor`
+// bucket and a "Withholding tax" category, so it flows into the table like any other deduction. The
+// stale comment pointed the dangerous way — a reader who believed it might add a SECOND withholding
+// line and double-count a real payout deduction on a tax document. Both directions are asserted so the
+// claim can never drift again, and so a genuinely-zero year can never print an invented €0.00 row.
+it('states withholding tax when it is real and stays silent when it is zero', function () {
+    $withReal = annualTaxHtml([
+        ['label' => 'Management commission', 'minor' => -18000],
+        ['label' => 'Withholding tax', 'minor' => -7000],
+    ]);
+    expect($withReal)->toContain('Withholding tax')
+        ->and($withReal)->toContain('70.00');
+
+    $withZero = annualTaxHtml([
+        ['label' => 'Management commission', 'minor' => -18000],
+        ['label' => 'Withholding tax', 'minor' => 0],
+    ]);
+    expect($withZero)->not->toContain('Withholding tax');
+});
+
+// ── The document's ink stays post-AA — a tax summary is read on WHITE PAPER, often by an accountant ─
+// Measured on the GENERATED pdf, as Owner-20/21 did: the same pre-AA pair, and the WORST spread of the
+// three — #8A8079 across 27 text runs at 3.86, including `.neg`, which is the DEDUCTION FIGURES
+// themselves, and #A69A92 at 2.74 on the footer, which is where the "not tax advice" framing lives.
+// The legal framing was the least legible text on the document.
+it('keeps the annual tax document free of the pre-AA ink', function () {
+    $html = annualTaxHtml([['label' => 'Management commission', 'minor' => -18000]]);
+
+    expect($html)->not->toContain('#8A8079')
+        ->and($html)->not->toContain('#A69A92');
 });

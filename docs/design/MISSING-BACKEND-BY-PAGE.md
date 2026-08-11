@@ -4521,3 +4521,95 @@ never lied — it just stopped looking like a status. Fixed by giving both the *
 `PdfService.php:54` watermark **`#a99b8e` at 2.70** — **untouched**. **13 templates** still carry the pre-AA
 greys (O20 cleared the booking summary, this gate the remittance). ⚠️ **Page 22 (Annual Tax Summary) is one of
 them** — expect the same pair again.
+
+---
+
+## §O-22 — Owner **Annual Tax Summary PDF** (`/owner/tax/{year}/summary.pdf`)
+
+`OwnerTaxController::downloadAnnual` → `OwnerTaxService::annualSummary()` → `OwnerAnnualTaxDocument::data()`
+→ `pdfs.owner-annual-tax`. Last of the 3-PDF batch. **The peak-authority money document** — an owner may hand
+it to an accountant.
+
+### ⚠️ PREMISE NOTES (both verified fresh)
+
+- **The #60 multi-year fabrication is already refused — STRUCTURALLY, and more strongly than briefed.** The
+  document renders exactly ONE year, and the URL carries **no owner id at all**: the owner is resolved from
+  `$request->user()`, so a cross-owner request is **not expressible**. A year with no committed statements
+  returns `null` from `annualSummary()` → **404**. Live: **2025 → HTTP 404**, 2026 → 200. The demo tenant has
+  a single year (2026, 6 statements), and nothing invents a prior-year total or the prototype's "€98,710".
+- **The period is the REAL statement span, not a fabricated calendar year.** The document prints
+  *"1 Apr 2026 – 30 Sep 2026"*, not "1 Jan – 31 Dec". An existing `CopyDriftTest` guard already forbids the
+  "All 12 months" phrasing.
+
+### 🔴 A STALE DOCBLOCK POINTING THE DANGEROUS WAY (fixed)
+
+**Both** docblocks on this document — `OwnerAnnualTaxDocument.php:17` and the template's header comment —
+still said *"no withholding (we don't compute it)"*. That went stale when the tax engine (#73) shipped:
+`OwnerTaxService::annualSummary()` builds a real `withholding_minor` bucket and emits a **"Withholding tax"**
+category (`OwnerTaxService.php:181`), which reaches the categories table like any other deduction.
+
+⚠️ **The staleness pointed the dangerous way.** A developer who believed the comment might add a *second*
+withholding line and **double-count a real payout deduction on a tax document**. Both comments corrected, and
+the behaviour pinned by a new both-directions guard. *(Owner-19 found a docblock citing a test that does not
+exist; this is the sibling — a docblock denying a feature that does.)*
+
+### ⚠️ #73 — the tax framing, verified
+
+- The document states the **withheld AMOUNT only — it never prints a rate.** ⚠️ A first probe reported "a
+  percentage is shown"; that was a **false positive** matching CSS `width: 33%`. Re-run against visible text
+  only: **no rate, no percentage anywhere** — the withholding figure is a real deduction already taken from
+  the payout, not a computed determination.
+- The footer carries the honest framing: *"Figures are gross of any income tax due, which is the owner's
+  responsibility. This document is not tax advice — please share it with a qualified accountant."*
+- **DO22-1 — when withholding is non-zero, the document does not say the figure derives from CONFIGURED
+  rates.** #73's rule is that outputs are labelled *"computed from your configured rates"*, and the Reports
+  surface carries an explicit **"EXAMPLE rates — not for filing"** warning; this document has only the generic
+  disclaimer. The demo's withholding is genuinely €0 so no line renders today. *Verdict: **REAL GAP** (copy) —
+  **surfaced, not decided**: adding legal-facing wording to a tax document is the founder's call, not a design
+  gate's.*
+
+### ⚠️ Verified, not changed
+
+- **#17 reconciles, one source.** Gross **€4,500.00** − deductions **€810.00** = net **€3,690.00**. The month
+  rows sum exactly (540+800+570+630+880+1,080 = 4,500 · 97.20+144+102.60+113.40+158.40+194.40 = 810 ·
+  442.80+656+467.40+516.60+721.60+885.60 = 3,690), and **€810.00 / €4,500.00 = exactly 18.0%** — the real
+  agreement rate. Deductions-by-category totals to the same €810.00. Every figure is aggregated in
+  `annualSummary()` and formatted through the shared `MoneyFormatter`; nothing is re-derived in the Blade.
+- **Only real categories render** — the zero filter drops any category with no figure, so no invented €0.00
+  row (proven by mutation: removing the filter turns the new guard red).
+- **#42 / #30.** Self-only by construction (no owner id in the URL); a non-linked user 404s; the route sits
+  under `$capExports` (co-owner + accountant). Both guarded, and the empty-year 404 is **mutation-proven**
+  (making it borrow another year turns the existing test red).
+- **#28.** No IBAN on this document at all, and **no guest data** — categories are bucket labels. The owner's
+  own tax id / legal name appear because it is their own self-only document.
+- **Greyscale-safe** — every deduction carries a real U+2212 minus in the figure, so the sign never depends on
+  colour.
+- **Single page**; **no CSS comments** (the Owner-11 trap absent); **no docblock cites a non-existent test**.
+- ⚠️ **`toContain` sweep — clean negative** (twenty-first gate); both new guards use `->and()`.
+
+### 🎨 Fixed here
+
+- **`#8A8079` → `#5F5853`: 3.86 → 6.98, across 27 text runs — the widest spread of the three PDFs.** It
+  included **`.neg`, which is the deduction figures themselves** (−€810.00, −€97.20 …) — the O2/O11 finding
+  recurring on the one document most likely to be read by an accountant.
+- **`#A69A92` → `#6C645F`: 2.74 → 5.79 — the footer**, ⚠️ **which is exactly where the "not tax advice"
+  framing lives.** The legal disclaimer was the least legible text on the document.
+
+### 📌 THE REALM-WIDE PDF-CONTRAST SWEEP — recommendation (surfaced, NOT self-authorised)
+
+Across the three PDF gates the pattern is now established and identical every time: **the same two literals**
+(`#8A8079` at 3.86, `#A69A92` at 2.74), retargeted to **the same two replacements** (`#5F5853`, `#6C645F`),
+each verified on the generated file. Three templates are clear (statement · booking summary · remittance);
+**12 remain**: `owner-agreement`, `owner-agreement-amendment`, `owner-booking-confirmation`,
+`owner-statement-history`, `operator-report`, `maintenance-costs`, `arrival`, `folio`, `guest-statement`,
+`guest-vat-invoice`, `guest-credit-note`, `guest-refund-receipt` — plus **`PdfService.php:54`'s `#a99b8e`
+watermark at 2.70**, which is the only *shared* one and appears on **every page of every document**.
+
+**Recommendation: yes — fold it into ONE dedicated gate now, and do the watermark in that same gate.** The
+substitution is known and mechanical, but three things make it a poor fit for page gates and a good fit for
+one sweep: (1) the watermark is in `PdfService` and touches every document, so no page gate may touch it —
+it will otherwise never be fixed; (2) each template still needs its **own generated-file measurement**,
+because per-document plates change the result (O21's `#B26A08` passed on white at 4.24 and failed at 3.72 on
+the plate it actually sat on) and some greys sit on dark bands where darkening is backwards (the statement's
+`.band`); (3) the guest and operator documents are outside the owner realm, so they will not be reached by
+this pass at all. **Not started — awaiting the founder's go-ahead.**

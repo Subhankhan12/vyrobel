@@ -7483,3 +7483,44 @@ on their own plates and already passed (5.61 / 5.76 / 5.08).
 both ways; PdfService untouched.
 
 Suite **1848 / 12,099**, 9 non-green — the documented non-deterministic set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 22/32 · Annual Tax Summary PDF — and the 3-PDF batch closes
+
+The last of the three documents, and the one with the most authority: an owner may hand it to an accountant.
+
+**The #60 multi-year fabrication was already refused, structurally and more strongly than the brief assumed.**
+The URL carries no owner id at all — the owner is resolved from the authenticated user — so a cross-owner
+request is not expressible, and a year with no committed statements 404s. Live, 2025 returns 404 and 2026
+returns the single real year. The period prints the real statement span ("1 Apr – 30 Sep 2026"), not an
+invented calendar year.
+
+**A stale docblock pointing the dangerous way.** Both docblocks on this document still claimed *"no
+withholding (we don't compute it)"*. That went stale when the tax engine (#73) shipped: `annualSummary()`
+emits a real `withholding_minor` bucket and a "Withholding tax" category that reaches the table like any
+other deduction. The risk is specific — a developer trusting the comment might add a second withholding line
+and **double-count a real payout deduction on a tax document**. Both corrected, and the behaviour pinned by a
+guard asserting both directions (stated when real, silent when genuinely zero). This is the sibling of
+Owner-19's finding: there, a docblock cited a test that does not exist; here, one denied a feature that does.
+
+**#73's framing holds.** The document prints the withheld amount and **never a rate** — a first probe claimed
+otherwise and was a false positive matching CSS `width: 33%`, the seventh probe FP of this pass. Logged, not
+decided: when withholding is non-zero the document does not say the figure derives from *configured* rates,
+where Reports carries an explicit "EXAMPLE rates" warning. Adding legal-facing wording to a tax document is
+the founder's call.
+
+**Contrast** was the widest spread of the three PDFs: `#8A8079` across 27 text runs at 3.86 → 6.98, including
+`.neg` — the deduction figures themselves — and `#A69A92` at 2.74 → 5.79 on the footer, which is exactly where
+the "not tax advice" disclaimer lives. The legal framing was the least legible text on the document.
+
+#17 holds: €4,500.00 − €810.00 = €3,690.00, the month rows sum exactly, and €810.00/€4,500.00 is exactly the
+real 18%.
+
+**Batch verdict + recommendation.** Three PDFs now measured on paper, each carrying the identical pair
+(`#8A8079` 3.86, `#A69A92` 2.74) and each fixed to the identical replacements. **12 templates remain, plus
+`PdfService.php:54`'s `#a99b8e` watermark at 2.70 — the only shared one, on every page of every document.**
+Recommendation surfaced, **not self-authorised**: fold the remainder into one dedicated gate and do the
+watermark there, because a page gate may never touch `PdfService`, each template still needs its own
+generated-file measurement (O21's `#B26A08` passed on white and failed on its actual plate), and the guest and
+operator documents lie outside this pass entirely.
+
+Suite **1850 / 12,104**, 9 non-green — the documented non-deterministic set. PHPStan L5 (0); Pint clean.

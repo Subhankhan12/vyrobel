@@ -1,7 +1,10 @@
 {{-- Owner Annual Tax Summary PDF (Phase 2 · Sub-gate 4). PDF-SAFE: dompdf (HTML4/CSS2.1), table-based, inline
      CSS, DejaVu Sans (renders € and U+2212). Every figure is aggregated from the owner's REAL committed
-     statements and reconciles to the cent (gross + deductions = net). No fabricated totals; no OTA brand; no
-     withholding. Self-only document — the owner's own tax id / legal name appear because it is their own summary. --}}
+     statements and reconciles to the cent (gross + deductions = net). No fabricated totals; no OTA brand.
+     Self-only document — the owner's own tax id / legal name appear because it is their own summary.
+     WITHHOLDING: this template's original comment said the document carried none. That went stale when the
+     tax engine (#73) shipped — OwnerTaxService::annualSummary() emits a real "Withholding tax" bucket, so it
+     reaches the categories table like any other deduction, and is omitted only when it is genuinely zero. --}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,25 +14,25 @@
         body { margin: 0; color: #2B2320; font-size: 12px; }
         .wrap { padding: 36px 40px; }
         .brand-mark { display: inline-block; width: 30px; height: 30px; background-color: #C2410C; color: #fff; text-align: center; font-size: 18px; font-weight: bold; border-radius: 7px; }
-        .muted { color: #8A8079; }
+        .muted { color: #5F5853; }
         .eyebrow { color: #C2410C; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         h1 { font-size: 20px; margin: 2px 0 0; }
         h2 { font-size: 13px; margin: 24px 0 6px; }
         .hdr td { vertical-align: top; }
         .meta { width: 100%; border-collapse: collapse; margin: 22px 0 6px; }
         .meta td { padding: 4px 0; font-size: 12px; }
-        .meta .k { color: #8A8079; width: 130px; }
+        .meta .k { color: #5F5853; width: 130px; }
         .totals { width: 100%; border-collapse: collapse; margin: 18px 0 2px; }
         .totals td { width: 33%; padding: 12px 14px; border: 1px solid #EFE3D9; }
-        .totals .lbl { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #8A8079; }
+        .totals .lbl { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #5F5853; }
         .totals .val { font-size: 17px; font-weight: bold; margin-top: 3px; }
         table.grid { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        table.grid th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #8A8079; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
+        table.grid th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #5F5853; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
         table.grid th.r, table.grid td.r { text-align: right; }
         table.grid td { padding: 7px 4px; font-size: 12px; border-bottom: 1px solid #F2E9E1; }
         table.grid tr.tot td { border-top: 2px solid #C2410C; border-bottom: none; font-weight: bold; padding-top: 10px; }
-        .neg { color: #8A8079; }
-        .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #A69A92; }
+        .neg { color: #5F5853; }
+        .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #6C645F; }
     </style>
 </head>
 <body>

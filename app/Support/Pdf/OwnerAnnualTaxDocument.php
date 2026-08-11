@@ -14,7 +14,10 @@ use App\Support\Money\MoneyFormatter;
  * built ENTIRELY from the owner's REAL committed statements (the aggregation done in {@see OwnerTaxService::annualSummary()}).
  * Reconciles to the cent: gross + deductions = net, because a statement's buckets sum to its net. Every money
  * string comes through {@see MoneyFormatter} so the PDF matches the on-screen figures character-for-character.
- * No fabricated totals, no OTA brand (channel commissions only), no withholding (we don't compute it).
+ * No fabricated totals, no OTA brand (channel commissions only). WITHHOLDING: this line used to say the
+ * document carried none — stale since the tax engine (#73) shipped. OwnerTaxService::annualSummary()
+ * emits a real `withholding_minor` bucket and a "Withholding tax" category, so it flows through the
+ * categories table below and is dropped only by the genuinely-zero filter, like any other deduction.
  *
  * The owner's OWN tax id / legal name appear here — it is their own document, downloaded self-only.
  */
