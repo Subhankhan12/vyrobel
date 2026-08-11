@@ -5272,7 +5272,7 @@ entry in `docs/DECISIONS.md` (2026-07-16) and the Wave 1 tables in the styled-su
 | realm | prototypes | state | range |
 |---|---|---|---|
 | **OPERATOR** | 42 | 🏁 design-matched (34 gates) | `0aa9ede` → `edb7cce` |
-| **OWNER** | 32 | 🏁 design-matched | `6d974d7` → `a884793` |
+| **OWNER** | 32 + the invite email | 🏁 **REALM COMPLETE** | `6d974d7` → *(this gate)* |
 | **GUEST** | 32 | ⬅ **UNTOUCHED** | — |
 | *(shell)* | 19 | folded into the two realms | — |
 
@@ -5346,15 +5346,29 @@ founder's call.
 ## ⚠️ THE BASELINE — a NON-DETERMINISTIC 5–10 RANGE (§J.quater)
 
 Documented non-green set: **`BookingImportTest` ×6** (passes in isolation, fails only in-suite — ordering),
-**`OwnerUnitDetailViewTest`** and **`StubViewsTest` ×2** (date-coupled). **Measured at realm close: `1857
+**`OwnerUnitDetailViewTest`** and **`StubViewsTest` ×2** (date-coupled). **Re-measured after the invite-email
+gate: `1860 tests · 1851 passed · 12,160 assertions` — 9 non-green, exactly the documented set** (+3 tests,
++28 assertions = the three new invite guards). **Measured at realm close: `1857
 tests · 1848 passed · 12,132 assertions` — 9 non-green, the documented set.** PHPStan L5 (0); Pint clean.
 **Prove any NEW failure pre-existing by STASHING** — the count moves with run order and the clock, not with
 the work.
 
 ## ⚠️ WHAT REMAINS — the runway
 
-1. **Owner Invite Email** (`OwnerInviteMail`) — an **email-render** treatment, not a page gate. Closes the
-   owner realm.
+1. ~~**Owner Invite Email** (`OwnerInviteMail`)~~ — 🏁 **DONE. THE OWNER REALM IS COMPLETE.** See
+   `MISSING-BACKEND-BY-PAGE.md` **§O-Invite**. Four things this gate established that the page gates could
+   not: **(a)** an email cannot reference a `--vy-*` token, so every literal is a permanent drift risk —
+   all nine were verified against the live declarations, and a guard now fails if one rots; **(b)** the
+   computed contrast probe **false-PASSED the one element that mattered** — `getComputedStyle` scores text
+   against `background-color`, so the wordmark on the gradient band read 5.18 (the `bgcolor` *fallback*)
+   when the rendered pixel is **3.18**; three successive pixel-sampling probes were themselves vacuous
+   before one was sound (§N.8e, in a new medium); **(c)** the prototype's gradient CTA is **unreachable**
+   for AA — no warm orange lighter than `#C2410C` clears 4.5 for white normal text — so parity was refused
+   rather than bought with a regression; **(d)** ⚠️ **I introduced a raw-Blade regression and an existing
+   test caught it** — extending `emails/layout.blade.php`'s docblock closed the comment early with a stray
+   `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
+   `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
+   raw-Blade family is not only `word@directive`.
 2. **THE GUEST REALM — 32 prototypes, UNTOUCHED.** The no-Alpine GET realm; `#33` door-code window-gating;
    real guest PII on every surface. **The sharpest privacy realm of the three** — expect `#28` to be the
    dominant axis rather than `#17`.

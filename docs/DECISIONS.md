@@ -7861,3 +7861,59 @@ sweep (11 templates plus PdfService's watermark) — each scoped, each recommend
 started. The Owner Invite Email is a separate template, then the guest realm's 32.
 
 Suite **1857 / 12,132**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-11 — DESIGN PARITY · Owner Invite Email (`OwnerInviteMail`) 🏁 **THE OWNER REALM IS COMPLETE**
+
+**Decision: match the "Owner Invite Email" prototype in email-safe form, and REFUSE the two places where
+matching it would cost accessibility.** The owner realm's 32 pages were closed at `a884793`; this is the
+33rd artifact and it is not a page — it is a Mailable rendering into Gmail/Outlook/Apple Mail.
+
+**Rebuilt to the design:** the gradient brand BAND (previously absent entirely — the email had a small
+left-aligned lockup on the page wash), the 600px card, the invited-by chip, the feature panel with tinted
+tiles, the full-width CTA, the link-fallback panel with its hairline-divided expiry line, and the footer
+BAND inside the card. Presentation only — `app/Mail/OwnerInviteMail.php` is **unchanged**; the send path,
+the token minting and the role-copy matrix were not touched.
+
+**Refused, with the measurement behind each:**
+- **The gradient CTA.** White 15px normal text needs 4.5. The band's lightest rendered pixel is `#E66D38`
+  → **3.18**; `--vy-accent-2` gives 3.57 and `--vy-accent-3` 3.09. **No warm orange lighter than `#C2410C`
+  reaches 4.5**, so the gradient CTA is unreachable for AA rather than merely unbuilt. Solid `#C2410C`
+  (5.18) stands.
+- **The 82%-white eyebrow on the band** (2.55) → a solid `#B03808` plate (6.15).
+- **The prototype's greys** `#8A8079` / `#9C9089` / `#A69A92` / `#B7ADA4` — the pre-remediation palette,
+  all failing → the token values `#5F5853` / `#6C645F`. The footer/legal line was checked first and now
+  measures **4.95**.
+- **The inbox chrome, the Download-PDF button, and "Edit in Email templates"** — the first two are the
+  mock's simulated mail client; the third is operator-app chrome that must never reach an invitee's inbox.
+- **"Get help"** — `/owner/help` is authed and the invitee has no account; no public support URL is
+  configured. Omitted rather than pointed at a link that bounces to login (`DO-INV-3`).
+
+**⚠️ The probe lied, and only pixel sampling caught it.** `getComputedStyle` scores text against
+`background-color`, so the wordmark on the gradient read **5.18** — that is the `bgcolor="#C2410C"`
+*fallback*, invisible to any gradient-capable client. The true worst point is 3.18. Three sampling attempts
+were themselves vacuous first (white glyphs read as background; then their antialias haloes; then the page
+wash outside the card's rounded corners). Consequence: the brand lockup ships at **weight 700, not the
+prototype's 600**, so "≥18.66px bold" is unambiguous rather than arguable.
+
+**⚠️ A regression I introduced, caught by an existing test.** Extending `emails/layout.blade.php`'s docblock
+closed the Blade comment early with a stray `--}}`, shipping the next paragraph as live template text into
+all 15 emails that extend that layout. `OperatorPropertySettingsGate1Test` went red on *"not to contain
+'Powered by Vyrobel'"*. **The raw-Blade family is not only `word@directive`** — an unbalanced comment
+delimiter has the same effect, and static analysis sees neither.
+
+**Logged, not built** (`MISSING-BACKEND-BY-PAGE.md` §O-Invite): `DO-INV-1` no `text/plain` part (HTML-only —
+a real deliverability + a11y gap; not fabricated, because an invented text part drifts from the HTML
+immediately) · `DO-INV-2` no dark-mode handling (the template *requests* light; Gmail and Outlook.com
+force-invert anyway) · `DO-INV-3` no public help destination · **`DO-INV-4` a scoped EMAIL-CONTRAST SWEEP** —
+the shared layout ships `#A99E95` at **2.24** on the wash, carrying the "why you're receiving this" line on
+all 15 emails that extend it. Same shape as the PDF sweep, same recommendation: one dedicated gate.
+
+Three guards added, **all mutation-proven** (`OwnerInviteEmailTest` 2 → 5): no `--vy-*` and none of the four
+failing greys · `#28` no other owner and no guest in the render, with exactly two hrefs asserted as an
+exhaustive set · `#39`/`#42` the org name and token BOUND per invite. Suite **1860 · 1851 passed · 12,160
+assertions**, 9 non-green = exactly the documented set. PHPStan L5 (0); Pint clean. Nothing was sent:
+`owner_invites` 0, `jobs` 0, `failed_jobs` 0.
+
+**Runway now:** the GUEST realm (32, untouched) · the PDF-sweep gate · DO10-4 · the BACKEND phase.

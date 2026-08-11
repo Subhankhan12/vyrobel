@@ -5377,3 +5377,116 @@ Four owner documents are now clear (statement · booking summary · remittance �
 five). ⚠️ **11 templates plus `PdfService.php:54`'s watermark remain**, and the recommendation stands
 unchanged from O22: **one dedicated gate**, because the watermark is untouchable from a page gate and each
 template needs its own generated-file measurement.
+
+---
+
+## §O-Invite — Owner Invite Email (`OwnerInviteMail`) 🏁 CLOSES THE OWNER REALM
+
+**Not a page.** A Laravel Mailable rendering into Gmail/Outlook/Apple Mail, so the realm's disciplines change
+shape: no `--vy-*` (clients strip custom properties), no Alpine/JS, no external CSS, no flex/grid, no
+backdrop-filter — nested `<table>` + inline styles only. **Render path:** `OwnerInviteMail->render()`, which
+is also what the real, non-sending operator preview route uses
+(`InviteOwnerPreviewController`, `can:users.manage`). **Nothing was sent** — a send mints a redeemable token
+and dispatches real mail; every measurement here came from `->render()` on a TRANSIENT unsaved invite.
+Verified after: `owner_invites` 0, `jobs` 0, `failed_jobs` 0.
+
+### ⚠️ Premise corrections
+
+1. **A text/plain part does not exist.** `content()` returns `new Content(view: 'emails.owner-invite', …)`
+   with no `text:` key, and `$textView` is null on the built Mailable. This is a **REAL GAP**, logged below —
+   not fabricated here, because an invented text part immediately drifts from the HTML.
+2. **The prototype's two roles are three in the product.** The design covers `owner` + `accountant`; the
+   shipped Mailable also handles `manager` with its own honest copy. **EXTRA WORK — kept.**
+3. **The email never extended the shared mail layout**, and `emails/layout.blade.php`'s docblock claimed it
+   carried *"the SAME brand as the shipped owner-invite email"*. True before this gate, false after it — the
+   invite is now a 600px card with a gradient brand band while the layout stays a 480px plain lockup. The
+   docblock was corrected in place. *(§N.8b — a comment asserting a relationship that the code stopped
+   holding; the seventh instance, and the first this pass created rather than found.)*
+
+### 🎨 Contrast — measured on the RENDERED email; 0 failures across 27 text runs
+
+⚠️ **The computed probe produced a false PASS on the one element that mattered.** `getComputedStyle` scores
+text against `background-color`, so the wordmark on the gradient band read **5.18** — that is the
+`bgcolor="#C2410C"` *fallback*, which no gradient-capable client ever shows. Sampling the **rendered pixels**
+of glyph-free strips of the band gives the true worst point: **`#E66D38` → white = 3.18**. (Two earlier
+sampling runs were themselves vacuous — the first read the white glyphs as "background", the second their
+antialias haloes, and a third caught the page wash outside the card's rounded corners. §N.8e: when the probe
+breaks, publish nothing.)
+
+Consequences, both design divergences and both deliberate:
+
+- **The brand lockup is set at weight 700, not the prototype's 600.** At 3.18 the run clears WCAG *large*
+  text (3.0) but not normal text (4.5), and "≥18.66px **bold**" is only unambiguous at 700. This buys the
+  classification rather than leaving it arguable.
+- **The CTA stays SOLID `#C2410C` (5.18), not the prototype's gradient.** White 15px normal text needs 4.5;
+  the band's light end gives 3.18 and **no warm orange lighter than `#C2410C` can reach 4.5** — `--vy-accent-2`
+  `#D9662E` measures 3.57, `--vy-accent-3` `#E8703A` 3.09. The gradient CTA is *unreachable* for AA, not
+  merely unimplemented.
+- **The eyebrow sits on a solid `#B03808` plate (6.15).** It is normal-size text and the gradient cannot carry
+  it anywhere; the prototype's `rgba(255,255,255,.82)` on the band measures **2.55**.
+- **The prototype's greys are the pre-remediation palette** and all fail here: `#8A8079` (3.86), `#9C9089`,
+  `#A69A92` (2.74), `#B7ADA4`. Rendered at `--vy-muted` `#5F5853` and `--vy-faint` `#6C645F` instead. ⚠️ The
+  **footer/legal line was checked first** (§N.8d): *"You're receiving this because…"* now measures **4.95**
+  on the `#F4ECE4` footer band.
+
+### ⚠️ Literal-vs-token drift — checked, all nine match
+
+Email cannot reference a token, so every literal is a standing drift risk. Verified against the live
+declarations in `components/layouts/owner.blade.php`: `#2B2320`=`--vy-ink` · `#5F5853`=`--vy-muted` ·
+`#6C645F`=`--vy-faint` · `#B03808`=`--vy-accent-text` · `#C2410C`=`--vy-accent` · `#D9662E`=`--vy-accent-2` ·
+`#E8703A`=`--vy-accent-3` · `#F6EBE2`=`--vy-wash` · `linear-gradient(140deg, #E8703A, #C2410C)`=`--vy-grad`.
+**No drift.** The remaining literals (`#FFFDFB`, `#F8F1EA`, `#F8F4EF`, `#F4ECE4` and four hairlines) are
+opaque stand-ins for washes the app renders as translucent glass, which email cannot do.
+
+⚠️ The docblock names the four *failing* prototype greys and the measured `#E66D38` — **verified stripped from
+the rendered output** (Blade comments do not render; CSS comments would have, and shipping a forbidden literal
+through a comment is a known trap in this repo).
+
+### 🚩 REAL GAPS — logged, not built
+
+- **`DO-INV-1` · No `text/plain` alternative.** HTML-only is a deliverability and accessibility gap (spam
+  scoring, plain-text readers, some screen-reader pipelines). Needs `Content(text: 'emails.owner-invite-text')`
+  sharing ONE source for the link / org / inviter / expiry so the two parts cannot drift.
+- **`DO-INV-2` · No dark-mode handling.** The template declares `color-scheme: light` / `supported-color-schemes:
+  light`, which is honest but is a *request*: Gmail and Outlook.com force-invert regardless, and the warm
+  plates (`#F8F4EF`, `#F4ECE4`) will invert to muddy darks with text contrast unmeasured. A real fix needs
+  `@media (prefers-color-scheme: dark)` overrides plus per-client testing that this repo has no harness for.
+- **`DO-INV-3` · No public help destination.** The prototype's footer offers **"Get help"**. `/owner/help` is
+  authed and the invitee has no account yet, and no public support URL or support address is configured
+  (`MAIL_FROM_ADDRESS` is a from-address, still the `hello@example.com` placeholder). **Omitted rather than
+  pointed at a link that bounces to login.** "Sign in" is kept — `/login` is a real public route.
+- **`DO-INV-4` · The shared mail layout's footer grey — a scoped EMAIL-CONTRAST SWEEP.**
+  `emails/layout.blade.php` ships `#A99E95`, which measures **2.24** on the `#F6EBE2` wash and carries the
+  *"You're receiving this because…"* line on **all 15 emails that extend it** (plus `winback` and
+  `operator-guest-message` directly). Same shape as the PDF sweep, and the same recommendation: **one
+  dedicated gate**, because each template needs its own rendered measurement. Deliberately not fixed here.
+
+### ✅ REFUSALS TO PRESERVE
+
+- **The prototype's inbox chrome is not the email.** The meta bar (`Vyrobel <hello@vyrobel.com>` … `now`) and
+  the floating **Download PDF** button are the mock's simulated mail client. Not rendered.
+- **"Edit in Email templates"** (the prototype's footnote link) is operator-app chrome. It must never appear
+  in a recipient's inbox — the invitee is not an operator and has no account.
+- **Per-feature line icons stay a single check glyph.** The prototype's icons are inline SVG, which Outlook
+  desktop and parts of Gmail do not render. The prototype's tile geometry and colour are matched; the glyph
+  is the one that renders everywhere.
+- **No gradient CTA / no 82%-white eyebrow** — see contrast above. Parity must not buy a look with an AA
+  regression.
+- **`#28`** — the email carries the org name, the recipient's own name, the role copy and the link. Nothing
+  else. Guarded from the outside: the org is seeded with another owner (name + billing company) and a guest
+  (name + encrypted email + phone), and the render is asserted free of all of them.
+- **`#42`/`#38`** — exactly two destinations in the rendered HTML: the single-use tokened `/invite/{token}`
+  and the public `/login`. Asserted as an exhaustive set, so a new link cannot appear unnoticed.
+
+### 🔒 Guards added — all three MUTATION-PROVEN
+
+`tests/Feature/OwnerInviteEmailTest.php` 2 → 5 tests.
+
+| guard | mutation applied | result |
+|---|---|---|
+| no `--vy-*`, none of the four failing greys, brand literals present | swapped the footer colour for `var(--vy-faint, #A69A92)` | ❌ red |
+| `#28` — no other owner, no guest, exactly two hrefs | rendered a sibling owner's `legal_name` into the chip | ❌ red |
+| `#39`/`#42` — org name and token BOUND per invite | hardcoded `$orgName = 'Seaside Group'` in the Mailable | ❌ red |
+
+*(The Mailable itself was restored after the third mutation — `app/Mail/OwnerInviteMail.php` is unchanged by
+this gate. Send logic, token minting and the copy matrix were not touched.)*

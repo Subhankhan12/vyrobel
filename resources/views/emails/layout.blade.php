@@ -1,7 +1,15 @@
 {{-- Shared transactional-email layout (Phase 3 · Sub-gate 4). EMAIL-SAFE: table-based, inline CSS, web-safe font
-     fallbacks, a bulletproof terracotta button — the SAME brand as the shipped owner-invite email (the frosted
-     glass / flexbox of the on-screen design is not email-safe, so the brand is evoked with solid warm colours).
+     fallbacks, a bulletproof terracotta button (the frosted glass / flexbox of the on-screen design is not
+     email-safe, so the brand is evoked with solid warm colours).
      Each email `@extends` this and fills `@section('content')` (the card body) + `@section('preheader')`.
+
+     ⚠️ THIS NO LONGER MATCHES THE OWNER-INVITE EMAIL. `emails/owner-invite.blade.php` is a standalone document
+     (it never extended this layout) and has been rebuilt to its own prototype: a 600px card with a gradient
+     brand BAND and a footer BAND, versus this layout's 480px card with a plain brand lockup. It is also the
+     only template whose greys are at the remediated token values — this layout's footer still ships #A99E95,
+     which measures 2.24 on the #F6EBE2 wash and carries the "why you're receiving this" line on all 15 emails
+     that extend it. Logged as a scoped email-contrast sweep in docs/design/MISSING-BACKEND-BY-PAGE.md
+     §O-Invite; deliberately NOT fixed here, because each template needs its own rendered measurement.
 
      BRAND-AWARE (#98): the optional `$brand` (App\Support\Branding\PropertyBrand) recolours the mark + swaps the
      logo/name + toggles the "Powered by Vyrobel" footer. Fails OPEN — no `$brand` ⇒ the shipped Vyrobel default,
