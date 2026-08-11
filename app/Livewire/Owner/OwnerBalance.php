@@ -25,14 +25,22 @@ use Livewire\Component;
  * happen in render() under the active owner+tenant scope.
  *
  * ⚠️ REAL MONEY. Honesty triage:
- *   • REAL clearing model — the reconciling identity `Available + On hold + In transit + Paid == Net
- *                 position`, per currency, to the cent (#17), derived entirely from the REAL ledger +
- *                 payouts + the REAL tax-hold:
+ *   • REAL clearing model — the reconciling identity `Available + On hold + In transit + Paid +
+ *                 Carried forward == Net position`, per currency, to the cent (#17), derived entirely from
+ *                 the REAL ledger + payouts + the REAL tax-hold. ⚠️ FIVE terms, and the buckets take the
+ *                 payout engine's PERSISTED statuses — this is the one owner surface where `processing`
+ *                 and `held` are first-class rather than collapsed into "pending" (cf. D16-7):
  *                   – Available  = Σ signedMinor() over UNSTAMPED rows (statement_id === null) — cleared
  *                                  this period, flowing into the next payout.
- *                   – On hold    = Σ pending payouts WHEN the owner tax-hold is on (no tax ID on file).
- *                   – In transit = Σ pending payouts when NOT held (released) — €0 while held.
- *                   – Paid       = Σ payouts.status='paid'. ('pending'/'paid' are real Payout enum values.)
+ *                   – On hold    = Σ payouts.status='held' (the engine's persisted tax-hold), PLUS a
+ *                                  manual-path 'pending' payout while the tax-hold pauses the rail.
+ *                   – In transit = Σ payouts.status='processing' (an initiated Connect transfer awaiting
+ *                                  its webhook), PLUS a released 'pending' payout — €0 while held.
+ *                   – Paid       = Σ payouts.status='paid'.
+ *                   – Carried fwd= stamped rows whose statement has NO active payout (a negative/carried
+ *                                  statement, or one whose only payout failed). Without this the identity
+ *                                  broke by exactly their sum once any negative statement existed.
+ *                 ('pending', 'processing', 'held' and 'paid' are all real Payout enum values.)
  *                 The per-row state chip takes the same real states (Available / Paid out / On hold /
  *                 In transit / Cleared). No fabricated "cleared" state — a row is Available until it is
  *                 stamped onto a finalised statement, then it takes its statement's real payout status.
@@ -86,8 +94,8 @@ class OwnerBalance extends Component
         // real tax-hold. Identity: Available + On hold + In transit + Paid == Net position, per currency, to the
         // cent (#17). NOTHING here is a money-movement — the withdraw stays account-gated (never faked, #39).
         //   • Available  = unstamped ledger net (cleared this period, not yet in a finalised statement).
-        //   • On hold    = pending payouts held by the tax-hold (owner has no tax ID on file).
-        //   • In transit = pending payouts NOT held (released, on their way per the schedule) — €0 while held.
+        //   • On hold    = the engine's persisted `held` payouts + a pending one the tax-hold pauses.
+        //   • In transit = `processing` (an initiated transfer awaiting its webhook) + a released pending one.
         $pending = $payouts->filter(fn (Payout $p): bool => $p->status === 'pending');
         $heldPayouts = $payouts->filter(fn (Payout $p): bool => $p->status === 'held');
         $processingPayouts = $payouts->filter(fn (Payout $p): bool => $p->status === 'processing');

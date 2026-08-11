@@ -2,6 +2,7 @@
 
 use App\Livewire\Owner\OwnerBalance;
 use App\Models\Membership;
+use App\Models\Payout;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\OwnerAttributionService;
@@ -82,4 +83,33 @@ it('reconciles the Balance clearing identity after a negative (carried-forward) 
     // 🔒 #17 — the four tiles + the Carried-forward bucket reconstruct Net to the cent, even now.
     expect(balanceIdentityHolds($component))->toBeTrue()
         ->and((int) $component->viewData('carriedForward')['minor'])->toBeLessThan(0);   // the real carried figure
+});
+
+// ── 3. ⚠️ D16-7: the `processing` and `held` BUCKETS themselves — unguarded until now ──────────────
+// Balance is the ONE owner surface that treats the engine's persisted `processing` and `held` statuses as
+// first-class (In transit = processing + released pending; On hold = held + paused pending), while the shared
+// `payoutStatusMeta` collapses both into "Payout pending" (O14/D16-7). Nothing guarded that: dropping either
+// bucket from the component left every Balance test green, AND the engine-surface test green — because its
+// identity is computed from the DB rather than from the component, and its `assertSee('On hold')` passes on
+// the tile's static label. This asserts the COMPONENT'S OWN buckets, so a regression in either is caught.
+it('puts a processing payout in In transit and a held payout in On hold', function () {
+    $s = seedScenario(1);
+    $c = reconOwner($s);   // September is finalized, with a PAID payout
+
+    $payout = Payout::query()->where('owner_id', $c['owner']->id)->firstOrFail();
+    expect((string) $payout->status)->toBe('paid');   // the starting state is real
+
+    // PROCESSING — an initiated transfer awaiting the webhook → In transit, never On hold.
+    $payout->forceFill(['status' => 'processing'])->save();
+    $c1 = Livewire::actingAs($c['user'])->test(OwnerBalance::class);
+    expect((int) $c1->viewData('inTransit')['minor'])->toBe((int) $payout->amount_minor)
+        ->and((int) $c1->viewData('onHold')['minor'])->toBe(0)
+        ->and(balanceIdentityHolds($c1))->toBeTrue();
+
+    // HELD — the engine's persisted tax-hold → On hold, never In transit.
+    $payout->forceFill(['status' => 'held'])->save();
+    $c2 = Livewire::actingAs($c['user'])->test(OwnerBalance::class);
+    expect((int) $c2->viewData('onHold')['minor'])->toBe((int) $payout->amount_minor)
+        ->and((int) $c2->viewData('inTransit')['minor'])->toBe(0)
+        ->and(balanceIdentityHolds($c2))->toBeTrue();
 });

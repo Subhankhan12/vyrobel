@@ -4102,3 +4102,100 @@ the fix**. Textbook **empty-fixture vacuity** (Principle 4) — caught only beca
 - **Keyboard: 0 unnamed controls, 0 `display:none` interactive controls, 0 `div@click`**; 0 overflow; 0
   console errors.
 - ⚠️ **`toContain` sweep — clean negative** (fifteenth gate).
+
+---
+
+## §O17 — Owner Balance (`/owner/balance`, `App\Livewire\Owner\OwnerBalance`) · OWNER 17/32
+
+**Prototype:** `docs/design/raw/Owner Balance.html` (decoded fresh). **Role:** `External Owner`, self-scoped.
+⚠️ **REAL MONEY, and THE D16-7 surface** — the page whose whole job is *"where every euro is on its way to"*.
+
+### ⚠️ PREMISE CORRECTION — this page is the D16-7 REFERENCE IMPLEMENTATION, not another victim
+
+The gate was briefed expecting `processing`/`held` to be collapsed or dropped here, as they are elsewhere
+(O3: dropped from the Payouts tiles; O14: the shared `payoutStatusMeta` collapses both into *"Payout
+pending"*). **The opposite is true.** `OwnerBalance` treats the engine's persisted statuses as **first-class**,
+using its own local mapping rather than the shared collapsing helper:
+
+- **On hold** = `payouts.status='held'` (the engine's persisted tax-hold) **+** a manual-path `pending` payout
+  while the tax-hold pauses the rail.
+- **In transit** = `payouts.status='processing'` (an initiated Connect transfer awaiting its webhook) **+** a
+  released `pending` payout.
+- The per-row chip maps `processing → "In transit"` and `held → "On hold"` as **distinct words**.
+
+⚠️ **So the D16-7 gate already has a working reference: make the shared `payoutStatusMeta` match
+`OwnerBalance::rowStateMeta()`.** That is the single most useful thing recorded by this gate.
+
+### 🔴 The find: the D16-7 buckets were COMPLETELY UNGUARDED
+
+Dropping `processing` from **In transit**, or `held` from **On hold**, left **every** Balance test green — and
+also left `PayoutEngineSurfaceTest::renders the engine hold on Balance` green, the one test that *does* create
+a real `held` payout. Why it misses:
+
+- its identity assertion is computed **from the DB** (`$available + $held + 0 + $paid === $net`), not from the
+  component's view data, so it cannot detect the component mis-bucketing;
+- its `assertSee('On hold')` passes on the **tile's static label**, which renders at €0 too.
+
+**A new guard now asserts the COMPONENT'S OWN buckets** — a payout driven to `processing` must land in
+`inTransit` with `onHold` at 0, then driven to `held` must land in `onHold` with `inTransit` at 0, with the
+five-term identity holding in both. **Mutation-proven in both directions.** ⚠️ Found only because the mutation
+was run: the first attempt against the existing suite *passed*, which is what exposed the hole.
+
+### Fixed on this page (design / markup / styling only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | ⚠️ **The ON HOLD tile's own label + sub at 3.08 / 2.98** — on the D16-7-critical tile. On that accent tint **no grey token reaches AA** (`--vy-on-grad` tops out at **4.31**) | `--vy-ink` → **6.80 / 6.57**; hierarchy now carried by size + weight, not by a colour that can't be read |
+| 2 | ~20 × **"on a statement"** row links (4.14–4.48) + **"Payouts →"** (4.29) — raw accent as text | `--vy-accent-text` → 4.92–5.23 |
+| 3 | Stale docblock: a **4-term** identity, with On-hold/In-transit described as *pending-only* — contradicted by the code **8 lines below it**, and by the test that asserts **5** terms | corrected to the real five-term model with the persisted statuses named |
+
+**Contrast: 28 AA failures → 4** (281 text + 31 icon candidates).
+
+⚠️ **The 4 survivors, honestly:** three are the gradient family (avatar, brand mark, "Add tax details" CTA).
+The fourth is the **disabled "Withdraw €963.60" button at 2.33** — **formally exempt** (WCAG 1.4.3/1.4.11
+exclude inactive components), and **deliberately left**: darkening it would make a control that **cannot act**
+look live, which this page's first rule forbids. The amount is also stated at full contrast in the Available
+tile directly above.
+
+### 🚫 Refusals preserved
+
+- **"Withdraw early" is genuinely disabled** — a real `<button disabled aria-disabled="true">` with
+  `cursor:not-allowed`, because **there is no owner-initiated payout rail** (`StripeConnectPayoutRail::send()`
+  throws; the manual rail is operator-run). Never a live-looking withdraw.
+- **"In transit €0.00 · nothing in transit" is SHOWN, not hidden** — the honest zero is the point of the page.
+- **No fabricated ETA** — the cadence card renders only when the owner's current agreements agree on one
+  `payout_schedule`; an ambiguous set renders nothing rather than picking a value.
+- **The "Why is €885.60 held?" card renders only on a genuine tax-hold**, with the real reason.
+- **The internal ledger note token** (`ota_unverified`, `no_agreement`) is not rendered — it is not
+  owner-facing copy; the human `description` and the Unverified badge carry the signal.
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO17-1 — ⚠️ the D16-7 fix already exists HERE; the shared helper is what lags.** `payoutStatusMeta`
+  (Payouts, Documents) collapses `processing` + `held` into "Payout pending"; `OwnerBalance::rowStateMeta()`
+  distinguishes them correctly. *Verdict: **REAL GAP** — and the D16-7 gate now has a reference to copy.*
+- **DO17-2 — no owner-initiated withdrawal rail.** Instant/self-serve payout needs the live Stripe
+  connection. *Verdict: **ACCOUNT-GATED**.*
+- **DO17-3 — the demo can never show "In transit" populated.** No demo payout is ever `processing`, so the
+  state renders only in tests. Its chip tone was therefore **probed in and measured** rather than assumed.
+  *Verdict: **REAL GAP** (demo-data), noted so a later reader doesn't mistake €0.00 for a bug.*
+
+### ⚠️ Verified, not changed
+
+- **#17 — the clearing identity reconciles, on screen and in code.** On the live page:
+  Available **€963.60** + On hold **€885.60** + In transit **€0.00** + Paid **€2,804.40** = **€4,653.60**,
+  exactly the newest running balance (Net). In code it is the five-term identity including **Carried
+  forward**, asserted by `OwnerBalanceReconciliationTest` in the normal case **and** after a negative
+  (carried-forward) statement.
+- **One source, no Blade re-derivation** — every figure comes from the ledger + payouts via the component;
+  the running balance is the same cumulative sum taken chronologically.
+- **Self-scoped (#42)** — an existing test asserts the balance is scoped to the owner, hides other owners, and
+  fails closed for a non-linked user.
+- **#28** — the destination account shows only the **masked** `···· 1000`, CAP_PAYOUT-gated; no guest data.
+- **Statuses are WORDS and distinct** — Available / On hold / In transit / Paid out / Cleared; never colour
+  alone. This matters more here than anywhere, since telling them apart *is* the page's job.
+- **Observed READ-ONLY** — nothing withdrawn or transferred; `payouts` still 6 (statuses `pending`,`paid`
+  only), max payout `updated_at` still the seed time, 29 ledger rows unchanged, `export_downloads` still 7.
+- **Keyboard: 0 unnamed controls, 0 `display:none` interactive controls, 0 `div@click`**; 0 overflow; 0
+  console errors.
+- ⚠️ **`toContain` sweep — clean negative** (sixteenth gate).

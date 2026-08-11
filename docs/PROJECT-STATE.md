@@ -13,7 +13,7 @@ conflicts with the repo, **trust the repo** and fix this file.
      owner running lessons (§N.10), the two standing traps (§N.8c), the baseline shift 5–9 → 5–10, and the
      accent-as-text sweep at 22 fixed. -->
 
-> ### ⬅ RESUME HERE — the next unit of work is **OWNER page 17 of 32 (Balance)**
+> ### ⬅ RESUME HERE — the next unit of work is **OWNER page 18 of 32**
 > One page per turn: decode the prototype in `docs/design/raw/` fresh → open the live page via Playwright as
 > the OWNER role → diff every detail → classify **DESIGN-GAP** (fix now, design/markup only) / **REFUSAL-TO-
 > PRESERVE** / **EXTRA-WORK** / **MISSING-BACKEND** (log to `docs/design/MISSING-BACKEND-BY-PAGE.md`, do not
@@ -828,7 +828,7 @@ Propose-before-build (STOP at ⛔ gates); **NO fabricated data** (honest empty/S
 Deliverable + per-page record: **`docs/design/MISSING-BACKEND-BY-PAGE.md`**.*
 
 > ### 🧭 READING ORDER (the sub-sections were appended per gate, so the numbering is not the reading order)
-> **Status:** 🏁 OPERATOR **42/42** complete · ⬅ OWNER **16/32** in progress · GUEST **0/32**. **NEXT = owner page 17 (Balance).**
+> **Status:** 🏁 OPERATOR **42/42** complete · ⬅ OWNER **17/32** in progress · GUEST **0/32**. **NEXT = owner page 18.**
 >
 > | Read | Section | What it gives you |
 > |---|---|---|
@@ -1007,7 +1007,7 @@ KPI deltas** (the `−40 pts` occupancy delta is measured against that same thin
   but **the same hole opens for any tenant in its first year — which is every new tenant.**
 - It is the **WAVE-2 class exactly**: *a figure under a label that means something else.*
 
-## N.4b OWNER realm progress — **16 of 32** · `6d974d7` → O16 · ⬅ **NEXT = owner page 17 (Balance)**
+## N.4b OWNER realm progress — **17 of 32** · `6d974d7` → O17 · ⬅ **NEXT = owner page 18**
 
 **Every gate below is design-matched, browser-verified, backend-logged, baseline-held and pushed.** The
 one-line summary of what the owner realm has cost and returned so far: **three 🔴 real defects** (a chart
@@ -1035,6 +1035,7 @@ corrected**. Detail per gate:
 | O14 | **Owner Documents** (`/owner/documents`) — a LIST of downloadable money documents, so **#42 is the core check**. ⚠️ **Premise confirmed distinct** — and ⚠️ **`Owner Archive.html` is a SECOND prototype that is ALSO a live page** (`/owner/archive`): its own gate, untouched · ⚠️ **a nav "defect" that VERIFIED AS CORRECT**: the sidebar "Statements" points at `/owner/archive` because **there is no `/owner/statements` index** — the statement LIST *is* the archive (only `/{id}` detail + PDFs exist). Checked before reporting · **contrast 10 → 2, and both remaining are the SHELL's gradient family — the page's own ink is fully AA, the realm's best result so far**: ⚠️ **"full archive ›" measured 2.70, the worst non-family site on any owner page**, and **NO accent tone reaches AA on that gradient** (darkest = 3.85) → `--vy-on-grad` + an **underline**, so the link affordance stops depending on colour at all; the header line 3.98 → on-grad-soft; the **six per-month NET figures** 4.38–4.45 → `--vy-accent-text` · **#17 reconciles ON THE PAGE**: the six monthly nets sum to **€3,690.00**, exactly the annual tax card · **#42 MUTATION-PROVEN** — the fixture already seeds a **second owner with a distinctive €500 statement**, asserts his links absent from A's list and **B→A's PDF 404**; dropping the scope turns **3 tests red** · 📌 **DO14-1 — a THIRD form of D16-7**: `payoutStatusMeta`'s `default =>` swallows **`processing`** AND **`held`** (both genuinely written by `OwnerPayoutService`), so a remittance advice for money **in flight** or **held** reads *"Payout pending"* — **mislabelled rather than invisible** (O3's tiles dropped it entirely). **Shared helper → logged for the D16-7 gate, not fixed here** · ⚠️ **a suspicion MEASURED AND DISMISSED**: a wide guard tripped on the shared bell's accent link — measured **5.06, it PASSES**; recorded as a negative sweep, guard re-scoped · **nothing downloaded this gate — `export_downloads` still 7; 6/6 notifications still unread** | O14 |
 | O15 | **Owner Team & access** (`/owner/team`) — an AUTHORIZATION surface. ⚠️ **Two premise corrections:** (a) **the invite is a DIRECT owner action, not a request** — Owner-9's units-are-a-request finding does NOT generalise; (b) **the gate is STRONGER than assumed** — the brief expected "a sub-user may view, writes gated", but **`EnsurePrimaryOwner` gates the READ SCREEN too**, so a sub-user (even a **co-owner**) gets **403 on the page**. Team management is held by **no role at all** (`isPrimaryOwner()`), which makes **self-escalation structurally impossible** · **#30 and #42 BOTH mutation-proven**: removing `EnsurePrimaryOwner` turns the sub-user-refusal test red; dropping `whereIn('owner_id', $ownerIds)` from the member resolve turns the cross-owner-404 test red · **the role MATRIX is the REAL `OwnerTeamRole` grid**, area for area — and it is deliberately **NOT a privilege chain** (accountant has documents+exports but not calendar; view-only has calendar but not documents) · **GATE-33 held** — no fabricated "last active {city}"; the rows read the real `last_login_at` ("Active now" / "Hasn't signed in yet"), the helper's docblock saying *"never a fabricated relative time"* · **the watermark claim is TRUE and the page proves it** by showing the real export-download log · **the invite email field was the page's ONLY unnamed control** — placeholder-only, on the form that grants access to the owner's money → `aria-label`, guard mutation-proven · **contrast 11 → 7**: "View only" pill + member count 3.51/3.57 → `--vy-on-grad`; "Accountant" pill 4.48 → `--vy-green-text`; invite meta 4.06 → `--vy-amber-text`. ⚠️ **All 7 survivors are the white-on-gradient family — including a NEW GREEN variant** (member avatars on `rgb(92,141,82)`, **3.61**): the family is **not purely accent-coloured** · **§N.4k proven on a privilege page**: 9 forms, each one submit; **no field can reach another member's form or a DELETE/Remove route** · 📌 **DO15-1 — no seat count/limit is shown at all** (#10, **G.1-adjacent**): nothing faked, no unenforced limit advertised — surfaced, not decided · **READ-ONLY across all 9 forms — nothing invited, no role changed, no one removed** | O15 |
 | O16 | **Owner Payout Method** (`/owner/payout-method`) — ⚠️ **REAL BANKING, and the most fabrication-dense prototype in the realm**: it ships an ENTIRE micro-deposit verification system that does not exist ("Verifying" badge, "Send micro-deposits & verify", a Deposit-1/Deposit-2 modal, "reversed within 5 business days", "Resend deposits"), a **fabricated "Next payout €10,370 · Estimated 3 Nov 2025"**, a 48h hold and a 2-business-day SEPA-trace SLA. **The product refuses all of it** — live shows the REAL €885.60, no date, and each retained line qualified *"with your live banking connection"* · ⚠️ **the structural fact that decides the page: `payout_methods` has NO verification column at all**, so a "Verified" badge would be **pure fabrication**, not a stale value; and the full IBAN is stored **encrypted** with only last4/country in the clear, so `Iban::masked` makes a raw IBAN **structurally un-emittable** · **#28 swept on the RENDERED DOM: 0 IBAN-shaped strings, only `···· 1000`** — **mutation-proven** (emitting `$m->iban` turns the masked-IBAN test red) · 🔴 **contrast: the validation-error flash measured 3.03 ON A BANKING PAGE** (`.vy-flash.is-err` used `--vy-amber`, a FILL tone, as TEXT) → `--vy-amber-text` **5.08**; the error only renders after a failed submit so it was **probed in and measured**, not assumed · the **pre-AA `#9C9089` literal** still lived here at **2.55–2.66** (worst on the page) → on-grad-soft; **13 → 6**, all survivors the gradient family · ⚠️ **the shared `.vy-flash` rule exists in BOTH layouts but they are INDEPENDENT rules with different palettes** (owner amber / operator accent) — **and the operator layout has no `--vy-amber-text` token at all**, so a blanket change was impossible; checking first (the O6 lesson) kept the fix owner-only, blast radius verified across all 3 consumers · ⚠️⚠️ **A GUARD OF MINE WAS VACUOUS AND MUTATION CAUGHT IT**: I tightened `assertDontSee('Verifying')` to also forbid **"Verified"** — the stronger claim — but it sat in a fixture with **NO payout method**, so no account row ever rendered and the injected fake badge passed. **Relocated to the account-rendering test, re-mutated, now genuinely red.** Textbook empty-fixture vacuity · **§N.4k**: Enter in the IBAN targets Save, **never the DELETE form** · **READ-ONLY across all 7 forms (a FAKE IBAN typed, never submitted) — payout_methods still 1, same last4/default/seed-time `updated_at`, preferences still 0, owner tax fields still null** | O16 |
+| O17 | **Owner Balance** (`/owner/balance`) — ⚠️⚠️ **PREMISE INVERTED: this page is the D16-7 REFERENCE IMPLEMENTATION, not another victim.** The brief expected `processing`/`held` collapsed or dropped (O3 dropped them from tiles; O14's shared `payoutStatusMeta` collapses both into "Payout pending"). **The opposite:** `OwnerBalance` uses its OWN mapping — **On hold = persisted `held` + paused pending; In transit = `processing` + released pending**, with per-row chips naming them as **distinct words**. ⚠️ **So the D16-7 gate now has a working reference to copy: make `payoutStatusMeta` match `OwnerBalance::rowStateMeta()`** · 🔴 **the find: those buckets were COMPLETELY UNGUARDED.** Dropping `processing` from In-transit or `held` from On-hold left **every** Balance test green — **and** `PayoutEngineSurfaceTest`, the one test that creates a real `held` payout, because its identity is computed **from the DB** not the component and its `assertSee('On hold')` passes on the tile's **static label**. New guard asserts the **component's own buckets** in both states with the identity intact; **mutation-proven both directions**. ⚠️ **Found only by running the mutation — the first attempt PASSED, which is what exposed the hole** (the O16 lesson, immediately repeating) · **contrast 28 → 4**: ⚠️ **the ON HOLD tile's own label+sub measured 3.08/2.98 — on the D16-7-critical tile — and on that tint NO grey token reaches AA** (`--vy-on-grad` tops at 4.31) → `--vy-ink` **6.80/6.57**, hierarchy carried by size+weight; ~20 "on a statement" links + "Payouts →" → accent-text · ⚠️ **the 4 survivors, honestly**: 3 gradient-family + **the DISABLED "Withdraw €963.60" at 2.33, formally EXEMPT and deliberately left** — darkening a control that **cannot act** would make it look live, which this page's first rule forbids · **stale docblock corrected**: it stated a **4-term** identity with pending-only buckets, contradicted by the code **8 lines below** and by the test asserting **5** terms (incl. Carried forward) · **#17 on screen: 963.60 + 885.60 + 0.00 + 2,804.40 = €4,653.60 = Net** · **READ-ONLY — nothing withdrawn; payouts still 6 (pending/paid only), seed-time timestamps** | O17 |
 
 ## N.4c ⚠️⚠️ `expect(...)->not->toContain($needle, $message)` IS AN ALWAYS-PASSING ASSERTION
 
@@ -1322,7 +1323,33 @@ what the fixture actually puts on the page — and prove it by making the forbid
 `toContain` (§N.4c), a mutation that silently didn't apply (§N.4n), and now a fixture that can't reach the
 assertion. **All three were found by mutating, never by reading.**
 
-## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 16/32 UNDERWAY**, then GUEST (32).
+## N.4q 🏁 D16-7 HAS A REFERENCE IMPLEMENTATION — and its buckets were unguarded on the page that gets it right
+
+**O17 inverted the expected finding.** Balance was briefed as another D16-7 victim; it is the **one owner
+surface that gets `processing` and `held` right**, via its own `rowStateMeta()` rather than the shared
+`payoutStatusMeta` that collapses both into *"Payout pending"* (O14):
+
+- **On hold** = persisted `held` + a pending payout the tax-hold pauses
+- **In transit** = `processing` (an initiated transfer awaiting its webhook) + a released pending payout
+
+⚠️ **The D16-7 gate should therefore not design a fix — it should copy this one.** Make the shared helper
+match `OwnerBalance::rowStateMeta()`, then re-check Payouts (O3) and Documents (O14).
+
+**But the buckets themselves were completely unguarded.** Dropping either from the component left every
+Balance test green *and* `PayoutEngineSurfaceTest` green — the one test that creates a genuine `held` payout —
+because **its identity is computed from the DB rather than from the component**, and its `assertSee('On
+hold')` passes on the tile's static label. A guard now asserts the **component's own buckets**;
+mutation-proven both ways.
+
+⚠️ **This is the O16 lesson repeating one gate later**: the hole was found *only* because the mutation was
+run and **passed**. Two gates running, a green suite has hidden a real gap that no amount of reading would
+have shown. **Mutate the thing you are about to trust — and when the mutation passes, that is the finding.**
+
+⚠️ **Also recorded: a disabled control can be the RIGHT answer to a contrast failure.** The "Withdraw" button
+measures 2.33 and was deliberately left: it is formally exempt (inactive components), and darkening a control
+that **cannot act** would make it look live — which on a money page is the worse honesty failure.
+
+## N.7 🏁 OPERATOR COMPLETE (42/42) — **OWNER 17/32 UNDERWAY**, then GUEST (32).
 
 **The operator realm is finished.** 42 prototypes, 34 gates (`0aa9ede`→P34), every page decoded, diffed in a
 real browser, fixed where it was a design gap, and **logged where the product honestly refuses**.

@@ -17,6 +17,10 @@
 <x-owner.shell active="balance" title="Balance & withdrawals" :subtitle="'What’s cleared, what’s held, and where every euro is on its way to.'" :viewer="$viewer">
     <style>
         .vy-bl-kpi--hold { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, .1); }
+        /* ⚠️ On this tint NO grey token clears AA (--vy-on-grad tops out at 4.31), so the label and
+           sub take --vy-ink (6.80 / 6.57). The value stays larger + bolder, so the hierarchy is
+           carried by size and weight rather than by a colour that cannot be read. */
+        .vy-bl-kpi--hold .vy-kpi-label, .vy-bl-kpi--hold .vy-kpi-sub { color: var(--vy-ink); }
         .vy-bl-withdraw { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
         .vy-bl-withdraw-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: var(--vy-r-pill); background: var(--vy-grad); color: #fff; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; border: none; opacity: .55; cursor: not-allowed; box-shadow: var(--vy-shadow-accent); }
         .vy-bl-held-ic { flex: none; width: 42px; height: 42px; border-radius: var(--vy-r-md); background: var(--vy-grad); color: #fff; display: grid; place-items: center; box-shadow: 0 5px 14px rgba(194, 65, 12, .3); }
@@ -119,7 +123,7 @@
                                         <div class="vy-row-sub">
                                             {{ $entry['type_label'] }}
                                             @if ($entry['statement_id'])
-                                                · <a href="{{ route('owner.statements.show', $entry['statement_id']) }}" style="color:var(--vy-accent);font-weight:600">on a statement</a>
+                                                · <a href="{{ route('owner.statements.show', $entry['statement_id']) }}" style="color:var(--vy-accent-text);font-weight:600">on a statement</a>
                                             @else
                                                 · <span class="vy-muted">not yet on a statement</span>
                                             @endif
@@ -195,7 +199,7 @@
                     <span class="vy-eyebrow">Auto-payout schedule</span>
                     <div class="vy-list-row">
                         <span style="font-size:13.5px;font-weight:500">{{ $schedule['label'] }}</span>
-                        <a href="{{ route('owner.payouts') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Payouts →</a>
+                        <a href="{{ route('owner.payouts') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">Payouts →</a>
                     </div>
                     <div class="vy-line-sub">Everything cleared by the schedule goes out automatically — no action needed.</div>
                 </section>

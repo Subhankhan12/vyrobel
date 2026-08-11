@@ -7314,3 +7314,40 @@ this pass, all three found by mutating rather than reading.
 `owner_payout_preferences` still 0; owner tax fields still null. **No account added, changed, removed or set
 primary.** §N.4k — Enter in the IBAN targets Save, never the DELETE form. No schema touched. Suite
 **1841 / 12,071 · 9 non-green** (documented set); PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 17/32 · **Owner Balance** (`/owner/balance`)
+
+Design/markup only, plus one stale-docblock correction and one new guard. Real money, and the D16-7 surface.
+
+**1. ⚠️ The premise inverted — Balance is the D16-7 *reference implementation*.** It was briefed as another
+victim; in fact it is the one owner surface that treats the engine's persisted `processing` and `held` as
+first-class, using its own `rowStateMeta()` rather than the shared `payoutStatusMeta` that collapses both into
+"Payout pending" (O14). **On hold** = persisted `held` + paused pending; **In transit** = `processing` +
+released pending. **The D16-7 gate should copy this, not design a new fix.**
+
+**2. 🔴 Those buckets were completely unguarded.** Dropping `processing` from In transit, or `held` from On
+hold, left every Balance test green — **and** `PayoutEngineSurfaceTest`, the one test that creates a real
+`held` payout, because its identity is computed from the **DB** rather than from the component and its
+`assertSee('On hold')` passes on the tile's static label. A new guard asserts the **component's own buckets**
+in both states with the five-term identity intact; mutation-proven both directions. ⚠️ Found only because the
+mutation was run and **passed** — the O16 lesson repeating one gate later (§N.4q).
+
+**3. Contrast 28 → 4.** The **On hold tile's own label and sub** measured 3.08 / 2.98 — on the tile the whole
+D16-7 question hangs on — and on that accent tint **no grey token reaches AA** (`--vy-on-grad` tops out at
+4.31), so they take `--vy-ink` (6.80 / 6.57) with hierarchy carried by size and weight. Twenty row links and
+the Payouts link moved to `--vy-accent-text`.
+
+⚠️ **One survivor is deliberate:** the disabled "Withdraw €963.60" button measures 2.33 and was **left**. It is
+formally exempt (inactive components), and darkening a control that **cannot act** would make it look live —
+the worse honesty failure on a money page. The amount is stated at full contrast directly above.
+
+**4. Stale docblock corrected.** It described a **four-term** identity with pending-only buckets — contradicted
+by the code eight lines below it and by the test asserting **five** terms (including Carried forward).
+
+**Verified:** the identity reconciles on screen — 963.60 + 885.60 + 0.00 + 2,804.40 = **€4,653.60** = Net;
+self-scoped; masked IBAN only; statuses are distinct words; withdraw genuinely `disabled`/`aria-disabled`.
+**Read-only** — nothing withdrawn or transferred; payouts still 6 (`pending`/`paid` only), seed-time
+timestamps, 29 ledger rows unchanged. No schema touched. Suite **1842 / 12,078 · 9 non-green** (documented
+set); PHPStan L5 (0); Pint clean.
