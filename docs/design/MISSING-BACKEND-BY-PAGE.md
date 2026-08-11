@@ -4783,3 +4783,88 @@ it points at (#30).
 - **The sub-header "Your finalized history · …" at 3.98** — it sits on the **hero gradient**, where the
   page-body muted token cannot reach AA → **`--vy-on-grad`**.
 - **Survivors (2), both the known shell gradient family, none added:** avatar 3.83, brand mark 3.88.
+
+---
+
+## §O-25 — Owner **Reports** (`/owner/reports`)
+
+`App\Livewire\Owner\OwnerReports` (+ `OwnerCommissionRate`, `OwnerLedgerAttribution`, `OwnerVatService`).
+Prototype `docs/design/raw/Owner Reports.html`. Read-only: year / custom-range / export are all GETs.
+
+### 🔴 THE FIX — a month that earned nothing was drawing a bar
+
+The net-by-month chart carried a **two-percent floor on the bar height**, applied twice (the bar and its
+value label). Live, **five months that genuinely earned €0.00 each rendered a visible bar** — Jan, Feb, Mar,
+Nov and Dec — while printing "€0.00" right above them. **The chart contradicted its own printed figure.**
+
+⚠️ **The axis was already correct** — `netByMonth()` seeds every month in the range and walks `addMonth()`,
+so an empty month keeps its slot. The O18 *axis* bug does **not** apply here; only the bar did. Fixed to the
+honest value, with a 3px hairline **only when the month is non-zero**, so a small real month stays visible
+without inventing height for a zero. Live after: the five zero months render **0px**, the axis still shows all
+twelve.
+
+### 🔴 A #60 GUARD THAT COULD NOT FAIL — and two bad needles before the right one
+
+*"shows the real reporting-year dropdown, not fabricated prior years"* asserted **only positives** ("Reporting
+year", the current year, "Year to date"). Its comment claimed *"the fabricated years are gone"*, but **nothing
+tested that** — hardcoding the wireframe's `2026/2025/2024/2023` list left it **green**.
+
+Repairing it took three attempts, and the two failures are worth recording:
+1. `assertDontSee('2024')` — **fails on correct markup**: a bare `2024` legitimately appears in the
+   **custom-range month picker** ("Dec 2024"). *(The O14 too-generic-needle lesson.)*
+2. `assertDontSee('range=year:2024')` — **can never fail**: that is not the emitted href.
+3. ✅ `assertDontSee('year=2024')` — the real GET key. **Mutation-proven**: hardcoding the wireframe's years
+   now turns it red.
+
+*A guard's needle must be taken from the rendered output, not from what the parameter is assumed to be.*
+
+### ⚠️ THE ARCHIVE CARRY-FORWARDS — BOTH CHECKED, NEITHER APPLIED
+
+- **The stale-docblock-denies-a-feature pattern (O22/O24) does NOT recur here.** `OwnerReports`' docblock is
+  **accurate**: it already describes the Tax & VAT summary as *"REAL (Wave D · tax engine) … COMPUTED …
+  honestly labelled"*. Checked explicitly because a reporting page is a likely home for a stale "we don't
+  compute VAT" note. **Clean negative.**
+- **No €0 row was inserted for a pre-membership year (DO24-3).** The year dropdown lists only real statement
+  years plus the current one; nothing was back-filled.
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO25-1 — the month chart is a local implementation, not the shared `<x-charts.bars>`.** `.vy-rep-bar` is
+  this page's own markup, which is why the min-bar floor survived here after being fixed elsewhere. *Verdict:
+  **REAL GAP** — the O23 duplication axis again; the shared-bars gate should absorb this chart.*
+- **DO25-2 — whether the "Example rates" flag needs formal legal wording is the founder's call** (DO22-1,
+  restated). The page already carries *"not tax advice"* + an EXAMPLE-rates tag; nothing was added.
+
+### ⚠️ Verified, not changed
+
+- **The commission rate is the REAL 18%, never the mock 15%.** Live: *"Commission · 18% −€1,076.40"* on a
+  gross of €5,980.00 — exactly 18.0%. **Mutation-proven**: forcing `$percent = 15.0` turns the existing
+  gross-to-net guard **red**. `15%` appears nowhere on the page.
+- **#17 reconciles four ways to the same €4,653.60**: gross-to-net (5,980.00 − 1,076.40 + 0.00 − 250.00) ·
+  per-unit (2,496.60 + 2,157.00, shares 54% + 46% = 100%) · by-channel (4,460.80 + 442.80 − 250.00) · the
+  month chart. One source (`OwnerLedgerAttribution`), no Blade re-derivation.
+- **Occupancy denominator (Owner-8)** — 8% across 2 units, from the shared `PerformanceMetrics` owner path.
+- **#60** — only the real year (2026) is offered; no 2025/2024/2023 in the reporting-year list.
+- **#73 framing intact** — *"not tax advice"* plus an **EXAMPLE RATES** tag on the VAT summary.
+- **#28** — the payout card's IBAN is masked (`···· 1000`); no guest data anywhere.
+- **READ-ONLY** — every export is a GET link (PDF · CSV · Spreadsheet · Annual tax summary · per-statement
+  PDFs), all named; **none fired**, so no `export_downloads` row was written by this gate.
+- **Keyboard: 0 unnamed, 0 `display:none` controls, 0 genuinely unreachable.** ⚠️ Six `vy-rep-pop` wrappers
+  looked unreachable — a **probe false positive (10th)**: they carry only `@keydown.escape.window` and each
+  has a real `<button>` trigger ("2026", "Custom range", "Export"). Escape-to-close is itself keyboard support.
+- **Metrics are not colour-only** — every figure is a number with a word label; the channel bar is backed by a
+  labelled legend with percentages.
+- ⚠️ **`toContain` sweep — clean negative** (twenty-fourth gate).
+
+### 🎨 Contrast — 15 → 5
+
+- ⚠️ **`.vy-soon-tag` "EXAMPLE RATES" at 3.82 — the least legible text on the page**, and it is the **#73
+  warning itself**. *(The same shape as O22, where the "not tax advice" framing was the least legible text on
+  the tax PDF.)* Fixed to `--vy-amber-text` **on its own inline override** — the `.vy-soon-tag` class is
+  defined in the shared owner shell and was **not** retuned for one page.
+- Chart value labels + month labels (`--vy-faint`) at **4.24–4.49** on the peach chart area → `--vy-ink` /
+  `--vy-muted`.
+- **6 accent-as-text declarations** at 4.38–4.48 → `--vy-accent-text` (the "All →" / "Tax center →" links, the
+  per-unit total, the gross-to-net net figure, the KPI delta).
+- **Survivors (5), all white-on-accent-gradient, none added:** shell avatar 3.83 · brand mark 3.88 · the peak
+  bar's value chip 3.88 · the Export button 3.93 · the hero badge 3.93.

@@ -53,7 +53,7 @@
 
         .vy-rep-kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:20px; }
         .vy-rep-kpi-val { font-family:var(--vy-display); font-weight:600; font-size:30px; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
-        .vy-rep-kpi-delta { font-size:13px; font-weight:500; color:var(--vy-accent); }
+        .vy-rep-kpi-delta { font-size:13px; font-weight:500; color:var(--vy-accent-text); }
         .vy-rep-kpi-note { font-size:12px; color:var(--vy-faint); }
 
         .vy-rep-cols { display:grid; grid-template-columns:minmax(0,1fr) 232px; gap:20px; align-items:start; }
@@ -66,9 +66,9 @@
         .vy-rep-bar { position:absolute; left:21%; right:21%; bottom:0; border-radius:6px 6px 3px 3px; background:var(--vy-grad); transition:filter .14s; }
         .vy-rep-bar-col:hover .vy-rep-bar { filter:brightness(1.07); }
         .vy-rep-bar-val { position:absolute; left:0; right:0; display:flex; justify-content:center; padding-bottom:4px; }
-        .vy-rep-bar-val .txt { font-size:9.5px; color:var(--vy-faint); font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
+        .vy-rep-bar-val .txt { font-size:9.5px; color:var(--vy-ink); font-weight:500; font-variant-numeric:tabular-nums; white-space:nowrap; }
         .vy-rep-bar-val .peak { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:20px; background:var(--vy-grad); color:#fff; font-size:9.5px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; box-shadow:0 3px 9px rgba(194,65,12,.34); }
-        .vy-rep-bar-label { font-size:10.5px; color:var(--vy-faint); }
+        .vy-rep-bar-label { font-size:10.5px; color:var(--vy-muted); }
         .vy-rep-legend { display:flex; align-items:center; gap:12px; font-size:11px; color:var(--vy-muted); }
         .vy-rep-legend .sw { width:9px; height:9px; border-radius:2px; }
 
@@ -88,7 +88,7 @@
         .vy-rep-share .p { font-size:11px; color:var(--vy-muted); font-variant-numeric:tabular-nums; width:32px; text-align:right; }
         .vy-rep-uall { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0 2px; border-top:1px solid rgba(120,70,40,.16); margin-top:2px; }
         .vy-rep-uall .k { font-family:var(--vy-display); font-weight:600; font-size:14px; }
-        .vy-rep-uall .v { font-family:var(--vy-display); font-weight:600; font-size:16px; color:var(--vy-accent); letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+        .vy-rep-uall .v { font-family:var(--vy-display); font-weight:600; font-size:16px; color:var(--vy-accent-text); letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
 
         .vy-rep-chan-bar { height:22px; border-radius:7px; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(120,70,40,.08); }
         .vy-rep-chan-legend { display:flex; flex-wrap:wrap; gap:10px 24px; margin-top:14px; }
@@ -102,7 +102,7 @@
         .vy-rep-gtn-row .amt { font-size:12.5px; font-variant-numeric:tabular-nums; }
         .vy-rep-gtn-net { padding-top:10px; margin-top:2px; border-top:1px solid rgba(120,70,40,.16); }
         .vy-rep-gtn-net .lbl { font-size:12.5px; font-weight:500; color:var(--vy-ink); }
-        .vy-rep-gtn-net .amt { font-family:var(--vy-display); font-weight:600; font-size:14px; color:var(--vy-accent); }
+        .vy-rep-gtn-net .amt { font-family:var(--vy-display); font-weight:600; font-size:14px; color:var(--vy-accent-text); }
 
         .vy-rep-hero { position:relative; }
         .vy-rep-hero-glow { position:absolute; inset:-30px -28px -34px; background:radial-gradient(ellipse at 50% 55%, rgba(232,112,58,.38), transparent 70%); filter:blur(26px); pointer-events:none; }
@@ -282,8 +282,12 @@
                                     @if ($netByMonth['has_prior'] && $m['prior_pct'] > 0)
                                         <div class="vy-rep-bar-prior" style="height:{{ $m['prior_pct'] }}%"></div>
                                     @endif
-                                    <div class="vy-rep-bar" style="height:{{ max(2, $m['pct']) }}%"></div>
-                                    <div class="vy-rep-bar-val" style="bottom:{{ max(2, $m['pct']) }}%">
+                                    {{-- HONEST ZERO: a month that earned nothing draws NOTHING. This bar used to
+                                         carry a two-percent floor, so five genuinely EUR0.00 months each rendered a
+                                         visible bar — a real figure contradicted by its own chart. The hairline
+                                         keeps a small non-zero month visible without inventing height for a zero. --}}
+                                    <div class="vy-rep-bar" style="height:{{ (int) $m['pct'] }}%{{ $m['pct'] > 0 ? ';min-height:3px' : '' }}"></div>
+                                    <div class="vy-rep-bar-val" style="bottom:{{ (int) $m['pct'] }}%">
                                         @if ($m['is_peak'])
                                             <span class="peak"><svg viewBox="0 0 24 24" fill="currentColor" style="width:8px;height:8px"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 18.5 5.8 21.2l1.6-7L2 9.5l7.1-.6z"/></svg>{{ $m['net_display'] }}</span>
                                         @else
@@ -416,7 +420,7 @@
             <section class="vy-card vy-fade" style="animation-delay:.14s;padding:20px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
                     <span class="vy-eyebrow">Documents</span>
-                    <a href="{{ route('owner.documents') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">All →</a>
+                    <a href="{{ route('owner.documents') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">All →</a>
                 </div>
                 @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                     @forelse ($documents as $d)
@@ -448,7 +452,7 @@
                 </div>
             </div>
             @if ($vat['available'] && $vat['is_example'])
-                <span class="vy-soon-tag" style="flex-shrink:0;background:rgba(194,110,20,.14);color:#a65a10;border-color:rgba(194,110,20,.3)">Example rates</span>
+                <span class="vy-soon-tag" style="flex-shrink:0;background:rgba(194,110,20,.14);color:var(--vy-amber-text);border-color:rgba(194,110,20,.3)">Example rates</span>
             @elseif ($vat['available'])
                 <span class="vy-soon-tag" style="flex-shrink:0;background:rgba(34,120,60,.12);color:#227a3c;border-color:rgba(34,120,60,.25)">Computed</span>
             @else
@@ -508,7 +512,7 @@
                     <a href="{{ route('owner.tax.vat-return', (int) $activeRange['start']->year) }}" class="vy-btn vy-btn--ghost" style="padding:6px 13px;font-size:12.5px">VAT return · CSV</a>
                 @endif
             @endownercan
-            <a href="{{ route('owner.tax') }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">Tax center →</a>
+            <a href="{{ route('owner.tax') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">Tax center →</a>
         </div>
     </section>
     @endif

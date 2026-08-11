@@ -255,10 +255,18 @@ it('shows the real reporting-year dropdown, not fabricated prior years', functio
     $res = $this->actingAs($user)->get('/owner/reports')->assertOk()
         ->assertSee('Reporting year')
         ->assertSee('Earlier years live in Documents')
-        // the current year is always offered (even before its first statement); the fabricated years are gone
+        // the current year is always offered, even before its first statement…
         ->assertSee((string) now()->year)
         ->assertSee('Year to date')
         ->assertSee('Last 6 months');
+
+    // ⚠️ …and the wireframe's fabricated years are ABSENT from the reporting-year list. This negative was
+    // missing: the test asserted only positives while its comment claimed "the fabricated years are gone",
+    // so hardcoding the wireframe's four-year list left it GREEN. Asserted against the year option's own
+    // GET key, not the bare year — a bare "2024" also appears in the custom-range MONTH picker, which is a
+    // legitimate control, so the loose needle would fail on correct markup.
+    $res->assertDontSee('year='.(now()->year - 2))
+        ->assertDontSee('year='.(now()->year - 3));
 
     assertNoRawBlade($res);
 });
@@ -277,4 +285,28 @@ it('clips the report to a real custom date range', function () {
         ->assertSee('Sep 2026')          // the range label reflects the window
         ->assertSee('€300.00')           // September is inside the window
         ->assertDontSee('€999.00');      // June is clipped out
+});
+
+// ── A month that earned NOTHING draws NOTHING (honest zero) ───────────────────────────────────────
+// Owner-25 measured the live chart and found five genuinely EUR0.00 months each rendering a visible
+// bar: the height carried a two-percent floor, so the chart contradicted its own printed figure. The
+// month AXIS was already contiguous (every month in the range is seeded, so an empty month keeps its
+// slot) — it was only the bar that lied. The hairline below keeps a small non-zero month visible.
+it('draws no bar at all for a month that earned nothing', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+    $ownerId = (string) $s['units'][0]->fresh()->owner_id;
+
+    // ⚠️ REAL earnings in ONE month are required: with an empty ledger the chart does not render at all,
+    // so the fixture could never reach the assertion (the empty-fixture trap). One earning month means the
+    // rest of the calendar year is a genuine zero — exactly the case being guarded.
+    ledgerEntry($ownerId, $s['units'][0]->id, 'room_revenue', 'credit', 30000);
+    ledgerEntry($ownerId, $s['units'][0]->id, 'commission', 'debit', 4500);
+
+    $html = $this->actingAs($user)->get('/owner/reports')->assertOk()->getContent();
+
+    // The reporting year runs the full calendar, so months before the owner's first stay are real zeros.
+    expect($html)->toContain('class="vy-rep-bar" style="height:0%"')
+        // …and a zero bar carries no floor of any kind.
+        ->and($html)->not->toContain('style="height:0%;min-height');
 });

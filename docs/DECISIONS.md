@@ -7600,3 +7600,35 @@ fabrication in the opposite direction.
 the same figure the Annual Tax Summary PDF stated at O22. Contrast 9 → 2 (both known shell gradient items).
 
 Suite **1851 / 12,110**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 25/32 · Reports (`/owner/reports`)
+
+**A month that earned nothing was drawing a bar.** The net-by-month chart carried a two-percent floor on the
+bar height, applied twice. Live, five months that genuinely earned €0.00 each rendered a visible bar while
+printing "€0.00" directly above them — the chart contradicting its own figure. The axis was already correct
+(every month in the range is seeded and walked), so unlike O18 this was the bar alone; that distinction was
+verified rather than assumed. Fixed to the honest value with a hairline only for non-zero months.
+
+**A #60 guard that could not fail.** The reporting-year test asserted only positives — "Reporting year", the
+current year, "Year to date" — while its comment claimed the fabricated years were gone. Nothing tested that,
+so hardcoding the wireframe's 2026/2025/2024/2023 list left it green. Repairing it took three needles and the
+two failures are the lesson: `assertDontSee('2024')` **fails on correct markup**, because a bare 2024
+legitimately appears in the custom-range month picker; `range=year:2024` **can never fail**, because that is
+not the href the page emits; only `year=2024`, taken from the rendered output, actually bites. A needle must
+come from what the page renders, not from what the parameter is assumed to be.
+
+**Both Archive carry-forwards were checked and neither applied.** The stale-docblock-denies-a-feature pattern
+does not recur here — this docblock already describes the Tax & VAT summary as real and computed. It was
+checked explicitly because a reporting page is a likely home for a stale "we don't compute VAT" note; the
+clean negative is worth recording. And no €0 row was back-filled for a pre-membership year.
+
+**Contrast 15 → 5, and the worst item was the honesty warning itself:** the "EXAMPLE RATES" tag — the #73
+flag — measured 3.82, the least legible text on the page. That is exactly the shape O22 found, where the "not
+tax advice" framing was the least legible text on the tax PDF. Fixed on its own inline override, because
+`.vy-soon-tag` is defined in the shared owner shell and must not be retuned for one page.
+
+The rate is the real 18% (−€1,076.40 on €5,980.00), mutation-proven, and #17 reconciles four independent ways
+to €4,653.60. Logged not built: the month chart is a local implementation rather than the shared
+`<x-charts.bars>` — which is precisely why this floor survived after being fixed elsewhere.
+
+Suite **1852 / 12,115**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
