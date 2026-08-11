@@ -26,7 +26,7 @@
 
     <a class="vy-link" href="{{ route('guest.reservation', $reservationId) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Back to booking</a>
 
-    <div class="vy-eyebrow" style="margin-top:12px;color:#3F6338">Nothing to pay now</div>
+    <div class="vy-eyebrow" style="margin-top:12px;color:var(--vy-green-text)">Nothing to pay now</div>
     <h1 class="vy-h1" style="margin-top:4px">Enhance your stay</h1>
     <p class="vy-lead" style="margin-bottom:16px">Add a few extras to {{ $property }} — everything settles to your booking, nothing to pay at the door.</p>
 
@@ -41,7 +41,7 @@
             @foreach ($pending as $req)
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--vy-hairline);font-size:13px">
                     <span style="color:var(--vy-ink)">{{ implode(', ', $req['names']) ?: 'Extras' }}</span>
-                    <span style="flex:none;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;{{ $req['status'] === 'confirmed' ? 'background:rgba(79,122,70,.13);color:#3F6338' : 'background:var(--vy-wash);color:var(--vy-amber)' }}">{{ $req['status'] === 'confirmed' ? 'Added to your booking' : 'Awaiting confirmation' }}</span>
+                    <span style="flex:none;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;{{ $req['status'] === 'confirmed' ? 'background:rgba(79,122,70,.13);color:#3F6338' : 'background:var(--vy-wash);color:var(--vy-amber-text)' }}">{{ $req['status'] === 'confirmed' ? 'Added to your booking' : 'Awaiting confirmation' }}</span>
                 </div>
             @endforeach
         </section>

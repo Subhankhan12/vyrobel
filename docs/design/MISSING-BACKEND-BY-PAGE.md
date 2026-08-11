@@ -6063,3 +6063,108 @@ alongside `BookingImportTest`. Recorded so a later gate seeing a 10 does not mis
 - **`DO-G5-2` · no request-history surface.** A guest sees pending requests on Manage, but there is no view of
   *declined* ones — the operator's decision is invisible to the guest once it leaves `pending`. Worth a product
   decision (§N.8d's understating direction, at the edge of what this gate could verify).
+
+---
+
+## §G-6 — Guest Payments + Folio Receipt · GUEST 6/32 · gate 6 of 12 · 💰 THE MONEY SURFACE
+
+`GuestPaymentsController` (+ `GuestFolioPaymentController@pay`) → `guest/payments.blade.php`, and
+`GuestReceiptController@show` → `guest/receipt.blade.php`. Auth `auth:guest`. Walked **read-only** — no payment
+fired, no Checkout completed.
+
+### ✅ #17 RECONCILES — verified on the RENDERED page, to the cent
+
+| | |
+|---|---|
+| Total charged | **€1,107.00** |
+| Paid to date | **€922.50** |
+| Balance due | **€184.50** ← 1107.00 − 922.50 ✅ |
+| Payment activity | 369.00 + 184.50 + 369.00 = **922.50** ✅ = "Net paid" = "Paid to date" |
+| Receipt (R-ZSVMQVBW) | 300.00 + 69.00 VAT = **369.00** subtotal; − 184.50 paid = **184.50** balance ✅ **ties to the hub** |
+
+One source throughout: `FolioTotals::for($folio)`, integer minor. **No money arithmetic in either Blade view.**
+`FolioTotals`' own docblock states the identity `paid_minor === received_minor − refunded_minor` and explains
+that refunds are derived in the *same pass* precisely because a second walk is how two figures drift (#17).
+
+⚠️ **MONEY-LABEL HONESTY — and the prototype gets it wrong.** The mock's DCLogic defines
+**`Paid = charged − refunded`**. The live definition is **`paid = received − refunded`** — net cash actually
+received. Those differ: on an unpaid booking the prototype's formula would report the full charge as "Paid".
+**The live is correct and the prototype is not**, so this is a refusal to preserve, not a gap. The view's own
+comment already records that *"'Paid to date' is net of refunds"*. Labels verified as accurate: *Total
+charged* · *Paid to date* · *Balance due* · *Net paid* · *Subtotal (total charges)* · *Total paid* · *Balance*.
+
+### ✅ #45 — NO RAW PAN, verified in the DOM
+
+The pay form's **only** field is `_token`. **Zero** card/PAN/CVC inputs anywhere on either page. The POST
+creates a hosted Stripe Checkout session and redirects; the card never reaches the app (SAQ A). The page says
+so plainly: *"No card is stored on your account… your card details never touch Vyrobel."* — a claim that is
+**true**, verified against the seam.
+
+### ⚠️ §N.8d — THE UNDERSTATING DIRECTION, ON THE MONEY SURFACE
+
+Stripe returns the guest to `?paid=1`, but **the folio settles only on the `payment_intent.succeeded`
+webhook**. The page read **nothing** from that return: a guest coming back from a *completed* checkout saw an
+unchanged balance and **no acknowledgement whatsoever**, and could reasonably conclude it had failed and pay
+again. (The deterministic idempotency key protects the money; the impression was still false.)
+
+⚠️ **The overstating half was already right and stays right** — nothing fabricated a "Paid ✓", a green settled
+badge or a zeroed balance. The fix adds only the missing acknowledgement, and is worded so it asserts **nothing
+that could be false**: `?paid=1` is just a URL anyone can type, and even a genuine return proves the checkout
+completed on Stripe's side, never that the webhook has landed. So it states the one unconditionally true thing
+— *"A card payment can take a few moments to confirm with your bank. Your balance below updates as soon as it
+does — there's no need to pay again."*
+
+**Pending is also correctly excluded at the data layer**: `GuestPayments` promotes only `succeeded`/`captured`
+to history, with the comment *"pending/failed/holds are not 'history'"* — verified accurate.
+
+### 🔒 THE WORST LEAK ON THIS SURFACE WAS UNGUARDED
+
+The hub and the receipt already had cross-guest tests, but the **`/pay` POST** was only asserted to *appear in
+the HTML*. Nothing proved a foreign booking id is refused — and opening a Checkout session against another
+guest's folio is the worst outcome here (they would see that booking's balance on Stripe, and pay it). Now
+guarded and **mutation-proven**: swapping the relation for a bare `Reservation::query()` turns it RED, and the
+test also asserts B's folio gains no pending Payment, plus that A's own booking still redirects (so it cannot
+pass because the route is merely broken).
+
+### 🎨 Contrast — Payments 0 (58 runs) · Receipt 1 → **0** (37 runs)
+
+The one failure was **`€184.50` — the balance on a receipt**, i.e. the single most important figure on the
+page: `--vy-amber` (the **fill** token) used as text at **4.11**.
+
+⚠️ **This is `DO-G2-2`, which G2 logged as an unmeasured PREDICTION — now measured and confirmed.** The full
+sweep found `--vy-amber` used as text at **five** sites. Fixed here: `payments` ×2, `receipt` ×1, **and
+`extras.blade.php:44` — which I MISSED at G5** (its "Awaiting confirmation" chip). Remaining and logged:
+`saved.blade.php:45` (G10's page) and the dead `partials/trip-card.blade.php`. The `DO-G2-1` green literals on
+these pages went to `--vy-green-text` at the same time.
+
+**Anchors:** anchor 2 (white on solid `--vy-accent`) validated at exactly **5.18** on both pages. Anchor 1 had
+no call site left on either page after the gradient CTAs were solidified in earlier gates — the same situation
+as G3/G5, stated rather than glossed.
+
+### ⌨️ Keyboard — clean
+
+12 interactive · **0 unnamed** · **0 `div@click`** · 0 overflow at 1440. The pay control is a real `<button
+type=submit>` inside a POST form (visibly focusable via the shell's `:focus-visible` ring). §N.4k: the pay form
+has **no text inputs at all**, so there is no implicit-submit ambiguity — Enter can only act on the focused
+button, which is the deliberate action. Unlike G4/G5, this write is safe by construction.
+
+### ✅ VERIFIED / REFUSALS TO PRESERVE
+
+- **Observed READ-ONLY**: payments 16 → 16, all `succeeded` (no pending row created), `max(payments.updated_at)`
+  unchanged at `2026-08-09 07:17:58`. No Checkout session opened.
+- **#28**: zero operator cost/margin/commission, owner payout or other-guest folio lines in the DOM.
+- **#27**: the refunded total renders **only when a real refund exists**, and `paid` is net of it by
+  construction (`received − refunded`), so a refund can never push "paid" above what was received.
+- **No fabricated saved card / Apple Pay** (existing guards, #39/#41/#45) — the page states no card is stored,
+  which is true.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G6-1` · Stripe live is the founder's cutover (§H).** The seam is built test-mode-first; nothing here
+  fabricates a settled charge. No change requested.
+- **`DO-G6-2` · a pending payment is invisible rather than shown as processing.** Excluding it from *history*
+  is right; but a guest with an in-flight payment sees no row for it anywhere. The `?paid=1` notice now covers
+  the moment right after checkout; a persistent "processing" row would need the view to receive pending
+  payments — a controller change, not a design one.
+- **`DO-G6-3` · `--vy-amber`-as-text remains at `saved.blade.php:45`** (G10) and in the dead
+  `partials/trip-card.blade.php` (`DO-G1-1`).

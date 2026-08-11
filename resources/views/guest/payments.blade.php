@@ -14,6 +14,24 @@
         <div class="vy-card" style="margin-bottom:12px;border-left:3px solid var(--vy-accent)"><div style="font-size:13px;color:var(--vy-accent)">{{ session('pay_error') }}</div></div>
     @endif
 
+    {{-- ⚠️ THE RETURN FROM HOSTED CHECKOUT — the §N.8d UNDERSTATING direction, on the money surface.
+         Stripe sends the guest back to `?paid=1` on success, but the folio only settles on the
+         `payment_intent.succeeded` WEBHOOK — so at this instant the balance is still legitimately due. The page
+         used to read nothing at all from that return: the guest came back from a completed checkout, saw their
+         balance unchanged and no acknowledgement whatsoever, and could reasonably conclude it had failed and pay
+         again. (The deterministic idempotency key protects the money; the impression was still false.)
+
+         ⚠️ It must NOT say "paid". `?paid=1` is just a URL — anyone can type it, and even a genuine return
+         proves only that Stripe's checkout completed, never that the webhook has landed. So this asserts
+         nothing about THIS guest or THIS payment: it states the one thing that is unconditionally true, which
+         is also exactly what the returning guest needs to know. Overstating here would be the fabricated-settled
+         trap on the surface where it matters most. --}}
+    @if (request()->query('paid') !== null)
+        <div class="vy-card" style="margin-bottom:12px;border-left:3px solid var(--vy-amber-text)">
+            <div style="font-size:13px;color:var(--vy-ink)">A card payment can take a few moments to confirm with your bank. Your balance below updates as soon as it does — there's no need to pay again.</div>
+        </div>
+    @endif
+
     {{-- ── Hero: status + 3 real stat tiles ─────────────────────────────────────────────────────────── --}}
     <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:24px 26px;margin-bottom:18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
         <div style="flex:1;min-width:240px">
@@ -25,7 +43,7 @@
             @php $ptile = 'padding:13px 14px;border-radius:15px;background:rgba(255,255,255,.55);border:1px solid var(--vy-hairline)'; $pnum = 'font-family:var(--vy-display);font-weight:600;font-size:20px;letter-spacing:-.02em;color:var(--vy-ink);font-variant-numeric:tabular-nums;line-height:1'; $psub = 'font-size:11px;color:var(--vy-muted);margin-top:5px;display:block'; @endphp
             <div style="{{ $ptile }}"><span style="{{ $pnum }}">{{ $overview['total_charged'] }}</span><span style="{{ $psub }}">Total charged</span></div>
             <div style="{{ $ptile }}"><span style="{{ $pnum }}">{{ $overview['total_paid'] }}</span><span style="{{ $psub }}">Paid to date</span></div>
-            <div style="{{ $ptile }}"><span style="{{ $pnum }};color:{{ $due ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">{{ $due ? $overview['total_balance'] : '€0.00' }}</span><span style="{{ $psub }}">Balance due</span></div>
+            <div style="{{ $ptile }}"><span style="{{ $pnum }};color:{{ $due ? 'var(--vy-amber-text)' : 'var(--vy-green-text)' }}">{{ $due ? $overview['total_balance'] : '€0.00' }}</span><span style="{{ $psub }}">Balance due</span></div>
             {{-- WAVE 3 — the REAL refunded total, shown only when there IS one. "Paid to date" is net of
                  refunds, so without this a refunded guest saw a smaller Paid figure and nothing explaining it.
                  No refund ⇒ no tile, rather than a noisy €0.00. --}}
@@ -49,7 +67,7 @@
                             <div style="font-size:11.5px;color:var(--vy-faint)">{{ $booking['stay'] }} · {{ $booking['reference'] }}</div>
                         </div>
                         <div style="text-align:right;flex-shrink:0">
-                            <div style="font-size:14px;font-weight:600;color:{{ $booking['balance_due'] ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">{{ $booking['balance_due'] ? $booking['balance'] : 'Paid' }}</div>
+                            <div style="font-size:14px;font-weight:600;color:{{ $booking['balance_due'] ? 'var(--vy-amber-text)' : 'var(--vy-green-text)' }}">{{ $booking['balance_due'] ? $booking['balance'] : 'Paid' }}</div>
                             @if ($booking['balance_due'])
                                 {{-- 🔒 Pay by card — hosted Stripe Checkout (card never touches Vyrobel); settles on the webhook. --}}
                                 <form method="POST" action="{{ route('guest.payments.pay', $booking['id']) }}" style="margin:5px 0 0" data-guard-submit>

@@ -38,7 +38,7 @@
         <div style="display:flex;justify-content:space-between;gap:10px;padding-top:4px;font-size:13px;color:var(--vy-muted)"><span>Total paid</span><span style="font-variant-numeric:tabular-nums">{{ $folio['paid'] }}</span></div>
         <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-top:10px;padding-top:10px;border-top:1px solid var(--vy-hairline)">
             <span style="font-family:var(--vy-display);font-size:15px;font-weight:700;color:var(--vy-ink)">Balance</span>
-            <span style="font-family:var(--vy-display);font-size:16px;font-weight:700;color:{{ $folio['balance_due'] ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">{{ $folio['balance_due'] ? $folio['balance'] : 'Paid in full' }}</span>
+            <span style="font-family:var(--vy-display);font-size:16px;font-weight:700;color:{{ $folio['balance_due'] ? 'var(--vy-amber-text)' : 'var(--vy-green-text)' }}">{{ $folio['balance_due'] ? $folio['balance'] : 'Paid in full' }}</span>
         </div>
 
         @if ($folio['balance_due'])

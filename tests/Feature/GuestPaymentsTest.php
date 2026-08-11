@@ -185,3 +185,68 @@ it('shows the real total-charged hero tile and refuses the fabricated saved-card
         ->assertDontSee('Expires 04')
         ->assertSee('never touch Vyrobel');
 });
+
+// ── 🔒 THE WORST LEAK ON THIS SURFACE: paying against a FOREIGN folio ─────────────────────────────
+// The hub and the receipt were already guarded, but the /pay POST itself was only asserted to APPEAR in the
+// HTML — never that a foreign booking id is refused. A guest opening a Checkout session against another
+// guest's folio is the worst outcome here (they would see that booking's balance on Stripe, and pay it).
+// Resolved through the guest's own reservations relation, so a foreign id simply does not resolve.
+it('404s when a guest tries to pay another guest’s folio', function () {
+    $s = seedScenario(2);
+    $a = payGuest($s['guest'], 'ada@example.test');
+    $b = Guest::create(['email' => 'bob@example.test', 'first_name' => 'Bob', 'last_name' => 'Vale']);
+    $aRes = payBook($s, $a, $s['units'][0]);
+    $bRes = payBook($s, $b, $s['units'][1]);
+
+    $this->actingAs($a, 'guest')->post(route('guest.payments.pay', $bRes->getKey()))->assertNotFound();
+
+    // …and B's folio is untouched — no Payment row was created against it.
+    $bFolio = Folio::query()->where('reservation_id', $bRes->getKey())->first();
+    expect($bFolio?->payments()->where('status', 'pending')->count() ?? 0)->toBe(0);
+
+    // A's own booking still resolves (so this can never pass because the route is simply broken).
+    $this->actingAs($a, 'guest')->post(route('guest.payments.pay', $aRes->getKey()))->assertRedirect();
+});
+
+// ── §N.8d PENDING ≠ PAID — a pre-webhook payment is not money received ────────────────────────────
+// The folio settles ONLY on `payment_intent.succeeded`. Until then the Payment row is `pending`, and the
+// guest must not see it as received nor watch their balance drop: the money has not arrived. Overstating
+// here is the fabricated-settled trap on the surface where it matters most.
+it('never counts a pending payment as received, in the figures or the history (§N.8d)', function () {
+    $s = seedScenario(1);
+    $a = payGuest($s['guest'], 'ada@example.test');
+    $reservation = payBook($s, $a, $s['units'][0], chargeMinor: 30000, payMinor: 10000);
+    $folio = Folio::query()->where('reservation_id', $reservation->getKey())->firstOrFail();
+
+    // A pre-webhook payment for the whole outstanding balance.
+    $folio->payments()->create([
+        'organization_id' => $reservation->organization_id, 'type' => 'payment', 'status' => 'pending',
+        'amount_minor' => 20000, 'currency' => 'EUR', 'method' => 'card',
+    ]);
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.payments'))->assertOk()
+        ->assertSee('€200.00')            // the balance is STILL due — the money has not arrived
+        ->getContent();
+
+    // …and the pending charge is not dressed up as history.
+    expect(substr_count($html, 'Payment received'))->toBe(1);   // only the REAL €100 settled payment
+});
+
+// ── §N.8d, the UNDERSTATING direction — the return from hosted Checkout ───────────────────────────
+// Stripe returns the guest to `?paid=1` on success, but the folio settles on the webhook, so the balance is
+// still legitimately due at that instant. The page said nothing at all, so a guest back from a completed
+// checkout saw an unchanged balance and could reasonably pay again. It must acknowledge — WITHOUT claiming
+// the payment succeeded, because `?paid=1` is just a URL anyone can type.
+it('acknowledges the return from checkout without ever claiming the payment succeeded', function () {
+    $s = seedScenario(1);
+    $a = payGuest($s['guest'], 'ada@example.test');
+    payBook($s, $a, $s['units'][0]);
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.payments', ['paid' => 1]))->assertOk()
+        ->assertSee('take a few moments to confirm')     // the honest acknowledgement
+        ->getContent();
+
+    foreach (['Payment successful', 'Thank you for your payment', 'successfully paid'] as $overclaim) {
+        expect($html)->not->toContain($overclaim);
+    }
+});

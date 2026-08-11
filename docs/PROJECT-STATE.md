@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` DONE (5/32, gate 5 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` DONE (6/32, gate 6 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5424,6 +5424,18 @@ the work.
    rather than applied markup (`.vy-badge--confirmed` is defined on every page), and a global token
    replace that recoloured a BORDER — text tokens are for text. And a WCAG-exempt disabled control
    (2.24) is reported as exempt, not counted as a pass or silently dropped.
+   ⚠️ **G6 (the money surface) — #17 and #45 both hold; the gap was the SILENCE after checkout.** The
+   figures reconcile to the cent on the rendered page (1107.00 − 922.50 = 184.50; the receipt ties to the
+   hub), one source (`FolioTotals`), no Blade arithmetic; the pay form's only field is `_token` (zero card
+   inputs — SAQ A verified in the DOM). ⚠️ **The PROTOTYPE's money label is wrong and the live is right**:
+   the mock defines `Paid = charged − refunded`, the engine `paid = received − refunded` — the mock would
+   report an unpaid booking as paid. ⚠️ **§N.8d's UNDERSTATING half**: Stripe returns to `?paid=1` but the
+   folio settles on the webhook, and the page read nothing from that return — a guest back from a
+   completed checkout saw an unchanged balance, no acknowledgement, and could pay again. Fixed with copy
+   that asserts nothing that could be false (`?paid=1` is a URL anyone can type). ⚠️ **The worst leak was
+   unguarded**: the `/pay` POST had no foreign-id test — only that the route appeared in HTML. Now
+   mutation-proven. ⚠️ **`DO-G2-2` was a PREDICTION at G2 and is now confirmed by measurement** —
+   `--vy-amber` as text at five sites, including a receipt's balance at 4.11, **and one I missed at G5**.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via
