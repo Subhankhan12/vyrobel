@@ -4699,3 +4699,87 @@ guarded (`ownedUnitOrFail()`), and that guard is **mutation-proven**.
   failure) **and no accessible name** (placeholder-only). Now `:focus-visible` + `aria-label`. ⚠️ A first probe
   reported `outline:none` on the whole nav too — a **false positive** reading unfocused defaults; re-run
   against the focused state, only the note was real. *(8th probe FP of this pass — correct the probe.)*
+
+---
+
+## §O-24 — Owner **Archive** (`/owner/archive`)
+
+`App\Livewire\Owner\OwnerArchive` (`statusMeta` from `FormatsOwnerData`). Prototype
+`docs/design/raw/Owner Archive.html`.
+
+### ⚠️ TWO PREMISE CORRECTIONS
+
+1. **This is owner page 24, not 25 — page 24 (Reports) has NOT run.** HEAD was `899e9e3` (O23) and the index
+   read *"NEXT = owner page 24"*. Archive was built as asked, and is indexed **24/32**; **Reports remains
+   outstanding** and is now the next page.
+2. **The prototype's fabrications were already refused, and the ZIP is already honest.** `#60`'s rulings are
+   live in code: "3 years · 34 documents", "since June 2023", the 7-year retention promise and the
+   `OS-2025-09` reference format are all NOT PORTED (a guard forbids each), and the full-archive ZIP is a
+   genuinely `disabled` + `aria-disabled` button labelled "Soon". Live sweep: **zero fabricated needles**.
+
+### 🔴 A DOCBLOCK DENYING A REAL FEATURE — TWICE (the O22 pattern)
+
+`OwnerArchive.php` listed the per-year tax summary under **NO BACKEND**, stating *"there is no tax engine, and
+its 'Owner Annual Tax Summary PDF' does not exist"*. Both halves are **false since #73 shipped** — and the
+document is the very one gated at **O22**. A test comment carried the same stale claim.
+
+⚠️ **The code was already right; only the comments were wrong.** The view links `owner.tax.annual` per year,
+`@ownercan(CAP_EXPORTS)`-gated, and it renders live as "Tax summary". **Had I acted on the docblock I would
+have added a duplicate link to a feature that already worked** — the inverse of O22's risk (there, believing
+the comment would have double-counted a deduction). Both comments corrected. *Trust the code, not the prose
+about it.*
+
+### ⚠️ SCOPE — the ungated route is CORRECT, and gating it would have been a regression
+
+`/owner/archive` carries **no capability middleware**, while its sibling `/owner/documents` is
+`$capDocuments`-gated — which looks like a gap until the matrix is read: **`CAP_FINANCIALS` ("earnings &
+statements") is held by ALL THREE owner roles**, and an archive of statements is exactly that. Documents is
+gated because it is the *documents library* (co-owner + accountant). **Adding a gate here would have removed a
+view-only sub-user's intended access to their own earnings.** Every download control on the page *is*
+`@ownercan(CAP_EXPORTS)`-gated (statement PDF · bookings PDF · tax summary), so the control matches the route
+it points at (#30).
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO24-1 — the full-archive ZIP has no builder.** Honestly disabled today. *Verdict: **REAL GAP** (small) —
+  the #60 drop, correctly expressed as a dead control rather than a fake link.*
+- **DO24-2 — a `held` or `processing` payout cannot be expressed here.** ⚠️ Archive derives its badge from
+  `statusMeta()` — the **statement** enum (draft/finalized/paid), all three mapped — so it does **NOT** inherit
+  the D16-7 `payoutStatusMeta` collapse. But a finalized statement always reads **"Payout pending"**, even when
+  its payout is really **held** for missing tax details, which is *actionable*. The demo has no held payout, so
+  this is **latent, not visible**. *Verdict: **REAL GAP** — belongs to the D16-7 gate; **surfaced, not
+  decided**, and deliberately NOT diverged locally.*
+- **DO24-3 — the per-year bars are sparse, not contiguous.** `yearGroups()` groups the real statements, so a
+  year with none is skipped. ⚠️ **Deliberately NOT "fixed" as an O18 repeat:** O18's bug was an unlabelled
+  monthly *line* that joined non-adjacent months; these are **labelled bars**, and inserting a €0 bar for a
+  year the owner was not yet onboarded would assert *"you earned nothing that year"* — a #60-class fabrication
+  in the other direction. *Verdict: **REAL GAP (judgement)** — if filled, it must be filled only within the
+  owner's real active span.*
+
+### ⚠️ Verified, not changed
+
+- **#60 / #39 — MUTATION-PROVEN.** Replacing the derived sub-header with the prototype's *"3 years · 34
+  documents"* turns the existing guard **red**. Live, the real single-year tenant reads **"1 year · 6
+  statements"**, **"SINCE APRIL 2026"**, one real bar for 2026 — never the prototype's fiction.
+- **#17 reconciles, one source.** The six statements (885.60 + 721.60 + 516.60 + 467.40 + 656.00 + 442.80) sum
+  to **€3,690.00 exactly**, which is the lifetime hero, the 2026 per-year figure — **and the same €3,690.00 the
+  Annual Tax Summary PDF stated at O22**. Totalled **per payout currency**, never a cross-currency sum.
+- **#42/#38 — MUTATION-PROVEN.** Replacing the scoped query with `withoutGlobalScopes()` turns **three** guards
+  red, including *"scopes the archive to the owner, hides other owners, and fails closed for a non-linked
+  user"*. A rollup leaks many; this one does not.
+- **#28** — no guest data of any kind (the archive lists statements, not stays); **0 emails, no raw IBAN**.
+- **READ-ONLY** — nothing fired; the ZIP is disabled and no export was downloaded.
+- **Keyboard** — search is named (`aria-label="Search statements"`); the "Clear" button is `x-show`-bound and
+  **becomes focusable exactly when a query exists** (probed in: it appears, is reachable, and filters to the 1
+  real matching row). ⚠️ Two "unnamed inputs" and four "unreachable divs" were **probe false positives** — the
+  inputs are `type="hidden"` and the divs are the shell's Alpine roots. *(9th probe FP — correct the probe.)*
+- **Status is not colour-only** — "Paid" / "Payout pending" / "Contains unverified lines" are words.
+- ⚠️ **`toContain` sweep — clean negative** (twenty-third gate).
+
+### 🎨 Contrast — 9 → 2
+
+- **6 × the "View" row link at 4.45–4.49** — raw `var(--vy-accent)` used as TEXT, marginally under AA on the
+  row tint → **`--vy-accent-text`**. *(The accent-as-text sweep; one declaration, six rendered sites.)*
+- **The sub-header "Your finalized history · …" at 3.98** — it sits on the **hero gradient**, where the
+  page-body muted token cannot reach AA → **`--vy-on-grad`**.
+- **Survivors (2), both the known shell gradient family, none added:** avatar 3.83, brand mark 3.88.

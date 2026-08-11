@@ -39,9 +39,12 @@ use Livewire\Component;
  *                rendered ONLY when every row shares one payout currency; bars across currencies would
  *                imply an FX comparison the backend never made. Search filters the REAL rows
  *                client-side (same idiom as OwnerPayouts) — it invents no rows.
- *   • NO BACKEND — "Download the full archive (ZIP)" (there is no ZIP builder) and the design's
- *                per-year tax summary (there is no tax engine, and its "Owner Annual Tax Summary PDF"
- *                does not exist): disabled "Soon", never a fake download link.
+ *   • REAL     — the per-year ANNUAL TAX SUMMARY PDF. ⚠️ This block used to read "there is no tax engine,
+ *                and its Owner Annual Tax Summary PDF does not exist" — stale since the tax engine (#73)
+ *                shipped. Both exist: the view links `owner.tax.annual` per year, CAP_EXPORTS-gated, for
+ *                years that have committed statements (exactly what annualSummary() sums), so it never 404s.
+ *   • NO BACKEND — "Download the full archive (ZIP)" only (there is no ZIP builder): a disabled "Soon",
+ *                never a fake download link.
  *   • NOT PORTED — the design hard-codes "3 years · 34 documents", "since June 2023", a 7-year
  *                retention promise, and an "OS-2025-09" reference format. All four are static fiction
  *                with no backing row or policy: the counts + span are DERIVED from the real rows, the

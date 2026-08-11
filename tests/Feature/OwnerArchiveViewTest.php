@@ -213,7 +213,10 @@ it('does not port the design\'s fabricated counts, span, retention promise or re
         // no fabricated retention policy, no fabricated reference format (the real one is sequence_no)
         ->assertDontSee('kept for 7 years')
         ->assertDontSee('OS-2025-09')
-        // the design's fabricated "Owner Annual Tax Summary" figure is never claimed (the real PDF states none)
+        // The design's static "Owner Annual Tax Summary" HEADING is not ported. ⚠️ This comment used to say
+        // the real PDF "states none" — stale since the tax engine (#73): the document is real and the page
+        // links it per year as "Tax summary" (CAP_EXPORTS-gated). What stays unported is the design's
+        // fabricated per-year FIGURE, not the document.
         ->assertDontSee('Owner Annual Tax Summary')
         ->assertDontSee('href="#"', false)
         // …the REAL derived values are shown instead

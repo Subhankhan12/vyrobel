@@ -28,7 +28,7 @@
 <x-owner.shell active="statements" title="Statements archive" :viewer="$viewer">
     <div x-data="{ q: '' }">
         {{-- Sub-header — REAL counts + REAL span (the design's "3 years · 34 documents" is not ported) --}}
-        <div class="vy-line-sub" style="font-size:13px;margin-bottom:20px">
+        <div class="vy-line-sub" style="font-size:13px;margin-bottom:20px;color:var(--vy-on-grad)">
             @if ($summary['count'] > 0)
                 Your finalized history · {{ $summary['years'] }} {{ \Illuminate\Support\Str::plural('year', $summary['years']) }} · {{ $summary['count'] }} {{ \Illuminate\Support\Str::plural('statement', $summary['count']) }}
             @else
@@ -147,7 +147,7 @@
                                     </td>
                                     <td class="vy-num vy-mono vy-net">{{ $row['net_display'] }}</td>
                                     <td class="vy-num" style="white-space:nowrap">
-                                        <a href="{{ route('owner.statements.show', $row['id']) }}" style="color:var(--vy-accent);font-size:12.5px;font-weight:600">View</a>
+                                        <a href="{{ route('owner.statements.show', $row['id']) }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600">View</a>
                                         {{-- REAL downloads — owner-scoped PDFs. 🔒 SG2 — a view-only sub-user is
                                              "no exports": both are hidden (and the routes are export-gated). --}}
                                         @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)

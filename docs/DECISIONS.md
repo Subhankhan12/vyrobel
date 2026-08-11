@@ -7563,3 +7563,40 @@ Nothing was written: `inventory_blocks`, `max(updated_at)` and the availability 
 after the walk-through.
 
 Suite **1851 / 12,110**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 24/32 · Archive (`/owner/archive`)
+
+**Indexed 24, not 25.** The brief asked for "25/32, confirm 24 ran first" — page 24 (Reports) had not run;
+HEAD was O23 and the index read "NEXT = owner page 24". Archive was built as asked and takes slot 24;
+**Reports is still outstanding.**
+
+**The prototype's fabrications were already refused.** "3 years · 34 documents", "since June 2023", the
+7-year retention promise and the `OS-2025-09` reference format are all unported with a guard forbidding each,
+and the full-archive ZIP is a genuinely disabled "Soon" rather than a fake link. The live page shows the real
+single-year history — "1 year · 6 statements", "since April 2026" — and zero fabricated needles.
+
+**A docblock denied a real feature, twice.** `OwnerArchive.php` filed the per-year tax summary under NO
+BACKEND, claiming there is no tax engine and no Annual Tax Summary PDF. Both are false since #73 — and that
+document is the one gated at O22. A test comment repeated it. **The code was already correct**: the view links
+`owner.tax.annual` per year, CAP_EXPORTS-gated. Acting on the docblock would have added a duplicate link to a
+feature that already worked — the mirror image of O22, where believing the comment would have double-counted a
+deduction. Both comments corrected. The rule stands: trust the code, not the prose about it.
+
+**The ungated route is correct, and gating it would have been a regression.** `/owner/archive` carries no
+capability middleware while `/owner/documents` carries `$capDocuments`, which reads as a gap until the matrix
+is checked: `CAP_FINANCIALS` — "earnings & statements" — is held by all three owner roles, and an archive of
+statements is exactly that. Adding a gate would have removed a view-only sub-user's intended access to their
+own earnings. Every download control on the page is separately `@ownercan(CAP_EXPORTS)`-gated.
+
+**Logged, not decided.** A finalized statement always reads "Payout pending" even when its payout is really
+held for missing tax details. Archive uses the *statement* enum (all three values mapped), so it does not
+inherit the D16-7 `payoutStatusMeta` collapse — but it cannot express a hold. Latent today; it belongs to the
+D16-7 gate. And the per-year bars are sparse: a year without statements is skipped. That was **deliberately
+not "fixed" as an O18 repeat** — these are labelled bars, not an unlabelled monthly line, and inserting a €0
+bar for a year the owner was not yet onboarded would assert "you earned nothing that year", a #60-class
+fabrication in the opposite direction.
+
+#17 holds across surfaces: the six statements sum to €3,690.00 exactly — the lifetime hero, the 2026 bar, and
+the same figure the Annual Tax Summary PDF stated at O22. Contrast 9 → 2 (both known shell gradient items).
+
+Suite **1851 / 12,110**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
