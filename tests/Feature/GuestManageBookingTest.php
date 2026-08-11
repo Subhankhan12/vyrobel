@@ -216,3 +216,68 @@ it('shows the real cancellation policy and refuses the fabricated "convert to tr
         ->assertDontSee('Convert to travel credit')
         ->assertDontSee('Instead of losing your deposit');
 });
+
+// ── §N.8d: a PENDING request renders as pending — in its TEXT and in its VISUAL signal ────────────
+// The guest asks, the operator decides. A pending cancellation must never read (or LOOK) like a done one:
+// §N.8d's rule is that the visual signal outlives the text, so a green tick or a struck-through booking would
+// mislead even beside honest words. Both directions matter — an in-flight request that renders as "nothing
+// requested" issues a false instruction and the guest requests again.
+it('renders an in-flight request as Pending, never as done (#N.8d, text and visual)', function () {
+    $s = seedScenario(1);
+    $a = mgrGuest($s['guest'], 'ada@example.test');
+    $reservation = mgrBook($s, $a);
+    app(GuestChangeRequestService::class)->requestCancellation($reservation, $a, 'Change of plans');
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.manage', $reservation->getKey()))
+        ->assertOk()
+        ->assertSee('Cancellation requested')   // the in-flight request IS surfaced (understating direction)
+        ->assertSee('Pending')                  // …as pending
+        ->getContent();
+
+    // …and never as an accomplished fact, in text OR in the visual language of one.
+    // ⚠️ Assert the APPLIED class, not the stylesheet: `.vy-badge--confirmed` is DEFINED in the shared shell's
+    // <style> on every guest page, so its mere presence in the HTML proves nothing.
+    expect($html)->toContain('vy-badge vy-badge--pending')   // the amber pending plate IS the one applied
+        ->and($html)->not->toContain('vy-badge vy-badge--confirmed')   // …and no green confirmed plate is
+        ->and($html)->not->toContain('line-through')         // no struck-through booking
+        ->and($html)->not->toContain('Cancelled');           // the word, capitalised as a status
+    expect($reservation->fresh()->status)->toBe('confirmed');   // the booking itself is untouched
+});
+
+// ── §N.4k: the destructive request needs a deliberate confirmation ────────────────────────────────
+// Measured in the browser: with a reason chosen, Enter on the reason <select> fired the cancellation request
+// immediately — the guest means "confirm my choice" and gets "send the request", with no chance to reconsider
+// on the most consequential action of the page. The prototype puts a review step in front of it.
+it('guards the cancellation request behind an explicit confirmation', function () {
+    $s = seedScenario(1);
+    $a = mgrGuest($s['guest'], 'ada@example.test');
+    $reservation = mgrBook($s, $a);
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.manage', $reservation->getKey()))->assertOk()->getContent();
+
+    expect($html)->toContain('onsubmit="return confirm(')
+        ->and($html)->toContain('data-guard-submit');   // and the shared double-submit guard
+});
+
+// ── #39: the extras page must not promise a cancellation right the app cannot honour ──────────────
+// "Free to cancel up to 24h before arrival" shipped verbatim from the prototype. Nothing implements it —
+// no cancellation window on AddOn / ReservationExtras / config, and no removal path at all (the only extras
+// route is a GET; an add-on can only be REQUESTED). Same family as the "48h" literal fixed at G2, except that
+// one at least mirrored a real constant.
+it('never promises an add-on cancellation window the app does not implement (#39)', function () {
+    $s = seedScenario(1);
+    $a = mgrGuest($s['guest'], 'ada@example.test');
+    $reservation = mgrBook($s, $a);
+    AddOn::factory()->create([
+        'organization_id' => $s['org']->id, 'property_id' => $s['property']->id,
+        'name' => 'Breakfast', 'price_minor' => 1800, 'currency' => 'EUR', 'is_active' => true,
+    ]);
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.extras', $reservation->getKey()))->assertOk()
+        ->assertSee('Breakfast')                       // the real catalogue renders (never vacuous)
+        ->assertSee('Your host confirms')              // the honest request framing survives
+        ->getContent();
+
+    expect($html)->not->toContain('Free to cancel')
+        ->and($html)->not->toContain('24h before arrival');
+});

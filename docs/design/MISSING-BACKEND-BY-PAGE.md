@@ -5955,3 +5955,111 @@ code at all**, so its `#33` exposure is nil. Recon §2.1's "six" is corrected.
 - **`DO-G4-3` · prototype affordances owed a verdict** — the done-state's "Door code arrives {date}" (the live
   done state says "before arrival"; naming the real date would need the controller to pass `ArrivalPack`,
   which is a backend change) and the per-guest co-traveller entry the prototype implies.
+
+---
+
+## §G-5 — Guest Manage Booking + Add-ons · GUEST 5/32 · gate 5 of 12 · the REQUEST-WRITE PAIR
+
+`GuestManageController` (GET + 3 POSTs) → `guest/manage.blade.php`, and `GuestExtrasController@show` →
+`guest/extras.blade.php`, both in `<x-guest.shell>`. Auth `auth:guest`. Walked **read-only** — no request fired.
+
+### ✅ THE CENTRAL CHECK — they really ARE requests, and they render as such
+
+`GuestChangeRequest` is a genuine state machine: the guest creates `pending`, and **only the operator** moves
+it to `confirmed`/`declined`. **No manage POST mutates the reservation at all** (grep-verified). The controller
+labels are "Date change requested" / "Add-ons requested" / "Cancellation requested", and a pending request
+renders with the amber `vy-badge--pending` — no green plate, no tick, no struck-through booking. §N.8d holds in
+**both** directions: the in-flight request IS surfaced (so the guest is not told "nothing requested" and does
+not re-request), and it is never dressed as done.
+
+The existing `GuestManageBookingTest` was already strong — pending-only, booking untouched, no self-approve,
+foreign→404, folio untouched. Like G3's arrival tests, written properly.
+
+### ⚠️ #39 — A FABRICATED POLICY, SHIPPED VERBATIM FROM THE PROTOTYPE
+
+The extras page promised: **"Free to cancel up to 24h before arrival."**
+
+**Nothing implements it.** There is no cancellation window on `AddOn`, `ReservationExtras` or in config, and
+**no add-on removal path anywhere** — the only extras route is a `GET`, and an add-on can only ever be
+*requested*. The claim came straight from the prototype (`Guest Add-ons.html`: *"free to cancel up to 24h
+before arrival"*) and was rendered as if it were policy.
+
+This is the **fifth** instance of the mock-value family and the first that fabricates a **right** rather than
+restating a constant: G2's "48h" at least mirrored a real `LEAD_DAYS`; this one has no engine behind it at all.
+A guest relying on it would have been misled about what they can undo. **Removed** — the surrounding sentence
+("Your host confirms, then it's added to your booking") was already honest and sufficient. No replacement
+policy was invented.
+
+### ⚠️ §N.4k — Enter fired the cancellation request with no chance to reconsider
+
+Measured in the browser with every submit intercepted (nothing reached the server): with a reason chosen,
+**Enter on the reason `<select>` fired the cancellation request immediately**. The guest means "confirm my
+choice" and gets "send the request", on the most consequential action of the page — and the prototype puts a
+**review step** in front of it (its cancellation modal is review → done).
+
+Guarded with `onsubmit="return confirm(…)"` plus `data-guard-submit` — **the repo's own destructive-submit
+idiom** (`admin/customers/show.blade.php` already uses exactly this pattern), not a new invention.
+
+⚠️ **The date-change form is a GET**, so "See price difference" is a *preview*, not a request — Enter there is
+harmless by construction. That is good design and worth recording: the guest previews the price, then requests.
+
+### ⌨️ The add-on toggles — reachable, but invisibly focused
+
+The add-on checkboxes use `opacity: 0`, **not** `display: none`, so unlike G4's file input they stay in the tab
+order and keep their labels (4 of 4 tabbable). **But an invisible input shows an invisible focus ring, and the
+card carried none** — a keyboard guest could tab through every extra with no idea which was focused
+(WCAG 2.4.7). `.ex-item:focus-within` now rings the card, mirroring G3/G4's fix.
+
+### 🎨 Contrast — Manage 1 → **0** (24 runs) · Extras 5 → **1 exempt** (40 runs)
+
+| run | was | fix |
+|---|---|---|
+| `Request cancellation` | `--vy-amber` (the FILL token used as text) = **4.08** | `--vy-amber-text` |
+| `Add to stay` ×4 | white 12.5px on `--vy-grad` = **3.39** | solid `--vy-accent` |
+| selected add-on label | `--vy-accent` on its own tint | `--vy-accent-text` |
+
+⚠️ **`[disabled] Add to booking` measures 2.24 and is NOT counted as a failure.** WCAG 1.4.3 exempts inactive
+components. It is reported rather than silently dropped, and rather than "fixed" to claim a cleaner number.
+
+⚠️ **I over-applied one fix and caught it**: a global replace of `var(--vy-amber)` also recoloured a **border**,
+where the fill token is correct. Reverted — text tokens are for text.
+
+**Anchors:** Extras validated **both** (3.39 · 5.18). Manage could validate only anchor 2 (5.18, twice) — after
+the fixes it has no gradient-backed text left, the same situation as G3. Stated, not glossed.
+
+### ✅ THE G4 LESSON APPLIED — a changed token's OLD value, grepped across the realm
+
+Searched every guest view for the pre-remediation literals (`#8f6414`, `#9c9089`, `#8a8079`, `#a69a92`).
+**One hit, and it is a comment** — my own G2 explanatory note in the shell naming the old value. No live
+declaration anywhere. Also fixed the `DO-G2-1` tail on this page: `rgb(70,120,60)` → `--vy-green-text`.
+
+### ✅ VERIFIED / REFUSALS TO PRESERVE
+
+- **Observed READ-ONLY**: `guest_change_requests` 0 → 0; `max(reservations.updated_at)` unchanged at
+  `2026-08-09 07:17:58`. No cancellation, date-change or add-on request was fired.
+- **The refund copy invents no figure**: "Free cancellation until {real date} — a request cancelled before then
+  is refunded in full", else "The property confirms your cancellation and handles any refund per their policy."
+  The date is the real policy deadline; no fabricated amount, and the framing is a request, not a promise (#27).
+- **Add-on prices are real** — `add_ons.price_minor` × a real quantity basis + real VAT (€65 each way → €79.95;
+  €18 per guest·night → €132.84 for 2 guests × 3 nights). Explicitly not charged: "Nothing to pay now",
+  "Your host confirms, then it's added to your booking" (#39/#45).
+- **`Convert to travel credit`** — the prototype's upsell has no backend and stays refused (an existing guard).
+- **#28**: no operator cost, margin, approval queue, owner money or other-guest data on either page.
+
+### ⚠️ BASELINE — a new FLAKY candidate observed, not a regression
+
+One full-suite run showed **10** non-green, the extra being `PublicStorefrontLandingTest`. It did **not**
+reproduce on a second full run with the same changes (back to 9), it passes in isolation both with and
+without this gate's changes, and a full run with the changes stashed was also 9. Evidence says
+order/timing flakiness, not this work — a candidate NEW member of the documented non-deterministic set
+alongside `BookingImportTest`. Recorded so a later gate seeing a 10 does not mistake it for a regression;
+**the baseline remains the 5–10 RANGE, which is exactly why §J.quater refuses to state it as a number.**
+
+### 🚩 LOGGED — not built
+
+- **`DO-G5-1` · the prototype's cancellation REVIEW step.** The design shows a refund breakdown and a policy
+  timeline before confirming; the live flow is a reason + a confirm dialog. A real breakdown needs a
+  policy/folio computation the page does not currently receive — a backend change, not a design one.
+- **`DO-G5-2` · no request-history surface.** A guest sees pending requests on Manage, but there is no view of
+  *declined* ones — the operator's decision is invisible to the guest once it leaves `pending`. Worth a product
+  decision (§N.8d's understating direction, at the edge of what this gate could verify).

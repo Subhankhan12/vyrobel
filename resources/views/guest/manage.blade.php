@@ -91,11 +91,19 @@
     <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .22s both">
         <div class="vy-eyebrow" style="margin-bottom:8px">Cancellation policy</div>
         @if ($freeUntil !== null)
-            <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--vy-ink);margin-bottom:12px"><span style="width:8px;height:8px;border-radius:50%;background:rgb(70,120,60)"></span>Free cancellation until <strong>{{ $freeUntil }}</strong> — a request cancelled before then is refunded in full.</div>
+            <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--vy-ink);margin-bottom:12px"><span style="width:8px;height:8px;border-radius:50%;background:var(--vy-green-text)"></span>Free cancellation until <strong>{{ $freeUntil }}</strong> — a request cancelled before then is refunded in full.</div>
         @else
             <p style="font-size:12.5px;color:var(--vy-muted);margin:0 0 12px">The property confirms your cancellation and handles any refund per their policy.</p>
         @endif
-        <form method="POST" action="{{ route('guest.manage.cancel', $reservation) }}">
+        {{-- ⚠️ §N.4k — this form is ONE required <select> and one submit, so pressing Enter with a reason
+             chosen fired the cancellation request immediately, with no chance to reconsider: the guest
+             means "confirm my choice" and gets "send the request". G4 proved Enter can fire a real
+             write; here the write is the most consequential action on the page. The prototype puts a
+             REVIEW step in front of it (its cancellation modal has review → done); this is the same
+             intent at markup level, using the destructive-submit idiom the repo already uses in admin.
+             `data-guard-submit` is the shared double-submit guard. --}}
+        <form method="POST" action="{{ route('guest.manage.cancel', $reservation) }}" data-guard-submit
+              onsubmit="return confirm('Send a cancellation request for this booking? The property reviews it and handles any refund per their policy.');">
             @csrf
             <div class="vy-field" style="margin-bottom:12px">
                 <label class="vy-label" for="reason">Reason</label>
@@ -106,7 +114,7 @@
                     @endforeach
                 </select>
             </div>
-            <button type="submit" class="vy-btn" style="background:none;color:var(--vy-amber);border:1px solid rgba(178,106,8,.45);box-shadow:none">Request cancellation</button>
+            <button type="submit" class="vy-btn" style="background:none;color:var(--vy-amber-text);border:1px solid rgba(178,106,8,.45);box-shadow:none">Request cancellation</button>
         </form>
     </section>
 </x-guest.shell>

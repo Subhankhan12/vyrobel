@@ -11,9 +11,13 @@
         .ex-name { font-family: var(--vy-display); font-weight: 500; font-size: 14.5px; }
         .ex-basis { font-size: 11.5px; color: var(--vy-faint); }
         .ex-price { font-family: var(--vy-display); font-weight: 600; font-size: 15px; color: var(--vy-accent); margin-top: 6px; }
-        .ex-add { margin-top: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 0; border-radius: var(--vy-r-pill, 30px); border: 1px solid var(--vy-accent-3); background: var(--vy-grad); color: #fff; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; cursor: pointer; }
-        .ex-item.is-on .ex-add { background: rgba(217,102,46,.13); color: var(--vy-accent); }
+        .ex-add { margin-top: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 0; border-radius: var(--vy-r-pill, 30px); border: 1px solid var(--vy-accent-3); background: var(--vy-accent); color: #fff; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; cursor: pointer; }
+        .ex-item.is-on .ex-add { background: rgba(217,102,46,.13); color: var(--vy-accent-text); }
         .ex-cbx { position: absolute; opacity: 0; pointer-events: none; }
+        /* The checkbox is opacity:0 (correctly still in the tab order, unlike G4's display:none file input),
+           but an invisible input shows an invisible focus ring — so the CARD carries it instead. Without
+           this a keyboard guest can tab through every extra with no idea which one is focused. */
+        .ex-item:focus-within { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
         .ex-summary { margin-top: 16px; border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); background: var(--vy-card); padding: 16px 18px; }
         .ex-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 13px; border-top: 1px solid var(--vy-hairline); }
         .ex-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 8px; padding-top: 12px; border-top: 1.5px solid var(--vy-hairline); }
@@ -77,7 +81,13 @@
                         <b id="ex-total-val">{{ \App\Support\Money\MoneyFormatter::display(0, $currency) }}</b>
                     </div>
                     <button type="submit" class="vy-btn vy-btn--accent" id="ex-submit" style="width:100%;margin-top:14px;opacity:.5" disabled>Add to booking</button>
-                    <div style="font-size:11px;color:var(--vy-faint);text-align:center;margin-top:10px;line-height:1.5">Settles to {{ $reference }} — nothing to pay at the door. Your host confirms, then it’s added to your booking. Free to cancel up to 24h before arrival.</div>
+                    {{-- ⚠️ "Free to cancel up to 24h before arrival" was removed here (#39). It came verbatim from the
+                         prototype, but NOTHING implements it: there is no add-on cancellation window in AddOn,
+                         ReservationExtras or config, and no removal path at all — the only extras route is a GET,
+                         and an add-on can only be REQUESTED. The app was promising the guest a right it cannot
+                         honour. Same family as the "48h" literal fixed at G2, except that one at least matched a
+                         real constant; this one had no engine behind it. --}}
+                    <div style="font-size:11px;color:var(--vy-faint);text-align:center;margin-top:10px;line-height:1.5">Settles to {{ $reference }} — nothing to pay at the door. Your host confirms, then it’s added to your booking.</div>
                 </div>
             </section>
         </form>

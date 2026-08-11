@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` DONE (4/32, gate 4 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` DONE (5/32, gate 5 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5411,6 +5411,19 @@ the work.
    referencing `--vy-amber-text` — five literals in all. When a shared token changes, grep the realm for
    its OLD value, not just its call sites. And the worst contrast readings on a PII form were its own
    **field labels** (2.99).
+   ⚠️ **G5 (the request-write pair) — the request model is sound; the COPY promised a right that does not
+   exist.** `GuestChangeRequest` is a real pending→operator-only machine, no manage POST touches the
+   reservation, and a pending request renders amber-pending (never a green plate or a struck-through
+   booking) — §N.8d holds both directions. But the extras page promised **"Free to cancel up to 24h before
+   arrival"**, shipped verbatim from the prototype, with **no cancellation window and no removal path
+   anywhere** — the fifth mock-value instance and the first to fabricate a RIGHT rather than restate a
+   constant. Removed. Also: **Enter on the cancellation reason fired the request with no chance to
+   reconsider** (guarded with the repo's own destructive-submit idiom), and the add-on toggles were
+   focusable but showed **no focus ring** (opacity:0 input, no card indicator — WCAG 2.4.7).
+   ⚠️ Two probe/assertion errors caught in my own work: an assertion that tested the shared STYLESHEET
+   rather than applied markup (`.vy-badge--confirmed` is defined on every page), and a global token
+   replace that recoloured a BORDER — text tokens are for text. And a WCAG-exempt disabled control
+   (2.24) is reported as exempt, not counted as a pass or silently dropped.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via
