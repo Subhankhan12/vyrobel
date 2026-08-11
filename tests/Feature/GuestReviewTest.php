@@ -181,3 +181,54 @@ it('de-identifies a review when the guest is anonymized', function () {
 
     expect(GuestName::display($review->fresh()->guest))->toBe('Guest');   // no longer "Ada Lovelace"
 });
+
+// ── DO10-4: the rating DISPLAY is the shared component, not five hand-written glyphs ──────────────
+// G1 established that Trips' stars are decorative; this is the guest realm's ONE real star-DISPLAY site.
+// A hand-written str_repeat announces five separate glyphs to a screen reader and can round a rating up;
+// <x-star-rating> gives the row ONE name, floors the value, and distinguishes filled from empty by GLYPH.
+it('renders the submitted rating through the shared star component with one accessible name', function () {
+    $s = seedScenario(1);
+    $a = revGuest($s['guest'], 'ada@example.test');
+    $reservation = revCompletedBook($s, $a, $s['units'][0]);
+    $this->actingAs($a, 'guest')->post(route('guest.review.submit', $reservation->getKey()),
+        ['rating' => 4, 'body' => 'Lovely stay.'])->assertRedirect();
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.review', $reservation->getKey()))->assertOk()->getContent();
+
+    expect($html)->toContain('aria-label="4 out of 5 stars"')   // ONE name for the row…
+        ->and($html)->toContain('☆')                            // …and empty stars differ by GLYPH, not colour
+        ->and($html)->not->toContain('★★★★');                   // not a hand-written run of glyphs
+});
+
+// ── The rating INPUT is a real, named, keyboard-operable control ──────────────────────────────────
+// It was already a radio group (keyboard-operable by construction), but the group had no accessible name
+// and each option announced as "black star", because a <label>'s only content is the glyph.
+it('exposes the rating picker as a named radio group, not bare star glyphs', function () {
+    $s = seedScenario(1);
+    $a = revGuest($s['guest'], 'ada@example.test');
+    $reservation = revCompletedBook($s, $a, $s['units'][0]);
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.review', $reservation->getKey()))->assertOk()->getContent();
+
+    expect($html)->toContain('<fieldset')
+        ->and($html)->toContain('<legend')
+        ->and($html)->toContain('aria-label="5 stars"')
+        ->and($html)->toContain('aria-label="1 star"')
+        ->and($html)->toContain('.vy-stars input:focus-visible + label');   // focus is VISIBLE on the star
+});
+
+// ── §N.4k: publishing public content needs a deliberate act ───────────────────────────────────────
+// Measured in the browser: with a star focused, Enter submitted the form — publishing a rating with no review
+// written. A textarea never implicitly submits (G7), but a radio group does. Highest stakes of the pass: this
+// is visible to other travellers, where G5's cancellation was a request and G7's message was private.
+it('guards publishing a review behind an explicit confirmation', function () {
+    $s = seedScenario(1);
+    $a = revGuest($s['guest'], 'ada@example.test');
+    $reservation = revCompletedBook($s, $a, $s['units'][0]);
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.review', $reservation->getKey()))->assertOk()->getContent();
+
+    expect($html)->toContain('onsubmit="return confirm(')
+        ->and($html)->toContain('visible to the property and to other travellers')
+        ->and($html)->toContain('data-guard-submit');
+});

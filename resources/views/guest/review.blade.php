@@ -4,6 +4,11 @@
     <style>
         .vy-stars { display:inline-flex; flex-direction:row-reverse; gap:4px; }
         .vy-stars input { position:absolute; opacity:0; width:0; height:0; }
+        /* The radio is visually hidden (correctly still in the tab order — never display:none), but an
+           invisible input shows an INVISIBLE focus ring, so the star it controls carries one instead.
+           Without this a keyboard guest arrow-keys through the rating with no idea where they are. */
+        .vy-stars input:focus-visible + label { outline:2px solid var(--vy-accent); outline-offset:3px; border-radius:4px; }
+        .vy-stars-fs { border:0; padding:0; margin:0; min-inline-size:0; }
         .vy-stars label { font-size:30px; line-height:1; color:rgba(120,70,40,.20); cursor:pointer; transition:color .12s; }
         .vy-stars input:checked ~ label, .vy-stars label:hover, .vy-stars label:hover ~ label { color:var(--vy-accent-3); }
         .vy-chip-opt { display:inline-flex; align-items:center; gap:6px; padding:7px 13px; border-radius:20px; border:1px solid var(--vy-glass-border); font-size:12.5px; color:var(--vy-muted); cursor:pointer; margin:0 6px 6px 0; }
@@ -32,7 +37,18 @@
         {{-- Already reviewed — read-only --}}
         <section class="vy-card">
             <div class="vy-eyebrow" style="margin-bottom:8px">Your review</div>
-            <div style="font-size:26px;color:var(--vy-accent-3);letter-spacing:2px">{{ str_repeat('★', $existing['rating']).str_repeat('☆', 5 - $existing['rating']) }}</div>
+            {{-- DO10-4 — the guest realm's ONE real star-DISPLAY site (G1 established that Trips' glyphs are
+                 decorative, not ratings). The shared component carries what a hand-written str_repeat cannot:
+                 ONE accessible name for the row ("5 out of 5 stars") instead of five announced glyphs, a
+                 floor that can never round a rating up to flatter it, and filled-vs-empty distinguished by
+                 GLYPH (★/☆) rather than colour alone (WCAG 1.4.1). --}}
+            {{-- ⚠️ color passed, not defaulted: the component ships #E8A63A, which measures 2.05 on this card and
+                 misses the 3:1 bar a star must meet — it is the VISUAL carrier of the rating (WCAG 1.4.11
+                 non-text contrast), not decoration, even though the glyphs are aria-hidden and the row
+                 carries the name. #B26A08 is --vy-amber's value (a star is a fill, so the fill token is the
+                 right one) and measures 4.11. Passed here rather than changed in the component, because the
+                 default is shared with the owner Reviews page on a different plate — logged, not guessed. --}}
+            <x-star-rating :value="$existing['rating']" size="26px" gap="3px" color="#B26A08" />
             @if (count($existing['tags']) > 0)
                 <div style="margin-top:10px">@foreach ($existing['tags'] as $t)<span style="display:inline-block;padding:4px 10px;border-radius:16px;background:var(--vy-wash);font-size:11.5px;color:var(--vy-muted);margin:0 5px 5px 0">{{ $t }}</span>@endforeach</div>
             @endif
@@ -45,16 +61,32 @@
         </section>
     @else
         {{-- The review form --}}
-        <form method="POST" action="{{ route('guest.review.submit', $reservation) }}">
+        {{-- ⚠️ §N.4k — a review is PUBLIC content, and Enter published it early. Measured in the browser:
+             with a star focused, Enter submits the form, so a guest who arrow-keys to a rating and presses
+             Enter to "confirm my choice" publishes a rating with no review written. The textarea below is
+             safe by construction (a textarea never implicitly submits — G7), but a radio group is not.
+             Highest stakes of the pass so far: G5's cancellation was a request an operator reviews, G7's
+             message was private to one property; this is visible to other travellers. Guarded with the
+             repo's own destructive-submit idiom (admin/customers/show), plus the shared double-submit
+             guard. --}}
+        <form method="POST" action="{{ route('guest.review.submit', $reservation) }}" data-guard-submit
+              onsubmit="return confirm('Publish this review of your stay? Your rating and words will be visible to the property and to other travellers.');">
             @csrf
             <section class="vy-card" style="margin-bottom:14px">
-                <div class="vy-eyebrow" style="margin-bottom:10px">Your rating</div>
-                <div class="vy-stars">
-                    @foreach ([5, 4, 3, 2, 1] as $n)
-                        <input type="radio" name="rating" id="star{{ $n }}" value="{{ $n }}" {{ (($prefillRating ?? null) === $n) ? 'checked' : '' }} @if ($n === 5) required @endif>
-                        <label for="star{{ $n }}" title="{{ $n }} star{{ $n > 1 ? 's' : '' }}">★</label>
-                    @endforeach
-                </div>
+                {{-- A REAL radio group, so the rating is keyboard-operable by construction (arrow keys move
+                     between options) — not a mouse-only star widget. Two things it was missing: the group had
+                     no accessible name (the eyebrow was a plain div), and each option announced as "black
+                     star", because a <label>'s only content is the glyph. aria-label puts the value on the
+                     control itself; the glyph stays decorative. --}}
+                <fieldset class="vy-stars-fs">
+                    <legend class="vy-eyebrow" style="margin-bottom:10px">Your rating</legend>
+                    <div class="vy-stars">
+                        @foreach ([5, 4, 3, 2, 1] as $n)
+                            <input type="radio" name="rating" id="star{{ $n }}" aria-label="{{ $n }} star{{ $n > 1 ? 's' : '' }}" value="{{ $n }}" {{ (($prefillRating ?? null) === $n) ? 'checked' : '' }} @if ($n === 5) required @endif>
+                            <label for="star{{ $n }}" title="{{ $n }} star{{ $n > 1 ? 's' : '' }}" aria-hidden="true">★</label>
+                        @endforeach
+                    </div>
+                </fieldset>
             </section>
 
             {{-- Optional per-category sub-ratings (Cleanliness/Communication/Location/Value) → the owner's

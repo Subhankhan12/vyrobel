@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` DONE (7/32, gate 7 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` · `G8 Review` DONE (8/32, gate 8 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5448,6 +5448,19 @@ the work.
    ⚠️ §N.4k was **safe by construction** for the third time (textarea never implicitly submits; after G5's
    GET preview and G6's no-text-input pay form) — worth naming as a pattern, because it is the cheapest
    safety and the easiest to destroy by accident.
+   ⚠️ **G8 (guest-authored PUBLIC content) — DO10-4's '10 sites' was an OVER-COUNT.** It counted every ★
+   glyph; a 5-star RATING ROW is the only thing `<x-star-rating>` can replace. **The real scope is THREE**:
+   `owner/reviews` (done at O26), `guest/review` (done here), and **`owner/unit-detail:338`, which uses
+   `round()` — a 4.6 average renders FIVE filled stars.** That is the Owner-26 defect still live, and it is
+   all that remains of DO10-4 (`DO-G8-1`). Everything else is a single glyph beside a number, a picker
+   input, or an unrelated icon. ⚠️ **The shared component's DEFAULT COLOUR fails** (#E8A63A = 2.05 vs the
+   3:1 non-text bar — a star is the visual carrier of the rating); passed a colour at the call site and
+   logged the default for the owner page to measure, rather than changing a shared default from inside
+   another realm's gate. ⚠️ **§N.4k, highest stakes yet: Enter on a focused star PUBLISHED the review** —
+   a textarea is safe by construction (G7) but a radio group is not, and this content is visible to other
+   travellers. ⚠️ **An existing guard broke and the MARKUP gave way, not the guard** — an `aria-label`
+   split the contiguous `value="4" checked` that a load-bearing deep-link test asserts; attribute order
+   changed instead of weakening the assertion.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via

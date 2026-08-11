@@ -6266,3 +6266,112 @@ used as text (the `DO-G6-3` tail does not touch these pages).
   call, not a design one.
 - **`DO-G7-2` · the guest cannot start a thread from this page** — only reply to existing ones (the start path
   lives on other surfaces, e.g. the arrival/expenses relays). Worth a verdict at a later gate.
+
+---
+
+## §G-8 — Guest Review · GUEST 8/32 · gate 8 of 12 · ⭐ GUEST-AUTHORED PUBLIC CONTENT + THE REAL DO10-4 SITE
+
+`GET/POST /guest/reservation/{r}/review` · `GuestReviewController` · `guest/review.blade.php`. Auth
+`auth:guest`. Walked **read-only** — no review submitted.
+
+### ⚠️ DO10-4 — THE BACKLOG FIGURE WAS AN OVER-COUNT. The real scope is THREE sites, not ten
+
+The register records DO10-4 as *"10 remaining star sites"*. That counted **every `★` glyph in the app**. Classified
+against the code, the picture is different — a 5-star **rating row** is the only thing `<x-star-rating>` can
+replace:
+
+| kind | sites | verdict |
+|---|---|---|
+| **5-star rating DISPLAY** | `owner/reviews:57` · `guest/review` · **`owner/unit-detail:338`** | the real DO10-4 |
+| single ★ beside a numeric average ("★ 4.8 · 12 reviews") | `booking/browse:230` · `booking/room:44` · `operator/reviews:24,40` · `owner/reviews:90,163` | **not** a star row — the number carries the value; migrating would be wrong |
+| rating **picker** (radio labels / `<option>`) | `guest/review` ×2 | an INPUT, not a display |
+| decorative / unrelated | `guest/trips:99,101` · `trip-card:30,33` · `owner/unit-detail:87` (a "Best performer" badge) · `units-list:122` (a cover-photo button) | not ratings at all |
+
+**Two of the three are now migrated** (`owner/reviews` at O26, `guest/review` here). ⚠️ **The third is a live
+defect**: `livewire/owner/unit-detail.blade.php:338` renders
+`str_repeat('★', (int) round((float) $reviews['average']))` — **`round()`, so a 4.6 average shows FIVE filled
+stars.** That is the Owner-26 bug in its original form, still shipping on an owner surface. Out of this gate's
+scope (owner realm) — logged as **`DO-G8-1`**, and it is the whole of what remains of DO10-4.
+
+### ⭐ (1) THE STAR DISPLAY — migrated
+
+`str_repeat('★', $r).str_repeat('☆', 5-$r)` → `<x-star-rating>`. Verified on the render: `role="img"` with
+**one** accessible name (`"5 out of 5 stars"`) instead of five separately-announced glyphs, glyphs
+`aria-hidden`, filled-vs-empty by GLYPH (★/☆) not colour, and the component's floor (a rating can never round
+up to flatter itself).
+
+⚠️ **The component's DEFAULT COLOUR fails.** `#E8A63A` measures **2.05** on this card, against the **3:1**
+bar of WCAG 1.4.11 — a star is the *visual carrier* of the rating, not decoration, even though the glyphs are
+`aria-hidden` and the row is named. Passed `color="#B26A08"` (`--vy-amber`'s value — a star is a fill, so the
+fill token is the right one) → **4.11**. ⚠️ Passed at the CALL SITE rather than changed in the component,
+because that default is shared with the owner Reviews page on a different plate: **logged as `DO-G8-2` for
+that page to measure, not guessed at from here.**
+
+### ⭐ (2) THE STAR INPUT — already keyboard-operable, but unnamed and invisibly focused
+
+It was already a real `<input type="radio">` group, so arrow-key operation works **by construction** — G4's
+mouse-only keyboard trap does **not** recur. Three gaps fixed:
+- the group had **no accessible name** (the "Your rating" eyebrow was a plain `<div>`) → a real
+  `<fieldset>` + `<legend>`;
+- each option announced as **"black star"**, because a `<label>`'s only content is the glyph → `aria-label`
+  on each input ("5 stars" … "1 star"), glyph `aria-hidden`;
+- the radio is `opacity:0; width:0; height:0`, so its focus ring was **invisible** → `:focus-visible + label`
+  rings the star. (G5's lesson, third recurrence — an invisible control shows an invisible focus.)
+
+Verified live: 5 radios in the tab order, names `5 stars…1 star`, focus received, ring rendered.
+
+### ⚠️ §N.4k — ENTER PUBLISHED THE REVIEW, and these are the highest stakes of the pass
+
+Measured with submits intercepted (nothing reached the server): **with a star focused, Enter submits the
+form** — publishing a rating with *no review written*. The textarea below is safe by construction (G7 — a
+textarea never implicitly submits), but **a radio group is not**.
+
+Stakes, judged as the gate asks: G5's cancellation was a *request* an operator reviews; G7's message was
+private to one property; **this is visible to other travellers**. Guarded with the repo's own
+destructive-submit idiom (`onsubmit="return confirm(…)"`, as `admin/customers/show` uses) plus the shared
+`data-guard-submit`.
+
+### ⚠️ AN EXISTING GUARD BROKE, AND THE MARKUP GAVE WAY — not the guard
+
+Adding `aria-label` between `value` and `checked` broke
+`it('pre-selects the rating from the ?rating star deep-link…')`, which asserts the contiguous substring
+`value="4" checked`. **That test is load-bearing** — it proves the deep-link pre-fill *and* that an
+out-of-range `?rating=9` is NOT fabricated into a selection. The attribute order was changed so the guard's
+assertion stays exact. **The guard was not weakened to fit the change.**
+
+### ✅ `anonymize()` — RETAINED BY DESIGN, and the identifying half really is cleared
+
+The review body is **deliberately retained**, documented in `Guest::anonymize()` and flagged for a founder
+decision — it is the guest's opinion *of the property*, what other travellers rely on, and destroying it
+changes published content. What IS cleared: the operator's **public reply** (it had kept the guest's first
+name on a public, indexable storefront page) and the byline. ⚠️ **Verified, not assumed**:
+`GuestName::reviewByline()` renders the neutral **"A guest"** for an anonymized guest — the docblock's claim
+is accurate (another §N.8b "accurate", after G3). The comment even names the one-line change if policy
+decides otherwise, and notes the erasure test already plants a body value. **Surfaced, not decided.**
+
+### ✅ VERIFIED
+
+- **Foreign-id → 404 on BOTH routes, and the existing test already asserts `Review::count() === 0`** — G6's
+  presence-not-isolation gap does **not** recur here. Confirmed live too: another guest's review URL 404s.
+- **The eligibility gate is on BOTH `show()` and `submit()`** — `abort_unless($this->reviews->isCompleted(...))`,
+  so a future or cancelled stay cannot be reviewed, not merely cannot be *displayed*.
+- **The review state is honest**: the already-reviewed card shows the REAL status — *Published* / *Not
+  published* / *"with the property for review"* / *"Sent privately to the manager"* — derived, never a
+  hardcoded "published"; honest empty otherwise.
+- **Observed READ-ONLY**: reviews `max(created_at)` = `max(updated_at)` = the seed timestamp, **0 created
+  since 2026-08-10**. ⚠️ A count I first read as "4 → 7" was my own `tail`-truncated output cutting the count
+  line — substantiated before reporting, and nothing was written.
+- **Contrast**: form state **0 failures / 37 runs**; display state **5 → 0 / 22 runs**. Anchor 2 validated at
+  exactly 5.18 on both; anchor 1 has no call site on either page.
+- **Old-token sweep (G4/G5)**: clean on this view.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G8-1` · `livewire/owner/unit-detail.blade.php:338` rounds a rating UP** (`round()`, so 4.6 → five
+  filled stars) — the Owner-26 defect, still live, on an owner surface. **This is all that remains of
+  DO10-4.**
+- **`DO-G8-2` · `<x-star-rating>`'s default `color: #E8A63A` measures 2.05 on a light card** (needs 3:1).
+  Passed a colour at this call site; the owner Reviews call site uses the default on its own plate and must
+  measure it. Its `emptyColor: #B9A99A` is also unmeasured here (a 5/5 rating renders no empty star).
+- **`DO-G8-3` · the review has no visible moderation timeline** — a guest sees the current status but not when
+  it changes; and a `rejected` review shows "Not published" with no reason. A product call.
