@@ -4,6 +4,7 @@ use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Unit;
 use App\Services\AssignmentService;
+use App\Support\Guest\ArrivalPack;
 use App\Support\Pdf\ArrivalPackDocument;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -202,4 +203,30 @@ it('404s downloading another guest’s arrival PDF', function () {
     $this->travelTo(CarbonImmutable::parse('2026-09-06'));
     $this->actingAs($a, 'guest')->get(route('guest.arrival.pdf', $bRes->getKey()))->assertNotFound();
     $this->travelBack();
+});
+
+// ── SCREEN == PDF: the withheld state names the gate's OWN date on BOTH surfaces ──────────────────
+// G3: the PDF printed "from {released_from}" while the SCREEN said only "as your stay approaches" — the two
+// surfaces disagreed about the one fact a locked-out guest needs. Both now read the date from ArrivalPack, so
+// neither can drift from the window that actually withholds the code, and neither restates a fixed interval
+// (the "48h" literal fixed at G2 mirrored LEAD_DAYS and would have lied the moment that constant moved).
+it('names the same real unlock date on the arrival screen and the arrival PDF (#33, SCREEN==PDF)', function () {
+    $s = seedScenario(1);
+    $a = arrGuest($s['guest'], 'ada@example.test');
+    $s['units'][0]->update(['door_code' => '2468', 'wifi_ssid' => 'Seaside-Guest', 'wifi_password' => 'welcome2026']);
+    $reservation = arrBook($s, $a, $s['units'][0])->load(['property', 'reservationUnits.unit', 'leadGuest']);
+
+    $before = CarbonImmutable::parse('2026-08-01');
+    $expected = CarbonImmutable::parse('2026-09-05')->subDays(ArrivalPack::LEAD_DAYS)->format('D, j M');
+
+    $this->travelTo($before);
+    $screen = $this->actingAs($a, 'guest')->get(route('guest.arrival', $reservation->getKey()))->assertOk()->getContent();
+    $this->travelBack();
+    $pdf = view('pdfs.arrival', ArrivalPackDocument::data($reservation, $before))->render();
+
+    foreach (['screen' => $screen, 'pdf' => $pdf] as $surface => $html) {
+        expect($html)->toContain($expected)          // the gate's own released_from, on BOTH
+            ->and($html)->not->toContain('2468')     // …and the code on NEITHER
+            ->and($html)->not->toContain('48h');     // …and no restated fixed interval
+    }
 });

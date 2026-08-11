@@ -73,7 +73,7 @@
                 </span>
                 <div>
                     <div style="font-size:13.5px;color:var(--vy-ink)">Your access details appear here closer to arrival</div>
-                    <div style="font-size:11.5px;color:var(--vy-faint)">The door code and WiFi unlock as your stay approaches — for your security.</div>
+                    <div style="font-size:11.5px;color:var(--vy-faint)">{{ $pack['has_code'] ? 'Your door code and WiFi unlock on '.$pack['released_from'].' — for your security.' : 'They appear here once your host has set them.' }}</div>
                 </div>
             </div>
         @endif

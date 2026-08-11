@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` + `G2 Reservation` DONE (2/32, gate 2 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` DONE (3/32, gate 3 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5391,6 +5391,15 @@ the work.
    only removing BOTH produces a real leak. (c) **Check which VARIANT rendered** — three `.vy-btn`s
    measured on G2 were all `--ghost`; the primary only draws when a balance is due, and reporting the
    ghosts would have falsely 'confirmed' the one item G1 left unverified.
+   ⚠️ **G3 closed the #33 gate proper, and it is the realm's STRONGEST area, not its weakest.** The PDF
+   builder genuinely DELEGATES to `ArrivalPack` (the first docblock this pass has checked and found
+   TRUE); **both** surfaces are double-gated (the premise that the PDF has no view re-check is false);
+   and this file's fixtures already assigned a unit, so the systemic vacuous-#33 trap that caught G1 and
+   G2 did NOT apply here. What was actually wrong was COPY: the screen and PDF disagreed about the unlock
+   date, and the PDF footer asserted 'live from check-in' when the engine releases it LEAD_DAYS earlier —
+   the third instance of the G2 mock-value family. ⚠️ Also: the same-token-different-plate failure
+   recurred a THIRD time (ghost button: 5.03 on the card, 4.41 on the wash), so treat 'same token, new
+   backdrop' as a STANDING re-measure, not an occasional one.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via

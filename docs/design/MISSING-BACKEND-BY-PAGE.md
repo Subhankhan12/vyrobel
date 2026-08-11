@@ -5741,3 +5741,104 @@ without knowing the count was 9, a 10 would have looked like the documented rang
   message and email — no key pickup needed"), the early-check-in request row with its Pending chip, and the
   three modals the prototype drives in JS (Manage booking / cancellation / pay-now) which this no-Alpine
   realm renders as separate GET pages instead.
+
+---
+
+## §G-3 — Guest Arrival screen + Arrival Guide PDF · GUEST 3/32 · gate 3 of 12 · 🔒 THE #33 GATE PROPER
+
+`GuestArrivalController@show` → `guest/arrival.blade.php` in `<x-guest.shell>`, and `@pdf` →
+`pdfs/arrival.blade.php` via `App\Support\Pdf\ArrivalPackDocument`. Auth `auth:guest`. Walked as the demo
+guest in **both** window states, screen and generated PDF.
+
+### ✅ THE DELEGATION — the gate's critical check, and it HOLDS
+
+`ArrivalPackDocument::data()` returns `'pack' => ArrivalPack::for($reservation, $today)` and **never touches
+`$reservation->…->unit` for a secret**. Its docblock claims *"built from the SAME window-gated ArrivalPack …
+so the three surfaces cannot drift"* — **read against the code, the claim is TRUE.** After nine §N.8b
+instances this is the first docblock this pass has checked and found accurate, which is worth recording as
+plainly as the failures.
+
+### ⚠️ PREMISE CORRECTION — the PDF is NOT the weaker path
+
+The gate was scoped on the expectation that *"the PDF has no view re-check, so it relies entirely on
+ArrivalPack's data-layer null and is the MORE DANGEROUS path."* **False.** `pdfs/arrival.blade.php:55` opens
+with `@if ($pack['released'])`, exactly like the screen. **Both surfaces are double-gated.**
+
+**The defensive set, mapped by mutation** (G2's O32-cuts-both-ways discipline, applied deliberately):
+
+| mutation | result | what it proves |
+|---|---|---|
+| **M1** — remove `ArrivalPack`'s data-layer null ALONE | all 11 GREEN | redundancy, **not** vacuity — each template's own `released` check still holds |
+| **M2** — data null **+ the PDF template's** check | **PDF test RED** | the PDF's #33 guard is real and catches the leak |
+| **M3** — data null **+ the SCREEN's** check | **screen test RED** | the screen's guard is real |
+
+⚠️ **And unlike G1 and G2, the fixtures here were already sound.** `arrBook()` passes `unit_id` explicitly to
+`createBooking`, so a real unit with a real code is attached and the guards have something to leak. The
+systemic vacuous-#33 fixture trap that caught G1 and G2 **does not apply to this file** — the tests that
+matter most were the ones written properly.
+
+### ⚠️ SCREEN ≠ PDF — the two surfaces disagreed about the one fact a locked-out guest needs
+
+The **PDF** printed *"…unlock as your stay approaches — from {released_from}"*. The **screen** said only
+*"The door code and WiFi unlock as your stay approaches — for your security."* — **no date at all**, on the
+realm's dedicated arrival surface. The screen now names the gate's own `released_from` (verified live: a 5 Sep
+check-in renders *"unlock on Thu, 3 Sep"* on both). Guarded, and the guard is mutation-proven in **both**
+directions — reverting either surface turns it red.
+
+### ⚠️ A SECOND ENGINE-CONTRADICTING LITERAL, in the PDF footer
+
+Every page of the guide footed with **"The door code is live from check-in."** The engine releases it
+`LEAD_DAYS` **before** check-in and keeps it until check-out, so the line was wrong in the *understating*
+direction — and it printed on the **in-window** guide, where the code is already visible days before
+check-in, contradicting itself on the same page. Removed; the timing is now stated **once**, from the gate.
+Third instance of the G2 mock-value family (after the reservation hub's "48h" and the prototype's own copy).
+
+### 🎨 Contrast
+
+**Screen — 1 failure → 0 (35 runs).** `[ghost] Copy` on the door-code tile: `--vy-accent` on `--vy-wash`
+= **4.41**, while the identical button on the white card measured **5.03**. G2's lesson a third time — the
+same token, a different plate. `.vy-btn--ghost` now takes `--vy-accent-text` (**5.28** on the wash, 5.9 on the
+card), which also lifts G2's ghosts from 4.99.
+
+⚠️ **Only ONE anchor was testable on this render.** Anchor 2 (white on solid `--vy-accent`) held **exactly
+5.18**, twice — including the primary `.vy-btn`. Anchor 1 (white on `--vy-grad`) has **no call site left on
+this page**, because G1 replaced the brand mark's gradient with a solid. Stated rather than glossed: the
+per-run self-check was half-strength here, and the PDF's independent arithmetic agrees with it.
+
+**PDF — all 7 declared text runs pass on paper**, measured against the plate each actually sits on:
+`#2B2320` 15.40 · `#5F5853` 6.98 · `#6C645F` 5.79 · `#C2410C` eyebrow 5.18 · white-on-accent mark 5.18 ·
+and on the amber withheld callout (`#FBEFD8`) 13.52 / 6.13.
+
+⚠️ **A histogram over the rendered PDF was the wrong probe and was discarded** — it counted the callout's
+22,469-pixel background and the card borders as "ink" and reported them as failures. Plates are not text.
+
+**The `arrival` template's own PDF-sweep literals are fixed**: `#8A8079` ×4 (**3.86**) → `#5F5853`, and
+`#A69A92` ×2 (**2.74**) → `#6C645F` — the realm-wide pattern, in this template only. **`PdfService` untouched**;
+its `#a99b8e` watermark at **2.70** remains for the dedicated sweep. ⚠️ Note: **no watermark appears on the
+generated arrival guide**, so the 2.70 figure could not be confirmed on this document.
+
+### ⌨️ Keyboard + honesty
+
+11 interactive (out-of-window) · **0 unnamed** · **0 `div@click`** · 0 overflow. §N.4k: no form on the page.
+**The Copy buttons are real** — an inline vanilla-JS clipboard handler backs them (this realm is
+**no-Alpine**, not no-JS), and they render **only** when something is released, so there are **0 dead
+controls** in the withheld state. **#28**: no operator internals, owner money or other-guest data on either
+surface, either state. **Foreign-id → 404** on both routes, already guarded and mutation-proven.
+
+### ✅ REFUSALS TO PRESERVE
+
+- **The prototypes show the code UNCONDITIONALLY** (both the screen and PDF mocks print "4 8 2 1"). The live
+  window-gating is the honest refusal of that design, on both surfaces.
+- **The prototype's House guide + "Before you leave" checkout list + local picks are long fabricated prose**
+  (keypad instructions, AC settings, coffee-pod locations). Refused; the real `arrival_notes` is shown
+  instead — and is itself window-gated, since it describes physical access.
+- **Local recommendations** stays an honest "coming soon" rather than invented neighbourhood content.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G3-1` · the realm-wide PDF sweep** — 5 guest templates remain (`folio`, `guest-statement`,
+  `guest-vat-invoice`, `guest-credit-note`, `guest-refund-receipt`) plus `PdfService`'s watermark. `arrival`
+  is now clear.
+- **`DO-G3-2` · prototype affordances owed a verdict** — the "Get directions" map link, the spaced-digit
+  code presentation with a keypad hint, and the structured House-guide sections (which would need a real
+  per-property guide model, not prose).

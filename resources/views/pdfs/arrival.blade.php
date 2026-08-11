@@ -2,7 +2,13 @@
      CSS, DejaVu Sans. Built from the SAME window-gated ArrivalPack as the on-screen page + the #83 email
      (no drift). 🔒 #33 — the door code + wifi print ONLY when the arrival window is open ($pack.released);
      a pre-window guide carries the honest "appears closer to arrival" state, NEVER a code. No fabricated
-     house guide / checkout steps / local picks. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+     house guide / checkout steps / local picks.
+     ⚠️ The footer used to add "The door code is live from check-in." — the engine releases it
+     ArrivalPack::LEAD_DAYS BEFORE check-in and keeps it until check-out, so that line was wrong in the
+     understating direction AND printed on the in-window guide where the code is already visible days
+     early, contradicting itself on the page. The timing is stated ONCE, from the gate's own
+     released_from, in the withheld-state block. Same family as the "48h" literal fixed at G2.
+     RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,22 +18,22 @@
         body { margin: 0; color: #2B2320; font-size: 12px; }
         .wrap { padding: 36px 40px; }
         .brand-mark { display: inline-block; width: 30px; height: 30px; background-color: #C2410C; color: #fff; text-align: center; font-size: 18px; font-weight: bold; border-radius: 7px; line-height: 30px; }
-        .muted { color: #8A8079; }
-        .faint { color: #A69A92; }
+        .muted { color: #5F5853; }
+        .faint { color: #6C645F; }
         .eyebrow { color: #C2410C; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         h1 { font-size: 20px; margin: 2px 0 0; }
         .meta { width: 100%; border-collapse: collapse; margin: 24px 0 8px; }
         .meta td { padding: 4px 0; font-size: 12px; }
-        .meta .k { color: #8A8079; width: 130px; }
+        .meta .k { color: #5F5853; width: 130px; }
         .card { border: 1px solid #EFE3D9; border-radius: 10px; padding: 16px 18px; margin-top: 14px; }
-        .card .lbl { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #8A8079; }
+        .card .lbl { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #5F5853; }
         .code { font-size: 30px; font-weight: bold; letter-spacing: 6px; color: #2B2320; margin-top: 4px; }
         .wifi td { padding: 6px 0; font-size: 13px; }
-        .wifi .k { color: #8A8079; width: 130px; }
+        .wifi .k { color: #5F5853; width: 130px; }
         .withheld { background-color: #FBEFD8; border-color: #F0DDBC; }
         .section-h { font-size: 13px; font-weight: bold; margin: 22px 0 6px; }
         .body { font-size: 12.5px; line-height: 1.55; }
-        .foot { margin-top: 30px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #A69A92; }
+        .foot { margin-top: 30px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #6C645F; }
     </style>
 </head>
 <body>
@@ -89,7 +95,7 @@
     @endif
 
     <div class="foot">
-        {{ $property }} · {{ $reference }} · The door code is live from check-in. Please keep this guide to yourself.
+        {{ $property }} · {{ $reference }} · Please keep this guide to yourself.
     </div>
 </div>
 </body>

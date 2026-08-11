@@ -109,7 +109,11 @@
            measured at 3.39 on the Trips CTA. Trips renders no .vy-btn, so this one is corrected BY CONSTRUCTION,
            not by a render on this page — G2 is the first gate that draws it and must confirm 5.18. */
         .vy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 18px; border-radius: 24px; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; color: #fff; background: var(--vy-accent); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); text-decoration: none; }
-        .vy-btn--ghost { background: none; color: var(--vy-accent); border: 1px solid var(--vy-glass-border); box-shadow: none; }
+        .vy-btn--ghost { background: none; color: var(--vy-accent-text); border: 1px solid var(--vy-glass-border); box-shadow: none; }
+        /* G3: a ghost button carries ACCENT TEXT, so it takes the text token. --vy-accent measured 5.03 on
+           the white card but 4.41 on a --vy-wash tile (the arrival door-code panel) — the same token on a
+           different plate, the G2 lesson again. --vy-accent-text clears both (5.28 on the wash, 5.9 on the
+           card) and lifts G2's ghosts from 4.99 too. */
         .vy-btn:hover { transform: translateY(-1px); }
         .vy-empty { text-align: center; color: var(--vy-muted); font-size: 14px; padding: 30px 10px; }
         /* Polish Batch 4 — shared portal form classes (so the Account page can render IN this shell, with the nav,
