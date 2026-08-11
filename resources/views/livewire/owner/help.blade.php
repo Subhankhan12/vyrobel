@@ -1,8 +1,11 @@
 {{-- Owner Help & Support (exact-match #66) — matched to the decoded "Owner Help" wireframe, HONEST throughout.
      The ONE real contact channel is "Message your manager" → the owner↔operator inbox; the FAQ answers link to the
-     real owner screens; the hero SEARCHES the real FAQ client-side (Alpine) — NEVER a fabricated AI answer. REFUSED
-     (#39): the AI Q&A, the support-TICKET queue (messaging is the tracked channel), the live system-status board
-     (an honest static "operational" line instead), and invented owner-desk phone/email numbers.
+     real owner screens; typing also filters the real FAQ client-side (Alpine) — NEVER a fabricated AI answer.
+     ⚠️ THIS BLOCK USED TO LIST "the AI Q&A" AS REFUSED. That went stale when Wave D shipped Ask Vyrobel: a REAL
+     grounded assistant ({@see App\Services\AskVyrobelService}) that retrieves over the Help KB first, escalates
+     deterministically with NO model call when retrieval is empty, and falls back to the same grounded help when
+     the cost cap or circuit breaker trips. Still REFUSED (#39): the support-TICKET queue (messaging is the
+     tracked channel), a LIVE system-status board, and invented owner-desk phone/email numbers.
      RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click passes through to Alpine). --}}
 <x-owner.shell active="help" :title="'Help & support'" :subtitle="'Answers, and how to reach your management team'" :viewer="$viewer">
     <style>
@@ -21,7 +24,7 @@
         .vy-hlp-faq { border-bottom:1px solid var(--vy-hairline); padding:10px 0; }
         .vy-hlp-faq summary { cursor:pointer; font-size:13.5px; font-weight:600; color:var(--vy-ink); list-style:none; }
         .vy-hlp-ask-btn { flex-shrink:0; padding:10px 18px; border-radius:var(--vy-r-pill); border:none; background:var(--vy-grad); color:#fff; font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; box-shadow:var(--vy-shadow-accent); }
-        .vy-hlp-note { display:flex; align-items:flex-start; gap:7px; font-size:11.5px; color:var(--vy-faint); margin-top:12px; line-height:1.5; }
+        .vy-hlp-note { display:flex; align-items:flex-start; gap:7px; font-size:11.5px; color:var(--vy-ink); margin-top:12px; line-height:1.5; }
         .vy-hlp-answer { border:1px solid var(--vy-accent-border); }
         .vy-hlp-answer .ans { font-size:14.5px; line-height:1.6; color:var(--vy-ink); margin:6px 0 0; }
         .vy-hlp-src { display:flex; flex-direction:column; gap:8px; margin-top:14px; padding-top:12px; border-top:1px solid var(--vy-hairline); }
@@ -115,7 +118,7 @@
                 <span class="vy-hlp-ccard-ic" style="background:var(--vy-grad);box-shadow:var(--vy-shadow-accent)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"/></svg></span>
                 <h3>Message your manager</h3>
                 <span style="font-size:12.5px;color:var(--vy-faint);margin-top:3px">In-app — your team replies in your inbox, with full history</span>
-                <span style="display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:500;color:var(--vy-accent);margin-top:14px">Open messages →</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:500;color:var(--vy-accent-text);margin-top:14px">Open messages →</span>
             </a>
             <div class="vy-hlp-ccard">
                 <span class="vy-hlp-ccard-ic" style="background:linear-gradient(140deg,#E8875A,#C2410C)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></span>
@@ -123,8 +126,12 @@
                 <span style="font-size:12.5px;color:var(--vy-muted);margin-top:6px;line-height:1.5">Your management team’s direct phone and email are on your welcome pack and your latest statement. For anything account-specific, messaging keeps it in one place with your history.</span>
             </div>
             <div class="vy-hlp-ccard" style="justify-content:center">
-                <div class="vy-eyebrow" style="margin-bottom:10px">System status</div>
-                <div class="vy-hlp-status"><span class="dot"></span><span style="font-size:13px;font-weight:500;color:var(--vy-muted)">Your operator is your first line of support</span></div>
+                {{-- NOT "System status": nothing here measures a system. The heading + a green presence dot
+                     together read as "operational right now", which is the live status board this file's own
+                     docblock records as REFUSED. The dot is gone and the heading now describes what the line
+                     actually says — a fact about the support model, not a signal. --}}
+                <div class="vy-eyebrow" style="margin-bottom:10px">How support works</div>
+                <div class="vy-hlp-status"><span style="font-size:13px;font-weight:500;color:var(--vy-ink)">Your operator is your first line of support</span></div>
                 <span style="font-size:11.5px;color:var(--vy-faint);margin-top:8px">Payouts, statements and your portal are running normally.</span>
             </div>
         </section>

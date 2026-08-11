@@ -77,3 +77,22 @@ it('escalates honestly for an out-of-scope question — no fabricated answer, st
 
     assertNoRawBlade($res);
 });
+
+// ── The support card states a FACT, and shows no live-status signal ───────────────────────────────
+// A previous pass removed the words "All systems operational" because nothing observes system health.
+// Owner-28 found the VISUAL half of that claim still standing: a green presence dot under a heading
+// reading "System status", beside a line that is not a status at all. A green dot under that heading
+// says "operational right now" as loudly as the sentence did — and this file's own docblock records a
+// live status board as REFUSED. The words came out; the signal had not.
+it('shows no live-status signal on the support card', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+
+    $html = $this->actingAs($user)->get('/owner/help')->assertOk()->getContent();
+
+    // The honest fact stays…
+    expect($html)->toContain('Your operator is your first line of support')
+        // …with no presence dot inside the card, and no heading claiming a system status.
+        ->and($html)->not->toContain('<span class="dot"></span>')
+        ->and($html)->not->toContain('>System status<');
+});

@@ -5022,3 +5022,74 @@ accent), the "All villas" filter 3.61, and a tail of marginal greys/accents at 4
 ⚠️ Two readings (a badge at 1.03, an avatar at 1.12) sample across an element boundary and are **probe
 artifacts, not findings**. **O26's contrast fix is now a scoped, unstarted item** — migrating this page's two
 remaining star spans to the component and retoning that tail. It was NOT folded into this gate.
+
+---
+
+## §O-28 — Owner **Help** (`/owner/help`)
+
+`App\Livewire\Owner\OwnerHelp` + `OwnerHelpAskController` → `AskVyrobelService`.
+Prototype `docs/design/raw/Owner Help.html`. A claims surface.
+
+### ⚠️ PREMISE CORRECTION — the AI assistant is BUILT, not deferred
+
+The brief carried "live LLM is DEFERRED §H". **That is not true of this surface.** *Ask Vyrobel* shipped in
+**Wave D** as a real, grounded assistant: `AskVyrobelService` retrieves over the Help KB first and **escalates
+deterministically with NO model call when retrieval is empty** (so out-of-scope and account-specific questions
+can never reach the model), applies a per-owner daily token cap, and trips a circuit breaker to the same
+grounded fallback on provider failure. It posts to a real controller route (`/owner/help/ask`, PRG). Locally
+`LLM_FAKE` defaults to **true** and no key is set, so the demo answers from the grounded fallback — and
+`AskVyrobelTest` proves the fake client is forced outside production *even with a real key*.
+
+⚠️ **The page's own docblock listed "the AI Q&A" under REFUSED (#39)** — stale since Wave D, and the **third**
+occurrence of a docblock denying a feature that exists (O22, O24). Corrected.
+
+### 🔴 THE FIX — the words came out, the signal stayed
+
+A previous pass (wireframe-parity WAVE 2) removed the line **"All systems operational"**, correctly, because
+nothing observes system health — and `OwnerHelpTest` still forbids that string. **The visual half survived**: a
+green presence dot (`--vy-green`, on a green-tinted card) sat under a heading reading **"System status"**,
+beside a sentence that is not a status at all — *"Your operator is your first line of support"*.
+
+**A green dot under "System status" asserts "operational right now" as loudly as the words did**, with nothing
+behind it — the GATE-24 / Owner-12 hardcoded-status trap, and the very board this file's docblock records as
+REFUSED. It was also **colour-only** (no text, no `aria`). Removed the dot; the heading now says **"How
+support works"**, which is what the line actually is. Guarded and mutation-proven.
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO28-1 — there is no presence or SLA signal, and the page correctly claims neither.** No "desk online", no
+  "replies in under an hour" — the prototype's two SLA claims are simply absent. ⚠️ *Whether to promise an SLA
+  at all is the founder's call; the honest position today is to make no timing claim.* *Verdict: **RATIFIED
+  REFUSAL** — do not "restore" the prototype's promise.*
+- **DO28-2 — no support-ticket queue.** Messaging is the tracked channel; the page says so ("no separate
+  ticket queue"). *Verdict: **RATIFIED REFUSAL**.*
+
+### ⚠️ Verified, not changed
+
+- ⚠️ **"replies in" was a FALSE ALARM I raised and cleared.** My needle matched *"your team replies **in your
+  inbox**, with full history"* — a **location**, not a time SLA. Read the context before calling a claim.
+  *(The O25 needle lesson, this time in the reading direction.)*
+- **Contact paths are honest** — there are **no `mailto:` or `tel:` links at all**. The card says the team's
+  direct phone and email are *"on your welcome pack and your latest statement"*: it points at where the real
+  contact lives instead of inventing one. An existing guard forbids the wireframe's invented number.
+- **The assistant is observed READ-ONLY** — nothing was submitted; no cost-ledger row exists to write to
+  locally. Its disclosure ("verify important things, message your team for anything account-specific") and the
+  escalate relay are present on every path by construction.
+- **§N.4k** — the ask form has a **single** field, `required`, `aria-label`led, with a named "Ask" submit, so
+  Enter submits the one thing it can and cannot submit empty.
+- **Keyboard: 0 unnamed, 0 `display:none` controls, 0 genuinely unreachable** (the 4 flagged are the shell's
+  Alpine roots).
+- ⚠️ **`toContain` sweep — clean negative** (twenty-seventh gate).
+
+### 🎨 Contrast — 7 → 5 (3 real + 2 artifacts)
+
+- ⚠️ **The AI disclosure line measured 4.48** — the sentence telling the owner to verify what the assistant
+  says was **the least legible text on the page**. → `--vy-ink`. *(Third time the honesty text is the worst
+  reading: O22's "not tax advice", O25's "EXAMPLE rates", now this.)*
+- "Open messages →" 4.21, raw accent-as-text → `--vy-accent-text`.
+- **Survivors: 3 white-on-accent** (the "Ask" button 3.79, the "Open messages" button 3.85, the shell brand
+  mark 3.88) — the known family, **none added**.
+- ⚠️ **2 reported failures are PROBE ARTIFACTS, not findings**: the notification badge (1.04) and shell avatar
+  (1.12) sample across an element boundary — their background range spans `(194,65,12)..(254,250,249)`, i.e.
+  the sample straddles the edge. The same two measure ~3.83/3.88 cleanly on other pages. Same for the 1.29
+  icon reading.

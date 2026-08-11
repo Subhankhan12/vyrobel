@@ -7700,3 +7700,38 @@ glyphs sit behind an accessible name. Two extreme readings are boundary-sampling
 fix is now scoped and unstarted, and was deliberately not folded into this gate.
 
 Suite **1854 / 12,123**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 28/32 · Help (`/owner/help`)
+
+**Premise corrected: the AI assistant is built, not deferred.** *Ask Vyrobel* shipped in Wave D as a grounded
+assistant — it retrieves over the Help knowledge base first and escalates deterministically with **no model
+call** when retrieval is empty, so out-of-scope and account-specific questions can never reach the model; a
+per-owner token cap and a circuit breaker fall back to the same grounded help. Locally the fake client is in
+use with no key, and a test proves the fake is forced outside production even when a real key is present. The
+page's own docblock still listed "the AI Q&A" as refused — stale since Wave D, and the third instance of a
+docblock denying a feature that exists. Corrected.
+
+**The words came out; the signal stayed.** An earlier pass removed "All systems operational" because nothing
+observes system health, and a guard still forbids that string. But the *visual* half of the claim survived: a
+green presence dot under a heading reading "System status", beside a sentence that is not a status at all.
+A green dot under that heading asserts "operational right now" as loudly as the words did, with nothing behind
+it — and it was colour-only besides. The dot is gone and the heading now says what the line actually is. This
+is worth remembering as a class: **removing a false claim's text does not remove the claim if its visual
+signal remains.**
+
+**A false alarm I raised and cleared:** my needle matched "replies in", which turned out to be "your team
+replies *in your inbox*, with full history" — a location, not a time SLA. Read the context before calling a
+claim, which is the O25 needle lesson pointing the other way.
+
+Ratified refusals: the page makes **no** presence or SLA claim (the prototype's "desk online · replies in
+under an hour" is simply absent), and there is no ticket queue. Whether to promise an SLA at all is the
+founder's call; making no timing claim is the honest position today. Contact is honest too — there are zero
+`mailto:`/`tel:` links, and the card points at where the real number lives instead of inventing one.
+
+**Contrast 7 → 5.** The AI disclosure line — the sentence telling the owner to verify what the assistant says
+— measured **4.48**, the least legible text on the page. That is the third time the honesty text has been the
+worst reading (O22's "not tax advice", O25's "EXAMPLE rates", now this), which is starting to look like a
+pattern worth watching rather than a coincidence. Two of the five remaining failures are boundary-sampling
+artifacts, not findings.
+
+Suite **1855 / 12,127**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
