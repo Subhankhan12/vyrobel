@@ -17,7 +17,10 @@
 
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--vy-hairline)">
         <span style="font-family:var(--vy-display);font-size:16px;font-weight:700;color:var(--vy-ink)">{{ $trip['total'] }}</span>
-        <span style="font-size:12.5px;font-weight:600;color:{{ $trip['balance_due'] ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">{{ $trip['balance_label'] }}</span>
+        {{-- G10 · TEXT tokens, not fill tokens. --vy-amber is a FILL (rails/borders); as 12.5px text it measures
+             4.08 on the card plate, under AA. The amber branch only renders for an OWED trip, which is why it
+             survived G1's sweep — the probe can only measure the branch that actually rendered. --}}
+        <span style="font-size:12.5px;font-weight:600;color:{{ $trip['balance_due'] ? 'var(--vy-amber-text)' : 'var(--vy-green-text)' }}">{{ $trip['balance_label'] }}</span>
     </div>
 
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px">

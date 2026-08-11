@@ -6490,3 +6490,133 @@ Old-token sweep clean; no `--vy-amber`-as-text on this page.
   but not that financial history is retained (anonymized). Honest as far as it goes; the retention is a
   founder/legal statement to make explicit.
 - **`DO-G9-3` · the language radio group submits on every arrow-key step** (see above).
+
+---
+
+## §G-10 — Guest Wallet + Saved · GUEST 10/32 · gate 10 of 12 · 🪙 APPEND-ONLY MONEY + A POLICY THE CODE NEVER IMPLEMENTED
+
+`GET /guest/wallet` + 2 POSTs · `GuestWalletController` · `guest/wallet.blade.php`
+`GET /guest/saved` + 5 POST **routes** · `GuestSavedController` · `guest/saved.blade.php`
+Both `auth:guest`, self-scoped. Walked **read-only** — none of the 6 forms submitted.
+
+### ⚠️ THE FINDING — three sentences of policy, two of them false
+
+The wallet's "How credits work" card is a **policy statement**, so each line was checked against the engine:
+
+| the page said | the engine does | verdict |
+|---|---|---|
+| "Credit comes from **refunds, cancelled add-ons** and any code you redeem" | only `redeemCode()` writes a credit in production. `FolioService::refundPayment()` returns money to the **payment method** and posts no wallet credit; `TYPE_ADD_ON_CANCELLED` is a constant + a display label with **no writer anywhere** | ❌ **FALSE** |
+| "applied to your bookings at checkout, or to an outstanding balance above" | real — `BookingEngineController` at checkout, `applyToBooking()` here | ✅ true |
+| "Most credits are valid for **12 months** from the day they land" | **no 12-month rule exists in any path.** `credit()` defaults `expiresAt` to `NULL` (never expires); a promo credit inherits the **promo's** expiry | ❌ **FALSE** |
+
+⚠️ **The 12-month line is a prototype literal shipped as fact** — the mock reads *"Most credits are valid for
+12 months from the day they land"*. **This is the same failure `GuestReservationTest` already guards on the
+other side of the realm** ("derives the unlock date from ArrivalPack, never a hardcoded interval", written
+after the page shipped the mock's "48h"). The pattern recurred in a different file and nobody looked.
+
+⚠️ **The page disproved itself on screen.** Both of the demo's real credits break the stated rule — one never
+expires, the other expires in **60 days** — and the page printed that 60-day date *directly above the claim*.
+
+⚠️ **§N.8d, both directions, in one card:** the refund line **overstates** (a guest waits for credit after a
+refund that will never come); the 12-month line **issues a false instruction** (spend within a year — or
+write off older credit that is in fact still live). Rewritten to what the code does. The empty state repeated
+the same refund promise ("check back after a refund") and was fixed with it.
+
+### ⚠️ AN EXPIRED CREDIT LOOKED LIKE MONEY YOU HAVE
+
+`spendableMinor()` excludes expired credit and the hero says so — but the history row rendered an expired
+credit's amount in the **same confident green "+"** as a live one, with the word "expired" alone in the
+label. **The figure contradicted the balance directly above it** — §N.8d's "the visual signal outlives the
+text", in the money surface. Expired amounts now render muted **and struck**, like a debit.
+
+### ✅ #17 RECONCILES — and the analogue of "pending" here is EXPIRY
+
+The balance is **derived, never stored** (`spendableMinor()` = Σ live credits − Σ debits; there is no balance
+column, and the migration's own docblock says storing one would be the drift bug). Measured live: ledger
+`2500 + 1000 = 3500` → hero **€35.00**, to the cent. ⚠️ **There is no "pending" wallet state** — the honesty
+axis in this realm is **EXPIRY**, and it is handled correctly: expired credit is excluded from spendable, the
+hero states the exclusion, and the row now looks excluded too.
+
+### 🎨 Contrast — Wallet 32 runs **0 fail** · Saved 24 runs **1 → 0**
+
+⚠️ **DO-G6-2 CLOSED.** `saved.blade.php`'s `· expired` chip — `--vy-amber` (a **fill** token) as 10.5px text —
+measured **4.08**, under AA. `--vy-amber-text` measures **6.15** on the same plate. Anchors validated both
+runs (white on solid `--vy-accent` = 5.18).
+
+⚠️ **The "· expired" span only renders for an EXPIRED entry, and the demo has none** — I injected the exact
+markup into the real row to sample the real token on the real plate. **A conditional colour is invisible to
+the probe until its condition is true**, which is a new entry for §N.8e — and it is exactly why this site
+survived earlier sweeps.
+
+Also unified the last **live** hand-written `rgb(70,120,60)` in the guest realm onto `--vy-green-text` (the
+shell declares it "the one definition"); corrected **in place** on G1's `trips.blade.php` line.
+
+### ⚠️ PREMISE CORRECTIONS
+
+1. **I claimed a second amber-as-text site and was wrong.** `guest/partials/trip-card.blade.php` uses
+   `--vy-amber` as text — but the file **is included nowhere**. It is **DEAD CODE**: the live trip card is
+   inlined in `trips.blade.php`, whose amber G1 already fixed. **DO-G6-2's "saved is the last site" was
+   ACCURATE** — the second §N.8b claim in this realm to survive verification (after G3). Retracted before
+   reporting; the G1 dead-partial trap, hit from the opposite side.
+2. **The recon's form count is inconsistent with itself** — its table says Saved(4) while its page rows say
+   wishlist 2 + waitlist 3. **Counted fresh: 5 POST routes, 4 `<form>`s in source, 3 rendered** (reconfirm is
+   expired-only) + the shell's logout. `wishlist.add` has **no form on this page** — it is posted from the
+   storefront, which is why the count never reconciled.
+
+### ⌨️ THE 6-FORM §N.4k SWEEP — judged by stakes
+
+| form | inputs | Enter | verdict |
+|---|---|---|---|
+| wallet **redeem** | 1 text | submits | **safe by intent** — redeeming is purely **additive**; the worst case is an invalid-code error |
+| wallet **apply** | 1 number | submits | Enter *is* Apply, and the amount is what you typed — but it **spends** irreversibly. Already carries `data-guard-submit`; the field is now **named with its booking reference** (one form per owed booking) |
+| wishlist **remove** · waitlist **leave** · **reconfirm** | none | can't | safe by construction |
+| waitlist **join** | 2 selects, 3 dates, 1 checkbox | submits | low stakes + reversible (Leave); `required` selects make an early Enter a browser-validation stop, not a write |
+
+⚠️ **The `opacity:0` focus-ring pattern does NOT recur** — checked both pages: 17 controls, all focusable,
+all with a visible ring, **zero `opacity:0` controls**. It stays at four recurrences (G5/G8/G9).
+
+⚠️ **The double-submit guard was applied unevenly**: Wallet's 2 forms carried `data-guard-submit`, Saved's 3
+did not — and `joinWaitlist()` is a bare `create()` with **no uniqueness rule**, so a double-submit posts two
+identical entries. Saved's forms now opt into the shell's existing shared guard (verified live: 3 guarded).
+The partial **is** included in the shell — checked, not assumed (G1).
+
+### ♿ SEVEN UNLABELLED CONTROLS
+
+Five on the join-waitlist form (two selects, three date fields) and both wallet money inputs — all
+**placeholder- or option-only**, which is not an accessible name. A screen-reader user met "combo box" and
+"date" four times with no way to tell check-in from check-out, and an unnamed spin button with no way to tell
+**which booking** it would spend on. All seven now carry `aria-label`; the apply field names its **real
+booking reference**, so the name cannot drift from the money it moves.
+
+⚠️ **My first keyboard probe reported all of them as NAMED** — it fell back to option text and the `name`
+attribute. Caught by re-running with a strict accessible-name computation. §N.8e's vacuous-probe failure, on
+the **keyboard** axis this time.
+
+### ✅ VERIFIED
+
+- **Self-scoped**: `ownedItem()`/`ownedEntry()` resolve through `guest_id`; the wallet resolves from the
+  guard. Both existing isolation tests are real and mutation-shaped (they seed B's rows and assert **404 +
+  absence**), not vacuous. ⚠️ **A browser isolation check here would have been vacuous** — the DB holds
+  **zero** foreign wishlist/waitlist rows, so "no foreign save appeared" would have proven nothing.
+- **Observed READ-ONLY**: ledger 2 → 2 rows, spendable 3500 → 3500, wishlist 1 → 1, waitlist 1 → 1, all
+  timestamps at the seed date. Every submit was intercepted; fake values were cleared, never staged.
+- **No fabrication**: the prototype's referral programme (invite link, "1 friend joined", "Give €25 get €25"),
+  the waitlist's "**Place in line 7**", "64% freed last season", "2 villas free now", the countdown and the
+  SMS alert are all **absent** — correctly refused, no fabricated position or availability.
+- 1440×1000: 0 overflow, 0 console messages on both pages.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G10-1` · credit has one production source.** Only promo redemption writes a credit; refund-to-credit
+  and add-on-cancelled-to-credit have **no writer** (`TYPE_REFUND` / `TYPE_ADD_ON_CANCELLED` are labels only).
+  The copy now says so. Whether a refund should be able to land as credit is a **product decision**.
+- **`DO-G10-2` · a waitlist entry can expire before the dates it waits for.** `WAITLIST_TTL_DAYS` runs from
+  the **join**, not from the requested stay: the demo entry waits for **20–23 Sep** and lapses **8 Sep**.
+  Visible on the live page. Backend/product, not presentation.
+- **`DO-G10-3` · `joinWaitlist()` has no uniqueness rule** — server-side dedupe (the client guard is
+  defence-in-depth, never a replacement).
+- **`DO-G10-4` · `guest/partials/trip-card.blade.php` is dead code** that duplicates the live trip card — a
+  drift trap: a fix applied to one will silently not reach the other. Delete or revive.
+- **`DO-G10-5` · the wishlist card is name-only.** The prototype shows rating, review count, nightly rate and
+  "Book now" per saved room. Rating is available (`ReviewRating`) and rate data exists — a real build, not a
+  refusal. The prototype's **share-by-email / shared-link wishlist** has no backend at all.

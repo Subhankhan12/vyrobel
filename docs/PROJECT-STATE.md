@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` · `G8 Review` · `G9 Account` DONE (9/32, gate 9 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` · `G8 Review` · `G9 Account` · `G10 Wallet+Saved` DONE (10/32, gate 10 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5472,6 +5472,21 @@ the work.
    confirm guard**; the account-delete is protected by a **typed word**, a legitimate third pattern beside
    safe-by-construction and the confirm idiom. Two real a11y finds instead: a toggle with **no accessible
    name and no state**, and the **fourth recurrence** of the opacity:0-invisible-focus pattern.
+   ⚠️ **G10 — A POLICY THE CODE NEVER IMPLEMENTED.** The wallet's "How credits work" card made three
+   claims; **two were false**. "Credit comes from refunds, cancelled add-ons…" — only `redeemCode()` writes
+   a credit in production (a refund returns money to the CARD; `TYPE_ADD_ON_CANCELLED` has **no writer**),
+   and the demo looked right only because the seeder posts one directly. "Most credits are valid for **12
+   months**" — **no such rule exists**: `credit()` defaults to NULL (never expires). ⚠️ **It is a prototype
+   literal shipped as fact — the SAME failure `GuestReservationTest` already guards for the door code's
+   "48h", recurring in another file.** The page disproved itself on screen: a credit expiring in 60 days
+   printed directly above the claim. §N.8d in **both** directions in one card. Also: an EXPIRED credit
+   rendered in the same green "+" as a live one though it does not count — the visual contradicting the
+   balance above it. ⚠️ **DO-G6-2 CLOSED** (`--vy-amber` as text = 4.08 → `--vy-amber-text` = 6.15) — and
+   the amber I thought contradicted it lives in a partial **included nowhere**, so the claim was ACCURATE
+   (the 2nd §N.8b claim to survive verification, after G3). ⚠️ **New for §N.8e: a CONDITIONAL colour is
+   invisible to the probe until its condition is true** — the expired chip had to be injected to be
+   measured, and that is why it survived earlier sweeps. ⚠️ **The keyboard probe lied too** — 7 unlabelled
+   controls reported as named because it fell back to option text and `name`.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via

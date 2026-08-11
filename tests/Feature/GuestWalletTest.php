@@ -188,3 +188,20 @@ it('shows the available-credit hero + how-credits-work and refuses the fabricate
         ->assertDontSee('friend joined')
         ->assertSee('coming soon');           // honestly deferred
 });
+
+// ── ⌨️ G10 — THE TWO MONEY INPUTS CARRY ACCESSIBLE NAMES, AND THE AMOUNT NAMES ITS BOOKING ─────────
+// Both were placeholder-only ("Enter a code" / "0.00"). The apply field is the worse of the two: the page
+// renders ONE apply form PER owed booking, and the booking reference sits in an unassociated sibling <div>,
+// so a screen-reader user met an unnamed spin button with no way to tell WHICH booking it would spend on.
+it('names both wallet inputs, and ties the apply amount to its specific booking', function () {
+    $s = seedScenario(1);
+    $a = walGuest($s['guest'], 'ada@example.test');
+    wal()->credit($a, GuestCreditEntry::TYPE_REFUND, 'Goodwill', Money::of(5000, 'EUR'));
+    $reservation = walBook($s, $a, $s['units'][0], chargeMinor: 20000, payMinor: 0);   // a real owed balance
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.wallet'))->assertOk()->getContent();
+
+    expect($html)->toContain('aria-label="Promo or gift code"')
+        // the REAL reference, so the name can never drift from the booking it spends on
+        ->and($html)->toContain('aria-label="Credit to apply to booking '.$reservation->reference.'"');
+});

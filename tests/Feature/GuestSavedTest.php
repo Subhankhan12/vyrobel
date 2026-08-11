@@ -83,3 +83,24 @@ it('never lets a guest see or modify another guest’s saved items', function ()
     expect(GuestWishlistItem::withoutGlobalScopes()->find($bItem->id))->not->toBeNull();   // B's untouched
     $this->actingAs($a, 'guest')->get(route('guest.saved'))->assertOk()->assertSee('Nothing saved yet');   // A sees only their own (empty)
 });
+
+// ── ⌨️ G10 — EVERY CONTROL ON THE JOIN-WAITLIST FORM CARRIES AN ACCESSIBLE NAME ────────────────────
+// A placeholder is not a name (it vanishes on input and is not exposed as one by every AT), and neither is
+// an <option>. Five controls — two selects and three date fields — had NO label, no aria-label and no title:
+// a screen-reader user heard "combo box" and "date" four times over, unable to tell check-in from check-out.
+// ⚠️ My first probe reported them as NAMED because it fell back to option text / the `name` attribute — the
+// §N.8e vacuous-probe failure, caught by re-running with a strict accessible-name computation.
+it('gives every join-waitlist control an accessible name, not just a placeholder', function () {
+    $s = seedScenario(1);
+    $a = savGuest($s['guest'], 'ada@example.test');
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.saved'))->assertOk()->getContent();
+
+    foreach (['Room to wait for', 'Date flexibility', 'Check-in date', 'Check-out date', 'Flexible month'] as $name) {
+        expect($html)->toContain('aria-label="'.$name.'"');
+    }
+
+    // The form's three writes opt into the shell's shared double-submit guard — `joinWaitlist()` is a bare
+    // create() with no uniqueness rule, so a double-submit would otherwise post two identical entries.
+    expect(substr_count($html, 'data-guard-submit'))->toBeGreaterThanOrEqual(1);
+});

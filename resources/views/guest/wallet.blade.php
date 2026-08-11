@@ -20,7 +20,7 @@
         </div>
         <div style="flex:1;min-width:200px">
             <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent)">Available credit</div>
-            <div style="font-family:var(--vy-display);font-weight:700;font-size:32px;letter-spacing:-.02em;color:{{ $spendable_minor > 0 ? 'rgb(70,120,60)' : 'var(--vy-ink)' }};margin-top:2px">{{ $spendable }}</div>
+            <div style="font-family:var(--vy-display);font-weight:700;font-size:32px;letter-spacing:-.02em;color:{{ $spendable_minor > 0 ? 'var(--vy-green-text)' : 'var(--vy-ink)' }};margin-top:2px">{{ $spendable }}</div>
             <div style="font-size:12.5px;color:var(--vy-muted);margin-top:2px">Across all your Vyrobel stays · applied at checkout. Expired credit isn’t included.</div>
         </div>
     </div>
@@ -30,7 +30,7 @@
         <div class="vy-eyebrow" style="margin-bottom:10px">Redeem a code</div>
         <form method="POST" action="{{ route('guest.wallet.redeem') }}" style="display:flex;gap:8px;flex-wrap:wrap" data-guard-submit>
             @csrf
-            <input class="vy-input" type="text" name="code" placeholder="Enter a code" maxlength="64" style="flex:1;min-width:160px">
+            <input class="vy-input" type="text" name="code" placeholder="Enter a code" maxlength="64" aria-label="Promo or gift code" style="flex:1;min-width:160px">
             <button type="submit" class="vy-btn">Redeem</button>
         </form>
     </section>
@@ -46,7 +46,8 @@
                         <div style="font-size:13.5px;color:var(--vy-ink)">{{ $booking['property'] }}</div>
                         <div style="font-size:11.5px;color:var(--vy-faint)">{{ $booking['reference'] }} · {{ $booking['balance'] }} owed</div>
                     </div>
-                    <input class="vy-input" type="number" name="amount" step="0.01" min="0.01" placeholder="0.00" style="width:96px">
+                    <input class="vy-input" type="number" name="amount" step="0.01" min="0.01" placeholder="0.00"
+                           aria-label="Credit to apply to booking {{ $booking['reference'] }}" style="width:96px">
                     <button type="submit" class="vy-btn vy-btn--ghost">Apply</button>
                 </form>
             @endforeach
@@ -63,22 +64,40 @@
                     <div style="font-size:11.5px;color:var(--vy-faint)">{{ $entry['description'] }}{{ $entry['expires'] && ! $entry['expired'] ? ' · expires '.$entry['expires'] : '' }}</div>
                 </div>
                 <div style="text-align:right;white-space:nowrap;flex-shrink:0">
-                    <div style="font-size:14px;font-weight:600;color:{{ $entry['is_debit'] ? 'var(--vy-muted)' : 'rgb(70,120,60)' }}">{{ $entry['signed_amount'] }}</div>
+                    {{-- ⚠️ THE VISUAL MUST MATCH THE FACT. An EXPIRED credit does not count toward the spendable
+                         balance (GuestWalletService::spendableMinor excludes it), but it used to render in the
+                         same confident green "+" as a live one — the word "expired" sat in the label while the
+                         figure still read as money you have. Expired credit now renders muted + struck, like a
+                         debit: the signal agrees with the balance above it. --}}
+                    <div style="font-size:14px;font-weight:600;color:{{ $entry['is_debit'] || $entry['expired'] ? 'var(--vy-muted)' : 'var(--vy-green-text)' }}{{ $entry['expired'] ? ';text-decoration:line-through' : '' }}">{{ $entry['signed_amount'] }}</div>
                     <div style="font-size:11px;color:var(--vy-faint)">{{ $entry['date'] }}</div>
                 </div>
             </div>
         @empty
-            <div style="font-size:13px;color:var(--vy-muted)">No credit yet — redeem a code or check back after a refund.</div>
+            {{-- The empty state repeated the same refund promise the card below used to make — same fix. --}}
+            <div style="font-size:13px;color:var(--vy-muted)">No credit yet — redeem a code to add some.</div>
         @endforelse
     </section>
 
     {{-- ── How credits work + honest referral/loyalty deferral ────────────────────────────────────────── --}}
     <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .22s both">
         <div class="vy-eyebrow" style="margin-bottom:8px">How credits work</div>
+        {{-- ⚠️ G10 — THESE THREE LINES ARE A POLICY STATEMENT, so each one is checked against the engine.
+             TWO were false. (a) "Credit comes from refunds, cancelled add-ons and any code you redeem": only
+             the CODE has a production writer — GuestWalletService::redeemCode(). Nothing posts a wallet credit
+             on a refund (FolioService::refundPayment returns money to the payment method), and
+             TYPE_ADD_ON_CANCELLED exists only as a constant + a display label, with no writer anywhere. The
+             demo LOOKS right because DemoSeeder posts a refund credit directly. (b) "Most credits are valid for
+             12 months" — no 12-month rule exists in any code path: `credit()` defaults expiresAt to NULL (never
+             expires) and a promo credit inherits the PROMO's own expiry. The line came from the prototype mock
+             ("valid for 12 months from the day they land"), the same shape as the door code's hardcoded "48h"
+             that GuestReservationTest already guards against. Neither of the two real credits obeyed it: one
+             never expires, the other expires in 60 days — and the page displayed that 60-day date directly
+             above the claim. Rewritten to what the code actually does. --}}
         <ul style="margin:0;padding-left:18px;font-size:12.5px;color:var(--vy-muted);line-height:1.7">
-            <li>Credit comes from refunds, cancelled add-ons and any code you redeem.</li>
+            <li>Credit comes from any code you redeem, plus any credit added to your account.</li>
             <li>It’s applied to your bookings at checkout, or to an outstanding balance above.</li>
-            <li>Most credits are valid for 12 months — the expiry shows on each entry.</li>
+            <li>Some credit expires — when it does, the date shows on that entry. Credit with no date doesn’t expire.</li>
         </ul>
         {{-- ⚠️ #39: NO fabricated "invite a friend · copy link · 1 friend joined" program — a referral BONUS can
              land in the ledger, but there is no invite/referral PROGRAM, so it is honestly deferred (not faked). --}}

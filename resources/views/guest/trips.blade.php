@@ -91,7 +91,7 @@
                 </div>
 
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:auto;padding-top:16px;border-top:1px solid var(--vy-hairline)">
-                    <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:{{ $t['balance_due'] ? 'var(--vy-amber-text)' : 'rgb(70,120,60)' }}">
+                    <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:{{ $t['balance_due'] ? 'var(--vy-amber-text)' : 'var(--vy-green-text)' }}">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>{{ $t['balance_label'] }}
                     </span>
                     <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
