@@ -42,7 +42,12 @@ class OwnerWelcome extends Component
             // The REAL agreement commission rate (e.g. "18%"), or null when no agreement is in effect (honest).
             'commission' => OwnerCommissionRate::percent($context),
             // Real payout-method status — a hand-off to the certified page, never an IBAN field here.
-            'hasPayout' => $units->isNotEmpty() && PayoutMethod::query()->exists(),
+            // ⚠️ NOT gated on having units. It used to read `$units->isNotEmpty() && …`, so an owner who had
+            // already saved a payout method but had no units yet was told "add a bank account on the secure
+            // Payout Method page" — a false INSTRUCTION, not merely a wrong badge. The question this card
+            // answers is "is an account on file?", and units have no bearing on it. Owner-scoped by
+            // BelongsToOwner, so `exists()` can only ever see this owner's own.
+            'hasPayout' => PayoutMethod::query()->exists(),
         ]);
     }
 

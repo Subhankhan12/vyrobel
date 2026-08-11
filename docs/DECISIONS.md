@@ -7735,3 +7735,31 @@ pattern worth watching rather than a coincidence. Two of the five remaining fail
 artifacts, not findings.
 
 Suite **1855 / 12,127**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 29/32 · Onboarding / Welcome (`/owner/welcome`)
+
+**Premise corrected: this is not a wizard.** It was briefed as a multi-step mutation flow with per-step writes
+and an Enter-safety risk. It is a 73-line read-only hand-off page — no form in `main` at all, no input of any
+kind, every next step an `<a href>` to the page that actually owns the write. So §N.4k is moot here: nothing
+submits, and the Owner-9 Add-Unit trap was checked rather than inherited. "Observe read-only" was structural,
+and confirmed anyway.
+
+**A status flag gated on the wrong fact issued a false instruction.** `hasPayout` read `$units->isNotEmpty()
+&& PayoutMethod::exists()`. Whether an owner has units has nothing to do with whether a payout account is on
+file, so an owner who had already saved one but had no units yet fell into the empty branch — which does not
+merely show a wrong badge, it tells them to *"add a bank account on the secure Payout Method page"*. That is
+the fabricated-status family in its understating direction, and it is the more damaging one: a false "not
+done" issues a false instruction, where a false "done" only misleads. Fixed and mutation-proven.
+
+**My first contrast measurement was unsound, and I discarded it.** It reported 22 failures, several of which
+scored text against its own colour — the screenshot had fired before the hide-text style painted. The probe
+now asserts every candidate computes to a transparent fill *before* capturing, and freezes the entry
+animations, since these cards fade in on a delay. That is the O26 rule applied to my own run: when the probe
+is unsound, throw the numbers away rather than publish them. From the sound baseline the page went 12 → 4.
+
+The remaining lesson for the realm: these cards composite over the hero peach, where `--vy-accent-text`
+reaches only ~3.3 and even `--vy-accent-tint-text` stops at 3.74. Both the step chips and the links needed
+`--vy-ink`, with the links keeping their affordance through an underline and arrow rather than colour — the
+O14/O17 rule, now hit on three consecutive owner pages.
+
+Suite **1856 / 12,130**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.

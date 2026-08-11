@@ -5093,3 +5093,79 @@ support works"**, which is what the line actually is. Guarded and mutation-prove
   (1.12) sample across an element boundary — their background range spans `(194,65,12)..(254,250,249)`, i.e.
   the sample straddles the edge. The same two measure ~3.83/3.88 cleanly on other pages. Same for the 1.29
   icon reading.
+
+---
+
+## §O-29 — Owner **Onboarding / Welcome** (`/owner/welcome`)
+
+`App\Livewire\Owner\OwnerWelcome`. Prototype `docs/design/raw/Owner Onboarding.html`. Wave B · GATE 6.
+
+### ⚠️ PREMISE CORRECTION — this is NOT a wizard, and there is nothing to submit
+
+The brief treated this as a multi-step MUTATION flow with per-step writes and an Enter-safety risk. **It is a
+73-line read-only hand-off page.** There is **no `<form>` in `main` at all** (only the shell's notification and
+logout forms) and **no input, textarea or select** — every "next step" is an `<a href>` out to the page that
+actually owns the write: My Units, Add Unit, **Payout Method**, Notification Preferences, Dashboard.
+
+Consequences, stated precisely rather than assumed:
+- **§N.4k is MOOT** — Enter cannot submit anything, early or otherwise, because nothing on the page submits.
+  The Owner-9 Add-Unit trap **does not carry here**; it was checked, not inherited.
+- **"Observe READ-ONLY" was structural** — there is no step to complete. Confirmed anyway: `owners` and
+  `payout_methods` counts and `max(updated_at)` are unchanged (`2026-08-09 07:17:58`) after the whole pass.
+
+### 🔴 THE FIX — a status flag gated on the wrong fact told owners to redo work they had done
+
+`hasPayout` read `$units->isNotEmpty() && PayoutMethod::query()->exists()`. The unit conjunct has nothing to do
+with whether a payout account exists, so **an owner who had already saved a payout method but had no units yet
+fell into the empty branch** — which does not merely show a wrong badge, it prints an **instruction**:
+
+> *"So we can send your earnings, add a bank account on the secure Payout Method page."*
+
+Telling someone to do a thing they have already done. Fixed to `PayoutMethod::query()->exists()` — the model
+carries `BelongsToOwner`, so `exists()` can only ever see this owner's own. Guarded and mutation-proven
+(restoring the conjunct turns the new test red).
+
+⚠️ *This is the GATE-24 / Owner-12 fabricated-status family in its **understating** direction — and the more
+damaging one, because a false "not done" issues a false instruction, where a false "done" merely misleads.*
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO29-1 — IBAN capture, bank verification and micro-deposits are absent here BY DESIGN.** The page hands
+  off to the certified Payout Method page, which owns IBAN collection; verification itself remains deferred
+  (§H, and Owner-16 established there is no verification column). *Verdict: **RATIFIED REFUSAL** — the thin
+  flow is correct; do not restore the prototype's bank step.*
+
+### ⚠️ Verified, not changed
+
+- **No fabricated progress.** There is no progress bar, no "N of 4 complete", no green tick on an undone step
+  — the four numbered cards each state a real fact. The only completion claim, *"A payout account is on file —
+  you're all set to receive money"*, is conditional on the real owner-scoped `PayoutMethod::exists()`.
+- **State is not colour-only** — the payout card's chip changes colour *and* its heading changes wording
+  ("Your payout account" vs "**Add** your payout account"), so the state survives greyscale.
+- **The real 18% renders** (`OwnerCommissionRate`), never the prototype's 15%; an owner with no agreement gets
+  the honest "set by your agreement" line instead of a number.
+- **No IBAN anywhere** — 0 raw IBAN-shaped strings, and the words "IBAN", "micro-deposit" and "verified" do
+  not appear. An existing guard already forbids all three.
+- **Keyboard: 0 unnamed, 0 unreachable, 0 `display:none` controls.** The docblock is accurate — no O22/O24
+  staleness on this file.
+- ⚠️ **`toContain` sweep — clean negative** (twenty-eighth gate).
+
+### 🎨 Contrast — 12 → 4
+
+⚠️ **The first measurement was UNSOUND and discarded.** It reported 22 failures including text scored against
+its own colour (`bg` equal to the text's rgb) — the screenshot had been taken before the hide-text style
+painted. The probe now **asserts every candidate computes to a transparent fill before capturing**, and also
+freezes the entry animations, since these cards fade in on a delay. *(The O26 rule applied to my own run:
+discard the numbers, fix the probe.)*
+
+From the sound baseline of 12:
+- the step-number chips (**2.62 / 3.15 / 3.50**) and the accent links (**2.79 / 3.46**) sit on cards that
+  composite over the hero peach (≈238,177,145). `--vy-accent-text` reaches only **~3.3** there, and
+  `--vy-accent-tint-text` only **3.74**, so both went to **`--vy-ink`** — the links keeping their affordance
+  through an **underline + arrow** rather than colour. *(O14/O17 again.)*
+- the body sub-lines (**4.05 / 4.31 / 4.43**) → `--vy-ink`, applied **per element**: `.vy-line-sub` is defined
+  in the shared owner shell and must not be retuned for one page.
+- **Remaining 4, none added and none new:** the shell brand mark **3.88** (the known white-on-accent family);
+  the "Go to your dashboard" CTA, which carries that same standard accent gradient and measures ~3.9 on other
+  pages — its 1.00 here is a **mis-sample** (the reported background was pure white); and the shell badge/avatar
+  **boundary artifacts** seen on the last three gates.

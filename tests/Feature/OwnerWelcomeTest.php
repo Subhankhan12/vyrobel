@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Membership;
+use App\Models\PayoutMethod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -36,4 +37,32 @@ it('fails closed for a non-linked user', function () {
     // No linked owner → the honest empty state (no units), never someone else's data.
     $this->actingAs($stranger)->get('/owner/welcome')->assertOk()
         ->assertSee('No units are linked to your account yet');
+});
+
+// ── The payout card answers "is an account on file?", and nothing else ────────────────────────────
+// Owner-29: the flag read `$units->isNotEmpty() && PayoutMethod::exists()`, so an owner who had already
+// saved a payout method but had no units yet was shown the EMPTY branch — "add a bank account on the
+// secure Payout Method page". That is a false INSTRUCTION, not merely a wrong badge: it tells someone
+// to do a thing they have already done. Units have no bearing on whether an account is on file.
+it('does not tell an owner with a payout account on file to add one', function () {
+    $s = seedScenario(1);
+    $user = ownerRoleUser($s, 0);
+    $owner = $s['units'][0]->fresh()->owner;
+
+    // A real payout method on file — and the owner's units detached, the shape that exposed it.
+    PayoutMethod::create([
+        'organization_id' => $s['org']->id,
+        'owner_id' => $owner->id,
+        'account_holder' => 'Owner',
+        'iban' => 'GB29NWBK60161331926819',
+        'iban_last4' => '6819',
+        'iban_country' => 'GB',
+        'currency' => 'EUR',
+        'is_default' => true,
+    ]);
+    $s['units'][0]->update(['owner_id' => null]);
+
+    $this->actingAs($user)->get('/owner/welcome')->assertOk()
+        ->assertSee('A payout account is on file')
+        ->assertDontSee('add a bank account on the secure Payout Method page');
 });
