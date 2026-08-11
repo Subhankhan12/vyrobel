@@ -21,7 +21,7 @@
     <section class="vy-card" style="margin-bottom:14px;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .1s both">
         @forelse ($messages as $message)
             <div style="display:flex;margin:8px 0;{{ $message['mine'] ? 'justify-content:flex-end' : 'justify-content:flex-start' }}">
-                <div style="max-width:78%;padding:10px 13px;border-radius:14px;{{ $message['mine'] ? 'background:var(--vy-grad);color:#fff;border-bottom-right-radius:4px' : 'background:var(--vy-wash);color:var(--vy-ink);border-bottom-left-radius:4px' }}">
+                <div style="max-width:78%;padding:10px 13px;border-radius:14px;{{ $message['mine'] ? 'background:var(--vy-accent);color:#fff;border-bottom-right-radius:4px' : 'background:var(--vy-wash);color:var(--vy-ink);border-bottom-left-radius:4px' }}">
                     <div style="font-size:10.5px;opacity:.75;margin-bottom:3px">{{ $message['author'] }} · {{ $message['at'] }}</div>
                     <div style="font-size:14px;line-height:1.45;white-space:pre-wrap">{{ $message['body'] }}</div>
                 </div>

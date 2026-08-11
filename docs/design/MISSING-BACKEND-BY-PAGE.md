@@ -6168,3 +6168,101 @@ button, which is the deliberate action. Unlike G4/G5, this write is safe by cons
   payments — a controller change, not a design one.
 - **`DO-G6-3` · `--vy-amber`-as-text remains at `saved.blade.php:45`** (G10) and in the dead
   `partials/trip-card.blade.php` (`DO-G1-1`).
+
+---
+
+## §G-7 — Guest Messages · GUEST 7/32 · gate 7 of 12 · 🔒 THE #28 BOUNDARY FROM THE GUEST SIDE
+
+`GuestMessagesController` (`GET /guest/messages`, `GET /guest/messages/{thread}`, `POST …/{thread}`) →
+`guest/messages.blade.php` + `guest/message-thread.blade.php`. Auth `auth:guest`. Walked **read-only** — no
+message sent.
+
+### ✅ ISOLATION (1) — OWN THREAD ONLY, and the owner boundary is STRUCTURAL
+
+Threads resolve through `where('guest_id', $this->guest()->getKey())->whereNull('owner_id')` — the guest's own
+id from the guard, never a request id. The `whereNull('owner_id')` is the **O27 pattern**: an owner↔operator
+thread carries `owner_id` and no `guest_id`, so it cannot satisfy the guest query. Foreign guest thread, and
+owner thread, both **404** — already guarded, and **mutation-proven** here: replacing `owned()` with a bare
+`MessageThread::query()->findOrFail()` turns both scope tests RED.
+
+### ✅ ISOLATION (2) — THE VISIBILITY FILTER. ⚠️ PREMISE CORRECTION: there isn't one, and there doesn't need to be
+
+The gate was scoped expecting *"the query filters by a visibility flag (`is_internal=false` / `visible_to`)"*.
+**There is no such flag, and no filter** — `$model->messages()->orderBy('created_at')->get()` renders every row.
+
+That is **safe, because the separation is by TABLE**:
+- `messages` has **no internal/visibility column at all** (verified against the migration and every later one —
+  the only additions are `owner_id` on *threads* and a separate `message_stars` table). An "internal message"
+  cannot exist in this schema.
+- Staff annotations are **`notes` rows** (`notable_type = 'message_thread'`), written by
+  `InboxService::addNote()` — **a different table the guest transcript never joins**.
+
+**A table the query never touches is a stronger guarantee than a flag that can be forgotten** — the same shape
+as the O27 owner boundary and G3's `ArrivalPackDocument` delegation. Recorded as a STRUCTURAL refusal.
+
+**Proven anyway, because structure can be undone by a later edit.** A guard now seeds a REAL staff note —
+through `InboxService::addNote()`, not a hand-rolled row (the systemic vacuous-fixture lesson from the #33
+guards) — asserts it genuinely exists, and asserts the transcript renders neither it nor its contents.
+⚠️ **Mutation-proven the hard way**: rendering the thread's `notes` alongside the transcript makes the guard
+go RED. The DOM sweep for operator-internal text on the live page was clean.
+
+⚠️ **And the first attempt at that mutation silently did nothing** — the Python anchor didn't match the view
+(`@forelse`, not `@foreach`), so the edit never applied and the run reported a meaningless "passed". Caught
+and redone against the real markup. **A mutation that fails to apply looks exactly like a guard that holds.**
+
+### ✅ `anonymize()` REACHABILITY (G4's rule) — covered and mutation-proven
+
+The guest's own messages are free-text PII. `Guest::anonymize()` redacts `messages.body` + `sender_label`
+across the guest's threads, and blanks `notes.body` on those threads too. **Mutation-proven**: removing the
+message-body redaction turns both `GuestMessagesTest`'s erasure guard and `GuestErasureTest` RED. Nothing
+uncovered — nothing to log.
+
+### ✅ THE SEND — isolation was already tested, and G6's gap does NOT recur
+
+Unlike G6's `/pay` (present but not isolated), the send POST already had a foreign-thread 404 test. Extended
+with the half G6 taught: the foreign thread **gains no message**, and A's own send still lands — so it cannot
+pass merely because the route is broken.
+
+### ⌨️ §N.4k — SAFE BY CONSTRUCTION, and worth stating why
+
+Compose is a **`<textarea name="body">`** with one Send button and **no keydown/keypress handler anywhere**.
+A textarea **never implicitly submits**, so Enter inserts a newline and a half-typed message cannot be fired by
+a stray Enter. **Enter-to-send is not the behaviour here** — which also means no Shift+Enter special-casing is
+needed. Third instance of a write being safe by construction rather than by a guard (after G5's GET
+date-preview and G6's no-text-input pay form); the pattern is worth naming, because it is the cheapest kind of
+safety and easy to destroy accidentally.
+
+11 interactive · **0 unnamed** · **0 `div@click`** · 0 overflow at 1440. The textarea and Send both take the
+shell's `:focus-visible` ring.
+
+### 🎨 Contrast — thread 2 → **0** (17 runs) · list **0** (16 runs)
+
+Both failures were **the guest's own message bubble** — white on `--vy-grad` at **3.41** (timestamp) and
+**3.50** (the message text itself, the primary content of the page). Solid `--vy-accent` → **5.18**.
+
+**Anchors validated on this render**: white on `--vy-grad` = **3.50**, white on solid `--vy-accent` = **5.18**
+— the first gate since G2 where *both* were testable, because the gradient bubble was still present to measure.
+
+**Old-token sweep (G4/G5)**: none of the pre-remediation literals appear in either view, and no `--vy-amber`
+used as text (the `DO-G6-3` tail does not touch these pages).
+
+### ✅ VERIFIED / REFUSALS TO PRESERVE
+
+- **Observed READ-ONLY**: messages 9 → 9, threads 5 → 5, `max(messages.created_at)` unchanged at
+  `2026-08-09 07:17:59`. Nothing sent.
+- **No fabricated message, reply or status**: every bubble is a real `messages` row; the transcript is
+  MIRRORED off the org-relative `direction` (guest = `inbound`) rather than a stored "who" flag; there is **no
+  read/delivered/seen indicator at all** — so no fake "read ✓" (#39/§N.8d). Honest empty: *"No messages yet —
+  say hello below."*
+- **Name-only chat** — an existing guard already refuses the prototype's presence/SLA/phone fabrications.
+- **`markReadByGuest`** moves only the guest's read position, never the operator's `unread_count` (existing
+  guard) — the mirror-image of #28 in the other direction.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G7-1` · no delivery/read state for the guest.** The absence is honest (nothing is fabricated), but a
+  guest cannot tell whether the property has seen their message. `message_threads` already tracks read
+  positions per participant, so surfacing it is a controller/view change with real data behind it — a product
+  call, not a design one.
+- **`DO-G7-2` · the guest cannot start a thread from this page** — only reply to existing ones (the start path
+  lives on other surfaces, e.g. the arrival/expenses relays). Worth a verdict at a later gate.

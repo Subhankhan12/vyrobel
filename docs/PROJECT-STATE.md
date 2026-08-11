@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` DONE (6/32, gate 6 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` DONE (7/32, gate 7 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5436,6 +5436,18 @@ the work.
    unguarded**: the `/pay` POST had no foreign-id test — only that the route appeared in HTML. Now
    mutation-proven. ⚠️ **`DO-G2-2` was a PREDICTION at G2 and is now confirmed by measurement** —
    `--vy-amber` as text at five sites, including a receipt's balance at 4.11, **and one I missed at G5**.
+   ⚠️ **G7 (the #28 boundary from the guest side) — the isolation is STRUCTURAL, and there is no visibility
+   filter because there cannot be one.** `messages` has NO internal/visibility column at all; staff
+   annotations are `notes` rows on a different table the transcript never joins, and owner threads carry
+   `owner_id` with no `guest_id` (the O27 pattern). **A table the query never touches beats a flag that can
+   be forgotten** — the third structural refusal after O27 and G3's delegation. Proven anyway by seeding a
+   REAL staff note via `InboxService::addNote()` and rendering the thread's notes as a mutation.
+   ⚠️ **The first attempt at that mutation silently did not apply** (the anchor was `@forelse`, not
+   `@foreach`) and reported a meaningless 'passed'. **A mutation that fails to apply looks exactly like a
+   guard that holds** — check that the edit landed, not just that the suite went green.
+   ⚠️ §N.4k was **safe by construction** for the third time (textarea never implicitly submits; after G5's
+   GET preview and G6's no-text-input pay form) — worth naming as a pattern, because it is the cheapest
+   safety and the easiest to destroy by accident.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via

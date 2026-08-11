@@ -129,3 +129,56 @@ it('renders a name-only chat and refuses the wireframe presence/SLA/phone fabric
         ->assertDontSee('Marco Silva')
         ->assertDontSee('+351 289');
 });
+
+// ── 🔒 THE CLASSIC LEAK: an operator's INTERNAL note on the guest's OWN thread ────────────────────
+// A guest↔operator conversation is the classic place staff annotations bleed into a guest-visible view. Here
+// the separation is STRUCTURAL, not a filter: staff notes are `notes` rows (polymorphic on `message_thread`),
+// while the transcript reads `messages` — and `messages` has NO internal/visibility column at all, so an
+// "internal message" cannot exist. A table the query never joins is stronger than a flag that can be forgotten
+// (the same shape as the owner O27 boundary and G3's ArrivalPack delegation).
+//
+// ⚠️ The note is written through the REAL operator path (InboxService::addNote), not a hand-rolled row —
+// otherwise the fixture proves nothing about what staff actually create (the systemic vacuous-fixture lesson
+// from the #33 guards at G1/G2).
+it('never shows an operator’s internal thread note in the guest transcript (#28)', function () {
+    $s = seedScenario(1);
+    $a = msgGuest($s['guest'], 'ada@example.test');
+    $thread = msgInbox()->startThread(['channel' => 'manual', 'guest_id' => $a->getKey(), 'subject' => 'Early check-in?']);
+    msgInbox()->postGuestMessage($thread, 'Can we arrive early?');
+
+    // A REAL staff annotation on the guest's OWN thread — the kind that names other guests, rates, or plans.
+    $secret = 'INTERNAL: comp the late checkout, she complained last stay — do not tell her the rate';
+    msgInbox()->addNote($thread, $secret);
+    expect($thread->notes()->count())->toBe(1);   // the note genuinely exists, so the guard can fail
+
+    $html = $this->actingAs($a, 'guest')->get(route('guest.messages.show', $thread->getKey()))
+        ->assertOk()
+        ->assertSee('Can we arrive early?')       // the real transcript renders (never vacuous)
+        ->getContent();
+
+    expect($html)->not->toContain($secret)
+        ->and($html)->not->toContain('INTERNAL')
+        ->and($html)->not->toContain('do not tell her');
+});
+
+// ── The send is scoped, and the foreign thread gains NOTHING ──────────────────────────────────────
+// G6's lesson: a write route can be tested for PRESENCE without ever being tested for ISOLATION. The 404 is
+// already guarded above; this adds the half that matters — that the refusal left no trace on B's thread, and
+// that A's own send still works, so it cannot pass merely because the route is broken.
+it('leaves a foreign thread untouched when a guest tries to post into it', function () {
+    $s = seedScenario(1);
+    $a = msgGuest($s['guest'], 'ada@example.test');
+    $b = Guest::create(['email' => 'bob@example.test', 'first_name' => 'Bob', 'last_name' => 'Vale']);
+    $aThread = msgInbox()->startThread(['channel' => 'manual', 'guest_id' => $a->getKey(), 'subject' => 'Mine']);
+    $bThread = msgInbox()->startThread(['channel' => 'manual', 'guest_id' => $b->getKey(), 'subject' => 'Bob’s']);
+
+    $this->actingAs($a, 'guest')->post(route('guest.messages.send', $bThread->getKey()), ['body' => 'sneaky'])
+        ->assertNotFound();
+
+    expect(Message::query()->where('thread_id', $bThread->getKey())->count())->toBe(0);   // no trace on B's thread
+
+    // …and A's own send still lands, so this cannot pass on a simply-broken route.
+    $this->actingAs($a, 'guest')->post(route('guest.messages.send', $aThread->getKey()), ['body' => 'hello'])
+        ->assertRedirect();
+    expect(Message::query()->where('thread_id', $aThread->getKey())->count())->toBe(1);
+});
