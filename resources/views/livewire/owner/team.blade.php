@@ -17,8 +17,8 @@
         .vy-tm-av { width:42px; height:42px; border-radius:50%; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--vy-display); font-weight:600; font-size:14px; background:var(--vy-grad); }
         .vy-tm-rolepill { display:inline-flex; padding:2px 9px; border-radius:30px; font-size:10.5px; font-weight:600; }
         .vy-tm-rolepill--co { background:rgba(217,102,46,.12); color:#B4400F; }
-        .vy-tm-rolepill--acc { background:rgba(79,122,70,.13); color:#3F6A38; }
-        .vy-tm-rolepill--view { background:rgba(120,70,40,.1); color:#8A6A55; }
+        .vy-tm-rolepill--acc { background:rgba(79,122,70,.13); color:var(--vy-green-text); }
+        .vy-tm-rolepill--view { background:rgba(120,70,40,.1); color:var(--vy-on-grad); }
         .vy-tm-rolepill--owner { background:var(--vy-wash,#F6EBE2); color:var(--vy-muted); }
 
         .vy-tm-pick { text-align:left; padding:14px 15px; border-radius:14px; cursor:pointer; font-family:var(--vy-sans); transition:all .14s; background:rgba(255,255,255,.5); border:1.5px solid var(--vy-glass-border); }
@@ -27,8 +27,8 @@
         .vy-tm-pick.is-on .dot { border-color:var(--vy-accent); }
 
         .vy-tm-pending { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:13px; background:rgba(224,146,30,.08); border:1px dashed rgba(214,133,26,.35); }
-        .vy-tm-pending-ic { width:34px; height:34px; border-radius:50%; background:rgba(224,146,30,.16); color:#93610C; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-        .vy-tm-mini { padding:5px 12px; border-radius:30px; font-family:var(--vy-sans); font-size:11.5px; font-weight:500; cursor:pointer; background:rgba(255,255,255,.7); border:1px solid rgba(214,133,26,.3); color:#93610C; }
+        .vy-tm-pending-ic { width:34px; height:34px; border-radius:50%; background:rgba(224,146,30,.16); color:var(--vy-amber-text); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .vy-tm-mini { padding:5px 12px; border-radius:30px; font-family:var(--vy-sans); font-size:11.5px; font-weight:500; cursor:pointer; background:rgba(255,255,255,.7); border:1px solid rgba(214,133,26,.3); color:var(--vy-amber-text); }
         .vy-tm-mini--danger { background:transparent; border-color:rgba(190,32,28,.3); color:#B01E1E; }
         .vy-tm-mini--danger:hover { background:rgba(190,32,28,.08); }
 
@@ -36,7 +36,7 @@
         .vy-tm-matrix .head { font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--vy-faint); text-align:center; }
         .vy-tm-matrix .area { font-size:12.5px; font-weight:500; color:var(--vy-ink); padding:7px 0; border-top:1px solid rgba(200,180,165,.25); }
         .vy-tm-matrix .cell { text-align:center; padding:7px 0; border-top:1px solid rgba(200,180,165,.25); font-size:13px; font-weight:600; }
-        .vy-tm-matrix .cell.yes { color:#3F6A38; }
+        .vy-tm-matrix .cell.yes { color:var(--vy-green-text); }
         .vy-tm-matrix .cell.no { color:var(--vy-faint); }
 
         .vy-tm-act { display:flex; align-items:flex-start; gap:11px; padding:10px 0; border-bottom:1px solid rgba(200,180,165,.2); }
@@ -62,7 +62,7 @@
             <section class="vy-card vy-fade">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px">
                     <h2 class="vy-card-title" style="font-size:17px">People with access</h2>
-                    <span style="display:inline-flex;padding:4px 11px;border-radius:30px;background:rgba(120,70,40,.09);color:#8A6A55;font-size:12px;font-weight:600">{{ count($members) + 1 }}</span>
+                    <span style="display:inline-flex;padding:4px 11px;border-radius:30px;background:rgba(120,70,40,.09);color:var(--vy-on-grad);font-size:12px;font-weight:600">{{ count($members) + 1 }}</span>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:10px">
                     {{-- You — the account owner (implicit co-owner, not removable) --}}
@@ -136,7 +136,7 @@
                         @endforeach
                     </div>
                     <div style="display:flex;gap:10px;flex-wrap:wrap">
-                        <input type="email" name="email" value="{{ old('email') }}" placeholder="name@email.com" class="vy-input" style="flex:1;min-width:200px;border-radius:30px;padding:12px 14px" autocomplete="off" required>
+                        <input type="email" name="email" aria-label="Email address to invite" value="{{ old('email') }}" placeholder="name@email.com" class="vy-input" style="flex:1;min-width:200px;border-radius:30px;padding:12px 14px" autocomplete="off" required>
                         <button type="submit" class="vy-btn vy-btn--accent" style="padding:12px 22px;border-radius:30px">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2 15 22l-4-9-9-4z"/></svg>
                             Send invite
@@ -153,7 +153,7 @@
                                     <span class="vy-tm-pending-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3 7 9 6 9-6"/></svg></span>
                                     <div style="flex:1;min-width:0">
                                         <div style="font-size:13px;font-weight:600;color:var(--vy-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $invite['email'] }}</div>
-                                        <div style="font-size:11.5px;color:#93610C;margin-top:2px">{{ $invite['role_label'] }} · {{ $invite['expires'] }}</div>
+                                        <div style="font-size:11.5px;color:var(--vy-amber-text);margin-top:2px">{{ $invite['role_label'] }} · {{ $invite['expires'] }}</div>
                                     </div>
                                     <form method="POST" action="{{ route('owner.team.invites.resend', $invite['id']) }}" style="margin:0">
                                         @csrf

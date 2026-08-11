@@ -7226,3 +7226,47 @@ guess is not a finding — and neither is a guard's scoping artifact.*
 statement `updated_at` still the seed time; opening the notification panel left 6/6 unread. No PDF template
 touched, `PdfService` not opened. No schema touched. Suite **1840 / 12,068 · 9 non-green** (documented set);
 PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 15/32 · **Owner Team & access** (`/owner/team`)
+
+Design/markup only. An authorization surface, so scope and gating were the core checks — both
+mutation-proven rather than asserted.
+
+**1. Two premise corrections.** (a) The invite is a **direct owner action**, not a request to the operator —
+Owner-9's "owners can't create units" finding does not generalise. (b) The gate is **stronger** than the
+brief assumed: `EnsurePrimaryOwner` covers the **read screen** as well as every mutation, so a sub-user —
+even a co-owner — gets 403 on the page rather than a control-less view. Team management is held by **no
+role**, which makes self-escalation structurally impossible.
+
+**2. Both guards mutation-proven.** Removing `EnsurePrimaryOwner` from the route group turns the sub-user
+refusal test red; dropping the `whereIn('owner_id', $ownerIds)` from the member resolve turns the
+cross-owner-404 test red. ⚠️ A live sub-user probe was impossible — both demo sub-users have never signed in
+(which is exactly why the page truthfully says "Hasn't signed in yet"), so the tests are the proof.
+
+**3. The role matrix is the real capability grid**, area for area, from the single `OwnerTeamRole` source
+that both the route gates and the UI read. Worth recording: it is deliberately **not a privilege chain** — an
+accountant has documents and exports but not calendar; view-only has calendar but not documents. Only
+co-owner is a superset.
+
+**4. The page's only unnamed control was the invite email field** — placeholder-only, on the form that grants
+another person access to the owner's money. Named, with a mutation-proven guard.
+
+**5. Contrast 11 → 7.** Role pills and the member-count badge moved to the right existing tokens. ⚠️ All seven
+survivors are the white-on-gradient family — **including a new green variant**: the member avatars sit on a
+green gradient and measure 3.61, so that family is **not purely accent-coloured**. Recorded for its gate.
+
+**6. GATE-33 held.** No fabricated "last active {city}" — the rows read the real `last_login_at`, and the
+helper's docblock says so explicitly. The security note's watermark claim is true, and the page proves it by
+showing the real export-download log.
+
+**📌 DO15-1 — no seat count or team limit is shown anywhere.** The Essential team limit (#10) is tied to the
+billing decision (G.1). The honest outcome today is that the page advertises **nothing** about seats, so no
+unenforced limit is implied. Surfaced, not decided.
+
+**Read-only honoured across all 9 forms** (invite, two role-changes, two removes, resend, revoke, plus the
+shell's): users 8, owner_users 2 with roles and `updated_at` unchanged, 1 pending invite, `model_has_roles` 7.
+**Nothing invited, no role changed, no one removed.** §N.4k proven on a privilege page — no field can reach
+another member's form or a Remove route. No schema touched. Suite **1841 / 12,070 · 9 non-green** (documented
+set); PHPStan L5 (0); Pint clean.

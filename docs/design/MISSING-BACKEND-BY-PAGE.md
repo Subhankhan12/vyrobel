@@ -3903,3 +3903,94 @@ owner realm so far. Icons 0 failures.
   `PdfService.php:54` at 2.70) is unchanged and `PdfService` was not opened.
 - ⚠️ **`toContain` sweep — clean negative** (thirteenth gate); the new guard is needle-only with `->and()`.
 - ⚠️ **Gradient family — surfaced, none added** (2 remaining, both shell).
+
+---
+
+## §O15 — Owner Team & access (`/owner/team`, `App\Livewire\Owner\OwnerTeam`) · OWNER 15/32
+
+**Prototype:** `docs/design/raw/Owner Team.html` (decoded fresh). **Role:** the **PRIMARY OWNER ONLY** —
+`EnsurePrimaryOwner` gates the read screen *and* every mutation at the route.
+
+### ⚠️ Premise corrections
+
+**1. The invite is a DIRECT owner action, not a request to the operator.** Owner-9's finding (owners cannot
+create units — it files a request) does **not** generalise here: the owner invites, changes roles and removes
+members themselves, through real gated controller routes.
+
+**2. But the gate is STRONGER than the brief assumed.** The brief expected "a sub-user may view [the page],
+gated writes". In fact **the read screen itself is primary-owner-only** — a sub-user (even a **co-owner**)
+gets **403 on the page**, not a control-less view. Team management is held by **no role at all**: it is gated
+on `isPrimaryOwner()`, which makes **self-escalation structurally impossible** — no sub-user can assign a
+role, including to themselves. That is a stronger design than "gate the control too".
+
+### Fixed on this page (design / markup / styling only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | The **invite email field was the page's only unnamed control** — placeholder-only, on the form that grants a person access to the owner's money (the Owner-9 defect class) | `aria-label`; guard added, **mutation-proven** |
+| 2 | **"View only" role pill + the member-count badge** at **3.51 / 3.57** | `--vy-on-grad` → **6.96 / 7.10** |
+| 3 | **"Accountant" role pill** at **4.48** (and the matrix ✓ marks, same green) | `--vy-green-text` → **6.30** |
+| 4 | The **pending-invite meta line** ("View only · Expires 5 days from now") at **4.06** | `--vy-amber-text` → **5.44** |
+
+**Contrast: 11 AA failures → 7** (129 text + 29 icon candidates). Icons 0 failures. ⚠️ All 7 survivors are the
+white-on-gradient family — **including a NEW variant: the member avatars sit on a GREEN gradient**
+(`rgb(92,141,82)`) and measure **3.61**, so the family is not purely accent-coloured. Recorded for its gate.
+
+### 🚫 Refusals preserved
+
+- ⚠️ **No fabricated "last active {city}"** — the GATE-33 refusal. The member rows show **"Active now"** /
+  **"Hasn't signed in yet"**, derived from the real `last_login_at`; the helper's own docblock says *"never a
+  fabricated relative time"*. No location anywhere.
+- **No fabricated role or permission.** The "What each role can see" matrix is the **real**
+  `OwnerTeamRole` grid, area for area: Earnings ✓✓✓ · Approvals ✓—— · Documents ✓✓— · Calendar ✓—✓ ·
+  Exports ✓✓— · Payout ✓——. ⚠️ Note it is deliberately **not a privilege chain**: an accountant has
+  documents+exports but not calendar; view-only has calendar but not documents. Only co-owner is a superset.
+- **The security note makes no false claim** — *"financial exports are watermarked with who downloaded
+  them"* is TRUE since Wave B · GATE 5, and the page proves it by showing the **real** export-download log.
+
+### ✅ Extra work kept (beyond the prototype)
+
+- The **Export download log** in the rail — real `export_downloads` rows (who downloaded which document,
+  when). Not in the prototype; it is what makes the watermark claim verifiable.
+- **"Only you, the account owner, can manage the team and the payout account."** — states the real gate.
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO15-1 — no seat count or team limit is shown, anywhere.** The Essential plan's team limit (**#10**) is a
+  known deferred product call, tied to the billing decision (**G.1**). ⚠️ The honest outcome today is that
+  the page displays **nothing** about seats — so nothing is faked and no unenforced limit is advertised. If
+  the founder wires the limit, this page is where it surfaces. *Verdict: **RATIFIED REFUSAL** today,
+  **G.1-adjacent** — surfaced, not decided.*
+- **DO15-2 — "Recent activity" is invite-only.** The rail shows real team events, but the underlying feed
+  covers invites; role changes and removals are audited in `audit_events` and are not yet surfaced here.
+  *Verdict: **REAL GAP** (small) — the data exists.*
+
+### ⚠️ Verified, not changed
+
+- **#42/#38 — MUTATION-PROVEN twice.** `OwnerTeamController` resolves `{member}`/`{invite}` with
+  `whereKey(...)->whereIn('owner_id', $ownerIds)`, never trusting the request. Dropping that scope turns
+  *"scopes team mutations to the primary owner's own owner — a cross-owner member 404s"* **red**. Existing
+  isolation tests also prove a sub-user of owner A never sees owner B's units.
+- **#30 — MUTATION-PROVEN.** Removing `EnsurePrimaryOwner` from the team route group turns *"refuses the
+  team screen and every mutation to a sub-user"* **red** — so the server genuinely refuses; the gate is not
+  merely a hidden control. ⚠️ A *live* sub-user probe was impossible: both demo sub-users have never signed
+  in (no password set), which is why the page truthfully shows "Hasn't signed in yet". The tests are the
+  proof.
+- **Roles map to REAL capabilities** — `OwnerTeamRole` is the single source read by both the route gates
+  (`EnsureOwnerCapability`) and the UI (`@ownercan`), so the matrix and the enforcement cannot disagree.
+- **#28** — the list is this org's own team (names, emails, roles). No guest data; no other org's user. The
+  export log names this org's own downloader.
+- **Observed READ-ONLY across all 9 forms** (invite · role-change ×2 · remove ×2 · resend · revoke · plus the
+  shell's two), guarded at capture phase. After: `users` **8**, `owner_users` **2** with roles unchanged
+  (accountant / view_only) and `updated_at` still the seed time, pending invites **1**, `model_has_roles`
+  **7**. **Nothing invited, no role changed, no one removed.**
+- **§N.4k — Enter-safety proven empirically on a privilege page.** Nine forms, each with exactly one submit
+  scoped to its own action. Enter in the invite email routes to `/owner/team/invite`; Enter in a role select
+  routes to **that member's** PATCH. ⚠️ **No field can reach another member's form, and none can reach a
+  DELETE/Remove route** — Enter can only ever trigger the Save it belongs to. The one attempt was captured
+  and blocked.
+- **Status/role is a WORD, never colour alone** ("Account owner", "Accountant", "View only", "Active now",
+  "Hasn't signed in yet"); the matrix uses **✓ vs —**, a shape difference, not a hue difference.
+- **Keyboard: 1 unnamed → 0**, 0 `display:none` interactive controls, 0 `div@click`; 0 overflow; 0 console
+  errors.
+- ⚠️ **`toContain` sweep — clean negative** (fourteenth gate); the new guard is needle-only.

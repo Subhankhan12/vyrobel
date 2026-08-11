@@ -188,3 +188,16 @@ it('renders the real capability matrix and the now-TRUE watermark claim (Wave B 
 
     assertNoRawBlade($res);
 });
+
+// ── 9. The invite field carries an accessible NAME, not just a placeholder ───────────────────────
+// A placeholder is not an accessible name: it disappears the moment you type, and a screen reader gets
+// nothing to announce. This was the page's only unnamed control — on the form that grants a person access
+// to the owner's money. (Same defect class as the Add-Unit fields, Owner-9.)
+it('names the invite email field for assistive tech', function () {
+    $s = seedScenario(1);
+    $owner = ownerRoleUser($s, 0);
+
+    $html = (string) $this->actingAs($owner)->get('/owner/team')->assertOk()->getContent();
+
+    expect($html)->toContain('aria-label="Email address to invite"');
+});
