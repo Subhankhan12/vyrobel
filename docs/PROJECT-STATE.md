@@ -6,37 +6,54 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · **🏁 THE PER-PAGE DESIGN-PARITY PASS HAS COMPLETED THE OPERATOR REALM — 42/42 (§N); ⬅ THE OWNER REALM IS IN PROGRESS — 11/32 (`6d974d7`→`64272cf`); GUEST (32) UNTOUCHED** · ⚠️ **the owner pass has REOPENED several "complete" OPERATOR items (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE PER-PAGE DESIGN-PARITY PASS IS COMPLETE FOR BOTH BUILT REALMS — OPERATOR 42/42 + OWNER 32/32 (§N); ⬅ GUEST (32) UNTOUCHED** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
-<!-- SAVE v6 (2026-08-10) — supersedes v5. v5 captured the operator realm complete at the moment the owner
-     realm began; v6 captures the owner realm IN PROGRESS (11/32), the reopened operator items (§N.9), the
-     owner running lessons (§N.10), the two standing traps (§N.8c), the baseline shift 5–9 → 5–10, and the
-     accent-as-text sweep at 22 fixed. -->
+<!-- SAVE v7 (2026-08-11) — supersedes v6. v6 was written at owner 11/32 and is badly stale. v7 captures the
+     DESIGN PASS COMPLETE for both built realms (operator 42/42 + owner 32/32, `6d974d7`→`a884793`), and the
+     canon the owner realm produced: §N.4p's SEVEN vacuous-guard forms + the passing-mutation rule, the
+     STALE-CLAIM pattern (six instances, two shapes, one root cause), fabricated status in BOTH directions,
+     the visual-signal-outlives-text class, the honesty-text contrast PRIORITY, the hardened + characterized
+     contrast probe, the shared-partial FOUR forms, the duplication backlog, D16-7's four forms + its
+     reference implementation, and the runway (Invite Email → guest realm → PDF sweep → DO10-4 → backend). -->
 
-> ### ⬅ RESUME HERE — the next unit of work is **OWNER page 19 of 32 (Booking Detail)**
-> One page per turn: decode the prototype in `docs/design/raw/` fresh → open the live page via Playwright as
-> the OWNER role → diff every detail → classify **DESIGN-GAP** (fix now, design/markup only) / **REFUSAL-TO-
-> PRESERVE** / **EXTRA-WORK** / **MISSING-BACKEND** (log to `docs/design/MISSING-BACKEND-BY-PAGE.md`, do not
-> build) → browser-verify + suite + PHPStan + Pint → commit + push → **report and STOP**.
-> **Read before the gate: §N.8 (the five principles) · §N.8c (the two standing traps) · §N.10 (the owner
-> running lessons) · §N.9 (what is reopened and must NOT be half-fixed from inside a page gate).**
+> ### ⬅ RESUME HERE — the design pass is COMPLETE for both built realms. The next unit of work is the **Owner Invite Email**, then the **GUEST realm (32 prototypes, untouched)**
+> 🏁 **OPERATOR 42/42 + OWNER 32/32 design-matched** (`0aa9ede`→`edb7cce`, then `6d974d7`→`a884793`).
+> ⚠️ **Design-matched is NOT a11y-closed** — 6 operator items are reopened (§N.9), and three owner items are
+> scoped-but-unstarted (O26's Reviews contrast · DO10-4's star migration · the realm-wide PDF sweep).
+>
+> **The runway, in order:** ① the **Owner Invite Email** (`OwnerInviteMail` — an email-render treatment, not a
+> page gate) closes the owner realm · ② the **GUEST realm, 32 prototypes, entirely untouched** — the no-Alpine
+> GET realm, `#33` door-code window-gating, real guest PII: **the sharpest privacy realm of the three** · ③ the
+> **PDF-sweep gate** (11 templates + `PdfService.php:54`'s 2.70 watermark) · ④ the **DO10-4 star migration** ·
+> ⑤ the **BACKEND phase** (the D-items in `MISSING-BACKEND-BY-PAGE.md`, the 6 reopened operator a11y gates, the
+> 3 open founder decisions, and a **deferred-capability refusal sweep** — see §N.8e).
+>
+> **Method per page (unchanged):** decode the prototype in `docs/design/raw/` fresh → open the live page via
+> Playwright as the relevant role → diff every detail → classify **DESIGN-GAP** (fix now, design/markup only) /
+> **REFUSAL-TO-PRESERVE** / **EXTRA-WORK** / **MISSING-BACKEND** (log, do not build) → browser-verify + suite +
+> PHPStan + Pint → commit + push → **report and STOP**. One gate = one commit = one report = stop.
+>
+> **Read before any gate: §N.8 (the five principles) · §N.8b (the stale-claim pattern) · §N.8c (the standing
+> traps) · §N.4p (the seven vacuous-guard forms) · §N.9 (what is reopened and must NOT be half-fixed from
+> inside a page gate) · §N.10 (the owner running lessons).**
 
-> ## ⬅ A NEW TRACK IS ACTIVE ON TOP OF EVERYTHING BELOW — the per-page **DESIGN-PARITY PASS** (started 2026-08-09, **IN PROGRESS**)
+> ## 🏁 THE PER-PAGE **DESIGN-PARITY PASS** IS COMPLETE FOR BOTH BUILT REALMS (2026-08-09 → 2026-08-11)
 >
 > **Read §N before quoting "what remains is only a decision + infrastructure" — that line is no longer the
-> whole picture.** A deliberate, page-by-page design-parity pass is running against the **125 standalone
-> prototypes in `docs/design/raw/`**: **ONE page per turn**, make the live page's design match the prototype
-> **exactly**, and **LOG — never build — every backend the prototype implies** to
-> **`docs/design/MISSING-BACKEND-BY-PAGE.md`**, which drives a SEPARATE later backend phase.
+> whole picture.** A page-by-page pass ran against the **125 prototypes in `docs/design/raw/`**: ONE page per
+> turn, make the live design match **exactly**, and **LOG — never build — every backend the prototype implies**
+> to **`docs/design/MISSING-BACKEND-BY-PAGE.md`**, which drives a SEPARATE backend phase.
 >
-> **State: 🏁 THE OPERATOR REALM IS COMPLETE — 42 of 42 prototypes, 34 numbered gates
-> (`0aa9ede`→`edb7cce`). ⬅ NEXT = the OWNER realm (32 prototypes).** The OWNER (32) and GUEST (32)
-> prototype sets are entirely untouched by this pass.
+> **State: 🏁 OPERATOR 42/42 (34 gates, `0aa9ede`→`edb7cce`) + 🏁 OWNER 32/32 (`6d974d7`→`a884793`). ⬅ GUEST
+> (32 prototypes) entirely UNTOUCHED.**
 >
-> It does **not** contradict the closed sweep — it is presentation work and it preserves every §5 refusal and
-> ratified divergence (**H.bis**, **#39**). But it has surfaced things the sweep did not, including a duplicate
-> `style` attribute that left the Settings cancellation-policy selector with **no visible selected state at
-> all**, and **D3-4**, a figure-honesty finding on Insights that is logged for the backend phase, not fixed here.
+> It does **not** contradict the closed sweep — it is presentation work and preserves every §5 refusal and
+> ratified divergence (**H.bis**, **#39**). But it surfaced a great deal the sweep did not, and the findings
+> were rarely cosmetic: a **money-affecting calendar no keyboard could reach** (twice — O10, then O23 in a
+> *duplicated* copy), **five €0.00 months drawing visible bars**, **every rating rendering as five full stars**,
+> a **boolean printed as an unread count**, a **status flag gated on the wrong fact that told an owner to redo
+> work they had already done**, and **six comments/names that contradicted the code**. ⚠️ **Design-matched is
+> NOT a11y-closed** — §N.9 lists 6 reopened operator items; three owner items are scoped-but-unstarted.
 
 > ## 🏁 THE WIREFRAME-PARITY SWEEP IS **FULLY CLOSED** — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)
 >
@@ -822,7 +839,7 @@ Propose-before-build (STOP at ⛔ gates); **NO fabricated data** (honest empty/S
 
 ---
 
-# (N) ⬅ THE DESIGN-PARITY PASS — **THE ACTIVE TRACK** (started 2026-08-09 · IN PROGRESS)
+# (N) 🏁 THE DESIGN-PARITY PASS — **COMPLETE FOR BOTH BUILT REALMS** (2026-08-09 → 2026-08-11 · OPERATOR 42/42 + OWNER 32/32 · GUEST 32 UNTOUCHED)
 
 *Memories: `project-design-parity-pass` (state) · `design-parity-technique` (method + traps).
 Deliverable + per-page record: **`docs/design/MISSING-BACKEND-BY-PAGE.md`**.*
@@ -1320,7 +1337,41 @@ that it isn't *stronger* either. **Verify the policy against the validator, ever
 ⚠️ Related: the page's own probe reported `has12: true`, which turned out to be CSS `12px`. **Fourth
 probe-induced false positive of the pass** (after O8, O10, O11) — the rule stands: suspect the probe first.
 
-## N.4p ⚠️ A GUARD CAN BE VACUOUS BECAUSE OF ITS FIXTURE, NOT ITS SYNTAX
+## N.4p ⚠️ A GREEN TEST CAN DEFEND NOTHING — **SEVEN FORMS**, all found only by MUTATING
+
+⚠️ **THE CONSOLIDATED LIST (the owner realm's most valuable output). Every one was green, and every one was
+found by changing the code and watching the test *not* fail.**
+
+1. **A variadic `toContain`** — `not->toContain($needle, $message)` treats the message as a second needle, so
+   it can never fail. `assertNoRawBlade()` was dead across **36 files** (Owner-1).
+2. **A mutation that never applied** — a `perl` substitution silently no-op'd, so the "passing" run was
+   meaningless (Owner-12). **Assert the edit landed before reading the result.**
+3. **A fixture that cannot reach the assertion** — a `DontSee` guard whose fixture never renders the forbidden
+   thing (Owner-16). **A `DontSee` guard must live where the thing it forbids WOULD render.**
+4. **An assertion on a STATIC LABEL, not behaviour** — `assertSee` on a tile's hardcoded caption passes in
+   every data state (Owner-17).
+5. **A mutation that applies but never reaches the OUTPUT** — the view was made to echo a key the component
+   does not provide, so it rendered an empty string (Owner-19).
+6. **A fixture that cannot reach the BOUNDARY CONDITION** — a page-count guard whose fixture caps at two rows,
+   which fit either way (Owner-20). ⚠️ **That guard was REJECTED, not shipped: a guard that cannot fail is
+   worse than none, because it reads as coverage.**
+7. **A needle taken from an ASSUMED parameter instead of the RENDERED output** (Owner-25). Too broad and it
+   **fails on correct markup**; too narrow and it **can never fail**. Repairing one #60 guard took three
+   needles, two of which would have shipped broken.
+
+**Plus two rules the same investigations produced:**
+- **A comment can satisfy the needle** — a guard's literal was matched by the code comment quoting it, so
+  deleting the real binding left the test green (Owner-23; the O11 comment trap on the test side).
+- ⚠️ **THE MATURE RULE (Owner-32): when a mutation PASSES, the first question is what you ACTUALLY removed.**
+  A #42 attempt swapped `query()` for `withoutGlobalScopes()` and stayed green — because the real guard was an
+  explicit `whereIn('owner_id', …)` the swap never touched. **A passing mutation demands investigation, not a
+  conclusion.**
+
+**RULE:** prove every guard by mutation; assert the attribute/RULE form, not a loose string; keep comments
+from carrying literals a guard asserts; reject a guard that cannot fail.
+
+### The original O16 note (kept — it is where the pattern started)
+
 
 O16 tightened a refusal guard on the banking page — `assertDontSee('Verifying')` was forbidding the weaker
 claim, so **"Verified"** was added, the stronger one. The mutation (injecting a fake `Verified` badge into the
@@ -1453,6 +1504,91 @@ measured and handed over, no side picked. ⚠️ **A refusal can be STRUCTURAL**
 input** at all. ⚠️ **An unverified guess is NOT a finding** — when a sweep comes back negative, record the
 negative (P30's `display:none` sweep found exactly one instance).
 
+## N.8b ⚠️ THE STALE-CLAIM PATTERN — a comment, a name or a value that contradicts the code (SIX instances, TWO shapes, ONE root cause)
+
+The single most repeated finding of the owner realm. A claim written **near** the code outlived the code, and
+in every case a reader who trusted it would have done the wrong thing.
+
+**Shape A — DENIES a shipped feature (5×).** O22 (a docblock saying the tax PDF carries "no withholding") ·
+O24 (a docblock saying "there is no tax engine, and its PDF does not exist") · O28 (a docblock listing the AI
+Q&A under REFUSED) · O31 (a view header saying "WITHHOLDING is NOT modelled") · **O30 — a TEST NAME**
+(*"…invents no approval workflow"*), which is **worse than a docblock**: a test name surfaces in CI output and
+in a grep, where it reads as an assertion the suite is making.
+
+**Shape B — MISSTATES a value (1×).** O32: two stacked docblocks on one method; only the second binds, and the
+orphaned first quoted **"15.00%"** — the wireframe's *mock* rate — as a worked example **on the page that
+defines the real 18%**.
+
+⚠️ **ROOT CAUSE (O31): three of the five denials are the tax engine specifically.** Wave D shipped it
+**without sweeping the surfaces that had previously, and correctly, refused it**. Generalised:
+
+> **When a long-refused capability finally ships, the refusals it invalidates are scattered across every
+> surface that documented them — docblocks, view headers, and test names alike.**
+
+**STANDING PRACTICE (§N.8e):** shipping a deferred capability is not done until you have grepped the surfaces
+that documented its refusal and updated them. **RULE:** verify a docblock's or test name's claims about
+tests, about absence, **and about values** — not just its citations.
+
+## N.8d ⚠️ THREE CLASSES OF DISHONEST DISPLAY (each found live, each now named)
+
+**① FABRICATED STATUS HAS TWO DIRECTIONS.** Overstating (a false "done"/"verified"/"all set"/a green
+"operational" dot) **misleads**. Understating (a false "not done") **issues a false instruction** — O29's
+`hasPayout` was gated on `units` rather than the fact it claimed, so an owner who had already saved a payout
+method was told to *"add a bank account"*. ⚠️ **The understating direction is the more damaging: it does not
+merely mislead, it directs the user to act.** RULE: a status derives from **the real fact it claims** — not a
+proxy, not a hardcoded label, not a convenient conjunct.
+
+**② A FALSE CLAIM'S VISUAL SIGNAL OUTLIVES ITS TEXT (O28).** An earlier pass deleted the words *"All systems
+operational"* and a guard still forbids them — but the **green dot** survived, asserting the same claim just
+as loudly. This unifies several findings that looked unrelated: the **min-bar floor** (a bar claims a non-zero
+value — O18/O25), the **all-five-stars** glyph row (claims a perfect rating — O26), the **hardcoded "1"**
+badge (a digit claims a count — O27), and the dot itself. **RULE: a text guard alone is incomplete — remove
+the visual assertion too.**
+
+**③ THE HONESTY TEXT IS SYSTEMATICALLY THE LOWEST-CONTRAST TEXT ON THE PAGE.** The words that make a page
+honest are styled as fine print: O22 *"not tax advice"* **2.74** · O25 *"EXAMPLE rates"* **3.82** · O28 the
+AI-verification notice **4.48** · O32 the authority disclaimer, **the worst reading on both the screen and the
+PDF** — the sharpest form, because the least legible sentence was the one disclaiming the document's own
+authority. ⚠️ **This is a PRIORITY, not a PREDICTION**: O31 checked it first and found it was *not* the worst.
+**RULE: on any claims/legal/tax/AI surface, measure the honesty text first — then keep measuring.**
+
+## N.8e ⚠️ THE CONTRAST PROBE IS AN INSTRUMENT WITH A KNOWN ENVELOPE (hardened + characterized, O26→O31)
+
+12 probe false-positives this pass — **one of them self-authored**. The probe is now documented rather than
+trusted:
+
+- **O26 — when it breaks, publish NOTHING.** The validated method (hide text → screenshot → sample the
+  composited pixel) can fail **environmentally**. A CSS-compositing fallback written in its place was
+  **unsound** (it scored white text at 1.0 against a layer that is actually painted over) and its output was
+  **discarded**. Numbers from a probe known to be unsound are worse than no numbers.
+- **O27 — the timeout is environmental**: `browser_close` + navigate recovers it. Then go back and measure the
+  page you deferred.
+- **O29 — HARDENED**: it now asserts every candidate computes to a **transparent fill before capturing**, and
+  **freezes entry animations** (cards fade in on a delay, so an early screenshot samples the wrong opacity).
+- **O30 — CHARACTERIZED**: reliable on **body text**, unreliable on **small controls** — pills and a 29px
+  button mis-sample against pure white or an off-element background. Verify small controls directly.
+- **O31 — excludes `.vy-card--dark` subtrees**: the O11 dark-plate FP recurred (white-at-60% on a dark card
+  reads 1.00 but actually measures **5.78**).
+
+**RULE: score the REAL composited plate; correct the probe, not the page; state the envelope wherever the
+numbers appear.**
+
+## N.8f ⚠️ THE DUPLICATION BACKLOG — Principle 3's unpaid debt (all point at the backend/refactor phase)
+
+- **DO23-2 — the two calendar grids are DUPLICATED, not shared.** O10 fixed the keyboard lockout on Unit
+  Detail; O23 found it **still live** on Block Calendar and had to re-make the fix. → Extract ONE day-cell
+  partial. **Lesson: after fixing any defect, grep for a second copy of the widget.**
+- **DO25-1 — the Reports month chart is a LOCAL implementation**, not the shared `<x-charts.bars>` — which is
+  precisely why the min-bar floor survived there after being fixed elsewhere (now seen in 3+ chart locations).
+  → Consolidate, carrying honest-zero (**PHP `max(2,pct)` AND CSS `min-height`**) and the contiguous-time-axis
+  rule (§N.9 #4).
+- **DO10-4 — the ★ glyph is duplicated across 11 files.** O26 extracted `<x-star-rating>` and wired Reviews;
+  **10 call sites plus O26's own two remaining spans are unmigrated**, and O26's measured tail is unfixed.
+- **The translucent-band contrast shape recurred on FOUR consecutive owner pages** (O28–O31): shell greys land
+  on the hero gradient and cannot reach AA, needing `--vy-ink` **page-scoped** every time. → A realm-close
+  shared-fix candidate on the shell's translucent KPI-band/rail pattern. ⚠️ **Never retune the shell's own
+  definitions from a page gate** — that changes every owner page.
+
 ## N.8c ⚠️ THE TWO STANDING TRAPS — check both on every remaining gate
 
 **TRAP 1 — `expect(...)->not->toContain($needle, $message)` CAN NEVER FAIL.** Pest's `toContain()` is
@@ -1478,7 +1614,7 @@ rule or the behaviour, never the selector string. **Verified clean for 10 consec
 (stripped at compile). ⚠️ **And GUARD a document/PDF contrast fix against the GENERATED output** — O2's fix
 was correct but unguarded, and survived a whole pass unnoticed. Detail: §N.4m.
 
-## N.9 ⚠️ REOPENED OPERATOR-REALM ITEMS — the owner pass found these on the "complete" realm
+## N.9 ⚠️ REOPENED OPERATOR-REALM ITEMS — **6 items · design-matched is NOT a11y-closed** · each needs its OWN gate
 
 The operator realm is 42/42 **design-matched**, but the owner pass surfaced six items that touch it. ⚠️ **Each
 needs its OWN gate. None may be half-fixed from inside an owner page gate** — that is the discipline that kept
@@ -1528,7 +1664,7 @@ you just reasoned through, suspect the probe first — then correct the probe, n
 shell. A shared partial cannot depend on a class only one shell defines — check every shell a shared file
 renders in.
 
-## N.8b The process lessons this pass earned, in detail (extend **L**)
+## N.8g The process lessons this pass earned, in detail (extend **L**) — the OPERATOR-era set
 
 21. **MEASURE COMPUTED VALUES, NOT THE SOURCE.** Three real bugs were invisible to file-reading and only
     appeared when the *rendered computed value* disagreed with the source: a cascade fight lost to a later
@@ -5126,3 +5262,105 @@ These are not platitudes; each one is here because it caught a real bug or preve
 Removed 2026-07-17: it was a full stale copy of the Wave-1 build plan that still read as pending and
 contradicted the live NEXT ACTION above by two waves. Wave 1's record lives where it belongs — the dated
 entry in `docs/DECISIONS.md` (2026-07-16) and the Wave 1 tables in the styled-surface inventory above.
+
+---
+
+# (N.12) 🏁 REALM CLOSE — what is DONE, what is SCOPED-BUT-UNSTARTED, and what remains
+
+## The record
+
+| realm | prototypes | state | range |
+|---|---|---|---|
+| **OPERATOR** | 42 | 🏁 design-matched (34 gates) | `0aa9ede` → `edb7cce` |
+| **OWNER** | 32 | 🏁 design-matched | `6d974d7` → `a884793` |
+| **GUEST** | 32 | ⬅ **UNTOUCHED** | — |
+| *(shell)* | 19 | folded into the two realms | — |
+
+**Owner gates 16–32** (all verified present at SAVE v7): 16 Payout Method `0ac7080` · 17 Balance `cb59c13` ·
+18 Bookings `5a84065` · 19 Booking Detail `b297f0a` · 20 Booking Summary PDF `bf8f8c2` · 21 Remittance PDF
+`074a054` · 22 Annual Tax PDF `4f8ea65` · 23 Block Calendar `899e9e3` · 24 Archive `d5d23bd` · 25 Reports
+`96cb0bb` · 26 Reviews `2c3d1de` · 27 Messages `8f446f0` · 28 Help `ed3ffad` · 29 Onboarding `11464fa` ·
+30 Expenses `932468a` · 31 Tax Center `a2d5a9e` · 32 Agreement `a884793`.
+
+⚠️ **A record inconsistency, noted not fixed:** `MISSING-BACKEND-BY-PAGE.md` headings switched format
+mid-pass — **`§O1`…`§O19`** then **`§O-20`…`§O-32`**. All 32 entries are present; a grep must allow both forms.
+
+## ⚠️ SCOPED BUT UNSTARTED — three owner items that are NOT design work
+
+1. **O26's Reviews contrast** — measured at O27 once the tool recovered: **30 failures, ~17 of them the ★
+   spans not migrated to `<x-star-rating>`**. The fix is scoped; it was deliberately not folded into a later
+   page gate.
+2. **DO10-4 — the star migration**: 10 remaining call sites (guest/operator/public/**email**) + O26's own two
+   spans.
+3. **The realm-wide PDF-contrast sweep** — see below.
+
+## 📌 THE PDF-CONTRAST SWEEP — scoped, recommended as ONE gate, awaiting go-ahead
+
+The pattern is identical on every document measured: **`#8A8079` → `#5F5853`** (3.86 → 6.98) and
+**`#A69A92` → `#6C645F`** (2.74 → 5.79), each verified on the **generated file**, each guarded on the rendered
+document. **5 owner documents are clear** (statement · booking summary · remittance · annual tax · agreement).
+
+**11 templates remain**: `owner-agreement-amendment` · `owner-booking-confirmation` · `owner-statement-history`
+· `operator-report` · `maintenance-costs` · `arrival` · `folio` · `guest-statement` · `guest-vat-invoice` ·
+`guest-credit-note` · `guest-refund-receipt` — **plus `PdfService.php:54`'s `#a99b8e` watermark at 2.70**,
+which appears on **every page of every document**.
+
+**Why ONE dedicated gate:** the watermark lives in `PdfService`, which **no page gate may touch** (so it would
+otherwise never be fixed); each template needs its **own generated-file measurement** (O21's `#B26A08` passed
+on white at 4.24 and **failed at 3.72** on the plate it actually sat on); and the guest/operator documents are
+cross-realm. **Not started — the founder's go-ahead.**
+
+## ⚠️ D16-7 — IN-FLIGHT / HELD MONEY: four forms, one root, one REFERENCE
+
+**Root:** the payout-status model does not distinguish `processing` / `held` / `pending` cleanly on the
+surfaces that report money.
+
+- **O3** — `processing` dropped from the KPI tiles.
+- **O14** — the shared **`payoutStatusMeta`** (`app/Livewire/Owner/Concerns/FormatsOwnerData.php:99`)
+  **collapses `processing` + `held` into "Payout pending"** on Payouts, Documents, Statement and Dashboard.
+- **O21** — the remittance status **pill had CSS rules for four of the enum's six values**, so `processing`
+  and `held` rendered with **no plate at all**. (Labels stayed honest.)
+- **Cross-surface** — one `held` payout reads **three ways**: "On hold" · "Payout pending" · "Held".
+
+⚠️ **THE REFERENCE: `OwnerBalance::rowStateMeta()` (O17) already gets this RIGHT** — On hold = persisted
+`held` + paused pending; In transit = `processing` + released pending. **The gate should COPY it into
+`payoutStatusMeta`, not design a fix**, and give the pill rules for all six enum values. Archive is on the
+honest side already (it reads the *statement* enum via `statusMeta` — O24). A Stripe-live prerequisite; the
+founder's call.
+
+## ⚠️ OPEN FOUNDER DECISIONS — surfaced, NOT decided
+
+- **G.1 BILLING** — the one open go-live blocker: two contradictory pricing models (per-unit €72 vs tier €49,
+  break-even ≈5.4 units) and only the tier price reaches Stripe → **~2× billing at the live-key flip**. Plus
+  **#6** the rate guardrail and **#10** the Essential team limit.
+- **G.4 / D16-7** — a `processing`/`held` payout invisible in KPIs on both realms (fix = copy
+  `rowStateMeta()`).
+- **G.5 / Owner-5** — the "earned this month vs statement" figure definition.
+- **Owner-20** — the cross-surface **"nights under a gross line"** call: the statement screen prints
+  *occupied* stay-nights (8) while the Booking Summary PDF prints *revenue-attributed* nights (6). **Both are
+  real and honestly derived**; which belongs under a gross figure is a product decision.
+- **DO22-1** — whether the tax document / Reports / Tax Center carry formal legal *"EXAMPLE rates"* / *"not
+  tax advice"* wording. ⚠️ Tax Center (O31) structurally needs it least: it shows **no rate and no computed
+  determination**.
+
+## ⚠️ THE BASELINE — a NON-DETERMINISTIC 5–10 RANGE (§J.quater)
+
+Documented non-green set: **`BookingImportTest` ×6** (passes in isolation, fails only in-suite — ordering),
+**`OwnerUnitDetailViewTest`** and **`StubViewsTest` ×2** (date-coupled). **Measured at realm close: `1857
+tests · 1848 passed · 12,132 assertions` — 9 non-green, the documented set.** PHPStan L5 (0); Pint clean.
+**Prove any NEW failure pre-existing by STASHING** — the count moves with run order and the clock, not with
+the work.
+
+## ⚠️ WHAT REMAINS — the runway
+
+1. **Owner Invite Email** (`OwnerInviteMail`) — an **email-render** treatment, not a page gate. Closes the
+   owner realm.
+2. **THE GUEST REALM — 32 prototypes, UNTOUCHED.** The no-Alpine GET realm; `#33` door-code window-gating;
+   real guest PII on every surface. **The sharpest privacy realm of the three** — expect `#28` to be the
+   dominant axis rather than `#17`.
+3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
+4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
+5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via
+   `rowStateMeta()`**), the **6 reopened operator a11y gates** (§N.9), the **3 open founder decisions**, and
+   the **deferred-capability refusal sweep** (§N.8b: for each capability that has shipped, grep the surfaces
+   that documented its refusal).
