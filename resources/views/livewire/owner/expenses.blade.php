@@ -25,6 +25,11 @@
 --}}
 <x-owner.shell active="expenses" title="Expenses & maintenance" :subtitle="'Every cost on your units — what’s charged to you, what’s the operator’s, and what’s still under review.'" :viewer="$viewer">
     <style>
+        /* PAGE-SCOPED contrast overrides. The KPI band and the rows are translucent over the hero gradient,
+           so these shell greys composite onto a saturated peach (≈236,153,110) and measure 3.05–4.35 — the
+           O14/O17 case where no grey reaches AA on a tint. The shell's own definitions are NOT touched:
+           retuning them would change every owner page. Hierarchy stays with size + weight. */
+        .vy-kpi-label, .vy-kpi-sub, .vy-line-sub, .vy-row-sub { color: var(--vy-ink); }
         .vy-ex-pending { background: rgba(232,112,58,.08); border-color: var(--vy-accent-border); }
         .vy-ex-prow { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 0; border-top:1px solid rgba(120,70,40,.12); }
         .vy-ex-prow:first-of-type { border-top:none; }
@@ -62,7 +67,7 @@
                     @foreach ($approvalRows as $a)
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--vy-hairline);flex-wrap:wrap">
                             <div style="min-width:0">
-                                <div style="font-weight:600;font-size:13px">{{ $a['description'] }} <span class="vy-mono" style="color:var(--vy-accent)">{{ $a['amount_display'] }}</span></div>
+                                <div style="font-weight:600;font-size:13px">{{ $a['description'] }} <span class="vy-mono" style="color:var(--vy-ink)">{{ $a['amount_display'] }}</span></div>
                                 <div class="vy-row-sub">{{ $a['date_display'] }} · {{ $a['category_label'] }} · {{ $a['unit']['name'] }}@if ($a['vendor']) · {{ $a['vendor'] }}@endif</div>
                             </div>
                             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
@@ -166,7 +171,7 @@
                                         {{-- REAL tri-state: true / false / NULL — never coerced --}}
                                         <span class="vy-status vy-status--{{ $e['deductible']['tone'] }}" data-deductible="{{ $e['deductible']['key'] }}"><span class="vy-dot"></span>{{ $e['deductible']['label'] }}</span>
                                         @if ($e['statement'])
-                                            <div class="vy-row-sub"><a href="{{ route('owner.statements.show', $e['statement']['id']) }}" style="color:var(--vy-accent);font-weight:600">{{ $e['statement']['label'] }}</a></div>
+                                            <div class="vy-row-sub"><a href="{{ route('owner.statements.show', $e['statement']['id']) }}" style="color:var(--vy-accent-text);font-weight:600">{{ $e['statement']['label'] }}</a></div>
                                         @elseif ($e['flag_note'])
                                             <div class="vy-row-sub">{{ $e['flag_note'] }}</div>
                                         @else
@@ -213,7 +218,7 @@
                         @endforeach
                         <div class="vy-list-row" style="border-top:1.5px solid rgba(120,70,40,.16)">
                             <span style="font-size:13px;font-weight:600">Total</span>
-                            <span style="font-family:var(--vy-display);font-weight:600;font-variant-numeric:tabular-nums;color:var(--vy-accent)">{{ $block['total_display'] }}</span>
+                            <span style="font-family:var(--vy-display);font-weight:600;font-variant-numeric:tabular-nums;color:var(--vy-accent-text)">{{ $block['total_display'] }}</span>
                         </div>
                     </div>
                 @empty

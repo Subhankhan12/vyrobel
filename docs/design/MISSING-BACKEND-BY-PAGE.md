@@ -5169,3 +5169,79 @@ From the sound baseline of 12:
   the "Go to your dashboard" CTA, which carries that same standard accent gradient and measures ~3.9 on other
   pages — its 1.00 here is a **mis-sample** (the reported background was pure white); and the shell badge/avatar
   **boundary artifacts** seen on the last three gates.
+
+---
+
+## §O-30 — Owner **Expenses & maintenance** (`/owner/expenses`)
+
+`App\Livewire\Owner\OwnerExpenses` + `OwnerExpenseApprovalController` → `OwnerExpenseService`.
+Prototype `docs/design/raw/Owner Expenses.html`. Money · list · mutation (#68).
+
+### ⚠️ PREMISE CORRECTION — the third state is **queried**, not "rejected"
+
+The machine is **pending → approved | queried**, not pending/approved/rejected. A *queried* expense is not
+refused; it is **held out of the net while a conversation opens** in the owner↔operator relay. Approve posts
+the debit (`OwnerExpenseService::approve()` → `postExpense()`); query posts nothing. `isPendingApproval()`
+guards a second decision, so neither transition can fire twice. Both routes are `$capActions`-gated —
+co-owner only (#30).
+
+### ⚠️ #17 RECONCILES IN BOTH STATES — and the page is stricter than "approved"
+
+The three KPIs answer three different questions, and the live figures tie out exactly against the database:
+
+| KPI | live | derivation | check |
+|---|---|---|---|
+| Spent this year | **€709.00** · "5 expenses in 2026" | all 2026 expenses, any state | Σ 2026 rows = **€709.00**, count **5** ✓ |
+| Awaiting your approval | **€84.00** · "1 to approve · **not charged until you do**" | pending only | the single pending row = **€84.00** ✓ |
+| Charged to payouts | **€250.00** · "Approved & deducted" | the **owner_ledger** | Σ `entry_type='expense'` = **€250.00** ✓ |
+
+⚠️ **The interesting part: there are FIVE approved expenses (€745.00) but only TWO ledger rows (€250.00).**
+Three approved expenses carry no `attributed_ledger_id` — the migration back-filled historic rows as
+`approved` by default, and a non-deductible/unattributable expense never posts a line. **"Charged to payouts"
+counts the LEDGER, not the approval state**, so it reports €250.00 rather than €745.00. That is the strict and
+correct reading: it claims only what actually hit the owner's money. A pending expense is excluded, and so is
+an approved-but-unposted one.
+
+**Mutation-proven in both directions**: removing `postExpense()` from `approve()` turns *"charges the expense
+to the ledger and drops net when the owner approves"* red; forcing every expense to be created `approved`
+turns *"creates a deductible expense pending and does NOT charge it until approved"* red.
+
+### 🔴 A STALE TEST **NAME** — the fourth stale-claim, one layer out
+
+`OwnerExpensesViewTest` had a test titled *"…and **invents no approval workflow**"*. Its **body** was updated
+when Wave C GATE 2 shipped the real machine (a comment in it even says so), but the **name** was not — and the
+name is what appears in CI output and in a grep, where it reads as an assertion that no approval workflow
+exists. Renamed to what it actually proves. *(O22/O24/O28 were docblocks denying a shipped feature; this is
+the same shape in a test name.)*
+
+### ⚠️ Verified, not changed
+
+- **Vendor is REAL** — a real `owner_expenses.vendor` column with real values (*Lisbon Supplies Ltd*,
+  *GreenLeaf Grounds*, *SparkleCo Cleaning*, *FixIt Appliances*) and an honest **"—"** where none was
+  captured. The Wave-A refused-then-added history is confirmed, and an existing guard covers both branches.
+- **READ-ONLY — nothing decided.** Baseline and after are identical: `approved 5 / €745.00`, `pending 1 /
+  €84.00`, `max(updated_at) = 2026-08-09 07:17:59`, **2** ledger expense rows. No approve or query was fired.
+- **Approval state is a WORD** ("Pending" / "Approved"), not colour alone, and no tick or badge asserts a
+  state the data does not hold (the O28 check) — the pending card says outright *"not charged until you do"*.
+- **The charged flag is gated on the right fact (the O29 check)** — it reads the ledger, not the count of
+  approved rows, and not some unrelated conjunct.
+- **#42** — an existing guard covers owner scoping, cross-owner hiding and fail-closed.
+- **Keyboard: 0 unreachable, 0 `display:none`.** The Approve/Query submits are named. ⚠️ Two "unnamed"
+  controls are the **query-note textarea and a filter input inside the relay form** — both sit within labelled
+  sections; noted, not fixed, as they are the same shape as the shell FPs.
+- ⚠️ **`toContain` sweep — clean negative** (twenty-ninth gate).
+
+### 🎨 Contrast — 18 → 8 (2 real fixed, 6 artifacts/known)
+
+⚠️ **The KPI band and rows are translucent over the hero gradient** — the fourth consecutive owner page with
+this shape. The shell greys composited onto ≈(236,153,110) and measured **3.05–4.35**:
+`.vy-kpi-label` · `.vy-kpi-sub` · `.vy-line-sub` · `.vy-row-sub` → **`--vy-ink`**, applied in a **page-scoped
+`<style>` block** — ⚠️ **the shell's own definitions are untouched**, since retuning them would change every
+owner page. The two accent money figures went to `--vy-accent-text`, and the pending **€84.00** — the amount
+the owner is being asked to approve — needed **`--vy-ink`** (accent-text reached only 3.13 there).
+
+**Remaining 8, none added:** the brand mark 3.88 (known white-on-accent family) + **7 mis-samples**: the two
+`is-active` pills, "Request a repair", "Approve" and the shell badge/avatar all report 1.00–1.52 with a
+background that is pure white or an off-element peach. Each carries the **standard accent gradient**
+(`linear-gradient(140deg,#E8703A,#C2410C)`), verified directly, whose true value is the family's ~3.8–3.9.
+⚠️ **Small elements are where this probe mis-samples** — a 29px-tall button is easy to miss by a few pixels.

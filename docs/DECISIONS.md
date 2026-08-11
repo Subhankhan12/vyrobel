@@ -7763,3 +7763,36 @@ reaches only ~3.3 and even `--vy-accent-tint-text` stops at 3.74. Both the step 
 O14/O17 rule, now hit on three consecutive owner pages.
 
 Suite **1856 / 12,130**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 30/32 · Expenses & maintenance (`/owner/expenses`)
+
+**Premise corrected: the third state is `queried`, not "rejected".** A queried expense is not refused — it is
+held out of the net while a conversation opens in the owner↔operator relay. Approve posts the debit, query
+posts nothing, and a second decision is blocked.
+
+**#17 reconciles in both states, and the page is stricter than the brief required.** Spent-this-year €709.00,
+awaiting-approval €84.00, charged-to-payouts €250.00 — all three tie out against the database. The
+interesting part is the third: there are five *approved* expenses totalling €745.00 but only two ledger rows
+totalling €250.00, because three approved rows carry no ledger attribution (the migration back-filled historic
+rows as approved, and a non-deductible expense never posts a line). The KPI counts **the ledger, not the
+approval state**, so it claims €250.00 — only what actually hit the owner's money. Both directions are
+mutation-proven.
+
+**A stale test name — the fourth stale claim, one layer out.** `OwnerExpensesViewTest` was titled "…and
+invents no approval workflow". Its body was updated when Wave C GATE 2 shipped the real machine — a comment
+inside even says so — but the name was not, and the name is what CI output and a grep show, where it reads as
+an assertion that no such workflow exists. Owner-22, -24 and -28 each found a docblock denying a shipped
+feature; this is the same shape in a test name, and worth watching for as a distinct place staleness hides.
+
+**Contrast: the translucent-band problem is now a realm pattern, not a page quirk.** This is the fourth
+consecutive owner page whose KPI band or rail is translucent over the hero gradient, dropping shell greys to
+3.05–4.35. Fixed here in a page-scoped style block, with the shell's own definitions deliberately untouched —
+retuning those would change every owner page and belongs to its own gate. Worth surfacing as a candidate
+shared fix once the realm is complete.
+
+Also worth recording: seven of the eight remaining "failures" are mis-samples of small elements — pills and
+29px buttons whose sample point lands beside them, each verified to carry the standard accent gradient. The
+probe is reliable on body text and unreliable on small controls; that limitation should be stated wherever its
+numbers are.
+
+Suite **1856 / 12,130**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.

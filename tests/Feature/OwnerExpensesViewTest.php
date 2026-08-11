@@ -64,7 +64,11 @@ function recordExpenseVia(string $unitId, string $category, string $description,
 }
 
 // ── 1. Real rows · the deductible TRI-STATE · voided excluded · maintenance source · reconciliation ──
-it('renders real expenses with the deductible tri-state, badges voided rows out of the totals, and invents no approval workflow', function () {
+// ⚠️ This test used to be NAMED "…and invents no approval workflow". Its body was updated when Wave C
+// GATE 2 shipped the real approve/query machine, but the NAME was not — and the name is what appears in
+// CI output and in a grep, where it reads as an assertion that no such workflow exists. The same stale-
+// claim shape as the docblocks corrected in Owner-22/24/28, one layer out.
+it('renders real expenses with the deductible tri-state, badges voided rows out of the totals, and shows no pending section when every expense is already approved', function () {
     $s = seedScenario(1);
     $a = expensesScreenOwner($s, 0, 'Amara Okafor');
     $unitId = (string) $a['unit']->id;
