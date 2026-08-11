@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Owner\OwnerBookings;
 use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
@@ -12,8 +13,10 @@ use App\Services\OwnerAttributionService;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerContext;
 use App\Support\Pdf\OwnerBookingConfirmationDocument;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -413,4 +416,44 @@ it('builds the confirmation PDF with the guest NAME only — never contact — a
 
     // #17 — gross − commission == net (no cleaning in the ledger): 50000 − 9000 = 41000.
     expect($data['earnings'][0]['net_display'])->toBe(MoneyFormatter::display(41000, 'EUR'));
+});
+
+// ── The chart's x-axis is a CALENDAR, not a list of months that happen to have bookings ───────────
+// Grouping only the months that HAVE bookings left gaps in the axis: with November empty, the net-revenue
+// LINE stepped from October straight to December as though they were consecutive, compressing a two-month
+// gap into one and misreporting the trend. An empty month must occupy its slot as a genuine zero — and draw
+// NOTHING (the min-bar floor is the recurring bug this pass keeps finding, here doubled as `max(2, pct)`
+// AND a CSS `min-height`).
+it('keeps the bookings chart on a contiguous month axis, with an empty month drawing nothing', function () {
+    $s = seedScenario(2);   // two units, so the second stay avoids the first's availability
+    $a = bookingsOwner($s, 0, 'Amara Okafor');
+
+    // Two stays on two of the owner's OWN units (a second unit avoids the availability clash), with the
+    // second pushed two months out so the month BETWEEN them is genuinely empty — the case the axis must keep.
+    $second = $s['units'][1];
+    $second->update(['owner_id' => $a['owner']->id]);
+
+    bkStay($s, $a['unit'], 20000);
+    $late = bkStay($s, $second, 30000);
+    $gapStart = Carbon::parse($late->check_in)->addMonths(2)->startOfMonth();
+    $late->forceFill([
+        'check_in' => $gapStart->toDateString(),
+        'check_out' => $gapStart->copy()->addDays(2)->toDateString(),
+    ])->save();
+
+    $months = Livewire::actingAs($a['user'])->test(OwnerBookings::class)->viewData('chart')['months'];
+    $keys = array_column($months, 'month');
+    expect(count($keys))->toBeGreaterThan(2);   // the gap month really is in range
+
+    // Every step between the first and last month is exactly one month — no month is skipped.
+    $cursor = Carbon::parse($keys[0].'-01');
+    foreach ($keys as $key) {
+        expect($key)->toBe($cursor->format('Y-m'));
+        $cursor->addMonth();
+    }
+
+    // …and the gap month is present with a genuine zero rather than being absent.
+    $empty = array_values(array_filter($months, fn (array $m): bool => $m['total_count'] === 0));
+    expect($empty)->not->toBeEmpty()
+        ->and($empty[0]['net_minor'])->toBe(0);
 });

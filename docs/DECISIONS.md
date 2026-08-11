@@ -7351,3 +7351,36 @@ self-scoped; masked IBAN only; statuses are distinct words; withdraw genuinely `
 **Read-only** — nothing withdrawn or transferred; payouts still 6 (`pending`/`paid` only), seed-time
 timestamps, 29 ledger rows unchanged. No schema touched. Suite **1842 / 12,078 · 9 non-green** (documented
 set); PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 18/32 · **Owner Bookings** (`/owner/bookings`)
+
+Design/markup only. A list/rollup + money surface; the first half of the list→detail pair with Booking Detail.
+
+**1. 🔴 The chart's x-axis skipped empty months, and the revenue line stepped across the gap.** `chart()`
+grouped only the months that have bookings, so with **November 2026 genuinely empty** the axis read
+`… Sep · Oct · Dec …` and the net-revenue polyline joined **October straight to December as if consecutive** —
+compressing two months into one step and misreporting a money trend while every individual bar was correct.
+Fixed to a contiguous calendar axis; live it now reads May–Dec, eight consecutive months, with November at
+0px. Guard added and mutation-proven.
+
+**2. And that zero would have drawn a bar.** The min-bar floor was present **twice** — `max(2, pct)` in the
+view **and** a CSS `min-height: 3px`. This is the fifth page with the bug and the first time it appeared as
+CSS, which matters: the planned shared-`<x-charts.bars>` fix would not have caught it. Generalised as §N.4r,
+together with the axis lesson — *for a time series, the axis is a calendar, not a list of periods that happen
+to have data*.
+
+**3. Contrast 21 → 3** (all survivors the gradient family). Ten "Confirmed" pills and the chart's current-month
+net label sit on an accent **tint**, where `--vy-accent-text` is only marginal (4.51 / 4.33), so they take
+`--vy-accent-tint-text` (5.40 / 5.19). The goal delta used `--vy-amber` as text — the O16 pattern — and the
+breadcrumb and separator sat on the page gradient. ⚠️ The **over-goal** delta never renders in the demo, so it
+was probed in and measured rather than assumed.
+
+**Verified:** #42 and #28 both **mutation-proven** — unscoping the unit set turns the isolation test red, and
+appending the guest email to the row turns the PII test red (which already seeds a guest with a real email and
+phone). Live: two foreign booking ids → **404**, no foreign reference in the list, and a DOM sweep showing
+**0 emails, 0 phone-like strings, 0 door-code mentions, `guest_id` never emitted**. Revenue is one-source via
+`OwnerBookingsReader` + `OwnerLedgerAttribution`; **no OTA-brand split** (the real enum only — D2-2); "Not yet
+attributed" never a fake €0. Nothing mutated (the page's only write, the monthly target, was not fired). No
+schema touched. Suite **1843 / 12,084 · 9 non-green** (documented set); PHPStan L5 (0); Pint clean.

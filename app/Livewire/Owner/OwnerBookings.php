@@ -352,6 +352,22 @@ class OwnerBookings extends Component
         }
         ksort($groups);
 
+        // ⚠️ A month with NO bookings must still occupy its slot. Grouping only the months that HAVE bookings
+        // left gaps in the axis — with November absent, the net-revenue LINE stepped from October straight to
+        // December as though they were consecutive, compressing a two-month gap into one and misreporting the
+        // trend. The keys are filled across the real calendar range so the x-axis is uniform; an empty month is
+        // a genuine zero that draws nothing (see the honest-zero height in the view).
+        if ($groups !== []) {
+            $keys = array_keys($groups);
+            $cursor = CarbonImmutable::parse(((string) reset($keys)).'-01');
+            $last = CarbonImmutable::parse(((string) end($keys)).'-01');
+            while ($cursor->lessThanOrEqualTo($last)) {
+                $groups[$cursor->format('Y-m')] ??= [];
+                $cursor = $cursor->addMonth();
+            }
+            ksort($groups);
+        }
+
         $months = [];
         foreach ($groups as $month => $items) {
             $confirmed = count(array_filter($items, fn (array $b): bool => $b['status'] === 'confirmed'));

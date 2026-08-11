@@ -63,10 +63,10 @@
          "Monthly" and a Dashboard shows no fabricated "goal". The shared glass surfaces are reused as-is. --}}
     <style>
         .vy-crumbs { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; font-size: 12.5px; color: var(--vy-muted); }
-        .vy-crumbs .vy-crumb { color: var(--vy-muted); transition: color .14s ease; }
-        .vy-crumbs a.vy-crumb:hover { color: var(--vy-accent); }
+        .vy-crumbs .vy-crumb { color: var(--vy-on-grad-soft); transition: color .14s ease; }
+        .vy-crumbs a.vy-crumb:hover { color: var(--vy-accent-text); }
         .vy-crumbs .vy-crumb.is-current { color: var(--vy-ink); font-weight: 500; }
-        .vy-crumb-sep { color: var(--vy-faint); }
+        .vy-crumb-sep { color: var(--vy-on-grad-soft); }
 
         .vy-bk-cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: stretch; margin-bottom: 18px; }
         @media (max-width: 1000px) { .vy-bk-cols { grid-template-columns: minmax(0, 1fr); } }
@@ -84,29 +84,29 @@
         .vy-bk-bars { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 10px; }
         .vy-bk-col { position: relative; flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 0; }
         .vy-bk-netlabel { font-size: 10.5px; font-weight: 600; color: var(--vy-muted); margin-bottom: 6px; white-space: nowrap; }
-        .vy-bk-col.is-current .vy-bk-netlabel { color: var(--vy-accent); }
-        .vy-bk-stack { width: 100%; max-width: 46px; display: flex; flex-direction: column-reverse; border-radius: 8px 8px 4px 4px; overflow: hidden; min-height: 3px; }
+        .vy-bk-col.is-current .vy-bk-netlabel { color: var(--vy-accent-tint-text); }
+        .vy-bk-stack { width: 100%; max-width: 46px; display: flex; flex-direction: column-reverse; border-radius: 8px 8px 4px 4px; overflow: hidden; }
         .vy-bk-seg--confirmed { background: var(--vy-grad); }
         .vy-bk-seg--pending { background: linear-gradient(180deg, #E0921E, #B26A08); }
         .vy-bk-seg--other { background: #c9b6a8; }
         .vy-bk-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-        .vy-bk-goal-label { position: absolute; right: 0; transform: translateY(-50%); font-size: 10px; font-weight: 600; color: var(--vy-accent); background: rgba(255,252,248,.82); padding: 1px 5px; border-radius: 5px; white-space: nowrap; }
+        .vy-bk-goal-label { position: absolute; right: 0; transform: translateY(-50%); font-size: 10px; font-weight: 600; color: var(--vy-accent-text); background: rgba(255,252,248,.82); padding: 1px 5px; border-radius: 5px; white-space: nowrap; }
         .vy-bk-xlabels { display: flex; gap: 10px; margin-top: 8px; }
         .vy-bk-xlabel { flex: 1; text-align: center; font-size: 10.5px; color: var(--vy-muted); min-width: 0; }
-        .vy-bk-xlabel.is-current { color: var(--vy-accent); font-weight: 600; }
+        .vy-bk-xlabel.is-current { color: var(--vy-accent-text); font-weight: 600; }
 
         .vy-goal-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
         .vy-goal-ring { --p: 0; position: relative; width: 168px; height: 168px; border-radius: 50%; display: grid; place-items: center; margin: 6px 0 4px; background: conic-gradient(var(--vy-accent) calc(var(--p) * 1%), rgba(194,65,12,.12) 0); }
         .vy-goal-ring::after { content: ''; position: absolute; inset: 15px; border-radius: 50%; background: #FCF6F0; box-shadow: inset 0 1px 3px rgba(120,70,40,.08); }
         .vy-goal-ring.is-empty { background: repeating-conic-gradient(rgba(194,65,12,.14) 0 6deg, transparent 6deg 12deg); }
         .vy-goal-ring-inner { position: relative; z-index: 1; }
-        .vy-goal-ring-val { font-family: var(--vy-display); font-weight: 700; font-size: 34px; letter-spacing: -0.02em; color: var(--vy-accent); line-height: 1; }
+        .vy-goal-ring-val { font-family: var(--vy-display); font-weight: 700; font-size: 34px; letter-spacing: -0.02em; color: var(--vy-accent-text); line-height: 1; }
         .vy-goal-ring-cap { font-size: 9.5px; font-weight: 600; letter-spacing: .11em; text-transform: uppercase; color: var(--vy-muted); margin-top: 4px; }
         .vy-goal-net-lg { font-family: var(--vy-display); font-weight: 600; font-size: 14px; margin-top: 10px; }
         .vy-goal-of { font-size: 12px; color: var(--vy-muted); margin-top: 3px; }
         .vy-goal-delta { display: inline-flex; align-items: center; gap: 4px; margin-top: 9px; padding: 4px 11px; border-radius: var(--vy-r-pill); font-size: 12px; font-weight: 600; }
-        .vy-goal-delta--over { background: rgba(31,122,90,.12); color: var(--vy-green); }
-        .vy-goal-delta--under { background: rgba(224,146,30,.14); color: var(--vy-amber); }
+        .vy-goal-delta--over { background: rgba(31,122,90,.12); color: var(--vy-green-text); }
+        .vy-goal-delta--under { background: rgba(224,146,30,.14); color: var(--vy-amber-text); }
         .vy-goal-sep { width: 100%; height: 1px; background: var(--vy-hairline); margin: 16px 0 12px; }
         .vy-goal-target { width: 100%; }
         .vy-goal-target-view { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 9px 14px; border-radius: var(--vy-r-pill); background: rgba(255,255,255,.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); font-size: 13px; }
@@ -114,10 +114,10 @@
         .vy-goal-target-edit { display: flex; align-items: center; gap: 6px; width: 100%; }
         .vy-goal-target-edit .vy-input { padding: 8px 11px; }
         .vy-goal-icobtn { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: transparent; border: none; color: var(--vy-muted); cursor: pointer; flex: none; }
-        .vy-goal-icobtn:hover { color: var(--vy-accent); }
+        .vy-goal-icobtn:hover { color: var(--vy-accent-text); }
 
-        .vy-status--confirmed { background: rgba(194, 65, 12, 0.12); color: var(--vy-accent); }
-        .vy-status--confirmed .vy-dot { background: var(--vy-accent); }
+        .vy-status--confirmed { background: rgba(194, 65, 12, 0.12); color: var(--vy-accent-tint-text); }
+        .vy-status--confirmed .vy-dot { background: var(--vy-accent-tint-text); }
 
         .vy-bk-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .vy-bk-select { width: auto; flex: none; padding: 8px 30px 8px 12px; cursor: pointer; }
@@ -125,14 +125,14 @@
         .vy-bk-dates-panel { position: absolute; z-index: 40; top: calc(100% + 8px); left: 0; min-width: 230px; padding: 10px; background: rgba(255,252,248,.98); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md); box-shadow: 0 24px 60px rgba(60,30,10,.2); }
         .vy-bk-preset { display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: var(--vy-r-sm); font-size: 13px; color: var(--vy-ink); }
         .vy-bk-preset:hover { background: rgba(120,70,40,.06); }
-        .vy-bk-preset.is-active { background: rgba(194,65,12,.1); color: var(--vy-accent); font-weight: 600; }
+        .vy-bk-preset.is-active { background: rgba(194,65,12,.1); color: var(--vy-accent-text); font-weight: 600; }
         .vy-bk-dates-custom { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--vy-hairline); }
         .vy-bk-dates-custom label { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-muted); }
-        .vy-bk-clear { display: block; margin-top: 8px; font-size: 12px; color: var(--vy-accent); }
+        .vy-bk-clear { display: block; margin-top: 8px; font-size: 12px; color: var(--vy-accent-text); }
 
         .vy-th-sort { display: inline-flex; align-items: center; gap: 4px; color: var(--vy-faint); }
-        a.vy-th-sort:hover { color: var(--vy-accent); }
-        .vy-th-sort.is-active { color: var(--vy-accent); }
+        a.vy-th-sort:hover { color: var(--vy-accent-text); }
+        .vy-th-sort.is-active { color: var(--vy-accent-text); }
         .vy-th-caret { font-size: 9px; }
         .vy-row-clickable { cursor: pointer; }
 
@@ -202,7 +202,7 @@
                                 @if ($m['net_minor'] !== 0)
                                     <div class="vy-bk-netlabel">{{ $m['net_display'] }}</div>
                                 @endif
-                                <div class="vy-bk-stack" style="height:{{ max(2, (int) $m['count_pct']) }}%">
+                                <div class="vy-bk-stack" style="height:{{ (int) $m['count_pct'] }}%{{ (int) $m['count_pct'] > 0 ? ';min-height:3px' : '' }}">
                                     @if ($m['confirmed'] > 0)
                                         <div class="vy-bk-seg--confirmed" style="flex:{{ $m['confirmed'] }} 0 0"></div>
                                     @endif
@@ -296,7 +296,7 @@
                         </button>
                     </form>
                     @error('target')
-                        <div class="vy-line-sub" style="color:var(--vy-accent);margin-top:7px">{{ $message }}</div>
+                        <div class="vy-line-sub" style="color:var(--vy-accent-text);margin-top:7px">{{ $message }}</div>
                     @enderror
                 </div>
             @else
@@ -479,7 +479,7 @@
                             @endif
                         </div>
                     @endif
-                    <a href="{{ route('owner.dashboard') }}" style="color:var(--vy-accent);font-weight:600;font-size:13px">Back to overview</a>
+                    <a href="{{ route('owner.dashboard') }}" style="color:var(--vy-accent-text);font-weight:600;font-size:13px">Back to overview</a>
                 </div>
             </div>
         @endif

@@ -4199,3 +4199,85 @@ tile directly above.
 - **Keyboard: 0 unnamed controls, 0 `display:none` interactive controls, 0 `div@click`**; 0 overflow; 0
   console errors.
 - ⚠️ **`toContain` sweep — clean negative** (sixteenth gate).
+
+---
+
+## §O18 — Owner Bookings (`/owner/bookings`, `App\Livewire\Owner\OwnerBookings`) · OWNER 18/32
+
+**Prototype:** `docs/design/raw/Owner Bookings.html` (decoded fresh). **Role:** `External Owner`,
+`$capCalendar`. A LIST/ROLLUP + MONEY surface — the first half of the list→detail pair with §O19.
+
+### 🔴 The find: the chart's x-axis skipped empty months, and the revenue LINE stepped across the gap
+
+`chart()` grouped **only the months that have bookings**, so a month with none was simply **absent from the
+axis**. In the demo, **November 2026 has 0 bookings** (verified in the DB) — so the chart rendered
+`… Sep · Oct · Dec …` and the **net-revenue polyline connected October straight to December as if they were
+consecutive**, compressing a two-month gap into one step and misreporting the trend on a money chart.
+
+Fixed by filling the month keys across the real calendar range, so the axis is uniform and an empty month is
+a **genuine zero**. Verified live: the axis is now **May…Dec, eight consecutive months, with November
+rendering 0px**.
+
+⚠️ **And the zero would have drawn a bar.** The same commit had to remove the min-bar floor — present **twice**
+here: `max(2, (int) $m['count_pct'])` in the view **and** a CSS `min-height: 3px` on `.vy-bk-stack`. This is
+the **fifth** page with this bug and the **first time it appeared as CSS** rather than PHP — worth knowing for
+the shared-`<x-charts.bars>` gate, which would not have caught a CSS floor.
+
+### Fixed on this page (design / markup / styling only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | **Chart axis skipped empty months**; the revenue line stepped across the gap | contiguous calendar axis; **guard added, mutation-proven** |
+| 2 | **The min-bar floor, twice** — `max(2, pct)` *and* CSS `min-height:3px` | a genuine zero draws **nothing** (verified 0px) |
+| 3 | `.vy-goal-delta--under` **3.30** (`--vy-amber` used as text — the O16 pattern) and `--over` (probed, unreachable today) | `--vy-amber-text` / `--vy-green-text` |
+| 4 | **10 × the "Confirmed" status pill at 3.75–3.81**, and the chart's current-month net label at 3.65 — accent on an accent **tint**, where `--vy-accent-text` is only marginal (4.51 / 4.33) | `--vy-accent-tint-text` → **5.40 / 5.19** |
+| 5 | Breadcrumb `.vy-crumb` 4.33 + `.vy-crumb-sep` 3.57 on the page gradient | `--vy-on-grad-soft` |
+| 6 | Current-month x-label 4.01, the active sort header + caret 4.19/4.22, "Back to overview" 4.40 | `--vy-accent-text` |
+
+**Contrast: 21 AA failures → 3** (172 text + 31 icon candidates); all 3 survivors are the gradient family.
+Icons 0 failures. ⚠️ The over-goal delta only renders when the owner beats their target, which the demo does
+not — so it was **probed in and measured** rather than assumed.
+
+### 🚫 Refusals preserved
+
+- ⚠️ **No OTA-brand split.** The source column shows the **real enum** — `Direct` / `Corporate` / **`OTA`** —
+  never "Booking.com" or "Airbnb". The brand is not modelled (**D2-2**), and an existing test asserts it.
+- **"Not yet attributed"** rather than a fake **€0.00** for a booking with no ledger rows yet — visible on 6
+  of the 10 demo rows.
+- **Guest NAME only** — the row type carries `guest` and `guest_id` and **has no email/phone field at all**;
+  the reader's `guestName()` returns the name or null for an anonymized guest.
+- **The monthly target is the owner's own** (`owner_monthly_target`); "12% of goal · €722 of €6k · €5.3k to
+  go" are all real, and the goal line on the chart is the same figure.
+
+### ✅ Extra work kept (beyond the prototype)
+
+- The legend counts are computed over the **displayed** months only, so they always reconcile with the bars
+  they caption — counting the full set would over-report against a truncated chart.
+- The shared `OwnerBookingsReader` backs both the page and the CSV export, so the two can never disagree.
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO18-1 — no per-OTA-brand breakdown.** Channels are modelled but carry no live per-channel data
+  (**D2-2 / F-OP-2**); an OTA stay is "OTA". *Verdict: **ACCOUNT-GATED** (Channex).*
+- **DO18-2 — the chart caps at 8 months and there is no year/range selector for it.** The table has
+  Upcoming/Past/All + dates; the chart window is fixed. *Verdict: **REAL GAP** (small).*
+- **DO18-3 — the min-bar floor now has a CSS form.** The planned shared-`<x-charts.bars>` fix (§N.9 #4) would
+  not have caught `min-height` in a page's own stylesheet. *Verdict: **REAL GAP** — widen that gate's scope.*
+
+### ⚠️ Verified, not changed
+
+- **#42/#38 — MUTATION-PROVEN.** Reservations carry no `owner_id`; the boundary is applied **through the
+  units**, from the owner-scoped `OwnerPortalService::units()`, never from a request. Replacing that with an
+  unscoped `Unit::withoutGlobalScopes()->get()` turns *"lists only the owner's own-unit bookings"* **red**.
+  Live: **two foreign booking ids → 404**, and neither foreign reference appears in the list.
+- **#28 — MUTATION-PROVEN.** The existing guard seeds a guest with a real email **and** phone and asserts only
+  the name renders; appending the email to the row turns it **red**. Live DOM sweep: **0 emails, 0 phone-like
+  strings, 0 door-code mentions, and `guest_id` never emitted**.
+- **#17 — one source.** "Net to you" comes from the shared `OwnerLedgerAttribution` via the one
+  `OwnerBookingsReader`; an existing test reconciles it to the owner ledger. Nothing re-derived in the Blade.
+- **Status reads the real fact and is a WORD** ("Confirmed"), never colour alone; an existing test asserts the
+  real reservation status and the GET-parameter status filter (#20).
+- **Keyboard: 0 unnamed controls, 0 `display:none` interactive controls, 0 `div@click`**; 0 overflow; 0
+  console errors (the 2 seen were my own 404 probes).
+- **Nothing mutated** — this page's only write is the monthly target, which was not fired.
+- ⚠️ **`toContain` sweep — clean negative** (seventeenth gate).
