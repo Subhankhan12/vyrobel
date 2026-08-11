@@ -7796,3 +7796,34 @@ probe is reliable on body text and unreliable on small controls; that limitation
 numbers are.
 
 Suite **1856 / 12,130**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 31/32 · Tax Center (`/owner/tax`)
+
+**A fourth docblock denying a shipped feature — and a pattern worth naming.** The view's header block said
+"WITHHOLDING is NOT modelled", which went stale when the #73 tax engine shipped; the component itself reads
+the real `withholding_minor` summed over committed statements. Corrected. What makes it worth recording is
+that **three of the four such findings (O22, O24, O31) concern the tax engine specifically** — Wave D shipped
+without sweeping the surfaces that had previously, and correctly, refused it. That is a predictable shape:
+when a long-refused capability finally lands, the refusals it invalidates are scattered across every surface
+that documented them.
+
+**#73 holds exactly as it did at O22 and O25.** Withholding is real and the page prints an amount, never a
+rate: live it reads "None · withheld from payouts" with an honest residency explanation, matching Σ
+`withholding_minor` = 0 exactly — a genuine zero, not a refusal. There is not a single percentage sign
+anywhere on the page in any state. Mutation-proven in both directions.
+
+**Logged, not added (DO31-1):** the page carries no explicit "not tax advice" line where the annual PDF and
+Reports do. Structurally it needs one less — it presents no rate and no computed determination, only a real
+amount and a link to the PDF that does carry the disclaimer. Whether it should nonetheless carry formal
+wording is DO22-1, the founder's call; writing legal copy is not a design gate's job.
+
+**Two contrast lessons.** First, the honesty text was checked first per the O22/O25/O28 pattern — and this
+time it was *not* the worst reading. The pattern is worth keeping as a priority, not as a prediction.
+Second, two readings were the O11 dark-plate false positive and were caught before anything was touched:
+"About your tax" reported 1.00 and "Vyrobel keeps records…" 1.41, but both sit inside `.vy-card--dark`, where
+white-at-60% actually measures 5.78. The probe now excludes dark-plate subtrees and scores them separately.
+
+This is also the fourth consecutive owner page whose shell greys cannot reach AA over the hero gradient. The
+shared fix remains a candidate for its own gate once the realm closes.
+
+Suite **1856 / 12,130**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.

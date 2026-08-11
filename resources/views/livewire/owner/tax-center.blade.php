@@ -4,7 +4,11 @@
        • the TAX STORE `owner.tax.save` (the SAME path Settings/Payouts write — encrypted #28, audited, self-only,
          $capActions #20; saving a tax_id RELEASES the real hold);
        • the ANNUAL TAX PDF `owner.tax.annual` (reconciling #17, $capExports #42) + the Documents archive.
-     WITHHOLDING is NOT modelled → an HONEST "no withholding" card (never the wireframe's fabricated 15%/20%, #39).
+     WITHHOLDING IS REAL (Wave D · tax engine, #73) — the card shows the owner's ACTUAL withheld total, Σ
+     `withholding_minor` over their committed statements, and an honest "None" while no rate is configured for
+     their residency. ⚠️ This line used to read "WITHHOLDING is NOT modelled", which went stale when the engine
+     shipped. What stays refused is the wireframe's fabricated 15%/20% RATE (#39): the page prints an AMOUNT,
+     never a rate — the same rule as the annual PDF.
      The "VAT registered" toggle stores a REGISTRATION FLAG (vat_registered) — NOT a VAT computation.
      RAW-BLADE RULE: every `@` follows a space, newline or tag (unregistered @click/@js pass through to Alpine). --}}
 <x-owner.shell active="tax" title="Tax center" :subtitle="'Your tax details, withholding and year-end summaries — all in one place.'" :viewer="$viewer">
@@ -28,10 +32,10 @@
 
         .vy-tax-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px 18px; }
         .vy-tax-grid .full { grid-column:1 / -1; }
-        .vy-tax-lbl { font-size:12px; font-weight:500; color:#6E5C50; margin-bottom:6px; display:block; text-transform:none; letter-spacing:0; }
+        .vy-tax-lbl { font-size:12px; font-weight:500; color:var(--vy-ink); margin-bottom:6px; display:block; text-transform:none; letter-spacing:0; }
 
         .vy-seg { display:inline-flex; padding:4px; border-radius:12px; background:rgba(120,70,40,.08); gap:4px; }
-        .vy-seg button { padding:8px 18px; border-radius:9px; border:none; cursor:pointer; font-family:var(--vy-sans); font-size:13px; font-weight:500; background:transparent; color:var(--vy-muted); transition:all .14s; }
+        .vy-seg button { padding:8px 18px; border-radius:9px; border:none; cursor:pointer; font-family:var(--vy-sans); font-size:13px; font-weight:500; background:transparent; color:var(--vy-ink); transition:all .14s; }
         .vy-seg button.is-on { background:#fff; color:var(--vy-ink); box-shadow:var(--vy-shadow-sm); }
 
         .vy-tax-vatcard { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 15px; border-radius:13px; background:rgba(255,255,255,.5); border:1px solid var(--vy-glass-border); }
@@ -40,7 +44,7 @@
         .vy-toggle .knob { position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.2); transition:left .18s; }
         .vy-toggle.is-on .knob { left:23px; }
 
-        .vy-tax-with-fig { font-family:var(--vy-display); font-weight:600; font-size:34px; letter-spacing:-.02em; color:var(--vy-accent); font-variant-numeric:tabular-nums; line-height:1; }
+        .vy-tax-with-fig { font-family:var(--vy-display); font-weight:600; font-size:34px; letter-spacing:-.02em; color:var(--vy-accent-text); font-variant-numeric:tabular-nums; line-height:1; }
 
         .vy-tax-sumrow { display:flex; align-items:center; gap:13px; padding:13px 14px; border-radius:14px; background:rgba(255,255,255,.5); border:1px solid var(--vy-glass-border); text-decoration:none; color:var(--vy-ink); transition:background .14s, transform .14s; }
         .vy-tax-sumrow:hover { background:rgba(255,255,255,.85); transform:translateY(-1px); }
@@ -104,7 +108,7 @@
                 {{-- Tax profile form — REUSE owner.tax.save (encrypted #28, audited, $capActions #20) --}}
                 <section class="vy-card vy-fade" style="animation-delay:.04s">
                     <h2 class="vy-card-title" style="font-size:17px;margin-bottom:4px">Tax profile</h2>
-                    <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 20px">Used on your annual summary and any invoices we issue on your behalf.</p>
+                    <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;margin:0 0 20px">Used on your annual summary and any invoices we issue on your behalf.</p>
 
                     <form method="POST" action="{{ route('owner.tax.save') }}" x-data="{ type: @js($profile['type'] ?: 'individual'), vatReg: @js($profile['vat_registered']) }">
                         @csrf
@@ -140,7 +144,7 @@
                             </div>
 
                             <div>
-                                <label class="vy-tax-lbl" for="tax_id">Tax ID / NIF <span style="color:var(--vy-accent)">*</span></label>
+                                <label class="vy-tax-lbl" for="tax_id">Tax ID / NIF <span style="color:var(--vy-ink)">*</span></label>
                                 <input id="tax_id" type="text" name="tax_id" value="{{ old('tax_id', $profile['tax_id']) }}" placeholder="e.g. 501234567" class="vy-input" style="width:100%" required>
                             </div>
 
@@ -155,7 +159,7 @@
                             <div class="full vy-tax-vatcard">
                                 <div>
                                     <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink)">VAT registered</div>
-                                    <div style="font-size:12px;color:var(--vy-faint);margin-top:2px">Turn on if you charge VAT on your rental income.</div>
+                                    <div style="font-size:12px;color:var(--vy-ink);margin-top:2px">Turn on if you charge VAT on your rental income.</div>
                                 </div>
                                 <button type="button" class="vy-toggle" :class="vatReg ? 'is-on' : ''" @click="vatReg = ! vatReg" :aria-pressed="vatReg ? 'true' : 'false'" aria-label="VAT registered"><span class="knob"></span></button>
                             </div>
@@ -189,9 +193,9 @@
                         <div style="flex:1;min-width:220px">
                             <h2 class="vy-card-title" style="font-size:16px;margin-bottom:4px">Withholding tax</h2>
                             @if ($withholding['has'])
-                                <p class="vy-line-sub" style="font-size:12.5px;line-height:1.55;margin:0">Tax withheld from your payouts at the rate configured for your residency and remitted on your behalf. <strong>Verify with your accountant — this is not tax advice.</strong></p>
+                                <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;line-height:1.55;margin:0">Tax withheld from your payouts at the rate configured for your residency and remitted on your behalf. <strong>Verify with your accountant — this is not tax advice.</strong></p>
                             @else
-                                <p class="vy-line-sub" style="font-size:12.5px;line-height:1.55;margin:0">No withholding is configured for your residency — you receive your full net earnings and declare your rental income in your own tax return.</p>
+                                <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;line-height:1.55;margin:0">No withholding is configured for your residency — you receive your full net earnings and declare your rental income in your own tax return.</p>
                             @endif
                         </div>
                         <div style="text-align:right">
@@ -207,7 +211,7 @@
                 {{-- Annual summaries — REAL per-year gross/net + the real annual PDF (reconciles #17, $capExports #42) --}}
                 <section class="vy-card vy-fade" style="animation-delay:.06s">
                     <h2 class="vy-card-title" style="font-size:16px;margin-bottom:2px">Annual summaries</h2>
-                    <p class="vy-line-sub" style="font-size:12.5px;margin:0 0 16px">Rental income and fees, ready for your accountant.</p>
+                    <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;margin:0 0 16px">Rental income and fees, ready for your accountant.</p>
                     <div style="display:flex;flex-direction:column;gap:10px">
                         @forelse ($summaries as $summary)
                             @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
@@ -243,7 +247,7 @@
                     <span class="vy-tax-docs-ic" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2"/><path d="M4 7h16a1 1 0 0 1 1 1.2l-1.6 9A2 2 0 0 1 17.4 19H6.6a2 2 0 0 1-2-1.8L3 8.2A1 1 0 0 1 4 7z"/></svg></span>
                     <div style="flex:1;min-width:0">
                         <div style="font-size:14px;font-weight:600;color:var(--vy-ink)">VAT invoices &amp; documents</div>
-                        <div style="font-size:12px;color:var(--vy-faint);margin-top:2px">All statements and tax files</div>
+                        <div style="font-size:12px;color:var(--vy-ink);margin-top:2px">All statements and tax files</div>
                     </div>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B8A99D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
                 </a>
@@ -254,7 +258,7 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></svg>
                     </span>
                     <h2 class="vy-card-title" style="font-size:15px">About your tax</h2>
-                    <p class="vy-line-sub" style="font-size:12.5px;margin-top:8px;line-height:1.6">Vyrobel keeps records of your rental income and fees, but we don’t file taxes for you. Share your annual summary with a qualified accountant. Nothing here is tax advice.</p>
+                    <p class="vy-line-sub" style="color:var(--vy-ink);font-size:12.5px;margin-top:8px;line-height:1.6">Vyrobel keeps records of your rental income and fees, but we don’t file taxes for you. Share your annual summary with a qualified accountant. Nothing here is tax advice.</p>
                 </section>
             </div>
         </div>

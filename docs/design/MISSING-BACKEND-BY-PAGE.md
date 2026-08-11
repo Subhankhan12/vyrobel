@@ -5245,3 +5245,70 @@ the owner is being asked to approve — needed **`--vy-ink`** (accent-text reach
 background that is pure white or an off-element peach. Each carries the **standard accent gradient**
 (`linear-gradient(140deg,#E8703A,#C2410C)`), verified directly, whose true value is the family's ~3.8–3.9.
 ⚠️ **Small elements are where this probe mis-samples** — a 29px-tall button is easy to miss by a few pixels.
+
+---
+
+## §O-31 — Owner **Tax Center** (`/owner/tax`)
+
+`App\Livewire\Owner\OwnerTaxCenter` + `OwnerTaxController` → `OwnerTaxService`.
+Prototype `docs/design/raw/Owner Tax Center.html`. Money · mutation · document.
+
+### 🔴 A FOURTH DOCBLOCK DENYING A SHIPPED FEATURE
+
+The view's header block stated: **"WITHHOLDING is NOT modelled → an HONEST 'no withholding' card"**. That went
+stale when the **#73 tax engine** shipped. The component's own docblock is accurate and the code reads the
+**real** figure — `withholdingSummary()` sums `withholding_minor` over the owner's committed statements, which
+`WithholdingService` posts at finalize from a founder-configured rate.
+
+Corrected. ⚠️ **This is the fourth stale claim of exactly this shape** — O22 (the tax PDF denied withholding),
+O24 (the archive denied the annual PDF), O28 (Help denied Ask Vyrobel), and now O31. **Three of the four are
+about the tax engine specifically**, which suggests Wave D shipped without a sweep of the surfaces that had
+previously refused it.
+
+### ⚠️ Verified, not changed — #73 holds exactly as at O22/O25
+
+- **Withholding is REAL and the page prints an AMOUNT, never a rate.** Live it reads **"None · withheld from
+  payouts"** with the honest explanation *"No withholding is configured for your residency — you receive your
+  full net earnings and declare your rental income in your own tax return."* That matches the database
+  exactly: **Σ `withholding_minor` = 0**. It is a genuine zero, not a refusal.
+- **ZERO percentage signs appear anywhere on the page.** The wireframe's 15%/20% is not rendered in any state,
+  so no rate is ever presented as a determination. **Mutation-proven**: making the card state *"Withholding is
+  applied at 15% of your gross earnings"* turns *"renders an honest withholding state and never a fabricated
+  rate"* red. The opposite direction is covered too — `OwnerTaxSurfaceTest` proves the real withheld figure
+  appears once a rate **is** configured.
+- **No fabricated validity.** There is no "valid ✓" or "verified" anywhere; the tax id is simply present or
+  absent, and the real tax-hold is what changes when it is saved.
+- **#60 — only the real year.** The year-end list offers **2026** alone and links to
+  `/owner/tax/2026/summary.pdf`, the real Annual Tax Summary PDF gated at O22 (whose own #60/#73 rules apply).
+- **READ-ONLY — nothing saved.** `tax_id` is still `NULL`, `vat_registered` still `true`, and the owner's
+  `updated_at` is unchanged at `2026-08-09 07:17:58`. The settings form POSTs the real `owner.tax.save` path
+  ($capActions, encrypted, audited, self-only).
+- **#42/#28** — self-resolved from the authenticated user (no owner id in the request); **no raw IBAN**, no
+  guest data.
+- **Keyboard** — the segmented "Registered as" control is a real `role="group"` of buttons with an
+  `aria-label`; every field is labelled.
+- ⚠️ **`toContain` sweep — clean negative** (thirtieth gate).
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO31-1 — the page carries no explicit "not tax advice" line**, unlike the annual PDF (O22) and Reports
+  (O25). It states *"ready for your accountant"*. ⚠️ **Structurally it does not need one in the same way** —
+  it presents **no rate and no computed determination**, only a real withheld amount and links to the PDF that
+  does carry the disclaimer. Whether the surface should nonetheless carry formal wording is **DO22-1, the
+  founder's call**. *Verdict: **surfaced, not added** — legal copy is not a design gate's to write.*
+
+### 🎨 Contrast — 16 → 4 (all four artifacts/known)
+
+⚠️ **The honesty text was checked FIRST, per the named O22/O25/O28 pattern** — and this time it was **not** the
+worst reading: the withholding explanation sits in the body copy that measured 3.14 and is now ink. *The
+pattern held as a priority, not as a prediction.*
+
+- The form labels `.vy-tax-lbl` (`#6E5C50`) measured **2.89–4.03** on the page's peach → `--vy-ink`; the
+  helper lines, the required `*` marker, the "Company/Individual" segment (4.23) and the archive sub-line
+  followed. **Fourth consecutive page** where the shell greys can't reach AA over the hero gradient.
+- ⚠️ **Two readings were the O11 DARK-PLATE FALSE POSITIVE, caught before touching anything**: "About your
+  tax" and "Vyrobel keeps records…" reported **1.00** and **1.41**, but both sit inside `.vy-card--dark`
+  (`linear-gradient(160deg,#3A2E27,#251C…)`), where white-at-60% actually measures **5.78**. The probe now
+  **excludes `.vy-card--dark` subtrees** and scores them separately. *(12th probe FP.)*
+- **Remaining 4, none added:** the brand mark 3.88 (known family) + three **mis-samples** (the "Save tax
+  details" button and the shell badge/avatar), each verified to carry the standard accent gradient.
