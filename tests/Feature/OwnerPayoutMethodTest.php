@@ -180,7 +180,12 @@ it('renders the real account (masked), the schedule, the tax form and the payout
         ->assertSee('Tax &amp; remittance details', false)   // the inline tax form
         ->assertSee(route('owner.payouts.preferences'))      // schedule → the real prefs route
         ->assertSee(route('owner.tax.save'))                 // tax details → the shared write path
-        ->assertSee('Payouts go to');                // the dark default-account rail
+        ->assertSee('Payouts go to')                 // the dark default-account rail
+        // ⚠️ NO fabricated verification badge ON A RENDERED ACCOUNT. The sibling guard forbade "Verifying"
+        // but not "Verified" — the stronger claim — and it sat in a test with NO account, so it could never
+        // have caught a badge in the account row (empty-fixture vacuity, proven by mutation). `payout_methods`
+        // has no verification column at all, so any such badge is pure fabrication.
+        ->assertDontSee('Verified');
 });
 
 // ── Exact-match: the inline tax form writes the REAL Owner fields via the shared owner.tax.save path ──

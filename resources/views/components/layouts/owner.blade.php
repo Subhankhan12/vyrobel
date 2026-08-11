@@ -722,7 +722,7 @@
         .vy-topbar-sub { font-size: 12px; color: var(--vy-on-grad); margin-top: 3px; }
         .vy-flash { display: flex; align-items: center; gap: 9px; padding: 11px 14px; border-radius: var(--vy-r-md); font-size: 13px; font-weight: 500; margin-bottom: 16px; }
         .vy-flash.is-ok { background: rgba(31, 122, 90, 0.10); color: var(--vy-green); border: 1px solid rgba(31, 122, 90, 0.18); }
-        .vy-flash.is-err { background: rgba(178, 106, 8, 0.10); color: var(--vy-amber); border: 1px solid rgba(178, 106, 8, 0.2); }
+        .vy-flash.is-err { background: rgba(178, 106, 8, 0.10); color: var(--vy-amber-text); border: 1px solid rgba(178, 106, 8, 0.2); }
 
         .vy-input { flex: 1; min-width: 0; padding: 10px 13px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.7); font: inherit; font-size: 13.5px; color: var(--vy-ink); outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
         .vy-input:focus { border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.10); }
@@ -731,8 +731,8 @@
         /* Polish Batch 1 — the form field label + wrapper (block-calendar / payout-method / tax-center / rates / add-unit).
            Previously undefined in the owner system → labels rendered with browser defaults. Mirrors the operator layout. */
         .vy-field { margin-bottom: 15px; }
-        .vy-field-label { display: block; font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 7px; }
-        .vy-field-label .vy-fl-note { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--vy-faint); }
+        .vy-field-label { display: block; font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-on-grad-soft); margin-bottom: 7px; }
+        .vy-field-label .vy-fl-note { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--vy-on-grad-soft); }
         .vy-field-label .vy-fl-right { float: right; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--vy-muted); }
 
         /* Conversation rail */

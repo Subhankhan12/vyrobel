@@ -7270,3 +7270,47 @@ shell's): users 8, owner_users 2 with roles and `updated_at` unchanged, 1 pendin
 **Nothing invited, no role changed, no one removed.** §N.4k proven on a privilege page — no field can reach
 another member's form or a Remove route. No schema touched. Suite **1841 / 12,070 · 9 non-green** (documented
 set); PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 16/32 · **Owner Payout Method** (`/owner/payout-method`)
+
+Design/markup only. Real banking — the most sensitive owner surface, and the most fabrication-dense prototype
+in the realm.
+
+**1. What the prototype ships, and the product refuses.** An entire micro-deposit verification system that
+does not exist ("Verifying" badge, "Send micro-deposits & verify", a Deposit-1/Deposit-2 confirmation modal,
+"reversed automatically within 5 business days", "Resend deposits"), a fabricated **"Next payout €10,370 ·
+Estimated 3 Nov 2025"**, a 48-hour default-change hold, and a two-business-day SEPA-trace SLA. Live shows the
+**real €885.60** with **no invented date**, and every retained line is qualified *"with your live banking
+connection"*. Verified present-and-correct, and recorded so none of it is "fixed" later.
+
+**2. The structural fact that decides the page.** `payout_methods` has **no verification column at all**, so a
+"Verified" badge would be **pure fabrication** rather than a stale value — which is why the refusal is
+correct and not merely cautious. And the full IBAN is stored **encrypted**, with only last4/country in the
+clear, so `Iban::masked` makes a raw IBAN **structurally un-emittable**. Swept the rendered DOM: **0**
+IBAN-shaped strings, only `···· 1000`. Mutation-proven — emitting `$m->iban` turns the masked-IBAN test red.
+
+**3. 🔴 The validation-error flash measured 3.03 — on a banking page**, where an error is precisely what must
+be readable. `.vy-flash.is-err` used `--vy-amber` (a fill tone) as text; now `--vy-amber-text` at **5.08**.
+The error only renders after a failed submit, which read-only forbids, so it was **probed into the DOM and
+measured**. Also fixed: the pre-AA `#9C9089` literal still living here at 2.55–2.66. Contrast **13 → 6**, all
+survivors the gradient family.
+
+⚠️ **On the shared flash rule:** it exists in both layouts, but they are **independent rules with different
+palettes** (owner amber, operator accent) — and the operator layout has **no `--vy-amber-text` token at
+all**, so a blanket change was not even expressible. Checking first kept the fix owner-only; blast radius
+verified across all three owner consumers.
+
+**4. ⚠️ A guard of mine was vacuous, and only mutation caught it.** Tightening `assertDontSee('Verifying')` to
+also forbid "Verified" looked right — needle-only, correctly negated, on rendered output — but it sat in a
+test whose fixture **adds no payout method**, so the account row never rendered and the injected fake badge
+passed. Relocated, re-mutated, now genuinely red. Generalised as §N.4p: **a `DontSee` guard must live where
+the thing it forbids would render** — and this is the third distinct way a green test has defended nothing in
+this pass, all three found by mutating rather than reading.
+
+**Read-only honoured** across all 7 forms (a **fake** IBAN was typed to see the design, never submitted):
+`payout_methods` still 1 with the same last4, default flag and seed-time `updated_at`;
+`owner_payout_preferences` still 0; owner tax fields still null. **No account added, changed, removed or set
+primary.** §N.4k — Enter in the IBAN targets Save, never the DELETE form. No schema touched. Suite
+**1841 / 12,071 · 9 non-green** (documented set); PHPStan L5 (0); Pint clean.

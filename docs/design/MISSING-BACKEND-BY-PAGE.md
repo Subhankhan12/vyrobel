@@ -3994,3 +3994,111 @@ white-on-gradient family — **including a NEW variant: the member avatars sit o
 - **Keyboard: 1 unnamed → 0**, 0 `display:none` interactive controls, 0 `div@click`; 0 overflow; 0 console
   errors.
 - ⚠️ **`toContain` sweep — clean negative** (fourteenth gate); the new guard is needle-only.
+
+---
+
+## §O16 — Owner Payout Method (`/owner/payout-method`, `App\Livewire\Owner\OwnerPayoutMethod`) · OWNER 16/32
+
+**Prototype:** `docs/design/raw/Owner Payout Method.html` (decoded fresh). **Role:** `External Owner`,
+**CAP_PAYOUT / primary-owner** route group. ⚠️ **REAL BANKING — the most sensitive owner surface.**
+
+### ⚠️ The structural facts that decide this page
+
+- **The full IBAN is stored ENCRYPTED**; only `iban_last4` + `iban_country` are in the clear, so the UI masks
+  it **without ever decrypting the number to render a list**. `Iban::masked()` takes only the last4 — a raw
+  IBAN is **structurally un-emittable**.
+- ⚠️ **`payout_methods` has NO verification column at all** (id, organization_id, owner_id, label,
+  account_holder, iban, iban_last4, iban_country, bic, currency, is_default, timestamps). So a "Verified"
+  badge would not be a stale value — it would be **pure fabrication**. This is what makes the prototype's
+  entire verification flow un-buildable today, and the live refusal correct.
+
+### 🚫 Refusals preserved — the prototype is the most fabrication-dense in the realm
+
+It ships an **entire micro-deposit verification system that does not exist**, plus fabricated money:
+
+- **"Verifying" badge · "confirm the amounts to activate" · "Send micro-deposits & verify" · a full "Confirm
+  micro-deposits" modal (Deposit 1 / Deposit 2, "reversed automatically within 5 business days", "Resend
+  deposits")** — all refused. Live states the honest deferral: *"Automated bank verification (micro-deposits)
+  activates with your live banking connection — connect Stripe above."*
+- **"Next payout €10,370 · Estimated · 3 Nov 2025"** — a fabricated amount **and** an invented date. Live
+  shows the **real €885.60** net payable and **no estimated date at all**.
+- **"Changing the default holds payouts 48h as a security check"** and **"New accounts verify via
+  micro-deposits before any payout switches"** — live keeps the design's lines but each is **qualified with
+  "with your live banking connection"**, so neither claims a hold that doesn't happen.
+- **"Your account manager can trace any SEPA transfer within 2 business days"** — the SLA is dropped; live
+  says *"once the live rail is connected"*.
+- **Bank name auto-detection** — `Iban` derives country + last4 from the string's structure, but the **bank
+  name needs a BIC registry the product doesn't have**, so it is never fabricated; the owner labels the
+  account themselves.
+
+### Fixed on this page (design / markup / styling only)
+
+| # | Item | Before → after |
+|---|---|---|
+| 1 | ⚠️ **The validation-error flash measured 3.03 — on a BANKING page**, where an error is exactly what must be readable. `.vy-flash.is-err` used `--vy-amber` (a *fill* tone) as *text* | `--vy-amber-text` → **5.08** |
+| 2 | `.vy-pm-flabel` ×3 at **2.55–2.66** — the **pre-AA `#9C9089` literal** still living on this page (worst sites on the page) | `--vy-on-grad-soft` |
+| 3 | `.vy-field-label` + `.vy-fl-note` at 4.44 (`--vy-faint` on the glass) | `--vy-on-grad-soft` |
+| 4 | The micro-deposit note 4.19 + the required-field asterisk 4.43 | `--vy-on-grad-soft` / `--vy-accent-text` |
+| 5 | A guard that forbade **"Verifying"** but not **"Verified"** — and sat in a fixture with **no account** | tightened **and relocated**; see below |
+
+**Contrast: 13 AA failures → 6** (100 text + 37 icon candidates); all 6 survivors are the gradient family.
+Icons 0 failures. ⚠️ The error state only renders after a failed submit, which read-only forbids — so it was
+**probed into the DOM and measured** rather than assumed (the O12 method).
+
+⚠️ **On the shared `.vy-flash` rule:** it is defined in **both** layouts — but they are **two independent
+rules with different palettes** (owner = amber, operator = accent), and **the operator layout has no
+`--vy-amber-text` token at all**. So the owner fix touches owner pages only. Blast radius checked: 3 owner
+views use `.vy-flash`; the other two (Payouts, My Units) render it only in conditional branches, were
+verified rendering 0 instances and 0 overflow, and the new tone is strictly darker — contrast can only
+improve. *(Checking first is what prevented a blanket change that the operator layout could not even
+express — the O6 lesson.)*
+
+### ⚠️ A guard of mine was VACUOUS, and mutation caught it
+
+I tightened `assertDontSee('Verifying')` to also forbid **"Verified"** — the stronger claim. The mutation
+(injecting a fake `Verified` badge into the account row) **passed**, proving the assertion was dead: it lived
+in the *"defers the live rail honestly"* test, whose fixture **adds no payout method**, so no account row ever
+renders there. Moved to the test that actually renders an account, re-mutated, now **genuinely red without
+the fix**. Textbook **empty-fixture vacuity** (Principle 4) — caught only because the mutation was run.
+
+### 📌 MISSING BACKEND / logged, not built
+
+- **DO16-1 — no micro-deposit / bank-account verification.** No column, no provider; the entire prototype
+  flow (send deposits, confirm two amounts, resend, auto-reversal) is unbuilt. Arrives with the live banking
+  connection. *Verdict: **ACCOUNT-GATED** (KYC / bank-verify, §H).*
+- **DO16-2 — no 48-hour hold on a default change, and no email on payout-detail changes.** Both are stated on
+  the page as pending the live connection rather than as current behaviour. *Verdict: **ACCOUNT-GATED**.*
+- **DO16-3 — no SEPA trace.** The support card defers it to the live rail; there is no tracing integration.
+  *Verdict: **ACCOUNT-GATED**.*
+- **DO16-4 — no bank-name lookup (BIC registry).** Structural refusal; the owner labels the account.
+  *Verdict: **RATIFIED REFUSAL** unless a registry is licensed.*
+- **DO16-5 — the "Next payout" figure has no date beside it.** ⚠️ **D16-7-adjacent**: the amount is real
+  (`€885.60`), but a *when* would need the schedule + the rail to agree, and the page already says the actual
+  date is "confirmed with your operator and the payout rail". Surfaced, **not** fabricated.
+  *Verdict: **REAL GAP**, D16-7-linked.*
+
+### ⚠️ Verified, not changed
+
+- **IBAN masked, never raw (#28)** — swept the **rendered DOM**: **0** IBAN-shaped strings anywhere; only
+  `···· 1000` (×2). The add-form input accepts a full IBAN (the owner typing their own) but it is never
+  echoed, and the stored value is encrypted. **Mutation-proven**: making the view emit `$m->iban` instead of
+  `Iban::masked($m->iban_last4)` turns *"stores the IBAN encrypted and only ever shows it masked"* **red**.
+- **Verification honest (#39)** — no "Verified" or "Verifying" renders anywhere; the only occurrence of the
+  word "Verified" in the source is a **Blade comment** documenting the refusal (stripped at compile — *not*
+  the O11 CSS-comment trap, which was checked).
+- **Accounts self-scoped** — resolved for the authenticated owner; an existing test asserts *"never lets an
+  owner read or manage another owner's method"*.
+- **The default marker reads its real fact and is not colour-only** — the word **"Default"** sits beside it.
+  ⚠️ The multi-account branch (unreachable with one account) was **read rather than assumed**: the default
+  renders a labelled decorative `<span aria-label="Default account">`, a non-default renders a real
+  `<button type="submit" aria-label="Set {label} as default">` on the gated route — keyboard-operable.
+- **Observed READ-ONLY across all 7 forms.** A **fake** IBAN was typed to see the design; nothing submitted.
+  After: `payout_methods` still **1** (same id, `last4=1000`, `is_default=Y`, `updated_at` still the seed
+  time `2026-08-09 07:17:58`), `owner_payout_preferences` still **0**, owner tax fields still null with
+  `updated_at` unchanged. **No account added, changed, removed, or set primary.**
+- **§N.4k — Enter-safety on a banking form.** Enter in the IBAN field targets `/owner/payout-method` (Save),
+  **never** the DELETE form at `/owner/payout-method/{id}` — so Enter can never remove an account. Nothing
+  fired (the required `account_holder` blocked it — real client validation, not a fabricated "looks valid ✓").
+- **Keyboard: 0 unnamed controls, 0 `display:none` interactive controls, 0 `div@click`**; 0 overflow; 0
+  console errors.
+- ⚠️ **`toContain` sweep — clean negative** (fifteenth gate).

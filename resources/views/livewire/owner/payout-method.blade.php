@@ -19,22 +19,22 @@
         /* Bank-account rows */
         .vy-pm-acct { display: flex; align-items: center; gap: 13px; padding: 14px 0; border-bottom: 1px solid var(--vy-hairline); }
         .vy-pm-acct:last-of-type { border-bottom: none; }
-        .vy-pm-acct-ic { flex: none; width: 40px; height: 40px; border-radius: var(--vy-r-md); display: grid; place-items: center; background: rgba(232, 112, 58, .12); color: var(--vy-accent); }
+        .vy-pm-acct-ic { flex: none; width: 40px; height: 40px; border-radius: var(--vy-r-md); display: grid; place-items: center; background: rgba(232, 112, 58, .12); color: var(--vy-accent-text); }
         .vy-pm-acct.is-default .vy-pm-acct-ic { background: var(--vy-grad); color: #fff; }
         .vy-pm-acct-main { flex: 1; min-width: 0; }
         .vy-pm-acct-name { font-size: 13.5px; font-weight: 600; }
         .vy-pm-acct-sub { font-size: 12px; color: var(--vy-muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
         .vy-pm-radio { flex: none; width: 40px; height: 40px; border: none; background: transparent; border-radius: 50%; cursor: pointer; display: grid; place-items: center; }
         .vy-pm-radio-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(120, 70, 40, .28); display: grid; place-items: center; transition: border-color .15s; }
-        .vy-pm-radio:hover .vy-pm-radio-dot { border-color: var(--vy-accent); }
-        .vy-pm-radio-dot.is-on { border-color: var(--vy-accent); }
+        .vy-pm-radio:hover .vy-pm-radio-dot { border-color: var(--vy-accent-text); }
+        .vy-pm-radio-dot.is-on { border-color: var(--vy-accent-text); }
         .vy-pm-radio-dot.is-on::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--vy-grad); }
         .vy-pm-del { flex: none; width: 32px; height: 32px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, .55); color: var(--vy-muted); cursor: pointer; display: grid; place-items: center; }
-        .vy-pm-del:hover { color: var(--vy-accent); border-color: var(--vy-accent-border); }
+        .vy-pm-del:hover { color: var(--vy-accent-text); border-color: var(--vy-accent-border); }
         .vy-pm-add { width: 100%; margin-top: 14px; padding: 12px; border-radius: var(--vy-r-md); border: 1.5px dashed rgba(120, 70, 40, .28); background: rgba(255, 252, 248, .35); color: #B4400F; font-family: var(--vy-sans); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: background .14s; }
         .vy-pm-add:hover { background: rgba(255, 252, 248, .6); }
         /* Segmented radio pills (schedule + payee type) */
-        .vy-pm-flabel { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #9C9089; margin: 16px 0 7px; }
+        .vy-pm-flabel { font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-on-grad-soft); margin: 16px 0 7px; }
         .vy-pm-flabel:first-child { margin-top: 0; }
         .vy-pm-seg { display: flex; gap: 4px; padding: 4px; border-radius: var(--vy-r-pill); background: rgba(120, 70, 40, .06); border: 1px solid var(--vy-glass-border); flex-wrap: wrap; }
         .vy-pm-seg-opt { flex: 1; min-width: 56px; }
@@ -45,11 +45,11 @@
         .vy-pm-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 560px) { .vy-pm-grid2 { grid-template-columns: 1fr; } }
         .vy-pm-summary { display: flex; align-items: center; gap: 11px; margin-top: 16px; padding: 12px 14px; border-radius: var(--vy-r-md); background: rgba(255, 252, 248, .7); border: 1px solid rgba(217, 102, 46, .18); }
-        .vy-pm-summary-ic { flex: none; width: 34px; height: 34px; border-radius: var(--vy-r-sm); background: rgba(232, 112, 58, .13); color: var(--vy-accent); display: grid; place-items: center; }
+        .vy-pm-summary-ic { flex: none; width: 34px; height: 34px; border-radius: var(--vy-r-sm); background: rgba(232, 112, 58, .13); color: var(--vy-accent-text); display: grid; place-items: center; }
         /* Right-rail cards */
         .vy-pm-checklist { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
         .vy-pm-checklist li { display: flex; gap: 9px; font-size: 12.5px; color: var(--vy-muted); line-height: 1.5; }
-        .vy-pm-checklist svg { flex: none; margin-top: 2px; color: var(--vy-accent); }
+        .vy-pm-checklist svg { flex: none; margin-top: 2px; color: var(--vy-accent-text); }
     </style>
 
     @if (session('payout_method_notice'))
@@ -127,7 +127,7 @@
                         <div class="vy-empty">No bank account added yet — add one below so we know where to send your payouts.</div>
                     @endforelse
 
-                    <div class="vy-po-pref-note" style="display:flex;align-items:flex-start;gap:7px;margin-top:14px;font-size:11.5px;color:var(--vy-faint);line-height:1.5">
+                    <div class="vy-po-pref-note" style="display:flex;align-items:flex-start;gap:7px;margin-top:14px;font-size:11.5px;color:var(--vy-on-grad-soft);line-height:1.5">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg>
                         <span>Automated bank verification (micro-deposits) activates with your live banking connection — connect Stripe above for hands-off payouts.</span>
                     </div>
@@ -177,7 +177,7 @@
                                 <label class="vy-pm-seg-opt"><input type="radio" name="frequency" value="{{ $val }}" @checked($preferences['frequency'] === $val)><span>{{ $label }}</span></label>
                             @endforeach
                         </div>
-                        <div class="vy-pm-flabel">Payout day <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint)">(business day of month)</span></div>
+                        <div class="vy-pm-flabel">Payout day <span style="text-transform:none;letter-spacing:0;color:var(--vy-on-grad-soft)">(business day of month)</span></div>
                         <div class="vy-pm-seg">
                             @foreach ([1 => '1st', 2 => '2nd', 3 => '3rd', 4 => '4th', 5 => '5th'] as $val => $label)
                                 <label class="vy-pm-seg-opt"><input type="radio" name="payout_day" value="{{ $val }}" @checked($preferences['payout_day'] === $val)><span>{{ $label }}</span></label>
@@ -202,7 +202,7 @@
                                 @if ($nextPayout['has']) Next payout {{ $nextPayout['amount_display'] }} to your default account.@else Your next payout appears once a statement is finalized.@endif
                             </div>
                         </div>
-                        <div class="vy-po-pref-note" style="display:flex;align-items:flex-start;gap:7px;margin-top:12px;font-size:11.5px;color:var(--vy-faint);line-height:1.5">
+                        <div class="vy-po-pref-note" style="display:flex;align-items:flex-start;gap:7px;margin-top:12px;font-size:11.5px;color:var(--vy-on-grad-soft);line-height:1.5">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
                             <span>Your stated preference. The actual payout date + release are confirmed with your operator and the payout rail.</span>
                         </div>
@@ -229,7 +229,7 @@
                         </div>
                         <div class="vy-pm-grid2" style="margin-top:12px">
                             <div class="vy-field" style="margin:0">
-                                <label class="vy-field-label" for="tax_id">Tax ID / NIF <span style="color:var(--vy-accent)">*</span></label>
+                                <label class="vy-field-label" for="tax_id">Tax ID / NIF <span style="color:var(--vy-accent-text)">*</span></label>
                                 <input id="tax_id" type="text" name="tax_id" value="{{ old('tax_id', $tax['tax_id']) }}" placeholder="e.g. 501234567" class="vy-input" required>
                             </div>
                             <div class="vy-field" style="margin:0">
@@ -241,7 +241,7 @@
                             <label class="vy-field-label" for="tax_country">Country of tax residence</label>
                             <input id="tax_country" type="text" name="tax_country" value="{{ old('tax_country', $tax['tax_country']) }}" placeholder="e.g. Portugal" class="vy-input">
                         </div>
-                        <div class="vy-po-pref-note" style="display:flex;align-items:flex-start;gap:7px;margin-top:12px;font-size:11.5px;color:var(--vy-faint);line-height:1.5">
+                        <div class="vy-po-pref-note" style="display:flex;align-items:flex-start;gap:7px;margin-top:12px;font-size:11.5px;color:var(--vy-on-grad-soft);line-height:1.5">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
                             <span>Saved in your Tax Center; a valid tax ID releases any held payout. Your tax ID + VAT number are stored encrypted.</span>
                         </div>
