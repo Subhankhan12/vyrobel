@@ -21,7 +21,7 @@ uses(RefreshDatabase::class);
 // (cross-owner 404, non-linked user fails closed).
 
 /** A linked owner with a finalized statement + its payout (paid through the manual rail when $pay). */
-function remittanceOwner(array $s, int $unitIndex, int $roomMinor, bool $pay = false): array
+function remittanceOwner(array $s, int $unitIndex, int $roomMinor, bool $pay = false, ?int $feeMinor = null): array
 {
     // Deterministic letterhead + beneficiary. The honesty assertions below scan the rendered document for
     // substrings that a random faker name (or newDemoOrg's 'Org <random>') could otherwise collide with.
@@ -38,6 +38,14 @@ function remittanceOwner(array $s, int $unitIndex, int $roomMinor, bool $pay = f
     $reservation = book($s, ['unit_id' => $unit->id]);
     postRoom($reservation, $roomMinor);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+
+    // A REAL fixed management fee, when the agreement carries one — posted by the certified service, so the
+    // document renders it only because the ledger really holds it.
+    if ($feeMinor !== null) {
+        $agreement = ManagementAgreement::query()->where('owner_id', $owner->id)->firstOrFail();
+        $agreement->update(['management_fee_minor' => $feeMinor, 'management_fee_currency' => 'EUR', 'management_fee_interval' => 'monthly']);
+        app(OwnerAttributionService::class)->attributeManagementFee($agreement, '2026-09-01', '2026-09-30');
+    }
 
     $svc = app(OwnerStatementService::class);
     $statement = $svc->finalize($svc->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
@@ -263,4 +271,60 @@ it('renders the operator VAT letterhead, the masked IBAN and the RA reference �
     $netMinor = (int) OwnerStatementLine::query()->where('owner_statement_id', $r['statement']->id)->where('line_type', 'net')->value('amount_minor');
     expect($html)->toContain(MoneyFormatter::display($netMinor, 'EUR'))
         ->and((int) $r['payout']->amount_minor)->toBe($netMinor);
+});
+
+// ── Every deduction on the advice is a REAL persisted line — proven in BOTH directions ────────────
+// The prototype prints "Management fee · Fixed monthly −€150.00". That fee is REAL and modelled
+// (ManagementAgreement.management_fee_minor → OwnerAttributionService::attributeManagementFee → an
+// owner_ledger management_fee debit → a statement line), but the demo agreement carries none, so the
+// honest render omits the row. Both halves matter: an advice that invented the line would be a fake
+// CHARGE against the owner, and one that could never show it would hide a real one.
+it('renders a management fee only when the agreement really carries one', function () {
+    $s = seedScenario(2);
+
+    // No fixed fee configured → the line is genuinely absent.
+    $without = remittanceOwner($s, 0, 20000);
+    expect(remittanceHtml($without['payout']))->not->toContain('Management fee');
+
+    // A REAL €150.00 monthly fee → the certified service posts it and the advice states it.
+    $with = remittanceOwner($s, 1, 20000, false, 15000);
+    $html = remittanceHtml($with['payout']);
+    expect($html)->toContain('Management fee')
+        ->and($html)->toContain(MoneyFormatter::display(-15000, 'EUR', signed: true));
+});
+
+// ── D16-7 · the FOURTH form — a real payout state with no pill rule renders UNSTYLED ──────────────
+// The pill had rules for four states (paid/pending/failed/reversed) while payouts.status has SIX:
+// `processing` and `held` were added by the payout engine, so each emitted `pill--processing` /
+// `pill--held` with NO matching rule — the plate and colour vanished and the state degraded to bare
+// text. The LABEL was always honest (ucfirst of the real enum), so nothing lied; it simply stopped
+// looking like a status. Mirrors OwnerBalance::rowStateMeta(), the D16-7 reference, where the two
+// share the pending TONE and are told apart by their WORD.
+it('gives every real payout status a styled pill', function () {
+    $s = seedScenario(2);
+    $a = remittanceOwner($s, 0, 20000);
+
+    foreach (['pending', 'processing', 'paid', 'failed', 'reversed', 'held'] as $status) {
+        $data = OwnerRemittanceDocument::data($a['payout']);
+        $html = view('pdfs.owner-remittance', [...$data, 'status_tone' => $status, 'status_label' => ucfirst($status)])->render();
+
+        // The selector must be STYLED — it may head its own rule or share a grouped one, so match the
+        // selector followed by either terminator rather than one literal formatting of it.
+        expect((bool) preg_match('/\.pill--'.$status.'\s*[,{]/', $html))->toBeTrue("pill--{$status} has no style rule");
+    }
+});
+
+// ── The document's ink stays post-AA — a remittance is read on WHITE PAPER ────────────────────────
+// Measured on the GENERATED pdf's content stream, as Owner-20 did for the booking summary: the same
+// pre-AA pair (#8A8079 across 14 runs at 3.86, #A69A92 at 2.74) plus the PENDING pill and PROVISIONAL
+// flag at #B26A08 — 4.24 on white and only 3.72 on the #FBEFD8 plate they actually sit on.
+it('keeps the remittance document free of the pre-AA ink', function () {
+    $s = seedScenario(2);
+    $a = remittanceOwner($s, 0, 20000);
+
+    $html = remittanceHtml($a['payout']);
+
+    expect($html)->not->toContain('#8A8079')
+        ->and($html)->not->toContain('#A69A92')
+        ->and($html)->not->toContain('#B26A08');
 });

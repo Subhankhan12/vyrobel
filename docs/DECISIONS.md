@@ -7446,3 +7446,40 @@ month". `PdfService` untouched; its `#a99b8e` watermark re-measured at **2.70**,
 in 14 other templates — two of them are pages 21 and 22 of this batch.
 
 Suite **1845 / 12,087**, 9 non-green — the documented non-deterministic set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 21/32 · Remittance Advice PDF (`/owner/payouts/{payout}/remittance`)
+
+**The premise was wrong in the safe direction, and correcting it mattered.** The prototype's *"Management fee ·
+Fixed monthly −€150.00"* was flagged as a possible fabricated charge. It is not: the fee is fully modelled and
+certified — `ManagementAgreement.management_fee_minor`/`_interval` → `OwnerAttributionService
+::attributeManagementFee()` (pro-rated, idempotent, posted as an `owner_ledger` `management_fee` debit) → a
+statement line → the advice. The demo agreement carries no fixed fee, so the line is **genuinely absent** — the
+same shape as `payment_fee` in #70, not a refusal. Had I treated it as fabrication I would have written a
+guard forbidding a **real deduction** from ever appearing, which would hide a genuine charge from an owner.
+The new guard therefore proves **both** directions: no fee configured → no line; a real €150.00 monthly fee →
+the certified service posts it and the advice states it. Mutation-proven by fabricating the prototype's exact
+line into the document.
+
+**D16-7 gained a fourth form, and this one is purely visual.** `payouts.status` has six values; the pill had
+rules for four. A `processing` or `held` payout emitted `pill--processing` / `pill--held` with **no matching
+rule**, so the plate and colour disappeared and the status rendered as bare text — exactly the two states
+D16-7 is about. The label was never dishonest (`ucfirst` of the real enum), so nothing lied; it simply stopped
+looking like a status. Fixed by giving both the pending tone, mirroring `OwnerBalance::rowStateMeta()` — the
+reference — where the two share a tone and are distinguished by their word, so greyscale still carries them.
+
+**Logged, not decided:** `payoutStatusMeta` still has no case for either state and collapses both to "Payout
+pending" across Payouts, Documents, Statement and Dashboard. This document does **not** use that helper, so it
+is on the honest side and nothing was diverged here. One `held` payout now reads three ways across the product
+— "On hold", "Payout pending", "Held" — two of them honest and still disagreeing. That vocabulary belongs to
+the D16-7 gate.
+
+**Contrast on paper:** the same pre-AA pair as O20 (`#8A8079` across 14 runs, 3.86 → 6.98; `#A69A92`, 2.74 →
+5.79), plus `#B26A08` carrying the PENDING pill and the PROVISIONAL flag — 4.24 on white but only **3.72 on
+the plate it actually sits on**, at 8.5px bold → `#804C05` (6.24 / 7.11). The other three pills were measured
+on their own plates and already passed (5.61 / 5.76 / 5.08).
+
+#17 holds screen-to-document: +€1,080.00 − €194.40 + €0.00 = €885.60, and €194.40 is exactly the **real 18%**
+(the prototype's 15% would be €162.00). IBAN masked and CAP_PAYOUT-gated; no guest data; #42 mutation-proven
+both ways; PdfService untouched.
+
+Suite **1848 / 12,099**, 9 non-green — the documented non-deterministic set. PHPStan L5 (0); Pint clean.

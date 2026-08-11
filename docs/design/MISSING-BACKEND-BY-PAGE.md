@@ -4430,3 +4430,94 @@ not touched**. The pre-AA greys remain in **14 other templates**: `owner-booking
 `owner-statement-history`, `operator-report`, `maintenance-costs`, `arrival`, `folio`, `guest-statement`,
 `guest-vat-invoice`, `guest-credit-note`, `guest-refund-receipt`. ⚠️ **Pages 21 and 22 of this batch
 (Remittance, Annual Tax) are two of them** — expect the same pair on both.
+
+---
+
+## §O-21 — Owner **Remittance Advice PDF** (`/owner/payouts/{payout}/remittance`)
+
+`OwnerRemittancePdfController` → `OwnerRemittanceDocument::data()` → `pdfs.owner-remittance`.
+Prototype `docs/design/raw/Owner Remittance Advice.html`. Second of the 3-PDF batch.
+
+### ⚠️ PREMISE CORRECTION — the "Management fee −€150.00" is **REAL AND MODELLED**, not a fabrication
+
+The brief flagged the prototype's *"Management fee · Fixed monthly −€150.00"* as possibly a fabricated
+deduction. It is not. The fee is a **fully modelled, certified deduction**:
+`ManagementAgreement.management_fee_minor` + `management_fee_interval` → **`OwnerAttributionService
+::attributeManagementFee()`** (pro-rated across the interval, idempotent on the period key, posted as an
+`owner_ledger` `management_fee` **debit**) → a real statement line → the advice.
+
+**The demo agreement simply carries no fixed fee** (`management_fee_minor = NULL`), so
+`attributeManagementFee()` returns `null` and the line is **genuinely absent** — the `payment_fee` pattern
+from #70, not a refusal. *Verdict: **NOT A GAP, NOT A REFUSAL** — a real deduction that is honestly zero for
+this owner.* Proven in **both directions** by a new guard: with no fee configured no line renders; with a real
+**€150.00** monthly fee configured, the certified service posts it and the advice states it.
+
+### 🔴 D16-7 · A FOURTH FORM — a real payout state rendered UNSTYLED (fixed here)
+
+`payouts.status` has **six** values (`pending, processing, paid, failed, reversed, held` — `processing` added
+by the transfer rail, `held` by the payout engine). The document's pill had rules for **four**. A `processing`
+or `held` payout therefore emitted `class="pill pill--processing"` / `pill--held` **with no matching rule**:
+the plate and colour vanished and the status degraded to bare body text. ⚠️ **Exactly D16-7's two states.**
+The **label was never dishonest** (`ucfirst()` of the real enum → "Processing" / "Held"), so the document
+never lied — it just stopped looking like a status. Fixed by giving both the **pending tone**, mirroring
+`OwnerBalance::rowStateMeta()` (the D16-7 reference), where the two share a tone and are told apart by their
+**word** — so nothing new was invented and greyscale still carries the state.
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO21-1 — `payoutStatusMeta` still collapses `processing` and `held`.** Verified again at
+  `FormatsOwnerData.php:99`: the `match` has cases for `paid` / `failed` / `reversed` only, so **both** fall to
+  `default => 'Payout pending'` — on Payouts, Documents, Statement and Dashboard. ⚠️ **This document does NOT
+  use that helper** (it reads the enum directly), so it is on the honest side and nothing was diverged here.
+  *Verdict: **REAL GAP** — the D16-7 gate, one shared helper, copy `OwnerBalance::rowStateMeta()`.*
+- **DO21-2 — three vocabularies for one state.** A `held` payout reads **"On hold"** via
+  `rowStateMeta()`, **"Payout pending"** via `payoutStatusMeta` and **"Held"** on this document. Two of the
+  three are honest and still disagree in wording. *Verdict: **REAL GAP** — settle the vocabulary in the D16-7
+  gate; **surfaced, not decided** here.*
+
+### 🚫 REFUSALS TO PRESERVE (all pre-existing, re-verified)
+
+- **The prototype's 15% rate.** The advice shows the **real agreement rate**: €1,080.00 gross → **−€194.40**
+  commission = exactly **18.0%** (15% would be €162.00). The figure is the certified statement line, never a
+  percentage computed in the document.
+- **An estimated settlement date, a "Scheduled" status, a "SEPA" claim, the design's IBAN "···· 4821" and its
+  `OS-`/`RA-2025-` references** — all omitted; `paid_on` appears only once a payout is genuinely paid, and the
+  rail word comes from the shared `RailLabel`. Guarded by an existing test.
+
+### ⚠️ Verified, not changed
+
+- **#17 reconciles, SCREEN==PDF.** Gross **+€1,080.00** − commission **€194.40** + OTA commission **€0.00**
+  (flagged PROVISIONAL) = **€885.60** = `payouts.amount_minor` = the statement net. The owner **Payouts
+  screen** shows the same **€885.60** and **€442.80** for the two payouts rendered here. Lines come from real
+  `owner_statement_lines` through the shared `MoneyFormatter`; nothing is re-derived in the Blade.
+- **#28.** IBAN **masked** — "IBAN ···· 1000", never raw (`Iban::masked` takes only `iban_last4`, structural),
+  and the controller resolves it **CAP_PAYOUT-gated per owner**, omitting the row entirely otherwise. **No
+  guest data**: statement lines are bucket labels, so no guest identity can reach the document. No raw IBAN on
+  the screen either.
+- **#42 — MUTATION-PROVEN both ways.** `Payout::query()->findOrFail()` under `OwnerScope`; replacing it with
+  `withoutGlobalScopes()` turns **both** *"404s a cross-owner remittance PDF"* and *"fails closed for a
+  non-linked user"* red. **#30**: the route sits under `$capExports`.
+- **#71 test-mode honest** — a "paid" advice reflects the real recorded status; nothing claims a live transfer.
+- **Greyscale-safe** — every state is a WORD in the pill; the amount label changes with it ("Net payable to
+  owner" vs "Net paid to owner"), so no state is carried by colour alone.
+- **The download control** is a real `<a href>` GET link named "Remittance" (#20), **observed READ-ONLY**; the
+  `export_downloads` audit row writes by design and the money is unchanged.
+- **Single page**, both states. **No CSS comments** in this template (the Owner-11 trap absent) — clean negative.
+- **No docblock cites a non-existent test** (the Owner-19 trap) — clean negative.
+- ⚠️ **`toContain` sweep — clean negative** (twentieth gate); all new guards use `->and()`.
+
+### 🎨 Fixed here (this document's own literals)
+
+- **`#8A8079` ×5 (14 text runs) at 3.86 → `#5F5853` at 6.98**; **`#A69A92` at 2.74 → `#6C645F` at 5.79** —
+  the same pair O20 found, retargeted to the same values.
+- **`#B26A08` → `#804C05`** (the project's amber-text). It carried the **PENDING pill and the PROVISIONAL
+  flag**: 4.24 on white and only **3.72 on the `#FBEFD8` plate it actually sits on**, at 8.5px bold. Now
+  **6.24** on the plate / **7.11** on white. ⚠️ The other three pills already passed on their own plates
+  (paid 5.61 · failed 5.76 · reversed 5.08) — measured, not assumed.
+- **`.pill--processing` / `.pill--held`** added (see D16-7 above).
+
+### ⚠️ Still open for the realm-wide PDF-contrast sweep
+
+`PdfService.php:54` watermark **`#a99b8e` at 2.70** — **untouched**. **13 templates** still carry the pre-AA
+greys (O20 cleared the booking summary, this gate the remittance). ⚠️ **Page 22 (Annual Tax Summary) is one of
+them** — expect the same pair again.

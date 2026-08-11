@@ -19,7 +19,7 @@
         body { margin: 0; color: #2B2320; font-size: 12px; }
         .wrap { padding: 36px 40px; }
         .brand-mark { display: inline-block; width: 30px; height: 30px; background-color: #C2410C; color: #fff; text-align: center; font-size: 18px; font-weight: bold; border-radius: 7px; }
-        .muted { color: #8A8079; }
+        .muted { color: #5F5853; }
         .eyebrow { color: #C2410C; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         h1 { font-size: 20px; margin: 2px 0 0; }
         .hdr td { vertical-align: top; }
@@ -28,20 +28,22 @@
         .figure { font-size: 22px; font-weight: bold; margin-top: 3px; }
         .pill { display: inline-block; font-size: 8.5px; font-weight: bold; text-transform: uppercase; letter-spacing: .06em; border-radius: 8px; padding: 2px 8px; }
         .pill--paid { color: #1B6B48; background-color: #E4F2EA; }
-        .pill--pending { color: #B26A08; background-color: #FBEFD8; }
+        .pill--pending,
+        .pill--processing,
+        .pill--held { color: #804C05; background-color: #FBEFD8; }
         .pill--failed { color: #A33227; background-color: #FBE6E2; }
         .pill--reversed { color: #6B6058; background-color: #F0E9E3; }
         .meta { width: 100%; border-collapse: collapse; margin: 18px 0 6px; }
         .meta td { padding: 4px 0; font-size: 12px; }
-        .meta .k { color: #8A8079; width: 120px; }
-        .prov { display: inline-block; font-size: 8.5px; font-weight: bold; text-transform: uppercase; color: #B26A08; background-color: #FBEFD8; border-radius: 8px; padding: 1px 7px; }
+        .meta .k { color: #5F5853; width: 120px; }
+        .prov { display: inline-block; font-size: 8.5px; font-weight: bold; text-transform: uppercase; color: #804C05; background-color: #FBEFD8; border-radius: 8px; padding: 1px 7px; }
         table.lines { width: 100%; border-collapse: collapse; margin-top: 14px; }
-        table.lines th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #8A8079; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
+        table.lines th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #5F5853; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
         table.lines th.r, table.lines td.r { text-align: right; }
         table.lines td { padding: 9px 4px; font-size: 12.5px; border-bottom: 1px solid #F2E9E1; }
         table.lines tr.net td { border-top: 2px solid #C2410C; border-bottom: none; font-weight: bold; font-size: 14px; padding-top: 12px; }
-        .neg { color: #8A8079; }
-        .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #A69A92; }
+        .neg { color: #5F5853; }
+        .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid #EFE3D9; font-size: 10px; color: #6C645F; }
         .reconcile { margin-top: 6px; font-size: 11px; color: #4A4038; }
     </style>
 </head>
@@ -106,7 +108,7 @@
 
         {{-- Payment details — every row is a real field; an unset field OMITS its row (no fake IBAN, no
              estimated settlement date, no invented reference format). Masked IBAN only when CAP_PAYOUT (#28). --}}
-        <h2 style="font-size:12px; margin:24px 0 0; letter-spacing:.04em; text-transform:uppercase; color:#8A8079;">Payment details</h2>
+        <h2 style="font-size:12px; margin:24px 0 0; letter-spacing:.04em; text-transform:uppercase; color:#5F5853;">Payment details</h2>
         <table class="meta">
             <tr><td class="k">Beneficiary</td><td>{{ $owner_name }}</td></tr>
             @if ($iban_masked)
