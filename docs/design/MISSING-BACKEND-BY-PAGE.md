@@ -4947,3 +4947,78 @@ predecessors measured 2–5. **Publishing numbers from a probe I know to be unso
 publishing none** *(the 11th probe false positive of this pass — and the first I authored myself under a
 broken tool)*. ⚠️ **This page's contrast is therefore OUTSTANDING and must be measured in a follow-up** —
 including the new `☆` empty-star colour (`#B9A99A`), which was chosen but **not verified against 1.4.11**.
+
+---
+
+## §O-27 — Owner **Messages** (`/owner/messages`)
+
+`App\Livewire\Owner\OwnerMessages` + `OwnerMessageActionController`. Prototype
+`docs/design/raw/Owner Messages.html`. The owner ↔ operator relay.
+
+### 🔴 THE FIX — a hardcoded "1" stood in for an unread count
+
+The conversation row rendered `@if ($row['unread'])<span class="vy-msg-badge">1</span>@endif`. But
+`$row['unread']` is a **boolean** (`isUnread($thread)`) — so **a thread holding three unread messages printed
+"1"**. Worse, the Unread *tab* badge beside it **is** a real count ("Unread 2"), so two visually identical
+badges meant different things: one a count, one a boolean dressed as a count.
+
+Fixed to an **unread dot plus `.vy-sr-only` "Unread"** — no digit the data cannot support. The tab badge kept
+its real number and gained screen-reader context ("2 unread"). *A real per-thread unread count is logged
+below; the page no longer invents one.*
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO27-1 — no per-thread unread COUNT.** `isUnread()` returns a boolean from the owner's read position;
+  there is no "3 unread in this thread" figure. *Verdict: **REAL GAP** (small) — until it exists the row
+  correctly shows a dot, not a number.*
+
+### ⚠️ Verified, not changed
+
+- **#28 — OWNER↔OPERATOR ONLY, AND IT IS STRUCTURAL.** `MessageThread` carries `owner_id` + `BelongsToOwner`;
+  `OwnerScope` applies `whereIn(owner_id, ownerIds)`, and **a NULL `owner_id` can never satisfy a `whereIn`**
+  — so every operator↔guest thread is excluded by the scope itself, not by a predicate someone could forget.
+  The demo has **3 guest-side threads (`owner_id NULL`) and 2 owner-relay threads**; the page renders
+  **exactly the 2**, both with "Demo Staff". DOM sweep: **0 emails, 0 phone numbers, no door code, and the
+  word "guest" appears nowhere**. **Mutation-proven**: relaxing the scope to `orWhereNull(owner_id)` turns
+  *"never shows an owner a guest conversation"* red.
+- **SENDING OBSERVED READ-ONLY — nothing written.** Baseline before probing: `message_threads = 5`,
+  `messages = 9`, max timestamps `2026-08-09`. **Identical after.** No message was sent, no reaction, star or
+  pin fired. Every write is a POST to a real owner-scoped route (`reply` / `react` / `star` / `pin`), each
+  resolving `{thread}` via `findOrFail` under `OwnerScope`.
+- **§N.4k Enter is SAFE, and deliberately so.** The composer is a single-line input inside the reply form, so
+  Enter submits — the intended chat convention. The risk case is the *other* field: the form also holds a file
+  input, and Enter there would submit too. It cannot send an empty message: `body` is `required` client-side
+  **and** the controller returns *"Type a message or attach a file"* when body and files are both empty.
+- **Unread is not colour-only** — it is carried by a dot **and** bold weight **and** now spoken text (the O6
+  lesson). The All/Unread filter rides GET (`?filter=unread`, #20).
+- **Keyboard: 0 unnamed, 0 `display:none` controls.** The send button has `aria-label="Send"`; the composer
+  has `aria-label="Message"`.
+- **No shared-partial leak** — the owner view has its own `.vy-msg-*` markup; it does not render through the
+  operator inbox's components, so it cannot inherit a guest thread from a shared row.
+- ⚠️ **`toContain` sweep — clean negative** (twenty-sixth gate).
+
+### 🎨 Contrast — 15 → 8
+
+⚠️ **The conversation rail is translucent over the page's peach gradient**, so its body text lands on a
+saturated ground (≈230,147,106) rather than on a card:
+- the timestamp **2.64**, the All/Unread tabs **2.85**, the conversation count **3.37** — first moved to
+  `--vy-on-grad`, which was **still not enough** (4.06–4.42), then to **`--vy-ink`**. *This is the O14/O17
+  case: on a strong tint no grey reaches AA; hierarchy comes back through size and weight.*
+- the two thread-header role lines → `--vy-muted`; the search icon (**2.06**, 1.4.11) → `--vy-on-grad`;
+  the "Starred messages" icon (**2.74**, 1.4.11) → `--vy-amber-text`.
+- **Survivors (8), all the white-on-accent family, none added:** the message bubbles **3.97** (⚠️ the owner's
+  own message text — the largest body of text this family affects anywhere so far), thread avatars 3.61/3.88,
+  the tab badge 3.76, the shell avatar 3.83 and brand mark 3.88, and ⚠️ **`.vy-nav-item is-active` at 3.79 —
+  the SHARED owner shell nav, deliberately not retuned from a page gate** (it would change every owner page).
+
+### 📌 O26 (Reviews) CONTRAST — the measurement I could not take last gate, now taken
+
+The screenshot tool recovered after a browser restart, so I went back and measured Reviews:
+**30 AA failures**, and the shape confirms DO10-4 exactly — **roughly 17 of them are the ★ spans that were
+NOT migrated to `<x-star-rating>`** (gold `#E8A63A` at **1.68–2.09**, the pale empty glyph at **1.44–1.61**).
+The hero row I did migrate is exempt: its glyphs are `aria-hidden` behind an accessible name, so they are
+decorative. The remainder are the familiar family — review avatars (2.46 on amber, 3.61 on green, 3.88 on
+accent), the "All villas" filter 3.61, and a tail of marginal greys/accents at 4.12–4.47.
+⚠️ Two readings (a badge at 1.03, an avatar at 1.12) sample across an element boundary and are **probe
+artifacts, not findings**. **O26's contrast fix is now a scoped, unstarted item** — migrating this page's two
+remaining star spans to the component and retoning that tail. It was NOT folded into this gate.

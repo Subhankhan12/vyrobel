@@ -13,8 +13,9 @@
         .vy-msg-search { display:flex; align-items:center; gap:9px; padding:8px 12px; border-radius:12px; background:rgba(255,252,248,.7); border:1px solid var(--vy-glass-border); box-shadow:inset 0 1px 0 rgba(255,255,255,.6); }
         .vy-msg-search input { flex:1; min-width:0; border:none; outline:none; background:transparent; font:inherit; font-size:13px; color:var(--vy-ink); }
         .vy-msg-tabs { display:flex; gap:3px; padding:3px; border-radius:12px; background:rgba(120,70,40,.06); border:1px solid rgba(255,255,255,.6); }
-        .vy-msg-tab { flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:7px 10px; border:none; border-radius:9px; cursor:pointer; font:inherit; font-size:12.5px; font-weight:500; color:var(--vy-muted); background:transparent; text-decoration:none; }
+        .vy-msg-tab { flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:7px 10px; border:none; border-radius:9px; cursor:pointer; font:inherit; font-size:12.5px; font-weight:500; color:var(--vy-ink); background:transparent; text-decoration:none; }
         .vy-msg-tab.is-on { background:rgba(255,255,255,.85); color:var(--vy-accent); font-weight:600; box-shadow:0 2px 8px rgba(150,90,50,.12); }
+        .vy-msg-dot { width:9px; height:9px; border-radius:50%; background:var(--vy-grad); flex-shrink:0; }
         .vy-msg-badge { min-width:17px; height:17px; padding:0 5px; box-sizing:border-box; border-radius:20px; background:var(--vy-grad); color:#fff; font-size:10px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; }
         .vy-msg-list { flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:3px; padding:2px; }
         .vy-msg-conv { display:flex; align-items:center; gap:11px; width:100%; text-align:left; padding:11px; border-radius:15px; background:transparent; border:1px solid transparent; cursor:pointer; text-decoration:none; color:inherit; transition:background .14s; }
@@ -27,7 +28,7 @@
         .vy-msg-bubble { max-width:100%; padding:11px 15px; border-radius:16px; font-size:13.5px; line-height:1.5; box-shadow:0 4px 14px rgba(150,90,50,.08); text-wrap:pretty; white-space:pre-wrap; word-break:break-word; }
         .vy-msg-bubble--me { background:var(--vy-grad); color:#fff; border-radius:16px 16px 5px 16px; }
         .vy-msg-bubble--op { background:rgba(255,255,255,.85); color:var(--vy-ink); border:1px solid rgba(255,255,255,.8); border-radius:16px 16px 16px 5px; }
-        .vy-msg-meta { font-size:10.5px; color:var(--vy-faint); margin-top:4px; display:flex; align-items:center; gap:6px; }
+        .vy-msg-meta { font-size:10.5px; color:var(--vy-ink); margin-top:4px; display:flex; align-items:center; gap:6px; }
         .vy-msg-daysep { display:flex; justify-content:center; margin:8px 0 4px; }
         .vy-msg-daysep span { font-size:10.5px; font-weight:600; letter-spacing:.04em; color:var(--vy-faint); background:rgba(255,255,255,.72); border:1px solid rgba(255,255,255,.8); padding:4px 12px; border-radius:20px; }
         .vy-msg-composer { flex-shrink:0; margin-top:14px; display:flex; align-items:center; gap:8px; border:1px solid rgba(120,70,40,.14); background:rgba(255,255,255,.72); border-radius:26px; padding:6px 6px 6px 14px; }
@@ -71,7 +72,7 @@
     </style>
 
     @php
-        $avGrad = ['linear-gradient(140deg,#E8703A,#C2410C)', 'linear-gradient(140deg,#6FA764,#4F7A46)', 'linear-gradient(140deg,#E8A63A,#C08A1E)', 'linear-gradient(140deg,#8A6A55,#5E4636)'];
+        $avGrad = ['linear-gradient(140deg,#E8703A,#C2410C)', 'linear-gradient(140deg,#6FA764,#4F7A46)', 'linear-gradient(140deg,#E8A63A,var(--vy-amber-text))', 'linear-gradient(140deg,#8A6A55,#5E4636)'];
         $activeId = $active['id'] ?? null;
     @endphp
 
@@ -84,7 +85,7 @@
         <aside class="vy-msg-rail" x-data="{ compose: false }">
             {{-- Compose --}}
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative">
-                <span style="font-size:12.5px;color:var(--vy-faint)">{{ $total }} {{ \Illuminate\Support\Str::plural('conversation', $total) }}</span>
+                <span style="font-size:12.5px;color:var(--vy-on-grad)">{{ $total }} {{ \Illuminate\Support\Str::plural('conversation', $total) }}</span>
                 <button type="button" @click="compose = ! compose" title="New message" aria-label="New message" style="width:38px;height:38px;border-radius:11px;background:var(--vy-grad);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(194,65,12,.3)">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
                 </button>
@@ -95,7 +96,7 @@
                             <span class="vy-msg-av" style="width:36px;height:36px;font-size:12.5px;background:{{ $avGrad[$i % count($avGrad)] }}">{{ $member['initials'] }}</span>
                             <span style="min-width:0;flex:1">
                                 <span style="display:block;font-size:13.5px;font-weight:500;color:var(--vy-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $member['name'] }}</span>
-                                <span style="display:block;font-size:11.5px;color:var(--vy-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $member['role'] }}</span>
+                                <span style="display:block;font-size:11.5px;color:var(--vy-on-grad);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $member['role'] }}</span>
                             </span>
                         </a>
                     @empty
@@ -106,7 +107,7 @@
 
             {{-- Search (real, server-side ?q) --}}
             <form method="GET" action="{{ route('owner.messages') }}" class="vy-msg-search">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B0A49C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-on-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" name="q" value="{{ $query }}" placeholder="Search messages" aria-label="Search messages">
                 @if ($query !== '')<a href="{{ route('owner.messages') }}" title="Clear" style="width:22px;height:22px;border-radius:50%;background:rgba(120,70,40,.1);color:var(--vy-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;text-decoration:none">&times;</a>@endif
             </form>
@@ -114,7 +115,7 @@
             {{-- All / Unread --}}
             <div class="vy-msg-tabs">
                 <a href="{{ route('owner.messages', array_filter(['q' => $query ?: null])) }}" class="vy-msg-tab {{ $filter !== 'unread' ? 'is-on' : '' }}">All</a>
-                <a href="{{ route('owner.messages', array_filter(['filter' => 'unread', 'q' => $query ?: null])) }}" class="vy-msg-tab {{ $filter === 'unread' ? 'is-on' : '' }}">Unread @if ($unread > 0)<span class="vy-msg-badge">{{ $unread }}</span>@endif</a>
+                <a href="{{ route('owner.messages', array_filter(['filter' => 'unread', 'q' => $query ?: null])) }}" class="vy-msg-tab {{ $filter === 'unread' ? 'is-on' : '' }}">Unread @if ($unread > 0)<span class="vy-msg-badge" aria-hidden="true">{{ $unread }}</span><span class="vy-sr-only">{{ $unread }} unread</span>@endif</a>
             </div>
 
             {{-- Conversation list --}}
@@ -125,11 +126,18 @@
                         <span style="min-width:0;flex:1">
                             <span style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
                                 <span style="font-family:var(--vy-display);font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $row['name'] }}</span>
-                                <span style="font-size:10.5px;color:var(--vy-faint);flex-shrink:0">{{ $row['time'] }}</span>
+                                <span style="font-size:10.5px;color:var(--vy-ink);flex-shrink:0">{{ $row['time'] }}</span>
                             </span>
                             <span style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px">
                                 <span style="font-size:12px;color:{{ $row['unread'] ? 'var(--vy-ink)' : 'var(--vy-muted)' }};font-weight:{{ $row['unread'] ? 600 : 500 }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $row['preview'] ?? 'No messages yet' }}</span>
-                                @if ($row['unread'])<span class="vy-msg-badge" style="min-width:18px;height:18px">1</span>@endif
+                                @if ($row['unread'])
+                                    {{-- A DOT, not a digit. `$row['unread']` is a BOOLEAN (isUnread), so the
+                                         hardcoded "1" that used to sit here read as "one unread message" on a
+                                         thread that might hold three. The tab badge beside it IS a real count,
+                                         which made the two look identical while meaning different things.
+                                         A real per-thread count is logged as missing backend. --}}
+                                    <span class="vy-msg-dot" aria-hidden="true"></span><span class="vy-sr-only">Unread</span>
+                                @endif
                             </span>
                         </span>
                     </a>
@@ -156,7 +164,7 @@
                 {{-- NEW conversation with a real staff member --}}
                 <div style="display:flex;align-items:center;gap:13px;margin-bottom:14px;flex-shrink:0">
                     <span class="vy-msg-av" style="width:46px;height:46px;font-size:15px">{{ $composeStaff['initials'] }}</span>
-                    <div><h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:20px">{{ $composeStaff['name'] }}</h2><div style="font-size:12.5px;color:var(--vy-faint);margin-top:2px">{{ $composeStaff['role'] }}</div></div>
+                    <div><h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:20px">{{ $composeStaff['name'] }}</h2><div style="font-size:12.5px;color:var(--vy-muted);margin-top:2px">{{ $composeStaff['role'] }}</div></div>
                 </div>
                 <div class="vy-msg-thread">
                     <div class="vy-msg-empty">
@@ -179,17 +187,17 @@
                     {{-- Active thread header (staff correspondent — presence honestly omitted) + starred panel toggle --}}
                     <div style="display:flex;align-items:center;gap:13px;margin-bottom:14px;flex-shrink:0">
                         <span class="vy-msg-av" style="width:46px;height:46px;font-size:15px">{{ $active['initials'] }}</span>
-                        <div style="flex:1;min-width:0"><h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:20px">{{ $active['name'] }}</h2><div style="font-size:12.5px;color:var(--vy-faint);margin-top:2px">{{ $active['role'] }}</div></div>
+                        <div style="flex:1;min-width:0"><h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:20px">{{ $active['name'] }}</h2><div style="font-size:12.5px;color:var(--vy-muted);margin-top:2px">{{ $active['role'] }}</div></div>
                         <div style="position:relative">
                             <button type="button" @click="star = ! star" title="Starred messages" aria-label="Starred messages" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:11px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.6);cursor:pointer;font:inherit;font-size:12.5px;color:var(--vy-muted)">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="{{ count($starred) > 0 ? '#E8A63A' : 'none' }}" stroke="#C08A1E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="{{ count($starred) > 0 ? '#E8A63A' : 'none' }}" stroke="var(--vy-amber-text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
                                 {{ count($starred) }}
                             </button>
                             <div x-show="star" x-cloak @click.outside="star = false" class="vy-star-panel">
                                 <div style="padding:6px 10px 8px;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--vy-faint)">Starred</div>
                                 @forelse ($starred as $s)
                                     <a href="#msg-{{ $s['id'] }}" @click="star = false" class="vy-star-row">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#E8A63A" stroke="#C08A1E" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#E8A63A" stroke="var(--vy-amber-text)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
                                         <span style="min-width:0"><span style="display:block;font-size:11px;color:var(--vy-faint)">{{ $s['author'] }} · {{ $s['time'] }}</span><span style="display:block;font-size:12.5px;color:var(--vy-ink)">{{ $s['snippet'] }}</span></span>
                                     </a>
                                 @empty

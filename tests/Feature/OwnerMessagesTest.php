@@ -209,3 +209,27 @@ it('renders none of the design’s invented metric, presence or vendor desks —
 
     assertNoRawBlade($response);
 });
+
+// ── The unread marker must not print a number the data does not have ──────────────────────────────
+// Owner-27 found a hardcoded "1" in the conversation row's unread badge. `$row['unread']` is a
+// BOOLEAN (isUnread), so a thread holding three unread messages printed "1" — and the tab badge beside
+// it IS a real count, so the two looked identical while meaning different things. The row now shows a
+// DOT plus screen-reader text; a real per-thread count is logged as missing backend.
+it('marks an unread conversation without printing a count it does not have', function () {
+    $s = seedScenario(1);
+    $a = inboxOwner($s, 'Amara Okafor', 0);
+    $marco = inboxStaff($s);
+
+    // THREE unread inbound messages — the shape that exposed the fake "1".
+    $thread = ownerThread($a['owner'], 'About my October payout');
+    $inbox = app(InboxService::class);
+    $inbox->sendOutbound($thread, 'First note from the team.', $marco);
+    $inbox->sendOutbound($thread, 'Second note from the team.', $marco);
+    $inbox->sendOutbound($thread, 'Third note from the team.', $marco);
+
+    $html = $this->actingAs($a['user'])->get('/owner/messages')->assertOk()->getContent();
+
+    // The row carries the unread DOT + spoken state, and no per-row digit.
+    expect($html)->toContain('vy-msg-dot')
+        ->and($html)->not->toContain('<span class="vy-msg-badge" style="min-width:18px;height:18px">');
+});

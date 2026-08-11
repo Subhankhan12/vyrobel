@@ -7666,3 +7666,37 @@ be worse than publishing none. **This page's contrast is outstanding** — inclu
 which was chosen but not verified against 1.4.11 — and must be measured in a follow-up.
 
 Suite **1853 / 12,120**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 27/32 · Messages (`/owner/messages`)
+
+**A hardcoded "1" stood in for an unread count.** The conversation row printed a badge reading "1" whenever
+the thread had anything unread — but that value is a boolean, so a thread holding three unread messages
+displayed "1". The Unread tab badge beside it is a real count, which made two identical-looking badges mean
+different things. The row now shows a dot with spoken "Unread" and no digit; the tab kept its real number and
+gained screen-reader context. A real per-thread count is logged as DO27-1.
+
+**The #28 two-inbox boundary is structural, and stronger than a predicate.** `MessageThread` carries
+`owner_id` with `BelongsToOwner`, and `OwnerScope` applies `whereIn(owner_id, …)` — a NULL `owner_id` can
+never satisfy a `whereIn`, so every operator↔guest thread is excluded by the scope itself rather than by a
+filter someone could forget to write. The demo holds three guest-side threads and two owner-relay threads, and
+the page renders exactly the two. Mutation-proven by relaxing the scope to admit NULL.
+
+**Enter in the composer is safe and deliberately so.** A single-line composer that sends on Enter is the chat
+convention; the risk case is the other field, since the form also holds a file input. It cannot send an empty
+message — `body` is `required` client-side and the controller refuses body-and-files-empty.
+
+**Contrast 15 → 8, with a lesson about the rail.** The conversation rail is translucent over the page's peach
+gradient, so its text lands on a saturated ground rather than a card: the timestamp measured 2.64, the tabs
+2.85. Moving them to `--vy-on-grad` was **still not enough** (4.06–4.42); they needed `--vy-ink`. That is the
+O14/O17 rule again — on a strong tint no grey reaches AA, and hierarchy has to come back through size and
+weight. The eight survivors are all white-on-accent, including the message bubbles at 3.97, which is the
+largest body of text that family affects anywhere so far, and the shared shell nav at 3.79, which was
+deliberately left alone because retuning it from a page gate would change every owner page.
+
+📌 **O26's contrast — which I could not measure last gate — was measured here.** The screenshot tool recovered
+after a browser restart. Reviews shows 30 failures, and the shape confirms DO10-4 precisely: roughly seventeen
+are the ★ spans that were *not* migrated to `<x-star-rating>`, while the migrated hero is exempt because its
+glyphs sit behind an accessible name. Two extreme readings are boundary-sampling artifacts, not findings. The
+fix is now scoped and unstarted, and was deliberately not folded into this gate.
+
+Suite **1854 / 12,123**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
