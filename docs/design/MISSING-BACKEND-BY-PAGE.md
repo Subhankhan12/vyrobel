@@ -5842,3 +5842,116 @@ surface, either state. **Foreign-id → 404** on both routes, already guarded an
 - **`DO-G3-2` · prototype affordances owed a verdict** — the "Get directions" map link, the spaced-digit
   code presentation with a keypad hint, and the structured House-guide sections (which would need a real
   per-property guide model, not prose).
+
+---
+
+## §G-4 — Guest Check-in (`/guest/reservation/{r}/check-in`) · GUEST 4/32 · gate 4 of 12 · the first INBOUND-PII surface
+
+`GuestCheckinController` (GET+POST) → `guest/checkin.blade.php` in `<x-guest.shell>`, with
+`GuestIdDocumentService` behind the ID capture. Auth `auth:guest`. Walked **read-only** — nothing submitted,
+no ID uploaded.
+
+### ✅ THE HEADLINE CHECK — `anonymize()` REACHABILITY HOLDS, mutation-proven
+
+Check-in writes exactly **four** stores. Each is covered, and each coverage was proven by **removing it and
+watching the erasure suite go red** — not by reading the code:
+
+| store | written by | `anonymize()` | mutation |
+|---|---|---|---|
+| `guests.phone` | the arrival-contact field | `'phone' => null` | ❌ RED (2 tests) |
+| `reservations.notes_guest` | the free-text arrival note | `'notes_guest' => null` | ❌ RED (2 tests) |
+| `reservations.arrival_window` | the arrival slot | `'arrival_window' => null` | ❌ RED (2 tests) |
+| `guest_documents` + `documents` + `media` + **the encrypted file bytes** | `GuestIdDocumentService::store()` | the `guestDocuments()` purge loop | ❌ RED (2 tests) |
+
+`reservations.guest_checked_in_at` is a **timestamp, not PII** — retained as audit skeleton, the same
+redact-don't-delete shape used throughout `anonymize()`. **No uncovered store: there is nothing to log here.**
+The CLAUDE.md rule ("every free-text store about a guest is added to `anonymize()` in the same change that
+creates its writer") was genuinely followed — `anonymize()`'s own comment says `notes_guest`/`arrival_window`
+landed *"WITH the online-check-in writer that first populates it"*, and that is true.
+
+### ⚠️ §N.4k — A REAL DEFECT ON A PII FORM: Enter completed the check-in from step 1
+
+The wizard is **ONE form spanning all three steps** with a single submit ("Complete check-in") and ten
+`type=button` step controls. A browser implicitly submits a form when Enter is pressed in a text input — so
+**Enter in the phone field on step 1 fired the real write**: it saved the phone, stamped
+`guest_checked_in_at` (a once-only stamp) and finished check-in **without the guest ever seeing the ID or
+arrival steps**. A guest pressing Enter means "next field", not "submit my identity".
+
+**Proven live, without writing anything** — a `submit` listener with `preventDefault()` was attached first,
+so the probe recorded `SUBMIT-WOULD-HAVE-FIRED` while nothing reached the server. After the fix the same
+probe records no submit and the stepper advances to Step 2.
+
+⚠️ **The guard is deliberately in the JS layer.** The stepper's own comment states the no-JS contract:
+*"JS-off → all steps visible + submittable"* — and with every step visible, implicit submission is **correct**,
+because the form really is complete. So the guard applies exactly when the wizard is hiding steps and
+disappears with it. Textareas are untouched (they never implicitly submit; Enter is a newline in the note).
+
+### ⚠️ THE ID UPLOAD WAS KEYBOARD-UNREACHABLE
+
+`<input type="file" name="id_photo" … hidden>` — the `hidden` attribute is `display:none`, which removes an
+element from the tab order **entirely**, and its wrapping `<label>` is not focusable. Measured on the render:
+`fileInputInTabOrder: false`, `offsetParent: null`, `label.tabIndex: -1`. **A keyboard-only guest could not
+upload their ID at all** — the canon's *"appearance:none, never display:none"*, on the realm's PII-capture
+control. Now visually hidden but focusable (`clip-path` pattern) with `:focus-within` putting a visible 2px
+ring on the drop zone the guest can actually see. Verified: `inTabOrder: true`, focus received, ring renders.
+
+### ⚠️ A TOKEN MOVED AT G2 AND THIS PAGE DIDN'T — because it never referenced the token
+
+`checkin.blade.php` hardcoded **five** colour literals instead of tokens. One of them, `#8f6414`, is
+**`--vy-amber-text`'s value BEFORE G2 darkened it** to `rgb(126,88,17)`. The token moved; this copy didn't,
+which is precisely what a token exists to prevent — and why the status chip measured **4.33** while the
+tokenised badges pass. §N.8f, made concrete. All five now reference tokens.
+
+### 🎨 Contrast — 8 failures → **0** (58 runs). Both anchors validated (3.39 · 5.18)
+
+| run | was | fix |
+|---|---|---|
+| the four **form labels** (First name / Last name / Email / Phone) | `#9c9089` = **2.99** | `--vy-faint` |
+| `Continue to ID` CTA | white 14px on `--vy-grad` = **3.39** | solid `--vy-accent` (5.18) |
+| the active **step number** | white on `--vy-grad` = **3.48** | solid `--vy-accent` (5.18) |
+| `Message the property` | `--vy-accent` = **4.24** | `--vy-accent-text` (5.03) |
+| `Not checked in yet` chip | stale `#8f6414` = **4.33** | `--vy-amber-text` |
+
+⚠️ **The worst readings on the page were the form labels of a PII form** — 2.99, the fields a guest must read
+to type their identity correctly. **Gradients behind SVG icons were left alone** (`.ci-hero-mark`,
+`.ci-idzone .ic`, `.ci-done-ic`): decorative, no text, so the brand gradient stays where it is safe.
+
+### 🖼 A render-only layout defect
+
+*"Door code by email**Sent before arrival — no key pickup**"* — the title and its subtitle ran together on all
+three "What this unlocks" rows. The prototype sets `display: block` on both spans; the live CSS omitted it, so
+they rendered inline and concatenated. Invisible to `php -l`, PHPStan, Pint and a Blade compile — only the
+render shows it.
+
+### ⚠️ PREMISE CORRECTION — check-in is NOT an `ArrivalPack` call site
+
+The recon (and this gate's brief) listed check-in among the **six** `#33` call sites. It is not one:
+`GuestCheckinController` neither imports nor calls `ArrivalPack` — line 32 is **prose in a docblock**, which
+is what my earlier grep matched. The real call sites are **four**: `GuestArrivalController`,
+`GuestReservationController`, `PreArrivalMail`, `ArrivalPackDocument`. **The check-in screen renders no door
+code at all**, so its `#33` exposure is nil. Recon §2.1's "six" is corrected.
+
+### ✅ VERIFIED / REFUSALS TO PRESERVE
+
+- **Observed READ-ONLY**: `guest_documents` 0 → 0, ID media 0 → 0, `guest_checked_in_at` 0 → 0,
+  `notes_guest` 0 → 0, `max(reservations.updated_at)` unchanged at `2026-08-09 07:17:58`.
+- **The "Door code by email" promise is TRUE** — verified, not assumed: `PreArrivalMail` really does carry the
+  code and the command sends at `ArrivalPack::LEAD_DAYS`. It is a real capability claim, not a fabricated one.
+- **The prototype promises "By SMS to {phone} and email"** — SMS has no provider. The live copy says email
+  only. Refusal preserved (#39).
+- **The ID is captured, never "verified"** — `verification_status: 'pending'`, and the page never shows a
+  verified badge. Prefilled name/email/phone are the guest's own real values (#28); no operator
+  verification-status, internals, owner money or other-guest data in the DOM.
+- **Foreign-id → 404 on both GET and POST** via `$this->guest()->reservations()->findOrFail()`, already
+  guarded and mutation-proven at G2/G3; the POST case has its own existing test.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G4-1` · a fourth mock-value instance, in a docblock.** `SendPreArrivalEmails` documents its default as
+  *"{@see ArrivalPack::LEAD_DAYS} = 48h"*. The code reads the constant correctly; only the prose restates it.
+  Not user-facing and it is backend, so it is surfaced rather than edited at a design gate.
+- **`DO-G4-2` · the pre-arrival email's `#8A7A6A`** grey sits in the `DO-INV-4` email-contrast sweep, unmeasured
+  here.
+- **`DO-G4-3` · prototype affordances owed a verdict** — the done-state's "Door code arrives {date}" (the live
+  done state says "before arrival"; naming the real date would need the controller to pass `ArrivalPack`,
+  which is a backend change) and the per-guest co-traveller entry the prototype implies.

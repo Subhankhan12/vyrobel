@@ -230,3 +230,37 @@ it('names the same real unlock date on the arrival screen and the arrival PDF (#
             ->and($html)->not->toContain('48h');     // …and no restated fixed interval
     }
 });
+
+// ── §N.4k + keyboard: the check-in form's two a11y contracts, asserted on the RENDERED page ───────
+// G4 found both by driving the page, and both are invisible to php -l / PHPStan / Pint / a Blade compile:
+//
+//  1. ENTER MUST NOT COMPLETE CHECK-IN FROM AN EARLIER STEP. This is ONE form spanning three steps with a
+//     single submit, so implicit submission fired the REAL write from the phone field on step 1 — saving the
+//     phone, stamping guest_checked_in_at (once-only) and finishing check-in before the guest ever saw the ID
+//     or arrival steps. The stepper now swallows Enter and advances instead. The guard binds by id, so the
+//     id and the handler must both survive.
+//  2. THE ID UPLOAD MUST STAY KEYBOARD-REACHABLE. It shipped as `hidden` (= display:none), which removes it
+//     from the tab order entirely, and its wrapping <label> is not focusable — a keyboard-only guest could
+//     not upload an ID at all. Visually hidden but focusable instead ("appearance:none, never display:none").
+it('keeps the check-in form Enter-safe and its ID upload keyboard-reachable', function () {
+    $s = seedScenario(1);
+    $a = arrGuest($s['guest'], 'ada@example.test');
+    $reservation = arrBook($s, $a, $s['units'][0]);
+
+    $this->travelTo(CarbonImmutable::parse('2026-09-04'));
+    $html = $this->actingAs($a, 'guest')->get(route('guest.checkin', $reservation->getKey()))->assertOk()->getContent();
+    $this->travelBack();
+
+    // (1) the Enter guard is present AND bound to a form that exists
+    expect($html)->toContain('id="ci-form"')
+        ->and($html)->toContain("form.addEventListener('keydown'")
+        ->and($html)->toContain('vyCiCurrent');
+
+    // (2) the file input is visually hidden, NOT display:none-hidden, and keeps its label
+    expect($html)->toContain('name="id_photo"')
+        ->and($html)->toContain('class="ci-file"')
+        ->and($html)->not->toContain('name="id_photo" accept="image/*" capture="environment" hidden');
+
+    // the drop zone shows a focus ring when the input inside it takes focus
+    expect($html)->toContain('.ci-idzone:focus-within');
+});

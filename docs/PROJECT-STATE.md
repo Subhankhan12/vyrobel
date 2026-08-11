@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` DONE (3/32, gate 3 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` DONE (4/32, gate 4 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5400,6 +5400,17 @@ the work.
    the third instance of the G2 mock-value family. ⚠️ Also: the same-token-different-plate failure
    recurred a THIRD time (ghost button: 5.03 on the card, 4.41 on the wash), so treat 'same token, new
    backdrop' as a STANDING re-measure, not an occasional one.
+   ⚠️ **G4 (the first inbound-PII surface) — the privacy invariant HELD, the a11y did not.** All four
+   check-in stores (`guests.phone`, `notes_guest`, `arrival_window`, the encrypted ID document + bytes)
+   are reachable by `anonymize()`, each proven by removing it and watching the erasure suite go red —
+   nothing to log. What failed was the FORM: **Enter in the phone field on step 1 completed the whole
+   check-in** (one form, three steps, one submit — implicit submission fired the real write and stamped
+   `guest_checked_in_at` before the guest saw the ID or arrival steps), and **the ID upload was
+   keyboard-unreachable** (`hidden` = display:none, label not focusable). Both fixed and mutation-proven.
+   ⚠️ Also: **a token moved at G2 and this page didn't**, because it hardcoded `#8f6414` rather than
+   referencing `--vy-amber-text` — five literals in all. When a shared token changes, grep the realm for
+   its OLD value, not just its call sites. And the worst contrast readings on a PII form were its own
+   **field labels** (2.99).
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via

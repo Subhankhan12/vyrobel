@@ -14,9 +14,9 @@
             .ci-hero-mark { width: 54px; height: 54px; border-radius: 16px; background: var(--vy-grad); display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); flex-shrink: 0; }
             .ci-pill { display: inline-flex; align-items: center; gap: 7px; padding: 3px 12px 3px 9px; border-radius: 30px; margin-bottom: 8px; font-size: 11px; font-weight: 600; }
             .ci-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
-            .ci-pill.pending { background: rgba(217,154,61,.16); color: #8f6414; }
+            .ci-pill.pending { background: rgba(217,154,61,.16); color: var(--vy-amber-text); }
             .ci-pill.pending .dot { background: #d99a3d; }
-            .ci-pill.done { background: rgba(79,122,70,.14); color: #3f6338; }
+            .ci-pill.done { background: rgba(79,122,70,.14); color: var(--vy-green-text); }
             .ci-pill.done .dot { background: #4f7a46; }
             .ci-title { font-family: var(--vy-display); font-weight: 600; font-size: 25px; letter-spacing: -0.02em; line-height: 1.12; margin: 0; }
             .ci-sub { font-size: 13px; color: var(--vy-muted); margin: 5px 0 0; line-height: 1.45; }
@@ -34,18 +34,18 @@
             .ci-rail .seg.mid { justify-content: center; }
             .ci-rail .seg.end { justify-content: flex-end; }
             .ci-rail .circ { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 11.5px; font-weight: 600; flex-shrink: 0; border: 1.5px solid var(--vy-hairline); color: var(--vy-faint); background: rgba(255,255,255,.6); }
-            .ci-rail .circ.active { background: var(--vy-grad); color: #fff; border-color: transparent; }
+            .ci-rail .circ.active { background: var(--vy-accent); color: #fff; border-color: transparent; }   /* white step number: 3.48 on the gradient -> 5.18 solid */
             .ci-rail .circ.on { background: rgba(217,102,46,.14); color: var(--vy-accent); border-color: transparent; }
             .ci-rail .lbl { font-size: 11.5px; font-weight: 500; color: var(--vy-muted); white-space: nowrap; }
             .ci-rail .bar { flex: 1; height: 2px; border-radius: 2px; background: var(--vy-hairline); }
 
-            .ci-fl { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9c9089; margin-bottom: 6px; }
+            .ci-fl { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 6px; }
             .ci-in { width: 100%; box-sizing: border-box; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.75); border-radius: 14px; padding: 11px 14px; font-family: var(--vy-sans); font-size: 13.5px; color: var(--vy-ink); outline: none; }
             .ci-readonly { padding: 11px 14px; border-radius: 14px; background: rgba(120,70,40,.05); border: 1px solid var(--vy-hairline); font-size: 13.5px; color: var(--vy-ink); }
             .ci-step-h { font-family: var(--vy-display); font-weight: 600; font-size: 21px; letter-spacing: -0.02em; }
             .ci-step-sub { font-size: 13px; color: var(--vy-muted); margin: 5px 0 18px; }
             .ci-note-box { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(120,70,40,.06); border: 1px solid rgba(120,70,40,.10); font-size: 12px; color: var(--vy-muted); }
-            .ci-btn { width: 100%; padding: 13px 0; border-radius: 26px; background: var(--vy-grad); border: none; color: #fff; font-family: var(--vy-sans); font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: var(--vy-shadow-accent); }
+            .ci-btn { width: 100%; padding: 13px 0; border-radius: 26px; background: var(--vy-accent); border: none; color: #fff;   /* white 14px CTA: 3.39 on the gradient -> 5.18 solid */ font-family: var(--vy-sans); font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: var(--vy-shadow-accent); }
             .ci-btn-ghost { width: 100%; margin-top: 10px; padding: 11px 0; border-radius: 26px; background: transparent; border: 1px solid rgba(120,70,40,.16); color: var(--vy-muted); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; cursor: pointer; }
 
             .ci-idtypes { display: flex; gap: 8px; margin-bottom: 14px; }
@@ -57,6 +57,13 @@
             .ci-idzone.has .ic { background: var(--vy-grad); color: #fff; }
             .ci-idzone .t { font-size: 13.5px; font-weight: 500; color: var(--vy-ink); }
             .ci-idzone .s { font-size: 11.5px; color: var(--vy-faint); }
+            /* ⚠️ The ID upload was `hidden` (= display:none), which drops it out of the tab order entirely —
+               and its wrapping <label> is not focusable — so a keyboard-only guest could not upload an ID AT
+               ALL. The canon's "appearance:none, never display:none", on the realm's PII-capture control.
+               Visually hidden but still focusable; :focus-within puts the ring on the drop-zone the guest
+               can actually see. No JS involved, so it holds in the no-JS fallback too. */
+            .ci-file { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+            .ci-idzone:focus-within { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
             .ci-privacy { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 18px; font-size: 11px; color: var(--vy-faint); text-align: center; }
 
             .ci-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
@@ -74,8 +81,11 @@
             .ci-unlock { display: flex; align-items: flex-start; gap: 11px; padding: 9px 0; }
             .ci-unlock + .ci-unlock { border-top: 1px solid var(--vy-hairline); }
             .ci-unlock .ic { width: 28px; height: 28px; border-radius: 9px; background: rgba(217,102,46,.12); color: var(--vy-accent); display: grid; place-items: center; flex-shrink: 0; }
-            .ci-unlock .t { font-size: 12.5px; font-weight: 500; }
-            .ci-unlock .s { font-size: 11px; color: var(--vy-faint); margin-top: 2px; }
+            .ci-unlock .t { display: block; font-size: 12.5px; font-weight: 500; }
+            /* display:block, per the prototype. Without it these two spans render INLINE and the title runs
+               straight into its subtitle — "Door code by emailSent before arrival". Invisible to php -l,
+               PHPStan, Pint and a Blade compile; only the render shows it. */
+            .ci-unlock .s { display: block; font-size: 11px; color: var(--vy-faint); margin-top: 2px; }
 
             .ci-done-ic { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 14px; background: var(--vy-grad); display: grid; place-items: center; box-shadow: 0 14px 34px rgba(194,65,12,.42); }
         </style>
@@ -148,7 +158,7 @@
                         <div class="seg end"><span class="circ" data-circ="3">3</span><span class="lbl">Arrival</span></div>
                     </div>
 
-                    <form class="vy-card" method="POST" action="{{ route('guest.checkin.submit', $reservation) }}" enctype="multipart/form-data" data-guard-submit style="padding:24px">
+                    <form id="ci-form" class="vy-card" method="POST" action="{{ route('guest.checkin.submit', $reservation) }}" enctype="multipart/form-data" data-guard-submit style="padding:24px">
                         @csrf
 
                         {{-- STEP 1 — details --}}
@@ -182,7 +192,7 @@
                                 <button type="button" class="ci-idtype {{ $idType === 'id_card' ? 'on' : '' }}" data-idtype="id_card" onclick="vyCiIdType('id_card')">EU ID card</button>
                             </div>
                             <label class="ci-idzone {{ $idCaptured ? 'has' : '' }}" id="ci-idzone">
-                                <input type="file" name="id_photo" accept="image/*" capture="environment" hidden onchange="vyCiIdFile(this)">
+                                <input type="file" name="id_photo" accept="image/*" capture="environment" class="ci-file" onchange="vyCiIdFile(this)">
                                 <span class="ic" id="ci-idzone-ic">
                                     @if ($idCaptured)
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg>
@@ -220,7 +230,7 @@
                     </form>
                 @endif
 
-                <div style="text-align:center;font-size:11px;color:var(--vy-faint);margin-top:14px;line-height:1.5">Reservation {{ $reference }} · questions? <a href="{{ route('guest.messages') }}" style="color:var(--vy-accent);font-weight:500;text-decoration:none">Message the property</a></div>
+                <div style="text-align:center;font-size:11px;color:var(--vy-faint);margin-top:14px;line-height:1.5">Reservation {{ $reference }} · questions? <a href="{{ route('guest.messages') }}" style="color:var(--vy-accent-text);font-weight:500;text-decoration:none">Message the property</a></div>
             </div>
 
             {{-- SIDEBAR --}}
@@ -244,7 +254,9 @@
         @if (! $submitted)
             <script>
                 // No-Alpine 3-step stepper (progressive enhancement; JS-off → all steps visible + submittable).
+                var vyCiCurrent = 1;   // the visible step, tracked so the Enter guard below knows where it is
                 function vyCiStep(n) {
+                    vyCiCurrent = n;
                     document.querySelectorAll('[data-step]').forEach(function (el) { el.hidden = (parseInt(el.dataset.step, 10) !== n); });
                     document.querySelectorAll('[data-circ]').forEach(function (c) {
                         var i = parseInt(c.dataset.circ, 10);
@@ -273,6 +285,27 @@
                     document.getElementById('ci-window').value = v;
                     document.querySelectorAll('[data-slot]').forEach(function (b) { b.classList.toggle('on', b.dataset.slot === v); });
                 }
+
+                // ⚠️ §N.4k — Enter must never complete the check-in from an earlier step. This is ONE form
+                // spanning all three steps with a single submit ("Complete check-in"), so a browser's implicit
+                // submission fired the REAL write from the phone field on step 1: it saved the phone, stamped
+                // guest_checked_in_at (a once-only stamp) and finished check-in without the guest ever seeing
+                // the ID or arrival steps. A guest pressing Enter means "next field", not "submit my identity".
+                //
+                // Guarded HERE, in the stepper, on purpose: with JS off the stepper never runs, every step is
+                // visible at once, and implicit submission is then the CORRECT behaviour — the form really is
+                // complete. So the guard applies exactly when the wizard is hiding steps, and disappears with it.
+                // Textareas are untouched (they never implicitly submit; Enter is a newline in the arrival note).
+                (function () {
+                    var form = document.getElementById('ci-form');
+                    if (!form) { return; }
+                    form.addEventListener('keydown', function (e) {
+                        if (e.key !== 'Enter' || e.target.tagName !== 'INPUT' || e.target.type === 'file') { return; }
+                        if (vyCiCurrent >= 3) { return; }        // on the last step Enter may submit — it is complete
+                        e.preventDefault();                       // …otherwise never submit from an earlier step
+                        vyCiStep(vyCiCurrent + 1);                // do what the guest meant: move on
+                    });
+                })();
             </script>
         @endif
     @endif
