@@ -7632,3 +7632,37 @@ to €4,653.60. Logged not built: the month chart is a local implementation rath
 `<x-charts.bars>` — which is precisely why this floor survived after being fixed elsewhere.
 
 Suite **1852 / 12,115**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 26/32 · Reviews (`/owner/reviews`)
+
+**Every rating rendered as five full stars.** The hero row repeated the same filled glyph for both the filled
+and the empty half, so any average drew five gold stars. Live, a 4.5 displayed as a perfect 5 — and by that
+code a 3.0 would have too. On a page that reads as social proof, the glyphs overstated the real figure printed
+beside them.
+
+Fixed by extracting the shared `<x-star-rating>`, which partly closes DO10-4. Three things it enforces: the
+filled count **floors** — my first version rounded, which still showed 4.5 as a perfect five, and on a
+social-proof surface the honest rule is never to round up; the remainder uses a **different glyph**, so
+filled-vs-empty survives greyscale instead of depending on gold-vs-grey; and the row carries **one accessible
+name** with the glyphs hidden, so a screen reader hears the rating once. Its colours are self-contained
+literals rather than tokens, because it renders in the owner, operator, guest, public and email layouts — the
+trap that once 500'd every owner page. The other ten call sites are untouched; migrating them is DO10-4's own
+gate, and no twelfth hand-written copy was added.
+
+**The #28 guard was strengthened, not just verified.** It asserted the surname was trimmed, but its fixture
+gave the guest no email or phone — so it could never have proven that the review projection withholds contact.
+A guest with no email cannot leak one. Contact is now seeded and forbidden, and both directions are
+mutation-proven.
+
+**Read-only is structural**: the page contains no review form at all, so there is no live-looking reply that
+cannot post. The aggregates reconcile — 4+1+1+0+0 = 6 reviews, and (5×4 + 4×1 + 3×1)/6 = 4.5 exactly.
+
+⚠️ **Contrast was NOT measured this gate, and that is a gap in the record.** The screenshot step timed out
+repeatedly, including on a page that captured successfully earlier in the session, so the validated
+hide-text-then-sample-the-pixel method was unavailable. I wrote a CSS-compositing fallback and rejected its
+output: it scored white text at ratio 1.0 against a layer that is actually painted over, and reported 90
+failures on a page whose predecessors measured 2–5. Publishing numbers from a probe I know to be unsound would
+be worse than publishing none. **This page's contrast is outstanding** — including the new empty-star colour,
+which was chosen but not verified against 1.4.11 — and must be measured in a follow-up.
+
+Suite **1853 / 12,120**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.

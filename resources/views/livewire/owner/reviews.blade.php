@@ -54,7 +54,7 @@
                     <div class="vy-eyebrow">Overall rating</div>
                     <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
                         <span style="font-family:var(--vy-display);font-weight:600;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ number_format((float) $summary['average'], 1) }}</span>
-                        <span style="color:#E8A63A;font-size:16px;letter-spacing:2px">{{ str_repeat('★', (int) round((float) $summary['average'])) }}{{ str_repeat('★', 5 - (int) round((float) $summary['average'])) }}</span>
+                        <x-star-rating :value="$summary['average']" size="16px" gap="2px" />
                     </div>
                     <div style="font-size:12px;color:var(--vy-faint);margin-top:4px">{{ $summary['count'] }} {{ \Illuminate\Support\Str::plural('review', $summary['count']) }} · all villas</div>
                 </div>

@@ -61,7 +61,12 @@ function reviewsOwner(array $s): array
 
 it('renders the exact-match Reviews page on REAL aggregates + the operator responses (read-only)', function () {
     $s = seedScenario(1);
-    $s['guest']->update(['first_name' => 'Sofia', 'last_name' => 'Marino']);
+    // ⚠️ Contact is seeded ON PURPOSE. The surname assertion below proves the byline is trimmed, but it
+    // could not prove the review projection withholds CONTACT — a guest with no email cannot leak one.
+    $s['guest']->update([
+        'first_name' => 'Sofia', 'last_name' => 'Marino',
+        'email' => 'sofia.marino@icloud.test', 'phone' => '+351913004422',
+    ]);
     $user = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
     $owner = Owner::factory()->create(['user_id' => $user->id, 'payout_currency' => 'EUR']);
@@ -83,6 +88,8 @@ it('renders the exact-match Reviews page on REAL aggregates + the operator respo
         ->assertSee('Awaiting a reply')
         // #28 — first name + initial, NEVER the full last name
         ->assertSee('Sofia M.')->assertDontSee('Marino')
+        ->assertDontSee('sofia.marino@icloud.test')   // #28 — never the guest's email…
+        ->assertDontSee('+351913004422')              // …nor their phone
         // HONEST — the OTA review ingest is account-gated; NO fabricated "within 24 hours" SLA
         ->assertSee('review sync activates once those channels are connected')
         ->assertDontSee('within 24 hours');
@@ -155,4 +162,24 @@ it('shows an honest empty state when the owner has no reviews', function () {
     $this->actingAs($user)->get('/owner/reviews')->assertOk()
         ->assertSee('No reviews yet for your units')
         ->assertDontSee('Response rate');   // no fabricated aggregate on an empty page
+});
+
+// ── The star row must never show more filled stars than the rating earned ─────────────────────────
+// Owner-26 found the hero repeating the SAME filled glyph for both halves of the row, so EVERY rating
+// rendered as five full stars: a 4.5 average looked like a perfect 5, and a 3.0 would have too. On a
+// page that reads as social proof that overstates the real figure. The shared <x-star-rating> now
+// floors the filled count and marks the remainder with a DIFFERENT glyph, so filled-vs-empty survives
+// greyscale (1.4.1) and the row carries one accessible name instead of five anonymous stars.
+it('never renders more filled stars than the rating earned', function () {
+    $s = seedScenario(1);
+    $c = reviewsOwner($s);
+    reviewOn($s, $s['units'][0], 4, 'Good, not perfect.', null, '2026-06-01', '2026-06-04');
+
+    $html = $this->actingAs($c['user'])->get('/owner/reviews')->assertOk()->getContent();
+
+    // A row that earned less than five must contain an EMPTY glyph — the bug shipped exactly because
+    // every glyph was the filled one.
+    expect($html)->toContain('☆')
+        // …and the row is named, so a screen reader hears the rating once.
+        ->and($html)->toContain('out of 5 stars');
 });

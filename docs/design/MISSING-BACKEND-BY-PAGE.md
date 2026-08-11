@@ -4868,3 +4868,82 @@ Repairing it took three attempts, and the two failures are worth recording:
   per-unit total, the gross-to-net net figure, the KPI delta).
 - **Survivors (5), all white-on-accent-gradient, none added:** shell avatar 3.83 · brand mark 3.88 · the peak
   bar's value chip 3.88 · the Export button 3.93 · the hero badge 3.93.
+
+---
+
+## §O-26 — Owner **Reviews** (`/owner/reviews`)
+
+`App\Livewire\Owner\OwnerReviews` → the shared `OwnerReviewSummary` / `ReviewList`.
+Prototype `docs/design/raw/Owner Reviews.html`. Read-only by design (the operator owns the response).
+
+### 🔴 THE FIX — every rating rendered as FIVE FULL STARS
+
+The hero star row was:
+
+```blade
+{{ str_repeat('★', round($avg)) }}{{ str_repeat('★', 5 - round($avg)) }}
+```
+
+**Both halves repeat the SAME filled glyph.** So the row rendered five gold stars for *any* rating — live,
+a **4.5 average displayed as a perfect 5**, and by that code a 3.0 would have too. On a page that reads as
+social proof, the glyphs overstated the real figure while the correct number sat beside them.
+
+**Fixed by extracting the shared `<x-star-rating>`** (below), which additionally:
+- **floors** the filled count — ⚠️ my first version rounded, which still showed 4.5 as a perfect five; on a
+  social-proof surface the honest rule is **never round up**, and the exact figure is always printed alongside;
+- marks the remainder with a **different glyph** (`☆`), so filled-vs-empty survives greyscale (1.4.1) rather
+  than depending on gold-vs-grey;
+- carries **one accessible name** ("4.5 out of 5 stars") with the glyphs `aria-hidden`, so a screen reader
+  hears the rating once instead of five anonymous stars.
+
+Live after: **★★★★☆ for 4.5**.
+
+### 🔧 DO10-4 — the ★ glyph, partly closed
+
+`<x-star-rating>` is **new and additive**; the owner Reviews hero is wired to it. **The other ten call sites
+are untouched** — `booking/browse`, `booking/room`, `emails/review-request`, `guest/trips`, `guest/review`,
+`guest/partials/trip-card`, `livewire/units-list`, `livewire/owner/units`, `livewire/owner/unit-detail`,
+`operator/reviews`, plus two further in-page star spans on this page itself. Migrating them touches the
+guest, operator, public **and email** layouts, each with its own size/colour, which is beyond a single page
+gate. *Verdict: **REAL GAP** — DO10-4 now has a component to migrate TO, and the migration is its own gate.
+**No 12th hand-written copy was added.***
+
+⚠️ The component's colours are **self-contained literals, not tokens**, precisely because it must render in
+five different shells — the O6 trap (a shared partial depending on a token only one shell defines).
+
+### ⚠️ Verified, not changed
+
+- **#28 byline is first-name + initial, STRUCTURALLY** — `GuestName::reviewByline()` is the one rule
+  (`"Sofia" + "M."`, or `"A guest"` when no first name). Live: `Demo W.`, `Anna K.`, `Sofia M.`, `Henrik L.`,
+  `Marta R.`; **0 emails in the DOM**. ⚠️ **The existing guard was strengthened**: its fixture gave the guest
+  no contact, so it could prove the surname was trimmed but *could not* prove the projection withholds an
+  email or phone — a guest with no email cannot leak one. Contact is now seeded and forbidden.
+  **Mutation-proven twice**: emitting the full surname → red; appending the guest's email to the byline → red.
+- **READ-ONLY is structural (Phase 5).** The page contains **no review form at all** — the only two forms in
+  the document are the shell's notification "mark all read" and "sign out". No reply/flag/moderate control
+  exists to disable, so there is no live-looking control that cannot post. ("Report" in the DOM is the
+  sidebar's **Reports** nav item, verified — not a flag control.)
+- **#39 — the aggregates reconcile from the real reviews.** Distribution 5★→4, 4★→1, 3★→1, 2★→0, 1★→0 = **6
+  reviews**, matching the printed count and the per-villa split (3 + 3). And **(5×4 + 4×1 + 3×1) / 6 = 4.5**,
+  exactly the displayed average. An existing guard covers the honest empty state ("no fabricated aggregate on
+  an empty page").
+- **#42/#38** — unit ids come from the owner-scoped `OwnerPortalService::units()`; a foreign unit's reviews
+  cannot enter the query. The pending rate-proposal count is on `RateProposal`, which carries
+  `BelongsToOwner`, so that count is this owner's too (checked because a bare `count()` is where a rollup
+  leaks).
+- **Keyboard: 0 unnamed controls, 0 `display:none` controls, 0 genuinely unreachable** (the 4 flagged were the
+  shell's Alpine roots — the known FP). The villa filter is real `<button>`s.
+- ⚠️ **`toContain` sweep — clean negative** (twenty-fifth gate).
+
+### ⚠️ CONTRAST — NOT MEASURED THIS GATE (tooling failure, disclosed)
+
+The validated method is: hide text → screenshot → sample the composited pixel. **The screenshot tool timed out
+repeatedly**, including on a page that captured successfully earlier in the session, so it is an environment
+failure rather than anything about this page.
+
+I wrote a CSS-compositing fallback and **rejected its output**: it scored white text at ratio 1.0 by comparing
+it against a background layer that is actually painted over, and reported 90 "failures" on a page whose
+predecessors measured 2–5. **Publishing numbers from a probe I know to be unsound would be worse than
+publishing none** *(the 11th probe false positive of this pass — and the first I authored myself under a
+broken tool)*. ⚠️ **This page's contrast is therefore OUTSTANDING and must be measured in a follow-up** —
+including the new `☆` empty-star colour (`#B9A99A`), which was chosen but **not verified against 1.4.11**.
