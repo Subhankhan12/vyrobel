@@ -222,3 +222,30 @@ it('rejects a reason outside the allowed set', function () {
 
     expect(InventoryBlock::query()->where('unit_id', $a['unit']->id)->exists())->toBeFalse();
 });
+
+// ── EVERY BLOCKABLE DAY IS A REAL KEYBOARD-OPERABLE CONTROL ───────────────────────────────────────
+// Owner-23 found the Owner-10 lockout again, in a SECOND copy of the grid: an open day was a <div>
+// carrying only @mousedown/@mouseenter, with no tabindex, no role and no key handler anywhere on the
+// cells. Selecting dates was therefore mouse-drag ONLY — and selecting is the first half of BLOCKING,
+// which takes inventory off-sale through OwnerBlockService. A keyboard user was locked out of a
+// money-affecting action on its own dedicated page. Every open day is now a real <button> with a
+// spoken date, aria-pressed, and a keyboard select path (see pickSel in the view).
+it('renders every blockable day as a real keyboard-operable button', function () {
+    $s = seedScenario(1);
+    $a = blkOwner($s, 0, 'Amara Okafor');
+
+    $html = $this->actingAs($a['user'])->get('/owner/calendar')->assertOk()->getContent();
+
+    // The month must actually contain open days, or this guard would pass on an empty grid.
+    expect(substr_count($html, 'vy-cal-open'))->toBeGreaterThan(1);
+
+    // Every open cell is a BUTTON, never a div: no `<div ... vy-cal-open` may survive.
+    expect($html)->not->toContain('<div class="vy-cal-cell vy-cal-open"');
+    expect(preg_match('/<button[^>]*class="vy-cal-cell vy-cal-open"/', $html))->toBe(1);
+
+    // …and it carries a spoken name + a keyboard activation path.
+    expect($html)->toContain('Select to block this day.')
+        // ⚠️ Assert the ATTRIBUTE, not the bare expression. The first version of this needle was satisfied
+        // by a CODE COMMENT that quoted the same expression, so deleting the real binding left it green.
+        ->and($html)->toContain('@click="$event.detail === 0');
+});

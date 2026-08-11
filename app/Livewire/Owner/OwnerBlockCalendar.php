@@ -227,7 +227,7 @@ class OwnerBlockCalendar extends Component
 
         // Leading blanks so day 1 sits under its real weekday (dayOfWeekIso: 1=Mon … 7=Sun).
         for ($b = 1; $b < $monthStart->dayOfWeekIso; $b++) {
-            $out[] = ['day' => null, 'date' => null, 'state' => 'blank', 'block_id' => null, 'guest' => null];
+            $out[] = ['day' => null, 'date' => null, 'state' => 'blank', 'block_id' => null, 'guest' => null, 'aria' => null];
         }
 
         for ($n = 1; $n <= $days; $n++) {
@@ -247,6 +247,9 @@ class OwnerBlockCalendar extends Component
                 'state' => $state,
                 'block_id' => $state === 'blocked' ? $blockDays[$key] : null,
                 'guest' => $state === 'booked' ? $bookedDays[$key] : null,
+                // The spoken date for the cell's accessible name. A day number alone ("14") is meaningless
+                // out of the grid's visual context, and every day control needs a name that identifies it.
+                'aria' => $date->format('j F Y'),
             ];
         }
 

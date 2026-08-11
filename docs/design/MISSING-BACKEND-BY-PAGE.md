@@ -4613,3 +4613,89 @@ because per-document plates change the result (O21's `#B26A08` passed on white a
 the plate it actually sat on) and some greys sit on dark bands where darkening is backwards (the statement's
 `.band`); (3) the guest and operator documents are outside the owner realm, so they will not be reached by
 this pass at all. **Not started — awaiting the founder's go-ahead.**
+
+---
+
+## §O-23 — Owner **Block Calendar** (`/owner/calendar`)
+
+`App\Livewire\Owner\OwnerBlockCalendar` → `OwnerBlockService` → the certified `AssignmentService`.
+Prototype `docs/design/raw/Owner Block Calendar.html`. Route gated by `$capCalendar`.
+
+### 🔴 THE O10 KEYBOARD LOCKOUT, FOUND AGAIN IN A SECOND COPY OF THE GRID
+
+The Unit Detail calendar was fixed at O10. **This page has its own grid in its own view** — `block-calendar
+.blade.php`, not a shared partial — so that fix never reached it, and the identical defect was still live:
+
+- an **open** day was `<div class="vy-cal-cell vy-cal-open" @mousedown.prevent="startSel(…)"
+  @mouseenter="overSel(…)">` — no `tabindex`, no `role`, and **no keydown handler on any cell** (verified: 0);
+- **15 open cells, 0 focusable.** Selecting was **mouse-drag only** — and selecting is the first half of
+  BLOCKING, which takes inventory off-sale through `OwnerBlockService`. **A keyboard user was locked out of a
+  money-affecting action on the page built for it.**
+
+**Fixed** (markup/styling only — no backend, no engine, no guard touched): every open day is now a real
+`<button type="button">` with a spoken name (*"19 August 2026 — open. Select to block this day."*),
+`aria-pressed` reflecting selection, a `:focus-visible` ring, and a **keyboard range path** — `pickSel()`
+anchors on the first Enter/Space and extends on the second. It is bound so it fires only for a
+pointer-detail-less click, i.e. **keyboard activation only**, so the mouse drag is left exactly as designed.
+**Proven live: a 4-night range (19–22 Aug) selected entirely by keyboard, with zero network activity.**
+
+⚠️ **The prototype is mouse-only by construction** (`<div>` cells, `tabindex` count = **0** in the whole
+decoded file), so this is an added fix, not a divergence from the design — the same call as O10.
+
+### ⚠️ PREMISE CORRECTION — a foreign unit FALLS BACK, it does not 404
+
+The brief expected a foreign unit's calendar → 404. The real behaviour: `resolveUnit()` matches the requested
+`?unit=` **only within the owner's own scoped collection**, so a foreign id simply never matches and the page
+falls back to the owner's first own unit. Live, `?unit=<operator-owned unit>` renders **A1**, the foreign id
+appears **nowhere** in the HTML, only A1/A2 are offered, and the hidden `unit_id` posts the owner's own unit.
+**No leak — the refusal is structural — but it is a silent fallback, not a 404.** The WRITE path is separately
+guarded (`ownedUnitOrFail()`), and that guard is **mutation-proven**.
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO23-1 — no channel/OTA state on any day.** The prototype's states are Booked / Owner block / Selecting /
+  Open, and that is exactly what renders. There is no "blocked by channel" or OTA-synced day because there is
+  no live channel data (D2-2 / Channex is account-gated). *Verdict: **ACCOUNT-GATED** — the honest four-state
+  legend is correct; a fifth state must not be invented.*
+- **DO23-2 — the two calendar grids are duplicated, not shared.** Unit Detail and Block Calendar each carry
+  their own day-cell markup and CSS. O10's fix had to be re-made here from scratch, and the next change will
+  have to be made twice again. *Verdict: **REAL GAP** — extract one `<x-owner.day-cell>` / grid partial. ⚠️ The
+  shared-partial trap in its "second unfixed copy" form.*
+
+### ⚠️ Verified, not changed
+
+- **READ-ONLY — nothing was written.** Baseline before probing: `inventory_blocks = 2`,
+  `max(updated_at) = 2026-08-09 07:17:59`, `availability` 650 rows, `sum(blocked) = 6`, `sum(sold) = 105`.
+  **Identical after** the full keyboard walk-through. No block or release was ever fired; the keyboard
+  selection only mutates Alpine state and opens the composer.
+- **§N.4k Enter-safe by construction.** The POST form (`x-ref="blockForm"`) contains **only `type="hidden"`
+  inputs** and is submitted explicitly by `doBlock()`. The visible reason/note/repeat controls sit **outside**
+  any form, so Enter in the note can never submit a block. *(Its `display:none` is not the GATE-30 defect —
+  hidden inputs are never focusable.)*
+- **#28 — guest NAME only on a booked cell.** "Demo Booker" / "Demo Resident" in the cell and its `title`;
+  no email, phone or reference. Consistent with the Owner-18/19 precedent.
+- **#39 — every day-state is real**: booked from a real reservation, blocked from a real `InventoryBlock`,
+  past from the date. The month's stat line ("0 held · 6 booked · 15 open") counts the real grid.
+- **1.4.1 — state is no longer colour-only.** Open days now carry a spoken name and `aria-pressed`; booked,
+  blocked and past cells carry a `.vy-sr-only` state word, so an assistive-tech user can tell them apart
+  without the tint (previously an open and a past cell were both bare divs holding a number).
+- ⚠️ **`toContain` sweep — clean negative** (twenty-second gate).
+
+### 🎨 Contrast — 22 → 3 (all three the known white-on-gradient family)
+
+- **`.vy-cal-past .vy-cal-num` `#C9BEB6` at 1.48–1.57 across 10 past days — the worst reading of the owner
+  realm so far.** ⚠️ The O17 *disabled-stays-dim* exemption does **not** apply: these are **text**, not
+  disabled controls, and WCAG has no exemption for "inactive" text. Fixed to `--vy-muted`; the cell's own
+  dimmer plate still keeps past days recessive.
+- `#A69A92` ×4 and `#9C9089` ×2 (stat line, "N blocks", eyebrows, repeat summary) at **2.17–2.50** →
+  `--vy-muted`.
+- `.vy-cal-guest` / `.vy-cal-series` / active reason `#B4400F` at **3.90–4.10** — the guest name sits on the
+  booked accent **tint**, where accent-text is marginal (the O19 finding) → **`--vy-accent-tint-text`**.
+- The empty-state calendar icon failed 1.4.11 at **1.54**; it merely repeats the adjacent sentence, so it is
+  now `aria-hidden` (decorative) rather than darkened.
+- **Survivors (3), all the known family, none added:** the shell avatar 3.83, brand mark 3.88, and the active
+  unit pill "A1" 3.90 — white on the accent gradient.
+- **Also fixed: the note input had NO focus indicator at all** (`outline:none`, no replacement — a real 2.4.7
+  failure) **and no accessible name** (placeholder-only). Now `:focus-visible` + `aria-label`. ⚠️ A first probe
+  reported `outline:none` on the whole nav too — a **false positive** reading unfocused defaults; re-run
+  against the focused state, only the note was real. *(8th probe FP of this pass — correct the probe.)*

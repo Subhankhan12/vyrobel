@@ -7524,3 +7524,42 @@ generated-file measurement (O21's `#B26A08` passed on white and failed on its ac
 operator documents lie outside this pass entirely.
 
 Suite **1850 / 12,104**, 9 non-green — the documented non-deterministic set. PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 23/32 · Block Calendar (`/owner/calendar`)
+
+**The Owner-10 keyboard lockout was still live here, in a second copy of the grid.** Unit Detail's calendar was
+fixed at O10; this page carries its own day-cell markup in its own view, so that fix never reached it. An open
+day was a `<div>` with `@mousedown`/`@mouseenter` and nothing else — no tabindex, no role, and zero keydown
+handlers on any cell. Fifteen open cells, none focusable. Since selecting dates is the first half of blocking,
+and blocking takes inventory off-sale through `OwnerBlockService`, **a keyboard user was locked out of a
+money-affecting action on the page built for exactly that action.**
+
+Every open day is now a real button with a spoken date, `aria-pressed`, a focus ring, and a keyboard range
+path: the first Enter anchors, the second extends. It is bound to fire only for a click carrying no pointer
+detail — keyboard activation — so the mouse drag behaves exactly as designed. Proven in the browser: 19–22
+August selected entirely by keyboard, with zero network activity.
+
+**The real lesson is DO23-2: the two grids are duplicated, not shared.** O10's fix had to be re-made here from
+scratch, and the next change will have to be made twice again. One day-cell partial should own this.
+
+**Premise correction:** a foreign unit does not 404 — `resolveUnit()` matches `?unit=` only within the owner's
+own collection, so a foreign id falls back to the owner's first unit. Verified live: the foreign id appears
+nowhere, only the owner's units are offered, and the posted `unit_id` stays theirs. No leak, structurally
+refused, but a silent fallback rather than a 404. The write guard is separate and mutation-proven.
+
+⚠️ **A vacuous guard, caught on my own new test.** My keyboard guard asserted the presence of the binding
+expression — and that needle was satisfied by **my own code comment**, which quoted the same expression.
+Deleting the real binding left the test green. The comment was reworded to stop carrying the literal and the
+assertion tightened to the attribute form; both mutations are now red. This is the Owner-11 comment trap
+reappearing on the other side — there a comment shipped a forbidden value into a PDF, here one satisfied a
+test's needle.
+
+**Contrast 22 → 3.** The past-day numbers measured **1.48**, the worst reading of the owner realm so far, and
+the O17 "disabled stays dim" exemption does not apply — they are text, not disabled controls. The guest name
+on the booked tint went to `--vy-accent-tint-text` per the O19 rule. The note input had no focus indicator and
+no accessible name; both fixed. The three survivors are the known white-on-gradient family, none added.
+
+Nothing was written: `inventory_blocks`, `max(updated_at)` and the availability sums are identical before and
+after the walk-through.
+
+Suite **1851 / 12,110**, 9 non-green — the documented set. PHPStan L5 (0); Pint clean.
