@@ -4334,3 +4334,99 @@ not — so it was **probed in and measured** rather than assumed.
   1440×1000; 0 console errors.
 - **READ-ONLY** — nothing submitted; no money, no status, no message written.
 - ⚠️ **`toContain` sweep — clean negative** (eighteenth gate).
+
+---
+
+## §O-20 — Owner **Booking Summary PDF** (`/owner/statements/{statement}/bookings`)
+
+`OwnerBookingSummaryPdfController` → `OwnerBookingSummaryDocument::data()` → `pdfs.owner-booking-summary`,
+rendered by `PdfService`. Prototype `docs/design/raw/Owner Booking Summary PDF.html`.
+**Premise confirmed, with one correction:** the DOCUMENT's design was already matched at #56 — letterhead,
+`BS-YYYY-MM` ref, 4-up KPI band, By unit / By channel / Bookings-this-period tables, reconciliation callout
+and footer all match the decoded prototype. **What was never closed on this document is the a11y axis** —
+exactly the Owner-11 shape, where the Statement PDF was likewise already design-matched.
+
+### 🔴 THE FINDING THAT LEAVES THIS PAGE — SCREEN AND PDF DISAGREE ABOUT "NIGHTS"
+
+For statement #6 the **statement screen** prints, under the gross line, **"8 nights · 2 units"**; the **PDF's
+Nights KPI** for the same statement prints **6**. Both are real and neither is fabricated — they count
+different things:
+
+- the screen (`OwnerStatementView::grossSublabel` → `OwnerStatementBreakdown` → `PerformanceMetrics
+  ::roomNightsSold`) counts **every stay-night physically occupied** on the owner's units in the period (8);
+- the PDF sums the **nights of the bookings whose revenue this statement actually claimed** (3 + 3 = 6).
+
+The screen's number is the one attached to the **gross figure**, so as written it asserts that 8 nights
+generated €1,080.00 when 6 did. An owner reading the statement and its booking summary side by side sees a
+two-night gap with nothing explaining it. *Verdict: **REAL GAP** — a cross-surface money-label question
+(which nights belong under a gross line), so it is **surfaced, not decided**, and needs its own gate. Neither
+figure was touched here.*
+
+### 🚫 REFUSALS TO PRESERVE
+
+- **RO20-1 — the OTA brand.** The prototype splits "Booking.com" / "Airbnb"; `reservations.source` is a
+  7-value enum and `channels.provider` only knows `channex`. Groups by the real enum. *(D2-2 · O18 · O19.)*
+- **RO20-2 — the letterhead city.** The prototype prints "Faro, Portugal"; the street/city is not modelled,
+  so only the country renders. *Verdict: **RATIFIED REFUSAL**.*
+- **RO20-3 — "Showing 8 of 18 bookings".** The prototype truncates and points at the portal; the document
+  lists **every** row. Truncating an official record the owner keeps would be worse than the design.
+  *Verdict: **EXTRA-KEEP**.*
+- **RO20-4 — "Bookings this month" → "Bookings this period".** A statement period need not be a calendar
+  month; the live wording stays true when it isn't. *Verdict: **EXTRA-KEEP**.*
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO20-1 — no page numbering on any owner PDF.** `PdfService` stamps a per-page downloader watermark but no
+  "Page X of Y", so a multi-page summary has no pagination. Belongs to the `PdfService` gate, not here.
+  *Verdict: **REAL GAP** (small) — realm-wide, one place.*
+
+### ⚠️ Verified, not changed
+
+- **#17 — RECONCILES, ONE SOURCE, SCREEN==PDF.** By unit €540.00 + €540.00 = **€1,080.00**; by channel
+  €540.00 + €540.00 = €1,080.00; the booking rows 2 × €540.00 = €1,080.00; `statements.gross_minor` =
+  **108000 EUR**. The statement SCREEN prints the same **€1,080.00** — same integer, same `MoneyFormatter`
+  string. Nothing is re-derived in the Blade; every figure is composed in `OwnerBookingSummaryDocument`.
+- **Occupancy uses the RIGHT denominator (Owner-8).** `PerformanceMetrics::forOwnerUnits` →
+  `availableRoomNights = count(unitIds) × days` = 2 × 30 = 60. Per-unit **A1 17%** (5/30) and **A2 10%**
+  (3/30); headline **13%** = 8/60 — the per-unit numerators sum exactly to the headline's. Occupancy legitimately
+  exceeds the summary's 6 revenue-nights because it counts all physical stays; the docblock says so.
+- **#28 — the generated content stream is clean.** Guest **names only** ("Demo Walker", "Demo Resident"); **0
+  emails, 0 phone numbers, no address, no country, no IBAN** anywhere in the text. The fixture behind the
+  name-only test seeds a guest **with** an email and phone precisely so it cannot pass by accident.
+  ⚠️ **Disclosed:** the PdfService watermark embeds the **downloader's own** address ("Downloaded by Demo
+  Owner (demo-owner@vyrobel-demo.test)") — the recipient identifying themselves on their own document, by
+  design, not a third party's PII.
+- **#42 — MUTATION-PROVEN both ways.** `OwnerStatement::query()->findOrFail()` under `OwnerScope`; replacing
+  it with `withoutGlobalScopes()` turns **both** *"404s a cross-owner booking summary"* and *"fails closed for
+  a non-linked member"* red. **#30**: the route sits under `$capExports`, so a view-only sub-user is refused
+  before scope is even consulted.
+- **READ-ONLY, with the audit write disclosed.** Downloading writes an `export_downloads` row by design
+  (`ExportAudit::stamp` — the same identity on the file and the log). After the downloads taken here the
+  money is untouched: statement #6 `gross=108000`, `net_payable=88560` (the documented **€885.60**), 6 ledger
+  rows.
+- **Greyscale-safe** — nothing is colour-only: the highlighted cell is labelled "GROSS REVENUE", channels are
+  words, total rows carry the word "Total" plus a rule.
+- **The download control** is a real `<a href>` GET link, focusable and accessibly named (#20).
+- **No CSS comments in this template** (the Owner-11 trap is absent here) — clean negative.
+- **No docblock cites a non-existent test** on this path (the Owner-19 trap) — clean negative.
+- ⚠️ **`toContain` sweep — clean negative** (nineteenth gate); both new guards use `->and()`.
+
+### 🎨 Fixed here (this document's own literals — the realm-wide sweep is untouched)
+
+- **`#8A8079` ×8 declarations / 25 text runs at 3.86 on white → `#5F5853` at 6.98.** Every section heading,
+  table header, sublabel, KPI key, subtitle and the letterhead address.
+- **`#A69A92` (footer) at 2.74 → `#6C645F` at 5.79.** Both retargeted to the values `owner-statement` already
+  uses, so the two owner documents read alike. Measured on the **regenerated PDF's content stream**, not the HTML.
+- **The document printed on TWO sheets; now ONE.** The footer row spilled onto a blank second page: dompdf
+  applies its **own default page margin on top of** `.wrap`'s `padding-bottom`, overflowing the content box by
+  a few points. `padding: 36px 40px` → `36px 40px 0` (+ `.foot` margin 26px → 18px). No HTML-level check could
+  see this — the markup is valid; it took counting `/Type /Page` in the generated file.
+
+### ⚠️ Still open for the realm-wide PDF-contrast sweep (noted, NOT hand-fixed)
+
+`PdfService.php:54` watermark **`#a99b8e` at 2.70** (measured again here, on every page) — **PdfService was
+not touched**. The pre-AA greys remain in **14 other templates**: `owner-booking-confirmation`,
+`owner-agreement`, `owner-agreement-amendment`, `owner-remittance`, `owner-annual-tax`,
+`owner-statement-history`, `operator-report`, `maintenance-costs`, `arrival`, `folio`, `guest-statement`,
+`guest-vat-invoice`, `guest-credit-note`, `guest-refund-receipt`. ⚠️ **Pages 21 and 22 of this batch
+(Remittance, Annual Tax) are two of them** — expect the same pair on both.

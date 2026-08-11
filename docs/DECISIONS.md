@@ -7410,3 +7410,39 @@ Logged not built: an owner-scoped per-booking event timeline, and a per-booking 
 
 Suite **1843 / 12,084**, 9 non-green — all in the documented non-deterministic set (`BookingImportTest` ×6,
 `OwnerUnitDetailViewTest`, `StubViewsTest` ×2). PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 20/32 · Booking Summary PDF (`/owner/statements/{statement}/bookings`)
+
+First of a three-document batch, all measured on paper. **The document's design was already matched at #56** —
+every section of the decoded prototype is present — so this gate was the a11y axis, the same shape Owner-11
+found on the Statement PDF.
+
+**The finding that leaves the page: the screen and the PDF disagree about "nights."** For statement #6 the
+statement screen prints *"8 nights · 2 units"* under the gross line; the PDF's Nights KPI prints **6**. Both
+figures are real. The screen counts every physically occupied stay-night on the owner's units
+(`PerformanceMetrics::roomNightsSold`); the PDF sums the nights of the bookings whose revenue this statement
+actually claimed. Because the screen's number sits under the **gross**, it asserts that 8 nights produced
+€1,080.00 when 6 did. Which nights belong under a gross line is a cross-surface money-label decision, so it is
+**surfaced here and not decided** — neither figure was touched.
+
+**Contrast on paper:** `#8A8079` (8 declarations, 25 text runs — every heading, table header, sublabel, KPI key
+and the letterhead) at **3.86** → `#5F5853` at **6.98**; the footer's `#A69A92` at **2.74** → `#6C645F` at
+**5.79**. Retargeted to the values `owner-statement` already carries so the two owner documents read alike,
+and measured on the regenerated PDF's own content stream.
+
+**The document printed on two sheets, the second carrying nothing but the footer.** dompdf applies its default
+page margin *on top of* `.wrap`'s `padding-bottom`, so the footer overflowed the content box by a few points.
+No HTML-level check could see it — the markup is valid — it took counting `/Type /Page` in the generated file.
+
+⚠️ **A sixth vacuous-guard form, caught on my own new test.** The page-count guard **passed with the bug
+reintroduced**: this file's fixture caps at two bookings (a third collides on availability) and two rows fit
+either way, so the fixture could never reach the page boundary. Widening it did not help, so the guard was
+**rejected** rather than shipped, and replaced with a rule assertion that is mutation-provable. A guard that
+cannot fail is worse than no guard, because it reads as coverage.
+
+Refusals preserved: the OTA brand, the letterhead city. Kept over the prototype: the full booking list (it
+truncates at "8 of 18" — unacceptable on a record the owner keeps) and "Bookings this period" over "this
+month". `PdfService` untouched; its `#a99b8e` watermark re-measured at **2.70**, and the pre-AA greys remain
+in 14 other templates — two of them are pages 21 and 22 of this batch.
+
+Suite **1845 / 12,087**, 9 non-green — the documented non-deterministic set. PHPStan L5 (0); Pint clean.

@@ -234,3 +234,40 @@ it('fails closed for a non-linked member', function () {
 
     $this->actingAs($stranger)->get("/owner/statements/{$a['statement']->id}/bookings")->assertNotFound();
 });
+
+// ── The document's ink stays post-AA — a booking summary is read on WHITE PAPER ───────────────────
+// Owner-20 measured this document's OWN content stream and found the same pre-AA pair the statement
+// carried: #8A8079 (3.86 on white) across 25 text runs — every section heading, table header, sublabel
+// and the letterhead — and #A69A92 (2.74) the footer. Retargeted to the values the statement document
+// already uses, so the two owner PDFs read alike: #5F5853 (6.98) and #6C645F (5.79), measured on the
+// regenerated PDF. Nothing guarded the statement's identical fix for a full pass, which is why this
+// exists. Blade comments are stripped at compile time but CSS comments are NOT, so asserting the
+// RENDERED document is what catches a literal smuggled back in inside a comment.
+it('keeps the booking summary document free of the pre-AA greys', function () {
+    $s = seedScenario(2);
+    $a = bookingSummaryOwner($s, [0], [20000]);
+
+    $html = view('pdfs.owner-booking-summary', OwnerBookingSummaryDocument::data($a['statement']))->render();
+
+    expect($html)->not->toContain('#8A8079')
+        ->and($html)->not->toContain('#A69A92');
+});
+
+// ── The footer must not spill onto a blank second sheet ──────────────────────────────────────────
+// Owner-20 counted the GENERATED pdf's pages and found the real demo summary printing on TWO sheets,
+// the second carrying nothing but the footer row: dompdf applies its own default page margin ON TOP
+// of .wrap's padding-bottom, so the footer overflowed the content box by a few points. Invisible to
+// any html-level check, because the html is perfectly valid.
+//
+// ⚠️ This asserts the RULE, not the page count. A page-count assertion was written first and REJECTED:
+// it passed with the bug reintroduced, because this file's fixture caps at two bookings (a third
+// collides on availability) and two rows fit either way. A guard whose fixture cannot reach the
+// failure is not a guard — the same trap as the #28 DontSee guard repaired in Owner-16.
+it('keeps the booking summary footer inside the printable page', function () {
+    $s = seedScenario(2);
+    $a = bookingSummaryOwner($s, [0], [20000]);
+
+    $html = view('pdfs.owner-booking-summary', OwnerBookingSummaryDocument::data($a['statement']))->render();
+
+    expect($html)->toContain('.wrap { padding: 36px 40px 0; }');
+});
