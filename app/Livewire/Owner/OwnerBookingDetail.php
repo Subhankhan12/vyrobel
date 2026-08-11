@@ -47,7 +47,8 @@ use Livewire\Component;
  * seeing a guest's email/phone is a privacy breach AND a platform-bypass/disintermediation risk. So this page
  * renders NAME + a derived owner-scoped "New/Repeat guest" tag ONLY; email/phone/country are never sent to the
  * view, and "Message {guest}" routes to the OPERATOR relay ({@see OwnerMessages}, owner↔
- * operator staff) — NEVER owner→guest. OwnerBookingDetailContactTest proves the contact never reaches the HTML.
+ * operator staff) — NEVER owner→guest. OwnerBookingsTest (“renders the guest name but never their contact details”) covers this URL
+ * as well as the list, and is mutation-proven: leaking the email onto this page fails it.
  *
  * Earnings come through the ONE shared {@see OwnerLedgerAttribution::breakdown()} rule (so "Net to you" matches
  * the Bookings list, Unit Detail and the statement to the cent), and the commission rate LABEL is the REAL
@@ -282,11 +283,15 @@ class OwnerBookingDetail extends Component
     /** status → the wireframe's 4-state pill (label + bg/text/dot colours). */
     private function statusPill(string $stage): array
     {
+        // ⚠️ This pill sits on the page GRADIENT, not on a card, so its tint composites over a dark, saturated
+        // background — every tone measured 1.86–2.73 there. Two changes make all four states legible: the tint
+        // is laid over a near-white plate (the surface the design assumes), and the text tones are darkened.
+        // Measured on the plated tint: green 5.96 · amber 4.80 · red 6.08 · blue 7.19.
         $palette = match ($stage) {
-            ReservationStage::IN_HOUSE, ReservationStage::UPCOMING, ReservationStage::DUE => ['bg' => 'rgba(31,138,91,.13)', 'co' => '#1F7A50', 'dot' => '#1F8A5B'],
-            ReservationStage::TENTATIVE => ['bg' => 'rgba(224,160,48,.16)', 'co' => '#A9720C', 'dot' => '#E0A02A'],
-            ReservationStage::CANCELLED => ['bg' => 'rgba(190,90,80,.13)', 'co' => '#A44A3F', 'dot' => '#C2564A'],
-            default => ['bg' => 'rgba(61,108,176,.13)', 'co' => '#2E5C9A', 'dot' => '#3D6CB0'],   // past/settled
+            ReservationStage::IN_HOUSE, ReservationStage::UPCOMING, ReservationStage::DUE => ['bg' => 'linear-gradient(rgba(31,138,91,.13),rgba(31,138,91,.13)),rgba(255,252,248,.92)', 'co' => '#186040', 'dot' => '#1F8A5B'],
+            ReservationStage::TENTATIVE => ['bg' => 'linear-gradient(rgba(224,160,48,.16),rgba(224,160,48,.16)),rgba(255,252,248,.92)', 'co' => '#8A5C08', 'dot' => '#E0A02A'],
+            ReservationStage::CANCELLED => ['bg' => 'linear-gradient(rgba(190,90,80,.13),rgba(190,90,80,.13)),rgba(255,252,248,.92)', 'co' => '#8A3A30', 'dot' => '#C2564A'],
+            default => ['bg' => 'linear-gradient(rgba(61,108,176,.13),rgba(61,108,176,.13)),rgba(255,252,248,.92)', 'co' => '#24487A', 'dot' => '#3D6CB0'],   // past/settled
         };
 
         return ['label' => ReservationStage::meta($stage)['label']] + $palette;

@@ -4281,3 +4281,56 @@ not — so it was **probed in and measured** rather than assumed.
   console errors (the 2 seen were my own 404 probes).
 - **Nothing mutated** — this page's only write is the monthly target, which was not fired.
 - ⚠️ **`toContain` sweep — clean negative** (seventeenth gate).
+
+---
+
+## §O19 — Owner **Booking Detail** (`/owner/bookings/{booking}`)
+
+`App\Livewire\Owner\OwnerBookingDetail` · prototype `docs/design/raw/Owner Booking Detail.html`.
+**The per-id isolation surface (#42) and the sharpest #28 point** — one page, one booking, one guest.
+
+### 🚫 REFUSALS TO PRESERVE (the gap IS the feature)
+
+- **RO19-1 — the guest's EMAIL, PHONE and COUNTRY.** The prototype's guest card carries all three plus a
+  "Message guest" action. The product refuses every one: the component never puts contact on the view, and the
+  page says so out loud — *"Guest contact details are handled by your management team"*. **Keep the refusal
+  line; never render the card the prototype draws.** An owner holding a guest's email is both a privacy breach
+  (#28) and a platform-bypass risk. "Message your team" correctly routes to the **operator** relay, never
+  owner→guest. *Verdict: **RATIFIED REFUSAL**.*
+- **RO19-2 — the OTA BRAND.** The prototype names a channel ("Booking.com"); `reservations.source` models
+  `direct|ota|walk_in|corporate|group` and no brand exists to read. Renders the real enum. *(D2-2, O18.)*
+  *Verdict: **RATIFIED REFUSAL**.*
+- **RO19-3 — the 15% commission.** The prototype hardcodes 15%; the page shows the **real agreement rate,
+  18%**. Never mirror a prototype's money constant. *Verdict: **RATIFIED REFUSAL**.*
+
+### 🔧 MISSING BACKEND (logged, not built)
+
+- **DO19-1 — no per-booking timeline/event feed.** The prototype shows a dated activity trail (booked →
+  confirmed → paid → checked in). `domain_events` rows exist for the reservation, but nothing owner-scoped
+  reads them and no owner-safe projection exists (the raw payloads are operator-facing). *Verdict: **REAL
+  GAP** — needs an owner-scoped event projection, name-only.*
+- **DO19-2 — no per-booking document/invoice list.** "Download confirmation" is real; the prototype's list of
+  attached documents per booking is not modelled for the owner. *Verdict: **REAL GAP** (small).*
+
+### ⚠️ Verified, not changed
+
+- **#42 — MUTATION-PROVEN, and this is the page's core.** Reservations carry no `owner_id`; resolution is
+  `findOrFail` **then** `abort_if($ownedLines->isEmpty(), 404)` against the owner's own unit set (the #26
+  shape). Removing that single `abort_if` turns *"404s another owner's booking detail"* **red**. Live: own
+  bookings **200/200**; a FOREIGN booking on an operator-owned unit **in the same org** → **404**; nonsense id
+  → **404**. Fail-closed for a non-linked member (empty owner set → empty owned lines → 404).
+- **#28 — MUTATION-PROVEN ON THIS URL SPECIFICALLY.** The guard seeds a guest with a real email **and** phone;
+  passing `leadGuest->email` through the component and echoing it on this page turns it **red**. ⚠️ **The
+  first attempt was vacuous** — echoing a `guest_email` key that does not exist rendered nothing and "passed";
+  the component had to be mutated too. *(The O12/O16 trap, third occurrence.)* Live sweep: **0 emails, 0
+  phone-like strings, 0 door-code/card strings, no country, no address**; guest **name only**.
+- ⚠️ **A DOCBLOCK CITED A TEST THAT DOES NOT EXIST.** The #28 block claimed *"OwnerBookingDetailContactTest
+  proves the contact never reaches the HTML."* **There is no such file.** The guard is real but lives in
+  `OwnerBookingsTest` ("renders the guest name but never their contact details"), which loops over the list
+  **and** this detail URL. Citation corrected to the real test. *A named-but-absent test reads as stronger
+  evidence than an unnamed one — check that a cited guard exists.*
+- **#17 — €180.00 × 3 nights = €540.00 − €97.20 (the real 18%) = €442.80.** Not re-derived in the Blade.
+- **Keyboard: 0 unnamed controls, 0 `display:none` interactive controls, 0 `div@click`**; 0 overflow at
+  1440×1000; 0 console errors.
+- **READ-ONLY** — nothing submitted; no money, no status, no message written.
+- ⚠️ **`toContain` sweep — clean negative** (eighteenth gate).

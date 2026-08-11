@@ -7384,3 +7384,29 @@ phone). Live: two foreign booking ids → **404**, no foreign reference in the l
 `OwnerBookingsReader` + `OwnerLedgerAttribution`; **no OTA-brand split** (the real enum only — D2-2); "Not yet
 attributed" never a fake €0. Nothing mutated (the page's only write, the monthly target, was not fired). No
 schema touched. Suite **1843 / 12,084 · 9 non-green** (documented set); PHPStan L5 (0); Pint clean.
+
+## 2026-08-11 — DESIGN-PARITY · OWNER 19/32 · Booking Detail (`/owner/bookings/{booking}`)
+
+Presentation-only. **#42 is this page's whole point** and was mutation-proven at its sharpest: a reservation
+has no `owner_id`, so the boundary is `findOrFail` **then** `abort_if($ownedLines->isEmpty(), 404)` against the
+owner's own unit set. Live, a foreign booking sitting on an operator-owned unit **in the same organization**
+404s. **#28 was mutation-proven on this URL specifically** — and the first mutation was **vacuous** (the view
+echoed a key the component never provides), so the component had to be mutated too; that is the third
+occurrence of the "a green mutation proves nothing" family, and it is now the assumed default.
+
+**A docblock cited `OwnerBookingDetailContactTest`, which does not exist.** The guard is real — it lives in
+`OwnerBookingsTest` and covers both the list and this URL — but a named-but-absent test reads as *stronger*
+evidence than an unnamed one, and nothing in the toolchain flags it. Citation corrected.
+
+Contrast **36 → 5**, the worst starting page of the owner realm: it carried **all three** pre-AA literals,
+with `#A69A92` at **1.37** on the header gradient. The four-state status pill was re-plated (green 5.96 ·
+amber 4.80 · red 6.08 · blue 7.19). The 5 survivors are the known white-on-gradient family — including a
+guest-initials avatar at **3.09**, a new near-worst instance for that backlog item.
+
+Refusals preserved: the guest's **email, phone and country** (the prototype shows all three; the page says
+out loud that contact is handled by the management team, and "Message your team" routes to the operator
+relay), the **OTA brand**, and the prototype's **15%** — the page shows the real agreement rate, **18%**.
+Logged not built: an owner-scoped per-booking event timeline, and a per-booking document list.
+
+Suite **1843 / 12,084**, 9 non-green — all in the documented non-deterministic set (`BookingImportTest` ×6,
+`OwnerUnitDetailViewTest`, `StubViewsTest` ×2). PHPStan L5 (0); Pint clean.
