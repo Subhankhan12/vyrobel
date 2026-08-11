@@ -33,6 +33,13 @@
         :root {
             --vy-ink: rgb(43, 35, 32); --vy-muted: rgb(95, 88, 83); --vy-faint: rgb(108, 100, 95);
             --vy-accent: rgb(194, 65, 12); --vy-accent-3: rgb(232, 112, 58); --vy-amber: rgb(178, 106, 8);
+            /* TEXT-ONLY variants of the two warm hues. G1 measured the plain tokens on RENDERED PIXELS and
+               both fail AA at badge/label size: --vy-accent at 13px on its own 8% wash = 4.20, and --vy-amber
+               at 11px on the pending badge = 3.79. Same shape as the operator realm's --vy-accent-text.
+               --vy-amber-text is the PROTOTYPE's own amber-on-light (#8F6414, the "Share how your stay went"
+               callout) — measured, not invented: 4.70 on the badge, 5.06 on the card. Use these for TEXT;
+               keep --vy-accent / --vy-amber for fills, borders and rails. */
+            --vy-accent-text: rgb(176, 56, 8); --vy-amber-text: rgb(143, 100, 20);
             --vy-card: rgba(255, 253, 251, 0.86); --vy-glass-border: rgba(120, 70, 40, 0.12);
             --vy-wash: #F6EBE2;                   /* Polish Batch 1 — the faint warm-cream tint (incoming chat bubbles, arrival/checkin/review chips). Was undefined → transparent. */
             --vy-hairline: rgba(120, 70, 40, 0.10); --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
@@ -57,11 +64,14 @@
         .vy-top { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); background: rgba(251, 243, 236, 0.72); border-bottom: 1px solid var(--vy-hairline); }
         .vy-top-in { max-width: 760px; margin: 0 auto; padding: 13px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
         .vy-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; }
-        .vy-brand-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--vy-grad); color: #fff; font-family: var(--vy-display); font-weight: 700; font-size: 17px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
+        /* SOLID, not --vy-grad: white 17px/700 is NORMAL-size text (large starts at 18.66px bold), so it needs
+           4.5. Measured on rendered pixels, the gradient's light end gave 3.50; solid --vy-accent gives 5.18.
+           No warm orange lighter than #C2410C reaches 4.5 for white — the same finding as the invite email. */
+        .vy-brand-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--vy-accent); color: #fff; font-family: var(--vy-display); font-weight: 700; font-size: 17px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
         .vy-brand-name { font-family: var(--vy-display); font-weight: 600; font-size: 16px; color: var(--vy-ink); }
         .vy-nav { display: flex; align-items: center; gap: 4px; }
         .vy-nav a { font-size: 13px; font-weight: 500; color: var(--vy-muted); text-decoration: none; padding: 6px 11px; border-radius: 20px; }
-        .vy-nav a.is-active { color: var(--vy-accent); background: rgba(194, 65, 12, 0.08); font-weight: 600; }
+        .vy-nav a.is-active { color: var(--vy-accent-text); background: rgba(194, 65, 12, 0.08); font-weight: 600; }   /* 4.20 -> 5.01 on its own wash (G1, rendered pixels) */
         .vy-nav a:hover { color: var(--vy-ink); }
         .vy-signout { background: none; border: none; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-faint); cursor: pointer; padding: 6px 4px; }
         .vy-signout:hover { color: var(--vy-accent); }
@@ -79,11 +89,14 @@
         .vy-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
         .vy-badge--confirmed { background: rgba(120,160,110,.16); color: rgb(70,120,60); }
         .vy-badge--in-house { background: rgba(194,65,12,.12); color: var(--vy-accent); }
-        .vy-badge--pending { background: rgba(224,146,30,.14); color: var(--vy-amber); }
+        .vy-badge--pending { background: rgba(224,146,30,.14); color: var(--vy-amber-text); }   /* 3.79 -> 4.70 (G1, rendered pixels) */
         .vy-badge--departed { background: rgba(120,110,100,.14); color: var(--vy-muted); }
         .vy-badge--cancelled { background: rgba(180,68,58,.12); color: rgb(150,50,42); }
         .vy-notice { padding: 12px 14px; border-radius: var(--vy-r-md); background: rgba(120, 160, 110, 0.12); border: 1px solid rgba(120, 160, 110, 0.3); border-left: 3px solid rgb(90, 140, 80); font-size: 13px; margin-bottom: 16px; }
-        .vy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 18px; border-radius: 24px; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; color: #fff; background: var(--vy-grad); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); text-decoration: none; }
+        /* SOLID for the same reason as .vy-brand-mark: white 13.5px on --vy-grad is the identical construct G1
+           measured at 3.39 on the Trips CTA. Trips renders no .vy-btn, so this one is corrected BY CONSTRUCTION,
+           not by a render on this page — G2 is the first gate that draws it and must confirm 5.18. */
+        .vy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 18px; border-radius: 24px; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; color: #fff; background: var(--vy-accent); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); text-decoration: none; }
         .vy-btn--ghost { background: none; color: var(--vy-accent); border: 1px solid var(--vy-glass-border); box-shadow: none; }
         .vy-btn:hover { transform: translateY(-1px); }
         .vy-empty { text-align: center; color: var(--vy-muted); font-size: 14px; padding: 30px 10px; }

@@ -3,6 +3,7 @@
 use App\Models\Guest;
 use App\Models\Reservation;
 use App\Services\AssignmentService;
+use App\Services\AvailabilityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -62,6 +63,58 @@ it('shows the guest-facing balance, reconciling to the folio', function () {
 // ── An unauthenticated visitor bounces to the GUEST login (realm separation holds) ────────────────
 it('redirects an unauthenticated visitor to the guest login', function () {
     $this->get('/guest/trips')->assertRedirect(route('guest.login'));
+});
+
+// ── #33: the arrival SECRETS never reach the list ────────────────────────────────────────────────
+// Trips is a LIST. The door code and wifi are window-gated on the Arrival surface (ArrivalPack), and a list
+// has no window to gate on — so they must not appear here at all, even for a stay whose window is OPEN and
+// whose unit really does carry a code. A card may LINK to the gated surface; it may never inline the secret.
+it('never renders the door code or wifi on the trips list, even mid-stay with a code set', function () {
+    $s = seedScenario(1);
+    $a = tripGuest($s['guest'], 'ada@example.test');
+
+    // A stay that is happening RIGHT NOW — the arrival window is open — on a unit with real secrets.
+    // seedScenario only publishes Sep 2026, so the calendar needs the current window too.
+    app(AvailabilityService::class)->recompute(
+        $s['roomType']->id, today()->subDays(3)->toDateString(), today()->addDays(3)->toDateString()
+    );
+    $reservation = app(AssignmentService::class)->createBooking(
+        ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => today()->subDay()->toDateString(),
+            'check_out' => today()->addDay()->toDateString(), 'lead_guest_id' => $a->getKey(), 'source' => 'direct'],
+        [['room_type_id' => $s['roomType']->id, 'rate_plan_id' => $s['ratePlan']->id, 'check_in' => today()->subDay()->toDateString(),
+            'check_out' => today()->addDay()->toDateString(), 'price_minor' => 10000, 'currency' => 'EUR']],
+    );
+    $s['units'][0]->update(['door_code' => '447291', 'wifi_ssid' => 'SeasideGuest', 'wifi_password' => 'sunrise-tide-88']);
+
+    // ⚠️ createBooking reserves at ROOM-TYPE level and leaves reservation_units.unit_id NULL. Without this
+    // assignment the booking has no physical unit, so there is no door code to leak and the guard below
+    // passes vacuously — proven: a mutation that inlined the code into the card stayed GREEN until this
+    // line existed. Assign through the certified path so the secret is genuinely reachable.
+    app(AssignmentService::class)->assignUnit($reservation->reservationUnits()->firstOrFail(), $s['units'][0]->id);
+    expect($reservation->fresh()->reservationUnits()->first()->unit->door_code)->toBe('447291');
+
+    $html = $this->actingAs($a, 'guest')->get('/guest/trips')->assertOk()->getContent();
+
+    // The stay IS on the page (so this can never pass vacuously on an empty list)…
+    expect($html)->toContain($reservation->reference);
+    // …and none of its secrets are.
+    foreach (['447291', 'SeasideGuest', 'sunrise-tide-88'] as $secret) {
+        expect($html)->not->toContain($secret);
+    }
+});
+
+// ── #39: a guest with NO stays gets an honest empty state, never a placeholder trip ───────────────
+it('shows an honest empty state for a guest with no trips at all', function () {
+    $s = seedScenario(1);
+    $a = tripGuest($s['guest'], 'ada@example.test');   // claimed, but has never booked
+
+    $html = $this->actingAs($a, 'guest')->get('/guest/trips')->assertOk()
+        ->assertSee('No upcoming stays')
+        ->getContent();
+
+    // Every hero stat is a real zero — not a fabricated "369 stays" — and no trip card was invented.
+    expect($html)->not->toMatch('/R-[A-Z0-9]{6,}/')        // no reservation reference anywhere
+        ->and($html)->not->toContain('View reservation');   // no trip-card CTA
 });
 
 // ── G1 pixel-diff: the travel-account HERO + Upcoming/Past/Cancelled tabs + search (all REAL, native GET) ──

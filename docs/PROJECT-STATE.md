@@ -5369,9 +5369,20 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes, UNTOUCHED.** The no-Alpine GET realm; `#33` door-code window-gating;
-   real guest PII on every surface. **The sharpest privacy realm of the three** — expect `#28` to be the
-   dominant axis rather than `#17`.
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Guest Trips` DONE (1/32, gate 1 of 12).** Mapped in
+   `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
+   realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
+   ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
+   measure this realm — every guest view sits on the page gradient, so ancestor-walking finds no opaque
+   background and defaults to white (it reported `rgb(255,255,255)` for **all 36** gradient-backed runs and
+   scored white-on-orange as 1.00). Instead: stash each run's colour, blank all glyphs, screenshot the
+   **background plate**, read boxes **from that same render**, sample the **central region excluding
+   element-child boxes**, and score against the **worst pixel**. ⚠️ **The probe was wrong three times before
+   it was right** (rounded corners belong to the parent · a 20px reflow between box-capture and screenshot ·
+   a child of a different colour), so it carries **two validation anchors**: white on `--vy-grad` ≈ **3.4**
+   and white on solid `--vy-accent` = **exactly 5.18**. If both do not hold, publish nothing.
+   ⚠️ **The GATE-3 records are leads, not conclusions** — G1 found its row denying four shipped features
+   (§N.8b, eighth instance) and corrected it in place, exactly as the recon predicted.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via

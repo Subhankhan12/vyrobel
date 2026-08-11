@@ -5490,3 +5490,134 @@ through a comment is a known trap in this repo).
 
 *(The Mailable itself was restored after the third mutation — `app/Mail/OwnerInviteMail.php` is unchanged by
 this gate. Send logic, token minting and the copy matrix were not touched.)*
+
+---
+
+## §G-1 — Guest Trips (`/guest/trips`) · GUEST 1/32 · gate 1 of 12 · ⚙️ THE FOUNDATION GATE
+
+`GuestTripsController@index` → `guest/trips.blade.php` inside `<x-guest.shell>`. Auth `auth:guest` +
+`SetTenantForGuestRequest`. Walked as the demo guest.
+
+### ⚙️ THE REALM'S CONTRAST METHOD — established here, reused by G2–G12
+
+⚠️ **`getComputedStyle` cannot measure this realm at all.** Every guest view sits on the shell's page
+gradient, so walking ancestors for an opaque `background-color` finds none and falls back to white. On this
+page the naive probe reported `rgb(255,255,255)` as the background for **all 36 gradient-backed runs** —
+scoring white-on-orange as **1.00** (false FAIL) and everything else against a plate it never checked. This
+is the same root cause as the invite email's bgcolor-under-gradient false-PASS, seen from the other side:
+there a fallback made a 3.18 read as 5.18; here the absence of one makes a 5.18 read as 1.00.
+
+**THE METHOD (`plate-probe.php`):**
+1. Stash each run's real `color` on the element **first**.
+2. Inject `*{color:transparent}` + `svg{visibility:hidden}` + `animation:none`, force a reflow, then read
+   boxes **from that same render**, and screenshot → the true **background plate**.
+3. Per run, sample the **central region** only (inset 18% x / 28% y), **excluding element-child boxes**.
+4. Score the real foreground against the **worst pixel** found there — a gradient must clear AA at its worst
+   point, not its average.
+
+⚠️ **THE PROBE WAS WRONG THREE TIMES BEFORE IT WAS RIGHT.** Publish nothing until the anchors hold.
+- **(a)** whole-box extremes → a pill's **rounded-corner pixels belong to the parent**, so 11 runs
+  false-FAILED (a CTA read as card-white).
+- **(b)** boxes captured before the plate → **removing/adding the style reflowed the page by 20px**, so every
+  box pointed 20px above its element. The CTA read 1.13 against a colour it does not sit on.
+- **(c)** a box containing a differently-plated **child** (an `<a>` wrapping an accent count badge) scored the
+  label against the badge → one more false FAIL.
+
+**TWO VALIDATION ANCHORS — a run of this probe is only trustworthy if both hold:**
+- white on `--vy-grad` ⇒ **≈3.4** (the Owner Invite Email measured **3.18** on the same gradient; a narrower
+  element samples a slightly darker slice of the 140° ramp).
+- white on solid `--vy-accent` ⇒ **exactly 5.18**.
+
+### 🎨 Contrast — 6 real failures → **0 across 44 runs**
+
+| run | was | now | fix |
+|---|---|---|---|
+| `View reservation` CTA ×2 | white 12.5px on `--vy-grad` = **3.39** | **5.18** | solid `--vy-accent` |
+| `V` brand mark | white 17px/700 on `--vy-grad` = **3.50** | **5.18** | solid `--vy-accent` (17px < 18.66px ⇒ NORMAL text, needs 4.5) |
+| `Trips` active nav | `--vy-accent` on its 8% wash = **4.20** | **4.99** | new `--vy-accent-text` |
+| `Arrival due` badge | `--vy-amber` 11px = **3.79** | **4.70** | new `--vy-amber-text` |
+| `€184.50 due` | `--vy-amber` 13px = **4.08** | **5.06** | new `--vy-amber-text` |
+
+**Two new shell tokens, both measured and neither invented:** `--vy-accent-text: rgb(176,56,8)` (the operator
+realm's existing value) and `--vy-amber-text: rgb(143,100,20)` — **`#8F6414`, the prototype's OWN amber-on-light**
+from its "Share how your stay went" callout. Fills, borders and rails keep `--vy-accent`/`--vy-amber`.
+
+⚠️ **`.vy-btn` was corrected BY CONSTRUCTION, not by a render.** It is `#fff` 13.5px on `--vy-grad` — the
+identical construct measured at 3.39 — but **Trips draws no `.vy-btn`**, so it was not measured here. **G2 is
+the first gate that renders one and must confirm 5.18.**
+
+### ⌨️ Keyboard — clean
+
+18 interactive elements, **0 unnamed**, **0 unfocusable**, **0 `div@click`**, **0 `onclick`/`onchange`**,
+0 horizontal overflow at 1440. §N.4k: two forms — logout (POST, 1 submit, 0 text inputs) and search
+(GET, **1 text input, 0 buttons** ⇒ implicit submit is the only submit path, so Enter is unambiguous).
+
+⚠️ **To verify at a later gate:** the year `<select>` carries an inline
+`onchange="window.location.href=…"` and renders only when a guest has trips in **more than one** year. The
+demo guest has one, so it did not render and was not measured. It is the realm's only JS-dependent control.
+
+### ⚠️ THREE PREMISE CORRECTIONS — two of them correct THIS pass's own recon
+
+1. **`partials/trip-card.blade.php` is DEAD CODE.** `GUEST-RECON.md` listed it as a shared partial to "fix
+   once". Nothing includes it — `grep -rn "trip-card" resources/ app/` returns **zero** references, and
+   `trips.blade.php` renders its own inline card. Its docblock claims *"shared by Trips (and reused as the
+   header on the Reservation detail)"* — **denied by the code (§N.8b)**. It is also **drifted**: it shows
+   "Confirmation {ref}" and "View booking →" where the live card shows a reference chip and "View
+   reservation", and it has no image band, countdown or Manage link. Second dead guest view after
+   `guest/home.blade.php`. **Not deleted at a design gate** — logged as `DO-G1-1`.
+2. **Trips is NOT a DO10-4 site.** The recon counted `★` glyph occurrences. All of them here are
+   **decorative** — `★ Write a review`, `★ Reviewed — thank you` — with no rating value; `<x-star-rating>`
+   renders an N-of-5 row with an accessible name and would have nothing to bind. The one real guest DO10-4
+   site is `guest/review.blade.php:35` (`str_repeat('★',$rating).str_repeat('☆',5-$rating)`), which belongs to
+   **G8**. Fixed here instead: both decorative glyphs are now `aria-hidden`, so a screen reader no longer
+   announces "black star" before the link text. **DO10-4 remains at 10 sites, not 7.**
+3. **The GATE-3 register row for Trips was STALE — corrected in place.** It refused the hero **stats**, the
+   card **image band** and the **countdown badges** as fabricated/needs-data, and asserted *"countries isn't
+   tracked"*. All four claims are false today: the controller derives stays/nights/countries from the guest's
+   own completed stays, `GuestTrip::card` carries a real `country`, and the band and countdown render on every
+   card. **§N.8b, eighth instance, first in the guest realm** — and precisely the failure the recon predicted
+   when it flagged that record as a lead rather than a conclusion.
+
+### 🔒 Guards — 3 mutations, and ⚠️ ONE OF THEM EXPOSED A VACUOUS GUARD I HAD JUST WRITTEN
+
+`GuestTripsTest` 4 → 6.
+
+| guard | mutation | result |
+|---|---|---|
+| **scope-by-relation** (existing) | `$guest->reservations()` → bare `Reservation::query()` | ❌ RED on the cross-guest assertion |
+| **#33 — no door code/wifi on the list** (new) | inline the unit's `door_code` into the card | ❌ RED *(only after the fixture was fixed — see below)* |
+| **#39 — no fabricated trip** (new) | emit a placeholder card in the `@empty` branch | ❌ RED |
+
+⚠️ **The #33 guard passed its own mutation on the first run — it was protecting nothing.** Root cause:
+`AssignmentService::createBooking` reserves at **room-type** level and leaves `reservation_units.unit_id`
+**NULL**, so the booking had no physical unit, so there was no door code anywhere to leak. The fixture now
+assigns a unit through the certified `assignUnit()` and asserts the code is genuinely reachable before
+asserting it is absent. **O32, exactly: when a mutation passes, the first question is what you actually
+removed — here, nothing.**
+
+### 🚩 REAL GAPS — logged, not built
+
+- **`DO-G1-1` · the dead `partials/trip-card.blade.php`.** Delete it, or wire it. Deleting is a
+  non-design change; wiring it would duplicate the inline card (§N.8f). Same call needed for
+  `guest/home.blade.php`.
+- **`DO-G1-2` · the past card shows no RATING.** The prototype's reviewed past card renders a real star row
+  plus a `ratingLabel`; the live card shows only "★ Reviewed — thank you". The data exists and the controller
+  **already queries `Review`** — it just `pluck`s `reservation_id` and discards the rating. A one-line
+  controller change, deliberately NOT made at a design-only gate. **This is the one place the live Trips page
+  is genuinely poorer than the design**, and it is where `<x-star-rating>` would legitimately land.
+- **`DO-G1-3` · prototype affordances not built** (verdicts owed): the search field's magnifier + clear-"×"
+  button; the year filter as a styled popover rather than a native `<select>`; the PAST tab as a 3-up **grid**
+  with a top image band (live uses the same full-width horizontal card for every tab); "Book again" and
+  "Receipt" actions on past cards; the amber "Share how your stay went" prompt on an unreviewed past stay.
+
+### ✅ REFUSALS / EXTRA WORK TO PRESERVE
+
+- **The hero copy hierarchy is INVERTED vs the prototype and that is the better call** — the prototype puts
+  the guest's name in a small accent pill and "Your trips" as the 30px headline; the live page makes
+  "Welcome back, {name}" the headline. Not changed: it is a deliberate, honest choice, flagged for the
+  founder rather than silently "fixed".
+- **The image band is a deterministic gradient, not a fake photo** (#39) — the prototype implies photography
+  the product does not have.
+- **Native `<select>` over the prototype's custom popover** — more accessible, and the no-Alpine realm has no
+  popover primitive.
+- **Scope-by-relation** — the guest sees only `$this->guest()->reservations()`; a foreign id cannot appear.

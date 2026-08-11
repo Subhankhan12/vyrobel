@@ -91,19 +91,19 @@
                 </div>
 
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:auto;padding-top:16px;border-top:1px solid var(--vy-hairline)">
-                    <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:{{ $t['balance_due'] ? 'var(--vy-amber)' : 'rgb(70,120,60)' }}">
+                    <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:{{ $t['balance_due'] ? 'var(--vy-amber-text)' : 'rgb(70,120,60)' }}">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/></svg>{{ $t['balance_label'] }}
                     </span>
                     <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
                         @if ($t['reviewable'] ?? false)
-                            <a href="{{ route('guest.review', $t['id']) }}" style="padding:10px 16px;border-radius:30px;background:var(--vy-wash);border:1px solid var(--vy-hairline);color:var(--vy-ink);font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap">★ Write a review</a>
+                            <a href="{{ route('guest.review', $t['id']) }}" style="padding:10px 16px;border-radius:30px;background:var(--vy-wash);border:1px solid var(--vy-hairline);color:var(--vy-ink);font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap"><span aria-hidden="true">★</span> Write a review</a>
                         @elseif ($t['reviewed'] ?? false)
-                            <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap">★ Reviewed — thank you</span>
+                            <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap"><span aria-hidden="true">★</span> Reviewed — thank you</span>
                         @endif
                         @if ($tab !== 'cancelled')
                             <a href="{{ route('guest.manage', $t['id']) }}" style="padding:10px 16px;border-radius:30px;background:var(--vy-wash);border:1px solid var(--vy-hairline);color:var(--vy-ink);font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap">Manage</a>
                         @endif
-                        <a href="{{ route('guest.reservation', $t['id']) }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:30px;background:linear-gradient(140deg,#E8703A,#C2410C);color:#fff;font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap;box-shadow:var(--vy-shadow-accent)">View reservation<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+                        <a href="{{ route('guest.reservation', $t['id']) }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:30px;background:var(--vy-accent);color:#fff;font-size:12.5px;font-weight:500;text-decoration:none;white-space:nowrap;box-shadow:var(--vy-shadow-accent)">View reservation<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
                     </div>
                 </div>
             </div>
