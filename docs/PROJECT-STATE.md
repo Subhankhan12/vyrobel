@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` · `G8 Review` DONE (8/32, gate 8 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` · `G8 Review` · `G9 Account` DONE (9/32, gate 9 of 12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5461,6 +5461,17 @@ the work.
    travellers. ⚠️ **An existing guard broke and the MARKUP gave way, not the guard** — an `aria-label`
    split the contiguous `value="4" checked` that a load-bearing deep-link test asserts; attribute order
    changed instead of weakening the assertion.
+   ⚠️ **G9 — THE `anonymize()` REACHABILITY THREAD IS CLOSED.** G4/G7/G8 each proved `anonymize()` COVERS
+   its store, but each proved it by calling `anonymize()` DIRECTLY — nothing tied the guest-facing delete
+   to those stores. ⚠️ **The delete does not call `anonymize()` at all**, and that is correct: it stamps
+   `scheduled_deletion_at` 14 days out (undoable), and a DAILY COMMAND runs the sweep — a **three-link**
+   chain whose middle link is the single `schedule:run` cron `CLAUDE.md` warns about. A new guard drives
+   the real chain end-to-end and asserts all three gates' PII is gone; **both links mutation-proven**.
+   "Delete" means **anonymize-in-place**, never a row destroy (consistent with the operator-side rule).
+   ⚠️ The 8-form §N.4k sweep found **no consequential mis-fire — the first gate since G4 needing no new
+   confirm guard**; the account-delete is protected by a **typed word**, a legitimate third pattern beside
+   safe-by-construction and the confirm idiom. Two real a11y finds instead: a toggle with **no accessible
+   name and no state**, and the **fourth recurrence** of the opacity:0-invisible-focus pattern.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via

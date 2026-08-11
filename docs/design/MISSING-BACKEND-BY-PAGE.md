@@ -6375,3 +6375,118 @@ decides otherwise, and notes the erasure test already plants a body value. **Sur
   measure it. Its `emptyColor: #B9A99A` is also unmeasured here (a 5/5 rating renders no empty star).
 - **`DO-G8-3` · the review has no visible moderation timeline** — a guest sees the current status but not when
   it changes; and a `rejected` review shows "Not published" with no reason. A product call.
+
+---
+
+## §G-9 — Guest Account · GUEST 9/32 · gate 9 of 12 · 🔒 THE `anonymize()` CONVERGENCE + THE DENSEST §N.4k SURFACE
+
+`GET /guest/account` + POSTs · `GuestAccountController` · `guest/account.blade.php`. Auth `auth:guest`.
+Walked **read-only** — no form submitted, no credential entered, no account deleted.
+
+### 🔒 THE CONVERGENCE — the delete does NOT call `anonymize()`, and that is correct
+
+⚠️ **Premise correction.** `destroy()` never calls `anonymize()`. It calls `GuestDeletionService::schedule()`,
+which stamps `scheduled_deletion_at` **14 days out** and leaves the account usable and undoable. The erase
+happens later, and **the trigger has three links, not one**:
+
+```
+destroy()  →  schedule()          stamps scheduled_deletion_at = now + GRACE_DAYS(14), audited, emails the guest
+           →  Schedule::command('guests:process-deletions')->dailyAt('03:00')      routes/console.php:38
+           →  processDue()        cancels live reservations per policy (bounded refund #27) → $guest->anonymize()
+```
+
+⚠️ **The middle link is a cron dependency** — the same single `schedule:run` entry `CLAUDE.md` warns about
+("without which the GDPR 14-day guest deletion silently never runs"). The chain is correct in code; it is
+**operationally** conditional on that cron. Recorded, not re-litigated.
+
+⚠️ **"Delete" means ANONYMIZE-IN-PLACE, never a row destroy** — PII nulled, `anonymized_at` stamped, the row
+and the financial history kept. Consistent with the operator-side rule (`GuestBulkActionController`: *"DELETE
+= ANONYMIZE, NEVER DESTROY"*) and with G8's retained review body. Surfaced, not decided.
+
+### ⚠️ COVERAGE ≠ TRIGGERING — the gap this gate closes
+
+G4 (check-in note · arrival window · phone), G7 (message bodies · sender labels) and G8 (a review's
+identifying fields) each proved `anonymize()` **covers** its store — but each proved it by calling
+`anonymize()` **directly**. **Nothing tied the guest-facing delete to those stores end-to-end.** The existing
+sweep test asserted only `anonymized_at`, `first_name` and the cancelled reservation.
+
+A new guard now drives the **real chain** — seed all three gates' PII (the check-in note through the
+reservation, the message through `InboxService::postGuestMessage`, the operator's public reply on a review)
+→ stamp the schedule → elapse the grace → `processDue()` → assert **every one** is gone.
+
+**Mutation-proven, both links, each edit confirmed to have landed (G7):**
+
+| mutation | result |
+|---|---|
+| remove the `anonymize()` **call** from the sweep (coverage intact, trigger broken) | ❌ RED — the new guard **and** the existing sweep test |
+| make `destroy()` stamp nothing (`schedule()` never called) | ❌ RED — the schedule + undo guards |
+
+**The `anonymize()` reachability thread from G4 → G7 → G8 → G9 is now CLOSED**: the stores are covered *and*
+the guest-facing delete reaches them.
+
+### ⌨️ THE 8-FORM §N.4k SWEEP — count confirmed, each judged by its stakes
+
+| # | form | inputs | Enter | verdict |
+|---|---|---|---|---|
+| 0,7 | logout ×2 (shell + footer) | none | can't implicitly submit | safe by construction |
+| 1 | **profile** | 5 text | submits | **correct** — saving your own profile is the form's only action |
+| 2 | **password** | 3 password | submits | **acceptable** — Enter mid-form fails server validation; there is no wrong *write*, only a failed one |
+| 3 | **account-delete** | 1 text (`confirm`) | submits | **safe BY DESIGN, not by construction** — the type-`DELETE` word IS the deliberate act, so Enter after typing it is the intended completion |
+| 4 | waitlist-leave | none | can't | safe by construction |
+| 5 | marketing toggle | none (a submit button *is* the control) | n/a | safe |
+| 6 | **language** | 4 radios, **no submit button** | `onchange="this.form.submit()"` | works for mouse **and** keyboard — but see below |
+
+⚠️ **Nothing needed a confirm guard here** — the first gate since G4 where the §N.4k sweep found no
+consequential mis-fire. The delete is the interesting case: it is protected by a *typed word* rather than by
+markup, which is a legitimate third pattern alongside safe-by-construction and the confirm idiom.
+
+⚠️ **`onchange="this.form.submit()"` on a radio group has a real keyboard cost**: arrow-keying from EN to FR
+fires a submit at **every intermediate option** (EN→DE, DE→ES, ES→FR = three writes). Low stakes (a language
+preference, immediately correctable) and it is the design's "submits on change" intent, so it is **logged
+(`DO-G9-3`), not silently redesigned**. Note also that `form.submit()` bypasses `onsubmit` handlers — worth
+knowing if a guard is ever added to that form.
+
+### ♿ TWO REAL A11Y FINDINGS
+
+1. **The marketing-consent toggle had NO accessible name and no state.** It is a `<button type=submit>` whose
+   only content is a knob `<span>`; its visible label ("Trip offers & news") sits in an unassociated sibling.
+   A screen reader announced **"button"** — no name, and no way to hear whether marketing is **on or off**.
+   Now `aria-label` + `aria-pressed` bound to the real stored value (§N.8d — the state is derived, not
+   asserted).
+2. **The language chips showed no focus ring** — `opacity:0` radios again. **Fourth recurrence** of the same
+   pattern in this realm (G5 add-on toggles → G8 star input → here). `:focus-within` now rings the chip.
+
+The honestly-disabled SMS row is a `<span>`, not a button — non-focusable, titled "Not available yet".
+Correct: it is not announced as an interactive control it cannot be.
+
+### 🎨 Contrast — 1 → **0** (59 runs, 4 skipped as too small to sample)
+
+The failure was the **initials avatar** (`DT`) — white 20px on `--vy-grad` = **3.48**; the initials are text,
+so solid `--vy-accent` → 5.18. Also moved a hand-written `#3F6338` to `--vy-green-text` (it passed at 5.65,
+but a literal is how a token drifts — G4's lesson). **Anchors validated: 3.48 on `--vy-grad`, 5.18 on solid.**
+Old-token sweep clean; no `--vy-amber`-as-text on this page.
+
+### ✅ VERIFIED
+
+- **Self-scoped, and already guarded**: an existing test proves a guest cannot edit another **even with
+  another's id in the payload**. Every write targets `$this->guest()`; there is no `{id}` in any account route.
+- **Observed READ-ONLY**: guests 10 → 10, `scheduled_deletion_at` 0 → 0, `anonymized_at` 0 → 0,
+  `max(guests.updated_at)` unchanged. **No password was typed and no delete was performed** — every form was
+  submit-intercepted before any interaction.
+- **#28**: no operator internals (no risk flag, no staff note) and no other-guest data in the DOM.
+- **No fabricated prefill or toggle**: the profile fields are the guest's real values; the marketing toggle
+  reflects the real `marketing_consent`; the language radios are **all unchecked** because the guest's
+  language is genuinely unset — an honest empty rather than a defaulted "EN".
+- ⚠️ **One probe over-match caught**: my selector counted **5** language radios where the loop renders 4. The
+  fifth is a **hidden** `name="language"` input inside the *profile* form, carrying the current value so a
+  profile save cannot wipe it. Not a defect — verified before reporting.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G9-1` · the erase depends on the daily cron.** `guests:process-deletions` is registered, but if
+  `schedule:run` is not installed the 14-day erase never fires and the guest's PII survives indefinitely with
+  no visible signal. Already in `DEPLOYMENT.md`; recorded here because this is the page that promises it.
+- **`DO-G9-2` · the guest is not told what deletion keeps.** The copy promises deletion and an undo window,
+  but not that financial history is retained (anonymized). Honest as far as it goes; the retention is a
+  founder/legal statement to make explicit.
+- **`DO-G9-3` · the language radio group submits on every arrow-key step** (see above).

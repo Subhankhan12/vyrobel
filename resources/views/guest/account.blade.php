@@ -6,8 +6,8 @@
 <x-guest.shell active="account" title="Account">
     <style>
         .ac-hero { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-bottom: 18px; }
-        .ac-av { width: 56px; height: 56px; border-radius: 50%; background: var(--vy-grad); color: #fff; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 20px; box-shadow: var(--vy-shadow-accent); flex: none; }
-        .ac-since { display: inline-flex; align-items: center; gap: 7px; padding: 3px 11px; border-radius: 20px; background: rgba(79,122,70,.13); font-size: 11px; font-weight: 600; color: #3F6338; margin-bottom: 6px; }
+        .ac-av { width: 56px; height: 56px; border-radius: 50%; background: var(--vy-accent); color: #fff;   /* initials are TEXT: 3.48 on --vy-grad -> 5.18 solid */ display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 20px; box-shadow: var(--vy-shadow-accent); flex: none; }
+        .ac-since { display: inline-flex; align-items: center; gap: 7px; padding: 3px 11px; border-radius: 20px; background: rgba(79,122,70,.13); font-size: 11px; font-weight: 600; color: var(--vy-green-text); margin-bottom: 6px; }
         .ac-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; flex: 1.4; min-width: 320px; }
         .ac-kpi { padding: 12px 13px; border-radius: 14px; background: rgba(255,255,255,.55); border: 1px solid var(--vy-glass-border); }
         .ac-kpi b { display: block; font-family: var(--vy-display); font-weight: 600; font-size: 20px; letter-spacing: -.02em; }
@@ -19,6 +19,10 @@
         .ac-danger { border-color: rgba(143,49,16,.22) !important; }
         .ac-chip { position: relative; }
         .ac-chip input { position: absolute; opacity: 0; pointer-events: none; }
+        /* An opacity:0 radio shows an INVISIBLE focus ring, so the chip carries one. Fourth recurrence of
+           the same pattern in this realm (G5's add-on toggles, G8's star input, here) — every time a
+           control is hidden for styling, its focus goes with it unless the visible proxy takes it over. */
+        .ac-chip:focus-within span { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
         .ac-chip span { display: inline-block; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 500; color: var(--vy-muted); cursor: pointer; }
         .ac-chip input:checked + span { background: #fff; color: var(--vy-ink); box-shadow: 0 1px 3px rgba(60,30,10,.1); font-weight: 600; }
         .ac-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-top: 1px solid var(--vy-hairline); }
@@ -137,7 +141,9 @@
                     @csrf
                     <div class="ac-row" style="border-top:none">
                         <div><div style="font-size:13.5px;font-weight:500">Trip offers &amp; news</div><div style="font-size:11.5px;color:var(--vy-muted);margin-top:2px">Occasional emails about deals and new places</div></div>
-                        <button type="submit" name="marketing_consent" value="{{ $marketingConsent ? '0' : '1' }}" class="ac-toggle" style="background:{{ $marketingConsent ? 'var(--vy-accent-3)' : 'rgba(120,70,40,.2)' }}"><span class="knob" style="left:{{ $marketingConsent ? '20px' : '3px' }}"></span></button>
+                        <button type="submit" name="marketing_consent" value="{{ $marketingConsent ? '0' : '1' }}" class="ac-toggle"
+                                aria-label="Trip offers &amp; news" aria-pressed="{{ $marketingConsent ? 'true' : 'false' }}"
+                                style="background:{{ $marketingConsent ? 'var(--vy-accent-3)' : 'rgba(120,70,40,.2)' }}"><span class="knob" style="left:{{ $marketingConsent ? '20px' : '3px' }}"></span></button>
                     </div>
                 </form>
 

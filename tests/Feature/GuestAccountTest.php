@@ -2,8 +2,11 @@
 
 use App\Mail\AccountDeletionScheduledMail;
 use App\Models\Guest;
+use App\Models\Message;
 use App\Models\Reservation;
+use App\Models\Review;
 use App\Services\GuestDeletionService;
+use App\Services\InboxService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -166,4 +169,53 @@ it('toggles marketing consent from the preferences form', function () {
 // ── The guest realm never falls back to the operator login ────────────────────────────────────────
 it('bounces an unauthenticated visitor to the GUEST login, not the operator login', function () {
     $this->get('/guest/account')->assertRedirect(route('guest.login'));
+});
+
+// ── 🔒 THE anonymize() CONVERGENCE: the account-delete really reaches G4/G7/G8's stores ────────────
+// COVERAGE ≠ TRIGGERING. G4 (check-in note + arrival window + phone), G7 (message bodies + sender labels)
+// and G8 (a review's identifying fields) each proved Guest::anonymize() COVERS its store — but each proved it
+// by calling anonymize() DIRECTLY. Nothing tied the guest-facing delete to those stores end-to-end: the
+// account-delete does not call anonymize() at all, it stamps `scheduled_deletion_at`, and a daily command
+// (`guests:process-deletions`, registered in routes/console.php) runs the sweep 14 days later. A covered
+// anonymize() erases nothing if that chain is broken anywhere along it.
+//
+// This drives the REAL chain — schedule → grace elapses → processDue() — and asserts each gate's store.
+it('clears the check-in, message and review PII that G4/G7/G8 proved covered, through the delete path', function () {
+    $s = seedScenario(1);
+    $a = $s['guest'];
+    $a->update(['email' => 'ada@example.test', 'first_name' => 'Ada', 'last_name' => 'Lovelace', 'phone' => '+353860000123']);
+    $a->password = 'account-password-1234';
+    $a->email_verified_at = now();
+    $a->save();
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+
+    // G4 — the check-in stores (the guest's own free text + the coarse arrival window).
+    $reservation->forceFill([
+        'notes_guest' => 'Travelling with my daughter Mia — please leave a cot',
+        'arrival_window' => '18:00-20:00',
+    ])->save();
+
+    // G7 — a guest-authored message body, written through the real inbox path.
+    $thread = app(InboxService::class)->startThread(
+        ['channel' => 'manual', 'guest_id' => $a->getKey(), 'subject' => 'Early check-in?']);
+    app(InboxService::class)->postGuestMessage($thread, 'We land at 2pm — can we come early?');
+
+    // G8 — the operator's PUBLIC reply, which is the identifying half of a review (the body is retained
+    // by design; the reply had kept the guest's first name on an indexable page).
+    Review::create([
+        'organization_id' => $s['org']->id, 'reservation_id' => $reservation->getKey(),
+        'guest_id' => $a->getKey(), 'rating' => 5, 'body' => 'Lovely stay.',
+        'operator_response' => 'Thank you Ada — a pleasure hosting you!', 'responded_at' => now(),
+    ]);
+
+    // The REAL chain: the guest asked to be deleted, the grace window elapsed, the daily sweep runs.
+    $a->forceFill(['scheduled_deletion_at' => now()->subDay()])->save();
+    expect(app(GuestDeletionService::class)->processDue())->toBe(1);
+
+    $res = $reservation->fresh();
+    expect($res->notes_guest)->toBeNull()                       // G4
+        ->and($res->arrival_window)->toBeNull()                 // G4
+        ->and($a->fresh()->phone)->toBeNull();                  // G4
+    expect(Message::query()->where('thread_id', $thread->getKey())->first()->body)->toBe('');   // G7
+    expect(Review::query()->where('guest_id', $a->getKey())->first()->operator_response)->toBeNull();   // G8
 });
