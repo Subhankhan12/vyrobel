@@ -184,23 +184,23 @@
             .vy-inv-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(43,35,32,.38); backdrop-filter: blur(7px); display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
             .vy-inv-modal { width: 460px; max-width: 100%; max-height: 92vh; overflow-y: auto; background: rgba(255,252,248,.94); backdrop-filter: blur(30px) saturate(1.15); border: 1px solid rgba(255,255,255,.85); border-radius: 20px; box-shadow: 0 30px 80px rgba(60,30,10,.35), inset 0 1px 0 rgba(255,255,255,.75); padding: 24px; box-sizing: border-box; animation: vyModalIn .4s cubic-bezier(.22,.61,.36,1) both; }
             .vy-inv-ico { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(140deg,#E8703A,#C2410C); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 5px 14px rgba(194,65,12,.32); }
-            .vy-inv-x { width: 32px; height: 32px; border-radius: 50%; background: rgba(120,70,40,.07); border: none; color: #8A8079; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; text-decoration: none; }
+            .vy-inv-x { width: 32px; height: 32px; border-radius: 50%; background: rgba(120,70,40,.07); border: none; color: var(--vy-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; text-decoration: none; }
             .vy-inv-x:hover { background: rgba(120,70,40,.13); }
             .vy-inv-lbl { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 7px; }
             .vy-inv-inwrap { display: flex; align-items: center; gap: 8px; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.75); border-radius: 14px; padding: 11px 14px; }
             .vy-inv-inwrap input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13.5px; color: #2B2320; padding: 0; }
             .vy-inv-seg { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: rgba(120,70,40,.06); border: 1px solid rgba(120,70,40,.10); }
-            .vy-inv-segopt { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 0; border-radius: 11px; border: none; background: transparent; color: #8A8079; font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .14s; }
+            .vy-inv-segopt { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 0; border-radius: 11px; border: none; background: transparent; color: var(--vy-muted); font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .14s; }
             .vy-inv-segopt.on { background: #fff; color: #C2410C; box-shadow: 0 3px 10px rgba(150,90,50,.14); }
-            .vy-inv-help { font-size: 11px; color: #A69A92; margin-top: 7px; }
-            .vy-inv-chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 30px; background: rgba(255,255,255,.6); border: 1px solid rgba(120,70,40,.14); cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; color: #8A8079; transition: transform .14s, background .14s; }
+            .vy-inv-help { font-size: 11px; color: var(--vy-faint); margin-top: 7px; }
+            .vy-inv-chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 30px; background: rgba(255,255,255,.6); border: 1px solid rgba(120,70,40,.14); cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 500; color: var(--vy-muted); transition: transform .14s, background .14s; }
             .vy-inv-chip:hover { transform: translateY(-1px); }
             .vy-inv-chip.on { background: rgba(217,102,46,.12); border-color: rgba(232,112,58,.5); color: #B4400F; }
             .vy-inv-chipbox { width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid rgba(120,70,40,.28); background: transparent; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
             .vy-inv-chip.on .vy-inv-chipbox { border: none; background: linear-gradient(140deg,#E8703A,#C2410C); }
             .vy-inv-access { display: flex; align-items: center; gap: 11px; padding: 12px 14px; border-radius: 14px; background: rgba(120,70,40,.06); border: 1px solid rgba(120,70,40,.10); }
             .vy-inv-access-ico { width: 32px; height: 32px; border-radius: 10px; background: rgba(217,102,46,.13); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-            .vy-inv-cancel { flex: 1; padding: 12px 0; border-radius: 30px; background: rgba(255,255,255,.65); border: 1px solid rgba(120,70,40,.16); color: #8A8079; font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; text-align: center; }
+            .vy-inv-cancel { flex: 1; padding: 12px 0; border-radius: 30px; background: rgba(255,255,255,.65); border: 1px solid rgba(120,70,40,.16); color: var(--vy-muted); font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; text-align: center; }
             .vy-inv-cancel:hover { background: rgba(120,70,40,.06); }
             .vy-inv-send { flex: 2; padding: 12px 0; border-radius: 30px; background: linear-gradient(140deg,#E8703A,#C2410C); border: none; color: #fff; font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 22px rgba(194,65,12,.40); display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .14s, box-shadow .14s; }
             .vy-inv-send:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(194,65,12,.48); }
@@ -221,7 +221,7 @@
                             </span>
                             <div style="min-width:0">
                                 <div id="vy-invite-title" style="font-family:var(--vy-display,'Sora'),sans-serif;font-weight:600;font-size:19px;letter-spacing:-.01em" x-text="roleTitle()">Invite an owner</div>
-                                <div style="font-size:12px;color:#A69A92;margin-top:2px;line-height:1.4">They’ll get an email to set their password and access their portal.</div>
+                                <div style="font-size:12px;color: var(--vy-faint);margin-top:2px;line-height:1.4">They’ll get an email to set their password and access their portal.</div>
                             </div>
                         </div>
                         <button type="button" class="vy-inv-x" @click="open = false" aria-label="Close">
@@ -233,7 +233,7 @@
                     <div style="margin-bottom:12px">
                         <div class="vy-inv-lbl" x-text="nameLabel()">Owner name</div>
                         <div class="vy-inv-inwrap">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A69A92" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.9-3.4 3.7-5.5 7-5.5s6.1 2.1 7 5.5"/></svg>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6C645F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.9-3.4 3.7-5.5 7-5.5s6.1 2.1 7 5.5"/></svg>
                             <input type="text" name="name" value="{{ old('name') }}" maxlength="120" required placeholder="Person or company">
                         </div>
                         @error('name')<div class="vy-inv-help" style="color:var(--vy-accent)">{{ $message }}</div>@enderror
@@ -243,7 +243,7 @@
                     <div style="margin-bottom:16px">
                         <div class="vy-inv-lbl">Email</div>
                         <div class="vy-inv-inwrap">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A69A92" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 8l9 6 9-6"/></svg>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6C645F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 8l9 6 9-6"/></svg>
                             <input type="email" name="email" value="{{ old('email') }}" maxlength="190" required placeholder="Where the invite is sent">
                         </div>
                         @error('email')<div class="vy-inv-help" style="color:var(--vy-accent)">{{ $message }}</div>@enderror
@@ -278,7 +278,7 @@
                         <div style="margin-bottom:16px" x-show="role === 'owner'">
                             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
                                 <div class="vy-inv-lbl" style="margin-bottom:0">Assign units <span style="text-transform:none;letter-spacing:0;color:#B7ADA4;font-weight:400">· optional</span></div>
-                                <span style="font-size:11px;color:#A69A92" x-text="units.length === 0 ? 'None selected' : units.length"></span>
+                                <span style="font-size:11px;color: var(--vy-faint)" x-text="units.length === 0 ? 'None selected' : units.length"></span>
                             </div>
                             <div style="display:flex;flex-wrap:wrap;gap:8px">
                                 @foreach ($units as $u)
@@ -316,7 +316,7 @@
                             <span class="vy-inv-access-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c-5 0-8.5 4.2-9.5 7c1 2.8 4.5 7 9.5 7s8.5-4.2 9.5-7c-1-2.8-4.5-7-9.5-7z"/><circle cx="12" cy="12" r="2.6"/></svg></span>
                             <span style="min-width:0">
                                 <span style="display:block;font-size:13px;font-weight:500">Read &amp; export</span>
-                                <span style="display:block;font-size:11.5px;color:#8A8079;margin-top:1px;line-height:1.45">Statements, tax documents and payouts. No commission applies.</span>
+                                <span style="display:block;font-size:11.5px;color: var(--vy-muted);margin-top:1px;line-height:1.45">Statements, tax documents and payouts. No commission applies.</span>
                             </span>
                         </div>
                     </div>
@@ -328,7 +328,7 @@
                             <span class="vy-inv-access-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2V7"/><path d="M3 13h18"/></svg></span>
                             <span style="min-width:0">
                                 <span style="display:block;font-size:13px;font-weight:500">Full operations</span>
-                                <span style="display:block;font-size:11.5px;color:#8A8079;margin-top:1px;line-height:1.45">Bookings, calendar, guest messaging and maintenance. No owner financials.</span>
+                                <span style="display:block;font-size:11.5px;color: var(--vy-muted);margin-top:1px;line-height:1.45">Bookings, calendar, guest messaging and maintenance. No owner financials.</span>
                             </span>
                         </div>
                     </div>
@@ -359,13 +359,13 @@
                             </div>
                         </div>
                         <div style="font-family:var(--vy-display,'Sora'),sans-serif;font-weight:600;font-size:20px;letter-spacing:-.02em;text-align:center">Invite sent</div>
-                        <div style="font-size:12.5px;color:#8A8079;margin-top:6px;text-align:center;line-height:1.55">We emailed <span style="font-weight:500;color:#2B2320" x-text="sentEmail"></span> a link to set their password.<br>They’ll appear as <span style="font-weight:500;color:#2B2320">Pending</span> until they activate.</div>
+                        <div style="font-size:12.5px;color: var(--vy-muted);margin-top:6px;text-align:center;line-height:1.55">We emailed <span style="font-weight:500;color:#2B2320" x-text="sentEmail"></span> a link to set their password.<br>They’ll appear as <span style="font-weight:500;color:#2B2320">Pending</span> until they activate.</div>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;background:rgba(120,70,40,.06);border:1px solid rgba(120,70,40,.10);margin-bottom:18px">
                         <span style="width:30px;height:30px;border-radius:50%;background:rgba(217,102,46,.13);color:#B4400F;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
                         </span>
-                        <span style="min-width:0;flex:1;font-size:12px;color:#8A8079;line-height:1.5">The link expires <template x-if="sentExpires"><span>on <span style="font-weight:500;color:#4A4038" x-text="sentExpires"></span></span></template><template x-if="! sentExpires"><span>in 7 days</span></template>. You can resend it any time from the owner’s row.</span>
+                        <span style="min-width:0;flex:1;font-size:12px;color: var(--vy-muted);line-height:1.5">The link expires <template x-if="sentExpires"><span>on <span style="font-weight:500;color:#4A4038" x-text="sentExpires"></span></span></template><template x-if="! sentExpires"><span>in 7 days</span></template>. You can resend it any time from the owner’s row.</span>
                     </div>
                     <a href="{{ route('app.owners.invite.preview') }}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:12px 0;border-radius:30px;background:rgba(255,255,255,.65);border:1px solid rgba(120,70,40,.14);color:#2B2320;font-family:inherit;font-size:13px;font-weight:500;text-decoration:none">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2.5"/><path d="M22 7 12 13 2 7"/></svg>

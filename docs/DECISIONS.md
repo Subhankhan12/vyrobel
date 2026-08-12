@@ -8163,3 +8163,67 @@ reverting the gradient each turn it red **naming the file and the literal**; `ph
 
 Suite 1894 / 12,362, **9 non-green — the documented baseline set** (`BookingImportTest` ×6,
 `OwnerUnitDetailViewTest`, `StubViewsTest` ×2). PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-12 — **`DO-EMAIL-2`: the three greys on the operator/owner WEB screens — CLOSED**
+
+The third surface class, and the most instructive of the three grey sweeps. Full record: **§WEB-GREY-SWEEP** in
+`docs/design/MISSING-BACKEND-BY-PAGE.md`.
+
+⚠️ **THE HEADLINE FINDING IS NOT THE CONTRAST — IT IS WHY THE GATES MISSED IT.** The brief assumed these
+survived because the operator (42/42) and owner (32/32) gates predated the matured contrast method. **The
+measurement says otherwise, and the true reason is more useful:** all eleven `owners.blade.php` occurrences sit
+inside **`@can('users.manage')`** — a permission the **demo Hotel Manager the gates were driven as does not
+hold** — and inside an Alpine `x-show="open"` modal on top of that. Verified live: as `demo-staff` the markup
+is **absent from the DOM entirely**. Measuring required a **role swap** (to `demo-admin`, a `Property Owner` —
+one of only three roles holding that permission) **and then** a forced Alpine state.
+
+> **It was a COVERAGE gap, not an instrument gap. No probe, however mature, can measure markup a permission
+> check never emitted. A contrast pass is bounded by the ROLE it runs as.** Put this beside G10 — *a
+> conditional style is invisible until forced*: **so is a conditional SURFACE, and the condition can be
+> authorization.**
+
+**Premise correction: 28 occurrences across 9 files, not the 13 the register named.** The `rgb()` grep — which
+a hex-only grep would have missed entirely — turned up two sites nobody had named: `--vy-hk-ooo` in the
+operator layout, and **the body copy of the whole `billing/feature-locked` 403 page**.
+
+**Root cause: TOKEN DRIFT, which is why the fix is a token and not another literal.** The three literals *are*
+the pre-AA values of the two text tokens (`#8A8079` = the old `--vy-muted`; `#A69A92` = the old `--vy-faint`;
+`#A99E95` a near-neighbour of it). Hardcoding them froze those runs at the pre-remediation palette while the
+tokens moved underneath. On web a token is available — unlike email — so every TEXT occurrence now reads
+`var(--vy-muted)` / `var(--vy-faint)` and will follow the token if it is ever retuned again.
+
+**Measured on the real render — pixel-sampled, two anchors, never `getComputedStyle`:** invite modal plate
+**`#F8F4EF`** (anchors 14.06 / 2.01) — `#A69A92` **2.50 → 5.29**, `#8A8079` **3.52 → 6.38**; Settings
+*"Powered by Vyrobel"* on `#F6EBE2` — `#A99E95` **2.23 → 4.94**; the 403 page on `#FCF7F2` —
+`rgb(138,128,121)` **3.62 → 6.56**. ⚠️ **The modal plate is precisely why a pixel sample was mandatory**: it is
+glass composited over a blurred scrim, a value no declared computation could produce — the email sweep's
+declared-hex walk would have been wrong here. **Nothing passed, so nothing was left.**
+
+**Deliberately not changed, each classified:** two status **dots** and three decorative input-adornment **SVG
+strokes** (non-text, each paired with a real label — the strokes took the literal `#6C645F` because a `var()`
+an engine does not support makes the icon **render nothing**, a worse trade for zero contrast gain);
+**`--vy-hk-ooo`**, a status *fill* token sharing the value (recolouring an indicator is a design decision →
+`DO-EMAIL-7`); and four comment lines documenting this very remediation — ⚠️ **two of them CSS comments, which
+ship** — so the guard matches a **colour declaration**, never a bare substring, and cannot fail on its own
+documentation.
+
+**New items logged rather than quietly swept:**
+- **`DO-EMAIL-5`** — a **FOURTH grey**: `.vy-inv-lbl { color: #9C9089 }`, every form label in that modal,
+  **2.84** on the same plate. One line, same CSS block, outside the named three. ⚠️ It was found *the moment
+  the pass looked past its own scope* — which is the argument for a full operator/owner contrast re-audit as a
+  backend-phase item.
+- **`DO-EMAIL-6`** — **standalone pages cannot reach the design tokens.** `billing/feature-locked` and
+  `auth/login-approval*` carry their own `<style>` with no `--vy-*` in scope, so both hold mapped literals and
+  will not follow a future retune.
+- **`DO-EMAIL-7`** — the `--vy-hk-ooo` fill.
+- **`DO-EMAIL-4` was checked here and does NOT apply** — neither `--vy-amber-text` value appears on these
+  screens (grep-confirmed). It stays open, untouched.
+
+**Gated guarantees re-verified — 0 regression.** No tenant isolation (#38/#42), no RBAC, no data, no Livewire
+logic, no component state was touched. The isolation/RBAC/plan-gating set for these exact screens:
+**712 tests, 710 pass, 2 errors = the documented date-coupled baseline pair.** Guard
+`tests/Feature/OperatorOwnerGreyDriftTest.php` (3 tests / 27 assertions, incl. a non-vacuity check),
+**mutation-proven** — reverting `.vy-inv-help` turns it red naming the file and the colour; `php -l` clean both
+ways. Suite **1897 / 12,389**, 9 non-green = the documented set. PHPStan L5 (0); Pint clean.

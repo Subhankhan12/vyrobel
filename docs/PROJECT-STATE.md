@@ -53,9 +53,27 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   signal**, where darkening the hex changes the number without fixing the defect. **It is the ONE remaining
 >   failing run in the email set.** New: **`DO-EMAIL-4`** — `--vy-amber-text` is **defined twice with different
 >   values** (guest `rgb(126,88,17)` vs owner `rgb(128,76,5)`), the §N.8f shape.
->   ⚠️ **`DO-EMAIL-2` still OPEN and still the sharper find — the pre-AA greys are live on operator/owner
->   SCREENS** the walk recorded as gated (`owners.blade.php` ~12 declarations;
->   `operator-settings.blade.php:441`).
+>   **`DO-EMAIL-2` ✅ CLOSED the same day (§WEB-GREY-SWEEP)** — the third surface class, and the most
+>   instructive of the three sweeps. ⚠️ **28 occurrences across 9 files, not the 13 named**: the `rgb()` grep
+>   found two nobody had — `--vy-hk-ooo` and **the whole `billing/feature-locked` 403 page's body copy**.
+>   **Root cause = TOKEN DRIFT** — the three literals ARE the pre-AA values of `--vy-muted`/`--vy-faint`, so on
+>   web (unlike email) the fix is the **token**, and these runs will follow it if it is ever retuned again.
+>   Pixel-sampled on the real plates: invite modal **`#F8F4EF`** (glass over a scrim — *no declared computation
+>   could produce it*) `#A69A92` 2.50→5.29 and `#8A8079` 3.52→6.38 · Settings `#A99E95` 2.23→4.94 · the 403
+>   page 3.62→6.56.
+>   ⚠️ **THE FINDING THAT GENERALISES — it was NOT an immature instrument, it was a COVERAGE gap.** All 11
+>   `owners.blade.php` greys sit inside **`@can('users.manage')`**, a permission the demo Hotel Manager the
+>   gates were driven as does **not** hold — so the markup was **never in the DOM**, and no probe however
+>   mature could have measured it. Measuring needed a **role swap** (to a `Property Owner`) *and* a forced
+>   Alpine state. **A contrast pass is bounded by the ROLE it runs as.** Put this beside G10: *a conditional
+>   style is invisible until forced* — **so is a conditional SURFACE, and the condition can be authorization.**
+>   Gated guarantees re-verified (712 isolation/RBAC/plan tests, 0 regression; nothing but colour changed).
+>   New successors: **`DO-EMAIL-5`** (a FOURTH grey — `.vy-inv-lbl` `#9C9089` at **2.84**, every form label in
+>   that modal; ⚠️ *found the moment the pass looked beyond its scope, so a full operator/owner re-audit is a
+>   backend-phase item*) · **`DO-EMAIL-6`** (standalone pages — `feature-locked`, `auth/login-approval*` —
+>   carry their own `<style>` and **cannot reach the tokens**, so they hold literals) · **`DO-EMAIL-7`**
+>   (`--vy-hk-ooo` shares the pre-AA value as a status **fill** — a design decision, not a contrast fix).
+>   **`DO-EMAIL-4` was checked here and does NOT apply** — neither amber value appears on these screens.
 >   ⚠️ **A near-miss worth carrying:** re-measuring `DO-INV-4` with the corrected probe read **321/118** against
 >   the published **332/120** — which looked like a correction and was not. The cause was a **scratchpad name
 >   collision** (an auth *screen* render overwrote the same-named *email* render in the before-snapshot);

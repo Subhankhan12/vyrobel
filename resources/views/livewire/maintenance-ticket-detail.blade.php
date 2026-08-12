@@ -199,7 +199,7 @@
                                     <div style="display:inline-grid;grid-auto-flow:column;gap:4px;padding:4px;border-radius:12px;background:rgba(120,70,40,.06);border:1px solid rgba(120,70,40,.10);margin-bottom:10px;">
                                         @foreach ($noteKinds as $k)
                                             <button type="button" @click="kind = '{{ $k['key'] }}'"
-                                                    :style="kind === '{{ $k['key'] }}' ? 'background:rgba(255,255,255,.9);color:#C2410C;box-shadow:0 2px 8px rgba(150,90,50,.16);font-weight:600' : 'background:transparent;color:#8A8079;font-weight:500'"
+                                                    :style="kind === '{{ $k['key'] }}' ? 'background:rgba(255,255,255,.9);color:#C2410C;box-shadow:0 2px 8px rgba(150,90,50,.16);font-weight:600' : 'background:transparent;color: var(--vy-muted);font-weight:500'"
                                                     style="padding:6px 14px;border-radius:9px;border:none;font-family:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .16s,color .16s;">{{ $k['label'] }}</button>
                                         @endforeach
                                     </div>
@@ -397,7 +397,7 @@
                         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
                             @foreach (['Balancing load', 'Specialty match', 'Unavailable', 'Escalation'] as $r)
                                 <button type="button" @click="reason = (reason === '{{ $r }}' ? '' : '{{ $r }}')"
-                                        :style="reason === '{{ $r }}' ? 'background:rgba(217,102,46,.13);color:#B4400F;border:1px solid rgba(232,112,58,.30)' : 'background:rgba(120,70,40,.05);color:#8A8079;border:1px solid rgba(120,70,40,.12)'"
+                                        :style="reason === '{{ $r }}' ? 'background:rgba(217,102,46,.13);color:#B4400F;border:1px solid rgba(232,112,58,.30)' : 'background:rgba(120,70,40,.05);color: var(--vy-muted);border:1px solid rgba(120,70,40,.12)'"
                                         style="padding:7px 13px;border-radius:30px;font-family:inherit;font-size:11.5px;font-weight:500;cursor:pointer;transition:background .14s,color .14s;">{{ $r }}</button>
                             @endforeach
                         </div>
@@ -447,7 +447,7 @@
                             <div>
                                 <div class="vy-eyebrow" style="margin-bottom:7px;">Time spent</div>
                                 <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A69A92" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6C645F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
                                     <input type="number" inputmode="decimal" step="0.25" min="0" name="time_spent" placeholder="e.g. 1.5" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
                                     <span style="color:var(--vy-faint);font-size:12px;flex-shrink:0;">h</span>
                                 </div>
@@ -470,7 +470,7 @@
                                     </span>
                                     <div style="min-width:0;">
                                         <div style="font-size:13px;font-weight:500;">Return {{ $ticket['unit'] }} to sale</div>
-                                        <div style="font-size:11px;margin-top:2px;line-height:1.45;" :style="ret ? 'color:#B4400F' : 'color:#A69A92'" x-text="ret ? 'The unit goes back on sale immediately.' : 'Stays out of order — lift the block later from the rack.'"></div>
+                                        <div style="font-size:11px;margin-top:2px;line-height:1.45;" :style="ret ? 'color:#B4400F' : 'color: var(--vy-faint)'" x-text="ret ? 'The unit goes back on sale immediately.' : 'Stays out of order — lift the block later from the rack.'"></div>
                                     </div>
                                 </div>
                                 <button type="button" @click="ret = !ret" :style="ret ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">

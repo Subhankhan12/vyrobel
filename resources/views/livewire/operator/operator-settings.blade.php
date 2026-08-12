@@ -438,7 +438,7 @@
                                 <span style="display: inline-block; background: {{ $brandPreview->accent }}; color: #fff; font-size: 12.5px; font-weight: 600; padding: 9px 18px; border-radius: 10px;">View your booking</span>
                             </div>
                             @if ($brandPreview->poweredBy)
-                                <div style="text-align: center; font-size: 10.5px; color: #A99E95; margin-top: 12px;">Powered by Vyrobel · hotel management, done properly.</div>
+                                <div style="text-align: center; font-size: 10.5px; color: var(--vy-faint); margin-top: 12px;">Powered by Vyrobel · hotel management, done properly.</div>
                             @endif
                         </div>
                         <p style="font-size: 11px; color: var(--vy-faint); margin: 8px 0 0;">This accent flows to all guest emails, the portal &amp; the review page.</p>

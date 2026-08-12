@@ -23,7 +23,7 @@
         .badge { width: 52px; height: 52px; margin: 0 auto 16px; border-radius: 15px; display: grid; place-items: center;
             background: rgba(217,102,46,.13); color: #B4400F; }
         h1 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 22px; margin: 0 0 8px; }
-        p { color: rgb(138,128,121); font-size: 14px; line-height: 1.55; margin: 0 0 22px; }
+        p { color: #5F5853; font-size: 14px; line-height: 1.55; margin: 0 0 22px; }
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 30px;
             font-weight: 600; font-size: 14px; color: #fff; text-decoration: none; background: linear-gradient(140deg,#E8703A,#C2410C); box-shadow: rgba(194,65,12,.3) 0 4px 12px; }
     </style>
