@@ -3,6 +3,7 @@
      "your original payment method" (no card_last4 stored — #28), reason only when set, ETA a range not a date
      (#39). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'booking')
 
 @section('title', 'Your refund has been processed')
 @section('preheader', 'We’ve refunded '.$amount.' to your original payment method.')

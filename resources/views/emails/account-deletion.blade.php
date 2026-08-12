@@ -2,6 +2,7 @@
      reversible 14-day erase. HONEST: it's a schedule, not an instant delete; the undo path is real (sign in →
      Undo). Email-safe: inline styles, table layout. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'account')
 
 @section('title', 'Your account deletion is scheduled')
 @section('preheader', 'You have '.$graceDays.' days to change your mind before anything is removed.')

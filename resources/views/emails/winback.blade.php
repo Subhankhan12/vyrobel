@@ -16,7 +16,7 @@
 {{-- MARKETING footer: a working, signed opt-out that needs no login. Rendered ONLY when the sender supplied a
      URL, so this template can never claim an unsubscribe it cannot honour. --}}
 @if (! empty($unsubscribeUrl))
-    @section('unsubscribe')
+    @section('footer_marketing')
         <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#6C645F;">You're receiving this because you opted in to hear from us. <a href="{{ $unsubscribeUrl }}" style="color:#6C645F; text-decoration:underline;">Unsubscribe</a> at any time — you'll still get emails about your bookings.</p>
     @endsection
 @endif

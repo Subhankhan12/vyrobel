@@ -57,7 +57,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **③ THE FIRST BUILD (v10)** — **`GET /guest/help`, the guest FAQ centre** (`23bf335`), over the certified
 >   `HelpKnowledgeBase`. **Canon: §N.15.**
 >
-> **Suite 1931 / 12,745 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
+> **Suite 1943 / 12,841 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
 > `OwnerUnitDetailViewTest` ×1 — in-suite-only / an `inventory_block`; **isolate before calling anything a
 > regression**, and prove a new failure pre-existing by stashing from a CLEAN worktree — §N.14.5).
 > PHPStan L5 (0) · Pint clean.
@@ -92,34 +92,34 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   **`PropertySupport`** (§D.guest). ⚠️ One correction — **`DO-SUP-1`: phone renders as `tel:` ONLY**, because
 >   nothing verifies WhatsApp. Record: **§SUPPORT-BACKEND** + §N.15.6.
 >
-> **⬅ ① `DO-EMAIL-9` — a LIVE §N.8d, and now the top of the list.** ⚠️ **FOUNDER DIRECTION (2026-08-12):
->   RESTRUCTURE, not reword** — change the shared layout's default service line and audit which templates then
->   need their own, rather than the per-template override `DO-EMAIL-3` used. `owner-email-change` tells an owner changing their
->   **login email**: *"You're receiving this because it relates to your booking with us."* A **security
->   notification asserting something untrue, shipping today.** It is the shared layout's default footer, so
->   ⚠️ **the scope is unknown** — every account/security template extending that layout inherits it (§N.14.8).
->   **Surface the reword-vs-restructure call before touching it**: a per-template override is what `DO-EMAIL-3`
->   did; the structural fix changes the layout default and audits who then needs their own line.
+> ~~**① `DO-EMAIL-9`**~~ ✅ **CLOSED 2026-08-12 — and `DO-EMAIL-8` with it.** The shared layout's footer reason
+>   is now **DERIVED from a declared category** (`@section('footer_reason', 'security')`), with the wording in
+>   code — so the false *"relates to your booking"* line is **unrepresentable**, not merely removed, and the
+>   **default is generic-true** so a forgetful new template still cannot claim a booking. All 16 extending
+>   templates enumerated; the overloaded `unsubscribe` slot **split** into `footer_reason` + `footer_marketing`.
+>   ⚠️ A new `email_change` category exists because flattening the two change emails into `security` would have
+>   been a small honesty regression: they are sent to a **nominated address** whose reader may hold no account.
+>   Record: **§EMAIL-FOOTER-RESTRUCTURE**.
 >
-> **② `DO-EMAIL-4`** — reconcile the twice-defined `--vy-amber-text` (guest `rgb(126,88,17)` vs owner
+> **⬅ ① `DO-EMAIL-4`** — reconcile the twice-defined `--vy-amber-text` (guest `rgb(126,88,17)` vs owner
 >   `rgb(128,76,5)`). Until one wins, "map the literal to the token" (§N.14.9) is ambiguous.
 >
-> **③ `DO-EMAIL-5` + `DO-EMAIL-6`** — the coverage re-audit (run **across every role that can reach each
+> **② `DO-EMAIL-5` + `DO-EMAIL-6`** — the coverage re-audit (run **across every role that can reach each
 >   surface**; a fourth grey was found the moment one pass looked past its scope) and the two standalone web
 >   pages that cannot reach the tokens.
 >
-> **④ The small items** — ✅ **THE G13 SET IS CLOSED.** `DO-G13-1` is BUILT (both halves), and on 2026-08-12 the
+> **③ The small items** — ✅ **THE G13 SET IS CLOSED.** `DO-G13-1` is BUILT (both halves), and on 2026-08-12 the
 >   founder **RATIFIED** `DO-G13-2` (Guest Documents → **DEFER**) and `DO-G13-3` (Guest Referral →
 >   **DON'T-BUILD**, #39). ⚠️ Those are now **decisions, not recommendations** — neither is a gap, and a future
 >   session must not "finish" either. Remaining: `DO-EMAIL-7`, `DO-EMAIL-8`, `DO-STAR-1` (⚠️ a bookmark, not a
 >   rating) and `DO-SUP-1` (the WhatsApp affordance, deliberately not drawn).
 >
-> **⑤ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
+> **④ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
 >   DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (two index blocks: ✅ *closed by the cleanup
 >   sequence* · ⬅ *open successors, grouped by kind*), plus the **6 reopened operator a11y gates** (§N.9) and
 >   the **deferred-capability refusal sweep** (§N.8b).
 >
-> **⑥ ⛔ THE BILLING / GO-LIVE BLOCKER (§G.1) — still open, untouched by all three chapters.** Two contradictory
+> **⑤ ⛔ THE BILLING / GO-LIVE BLOCKER (§G.1) — still open, untouched by all three chapters.** Two contradictory
 >   pricing models run at once and only the tier price reaches Stripe; at the live-key flip a customer is billed
 >   ~2×. ⚠️ **It is the founder's business decision — surface it, never pick a side.** ⚠️ **If launch is near,
 >   this outranks everything above.**

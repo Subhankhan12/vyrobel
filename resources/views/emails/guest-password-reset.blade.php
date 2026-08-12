@@ -1,6 +1,7 @@
 {{-- Guest password-reset email (Phase 4a · SG3). Token-only link (no email in the URL); the reset form asks for
      the email. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'security')
 
 @section('title', 'Reset your password')
 @section('preheader', 'Reset the password for your Vyrobel guest account.')

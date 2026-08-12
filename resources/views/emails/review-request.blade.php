@@ -3,6 +3,7 @@
      table layout, bulletproof button. "We only ask once" is real (one review per stay, DB unique). No fabricated
      named host (#39). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'booking')
 
 @section('title', 'Rate your stay')
 @section('preheader', 'A quick rating of your stay at '.$unitName.' would mean the world.')

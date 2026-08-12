@@ -68,14 +68,52 @@
                             @if ($brand->poweredBy)
                                 <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#6C645F;">Powered by Vyrobel · hotel management, done properly.</p>
                             @endif
-                            {{-- MARKETING vs TRANSACTIONAL footer. A marketing template fills `unsubscribe` with a
-                                 signed opt-out link; a transactional one never does, and correctly keeps the
-                                 service-message line with no unsubscribe (a guest cannot opt out of their own
-                                 booking confirmation). --}}
-                            @hasSection('unsubscribe')
-                                @yield('unsubscribe')
+                            {{-- ⚠️ THE FOOTER REASON (DO-EMAIL-9 · restructure, 2026-08-12).
+
+                                 This line used to be a single hardcoded default — "…it relates to your booking
+                                 with us." — inherited by every template that extends this file. That is FALSE on
+                                 an account or security email: an owner changing their LOGIN EMAIL has no booking,
+                                 and `owner-email-change` shipped exactly that claim, live. A shared layout's
+                                 default copy is CONTENT, and it can be false (§N.14.8).
+
+                                 ⚠️ REWORDING THE DEFAULT WOULD NOT HAVE FIXED IT. Whatever single sentence sat
+                                 here would be wrong for some category, and the next email added would inherit it
+                                 silently. So the reason is now DERIVED from the email's own category: a template
+                                 declares a KEY, never a sentence, and the wording lives here. A false reason is
+                                 not something a template can type — the same structural honesty the guest support
+                                 reply-norm uses (a key into a catalogue, not free text).
+
+                                 ⚠️ AND THE DEFAULT IS GENERIC-TRUE. A template that declares nothing gets a line
+                                 that is true of ANY recipient, so a forgetful new email still cannot ship a false
+                                 claim. An unrecognised key falls to the same safe line rather than rendering the
+                                 raw key. That is the whole difference between this and a reword. --}}
+                            @php
+                                $vyReasons = [
+                                    'booking' => 'You’re receiving this because it relates to your booking with us.',
+                                    'security' => 'You’re receiving this because of a security change on your account.',
+                                    // ⚠️ A NOMINATED ADDRESS, not necessarily an account holder. An email-change
+                                    // confirmation is sent to the address being ADDED, whose reader may have no
+                                    // account at all yet — so neither the booking line nor "your account" is
+                                    // safely true of them. This says only what is certain: someone gave us this
+                                    // address. (It is also what the admin template's one-off override said, kept
+                                    // rather than flattened into the generic security line.)
+                                    'email_change' => 'You’re receiving this because this address was given as the login email for a Vyrobel account.',
+                                    'account' => 'You’re receiving this because it relates to your account with us.',
+                                    'owner' => 'You’re receiving this because you own a property we manage.',
+                                    'waitlist' => 'You’re receiving this because you asked to hear about these dates.',
+                                    // The safe default: true of anyone we can legitimately email.
+                                    'generic' => 'You’re receiving this because you have an account with us.',
+                                ];
+                                $vyReasonKey = trim($__env->yieldContent('footer_reason'));
+                            @endphp
+                            {{-- MARKETING vs TRANSACTIONAL. A marketing template fills `footer_marketing` with its
+                                 own opt-in line AND a real signed opt-out link; a transactional one never does —
+                                 a recipient cannot unsubscribe from a security notice about their own account, so
+                                 offering them a link that pretends otherwise would be its own false claim. --}}
+                            @hasSection('footer_marketing')
+                                @yield('footer_marketing')
                             @else
-                                <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#6C645F;">You’re receiving this because it relates to your booking with us.</p>
+                                <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#6C645F;">{{ $vyReasons[$vyReasonKey] ?? $vyReasons['generic'] }}</p>
                             @endif
                         </td>
                     </tr>

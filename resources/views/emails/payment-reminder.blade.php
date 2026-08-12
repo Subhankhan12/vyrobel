@@ -2,6 +2,7 @@
      real Total / Paid / Balance (FolioTotals; Total − Paid == Balance, #17) + a real Pay-now button. Email-safe:
      inline styles, table layout, bulletproof button. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'booking')
 
 @section('title', 'A balance is due before your stay')
 @section('preheader', 'A balance of '.$balance.' is due before your stay at '.$unitName.'.')

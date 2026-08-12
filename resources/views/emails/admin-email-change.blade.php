@@ -13,10 +13,11 @@
      CTA and its URL, and the "if you didn't request this" reassurance. Nothing was reworded, dropped, added or
      reordered, and the warning still sits directly under the CTA rather than being demoted into the footer.
 
-     ⚠️ THE FOOTER IS OVERRIDDEN DELIBERATELY. The layout's default service line reads "You're receiving this
-     because it relates to your booking with us." A platform admin has no booking, so inheriting it would ship a
-     FALSE statement on a security email. The layout's own footer-override slot carries an accurate line
-     instead. (That slot is named `unsubscribe`; it is really "the footer service line" — logged, not renamed.)
+     ⚠️ THE FOOTER IS NOW A DECLARED CATEGORY, NOT A ONE-OFF OVERRIDE (DO-EMAIL-9, 2026-08-12). This template
+     used to carry its own hand-written footer sentence, because the layout's single default read "…it relates to
+     your booking with us." and a platform admin has no booking. That override was the right patch at the time and
+     is now redundant: the layout derives the line from `footer_reason`, so declaring `email_change` gets an accurate
+     sentence from the shared catalogue and one fewer copy of a claim can drift (§N.8f).
 
      Claims verified against the engine ({@see App\Http\Controllers\Admin\AccountController}): the link is
      `URL::temporarySignedRoute(..., now()->addHour())` — the one hour is REAL; and `email` is only written on
@@ -25,6 +26,7 @@
 
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'email_change')
 
 @section('title', 'Confirm your new Vyrobel platform email')
 @section('preheader', 'Confirm this address to finish changing your Vyrobel platform-admin login email.')
@@ -46,6 +48,3 @@
     <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#5F5853;">If you didn't request this, you can ignore this email — nothing changes without opening the link.</p>
 @endsection
 
-@section('unsubscribe')
-    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#6C645F;">You're receiving this because this address was requested as the login email for a Vyrobel platform-admin account.</p>
-@endsection

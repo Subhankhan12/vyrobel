@@ -1,5 +1,6 @@
 {{-- Operator → self: the maintenance costs report PDF (#89). RAW-BLADE RULE: every `@` follows a space/newline/tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'account')
 
 @section('title', 'Your maintenance costs report')
 @section('preheader', 'Your maintenance costs report is attached as a PDF.')

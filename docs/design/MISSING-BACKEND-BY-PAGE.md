@@ -7852,6 +7852,95 @@ usually')`, which the broken sentence satisfies. Caught by rendering it. The phr
 
 ---
 
+## §EMAIL-FOOTER-RESTRUCTURE — `DO-EMAIL-9` + `DO-EMAIL-8` · **CLOSED** (2026-08-12)
+
+The shared email layout ended every template with ONE hardcoded line — *"You're receiving this because it
+relates to your booking with us."* — and `owner-email-change`, an owner changing their **login email**, shipped
+it live. A shared layout's default copy is content, and it can be false (§N.14.8).
+
+### ⚠️ Why a REWORD was the wrong fix (the founder's call, and the reasoning holds up)
+
+Any single sentence sitting in that slot is wrong for **some** category, and the next template added inherits it
+silently. So the reason is now **derived**: a template declares a **KEY**, the layout owns the wording.
+
+```
+@extends('emails.layout')
+@section('footer_reason', 'security')
+```
+
+**A false reason is not something a template can type** — the same structural honesty the guest support
+reply-norm uses (`PropertySupport::REPLY_NORMS`). Two builds in a row have now reached for this shape; it is
+becoming the house pattern for *"copy that must stay true"*.
+
+### ⚠️ The default is GENERIC-TRUE — this is the actual fix
+
+| state | line |
+|---|---|
+| declares nothing | *"…because you have an account with us."* — true of anyone we may legitimately email |
+| declares an unknown key | the same generic line (**never** the raw key) |
+
+**A forgetful new template still cannot claim a booking.** That is the whole difference between this and a
+reword, and it is the test that would fail first if the fix regressed.
+
+### The catalogue, and who declares what (all 16 extenders enumerated)
+
+| category | line | templates |
+|---|---|---|
+| `booking` | relates to your booking with us | booking-confirmation · cancellation · refund-confirmation · payment-reminder · pre-arrival · review-request |
+| `security` | of a security change on your account | guest-password-reset |
+| `email_change` | this address was given as the login email for a Vyrobel account | **owner-email-change** · admin-email-change |
+| `account` | relates to your account with us | account-deletion · verify-email · maintenance-cost-report |
+| `waitlist` | you asked to hear about these dates | waitlist-notification |
+| *(none → generic)* | you have an account with us | notification · winback\* |
+
+\* `winback` is pure marketing and supplies its own `footer_marketing` block with a REAL signed opt-out.
+`operator-guest-message` declares **`booking`** and has TWO modes: with an unsubscribe URL it fills
+`footer_marketing`; without one it is an ordinary service message and falls through to its category.
+
+⚠️ **That last one was classified WRONG at first** (left generic) and `MarketingUnsubscribeTest` — a
+pre-existing green test — caught it: a property writing to a guest about their stay really does relate to their
+booking. *A test that looks like collateral damage may be encoding an invariant; read it before changing it.*
+
+⚠️ **`email_change` exists because of a finding, not tidiness.** The obvious move was to declare `security` on
+both change emails. But an email-change confirmation is sent to the address being **ADDED**, whose reader may
+hold no account at all yet — so *"a security change on your account"* is not safely true of them. The one-off
+override `DO-EMAIL-3` wrote had carried exactly this nuance, and flattening it into `security` would have been a
+small honesty **regression** dressed as consolidation. The category says only what is certain: someone gave us
+this address. *The old test defending that sentence is what surfaced it.*
+
+### `DO-EMAIL-8` — a premise correction: OVERLOADED, not just misnamed
+
+The register called the slot *misnamed*. It was **doing two jobs**: a genuine marketing opt-out block
+(`winback`, `operator-guest-message`) **and** a reason override (`admin-email-change`). Renaming alone would
+have re-conflated them, so it was **split** — `footer_reason` (a key) and `footer_marketing` (the opt-out
+block). `@section('unsubscribe')` greps to **zero**. A transactional email offers no opt-out, because nobody can
+unsubscribe from a security notice about their own account.
+
+### Verified by rendering, as the role
+
+**11 of 16 rendered as real Mailables:** the 9 through the operator Email-Previews route (6 booking → the
+booking line · waitlist → its own line · winback → the marketing block with its real link · verify-email →
+account) plus the two change emails rendered directly. The remaining 5 are covered by the enumerated
+declaration guard plus the layout-catalogue render. **`owner-email-change` before/after is captured** —
+identical message, CTA and URL; only the footer line changes.
+
+### 🔒 Guard — `tests/Feature/EmailFooterReasonTest.php` (12 tests / 97 assertions)
+
+Every category's line · the **generic-true default** · an **unknown key** falling back rather than rendering raw
+· `owner-email-change` specifically · the enumeration (a template added later fails as an unknown key) ·
+content-survived · `DO-EMAIL-8`. **Mutation-proven four ways** — regress the default to the booking line, drop
+`owner-email-change`'s declaration, make an unknown key render raw, restore the old slot name — each red on its
+own guard.
+
+⚠️ **Two guard bugs caught while writing it, both of the house's known families:** `toHaveKey($name, $msg)`
+silently asserts a *value*, not a message (the §N.8c API-misuse family, in a new guise); and a source-level scan
+fired on a **Blade comment** quoting the old line — the *inverse* of the CSS-comment trap, since Blade comments
+never ship and must be stripped before scanning. ⚠️ And one mutation verdict was briefly untrustworthy because
+the *verification grep* was broken by shell escaping — re-run with an asserted anchor. **The check must be as
+trustworthy as the thing it checks.**
+
+---
+
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
 
 **This is the reconciled index of every `DO-*` item raised by the guest realm's 12 gates, the cross-realm
@@ -7907,7 +7996,7 @@ below; this is the priority index.*
 
 | kind | items |
 |---|---|
-| 🔴 **LIVE §N.8d — a false claim shipping today** | ⚠️ **`DO-EMAIL-9`** — `owner-email-change` tells an owner changing their **login email** *"You're receiving this because it relates to your booking with us."* A security notification asserting something untrue. ⚠️ **And the scope is unknown**: every account/security template extending the shared layout inherits that default (§N.14.8). **The first thing the backend phase touches.** ⚠️ **FOUNDER DIRECTION (2026-08-12): RESTRUCTURE, not reword** — change the shared layout's default service line and audit which templates then need their own, rather than overriding per-template as `DO-EMAIL-3` did. The per-template override stays available for genuine exceptions; it is no longer the default answer. |
+| ✅ **`DO-EMAIL-9` CLOSED** (2026-08-12) | the layout's footer reason is now **DERIVED from a declared category**, so the false booking line is **unrepresentable** rather than merely removed. `owner-email-change` — the live offender — renders the truth. **`DO-EMAIL-8` closed with it** (the overloaded `unsubscribe` slot split into `footer_reason` + `footer_marketing`). See **§EMAIL-FOOTER-RESTRUCTURE**. |
 | 🎨 **token / consistency** | **`DO-EMAIL-4`** — `--vy-amber-text` defined **twice with different values** (guest `rgb(126,88,17)` vs owner `rgb(128,76,5)`); until reconciled, "map it to the token" is ambiguous (§N.14.9) · **`DO-EMAIL-8`** — the layout's footer-override slot is misnamed `unsubscribe` · **`DO-EMAIL-7`** — `--vy-hk-ooo` shares the pre-AA grey as a status **fill** (a design decision, not a contrast fix) |
 | 🔍 **coverage re-audit** (the §N.14.1 bound) | ⚠️ **`DO-EMAIL-5`** — a **full operator/owner contrast re-audit**, run **across every role that can reach each surface**. A fourth grey (`.vy-inv-lbl #9C9089`, 2.84 — every form label in the invite modal) was found *the moment one pass looked past its scope*; the role-coverage bound says more permission-gated surfaces exist. |
 | 🧱 **structural** | **`DO-EMAIL-6`** — two genuine standalone **web pages** (`billing/feature-locked`, `auth/login-approval*`) carry their own `<style>`, cannot reach `--vy-*`, and therefore hold literals that will not follow a future retune |
@@ -7985,8 +8074,8 @@ below; this is the priority index.*
 | **`DO-EMAIL-6`** 🆕 | **standalone pages cannot reach the design tokens.** `billing/feature-locked.blade.php` and `auth/login-approval*.blade.php` carry their own `<style>` with no `--vy-*` in scope, so both had to take mapped **literals**. They will not follow a future token retune. |
 | **`DO-EMAIL-7`** 🆕 | `--vy-hk-ooo: rgb(138, 128, 121)` (`layouts/operator.blade.php:60`) — a housekeeping *"Out of order"* **fill** token sharing the pre-AA grey value, used as a labelled dot. Non-text; recolouring a status indicator is a **design decision**, not a contrast fix. |
 | ~~**`DO-EMAIL-3`**~~ ✅ | ~~`admin-email-change` is the only off-brand email.~~ **CLOSED 2026-08-12 — see §ADMIN-EMAIL-BRAND.** It now extends the shared layout like its sibling `owner-email-change` (the identical job, owner realm, already on-brand). ⚠️ **Premise correction: `@extends` is not the brand test — FIVE templates are standalone, four of them on-brand;** this was off-brand by **palette**. ⚠️ **A SECURITY email, so the CONTENT is inviolable** — every sentence proven verbatim, one href, the warning still under the CTA (mutation-proven three ways). The three security claims **verified REAL** against `AccountController`. Contrast re-verified: 12 runs, **0 FAIL**. |
-| **`DO-EMAIL-8`** 🆕 | the shared layout's footer-override slot is named **`unsubscribe`** but is really *"the footer service line"* — `admin-email-change` uses it to avoid inheriting a false booking line. A misleading name, not renamed here. |
-| **`DO-EMAIL-9`** 🆕 ⚠️ | **§N.8d — a FALSE line on a security email.** `owner-email-change` (an owner's LOGIN-EMAIL change) renders *"You're receiving this because it relates to your booking with us."* An owner changing their login email has no booking. It is the layout's default line applied to an account email. ⚠️ **Check every other account/security email that extends the layout for the same trap.** |
+| ~~**`DO-EMAIL-8`**~~ ✅ | ~~the footer-override slot is misnamed `unsubscribe`.~~ **CLOSED 2026-08-12 — see §EMAIL-FOOTER-RESTRUCTURE.** ⚠️ Premise sharpened: it was not merely *misnamed*, it was **OVERLOADED** — genuinely holding a marketing opt-out for `winback`/`operator-guest-message` AND pressed into service as a reason override by `admin-email-change`. Renaming it would have re-conflated the two, so it was **SPLIT**: `footer_reason` (a category key) + `footer_marketing` (the real opt-out block). The old section name greps to **zero**. |
+| ~~**`DO-EMAIL-9`**~~ ✅ | ~~a FALSE line on a security email.~~ **CLOSED 2026-08-12 — see §EMAIL-FOOTER-RESTRUCTURE.** The layout's single hardcoded default became a **catalogue keyed by a declared category**, so a template picks a KEY and the wording lives in code — a false reason cannot be typed. ⚠️ **The default is now GENERIC-TRUE**, so a forgetful new template still cannot claim a booking. All **16** extending templates enumerated and their reasons verified; the scope question is closed. |
 | **`DO-INV-1/2/3`** | the invite email's missing text/plain part · no dark-mode handling · no public help destination. |
 | **`DO-PDF-3`** | `guest-credit-note` + `guest-refund-receipt` are **unreachable in demo data** (no refund exists) — fixed by literal, **not render-verified**, and not covered by a rendering test. A seeded refund lights up both. |
 | **`DO-G4-1`** | ⚠️ **still stale** (verified this SAVE): `SendPreArrivalEmails`'s docblock says `LEAD_DAYS = 48h`. The constant is the source of truth; the comment is a mock-value instance. |

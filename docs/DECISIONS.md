@@ -8682,3 +8682,69 @@ with a fifth and sixth source — *the environment*, not the file or the cache):
    transport. **The override broke the very guard that exists to catch it.** The baseline above is a clean run
    with no overrides and nothing else touching the database.
 
+
+---
+
+## 2026-08-12 — **`DO-EMAIL-9` + `DO-EMAIL-8` CLOSED: the email footer reason is DERIVED, not defaulted**
+
+The shared email layout ended every template with ONE hardcoded line — *"You're receiving this because it
+relates to your booking with us."* — and `owner-email-change`, an owner changing their **login email**, shipped
+it live. A shared layout's default copy is content, and it can be false (§N.14.8). Full record:
+**§EMAIL-FOOTER-RESTRUCTURE** in `docs/design/MISSING-BACKEND-BY-PAGE.md`.
+
+⚠️ **WHY RESTRUCTURE, NOT REWORD (the founder's call — and the reasoning holds).** Any single sentence in that
+slot is wrong for *some* category, and the next template added inherits it silently. A reword moves the
+falsehood; it does not remove it. So the reason is now **derived from a declared category** — a template writes
+`@section('footer_reason', 'security')`, and the wording lives in the layout. **A false reason is not something
+a template can type.** This is the second build in a row to reach for that shape (the guest support reply-norm
+was the first); it is becoming the house pattern for copy that must stay true.
+
+⚠️ **THE DEFAULT IS GENERIC-TRUE, AND THAT IS THE ACTUAL FIX.** A template that declares nothing gets *"…because
+you have an account with us"*; an unrecognised key falls to the same line rather than rendering the raw key.
+**A forgetful new template still cannot claim a booking** — which is precisely what the old default guaranteed
+it would.
+
+**THE MAPPING (all 16 extending templates enumerated):** `booking` — the six booking mails · `security` —
+guest-password-reset · `email_change` — **owner-email-change**, admin-email-change · `account` —
+account-deletion, verify-email, maintenance-cost-report · `waitlist` — waitlist-notification · deliberately
+generic — notification, plus the two marketing templates which supply their own opt-out block.
+
+⚠️ **A FINDING, NOT TIDINESS: `email_change` EXISTS BECAUSE FLATTENING WOULD HAVE BEEN A REGRESSION.** The
+obvious move was to declare `security` on both change emails. But an email-change confirmation is sent to the
+address being **ADDED**, whose reader may hold no account at all yet — so *"a security change on your account"*
+is not safely true of them. `DO-EMAIL-3`'s one-off override had carried exactly that nuance, and folding it into
+`security` would have been a small honesty regression dressed as consolidation. **The old test defending that
+sentence is what surfaced it** — a test that looked like mechanical breakage and was not.
+
+⚠️ **`DO-EMAIL-8` — PREMISE CORRECTION: the slot was OVERLOADED, not merely misnamed.** It genuinely held a
+marketing opt-out block (`winback`, `operator-guest-message`) **and** was pressed into service as a reason
+override. Renaming alone would have re-conflated them, so it was **split**: `footer_reason` (a key) and
+`footer_marketing` (the opt-out block). `@section('unsubscribe')` greps to zero. A transactional email offers no
+opt-out — nobody can unsubscribe from a security notice about their own account.
+
+**VERIFIED BY RENDERING.** 11 of the 16 rendered as real Mailables — nine through the operator Email-Previews
+route plus the two change emails — and each footer read as a recipient sees it. The remaining five are covered
+by the enumerated declaration guard plus the layout-catalogue render. `owner-email-change` before/after is
+captured: identical message, CTA and URL; **only** the footer line changes.
+
+**GUARDED** by `EmailFooterReasonTest` (12 / 97), **mutation-proven four ways** — regress the default to the
+booking line, drop `owner-email-change`'s declaration, make an unknown key render raw, restore the old slot
+name — each red on its own guard. Email suites 45/45.
+
+⚠️ **THREE INSTRUMENT FAULTS CAUGHT WHILE WRITING THE GUARD, all of known families:**
+1. **`toHaveKey($name, $message)` asserts a VALUE, not a message** — the §N.8c API-misuse family in a new guise,
+   and it failed loudly only by luck.
+2. **A source-level scan fired on a BLADE COMMENT** quoting the old line while documenting its removal — the
+   *inverse* of the CSS-comment trap: a CSS comment ships and must be scanned, a Blade comment never does and
+   must be stripped first.
+3. ⚠️ **A mutation verdict was briefly untrustworthy because the VERIFICATION GREP was broken** by shell
+   escaping — it reported the edit had not landed when it had. Re-run with an asserted anchor in Python.
+   **The check must be as trustworthy as the thing it checks** (§N.4p, applied to the instrument).
+
+⚠️ **AND A FOURTH, THE MOST INSTRUCTIVE: `operator-guest-message` WAS CLASSIFIED WRONG.** It was left
+undeclared (generic) when it is a property writing to a guest **about their stay** — `booking` is the truthful
+line. The pre-existing `MarketingUnsubscribeTest` caught it, because it already pinned that template's
+no-unsubscribe service-message mode. *A test that looks like collateral damage from a refactor may be encoding
+a real invariant — read it before changing it.* Its two modes are now explicit: with an unsubscribe URL it fills
+`footer_marketing`; without one it falls through to `booking`.
+

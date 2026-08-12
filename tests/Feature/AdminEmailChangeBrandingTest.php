@@ -84,8 +84,17 @@ it('keeps the warning under the CTA, never demoted into the footer', function ()
 it('does not inherit the layout footer line that would be false for a platform admin', function () {
     $html = adminEmailChangeHtml();
 
-    // The layout's DEFAULT service line. A platform admin has no booking, so inheriting it would ship a false
-    // statement on a security email — the footer-override slot carries an accurate line instead.
-    expect($html)->not->toContain('it relates to your booking with us')
-        ->and($html)->toContain('requested as the login email for a Vyrobel platform-admin account');
+    // The claim this test defends is unchanged: a platform admin has no booking, so that line must not appear.
+    expect($html)->not->toContain('it relates to your booking with us');
+
+    // ⚠️ HOW it is avoided changed at DO-EMAIL-9 (2026-08-12). This template used to carry its own hand-written
+    // footer sentence via a one-off override slot; the layout now derives the line from a declared category, so
+    // the sentence lives in the shared catalogue and this template declares `email_change`.
+    //
+    // ⚠️ AND THE SPECIFICITY WAS DELIBERATELY KEPT, NOT FLATTENED. The obvious move was to declare `security`
+    // and accept the generic "a security change on your account" — but this mail is sent to the address being
+    // ADDED, whose reader may not hold an account at all yet, so that line is not safely true of them. The
+    // `email_change` category says only what is certain: someone gave us this address. That is the same fact the
+    // one-off sentence carried, which is why this assertion still has something specific to check.
+    expect($html)->toContain('this address was given as the login email for a Vyrobel account');
 });

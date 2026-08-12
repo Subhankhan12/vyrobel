@@ -4,6 +4,7 @@
      card (SAQ A) → "your original payment method". No fabricated promo. Source is the real category (#85).
      Customizable per #86 ($heading/$intro/$button + blocks). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'booking')
 
 @section('title', 'Your booking has been cancelled')
 @section('preheader', 'Your booking '.$reference.' at '.$propertyName.' has been cancelled.')

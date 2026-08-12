@@ -3,6 +3,7 @@
      is untouched). Email-safe: inline styles, table layout, bulletproof button. Every secret is real or omitted
      honestly (never fabricated). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'booking')
 
 @section('title', 'Your stay is ready')
 @section('preheader', 'Your self check-in for '.$unitName.' — door code, directions and wifi inside.')

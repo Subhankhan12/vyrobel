@@ -1,6 +1,7 @@
 {{-- Guest waitlist notification (Phase 3 · Sub-gate 4). Trigger deferred to Phase 4 (waitlist feature).
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'waitlist')
 
 @section('title', 'A room just opened up')
 @section('preheader', 'Good news — a room has opened up at '.$propertyName.' for '.$dates.'.')

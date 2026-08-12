@@ -3,6 +3,7 @@
      the REAL 1 hour (not the wireframe's 24h), and the "€X credit is waiting" teaser is OMITTED — there is no
      welcome-credit feature, so nothing is fabricated (#39). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'account')
 
 @section('title', 'Confirm your email address')
 @section('preheader', 'Confirm your email to activate your account.')

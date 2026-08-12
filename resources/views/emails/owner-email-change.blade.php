@@ -1,6 +1,7 @@
 {{-- Owner: confirm your new login email. Opening the link is what switches the email.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @extends('emails.layout')
+@section('footer_reason', 'email_change')
 
 @section('title', 'Confirm your new email address')
 @section('preheader', 'Confirm this address to finish changing your Vyrobel login email.')
