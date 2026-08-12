@@ -32,6 +32,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $brand_logo_path
  * @property string|null $brand_email_from_name
  * @property string|null $brand_reply_to
+ * @property string|null $support_phone
+ * @property string|null $support_reply_norm
+ * @property string|null $support_hours
  */
 class Property extends Model
 {
@@ -57,6 +60,11 @@ class Property extends Model
         'check_in_time',
         'check_out_time',
         'status',
+        // Guest support contact — all three NULLABLE with no default; NULL means the channel does not exist and
+        // the guest surface omits it entirely (see App\Support\Guest\PropertySupport).
+        'support_phone',
+        'support_reply_norm',
+        'support_hours',
         'bookings_paused_at',
         'removal_scheduled_at',
         'removal_effective_at',

@@ -15,9 +15,15 @@ use App\Support\Help\HelpKnowledgeBase;
  *      a page that stops reading the engine must fail.
  *   2. THE ARRIVAL WINDOW IS INTERPOLATED, never typed. `DO-G4-1` caught a docblock claiming "48h" against
  *      a constant that says 2 days; a FAQ is where that drift would mislead a guest standing at a door.
- *   3. NO SUPPORT AFFORDANCE EXISTS. By founder ruling this page is a pure FAQ: no phone, no hours, no reply
- *      time, no 24/7 line — the product has none of them, and promising support that will not answer is the
- *      class of false claim `DO-EMAIL-9` records. The ONE contact is the real relay.
+ *   3. NO SUPPORT AFFORDANCE IS DRAWN WITHOUT DATA BEHIND IT. ⚠️ AMENDED 2026-08-12: this originally read
+ *      "no support affordance EXISTS", which was true while the page was a pure FAQ and is no longer — the
+ *      support backend (`DO-G13-1`'s other half) shipped, and a property whose operator has populated a phone,
+ *      hours or a reply norm now shows them. What this file still guards is the case it always really tested:
+ *      a guest with nothing configured behind them sees the FAQ and the relay, and NOT one blank row,
+ *      placeholder or dial link. Promising support that will not answer is still the `DO-EMAIL-9` class.
+ *      The populated states, the per-field disappearance and the norm-not-a-guarantee rule are guarded in
+ *      `GuestPropertySupportTest`; this fixture's guest has no bookings at all, so it covers the other absence
+ *      path — nothing to resolve, rather than nothing configured.
  */
 
 /** A claimable guest on a real seeded org — the same shape the other guest suites use. */
@@ -78,7 +84,7 @@ it('offers the REAL relay as its only contact, and links a real route on every a
     }
 });
 
-it('⚠️ ships NO support affordance — no phone, no hours, no reply time, no on-call line', function () {
+it('⚠️ draws NO support affordance when there is nothing behind it — no phone, hours, reply time or on-call line', function () {
     $html = (string) $this->actingAs(guestForHelp(), 'guest')->get(route('guest.help'))->getContent();
 
     // ⚠️ Assert on what the guest READS, not the raw response. The first cut of this test scanned the whole
@@ -89,7 +95,8 @@ it('⚠️ ships NO support affordance — no phone, no hours, no reply time, no
         html_entity_decode(strip_tags((string) preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', ' ', $html)))
     ));
 
-    // The prototype offered all of these. None has a backend, so none may be drawn (#39 / honest absence).
+    // The prototype offered all of these unconditionally. This guest has no booking, so nothing resolves and
+    // none of them may be drawn (#39 / honest absence). They are legitimate ONLY where an operator stored them.
     foreach ([
         '24/7', '24-7', 'on-call', 'WhatsApp', 'Call us', 'call the', 'phone', 'hotline',
         'opening hours', 'Typical reply', 'replies under', 'reply within', 'response time',

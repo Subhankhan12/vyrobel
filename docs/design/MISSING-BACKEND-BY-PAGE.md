@@ -7757,6 +7757,101 @@ the **visible text**, which is what "renders a support affordance" actually mean
 ---
 ---
 
+## §SUPPORT-BACKEND — `DO-G13-1`'s SUPPORT half · **BUILT** (2026-08-12)
+
+*The founder's ruling was **build the backend first** — not don't-build, and not ship-the-UI-over-nothing. This
+is that backend, plus the two surfaces it makes honest. Three layers, one commit.*
+
+### What shipped
+
+| layer | detail |
+|---|---|
+| **schema** | `2026_09_22_000000_add_property_support_contact_columns` — `support_phone` (32) · `support_reply_norm` (32) · `support_hours` (120), **all nullable, no defaults**, on `properties`. Reversible (`down()` proven by an actual rollback + re-migrate). Per-property, so the tenant perimeter is `properties.organization_id` unchanged — **no new scope**. |
+| **operator UI** | a **Guest support** section on `/app/settings` → `POST /app/settings/support` (`can:properties.manage`) → `SettingsActionController::updateSupport` → the certified `SettingsService::updateSupport` (audited by FIELD NAME, never value). Three inputs; an emptied box is written back as **NULL**. |
+| **guest UI** | a conditional support block under "Still need help?" on `/guest/help`, one card **per property the guest has actually booked**, each **named**. |
+| **the shared derivation** | `App\Support\Guest\PropertySupport` — read by BOTH surfaces, so the sentence an operator picks is the sentence a guest reads (§N.8f). |
+
+### ⚠️ The honesty rules, and where each one LIVES
+
+- **Honest absence is the RETURN TYPE, not a discipline.** `PropertySupport::for()` returns **null** when nothing
+  is populated, and null per key otherwise. A property with nothing set contributes **no card at all** — the page
+  is byte-equivalent to the pure-FAQ version it shipped as. There is no "not provided", no blank row, no
+  placeholder anywhere in the template. A whitespace-only column counts as unset.
+- **The norm cannot become a guarantee.** The stored value is a KEY into a fixed catalogue; the wording lives in
+  code and every phrase begins *"usually"*. An operator picks a bucket, never types a sentence, and
+  `Rule::in(array_keys(REPLY_NORMS))` refuses a hand-posted *"guaranteed within 1 hour"*. This is the §N.8d /
+  `DO-EMAIL-9` class closed **structurally** (§N.10b), not by helptext.
+- **Nothing is measured.** The norm is what the operator says they aim for; no reply-time statistic exists and
+  none is presented as a commitment.
+- **No "24/7" is hardcoded, suggested or defaulted.** Hours are free text because a real desk's hours are not an
+  enum — if a property is round-the-clock, someone typed that.
+- **No fabricated defaults, and no demo seed.** The columns start NULL everywhere including the demo org. A
+  default would ship an operational promise nobody made, in the one place a guest will act on it.
+
+### 🚩 `DO-SUP-1` — PHONE, not WhatsApp (a scope correction to §N.15.6)
+
+The spec said *"a stored phone / WhatsApp per property"*. **One number is stored and it renders as a telephone
+(`tel:`) only.** Nothing in the product verifies that a given number answers on WhatsApp, so drawing a WhatsApp
+affordance over it would assert a channel that may not exist — the fabricated-affordance shape (#39), in the
+same family as the reply-time promise this build exists to avoid. A real WhatsApp affordance needs either a
+second column the operator ticks deliberately or a verification step; **logged, not smuggled in.**
+
+### 🔒 Guard — `tests/Feature/GuestPropertySupportTest.php` (10 tests / 89 assertions)
+
+**Mutation-proven seven ways**, each red on its own guard and green on restore (`php -l` + `view:clear` after
+every edit):
+
+| # | mutation | result |
+|---|---|---|
+| 1 | the phone row's `@if` gate → `@if (true)` | **RED** ×2 (partial-state + disappearance) |
+| 2 | `PropertySupport::for()`'s null return removed | ⚠️ **PASSED first** — see below |
+| 3 | a catalogue phrase → *"guaranteed within 1 hour"* | **RED** ×2 |
+| 4 | the guest read widened to EVERY property | **RED** (isolation) |
+| 5 | the reply-norm `Rule::in` dropped | **RED** (a guarantee becomes postable) |
+| 6 | the writer skips nulls instead of storing them | **RED** (a cleared field would keep advertising) |
+| 7 | the writer takes a request-supplied property id (`withoutGlobalScopes`) | **RED** (cross-tenant) |
+
+⚠️ **Mutation 2 is the one worth recording.** It passed — which by O32 means vacuity **or redundancy**, and here
+it was redundancy: the three rows are each individually gated, so removing the card-level null return left every
+row-level assertion green while the page would have rendered an **empty, property-named card** — a placeholder
+by another name, exactly what the spec forbids. The guard now asserts **no `vy-sup` markup exists at all** in the
+unconfigured state (with `<style>` stripped, since the stylesheet defines those class names). Re-run, the
+mutation goes red. *A passing mutation is a finding, not a formality.*
+
+Also guarded: absence assertions read **visible text** (style/script stripped) — and a first cut of one fired on
+an ordinary **em-dash** in the FAQ prose, a token so common it tested the page's punctuation rather than its
+honesty. The relay/property-name assertions are **scoped to the support card**, not the page (the shared nav and
+the guest chrome both satisfy a page-level `assertSee` — §N.15.3a).
+
+### ⚠️ A DEFECT THE BROWSER CAUGHT AND THE TEST DID NOT
+
+The catalogue first stored bare intervals (*"usually within a few hours"*) and the template renders
+`We {phrase}.` — so the page read **"We usually within a few hours."** The guard asserted `toContain('We
+usually')`, which the broken sentence satisfies. Caught by rendering it. The phrases are now complete predicates
+(*"usually reply within a few hours"*) and the guard asserts the **whole composed sentence** per catalogue entry.
+*A prefix assertion tests a prefix; render the thing.*
+
+### Verified as BOTH roles (N.14.1)
+
+- **As the operator** (a `Property Owner`, the role that holds `properties.manage`): the section renders, the
+  select offers only the four soft norms plus "Don't show a reply time", and a real save through the form wrote
+  `support_hours` and left the other two NULL — then a second save set phone + norm. The audit row records
+  `{"fields":["support_phone","support_reply_norm","support_hours"]}`, names only.
+- **As the guest**: unconfigured → **0 support cards, 0 `tel:` links**, page ends at the relay · hours-only →
+  exactly one row (`HOURS`), no phone label, no reply line · fully populated → three rows, the card headed
+  **DEMO SEASIDE PROPERTY**.
+- **Contrast** — pixel-sampled on the real render with the self-validating anchor reading **5.18** (the published
+  white-on-solid-accent figure), entry animations frozen by **completing** them, 0 transparent elements before
+  capture: property name / all three labels **6.73** · both values **14.83** · the `tel:` link **5.92**. **0 failing runs.**
+  Greyscale-safe: every row is distinguished by its label, never by colour.
+- **Keyboard** — 39 focusables, **0 unnamed** under a strict accessible-name computation (no fallback to
+  `name`/placeholder). The dial link is reached by a **real Tab** press (not `el.focus()`, which does not set
+  `:focus-visible`), genuinely matches `:focus-visible`, paints a `solid 2px rgb(194,65,12)` outline, and is named
+  *"Call Demo Seaside Property on +351 289 000 114"* — the number alone would have read as *"link, plus three
+  five one…"* with nothing to choose between two properties.
+
+---
+
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
 
 **This is the reconciled index of every `DO-*` item raised by the guest realm's 12 gates, the cross-realm
@@ -7803,7 +7898,7 @@ The cross-pass synthesis is **§N.14** in `PROJECT-STATE.md`.*
 | item | state | record |
 |---|---|---|
 | **`DO-G13-1`** · Guest Help | ⚠️ **SPLIT — half BUILT, half SCOPED.** ✅ **The FAQ centre is BUILT** (`23bf335`, `GET /guest/help`) over the certified `HelpKnowledgeBase` — reused not forked, every answer verified against the code before writing, pure FAQ with the real relay as the one contact. ⏳ **The support half is SCOPED, not refused** — the founder ruled *build the backend first*. ⚠️ **So the 2026-08-07 refusal is reversed in one half and PRESERVED-BUT-CONDITIONAL in the other** (§N.15.5). | **§GUEST-FAQ** · §N.15 |
-| **the SUPPORT BACKEND** 🆕 | ⏳ **SCOPED AND READY TO BUILD — this is the next piece of work.** 3 new per-property fields → migration → operator-settings UI to set → a guest support block to display: a **stored phone/WhatsApp**, a **soft operator-set reply NORM** (*"usually within…"* — ⚠️ never a guarantee, the `DO-EMAIL-9` class), and **real per-property hours** (⚠️ no "24/7" unless the stored hours say so). ⚠️ **Every field displays ONLY when populated — empty means the affordance is ABSENT.** New guest UI ⇒ inherits §N.15's canon. | **§N.15.6** |
+| **the SUPPORT BACKEND** | ✅ **BUILT 2026-08-12 — `DO-G13-1` IS NOW CLOSED IN BOTH HALVES.** Three nullable per-property columns (`support_phone` · `support_reply_norm` · `support_hours`) + a reversible migration → the **Guest support** section on `/app/settings` (`properties.manage`) → a conditional support block on `/guest/help`. ⚠️ **Honest absence is the SCHEMA**: NULL means the channel does not exist, and the guest page draws no card, no row, no placeholder. ⚠️ **The norm is a norm BY CONSTRUCTION** — a fixed catalogue key, so the sentence lives in code and always reads *"We usually reply…"*; a guarantee is not expressible and is rejected by validation. ⚠️ **Phone, not WhatsApp** (see `DO-SUP-1`). | **§SUPPORT-BACKEND** · §N.15.6 |
 
 ## ⬅ THE CLEANUP SEQUENCE'S **OPEN SUCCESSORS** — grouped by kind
 
@@ -7817,6 +7912,7 @@ below; this is the priority index.*
 | 🔍 **coverage re-audit** (the §N.14.1 bound) | ⚠️ **`DO-EMAIL-5`** — a **full operator/owner contrast re-audit**, run **across every role that can reach each surface**. A fourth grey (`.vy-inv-lbl #9C9089`, 2.84 — every form label in the invite modal) was found *the moment one pass looked past its scope*; the role-coverage bound says more permission-gated surfaces exist. |
 | 🧱 **structural** | **`DO-EMAIL-6`** — two genuine standalone **web pages** (`billing/feature-locked`, `auth/login-approval*`) carry their own `<style>`, cannot reach `--vy-*`, and therefore hold literals that will not follow a future retune |
 | ⚖️ **awaiting a FOUNDER RULING** | **`DO-G13-2`** (Guest Documents → **DEFER** — the rollup already exists on `/guest/payments`, three hops from a PDF) and **`DO-G13-3`** (Guest Referral → **DON'T-BUILD**, #39 — five subsystems absent, incl. open self-signup which is itself a ratified refusal). ⚠️ These are **recommendations, not decisions** — exactly the state `DO-G13-1` was in before the founder split it. |
+| 📞 **channel verification** | **`DO-SUP-1`** 🆕 — the support number renders as a **telephone only**. A WhatsApp affordance would assert a channel nothing verifies (#39); it needs a deliberate operator flag or a verification step. See §SUPPORT-BACKEND. |
 | 🏷 **verdict / naming** | **`DO-STAR-1`** — the owner Messages *"Starred"* SVGs still use `#E8A63A`. ⚠️ **A BOOKMARK, not a rating** — do not conflate it with the rating star or fold it into `DO10-4`; its state is also carried by a visible count. A design call. |
 
 ## 🔴 CORRECTNESS — a user is shown something untrue or unusable
@@ -7900,3 +7996,20 @@ below; this is the priority index.*
 **The 6 reopened operator a11y gates (§N.9)** — including the shared `<x-charts.bars>` work, which
 ⚠️ **must widen its scope**: O18 proved the min-bar floor also exists as **CSS**, which a component fix alone
 would not catch.
+
+---
+
+## 🚩 `DO-SEED-1` — `migrate:fresh --seed` currently ABORTS (pre-existing, found 2026-08-12)
+
+`DemoSeeder` dies part-way on a `UnitUnavailableException` — a **date-coupled collision** between demo stays
+(the seeder books today-relative windows, and two of them now overlap on one unit). **Proven pre-existing** by
+stashing the support-backend build and re-running on a clean tree, where it fails identically with a different
+ULID (§N.14.5 — establish which reading is broken before rewriting the record).
+
+**What it leaves behind:** a half-seeded demo org — **one property instead of two**, and the demo staff user
+with **no roles at all**, so `/app` is unreachable until they are provisioned by hand. The guest side survives
+(the traveller keeps three reservations).
+
+⚠️ **Consequence for the record:** the standing claim *"`migrate:fresh --seed` clean"* in `PROJECT-STATE.md` is
+**stale as of today's date** — it was true when written and is not now. Not fixed here (out of scope, and not
+this build's regression), but it blocks any session that needs a working demo database, which is most of them.

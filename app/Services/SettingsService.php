@@ -59,6 +59,9 @@ class SettingsService
     /** @var list<string> — the guest-facing brand (task #98); the from ADDRESS is fixed (never per-property). */
     public const BRAND_FIELDS = ['brand_accent', 'brand_logo_path', 'brand_email_from_name', 'brand_reply_to', 'brand_powered_by'];
 
+    /** @var list<string> — the guest SUPPORT contact (DO-G13-1); each column is nullable and means "no such channel". */
+    public const SUPPORT_FIELDS = ['support_phone', 'support_reply_norm', 'support_hours'];
+
     public function __construct(private AuditEventRecorder $audit) {}
 
     /**
@@ -174,6 +177,25 @@ class SettingsService
         $property->update($changes);
 
         $this->audit->record('property.brand_updated', $property, null, ['fields' => array_keys($changes)]);
+    }
+
+    /**
+     * Update the property's GUEST SUPPORT CONTACT (DO-G13-1) — phone, reply norm, opening hours.
+     *
+     * ⚠️ A CLEARED FIELD MUST REACH THE COLUMN AS NULL. This writer is the mechanism behind the guest surface's
+     * honest absence: an operator who empties the phone box is withdrawing a channel, and if a blank were
+     * dropped instead of written the guest page would keep advertising a number nobody answers. So the caller
+     * passes an explicit null and it is stored — the opposite of the "only send what changed" habit.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function updateSupport(Property $property, array $attributes): void
+    {
+        $changes = Arr::only($attributes, self::SUPPORT_FIELDS);
+        $property->update($changes);
+
+        // Field names only, never values — the same rule the rest of this service follows.
+        $this->audit->record('property.support_updated', $property, null, ['fields' => array_keys($changes)]);
     }
 
     /**

@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates + G13's 3 no-route VERDICTS, plus the cross-realm PDF SWEEP (§N, §N.13, §G-13)** · 🏁 **AND THE CLEANUP SEQUENCE IS CLOSED — the grey drift retired across PDFs + emails + operator/owner web, all 20 emails on-brand, the O26 star defect RETIRED (§N.14, SAVE v9); ⚠️ "closed" = everywhere the pass could REACH (§N.14.1)** · 🏗 **AND THE FIRST BUILD SINCE THE WALK IS SHIPPED — the guest FAQ centre `/guest/help` over the certified `HelpKnowledgeBase` (§N.15, SAVE v10); the SUPPORT half is SCOPED, not refused; ⬅ NEXT = THE SUPPORT BACKEND, then the BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates + G13's 3 no-route VERDICTS, plus the cross-realm PDF SWEEP (§N, §N.13, §G-13)** · 🏁 **AND THE CLEANUP SEQUENCE IS CLOSED — the grey drift retired across PDFs + emails + operator/owner web, all 20 emails on-brand, the O26 star defect RETIRED (§N.14, SAVE v9); ⚠️ "closed" = everywhere the pass could REACH (§N.14.1)** · 🏗 **AND THE FIRST BUILD SINCE THE WALK IS SHIPPED — the guest FAQ centre `/guest/help` over the certified `HelpKnowledgeBase` (§N.15, SAVE v10)** · 🏗 **AND ITS SUPPORT HALF IS NOW BUILT TOO — three nullable per-property columns + an operator setter + a conditional guest block, so `DO-G13-1` is CLOSED IN BOTH HALVES (§SUPPORT-BACKEND, §N.15.6); honest absence is the SCHEMA and the reply norm cannot express a guarantee; ⬅ NEXT = `DO-EMAIL-9`, then the BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -69,38 +69,38 @@ conflicts with the repo, **trust the repo** and fix this file.
 >
 > ## WHAT TO DO NEXT — in priority order
 >
-> **① THE SUPPORT BACKEND — fully scoped, ready to build (§N.15.6).** The other half of `DO-G13-1`: the founder
->   ruled **build the backend first**, not don't-build and not ship-UI-over-nothing. **3 new per-property
->   fields → one migration → operator-settings UI to set them → a guest-facing support block to display them.**
->   Stored phone/WhatsApp · a **soft operator-set reply NORM** ("usually within…", ⚠️ never a guarantee — the
->   `DO-EMAIL-9` class) · **real per-property hours** (⚠️ no "24/7" unless the stored hours say so).
->   ⚠️ **Every field displays ONLY when populated — empty means the affordance is ABSENT.** The new guest UI
->   inherits §N.15's canon. ⚠️ **Until then `/guest/help` stays pure — no slot, no placeholder, no seam.**
+> ~~**① THE SUPPORT BACKEND**~~ ✅ **BUILT 2026-08-12 — `DO-G13-1` is CLOSED in both halves.** Three nullable
+>   per-property columns + a reversible migration → a **Guest support** section on `/app/settings`
+>   (`properties.manage`) → a conditional block on `/guest/help`, one card per property the guest has booked.
+>   Honest absence is the schema (NULL ⇒ no card, no row, no placeholder); the reply norm is a fixed-catalogue
+>   KEY so a guarantee is not expressible; nothing is measured; no default is seeded. Shared derivation:
+>   **`PropertySupport`** (§D.guest). ⚠️ One correction — **`DO-SUP-1`: phone renders as `tel:` ONLY**, because
+>   nothing verifies WhatsApp. Record: **§SUPPORT-BACKEND** + §N.15.6.
 >
-> **② `DO-EMAIL-9` — a LIVE §N.8d, and arguably first.** `owner-email-change` tells an owner changing their
+> **⬅ ① `DO-EMAIL-9` — a LIVE §N.8d, and now the top of the list.** `owner-email-change` tells an owner changing their
 >   **login email**: *"You're receiving this because it relates to your booking with us."* A **security
 >   notification asserting something untrue, shipping today.** It is the shared layout's default footer, so
 >   ⚠️ **the scope is unknown** — every account/security template extending that layout inherits it (§N.14.8).
 >   **Surface the reword-vs-restructure call before touching it**: a per-template override is what `DO-EMAIL-3`
 >   did; the structural fix changes the layout default and audits who then needs their own line.
 >
-> **③ `DO-EMAIL-4`** — reconcile the twice-defined `--vy-amber-text` (guest `rgb(126,88,17)` vs owner
+> **② `DO-EMAIL-4`** — reconcile the twice-defined `--vy-amber-text` (guest `rgb(126,88,17)` vs owner
 >   `rgb(128,76,5)`). Until one wins, "map the literal to the token" (§N.14.9) is ambiguous.
 >
-> **④ `DO-EMAIL-5` + `DO-EMAIL-6`** — the coverage re-audit (run **across every role that can reach each
+> **③ `DO-EMAIL-5` + `DO-EMAIL-6`** — the coverage re-audit (run **across every role that can reach each
 >   surface**; a fourth grey was found the moment one pass looked past its scope) and the two standalone web
 >   pages that cannot reach the tokens.
 >
-> **⑤ The G13 tail + the small items** — ⚠️ **`DO-G13-2` (Guest Documents → DEFER) and `DO-G13-3` (Guest
+> **④ The G13 tail + the small items** — ⚠️ **`DO-G13-2` (Guest Documents → DEFER) and `DO-G13-3` (Guest
 >   Referral → DON'T-BUILD, #39) are recommendations AWAITING A FOUNDER RULING**, exactly as the Help verdict
->   was before it was split. Plus `DO-EMAIL-7`, `DO-EMAIL-8`, `DO-STAR-1` (⚠️ a bookmark, not a rating).
+>   was before it was split. Plus `DO-EMAIL-7`, `DO-EMAIL-8`, `DO-STAR-1` (⚠️ a bookmark, not a rating) and `DO-SUP-1` (the WhatsApp affordance, deliberately not drawn).
 >
-> **⑥ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
+> **⑤ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
 >   DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (two index blocks: ✅ *closed by the cleanup
 >   sequence* · ⬅ *open successors, grouped by kind*), plus the **6 reopened operator a11y gates** (§N.9) and
 >   the **deferred-capability refusal sweep** (§N.8b).
 >
-> **⑦ ⛔ THE BILLING / GO-LIVE BLOCKER (§G.1) — still open, untouched by all three chapters.** Two contradictory
+> **⑥ ⛔ THE BILLING / GO-LIVE BLOCKER (§G.1) — still open, untouched by all three chapters.** Two contradictory
 >   pricing models run at once and only the tier price reaches Stripe; at the live-key flip a customer is billed
 >   ~2×. ⚠️ **It is the founder's business decision — surface it, never pick a side.** ⚠️ **If launch is near,
 >   this outranks everything above.**
@@ -367,6 +367,14 @@ reliable part.)*
   both sides (+ a `category` on the guest set); guest entries link only `guest.*`, owner only `owner.*`.
   ⚠️ Every answer is verified against the code that implements it, and a value that VARIES (the per-property
   cancellation window) is **routed to its authoritative screen, never averaged into a number** (§N.15.2).
+- **`PropertySupport`** (2026-08-12) — the ONE derivation of a property's guest-facing support contact, read by
+  BOTH the operator settings form that sets it and the guest Help block that shows it, so the sentence an
+  operator picks is the sentence a guest reads. ⚠️ **Honest absence is its RETURN TYPE**: `for()` yields **null**
+  when nothing is populated (no card at all), and null per key otherwise — no placeholder exists to render.
+  ⚠️ **The reply norm is a NORM by construction** — the column stores a KEY into `REPLY_NORMS`, whose phrases all
+  begin *"usually"* and live in code, so a guarantee is not expressible and is refused by validation (§N.8d /
+  `DO-EMAIL-9` closed structurally, not by helptext). ⚠️ Nothing is measured; no default is ever seeded.
+  ⚠️ Phone renders as `tel:` **only** — WhatsApp is unverified and therefore not drawn (`DO-SUP-1`).
 - **`<x-star-rating>`** — floor-don't-round, glyph-differentiated (greyscale-safe), one accessible name,
   **defaults `#8F5A06` / `#7A6E64`** (both ≥3:1 as a non-text graphic on every plate the product renders them
   on, incl. the peach `#FBD3BF`). ✅ **`DO10-4` CLOSED (`ee6be74`)** — every rating row in the product now
@@ -6136,14 +6144,43 @@ this cost little and caught things early:
 | half | ruling | state |
 |---|---|---|
 | **the FAQ centre** | ✅ **BUILD** — the 2026-08-07 refusal's premise (*"its content would have to be invented"*) is **falsified** by the `HelpKnowledgeBase` engine | **BUILT** (`23bf335`) |
-| **the support half** (phone / hours / reply time) | ⏳ **BUILD THE BACKEND FIRST** — ⚠️ *not* don't-build, and ⚠️ *not* ship-the-UI-over-nothing | **SCOPED** — see N.15.6 |
+| **the support half** (phone / hours / reply time) | ⏳ **BUILD THE BACKEND FIRST** — ⚠️ *not* don't-build, and ⚠️ *not* ship-the-UI-over-nothing | ✅ **BUILT 2026-08-12** — the backend exists, so the condition is met. See N.15.6 + §SUPPORT-BACKEND. |
 
 ⚠️ **So the 2026-08-07 refusal is REVERSED in one half and PRESERVED in the other — and the preserved half is
 now CONDITIONAL, not permanent.** It stands only until the backend exists. Recorded precisely because "the
 refusal was reversed" and "the refusal stands" are both true of different halves, and a future session reading
 either sentence alone would get it wrong.
 
-## N.15.6 ⚠️ THE SUPPORT BACKEND — **SCOPED** (the spec the next build works against)
+> ✅ **UPDATE (2026-08-12): THE CONDITION HAS BEEN MET AND `DO-G13-1` IS CLOSED IN BOTH HALVES.** The support
+> backend shipped, so the second half is no longer "preserved-but-conditional" — it is **built, on real stored
+> data**. ⚠️ **What was never conditional and has NOT moved:** the page still claims nothing it cannot honour.
+> A property whose operator has set nothing renders exactly the pure-FAQ page it shipped as. The refusal was
+> never "don't show support"; it was **"don't promise support that will not answer"**, and that rule is now
+> enforced by the schema rather than by anyone remembering it. *A conditional refusal is discharged by building
+> the condition — not by deciding the refusal was too strict.*
+
+## N.15.6 ✅ THE SUPPORT BACKEND — **BUILT** (2026-08-12; the spec below is what it was built against)
+
+> 🏁 **SHIPPED — `DO-G13-1` IS NOW CLOSED IN BOTH HALVES.** Three nullable per-property columns + a reversible
+> migration → a **Guest support** section on `/app/settings` (`properties.manage`) → a conditional block on
+> `/guest/help`. The shared derivation is **`PropertySupport`** (§D.guest). Full record: **§SUPPORT-BACKEND** in
+> `MISSING-BACKEND-BY-PAGE.md`. The spec below stands as written — it was followed, with **one correction**:
+> ⚠️ **`DO-SUP-1` — the number renders as a TELEPHONE only.** The spec said "phone / WhatsApp"; nothing in the
+> product verifies that a number answers on WhatsApp, so drawing that affordance would assert a channel that may
+> not exist (#39) — the same shape as the reply-time promise this build exists to avoid.
+>
+> ⚠️ **THREE THINGS THIS BUILD ADDED TO THE CANON:**
+> 1. **HONEST ABSENCE IS STRONGEST AS A TYPE, NOT A RULE.** `for()` returning null (and the columns being
+>    nullable with no default) means the placeholder does not exist to be rendered. Nobody has to remember it.
+> 2. ⚠️ **A PASSING MUTATION IS A FINDING (O32, in its redundancy form).** Removing the card-level null return
+>    left every row-level guard **green** — because each row is separately gated — while the page would have
+>    drawn an **empty, property-named card**: a placeholder by another name. Redundancy hid it. The guard now
+>    asserts no support markup exists at all in the unconfigured state. **Ask what you actually removed.**
+> 3. ⚠️ **A PREFIX ASSERTION TESTS A PREFIX.** The catalogue first stored bare intervals, so the page read
+>    *"We usually within a few hours."* — broken English that `toContain('We usually')` was perfectly happy with.
+>    **The browser caught it; the test did not.** Phrases are now complete predicates and the guard asserts the
+>    whole composed sentence. *§N.15.4's "verify as the guest" is not only about a11y — it catches copy a
+>    substring assertion cannot see.*
 
 A founder decision, recorded here so the next session builds *against* it rather than re-deciding it.
 

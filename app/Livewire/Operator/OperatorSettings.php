@@ -22,6 +22,7 @@ use App\Services\SettingsService;
 use App\Support\Billing\SubscriptionPricing;
 use App\Support\Branding\PropertyBrand;
 use App\Support\Folio\StayEstimator;
+use App\Support\Guest\PropertySupport;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
 use Illuminate\Contracts\View\View;
@@ -77,6 +78,9 @@ class OperatorSettings extends Component
             'pendingInvites' => $property !== null ? $this->pendingInvites() : [],
             'roleDefinitions' => self::roleDefinitions(),
             'brand' => $property !== null ? $this->brandForm($property) : null,
+            // DO-G13-1 — the guest support contact this property offers (all three optional).
+            'support' => $property !== null ? $this->supportForm($property) : [],
+            'replyNorms' => PropertySupport::REPLY_NORMS,
             'brandPreview' => $property !== null ? PropertyBrand::for($property) : PropertyBrand::default(),
             'sample' => $property !== null ? $this->sampleStay($property) : null,
             'removal' => $property !== null ? $this->removalState($property) : null,
@@ -342,6 +346,28 @@ class OperatorSettings extends Component
             'reply_to' => (string) ($property->brand_reply_to ?? ''),
             'powered_by' => (bool) ($property->brand_powered_by ?? true),
             'from_address' => (string) config('mail.from.address'),
+        ];
+    }
+
+    /**
+     * The GUEST SUPPORT CONTACT form values (DO-G13-1). Empty strings so the inputs render blank; an empty box
+     * is stored back as NULL and the guest page then shows no such affordance at all.
+     *
+     * `preview` is the exact sentence the guest reads, resolved through the SHARED {@see PropertySupport} — the
+     * operator sees the claim they are making, in the words the guest will see it, rather than a bucket name.
+     *
+     * @return array<string, mixed>
+     */
+    private function supportForm(Property $property): array
+    {
+        $normKey = PropertySupport::normKey($property);
+
+        return [
+            'phone' => (string) ($property->support_phone ?? ''),
+            'reply_norm' => (string) ($normKey ?? ''),
+            'hours' => (string) ($property->support_hours ?? ''),
+            'preview' => $normKey !== null ? PropertySupport::REPLY_NORMS[$normKey] : null,
+            'configured' => PropertySupport::hasAny($property),
         ];
     }
 

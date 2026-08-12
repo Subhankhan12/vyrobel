@@ -446,6 +446,66 @@
                 </div>
             </div>
 
+            {{-- ── 7b · GUEST SUPPORT CONTACT — REAL (DO-G13-1). Everything here is optional, and an EMPTY box is
+                 stored as NULL, which removes the affordance from the guest Help page entirely. Nothing on this
+                 form has a default: a support number or an hours line the operator never typed would be an
+                 operational promise the product invented (the DO-EMAIL-9 class).
+
+                 ⚠️ The reply norm is a fixed catalogue, not a text box. The operator picks a bucket; the sentence
+                 a guest reads is written in App\Support\Guest\PropertySupport and always begins "usually", so a
+                 GUARANTEE is not expressible through this field. The preview under the select is that exact
+                 sentence — the operator sees the claim in the guest's words. ── --}}
+            <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+                <h2 class="vy-card-title" style="margin-bottom: 4px;">Guest support</h2>
+                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">
+                    Shown to your guests on their Help page. Guests can always message you — these add a phone number,
+                    a rough reply time and your hours. <strong style="color: var(--vy-ink);">Leave anything blank and it simply isn’t shown.</strong>
+                </p>
+                <form method="POST" action="{{ route('app.settings.support') }}">
+                    @csrf
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="vy-field">
+                            <label class="vy-field-label" for="s_phone">Phone number</label>
+                            <input id="s_phone" type="tel" name="support_phone" class="vy-input" placeholder="+351 21 000 0000"
+                                   value="{{ old('support_phone', $support['phone']) }}" {{ $disabled }}>
+                            <span style="font-size: 11px; color: var(--vy-faint);">A number a guest can ring. Clear it to stop showing one.</span>
+                            @error('support_phone') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="vy-field">
+                            <label class="vy-field-label" for="s_hours">When you’re reachable</label>
+                            <input id="s_hours" type="text" name="support_hours" class="vy-input" placeholder="e.g. Mon–Sat, 8am–8pm"
+                                   maxlength="120" value="{{ old('support_hours', $support['hours']) }}" {{ $disabled }}>
+                            <span style="font-size: 11px; color: var(--vy-faint);">Your real hours, in your own words. Blank shows no hours.</span>
+                            @error('support_hours') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="vy-field" style="max-width: 420px;">
+                        <label class="vy-field-label" for="s_norm">Typical reply time</label>
+                        <select id="s_norm" name="support_reply_norm" class="vy-input" {{ $disabled }}>
+                            <option value="">Don’t show a reply time</option>
+                            @foreach ($replyNorms as $key => $phrase)
+                                <option value="{{ $key }}" @selected(old('support_reply_norm', $support['reply_norm']) === $key)>{{ ucfirst($phrase) }}</option>
+                            @endforeach
+                        </select>
+                        <span style="font-size: 11px; color: var(--vy-faint);">
+                            A guide, never a promise — guests read it as “We {{ $support['preview'] ?? 'usually reply…' }}”.
+                            There is no option that guarantees a reply time, because nothing in Vyrobel can hold you to one.
+                        </span>
+                        @error('support_reply_norm') <span style="font-size: 11.5px; color: var(--vy-accent-text);">{{ $message }}</span> @enderror
+                    </div>
+                    @unless ($readOnly)
+                        <div style="margin-top: 10px;">
+                            <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 20px;">Save support details</button>
+                        </div>
+                    @endunless
+                </form>
+                @unless ($support['configured'])
+                    <p style="font-size: 11.5px; color: var(--vy-muted); margin: 14px 0 0;">
+                        Nothing set yet — guests currently see only “message the property”, which always works.
+                    </p>
+                @endunless
+            </div>
+
             {{-- ── Detailed taxes editor (bounded amounts — GATE 2 makes the sample reconcile + adds custom fees) ── --}}
             <div class="vy-card vy-fade" id="tax-detail" style="margin-bottom: 16px;">
                 <h2 class="vy-card-title" style="margin-bottom: 4px;">Taxes</h2>

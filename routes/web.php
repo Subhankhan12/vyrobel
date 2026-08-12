@@ -635,6 +635,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // #98 — guest-facing brand (accent/logo/from-name/reply-to/powered-by → real emails + portal) + the REAL
     // property-level booking pause (fans out to units via the certified AvailabilityService). properties.manage.
     Route::post('/settings/brand', [SettingsActionController::class, 'updateBrand'])->middleware('can:properties.manage')->name('settings.brand');
+    // DO-G13-1 — the guest SUPPORT contact (phone / soft reply norm / real hours). Same gate as the rest of the
+    // per-property settings; each field is nullable and an empty one withdraws the affordance from the guest page.
+    Route::post('/settings/support', [SettingsActionController::class, 'updateSupport'])->middleware('can:properties.manage')->name('settings.support');
     Route::post('/settings/pause', [SettingsActionController::class, 'pauseBookings'])->middleware('can:properties.manage')->name('settings.pause');
     Route::post('/settings/resume', [SettingsActionController::class, 'resumeBookings'])->middleware('can:properties.manage')->name('settings.resume');
     // #98 GATE 2 — custom Add-a-fee (posts to folios via the shared StayEstimator rule) + the careful

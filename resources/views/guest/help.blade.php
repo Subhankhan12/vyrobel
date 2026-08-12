@@ -5,10 +5,12 @@
      answer here would be a second copy of a claim about the product, and the repo's whole mock-value family is
      what happens when a claim has two homes.
 
-     ⚠️ PURE FAQ, BY FOUNDER RULING. There is no support block, no placeholder for one, and no commented seam:
-     no phone, no opening hours, no reply time, no 24/7 line. The product has none of those, and a help page
-     promising support that will not answer is the same class of false claim as DO-EMAIL-9. The ONE contact is
-     the real relay the guest already has (Messages) — a link, not a new form.
+     ⚠️ THE SUPPORT BLOCK IS CONDITIONAL, AND ABSENT BY DEFAULT. This page shipped as a pure FAQ because the
+     product had no support data; the backend now exists (three nullable per-property columns), so the page
+     renders what an operator has ACTUALLY set and nothing else. No phone unless one is stored, no hours unless
+     they are stored, no reply line unless a norm is chosen — and no placeholder, blank row or "not provided" for
+     any of them. A promise nobody can keep is the DO-EMAIL-9 class, and that ruling has not been relaxed.
+     The ONE unconditional contact remains the real relay (Messages) — a link, not a new form.
 
      Conventions: <x-guest.shell> (its shell fixes are IN it), --vy-* tokens only (never literals — N.14.9),
      and the guest realm's no-Alpine GET convention: search and category are GET params, the accordion is a
@@ -48,6 +50,18 @@
         .vy-hlp-faq summary:focus-visible { outline:2px solid var(--vy-accent-text); outline-offset:2px; border-radius:8px; }
         .vy-hlp-ans { padding:0 2px 16px; font-size:13.5px; line-height:1.6; color:var(--vy-muted); }
         .vy-hlp-ans a { color:var(--vy-accent-text); font-weight:500; }
+        /* Support cards. NEW classes, defined here rather than assumed — the shell defines .vy-card,
+           .vy-btn and .vy-eyebrow (all checked) but nothing named vy-sup-*. */
+        .vy-sup { margin-top:12px; }
+        .vy-sup-row { display:flex; align-items:flex-start; gap:11px; padding:9px 0; }
+        .vy-sup-row + .vy-sup-row { border-top:1px solid var(--vy-hairline); }
+        .vy-sup-row svg { flex:none; margin-top:2px; }
+        .vy-sup-lbl { font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
+            color:var(--vy-muted); margin-bottom:2px; }
+        .vy-sup-val { font-size:13.5px; color:var(--vy-ink); }
+        .vy-sup-phone { font-size:14.5px; font-weight:600; color:var(--vy-accent-text); text-decoration:none; }
+        .vy-sup-phone:hover { text-decoration:underline; }
+        .vy-sup-phone:focus-visible { outline:2px solid var(--vy-accent-text); outline-offset:3px; border-radius:6px; }
     </style>
 
     {{-- Hero --}}
@@ -106,8 +120,8 @@
         @endforelse
     </section>
 
-    {{-- The ONE contact that exists. A link to the REAL relay — not a new form, and not a promise about
-         how fast anyone replies. --}}
+    {{-- The contact that ALWAYS exists. A link to the REAL relay — not a new form, and not a promise about
+         how fast anyone replies. Everything below it is conditional; this is not. --}}
     <section class="vy-card" style="margin-top:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .14s both">
         <div style="min-width:0">
             <div style="font-size:14px;font-weight:600;color:var(--vy-ink)">Still need help?</div>
@@ -115,4 +129,55 @@
         </div>
         <a class="vy-btn" href="{{ route('guest.messages') }}" style="flex:none">Message us</a>
     </section>
+
+    {{-- ── SUPPORT DETAILS — one card per property, and ONLY what that property has actually set.
+
+         ⚠️ THIS BLOCK IS ABSENT BY DEFAULT. `$support` is empty unless an operator populated a column, so a
+         property that offers no phone contributes no card, and a card whose property set only hours shows only
+         hours. There is no "not provided", no greyed-out row and no placeholder anywhere in this file — an
+         affordance a guest can see is an affordance somebody answers.
+
+         ⚠️ Each card NAMES its property. A guest with two bookings must not be shown one number as though it
+         reached both desks.
+
+         ⚠️ The reply line is rendered from the shared catalogue and always reads "usually …". The template
+         cannot state a guarantee because it does not hold the words — they come from PropertySupport. --}}
+    @foreach ($support as $s)
+        <section class="vy-card vy-sup" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .18s both">
+            <div class="vy-eyebrow" style="margin-bottom:10px">{{ $s['property'] }}</div>
+
+            @if ($s['phone'] !== null)
+                <div class="vy-sup-row">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent-text)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 1.9.6 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.1a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2Z"/></svg>
+                    <div style="min-width:0">
+                        <div class="vy-sup-lbl">Phone</div>
+                        {{-- The link's accessible name says WHO is being called; the visible text is the number
+                             itself, so a sighted guest can read it without dialling. --}}
+                        <a class="vy-sup-phone" href="tel:{{ preg_replace('/[^0-9+]/', '', $s['phone']) }}"
+                           aria-label="Call {{ $s['property'] }} on {{ $s['phone'] }}">{{ $s['phone'] }}</a>
+                    </div>
+                </div>
+            @endif
+
+            @if ($s['hours'] !== null)
+                <div class="vy-sup-row">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent-text)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                    <div style="min-width:0">
+                        <div class="vy-sup-lbl">Hours</div>
+                        <div class="vy-sup-val">{{ $s['hours'] }}</div>
+                    </div>
+                </div>
+            @endif
+
+            @if ($s['reply_norm'] !== null)
+                <div class="vy-sup-row">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent-text)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.8-.9L3 20.5l1.5-4.4A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"/></svg>
+                    <div style="min-width:0">
+                        <div class="vy-sup-lbl">Messages</div>
+                        <div class="vy-sup-val">We {{ $s['reply_norm'] }}.</div>
+                    </div>
+                </div>
+            @endif
+        </section>
+    @endforeach
 </x-guest.shell>

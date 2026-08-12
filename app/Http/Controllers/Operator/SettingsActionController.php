@@ -14,10 +14,12 @@ use App\Models\Tax;
 use App\Services\PropertyBookingPauseService;
 use App\Services\PropertyRemovalService;
 use App\Services\SettingsService;
+use App\Support\Guest\PropertySupport;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * Operator SETTINGS writes (Wave 4 · Sub-gate 3) — three guarded writers over the CERTIFIED
@@ -155,6 +157,57 @@ class SettingsActionController extends Controller
         $settings->updateBrand($property, $attributes);
 
         return $this->back('Guest-facing brand saved.');
+    }
+
+    /**
+     * Update the property's GUEST SUPPORT CONTACT (DO-G13-1) — the phone guests may ring, a SOFT reply norm and
+     * the real opening hours. All three are optional and an emptied box is stored as NULL, which withdraws the
+     * affordance from the guest surface entirely (never a blank row, never "not provided").
+     *
+     * ⚠️ THE NORM IS A BUCKET, NOT A SENTENCE. `support_reply_norm` is validated against
+     * {@see PropertySupport::REPLY_NORMS} — the operator chooses from a fixed catalogue whose wording always
+     * begins "usually", so a guarantee ("within 1 hour, promised") cannot be submitted through this form even by
+     * hand-posting. That is the §N.8d / `DO-EMAIL-9` class closed structurally rather than by asking politely.
+     *
+     * ⚠️ HOURS ARE THE OPERATOR'S OWN STATEMENT. Free text, because a real front desk's hours are not an enum —
+     * but nothing here defaults to, suggests or hardcodes "24/7": if a property is round-the-clock it is because
+     * someone typed that, and if the box is empty the guest page shows no hours line at all.
+     *
+     * TENANT: the property is the operator's CURRENT context resolved through the tenant scope, exactly as every
+     * other writer on this controller — a request-supplied id is never accepted, so no cross-org write exists.
+     */
+    public function updateSupport(Request $request, SettingsService $settings): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
+        $property = $this->currentProperty();
+
+        $data = $request->validate([
+            // Digits with the usual separators — permissive enough for any international format, tight enough
+            // that a sentence ("call the desk") cannot be stored where a dial link will be built.
+            'support_phone' => ['nullable', 'string', 'max:32', 'regex:/^\+?[0-9][0-9 ()\-.]{5,}$/'],
+            'support_reply_norm' => ['nullable', 'string', Rule::in(array_keys(PropertySupport::REPLY_NORMS))],
+            'support_hours' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        // ⚠️ Explicit nulls, not "skip the blanks" — clearing a box must WITHDRAW the channel (see updateSupport).
+        $settings->updateSupport($property, [
+            'support_phone' => $this->blankToNull($data['support_phone'] ?? null),
+            'support_reply_norm' => $this->blankToNull($data['support_reply_norm'] ?? null),
+            'support_hours' => $this->blankToNull($data['support_hours'] ?? null),
+        ]);
+
+        return $this->back('Guest support details saved.');
+    }
+
+    /** '' and '   ' are as unset as null — a whitespace-only value must not draw an empty affordance. */
+    private function blankToNull(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 
     /**
