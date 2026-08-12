@@ -6,36 +6,50 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE PER-PAGE DESIGN-PARITY PASS IS COMPLETE FOR BOTH BUILT REALMS — OPERATOR 42/42 + OWNER 32/32 (§N); ⬅ GUEST (32) UNTOUCHED** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates, plus the cross-realm PDF SWEEP (§N, §N.13); ⬅ NEXT = THE BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
-<!-- SAVE v7 (2026-08-11) — supersedes v6. v6 was written at owner 11/32 and is badly stale. v7 captures the
-     DESIGN PASS COMPLETE for both built realms (operator 42/42 + owner 32/32, `6d974d7`→`a884793`), and the
-     canon the owner realm produced: §N.4p's SEVEN vacuous-guard forms + the passing-mutation rule, the
-     STALE-CLAIM pattern (six instances, two shapes, one root cause), fabricated status in BOTH directions,
-     the visual-signal-outlives-text class, the honesty-text contrast PRIORITY, the hardened + characterized
-     contrast probe, the shared-partial FOUR forms, the duplication backlog, D16-7's four forms + its
-     reference implementation, and the runway (Invite Email → guest realm → PDF sweep → DO10-4 → backend). -->
+<!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
+     DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
+     (17 templates + PdfService) are COMPLETE. Its new canon is §N.13 — the three-inversions thesis (the gap
+     was ALWAYS adjacent to the certified guard), the mutation discipline complete in BOTH directions
+     (false-GREEN 4 ways + false-RED via a broken file → `php -l` after every mutation edit),
+     defence-in-depth-needs-per-layer-tests, the matured contrast method (freeze by COMPLETING animations),
+     the §N.4k taxonomy, the five-survived/several-corrected §N.8b record, the verify-every-promise family,
+     and DO10-4 reframed as CORRECTNESS. The reconciled 43-item DO-register lives at the end of
+     MISSING-BACKEND-BY-PAGE.md. ⬅ THE NEXT CHAPTER IS THE BACKEND PHASE — start it in a FRESH chat. -->
 
-> ### ⬅ RESUME HERE — the design pass is COMPLETE for both built realms. The next unit of work is the **Owner Invite Email**, then the **GUEST realm (32 prototypes, untouched)**
-> 🏁 **OPERATOR 42/42 + OWNER 32/32 design-matched** (`0aa9ede`→`edb7cce`, then `6d974d7`→`a884793`).
-> ⚠️ **Design-matched is NOT a11y-closed** — 6 operator items are reopened (§N.9), and three owner items are
-> scoped-but-unstarted (O26's Reviews contrast · DO10-4's star migration · the realm-wide PDF sweep).
+> ### ⬅ RESUME HERE — 🏁 **THE DESIGN-PARITY WALK CHAPTER IS CLOSED. The next chapter is the BACKEND PHASE.**
+> **OPERATOR 42/42 · OWNER 32/32 · GUEST 12 gates / 32 prototypes · + the cross-realm PDF sweep (17 templates
+> + `PdfService`).** Every realm has now been walked page by page.
 >
-> **The runway, in order:** ① the **Owner Invite Email** (`OwnerInviteMail` — an email-render treatment, not a
-> page gate) closes the owner realm · ② the **GUEST realm, 32 prototypes, entirely untouched** — the no-Alpine
-> GET realm, `#33` door-code window-gating, real guest PII: **the sharpest privacy realm of the three** · ③ the
-> **PDF-sweep gate** (11 templates + `PdfService.php:54`'s 2.70 watermark) · ④ the **DO10-4 star migration** ·
-> ⑤ the **BACKEND phase** (the D-items in `MISSING-BACKEND-BY-PAGE.md`, the 6 reopened operator a11y gates, the
-> 3 open founder decisions, and a **deferred-capability refusal sweep** — see §N.8e).
+> ⚠️ **Design-matched is NOT a11y-closed** — 6 operator items remain reopened (§N.9).
 >
-> **Method per page (unchanged):** decode the prototype in `docs/design/raw/` fresh → open the live page via
-> Playwright as the relevant role → diff every detail → classify **DESIGN-GAP** (fix now, design/markup only) /
-> **REFUSAL-TO-PRESERVE** / **EXTRA-WORK** / **MISSING-BACKEND** (log, do not build) → browser-verify + suite +
-> PHPStan + Pint → commit + push → **report and STOP**. One gate = one commit = one report = stop.
+> **THE RUNWAY, IN PRIORITY ORDER:**
+> ① **`DO-INV-4` — the email-contrast sweep** (15 Mailables). **Now SCOPED by the PDF sweep**: the offenders
+>   are the **same two greys** (`#8A8079` → `#5F5853`, `#A69A92` → `#6C645F`), still live in `emails/*` and
+>   `auth/login-approval*`. Largely mechanical, with a known mapping. **Cheapest first.**
+> ② **G13 — the 3 no-route prototypes** (Guest Help — ties `DO-INV-3` · Guest Documents · Guest Referral
+>   Landing). ⚠️ **These are product DECISIONS, not builds** — each is a feature that does not exist; the
+>   verdicts feed the backend register.
+> ③ **`DO-G8-1` — `owner/unit-detail:338`** (`round()` → floor, via `<x-star-rating>`). **This is the whole
+>   remainder of `DO10-4`**, and §N.13.8 reframes it as **correctness (WCAG 1.4.1)**, not tone.
+> ④ **THE BACKEND PHASE — plan it as a PHASE, not a gate.** Its backlog is the reconciled **43-item
+>   DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (grouped: correctness · isolation/backend ·
+>   UX-routing · structural/duplication · founder decisions · scoped cleanups), plus the **6 reopened operator
+>   a11y gates** (§N.9), the **3 open founder decisions** (§G), and the **deferred-capability refusal sweep**
+>   (§N.8b).
 >
-> **Read before any gate: §N.8 (the five principles) · §N.8b (the stale-claim pattern) · §N.8c (the standing
-> traps) · §N.4p (the seven vacuous-guard forms) · §N.9 (what is reopened and must NOT be half-fixed from
-> inside a page gate) · §N.10 (the owner running lessons).**
+> ⚠️ **WRITE THE BACKEND PHASE AGAINST THE VERIFIED STATE — do not re-derive it.** Read **§N.13** (the
+> cross-gate synthesis) and the **consolidated DO-register** first; both are reconciled, and the register was
+> enumerated (**43 items**, not the ~18 an earlier summary listed).
+>
+> **Read before any gate: §N.13 (the guest/PDF canon) · §N.8 (the five principles) · §N.8b (stale claims) ·
+> §N.8c (standing traps) · §N.4p + §N.13.2 (the mutation discipline, both directions) · §N.9 (what is reopened
+> and must NOT be half-fixed from inside a page gate) · §N.10 (the owner running lessons).**
+>
+> **Method per gate (unchanged):** decode the prototype fresh → open the live surface as the relevant role →
+> diff every detail → classify **DESIGN-GAP** / **REFUSAL-TO-PRESERVE** / **EXTRA-WORK** / **MISSING-BACKEND**
+> → mutation-prove every guard → browser-verify + suite + PHPStan + Pint → commit + push → **report and STOP**.
 
 > ## 🏁 THE PER-PAGE **DESIGN-PARITY PASS** IS COMPLETE FOR BOTH BUILT REALMS (2026-08-09 → 2026-08-11)
 >
@@ -260,6 +274,37 @@ reliable part.)*
   - **`WorkspaceSwitchController`** (new) — `active_organization_id` was **read and never written**, pinning a multi-org user to `first()` forever. It mirrors `PropertySwitchController` exactly, validates the target against the user's OWN active memberships, and clears `current_property_id` so no foreign property id survives the move. The picker lists only workspaces the user can actually ENTER (#30 — "gate the control too"; a Membership is not operator access).
   - **`User::changePasswordTo()` terminates sibling sessions** via `ActiveSessions::terminateFor()` — a reset rotated the hash and remember-token but left live server-side sessions alive, so an attacker holding one was unaffected by the victim resetting a compromised password. It lives in the ONE path both the reset flow and the in-app change already call, and `OwnerSecurityController` points at the same helper, so "sign out others" and "reset kills siblings" cannot diverge.
   - **`OwnerCommissionRate` is the ONE formatter** — the rate was written **three ways** across four call sites, two of them on the SAME page (`18.00%` beside `18%`, because `commission_pct` is `decimal:2`). Also: `FolioTotals::refunded_minor` is now surfaced on the guest Payments overview; the booking timeline consults `AssignmentService::TERMINAL_STATUSES` (#29's list) so a checked-out stay no longer advertises an upcoming check-in; `HousekeepingService`'s "Suggested" housekeeper is **computed as least-loaded** (it badged `$i === 0` while printing that person's real, contradicting load) without re-sorting the crew list the filter chips depend on; and `NotificationFeed::forUser()` filters in SQL (`data->category`, `read_at`) and returns **both** a plain list of mapped rows AND a paginator of models — the shape that satisfies `LengthAwarePaginator`'s **invariant** `TValue` without a cast, a widened type, or a PHPStan baseline entry.
+
+
+### D.guest — the engines the GUEST walk + the PDF sweep certified (2026-08-12 · reuse, NEVER rebuild)
+
+- **`ResolvesGuest::guest()` + `$this->guest()->reservations()->findOrFail()`** — the realm's isolation. Scope
+  by RELATION (`lead_guest_id`), never route-model binding; a foreign id 404s. Proven on every surface.
+- **`ArrivalPack::for()`** — the `#33` window gate. **Double-gated** (the data nulls the secrets; both views
+  re-gate on `$pack['released']`) **and now carrying a DATA-CONTRACT guard** so each layer fails alone
+  (§N.13.3). **`ArrivalPackDocument` DELEGATES to it** — and its docblock saying so is accurate (verified).
+- **`GuestChangeRequest`** — the operator-confirmed request state machine (no guest-side fait accompli).
+- **`GuestIdDocumentService` + `Guest::anonymize()`** — GDPR erase. **COVERED *and* TRIGGERED**: the
+  guest-facing delete stamps `scheduled_deletion_at` (+14d), the daily `guests:process-deletions` command runs
+  `processDue()` → `anonymize()`. ⚠️ **Delete = ANONYMIZE-IN-PLACE, never a row destroy** ⚠️ **and the chain
+  depends on the `schedule:run` cron** (`DO-G9-1`).
+- **`FolioService` / `FolioTotals`** — `#17`, integer minor units, ONE source; no Blade re-derivation.
+- **`GuestWalletService`** — the append-only credit ledger; the balance is **DERIVED, never stored**.
+- **`<x-star-rating>`** — floor-don't-round, glyph-differentiated (greyscale-safe), one accessible name.
+  ⚠️ **STILL LIVE: `owner/unit-detail:338` uses `str_repeat('★', round($average))` — `DO-G8-1`, the last
+  remnant of `DO10-4`, a CORRECTNESS failure (§N.13.8).**
+- **`OrganizationScope` + `ResolvePublicOrganization` / `ResolvePublicProperty`** — the public storefront's
+  tenant scope, resolved from the ROUTE SLUG into **real tenant context** (never a guard bypass). A suspended
+  or cancelled org's storefront **404s**; an **inactive property** is off-sale on both storefronts, now
+  mutation-proven on both layers.
+- **the signed claim link** — `temporarySignedRoute(…, now()->addHour())` + `hash_equals(sha1(email))` inside
+  the signed payload + still-unclaimed + has-a-booking. **Its one-hour LIFETIME is now guarded**, not merely
+  true, and the page's "expires in an hour" is bound to it.
+- **`app/Services/PdfService.php`** ⚠️ — **NOT `app/Support/Pdf/`** (that holds the twelve `*Document`
+  data-builders). Renders any of the **17** templates; the export-audit stamp is now `#5f5853` (6.98).
+  ⚠️ Its plate is still non-deterministic (`position:fixed`) — `DO-PDF-2`.
+- **`ExportAudit::stamp()`** — records the download AND returns the watermark line, so the log and the file
+  can never disagree.
 
 ## (E) The load-bearing INVARIANTS (held across ALL THREE realms — proven under the audit's crafted attacks)
 - **#17 — money reconciles to the cent** (folio/receipt/payments/statements; integer minor units; never sum across currencies).
@@ -1067,7 +1112,7 @@ corrected**. Detail per gate:
 | O29 | **Owner Onboarding / Welcome** (`/owner/welcome`) — ⚠️ **PREMISE CORRECTED: NOT A WIZARD.** The brief treated it as a multi-step MUTATION flow with per-step writes and an Enter risk; it is a **73-line READ-ONLY hand-off page** — **no `<form>` in `main` at all**, no input/textarea/select; every next step is an `<a href>` to the page that owns the write. **§N.4k is MOOT** (nothing submits, so Enter cannot finish early — the Owner-9 trap was CHECKED, not inherited), and READ-ONLY was structural (confirmed anyway: `owners`/`payout_methods` counts + `max(updated_at)` unchanged) · 🔴 **THE FIX — A STATUS FLAG GATED ON THE WRONG FACT ISSUED A FALSE INSTRUCTION.** `hasPayout` read `$units->isNotEmpty() && PayoutMethod::exists()`; the unit conjunct has nothing to do with whether an account is on file, so **an owner who had already saved a payout method but had no units yet got the EMPTY branch — which prints "add a bank account on the secure Payout Method page"**, telling them to redo work they had done. Fixed to `PayoutMethod::query()->exists()` (owner-scoped by `BelongsToOwner`); mutation-proven. ⚠️ **The GATE-24/Owner-12 family in its UNDERSTATING direction — the more damaging one, because a false "not done" issues a false INSTRUCTION where a false "done" merely misleads** · **no fabricated progress** (no bar, no "N of 4", no tick on an undone step; the one completion claim is conditional on the real owner-scoped `exists()`) · **state not colour-only** (the chip's colour AND the heading's wording both change) · **real 18%**, never the mock 15% · **no IBAN/micro-deposit/"verified" anywhere** — DO29-1 ratified: the thin flow hands off to the certified Payout Method page · ⚠️ **CONTRAST: THE FIRST MEASUREMENT WAS UNSOUND AND DISCARDED** — it reported 22 failures including text scored **against its own colour** (the screenshot fired before the hide-text style painted). The probe now **asserts every candidate computes transparent BEFORE capturing** and freezes the entry animations (these cards fade in on a delay). *(The O26 rule applied to my own run.)* From the sound baseline **12 → 4**: chips **2.62/3.15/3.50** + links **2.79/3.46** on cards compositing over the hero peach — `--vy-accent-text` reaches only **~3.3** and `--vy-accent-tint-text` **3.74**, so both → **`--vy-ink`**, links keeping affordance via **underline + arrow**; sub-lines **4.05–4.43** → ink **per element** (`.vy-line-sub` is SHARED). Remaining 4 = the brand mark 3.88 + the CTA (same standard accent gradient, ~3.9 elsewhere — its 1.00 here is a **mis-sample**, reported bg pure white) + 2 shell boundary artifacts | O29 |
 | O30 | **Owner Expenses & maintenance** (`/owner/expenses`) — ⚠️ **PREMISE CORRECTED: the third state is `queried`, NOT "rejected"** — a queried expense is **held out of the net while a conversation opens**, not refused. `approve()` posts the debit, `query()` posts nothing, `isPendingApproval()` blocks a second decision; both routes `$capActions` (co-owner only) · **#17 RECONCILES IN BOTH STATES, and the page is STRICTER than "approved"**: Spent-this-year **€709.00** (Σ 2026 rows, count 5 ✓) · Awaiting-approval **€84.00** (the one pending row ✓, labelled *"not charged until you do"*) · Charged-to-payouts **€250.00** = Σ `owner_ledger` `entry_type='expense'` ✓. ⚠️ **There are FIVE approved expenses (€745.00) but only TWO ledger rows (€250.00)** — three approved rows carry no `attributed_ledger_id` (migration back-fill + non-deductible never posts). **The KPI counts the LEDGER, not the approval state**, so it claims €250.00 not €745.00 — it reports only what actually hit the owner's money. **Mutation-proven BOTH ways** (drop `postExpense()` from approve → red; force-create everything `approved` → red) · 🔴 **A STALE TEST *NAME* — the FOURTH stale-claim, one layer out.** `OwnerExpensesViewTest` was titled *"…and **invents no approval workflow**"*; its BODY was updated when Wave C GATE 2 shipped the machine (a comment says so) but the NAME was not — **and the name is what CI output and a grep show**, where it reads as an assertion the workflow doesn't exist. Renamed. *(O22/O24/O28 were docblocks; this is the same shape in a test name.)* · **vendor is REAL** (real column + real values + honest "—"; Wave-A refused-then-added confirmed) · **READ-ONLY** — approved 5/€745.00, pending 1/€84.00, `max(updated_at)` and the 2 ledger rows **identical before and after**; nothing approved or queried · **state is a WORD**, and no tick/badge asserts an unheld state (O28) · **the charged flag reads the LEDGER** — the right fact (O29) · **contrast 18 → 8**: ⚠️ **the KPI band is translucent over the hero gradient — the FOURTH consecutive owner page** with this shape; the shell greys measured **3.05–4.35** → `--vy-ink` in a **PAGE-SCOPED style block** (⚠️ the shell's definitions untouched — retuning them changes every owner page); the pending **€84.00** needed ink too (accent-text only 3.13). **Remaining 8 = the brand mark + 7 MIS-SAMPLES** — pills/buttons reporting 1.00–1.52 against a pure-white or off-element background, each verified to carry the standard accent gradient (true value ~3.8–3.9). ⚠️ **Small elements are where this probe mis-samples** | O30 |
 | O31 | **Owner Tax Center** (`/owner/tax`) — 🔴 **A FOURTH DOCBLOCK DENYING A SHIPPED FEATURE.** The view's header said *"WITHHOLDING is NOT modelled"* — stale since the **#73 engine**; the component reads the REAL `withholding_minor` summed over committed statements. Corrected. ⚠️ **THREE OF THE FOUR (O22 tax PDF · O24 archive · O31) are about the TAX ENGINE specifically** — Wave D shipped without sweeping the surfaces that had previously refused it · **#73 holds exactly as at O22/O25**: withholding is REAL and the page prints an **AMOUNT, never a rate** — live *"None · withheld from payouts"* with the honest residency explanation, matching **Σ `withholding_minor` = 0** exactly (a genuine zero, not a refusal). **ZERO percentage signs anywhere on the page**; **mutation-proven** (making the card state *"applied at 15% of your gross earnings"* → red), and the opposite direction is covered by `OwnerTaxSurfaceTest` (the real withheld figure once a rate IS configured) · **no fabricated "valid ✓"** · **#60** only 2026, linking the real Annual Tax Summary PDF (O22's) · **READ-ONLY** — `tax_id` still NULL, `vat_registered` still true, owner `updated_at` unchanged · **#42/#28** self-resolved, no raw IBAN, no guest data · **DO31-1 LOGGED, not added**: the page carries no explicit *"not tax advice"* line (the PDF and Reports do). ⚠️ **Structurally it needs one less** — it presents **no rate and no computed determination**, only a real amount plus a link to the PDF that does carry it. Formal wording is **DO22-1, the founder's**; legal copy is not a design gate's to write · **contrast 16 → 4**: ⚠️ **the honesty text was checked FIRST per the named O22/O25/O28 pattern — and this time was NOT the worst reading** (*the pattern held as a PRIORITY, not a prediction*). `.vy-tax-lbl` **2.89–4.03** on the peach → ink, plus helpers/`*`/segment/archive line — **the FOURTH consecutive page** where shell greys can't reach AA over the hero gradient · ⚠️ **TWO readings were the O11 DARK-PLATE FP, caught BEFORE touching anything**: "About your tax" 1.00 and "Vyrobel keeps records…" 1.41 sit inside `.vy-card--dark`, where white-at-60% actually measures **5.78**; the probe now EXCLUDES `.vy-card--dark` subtrees (**12th probe FP**). Remaining 4 = brand mark + 3 mis-samples | O31 |
-| O32 | 🏁 **Owner Agreement** (`/owner/agreement` + `/owner/agreement/pdf`) — **THE LAST OWNER PAGE.** ⚠️ **THE RATE IS AUTHORITATIVE HERE AND IT FOLLOWS THE ENGINE**: live **18%**, no 15% anywhere, matching `commission_pct = 18.00`, rendered through the shared `OwnerCommissionRate::display()` — and the existing guard proves it follows the DATA, not a constant (owner A `15.00` → "15%", owner B **22.75** → "22.75%", a value no literal could produce). **Mutation-proven** (forcing `display()` to return a fixed `'18%'` → red). The PDF shows the same 18% + per-villa 18%/18% — **SCREEN == PDF** · 🔴 **A SIXTH STALE CLAIM — a DUPLICATE docblock quoting the MOCK rate.** `commissionDisplay()` carried **two stacked docblocks**; only the second binds, and the first was orphaned text whose worked example read **"15.00%"** — the wireframe's mock rate — **on the one page that DEFINES the real one.** Merged; no example rate quoted at all now · **ACKNOWLEDGE observed READ-ONLY, append-only #7** — `agreement_amendment_acknowledgments` still **0**, agreements/amendments both 1, `max(updated_at)` unchanged; an existing guard proves a second acknowledge records no second consent · ⚠️ **#42 MUTATION-PROVEN — and my FIRST attempt proved NOTHING**: swapping `query()`→`withoutGlobalScopes()` left it GREEN because the real guard is an **explicit `whereIn('owner_id', …)`** the swap never touched; removing THAT line turns the cross-owner 404 test red *(the O12 lesson — check what you actually removed)* · **no fabricated terms** (5 honest "Not set" for NULL demo fields, guarded against rendering as zero; one real amendment, no multi-amendment fiction #60) · **the PDF's framing preserved**: *"…**not a signed legal contract**; your binding agreement is held by your operator"* · **no raw IBAN**, self-scoped, **keyboard 0/0/0** · **contrast — screen 7 → 4, PDF 4 → 2**: ⚠️ **the honesty text was the WORST reading on BOTH surfaces — the 5th and 6th occurrences, and the sharpest yet, because here it is the text DISCLAIMING the document's authority.** PDF `#A69A92` **2.74** on *"not a signed legal contract"* → 5.79, and `#8A8079` across **19 runs** 3.86 → 6.98 (guarded on the RENDERED document, mutation-proven, **PdfService untouched**); screen `#8A8079` **2.27/2.31** + `.vy-fx-note` **4.25** (the line explaining what acknowledging legally does) → ink · 📌 **PDF sweep: 5 owner documents clear, 11 templates + the 2.70 watermark remain — the ONE-GATE recommendation stands** | O32 |
+| O32 | 🏁 **Owner Agreement** (`/owner/agreement` + `/owner/agreement/pdf`) — **THE LAST OWNER PAGE.** ⚠️ **THE RATE IS AUTHORITATIVE HERE AND IT FOLLOWS THE ENGINE**: live **18%**, no 15% anywhere, matching `commission_pct = 18.00`, rendered through the shared `OwnerCommissionRate::display()` — and the existing guard proves it follows the DATA, not a constant (owner A `15.00` → "15%", owner B **22.75** → "22.75%", a value no literal could produce). **Mutation-proven** (forcing `display()` to return a fixed `'18%'` → red). The PDF shows the same 18% + per-villa 18%/18% — **SCREEN == PDF** · 🔴 **A SIXTH STALE CLAIM — a DUPLICATE docblock quoting the MOCK rate.** `commissionDisplay()` carried **two stacked docblocks**; only the second binds, and the first was orphaned text whose worked example read **"15.00%"** — the wireframe's mock rate — **on the one page that DEFINES the real one.** Merged; no example rate quoted at all now · **ACKNOWLEDGE observed READ-ONLY, append-only #7** — `agreement_amendment_acknowledgments` still **0**, agreements/amendments both 1, `max(updated_at)` unchanged; an existing guard proves a second acknowledge records no second consent · ⚠️ **#42 MUTATION-PROVEN — and my FIRST attempt proved NOTHING**: swapping `query()`→`withoutGlobalScopes()` left it GREEN because the real guard is an **explicit `whereIn('owner_id', …)`** the swap never touched; removing THAT line turns the cross-owner 404 test red *(the O12 lesson — check what you actually removed)* · **no fabricated terms** (5 honest "Not set" for NULL demo fields, guarded against rendering as zero; one real amendment, no multi-amendment fiction #60) · **the PDF's framing preserved**: *"…**not a signed legal contract**; your binding agreement is held by your operator"* · **no raw IBAN**, self-scoped, **keyboard 0/0/0** · **contrast — screen 7 → 4, PDF 4 → 2**: ⚠️ **the honesty text was the WORST reading on BOTH surfaces — the 5th and 6th occurrences, and the sharpest yet, because here it is the text DISCLAIMING the document's authority.** PDF `#A69A92` **2.74** on *"not a signed legal contract"* → 5.79, and `#8A8079` across **19 runs** 3.86 → 6.98 (guarded on the RENDERED document, mutation-proven, **PdfService untouched**); screen `#8A8079` **2.27/2.31** + `.vy-fx-note` **4.25** (the line explaining what acknowledging legally does) → ink · 📌 **PDF sweep: 5 owner documents clear, 11 templates + the 2.70 watermark remain — the ONE-GATE recommendation stands** *(🏁 the gate RAN on 2026-08-12 and closed it — really **17** templates, and the stamp proved INFORMATIONAL + fixable; §PDF-SWEEP)* | O32 |
 
 ## N.4c ⚠️⚠️ `expect(...)->not->toContain($needle, $message)` IS AN ALWAYS-PASSING ASSERTION
 
@@ -5300,10 +5345,17 @@ The pattern is identical on every document measured: **`#8A8079` → `#5F5853`**
 **`#A69A92` → `#6C645F`** (2.74 → 5.79), each verified on the **generated file**, each guarded on the rendered
 document. **5 owner documents are clear** (statement · booking summary · remittance · annual tax · agreement).
 
-**11 templates remain**: `owner-agreement-amendment` · `owner-booking-confirmation` · `owner-statement-history`
-· `operator-report` · `maintenance-costs` · `arrival` · `folio` · `guest-statement` · `guest-vat-invoice` ·
-`guest-credit-note` · `guest-refund-receipt` — **plus `PdfService.php:54`'s `#a99b8e` watermark at 2.70**,
-which appears on **every page of every document**.
+~~**11 templates remain**~~: `owner-agreement-amendment` · `owner-booking-confirmation` ·
+`owner-statement-history` · `operator-report` · `maintenance-costs` · `arrival` · `folio` · `guest-statement` ·
+`guest-vat-invoice` · `guest-credit-note` · `guest-refund-receipt` — plus `PdfService`'s `#a99b8e` stamp.
+
+> 🏁 **SUPERSEDED — the PDF-SWEEP GATE closed all of this (2026-08-12, `1c1f370`).** ⚠️ **And this enumeration
+> was one short: 5 clear + 11 listed = 16, but there are 17 templates — `operator-schedule` is missing from
+> the list.** The sweep found the same mapping this section predicted (`#8A8079`→`#5F5853`,
+> `#A69A92`→`#6C645F`) — **no drift between the owner precedent and the realm-wide fix** — and closed the
+> stamp too: it is the **export-AUDIT stamp**, informational, in the bottom margin, so **fixable rather than a
+> founder decision** (`#5f5853`, 6.98). ⚠️ Its path is `app/Services/PdfService.php`, **not**
+> `app/Support/Pdf/`. **224 distinct inks across 15 rendered templates → 0 failures.** See §PDF-SWEEP + §N.13.
 
 **Why ONE dedicated gate:** the watermark lives in `PdfService`, which **no page gate may touch** (so it would
 otherwise never be fixed); each template needs its **own generated-file measurement** (O21's `#B26A08` passed
@@ -5548,9 +5600,160 @@ the work.
    **G11's rule needs a second half: verify the edit landed on the target — AND that the RED came from the
    change, not from breaking the file. A mutation that reds for the wrong reason is as worthless as one that
    passes.** (`php -l` after every mutation edit, from here on.)
-3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
-4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
+3. ~~**The PDF-sweep gate**~~ — 🏁 **DONE.** ⚠️ **17 templates, not 11**, and the "2.70 watermark" is the
+   export-AUDIT stamp (informational, in the bottom margin — **fixable, not a founder decision**; real ink
+   **2.70 on paper / 2.41 on a warm band** → `#5f5853` = 6.98). **224 distinct inks → 0 failures.**
+   See `MISSING-BACKEND-BY-PAGE.md` **§PDF-SWEEP** and **§N.13**.
+4. **`DO-G8-1` — `owner/unit-detail:338`**: the star migration's LAST remnant (`round()` → floor via
+   `<x-star-rating>`). ⚠️ G8 fixed the hero and G12 fixed `ReviewList::stars_off`; **this one line is the
+   whole of what remains of DO10-4**, and it is **correctness**, not tone (§N.13.8).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via
    `rowStateMeta()`**), the **6 reopened operator a11y gates** (§N.9), the **3 open founder decisions**, and
    the **deferred-capability refusal sweep** (§N.8b: for each capability that has shipped, grep the surfaces
    that documented its refusal).
+
+---
+
+# (N.13) 🏁 THE GUEST REALM + THE PDF SWEEP — **THE CROSS-GATE SYNTHESIS** (SAVE v8, 2026-08-12)
+
+*Each gate's own record is in `MISSING-BACKEND-BY-PAGE.md` §G-1…§G-12 + §PDF-SWEEP, and the runway entry below
+carries the per-gate detail. **This section is what emerged ACROSS them** — it EXTENDS §N.4p, §N.8b, §N.8e and
+§N.8f rather than replacing them.*
+
+## N.13.1 ⚠️ THE REALM'S THESIS — the isolation model INVERTED THREE TIMES, and the gap was ALWAYS ADJACENT
+
+| gates | what the scope WAS | the CERTIFIED guard (well covered) | ⚠️ the ADJACENT check (defended by nothing) |
+|---|---|---|---|
+| **G1–G10** | **scope to the guest** — `$this->guest()->reservations()->findOrFail()` on `lead_guest_id` | isolation: a foreign id 404s, mutation-proven on every surface | **`anonymize()` was COVERED but UNTRIGGERED.** G4/G7/G8 each proved it covers its store — each by calling it **directly**. Nothing tied the guest-facing DELETE to those stores; the sweep test asserted 3 fields. **G9** drove the real chain: schedule → **cron** → `processDue()` → `anonymize()`. |
+| **G11** | **the signature IS the authorization** (a full guard elsewhere; `claim.verify`/`unsubscribe` are the only signed GETs) | tampering, a wrong hash and a swapped target were all tested | **the signature was CHECKED but its LIFETIME was UNPROVEN.** Swapping `temporarySignedRoute` for a permanent `signedRoute` left **every test green** — while turning every old-inbox claim link into a **permanent account-takeover key** and the page's "expires in an hour" into a lie. |
+| **G12** | **the tenant is the scope** — *and the second scope is whether the thing is even FOR SALE* | tenant isolation, covered **non-vacuously** (the fixture seeds a whole second org) | **`properties.status` was DEFENDED BY NOTHING.** No test seeded an inactive property, so deleting either active-check re-published a withdrawn property's listing **and its entire booking funnel** — one middleware line gates browse/room/search/checkout/quote. |
+
+> ### ⚠️ THE GENERALIZABLE LESSON
+> **The risk was never in the certified guard. It was in the uncertified check standing NEXT to it.**
+> *coverage vs **trigger*** · *signature vs **lifetime*** · *tenant vs **status***. Three inversions, three
+> times the same shape. A guard that is famous gets tested; the quiet condition beside it does not — and
+> neither static analysis nor "the guard has a test" will find it. **When you arrive at a new surface, ask
+> what sits BESIDE the guard everyone knows about.**
+
+## N.13.2 ⚠️ THE MUTATION DISCIPLINE — now complete in BOTH directions (extends §N.4p)
+
+§N.4p enumerated the ways a mutation can **falsely pass**. The walk added a fifth form and, at the PDF sweep, a
+whole second direction.
+
+**FALSE-GREEN — the mutation passed and proved nothing (4 ways):**
+1. **VACUOUS FIXTURE** — the fixture *cannot* fail. The systemic `#33` case: `createBooking` leaves
+   `reservation_units.unit_id` NULL, so there was no door code to leak (G1/G2). G12's sell-scope needed a
+   **seeded inactive property** before it could fail at all.
+2. **WRONG-THING-REMOVED (O32)** — a passing mutation means vacuity **or redundancy**; both must be resolved.
+3. **EDIT-DIDN'T-APPLY (G7)** — the anchor didn't match, the run reported a meaningless "passed".
+4. **WRONG-TARGET (G11)** — the edit landed, and on the wrong thing: a regex written for
+   `->middleware(['signed'])` missed the real `->middleware('signed')` and stripped the **first two** quoted
+   occurrences — **login-approval and unsubscribe**, silently disarming a guard in a file I wasn't running.
+
+**FALSE-RED — the mutation failed, but not because of the guard (1 way):**
+5. **BROKEN FILE (PDF sweep)** — bash escaping leaked a backslash into `'door_code' => \$code`. The tests went
+   red on a **syntax error**, and I nearly recorded *"#33 re-proven ✅"*. Re-run cleanly it went **green** —
+   which is what exposed a real gap (N.13.3).
+
+> ### ⚠️ THE UNIFIED RULE
+> **Verify the edit landed ON THE TARGET — and that the pass/fail came from THE GUARD, not from the fixture or
+> the file.** In practice: assert the anchor matched; assert the replacement is not a no-op; **run `php -l`
+> after every mutation edit**; and after a *passing* mutation always ask *what did I actually remove?* O32
+> cuts both ways. A fixture must be **able** to fail. Prove a just-written guard by mutating it (G4/G5).
+
+## N.13.3 ⚠️ DEFENCE-IN-DEPTH NEEDS **PER-LAYER** TESTS (new — the PDF sweep)
+
+Removing `ArrivalPack`'s data-level door-code gate left **25 tests green** — *including the one named
+"withholds the door code until the arrival window opens (#33)"* — because `guest/arrival.blade.php` **and**
+`pdfs/arrival.blade.php` each independently re-gate on `$pack['released']`.
+
+**Nothing was leaking.** The point is sharper than a bug: **a redundant layer MASKS the failure of the layer
+beside it**, so the data contract was untestable through any view. Remove the second layer later, or add a
+surface that trusts `$pack['door_code']`, and the leak is live and silent.
+
+> **Each layer needs a test that fails when THAT LAYER ALONE is removed.** A data-contract guard now asserts
+> `ArrivalPack::for()` withholds the code, wifi and notes outside the window with no view in the way —
+> mutation-proven on both halves. *This is N.13.1's adjacent-gap thesis applied to **test coverage** of a
+> defended-in-depth guard.*
+
+## N.13.4 ⚠️ THE CONTRAST METHOD — matured (consolidates §N.8e)
+
+- **Pixel-sample the REAL render, with TWO SELF-VALIDATING ANCHORS** (white-on-`--vy-grad` ≈ 3.4;
+  white-on-solid-`--vy-accent` = **5.18**). If the anchors don't read true, **publish nothing**.
+  `getComputedStyle` both **false-PASSES** (the invite email's `bgcolor` under a gradient) and **false-FAILS**
+  (defaults to white for all gradient-backed runs) — G1.
+- ⚠️ **A translucent token's contrast MOVES WITH ITS BACKDROP** — re-measure per plate. **THE MEASUREMENT
+  DECIDES, NEVER THE PRECEDENT, and it cuts BOTH ways:** a fix needed elsewhere may **not** be needed here
+  (G11 — `--vy-accent` as link text *passes* on the lighter auth card), and a token that passed elsewhere may
+  **fail** here (G2/G3).
+- ⚠️ **A CONDITIONAL style is INVISIBLE until its condition is FORCED** — inject the real markup to sample it
+  (G10's expired-credit chip; G12's town-tile labels; O16's validation flash).
+- ⚠️ **FREEZE BY COMPLETING ANIMATIONS, NEVER BY REMOVING THEM.** `animation:none` reverts a `.vy-fade`
+  element to its base `opacity:0`, so the plate goes white — **34 false failures at exactly 1.00** (G12), the
+  same stuck-opacity mechanism as the Owner Statement bug, reproduced by the instrument itself. Use
+  `animation-duration:0.001s` + `fill-mode:forwards`, and **assert zero elements remain transparent before
+  capture**.
+- **The PDF axis:** measure **INK ON PAPER** — not `getComputedStyle`, and **not a histogram** (it counts
+  backgrounds and rules as ink; G3 discarded one). Legitimate shortcut, *verified not assumed*: the 17 print
+  templates use **flat fills only** (no gradient/rgba/opacity), so an ancestor-walk yields the true plate —
+  anchored against the pixel probe. **Greyscale-safe** too: a print is B&W, so a colour-only distinction dies.
+  Measure a stamp/watermark **on a document that HAS it**.
+- **When a shared token or literal changes, GREP the realm for its OLD value** (G4/G5; the sweep grepped the
+  two greys to zero).
+- ⚠️ **The instrument fails too.** Beyond the 12 false positives of the owner pass: G12's freeze (34), the
+  PDF-sweep's own content-stream parser (discarded — it under-detected dark plates and reported white-on-white
+  at 1.00), and a keyboard probe that reported controls as *named* because it fell back to `name`/option text
+  (G10 — **7 unlabelled controls**). **Compute the accessible name strictly**, and check `:focus-visible` with
+  a **real Tab**, not `el.focus()` (G12).
+
+## N.13.5 ⚠️ THE §N.4k SAFE-PATTERN TAXONOMY (consolidated)
+
+**Judge every form's Enter by its STAKES** — a request < a private write < a public write < a credential or a
+delete. The safe patterns:
+1. **SAFE BY CONSTRUCTION** — a GET form, a textarea, or no text input at all (G5, G7, G9, G12's search).
+2. **THE CONFIRM IDIOM** — `onsubmit="return confirm(…)"`, the repo's destructive-submit convention (G5, G8).
+3. **TYPE-TO-CONFIRM** — a typed word gates the action, so Enter *after* typing it is the intended completion
+   (G9's account-delete `DELETE`).
+
+⚠️ **A radio group SUBMITS on Enter** — the accessible input can *introduce* the risk (G8). ⚠️ **JUDGE THE
+STAKES: an intended on-change write is not a defect** (G10's language toggle; G9's password form, where Enter
+fails validation rather than writing anything wrong). **Guard the consequential, record the safe** — and
+prefer opting into the repo's **existing** shared guard (`data-guard-submit` + `partials.submit-guard`) over a
+new mechanism (G10 found it applied unevenly).
+
+## N.13.6 ⚠️ THE §N.8b RECORD — the discipline CHECKS; it does not assume-false
+
+**FIVE claims SURVIVED verification and are recorded as plainly as the failures:** §G-3's arrival "no drift" ·
+**DO-G6-2** ("saved is the last amber site" — I briefly thought I'd found a counterexample and **retracted it**:
+the file was dead code) · G11's honest-status (*"your email is confirmed"* is substantively accurate — holding
+the emailed link **is** the proof) · G12's policy claim (*"full refund up to 2 days"* really is derived from
+`PropertyPolicy`) · the PDF sweep's arrival-is-clean.
+
+**Several were CORRECTED:** ⚠️ **GATE-3 *and* GATE-4 both UNDERSTATED** — each recorded as fabricated or
+out-of-scope something the product had since built (the G1 pattern, twice); G11's `claim-invalid` docblock
+**overstated** its own coverage (it is *not* reached for expired/tampered/unsigned links).
+
+⚠️ **A "none / neither / not present" conclusion reached by GREPPING SPECIFIC STRINGS is a false-completeness
+risk** — check against what the product **renders**, not against the phrasing you expected.
+
+## N.13.7 ⚠️ THE MOCK-VALUE / VERIFY-EVERY-PROMISE FAMILY (~8 instances)
+
+Copy drifts from the engine. **Verify every promise, figure and policy LINE BY LINE against the code:**
+
+| shape | instance |
+|---|---|
+| a **value** | the door code's "48h" — really `ArrivalPack::LEAD_DAYS` (G2); still stale in a docblock (`DO-G4-1`) |
+| a **right** | a fabricated "free to cancel up to 24h" (G5) |
+| a **formula** | the prototype's `paid = charged − refunded` vs the engine's `received − refunded` (G6) |
+| a **whole policy CARD** | G10's "How credits work" — **2 of 3 lines false**, **self-disproving on screen** (a 60-day expiry printed directly above a "valid for 12 months" claim), and **demo-masked** (the seeder posts the credit no production writer creates) |
+| a **timing claim** | G11's "expires in an hour" — true, and now **DEFENDED** by the expiry guard rather than merely true |
+| the **honest-absence corollary** | no price → **omit it and say why**, never fabricate (G12's *"Pick dates above to see availability & prices"*) |
+
+## N.13.8 ⚠️ `DO10-4` IS A **CORRECTNESS** ISSUE, NOT A TONE PREFERENCE
+
+The star bug is filled-vs-empty distinguished **by colour alone** → in greyscale or for a colour-blind reader a
+**4 reads as a 5** (WCAG 1.4.1), and `round()` rounds a 4.6 **up to five stars**. `<x-star-rating>`
+(floor-don't-round, glyph-differentiated, one accessible name) is the fix. G8 migrated the guest review and the
+owner hero; **G12 fixed `ReviewList::stars_off`, which returned the FILLED glyph** and fed the owner Reviews
+*list* rows one section below the migrated hero. ⚠️ **The last remnant is `owner/unit-detail:338` (`DO-G8-1`) —
+an owner page, still live.**

@@ -7040,3 +7040,92 @@ A mutation that reds for the wrong reason is as worthless as one that passes.**
 - **`DO-PDF-3`** · `guest-credit-note` and `guest-refund-receipt` are **unreachable in demo data** (no refund
   exists), so neither was render-verified here, and neither is covered by a rendering test. A seeded refund
   would light up both documents and their tests.
+
+---
+---
+
+# 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
+
+**This is the reconciled index of every `DO-*` item raised by the guest realm's 12 gates and the cross-realm
+PDF sweep.** Each item's full reasoning stays in its own §G / §PDF section above — this groups them **by kind**
+so the backend phase can be planned against them, and marks what the walk itself already **CLOSED**.
+
+⚠️ **43 items were raised, not the ~18 an earlier summary listed.** Verified by enumeration, not memory.
+
+## ✅ CLOSED DURING THE WALK (recorded so they are not re-opened)
+
+| item | closed by |
+|---|---|
+| **`DO-G2-2`** · `--vy-amber`-as-text (logged at G2 as an unmeasured *prediction*) | measured and fixed — G6 (payments/receipt/extras), G8 confirmed the count |
+| **`DO-G6-2`** · the amber tail — `saved.blade.php` the last site | **G10** (4.08 → 6.15). Grep-verified: **no `color:var(--vy-amber)` remains anywhere in the live guest realm** |
+| **`DO-G2-1`** · `rgb(70,120,60)` hand-written at ELEVEN guest call sites | the **live** sites are unified on `--vy-green-text` (G9, G10). Only the dead partial remains → `DO-G10-4` |
+| **`DO-G3-1`** · the realm-wide PDF sweep (5 guest templates + the stamp) | the **PDF-sweep gate** — 17 templates, 224 inks → 0 failures |
+| **`DO10-4` (partly)** · the ★ migration | G8 migrated the guest review + the owner hero; **G12 fixed `ReviewList::stars_off`** (it returned the FILLED glyph). ⚠️ **The remainder is `DO-G8-1` alone** |
+
+## 🔴 CORRECTNESS — a user is shown something untrue or unusable
+
+| item | what |
+|---|---|
+| **`DO-G8-1`** ⚠️ | `owner/unit-detail:338` — `str_repeat('★', round($average))` **rounds up**: a 4.6 prints five stars. **This is the whole remainder of `DO10-4`**, and `DO-G12-3` reframes it: it is a **correctness/WCAG-1.4.1 failure, not a tone preference**. Owner page — outside the guest walk's scope, still live. |
+| **`DO-G8-2`** | `<x-star-rating>`'s default `emptyColor` has never been measured on the pages that use it. |
+| **`DO-G8-3`** | a review has no visible moderation timeline; a rejected review says "Not published" with no reason. |
+| **`DO-G9-3`** | the language radio group fires a write on **every arrow-key step** (EN→FR = 3 writes). Low stakes, design's intent — logged, not silently redesigned. |
+| **`DO-G11-2`** | the POST login route is named `guest.` (an empty suffix) — a trap for the next `route()` call. |
+
+## 🔒 ISOLATION / BACKEND — a guard or a rule that does not exist yet
+
+| item | what |
+|---|---|
+| **`DO-G10-3`** | `joinWaitlist()` is a bare `create()` — **no server-side dedupe**. The client guard is defence-in-depth, never a replacement. |
+| **`DO-G10-2`** | a waitlist entry can **expire before the dates it waits for** (`WAITLIST_TTL_DAYS` runs from the join, not the stay). |
+| **`DO-PDF-2`** | the audit stamp is `position:fixed` → its plate is **non-deterministic** (it prints over whatever the page ends with). The fix is moving it into each template's footer flow — **17 layout changes**. |
+| **`DO-G9-1`** ⚠️ | the GDPR erase depends on the **daily cron**. If `schedule:run` is absent the 14-day deletion never fires and the guest's PII survives indefinitely **with no visible signal**. |
+
+## 🧭 UX / EXCEPTION-ROUTING
+
+| item | what |
+|---|---|
+| **`DO-G11-1`** ⚠️ | an **expired claim link** — the ordinary case — is rejected in middleware, so the guest never reaches the honest "link isn't valid" page and instead sees the **operator** 403 (*"your role doesn't include this area… ask an administrator on your team"*) plus a "Back to your trips" link they cannot use. The fix is exception-rendering wiring. ⚠️ **The shared 403 copy must NOT change — it is correct for the operator realm.** |
+| **`DO-G5-1`** | the prototype's cancellation **review step** (a refund breakdown + policy timeline before confirming). |
+| **`DO-G5-2`** | no request-history surface — a guest never sees a **declined** request. |
+| **`DO-G7-1`** | no delivery/read state on a guest message (honest absence, but the guest cannot tell if it was seen). |
+| **`DO-G7-2`** | a guest cannot start a thread from Messages — only reply. |
+| **`DO-G6-2`**\* | a **pending** payment is invisible rather than shown as processing. *(\*id reused across sections in the source; see §G-6.)* |
+
+## 🧱 STRUCTURAL / DUPLICATION (§N.8f)
+
+| item | what |
+|---|---|
+| **`DO-PDF-1`** ⚠️ | **there is no shared PDF stylesheet** — 17 templates each carry their own `<style>`. The sweep normalised the *values*; the *structure* that let them drift is intact, so the next colour change needs the same 17-file sweep. |
+| **`DO-G10-4`** | `guest/partials/trip-card.blade.php` is **dead code** duplicating the live trip card — a fix applied to one silently misses the other. |
+| **`DO-G12-2`** | room photography is still **placeholder art** (the GATE-4 "P3-2" deferral, re-confirmed live). |
+| **`DO-G10-5`** | the wishlist card is name-only (the prototype shows rating, reviews, nightly rate, "Book now" — the data exists). |
+| **`DO-G1-2`** | the past trip card shows no rating. |
+| **`DO-G12-4`** 🆕 | ⚠️ **raised by this SAVE's coherence check:** `components/guest/shell.blade.php:52`'s CSS comment still says `rgb(70,120,60)` *"is hand-written at ELEVEN guest call sites"* — **stale**, the live sites were unified at G9/G10. A §N.8b comment-vs-code drift, in a **CSS comment (which ships)**. Not fixed here: a SAVE writes docs only. |
+| ⚠️ **the invisible-focus family** | **FIVE occurrences across TWO mechanisms** — `opacity:0` controls (G5 add-ons, G8 star input, G9 language chips) and an **explicit `outline:none` with no replacement** (G12 browse). A single `:focus-visible` utility is the §N.8f shared fix. |
+
+## ⚖️ FOUNDER DECISIONS — surfaced, deliberately not taken
+
+| item | the question |
+|---|---|
+| **`DO-G10-1`** | **credit has ONE production source.** Only promo redemption writes a wallet credit; refund-to-credit and add-on-cancelled-to-credit have **no writer**. Is that intended? |
+| **`DO-G12-1`** | the free-cancellation promise states the org's **most generous** window unqualified. Accurate today (both demo properties are 2 days); over-promises the moment they differ. |
+| **`DO-G9-2`** | the delete copy does not say that deletion **keeps anonymized financial history**. Delete = **anonymize-in-place on a 14-day cron**, never a row destroy — a semantics the guest is not told. |
+| **`DO-G4-3` · `DO-G3-2` · `DO-G2-3` · `DO-G1-3`** | prototype affordances owed a verdict (map link, keypad hint, house-guide structure, search magnifier/clear, styled year popover, per-item sub-lines). |
+| **`DO-G11-3`** | ratified refusals to **preserve**: social sign-in, open self-signup, the join-time welcome credit. |
+| **`DO-G6-1`** | Stripe live is the founder's cutover (§H). |
+
+## 🧹 SCOPED CROSS-REALM CLEANUPS
+
+| item | what |
+|---|---|
+| **`DO-INV-4`** ⚠️ | the **email-contrast sweep** across the 15 Mailables — **NOW SCOPED**: the PDF sweep proved the offenders are the **same two greys** (`#8A8079`, `#A69A92`), still live in `emails/*` and `auth/login-approval*`. A largely mechanical fix with a known mapping. |
+| **`DO-INV-1/2/3`** | the invite email's missing text/plain part · no dark-mode handling · no public help destination. |
+| **`DO-PDF-3`** | `guest-credit-note` + `guest-refund-receipt` are **unreachable in demo data** (no refund exists) — fixed by literal, **not render-verified**, and not covered by a rendering test. A seeded refund lights up both. |
+| **`DO-G4-1`** | ⚠️ **still stale** (verified this SAVE): `SendPreArrivalEmails`'s docblock says `LEAD_DAYS = 48h`. The constant is the source of truth; the comment is a mock-value instance. |
+| **`DO-G4-2`** | the pre-arrival email's `#8A7A6A` grey — inside `DO-INV-4`. |
+
+## 🔁 CARRIED FROM THE OPERATOR REALM
+**The 6 reopened operator a11y gates (§N.9)** — including the shared `<x-charts.bars>` work, which
+⚠️ **must widen its scope**: O18 proved the min-bar floor also exists as **CSS**, which a component fix alone
+would not catch.

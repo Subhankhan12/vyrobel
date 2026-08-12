@@ -7917,3 +7917,42 @@ assertions**, 9 non-green = exactly the documented set. PHPStan L5 (0); Pint cle
 `owner_invites` 0, `jobs` 0, `failed_jobs` 0.
 
 **Runway now:** the GUEST realm (32, untouched) · the PDF-sweep gate · DO10-4 · the BACKEND phase.
+
+---
+
+## 2026-08-12 — 🏁 THE DESIGN-PARITY WALK CHAPTER IS CLOSED (SAVE v8)
+
+**All three realms have now been walked page by page**, plus the first cross-realm sweep:
+**operator 42/42** (`0aa9ede`→`edb7cce`) · **owner 32/32** (`6d974d7`→`a884793`) · **guest 12 gates over 32
+prototypes** (`63f8a18`→`dd2e127`) · **the PDF sweep**, 17 templates + `PdfService` (`1c1f370`).
+
+**What the guest realm decided, that the other two could not.** Its isolation model **inverted three times**
+— scope-to-the-guest → *the signature is the authorization* → *the tenant is the scope, and the second scope
+is whether the thing is even for sale*. Each time the certified guard was well covered and the **adjacent**
+check was defended by nothing: `anonymize()` was **covered but untriggered**; the signed link's **lifetime**
+was unproven (a permanent-link mutation passed every test while turning old inbox links into permanent
+account-takeover keys); `properties.status` had **no test at all**, so one middleware line silently gated a
+withdrawn property's entire booking funnel. All three now mutation-proven. **§N.13.1.**
+
+**The watermark decision (the PDF sweep's central question) — RESOLVED, not deferred.** The "2.70 watermark"
+is not a watermark: it is the **export-audit stamp** (*"Downloaded by … · Confidential"*), a footer line in the
+bottom **margin**, not a faint mark behind content. It is therefore **informational and fixable — not a founder
+decision**: darkening it defeats nothing, because there is nothing for it to compete with. Measured on real
+ink at **2.70 on paper and 2.41 on a warm footer band** (the recorded 2.70 was the optimistic case) → now
+`#5f5853` (**6.98**). ⚠️ What *is* deferred and surfaced: `position:fixed` leaves its plate
+**non-deterministic** (`DO-PDF-2`) — the structural fix is 17 template layout changes.
+
+**Method canon added (§N.13):** the mutation discipline is now complete in **both** directions — four ways to
+falsely pass, and one to **falsely FAIL** (a bash-corrupted file threw a syntax error and was nearly recorded
+as *"#33 re-proven ✅"*), hence **`php -l` after every mutation edit**. And **defence-in-depth needs per-layer
+tests**: a redundant layer *masks* the failure of the layer beside it — removing `ArrivalPack`'s data gate left
+25 tests green, including the one named for that very guard.
+
+**Open decisions this chapter surfaced and deliberately did NOT take** (they are the founder's):
+`DO-G10-1` (wallet credit has one production source — intended?) · `DO-G12-1` (the free-cancellation promise
+states the org's most generous window unqualified) · `DO-G9-2` (the delete copy does not say deletion **keeps**
+anonymized financial history) · `DO-G11-3` (the ratified refusals to preserve: social sign-in, open self-signup,
+the join-time welcome credit).
+
+**Next chapter: the BACKEND PHASE**, planned against the reconciled **43-item DO-register** at the end of
+`MISSING-BACKEND-BY-PAGE.md`. ⛔ The **billing/pricing go-live blocker (§G.1) remains open and untouched.**
