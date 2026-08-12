@@ -19,14 +19,14 @@
             </td>
         </tr>
     </table>
-    <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#8A8079;">This link expires in {{ $expiresLabel }}.</p>
+    <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">This link expires in {{ $expiresLabel }}.</p>
 
     {{-- Copy-paste link (toggleable block #86) --}}
     @if ($blocks['copy_link'] ?? true)
-        <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">Button not working? Copy and paste this link into your browser:</p>
+        <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#5F5853;">Button not working? Copy and paste this link into your browser:</p>
         <p style="margin:0 0 22px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; word-break:break-all;"><a href="{{ $verifyUrl }}" style="color:#C2410C; text-decoration:underline;">{{ $verifyUrl }}</a></p>
     @endif
 
     <hr style="border:none; border-top:1px solid #EFE3D9; margin:0 0 14px;">
-    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.55; color:#8A8079;">Didn’t request this? You can safely ignore this email — nothing will be activated and no account is created until it’s verified.</p>
+    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.55; color:#5F5853;">Didn’t request this? You can safely ignore this email — nothing will be activated and no account is created until it’s verified.</p>
 @endsection

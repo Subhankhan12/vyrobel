@@ -18,5 +18,5 @@
         </tr>
     </table>
 
-    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">If you didn’t request this, you can safely ignore this email — your password won’t change.</p>
+    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#5F5853;">If you didn’t request this, you can safely ignore this email — your password won’t change.</p>
 @endsection

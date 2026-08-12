@@ -15,7 +15,7 @@
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
             <tr>
                 <td align="center" style="padding:20px 16px;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Scheduled for</span><br>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Scheduled for</span><br>
                     <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:24px; font-weight:700; color:#2B2320;">{{ $effective }}</span>
                 </td>
             </tr>
@@ -23,5 +23,5 @@
     @endif
 
     <p style="margin:0 0 8px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; line-height:1.55; color:#4A4038;">Changed your mind? Sign in to your account any time before then and choose <strong>“Undo — keep my account”</strong>. Nothing is removed until the date above; your upcoming reservations are then cancelled per the property's policy.</p>
-    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#8A8079;">If you didn't request this, please sign in and undo it, or contact the property.</p>
+    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">If you didn't request this, please sign in and undo it, or contact the property.</p>
 @endsection

@@ -19,5 +19,5 @@
         </tr>
     </table>
 
-    <p style="margin:18px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; line-height:1.5; color:#8A8079;">You’re receiving this because it’s on for email in your notification preferences.</p>
+    <p style="margin:18px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; line-height:1.5; color:#5F5853;">You’re receiving this because it’s on for email in your notification preferences.</p>
 @endsection

@@ -8026,3 +8026,78 @@ that serves both.
    somewhere else and was ratified there** — otherwise a verdict pass re-litigates a settled decision blind.
 
 **Nothing was built, deferred or deleted unilaterally.** `git diff` is `docs/*` only.
+
+---
+
+## 2026-08-12 — **`DO-INV-4`: the email-contrast sweep — CLOSED** (20 templates + 2 auth screens; contrast only)
+
+**A scoped mechanical sweep, not a gate** — no §N.4k (an email has no form), no browser parity, and the only
+guard added is the regression test. Full record: **§EMAIL-SWEEP** in `docs/design/MISSING-BACKEND-BY-PAGE.md`.
+
+**332 text runs measured across 20 rendered templates. 120 failed. After the sweep: 10.**
+
+⚠️ **Two premise corrections, both material:**
+1. **The set is 20 email templates and 20 Mailables, not "15".** Fifteen is the number that `@extends` the
+   shared layout — real, but not the sweep's surface.
+2. **There are THREE offending greys, not two.** The register's *"now SCOPED to the same two greys"* note had
+   narrowed `DO-INV-4` **past its own founding literal**: the item was raised at the invite-email gate against
+   **`#A99E95`** in `emails/layout.blade.php` (2.24 on the wash, carrying the *"why you're receiving this"* line
+   on every template that extends it). Closing the item on two of three would have closed it without doing the
+   thing it was raised for.
+
+**The mapping, re-measured in the email context** (the PDF numbers are on white paper; the email card is
+`#FFFDFB` and the wash `#F6EBE2`, and the card is **worse** than paper, not better — the measurement decided,
+not the precedent): `#8A8079` 3.19–3.80 → **`#5F5853`** 5.78–6.88 · `#A69A92` 2.27–2.70 → **`#6C645F`**
+4.79–5.71 · `#A99E95` 2.17–2.58 → **`#6C645F`** 4.94 on the wash it lands on. Both replacements clear 4.5 on all
+six plates the email set uses. Old values **grepped to zero**; the single residue is `owner-invite`'s Blade
+**docblock**, which does not render — re-verified at 22 text runs / 0 failures, before and after.
+
+⚠️ **§N.8f's best case in this repo so far:** `#A99E95` was **one declaration** in the shared layout carrying two
+footer lines on **15 emails at once**. One line fixed, fifteen emails corrected. The other two greys repeat
+inline (emails cannot use a stylesheet or a custom property) and were fixed per-occurrence.
+
+**The instrument.** `getComputedStyle` is the wrong tool for an email and has already **false-PASSED one** — at
+the invite-email gate it defaulted to white and read white-on-orange as **1.00**. So: render every template's
+real HTML (with a stub that forces conditional branches into view), ancestor-walk the **declared** inline
+`color` / `background-color` / `bgcolor`, **flag gradients rather than average them**, and anchor the helper —
+here against the PDF sweep's own published white-paper figures, reproduced to 2dp (`#8A8079` 3.86, `#5F5853`
+6.98, `#A69A92` 2.74, `#6C645F` 5.79). That cross-check **verifies the PDF-sweep record's claim** (§N.8b) and
+validates this pass's arithmetic in one step.
+
+**The two `auth/login-approval*` screens** (also named in `DO-INV-4`) needed the **screen** instrument, because
+the card is translucent over a gradient: **pixel-sampled**, the true plate is `#FEFAF6`, anchors 14.82 / 2.12,
+`.hint` **3.71 → 6.72**. ⚠️ The second screen's `--muted` was a **DEAD declaration** — declared in `:root`,
+never referenced. It rendered nothing, so it neither passed nor failed; retargeting it is recorded as a **trap
+removal, not a fix.**
+
+**No content changed — proven, not asserted.** Every template was re-rendered and diffed against its pre-sweep
+render with hex literals normalised: **19/19 byte-identical**, the only delta across the whole rendered set
+being `{#8A8079, #A69A92, #A99E95}` out and `{#5F5853, #6C645F}` in. No copy, subject, link, figure, date, or
+mailable/send-path logic was touched.
+
+**Guarded and mutation-proven.** `tests/Feature/EmailContrastSweepTest.php` (4 tests / 34 assertions) anchors the
+helper, asserts both replacements clear AA on all six real plates, refuses the three greys in any template, and
+keeps the layout email-safe (literal hex, never a `var(--vy-*)` a client would strip). Reverting one template
+turns it **red naming the file and the grey**; `php -l` clean on both passes, so the red came from the guard and
+not from a broken file (§N.13.2).
+
+⚠️ **CLOSED IS NOT "THE EMAILS ARE AA-CLEAN"** — three findings logged, deliberately not fixed:
+- **`DO-EMAIL-1`** — 10 residual failing runs across 7 literals outside `DO-INV-4`'s named greys: `#8A7A6A`
+  (**this absorbs `DO-G4-2`**, which the register carried as *unmeasured* — now **3.72** on `#FBF1E9`),
+  `#B26A08`, `#9A8C7F`, `#9C9089`, `#E8A317` (the review-request ★ at 2.14 — a **colour-only** signal, the
+  DO10-4 greyscale family in an email), `#64748B`, and `#E8EDF6` on a **gradient** plate that must be
+  pixel-sampled rather than computed. Six of the seven are one-line changes.
+- **`DO-EMAIL-2`** ⚠️ **the sharper find: the grey drift reaches a THIRD surface class.** The pre-AA literals are
+  still live on operator/owner **screens** in files the design-parity walk recorded as gated —
+  `livewire/operator/owners.blade.php` (~12 live text declarations), `operator-settings.blade.php:441`
+  (`#A99E95` on a *"Powered by Vyrobel"* line — the same literal, the same footer role, a different surface),
+  `maintenance-ticket-detail.blade.php`, plus two decorative status dots. The §N.8b shape: a realm recorded as
+  design-closed still shipping a palette two sweeps have now retired.
+- **`DO-EMAIL-3`** — `admin-email-change` is the only **off-brand** email (dark slate/indigo vs the warm
+  system). A design decision to confirm, not a defect to fix silently.
+
+⚠️ **No dishonest display (§N.8d) surfaced while measuring** — recorded with its limit: this pass read **colour**,
+not claims, and must not be cited as a copy audit.
+
+Suite: 1892 tests / 12,341 assertions, **9 non-green — the documented baseline set** (`BookingImportTest` ×6,
+`OwnerUnitDetailViewTest`, `StubViewsTest` ×2), proven pre-existing by stashing. PHPStan L5 (0); Pint clean.

@@ -26,9 +26,27 @@ conflicts with the repo, **trust the repo** and fix this file.
 > ⚠️ **Design-matched is NOT a11y-closed** — 6 operator items remain reopened (§N.9).
 >
 > **THE RUNWAY, IN PRIORITY ORDER:**
-> ① **`DO-INV-4` — the email-contrast sweep** (15 Mailables). **Now SCOPED by the PDF sweep**: the offenders
->   are the **same two greys** (`#8A8079` → `#5F5853`, `#A69A92` → `#6C645F`), still live in `emails/*` and
->   `auth/login-approval*`. Largely mechanical, with a known mapping. **Cheapest first.**
+> ① ✅ **`DO-INV-4` — the email-contrast sweep: DONE (2026-08-12).** See **§EMAIL-SWEEP** in
+>   `MISSING-BACKEND-BY-PAGE.md`. **332 text runs measured across 20 templates → 120 failing → 10.**
+>   ⚠️ **TWO premise corrections:** the set is **20 templates / 20 Mailables, not 15** (15 was the count that
+>   `@extends` the shared layout), and the offenders are **THREE greys, not two** — the "now SCOPED to the same
+>   two greys" note had narrowed the item **past `#A99E95`, the literal `DO-INV-4` was originally raised
+>   against**. `#8A8079`→`#5F5853` · `#A69A92`/`#A99E95`→`#6C645F`; old values **grepped to zero** (the single
+>   residue is `owner-invite`'s Blade docblock, which does not render — re-verified 22 runs / 0 failures).
+>   ⚠️ **§N.8f's best case:** ONE declaration in `emails/layout.blade.php` carried two footer lines on **15
+>   emails at once** — one line fixed, fifteen corrected. The two `auth/login-approval*` screens were measured
+>   with the SCREEN instrument (a **pixel sample**: the translucent card over its gradient resolves to
+>   `#FEFAF6`; `.hint` 3.71 → 6.72) — and one of the two was a **DEAD declaration**, recorded as a trap removal,
+>   not as a fix. Guarded + **mutation-proven** (`EmailContrastSweepTest`, 4/34). **No content changed —
+>   proven**: re-rendered and diffed hex-normalised, **19/19 byte-identical**, the only delta being the hexes.
+>   ⚠️ **CLOSED ≠ the emails are AA-clean:** `DO-EMAIL-1` logs **7 further failing literals** (incl. `DO-G4-2`,
+>   now measured at 3.72, and a **gradient** plate needing a pixel sample); **`DO-EMAIL-2`** logs the sharper
+>   find — **the pre-AA greys are still live on operator/owner SCREENS** the walk recorded as gated
+>   (`owners.blade.php` ~12 declarations; `operator-settings.blade.php:441`).
+>   ⚠️ **THE METHOD NOTE THAT GENERALISES:** `getComputedStyle` is the wrong instrument for an email and has
+>   already false-PASSED one (white-on-orange read as **1.00**). Render the real HTML, ancestor-walk the
+>   **declared** inline hex + `bgcolor`, flag gradients, and anchor the helper — here against the PDF sweep's
+>   own published white-paper figures, reproduced to 2dp.
 > ② ✅ **G13 — the 3 no-route prototypes: DONE (2026-08-12), verdicts rendered, docs only.**
 >   **`docs/design/G13-VERDICTS.md`** is the memo; **§G-13** in `MISSING-BACKEND-BY-PAGE.md` is the register
 >   record; the three items are `DO-G13-1/2/3` under **founder decisions**. ⚠️ **They are RECOMMENDATIONS

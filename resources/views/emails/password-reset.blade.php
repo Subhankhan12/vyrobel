@@ -48,8 +48,8 @@
                                 </tr>
                             </table>
 
-                            <p style="margin:22px 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">This link is single-use and expires in <strong style="color:#4A4038;">{{ $expiresMinutes }} minutes</strong>.</p>
-                            <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">If the button doesn’t work, paste this link into your browser:</p>
+                            <p style="margin:22px 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#5F5853;">This link is single-use and expires in <strong style="color:#4A4038;">{{ $expiresMinutes }} minutes</strong>.</p>
+                            <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#5F5853;">If the button doesn’t work, paste this link into your browser:</p>
                             <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; word-break:break-all;"><a href="{{ $resetUrl }}" style="color:#C2410C; text-decoration:underline;">{{ $resetUrl }}</a></p>
                         </td>
                     </tr>
@@ -57,8 +57,8 @@
                     {{-- Footer --}}
                     <tr>
                         <td align="center" style="padding:20px 8px;">
-                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#A69A92;">If you didn’t request a password reset, no action is needed.</p>
-                            <p style="margin:6px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#A69A92;">Powered by Vyrobel</p>
+                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#6C645F;">If you didn’t request a password reset, no action is needed.</p>
+                            <p style="margin:6px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#6C645F;">Powered by Vyrobel</p>
                         </td>
                     </tr>
                 </table>

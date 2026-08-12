@@ -31,7 +31,7 @@
             </tr>
             <tr>
                 <td align="center" style="padding:0 16px 18px;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#8A8079;">Tap a star — it opens your review, already halfway done</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">Tap a star — it opens your review, already halfway done</span>
                 </td>
             </tr>
         </table>
@@ -56,19 +56,19 @@
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
             <tr>
                 <td style="padding:12px 16px; border-bottom:1px solid #F2E8DF;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Stay</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Stay</span>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#2B2320; float:right;">{{ $stay }}</span>
                 </td>
             </tr>
             <tr>
                 <td style="padding:12px 16px; border-bottom:1px solid #F2E8DF;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Unit</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Unit</span>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#2B2320; float:right;">{{ $unitName }}</span>
                 </td>
             </tr>
             <tr>
                 <td style="padding:12px 16px;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Reference</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Reference</span>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#2B2320; float:right;">{{ $reference }}</span>
                 </td>
             </tr>
@@ -77,6 +77,6 @@
 
     {{-- Team signature (toggleable block #86) — the honest property team, never a fabricated named person (#39) --}}
     @if ($blocks['signature'] ?? true)
-        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">You’re getting this because you stayed with us. We only ask once — thank you for choosing us.</p>
+        <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">You’re getting this because you stayed with us. We only ask once — thank you for choosing us.</p>
     @endif
 @endsection

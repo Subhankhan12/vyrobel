@@ -35,7 +35,7 @@
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 12px;">
             <tr>
                 <td style="padding:14px 16px;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Getting there</span><br>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Getting there</span><br>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; color:#2B2320;">{{ $directions }}</span>
                     @if ($mapsUrl)<br><a href="{{ $mapsUrl }}" style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#C2410C; text-decoration:underline;">Open in Maps</a>@endif
                 </td>
@@ -48,7 +48,7 @@
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 12px;">
             <tr>
                 <td style="padding:14px 16px;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">WiFi</span><br>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">WiFi</span><br>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; color:#2B2320;">@if ($wifiSsid)Network <strong>{{ $wifiSsid }}</strong>@endif @if ($wifiPassword) · password <strong>{{ $wifiPassword }}</strong>@endif</span>
                 </td>
             </tr>
@@ -60,9 +60,9 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
         <tr>
             <td style="padding:14px 16px;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Check-in &amp; out</span><br>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Check-in &amp; out</span><br>
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; color:#2B2320;">In from {{ $checkInTime ?? '15:00' }} {{ $checkInLabel }} · out by {{ $checkOutTime ?? '11:00' }} {{ $checkOutLabel }}.</span>
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#8A8079;"> Arriving early? <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">Message us</a>.</span>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#5F5853;"> Arriving early? <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">Message us</a>.</span>
             </td>
         </tr>
     </table>
@@ -87,9 +87,9 @@
     @endif
 
     {{-- Message us --}}
-    <p style="margin:22px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">Anything you need before you arrive? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a> — we’re happy to help.</p>
+    <p style="margin:22px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">Anything you need before you arrive? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a> — we’re happy to help.</p>
 
     <hr style="border:none; border-top:1px solid #EFE3D9; margin:22px 0 14px;">
-    <p style="margin:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#8A8079;">Keep this email safe — your door code is inside. Reservation <strong style="color:#2B2320;">{{ $reference }}</strong>.</p>
+    <p style="margin:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">Keep this email safe — your door code is inside. Reservation <strong style="color:#2B2320;">{{ $reference }}</strong>.</p>
     <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px;"><a href="{{ $viewUrl }}" style="color:#C2410C; text-decoration:none; font-weight:600;">View your booking</a> &nbsp;·&nbsp; <a href="{{ $checkinUrl }}" style="color:#C2410C; text-decoration:none; font-weight:600;">Online check-in</a></p>
 @endsection

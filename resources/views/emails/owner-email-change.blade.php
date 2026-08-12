@@ -18,7 +18,7 @@
         </tr>
     </table>
 
-    <p style="margin:0 0 14px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">This link expires in an hour and can be used once. If you didn’t request this, you can ignore it — nothing changes.</p>
-    <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#8A8079;">If the button doesn’t work, paste this link into your browser:</p>
+    <p style="margin:0 0 14px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#5F5853;">This link expires in an hour and can be used once. If you didn’t request this, you can ignore it — nothing changes.</p>
+    <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; color:#5F5853;">If the button doesn’t work, paste this link into your browser:</p>
     <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; line-height:1.5; word-break:break-all;"><a href="{{ $verifyUrl }}" style="color:#C2410C; text-decoration:underline;">{{ $verifyUrl }}</a></p>
 @endsection

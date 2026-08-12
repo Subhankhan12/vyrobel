@@ -20,5 +20,5 @@
         </table>
     @endif
 
-    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">If you’re no longer interested, no action is needed.</p>
+    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">If you’re no longer interested, no action is needed.</p>
 @endsection

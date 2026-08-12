@@ -7111,6 +7111,146 @@ decision** — and conversely, configuring a real support contact is the single 
 a 404.
 
 ---
+
+## §EMAIL-SWEEP — `DO-INV-4` · 20 templates + 2 auth screens · ⚠️ THE SECOND CROSS-REALM CONTRAST SWEEP (2026-08-12)
+
+**A scoped, mechanical contrast sweep — not a gate.** No §N.4k (an email has no form to submit), no guard to
+mutation-prove beyond the new regression test, no browser parity. **Contrast only**, and — proven below —
+**not one character of copy, link, subject, or data changed.**
+
+### ⚠️ Premise corrections (§N.8b)
+
+| the record said | the code says |
+|---|---|
+| *"the email-contrast sweep across the **15 Mailables**"* | ⚠️ **20 email templates** (`resources/views/emails/*.blade.php`, excluding the shared `layout`) and **20 Mailables** in `app/Mail/`. The "15" was the count of templates that `@extends` the shared layout — real, but not the sweep's surface. |
+| *"the offenders are the **same two greys** (`#8A8079`, `#A69A92`)"* | ⚠️ **INCOMPLETE — there are THREE**, and the missing one is **`DO-INV-4`'s own founding literal.** The item was raised at the invite-email gate against **`#A99E95`** in `emails/layout.blade.php` (measured 2.24 on the wash, *"carries the 'why you're receiving this' line on all 15 emails that extend it"*). The later "now SCOPED to the same two greys" note **narrowed the item past its own headline offender.** Closing `DO-INV-4` without `#A99E95` would have closed it without doing the thing it was raised for — so all three were swept. |
+| *"still live in `emails/*` **and `auth/login-approval*`**"* | ✅ **SURVIVES** — `auth/login-approval.blade.php:11` and `auth/login-approval-confirmed.blade.php:11` each declared `--muted:#8A8079`. Both swept. ⚠️ But see the **dead-declaration** note below: only one of the two actually rendered it. |
+| the PDF sweep's mapping (`#8A8079` 3.86 → `#5F5853` 6.98 · `#A69A92` 2.74 → `#6C645F` 5.79, on white paper) | ✅ **VERIFIED** — this sweep's helper reproduces all four figures to 2dp on `#FFFFFF`, which is what validates the instrument (and the guard test asserts it). |
+
+### ⚠️ THE METHOD — declared colours on the real declared plate, NEVER `getComputedStyle`
+
+`getComputedStyle` is the wrong instrument here and has already **false-PASSED once on an email**: at the
+invite-email gate it defaulted to white and read white-on-orange as **1.00** — the mirror of the realm's
+gradient false-FAIL. Emails are table-and-inline-hex documents, so the honest measurement is the one the client
+actually receives:
+
+1. **Render all 20 templates** to real HTML (a scratchpad harness feeding each Blade a permissive stub, so
+   **conditional branches also render** — §N.8e: *a conditional style is invisible until FORCED*).
+2. **Ancestor-walk the DOM** resolving inline `color`, inline `background-color`/`background`, and the
+   `bgcolor` attribute. **Gradients are flagged, never averaged.**
+3. **Two self-validating anchors** — `#2B2320` (known-passing) and `#B7ADA4` (known-failing) — plus the
+   independent cross-check that the white-paper column reproduces the PDF sweep's published numbers exactly.
+4. Large-text relief applied honestly (≥24px, or ≥18.66px bold); every grey here is 10.5–13.5px → **needs 4.5**.
+
+**Result: 332 text runs measured across 20 templates. 120 failed. After the sweep: 10.**
+
+### THE THREE GREYS — every occurrence FAILED on every email plate, so every occurrence was mapped
+
+⚠️ **The measurement decided, not the precedent.** The PDF numbers are on white paper; the email card is
+`#FFFDFB` and the wash `#F6EBE2`, so each was re-measured on its own plate first. They failed everywhere —
+but by *different* margins, and the card is **worse** than paper, not better.
+
+| grey | occurrences | templates | measured range in the EMAIL context | → mapped to | after |
+|---|---|---|---|---|---|
+| **`#8A8079`** | 63 | 16 | **3.19 – 3.80** (`#F2E8DF` 3.19 · `#F6EBE2` 3.29 · `#F8F1EA` 3.45 · `#FBF1E9` 3.46 · `#FCF7F2` 3.62 · card `#FFFDFB` **3.80**) | **`#5F5853`** | **5.78 – 6.88** ✅ |
+| **`#A69A92`** | 7 | 3 | **2.27 – 2.70** | **`#6C645F`** | **4.79 – 5.71** ✅ |
+| **`#A99E95`** ⚠️ | 7 | **15** (one shared declaration ×2 footer lines) | **2.17 – 2.58** (**2.23** on the `#F6EBE2` wash where it actually lands) | **`#6C645F`** | **4.94** on that wash ✅ |
+
+**Plates the email set actually uses:** card `#FFFDFB` · outer/footer wash `#F6EBE2` · insets `#FCF7F2`,
+`#F8F1EA`, `#FBF1E9`, `#F2E8DF`. Both replacement values clear **4.5 on all six** — asserted by the guard.
+
+### §N.8f — one definition where there was one, per-occurrence where there wasn't
+
+Emails cannot use a shared stylesheet or a custom property (clients strip them), so the greys repeat inline.
+**But `#A99E95` was the exception that proves the rule:** a **single declaration** in `emails/layout.blade.php`
+carried the "Powered by Vyrobel" and "why you're receiving this" lines on **15 templates at once** — one line
+fixed, fifteen emails corrected. The other two were per-occurrence, then **grepped to zero**.
+
+**The old values now return ZERO across `emails/*` and `auth/login-approval*`.** The single residue is
+`owner-invite.blade.php:17`, a **Blade docblock** naming the refused prototype greys — Blade comments do not
+render, the register verified it, and this sweep re-verified it: **`owner-invite` measured 22 text runs, 0
+failures, before and after.** It is exempted in the guard for exactly that reason.
+
+### The two auth screens — measured with the SCREEN instrument, because the plate is translucent over a gradient
+
+`auth/login-approval*` are not emails, so the declared-value shortcut does **not** hold: the card is
+`rgba(255,252,248,.9)` over `linear-gradient(180deg,#FBF3EC,#F6EBE2)`. **Pixel-sampled from a real render**
+(glyph-free region beside the `.hint` text): the true plate is **`#FEFAF6`**, anchors **14.82** (passing) /
+**2.12** (failing) — no suspicious 1.00.
+
+- `login-approval.blade.php` — `.hint` at 12px: **`#8A8079` = 3.71 FAIL → `#5F5853` = 6.72 PASS.**
+- `login-approval-confirmed.blade.php` — ⚠️ **the declaration was DEAD.** `--muted` is declared in `:root` and
+  **never referenced** (`grep var(--muted)` → nothing). It rendered no text, so it neither passed nor failed;
+  it was retargeted as a **trap removal**, and it is recorded here as *dead*, **not** as a measured fix.
+
+### ⚠️ Greyscale-safe
+
+Both replacements are **luminance-only** changes along the same warm hue — no state, label or meaning anywhere
+in the email set is now carried by hue alone that was not before. (One pre-existing colour-only signal is
+logged below: the review-request ★.)
+
+### 🔒 Guard — `tests/Feature/EmailContrastSweepTest.php` (4 tests / 34 assertions)
+
+Anchors the helper against the PDF sweep's published figures · asserts both replacements clear 4.5 on all six
+real plates · asserts **no email template ships any of the three greys** · asserts the layout stays
+**email-safe** (literal hex, no `var(--vy-*)`). **Mutation-proven:** reverting one template's `#5F5853` to
+`#8A8079` turns it **red, naming the file and the grey**; restored → green. `php -l` clean on both passes, so
+the red came from the guard and not from a broken file (§N.13.2).
+
+### ✅ NO CONTENT CHANGED — proven, not asserted
+
+Every template was re-rendered after the sweep and diffed against its pre-sweep render **with hex literals
+normalised**: **19 / 19 byte-identical.** The only hex delta across the whole rendered set is
+`{#8A8079, #A69A92, #A99E95}` **out** and `{#5F5853, #6C645F}` **in**. No copy, subject, link, figure, date or
+mailable/send-path logic was touched.
+
+### 🚩 LOGGED, NOT FIXED — the residual 10 failing runs (`DO-EMAIL-1`), outside `DO-INV-4`'s named literals
+
+⚠️ **`DO-INV-4` is closed; "the emails are AA-clean" is NOT the same claim.** Seven further literals still fail,
+measured here and left alone because the sweep's scope was the named greys:
+
+| literal | where | measured | needs | note |
+|---|---|---|---|---|
+| **`#8A7A6A`** | `pre-arrival` ("Works from … · same code all stay") | **3.72** on `#FBF1E9` | 4.5 | ⚠️ **this is `DO-G4-2`, which the register carried as "unmeasured" — now measured.** |
+| **`#B26A08`** | `payment-reminder` "Balance due", `pre-arrival` "Your door code" | **3.80** on `#FBF1E9` | 4.5 | the amber label on both money/access panels |
+| **`#9A8C7F`** | `login-approval` (email) ×2, `owner-report` footer | **3.22** on card · **2.78** on wash | 4.5 | |
+| **`#9C9089`** | `booking-confirmation` "Before you arrive" | **3.06** on `#FFFDFB` | 4.5 | |
+| **`#E8A317`** | `review-request` ★ (32px) | **2.14** on `#FFFDFB` | 3.0 (large) | ⚠️ a **colour-only** signal — the DO10-4 greyscale family, in an email |
+| **`#64748B`** | `admin-email-change` | **3.62** on `#111B2E` | 4.5 | |
+| **`#E8EDF6`** | `admin-email-change` button label | **2.54** on `#818CF8` **[GRADIENT]** | 4.5 | ⚠️ flagged, not trusted — a gradient plate needs a **pixel sample**, not a declared computation |
+
+Six of the seven are one-line changes. ⚠️ `#E8EDF6` must be **pixel-sampled** first.
+
+### 🚩 LOGGED — `DO-EMAIL-2`: the grey drift is NOT confined to PDFs + emails
+
+Grepping the three greys realm-wide turned up a **third surface class still on the pre-AA palette** — operator
+and owner **screens**, in files the design-parity walk recorded as gated:
+
+- `livewire/operator/owners.blade.php` — **~12 live text declarations** (`#A69A92` ×6, `#8A8079` ×5, incl.
+  `.vy-inv-help`, the invite sub-labels and the "we emailed …" line)
+- `livewire/operator/operator-settings.blade.php:441` — **`#A99E95`** on a *"Powered by Vyrobel"* line (the same
+  footer role, the same literal, a different surface)
+- `livewire/maintenance-ticket-detail.blade.php` — `#A69A92` on a conditional retention note + an SVG stroke
+- `livewire/maintenance-list.blade.php:88` · `livewire/operator/dashboard.blade.php:211` — `#8A8079` as a
+  **status DOT** (decorative, non-text — a different question, but the same stale literal)
+
+Out of this sweep's scope (screens need the rendered-pixel instrument) and out of `DO-INV-4`'s (which names
+`emails/*` and `auth/login-approval*`). ⚠️ **But it is the §N.8b shape:** a realm recorded as design-closed
+still shipping the palette two other sweeps have now retired.
+
+### 🚩 LOGGED — `DO-EMAIL-3`: one email is off-brand
+
+`admin-email-change` renders a **dark slate/indigo** document (`#111B2E` / `#0C1322` / `#818CF8` / `#64748B`)
+while all 19 others are the warm terracotta system. Deliberate-looking (it is the platform-admin email), but it
+is the only template outside the brand and the only one whose failures are in a different palette. A design
+decision to confirm, not a defect to fix silently.
+
+### Honesty
+
+⚠️ **No dishonest display (§N.8d) surfaced while measuring** — recorded plainly, with its limit: this pass read
+**colour**, not claims. It is not a copy audit, and it should not be cited as one.
+
+---
 ---
 
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
@@ -7194,11 +7334,14 @@ live.**
 
 | item | what |
 |---|---|
-| **`DO-INV-4`** ⚠️ | the **email-contrast sweep** across the 15 Mailables — **NOW SCOPED**: the PDF sweep proved the offenders are the **same two greys** (`#8A8079`, `#A69A92`), still live in `emails/*` and `auth/login-approval*`. A largely mechanical fix with a known mapping. |
+| ~~**`DO-INV-4`**~~ ✅ | ~~the **email-contrast sweep** across the 15 Mailables.~~ **CLOSED 2026-08-12 — see §EMAIL-SWEEP.** ⚠️ Two premise corrections on the way: the set is **20 templates, not 15**, and the offenders are **THREE greys, not two** — the scoping note had narrowed the item past **`#A99E95`**, the literal `DO-INV-4` was originally raised against. **120 failing text runs → 10**, across 20 templates + 2 auth screens; `#8A8079`→`#5F5853`, `#A69A92`/`#A99E95`→`#6C645F`; old values grepped to zero; rendered output proven byte-identical apart from the hexes. ⚠️ **CLOSED ≠ the emails are AA-clean** — 7 further literals still fail: `DO-EMAIL-1`. |
+| **`DO-EMAIL-1`** 🆕 | the **residual 10 failing email text runs** across 7 literals (`#8A7A6A` — *this absorbs `DO-G4-2`, now measured at 3.72* · `#B26A08` · `#9A8C7F` · `#9C9089` · `#E8A317` the ★, a colour-only signal · `#64748B` · `#E8EDF6` on a **gradient**, which must be pixel-sampled). Six are one-line fixes. See §EMAIL-SWEEP. |
+| **`DO-EMAIL-2`** 🆕 ⚠️ | **the grey drift reaches a THIRD surface class.** The pre-AA literals are still live on operator/owner **screens** the design-parity walk recorded as gated — `livewire/operator/owners.blade.php` (~12 live text declarations), `operator-settings.blade.php:441` (`#A99E95` on a *"Powered by Vyrobel"* line), `maintenance-ticket-detail.blade.php`, plus two decorative status dots. Needs the rendered-pixel instrument. |
+| **`DO-EMAIL-3`** 🆕 | `admin-email-change` is the **only off-brand email** (dark slate/indigo vs the warm system). A design decision to confirm, not a defect to fix silently. |
 | **`DO-INV-1/2/3`** | the invite email's missing text/plain part · no dark-mode handling · no public help destination. |
 | **`DO-PDF-3`** | `guest-credit-note` + `guest-refund-receipt` are **unreachable in demo data** (no refund exists) — fixed by literal, **not render-verified**, and not covered by a rendering test. A seeded refund lights up both. |
 | **`DO-G4-1`** | ⚠️ **still stale** (verified this SAVE): `SendPreArrivalEmails`'s docblock says `LEAD_DAYS = 48h`. The constant is the source of truth; the comment is a mock-value instance. |
-| **`DO-G4-2`** | the pre-arrival email's `#8A7A6A` grey — inside `DO-INV-4`. |
+| ~~**`DO-G4-2`**~~ ➜ | ~~the pre-arrival email's `#8A7A6A` grey — inside `DO-INV-4`.~~ **MEASURED at the email sweep: 3.72 on `#FBF1E9` (needs 4.5).** Outside `DO-INV-4`'s named greys, so not fixed there — **absorbed into `DO-EMAIL-1`**. |
 
 ## 🔁 CARRIED FROM THE OPERATOR REALM
 **The 6 reopened operator a11y gates (§N.9)** — including the shared `<x-charts.bars>` work, which

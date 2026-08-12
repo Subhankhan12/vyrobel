@@ -17,13 +17,13 @@
         @if ($total !== null)
             <tr>
                 <td style="padding:13px 16px; border-bottom:1px solid #F2E8DF;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Total stay</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Total stay</span>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; color:#2B2320; float:right;">{{ $total }}</span>
                 </td>
             </tr>
             <tr>
                 <td style="padding:13px 16px; border-bottom:1px solid #F2E8DF;">
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Paid so far</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Paid so far</span>
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; color:#2B2320; float:right;">{{ $paid }}</span>
                 </td>
             </tr>
@@ -32,7 +32,7 @@
             <td style="padding:15px 16px; background-color:#FBF1E9;">
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#B26A08;">Balance due</span>
                 <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:19px; font-weight:700; color:#2B2320; float:right;">{{ $balance }}</span><br>
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#8A8079;">Otherwise payable at check-in</span>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">Otherwise payable at check-in</span>
             </td>
         </tr>
     </table>
@@ -50,7 +50,7 @@
             </td>
         </tr>
         <tr>
-            <td align="center" style="padding:10px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#8A8079;">Secure payment · Visa &amp; Mastercard · receipt by email</td>
+            <td align="center" style="padding:10px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">Secure payment · Visa &amp; Mastercard · receipt by email</td>
         </tr>
     </table>
 
@@ -59,24 +59,24 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:20px 0 20px;">
         <tr>
             <td style="padding:12px 16px; border-bottom:1px solid #F2E8DF;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Arriving</span>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Arriving</span>
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#2B2320; float:right;">{{ $arriving }}</span>
             </td>
         </tr>
         <tr>
             <td style="padding:12px 16px; border-bottom:1px solid #F2E8DF;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Unit</span>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Unit</span>
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#2B2320; float:right;">{{ $unitName }}</span>
             </td>
         </tr>
         <tr>
             <td style="padding:12px 16px;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Reference</span>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Reference</span>
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#2B2320; float:right;">{{ $reference }}</span>
             </td>
         </tr>
     </table>
     @endif
 
-    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">No rush — if you’d rather pay on arrival, that’s completely fine. Card and cash are both welcome at the desk. Questions about your balance? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a>.</p>
+    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">No rush — if you’d rather pay on arrival, that’s completely fine. Card and cash are both welcome at the desk. Questions about your balance? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a>.</p>
 @endsection

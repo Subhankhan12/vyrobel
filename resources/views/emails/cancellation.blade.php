@@ -17,8 +17,8 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 16px;">
         <tr>
             <td style="padding:14px 16px;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#8A8079; text-decoration:line-through;">{{ $propertyName }} · {{ $stay }}</span><br>
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#A69A92;">{{ $nights }} {{ \Illuminate\Support\Str::plural('night', $nights) }} · {{ $guests }} · {{ $reference }}</span>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14px; color:#5F5853; text-decoration:line-through;">{{ $propertyName }} · {{ $stay }}</span><br>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#6C645F;">{{ $nights }} {{ \Illuminate\Support\Str::plural('night', $nights) }} · {{ $guests }} · {{ $reference }}</span>
             </td>
         </tr>
     </table>
@@ -33,9 +33,9 @@
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:12px; margin:0 0 20px;">
                 <tr>
                     <td align="center" style="padding:22px 16px;">
-                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Refund issued</span><br>
+                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Refund issued</span><br>
                         <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:30px; font-weight:700; color:#C2410C;">{{ $refund }}</span><br>
-                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#8A8079;">To {{ $refundMethod }} · arrives in {{ $refundEta }}</span>
+                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">To {{ $refundMethod }} · arrives in {{ $refundEta }}</span>
                     </td>
                 </tr>
             </table>
@@ -44,14 +44,14 @@
                 <tr>
                     <td style="padding:16px;">
                         <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:15px; font-weight:600; color:#2B2320;">No refund due</span><br>
-                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#8A8079;">This booking was non-refundable. If any payment is due back to you, we’ll confirm it separately.</span>
+                        <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">This booking was non-refundable. If any payment is due back to you, we’ll confirm it separately.</span>
                     </td>
                 </tr>
             </table>
         @endif
     @endif
 
-    <p style="margin:0 0 18px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#8A8079;">{{ $sourceLine }}.</p>
+    <p style="margin:0 0 18px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">{{ $sourceLine }}.</p>
 
     {{-- Come-back invitation (toggleable block #86) — a warm invite + real link, never a fabricated promo --}}
     @if ($blocks['return_offer'] ?? true)
@@ -65,5 +65,5 @@
         </tr></table>
     @endif
 
-    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#8A8079;">Something not right with your cancellation? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a> — the {{ $propertyName }} team is here to help.</p>
+    <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#5F5853;">Something not right with your cancellation? Just <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">message us</a> — the {{ $propertyName }} team is here to help.</p>
 @endsection

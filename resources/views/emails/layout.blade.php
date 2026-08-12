@@ -5,11 +5,18 @@
 
      ⚠️ THIS NO LONGER MATCHES THE OWNER-INVITE EMAIL. `emails/owner-invite.blade.php` is a standalone document
      (it never extended this layout) and has been rebuilt to its own prototype: a 600px card with a gradient
-     brand BAND and a footer BAND, versus this layout's 480px card with a plain brand lockup. It is also the
-     only template whose greys are at the remediated token values — this layout's footer still ships #A99E95,
-     which measures 2.24 on the #F6EBE2 wash and carries the "why you're receiving this" line on all 15 emails
-     that extend it. Logged as a scoped email-contrast sweep in docs/design/MISSING-BACKEND-BY-PAGE.md
-     §O-Invite; deliberately NOT fixed here, because each template needs its own rendered measurement.
+     brand BAND and a footer BAND, versus this layout's 480px card with a plain brand lockup.
+
+     CONTRAST (DO-INV-4, closed 2026-08-12). This layout's footer previously shipped a grey measuring 2.24 on
+     the #F6EBE2 wash, and it carries the "Powered by Vyrobel" + "why you're receiving this" lines on every
+     template that extends this file — so one declaration failed AA on 15 emails at once. Both footer lines are
+     now #6C645F (4.94 on the #F6EBE2 wash). ⚠️ THE PLATES THIS FILE DEFINES, and what clears AA on them:
+       body / footer wash  #F6EBE2  → #2B2320 13.12 · #5F5853 5.95 · #6C645F 4.94
+       card                #FFFDFB  → #2B2320 15.17 · #5F5853 6.88 · #6C645F 5.71
+     A new muted colour in this layout or in any template that extends it must be measured against ITS OWN
+     plate — an inset panel (#FCF7F2 / #F8F1EA / #FBF1E9 / #F2E8DF) is darker than the card and moves the
+     number. EMAIL-SAFE: literal hex only — never a --vy-* custom property (clients strip them).
+     Guarded by tests/Feature/EmailContrastSweepTest.php; see docs/design/MISSING-BACKEND-BY-PAGE.md §EMAIL-SWEEP.
 
      BRAND-AWARE (#98): the optional `$brand` (App\Support\Branding\PropertyBrand) recolours the mark + swaps the
      logo/name + toggles the "Powered by Vyrobel" footer. Fails OPEN — no `$brand` ⇒ the shipped Vyrobel default,
@@ -59,7 +66,7 @@
                     <tr>
                         <td align="center" style="padding:20px 8px;">
                             @if ($brand->poweredBy)
-                                <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A99E95;">Powered by Vyrobel · hotel management, done properly.</p>
+                                <p style="margin:0 0 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#6C645F;">Powered by Vyrobel · hotel management, done properly.</p>
                             @endif
                             {{-- MARKETING vs TRANSACTIONAL footer. A marketing template fills `unsubscribe` with a
                                  signed opt-out link; a transactional one never does, and correctly keeps the
@@ -68,7 +75,7 @@
                             @hasSection('unsubscribe')
                                 @yield('unsubscribe')
                             @else
-                                <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#A99E95;">You’re receiving this because it relates to your booking with us.</p>
+                                <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.5; color:#6C645F;">You’re receiving this because it relates to your booking with us.</p>
                             @endif
                         </td>
                     </tr>

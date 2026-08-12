@@ -18,14 +18,14 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #EFE3D9; border-radius:14px; margin:0 0 18px;">
         <tr>
             <td width="50%" style="padding:16px 18px; background-color:#FCF7F2; border-right:1px solid #F2E8DF;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#A69A92;">Check-in</span><br>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#6C645F;">Check-in</span><br>
                 <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:16px; font-weight:600; color:#2B2320;">{{ $checkIn }}</span>
-                @if ($checkInTime)<br><span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#8A8079;">{{ $checkInTime }}</span>@endif
+                @if ($checkInTime)<br><span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">{{ $checkInTime }}</span>@endif
             </td>
             <td width="50%" style="padding:16px 18px; background-color:#FCF7F2;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#A69A92;">Check-out</span><br>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#6C645F;">Check-out</span><br>
                 <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:16px; font-weight:600; color:#2B2320;">{{ $checkOut }}</span>
-                @if ($checkOutTime)<br><span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#8A8079;">{{ $checkOutTime }}</span>@endif
+                @if ($checkOutTime)<br><span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">{{ $checkOutTime }}</span>@endif
             </td>
         </tr>
     </table>
@@ -47,14 +47,14 @@
                 @foreach ($lines as $line)
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
                         <td style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#5C534C; padding:0 0 8px;">{{ $line['label'] }}</td>
-                        <td align="right" style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:{{ $line['muted'] ? '#8A8079' : '#2B2320' }}; padding:0 0 8px; font-variant-numeric:tabular-nums;">{{ $line['amount'] }}</td>
+                        <td align="right" style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:{{ $line['muted'] ? '#5F5853' : '#2B2320' }}; padding:0 0 8px; font-variant-numeric:tabular-nums;">{{ $line['amount'] }}</td>
                     </tr></table>
                 @endforeach
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid rgba(120,70,40,.16);"><tr>
                     <td style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:14px; font-weight:600; color:#2B2320; padding:12px 0 0;">Total</td>
                     <td align="right" style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:19px; font-weight:600; color:#C2410C; padding:12px 0 0; font-variant-numeric:tabular-nums;">{{ $total }}</td>
                 </tr></table>
-                <p style="margin:12px 0 0; padding-top:12px; border-top:1px dashed rgba(120,70,40,.2); font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#8A8079;">Paid with your original payment method · <a href="{{ $receiptUrl }}" style="color:#C2410C; font-weight:500; text-decoration:none;">View receipt ›</a></p>
+                <p style="margin:12px 0 0; padding-top:12px; border-top:1px dashed rgba(120,70,40,.2); font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Paid with your original payment method · <a href="{{ $receiptUrl }}" style="color:#C2410C; font-weight:500; text-decoration:none;">View receipt ›</a></p>
             </td>
         </tr>
     </table>
@@ -73,20 +73,20 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #EFE3D9; margin:0 0 8px;">
         <tr><td style="padding:18px 0 10px;"><span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#9C9089;">Before you arrive</span></td></tr>
         <tr><td style="padding:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13.5px; color:#2B2320;"><strong>Check in online</strong> — two minutes now means keys straight away · <a href="{{ $checkinUrl }}" style="color:#C2410C; font-weight:500; text-decoration:none;">start check-in ›</a></td></tr>
-        <tr><td style="padding:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13.5px; color:#2B2320;"><strong>Door code &amp; directions</strong> — <span style="color:#8A8079;">we’ll email these 48h before check-in</span></td></tr>
+        <tr><td style="padding:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13.5px; color:#2B2320;"><strong>Door code &amp; directions</strong> — <span style="color:#5F5853;">we’ll email these 48h before check-in</span></td></tr>
     </table>
     @endif
 
     {{-- Host signature --}}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F8F1EA; border-radius:12px; margin:20px 0 0;">
         <tr>
-            <td style="padding:14px 16px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#2B2320;">Questions before you arrive? <a href="{{ $messagesUrl }}" style="color:#C2410C; font-weight:600; text-decoration:none;">Message us ›</a><br><span style="font-size:11.5px; color:#8A8079;">The {{ $propertyName }} team</span></td>
+            <td style="padding:14px 16px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#2B2320;">Questions before you arrive? <a href="{{ $messagesUrl }}" style="color:#C2410C; font-weight:600; text-decoration:none;">Message us ›</a><br><span style="font-size:11.5px; color:#5F5853;">The {{ $propertyName }} team</span></td>
         </tr>
     </table>
 
     {{-- Footer note + calendar links --}}
-    <p style="margin:20px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6; color:#8A8079;">{{ $sourceLine }}@if ($freeCancelUntil) · free cancellation until {{ $freeCancelUntil }}@endif.</p>
+    <p style="margin:20px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6; color:#5F5853;">{{ $sourceLine }}@if ($freeCancelUntil) · free cancellation until {{ $freeCancelUntil }}@endif.</p>
     @if ($blocks['calendar_links'] ?? true)
-    <p style="margin:8px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#A69A92;">Add to calendar: <a href="{{ $calendar['google'] }}" style="color:#8A8079; font-weight:500; text-decoration:none;">Google</a> · <a href="{{ $calendar['outlook'] }}" style="color:#8A8079; font-weight:500; text-decoration:none;">Outlook</a> · <a href="{{ $calendar['ics'] }}" download="{{ $reference }}.ics" style="color:#8A8079; font-weight:500; text-decoration:none;">Apple</a></p>
+    <p style="margin:8px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#6C645F;">Add to calendar: <a href="{{ $calendar['google'] }}" style="color:#5F5853; font-weight:500; text-decoration:none;">Google</a> · <a href="{{ $calendar['outlook'] }}" style="color:#5F5853; font-weight:500; text-decoration:none;">Outlook</a> · <a href="{{ $calendar['ics'] }}" download="{{ $reference }}.ics" style="color:#5F5853; font-weight:500; text-decoration:none;">Apple</a></p>
     @endif
 @endsection

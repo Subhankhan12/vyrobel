@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Approve your sign-in · Vyrobel</title>
     <style>
-        :root { --ink:#2B2320; --muted:#8A8079; --accent:#C2410C; --hair:rgba(120,70,40,.12); }
+        :root { --ink:#2B2320; --muted:#5F5853; --accent:#C2410C; --hair:rgba(120,70,40,.12); }
         *,*::before,*::after{box-sizing:border-box}
         body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(180deg,#FBF3EC,#F6EBE2)}
         .card{width:100%;max-width:400px;background:rgba(255,252,248,.9);border:1px solid rgba(255,255,255,.75);border-radius:22px;box-shadow:rgba(150,90,50,.16) 0 22px 60px;padding:34px 30px}
