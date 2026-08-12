@@ -8200,6 +8200,33 @@ The cross-pass synthesis is **§N.14** in `PROJECT-STATE.md`.*
 | **`DO-G13-1`** · Guest Help | ⚠️ **SPLIT — half BUILT, half SCOPED.** ✅ **The FAQ centre is BUILT** (`23bf335`, `GET /guest/help`) over the certified `HelpKnowledgeBase` — reused not forked, every answer verified against the code before writing, pure FAQ with the real relay as the one contact. ⏳ **The support half is SCOPED, not refused** — the founder ruled *build the backend first*. ⚠️ **So the 2026-08-07 refusal is reversed in one half and PRESERVED-BUT-CONDITIONAL in the other** (§N.15.5). | **§GUEST-FAQ** · §N.15 |
 | **the SUPPORT BACKEND** | ✅ **BUILT 2026-08-12 — `DO-G13-1` IS NOW CLOSED IN BOTH HALVES.** Three nullable per-property columns (`support_phone` · `support_reply_norm` · `support_hours`) + a reversible migration → the **Guest support** section on `/app/settings` (`properties.manage`) → a conditional support block on `/guest/help`. ⚠️ **Honest absence is the SCHEMA**: NULL means the channel does not exist, and the guest page draws no card, no row, no placeholder. ⚠️ **The norm is a norm BY CONSTRUCTION** — a fixed catalogue key, so the sentence lives in code and always reads *"We usually reply…"*; a guarantee is not expressible and is rejected by validation. ⚠️ **Phone, not WhatsApp** (see `DO-SUP-1`). | **§SUPPORT-BACKEND** · §N.15.6 |
 
+## ✅ CLOSED BY THE **BACKLOG SEQUENCE** (SAVE v11 · 2026-08-12 · `6550087`→`4440c7a`)
+
+*Seven passes. Each has a full record above; this is the index, so none is reopened. Cross-pass canon: **§N.16**
+in `PROJECT-STATE.md`.*
+
+| item | closed by | record |
+|---|---|---|
+| **the SUPPORT BACKEND** (`DO-G13-1`'s second half) | `6550087` — 3 nullable per-property fields → operator setter → a guest block showing only what is populated. **Honest absence is the SCHEMA.** | **§SUPPORT-BACKEND** |
+| **`DO-SEED-1`** | `f9142c8` — the seeder re-anchored to `now()`; ⚠️ the rot was **known and defended in one place out of two** (a forward-scan vs a comment). Baseline **9 → 7**. | **§DO-SEED-1** |
+| **`DO-EMAIL-9`** | `52321b8` — the footer reason is **KEYED by category** with a **generic-true default**, so the false booking claim is *unrepresentable*, not merely removed | **§EMAIL-FOOTER-RESTRUCTURE** |
+| **`DO-EMAIL-8`** | `52321b8` — ⚠️ premise sharpened: the slot was **OVERLOADED**, not misnamed → **split** into `footer_reason` + `footer_marketing` | **§EMAIL-FOOTER-RESTRUCTURE** |
+| **`DO-EMAIL-4`** | `a70c147` — unified to **`#804C05`** (both cleared AA; the headroom value won). Accidental divergence, confirmed from history | **§AMBER-TEXT-RECONCILIATION** |
+| **`DO-EMAIL-6`** | `2e8cd0f` — ⚠️ premise correction: the literals **passed**; the **CTA at 3.08** did not → solid accent | **§ROLE-COVERAGE-RE-AUDIT** |
+| **`DO-EMAIL-5`** ⚠️ **PARTIAL** | `2e8cd0f` — the **method** recorded + guarded; 4 failures fixed incl. **`#B7ADA4` = 2.00, named by nobody**. ⚠️ Remainder → `DO-EMAIL-5-continued` | **§ROLE-COVERAGE-RE-AUDIT** |
+| **`DO-EMAIL-7`** | `4440c7a` — ⚠️ **VERIFIED-FINE, unchanged and pinned**; the defect sat **beside** it (the tally chip dimming its own status word to 2.28) | **§HK-STATUS-DETERMINATION** |
+| **`DO-G13-2`** · **`DO-G13-3`** | **RATIFIED** by the founder 2026-08-12 — Documents **DEFER**, Referral **DON'T-BUILD** (#39). Decisions, not recommendations; neither is a gap. **The G13 set is closed.** | `DECISIONS.md` |
+
+## ⬅ THE **REMAINING BACKLOG** after the sequence (SAVE v11)
+
+| priority | item | what |
+|---|---|---|
+| ⛔ **1** | **the BILLING / go-live blocker** (§G.1) | untouched by every chapter. **The founder's business decision — surface, never pick a side.** If launch is near it outranks all of this. |
+| **2** | **`DO-TOKEN-1`** | each shell re-declares the whole palette, so any token can diverge (how `DO-EMAIL-4` happened). A shared token SOURCE — ⚠️ must **preserve the 7 deliberate per-shell overrides**, not flatten them (§N.16.5). Three-shell refactor. |
+| **3** | **`DO-EMAIL-5-continued`** | the gated blocks behind `settings.manage` ×3 · `properties.manage` ×3 · `payouts.manage` · `payments.refund` · `guests.erase` ×2 — each needs a render **as its role** (the method: §N.16.1). ⚠️ **Then the DATA axis — never swept in any realm** (§N.16.2). |
+| **4** | the tail | **`DO-SUP-1`** (WhatsApp needs a real per-number flag) · **`DO-STAR-1`** (⚠️ a **bookmark**, not a rating — do not fold into `DO10-4`) · `DO-PDF-1` · `DO-PDF-2` · `DO-G4-1` · `DO-INV-1/2/3` |
+| **5** | the BACKEND PHASE proper | the full register below + the **6 reopened operator a11y gates** (§N.9) + the deferred-capability refusal sweep (§N.8b) |
+
 ## ⬅ THE CLEANUP SEQUENCE'S **OPEN SUCCESSORS** — grouped by kind
 
 *Every one was surfaced BY a cleanup pass and deliberately not taken in it. Full rows live in their groups

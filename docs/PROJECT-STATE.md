@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates + G13's 3 no-route VERDICTS, plus the cross-realm PDF SWEEP (§N, §N.13, §G-13)** · 🏁 **AND THE CLEANUP SEQUENCE IS CLOSED — the grey drift retired across PDFs + emails + operator/owner web, all 20 emails on-brand, the O26 star defect RETIRED (§N.14, SAVE v9); ⚠️ "closed" = everywhere the pass could REACH (§N.14.1)** · 🏗 **AND THE FIRST BUILD SINCE THE WALK IS SHIPPED — the guest FAQ centre `/guest/help` over the certified `HelpKnowledgeBase` (§N.15, SAVE v10)** · 🏗 **AND ITS SUPPORT HALF IS NOW BUILT TOO — three nullable per-property columns + an operator setter + a conditional guest block, so `DO-G13-1` is CLOSED IN BOTH HALVES (§SUPPORT-BACKEND, §N.15.6); honest absence is the SCHEMA and the reply norm cannot express a guarantee; ⬅ NEXT = `DO-EMAIL-9`, then the BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — **FOUR CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16, SAVE v11)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · suite **1967 / 12,917**, 7 non-green = the documented set · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN · ⛔ **ONE GO-LIVE BLOCKER OPEN (billing)**
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -29,6 +29,8 @@ conflicts with the repo, **trust the repo** and fix this file.
      defaults are content and can be FALSE; token-drift means map to the TOKEN.
      ⚠️ "Closed" means closed everywhere this pass could REACH — see §N.14.1 and DO-EMAIL-5.
      ⚠️ DO-EMAIL-9 is a LIVE false claim on a security email — the runway's item ①.
+     [v11: CLOSED at 52321b8 — the footer reason is now keyed with a generic-true default. This line is kept as
+      the v9 snapshot it was, annotated rather than rewritten, so the reasoning that was true then stays legible.]
      ⬅ THE NEXT CHAPTER IS THE BACKEND PHASE — start it in a FRESH chat. -->
 
 <!-- SAVE v10 (2026-08-12) — supersedes v9's RESUME; §N.13 and §N.14 stand unchanged. v10 folds in THE FIRST
@@ -41,117 +43,98 @@ conflicts with the repo, **trust the repo** and fix this file.
      support half SCOPED (§N.15.6) and conditional, not permanently refused.
      ⚠️ THIS RESUME IS THE SESSION-HANDOFF SURFACE — a fresh session should orient entirely from it. -->
 
-> ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.15, then the DO-register.
+<!-- SAVE v11 (2026-08-12) — supersedes v10's RESUME; §N.13/§N.14/§N.15 stand unchanged. v11 closes the BACKLOG
+     SEQUENCE: the support backend (6550087) then DO-SEED-1 (f9142c8) · DO-EMAIL-9+8 (52321b8) · DO-EMAIL-4
+     (a70c147) · DO-EMAIL-5/6 (2e8cd0f) · DO-EMAIL-7 (4440c7a). Its canon is §N.16 — §N.14.1 turned into a
+     REUSABLE PROCEDURE (with the permission-DIFF that makes it finishable and the subset-algebra that bounds the
+     frontier); a THIRD way a surface hides, by DATA, completing the state/authorization/data taxonomy;
+     KEYED-NOT-TYPED as the house pattern for copy that must stay true, load-bearing on a GENERIC-TRUE default;
+     a-comment-is-not-a-defence (the root form of the stale-claim family); consolidation-can-be-an-honesty-
+     regression and its mirror, don't-guard-a-false-invariant; the translucent-gradient POSITIONAL plate,
+     de-emphasis belongs on a redundant mark, and four more instrument faults; and verified-fine as an honest
+     outcome — with §N.13.1's thesis holding to the last pass (the defect sat BESIDE the flagged item).
+     ⚠️ The demo DB is now date-robust, so a fresh session needs no hand-provisioning.
+     ⬅ NEXT: ⛔ the BILLING blocker (a founder priority call) · DO-TOKEN-1 · DO-EMAIL-5-continued + the DATA axis. -->
+
+> ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.16, then the DO-register.
 >
 > *Written so a session with no other context can start work immediately. Everything below is verified state,
-> not summary.*
+> not summary. **SAVE v11 (2026-08-12).***
 >
 > ## WHERE THE PROJECT IS
 >
-> **THREE CHAPTERS ARE CLOSED, IN ORDER:**
-> **① THE DESIGN-PARITY WALK (v8)** — OPERATOR 42/42 · OWNER 32/32 · GUEST 12 gates + 3 verdicts / 32
->   prototypes · + the cross-realm PDF sweep (17 templates + `PdfService`). **Canon: §N.13.**
-> **② THE CLEANUP SEQUENCE (v9)** — five passes (`e869d5d`→`ee6be74`). The grey-literal drift is closed across
->   **PDFs**, **emails** (all 20 on-brand, **335 runs / 0 FAIL**) and the **operator/owner web screens the pass
->   could reach**; the **O26 star defect family is RETIRED**. **Canon: §N.14.**
-> **③ THE FIRST BUILD (v10)** — **`GET /guest/help`, the guest FAQ centre** (`23bf335`), over the certified
->   `HelpKnowledgeBase`. **Canon: §N.15.**
+> **FOUR CHAPTERS ARE CLOSED, IN ORDER:**
+> **① THE DESIGN-PARITY WALK (v8)** — operator 42/42 · owner 32/32 · guest 12 gates + 3 verdicts · + the
+>   cross-realm PDF sweep. **Canon: §N.13.**
+> **② THE CLEANUP SEQUENCE (v9)** — the grey-literal drift closed across PDFs, emails and the reachable
+>   operator/owner web; the O26 star family retired. **Canon: §N.14.**
+> **③ THE FIRST BUILD + ITS BACKEND (v10)** — `GET /guest/help` over the certified `HelpKnowledgeBase`, then the
+>   **support backend** (`6550087`): 3 nullable per-property fields → an operator setter → a guest block that
+>   shows only what is populated. **`DO-G13-1` is closed in BOTH halves. Canon: §N.15.**
+> **④ THE BACKLOG SEQUENCE (v11)** — `DO-SEED-1` (`f9142c8`) → `DO-EMAIL-9`+`8` (`52321b8`) → `DO-EMAIL-4`
+>   (`a70c147`) → `DO-EMAIL-5`/`6` (`2e8cd0f`) → `DO-EMAIL-7` (`4440c7a`). **Canon: §N.16.**
 >
 > **Suite 1967 / 12,917 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
-> `OwnerUnitDetailViewTest` ×1 — in-suite-only / an `inventory_block`; **isolate before calling anything a
-> regression**, and prove a new failure pre-existing by stashing from a CLEAN worktree — §N.14.5).
-> PHPStan L5 (0) · Pint clean.
+> `OwnerUnitDetailViewTest` ×1). ⚠️ It was **9** and dropped to **7** when `DO-SEED-1` fixed the seeder — a fix,
+> not drift; **re-measure every gate** (§N.14.5). PHPStan L5 (0) · Pint clean.
 >
-> ⚠️ **THE BASELINE DROPPED 9 → 7 ON 2026-08-12, AND THAT IS A FIX, NOT A DRIFT.** `StubViewsTest` ×2 were
-> failing on `UnitUnavailableException::occupied` — **the same demo-seed collision as `DO-SEED-1`** — and went
-> green when it was fixed at the root. Verified in isolation (3/3), not inferred from the total. ⚠️ **Re-measure
-> the baseline every gate** (§N.14.5): it has now moved in both directions, and an asserted baseline goes stale
-> exactly like an asserted finding.
+> ## WHAT IS NOW TRUE THAT WAS NOT
 >
-> ⚠️ **`migrate:fresh --seed` — THE STANDING CLAIM, CORRECTED TWICE (read this before trusting any older one).**
-> Every dated entry below that says *"`migrate:fresh --seed` clean"* was true **on its own date**. It stopped
-> being true: on 2026-08-12 the seed **aborted** on a date-coupled collision and left the demo org half-seeded
-> (one property, the staff user roleless, `/app` unreachable) — `DO-SEED-1`. ✅ **It is now FIXED AT THE ROOT and
-> clean again**: the seeder's absolute dates were re-anchored to `now()`, so it is valid on **any** run day, and
-> `DemoSeedDateRobustnessTest` pins that by seeding at four time-travelled dates. **The lesson is the shape of
-> the claim, not the claim:** *"the seed is clean"* is a statement about **a day**, and only a date-robust seed
-> plus a time-travelling guard makes it a statement about the code.
+> - ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST.** It used to abort mid-run and leave the demo org
+>   half-seeded (one property, the staff user roleless). The seeder is re-anchored to `now()` and guarded at four
+>   travelled dates. **A fresh session gets a working demo DB with roles and needs NO hand-provisioning** —
+>   including `demo-admin@vyrobel-demo.test` (Property Owner), which is what makes role-aware work possible.
+> - ⚠️ **The one LIVE §N.8d is GONE.** The email footer no longer defaults to a false booking claim; the reason
+>   is **keyed by category** with a **generic-true default**, so the falsehood is unrepresentable (§N.16.3).
+> - **`--vy-amber-text` is one name with one value** (`#804C05`); **`DO-G13-2`/`DO-G13-3` are RATIFIED**, so the
+>   whole G13 set is closed; the role-coverage audit **method** is recorded and guarded (§N.16.1).
 >
-> ⚠️ **THE ONE CAVEAT THAT QUALIFIES EVERY "CLOSED" ABOVE (§N.14.1):** *a contrast/render pass is bounded by the
-> ROLE it runs as.* No probe can measure markup a permission check never emitted. **So "closed" means "closed
-> everywhere a pass could reach"** — `DO-EMAIL-5` is the honest successor, and the first question to ask of any
-> realm is **"which roles has nothing ever run as?"**
+> ⚠️ **THE CAVEAT THAT QUALIFIES EVERY "CLOSED" ABOVE.** *Closed* means *closed everywhere a pass could reach.*
+> There are now **three** ways a surface hides — conditional state (G10), **authorization** (§N.14.1) and
+> **DATA** (§N.16.2) — and the DATA axis has never been swept in any realm.
 >
 > ## WHAT TO DO NEXT — in priority order
 >
-> ~~**① THE SUPPORT BACKEND**~~ ✅ **BUILT 2026-08-12 — `DO-G13-1` is CLOSED in both halves.** Three nullable
->   per-property columns + a reversible migration → a **Guest support** section on `/app/settings`
->   (`properties.manage`) → a conditional block on `/guest/help`, one card per property the guest has booked.
->   Honest absence is the schema (NULL ⇒ no card, no row, no placeholder); the reply norm is a fixed-catalogue
->   KEY so a guarantee is not expressible; nothing is measured; no default is seeded. Shared derivation:
->   **`PropertySupport`** (§D.guest). ⚠️ One correction — **`DO-SUP-1`: phone renders as `tel:` ONLY**, because
->   nothing verifies WhatsApp. Record: **§SUPPORT-BACKEND** + §N.15.6.
+> **⛔ ① THE BILLING / GO-LIVE BLOCKER (§G.1) — surface this FIRST, for a founder priority call.** Two
+>   contradictory pricing models run at once and only the tier price reaches Stripe; at the live-key flip a
+>   customer is billed ~2× what the app quoted. ⚠️ **It is the founder's business decision — surface it, never
+>   pick a side.** ⚠️ **If launch is near it outranks everything below**, and nothing below unblocks it.
 >
-> ~~**① `DO-EMAIL-9`**~~ ✅ **CLOSED 2026-08-12 — and `DO-EMAIL-8` with it.** The shared layout's footer reason
->   is now **DERIVED from a declared category** (`@section('footer_reason', 'security')`), with the wording in
->   code — so the false *"relates to your booking"* line is **unrepresentable**, not merely removed, and the
->   **default is generic-true** so a forgetful new template still cannot claim a booking. All 16 extending
->   templates enumerated; the overloaded `unsubscribe` slot **split** into `footer_reason` + `footer_marketing`.
->   ⚠️ A new `email_change` category exists because flattening the two change emails into `security` would have
->   been a small honesty regression: they are sent to a **nominated address** whose reader may hold no account.
->   Record: **§EMAIL-FOOTER-RESTRUCTURE**.
+> **② `DO-TOKEN-1` — the shared token source.** The structural root of the entire grey-drift family: each shell
+>   re-declares the whole palette, so any token can silently diverge (that is exactly how `DO-EMAIL-4` happened).
+>   ⚠️ It must **preserve the 7 deliberate per-shell overrides** (guest radii, lighter shadow,
+>   `--vy-glass-border`, `--vy-on-grad`) rather than flatten them — see §N.16.5. A three-shell refactor, not a
+>   contrast item.
 >
-> ~~**① `DO-EMAIL-4`**~~ ✅ **CLOSED 2026-08-12.** `--vy-amber-text` unified to **`#804C05`** — both values
->   cleared AA on every plate either renders on (worst 4.65 vs 5.18, anchors 5.18), so they UNIFY to the one with
->   headroom. Accidental divergence, confirmed from history. ⚠️ **Premise refinement: 7 other tokens differ across
->   shells DELIBERATELY** (guest radii/shadow, `--vy-glass-border`, `--vy-on-grad` measured per shell) — so the
->   guard is scoped to this token, never a blanket "tokens must agree". 🚩 The structural root is logged as
->   **`DO-TOKEN-1`** (each shell re-declares the palette). Record: **§AMBER-TEXT-RECONCILIATION**.
+> **③ `DO-EMAIL-5-continued` — finish the role-coverage sweep, then open the DATA axis.** The method is recorded
+>   (§N.16.1); the remaining gated blocks are behind `settings.manage` ×3, `properties.manage` ×3,
+>   `payouts.manage`, `payments.refund` and `guests.erase` ×2 — each needs a render **as its role**. Then the
+>   third axis: **data-conditional surfaces, never swept anywhere** (§N.16.2).
 >
-> **⬅ ① `DO-EMAIL-5-continued`** — ✅ `DO-EMAIL-6` CLOSED and `DO-EMAIL-5` **partially** closed (2026-08-12,
->   §ROLE-COVERAGE-RE-AUDIT). The **method** is now recorded and reusable: enumerate roles → diff against the
->   roles prior passes ran as → grep the markup gated on the missing permissions → render as a role that passes
->   the gate. It found 4 failures incl. **one nobody had named** (`#B7ADA4` = 2.00) and the storefront keys at
->   **1.77**. ⚠️ **A THIRD COVERAGE BOUND emerged: a surface can be invisible because of DATA**, not only
->   authorization (G10) or UI state — and data-conditional surfaces have never been swept in any realm.
->   Remaining: the gated blocks behind `settings.manage` / `properties.manage` / `payouts.manage` /
->   `payments.refund` / `guests.erase`, each needing a render as its role.
+> **④ The small tail** — `DO-STAR-1` (the Messages "Starred" flag is a **bookmark, not a rating** — do not fold
+>   it into `DO10-4`), `DO-SUP-1` (a WhatsApp affordance needs a real per-number flag; today the support number
+>   renders as `tel:` only), `DO-PDF-1`/`DO-PDF-2`, `DO-G4-1`.
 >
-> **② The small items** — ✅ `DO-EMAIL-7` CLOSED 2026-08-12 (§HK-STATUS-DETERMINATION): the status fill was
->   **verified-fine** (every status prints its word; the dot clears 3:1) so nothing changed — but the same
->   measurement found the chip dimming its status WORD to 2.28, and that was fixed. Remaining: — ✅ **THE G13 SET IS CLOSED.** `DO-G13-1` is BUILT (both halves), and on 2026-08-12 the
->   founder **RATIFIED** `DO-G13-2` (Guest Documents → **DEFER**) and `DO-G13-3` (Guest Referral →
->   **DON'T-BUILD**, #39). ⚠️ Those are now **decisions, not recommendations** — neither is a gap, and a future
->   session must not "finish" either. Remaining: `DO-EMAIL-7`, `DO-EMAIL-8`, `DO-STAR-1` (⚠️ a bookmark, not a
->   rating) and `DO-SUP-1` (the WhatsApp affordance, deliberately not drawn).
->
-> **③ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
->   DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (two index blocks: ✅ *closed by the cleanup
->   sequence* · ⬅ *open successors, grouped by kind*), plus the **6 reopened operator a11y gates** (§N.9) and
->   the **deferred-capability refusal sweep** (§N.8b).
->
-> **④ ⛔ THE BILLING / GO-LIVE BLOCKER (§G.1) — still open, untouched by all three chapters.** Two contradictory
->   pricing models run at once and only the tier price reaches Stripe; at the live-key flip a customer is billed
->   ~2×. ⚠️ **It is the founder's business decision — surface it, never pick a side.** ⚠️ **If launch is near,
->   this outranks everything above.**
+> **⑤ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
+>   end of `MISSING-BACKEND-BY-PAGE.md`, plus the **6 reopened operator a11y gates** (§N.9) and the
+>   deferred-capability refusal sweep (§N.8b).
 >
 > ## HOW TO WORK
 >
-> **Read before starting: §N.15 (the build canon — newest) · §N.14 (the cleanup canon; start at N.14.1) ·
-> §N.13 (the walk canon) · §N.8 (the five principles) · §N.8b (stale claims — ⚠️ apply it to OUR OWN record;
-> the last two SAVEs each caught stale self-claims) · §N.8c (standing traps) · §N.8d (dishonest display —
-> `DO-EMAIL-9` is a live one) · §N.4p + §N.13.2 + §N.14.4 (the mutation discipline) · §N.9 (what is reopened).**
+> **Read before starting: §N.16 (newest — the audit method, the three ways a surface hides, keyed-not-typed) ·
+> §N.15 (the build canon) · §N.14 (start at N.14.1) · §N.13 (the walk canon) · §N.8/§N.8b/§N.8c/§N.8d ·
+> §N.4p + §N.13.2 + §N.14.4 + §N.16.6 (the mutation and instrument discipline) · §N.9 (what is reopened).**
 >
 > **Method:** work the real code first, never the summary → classify **DESIGN-GAP** / **REFUSAL-TO-PRESERVE** /
-> **EXTRA-WORK** / **MISSING-BACKEND** → **mutation-prove every guard** (⚠️ the verdict must come from the
-> guard, not the fixture, the file, or the compiled cache: `php -l` **and** `php artisan view:clear` after a
-> Blade mutation; **a non-vacuity assertion in every guard**; ⚠️ a guard that restates the source, or that a
-> shared nav satisfies, proves nothing — §N.14.4, §N.15.3a) → browser-verify **as every role that can reach the
-> surface** → suite + PHPStan + Pint → commit + push → **report and STOP**.
+> **EXTRA-WORK** / **MISSING-BACKEND** → **mutation-prove every guard** (the verdict must come from the guard —
+> not the fixture, the file, the compiled cache, or a role that cannot see the markup) → browser-verify **as
+> every role that can reach the surface** → suite + PHPStan + Pint → commit + push → **report and STOP**.
 >
 > ⚠️ **Honesty rules that outrank tidiness:** never ship UI for a capability the engine lacks (#39); when a true
-> answer VARIES, **route to the authoritative screen rather than pick a number** (§N.15.2); a refusal is
-> reversible only when its **premise** is falsified, and then say which half you reversed (§N.15.5).
+> answer VARIES, route to the authoritative screen rather than pick a number (§N.15.2); **a flagged item that
+> measures sound is closed AS sound** (§N.16.7); and **consolidation that flattens a real distinction is an
+> honesty regression** (§N.16.5).
+>
 > ## 🏁 THE PER-PAGE **DESIGN-PARITY PASS** IS COMPLETE FOR BOTH BUILT REALMS (2026-08-09 → 2026-08-11)
 >
 > **Read §N before quoting "what remains is only a decision + infrastructure" — that line is no longer the
@@ -6234,3 +6217,144 @@ guards, scoped to the specific element** (N.15.3a) · **absence assertions read 
 
 ⚠️ **Until it is built, the FAQ page must stay pure** — no slot, no placeholder, no commented seam. The later
 build adds its own block then.
+
+---
+
+# (N.16) 🏁 THE BACKLOG SEQUENCE — **THE CROSS-PASS SYNTHESIS** (SAVE v11, 2026-08-12)
+
+*Seven passes after the FAQ build: the support backend (`6550087`) → `DO-SEED-1` (`f9142c8`) → `DO-EMAIL-9`+`8`
+(`52321b8`) → `DO-EMAIL-4` (`a70c147`) → `DO-EMAIL-5`/`6` (`2e8cd0f`) → `DO-EMAIL-7` (`4440c7a`). Each wrote its
+own record in `MISSING-BACKEND-BY-PAGE.md` (§SUPPORT-BACKEND · §DO-SEED-1 · §EMAIL-FOOTER-RESTRUCTURE ·
+§AMBER-TEXT-RECONCILIATION · §ROLE-COVERAGE-RE-AUDIT · §HK-STATUS-DETERMINATION) plus a dated `DECISIONS.md`
+entry. **This section is what emerged ACROSS them.** It EXTENDS §N.13/§N.14/§N.15 rather than replacing them.*
+
+## N.16.1 ⚠️ THE HEADLINE — **§N.14.1 IS NOW A PROCEDURE**, not a warning
+
+§N.14.1 said *a contrast pass is bounded by the ROLE it runs as*. As a slogan it changed nothing. It is now a
+**reusable audit** — the general answer to *"is X fixed EVERYWHERE?"*:
+
+> 1. **Enumerate** the roles and their permission sets.
+> 2. **Identify** which roles prior passes actually ran as.
+> 3. ⚠️ **DIFF** — compute the permissions those roles LACK.
+> 4. **Grep** the markup gated on exactly those permissions.
+> 5. **Render as a role that PASSES the gate**, and force the conditional on top of it.
+> 6. **Measure the delta.**
+
+⚠️ **STEP 3 IS WHAT MAKES IT FINISHABLE.** Without the diff, "audit every screen as every role" is combinatorial
+and therefore never done. With it, the target was **6 permissions / 12 gated blocks**.
+
+⚠️ **AND THE FRONTIER IS BOUNDED BY PERMISSION ALGEBRA.** A role whose permissions are a **subset** of a covered
+role can reveal **no new markup** — so eight of the eleven operator roles were closed *by reasoning*, and only
+the `*` superset (Property Owner / Group Admin) extended the frontier. That is what stops "all the other roles"
+from becoming open-ended debt.
+
+**It paid for itself immediately:** it found **`#B7ADA4` at 2.00** — *worse* than the known target, named by
+nobody, visible only once a role that could open the modal rendered it.
+
+> **Pin the method with a ROLE-AWARE guard:** render the gated screen as BOTH roles and assert the markup is
+> **absent for one and present for the other**. A contrast guard that runs as a role which cannot see the markup
+> asserts nothing — it is vacuous by construction, which is the DO-EMAIL-2 trap wearing a test's clothes.
+
+## N.16.2 ⚠️ A THIRD WAY A SURFACE HIDES — **BY DATA** (the taxonomy is now complete)
+
+A surface can be invisible to a pass in **three** ways, and a complete audit forces all three:
+
+| # | hidden by | force it with | named at |
+|---|---|---|---|
+| 1 | conditional **STYLE / STATE** | force the state (open the modal, inject the variant) | **G10** |
+| 2 | **AUTHORIZATION** | render as a role that passes the gate | **§N.14.1** |
+| 3 | ⚠️ **DATA** | create the data the surface needs | **N.16.2 (new)** |
+
+The storefront filter keys are the instance: not gated by any permission — **public** — but invisible unless a
+search has been **performed** *and* the property actually **has** filter data. They measured **1.77**.
+
+⚠️ **The data axis has never been swept in any realm.** Logged as part of `DO-EMAIL-5-continued`.
+
+## N.16.3 ⚠️ **KEYED, NOT TYPED** — the house pattern for copy that must stay true
+
+Two builds reached for the same shape independently, both to close a §N.8d dishonesty that would otherwise rot:
+
+| build | the risk | the shape |
+|---|---|---|
+| the guest support **reply norm** | a stored "we reply in X" becomes a promise | a KEY into a catalogue of soft norms, all starting *"usually"* |
+| the email **footer reason** | one hardcoded line is false for some audience | a KEY into a catalogue of true reasons, one per category |
+
+> **Copy that must stay true is a KEY into a vetted catalogue in code — never free text.** The false version is
+> then **unrepresentable**: a refusal that *cannot fail*, which is strictly stronger than validation or helptext,
+> because there is no path by which a caller can express the falsehood.
+
+⚠️ **THE LOAD-BEARING PIECE IS THE DEFAULT.** It must be **generic-true**, never the specific-false claim. The
+old footer defaulted to *"relates to your booking"* — so every new template inherited a falsehood by doing
+nothing. The new default is true of anyone, so a forgetful caller still cannot lie. *Rewording the default would
+have moved the falsehood; keying it removed the category of error.*
+
+## N.16.4 ⚠️ **A COMMENT IS NOT A DEFENCE** — the root form of the stale-claim family
+
+`DemoSeeder` mixed a today-relative window with an absolute calendar. They were disjoint when written; time
+walked one into the other. ⚠️ **The codebase had already met this exact failure once** — `seedOwnerBalanceAccrual`
+carries a *"ROBUST TO DATE-DRIFT"* forward-scan for precisely this reason. The other site had a **comment**:
+*"clear of the window, so no collision."*
+
+> **Two sites, one invariant: one turned it into CODE, the other into PROSE. The prose rotted.**
+> A comment asserting an invariant is a **claim that decays exactly where nothing enforces it**. When you find
+> *"X can't happen here"* written as a comment, you have found a candidate for a **guard** — this is the root
+> form of the §N.8b stale-claim family.
+
+⚠️ **And a latent, time-coupled bug needs a test at MULTIPLE temporal edges.** A same-day test would have been
+green every single day before the break. The guard seeds at four travelled dates — and honestly, the mutation
+does **not** red at 2031, because a literal that far in the past no longer collides. *One date would not have
+caught it.*
+
+## N.16.5 ⚠️ CONSOLIDATION CAN BE AN **HONESTY REGRESSION** DRESSED AS TIDINESS
+
+Folding a one-off into a general system is usually hygiene. But **if the one-off encoded a real distinction,
+flattening it reduces honesty.**
+
+`DO-EMAIL-3`'s admin-email override carried a nuance: an email-change confirmation goes to the address being
+**added**, whose reader may hold **no account at all** — so even *"a security change on your account"* is not
+safely true of them. Declaring `security` and moving on would have been a small dishonesty introduced *by the
+cleanup*. `email_change` therefore exists as its own category. ⚠️ **The old test defending that sentence is what
+surfaced it** — G8, live: *a test that looks like refactor collateral may be encoding a real invariant; read it
+before you change it.*
+
+⚠️ **AND ITS MIRROR (`DO-EMAIL-4`): do not write a guard that is FALSE against the design.** Eight tokens differ
+across the three shells; **seven differ deliberately** (guest radii, lighter shadow, `--vy-glass-border`,
+`--vy-on-grad` measured per shell). A blanket *"all tokens must agree"* rule would have been **overreach dressed
+as rigour** — and still a bug. The guard was scoped to the one token that had no reason to differ.
+
+## N.16.6 ⚠️ THE **POSITIONAL PLATE**, DE-EMPHASIS, AND FOUR MORE INSTRUMENT FAULTS
+
+**A token on a TRANSLUCENT element over a GRADIENT has a plate that varies with POSITION.** `--vy-muted` read
+**6.00** on the light part of the housekeeping band and **4.25** on the saturated part — *failing at full
+opacity*. It was **wrong by position, not by carelessness**. → **Sample the worst position, never a
+representative one.**
+
+⚠️ **DE-EMPHASIS BELONGS ON A REDUNDANT MARK, NEVER ON MEANING-BEARING TEXT.** `.is-zero` dimmed a whole chip to
+`opacity:.62`, taking a status WORD to **2.28** — while the "0" beside it already carried the empty state. The
+dimming was **redundant and harmful**; it now rides the dot.
+
+**The instrument family gained four members** (extending §N.13.4 / §N.14.4):
+
+| fault | symptom | the check |
+|---|---|---|
+| **out-of-bounds pixel read** | returns **black** → a failure that never happened (3.29/2.95) | scroll the element into the viewport; distrust a reading implausible beside its neighbours |
+| **a broken verification grep** | reported an edit had not landed when it had → a wrong mutation verdict | **the check must be as trustworthy as the thing it checks** |
+| **a vacuity check that is itself vacuous** | spatie's team id unset ⇒ *both* premise assertions pass for the wrong reason | assert the premise can fail |
+| **comment semantics are language-specific** | a CSS comment **ships** and must be scanned; a Blade comment is **stripped** and must be excluded | strip by language before any absence assertion |
+
+## N.16.7 ⚠️ **VERIFIED-FINE IS AN HONEST OUTCOME** — and the defect sits BESIDE the flagged thing
+
+`--vy-hk-ooo` was re-opened because `DO10-4` had established that a colour-carried status is *correctness*, not
+tone. Measured, it was **sound**: every chip prints its word, the dot clears 3:1 anyway, greyscale confirms it.
+**Nothing was changed, and the pass PINNED the verified-fine state** so it cannot regress to colour-only.
+
+> **Inventing a fix for a passing thing would have been the failure.** A flagged item that measures sound is
+> closed *as sound* — with a guard, so the finding is not merely "we looked once".
+
+`DO-EMAIL-6` is the same shape: the register named the wrong defect. The standalone pages' **literals pass**
+(the concern was maintainability, correctly); what actually failed was the **CTA at 3.08**.
+
+⚠️ **AND §N.13.1's THESIS HELD TO THE VERY LAST PASS.** The flagged item (the OOO fill) was fine; the defect sat
+**beside** it (the tally chip dimming its own status word). *The risk is next to the thing everyone is looking
+at* — three chapters running.
+

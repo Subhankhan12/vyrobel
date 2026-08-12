@@ -8878,3 +8878,50 @@ Status semantics, the state machine and the data are untouched — display only.
 a chip carrying its status word (so the verified-fine state cannot regress to colour-only), and that the dimming
 never returns to the text. Mutation-proven: restoring `.is-zero { opacity: .62 }` reds 2 of 3.
 
+
+---
+
+## 2026-08-12 — **SAVE v11: the BACKLOG SEQUENCE is closed** (a memory-consolidation pass — docs only)
+
+**No product code, template or test was touched.** Purpose: a **session handoff** — after this a fresh Claude
+Code session orients entirely from `PROJECT-STATE.md`'s RESUME, §N.13–§N.16 and the DO-register.
+
+**Folded in: seven passes since v10** — the support backend (`6550087`), `DO-SEED-1` (`f9142c8`), `DO-EMAIL-9`+`8`
+(`52321b8`), `DO-EMAIL-4` (`a70c147`), `DO-EMAIL-5`/`6` (`2e8cd0f`), `DO-EMAIL-7` (`4440c7a`). **Canon: §N.16**,
+seven syntheses:
+
+1. ⚠️ **§N.14.1 IS NOW A PROCEDURE.** Enumerate roles → identify which were covered → **DIFF to the permissions
+   they lack** → grep that markup → render as a role that passes the gate → measure. The diff is what makes it
+   finishable (6 permissions / 12 blocks, not everything-as-everyone), and **permission subset-algebra bounds
+   the frontier** — 8 of 11 roles closed by reasoning. It found `#B7ADA4` at 2.00, named by nobody.
+2. ⚠️ **A THIRD WAY A SURFACE HIDES — by DATA.** The taxonomy is complete: conditional STATE (G10) ·
+   AUTHORIZATION (§N.14.1) · **DATA** (new). The data axis has never been swept in any realm.
+3. ⚠️ **KEYED, NOT TYPED — the house pattern.** Two builds reached for it independently. Copy that must stay
+   true is a KEY into a vetted catalogue in code; the false version becomes **unrepresentable**. The
+   load-bearing piece is a **generic-true default** — the old footer defaulted to a falsehood, so every new
+   template inherited it by doing nothing.
+4. ⚠️ **A COMMENT IS NOT A DEFENCE.** Two sites held one invariant; one made it code, one made it prose, and the
+   prose rotted. *"X can't happen here"* in a comment is a candidate for a guard — the root form of the
+   stale-claim family. And a time-coupled bug needs tests at **multiple temporal edges**.
+5. ⚠️ **CONSOLIDATION CAN BE AN HONESTY REGRESSION.** Flattening `DO-EMAIL-3`'s one-off would have lost a real
+   distinction (a change-email goes to someone who may hold no account) — the **old test defending it surfaced
+   the nuance** (G8). Mirror: **don't guard a false invariant** — 7 of 8 cross-shell token divergences are
+   deliberate, so a blanket rule would have been overreach dressed as rigour.
+6. ⚠️ **THE POSITIONAL PLATE + DE-EMPHASIS.** A token on a translucent element over a gradient must be measured
+   at its **worst position** (`--vy-muted`: 6.00 light, 4.25 saturated — wrong by position, not carelessness).
+   Dimming belongs on a **redundant** mark, never on meaning-bearing text. Four new instrument faults recorded.
+7. ⚠️ **VERIFIED-FINE IS HONEST.** `--vy-hk-ooo` measured sound, was **left unchanged and pinned**. And
+   §N.13.1's thesis held to the last pass: **the defect sat beside the flagged item**.
+
+**Register updated:** a *closed by the backlog sequence* index (incl. the two **ratified** G13 verdicts, so the
+G13 set is closed) and an explicit **remaining backlog** in priority order.
+
+**RESUME rewritten as the handoff surface**, with the ⛔ billing blocker **first, for a founder priority call**,
+then `DO-TOKEN-1`, then `DO-EMAIL-5-continued` + the DATA axis.
+
+**Whole-record coherence checked, §N.8b applied INWARD** — the standing *"`migrate:fresh --seed` clean"* claim
+is **true again** and now says why (date-robust, guarded at four travelled dates); the suite figure is
+consistent at **1967 / 12,917 with 7 non-green**, and the record states plainly that 9 → 7 was a **fix**, not
+drift; `DO-EMAIL-5` is marked **PARTIAL** with its remainder logged; `--vy-amber-text` is single-valued; the
+footer is keyed; billing is still flagged open.
+
