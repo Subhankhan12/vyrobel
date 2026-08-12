@@ -41,7 +41,7 @@
                                     <a href="{{ $approveUrl }}" style="display:inline-block; padding:12px 26px; font-family:'Inter',Arial,sans-serif; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none;">Approve this sign-in</a>
                                 </td></tr>
                             </table>
-                            <p style="margin:0; font-family:'Inter',Arial,sans-serif; font-size:12.5px; line-height:1.55; color:#9A8C7F;">This link expires in 30 minutes and can be used once. <strong style="color:#8A2F27;">If this wasn’t you, don’t click it</strong> — change your password instead.</p>
+                            <p style="margin:0; font-family:'Inter',Arial,sans-serif; font-size:12.5px; line-height:1.55; color:#5F5853;">This link expires in 30 minutes and can be used once. <strong style="color:#8A2F27;">If this wasn’t you, don’t click it</strong> — change your password instead.</p>
                         </td>
                     </tr>
                 </table>

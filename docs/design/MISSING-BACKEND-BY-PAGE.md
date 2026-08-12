@@ -7217,7 +7217,7 @@ measured here and left alone because the sweep's scope was the named greys:
 | **`#9C9089`** | `booking-confirmation` "Before you arrive" | **3.06** on `#FFFDFB` | 4.5 | |
 | **`#E8A317`** | `review-request` ★ (32px) | **2.14** on `#FFFDFB` | 3.0 (large) | ⚠️ a **colour-only** signal — the DO10-4 greyscale family, in an email |
 | **`#64748B`** | `admin-email-change` | **3.62** on `#111B2E` | 4.5 | |
-| **`#E8EDF6`** | `admin-email-change` button label | **2.54** on `#818CF8` **[GRADIENT]** | 4.5 | ⚠️ flagged, not trusted — a gradient plate needs a **pixel sample**, not a declared computation |
+| ~~**`#E8EDF6`**~~ ⚠️ | ~~`admin-email-change` button label~~ | ~~2.54 on `#818CF8` [GRADIENT]~~ | — | ⚠️ **MIS-ATTRIBUTED — corrected at DO-EMAIL-1.** The button declares `color:#fff`; the probe's hex regex read only **6-digit** hex, so the run **inherited the parent's `#E8EDF6`**. `#E8EDF6` renders on the dark card `#111B2E` at **14.65 — it passes and was never a defect.** The real failing run is **WHITE on the indigo gradient**, pixel-sampled at **3.08**. *The instrument fails too (§N.13.4) — and here it named the wrong colour while still pointing at the right pixel.* |
 
 Six of the seven are one-line changes. ⚠️ `#E8EDF6` must be **pixel-sampled** first.
 
@@ -7249,6 +7249,90 @@ decision to confirm, not a defect to fix silently.
 
 ⚠️ **No dishonest display (§N.8d) surfaced while measuring** — recorded plainly, with its limit: this pass read
 **colour**, not claims. It is not a copy audit, and it should not be cited as one.
+
+---
+
+## §EMAIL-SWEEP-2 — `DO-EMAIL-1` · the six remaining email literals · **CLOSED** (2026-08-12)
+
+The `DO-INV-4` continuation: the **same email instrument, the same contrast-only discipline**, on the literals
+that sweep surfaced and deliberately left. **10 failing text runs → 1**, and the one that remains is the ★,
+excluded on purpose.
+
+### ⚠️ Premise corrections (§N.8b) — two, and one of them was MY OWN instrument
+
+| the record said | verified |
+|---|---|
+| **`#E8EDF6` fails at 2.54 on a gradient** | ❌ **WRONG, and the error was the probe's.** The button declares `color:#fff`; the first probe's hex regex matched only **6-digit** hex, so the run **inherited the parent's `#E8EDF6`**. `#E8EDF6` actually renders on the dark card at **14.65 — it passes, and was never a defect.** The real failing run is **WHITE on the indigo gradient**. ⚠️ The probe pointed at the right *pixel* while naming the wrong *colour* — corrected in place in §EMAIL-SWEEP, and the probe now reads 3-digit hex and named colours. |
+| **`DO-INV-4` measured 332 runs / 120 FAIL** | ✅ **SURVIVES — re-verified with the corrected probe against a clean pre-sweep worktree (`5d59ac4`): 332 / 120, exactly.** ⚠️ An intermediate re-measurement read 321/118 and looked like a discrepancy; the cause was a **scratchpad name collision** (the `auth/login-approval` *screen* render had overwritten the `login-approval` *email* render in the before-snapshot). The published figures were right; the interim number was the artefact. Recorded because the near-miss is the point: **a number that moves is not automatically a correction — find out which reading is broken.** |
+| *"six are one-liners"* | ⚠️ **Roughly**: 4 are single declarations; `#B26A08` and `#9A8C7F` are 2 each. 8 declarations, 10 runs. |
+
+### The six — each re-measured on its OWN plate, all six failed, all six mapped
+
+| literal | occurrences | re-measured on its real plate | → mapped to | after |
+|---|---|---|---|---|
+| **`#8A7A6A`** | `pre-arrival` ×1 | **3.72** on `#FBF1E9` | `#5F5853` | **6.27** ✅ |
+| **`#B26A08`** ⚠️ | `payment-reminder` ×1, `pre-arrival` ×1 | **3.80** on `#FBF1E9` | `#7E5811` | **5.73** ✅ |
+| **`#9A8C7F`** | `login-approval` ×1 (2 runs), `owner-report` ×1 | **3.22** on `#FFFDFB` · **2.78** on `#F6EBE2` | `#5F5853` | **6.88 / 5.95** ✅ |
+| **`#9C9089`** | `booking-confirmation` ×1 | **3.06** on `#FFFDFB` | `#5F5853` | **6.88** ✅ |
+| **`#64748B`** ⚠️ | `admin-email-change` ×1 | **3.62** on `#111B2E` | `#94A3B8` | **6.71** ✅ |
+| **the CTA gradient** ⚠️ | `admin-email-change` ×1 | **white on `#7E89F7` = 3.08** *(pixel-sampled)* | stops → `#5B5FE3`,`#4338CA` | **5.19** ✅ *(re-sampled)* |
+
+**None passed.** Had one passed on its real plate it would have been reported and left — the measurement decides.
+
+### ⚠️ Three of the six were not simple darkenings
+
+- **`#B26A08` is the RAW `--vy-amber` FILL used as TEXT.** The guest realm already solved this once
+  (`--vy-amber` → `--vy-amber-text` for text); an email cannot read a token, so the **VALUE** was inlined:
+  `rgb(126,88,17)` = **`#7E5811`**. ⚠️ **`--vy-amber-text` is DEFINED TWICE and the two differ** — guest
+  `rgb(126,88,17)` vs owner `rgb(128,76,5)` (`components/guest/shell.blade.php:49` ·
+  `components/layouts/owner.blade.php:67`). The **guest** value was used (these are guest-facing emails). The
+  drift is a §N.8f finding in its own right → **`DO-EMAIL-4`**.
+- **`#64748B` had to go LIGHTER, not darker.** It is light-on-**dark** (`#111B2E`), so the reflex of darkening
+  a failing colour would have made it *worse*. `#94A3B8` was already the body copy in that same email — a
+  unification, not a new literal.
+- **The CTA is a GRADIENT, so it was PIXEL-SAMPLED, never computed.** WCAG takes the worst case, i.e. the
+  **lightest** pixel under the white glyphs: **`#7E89F7` → 3.08**. Stops darkened to `#5B5FE3`→`#4338CA`;
+  re-sampled lightest pixel **`#595CE1` → 5.19**. Anchors exact both times (`#111B2E` card, `#0C1322` page) —
+  no suspicious 1.00. ⚠️ **The gradient is PRESERVED** (unlike the invite email, which had to drop to a solid);
+  the eyebrow `#818CF8` and mark `#6366F1` are untouched because they pass on the dark card.
+
+### ⚠️ `DO-G4-2` — CLOSED as a by-product
+
+`#8A7A6A` **is** `DO-G4-2`, the pre-arrival grey the register carried as *"unmeasured"* from G4. Measured
+(**3.72**) and fixed here. ⚠️ Note it was retargeted to `#5F5853` rather than to a same-hue `#5F5449` (measured
+**6.62**, exact hue/saturation preserved): the sub-line sits beside `#5F5853` secondary text in the *same*
+email, so unification beat a bespoke tone. Both clear AA; the choice was **palette discipline, not contrast.**
+
+### ⚠️ `#E8A317` — the ★ — EXCLUDED on purpose
+
+`review-request`'s 32px star measures **2.14** (needs 3.0). It is **not fixed here and must not be**: it is a
+**colour-only rating signal**, so darkening the hex changes the number without fixing the defect — in
+greyscale, filled and empty still read alike. Its home is **`DO10-4`** (glyph-differentiated stars,
+floor-don't-round), which is correctness (WCAG 1.4.1), not contrast. **It is the single remaining failing run
+in the email set.**
+
+### Greyscale-safe · old values grepped to zero · guard
+
+Every mapping is **luminance-only within its own hue family** (warm stone → warm stone; slate → slate; indigo →
+indigo). No state or label is now distinguished by hue that was not before. **All five text literals return
+ZERO** across `emails/*`; the sole residue is `owner-invite.blade.php:17`'s **Blade docblock** (does not render;
+re-verified 22 runs / 0 failures). The pre-AA CTA gradient string returns zero.
+
+`tests/Feature/EmailContrastSweepTest.php` grew 4 → **6 tests / 55 assertions**, and includes a
+**non-vacuity assertion** (white on the OLD stop `#818CF8` must still measure < 4.5). **Mutation-proven twice** —
+reverting the amber, and reverting the gradient — each turning it **red naming the file and the literal**;
+`php -l` clean on every pass, so the red came from the guard (§N.13.2).
+
+### ✅ No content changed — proven
+
+Re-rendered and diffed against the pre-`DO-EMAIL-1` renders with hex literals normalised: **20/20
+byte-identical.** The only hex delta is `{#8A7A6A, #B26A08, #9A8C7F, #9C9089, #64748B}` out and
+`{#5F5853, #7E5811, #5B5FE3, #4338CA}` in (`#94A3B8` does not appear as "added" — it was already in that
+email). No copy, subject, link, figure, date, or mailable/send-path logic was touched.
+
+⚠️ **No dishonest display (§N.8d) surfaced** — same limit as `DO-INV-4`: this pass read **colour**, not claims.
+
+**Status: `DO-EMAIL-1` CLOSED. The email set now has ONE failing run left — the ★, which belongs to `DO10-4`.**
 
 ---
 ---
@@ -7335,13 +7419,15 @@ live.**
 | item | what |
 |---|---|
 | ~~**`DO-INV-4`**~~ ✅ | ~~the **email-contrast sweep** across the 15 Mailables.~~ **CLOSED 2026-08-12 — see §EMAIL-SWEEP.** ⚠️ Two premise corrections on the way: the set is **20 templates, not 15**, and the offenders are **THREE greys, not two** — the scoping note had narrowed the item past **`#A99E95`**, the literal `DO-INV-4` was originally raised against. **120 failing text runs → 10**, across 20 templates + 2 auth screens; `#8A8079`→`#5F5853`, `#A69A92`/`#A99E95`→`#6C645F`; old values grepped to zero; rendered output proven byte-identical apart from the hexes. ⚠️ **CLOSED ≠ the emails are AA-clean** — 7 further literals still fail: `DO-EMAIL-1`. |
-| **`DO-EMAIL-1`** 🆕 | the **residual 10 failing email text runs** across 7 literals (`#8A7A6A` — *this absorbs `DO-G4-2`, now measured at 3.72* · `#B26A08` · `#9A8C7F` · `#9C9089` · `#E8A317` the ★, a colour-only signal · `#64748B` · `#E8EDF6` on a **gradient**, which must be pixel-sampled). Six are one-line fixes. See §EMAIL-SWEEP. |
+| ~~**`DO-EMAIL-1`**~~ ✅ | ~~the residual 10 failing email text runs across 7 literals.~~ **CLOSED 2026-08-12 — see §EMAIL-SWEEP-2. 10 failing runs → 1.** All six text/CTA items re-measured on their own plates (all failed) and mapped: `#8A7A6A`→`#5F5853` · `#B26A08`→`#7E5811` (the raw `--vy-amber` fill used as TEXT → the guest `--vy-amber-text` VALUE, inlined) · `#9A8C7F`/`#9C9089`→`#5F5853` · `#64748B`→`#94A3B8` (⚠️ **lighter**, not darker — light-on-dark) · the CTA gradient stops darkened after a **pixel sample** (white 3.08 → 5.19, gradient preserved). ⚠️ **`#E8EDF6` was a PROBE ERROR, not a defect** (it passes at 14.65). ⚠️ **The ★ `#E8A317` is excluded → `DO10-4`** and is the ONE remaining failing run. |
+| ~~**`DO-G4-2`**~~ ✅ | **CLOSED by `DO-EMAIL-1`** — the pre-arrival `#8A7A6A`, carried as *"unmeasured"* since G4: measured **3.72** on `#FBF1E9`, retargeted to `#5F5853` (**6.27**). |
+| **`DO-EMAIL-4`** 🆕 | ⚠️ **`--vy-amber-text` is defined TWICE and the two values differ** — guest `rgb(126,88,17)` (`components/guest/shell.blade.php:49`) vs owner `rgb(128,76,5)` (`components/layouts/owner.blade.php:67`). One concept, two definitions: the §N.8f shape. The emails now inline the **guest** value. Which is canonical is a design call. |
 | **`DO-EMAIL-2`** 🆕 ⚠️ | **the grey drift reaches a THIRD surface class.** The pre-AA literals are still live on operator/owner **screens** the design-parity walk recorded as gated — `livewire/operator/owners.blade.php` (~12 live text declarations), `operator-settings.blade.php:441` (`#A99E95` on a *"Powered by Vyrobel"* line), `maintenance-ticket-detail.blade.php`, plus two decorative status dots. Needs the rendered-pixel instrument. |
 | **`DO-EMAIL-3`** 🆕 | `admin-email-change` is the **only off-brand email** (dark slate/indigo vs the warm system). A design decision to confirm, not a defect to fix silently. |
 | **`DO-INV-1/2/3`** | the invite email's missing text/plain part · no dark-mode handling · no public help destination. |
 | **`DO-PDF-3`** | `guest-credit-note` + `guest-refund-receipt` are **unreachable in demo data** (no refund exists) — fixed by literal, **not render-verified**, and not covered by a rendering test. A seeded refund lights up both. |
 | **`DO-G4-1`** | ⚠️ **still stale** (verified this SAVE): `SendPreArrivalEmails`'s docblock says `LEAD_DAYS = 48h`. The constant is the source of truth; the comment is a mock-value instance. |
-| ~~**`DO-G4-2`**~~ ➜ | ~~the pre-arrival email's `#8A7A6A` grey — inside `DO-INV-4`.~~ **MEASURED at the email sweep: 3.72 on `#FBF1E9` (needs 4.5).** Outside `DO-INV-4`'s named greys, so not fixed there — **absorbed into `DO-EMAIL-1`**. |
+| ~~**`DO-G4-2`**~~ ✅ | ~~the pre-arrival email's `#8A7A6A` grey.~~ **MEASURED then CLOSED: 3.72 on `#FBF1E9` → `#5F5853` (6.27) at `DO-EMAIL-1`.** See §EMAIL-SWEEP-2. |
 
 ## 🔁 CARRIED FROM THE OPERATOR REALM
 **The 6 reopened operator a11y gates (§N.9)** — including the shared `<x-charts.bars>` work, which

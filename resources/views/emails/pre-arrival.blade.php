@@ -17,10 +17,10 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FBF1E9; border:1px solid #F0DFCF; border-radius:14px; margin:0 0 16px;">
         <tr>
             <td align="center" style="padding:22px 16px;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#B26A08;">Your door code</span><br>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#7E5811;">Your door code</span><br>
                 @if ($doorCode)
                     <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:34px; font-weight:700; letter-spacing:6px; color:#2B2320;">{{ $doorCode }}</span><br>
-                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#8A7A6A;">Works from {{ $releasedFrom }} · same code all stay</span>
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12.5px; color:#5F5853;">Works from {{ $releasedFrom }} · same code all stay</span>
                 @else
                     <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:15px; color:#4A4038;">Your host will share your access details before you arrive.</span>
                 @endif

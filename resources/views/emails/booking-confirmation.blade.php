@@ -71,7 +71,7 @@
     {{-- Before you arrive (toggleable block #86) — the door code is a POINTER only (#33) --}}
     @if ($blocks['before_you_arrive'] ?? true)
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #EFE3D9; margin:0 0 8px;">
-        <tr><td style="padding:18px 0 10px;"><span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#9C9089;">Before you arrive</span></td></tr>
+        <tr><td style="padding:18px 0 10px;"><span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#5F5853;">Before you arrive</span></td></tr>
         <tr><td style="padding:0 0 10px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13.5px; color:#2B2320;"><strong>Check in online</strong> — two minutes now means keys straight away · <a href="{{ $checkinUrl }}" style="color:#C2410C; font-weight:500; text-decoration:none;">start check-in ›</a></td></tr>
         <tr><td style="padding:0 0 6px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13.5px; color:#2B2320;"><strong>Door code &amp; directions</strong> — <span style="color:#5F5853;">we’ll email these 48h before check-in</span></td></tr>
     </table>

@@ -18,8 +18,8 @@
                         You asked to change your platform-admin login email to <strong style="color:#E8EDF6;">{{ $newEmail }}</strong>.
                         Confirm it by opening the link below — your email stays the same until you do. The link expires in one hour.
                     </p>
-                    <a href="{{ $verifyUrl }}" style="display:inline-block; background:linear-gradient(135deg,#818CF8,#6366F1); color:#fff; text-decoration:none; font-weight:600; font-size:14px; padding:12px 22px; border-radius:10px;">Confirm new email</a>
-                    <p style="color:#64748B; font-size:12px; line-height:1.6; margin:22px 0 0;">
+                    <a href="{{ $verifyUrl }}" style="display:inline-block; background:linear-gradient(135deg,#5B5FE3,#4338CA); color:#fff; text-decoration:none; font-weight:600; font-size:14px; padding:12px 22px; border-radius:10px;">Confirm new email</a>
+                    <p style="color:#94A3B8; font-size:12px; line-height:1.6; margin:22px 0 0;">
                         If you didn't request this, you can ignore this email — nothing changes without opening the link.
                     </p>
                 </td></tr>

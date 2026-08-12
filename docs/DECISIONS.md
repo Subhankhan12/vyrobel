@@ -8101,3 +8101,65 @@ not claims, and must not be cited as a copy audit.
 
 Suite: 1892 tests / 12,341 assertions, **9 non-green — the documented baseline set** (`BookingImportTest` ×6,
 `OwnerUnitDetailViewTest`, `StubViewsTest` ×2), proven pre-existing by stashing. PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-12 — **`DO-EMAIL-1`: the six remaining email literals — CLOSED** (the ★ excluded → `DO10-4`)
+
+The `DO-INV-4` continuation, same instrument and same contrast-only discipline. **10 failing text runs → 1.**
+Full record: **§EMAIL-SWEEP-2** in `docs/design/MISSING-BACKEND-BY-PAGE.md`.
+
+Each literal was re-measured on **its own plate** before being touched. All six failed, so all six were mapped:
+
+| literal | measured | → | after |
+|---|---|---|---|
+| `#8A7A6A` | 3.72 on `#FBF1E9` | `#5F5853` | 6.27 |
+| `#B26A08` | 3.80 on `#FBF1E9` | `#7E5811` | 5.73 |
+| `#9A8C7F` | 3.22 / 2.78 | `#5F5853` | 6.88 / 5.95 |
+| `#9C9089` | 3.06 on `#FFFDFB` | `#5F5853` | 6.88 |
+| `#64748B` | 3.62 on `#111B2E` | `#94A3B8` | 6.71 |
+| the CTA gradient | white on `#7E89F7` = **3.08** *(pixel-sampled)* | stops → `#5B5FE3`,`#4338CA` | **5.19** *(re-sampled)* |
+
+**Three were not simple darkenings, and each is the interesting part:**
+- **`#B26A08` is the raw `--vy-amber` FILL being used as TEXT.** The guest realm already solved this
+  (`--vy-amber-text`); an email cannot read a token, so the **value** was inlined. ⚠️ That surfaced
+  **`DO-EMAIL-4`**: `--vy-amber-text` is **defined twice with different values** — guest `rgb(126,88,17)` vs
+  owner `rgb(128,76,5)`. One concept, two definitions (§N.8f). The guest value was used; which is canonical is
+  a design call.
+- **`#64748B` had to go LIGHTER.** It is light-on-**dark**, so darkening — the reflex on a failing colour —
+  would have made it worse. `#94A3B8` was already the body copy in that same email.
+- **The CTA is a gradient, so it was PIXEL-SAMPLED, never computed.** WCAG takes the worst case: the *lightest*
+  pixel under the white glyphs. ⚠️ **The gradient is preserved** — unlike the invite email, which had to drop to
+  a solid; darkening the stops was enough here.
+
+**`DO-G4-2` is CLOSED as a by-product** — `#8A7A6A` is that item, carried as *"unmeasured"* since G4. (It was
+retargeted to `#5F5853` rather than an exact-hue `#5F5449`, measured 6.62: the sub-line sits beside `#5F5853`
+text in the same email, so unification beat a bespoke tone. **Palette discipline, not contrast.**)
+
+⚠️ **`#E8A317` — the review-request ★ — is deliberately EXCLUDED and must stay so.** At 2.14 it looks like a
+contrast defect, but it is a **colour-only rating signal**: darkening the hex improves the number without fixing
+anything, because filled and empty still read alike in greyscale. Its home is **`DO10-4`** (glyph-differentiated,
+floor-don't-round), which is correctness (WCAG 1.4.1). **It is the one remaining failing run in the email set.**
+
+⚠️ **Two premise corrections, and one of them was my own instrument:**
+1. **`#E8EDF6` was never a defect.** The register recorded it failing at 2.54 on a gradient. The button declares
+   `color:#fff`, and the probe's hex regex matched only **6-digit** hex — so the run inherited its parent's
+   `#E8EDF6`. It renders on the dark card at **14.65** and always passed. The probe **named the wrong colour
+   while pointing at the right pixel**; corrected in place, and it now reads 3-digit hex and named colours.
+2. **The `DO-INV-4` figures SURVIVE.** Re-measuring with the corrected probe read **321/118** against the
+   published **332/120** — which looked like a correction and was not: an auth *screen* render had overwritten
+   the same-named *email* render in my before-snapshot. Re-rendered from a clean pre-sweep worktree (`5d59ac4`)
+   it is **332/120 exactly**. ⚠️ **A number that moves is not automatically a correction — establish which
+   reading is broken before rewriting the record.**
+
+**Greyscale-safe** (every mapping is luminance-only within its own hue family). **Old values grepped to zero**
+across `emails/*`; the sole residue is `owner-invite`'s Blade docblock, which does not render. **No content
+changed — proven**: re-rendered and diffed hex-normalised, **20/20 byte-identical**, the only delta being the
+literal swaps.
+
+**Guarded**: `EmailContrastSweepTest` 4 → **6 tests / 55 assertions**, including a **non-vacuity** assertion
+(white on the OLD gradient stop must still measure < 4.5). **Mutation-proven twice** — reverting the amber and
+reverting the gradient each turn it red **naming the file and the literal**; `php -l` clean on every pass.
+
+Suite 1894 / 12,362, **9 non-green — the documented baseline set** (`BookingImportTest` ×6,
+`OwnerUnitDetailViewTest`, `StubViewsTest` ×2). PHPStan L5 (0); Pint clean.

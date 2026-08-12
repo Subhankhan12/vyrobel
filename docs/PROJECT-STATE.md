@@ -39,10 +39,28 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   `#FEFAF6`; `.hint` 3.71 → 6.72) — and one of the two was a **DEAD declaration**, recorded as a trap removal,
 >   not as a fix. Guarded + **mutation-proven** (`EmailContrastSweepTest`, 4/34). **No content changed —
 >   proven**: re-rendered and diffed hex-normalised, **19/19 byte-identical**, the only delta being the hexes.
->   ⚠️ **CLOSED ≠ the emails are AA-clean:** `DO-EMAIL-1` logs **7 further failing literals** (incl. `DO-G4-2`,
->   now measured at 3.72, and a **gradient** plate needing a pixel sample); **`DO-EMAIL-2`** logs the sharper
->   find — **the pre-AA greys are still live on operator/owner SCREENS** the walk recorded as gated
->   (`owners.blade.php` ~12 declarations; `operator-settings.blade.php:441`).
+>   ⚠️ **CLOSED ≠ the emails are AA-clean** — and the follow-up ran the same day:
+>   **`DO-EMAIL-1` ✅ CLOSED (§EMAIL-SWEEP-2): 10 failing runs → 1.** All six re-measured on their own plates
+>   (all failed) and mapped: `#8A7A6A`→`#5F5853` (**this closes `DO-G4-2`**, carried as *unmeasured* since G4) ·
+>   `#B26A08`→`#7E5811` (the raw `--vy-amber` **fill** used as **text** → the guest `--vy-amber-text` VALUE,
+>   inlined) · `#9A8C7F`/`#9C9089`→`#5F5853` · `#64748B`→`#94A3B8` ⚠️ **lighter, not darker — it is
+>   light-on-dark, where the reflex to darken makes it worse** · the CTA **gradient** stops darkened after a
+>   **pixel sample** (white **3.08 → 5.19** on the lightest rendered pixel; the gradient is *preserved*, unlike
+>   the invite email which had to drop to a solid). ⚠️ **`#E8EDF6` was a PROBE ERROR, not a defect** — the
+>   button declares `color:#fff` and the probe's 6-digit-hex regex made the run inherit its parent's colour;
+>   `#E8EDF6` renders at 14.65 and always passed. *The instrument named the wrong colour while pointing at the
+>   right pixel.* ⚠️ **The ★ `#E8A317` (2.14) is deliberately EXCLUDED → `DO10-4`** — a **colour-only rating
+>   signal**, where darkening the hex changes the number without fixing the defect. **It is the ONE remaining
+>   failing run in the email set.** New: **`DO-EMAIL-4`** — `--vy-amber-text` is **defined twice with different
+>   values** (guest `rgb(126,88,17)` vs owner `rgb(128,76,5)`), the §N.8f shape.
+>   ⚠️ **`DO-EMAIL-2` still OPEN and still the sharper find — the pre-AA greys are live on operator/owner
+>   SCREENS** the walk recorded as gated (`owners.blade.php` ~12 declarations;
+>   `operator-settings.blade.php:441`).
+>   ⚠️ **A near-miss worth carrying:** re-measuring `DO-INV-4` with the corrected probe read **321/118** against
+>   the published **332/120** — which looked like a correction and was not. The cause was a **scratchpad name
+>   collision** (an auth *screen* render overwrote the same-named *email* render in the before-snapshot);
+>   re-rendered from a clean pre-sweep worktree it is **332/120 exactly**. **A number that moves is not
+>   automatically a correction — establish which reading is broken before rewriting the record.**
 >   ⚠️ **THE METHOD NOTE THAT GENERALISES:** `getComputedStyle` is the wrong instrument for an email and has
 >   already false-PASSED one (white-on-orange read as **1.00**). Render the real HTML, ancestor-walk the
 >   **declared** inline hex + `bgcolor`, flag gradients, and anchor the helper — here against the PDF sweep's

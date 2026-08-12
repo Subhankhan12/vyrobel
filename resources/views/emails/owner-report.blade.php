@@ -41,7 +41,7 @@
                     </tr>
 
                     <tr>
-                        <td align="center" style="padding:22px 8px 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; line-height:1.5; color:#9A8C7F;">
+                        <td align="center" style="padding:22px 8px 4px; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; line-height:1.5; color:#5F5853;">
                             Sent to you because you requested it from your Vyrobel owner portal.
                         </td>
                     </tr>
