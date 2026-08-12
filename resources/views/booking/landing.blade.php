@@ -12,22 +12,23 @@
         <style>
             .vy-lp-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.6); border: 1px solid var(--vy-glass-border); font-size: 11.5px; font-weight: 500; color: #b4400f; margin-bottom: 18px; }
             .vy-lp-h1 { margin: 0; font-family: var(--vy-display); font-weight: 700; font-size: 44px; line-height: 1.05; letter-spacing: -0.03em; }
-            .vy-lp-sub { margin: 16px 0 0; font-size: 15.5px; color: var(--vy-muted); line-height: 1.55; max-width: 460px; }
+            .vy-lp-sub { margin: 16px 0 0; font-size: 15.5px; color: var(--vy-ink); line-height: 1.55; max-width: 460px; }
             .vy-lp-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 40px; padding: 20px 0 18px; }
             .vy-lp-tiles { flex: 1 1 340px; min-width: 260px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; height: 300px; }
             .vy-lp-tile { border-radius: 22px; box-shadow: 0 18px 44px rgba(150, 90, 50, 0.22); position: relative; overflow: hidden; display: flex; align-items: flex-end; padding: 14px; }
-            .vy-lp-tile span { font-family: var(--vy-display); font-weight: 600; font-size: 14px; color: rgba(255, 255, 255, 0.95); }
+            .vy-lp-tile::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(43, 25, 15, 0.72), transparent 62%); }
+            .vy-lp-tile span { position: relative; z-index: 1; font-family: var(--vy-display); font-weight: 600; font-size: 14px; color: #fff; }
 
             .vy-lp-search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-top: 8px; padding: 14px; border-radius: 22px; background: rgba(255, 252, 248, 0.72); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: 0 16px 44px rgba(150, 90, 50, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.65); }
             .vy-lp-field { flex: 1 1 150px; min-width: 130px; display: flex; flex-direction: column; gap: 4px; }
             .vy-lp-field label { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--vy-faint); padding-left: 2px; }
             .vy-lp-field select, .vy-lp-field input { width: 100%; box-sizing: border-box; font-family: var(--vy-sans); font-size: 14px; font-weight: 500; color: var(--vy-ink); padding: 11px 13px; border-radius: 14px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.7); }
-            .vy-lp-search button { display: inline-flex; align-items: center; gap: 8px; padding: 13px 26px; border-radius: 15px; background: var(--vy-grad); border: none; color: #fff; font-family: var(--vy-sans); font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 20px rgba(194, 65, 12, 0.38); white-space: nowrap; }
+            .vy-lp-search button { display: inline-flex; align-items: center; gap: 8px; padding: 13px 26px; border-radius: 15px; background: var(--vy-accent); border: none; color: #fff; font-family: var(--vy-sans); font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 20px rgba(194, 65, 12, 0.38); white-space: nowrap; }
 
             .vy-lp-sec { margin-top: 52px; }
             .vy-lp-sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
             .vy-lp-h2 { margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 24px; letter-spacing: -0.02em; }
-            .vy-lp-lede { margin: 5px 0 0; font-size: 13.5px; color: var(--vy-muted); }
+            .vy-lp-lede { margin: 5px 0 0; font-size: 13.5px; color: var(--vy-ink); }
             .vy-lp-seeall { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: var(--vy-accent); white-space: nowrap; }
 
             .vy-lp-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -35,7 +36,7 @@
 
             .vy-lp-town { display: block; border-radius: 20px; overflow: hidden; }
             .vy-lp-town-img { height: 176px; border-radius: 20px; position: relative; overflow: hidden; box-shadow: 0 14px 40px rgba(150, 90, 50, 0.2); }
-            .vy-lp-town-img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(43, 25, 15, 0.42), transparent 58%); }
+            .vy-lp-town-img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(43, 25, 15, 0.78), rgba(43, 25, 15, 0.30) 52%, transparent 78%); }
             .vy-lp-town-cap { position: absolute; left: 16px; bottom: 14px; right: 16px; z-index: 1; }
             .vy-lp-town-name { font-family: var(--vy-display); font-weight: 600; font-size: 20px; color: #fff; letter-spacing: -0.01em; }
             .vy-lp-town-sub { font-size: 12px; color: rgba(255, 255, 255, 0.85); margin-top: 2px; }
@@ -52,7 +53,7 @@
             .vy-lp-card-meta { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--vy-faint); margin-top: 3px; }
             .vy-lp-card-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 14px; }
             .vy-lp-price { font-family: var(--vy-display); font-weight: 600; font-size: 19px; letter-spacing: -0.02em; }
-            .vy-lp-view { padding: 9px 18px; border-radius: var(--vy-r-pill); background: var(--vy-grad); border: none; color: #fff; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; box-shadow: 0 4px 12px rgba(194, 65, 12, 0.3); }
+            .vy-lp-view { padding: 9px 18px; border-radius: var(--vy-r-pill); background: var(--vy-accent); border: none; color: #fff; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; box-shadow: 0 4px 12px rgba(194, 65, 12, 0.3); }
 
             .vy-lp-vibe { display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 18px; background: rgba(255, 252, 248, 0.6); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: 0 12px 34px rgba(150, 90, 50, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
             .vy-lp-vibe-ic { width: 42px; height: 42px; border-radius: 13px; background: var(--vy-grad); color: #fff; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(194, 65, 12, 0.24); }
@@ -67,15 +68,15 @@
             .vy-lp-perk-sub { display: block; font-size: 12px; color: #b9aba0; line-height: 1.45; margin-top: 4px; }
 
             .vy-lp-rev { display: flex; flex-direction: column; padding: 20px; border-radius: 18px; background: rgba(255, 252, 248, 0.6); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: 0 12px 34px rgba(150, 90, 50, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
-            .vy-lp-rev-stars { color: var(--vy-accent-3); letter-spacing: 2px; font-size: 14px; margin-bottom: 10px; }
+            .vy-lp-rev-stars { color: var(--vy-accent); letter-spacing: 2px; font-size: 14px; margin-bottom: 10px; }
             .vy-lp-rev-q { margin: 0; font-size: 13.5px; color: #4a3f38; line-height: 1.55; flex: 1; }
             .vy-lp-rev-by { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
-            .vy-lp-rev-av { width: 34px; height: 34px; border-radius: 50%; background: var(--vy-grad); display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 500; }
+            .vy-lp-rev-av { width: 34px; height: 34px; border-radius: 50%; background: var(--vy-accent); display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 500; }
 
             .vy-lp-cta { margin-top: 44px; text-align: center; padding: 40px 24px; }
             .vy-lp-cta h2 { margin: 0; font-family: var(--vy-display); font-weight: 700; font-size: 30px; letter-spacing: -0.02em; }
             .vy-lp-cta p { margin: 10px 0 22px; font-size: 14.5px; color: var(--vy-muted); }
-            .vy-lp-cta a { display: inline-flex; align-items: center; gap: 9px; padding: 15px 30px; border-radius: var(--vy-r-pill); background: var(--vy-grad); color: #fff; font-size: 15px; font-weight: 500; box-shadow: 0 10px 28px rgba(194, 65, 12, 0.4); }
+            .vy-lp-cta a { display: inline-flex; align-items: center; gap: 9px; padding: 15px 30px; border-radius: var(--vy-r-pill); background: var(--vy-accent); color: #fff; font-size: 15px; font-weight: 500; box-shadow: 0 10px 28px rgba(194, 65, 12, 0.4); }
 
             .vy-lp-nav { display: flex; align-items: center; gap: 18px; }
             .vy-lp-nav a { font-size: 13px; color: var(--vy-muted); font-weight: 500; }
@@ -273,7 +274,7 @@
             <div class="vy-lp-grid3">
                 @foreach ($reviews as $rv)
                     <div class="vy-lp-rev vy-fade">
-                        <div class="vy-lp-rev-stars">{{ $rv['stars_on'] }}</div>
+                        <div class="vy-lp-rev-stars" role="img" aria-label="{{ $rv['rating'] }} out of 5 stars"><span aria-hidden="true">{{ $rv['stars'] }}</span></div>
                         <p class="vy-lp-rev-q">“{{ $rv['body'] }}”</p>
                         <div class="vy-lp-rev-by">
                             <span class="vy-lp-rev-av">{{ $rv['initials'] }}</span>

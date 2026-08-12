@@ -6767,3 +6767,166 @@ the same signature for the middleware to re-validate it. It is never rendered as
   reads as a typo is a trap for the next `route()` call.
 - **`DO-G11-3`** · the prototypes' social sign-in, open self-signup and welcome credit remain **ratified
   refusals** (booking-tied claim only) — recorded so they are not "fixed" later.
+
+---
+
+## §G-12 — Public Storefront · GUEST 12/32 · gate 12 of 12 · 🏁 **THE GUEST-REALM PAGE WALK IS COMPLETE**
+
+`GET /stay/{organization}` + `/search` · `StorefrontLandingController`
+`GET /book/{property}` + `/search` `/rooms/{roomType}` `/checkout` `/confirmation` + POSTs · `BookingEngineController`
+Layout: **`<x-public.shell>`** — a **third** layout. Fully public. Walked **read-only**: no booking, quote or lead fired.
+
+### ⚠️ PREMISE CORRECTIONS (four)
+
+1. **There are TWO storefronts, not one.** An **org-level** multi-property landing (`/stay/{organization}`) and
+   a **per-property** booking engine (`/book/{property}`), with separate controllers and separate resolvers.
+2. **The scope is NOT the domain.** There is no `Route::domain()` anywhere. The tenant is resolved from the
+   **route slug** by `ResolvePublicOrganization` / `ResolvePublicProperty`, which set **real tenant context**
+   (never a guard bypass) and re-load scoped — so isolation is the certified `OrganizationScope`, not a
+   bespoke public query. A **suspended or cancelled** org's storefront is genuinely 404.
+3. **It is a THIRD layout** (`<x-public.shell>`), and — as at G11 — it declares **none** of the realm's text
+   tokens and painted white text on `--vy-grad`.
+4. **`/` is not the storefront.** The root route returns the marketing `welcome` view.
+
+### ⚠️ THE GATE-4 RECORD WAS STALE — corrected IN PLACE
+
+The 2026-07-25 row called Browse/Storefront an *"INTENTIONAL DIVERGENCE (scope): per-property vs the
+prototype's multi-property brand collection with fabricated regions/featured-villas/vibes/review-walls."*
+
+**Re-walked fresh against `Guest Browse.html`: every element it called a scope divergence now EXISTS and is
+REAL** — the multi-property collection, towns with per-town from-prices, featured stays, "browse by vibe"
+(shipped as **Browse by what matters**, real amenities only), the review wall, the closing CTA. The row
+predates founder decision D1, which built the org landing. **The G1 pattern exactly: a GATE record that
+UNDERSTATES, because the build moved past it.** The prototype's fabrications stayed refused — "4.8 across
+**369 stays**" renders as the REAL **4.6 across 7**, and the badge hides entirely with no reviews. Only the
+header's `{{ wishCount }} saved` counter is absent (it needs a guest session; a visitor correctly sees "Sign
+in"). Verdict: **AT PARITY on real data — not a scope divergence.**
+
+### 🔒 THE SELL SCOPE — the gap this gate closes
+
+Tenant isolation was already well covered and **non-vacuously**: the landing test seeds a whole second org
+with a distinctive town, room and review and asserts all three absent; the browse and engine tests do the
+same for inventory. Those are real guards.
+
+⚠️ **But `properties.status` was defended by NOTHING.** The enum has exactly two values, and `inactive` is how
+an operator takes a property **off sale** — renovation, a lost contract, off-boarding. Two independent places
+enforce it: the landing's `where('status','active')`, and `ResolvePublicProperty`, which re-checks it *before*
+setting tenant context. **No test on either storefront had ever seeded an inactive property**, so deleting
+either line left the entire suite green — while re-publishing a withdrawn property's public listing **and its
+whole booking funnel**: browse · room · search · checkout · **and the quote write**, because every one of
+those routes hangs off that single middleware line.
+
+Two new guards drive it: the de-listed property vanishes from the landing (town, room and from-price), and
+**every** public booking route 404s — asserted live-then-withdrawn, so it can never pass on a bad slug.
+
+| mutation | result |
+|---|---|
+| drop the landing's `where('status','active')` | ❌ **RED** |
+| drop `ResolvePublicProperty`'s active check | ❌ **RED** (the whole funnel) |
+
+**The tenant scope was covered; the SELL scope was not.**
+
+### 🎨 Contrast — landing **19 → 0** (85 runs) · browse **3 → 0** (26 runs)
+
+Same family as G11, on a third layout: white text on `--vy-grad` (View buttons 3.74 · Search 3.79/3.90 ·
+Browse-all-stays 3.58 · review avatars 3.72–3.79 · brand mark), plus town labels over an under-weight photo
+scrim (2.58–3.19), hero sub-copy on the gradient (3.12/3.39), 14px stars in `--vy-accent-3` (3.04), a section
+lede (4.27) and the shared footer (4.15). Fixed by moving white-on-gradient to the **solid** accent,
+strengthening the scrims, and darkening four text tokens. Anchors validated on **this** layout.
+
+⚠️ **A PROBE FAILURE I CAUSED, AND ALMOST PUBLISHED — 34 false failures.** My freeze style used
+`animation: none !important`, which **reverts a `.vy-fade` element to its base `opacity: 0`**. The plate then
+showed the white page through every animated card: 34 runs scored white-on-`#FFFFFF` at **exactly 1.00**,
+including a **dark** panel that reads as light-on-dark in reality. That is the *same* stuck-`opacity:0`
+mechanism as the Owner Statement's `vy-swap-next` bug — reproduced by my own instrument. Caught by comparing
+the plate against a normal render before believing it (§N.8e: *when the probe breaks, publish NOTHING*).
+The freeze is now `animation-duration:0.001s + fill-mode:forwards`, which collapses animations to their **end**
+state, and every run is now preceded by an assertion that **0** animated elements remain transparent.
+**New standing rule: freeze by completing animations, never by removing them — and prove the freeze.**
+
+⚠️ Also: the browser's screenshot capability degraded mid-gate (every capture timing out, including pages that
+worked minutes earlier). A session restart fixed it. Worth knowing before blaming a page.
+
+### ✅ NO FABRICATED CONTENT · #17 ON PRICES
+
+Every figure traced to its engine: per-town **from-price** = the cheapest forward nightly in `rate_calendar`
+(an unpriced room **omits** its from-price rather than inventing one — an existing test); the rating and count
+are real derived aggregates; amenity chips list only amenities actually present with real counts; reviews are
+real published rows, first-name-only (#28). The browse page's honest empty state is **"Pick dates above to see
+availability & prices"** — no price is shown before a real quote exists.
+
+⚠️ **The one policy claim with a number checks out.** *"Free cancellation — Full refund up to 2 days before
+arrival"* is derived from the real `PropertyPolicy.cancellation.free_until_days`, and its docblock's boast
+("never a fabricated 14 days") is **accurate** — the fourth §N.8b claim this pass to survive verification.
+⚠️ **But it takes the MAX across the org** and states it unqualified — see `DO-G12-1`.
+
+### ⭐ THE OWNER-26 STAR BUG IS STILL LIVE — found from the storefront
+
+`ReviewList::stars_off` returned **`str_repeat('★', …)`** — the **FILLED** glyph. `owner/reviews.blade.php:123`
+renders `stars_on` then `stars_off`, so a 4★ review printed **five identical stars** distinguished **only by
+colour** (`#E8A63A` vs `#D9C8BC`) — **WCAG 1.4.1**, and in greyscale a 4 reads as a 5. That is precisely the
+Owner-26 defect `<x-star-rating>` was built to end; **G8 migrated the hero (line 57) and the list rows one
+section below kept the old pair.** No test referenced either field, so nothing held it. Fixed at the ONE
+definition (`☆`), which is why the misnamed field mattered: *the name promised what the value didn't deliver*.
+
+On the storefront itself, the landing's review row printed **filled stars only** with no accessible name — no
+5-star reference and nothing for a screen reader. It now renders the full `stars` string with
+`role="img"` + `aria-label="N out of 5 stars"`, matching the component's contract.
+
+### ⌨️ KEYBOARD — the invisible-focus family's FIFTH appearance, by a SECOND mechanism
+
+`browse.blade.php` set **`.vy2-field input:focus { outline: none; }`** with **nothing in its place** — a
+keyboard user tabbing the date and guest fields had **no focus indicator at all** (WCAG 2.4.7). G5/G8/G9 were
+`opacity:0` controls; this is an explicit outline removal. Same defect to the user, different cause — so the
+pattern is now **5 occurrences across 2 mechanisms** and is firmly a §N.8f shared-fix candidate.
+
+⚠️ **My first probe reported it as a possible artifact and I nearly dismissed it** — `el.focus()` does not
+trigger `:focus-visible`. Re-checked by pressing **real Tab**: `matchesFocusVisible: true`, `outline-style:
+none`. Confirmed, not an artifact.
+
+Four browse fields (`check_in`, `check_out`, `adults`, `children`) also had **no accessible name** — their
+visible keys are unassociated `<span>`s. All four now carry `aria-label`. The landing's own search fields were
+already labelled (checked, not assumed).
+
+### ✅ READ-ONLY + §N.4k
+
+Both search forms are **GET** — safe by construction, and a search Enter is the intended action. Every POST
+(`quote`, `book`, `reserve`) was submit-intercepted and **never fired**: reservations 42 → 42, `booking_quotes`
+**0 → 0**, no lead, timestamps unchanged. No operator internals in either DOM (no cost, margin, commission,
+occupancy or owner payout). 1440×1000: **0 overflow**, 0 console errors.
+
+### 🚩 LOGGED — not built
+
+- **`DO-G12-1` · the free-cancellation promise is the org's MOST GENEROUS window.** It takes `max(free_until_days)`
+  across all properties and states it unqualified. Both demo properties are 2 days, so it is accurate today —
+  but if one property were non-refundable, the landing would promise every visitor a refund window that
+  property does not honour (§N.8d, on a money-affecting policy). Either qualify the copy or derive it
+  per-property — a product/copy decision, surfaced not taken.
+- **`DO-G12-2` · room photography is still placeholder art** (the GATE-4 "P3-2" deferral, re-confirmed live:
+  town tiles and room banners are CSS gradients). The scrims are now weighted for text over a real photo too.
+- **`DO-G12-3` · `DO10-4` is larger than recorded** — the ★ migration is not only hand-rolled *colour*: the
+  owner Reviews list carried a real WCAG failure through a misnamed shared field. Re-audit the remaining
+  call sites for the same shape, not just the tone.
+
+---
+
+# 🏁 THE GUEST REALM IS CLOSED — 12 gates, 32 pages, G1 → G12
+
+Operator 42/42 · Owner 32/32 · **Guest 12 gates covering the 32 prototypes** — the three built realms plus the
+public storefront have now been walked page by page.
+
+**What this realm taught, that the other two did not:** the isolation model **inverted three times** — from
+"scope to the guest" (G1–G10), to "there is no guest, the signature IS the authorization" (G11), to "there is
+no guest, the TENANT is the scope, and the second scope is whether the thing is even for sale" (G12). Each
+inversion hid a different undefended guard, and in **each** case the certified scope was well covered while the
+*adjacent* one was not: `anonymize()` was covered but untriggered (G9); the signature was checked but its
+**lifetime** was not (G11); the tenant was isolated but the **sell** scope was not (G12).
+
+**Still open after this gate:**
+- **G13 — the 3 no-route prototypes** (Guest Referral Landing · and the two other unrouted designs) — each is
+  a feature that does not exist, so each is a product decision, not a build.
+- **The PDF-sweep gate** — 11 templates + `PdfService`'s 2.70 watermark, never contrast-measured.
+- **`DO-INV-4`** — the email-contrast sweep across the 15 Mailables.
+- **`DO10-4`** — the ★ migration, now known to be a correctness issue and not only cosmetic (above).
+- **The BACKEND phase** — the `DO-*` register (now `DO-G1-*` … `DO-G12-3`), the 6 operator a11y gates, the
+  3 founder decisions, and the deferred-capability refusal sweep.

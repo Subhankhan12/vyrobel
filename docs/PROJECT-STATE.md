@@ -5369,7 +5369,7 @@ the work.
    `--}}`, shipping the next paragraph as live template text into all 15 emails that extend it.
    `OperatorPropertySettingsGate1Test` went red on *"not to contain 'Powered by Vyrobel'"*. The
    raw-Blade family is not only `word@directive`.
-2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` · `G8 Review` · `G9 Account` · `G10 Wallet+Saved` · `G11 Auth` DONE (11/32, gate 11 of 12).** Mapped in
+2. **THE GUEST REALM — 32 prototypes. ⬅ IN PROGRESS: `G1 Trips` · `G2 Reservation` · `G3 Arrival+PDF` · `G4 Check-in` · `G5 Manage+Add-ons` · `G6 Payments+Receipt` · `G7 Messages` · `G8 Review` · `G9 Account` · `G10 Wallet+Saved` · `G11 Auth` · `G12 Storefront` DONE — 🏁 **ALL 12 GATES; THE GUEST-REALM PAGE WALK IS COMPLETE** (operator 42/42 · owner 32/32 · guest 12/12).** Mapped in
    `docs/design/GUEST-RECON.md`; per-gate detail in `MISSING-BACKEND-BY-PAGE.md` **§G-1**. The no-Alpine GET
    realm; `#33` door-code window-gating; real guest PII on every surface — expect `#28` to dominate over `#17`.
    ⚠️ **G1 established the realm's CONTRAST METHOD, and G2–G12 must use it:** `getComputedStyle` cannot
@@ -5507,6 +5507,25 @@ the work.
    the honest "link isn't valid" page and instead sees the OPERATOR's *"your role doesn't include this
    area — ask an administrator on your team"*. The honest page exists; only the rarer paths reach it. The
    docblock claiming otherwise is corrected in place.
+   🏁 **G12 — THE LAST GATE. THE STOREFRONT IS TWO STOREFRONTS, ON A THIRD LAYOUT, SCOPED BY SLUG NOT
+   DOMAIN.** An org landing (`/stay/{org}`) + a per-property engine (`/book/{property}`); both resolve the
+   tenant from the ROUTE SLUG into REAL tenant context, so isolation is the certified `OrganizationScope`.
+   ⚠️ **THE GATE-4 "at-parity / intentional divergence" ROW WAS STALE — the G1 pattern again, UNDERSTATING.**
+   Every element it called a scope divergence (multi-property collection, towns, featured stays, "browse by
+   vibe", the review wall) now EXISTS and is REAL; corrected IN PLACE. ⚠️ **THE GAP: the SELL scope.** Tenant
+   isolation was well covered and non-vacuous, but `properties.status` was defended by NOTHING — deleting
+   either active-check left the suite green while re-publishing a withdrawn property's listing AND its whole
+   booking funnel (one middleware line gates browse/room/search/checkout/quote). Both layers now
+   mutation-proven. ⚠️ **A PROBE FAILURE I CAUSED AND ALMOST PUBLISHED:** `animation:none` reverts a
+   `.vy-fade` element to its base `opacity:0`, so the plate showed white through every animated card — **34
+   false failures at exactly 1.00**, the same stuck-opacity mechanism as the Owner Statement bug, reproduced
+   by my own instrument. **Freeze by COMPLETING animations (`duration:0.001s` + `fill-mode:forwards`), never
+   by removing them — and assert 0 elements remain transparent before capture.** ⚠️ **The Owner-26 star bug
+   is STILL LIVE**, found from the storefront: `ReviewList::stars_off` returns the FILLED ★, so the owner
+   Reviews LIST renders five identical stars separated only by colour (WCAG 1.4.1) — G8 fixed the hero, the
+   rows below kept the old pair. Fixed at the one definition. ⚠️ **The invisible-focus family reached FIVE
+   occurrences across TWO mechanisms** (`opacity:0` at G5/G8/G9; an explicit `outline:none` here) — a firm
+   §N.8f shared-fix candidate. Contrast: landing 19→0 (85 runs), browse 3→0.
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via

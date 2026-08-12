@@ -164,3 +164,45 @@ it('404s the landing for a suspended org', function () {
 
     $this->get("/stay/{$s['org']->slug}")->assertNotFound();
 });
+
+// ── ⚠️ G12 — A DE-LISTED PROPERTY IS OFF THE PUBLIC INTERNET, ON BOTH STOREFRONTS ──────────────────
+// `properties.status` is an enum of exactly two values, and `inactive` is how an operator takes a property
+// off sale — renovation, a lost contract, off-boarding. Two independent places enforce it: the landing
+// filters `where('status','active')`, and `ResolvePublicProperty` re-checks it before setting tenant context.
+//
+// ⚠️ NEITHER WAS DEFENDED. No test on either storefront ever seeded an inactive property, so deleting either
+// filter left the whole suite green — while re-publishing a withdrawn property's public listing AND its
+// entire booking funnel (browse · room · search · quote · checkout · reserve), because every one of those
+// routes is gated by that single middleware line. The tenant scope was well covered; the SELL scope was not.
+it('never shows a de-listed (inactive) property on the org landing', function () {
+    $s = landingOrg();
+    $gone = landingProperty('Sagres', 8000, 'Withdrawn Suite');
+    $gone['property']->update(['status' => 'inactive']);
+
+    $html = $this->get("/stay/{$s['org']->slug}")->assertOk()
+        ->assertSee('Faro')                 // the live towns still render…
+        ->assertSee('Lagos')
+        ->assertDontSee('Sagres')           // …and the withdrawn town does not
+        ->assertDontSee('Withdrawn Suite')
+        ->getContent();
+
+    // Its from-price must not survive in a town tile or a featured card either.
+    expect($html)->not->toContain('€80.00')->and($html)->not->toContain('from €80');
+});
+
+it('404s every public booking route of a de-listed property, not just its listing', function () {
+    $s = landingOrg();
+    $gone = landingProperty('Sagres', 8000, 'Withdrawn Suite');
+    $slug = (string) $gone['property']->slug;
+
+    // Live while active — so the 404s below can never pass vacuously on a bad slug.
+    $this->get("/book/{$slug}")->assertOk();
+
+    $gone['property']->update(['status' => 'inactive']);
+
+    $this->get("/book/{$slug}")->assertNotFound();                                        // browse
+    $this->get("/book/{$slug}/search")->assertNotFound();                                 // search
+    $this->get("/book/{$slug}/rooms/{$gone['roomType']->id}")->assertNotFound();          // room detail
+    $this->get("/book/{$slug}/checkout")->assertNotFound();                               // checkout
+    $this->post("/book/{$slug}/quote", [])->assertNotFound();                             // the quote write
+});

@@ -96,7 +96,7 @@
             background: rgba(255, 253, 250, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
         }
         .vy-brand { display: flex; align-items: center; gap: 11px; }
-        .vy-brand-mark { width: 36px; height: 36px; border-radius: var(--vy-r-md); background: var(--vy-grad); color: #fff; font-family: var(--vy-display); font-weight: 700; font-size: 19px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
+        .vy-brand-mark { width: 36px; height: 36px; border-radius: var(--vy-r-md); background: var(--vy-accent); color: #fff; font-family: var(--vy-display); font-weight: 700; font-size: 19px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
         .vy-store-name { font-family: var(--vy-display); font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
         .vy-store-type { font-size: 11px; color: var(--vy-muted); text-transform: capitalize; }
         .vy-store-note { font-size: 11.5px; color: var(--vy-muted); }
@@ -112,7 +112,7 @@
         .vy-eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-muted { color: var(--vy-muted); }
         .vy-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 20px; border-radius: var(--vy-r-pill); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: transform .15s ease, background .15s ease; }
-        .vy-btn--accent { background: var(--vy-grad); color: #fff; box-shadow: var(--vy-shadow-accent); }
+        .vy-btn--accent { background: var(--vy-accent); color: #fff; box-shadow: var(--vy-shadow-accent); }
         .vy-btn--accent:hover { transform: translateY(-1px); }
         .vy-btn.is-soon { opacity: .55; cursor: not-allowed; }
         .vy-soon-tag { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); border: 1px dashed var(--vy-hairline); border-radius: 6px; padding: 2px 6px; }
@@ -219,7 +219,7 @@
         .vy-ref { font-family: var(--vy-display); font-weight: 700; font-size: 22px; letter-spacing: 0.02em; margin-top: 4px; }
         .vy-confirm-rows { text-align: left; margin-top: 18px; }
 
-        .vy-store-footer { text-align: center; color: var(--vy-faint); font-size: 11.5px; padding: 26px 20px 34px; position: relative; z-index: 1; }
+        .vy-store-footer { text-align: center; color: var(--vy-muted); font-size: 11.5px; padding: 26px 20px 34px; position: relative; z-index: 1; }
 
         @media (max-width: 820px) {
             .vy-detail-grid { grid-template-columns: minmax(0, 1fr); }

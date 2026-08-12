@@ -74,7 +74,11 @@ final class ReviewList
                 'rating' => (int) $r->rating,
                 'stars' => str_repeat('★', (int) $r->rating).str_repeat('☆', 5 - (int) $r->rating),
                 'stars_on' => str_repeat('★', (int) $r->rating),
-                'stars_off' => str_repeat('★', 5 - (int) $r->rating),
+                // ⚠️ THE EMPTY HALF MUST BE THE EMPTY GLYPH. This returned the FILLED ★ in a lighter colour, so the
+                // owner Reviews LIST rendered five identical stars distinguished by COLOUR ALONE (WCAG 1.4.1)
+                // — the same Owner-26 defect <x-star-rating> exists to prevent, still live one section below
+                // the hero that was migrated to it. Nothing rounds up; the count is the real rating.
+                'stars_off' => str_repeat('☆', 5 - (int) $r->rating),
                 'tags' => $r->tags ?? [],
                 'body' => (string) $r->body,
                 'response' => $response,

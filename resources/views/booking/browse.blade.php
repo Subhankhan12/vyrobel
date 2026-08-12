@@ -15,7 +15,7 @@
         <style>
             main { max-width: 940px; }
             .vy2-hero-title { font-family: var(--vy-display); font-weight: 600; font-size: 32px; letter-spacing: -.02em; line-height: 1.1; margin: 0; }
-            .vy2-hero-sub { margin: 8px 0 0; font-size: 14.5px; color: var(--vy-muted); }
+            .vy2-hero-sub { margin: 8px 0 0; font-size: 14.5px; color: var(--vy-ink); }   /* G12: --vy-muted measured 3.39 on the hero gradient */
 
             /* frosted search pill */
             .vy2-search { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; margin-top: 20px; padding: 12px;
@@ -26,11 +26,16 @@
             .vy2-field-k { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-faint); }
             .vy2-field input, .vy2-field .vy2-static { border: none; background: transparent; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); padding: 0; width: 100%; }
             .vy2-field input:focus { outline: none; }
+            /* G12 — the line above removes the browser ring; without this one a keyboard user has NO
+               focus indicator at all (WCAG 2.4.7). Fifth appearance of the invisible-focus family in
+               this pass, and the second MECHANISM: G5/G8/G9 were opacity:0 controls, this is an
+               explicit outline:none. Same defect to the user. */
+            .vy2-field input:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
             .vy2-stepper { display: flex; align-items: center; gap: 10px; }
             .vy2-stepper button { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--vy-hairline); background: rgba(255,255,255,.7); color: var(--vy-accent); font-size: 15px; line-height: 1; cursor: pointer; }
             .vy2-stepper input { width: 26px; text-align: center; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
             .vy2-stepper input::-webkit-outer-spin-button, .vy2-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-            .vy2-search-btn { padding: 0 22px; border-radius: 14px; background: var(--vy-grad); border: none; color: #fff; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: var(--vy-shadow-accent); }
+            .vy2-search-btn { padding: 0 22px; border-radius: 14px; background: var(--vy-accent); border: none; color: #fff; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; cursor: pointer; box-shadow: var(--vy-shadow-accent); }
 
             /* refine + filters */
             .vy2-refine { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 22px 2px 12px; }
@@ -99,17 +104,17 @@
             </div>
             <div class="vy2-field">
                 <span class="vy2-field-k">Check-in</span>
-                <input type="date" name="check_in" value="{{ $search['check_in'] }}">
+                <input type="date" name="check_in" value="{{ $search['check_in'] }}" aria-label="Check-in date">
             </div>
             <div class="vy2-field">
                 <span class="vy2-field-k">Check-out</span>
-                <input type="date" name="check_out" value="{{ $search['check_out'] }}">
+                <input type="date" name="check_out" value="{{ $search['check_out'] }}" aria-label="Check-out date">
             </div>
             <div class="vy2-field">
                 <span class="vy2-field-k">Adults</span>
                 <span class="vy2-stepper">
                     <button type="button" onclick="this.nextElementSibling.stepDown()">&minus;</button>
-                    <input type="number" name="adults" min="1" max="16" value="{{ $search['adults'] }}" readonly>
+                    <input type="number" name="adults" min="1" max="16" value="{{ $search['adults'] }}" readonly aria-label="Adults">
                     <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
                 </span>
             </div>
@@ -117,7 +122,7 @@
                 <span class="vy2-field-k">Children</span>
                 <span class="vy2-stepper">
                     <button type="button" onclick="this.nextElementSibling.stepDown()">&minus;</button>
-                    <input type="number" name="children" min="0" max="16" value="{{ $search['children'] }}" readonly>
+                    <input type="number" name="children" min="0" max="16" value="{{ $search['children'] }}" readonly aria-label="Children">
                     <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
                 </span>
             </div>
