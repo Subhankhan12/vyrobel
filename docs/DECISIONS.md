@@ -8394,3 +8394,55 @@ annotated where "all that remains of DO10-4" turned out to be wrong.
 
 **Recommendation: start the backend phase in a FRESH chat.** The cleanup chapter's canon is durable in §N.14
 and the register; a new session should open on the rewritten RESUME rather than inherit this one's context.
+
+---
+
+## 2026-08-12 — **BUILT: the guest Help centre** (`/guest/help`) — a pure FAQ over the certified engine
+
+A build, not a parity gate. It takes G13's `DO-G13-1` verdict, on which the founder ruled: **build the FAQ
+centre; the support half is a separate backend; keep it a PURE FAQ.** Full record: **§GUEST-FAQ** in
+`docs/design/MISSING-BACKEND-BY-PAGE.md`.
+
+⚠️ **The 2026-08-07 refusal is REVERSED, and annotated in place** in `DIVERGENCE-REGISTER.md`. It refused a help
+**centre** because *"its content would have to be invented"* — sound when written, **false now**:
+`HelpKnowledgeBase` is curated, real, screen-linked content read by the owner Help page and the grounded
+assistant. ⚠️ **The other half of that refusal still stands and was honoured in full** — the page invents
+nothing and offers no support affordance.
+
+**Reused, not forked (§N.8f):** `HelpKnowledgeBase::guestArticles()` — 10 entries / 5 categories added to the
+same engine, same contract plus a `category`. The view holds **no help content**; it renders the engine, so the
+FAQ and the source cannot drift the way two copies of a claim always do. A test asserts both sets keep the
+shape, and that guest entries link only `guest.*` routes while owner entries link only `owner.*`.
+
+⚠️ **Every answer was verified against the code before it was written.** The door-code answer **interpolates
+`ArrivalPack::LEAD_DAYS`** rather than typing a number — `DO-G4-1` had already caught a docblock claiming "48h"
+against a constant that says **2 days**, and a FAQ is exactly where that drift would strand a guest at a door.
+Also verified: online check-in is not the operator's authoritative check-in · Manage creates pending requests ·
+payment is hosted Stripe Checkout with no stored card · the wallet cannot overdraw · a review needs a completed
+stay · deletion is a reversible 14-day schedule after which anonymised financial records remain.
+**Omitted rather than guessed:** a cancellation-refund window — it is per-property (`DO-G12-1`), so the entry
+points at the booking's own Manage page instead of a number that would be wrong for some guests.
+
+⚠️ **PURE FAQ.** No phone, WhatsApp, hours, reply time or 24/7 line — **and no slot, placeholder or commented
+seam for them.** None has a backend, and promising support that will not answer is the class of false claim
+`DO-EMAIL-9` records. The ONE contact is the existing relay.
+
+**Verified as the GUEST (N.14.1), both a11y axes at birth.** Keyboard: 28 controls, **0 unnamed** under strict
+name computation; a real Tab confirmed `:focus-visible` fires and every custom control has a matching outline
+rule. Contrast: pixel-sampled with two anchors across the populated, **forced open-accordion** and no-results
+states — **0 failing runs**; the chips measured separately on their own plates (4.67 / 6.52).
+
+⚠️ **N.14.2 earned its place within minutes:** the page reused `.vy-sr-only` — **which the guest shell does not
+define.** An undefined visually-hidden class hides nothing and would have rendered the search label as stray
+text. Defined locally; every other reused class and token checked to exist first.
+
+**Guarded** by `GuestHelpCentreTest` (7 tests / 165 assertions), **mutation-proven four ways**. ⚠️ **Two
+mutations passed at first and both were faults in the guards** (O32): one edit **had not landed** (caught by
+grepping the anchor), and the relay assertion was **vacuous** — `assertSee(route('guest.messages'))` stayed
+green with the button repointed, because the shell's nav links Messages on every guest page. Now scoped to the
+relay card. The negative support assertion also fired a **false positive** first: it scanned raw HTML and hit
+"PHONE" in a CSS comment in the shell — a *breakpoint* heading, and a reminder that **CSS comments ship**. It
+now asserts on the visible text.
+
+**No schema** — the knowledge set is curated code, not a table. Suite **1914 / 12,613**, 9 non-green = the
+documented baseline set. PHPStan L5 (0); Pint clean.

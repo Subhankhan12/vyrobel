@@ -7675,6 +7675,86 @@ read the inks the component **actually renders**; mutation 4 then went red namin
 accessible name, and clears 3:1 on the worst plate it renders on. The O26 defect family is retired.**
 
 ---
+
+## §GUEST-FAQ — the guest Help centre · **BUILT** (2026-08-12)
+
+A **build**, not a parity gate: a new route, controller and view. It takes G13's `DO-G13-1` verdict, which the
+founder ruled on — **BUILD the FAQ centre; the support half is a separate backend; keep it a PURE FAQ.**
+
+### ⚠️ The refusal it reverses, and the half of it that still stands
+
+The 2026-08-07 audit gave the guest a real support destination and refused a help **centre** because *"its
+content would have to be invented"*. **That premise is now false** — `HelpKnowledgeBase` is curated, real,
+screen-linked content. ⚠️ **But the rest of the refusal was right and is honoured:** the page invents nothing,
+and it offers **no support affordance at all**.
+
+### What was built
+
+| piece | detail |
+|---|---|
+| `HelpKnowledgeBase::guestArticles()` | **10 entries / 5 categories**, added to the CERTIFIED engine — **not forked** (§N.8f). Same contract as the owner set plus a `category`; a test asserts both sets keep that shape and that guest entries link only `guest.*` routes while owner entries link only `owner.*`. |
+| `GuestHelpController` | Server-side filter on `?q=` and `?category=`. **GET only** — no write exists on the page (§N.4k: safe by construction), which also keeps the guest realm's no-Alpine convention. |
+| `guest/help.blade.php` | `<x-guest.shell>`, `--vy-*` tokens, a native `<details>` accordion, GET category links. ⚠️ **It holds no help content** — every question, answer and link comes from the engine. |
+| the nav | a `Help` entry in the guest shell |
+| **no schema** | the knowledge set is curated code, not a table — confirmed, `git status database/` is clean |
+
+### ⚠️ Every answer was verified against the code before it was written
+
+The door-code answer **interpolates `ArrivalPack::LEAD_DAYS`** rather than typing a number — `DO-G4-1` had
+already caught a docblock claiming "48h" against a constant that says **2 days**, and a FAQ is exactly where
+that drift would mislead a guest standing at a door. A test pins the interpolation *and* forbids "48h" coming
+back. Also verified before writing: online check-in stamps `guest_checked_in_at` and is **not** the operator's
+authoritative check-in · Manage creates **pending requests** the property confirms · payment is **hosted Stripe
+Checkout**, no stored card · the wallet **cannot overdraw** and expired credit stops counting · a review needs a
+**completed** stay · deletion is a **reversible 14-day** schedule after which personal details go and
+**anonymised financial records remain**.
+
+**Omitted rather than guessed (honest absence):** a **cancellation-refund window** — it is per-property
+(`DO-G12-1`), so the entry points at the booking's own Manage page instead of stating a number that would be
+wrong for some guests.
+
+### ⚠️ PURE FAQ — nothing of the support half was built
+
+No phone, no WhatsApp, no opening hours, no reply time, no 24/7 line — **and no slot, placeholder or commented
+seam for them either.** None has a backend, and a help page promising support that will not answer is the class
+of false claim `DO-EMAIL-9` records. **The ONE contact is the real relay** (`guest.messages`) in a "Still need
+help?" card. A **negative test** asserts none of the forbidden affordances renders, and that no `tel:`/`callto:`
+link exists anywhere in the markup.
+
+### Verified as the GUEST (N.14.1), both a11y axes at birth
+
+Rendered live at `/guest/help` as `demo.traveller`. **Keyboard:** 28 focusable controls, **0 unnamed** under a
+strict accessible-name computation (no fallback to `name`/placeholder); a **real Tab** press confirmed
+`:focus-visible` fires, and each custom control (search wrapper, chips, `<summary>`, relay) has a matching
+outline rule. **Contrast:** pixel-sampled with two self-validating anchors on each plate — card `#FEFBF9`
+(`#2B2320` 14.94 pass / `#B7ADA4` 2.14 fail) — across the populated state, the **forced open-accordion** state
+(the answer text does not exist until `<details>` is open — G10) and the no-results state: **0 failing runs**.
+⚠️ The chips sit on their own plates above the card and were measured there separately: ON `#B03808` on
+`#F4DCCC` **4.67**, OFF `#5F5853` on `#FCF6F2` **6.52**. Greyscale: the active chip is not hue-only — it also
+carries `aria-current`, a filled background and weight 600.
+
+⚠️ **N.14.2 earned its place immediately:** the page reused `.vy-sr-only` for the search label — **and the guest
+shell does not define it.** An undefined visually-hidden class hides nothing; it would have rendered the label
+as stray text. Defined locally instead of assumed. Every other reused class and token was checked to exist.
+
+### 🔒 Guard — `tests/Feature/GuestHelpCentreTest.php` (7 tests / 165 assertions)
+
+Every engine entry reaches the page · the arrival window interpolates · the relay is real · **no support
+affordance** · search + category filter and the honest empty state · guest-guarded · one engine, no fork.
+**Mutation-proven four ways**, each red on its own assertion: hardcode a question · type the window as a literal
+· slip in a reply-time promise · repoint the relay button.
+
+⚠️ **TWO of those mutations passed on the first attempt, and both were faults in the GUARDS, not luck** (O32):
+one edit **had not landed** (a shell-escaping slip — caught by grepping the anchor, G7/G11), and the relay
+assertion was **VACUOUS** — `assertSee(route('guest.messages'))` stayed green with the button repointed, because
+the shell's nav links Messages on every guest page. Now scoped to the "Still need help?" card. ⚠️ **The negative
+support assertion also fired a false positive first**: it scanned raw HTML and hit the word "PHONE" in a CSS
+comment in the shell (a *breakpoint* heading — **CSS comments ship**, the repo's known trap). It now asserts on
+the **visible text**, which is what "renders a support affordance" actually means.
+
+**Status: `DO-G13-1` TAKEN — the FAQ centre is BUILT. The support half remains unbuilt and unstubbed.**
+
+---
 ---
 
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
@@ -7784,7 +7864,7 @@ below; this is the priority index.*
 | **`DO-G4-3` · `DO-G3-2` · `DO-G2-3` · `DO-G1-3`** | prototype affordances owed a verdict (map link, keypad hint, house-guide structure, search magnifier/clear, styled year popover, per-item sub-lines). |
 | **`DO-G11-3`** | ratified refusals to **preserve**: social sign-in, open self-signup, the join-time welcome credit. |
 | **`DO-G6-1`** | Stripe live is the founder's cutover (§H). |
-| **`DO-G13-1`** 🆕 ⚠️ | **Guest Help — verdict BUILD the FAQ centre, which REOPENS a ratified refusal.** The support *destination* already exists (Account → relay); what is absent is a searchable FAQ. The 2026-08-07 refusal's premise — *"its content would have to be invented"* — is **falsified** by `HelpKnowledgeBase`. **Founder's call:** (a) build the honest FAQ centre now (mirror `/owner/help`; no migration, no dependency) · (b) configure real per-property support contacts first, then build the full sidebar — **this also unblocks `DO-INV-3`** · (c) keep the refusal (defensible — the relay already reaches people who can answer). ⚠️ The SLA pill, Typical-reply tile, phone/WhatsApp and 24/7 line are **DON'T-BUILD (#39)** on every path. Separate smaller call: extend `AskVyrobelService` to a guest KB — **recommend deferring**. See §G-13 + `design/G13-VERDICTS.md` §2. |
+| ~~**`DO-G13-1`**~~ ✅ | **BUILT 2026-08-12 — see §GUEST-FAQ.** ~~Guest Help — verdict BUILD the FAQ centre, which REOPENS a ratified refusal.~~ The founder ruled BUILD; `/guest/help` now renders the certified `HelpKnowledgeBase` (a guest set added, not forked), every answer verified against the code, the door-code window interpolated from `ArrivalPack::LEAD_DAYS`. ⚠️ **PURE FAQ — the support half is NOT built and NOT stubbed** (no phone/hours/reply-time/24-7; a negative test asserts it). The ONE contact is the real relay. Original verdict text: The support *destination* already exists (Account → relay); what is absent is a searchable FAQ. The 2026-08-07 refusal's premise — *"its content would have to be invented"* — is **falsified** by `HelpKnowledgeBase`. **Founder's call:** (a) build the honest FAQ centre now (mirror `/owner/help`; no migration, no dependency) · (b) configure real per-property support contacts first, then build the full sidebar — **this also unblocks `DO-INV-3`** · (c) keep the refusal (defensible — the relay already reaches people who can answer). ⚠️ The SLA pill, Typical-reply tile, phone/WhatsApp and 24/7 line are **DON'T-BUILD (#39)** on every path. Separate smaller call: extend `AskVyrobelService` to a guest KB — **recommend deferring**. See §G-13 + `design/G13-VERDICTS.md` §2. |
 | **`DO-G13-2`** 🆕 | **Guest Documents — verdict DEFER the hub** (⚠️ downgraded from BUILD once the ratified location divergence was verified: the rollup is live on `/guest/payments`, three hops from a PDF). Three separable founder calls: **(i) the hub** — DEFER; a convenience, and building it reopens a ratified row. **(ii) "Download all (ZIP)"** — **DON'T-BUILD**; recommend **omitting** the control rather than disabling it (no ZIP writer exists anywhere; building one is real infrastructure for a convenience). **(iii) "Email me all documents"** — **DEFER**; buildable as a queued guest analogue of `OwnerReportMail`, to the guest's **own** address only (#28), rate-limited, and it must survive `DO-INV-4`. ⚠️ **"kept on file for 12 months" is DON'T-BUILD** — false (PDFs are generated on demand; nothing is stored), the §N.13.7 policy-claim shape; **do not soften it either**. 🟢 **Cheap win independent of all three:** label the document kinds on the Payments rows. See §G-13 + `G13-VERDICTS.md` §3. |
 | **`DO-G13-3`** 🆕 ⚠️ | **Guest Referral Landing — verdict DON'T-BUILD as drawn (#39).** The question is whether a **referral programme** is on the roadmap at all: **(a)** no programme — archive the prototype as a ratified refusal (**recommended** absent founder intent); **(b)** build the backend first (code entity · `referred_by` attribution · **a new guest-creation path, i.e. revisiting booking-tied-claim-only — a security-posture change** · a first-stay reward trigger · an expiry policy · abuse controls · all on the append-only ledger with idempotency, #17), *then* the page; **(c)** ⚠️ **never** a stripped landing over `promo_codes` — it keeps the dishonest 80% and loses the point. ⚠️ Do **not** "fix" `guest/wallet.blade.php`'s honest deferral — it is test-defended. See §G-13 + `G13-VERDICTS.md` §4. |
 

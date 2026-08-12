@@ -19,6 +19,7 @@
         ['messages', 'Messages', route('guest.messages')],
         ['saved', 'Saved', route('guest.saved')],
         ['account', 'Account', route('guest.account')],
+        ['help', 'Help', route('guest.help')],
     ];
 @endphp
 <!DOCTYPE html>

@@ -30,6 +30,7 @@ use App\Http\Controllers\Guest\GuestClaimController;
 use App\Http\Controllers\Guest\GuestDocumentController;
 use App\Http\Controllers\Guest\GuestExtrasController;
 use App\Http\Controllers\Guest\GuestFolioPaymentController;
+use App\Http\Controllers\Guest\GuestHelpController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
 use App\Http\Controllers\Guest\GuestManageController;
@@ -366,6 +367,11 @@ Route::prefix('guest')->name('guest.')->group(function () {
         Route::post('/wallet/apply/{reservation}', [GuestWalletController::class, 'apply'])->middleware('throttle:12,1')->name('wallet.apply');
         // Messages (SG3) — the guest side of the Unified Inbox: the guest's own thread(s), sending a real message
         // via InboxService. Guest-scoped by guest_id (a foreign / owner thread → 404); no reimplementation.
+        // Help centre — a READ-ONLY FAQ over the ONE curated HelpKnowledgeBase (the same engine the owner
+        // Help page and the grounded assistant read). Search + category are GET params (§N.4k: no write on
+        // this page). Guest-guarded because it renders in the guest shell and every answer links a guest
+        // screen — it holds no guest data, so there is nothing to scope.
+        Route::get('/help', [GuestHelpController::class, 'show'])->name('help');
         Route::get('/messages', [GuestMessagesController::class, 'index'])->name('messages');
         Route::post('/messages', [GuestMessagesController::class, 'start'])->middleware('throttle:12,1')->name('messages.start');
         Route::get('/messages/{thread}', [GuestMessagesController::class, 'show'])->name('messages.show');
