@@ -389,10 +389,17 @@
         .vy-hk-tally { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
         .vy-hk-tal { display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6); }
         .vy-hk-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-        .vy-hk-tal-label { font-size: 12.5px; color: var(--vy-muted); }
+        .vy-hk-tal-label { font-size: 12.5px; color: var(--vy-ink); }
+        /* DO-EMAIL-7: was --vy-muted. The chip is --vy-glass — TRANSLUCENT over the page gradient — so its
+           plate moves with the chip's position (§N.13.4). Sampled on the real render: --vy-muted reads 6.00 on
+           a light part of the band but only 4.25 on a saturated one, i.e. it fails at FULL opacity there.
+           --vy-ink clears everywhere (9.38 on the worst plate sampled). */
         .vy-hk-tal-n { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
         /* A zero tally is real information, but it should not compete with the states that need work. */
-        .vy-hk-tal.is-zero { opacity: .62; }
+        .vy-hk-tal.is-zero .vy-hk-dot { opacity: .45; }
+        /* DO-EMAIL-7: the whole chip used to drop to opacity .62, which dimmed its TEXT to 2.28 — an AA failure
+           applied to a status word. The empty state is already carried by the "0" beside it, so the de-emphasis
+           now rides the DOT (a redundant, non-text mark) and the label stays legible. */
 
         /* ---- The design's search control: ONE integrated pill (icon + field + inline action) ------
            An OPT-IN modifier on the shared .vy-input-group, defined ONCE. Three wireframes specify it

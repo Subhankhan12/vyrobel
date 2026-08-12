@@ -8845,3 +8845,36 @@ explaining its removal. Scoped to the CSS rule. *Written by someone who had just
 
 **Contrast only** — no isolation, RBAC, data or Livewire logic touched.
 
+
+---
+
+## 2026-08-12 — **`DO-EMAIL-7` CLOSED: the status fill was fine; the thing beside it was not**
+
+`--vy-hk-ooo` was logged as *"a status fill — a design decision"*. `DO10-4` had since established that a status
+carried by COLOUR is **correctness** (WCAG 1.4.1), not tone, so it was re-opened **to measure, not to fix**.
+Full record: **§HK-STATUS-DETERMINATION**.
+
+**THE VERDICT ON THE TOKEN IS VERIFIED-FINE, AND NOTHING WAS CHANGED.** Rendered as a **Property Owner** on
+`/app/housekeeping` with a **real** out-of-order room present (no forcing needed), anchor 5.18: every status
+chip prints its **word** beside the dot, and OOO rooms are not drawn as cards at all — so `--vy-hk-ooo` renders
+in exactly one place, a dot next to the words "Out of order". Colour is never the sole carrier (1.4.1
+satisfied), the dot clears the non-text bar anyway at **3.31**, and a greyscale capture confirms all five
+statuses read by word. ⚠️ **A flagged item that turns out to be sound is an honest close — inventing a fix for
+it would have been the failure.**
+
+⚠️ **BUT THE SAME MEASUREMENT FOUND THE DEFECT NEXT TO IT** (N.13.1's thesis, again — the risk sits beside the
+thing everyone is looking at). The tally chip is `--vy-glass`, **translucent over the page gradient**, so its
+plate moves with its position; and `.vy-hk-tal.is-zero` dropped **the whole chip** to `opacity: .62`, dimming a
+status WORD to **2.28**. Worse, `--vy-muted` reads **6.00** on a light part of that band and only **4.25** on a
+saturated part — **it fails at FULL opacity there.**
+
+⚠️ **Two lessons in one CSS rule.** *Opacity applied to a chip dims its text* — and the empty state was already
+carried by the "0" beside the word, so the dimming was both redundant and harmful. And **a token that passes
+where you sampled can fail elsewhere on the same translucent band**: `--vy-muted` was wrong by **position**, not
+by carelessness. The label now reads `--vy-ink` (9.38 on the worst plate) and the de-emphasis rides the dot.
+
+Status semantics, the state machine and the data are untouched — display only. **Guarded** by
+`HousekeepingStatusContrastTest` (3 / 20), which pins **both** outcomes: that every `--vy-hk-*` token appears in
+a chip carrying its status word (so the verified-fine state cannot regress to colour-only), and that the dimming
+never returns to the text. Mutation-proven: restoring `.is-zero { opacity: .62 }` reds 2 of 3.
+

@@ -8106,6 +8106,52 @@ down.*
 
 ---
 
+## §HK-STATUS-DETERMINATION — `DO-EMAIL-7` · **CLOSED** (2026-08-12)
+
+⚠️ **The token was VERIFIED-FINE. The measurement found the defect standing next to it.**
+
+`--vy-hk-ooo` was logged as *"a status fill — a design decision, not a contrast fix"*. `DO10-4` had since
+established that a status carried by COLOUR is **correctness** (1.4.1), not tone — so it was re-opened to
+measure. Rendered as a **Property Owner** on `/app/housekeeping` with a **real out-of-order room** present
+(no state forcing needed), anchor **5.18** on every capture:
+
+| question | measurement | verdict |
+|---|---|---|
+| Is colour the sole carrier? | every chip prints its **word** — "Out of order 1" — and OOO rooms are not drawn as cards at all, so `--vy-hk-ooo` renders in exactly ONE place: a dot beside its own label | **1.4.1 SATISFIED** |
+| Does the fill clear 3:1 as a graphic? | dot `rgb(138,128,121)` on `rgb(250,235,226)` = **3.31** | **PASSES** (and it is redundant, so the bar does not strictly apply) |
+| Greyscale? | verified in a greyscale capture — all five statuses read by word | **SAFE** |
+
+**So `--vy-hk-ooo` needed no change, and none was made.** A flagged item that turns out to be sound is an
+honest close; inventing a fix for it would have been the failure.
+
+### ⚠️ WHAT THE SAME MEASUREMENT FOUND — the thing beside it (N.13.1, again)
+
+The tally chip is `--vy-glass`: **translucent over the page gradient**, so its plate moves with its position
+(§N.13.4). And `.vy-hk-tal.is-zero` dropped **the whole chip** to `opacity: .62` — dimming a status WORD.
+
+| run | plate | ratio |
+|---|---|---|
+| label `--vy-muted`, light part of the band | `rgb(250,235,226)` | 6.00 ✅ |
+| label `--vy-muted`, **saturated part** | `rgb(246,190,160)` | **4.25 ❌ at FULL opacity** |
+| label `--vy-muted` **at `.62`** | same | **2.28 ❌** |
+| label `--vy-ink` (the fix) | worst plate | **9.38 ✅** |
+
+⚠️ **Two lessons in one rule.** *Opacity dimming applied to a chip dims its TEXT* — and the empty state was
+already carried by the "0" beside the word, so the dimming was redundant *and* harmful. And **a token that
+passes where you sampled can fail elsewhere on the same translucent band**: `--vy-muted` was not wrong by
+carelessness, it was wrong by **position**.
+
+**Fixed:** the label reads `--vy-ink`; the de-emphasis moved to the dot (`.is-zero .vy-hk-dot { opacity:.45 }`),
+a redundant non-text mark. Status semantics, data and the state machine untouched.
+
+### 🔒 Guard — `tests/Feature/HousekeepingStatusContrastTest.php` (3 / 20)
+
+Pins **both** outcomes: that every `--vy-hk-*` token appears in a chip carrying its status WORD (so the
+verified-fine state cannot regress to colour-only), and that the dimming never returns to the text.
+Mutation-proven: restoring `.is-zero { opacity: .62 }` reds 2 of 3.
+
+---
+
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
 
 **This is the reconciled index of every `DO-*` item raised by the guest realm's 12 gates, the cross-realm
@@ -8162,7 +8208,7 @@ below; this is the priority index.*
 | kind | items |
 |---|---|
 | ✅ **`DO-EMAIL-9` CLOSED** (2026-08-12) | the layout's footer reason is now **DERIVED from a declared category**, so the false booking line is **unrepresentable** rather than merely removed. `owner-email-change` — the live offender — renders the truth. **`DO-EMAIL-8` closed with it** (the overloaded `unsubscribe` slot split into `footer_reason` + `footer_marketing`). See **§EMAIL-FOOTER-RESTRUCTURE**. |
-| 🎨 **token / consistency** | ~~**`DO-EMAIL-4`**~~ ✅ **CLOSED 2026-08-12** — `--vy-amber-text` unified to **`#804C05`** (§AMBER-TEXT-RECONCILIATION) · ~~**`DO-EMAIL-8`**~~ ✅ closed with `DO-EMAIL-9` · **`DO-EMAIL-7`** — `--vy-hk-ooo` shares the pre-AA grey as a status **fill** (a design decision, not a contrast fix) |
+| 🎨 **token / consistency** | ~~**`DO-EMAIL-4`**~~ ✅ **CLOSED 2026-08-12** — `--vy-amber-text` unified to **`#804C05`** (§AMBER-TEXT-RECONCILIATION) · ~~**`DO-EMAIL-8`**~~ ✅ closed with `DO-EMAIL-9` · ~~**`DO-EMAIL-7`**~~ ✅ **CLOSED 2026-08-12 — VERIFIED-FINE** (§HK-STATUS-DETERMINATION): the fill is sound (every status prints its word; the dot clears 3:1 at 3.31), so no change was made to it. ⚠️ The same measurement found the failure BESIDE it — the tally chip dimmed its status WORD to **2.28** — and that was fixed. |
 | 🔍 **coverage re-audit** (the §N.14.1 bound) | ⚠️ **`DO-EMAIL-5` — PARTIALLY CLOSED 2026-08-12** (§ROLE-COVERAGE-RE-AUDIT: method recorded, 4 failures fixed incl. two nobody had named; the remaining gated blocks logged as `DO-EMAIL-5-continued`) · ~~**`DO-EMAIL-6`**~~ ✅ **CLOSED** (its text always passed; the CTA gradient at 3.08 did not) · original entry: — a **full operator/owner contrast re-audit**, run **across every role that can reach each surface**. A fourth grey (`.vy-inv-lbl #9C9089`, 2.84 — every form label in the invite modal) was found *the moment one pass looked past its scope*; the role-coverage bound says more permission-gated surfaces exist. |
 | 🧱 **structural** | **`DO-TOKEN-1`** 🆕 — each shell re-declares the whole `--vy-*` palette, so any token can silently diverge (that is how `DO-EMAIL-4` happened). A shared token source included by all three shells is the fix; 7 tokens differ **deliberately** today, so it must preserve per-shell overrides rather than flatten them. · **`DO-EMAIL-6`** — two genuine standalone **web pages** (`billing/feature-locked`, `auth/login-approval*`) carry their own `<style>`, cannot reach `--vy-*`, and therefore hold literals that will not follow a future retune |
 | ✅ **RATIFIED — no longer open** | **`DO-G13-2`** (Guest Documents) → **DEFER** and **`DO-G13-3`** (Guest Referral) → **DON'T-BUILD** (#39) were **ratified by the founder on 2026-08-12**, as recommended. ⚠️ They are now **decisions, not recommendations**: neither is built, and neither is a gap. ⚠️ A future session must not "finish" either — the Documents rollup already lives on `/guest/payments` (a ratified location divergence), and the referral programme's five missing subsystems include a **new guest-creation path**, which is a security-posture change, not a page. With `DO-G13-1` built, **the whole G13 set is closed.** |

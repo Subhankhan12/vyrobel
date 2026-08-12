@@ -57,7 +57,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **③ THE FIRST BUILD (v10)** — **`GET /guest/help`, the guest FAQ centre** (`23bf335`), over the certified
 >   `HelpKnowledgeBase`. **Canon: §N.15.**
 >
-> **Suite 1964 / 12,897 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
+> **Suite 1967 / 12,917 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
 > `OwnerUnitDetailViewTest` ×1 — in-suite-only / an `inventory_block`; **isolate before calling anything a
 > regression**, and prove a new failure pre-existing by stashing from a CLEAN worktree — §N.14.5).
 > PHPStan L5 (0) · Pint clean.
@@ -117,7 +117,9 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   Remaining: the gated blocks behind `settings.manage` / `properties.manage` / `payouts.manage` /
 >   `payments.refund` / `guests.erase`, each needing a render as its role.
 >
-> **② The small items** — ✅ **THE G13 SET IS CLOSED.** `DO-G13-1` is BUILT (both halves), and on 2026-08-12 the
+> **② The small items** — ✅ `DO-EMAIL-7` CLOSED 2026-08-12 (§HK-STATUS-DETERMINATION): the status fill was
+>   **verified-fine** (every status prints its word; the dot clears 3:1) so nothing changed — but the same
+>   measurement found the chip dimming its status WORD to 2.28, and that was fixed. Remaining: — ✅ **THE G13 SET IS CLOSED.** `DO-G13-1` is BUILT (both halves), and on 2026-08-12 the
 >   founder **RATIFIED** `DO-G13-2` (Guest Documents → **DEFER**) and `DO-G13-3` (Guest Referral →
 >   **DON'T-BUILD**, #39). ⚠️ Those are now **decisions, not recommendations** — neither is a gap, and a future
 >   session must not "finish" either. Remaining: `DO-EMAIL-7`, `DO-EMAIL-8`, `DO-STAR-1` (⚠️ a bookmark, not a
