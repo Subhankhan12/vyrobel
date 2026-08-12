@@ -57,7 +57,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **③ THE FIRST BUILD (v10)** — **`GET /guest/help`, the guest FAQ centre** (`23bf335`), over the certified
 >   `HelpKnowledgeBase`. **Canon: §N.15.**
 >
-> **Suite 1943 / 12,841 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
+> **Suite 1953 / 12,867 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
 > `OwnerUnitDetailViewTest` ×1 — in-suite-only / an `inventory_block`; **isolate before calling anything a
 > regression**, and prove a new failure pre-existing by stashing from a CLEAN worktree — §N.14.5).
 > PHPStan L5 (0) · Pint clean.
@@ -101,25 +101,29 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   been a small honesty regression: they are sent to a **nominated address** whose reader may hold no account.
 >   Record: **§EMAIL-FOOTER-RESTRUCTURE**.
 >
-> **⬅ ① `DO-EMAIL-4`** — reconcile the twice-defined `--vy-amber-text` (guest `rgb(126,88,17)` vs owner
->   `rgb(128,76,5)`). Until one wins, "map the literal to the token" (§N.14.9) is ambiguous.
+> ~~**① `DO-EMAIL-4`**~~ ✅ **CLOSED 2026-08-12.** `--vy-amber-text` unified to **`#804C05`** — both values
+>   cleared AA on every plate either renders on (worst 4.65 vs 5.18, anchors 5.18), so they UNIFY to the one with
+>   headroom. Accidental divergence, confirmed from history. ⚠️ **Premise refinement: 7 other tokens differ across
+>   shells DELIBERATELY** (guest radii/shadow, `--vy-glass-border`, `--vy-on-grad` measured per shell) — so the
+>   guard is scoped to this token, never a blanket "tokens must agree". 🚩 The structural root is logged as
+>   **`DO-TOKEN-1`** (each shell re-declares the palette). Record: **§AMBER-TEXT-RECONCILIATION**.
 >
-> **② `DO-EMAIL-5` + `DO-EMAIL-6`** — the coverage re-audit (run **across every role that can reach each
+> **⬅ ① `DO-EMAIL-5` + `DO-EMAIL-6`** — the coverage re-audit (run **across every role that can reach each
 >   surface**; a fourth grey was found the moment one pass looked past its scope) and the two standalone web
 >   pages that cannot reach the tokens.
 >
-> **③ The small items** — ✅ **THE G13 SET IS CLOSED.** `DO-G13-1` is BUILT (both halves), and on 2026-08-12 the
+> **② The small items** — ✅ **THE G13 SET IS CLOSED.** `DO-G13-1` is BUILT (both halves), and on 2026-08-12 the
 >   founder **RATIFIED** `DO-G13-2` (Guest Documents → **DEFER**) and `DO-G13-3` (Guest Referral →
 >   **DON'T-BUILD**, #39). ⚠️ Those are now **decisions, not recommendations** — neither is a gap, and a future
 >   session must not "finish" either. Remaining: `DO-EMAIL-7`, `DO-EMAIL-8`, `DO-STAR-1` (⚠️ a bookmark, not a
 >   rating) and `DO-SUP-1` (the WhatsApp affordance, deliberately not drawn).
 >
-> **④ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
+> **③ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
 >   DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (two index blocks: ✅ *closed by the cleanup
 >   sequence* · ⬅ *open successors, grouped by kind*), plus the **6 reopened operator a11y gates** (§N.9) and
 >   the **deferred-capability refusal sweep** (§N.8b).
 >
-> **⑤ ⛔ THE BILLING / GO-LIVE BLOCKER (§G.1) — still open, untouched by all three chapters.** Two contradictory
+> **④ ⛔ THE BILLING / GO-LIVE BLOCKER (§G.1) — still open, untouched by all three chapters.** Two contradictory
 >   pricing models run at once and only the tier price reaches Stripe; at the live-key flip a customer is billed
 >   ~2×. ⚠️ **It is the founder's business decision — surface it, never pick a side.** ⚠️ **If launch is near,
 >   this outranks everything above.**

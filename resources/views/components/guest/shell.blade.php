@@ -47,7 +47,7 @@
                page (Blade comments do not). An earlier draft used a word the check-in honesty guard
                forbids (#39 — an ID is captured, never 'v-e-r-i-f-i-e-d'), and shipped it site-wide.
                Use these for TEXT; keep --vy-accent / --vy-amber for fills, borders and rails. */
-            --vy-accent-text: rgb(176, 56, 8); --vy-amber-text: rgb(126, 88, 17);
+            --vy-accent-text: rgb(176, 56, 8); --vy-amber-text: rgb(128, 76, 5);   /* DO-EMAIL-4: the ONE amber-text value (was rgb(126,88,17)) */
             /* G2: the same green measured 4.75 on Trips and 4.26 HERE — a translucent badge on a
                translucent card over the page gradient has NO fixed contrast, it moves with whatever is
                behind it. rgb(70,120,60) is hand-written at ELEVEN guest call sites; this is the one

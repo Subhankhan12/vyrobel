@@ -99,8 +99,8 @@ it('ships none of the three pre-AA greys in any email template', function () {
  * its OWN plate before being touched; all six failed, so all six were mapped:
  *
  *   #8A7A6A  3.72 on #FBF1E9  → #5F5853  6.27   (closes DO-G4-2 — the pre-arrival grey)
- *   #B26A08  3.80 on #FBF1E9  → #7E5811  5.73   (the RAW --vy-amber fill used as TEXT → the guest realm's
- *                                                --vy-amber-text VALUE, inlined; email cannot read a token)
+ *   #B26A08  3.80 on #FBF1E9  → #804C05  6.39   (the RAW --vy-amber fill used as TEXT → the ONE --vy-amber-text
+ *                                                VALUE, inlined; email cannot read a token)
  *   #9A8C7F  3.22 / 2.78      → #5F5853  6.88 / 5.95
  *   #9C9089  3.06 on #FFFDFB  → #5F5853  6.88
  *   #64748B  3.62 on #111B2E  → #94A3B8  6.71   ⚠️ LIGHT-ON-DARK: this one had to go LIGHTER, not darker,
@@ -147,7 +147,11 @@ it('keeps the DO-EMAIL-1 replacements above AA on the plates they actually land 
     // Warm greys on the card / wash / the door-code + balance panel.
     foreach (['#FFFDFB', '#F6EBE2', '#FBF1E9'] as $plate) {
         expect(emailSweepRatio('#5F5853', $plate))->toBeGreaterThanOrEqual(4.5)
-            ->and(emailSweepRatio('#7E5811', $plate))->toBeGreaterThanOrEqual(4.5);
+            // DO-EMAIL-4 (2026-08-12): #7E5811 was the GUEST realm's --vy-amber-text at the time. That token
+            // turned out to be defined twice with different values; it is now single-valued at #804C05, and this
+            // email literal tracks it so "the amber-text value" means one thing everywhere. Strictly darker, so
+            // every email plate improved (5.73 -> 6.39 on #FBF1E9).
+            ->and(emailSweepRatio('#804C05', $plate))->toBeGreaterThanOrEqual(4.5);
     }
 
     // ⚠️ Light-on-dark: the platform-admin email's card. Darkening would have made this WORSE.

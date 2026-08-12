@@ -7941,6 +7941,77 @@ trustworthy as the thing it checks.**
 
 ---
 
+## §AMBER-TEXT-RECONCILIATION — `DO-EMAIL-4` · **CLOSED** (2026-08-12)
+
+`--vy-amber-text` was declared **twice with different values** — guest `rgb(126,88,17)` = `#7E5811`, owner
+`rgb(128,76,5)` = `#804C05`. A `var()` resolves to whichever shell is in scope, so a shared component would have
+picked up the wrong one, and *"the amber-text value"* was ambiguous enough to infect `DO-EMAIL-1`'s record.
+
+### The measurement decided it (§N.8e — three anchors, all reading exactly 5.18)
+
+Both values scored against **every plate either is rendered on, in BOTH realms**, pixel-sampled from the real
+renders with text hidden:
+
+| realm | site | plate | `#7E5811` | `#804C05` |
+|---|---|---|---|---|
+| guest | "Balance due" badge | `rgb(249,234,213)` | 5.40 | **6.01** |
+| guest | €184.50 on the card (×2) | `rgb(254,251,248)` | 6.19 | **6.90** |
+| owner | Team "Save" (×2) | `rgb(254,252,251)` | 6.24 | **6.95** |
+| owner | pending-invite row — **the worst plate** | `rgb(250,213,186)` | **4.65** | **5.18** |
+| owner | "Resend" row | `rgb(253,245,238)` | 5.92 | **6.59** |
+| **worst, all plates** | | | **4.65** | **5.18** |
+
+**Both clear AA (4.5), so the branch is UNIFY, not rename** — and the value with the headroom wins. `#804C05` is
+strictly darker, so on every light plate it scores **higher**; there is no amber-text use on a dark plate
+(checked), which is what makes that a safe generalisation beyond the seven sites sampled.
+
+⚠️ **The probe tried to lie once.** Two owner samples sat below the viewport and `imagecolorat` returned black,
+scoring them 3.29 / 2.95 — a *failure* that never happened. Caught because the reading was implausible against
+its neighbours; re-measured after scrolling them into view. **An out-of-bounds read is not a measurement**
+(§N.8e — when the probe breaks, publish nothing).
+
+### ⚠️ It was ACCIDENTAL — and that is the point
+
+History settles it: the guest value arrived at the guest Reservation gate (`4040b0f`) and the owner value at the
+Owner Statement gate (`656cc34`). Two passes, months apart, each derived an amber that read on *their* plates.
+Neither knew about the other. Same intent, two answers, one name.
+
+⚠️ **PREMISE REFINEMENT — "declared per shell" is NOT itself the defect.** A scan found **8** tokens differing
+across the three shells, and **7 are deliberate**: the guest realm runs smaller radii (`--vy-r-lg/-sm`) and a
+lighter `--vy-shadow`, `--vy-glass-border` is warm-dark on guest and white on owner/operator, and
+`--vy-on-grad` / `-soft` were measured **separately per shell on purpose** (§N.4i / §N.4j). Per-shell theming is
+the design system working. What was wrong is narrower: **this** token carries one intent — amber text on a light
+warm plate — and had no reason to differ. **The guard is therefore scoped to this token; a blanket
+"all tokens must agree" rule would be false against the design.**
+
+### What changed (contrast / token-definition only)
+
+- the **guest shell** adopts `rgb(128,76,5)`; the owner shell is unchanged and annotated.
+- the **two email literals** (`pre-arrival`, `payment-reminder`) move `#7E5811` → `#804C05`. Emails cannot read a
+  token, so they carry a literal — but it must be *the* value, or the ambiguity just relocates. Strictly an
+  improvement on every email plate (5.73 → **6.39** on `#FBF1E9`; worst email plate `#F2E8DF` 5.28 → **5.89**).
+- the **owner-remittance PDF** already used `#804C05` — a confirmation, not a change.
+- `#7E5811` now greps to **zero** across all views.
+
+**Visual shift:** guest amber text becomes very slightly deeper and less yellow (`126,88,17` → `128,76,5`).
+**Greyscale-safe** — verified in a greyscale render: the "Balance due" badge and the balance figures stay legible,
+carried by luminance and by their own words, never by hue.
+
+### 🔒 Guard — `tests/Feature/AmberTextTokenTest.php` (10 tests / 26 assertions)
+
+One name → one value (with a non-vacuity check that it is still declared at all) · AA on all eight plates it
+renders on across both realms and email · the email/PDF literals tracking it · `#7E5811` gone. **Mutation-proven
+twice:** re-adding the old guest value (the landmine returning) reds the single-value guard; lightening the
+canonical value to `#B26A08` reds the AA guard on every plate.
+
+### 🚩 Logged, not fixed — the structural root
+
+Each shell re-declares the whole palette, so **any** token can diverge this way; nothing but a test stops the
+next one. A shared token source (one declaration, included by all three shells) is the §N.8f fix, and it is a
+refactor across three shells rather than a contrast item — out of scope here, recorded as **`DO-TOKEN-1`**.
+
+---
+
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
 
 **This is the reconciled index of every `DO-*` item raised by the guest realm's 12 gates, the cross-realm
@@ -7997,9 +8068,9 @@ below; this is the priority index.*
 | kind | items |
 |---|---|
 | ✅ **`DO-EMAIL-9` CLOSED** (2026-08-12) | the layout's footer reason is now **DERIVED from a declared category**, so the false booking line is **unrepresentable** rather than merely removed. `owner-email-change` — the live offender — renders the truth. **`DO-EMAIL-8` closed with it** (the overloaded `unsubscribe` slot split into `footer_reason` + `footer_marketing`). See **§EMAIL-FOOTER-RESTRUCTURE**. |
-| 🎨 **token / consistency** | **`DO-EMAIL-4`** — `--vy-amber-text` defined **twice with different values** (guest `rgb(126,88,17)` vs owner `rgb(128,76,5)`); until reconciled, "map it to the token" is ambiguous (§N.14.9) · **`DO-EMAIL-8`** — the layout's footer-override slot is misnamed `unsubscribe` · **`DO-EMAIL-7`** — `--vy-hk-ooo` shares the pre-AA grey as a status **fill** (a design decision, not a contrast fix) |
+| 🎨 **token / consistency** | ~~**`DO-EMAIL-4`**~~ ✅ **CLOSED 2026-08-12** — `--vy-amber-text` unified to **`#804C05`** (§AMBER-TEXT-RECONCILIATION) · ~~**`DO-EMAIL-8`**~~ ✅ closed with `DO-EMAIL-9` · **`DO-EMAIL-7`** — `--vy-hk-ooo` shares the pre-AA grey as a status **fill** (a design decision, not a contrast fix) |
 | 🔍 **coverage re-audit** (the §N.14.1 bound) | ⚠️ **`DO-EMAIL-5`** — a **full operator/owner contrast re-audit**, run **across every role that can reach each surface**. A fourth grey (`.vy-inv-lbl #9C9089`, 2.84 — every form label in the invite modal) was found *the moment one pass looked past its scope*; the role-coverage bound says more permission-gated surfaces exist. |
-| 🧱 **structural** | **`DO-EMAIL-6`** — two genuine standalone **web pages** (`billing/feature-locked`, `auth/login-approval*`) carry their own `<style>`, cannot reach `--vy-*`, and therefore hold literals that will not follow a future retune |
+| 🧱 **structural** | **`DO-TOKEN-1`** 🆕 — each shell re-declares the whole `--vy-*` palette, so any token can silently diverge (that is how `DO-EMAIL-4` happened). A shared token source included by all three shells is the fix; 7 tokens differ **deliberately** today, so it must preserve per-shell overrides rather than flatten them. · **`DO-EMAIL-6`** — two genuine standalone **web pages** (`billing/feature-locked`, `auth/login-approval*`) carry their own `<style>`, cannot reach `--vy-*`, and therefore hold literals that will not follow a future retune |
 | ✅ **RATIFIED — no longer open** | **`DO-G13-2`** (Guest Documents) → **DEFER** and **`DO-G13-3`** (Guest Referral) → **DON'T-BUILD** (#39) were **ratified by the founder on 2026-08-12**, as recommended. ⚠️ They are now **decisions, not recommendations**: neither is built, and neither is a gap. ⚠️ A future session must not "finish" either — the Documents rollup already lives on `/guest/payments` (a ratified location divergence), and the referral programme's five missing subsystems include a **new guest-creation path**, which is a security-posture change, not a page. With `DO-G13-1` built, **the whole G13 set is closed.** |
 | 📞 **channel verification** | **`DO-SUP-1`** 🆕 — the support number renders as a **telephone only**. A WhatsApp affordance would assert a channel nothing verifies (#39); it needs a deliberate operator flag or a verification step. See §SUPPORT-BACKEND. |
 | 🏷 **verdict / naming** | **`DO-STAR-1`** — the owner Messages *"Starred"* SVGs still use `#E8A63A`. ⚠️ **A BOOKMARK, not a rating** — do not conflate it with the rating star or fold it into `DO10-4`; its state is also carried by a visible count. A design call. |
@@ -8068,7 +8139,7 @@ below; this is the priority index.*
 | ~~**`DO-INV-4`**~~ ✅ | ~~the **email-contrast sweep** across the 15 Mailables.~~ **CLOSED 2026-08-12 — see §EMAIL-SWEEP.** ⚠️ Two premise corrections on the way: the set is **20 templates, not 15**, and the offenders are **THREE greys, not two** — the scoping note had narrowed the item past **`#A99E95`**, the literal `DO-INV-4` was originally raised against. **120 failing text runs → 10**, across 20 templates + 2 auth screens; `#8A8079`→`#5F5853`, `#A69A92`/`#A99E95`→`#6C645F`; old values grepped to zero; rendered output proven byte-identical apart from the hexes. ⚠️ **CLOSED ≠ the emails are AA-clean** — 7 further literals still fail: `DO-EMAIL-1`. |
 | ~~**`DO-EMAIL-1`**~~ ✅ | ~~the residual 10 failing email text runs across 7 literals.~~ **CLOSED 2026-08-12 — see §EMAIL-SWEEP-2. 10 failing runs → 1.** All six text/CTA items re-measured on their own plates (all failed) and mapped: `#8A7A6A`→`#5F5853` · `#B26A08`→`#7E5811` (the raw `--vy-amber` fill used as TEXT → the guest `--vy-amber-text` VALUE, inlined) · `#9A8C7F`/`#9C9089`→`#5F5853` · `#64748B`→`#94A3B8` (⚠️ **lighter**, not darker — light-on-dark) · the CTA gradient stops darkened after a **pixel sample** (white 3.08 → 5.19, gradient preserved). ⚠️ **`#E8EDF6` was a PROBE ERROR, not a defect** (it passes at 14.65). ⚠️ **The ★ `#E8A317` is excluded → `DO10-4`** and is the ONE remaining failing run. |
 | ~~**`DO-G4-2`**~~ ✅ | **CLOSED by `DO-EMAIL-1`** — the pre-arrival `#8A7A6A`, carried as *"unmeasured"* since G4: measured **3.72** on `#FBF1E9`, retargeted to `#5F5853` (**6.27**). |
-| **`DO-EMAIL-4`** 🆕 | ⚠️ **`--vy-amber-text` is defined TWICE and the two values differ** — guest `rgb(126,88,17)` (`components/guest/shell.blade.php:49`) vs owner `rgb(128,76,5)` (`components/layouts/owner.blade.php:67`). One concept, two definitions: the §N.8f shape. The emails now inline the **guest** value. Which is canonical is a design call. |
+| ~~**`DO-EMAIL-4`**~~ ✅ | ~~`--vy-amber-text` is defined TWICE and the two values differ.~~ **CLOSED 2026-08-12 — see §AMBER-TEXT-RECONCILIATION.** Both values pixel-sampled on the plates each renders on, in BOTH realms (anchors 5.18): guest `#7E5811` worst **4.65** · owner `#804C05` worst **5.18**. **Both clear AA, so they UNIFY** — to the value with the headroom. ⚠️ The divergence was **accidental**, confirmed from history: two independent gates (guest G2 `4040b0f`, owner-2 `656cc34`) each derived an amber for their own plates. The two email literals and the owner-remittance PDF now carry that same value, so *"the amber-text value"* finally means one thing. |
 | ~~**`DO-EMAIL-2`**~~ ✅ | ~~the grey drift reaches a THIRD surface class.~~ **CLOSED 2026-08-12 — see §WEB-GREY-SWEEP.** ⚠️ **28 occurrences across 9 files, not the 13 named** (the `rgb()` grep found two nobody had: `--vy-hk-ooo` and **the whole `billing/feature-locked` 403 page**). Root cause = **token drift** — the three literals ARE the pre-AA values of `--vy-muted`/`--vy-faint`, so every TEXT occurrence now reads the **token**. Pixel-sampled on the real plates (invite modal **`#F8F4EF`**, glass over a scrim — no declared computation could produce it): `#A69A92` 2.50→5.29 · `#8A8079` 3.52→6.38 · `#A99E95` 2.23→4.94 · the 403 page 3.62→6.56. ⚠️ **NOT a regression, and not an immature instrument either — a COVERAGE gap:** all 11 `owners.blade.php` greys sit inside `@can('users.manage')`, which the demo operator the gates ran as does **not** hold, so the markup was never in the DOM. **A contrast pass is bounded by the ROLE it runs as.** Gated guarantees re-verified, 0 regression. |
 | **`DO-EMAIL-5`** 🆕 | a **FOURTH grey**: `.vy-inv-lbl { color: #9C9089 }` — every form label in the invite modal — measured **2.84** on the same plate. One line, same CSS block; outside the named three so not fixed. ⚠️ **A full operator/owner contrast re-audit is a backend-phase item** — this pass found a fourth failure the moment it looked. |
 | **`DO-EMAIL-6`** 🆕 | **standalone pages cannot reach the design tokens.** `billing/feature-locked.blade.php` and `auth/login-approval*.blade.php` carry their own `<style>` with no `--vy-*` in scope, so both had to take mapped **literals**. They will not follow a future token retune. |

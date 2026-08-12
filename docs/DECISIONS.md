@@ -8748,3 +8748,49 @@ no-unsubscribe service-message mode. *A test that looks like collateral damage f
 a real invariant — read it before changing it.* Its two modes are now explicit: with an unsubscribe URL it fills
 `footer_marketing`; without one it falls through to `booking`.
 
+
+---
+
+## 2026-08-12 — **`DO-EMAIL-4` CLOSED: `--vy-amber-text` reconciled to one value**
+
+The token was declared **twice with different values** — guest `#7E5811`, owner `#804C05`. A `var()` resolves to
+whichever shell is in scope, so a shared component would pick up the wrong one, and *"the amber-text value"* was
+ambiguous enough to infect `DO-EMAIL-1`'s record. Full record: **§AMBER-TEXT-RECONCILIATION**.
+
+**THE MEASUREMENT DECIDED IT.** Both values were pixel-sampled against every plate either renders on, in BOTH
+realms, with three self-validating anchors all reading exactly **5.18**. Worst case: `#7E5811` = **4.65**,
+`#804C05` = **5.18** — **both clear AA, so the branch is UNIFY**, and the value with the headroom wins.
+`#804C05` is strictly darker, so it scores higher on every light plate; no amber-text use sits on a dark plate,
+which is what lets that generalise beyond the seven sites sampled.
+
+⚠️ **THE PROBE TRIED TO LIE ONCE.** Two owner samples sat below the viewport and `imagecolorat` returned black,
+scoring them 3.29 / 2.95 — a failure that never happened. Caught because the numbers were implausible beside
+their neighbours, and re-measured after scrolling them in. **An out-of-bounds read is not a measurement.**
+
+**IT WAS ACCIDENTAL, AND HISTORY SETTLES IT:** the guest value arrived at the guest Reservation gate
+(`4040b0f`), the owner value at the Owner Statement gate (`656cc34`). Two passes, months apart, each deriving an
+amber for their own plates, neither aware of the other. Same intent, two answers, one name.
+
+⚠️ **PREMISE REFINEMENT WORTH KEEPING — "declared per shell" is not itself the defect.** A scan found **8**
+tokens differing across the three shells and **7 of them are deliberate**: the guest realm runs smaller radii
+and a lighter shadow, `--vy-glass-border` is warm-dark on guest and white on owner/operator, and `--vy-on-grad`
+was measured **separately per shell on purpose** (§N.4i/§N.4j). Per-shell theming is the design system working.
+The defect was narrower: *this* token has one intent and no reason to differ. **So the guard is scoped to the
+token — a blanket "all tokens must agree" rule would be false against the design**, and writing one would have
+been the kind of overreach that looks like rigour and is actually a bug.
+
+**THE DELTA** is the token definition plus the literals that must track it: the guest shell adopts the canonical
+value; the two email literals (`pre-arrival`, `payment-reminder`) move to it (emails cannot read a token, but the
+literal must still be *the* value or the ambiguity merely relocates — and it improves every email plate, 5.73 →
+6.39 on `#FBF1E9`); the owner-remittance PDF already used it. `#7E5811` greps to **zero**. The visual shift is a
+slightly deeper, less yellow amber in the guest realm. **Greyscale-verified** — the badge and figures stay
+legible on luminance and wording, never hue.
+
+**GUARDED** by `AmberTextTokenTest` (10 / 26), **mutation-proven twice**: re-adding the old guest value reds the
+one-name-one-value guard; lightening the canonical value reds the AA guard on every plate.
+
+🚩 **LOGGED, NOT FIXED — `DO-TOKEN-1`, the structural root.** Each shell re-declares the whole palette, so **any**
+token can diverge this way and nothing but a test stops the next one. A shared token source is the §N.8f fix —
+but it must preserve the 7 deliberate per-shell overrides rather than flatten them, which makes it a refactor
+across three shells, not a contrast item.
+

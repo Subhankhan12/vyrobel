@@ -64,7 +64,7 @@
                marginal, one side of AA. Tuned against the WORST of the sampled backgrounds instead of
                the first: now 5.13–5.22 everywhere it is used. A token tuned to a single sample is a
                token that will fail on the next page. */
-            --vy-amber-text: rgb(128, 76, 5);
+            --vy-amber-text: rgb(128, 76, 5);   /* DO-EMAIL-4: the ONE amber-text value, shared with the guest shell */
             --vy-accent-tint-text: rgb(151, 54, 13);
 
             /* The SAME status pill also sits on the dark payout rail (.vy-card--dark), where every tone
