@@ -57,10 +57,25 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **③ THE FIRST BUILD (v10)** — **`GET /guest/help`, the guest FAQ centre** (`23bf335`), over the certified
 >   `HelpKnowledgeBase`. **Canon: §N.15.**
 >
-> **Suite 1914 / 12,613 · 9 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
-> `OwnerUnitDetailViewTest` · `StubViewsTest` ×2 — date-coupled/in-suite-only; **isolate before calling anything
-> a regression**, and prove a new failure pre-existing by stashing from a CLEAN worktree — §N.14.5).
+> **Suite 1931 / 12,745 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
+> `OwnerUnitDetailViewTest` ×1 — in-suite-only / an `inventory_block`; **isolate before calling anything a
+> regression**, and prove a new failure pre-existing by stashing from a CLEAN worktree — §N.14.5).
 > PHPStan L5 (0) · Pint clean.
+>
+> ⚠️ **THE BASELINE DROPPED 9 → 7 ON 2026-08-12, AND THAT IS A FIX, NOT A DRIFT.** `StubViewsTest` ×2 were
+> failing on `UnitUnavailableException::occupied` — **the same demo-seed collision as `DO-SEED-1`** — and went
+> green when it was fixed at the root. Verified in isolation (3/3), not inferred from the total. ⚠️ **Re-measure
+> the baseline every gate** (§N.14.5): it has now moved in both directions, and an asserted baseline goes stale
+> exactly like an asserted finding.
+>
+> ⚠️ **`migrate:fresh --seed` — THE STANDING CLAIM, CORRECTED TWICE (read this before trusting any older one).**
+> Every dated entry below that says *"`migrate:fresh --seed` clean"* was true **on its own date**. It stopped
+> being true: on 2026-08-12 the seed **aborted** on a date-coupled collision and left the demo org half-seeded
+> (one property, the staff user roleless, `/app` unreachable) — `DO-SEED-1`. ✅ **It is now FIXED AT THE ROOT and
+> clean again**: the seeder's absolute dates were re-anchored to `now()`, so it is valid on **any** run day, and
+> `DemoSeedDateRobustnessTest` pins that by seeding at four time-travelled dates. **The lesson is the shape of
+> the claim, not the claim:** *"the seed is clean"* is a statement about **a day**, and only a date-robust seed
+> plus a time-travelling guard makes it a statement about the code.
 >
 > ⚠️ **THE ONE CAVEAT THAT QUALIFIES EVERY "CLOSED" ABOVE (§N.14.1):** *a contrast/render pass is bounded by the
 > ROLE it runs as.* No probe can measure markup a permission check never emitted. **So "closed" means "closed
@@ -77,7 +92,9 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   **`PropertySupport`** (§D.guest). ⚠️ One correction — **`DO-SUP-1`: phone renders as `tel:` ONLY**, because
 >   nothing verifies WhatsApp. Record: **§SUPPORT-BACKEND** + §N.15.6.
 >
-> **⬅ ① `DO-EMAIL-9` — a LIVE §N.8d, and now the top of the list.** `owner-email-change` tells an owner changing their
+> **⬅ ① `DO-EMAIL-9` — a LIVE §N.8d, and now the top of the list.** ⚠️ **FOUNDER DIRECTION (2026-08-12):
+>   RESTRUCTURE, not reword** — change the shared layout's default service line and audit which templates then
+>   need their own, rather than the per-template override `DO-EMAIL-3` used. `owner-email-change` tells an owner changing their
 >   **login email**: *"You're receiving this because it relates to your booking with us."* A **security
 >   notification asserting something untrue, shipping today.** It is the shared layout's default footer, so
 >   ⚠️ **the scope is unknown** — every account/security template extending that layout inherits it (§N.14.8).
@@ -91,9 +108,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   surface**; a fourth grey was found the moment one pass looked past its scope) and the two standalone web
 >   pages that cannot reach the tokens.
 >
-> **④ The G13 tail + the small items** — ⚠️ **`DO-G13-2` (Guest Documents → DEFER) and `DO-G13-3` (Guest
->   Referral → DON'T-BUILD, #39) are recommendations AWAITING A FOUNDER RULING**, exactly as the Help verdict
->   was before it was split. Plus `DO-EMAIL-7`, `DO-EMAIL-8`, `DO-STAR-1` (⚠️ a bookmark, not a rating) and `DO-SUP-1` (the WhatsApp affordance, deliberately not drawn).
+> **④ The small items** — ✅ **THE G13 SET IS CLOSED.** `DO-G13-1` is BUILT (both halves), and on 2026-08-12 the
+>   founder **RATIFIED** `DO-G13-2` (Guest Documents → **DEFER**) and `DO-G13-3` (Guest Referral →
+>   **DON'T-BUILD**, #39). ⚠️ Those are now **decisions, not recommendations** — neither is a gap, and a future
+>   session must not "finish" either. Remaining: `DO-EMAIL-7`, `DO-EMAIL-8`, `DO-STAR-1` (⚠️ a bookmark, not a
+>   rating) and `DO-SUP-1` (the WhatsApp affordance, deliberately not drawn).
 >
 > **⑤ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
 >   DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (two index blocks: ✅ *closed by the cleanup

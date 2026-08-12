@@ -97,6 +97,111 @@ class DemoSeeder extends Seeder
         return CarbonImmutable::today()->addDays(180)->toDateString();
     }
 
+    /*
+     * ────────────────────────────────────────────────────────────────────────────────────────────────────────
+     * THE DEMO TIMELINE ANCHOR (DO-SEED-1 · 2026-08-12)
+     *
+     * ⚠️ WHY THIS EXISTS. This seeder used to mix two date systems: a today-RELATIVE forward window (the
+     * arriving-tomorrow stay, the terminal states, the analytics spread) and an ABSOLUTE calendar (the showcase
+     * stays on 2026-09-xx, five "past" statement months Apr–Aug 2026, an October accrual). The two were disjoint
+     * ON THE DAY THEY WERE WRITTEN, and `seedOwnerStatementHistory` even carried a comment asserting they were
+     * "clear of the (future-dated) analytics-history window, so no collision".
+     *
+     * As real time walked forward the relative window slid INTO the absolute one and the claim became false:
+     * on 2026-08-12 the analytics entry at today+3 (15 Aug) overlapped the "past" August statement stay booked
+     * on 14–18 Aug, on the same apartment. `migrate:fresh --seed` aborted with UnitUnavailableException, and
+     * because the abort lands mid-run the demo org was left HALF-SEEDED — one property instead of two, and the
+     * demo staff user with no roles at all, so `/app` was unreachable.
+     *
+     * ⚠️ THE FIX IS THE ANCHOR, NOT THE COLLISION. Bumping the one clashing date forward would simply rot again
+     * at the next date. Every formerly-absolute date now derives from one of these helpers, so the demo is valid
+     * on ANY day it is seeded — and two of them are structurally incapable of colliding:
+     *
+     *   · completedMonth(n) is a month that has ALREADY ENDED, so it is strictly before today and can never meet
+     *     any forward-dated booking. That is what the statement history needed and never had.
+     *   · showcaseMonth() is entirely in the FUTURE, so the showcase stays are always genuinely upcoming — which
+     *     is what keeps the "far stay whose door code is still withheld" (#33) demo honest.
+     *
+     * Note the codebase had already met this exact failure once: seedOwnerBalanceAccrual carries a
+     * "ROBUST TO DATE-DRIFT" forward-scan for the same reason. That was a guard on one symptom; this is the
+     * cause. ⚠️ CONSEQUENCE, RECORDED HONESTLY: once the statement period is relative, the demo's exact money
+     * figures depend on the run day (a drifting analytics stay may or may not fall inside the statement month).
+     * Every figure remains REAL and reconciling (#17) — it is simply no longer a constant. See DECISIONS.
+     * ────────────────────────────────────────────────────────────────────────────────────────────────────────
+     */
+
+    /** The first day of the month the seed is being run in. */
+    private function thisMonth(): CarbonImmutable
+    {
+        return CarbonImmutable::today()->startOfMonth();
+    }
+
+    /**
+     * The month the portal SHOWCASES — the next full month, so every day in it is future on any run day.
+     * Holds the demo's upcoming stays and the "finalized statement, payout not yet sent" period.
+     */
+    private function showcaseMonth(): CarbonImmutable
+    {
+        return $this->thisMonth()->addMonth();
+    }
+
+    /** A given day-of-month inside {@see showcaseMonth()} (1-based, as a calendar day reads). */
+    private function showcaseDay(int $day): CarbonImmutable
+    {
+        return $this->showcaseMonth()->addDays($day - 1);
+    }
+
+    /**
+     * The first day of a month that has ALREADY COMPLETED — `completedMonth(1)` is last month.
+     * Everything inside it is strictly in the past, which is the structural property the statement history
+     * relies on to be collision-free.
+     */
+    private function completedMonth(int $monthsBack): CarbonImmutable
+    {
+        return $this->thisMonth()->subMonths(max(1, $monthsBack));
+    }
+
+    /**
+     * Book a showcase-month apartment stay, scanning forward for the first window this unit is free.
+     *
+     * ⚠️ WHY THE SCAN. Unlike the three stays at the top of the demo, this one is created AFTER
+     * {@see seedAnalyticsHistory} has already claimed forward inventory, so a drifted analytics stay can be
+     * sitting on the day it wants — and it is load-bearing (it is half the showcase statement's net), so it
+     * must not simply be skipped. The economics are date-independent (nightly × nights), so shifting the window
+     * a few days changes no figure. This is the same defence `seedOwnerBalanceAccrual` already carried for the
+     * identical reason; extracting it here means one idiom rather than two copies that can drift (§N.8f).
+     */
+    private function bookAptStayNear(
+        CarbonImmutable $preferredCheckIn,
+        int $nights,
+        Property $property,
+        RoomType $apartment,
+        RatePlan $aptRate,
+        Unit $unit,
+        Guest $guest,
+        Tax $vat,
+        string $source = 'direct',
+        int $maxShiftDays = 20,
+    ): Reservation {
+        $availability = app(AvailabilityService::class);
+
+        for ($shift = 0; $shift <= $maxShiftDays; $shift++) {
+            $checkIn = $preferredCheckIn->addDays($shift);
+            $checkOut = $checkIn->addDays($nights);
+            $availability->recompute($apartment->id, $checkIn->toDateString(), $checkOut->toDateString());
+
+            try {
+                return $this->createDemoStay($source, $property, $apartment, $aptRate, $unit, $guest, $checkIn->toDateString(), $checkOut->toDateString(), $vat, fullyPaid: true);
+            } catch (BookingException) {
+                continue;   // another demo stay holds this range — try the next day
+            }
+        }
+
+        // Never silently: a demo that quietly loses a load-bearing stay (half a statement's net, a review's
+        // anchor) is worse than one that fails loudly and says which stay it could not place.
+        throw new \RuntimeException("DemoSeeder: no free window for an apartment stay near {$preferredCheckIn->toDateString()}.");
+    }
+
     public function run(): void
     {
         $tenant = app(TenantContext::class);
@@ -370,9 +475,13 @@ class DemoSeeder extends Seeder
         }
 
         // --- Reservations across multiple sources, all through AssignmentService ---
-        $stay1 = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[0], $guest1, '2026-09-05', '2026-09-08', $vat, fullyPaid: true);
-        $walkIn = $this->createDemoStay('walk_in', $property, $apartment, $aptRate, $aptUnits[0], $guest2, '2026-09-06', '2026-09-09', $vat, fullyPaid: false);
-        $this->createDemoStay('ota', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest3, '2026-09-10', '2026-09-12', $vat, fullyPaid: true, otaRef: 'OTA-DEMO-0001');
+        // ⚠️ The showcase stays live in {@see showcaseMonth()} — NEXT month, so they are upcoming on any run day
+        // (DO-SEED-1). They were the literals 2026-09-05/06/10, which read as "far future" only until today
+        // caught up with them; the arrival-window demo (#33 — a code still withheld on the far stay, released on
+        // the arriving-tomorrow one below) depends on them genuinely being ahead of today.
+        $stay1 = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[0], $guest1, $this->showcaseDay(5)->toDateString(), $this->showcaseDay(8)->toDateString(), $vat, fullyPaid: true);
+        $walkIn = $this->createDemoStay('walk_in', $property, $apartment, $aptRate, $aptUnits[0], $guest2, $this->showcaseDay(6)->toDateString(), $this->showcaseDay(9)->toDateString(), $vat, fullyPaid: false);
+        $this->createDemoStay('ota', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest3, $this->showcaseDay(10)->toDateString(), $this->showcaseDay(12)->toDateString(), $vat, fullyPaid: true, otaRef: 'OTA-DEMO-0001');
 
         // Phase 4b · SG4 — a NEAR-TERM stay for guest1 (arrives tomorrow), so the guest Arrival Info screen
         // demos a RELEASED pack (door code + wifi visible, since it's inside the arrival window) alongside the
@@ -439,7 +548,7 @@ class DemoSeeder extends Seeder
         // wishlist + a waitlist. Demo data, like every guest row here.
         $saved = app(GuestWishlistService::class);
         $saved->saveRoom($guest1, $apartment);
-        $saved->joinWaitlist($guest1, $doubleRoom, ['check_in' => '2026-09-20', 'check_out' => '2026-09-23', 'notify_similar' => true]);
+        $saved->joinWaitlist($guest1, $doubleRoom, ['check_in' => $this->showcaseDay(20)->toDateString(), 'check_out' => $this->showcaseDay(23)->toDateString(), 'notify_similar' => true]);
 
         // Check the walk-in out → real departure-clean task via the checkout event → listener.
         app(CheckOutReservation::class)->handle($walkIn);
@@ -546,7 +655,7 @@ class DemoSeeder extends Seeder
         $taxRates = app(TaxRateService::class);
         foreach ([['accommodation_vat', 6.0], ['service_vat', 23.0]] as [$type, $pct]) {
             if (! TaxRate::query()->where('jurisdiction', 'PT')->where('rate_type', $type)->exists()) {
-                $taxRates->setRate('PT', $type, $pct, '2026-01-01', isExample: true, note: 'EXAMPLE — replace with the real rate for Portugal.');
+                $taxRates->setRate('PT', $type, $pct, $this->completedMonth(12)->toDateString(), isExample: true, note: 'EXAMPLE — replace with the real rate for Portugal.');
             }
         }
     }
@@ -861,7 +970,8 @@ class DemoSeeder extends Seeder
             'term_months' => 12,
             'notice_days' => 60,
             'auto_renews' => true,
-            'effective_from' => '2026-01-01',
+            // Must start before the oldest attributed night, i.e. before completedMonth(5) (DO-SEED-1).
+            'effective_from' => $this->completedMonth(6)->toDateString(),
             'effective_to' => null,
             'status' => 'active',
             'attribution_rules' => ['non_deductible_categories' => ['other']],
@@ -877,7 +987,7 @@ class DemoSeeder extends Seeder
             'version' => '2026 rate-card',
             'title' => '2026 rate-card & fee schedule',
             'summary' => 'Updated management fee for the 2026 season.',
-            'effective_date' => '2026-10-01',
+            'effective_date' => $this->showcaseMonth()->addMonth()->toDateString(),
             'new_terms' => ['commission_pct' => 17.00],
             'status' => AgreementAmendment::STATUS_PUBLISHED,
         ]);
@@ -900,7 +1010,7 @@ class DemoSeeder extends Seeder
 
         // A second apartment stay so the statement aggregates more than one booking (real, via services).
         $aptGuest = Guest::create(['first_name' => 'Demo', 'last_name' => 'Resident', 'email' => 'demo.resident@vyrobel-demo.test', 'phone' => '+351910000004', 'nationality' => 'IE']);
-        $aptStay = $this->createDemoStay('direct', $property, $apartment, $aptRate, $aptUnits[1], $aptGuest, '2026-09-14', '2026-09-17', $vat, fullyPaid: true);
+        $aptStay = $this->bookAptStayNear($this->showcaseDay(14), 3, $property, $apartment, $aptRate, $aptUnits[1], $aptGuest, $vat);
 
         // Attribute the owner's bookings → immutable owner_ledger (derived, read-only over folios).
         $attribution = app(OwnerAttributionService::class);
@@ -918,7 +1028,7 @@ class DemoSeeder extends Seeder
         // September statement = pure projection of the ledger; finalize (locks), then create the payout,
         // left PENDING — the common "statement finalized, payout not yet sent" state the portal showcases.
         $statements = app(OwnerStatementService::class);
-        $draft = $statements->generateDraft($ownerParty->id, '2026-09-01', '2026-09-30');
+        $draft = $statements->generateDraft($ownerParty->id, $this->showcaseMonth()->toDateString(), $this->showcaseMonth()->endOfMonth()->toDateString());
         $finalized = $statements->finalize($draft);
         app(OwnerPayoutService::class)->createFromStatement($finalized);
 
@@ -966,21 +1076,31 @@ class DemoSeeder extends Seeder
         $statements = app(OwnerStatementService::class);
         $payouts = app(OwnerPayoutService::class);
 
-        // month · nightly (minor) · check-in day · nights — deterministic, varied nets; alternating apartment,
-        // well within the month and clear of the (future-dated) analytics-history window, so no collision.
+        // months-back · nightly (minor) · check-in day · nights — deterministic, varied nets; alternating
+        // apartment, well within the month.
+        //
+        // ⚠️ THE MONTHS ARE RELATIVE AND ALREADY COMPLETE (DO-SEED-1). They used to be the literals
+        // '2026-04'…'2026-08' beside a comment claiming they were "clear of the (future-dated) analytics-history
+        // window, so no collision". That was true when written and became FALSE as today advanced: on
+        // 2026-08-12 the analytics stay at today+3 sat inside the "past" August window (14–18 Aug) on the same
+        // apartment, and this loop — which, unlike the accrual, has no forward-scan — aborted the whole seed.
+        // Reading `completedMonth()` makes the collision impossible rather than unlikely: a month that has ended
+        // is strictly before today, and every colliding booking is dated today-or-later.
         $plan = [
-            ['2026-04', 18000, 6, 3],
-            ['2026-05', 20000, 9, 4],
-            ['2026-06', 19000, 12, 3],
-            ['2026-07', 21000, 5, 3],
-            ['2026-08', 22000, 14, 4],
+            [5, 18000, 6, 3],
+            [4, 20000, 9, 4],
+            [3, 19000, 12, 3],
+            [2, 21000, 5, 3],
+            [1, 22000, 14, 4],
         ];
 
-        foreach ($plan as $i => [$ym, $nightly, $day, $nights]) {
-            $checkIn = CarbonImmutable::parse($ym.'-'.str_pad((string) $day, 2, '0', STR_PAD_LEFT));
+        foreach ($plan as $i => [$monthsBack, $nightly, $day, $nights]) {
+            $month = $this->completedMonth($monthsBack);
+            $ym = $month->format('Y-m');
+            $checkIn = $month->addDays($day - 1);
             $checkOut = $checkIn->addDays($nights);
             $unit = $aptUnits[$i % $aptUnits->count()];
-            $periodEnd = CarbonImmutable::parse($ym.'-01')->endOfMonth()->toDateString();
+            $periodEnd = $month->endOfMonth()->toDateString();
 
             // Seed the past-month rate calendar + availability so the real booking has a real nightly price
             // (the demo calendar only spans today→+180d, so past months need their own window).
@@ -1035,7 +1155,7 @@ class DemoSeeder extends Seeder
             // succeed). Scan forward within October for the first range this unit is free. The economics
             // (nightly × nights) — and thus the Available figure — are date-independent, so the shift is inert.
             for ($d = $day; $d <= 27; $d++) {
-                $checkIn = CarbonImmutable::parse('2026-10-'.str_pad((string) $d, 2, '0', STR_PAD_LEFT));
+                $checkIn = $this->showcaseMonth()->addMonth()->addDays($d - 1);
                 $checkOut = $checkIn->addDays($nights);
 
                 $this->seedCalendarRange($aptRate, $nightly, $checkIn->toDateString(), $checkOut->toDateString());
@@ -1076,12 +1196,15 @@ class DemoSeeder extends Seeder
         // stable; the LAST row is left PENDING APPROVAL (approve = false, deductible) so the demo shows a real
         // "Needs your approval" decision + the matching attention item. Flagged demo data.
         $rows = [
-            [$a1, 'cleaning', 'Deep clean after a long stay', 'SparkleCo Cleaning', 7000, '2026-09-16', true],
-            [$a1, 'other', 'Welcome supplies restock', 'Lisbon Supplies Ltd', 9500, '2026-08-14', true],
-            [$a2, 'other', 'Garden & pool upkeep', 'GreenLeaf Grounds', 28000, '2026-09-02', true],
-            [$a2, 'cleaning', 'Deep clean (pre-agreement period)', null, 12000, '2025-12-20', true],
+            // ⚠️ Dates are relative (DO-SEED-1). The fourth row must fall BEFORE the agreement's effective_from
+            // — that is what makes its deductibility resolve to NULL ("Pending review"), so it is anchored two
+            // months before the agreement starts rather than to a literal that would drift across that boundary.
+            [$a1, 'cleaning', 'Deep clean after a long stay', 'SparkleCo Cleaning', 7000, $this->showcaseDay(16)->toDateString(), true],
+            [$a1, 'other', 'Welcome supplies restock', 'Lisbon Supplies Ltd', 9500, $this->completedMonth(1)->addDays(13)->toDateString(), true],
+            [$a2, 'other', 'Garden & pool upkeep', 'GreenLeaf Grounds', 28000, $this->showcaseDay(2)->toDateString(), true],
+            [$a2, 'cleaning', 'Deep clean (pre-agreement period)', null, 12000, $this->completedMonth(8)->addDays(19)->toDateString(), true],
             // A REAL pending-approval expense (deductible, not yet charged) — the owner decides Approve/Query.
-            [$a1, 'maintenance', 'Dishwasher repair', 'FixIt Appliances', 8400, '2026-10-05', false],
+            [$a1, 'maintenance', 'Dishwasher repair', 'FixIt Appliances', 8400, $this->showcaseMonth()->addMonth()->addDays(4)->toDateString(), false],
         ];
 
         foreach ($rows as [$unitId, $category, $description, $vendor, $minor, $date, $approve]) {
@@ -1367,19 +1490,23 @@ class DemoSeeder extends Seeder
         // — the default recompute only covers today→+180d.
         app(AvailabilityService::class)->recompute($apartment->id, $today->subDays(80)->toDateString(), $today->toDateString());
 
-        // [unitIdx, checkIn, checkOut, rating, tags, body, response|null, publishedDaysAgo, source, first, last, categories]
+        // [unitIdx, checkInDaysAgo, nights, rating, tags, body, response|null, publishedDaysAgo, source, first, last, categories]
+        // ⚠️ The stay window is DAYS AGO, not a literal date (DO-SEED-1): these anchors used absolute July/May
+        // dates while the availability they depend on (above) was already published relative to today, so they
+        // fell outside their own window as today advanced.
         // Category ratings [Cleanliness, Communication, Location, Value] — Value trends softest (the wireframe narrative).
         $specs = [
-            [1, '2026-07-08', '2026-07-11', 5, ['Spotless', 'Great pool'], 'Immaculate apartment — even better than the photos, and check-in was seamless.', 'Thank you Sofia — it was a pleasure hosting you. Come back in the autumn!', 6, 'direct', 'Sofia', 'Marino', [5, 5, 5, 5]],
-            [0, '2026-07-01', '2026-07-04', 5, ['Perfect location'], 'Perfect base for exploring the coast. The welcome guide in the pack was a real highlight.', 'Obrigado Henrik — the guide gets a summer update. See you next year!', 12, 'ota', 'Henrik', 'Larsson', [5, 5, 5, 5]],
-            [1, '2026-06-20', '2026-06-23', 5, ['Lovely touch'], 'Spotless, stylish and quiet. The welcome basket was a lovely touch.', 'Thanks Marta — so glad the little details landed.', 22, 'direct', 'Marta', 'Ribeiro', [5, 5, 4, 4]],
-            [0, '2026-05-24', '2026-05-27', 3, ['Central'], 'Great location but the dishwasher was out of action during our stay, a hassle for a family of five.', 'We’re sorry about that, Colin — it has been fully replaced, and we’ve added a mid-stay appliance check.', 48, 'ota', 'Colin', 'Doyle', [4, 4, 5, 4]],
-            [1, '2026-07-16', '2026-07-19', 5, ['Best value'], 'Honestly the best value we’ve found on this coast — we’ll be back.', null, 3, 'direct', 'Anna', 'Keller', [5, 5, 5, 5]],
+            [1, 35, 3, 5, ['Spotless', 'Great pool'], 'Immaculate apartment — even better than the photos, and check-in was seamless.', 'Thank you Sofia — it was a pleasure hosting you. Come back in the autumn!', 6, 'direct', 'Sofia', 'Marino', [5, 5, 5, 5]],
+            [0, 42, 3, 5, ['Perfect location'], 'Perfect base for exploring the coast. The welcome guide in the pack was a real highlight.', 'Obrigado Henrik — the guide gets a summer update. See you next year!', 12, 'ota', 'Henrik', 'Larsson', [5, 5, 5, 5]],
+            [1, 53, 3, 5, ['Lovely touch'], 'Spotless, stylish and quiet. The welcome basket was a lovely touch.', 'Thanks Marta — so glad the little details landed.', 22, 'direct', 'Marta', 'Ribeiro', [5, 5, 4, 4]],
+            [0, 75, 3, 3, ['Central'], 'Great location but the dishwasher was out of action during our stay, a hassle for a family of five.', 'We’re sorry about that, Colin — it has been fully replaced, and we’ve added a mid-stay appliance check.', 48, 'ota', 'Colin', 'Doyle', [4, 4, 5, 4]],
+            [1, 27, 3, 5, ['Best value'], 'Honestly the best value we’ve found on this coast — we’ll be back.', null, 3, 'direct', 'Anna', 'Keller', [5, 5, 5, 5]],
         ];
 
-        foreach ($specs as $i => [$unitIdx, $checkIn, $checkOut, $rating, $tags, $body, $response, $daysAgo, $source, $first, $last, $cats]) {
+        foreach ($specs as $i => [$unitIdx, $checkInDaysAgo, $nights, $rating, $tags, $body, $response, $daysAgo, $source, $first, $last, $cats]) {
             $guest = Guest::create(['first_name' => $first, 'last_name' => $last]);
-            $stay = $this->createDemoStay($source, $property, $apartment, $aptRate, $aptUnits[$unitIdx], $guest, $checkIn, $checkOut, $vat, fullyPaid: true);
+            // Scans forward for a free window — the statement-history stays share these apartments.
+            $stay = $this->bookAptStayNear($today->subDays($checkInDaysAgo), $nights, $property, $apartment, $aptRate, $aptUnits[$unitIdx], $guest, $vat, $source);
             $checkout->handle($stay);   // → PAST → reviewable
 
             $review = $reviews->submit($guest, $stay->fresh(), ['rating' => $rating, 'tags' => $tags, 'body' => $body, 'categories' => [

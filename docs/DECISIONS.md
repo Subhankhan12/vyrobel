@@ -8588,3 +8588,97 @@ two, and the demo staff user with **no roles**, so `/app` is unreachable until t
 migration added here applies and rolls back cleanly against it. **Logged, not fixed — it is nobody's regression
 and it is not this build's scope, but it blocks any session that needs a demo database.**
 
+
+---
+
+## 2026-08-12 — **FIXED: `DO-SEED-1` — the demo seed's date rot, at the root** (+ two G13 ratifications)
+
+`migrate:fresh --seed` had stopped completing. Raised while verifying the support backend and **proven
+pre-existing** there by stashing and re-running on a clean tree. Full record: **§DO-SEED-1** in
+`docs/design/MISSING-BACKEND-BY-PAGE.md`.
+
+⚠️ **THE ROOT CAUSE, WALKED TO RATHER THAN INFERRED.** The seeder mixed **two date systems**: a today-RELATIVE
+forward window (the arriving-tomorrow stay, the terminal pair, the whole analytics spread) and an **ABSOLUTE**
+calendar (the showcase stays on `2026-09-xx`, five "past" statement months `2026-04`…`2026-08`, an October
+accrual, the reviews, the expenses, the agreement dates). They were disjoint **on the day they were written** —
+and `seedOwnerStatementHistory` carried a comment saying exactly that: *"clear of the (future-dated)
+analytics-history window, so no collision"*. Time walked the relative window into the absolute one and the
+comment became false. The precise collision, from the stack: the "past" **August** statement stay on **14–18
+Aug**, apartment **A1**, against the analytics entry at **today+3 = 15 Aug** on the same apartment. Analytics
+runs first and *tolerates* collisions; the statement history is **strict**, so it aborted the whole seed.
+
+⚠️ **AND THE CODEBASE HAD ALREADY MET THIS EXACT FAILURE ONCE.** `seedOwnerBalanceAccrual` carries a
+*"ROBUST TO DATE-DRIFT"* forward-scan added for the identical reason. **The rot was known and defended in one
+place out of two** — the other had a comment instead of a guard. *A comment is not a defence; it is a claim that
+goes stale (§N.8b) exactly where the guard was missing.*
+
+**THE FIX IS AN ANCHOR, NOT A BUMPED DATE.** Three helpers now derive every formerly-absolute date:
+`thisMonth()`, `showcaseMonth()/showcaseDay()` (the NEXT full month — so the showcase stays are upcoming on any
+run day, which is what keeps the **#33** withheld-door-code demo honest) and **`completedMonth(n)`** (a month
+that has already ENDED). The statement history reads the last of these, which makes its collision
+**structurally impossible**: a finished month is strictly before today, and every colliding booking is dated
+today-or-later. Also re-anchored: the waitlist, the agreement `effective_from` (now provably before the oldest
+attributed night), the pending amendment, the accrual month, the example tax rate, the owner expenses (including
+the **pre-agreement** row whose whole purpose is to fall before `effective_from`), and the review anchors —
+which held absolute July/May dates while the availability they depend on was already published relative to today.
+One shared `bookAptStayNear()` scans forward for a free window for the two stays created *after* the tolerant
+analytics pass, and **throws rather than skips**: a demo that quietly loses half a statement's net is worse than
+one that fails loudly. It replaced the accrual's private copy of the same idiom (§N.8f).
+
+**WHAT THE SEED NOW PRODUCES, VERIFIED:** **2 properties** (was 1) · the demo staff user **with its `Hotel
+Manager` role** (was roleless) · 41 reservations · **6 owner statements** — five `paid` in completed months, one
+`finalized` for the showcase month. `/app` renders as `demo-staff` **straight from a clean seed with no
+hand-provisioning**; the manual role assignment the support-backend build needed is gone. ⚠️ Not to be
+mis-read: `demo-staff` is a Hotel Manager and by design does **not** hold `properties.manage`, so `/app/settings`
+still needs a `Property Owner` — the role catalogue working, not a seed defect.
+
+**GUARDED** by `DemoSeedDateRobustnessTest` (7 tests / 25 assertions): the end state, the **structural** property
+(every `paid` statement covers a month that has ended; the `finalized` one is next month), a
+no-hardcoded-calendar-date grep with comments stripped, and **the seed run at four time-travelled dates** — a
+month end, a year boundary, a leap day and 2031.
+
+⚠️ **THE TIME-TRAVEL CASE IS WHAT MAKES THIS A ROOT FIX RATHER THAN A PATCH.** A test asserting only "the seed
+passes today" would have been green every single day before this broke. **Mutation-proven:** restoring the
+original `'2026-08-01'` literal turns **6 of 7 red** — and the seventh, the 2031 date, legitimately still
+passes, because a literal that far in the past no longer collides. *One date would not have caught it.*
+
+⚠️ **AND THE STANDING CLAIM ITSELF WAS THE LESSON.** Every dated entry in this log saying *"`migrate:fresh
+--seed` clean"* was true on its date. *"The seed is clean"* is a statement about **a day**; only a date-robust
+seed plus a time-travelling guard makes it a statement about the code. The RESUME now says so.
+
+⚠️ **HONEST NOTE ON THE FIGURES.** On this run the showcase statement's net is **€885.60** — the figure the
+record has always carried. It is **not structurally pinned**: a drifting analytics stay can fall inside the
+showcase month on some run days. Every figure stays REAL and reconciling (#17), so the guard asserts the
+statement **shape**, never the constant.
+
+### Ratified the same day — the G13 tail
+
+- **`DO-G13-2` · Guest Documents → DEFER.** Ratified as recommended. The rollup already lives on
+  `/guest/payments` (a ratified location divergence); building a second hub would reopen it.
+- **`DO-G13-3` · Guest Referral → DON'T-BUILD (#39).** Ratified as recommended. Five subsystems are absent,
+  including a **new guest-creation path** — a security-posture change, not a page.
+
+⚠️ Both are now **decisions, not recommendations**, and neither is a gap. With `DO-G13-1` built in both halves,
+**the whole G13 set is closed.**
+
+### Recorded, not acted on — `DO-EMAIL-9`
+
+The founder leans **RESTRUCTURE, not reword**: change the shared email layout's default service line and audit
+which templates then need their own, rather than the per-template override `DO-EMAIL-3` used. Noted in the
+register against `DO-EMAIL-9` so the next session builds against it. **Nothing was changed here.**
+
+**BASELINE — and it MOVED, downward.** Suite **1931 / 12,745**, **7 non-green** (`BookingImportTest` ×6 ·
+`OwnerUnitDetailViewTest` ×1). It was **9**: the two `StubViewsTest` failures were `UnitUnavailableException::
+occupied` — **the same collision this entry fixes** — and are now green, verified in isolation (3/3) rather than
+inferred from the total. PHPStan L5 (0); Pint clean.
+
+⚠️ **TWO SELF-INFLICTED FALSE REDS ON THE WAY, both worth recording** (they extend §N.13.2's false-RED family
+with a fifth and sixth source — *the environment*, not the file or the cache):
+1. **A CONCURRENT TEST DATABASE.** Running the new seed guard while the full suite was still running produced
+   six `SQLSTATE[40001]` **deadlocks** on the `permissions` table. Nothing was wrong with the guard; two
+   processes were provisioning roles into one `vyrobel_test`. **Run the guard alone** — it is 7/7.
+2. **`MAIL_MAILER=log` ON THE SUITE.** Set out of habit (Mailpit is not running locally), it turned
+   `MailTransportSafetyTest` red — a test whose entire job is to assert the suite runs on a non-sending
+   transport. **The override broke the very guard that exists to catch it.** The baseline above is a clean run
+   with no overrides and nothing else touching the database.
+

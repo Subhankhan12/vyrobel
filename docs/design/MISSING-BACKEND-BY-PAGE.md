@@ -7907,11 +7907,11 @@ below; this is the priority index.*
 
 | kind | items |
 |---|---|
-| 🔴 **LIVE §N.8d — a false claim shipping today** | ⚠️ **`DO-EMAIL-9`** — `owner-email-change` tells an owner changing their **login email** *"You're receiving this because it relates to your booking with us."* A security notification asserting something untrue. ⚠️ **And the scope is unknown**: every account/security template extending the shared layout inherits that default (§N.14.8). **Arguably the first thing the backend phase touches.** |
+| 🔴 **LIVE §N.8d — a false claim shipping today** | ⚠️ **`DO-EMAIL-9`** — `owner-email-change` tells an owner changing their **login email** *"You're receiving this because it relates to your booking with us."* A security notification asserting something untrue. ⚠️ **And the scope is unknown**: every account/security template extending the shared layout inherits that default (§N.14.8). **The first thing the backend phase touches.** ⚠️ **FOUNDER DIRECTION (2026-08-12): RESTRUCTURE, not reword** — change the shared layout's default service line and audit which templates then need their own, rather than overriding per-template as `DO-EMAIL-3` did. The per-template override stays available for genuine exceptions; it is no longer the default answer. |
 | 🎨 **token / consistency** | **`DO-EMAIL-4`** — `--vy-amber-text` defined **twice with different values** (guest `rgb(126,88,17)` vs owner `rgb(128,76,5)`); until reconciled, "map it to the token" is ambiguous (§N.14.9) · **`DO-EMAIL-8`** — the layout's footer-override slot is misnamed `unsubscribe` · **`DO-EMAIL-7`** — `--vy-hk-ooo` shares the pre-AA grey as a status **fill** (a design decision, not a contrast fix) |
 | 🔍 **coverage re-audit** (the §N.14.1 bound) | ⚠️ **`DO-EMAIL-5`** — a **full operator/owner contrast re-audit**, run **across every role that can reach each surface**. A fourth grey (`.vy-inv-lbl #9C9089`, 2.84 — every form label in the invite modal) was found *the moment one pass looked past its scope*; the role-coverage bound says more permission-gated surfaces exist. |
 | 🧱 **structural** | **`DO-EMAIL-6`** — two genuine standalone **web pages** (`billing/feature-locked`, `auth/login-approval*`) carry their own `<style>`, cannot reach `--vy-*`, and therefore hold literals that will not follow a future retune |
-| ⚖️ **awaiting a FOUNDER RULING** | **`DO-G13-2`** (Guest Documents → **DEFER** — the rollup already exists on `/guest/payments`, three hops from a PDF) and **`DO-G13-3`** (Guest Referral → **DON'T-BUILD**, #39 — five subsystems absent, incl. open self-signup which is itself a ratified refusal). ⚠️ These are **recommendations, not decisions** — exactly the state `DO-G13-1` was in before the founder split it. |
+| ✅ **RATIFIED — no longer open** | **`DO-G13-2`** (Guest Documents) → **DEFER** and **`DO-G13-3`** (Guest Referral) → **DON'T-BUILD** (#39) were **ratified by the founder on 2026-08-12**, as recommended. ⚠️ They are now **decisions, not recommendations**: neither is built, and neither is a gap. ⚠️ A future session must not "finish" either — the Documents rollup already lives on `/guest/payments` (a ratified location divergence), and the referral programme's five missing subsystems include a **new guest-creation path**, which is a security-posture change, not a page. With `DO-G13-1` built, **the whole G13 set is closed.** |
 | 📞 **channel verification** | **`DO-SUP-1`** 🆕 — the support number renders as a **telephone only**. A WhatsApp affordance would assert a channel nothing verifies (#39); it needs a deliberate operator flag or a verification step. See §SUPPORT-BACKEND. |
 | 🏷 **verdict / naming** | **`DO-STAR-1`** — the owner Messages *"Starred"* SVGs still use `#E8A63A`. ⚠️ **A BOOKMARK, not a rating** — do not conflate it with the rating star or fold it into `DO10-4`; its state is also carried by a visible count. A design call. |
 
@@ -7999,17 +7999,82 @@ would not catch.
 
 ---
 
-## 🚩 `DO-SEED-1` — `migrate:fresh --seed` currently ABORTS (pre-existing, found 2026-08-12)
+## ✅ `DO-SEED-1` — the demo seed's date rot · **CLOSED** (2026-08-12)
 
-`DemoSeeder` dies part-way on a `UnitUnavailableException` — a **date-coupled collision** between demo stays
-(the seeder books today-relative windows, and two of them now overlap on one unit). **Proven pre-existing** by
-stashing the support-backend build and re-running on a clean tree, where it fails identically with a different
-ULID (§N.14.5 — establish which reading is broken before rewriting the record).
+**Raised** while verifying the support backend: `migrate:fresh --seed` aborted on a `UnitUnavailableException`,
+**proven pre-existing** by stashing that build and re-running on a clean tree. **Now fixed at the root.**
 
-**What it leaves behind:** a half-seeded demo org — **one property instead of two**, and the demo staff user
-with **no roles at all**, so `/app` is unreachable until they are provisioned by hand. The guest side survives
-(the traveller keeps three reservations).
+### ⚠️ The root cause, verified rather than assumed
 
-⚠️ **Consequence for the record:** the standing claim *"`migrate:fresh --seed` clean"* in `PROJECT-STATE.md` is
-**stale as of today's date** — it was true when written and is not now. Not fixed here (out of scope, and not
-this build's regression), but it blocks any session that needs a working demo database, which is most of them.
+The seeder mixed **two date systems**:
+
+| system | examples |
+|---|---|
+| today-**RELATIVE** | the arriving-tomorrow stay (`today+1`), the past checked-out stay (`today-14`), the cancelled/no-show pair (`today+40/+44`), the whole analytics spread (`today+2 … +132`) |
+| **ABSOLUTE** calendar | the showcase stays (`2026-09-05/06/10`), five "past" statement months (`2026-04`…`2026-08`), an October accrual, the reviews (`2026-05`…`2026-07`), the expenses, the agreement dates |
+
+They were disjoint **on the day they were written** — and `seedOwnerStatementHistory` carried a comment saying
+so: *"well within the month and clear of the (future-dated) analytics-history window, so no collision"*.
+
+As real time advanced the relative window slid into the absolute one and that comment became **false**. The exact
+collision, located by walking the stack rather than inferring it: `DemoSeeder.php:990` →
+`seedOwnerStatementHistory` booking the "past" **August** month on **14–18 Aug** on apartment **A1**, against the
+analytics entry at **`today+3` = 15 Aug** on the same apartment. Because analytics runs first and *tolerates*
+collisions (`catch { continue; }`) while the statement history is **strict**, the history aborted the seed.
+
+⚠️ **The codebase had already met this exact failure once.** `seedOwnerBalanceAccrual` carries a
+*"ROBUST TO DATE-DRIFT"* forward-scan added for the identical reason. That was a guard on one symptom; the
+statement history had only the comment. **The rot was known, and defended in one place out of two.**
+
+### The fix — an anchor, not a bumped date
+
+Every formerly-absolute date now derives from one of three helpers, so the demo is valid on **any** run day:
+
+- **`completedMonth(n)`** — a month that has already ENDED. The statement history's five months read from this,
+  which makes the collision **structurally impossible**: a finished month is strictly before today, and every
+  colliding booking is dated today-or-later. *This is the actual fix.*
+- **`showcaseMonth()` / `showcaseDay(d)`** — the NEXT full month, so the showcase stays and the
+  "finalized statement, payout not yet sent" period are always genuinely upcoming. That is what keeps the
+  **#33** demo honest (a far stay whose door code is still withheld, beside the arriving-tomorrow one).
+- **`thisMonth()`** — the anchor both derive from.
+
+Also re-anchored: the waitlist, the agreement `effective_from` (now provably before the oldest attributed
+night), the pending amendment, the accrual month, the example tax rate, the owner expenses (including the
+**pre-agreement** row, which must fall before `effective_from` for its deductibility to resolve to NULL), and the
+review stays — which had absolute July/May dates while the availability they depend on was already published
+relative to today.
+
+**One shared helper, `bookAptStayNear()`**, scans forward for a free window and is used by the showcase apartment
+stay and the review anchors — both created *after* the tolerant analytics pass has claimed forward inventory.
+It **throws rather than skips** if it cannot place a stay: a demo that quietly loses half a statement's net is
+worse than one that fails loudly (§N.8f — it replaced the accrual's private copy of the same idiom).
+
+### What the seed now produces (verified, not assumed)
+
+**2 properties** (was 1) · the demo staff user **with its `Hotel Manager` role** (was roleless) · **41
+reservations** · **6 owner statements** — five `paid` in completed months, one `finalized` for the showcase
+month. `/app` is reachable as `demo-staff` **straight from a clean seed, with no hand-provisioning** (the
+support-backend build had to assign roles by hand to drive its browser pass; that step is gone).
+
+⚠️ **One nuance worth not mis-reading:** `demo-staff` is a **Hotel Manager**, which by design does **not** hold
+`properties.manage` — so `/app/settings` still needs a `Property Owner`. That is the role catalogue working, not
+a seed defect.
+
+### 🔒 Guard — `tests/Feature/DemoSeedDateRobustnessTest.php` (7 tests / 25 assertions)
+
+The end state (both properties, the staff role, the statement shape) · the **structural** property (every `paid`
+statement covers a month that has already ended; the `finalized` one is next month) · a **no-hardcoded-calendar-
+date** grep over the source with comments stripped · and the load-bearing one: **the seed runs at four
+time-travelled dates** — a month end, a year boundary, a leap day, and 2031.
+
+⚠️ **The time-travel case is what distinguishes a root fix from a patch.** A test asserting only "the seed
+passes today" would have been green every day before this broke. **Mutation-proven:** restoring the original
+`'2026-08-01'` literal for the last history month turns **6 of 7 red**. ⚠️ Note the seventh — the 2031 date —
+legitimately still passes, because a literal that far in the past no longer collides. *One date would not have
+caught it; that is why the guard travels to several.*
+
+⚠️ **Honest note on the figures.** On this run the showcase statement's net is **€885.60**, matching the figure
+the record has always carried. It is **not structurally pinned**: a drifting analytics stay can land inside the
+showcase month on some run days and be swept into it. Every figure remains REAL and reconciling (#17); the guard
+therefore asserts the statement **shape**, never a constant.
+
