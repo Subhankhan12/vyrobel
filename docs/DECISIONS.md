@@ -8794,3 +8794,54 @@ token can diverge this way and nothing but a test stops the next one. A shared t
 but it must preserve the 7 deliberate per-shell overrides rather than flatten them, which makes it a refactor
 across three shells, not a contrast item.
 
+
+---
+
+## 2026-08-12 — **`DO-EMAIL-5` (partial) + `DO-EMAIL-6` (closed): the role-coverage re-audit**
+
+§N.14.1 said a contrast pass is bounded by the ROLE it runs as. This turns that into a **procedure**: enumerate
+the roles → identify which ones prior passes ran as → **diff** to get the permissions they lack → grep the
+markup gated on those → render as a role that passes the gate, force the conditional on top of it, sample.
+Step 3 is what makes it tractable: the target was **6 permissions / 12 gated blocks**, not "everything as
+everyone". Full record: **§ROLE-COVERAGE-RE-AUDIT**.
+
+**THE UNCOVERED ROLE was Property Owner / Group Admin** — every operator contrast pass ran as the demo Hotel
+Manager, which holds none of `users.manage`, `settings.manage`, `properties.manage`, `billing.manage`. The other
+roles hold subsets of Hotel Manager, so they expose little new markup — worth stating, because it bounds the
+audit honestly rather than leaving "all the other roles" as an open-ended debt.
+
+**FOUND, rendered live as Property Owner (anchor 5.18 on every capture):** the known `.vy-inv-lbl` **#9C9089 =
+2.80**; ⚠️ **a second grey nobody had named — `#B7ADA4` = 2.00**, worse than the known one, visible only once
+the modal was rendered by a role that could see it; and ⚠️ **the storefront filter keys at 1.77**.
+
+⚠️ **THAT THIRD ONE WIDENS THE LESSON.** Those labels are not permission-gated at all — they are public, and
+invisible because the page needs a **performed search** and the property needs filter **data**. **A surface can
+be invisible because of DATA, not only authorization or UI state.** G10 named the conditional *style*; N.14.1
+named the conditional *surface* via authorization; this is the third form. And the plate chose the token: they
+sit on the **peach gradient**, where `--vy-muted` also fails (3.98) and only `--vy-ink` clears (8.78) — the
+precedent token was the wrong answer and the measurement gave the right one.
+
+⚠️ **`DO-EMAIL-6` — PREMISE CORRECTION: the two standalone pages' TEXT was never failing.** Every literal passes
+on the worst stop of their gradient (4.86 / 5.95 / 13.12 / 8.60 / 5.90); the register's concern was
+maintainability, and that was right. **What failed was the CTA on both — white 14px on the accent gradient =
+3.08**, the same construct `DO-EMAIL-1` fixed in the emails and the guest shell already documents. Both now use
+the **solid accent (5.18)**; the gradient stays on the brand mark, which carries no text.
+
+**FIXED vs LOGGED, plainly.** Fixed deep and mutation-proven: the invite-modal cluster, the storefront keys, the
+owner-Rates twin, both CTAs — `#9C9089` and `#B7ADA4` grep to **zero** as live colours. 🚩 **Logged as
+`DO-EMAIL-5-continued`:** the remaining gated blocks (`settings.manage` ×3, `properties.manage` ×3,
+`payouts.manage`, `payments.refund`, `guests.erase` ×2) were **not** rendered as their role in this pass — plus
+the new bound, that **data-conditional surfaces have never been swept in any realm**.
+
+**GUARDED** by `RoleCoverageContrastTest` (11 / 30). ⚠️ The role-aware test is the point: it renders `/app/owners`
+as **both** a Hotel Manager and a Property Owner and asserts the invite markup is absent for the first and
+present for the second — the coverage bound demonstrated, not described, so the guard cannot silently become
+vacuous by running as the wrong role. Mutation-proven twice.
+
+⚠️ **Two guard bugs caught, both house families:** spatie's team id must be set before `can()` outside a request
+— without it *both* premise assertions pass for the wrong reason, a vacuous proof of a vacuity check; and a
+document-wide absence scan fired on a **CSS comment** in the operator layout documenting `#9C9089` while
+explaining its removal. Scoped to the CSS rule. *Written by someone who had just written that trap down.*
+
+**Contrast only** — no isolation, RBAC, data or Livewire logic touched.
+

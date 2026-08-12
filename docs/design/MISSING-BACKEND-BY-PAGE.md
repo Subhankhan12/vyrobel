@@ -8012,6 +8012,100 @@ refactor across three shells rather than a contrast item — out of scope here, 
 
 ---
 
+## §ROLE-COVERAGE-RE-AUDIT — `DO-EMAIL-5` (partial) + `DO-EMAIL-6` (closed) · 2026-08-12
+
+⚠️ **§N.14.1 turned into a repeatable audit.** The bound it names — *a contrast pass is bounded by the ROLE it
+runs as* — is useless as a slogan; this is the procedure that discharges it.
+
+### THE METHOD (reusable — the general answer to "is X fixed everywhere?")
+
+1. **Enumerate the roles and their permission sets** (`config/authorization.php`).
+2. **Identify which roles prior passes ran as.** Here: the demo **Hotel Manager** (operator) and **External
+   Owner** (owner). Everything else is uncovered.
+3. **Diff.** Compute the permissions the covered roles LACK — that set is the whole audit target, and it is far
+   smaller than "re-measure everything as everyone" (which is combinatorial and never gets done).
+4. **Grep the gated markup** for those permissions (`@can` / `@canany` / `$canX` view variables).
+5. **Render as a role that PASSES the gate**, force the conditional on top of it, pixel-sample with anchors.
+6. **Map failures to the token the PLATE requires** — not the token a sibling used.
+
+### THE ROLE MATRIX
+
+| role | covered by a prior pass? | holds |
+|---|---|---|
+| **Hotel Manager** | ✅ every operator contrast pass | 37 perms — **not** users/properties/settings/billing.manage |
+| **External Owner** | ✅ the owner passes | `owner_portal.view` |
+| **Property Owner / Group Admin** | ❌ **never rendered as** | `*` — incl. all four above |
+| Accountant · Revenue Manager · Front Desk · Reservation Agent · Housekeeping · Maintenance · Marketing · Guest Support | ❌ never | subsets of Hotel Manager (⇒ little new markup) |
+
+**The delta = markup gated on six permissions Hotel Manager lacks:** `users.manage` · `settings.manage` ·
+`properties.manage` · `payouts.manage` · `payments.refund` · `guests.erase` — **12 gated blocks across 10 views.**
+
+### WHAT THE AUDIT FOUND (rendered live as **Property Owner**, anchor 5.18 on every capture)
+
+| # | surface | state forced | ink | plate | ratio | verdict |
+|---|---|---|---|---|---|---|
+| 1 | invite modal labels (`.vy-inv-lbl` ×4) | `users.manage` gate **+** Alpine `open` | `#9C9089` | `#F8F2ED` | **2.80** | ✅ FIXED → `--vy-muted` |
+| 2 | invite modal *"· optional"* | same | `#B7ADA4` | `#F8F3EF` | **2.00** | ✅ FIXED → `--vy-faint` |
+| 3 | storefront filter keys ×3 | a performed **search** | `#9C9089` | `#F2B794` | **1.77** | ✅ FIXED → `--vy-ink` |
+| 4 | owner Rates *"· optional"* | not reachable in demo | `#B7ADA4` | — | — | ✅ fixed **by identity** with #2 |
+
+⚠️ **#2 was never named by anyone** — the register knew only about `#9C9089`. It is the *worse* of the two
+(2.00), and it surfaced only because the pass rendered the modal as a role that could see it.
+
+⚠️ **#3 IS THE MORE INTERESTING FINDING, AND IT WIDENS §N.14.1.** Those labels are **not** permission-gated —
+they are on the PUBLIC storefront, gated on `$search['searched']` **and** on the property having filter data.
+**A surface can be invisible because of DATA, not only authorization or UI state.** G10 named the conditional
+STYLE; N.14.1 named the conditional SURFACE via authorization; this is the third: **the conditional surface via
+DATA.** And the plate decided the token — those labels sit on the **peach gradient**, where `--vy-muted` also
+fails (3.98) and only `--vy-ink` clears (8.78). *The precedent token was the wrong answer; the measurement gave
+the right one* (§N.13.4).
+
+### `DO-EMAIL-6` — the two standalone pages · **CLOSED**
+
+⚠️ **Premise correction: their TEXT was never failing.** The register's concern was maintainability (they carry
+literals because they cannot reach `--vy-*`), and that reading was right — every text literal passes on the
+worst stop of their page gradient: feature-locked `#B4400F` **4.86** · `#5F5853` **5.95** · `#2B2320` **13.12**;
+login-approval `#4A4038` **8.60** · `#7a5200` **5.90**.
+
+**What DID fail is the CTA on both: white 14px on `linear-gradient(140deg,#E8703A,#C2410C)` = 3.08** at the
+lighter stop — the same construct `DO-EMAIL-1` fixed in the emails and the guest shell already documents
+("SOLID, not `--vy-grad`"). Both now use the **solid accent, 5.18**. Gradient kept on the brand mark, which
+carries no text.
+
+### FIXED vs LOGGED — honest incompletion
+
+**FIXED (deep, mutation-proven):** the invite-modal cluster (2 values, 5 sites), the storefront filter keys, the
+owner-Rates twin, and both standalone CTAs. `#9C9089` and `#B7ADA4` grep to **zero** as live colours.
+
+**🚩 LOGGED — `DO-EMAIL-5-continued`:** the remaining gated blocks were **not** rendered as their role in this
+pass. Each needs the same treatment (render as the role · force the state · sample):
+
+| gate | views | role needed |
+|---|---|---|
+| `settings.manage` | `operator-security` ×2, `operator-settings` (org block) | Property Owner |
+| `properties.manage` | `notification-preferences`, `email-previews`, `email-templates` | Property Owner |
+| `payouts.manage` | `payout-run` | Accountant / Property Owner |
+| `payments.refund` | `reservation-detail` | Accountant / Property Owner |
+| `guests.erase` | `guests-list`, `guest-profile` | Property Owner |
+
+⚠️ Plus the third bound this pass discovered: **data-conditional surfaces across all realms have never been
+swept** — the storefront filter row is one instance found by accident, not by search.
+
+### 🔒 Guard — `tests/Feature/RoleCoverageContrastTest.php` (11 tests / 30 assertions)
+
+⚠️ **The role-aware one is the point:** it renders `/app/owners` as BOTH a Hotel Manager and a Property Owner
+and asserts the invite markup is **absent** for the first and **present** for the second — so the coverage bound
+is demonstrated, not described, and the guard cannot quietly become vacuous by running as the wrong role.
+**Mutation-proven twice** (revert the label token → red; restore the CTA gradient → red).
+
+⚠️ **Two guard bugs caught, both of the house families:** spatie's team id must be set before `can()` outside a
+request (without it BOTH premise assertions pass for the wrong reason — a vacuous "proof"); and a document-wide
+absence scan fired on a **CSS comment** in the operator layout that documents `#9C9089` while explaining its
+removal. Scoped to the CSS **rule** instead. *Written, as it happens, by someone who had just written that trap
+down.*
+
+---
+
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
 
 **This is the reconciled index of every `DO-*` item raised by the guest realm's 12 gates, the cross-realm
@@ -8069,7 +8163,7 @@ below; this is the priority index.*
 |---|---|
 | ✅ **`DO-EMAIL-9` CLOSED** (2026-08-12) | the layout's footer reason is now **DERIVED from a declared category**, so the false booking line is **unrepresentable** rather than merely removed. `owner-email-change` — the live offender — renders the truth. **`DO-EMAIL-8` closed with it** (the overloaded `unsubscribe` slot split into `footer_reason` + `footer_marketing`). See **§EMAIL-FOOTER-RESTRUCTURE**. |
 | 🎨 **token / consistency** | ~~**`DO-EMAIL-4`**~~ ✅ **CLOSED 2026-08-12** — `--vy-amber-text` unified to **`#804C05`** (§AMBER-TEXT-RECONCILIATION) · ~~**`DO-EMAIL-8`**~~ ✅ closed with `DO-EMAIL-9` · **`DO-EMAIL-7`** — `--vy-hk-ooo` shares the pre-AA grey as a status **fill** (a design decision, not a contrast fix) |
-| 🔍 **coverage re-audit** (the §N.14.1 bound) | ⚠️ **`DO-EMAIL-5`** — a **full operator/owner contrast re-audit**, run **across every role that can reach each surface**. A fourth grey (`.vy-inv-lbl #9C9089`, 2.84 — every form label in the invite modal) was found *the moment one pass looked past its scope*; the role-coverage bound says more permission-gated surfaces exist. |
+| 🔍 **coverage re-audit** (the §N.14.1 bound) | ⚠️ **`DO-EMAIL-5` — PARTIALLY CLOSED 2026-08-12** (§ROLE-COVERAGE-RE-AUDIT: method recorded, 4 failures fixed incl. two nobody had named; the remaining gated blocks logged as `DO-EMAIL-5-continued`) · ~~**`DO-EMAIL-6`**~~ ✅ **CLOSED** (its text always passed; the CTA gradient at 3.08 did not) · original entry: — a **full operator/owner contrast re-audit**, run **across every role that can reach each surface**. A fourth grey (`.vy-inv-lbl #9C9089`, 2.84 — every form label in the invite modal) was found *the moment one pass looked past its scope*; the role-coverage bound says more permission-gated surfaces exist. |
 | 🧱 **structural** | **`DO-TOKEN-1`** 🆕 — each shell re-declares the whole `--vy-*` palette, so any token can silently diverge (that is how `DO-EMAIL-4` happened). A shared token source included by all three shells is the fix; 7 tokens differ **deliberately** today, so it must preserve per-shell overrides rather than flatten them. · **`DO-EMAIL-6`** — two genuine standalone **web pages** (`billing/feature-locked`, `auth/login-approval*`) carry their own `<style>`, cannot reach `--vy-*`, and therefore hold literals that will not follow a future retune |
 | ✅ **RATIFIED — no longer open** | **`DO-G13-2`** (Guest Documents) → **DEFER** and **`DO-G13-3`** (Guest Referral) → **DON'T-BUILD** (#39) were **ratified by the founder on 2026-08-12**, as recommended. ⚠️ They are now **decisions, not recommendations**: neither is built, and neither is a gap. ⚠️ A future session must not "finish" either — the Documents rollup already lives on `/guest/payments` (a ratified location divergence), and the referral programme's five missing subsystems include a **new guest-creation path**, which is a security-posture change, not a page. With `DO-G13-1` built, **the whole G13 set is closed.** |
 | 📞 **channel verification** | **`DO-SUP-1`** 🆕 — the support number renders as a **telephone only**. A WhatsApp affordance would assert a channel nothing verifies (#39); it needs a deliberate operator flag or a verification step. See §SUPPORT-BACKEND. |

@@ -44,7 +44,11 @@
             .vy2-seg span { display: inline-block; padding: 6px 13px; border-radius: var(--vy-r-pill); font-size: 11.5px; font-weight: 500; color: var(--vy-muted); cursor: pointer; }
             .vy2-seg input:checked + span { background: #fff; color: var(--vy-ink); box-shadow: 0 1px 3px rgba(60,30,10,.1); font-weight: 600; }
             .vy2-filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 2px 14px; }
-            .vy2-filter-k { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #9C9089; margin-right: 2px; }
+            .vy2-filter-k { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-ink); margin-right: 2px; }
+            /* DO-EMAIL-5: was #9C9089 = 1.77. ⚠️ These labels sit on the PEACH GRADIENT, not a card — which is
+               why --vy-muted (3.98) and --vy-faint also fail here and --vy-ink (8.78) is the only passing token
+               this shell offers. The hierarchy is carried by the 11px uppercase weight, not by the colour.
+               ⚠️ The public shell has no --vy-on-grad token the way the owner/operator shells do (§N.4i) — logged. */
             .vy2-pill { position: relative; }
             .vy2-pill input { position: absolute; opacity: 0; pointer-events: none; }
             .vy2-pill span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: var(--vy-r-pill); background: rgba(120,70,40,.06); color: var(--vy-muted); border: 1px solid transparent; font-size: 12px; font-weight: 500; cursor: pointer; }

@@ -186,7 +186,7 @@
             .vy-inv-ico { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(140deg,#E8703A,#C2410C); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 5px 14px rgba(194,65,12,.32); }
             .vy-inv-x { width: 32px; height: 32px; border-radius: 50%; background: rgba(120,70,40,.07); border: none; color: var(--vy-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; text-decoration: none; }
             .vy-inv-x:hover { background: rgba(120,70,40,.13); }
-            .vy-inv-lbl { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #9C9089; margin-bottom: 7px; }
+            .vy-inv-lbl { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 7px; }   /* DO-EMAIL-5: was #9C9089 = 2.80 on the modal plate, measured AS a users.manage role */
             .vy-inv-inwrap { display: flex; align-items: center; gap: 8px; border: 1px solid rgba(120,70,40,.14); background: rgba(255,255,255,.75); border-radius: 14px; padding: 11px 14px; }
             .vy-inv-inwrap input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: inherit; font-size: 13.5px; color: #2B2320; padding: 0; }
             .vy-inv-seg { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: rgba(120,70,40,.06); border: 1px solid rgba(120,70,40,.10); }
@@ -277,7 +277,7 @@
                     @if (count($units) > 0)
                         <div style="margin-bottom:16px" x-show="role === 'owner'">
                             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                                <div class="vy-inv-lbl" style="margin-bottom:0">Assign units <span style="text-transform:none;letter-spacing:0;color:#B7ADA4;font-weight:400">· optional</span></div>
+                                <div class="vy-inv-lbl" style="margin-bottom:0">Assign units <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint);font-weight:400">· optional</span></div>
                                 <span style="font-size:11px;color: var(--vy-faint)" x-text="units.length === 0 ? 'None selected' : units.length"></span>
                             </div>
                             <div style="display:flex;flex-wrap:wrap;gap:8px">

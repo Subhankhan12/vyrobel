@@ -57,7 +57,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **③ THE FIRST BUILD (v10)** — **`GET /guest/help`, the guest FAQ centre** (`23bf335`), over the certified
 >   `HelpKnowledgeBase`. **Canon: §N.15.**
 >
-> **Suite 1953 / 12,867 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
+> **Suite 1964 / 12,897 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
 > `OwnerUnitDetailViewTest` ×1 — in-suite-only / an `inventory_block`; **isolate before calling anything a
 > regression**, and prove a new failure pre-existing by stashing from a CLEAN worktree — §N.14.5).
 > PHPStan L5 (0) · Pint clean.
@@ -108,9 +108,14 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   guard is scoped to this token, never a blanket "tokens must agree". 🚩 The structural root is logged as
 >   **`DO-TOKEN-1`** (each shell re-declares the palette). Record: **§AMBER-TEXT-RECONCILIATION**.
 >
-> **⬅ ① `DO-EMAIL-5` + `DO-EMAIL-6`** — the coverage re-audit (run **across every role that can reach each
->   surface**; a fourth grey was found the moment one pass looked past its scope) and the two standalone web
->   pages that cannot reach the tokens.
+> **⬅ ① `DO-EMAIL-5-continued`** — ✅ `DO-EMAIL-6` CLOSED and `DO-EMAIL-5` **partially** closed (2026-08-12,
+>   §ROLE-COVERAGE-RE-AUDIT). The **method** is now recorded and reusable: enumerate roles → diff against the
+>   roles prior passes ran as → grep the markup gated on the missing permissions → render as a role that passes
+>   the gate. It found 4 failures incl. **one nobody had named** (`#B7ADA4` = 2.00) and the storefront keys at
+>   **1.77**. ⚠️ **A THIRD COVERAGE BOUND emerged: a surface can be invisible because of DATA**, not only
+>   authorization (G10) or UI state — and data-conditional surfaces have never been swept in any realm.
+>   Remaining: the gated blocks behind `settings.manage` / `properties.manage` / `payouts.manage` /
+>   `payments.refund` / `guests.erase`, each needing a render as its role.
 >
 > **② The small items** — ✅ **THE G13 SET IS CLOSED.** `DO-G13-1` is BUILT (both halves), and on 2026-08-12 the
 >   founder **RATIFIED** `DO-G13-2` (Guest Documents → **DEFER**) and `DO-G13-3` (Guest Referral →

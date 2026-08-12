@@ -17,7 +17,7 @@
         .name{font-family:'Sora',sans-serif;font-weight:600;font-size:16px}
         h1{font-family:'Sora',sans-serif;font-size:21px;margin:0 0 8px}
         p{color:#4A4038;font-size:14px;line-height:1.55;margin:0 0 12px}
-        .btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:12px 18px;border:none;border-radius:11px;background:linear-gradient(140deg,#E8703A,#C2410C);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+        .btn{display:inline-flex;align-items:center;justify-content:center;width:100%;padding:12px 18px;border:none;border-radius:11px;background:#C2410C;color:#fff;   /* DO-EMAIL-6: 3.08 on the gradient's lighter stop -> 5.18 solid */font:inherit;font-weight:600;cursor:pointer}
         .status{background:rgba(224,146,30,.12);border:1px solid rgba(224,146,30,.3);color:#7a5200;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:14px}
         .row{display:flex;align-items:center;gap:8px;font-size:13px;color:#4A4038;margin:2px 0 14px;cursor:pointer}
         .hint{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5}

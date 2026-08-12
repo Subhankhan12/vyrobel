@@ -101,7 +101,7 @@
                             <div class="vy-rt-in"><span style="color:var(--vy-muted)">€</span><input type="text" inputmode="decimal" name="counter_rate" required placeholder="e.g. 450" maxlength="12"></div>
                         </div>
                         <div style="flex:2;min-width:180px">
-                            <div class="vy-rt-eyebrow" style="margin-bottom:6px">Note <span style="text-transform:none;letter-spacing:0;color:#B7ADA4">· optional</span></div>
+                            <div class="vy-rt-eyebrow" style="margin-bottom:6px">Note <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint)">· optional</span></div>
                             <div class="vy-rt-in"><input type="text" name="counter_note" placeholder="Why this rate" maxlength="500"></div>
                         </div>
                         <button type="submit" class="vy-rt-btn vy-rt-approve" style="background:linear-gradient(140deg,#E8703A,#C2410C)">Send counter</button>
