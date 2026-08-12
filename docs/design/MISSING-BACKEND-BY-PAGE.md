@@ -8152,6 +8152,53 @@ Mutation-proven: restoring `.is-zero { opacity: .62 }` reds 2 of 3.
 
 ---
 
+## §DO-TOKEN-1-INVENTORY — the verified palette diff (2026-08-12, read-only; the refactor NOT started)
+
+⚠️ **The refactor was not started** (see `DECISIONS.md`). What exists is the step the task says must not be
+assumed from `DO-EMAIL-4`: a **fresh full-palette diff across every shell that declares `--vy-*`**. It is
+read-only and complete, and it corrects the brief twice.
+
+### ⚠️ PREMISE CORRECTION 1 — there are **FOUR** shells, not three
+
+`components/public/shell.blade.php` (the storefront) also declares the palette, alongside guest / owner /
+operator. **`DO-TOKEN-1` is a four-shell refactor.** Anything scoped to three would leave the public storefront
+re-declaring everything — the drift root still open on the one realm that faces the public.
+
+### The inventory — 51 distinct tokens
+
+| class | count | meaning |
+|---|---|---|
+| **SHARED** (declared in >1 shell, identical) | **31** | move to the base — one definition each (§N.8f) |
+| **DIVERGENT** (declared in >1 shell, differ) | **7** | the override-or-drift decision set (below) |
+| **SINGLE-SHELL** | 13 | already unambiguous; stay with their shell |
+
+### ⚠️ PREMISE CORRECTION 2 — the 7 are not scattered; they are almost entirely **"guest is its own theme"**
+
+| token | shape | guest | owner / operator / public |
+|---|---|---|---|
+| `--vy-glass-border` | guest-only | `rgba(120,70,40,.12)` warm-dark | `rgba(255,255,255,.75)` |
+| `--vy-r-lg` | guest-only | `18px` | `20px` |
+| `--vy-r-sm` | guest-only | `9px` | `10px` |
+| `--vy-shadow` | guest-only | lighter, no inset | heavier + inset highlight |
+| `--vy-shadow-accent` | guest-only | `.28` alpha | `.30` alpha |
+| `--vy-on-grad` | **owner vs operator** | — | owner `rgb(76,66,60)` · operator `rgb(84,74,68)` |
+| `--vy-on-grad-soft` | **owner vs operator** | — | owner `rgb(82,73,67)` · operator `rgb(88,78,72)` |
+
+**Five of seven are the guest realm deviating from a consensus the other three shells already share**, and the
+remaining two are the `on-grad` pair measured **separately per shell** against each gradient (§N.4i / §N.4j).
+
+> ⚠️ **This shapes the refactor.** The base should be the owner/operator/public consensus; **guest is the one
+> shell needing a real theme-override layer**, plus an owner/operator `on-grad` pair. That is a much smaller and
+> more honest structure than "three shells each with overrides" — and it means the override layer has a
+> *reason a designer would recognise* (the guest realm is deliberately softer and rounder), not seven unrelated
+> exceptions.
+
+⚠️ **No token was reclassified and no value was touched.** Whether each of the 7 is a deliberate override still
+needs its per-token design justification confirmed before the base is built — `--vy-amber-text` looked exactly
+like these until it was measured and turned out to be drift.
+
+---
+
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
 
 **This is the reconciled index of every `DO-*` item raised by the guest realm's 12 gates, the cross-realm

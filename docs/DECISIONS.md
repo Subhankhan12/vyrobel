@@ -8925,3 +8925,31 @@ consistent at **1967 / 12,917 with 7 non-green**, and the record states plainly 
 drift; `DO-EMAIL-5` is marked **PARTIAL** with its remainder logged; `--vy-amber-text` is single-valued; the
 footer is keyed; billing is still flagged open.
 
+
+---
+
+## 2026-08-12 — **`DO-TOKEN-1`: the verified palette inventory** (read-only; the refactor NOT started)
+
+⚠️ **The refactor was not started, deliberately.** It relocates every token declaration in the product and its
+central obligation is *proving* no visual change across every shell; begun without room to finish that proof it
+would leave rendering silently broken product-wide. Not started is the correct state; half-applied is not.
+
+**What was done instead — the step the brief says must not be assumed:** a fresh full-palette diff.
+Record: **§DO-TOKEN-1-INVENTORY**. It corrects the brief twice.
+
+⚠️ **1 — THERE ARE FOUR SHELLS, NOT THREE.** `components/public/shell.blade.php` also declares the palette.
+A three-shell refactor would leave the **public storefront** re-declaring everything — the drift root still open
+on the one realm facing the public.
+
+⚠️ **2 — THE 7 DIVERGENCES ARE ALMOST ENTIRELY "GUEST IS ITS OWN THEME".** Five of seven are the guest realm
+deviating from a consensus the other three shells already share (glass-border, both radii, both shadows); the
+other two are the `--vy-on-grad` pair, owner vs operator, measured separately per gradient (§N.4i/§N.4j).
+**This shapes the refactor**: the base is the owner/operator/public consensus, **guest is the one shell needing a
+real override layer**, plus that on-grad pair. Smaller and more honest than "three shells with overrides" — and
+the override layer then has a reason a designer would recognise, not seven unrelated exceptions.
+
+**Totals:** 51 distinct tokens — **31 shared** (identical across shells, the base) · **7 divergent** · 13
+single-shell. No token was reclassified and **no value was touched**. ⚠️ Each of the 7 still needs its design
+justification confirmed before the base is built: `--vy-amber-text` looked exactly like these until it was
+measured and turned out to be drift.
+
