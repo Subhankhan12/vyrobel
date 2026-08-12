@@ -6299,7 +6299,7 @@ replace:
 defect**: `livewire/owner/unit-detail.blade.php:338` renders
 `str_repeat('★', (int) round((float) $reviews['average']))` — **`round()`, so a 4.6 average shows FIVE filled
 stars.** That is the Owner-26 bug in its original form, still shipping on an owner surface. Out of this gate's
-scope (owner realm) — logged as **`DO-G8-1`**, and it is the whole of what remains of DO10-4.
+scope (owner realm) — logged as **`DO-G8-1`**, and it is the whole of what remains of DO10-4. ✅ **CLOSED at the capstone (`ee6be74`) — see §STAR-CAPSTONE; ⚠️ and the coverage sweep there found FOUR further star sites this sentence did not know about (§N.14.1).**
 
 ### ⭐ (1) THE STAR DISPLAY — migrated
 
@@ -6375,12 +6375,14 @@ decides otherwise, and notes the erasure test already plants a body value. **Sur
 
 ### 🚩 LOGGED — not built
 
-- **`DO-G8-1` · `livewire/owner/unit-detail.blade.php:338` rounds a rating UP** (`round()`, so 4.6 → five
+- ~~**`DO-G8-1` · `livewire/owner/unit-detail.blade.php:338` rounds a rating UP** (`round()`, so 4.6 → five
   filled stars) — the Owner-26 defect, still live, on an owner surface. **This is all that remains of
-  DO10-4.**
+  DO10-4.**~~ ✅ **CLOSED at the capstone (`ee6be74`) — §STAR-CAPSTONE.** ⚠️ And *"all that remains"* was
+  wrong: the sweep found **four more star sites** plus **the shared component's own failing defaults**
+  (§N.14.1/§N.14.2). It was also **not colour-only** — it already emitted ★ then ☆; the defect was `round()`.
 - **`DO-G8-2` · `<x-star-rating>`'s default `color: #E8A63A` measures 2.05 on a light card** (needs 3:1).
   Passed a colour at this call site; the owner Reviews call site uses the default on its own plate and must
-  measure it. Its `emptyColor: #B9A99A` is also unmeasured here (a 5/5 rating renders no empty star).
+  measure it. Its `emptyColor: #B9A99A` is also unmeasured here (a 5/5 rating renders no empty star). ✅ **BOTH defaults have since been MEASURED and BOTH FAILED** (`#E8A63A` 2.08 / `#B9A99A` 2.25) — retargeted at the `DO10-4` capstone; see §STAR-CAPSTONE and §N.14.2.
 - **`DO-G8-3` · the review has no visible moderation timeline** — a guest sees the current status but not when
   it changes; and a `rejected` review shows "Not published" with no reason. A product call.
 
@@ -7683,8 +7685,13 @@ above — this groups them **by kind** so the backend phase can be planned again
 itself already **CLOSED**.
 
 ⚠️ **43 items were raised by the 12 gates + the PDF sweep, not the ~18 an earlier summary listed.** Verified by
-enumeration, not memory. **G13 then added 3 verdict items (`DO-G13-1/2/3`) and RETRACTED 1 (`DO-G7-2`) → 45
-live.**
+enumeration, not memory. **G13 then added 3 verdict items (`DO-G13-1/2/3`) and RETRACTED 1 (`DO-G7-2`) → 45.**
+
+⚠️ **SAVE v9 reconciliation:** the **cleanup sequence CLOSED 7** (`DO-INV-4` · `DO-EMAIL-1` · `DO-EMAIL-2` ·
+`DO-EMAIL-3` · `DO10-4`/`DO-G8-1` · `DO-G4-2` · `DO-G8-2`) and **opened 7** (`DO-EMAIL-4` … `DO-EMAIL-9`,
+`DO-STAR-1`) — see the two index blocks below. ⚠️ **Do not read the totals as a burn-down:** every pass so far
+has opened items it could only see once it started, and **§N.14.1 says more exist behind roles no pass has run
+as.** The register is a live map, not a countdown.
 
 ## ✅ CLOSED DURING THE WALK (recorded so they are not re-opened)
 
@@ -7694,7 +7701,35 @@ live.**
 | **`DO-G6-2`** · the amber tail — `saved.blade.php` the last site | **G10** (4.08 → 6.15). Grep-verified: **no `color:var(--vy-amber)` remains anywhere in the live guest realm** |
 | **`DO-G2-1`** · `rgb(70,120,60)` hand-written at ELEVEN guest call sites | the **live** sites are unified on `--vy-green-text` (G9, G10). Only the dead partial remains → `DO-G10-4` |
 | **`DO-G3-1`** · the realm-wide PDF sweep (5 guest templates + the stamp) | the **PDF-sweep gate** — 17 templates, 224 inks → 0 failures |
-| **`DO10-4` (partly)** · the ★ migration | G8 migrated the guest review + the owner hero; **G12 fixed `ReviewList::stars_off`** (it returned the FILLED glyph). ⚠️ **The remainder is `DO-G8-1` alone** |
+| **`DO10-4`** · the ★ migration | G8 migrated the guest review + the owner hero; **G12 fixed `ReviewList::stars_off`** (it returned the FILLED glyph). ~~⚠️ The remainder is `DO-G8-1` alone~~ → ✅ **FULLY CLOSED by the capstone (`ee6be74`)** — see the cleanup index below. |
+
+## ✅ CLOSED BY THE **CLEANUP SEQUENCE** (SAVE v9 · 2026-08-12 · `e869d5d`→`ee6be74`)
+
+*Five passes after the walk. Each has a full record above; this is the index, so none of them is reopened.
+The cross-pass synthesis is **§N.14** in `PROJECT-STATE.md`.*
+
+| item | closed by | record |
+|---|---|---|
+| **`DO-INV-4`** · the email-contrast sweep | `e994dc6` — 20 templates, **332 runs / 120 FAIL → 10**; ⚠️ **THREE greys, not the two the scoping note named** (it had narrowed the item past `#A99E95`, its own founding literal — §N.14.7) | **§EMAIL-SWEEP** |
+| **`DO-EMAIL-1`** · the six remaining email literals | `b940cda` — **10 FAIL → 1**; ⚠️ `#E8EDF6` was a **probe error, not a defect** (a 6-digit-hex regex could not read `color:#fff` — §N.14.6) | **§EMAIL-SWEEP-2** |
+| **`DO-G4-2`** · the pre-arrival `#8A7A6A` | `b940cda` — measured **3.72** (the register had carried it as *unmeasured* since G4) → `#5F5853` | **§EMAIL-SWEEP-2** |
+| **`DO-EMAIL-2`** · the three greys on operator/owner **web** | `d517187` — **28 occurrences / 9 files where 13 were named**; root cause **token drift**, so mapped to the **tokens**; ⚠️ **a COVERAGE gap, not an immature probe** (§N.14.1) | **§WEB-GREY-SWEEP** |
+| **`DO-EMAIL-3`** · the off-brand platform-admin email | `ac502bf` — **all 20 emails now on-brand**; a SECURITY email, so the content is proven **verbatim**; ⚠️ `@extends` is not the brand test (five templates are standalone, four on-brand) | **§ADMIN-EMAIL-BRAND** |
+| **`DO10-4` / `DO-G8-1`** · the star capstone | `ee6be74` — the **O26 defect family RETIRED**: every rating row floors, differs by GLYPH, carries one accessible name, clears **3:1 on the worst plate it renders on** | **§STAR-CAPSTONE** |
+| **`DO-G8-2`** · the component's unmeasured `emptyColor` | `ee6be74` — **measured, and BOTH defaults failed** (2.08 / 2.25): *the component everything was migrated TO drew a star you could barely see* (§N.14.2). Now `#8F5A06` / `#7A6E64` | **§STAR-CAPSTONE** |
+
+## ⬅ THE CLEANUP SEQUENCE'S **OPEN SUCCESSORS** — grouped by kind
+
+*Every one was surfaced BY a cleanup pass and deliberately not taken in it. Full rows live in their groups
+below; this is the priority index.*
+
+| kind | items |
+|---|---|
+| 🔴 **LIVE §N.8d — a false claim shipping today** | ⚠️ **`DO-EMAIL-9`** — `owner-email-change` tells an owner changing their **login email** *"You're receiving this because it relates to your booking with us."* A security notification asserting something untrue. ⚠️ **And the scope is unknown**: every account/security template extending the shared layout inherits that default (§N.14.8). **Arguably the first thing the backend phase touches.** |
+| 🎨 **token / consistency** | **`DO-EMAIL-4`** — `--vy-amber-text` defined **twice with different values** (guest `rgb(126,88,17)` vs owner `rgb(128,76,5)`); until reconciled, "map it to the token" is ambiguous (§N.14.9) · **`DO-EMAIL-8`** — the layout's footer-override slot is misnamed `unsubscribe` · **`DO-EMAIL-7`** — `--vy-hk-ooo` shares the pre-AA grey as a status **fill** (a design decision, not a contrast fix) |
+| 🔍 **coverage re-audit** (the §N.14.1 bound) | ⚠️ **`DO-EMAIL-5`** — a **full operator/owner contrast re-audit**, run **across every role that can reach each surface**. A fourth grey (`.vy-inv-lbl #9C9089`, 2.84 — every form label in the invite modal) was found *the moment one pass looked past its scope*; the role-coverage bound says more permission-gated surfaces exist. |
+| 🧱 **structural** | **`DO-EMAIL-6`** — two genuine standalone **web pages** (`billing/feature-locked`, `auth/login-approval*`) carry their own `<style>`, cannot reach `--vy-*`, and therefore hold literals that will not follow a future retune |
+| 🏷 **verdict / naming** | **`DO-STAR-1`** — the owner Messages *"Starred"* SVGs still use `#E8A63A`. ⚠️ **A BOOKMARK, not a rating** — do not conflate it with the rating star or fold it into `DO10-4`; its state is also carried by a visible count. A design call. |
 
 ## 🔴 CORRECTNESS — a user is shown something untrue or unusable
 

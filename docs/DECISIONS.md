@@ -8339,3 +8339,58 @@ twice-defined `--vy-amber-text`) flagged again, not fixed.
 `OwnerUnitDetailViewTest` remains non-green for its documented reason — a seeding `UnitUnavailableException`
 (date-coupled), **unrelated to the star**; its other 12 tests pass. Suite **1907 / 12,448**, 9 non-green = the
 documented baseline set. PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-12 — **SAVE v9: the CLEANUP CHAPTER is closed** (a memory-consolidation pass — docs only)
+
+Five passes ran after the design-parity walk closed at SAVE v8 (`e869d5d`): **`DO-INV-4`** (`e994dc6`) →
+**`DO-EMAIL-1`** (`b940cda`) → **`DO-EMAIL-2`** (`d517187`) → **`DO-EMAIL-3`** (`ac502bf`) → **`DO10-4`**
+(`ee6be74`). Each wrote its own §-record and dated entry; this SAVE adds only what emerged **across** them, plus
+the register and RESUME reconciliation. **No product code, template or test was touched.**
+
+**The canon is `PROJECT-STATE.md` §N.14**, nine syntheses, headlined by the one that changes how the next phase
+is planned:
+
+> ⚠️ **A CONTRAST/RENDER PASS IS BOUNDED BY THE ROLE IT RUNS AS.** No probe can measure markup a permission
+> check never emitted. Eleven greys sat behind `@can('users.manage')` and were **absent from the DOM** as the
+> demo operator the gates were driven as. This extends G10: *a conditional SURFACE is invisible too, and the
+> condition can be AUTHORIZATION.* **Coverage is "force every state across every role that can reach it".**
+
+The other eight: a **certified component can have un-measured defaults** (`<x-star-rating>`'s own colours
+failed 3:1 — *the thing everything was migrated to drew a star you could barely see*) · **INPUT vs DISPLAY
+changes the fix** (applying the display pattern to the email's five rating *inputs* would have introduced a
+phantom rating) · the **toolchain false-RED pair** (`php -l` **and** `view:clear`) plus **a guard vacuous
+against its own subject** (the star test asserted literals repeated from the source) · **a number that moves is
+not automatically a correction** (a scratchpad name collision, not a stale figure) · **a colour has several
+grep-forms** (13 named → 28 real; the `rgb()` form hid a whole 403 page) · **a re-scoping note can amputate an
+item's founding scope** (`DO-INV-4` had been narrowed past `#A99E95`, the literal it was raised for) · **a
+shared layout's defaults are content and can be FALSE** · **token-drift means map to the TOKEN**, with three
+measured exceptions.
+
+**State consolidated:** the grey-literal drift is CLOSED across PDFs (17 templates), emails (20 templates, all
+now on-brand, **335 runs / 0 FAIL**) and the operator/owner web screens the pass could reach (28 occurrences /
+9 files, mapped to tokens); the **O26 star defect family is RETIRED**. ⚠️ **"Closed" means closed everywhere
+this pass could REACH** — §N.14.1 is explicit that the operator/owner realms were swept only as far as the
+roles used allowed, and `DO-EMAIL-5` is the honest successor.
+
+**Register reconciled** with two index blocks: ✅ *closed by the cleanup sequence* (7) and ⬅ *the cleanup's open
+successors, grouped by kind* (7). ⚠️ **The totals are not a burn-down** — every pass opened items it could only
+see once it started.
+
+**RESUME rewritten for the BACKEND PHASE**, priority order: ⚠️ **① `DO-EMAIL-9`** — a **live §N.8d**: a security
+email telling an owner their **login-email change** *"relates to your booking with us"*, with **unknown scope**
+(it is the shared layout's default, inherited by every account/security template) and a **reword-vs-restructure
+call to surface** · ② `DO-EMAIL-4` (the twice-defined `--vy-amber-text`) · ③ `DO-EMAIL-5`/`DO-EMAIL-6` (the
+role-aware re-audit; the standalone pages) · ④ the small tail (`DO-EMAIL-7`/`8`, `DO-STAR-1` — ⚠️ a bookmark,
+not a rating) · ⑤ the backend phase proper (the full register · the 6 reopened operator a11y gates · the founder
+decisions incl. G13's three verdicts). ⛔ The billing/pricing go-live blocker (§G.1) remains open, untouched by
+both chapters.
+
+**Stale claims corrected in place** (§N.8b applied to our own record): the certified-engines list still
+described `<x-star-rating>` as having a live remnant *and* carried its pre-fix defaults; §N.13.8, the §G-8
+bullet and two runway items still read as though `DO-G8-1` were open — each now closed with a pointer, and each
+annotated where "all that remains of DO10-4" turned out to be wrong.
+
+**Recommendation: start the backend phase in a FRESH chat.** The cleanup chapter's canon is durable in §N.14
+and the register; a new session should open on the rewritten RESUME rather than inherit this one's context.

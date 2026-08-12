@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates + G13's 3 no-route VERDICTS (prototype accounting COMPLETE), plus the cross-realm PDF SWEEP (§N, §N.13, §G-13); ⬅ NEXT = THE BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates + G13's 3 no-route VERDICTS, plus the cross-realm PDF SWEEP (§N, §N.13, §G-13)** · 🏁 **AND THE CLEANUP SEQUENCE IS CLOSED — the grey drift retired across PDFs + emails + operator/owner web, all 20 emails on-brand, the O26 star defect RETIRED (§N.14, SAVE v9); ⚠️ "closed" = everywhere the pass could REACH (§N.14.1); ⬅ NEXT = THE BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -16,173 +16,87 @@ conflicts with the repo, **trust the repo** and fix this file.
      defence-in-depth-needs-per-layer-tests, the matured contrast method (freeze by COMPLETING animations),
      the §N.4k taxonomy, the five-survived/several-corrected §N.8b record, the verify-every-promise family,
      and DO10-4 reframed as CORRECTNESS. The reconciled 43-item DO-register lives at the end of
-     MISSING-BACKEND-BY-PAGE.md. ⬅ THE NEXT CHAPTER IS THE BACKEND PHASE — start it in a FRESH chat. -->
+     MISSING-BACKEND-BY-PAGE.md. -->
 
-> ### ⬅ RESUME HERE — 🏁 **THE DESIGN-PARITY WALK CHAPTER IS CLOSED. The next chapter is the BACKEND PHASE.**
-> **OPERATOR 42/42 · OWNER 32/32 · GUEST 12 gates + 3 verdicts / 32 prototypes · + the cross-realm PDF sweep
-> (17 templates + `PdfService`).** Every realm has now been walked page by page, and **every guest prototype now
-> has either a gate record or a G13 verdict**.
->
-> ⚠️ **Design-matched is NOT a11y-closed** — 6 operator items remain reopened (§N.9).
->
-> **THE RUNWAY, IN PRIORITY ORDER:**
-> ① ✅ **`DO-INV-4` — the email-contrast sweep: DONE (2026-08-12).** See **§EMAIL-SWEEP** in
->   `MISSING-BACKEND-BY-PAGE.md`. **332 text runs measured across 20 templates → 120 failing → 10.**
->   ⚠️ **TWO premise corrections:** the set is **20 templates / 20 Mailables, not 15** (15 was the count that
->   `@extends` the shared layout), and the offenders are **THREE greys, not two** — the "now SCOPED to the same
->   two greys" note had narrowed the item **past `#A99E95`, the literal `DO-INV-4` was originally raised
->   against**. `#8A8079`→`#5F5853` · `#A69A92`/`#A99E95`→`#6C645F`; old values **grepped to zero** (the single
->   residue is `owner-invite`'s Blade docblock, which does not render — re-verified 22 runs / 0 failures).
->   ⚠️ **§N.8f's best case:** ONE declaration in `emails/layout.blade.php` carried two footer lines on **15
->   emails at once** — one line fixed, fifteen corrected. The two `auth/login-approval*` screens were measured
->   with the SCREEN instrument (a **pixel sample**: the translucent card over its gradient resolves to
->   `#FEFAF6`; `.hint` 3.71 → 6.72) — and one of the two was a **DEAD declaration**, recorded as a trap removal,
->   not as a fix. Guarded + **mutation-proven** (`EmailContrastSweepTest`, 4/34). **No content changed —
->   proven**: re-rendered and diffed hex-normalised, **19/19 byte-identical**, the only delta being the hexes.
->   ⚠️ **CLOSED ≠ the emails are AA-clean** — and the follow-up ran the same day:
->   **`DO-EMAIL-1` ✅ CLOSED (§EMAIL-SWEEP-2): 10 failing runs → 1.** All six re-measured on their own plates
->   (all failed) and mapped: `#8A7A6A`→`#5F5853` (**this closes `DO-G4-2`**, carried as *unmeasured* since G4) ·
->   `#B26A08`→`#7E5811` (the raw `--vy-amber` **fill** used as **text** → the guest `--vy-amber-text` VALUE,
->   inlined) · `#9A8C7F`/`#9C9089`→`#5F5853` · `#64748B`→`#94A3B8` ⚠️ **lighter, not darker — it is
->   light-on-dark, where the reflex to darken makes it worse** · the CTA **gradient** stops darkened after a
->   **pixel sample** (white **3.08 → 5.19** on the lightest rendered pixel; the gradient is *preserved*, unlike
->   the invite email which had to drop to a solid). ⚠️ **`#E8EDF6` was a PROBE ERROR, not a defect** — the
->   button declares `color:#fff` and the probe's 6-digit-hex regex made the run inherit its parent's colour;
->   `#E8EDF6` renders at 14.65 and always passed. *The instrument named the wrong colour while pointing at the
->   right pixel.* ⚠️ **The ★ `#E8A317` (2.14) is deliberately EXCLUDED → `DO10-4`** — a **colour-only rating
->   signal**, where darkening the hex changes the number without fixing the defect. **It is the ONE remaining
->   failing run in the email set.** New: **`DO-EMAIL-4`** — `--vy-amber-text` is **defined twice with different
->   values** (guest `rgb(126,88,17)` vs owner `rgb(128,76,5)`), the §N.8f shape.
->   **`DO-EMAIL-3` ✅ CLOSED (§ADMIN-EMAIL-BRAND) — and it INVERTS the contrast sweeps:** there, contrast-only
->   with the content proven byte-identical; here the **wrapper** changes and the **content is inviolable**,
->   because `admin-email-change` is a **security email**. It now extends the shared layout like its sibling
->   `owner-email-change` (the identical job in the owner realm, already on-brand — the whole argument for the
->   fix). ⚠️ **Premise correction: `@extends` is NOT the brand test** — **five** templates are standalone and
->   **four of them are on-brand**; this one was off-brand by **palette** (dark slate/indigo). Every security
->   sentence proven **verbatim**, exactly one href, the warning still under the CTA — **mutation-proven three
->   ways**. The three security claims **verified REAL** against `AccountController` (`now()->addHour()`;
->   `pending_email` parked until verify). Contrast re-verified: **12 runs, 0 FAIL**; the set is 335 runs / 1
->   FAIL (the ★).
->   ⚠️ **It also superseded part of `DO-EMAIL-1`** — that pass darkened this email's indigo CTA gradient; the
->   gradient is now gone in favour of the layout's bulletproof solid `#C2410C`, so the sweep test's gradient
->   assertion is **structurally vacuous for that file** (O32) and the real invariant moved into the new guard.
->   New: **`DO-EMAIL-8`** (the layout's footer slot is misnamed `unsubscribe`) · ⚠️ **`DO-EMAIL-9` — a §N.8d
->   FALSE line on a security email:** the sibling `owner-email-change` tells an owner changing their LOGIN
->   EMAIL *"You're receiving this because it relates to your booking with us."* **Check every account/security
->   email that extends the layout for the same default-footer trap.**
->   ⚠️ **A NEW INSTRUMENT TRAP, the Blade analogue of `php -l` (extends §N.13.2):** after restoring a mutation
->   the guard stayed **RED with the source verifiably correct** — a **stale compiled Blade view**.
->   `php artisan view:clear` turned it green. A false RED from the toolchain, not the guard.
->   **Run `view:clear` after every Blade mutation edit.**
->   **`DO-EMAIL-2` ✅ CLOSED the same day (§WEB-GREY-SWEEP)** — the third surface class, and the most
->   instructive of the three sweeps. ⚠️ **28 occurrences across 9 files, not the 13 named**: the `rgb()` grep
->   found two nobody had — `--vy-hk-ooo` and **the whole `billing/feature-locked` 403 page's body copy**.
->   **Root cause = TOKEN DRIFT** — the three literals ARE the pre-AA values of `--vy-muted`/`--vy-faint`, so on
->   web (unlike email) the fix is the **token**, and these runs will follow it if it is ever retuned again.
->   Pixel-sampled on the real plates: invite modal **`#F8F4EF`** (glass over a scrim — *no declared computation
->   could produce it*) `#A69A92` 2.50→5.29 and `#8A8079` 3.52→6.38 · Settings `#A99E95` 2.23→4.94 · the 403
->   page 3.62→6.56.
->   ⚠️ **THE FINDING THAT GENERALISES — it was NOT an immature instrument, it was a COVERAGE gap.** All 11
->   `owners.blade.php` greys sit inside **`@can('users.manage')`**, a permission the demo Hotel Manager the
->   gates were driven as does **not** hold — so the markup was **never in the DOM**, and no probe however
->   mature could have measured it. Measuring needed a **role swap** (to a `Property Owner`) *and* a forced
->   Alpine state. **A contrast pass is bounded by the ROLE it runs as.** Put this beside G10: *a conditional
->   style is invisible until forced* — **so is a conditional SURFACE, and the condition can be authorization.**
->   Gated guarantees re-verified (712 isolation/RBAC/plan tests, 0 regression; nothing but colour changed).
->   New successors: **`DO-EMAIL-5`** (a FOURTH grey — `.vy-inv-lbl` `#9C9089` at **2.84**, every form label in
->   that modal; ⚠️ *found the moment the pass looked beyond its scope, so a full operator/owner re-audit is a
->   backend-phase item*) · **`DO-EMAIL-6`** (standalone pages — `feature-locked`, `auth/login-approval*` —
->   carry their own `<style>` and **cannot reach the tokens**, so they hold literals) · **`DO-EMAIL-7`**
->   (`--vy-hk-ooo` shares the pre-AA value as a status **fill** — a design decision, not a contrast fix).
->   **`DO-EMAIL-4` was checked here and does NOT apply** — neither amber value appears on these screens.
->   ⚠️ **A near-miss worth carrying:** re-measuring `DO-INV-4` with the corrected probe read **321/118** against
->   the published **332/120** — which looked like a correction and was not. The cause was a **scratchpad name
->   collision** (an auth *screen* render overwrote the same-named *email* render in the before-snapshot);
->   re-rendered from a clean pre-sweep worktree it is **332/120 exactly**. **A number that moves is not
->   automatically a correction — establish which reading is broken before rewriting the record.**
->   ⚠️ **THE METHOD NOTE THAT GENERALISES:** `getComputedStyle` is the wrong instrument for an email and has
->   already false-PASSED one (white-on-orange read as **1.00**). Render the real HTML, ancestor-walk the
->   **declared** inline hex + `bgcolor`, flag gradients, and anchor the helper — here against the PDF sweep's
->   own published white-paper figures, reproduced to 2dp.
-> ② ✅ **G13 — the 3 no-route prototypes: DONE (2026-08-12), verdicts rendered, docs only.**
->   **`docs/design/G13-VERDICTS.md`** is the memo; **§G-13** in `MISSING-BACKEND-BY-PAGE.md` is the register
->   record; the three items are `DO-G13-1/2/3` under **founder decisions**. ⚠️ **They are RECOMMENDATIONS
->   awaiting the founder — nothing was built, deferred or deleted.**
->   · **Guest Help → BUILD the FAQ centre — ⚠️ which REOPENS the ratified 2026-08-07 refusal**, whose premise
->     (*"its content would have to be invented"*) the owner `HelpKnowledgeBase` has since **falsified**. ⚠️ The
->     support *destination* already exists (Account → *"Help & support"* → the relay, `82506bb`); what is absent
->     is a searchable FAQ. **DON'T-BUILD** the SLA pill / Typical-reply tile / phone / WhatsApp / 24-7 line (no
->     store, no roster; already ratified refusals on `guest/messages.blade.php:3-4` and in `OwnerHelp.php`).
->   · **Guest Documents → DEFER the hub** ⚠️ **(downgraded from BUILD once the ratified location divergence was
->     verified** — the rollup is live: Account → `/guest/payments` *"Receipts & invoices"* → receipt → the 5
->     PDFs, three hops but reachable; the money figures already render there). **DON'T-BUILD** the ZIP (no
->     `ZipArchive` anywhere) and the **"kept on file for 12 months"** claim (**false** — generated on demand,
->     nothing stored; don't soften it either) · **DEFER** email-all · 🟢 **cheap win regardless:** label the
->     document kinds on the Payments rows.
->   · **Guest Referral Landing → DON'T-BUILD (#39).** **FIVE subsystems absent** — no code entity, no
->     `referred_by` attribution, **no open self-signup (a ratified refusal)**, no reward trigger, no expiry rule.
->     `TYPE_REFERRAL` is an enum slot; only `redeemCode()` writes credit. G10's finding re-verified at `e869d5d`.
->   · ⚠️ **The `DO-INV-3` tie is RESOLVED: Guest Help DEPENDS ON it, does not RESOLVE it** — `DO-INV-3` is a
->     *public* destination problem, `/guest/help` would be *authed*. They share one root cause (**no support
->     contact is configured anywhere** — `MAIL_FROM_ADDRESS` is still `hello@example.com`, no `config` support
->     address, no property phone column; **`DO-INV-3`'s claim VERIFIED, it survives**). **`DO-INV-3` stays OPEN.**
->   · ⚠️ **§N.8b correction #6 — `DO-G7-2` was WRONG and is RETRACTED in place.** The guest **can** start a
->     thread: `guest.messages.start` (`routes/web.php:370`) is rendered as an always-visible "New message" form
->     (`guest/messages.blade.php:37`). The claim was reached by looking for the affordance where it was expected
->     rather than against what the page **renders** — the §N.13.6 false-completeness risk, live. **A finding is
->     not safer for being ours.**
->   · ⚠️ **NEW METHOD LESSON — "no route" is not "no function" (extends §N.13.6).** `GUEST-RECON.md` §4
->     established *"no live route"* by route-list + grep, and that was **true** — but for **two of the three**
->     the function had been **relocated and RATIFIED in `DIVERGENCE-REGISTER.md`** (Guest Help → the Account
->     relay row; Guest Documents → `/guest/payments`), which neither the recon nor this pass's first read
->     consulted. ⚠️ **It changed a verdict** (Documents BUILD → DEFER) and reframed another (Help: a plain BUILD
->     → *reopening a ratified refusal*). **Before calling a routeless prototype a gap, check whether the
->     function already lives somewhere else and was ratified there.**
->   · **Prototype accounting is now COMPLETE for the guest realm: 32 prototypes = 12 gates + 3 verdicts.**
-> ③ ✅ **`DO10-4` — THE STAR CAPSTONE: DONE (2026-08-12).** See **§STAR-CAPSTONE**. `owner/unit-detail:338`
->   migrated to `<x-star-rating>` and **verified live AS THE OWNER** with the state forced to a **4.67**
->   average: the old code printed **five filled stars**, it now prints **4 + 1 empty**, named
->   *"4.7 out of 5 stars"*. ⚠️ **An honest rating, not a regression** — the unit stops advertising itself as
->   perfect. Premise correction: it was **not** colour-only (it already emitted ★ then ☆); the defect was
->   `round()` alone.
->   ⚠️ **The sweep found a third defect nobody had named: the SHARED COMPONENT'S OWN COLOURS failed 3:1**
->   (`#E8A63A` 2.08 / `#B9A99A` 2.25) — *the thing everything was being migrated TO drew a star you could
->   barely see.* That is **`DO-G8-2` answered by measuring**. Retargeted to `#8F5A06` / `#7A6E64`.
->   ⚠️ **And the MEASUREMENT corrected me mid-pass:** the first retarget was chosen against the two CARD
->   plates; the live render showed the row actually sits on the **peach hero plate `#FBD3BF`**, where the empty
->   star still failed at 2.76. Re-chosen against the **worst real plate** — 4.19 / 3.59 there, hierarchy intact.
->   ⚠️ **The email star was NOT what the register said** — `review-request`'s `#E8A317` is not a rating
->   *display* but **five tappable rating INPUTS**, so ★/☆ would have been WRONG (it would show a rating the
->   guest has not given). Fixed for what it really is: contrast (2.14 → 4.17 as a non-text **control**) and
->   **per-link accessible names** (each was literally named *"★"*; now *"Rate N out of 5 stars"*, verified on
->   the real mailable). **The email set is now 335 runs / 0 FAIL.**
->   ⚠️ **The COVERAGE SWEEP found four more sites** (the DO-EMAIL-2 pattern): `operator/guest-profile:132`
->   (1.98, unnamed — an operator page no star pass had rendered) · `owner/reviews:123` (1.93 / 1.48, unnamed) ·
->   two rows whose colours passed and were **not** "fixed", only named · and `NewReviewNotification` printing
->   *"★★★"* with no denominator while its sibling already built both halves. `operator/reviews:70` was a
->   **false flag by my own probe** (correctly `aria-hidden` beside a visible `4/5`).
->   ⚠️ **The guard was VACUOUS at first (O32)** — the contrast test asserted hardcoded literals, so reverting
->   the component's colour left it green. Rewritten to read the inks the component **actually renders**;
->   mutation-proven **five ways** thereafter. Left: **`DO-STAR-1`** (the owner Messages *"Starred"* flag — a
->   bookmark, not a rating).
-> ④ **THE BACKEND PHASE — plan it as a PHASE, not a gate.** Its backlog is the reconciled **43-item
->   DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (grouped: correctness · isolation/backend ·
->   UX-routing · structural/duplication · founder decisions · scoped cleanups), plus the **6 reopened operator
->   a11y gates** (§N.9), the **3 open founder decisions** (§G), and the **deferred-capability refusal sweep**
->   (§N.8b).
->
-> ⚠️ **WRITE THE BACKEND PHASE AGAINST THE VERIFIED STATE — do not re-derive it.** Read **§N.13** (the
-> cross-gate synthesis) and the **consolidated DO-register** first; both are reconciled, and the register was
-> enumerated (**43 items**, not the ~18 an earlier summary listed).
->
-> **Read before any gate: §N.13 (the guest/PDF canon) · §N.8 (the five principles) · §N.8b (stale claims) ·
-> §N.8c (standing traps) · §N.4p + §N.13.2 (the mutation discipline, both directions) · §N.9 (what is reopened
-> and must NOT be half-fixed from inside a page gate) · §N.10 (the owner running lessons).**
->
-> **Method per gate (unchanged):** decode the prototype fresh → open the live surface as the relevant role →
-> diff every detail → classify **DESIGN-GAP** / **REFUSAL-TO-PRESERVE** / **EXTRA-WORK** / **MISSING-BACKEND**
-> → mutation-prove every guard → browser-verify + suite + PHPStan + Pint → commit + push → **report and STOP**.
+<!-- SAVE v9 (2026-08-12) — supersedes v8's RESUME; v8's §N.13 canon stands unchanged. v9 closes the CLEANUP
+     CHAPTER: five passes after the walk (DO-INV-4 e994dc6 · DO-EMAIL-1 b940cda · DO-EMAIL-2 d517187 ·
+     DO-EMAIL-3 ac502bf · DO10-4 ee6be74). Its canon is §N.14 — the cross-pass synthesis, headlined by
+     ⚠️ A CONTRAST/RENDER PASS IS BOUNDED BY THE ROLE IT RUNS AS (a conditional SURFACE is invisible too, and
+     the condition can be AUTHORIZATION — extends G10). Also: a CERTIFIED component can have un-measured
+     defaults; INPUT vs DISPLAY changes the fix; the toolchain false-RED pair (php -l AND view:clear) plus a
+     guard vacuous against its own subject; a number that moves is not automatically a correction; a colour
+     has several grep-forms; a re-scoping note can amputate an item's founding scope; a shared layout's
+     defaults are content and can be FALSE; token-drift means map to the TOKEN.
+     ⚠️ "Closed" means closed everywhere this pass could REACH — see §N.14.1 and DO-EMAIL-5.
+     ⚠️ DO-EMAIL-9 is a LIVE false claim on a security email — the runway's item ①.
+     ⬅ THE NEXT CHAPTER IS THE BACKEND PHASE — start it in a FRESH chat. -->
 
+> ### ⬅ RESUME HERE — 🏁 **TWO CHAPTERS ARE CLOSED. The next one is the BACKEND PHASE — start it in a FRESH chat.**
+>
+> **① THE DESIGN-PARITY WALK (SAVE v8)** — OPERATOR 42/42 · OWNER 32/32 · GUEST 12 gates + 3 verdicts / 32
+> prototypes · + the cross-realm PDF sweep (17 templates + `PdfService`). Every realm walked page by page;
+> every guest prototype has a gate record or a G13 verdict. **Canon: §N.13.**
+>
+> **② THE CLEANUP SEQUENCE (SAVE v9)** — five passes, `e869d5d`→`ee6be74`: `DO-INV-4` · `DO-EMAIL-1` ·
+> `DO-EMAIL-2` · `DO-EMAIL-3` · `DO10-4`. **Canon: §N.14.** What is now true:
+> · the **grey-literal drift is CLOSED** across **PDFs** (17 templates), **emails** (20 templates) and the
+>   **operator/owner web screens the pass could reach** (28 occurrences / 9 files, mapped to **tokens**)
+> · **all 20 emails are on-brand**; the email set measures **335 text runs / 0 FAIL**
+> · the **O26 star defect family is RETIRED** — every rating row **floors**, differs by **GLYPH**, carries **one
+>   accessible name**, and clears **3:1 on the worst plate it renders on**; ⚠️ `<x-star-rating>`'s **own
+>   defaults were failing (2.08 / 2.25) and are fixed** to `#8F5A06` / `#7A6E64`
+> · suite **1907 / 12,448** · **9 non-green = the documented baseline set** · PHPStan L5 (0) · Pint clean
+>
+> ⚠️ **THE ONE THING §N.14 SAYS THAT CHANGES HOW YOU PLAN:** *a contrast/render pass is bounded by the ROLE it
+> runs as* (§N.14.1). No probe can measure markup a permission check never emitted — 11 greys sat behind
+> `@can('users.manage')` and were **absent from the DOM** as the demo operator. **So "closed" above means
+> "closed everywhere this pass could reach", not "closed everywhere".** `DO-EMAIL-5` is the honest successor.
+>
+> ---
+>
+> ### THE RUNWAY, IN PRIORITY ORDER
+>
+> **⚠️ ① `DO-EMAIL-9` — a LIVE §N.8d, and arguably the first thing to touch.** `owner-email-change` tells an
+> owner changing their **login email**: *"You're receiving this because it relates to your booking with us."*
+> A **security notification asserting something untrue**, shipping today. It is the shared layout's default
+> footer, so ⚠️ **the real scope is unknown — every account/security template extending that layout inherits
+> it** (§N.14.8). **A founder-adjacent call surfaced, not taken:** the cheap fix is a per-template override
+> (what `DO-EMAIL-3` did); the structural fix is changing the layout's default and auditing which templates
+> then need their own line. **Decide reword-vs-restructure before touching it.**
+>
+> **② `DO-EMAIL-4` — reconcile the twice-defined token.** `--vy-amber-text` is guest `rgb(126,88,17)` **and**
+> owner `rgb(128,76,5)`. Until one wins, "map the literal to the token" (§N.14.9) is ambiguous.
+>
+> **③ `DO-EMAIL-5` + `DO-EMAIL-6` — the coverage re-audit.** `DO-EMAIL-5`: a full operator/owner contrast
+> re-audit run **across every role that can reach each surface** — a fourth grey was found the moment one pass
+> looked past its scope. `DO-EMAIL-6`: the two standalone web pages that cannot reach the tokens.
+>
+> **④ The small tail** — `DO-EMAIL-7` (the `--vy-hk-ooo` status fill) · `DO-EMAIL-8` (the footer slot misnamed
+> `unsubscribe`) · `DO-STAR-1` (the Messages *"Starred"* flag — ⚠️ **a bookmark, not a rating**; do not fold it
+> into `DO10-4`).
+>
+> **⑤ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
+> DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (now carrying two index blocks: ✅ *closed by the
+> cleanup sequence* and ⬅ *the cleanup's open successors, grouped by kind*), plus the **6 reopened operator
+> a11y gates** (§N.9), the **founder decisions** — including **G13's three verdicts** (Guest Help **BUILD**,
+> which ⚠️ *reopens a ratified refusal on new evidence* · Guest Documents **DEFER** · Guest Referral
+> **DON'T-BUILD**, #39) — and the **deferred-capability refusal sweep** (§N.8b).
+>
+> ⛔ **Untouched by both chapters and still open: the billing/pricing go-live blocker (§G.1).**
+>
+> ---
+>
+> ⚠️ **WRITE THE BACKEND PHASE AGAINST THE VERIFIED STATE — do not re-derive it.**
+> **Read first: §N.14 (the cleanup canon — start at N.14.1, the role bound) · §N.13 (the guest/PDF canon) ·
+> §N.8 (the five principles) · §N.8b (stale claims) · §N.8c (standing traps) · §N.8d (dishonest display —
+> `DO-EMAIL-9` is a live one) · §N.4p + §N.13.2 + §N.14.4 (the mutation discipline: the edit landed on the
+> target · the verdict came from the guard, not the fixture, the file, or the compiled cache) · §N.9 (what is
+> reopened) · §N.10 (the owner running lessons).** Then the **DO-register**.
+>
+> **Method (unchanged where it applies):** work the real code first → classify **DESIGN-GAP** /
+> **REFUSAL-TO-PRESERVE** / **EXTRA-WORK** / **MISSING-BACKEND** → **mutation-prove every guard** (`php -l`
+> *and* `view:clear` after a Blade mutation; a **non-vacuity assertion** in every guard) → browser-verify **as
+> every role that can reach the surface** → suite + PHPStan + Pint → commit + push → **report and STOP**.
 > ## 🏁 THE PER-PAGE **DESIGN-PARITY PASS** IS COMPLETE FOR BOTH BUILT REALMS (2026-08-09 → 2026-08-11)
 >
 > **Read §N before quoting "what remains is only a decision + infrastructure" — that line is no longer the
@@ -422,9 +336,12 @@ reliable part.)*
   depends on the `schedule:run` cron** (`DO-G9-1`).
 - **`FolioService` / `FolioTotals`** — `#17`, integer minor units, ONE source; no Blade re-derivation.
 - **`GuestWalletService`** — the append-only credit ledger; the balance is **DERIVED, never stored**.
-- **`<x-star-rating>`** — floor-don't-round, glyph-differentiated (greyscale-safe), one accessible name.
-  ⚠️ **STILL LIVE: `owner/unit-detail:338` uses `str_repeat('★', round($average))` — `DO-G8-1`, the last
-  remnant of `DO10-4`, a CORRECTNESS failure (§N.13.8).**
+- **`<x-star-rating>`** — floor-don't-round, glyph-differentiated (greyscale-safe), one accessible name,
+  **defaults `#8F5A06` / `#7A6E64`** (both ≥3:1 as a non-text graphic on every plate the product renders them
+  on, incl. the peach `#FBD3BF`). ✅ **`DO10-4` CLOSED (`ee6be74`)** — every rating row in the product now
+  renders through it or its email-safe equivalent; the `owner/unit-detail:338` remnant is migrated.
+  ⚠️ **Its defaults were `#E8A63A` / `#B9A99A` and FAILED 3:1 (2.08 / 2.25) until the capstone measured them
+  (§N.14.2) — certified for BEHAVIOUR was never the same claim as its rendered defaults passing.**
 - **`OrganizationScope` + `ResolvePublicOrganization` / `ResolvePublicProperty`** — the public storefront's
   tenant scope, resolved from the ROUTE SLUG into **real tenant context** (never a guard bypass). A suspended
   or cancelled org's storefront **404s**; an **inactive property** is off-sale on both storefronts, now
@@ -5636,7 +5553,8 @@ the work.
    glyph; a 5-star RATING ROW is the only thing `<x-star-rating>` can replace. **The real scope is THREE**:
    `owner/reviews` (done at O26), `guest/review` (done here), and **`owner/unit-detail:338`, which uses
    `round()` — a 4.6 average renders FIVE filled stars.** That is the Owner-26 defect still live, and it is
-   all that remains of DO10-4 (`DO-G8-1`). Everything else is a single glyph beside a number, a picker
+   all that remains of DO10-4 (`DO-G8-1`) — ✅ **since CLOSED, `ee6be74`; and the later coverage sweep found
+   four more star sites this count missed (§N.14.1)**. Everything else is a single glyph beside a number, a picker
    input, or an unrelated icon. ⚠️ **The shared component's DEFAULT COLOUR fails** (#E8A63A = 2.05 vs the
    3:1 non-text bar — a star is the visual carrier of the rating); passed a colour at the call site and
    logged the default for the owner page to measure, rather than changing a shared default from inside
@@ -5736,9 +5654,10 @@ the work.
    export-AUDIT stamp (informational, in the bottom margin — **fixable, not a founder decision**; real ink
    **2.70 on paper / 2.41 on a warm band** → `#5f5853` = 6.98). **224 distinct inks → 0 failures.**
    See `MISSING-BACKEND-BY-PAGE.md` **§PDF-SWEEP** and **§N.13**.
-4. **`DO-G8-1` — `owner/unit-detail:338`**: the star migration's LAST remnant (`round()` → floor via
-   `<x-star-rating>`). ⚠️ G8 fixed the hero and G12 fixed `ReviewList::stars_off`; **this one line is the
-   whole of what remains of DO10-4**, and it is **correctness**, not tone (§N.13.8).
+4. ~~**`DO-G8-1`**~~ ✅ **CLOSED (`ee6be74`)** — **`owner/unit-detail:338`**: the star migration's LAST remnant (`round()` → floor via
+   `<x-star-rating>`). ⚠️ G8 fixed the hero and G12 fixed `ReviewList::stars_off`; ~~this one line is the
+   whole of what remains of DO10-4~~ — ⚠️ **it was not**: the capstone's coverage sweep found **four further
+   star sites** and a **third defect in the shared component itself** (§N.14.1/§N.14.2). Correctness, not tone.
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via
    `rowStateMeta()`**), the **6 reopened operator a11y gates** (§N.9), the **3 open founder decisions**, and
    the **deferred-capability refusal sweep** (§N.8b: for each capability that has shipped, grep the surfaces
@@ -5792,6 +5711,12 @@ whole second direction.
 > the file.** In practice: assert the anchor matched; assert the replacement is not a no-op; **run `php -l`
 > after every mutation edit**; and after a *passing* mutation always ask *what did I actually remove?* O32
 > cuts both ways. A fixture must be **able** to fail. Prove a just-written guard by mutating it (G4/G5).
+>
+> ⚠️ **EXTENDED BY THE CLEANUP SEQUENCE — see §N.14.4 for the complete four-question account.** The false-RED
+> has a **second toolchain source**: a **stale compiled Blade view** (`DO-EMAIL-3`) turned a correct restore
+> red — so **`php artisan view:clear` after every Blade mutation edit**, the Blade analogue of `php -l`. And
+> the vacuity check has a sharper form: **a guard can be vacuous against its own subject** if it asserts
+> literals repeated from the source rather than what the code renders (`DO10-4`).
 
 ## N.13.3 ⚠️ DEFENCE-IN-DEPTH NEEDS **PER-LAYER** TESTS (new — the PDF sweep)
 
@@ -5893,5 +5818,186 @@ The star bug is filled-vs-empty distinguished **by colour alone** → in greysca
 **4 reads as a 5** (WCAG 1.4.1), and `round()` rounds a 4.6 **up to five stars**. `<x-star-rating>`
 (floor-don't-round, glyph-differentiated, one accessible name) is the fix. G8 migrated the guest review and the
 owner hero; **G12 fixed `ReviewList::stars_off`, which returned the FILLED glyph** and fed the owner Reviews
-*list* rows one section below the migrated hero. ⚠️ **The last remnant is `owner/unit-detail:338` (`DO-G8-1`) —
-an owner page, still live.**
+*list* rows one section below the migrated hero. ~~⚠️ The last remnant is `owner/unit-detail:338` (`DO-G8-1`) —
+an owner page, still live.~~
+✅ **CLOSED at the `DO10-4` capstone (2026-08-12, `ee6be74`) — see §STAR-CAPSTONE and §N.14.2/§N.14.3.** The
+remnant was migrated and verified live **as the owner** on a forced 4.67 average (old: five filled stars; now
+four + one empty, named). ⚠️ Two corrections to the account above: `unit-detail:338` was **not** colour-only —
+it already emitted ★ then ☆, so its defect was `round()` alone; and the sweep found a **third** defect this
+section never anticipated — **`<x-star-rating>`'s OWN default colours failed 3:1** (§N.14.2).
+
+---
+
+# (N.14) 🏁 THE CLEANUP SEQUENCE — **THE CROSS-PASS SYNTHESIS** (SAVE v9, 2026-08-12)
+
+*Five passes ran after the walk closed: `DO-INV-4` (`e994dc6`) → `DO-EMAIL-1` (`b940cda`) → `DO-EMAIL-2`
+(`d517187`) → `DO-EMAIL-3` (`ac502bf`) → `DO10-4` (`ee6be74`). Each wrote its own record — §EMAIL-SWEEP,
+§EMAIL-SWEEP-2, §WEB-GREY-SWEEP, §ADMIN-EMAIL-BRAND, §STAR-CAPSTONE in `MISSING-BACKEND-BY-PAGE.md`, plus a
+dated `DECISIONS.md` entry each. **This section is what emerged ACROSS them.** It EXTENDS §N.4p, §N.8b, §N.8d,
+§N.8e and §N.8f rather than replacing them.*
+
+## N.14.1 ⚠️ THE HEADLINE — **A CONTRAST/RENDER PASS IS BOUNDED BY THE ROLE IT RUNS AS** (extends G10)
+
+> **No probe, however mature, can measure markup a permission check never emitted.**
+
+`DO-EMAIL-2` assumed it would find an *instrument* failure — the operator/owner gates predated the matured
+contrast method, so surely the old probe was too weak. **It wasn't.** All eleven `owners.blade.php` greys sit
+inside **`@can('users.manage')`** — a permission the **demo Hotel Manager the gates were driven as does not
+hold** — and inside an Alpine `x-show="open"` modal on top of that. Verified live: as `demo-staff` the markup
+is **absent from the DOM entirely**. Measuring required a **role swap** (to a `Property Owner`, one of only
+three roles holding it) **and then** a forced Alpine state.
+
+**This extends G10.** G10 said *a conditional style is invisible until the condition is FORCED*.
+⚠️ **A conditional SURFACE is invisible too — and the condition can be AUTHORIZATION.**
+
+> **Coverage is not "force every UI state". It is "force every state ACROSS EVERY ROLE THAT CAN REACH IT".**
+
+**Proven twice, and both times the sweep out-found the register:**
+- `DO-EMAIL-2` — **28 occurrences across 9 files where the register named 13**; and `DO-EMAIL-5` (a fourth
+  grey, every form label in that modal at 2.84) surfaced **the moment the pass looked past its own scope**.
+- `DO10-4` — the coverage sweep found **four star sites nobody had named**, including
+  `operator/guest-profile:132` at 1.98 and unnamed: **an operator page no star pass had ever rendered.**
+
+⚠️ **Consequence for any "is X fixed EVERYWHERE?" claim:** it needs the multi-role, forced-state sweep, or it
+means *"fixed everywhere I happened to look."* Both `DO-EMAIL-5` and a full operator/owner re-audit exist as
+register items precisely because this bound has not yet been walked deliberately.
+
+## N.14.2 ⚠️ A "CERTIFIED" COMPONENT CAN HAVE UN-MEASURED DEFAULTS (closes `DO-G8-2`)
+
+**The migration TARGET is not automatically sound.** `<x-star-rating>` — the certified component every star
+row was being migrated *to*, whose docblock correctly enforces floor-don't-round, glyph-differentiation and a
+single accessible name — shipped **defaults that failed 3:1** as a non-text graphic: `#E8A63A` **2.08** and
+`#B9A99A` **2.25**.
+
+> *The thing everything was being migrated to drew a star you could barely see.*
+
+**Certified for BEHAVIOUR ≠ its RENDERED defaults pass.** The two were never the same claim, and nothing had
+checked the second. ⚠️ **Measure the thing you migrate TO, not only the sites you migrate.** Answers
+`DO-G8-2`, which had sat as *"never measured on the pages that use it"*.
+
+⚠️ **And the measurement corrected the fix mid-pass** (§N.13.4's rule, live): the first retarget was chosen
+against the two *card* plates; the live render then showed the row sits on the **peach hero plate `#FBD3BF`**,
+where the new empty star **still failed at 2.76**. Re-chosen against the **worst real plate**. *Pick the plate
+from the render, not from the page you assume it is.*
+
+## N.14.3 ⚠️ INPUT vs DISPLAY CHANGES THE FIX — and the display fix can INTRODUCE a bug
+
+A rating **DISPLAY** wants filled-vs-empty by glyph (★/☆). A rating **INPUT** wants a per-option accessible
+name and **must not pre-fill**, because a filled star states a rating the user has not given.
+
+The register carried *"the email star"* as though it were a display. `review-request` renders **five tappable
+rating INPUTS**, each deep-linking `route('guest.review', [..., 'rating' => $n])` under the copy *"Tap a
+star…"*. ⚠️ **Applying the display fix would have shipped a phantom rating** — a bug the fix itself
+introduced. The real defects were different: contrast as a non-text **control** (2.14 → 4.17) and the fact
+that **each link's accessible name was the bare glyph "★"**, so a screen reader heard *"star, link"* five
+times with nothing to choose between.
+
+> **Read what the control DOES before applying the pattern its shape suggests.**
+
+## N.14.4 ⚠️ THE TOOLCHAIN FALSE-RED PAIR — completing §N.4p / §N.13.2
+
+§N.13.2 closed the mutation discipline in both directions and named one false-RED (a bash-corrupted file).
+The cleanup added its sibling, and the pair is now a family:
+
+| # | false-RED source | symptom | the check |
+|---|---|---|---|
+| a | **a bash-corrupted file** (PDF sweep) | RED from a **syntax error**, nearly logged as *"#33 re-proven ✅"* | **`php -l` after every mutation edit** |
+| b | **a stale compiled Blade view** (`DO-EMAIL-3`) | RED **with the source verifiably correct** after a restore | ⚠️ **`php artisan view:clear` after every Blade mutation edit** — *the Blade analogue of `php -l`* |
+
+> ### ⚠️ §N.4p's COMPLETE ACCOUNT — a guard's verdict must survive four questions
+> 1. **Did the edit land ON THE TARGET?** (G7 didn't apply · G11 hit the wrong occurrence · O32 removed the
+>    wrong thing)
+> 2. **Did the pass/fail come from the GUARD — or from the FIXTURE?** (a vacuous fixture cannot fail)
+> 3. **…or from the FILE?** → `php -l`
+> 4. **…or from the COMPILED CACHE?** → `view:clear`
+>
+> ⚠️ **And `DO10-4` added the sharpest instance of (2): a guard can be vacuous against ITS OWN SUBJECT.** The
+> star contrast test asserted `$ratio('#8F5A06', …)` — **hardcoded literals repeated from the source**. It was
+> arithmetic, not the component: reverting the component's colour left it **green**. Rewritten to read the
+> inks the component **actually renders**, the mutation went red naming the value and the plate.
+> **Every guard needs a non-vacuity assertion, and a guard that restates the source proves nothing.**
+
+## N.14.5 ⚠️ A NUMBER THAT MOVES IS NOT AUTOMATICALLY A CORRECTION (the counter-lesson to §N.8b)
+
+§N.8b trains suspicion of the *existing* record. `DO-EMAIL-1` supplied the counterweight: a re-measurement of
+`DO-INV-4`'s published **332 runs / 120 FAIL** read **321 / 118**, and looked exactly like a correction. It
+was not. The cause was a **scratchpad name collision** — an auth *screen* render had overwritten a same-named
+*email* render in the before-snapshot. Re-rendered from a **clean pre-sweep worktree** it is **332 / 120
+exactly**, and the published figures stood.
+
+> **Old claims get verified — and so do the corrections to them. A new, differing number can be the artefact.
+> Establish WHICH reading is broken before rewriting the record; do not assume the later one wins.**
+
+## N.14.6 ⚠️ A COLOUR HAS SEVERAL GREP-FORMS — a form-scoped grep UNDER-COUNTS
+
+A hex-6 grep is not a search for a colour. The same value lives as `#RRGGBB`, `#RGB`, `rgb(r,g,b)`, and named
+keywords. **`DO-EMAIL-2`'s register entry named 13 sites; the real footprint was 28** — and the two the hex
+grep could never have found were the `rgb()` forms, one of which was **the body copy of an entire
+`billing/feature-locked` 403 page**.
+
+It compounds `DO-EMAIL-1`'s version of the same flaw **inside the instrument**: a probe whose regex matched
+only 6-digit hex could not read `color:#fff`, so that run silently **inherited its parent's colour** and the
+report named the wrong literal while pointing at the right pixel.
+
+> **"Find every occurrence of colour X" must search every FORM — and the matcher inside your instrument is
+> itself a source of under-counting.**
+
+## N.14.7 ⚠️ A RE-SCOPING NOTE CAN AMPUTATE AN ITEM'S FOUNDING SCOPE
+
+A register-hygiene failure distinct from a stale record. `DO-INV-4` was raised at the invite-email gate against
+**`#A99E95`** in `emails/layout.blade.php`. A later annotation — *"now SCOPED: the offenders are the same two
+greys the PDF sweep mapped"* — was accurate about the PDF sweep and **narrowed the item past its own founding
+literal**, which turned out to be the **widest of the three** (7 occurrences reaching **15 templates** through
+one shared declaration). Closing on two of three would have marked "done" the very thing it was raised for.
+
+> **Check an item against its ORIGIN, not only its latest annotation. A scoping note is a lens, not a
+> replacement definition.**
+
+## N.14.8 ⚠️ A SHARED LAYOUT'S DEFAULTS ARE CONTENT TOO — AND CAN BE FALSE
+
+Inheriting a brand wrapper inherits its **boilerplate**, and boilerplate is a claim. The shared email layout's
+default service line — *"You're receiving this because it relates to your booking with us."* — is **false on an
+account or security email**: a platform admin has no booking. `DO-EMAIL-3` used the layout's footer-override
+slot rather than ship it.
+
+⚠️ **But the sibling ships it RIGHT NOW.** `owner-email-change` — an owner's **login-email change**, a security
+notification — renders that line live. That is **`DO-EMAIL-9`, an open §N.8d on a security email**, and the
+open question is how many other account/security templates extending the layout inherit it.
+
+> **A wrapper's default copy is content the wrapper asserts on every page that adopts it. Audit it per
+> audience, not once.**
+
+## N.14.9 ⚠️ TOKEN-DRIFT — MAP THE LITERAL TO THE TOKEN, NOT TO ANOTHER LITERAL
+
+On the web the hardcoded grey **is** the drift: the literals are the **pre-AA values of tokens that have since
+been retuned** — `#8A8079` is the old `--vy-muted` (now `rgb(95,88,83)`), `#A69A92` the old `--vy-faint` (now
+`rgb(108,100,95)`). The token moved; the hardcoded copies stayed frozen at the pre-remediation palette.
+
+**So the fix is the TOKEN** — it follows the next retune; another literal would freeze again. **Three
+exceptions, each measured rather than assumed:**
+- **Emails cannot read tokens** (clients strip custom properties) → an email-safe **literal**.
+- **A `var()` in an SVG presentation attribute renders NOTHING where unsupported** → for a *decorative* icon
+  that is a worse trade than a hardcoded value (`DO10-4`'s strokes; `var()` *was* verified to resolve in
+  Chromium, and the literal was still chosen).
+- **Standalone pages with their own `<style>`** (`billing/feature-locked`, `auth/login-approval*`) have no
+  `--vy-*` in scope → literals, logged as **`DO-EMAIL-6`** rather than pretended away.
+
+⚠️ **And the token layer has its own drift: `--vy-amber-text` is defined TWICE with different values** — guest
+`rgb(126,88,17)` vs owner `rgb(128,76,5)` (**`DO-EMAIL-4`**). One concept, two definitions: mapping "to the
+token" is ambiguous until that is reconciled.
+
+---
+
+## N.14.10 · WHAT THE CLEANUP LEFT TRUE
+
+| surface | state |
+|---|---|
+| **PDFs** (17 templates + `PdfService`) | grey drift **CLOSED** (the v8 sweep) |
+| **Emails** (20 templates) | grey drift **CLOSED**; **all 20 now on-brand**; **335 text runs / 0 FAIL** |
+| **Operator/owner web screens** | the three greys **CLOSED** across 28 occurrences / 9 files, mapped to **tokens** |
+| **Rating stars** | the **O26 defect family RETIRED** — every rating row floors, differs by GLYPH, carries one accessible name, and clears 3:1 on the **worst plate it renders on**; `<x-star-rating>`'s own defaults fixed to `#8F5A06` / `#7A6E64` |
+| **Suite** | 1907 / 12,448 · 9 non-green = the documented baseline set · PHPStan L5 (0) · Pint clean |
+
+⚠️ **What it did NOT close, and should not be read as closing:** the role-coverage bound (N.14.1) means the
+operator/owner realms have been swept **only where this pass could reach**. `DO-EMAIL-5` (a full re-audit) is
+the honest successor, and a fourth grey was already found inside the one modal that was forced open.
