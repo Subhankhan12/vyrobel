@@ -5526,6 +5526,28 @@ the work.
    rows below kept the old pair. Fixed at the one definition. ⚠️ **The invisible-focus family reached FIVE
    occurrences across TWO mechanisms** (`opacity:0` at G5/G8/G9; an explicit `outline:none` here) — a firm
    §N.8f shared-fix candidate. Contrast: landing 19→0 (85 runs), browse 3→0.
+   🏁 **THE PDF SWEEP — the first CROSS-REALM gate, and the one pass allowed to touch `PdfService`.**
+   ⚠️ **17 templates, not 11**, and `app/Support/Pdf/PdfService.php` **does not exist** (it is
+   `app/Services/PdfService.php`). ⚠️ **THE "WATERMARK" IS NOT A WATERMARK** — it is the export-AUDIT
+   stamp ("Downloaded by X on Y · Confidential"), a footer line in the bottom MARGIN, not a faint mark
+   behind content. So it is **INFORMATIONAL and FIXABLE, not a founder decision**: darkening it defeats
+   nothing, because there is no content for it to compete with. Measured on real ink at **2.70 on paper and
+   2.41 on a warm footer band** (the recorded 2.70 was the optimistic case) → `#5f5853` = **6.98**.
+   ⚠️ **What was NOT fixed:** `position:fixed` makes its plate NON-DETERMINISTIC — it prints over whatever
+   the page ends with (DO-PDF-2). Surfaced, not forced.
+   **§N.8f confirmed by grep:** §G-3 fixed `#8A8079`/`#A69A92` in the ARRIVAL template only (verified: 0
+   occurrences there — the 5th §N.8b claim to survive); the other sixteen kept both. One mapping across all
+   templates onto greys ALREADY in those documents — the palette SHRINKS (4 greys → 2). **224 distinct inks
+   → 0 failures.** Greyscale-safe (states print as WORDS; that template's own comment is accurate).
+   ⚠️ **THE FINDING: a guard layer no test could see.** Removing `ArrivalPack`'s data-level door-code gate
+   left **25 tests green**, including the one named "withholds the door code… (#33)" — because BOTH views
+   independently re-gate on `$pack['released']`. Nothing leaks today; the point is the second layer could go,
+   or a new surface could trust `$pack['door_code']`, and nothing would notice. A data-contract guard now
+   closes it, mutation-proven. ⚠️ **AND THE NEAR-MISS THAT FOUND IT: my first mutation went RED FOR THE WRONG
+   REASON** — bash escaping corrupted the file and I nearly logged "#33 re-proven ✅" on a syntax error.
+   **G11's rule needs a second half: verify the edit landed on the target — AND that the RED came from the
+   change, not from breaking the file. A mutation that reds for the wrong reason is as worthless as one that
+   passes.** (`php -l` after every mutation edit, from here on.)
 3. **The PDF-sweep gate** (11 templates + the 2.70 watermark).
 4. **The DO10-4 star migration** (10 sites + O26's two spans + O26's measured tail).
 5. **The BACKEND phase** — the D-items in `MISSING-BACKEND-BY-PAGE.md` (including **D16-7 via

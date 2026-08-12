@@ -21,26 +21,26 @@
         .brand-mark { display: inline-block; width: 28px; height: 28px; background-color: {{ $brand->accent }}; color: #fff; text-align: center; font-size: 16px; font-weight: bold; border-radius: 6px; }
         .eyebrow { color: {{ $brand->accent }}; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         h1 { font-size: 18px; margin: 3px 0 0; }
-        .muted { color: #8A8079; }
+        .muted { color: #5F5853; }
         h2 { font-size: 12px; margin: 20px 0 6px; }
         table.sum { width: 100%; border-collapse: collapse; margin: 14px 0 4px; }
         table.sum td { border: 1px solid #EFE3D9; padding: 8px 10px; text-align: center; width: 25%; }
         .sum-n { font-size: 16px; font-weight: bold; color: #2B2320; }
-        .sum-l { font-size: 8.5px; letter-spacing: .04em; text-transform: uppercase; color: #8A8079; }
+        .sum-l { font-size: 8.5px; letter-spacing: .04em; text-transform: uppercase; color: #5F5853; }
         .sum-d { font-size: 9px; font-weight: bold; }
         table.pl { width: 100%; border-collapse: collapse; margin-top: 4px; }
         table.pl td { padding: 6px 4px; font-size: 11px; border-bottom: 1px solid #F2E8DF; }
         table.pl td.n { text-align: right; }
         table.pl tr.total td { font-weight: bold; border-top: 1px solid #D9CBBE; border-bottom: none; }
-        .soon { color: #A69A92; font-size: 9px; font-style: italic; }
+        .soon { color: #6C645F; font-size: 9px; font-style: italic; }
         table.grid { width: 100%; border-collapse: collapse; margin-top: 6px; }
         table.grid th, table.grid td { border-bottom: 1px solid #F2E8DF; padding: 6px 5px; font-size: 10px; text-align: right; }
-        table.grid th { background-color: #FBF5EF; color: #8A8079; font-size: 8.5px; letter-spacing: .04em; text-transform: uppercase; }
+        table.grid th { background-color: #FBF5EF; color: #5F5853; font-size: 8.5px; letter-spacing: .04em; text-transform: uppercase; }
         table.grid th.l, table.grid td.l { text-align: left; }
         .bar-cell { width: 120px; }
         .bar-track { background-color: #F2E8DF; height: 8px; }
         .bar-fill { background-color: {{ $brand->accent }}; height: 8px; }
-        .foot { margin-top: 22px; padding-top: 10px; border-top: 1px solid #EFE3D9; font-size: 9px; color: #A69A92; }
+        .foot { margin-top: 22px; padding-top: 10px; border-top: 1px solid #EFE3D9; font-size: 9px; color: #6C645F; }
     </style>
 </head>
 <body>

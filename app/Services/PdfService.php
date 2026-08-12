@@ -51,7 +51,16 @@ class PdfService
         }
 
         $html = view($view, $data)->render();
-        $footer = '<div style="position:fixed;bottom:4px;left:0;right:0;text-align:center;font-size:7.5px;color:#a99b8e;font-family:sans-serif;letter-spacing:.02em;">'.e($watermark).'</div>';
+        // ⚠️ PDF-SWEEP GATE — THIS STAMP IS INFORMATIONAL, NOT DECORATIVE, so it is held to the text bar.
+        // It carries WHO downloaded the document (the same identity {@see ExportAudit} writes to the download
+        // log) plus "Confidential" — the fact that makes the Team security note's claim true. It is also NOT a
+        // watermark in the usual sense: it is a footer line pinned in the bottom MARGIN, not a faint mark lying
+        // behind content, so darkening it costs nothing it was designed to give. It was #a99b8e — measured on
+        // real ink at 2.70 against paper, and 2.41 where it lands on a warm footer band: an audit stamp a
+        // reader cannot read is a cosmetic feature. Now the same grey the 17 templates use for secondary text.
+        // ⚠️ Its plate is still NON-DETERMINISTIC — `position:fixed` puts it over whatever the page ends with
+        // (see DO-PDF-2); this fixes the ink, not that.
+        $footer = '<div style="position:fixed;bottom:4px;left:0;right:0;text-align:center;font-size:7.5px;color:#5f5853;font-family:sans-serif;letter-spacing:.02em;">'.e($watermark).'</div>';
         $html = str_contains($html, '</body>') ? str_replace('</body>', $footer.'</body>', $html) : $html.$footer;
 
         return Pdf::loadHTML($html);

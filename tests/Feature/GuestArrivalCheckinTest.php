@@ -264,3 +264,44 @@ it('keeps the check-in form Enter-safe and its ID upload keyboard-reachable', fu
     // the drop zone shows a focus ring when the input inside it takes focus
     expect($html)->toContain('.ci-idzone:focus-within');
 });
+
+// ── ⚠️ PDF-SWEEP GATE — #33 AT THE DATA LAYER, NOT ONLY AT THE VIEW ───────────────────────────────
+// ArrivalPack::for() nulls the door code, wifi and arrival notes outside the release window, and BOTH
+// consumers (guest/arrival.blade.php and pdfs/arrival.blade.php) ALSO gate on `$pack['released']`.
+//
+// ⚠️ That belt-and-braces is exactly why the data-layer gate was INVISIBLE TO THE SUITE: deleting it
+// (`'door_code' => $code`) left 25 tests green across GuestArrivalCheckinTest, GuestReservationTest and
+// GuestTripsTest — including the one named "withholds the door code until the arrival window opens (#33)" —
+// because the view still refused to print it. Nothing is leaking today; the point is that the SECOND layer
+// could be removed, or a new surface could read $pack['door_code'] trusting it to be safe, and no test
+// would notice. This guard asserts the CONTRACT of the data itself, with no view in the way.
+it('withholds the arrival secrets from the ArrivalPack DATA outside the window, not just from the view (#33)', function () {
+    $s = seedScenario(1);
+    $a = arrGuest($s['guest'], 'ada@example.test');
+    $s['units'][0]->update([
+        'door_code' => '447291', 'wifi_ssid' => 'SeasideGuest',
+        'wifi_password' => 'sunrise-tide-88', 'arrival_notes' => 'Key safe is left of the blue door',
+    ]);
+    $reservation = arrBook($s, $a, $s['units'][0])->fresh();
+
+    // The secret is genuinely reachable — without this the assertions below could pass vacuously.
+    expect($reservation->reservationUnits()->first()->unit->door_code)->toBe('447291');
+
+    $checkIn = CarbonImmutable::parse($reservation->check_in);
+
+    // OUTSIDE the window — the DATA carries nothing, whatever a view might do with it.
+    $before = ArrivalPack::for($reservation, $checkIn->subDays(ArrivalPack::LEAD_DAYS + 1));
+    expect($before['released'])->toBeFalse()
+        ->and($before['door_code'])->toBeNull()
+        ->and($before['wifi_ssid'])->toBeNull()
+        ->and($before['wifi_password'])->toBeNull()
+        ->and($before['arrival_notes'])->toBeNull()
+        // …and it still says WHETHER a code exists, so the page can be honest without leaking it.
+        ->and($before['has_code'])->toBeTrue();
+
+    // INSIDE the window — released.
+    $inside = ArrivalPack::for($reservation, $checkIn->subDays(ArrivalPack::LEAD_DAYS));
+    expect($inside['released'])->toBeTrue()
+        ->and($inside['door_code'])->toBe('447291')
+        ->and($inside['wifi_ssid'])->toBe('SeasideGuest');
+});

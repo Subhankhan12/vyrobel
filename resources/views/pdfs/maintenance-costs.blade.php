@@ -11,14 +11,14 @@
         body { margin: 0; color: #2B2320; font-size: 12px; }
         .wrap { padding: 36px 40px; }
         .brand-mark { display: inline-block; width: 30px; height: 30px; background-color: #C2410C; color: #fff; text-align: center; font-size: 18px; font-weight: bold; border-radius: 7px; }
-        .muted { color: #8A8079; }
-        .eyebrow { color: #8A8079; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        .muted { color: #5F5853; }
+        .eyebrow { color: #5F5853; font-size: 9px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         h1 { font-size: 22px; margin: 12px 0 0; }
-        h2 { font-size: 11px; margin: 24px 0 6px; letter-spacing: .04em; text-transform: uppercase; color: #8A8079; }
+        h2 { font-size: 11px; margin: 24px 0 6px; letter-spacing: .04em; text-transform: uppercase; color: #5F5853; }
         table { width: 100%; border-collapse: collapse; }
         table.kpi td { width: 25%; padding: 12px 14px; border: 1px solid #EFE3D9; vertical-align: top; }
         table.ledger td, table.ledger th { padding: 7px 8px; border-bottom: 1px solid #F2E8DF; font-size: 11px; text-align: left; }
-        table.ledger th { color: #8A8079; font-size: 9px; text-transform: uppercase; letter-spacing: .04em; }
+        table.ledger th { color: #5F5853; font-size: 9px; text-transform: uppercase; letter-spacing: .04em; }
         .num { text-align: right; }
         .big { font-size: 18px; font-weight: bold; }
         .total-row td { border-top: 2px solid #2B2320; font-weight: bold; }

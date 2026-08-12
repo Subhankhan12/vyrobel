@@ -6930,3 +6930,113 @@ inversion hid a different undefended guard, and in **each** case the certified s
 - **`DO10-4`** — the ★ migration, now known to be a correctness issue and not only cosmetic (above).
 - **The BACKEND phase** — the `DO-*` register (now `DO-G1-*` … `DO-G12-3`), the 6 operator a11y gates, the
   3 founder decisions, and the deferred-capability refusal sweep.
+
+---
+
+## §PDF-SWEEP — 17 templates + `PdfService` · the first CROSS-REALM sweep · ⚠️ THE ONE PASS ALLOWED TO TOUCH `PdfService`
+
+### ⚠️ THREE PREMISE CORRECTIONS
+
+1. **There are 17 PDF templates, not 11** — guest 6 (`arrival`, `folio`, `guest-statement`, `guest-vat-invoice`,
+   `guest-credit-note`, `guest-refund-receipt`) · operator 3 (`operator-report`, `operator-schedule`,
+   `maintenance-costs`) · owner 8 (`owner-statement`, `-statement-history`, `-booking-summary`,
+   `-booking-confirmation`, `-remittance`, `-agreement`, `-agreement-amendment`, `-annual-tax`).
+2. **`app/Support/Pdf/PdfService.php` does not exist.** The real file is **`app/Services/PdfService.php`**;
+   `app/Support/Pdf/` holds the twelve `*Document` data-builders.
+3. **⚠️ THE "WATERMARK" IS NOT A WATERMARK.** It is the **export-audit stamp** — *"Downloaded by {name} on
+   {date} · Confidential"* — the same identity `ExportAudit` writes to the download log, pinned as a footer
+   line in the bottom **margin** (`position:fixed;bottom:4px`). It is **not** a faint brand mark lying behind
+   content. That dissolves the gate's central question, below.
+
+### 🔑 THE WATERMARK VERDICT — **INFORMATIONAL, and FIXABLE. Not a founder decision.**
+
+| test | answer |
+|---|---|
+| Does it convey information a reader must read? | **YES** — who downloaded this document, and that it is confidential. It is the fact that makes the Team security note's claim true. |
+| Is it a faint mark *behind* content? | **NO** — it sits in the bottom margin, drawn over empty paper. |
+| Would darkening it defeat its purpose? | **NO.** There is no content for it to compete with. "Unobtrusive" is carried by its size (7.5px) and position, not by its faintness. |
+
+**Measured, not assumed** — `#a99b8e` on real ink: **2.70** against paper, and **2.41** where it lands on a
+warm footer band (the pixel plate-probe on the rendered statement). ⚠️ **The recorded 2.70 was the optimistic
+case**; corrected here. Fixed to `#5f5853` — the same grey the 17 templates use for secondary text — which
+measures **6.98** on paper. It stays 7.5px, centred, in the margin: still unobtrusive, now legible.
+**An audit stamp a reader cannot read is a cosmetic feature.**
+
+⚠️ **What was NOT fixed, and why (`DO-PDF-2`).** Because it is `position:fixed`, its plate is
+**non-deterministic** — it prints over whatever the page happens to end with, so on a document whose last page
+ends in the dark net-payable band its contrast is unknown and could be far worse than any measured figure. The
+structural fix is to move the stamp into each template's own footer flow, where its plate is known. That is a
+per-template layout change across 17 documents, not a service tweak — **surfaced, not forced**.
+
+### 📄 THE 17-TEMPLATE SWEEP — 15 rendered from REAL routes with REAL data
+
+Each template was driven through its **actual export route** as the correct role (owner / operator / guest),
+capturing the view's real data at compose time and re-rendering the exact HTML dompdf consumes.
+**`guest-credit-note` and `guest-refund-receipt` 404 — the demo has no refund**, so they are refund-only
+documents that cannot render; they were fixed by literal (both carry the same two greys) but **not
+render-verified**, and that is stated rather than glossed.
+
+| ink | where | before | after |
+|---|---|---|---|
+| **`#8A8079`** (9–13px) | 10 templates, 40 occurrences | **3.86** on paper · **3.42–3.66** on the warm plates | **6.98 / ~6.2** |
+| **`#A69A92`** (8.5–10px) | 9 templates, 11 occurrences | **2.74** on paper · **2.43** on the warm plates | **5.79 / ~5.16** |
+| **`#A99B8E`** (7.5px, the stamp) | **all 15** | **2.70 / 2.41** | **6.98** |
+
+**Result: 224 distinct inks across 15 templates → 0 failures.**
+
+⚠️ **§N.8f CONFIRMED BY GREP, AND §G-3's CLAIM VERIFIED.** §G-3 fixed `#8A8079` / `#A69A92` **in the arrival
+template only** — and `arrival` really is clean (**0 occurrences**, checked not assumed: the fifth §N.8b claim
+this pass to survive verification). The other sixteen kept both. Fixed with **one mapping applied across every
+template**, onto greys **already present in these same documents**, so the palette *shrinks* (four greys → two)
+and no new colour enters. Two tiers were preserved so the visual hierarchy survives. The old values are
+**grepped to zero** in `resources/views/pdfs/`.
+
+⚠️ **The same two literals still live in the EMAIL templates** (`emails/*.blade.php`, `auth/login-approval*`).
+That is `DO-INV-4`'s territory, deliberately untouched — but it is now known that the email sweep will find
+**these exact two greys**, not a fresh set.
+
+### ⚫ GREYSCALE — safe, and the claim was verified
+
+A PDF is printed black-and-white, so a colour-only distinction dies. Checked: the remittance paid-pill prints
+`{{ $status_label }}` (a **word**, not just a green wash); the schedule's conflict marker prints a count and
+the word "conflict". `operator-schedule` even carries the comment *"Every state is written out, so this prints
+correctly in black and white"* — **accurate**.
+
+### 🔒 THE GATING AND RECONCILIATION AFTER TOUCHING THE SHARED SERVICE
+
+| re-proof | result |
+|---|---|
+| **#17** — corrupt the folio PDF's balance by one cent | ❌ **RED ×3** (reconciles-to-the-cent + two others) |
+| **#33** — remove the door-code window gate | ⚠️ **GREEN — see below** |
+| full suite (a shared service touches both realms) | 1888 tests, 9 non-green (the documented set) |
+
+### ⚠️ THE FINDING — A GUARD LAYER NO TEST COULD SEE, AND A MUTATION THAT WAS RED FOR THE WRONG REASON
+
+Removing `ArrivalPack`'s data-level gate (`'door_code' => $released ? $code : null` → `$code`) left **25 tests
+green** across `GuestArrivalCheckinTest`, `GuestReservationTest` and `GuestTripsTest` — **including the one
+named *"withholds the door code until the arrival window opens (#33)"***.
+
+**The app is NOT leaking.** `guest/arrival.blade.php` *and* `pdfs/arrival.blade.php` each independently gate on
+`@if ($pack['released'])`, so the view refuses to print what the data would now hand it. That belt-and-braces
+is precisely **why the data layer was invisible to the suite** — the second layer masks the first. Nothing is
+wrong today; what was wrong is that the second layer could be removed, or a new surface could read
+`$pack['door_code']` trusting it to be safe, and **no test would notice**. A new guard now asserts the data
+**contract** with no view in the way, mutation-proven on both the door code and the wifi.
+
+⚠️ **AND THE NEAR-MISS THAT FOUND IT.** My first attempt at this mutation went **RED — for the wrong reason**:
+bash escaping leaked a backslash into `'door_code' => \$code`, corrupting the file. I nearly recorded "#33
+re-proven ✅" on a syntax error. Re-running it cleanly (via a heredoc, with `php -l` confirming valid syntax
+after the edit) turned it **green**, which is what exposed the real gap. **G11's rule needs a second half:
+verify the edit landed on the target — *and that the RED came from the change, not from breaking the file*.
+A mutation that reds for the wrong reason is as worthless as one that passes.**
+
+### 🚩 LOGGED
+
+- **`DO-PDF-1`** · there is **no shared PDF stylesheet** — 17 templates each carry their own `<style>` with
+  duplicated literals. This sweep normalised the values, but the *structure* that let them drift is intact;
+  the next colour change will need the same 17-file sweep. A shared partial is the real fix.
+- **`DO-PDF-2`** · the audit stamp's plate is **non-deterministic** (`position:fixed` over arbitrary content) —
+  above.
+- **`DO-PDF-3`** · `guest-credit-note` and `guest-refund-receipt` are **unreachable in demo data** (no refund
+  exists), so neither was render-verified here, and neither is covered by a rendering test. A seeded refund
+  would light up both documents and their tests.
