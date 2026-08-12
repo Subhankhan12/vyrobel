@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates, plus the cross-realm PDF SWEEP (§N, §N.13); ⬅ NEXT = THE BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates + G13's 3 no-route VERDICTS (prototype accounting COMPLETE), plus the cross-realm PDF SWEEP (§N, §N.13, §G-13); ⬅ NEXT = THE BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -19,8 +19,9 @@ conflicts with the repo, **trust the repo** and fix this file.
      MISSING-BACKEND-BY-PAGE.md. ⬅ THE NEXT CHAPTER IS THE BACKEND PHASE — start it in a FRESH chat. -->
 
 > ### ⬅ RESUME HERE — 🏁 **THE DESIGN-PARITY WALK CHAPTER IS CLOSED. The next chapter is the BACKEND PHASE.**
-> **OPERATOR 42/42 · OWNER 32/32 · GUEST 12 gates / 32 prototypes · + the cross-realm PDF sweep (17 templates
-> + `PdfService`).** Every realm has now been walked page by page.
+> **OPERATOR 42/42 · OWNER 32/32 · GUEST 12 gates + 3 verdicts / 32 prototypes · + the cross-realm PDF sweep
+> (17 templates + `PdfService`).** Every realm has now been walked page by page, and **every guest prototype now
+> has either a gate record or a G13 verdict**.
 >
 > ⚠️ **Design-matched is NOT a11y-closed** — 6 operator items remain reopened (§N.9).
 >
@@ -28,9 +29,41 @@ conflicts with the repo, **trust the repo** and fix this file.
 > ① **`DO-INV-4` — the email-contrast sweep** (15 Mailables). **Now SCOPED by the PDF sweep**: the offenders
 >   are the **same two greys** (`#8A8079` → `#5F5853`, `#A69A92` → `#6C645F`), still live in `emails/*` and
 >   `auth/login-approval*`. Largely mechanical, with a known mapping. **Cheapest first.**
-> ② **G13 — the 3 no-route prototypes** (Guest Help — ties `DO-INV-3` · Guest Documents · Guest Referral
->   Landing). ⚠️ **These are product DECISIONS, not builds** — each is a feature that does not exist; the
->   verdicts feed the backend register.
+> ② ✅ **G13 — the 3 no-route prototypes: DONE (2026-08-12), verdicts rendered, docs only.**
+>   **`docs/design/G13-VERDICTS.md`** is the memo; **§G-13** in `MISSING-BACKEND-BY-PAGE.md` is the register
+>   record; the three items are `DO-G13-1/2/3` under **founder decisions**. ⚠️ **They are RECOMMENDATIONS
+>   awaiting the founder — nothing was built, deferred or deleted.**
+>   · **Guest Help → BUILD the FAQ centre — ⚠️ which REOPENS the ratified 2026-08-07 refusal**, whose premise
+>     (*"its content would have to be invented"*) the owner `HelpKnowledgeBase` has since **falsified**. ⚠️ The
+>     support *destination* already exists (Account → *"Help & support"* → the relay, `82506bb`); what is absent
+>     is a searchable FAQ. **DON'T-BUILD** the SLA pill / Typical-reply tile / phone / WhatsApp / 24-7 line (no
+>     store, no roster; already ratified refusals on `guest/messages.blade.php:3-4` and in `OwnerHelp.php`).
+>   · **Guest Documents → DEFER the hub** ⚠️ **(downgraded from BUILD once the ratified location divergence was
+>     verified** — the rollup is live: Account → `/guest/payments` *"Receipts & invoices"* → receipt → the 5
+>     PDFs, three hops but reachable; the money figures already render there). **DON'T-BUILD** the ZIP (no
+>     `ZipArchive` anywhere) and the **"kept on file for 12 months"** claim (**false** — generated on demand,
+>     nothing stored; don't soften it either) · **DEFER** email-all · 🟢 **cheap win regardless:** label the
+>     document kinds on the Payments rows.
+>   · **Guest Referral Landing → DON'T-BUILD (#39).** **FIVE subsystems absent** — no code entity, no
+>     `referred_by` attribution, **no open self-signup (a ratified refusal)**, no reward trigger, no expiry rule.
+>     `TYPE_REFERRAL` is an enum slot; only `redeemCode()` writes credit. G10's finding re-verified at `e869d5d`.
+>   · ⚠️ **The `DO-INV-3` tie is RESOLVED: Guest Help DEPENDS ON it, does not RESOLVE it** — `DO-INV-3` is a
+>     *public* destination problem, `/guest/help` would be *authed*. They share one root cause (**no support
+>     contact is configured anywhere** — `MAIL_FROM_ADDRESS` is still `hello@example.com`, no `config` support
+>     address, no property phone column; **`DO-INV-3`'s claim VERIFIED, it survives**). **`DO-INV-3` stays OPEN.**
+>   · ⚠️ **§N.8b correction #6 — `DO-G7-2` was WRONG and is RETRACTED in place.** The guest **can** start a
+>     thread: `guest.messages.start` (`routes/web.php:370`) is rendered as an always-visible "New message" form
+>     (`guest/messages.blade.php:37`). The claim was reached by looking for the affordance where it was expected
+>     rather than against what the page **renders** — the §N.13.6 false-completeness risk, live. **A finding is
+>     not safer for being ours.**
+>   · ⚠️ **NEW METHOD LESSON — "no route" is not "no function" (extends §N.13.6).** `GUEST-RECON.md` §4
+>     established *"no live route"* by route-list + grep, and that was **true** — but for **two of the three**
+>     the function had been **relocated and RATIFIED in `DIVERGENCE-REGISTER.md`** (Guest Help → the Account
+>     relay row; Guest Documents → `/guest/payments`), which neither the recon nor this pass's first read
+>     consulted. ⚠️ **It changed a verdict** (Documents BUILD → DEFER) and reframed another (Help: a plain BUILD
+>     → *reopening a ratified refusal*). **Before calling a routeless prototype a gap, check whether the
+>     function already lives somewhere else and was ratified there.**
+>   · **Prototype accounting is now COMPLETE for the guest realm: 32 prototypes = 12 gates + 3 verdicts.**
 > ③ **`DO-G8-1` — `owner/unit-detail:338`** (`round()` → floor, via `<x-star-rating>`). **This is the whole
 >   remainder of `DO10-4`**, and §N.13.8 reframes it as **correctness (WCAG 1.4.1)**, not tone.
 > ④ **THE BACKEND PHASE — plan it as a PHASE, not a gate.** Its backlog is the reconciled **43-item
@@ -5723,7 +5756,10 @@ new mechanism (G10 found it applied unevenly).
 
 ## N.13.6 ⚠️ THE §N.8b RECORD — the discipline CHECKS; it does not assume-false
 
-**FIVE claims SURVIVED verification and are recorded as plainly as the failures:** §G-3's arrival "no drift" ·
+**SIX claims SURVIVED verification and are recorded as plainly as the failures:** ⚠️ **G13's `DO-INV-3`** (no
+public help destination, no configured support address — re-verified: `.env.example:72` is still
+`MAIL_FROM_ADDRESS="hello@example.com"`, no `config/*.php` support address, no property phone column) ·
+§G-3's arrival "no drift" ·
 **DO-G6-2** ("saved is the last amber site" — I briefly thought I'd found a counterexample and **retracted it**:
 the file was dead code) · G11's honest-status (*"your email is confirmed"* is substantively accurate — holding
 the emailed link **is** the proof) · G12's policy claim (*"full refund up to 2 days"* really is derived from
@@ -5731,7 +5767,10 @@ the emailed link **is** the proof) · G12's policy claim (*"full refund up to 2 
 
 **Several were CORRECTED:** ⚠️ **GATE-3 *and* GATE-4 both UNDERSTATED** — each recorded as fabricated or
 out-of-scope something the product had since built (the G1 pattern, twice); G11's `claim-invalid` docblock
-**overstated** its own coverage (it is *not* reached for expired/tampered/unsigned links).
+**overstated** its own coverage (it is *not* reached for expired/tampered/unsigned links); ⚠️ **and correction
+#6, at G13: `DO-G7-2` — one of the walk's OWN register entries — was simply FALSE.** It claimed a guest cannot
+start a message thread; `guest.messages.start` exists and its "New message" form is always rendered
+(`guest/messages.blade.php:37`). **A finding is not safer for being ours.**
 
 ⚠️ **A "none / neither / not present" conclusion reached by GREPPING SPECIFIC STRINGS is a false-completeness
 risk** — check against what the product **renders**, not against the phrasing you expected.

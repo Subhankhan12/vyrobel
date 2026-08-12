@@ -6264,8 +6264,16 @@ used as text (the `DO-G6-3` tail does not touch these pages).
   guest cannot tell whether the property has seen their message. `message_threads` already tracks read
   positions per participant, so surfacing it is a controller/view change with real data behind it — a product
   call, not a design one.
-- **`DO-G7-2` · the guest cannot start a thread from this page** — only reply to existing ones (the start path
-  lives on other surfaces, e.g. the arrival/expenses relays). Worth a verdict at a later gate.
+- ~~**`DO-G7-2` · the guest cannot start a thread from this page** — only reply to existing ones (the start path
+  lives on other surfaces, e.g. the arrival/expenses relays). Worth a verdict at a later gate.~~
+  ⚠️ **CORRECTED IN PLACE AT G13 (2026-08-12) — THIS ENTRY WAS WRONG (§N.8b, the sixth correction).** The guest
+  **can** start a thread from this page. `POST /guest/messages` → `GuestMessagesController@start`
+  (`routes/web.php:370`, `throttle:12,1`) calls the certified `InboxService::startThread()` +
+  `postGuestMessage()`, and `resources/views/guest/messages.blade.php:34-43` renders an **always-visible "New
+  message" section** (subject + body + Send) — it is not behind the empty state, and the `@empty` copy at
+  line 30 even points at it (*"start a conversation below"*). The claim was reached by looking for a start
+  affordance in the conversation list rather than against what the page **renders** — precisely the
+  false-completeness risk §N.13.6 warns about. **No gap here; nothing to build.**
 
 ---
 
@@ -7042,15 +7050,79 @@ A mutation that reds for the wrong reason is as worthless as one that passes.**
   would light up both documents and their tests.
 
 ---
+
+## §G-13 — THE THREE NO-ROUTE PROTOTYPES · **VERDICTS, NOT A GATE** (2026-08-12, HEAD `e869d5d`)
+
+⚠️ **A VERDICT PASS.** `Guest Help`, `Guest Documents` and `Guest Referral Landing` have **no live route**, so
+there is nothing to render, diff, measure or mutate — the gate machinery does not apply and was not run. Each was
+**decoded fresh**, **verified against the engine** (does a model / table / route / service / **writer** exist?),
+given a **verdict**, and **surfaced as a founder decision**. **No product code was written.**
+
+**The full reasoning, the decoded feature lists, the grep citations and the per-path costs live in
+`docs/design/G13-VERDICTS.md`.** This section is the register-facing summary.
+
+**This closes the guest realm's prototype accounting:** 32 prototypes → **12 gates** (§G-1…§G-12) + **3 verdicts**.
+
+### The three verdicts
+
+| prototype | the verified backend reality | verdict |
+|---|---|---|
+| **Guest Help** (`DO-G13-1`) | 🟢 **A support destination ALREADY EXISTS** — `guest/account.blade.php:179-185` renders *"Help & support · Message your property directly"* → `guest.messages` (a 2026-08-07 audit fix, `82506bb`). 🟢 The relay is **REAL and reachable** — `guest.messages.start` (see the `DO-G7-2` retraction). 🟢 The FAQ **pattern** is proven owner-side — `HelpKnowledgeBase` (curated: keywords/question/answer/route/label) + `HelpRetriever` + the grounded `AskVyrobelService`. ❌ **No guest KB, no `/guest/help` route** (nav is `Trips · Payments · Wallet · Messages · Saved · Account`). ❌ **No SLA store, no first-response metric, no support hours**; `properties` has **no phone and no support-email column** (only `brand_reply_to`, an email reply-to setting); no on-call roster; WhatsApp is account-gated. | **BUILD** the FAQ centre — ⚠️ **this REOPENS the ratified 2026-08-07 refusal** (*"NOT a help centre: its content would have to be invented"*), whose premise the owner KB has since **falsified**: curated, real, screen-linked FAQ content is exactly what `HelpKnowledgeBase` is. Flagged as a founder call, not taken. · **DON'T-BUILD (#39)** the *"replies under an hour"* pill, the **Typical reply** tile, the **phone / WhatsApp / hours** and the **24/7 urgent line** — ⚠️ the last is *dangerous*, not merely dishonest. The same refusals are already ratified on `guest/messages.blade.php:3-4` and in `OwnerHelp.php:28-31`. |
+| **Guest Documents** (`DO-G13-2`) | 🟢 **All five money PDFs are REAL** and #28-isolated (`GuestDocumentController`, resolved through `$this->guest()->reservations()`), plus the arrival PDF. 🟢 **All three money figures already exist** in ONE shared reader — `GuestPayments::overview()` (`total_charged`/`total_refunded`/`total_balance` across all the guest's bookings, #17) — and **two already render on `/guest/payments`**. ⚠️ 🟢 **THE ROLLUP ALREADY EXISTS AND WAS RATIFIED** as a location divergence: Account *"Receipts & documents"* (`account.blade.php:175`) → `/guest/payments`'s *"Receipts & invoices"* card (`payments.blade.php:112-121`) → the receipt page → the 5 PDFs. **Three hops, but reachable.** ❌ **No ZIP capability anywhere** (`grep -rln "ZipArchive" app` → nothing). 🟡 No guest email-all writer; the owner precedent is real (`OwnerReportMail`). ❌ **"kept on file for 12 months" is FALSE** — PDFs are generated **on demand**; nothing is stored, no retention window, no purge job. | **DEFER** the hub — ⚠️ **downgraded from an initial BUILD read once the ratified divergence was verified**; it is a convenience (3 hops → 1 + a cross-booking list) over an already-reachable function, and building it **reopens a ratified row**. · **DON'T-BUILD** the **ZIP** (omit the control, don't disable it) and the **12-month retention claim** (never ship the line; don't soften it either) · **DEFER** *"Email me all documents"*. 🟢 **Cheap win regardless of the hub decision:** label the document kinds on the Payments rows — a guest cannot currently tell their **VAT invoice** lives behind a button labelled *Receipt*. |
+| **Guest Referral Landing** (`DO-G13-3`) | ❌ **FIVE subsystems absent.** `TYPE_REFERRAL` is an **enum slot and a display label** — never written. The ONE production credit writer is `GuestWalletService::redeemCode()` (posts `TYPE_PROMO`). No referral-code entity (`promo_codes` is org-wide, no referrer column) · no `referred_by` attribution on `guests` · **no open guest self-signup** (booking-tied claim only — a **ratified refusal**, `DO-G11-3`) · no first-stay reward trigger · no 90-day expiry rule. | **DON'T-BUILD as drawn (#39).** The page would promise a stranger money the engine cannot pay: a code that redeems nothing, a referrer never paid, a countdown against a rule that does not exist, and a "create your account" button with no account-creation path behind it. **The same refusal is already ratified twice** — `guest/wallet.blade.php:4,102` (test-defended at `GuestWalletTest.php:175`) and `DO-G11-3`. |
+
+### ⚠️ The `DO-INV-3` tie — RESOLVED: **DEPENDS ON, does not RESOLVE**
+
+`GUEST-RECON.md` §4 read Guest Help as *"Same gap, second realm. Likely one fix serving both."* **Half right.**
+`DO-INV-3` is a **public** problem (an invite recipient has **no account**, so an authed `/owner/help` bounces to
+login); Guest Help would be an **authed** page behind `auth:guest`. **Building `/guest/help` gives the invite
+email nowhere new to point.**
+
+They share ONE **root cause** — *no support contact is configured anywhere in the product*. **That root cause is
+VERIFIED, not assumed:** `.env.example:72` is still `MAIL_FROM_ADDRESS="hello@example.com"`; `config/*.php`
+declares no support URL or address; `properties` carries no phone/support-email column. It blocks Guest Help's
+**contact sidebar** and **all of `DO-INV-3`**. ⚠️ **`DO-INV-3` therefore stays OPEN regardless of the Guest Help
+decision** — and conversely, configuring a real support contact is the single change that serves both.
+
+### 🚩 The premise corrections this pass produced (§N.8b)
+
+- ✅ **`DO-INV-3`'s claim SURVIVES verification** — recorded as plainly as the failures (the sixth surviving claim).
+- ❌ **`DO-G7-2` was WRONG and is RETRACTED in place** (§G-7 + the register) — the guest **can** start a thread.
+- ⚠️ **The recon's Guest-Help/`DO-INV-3` reading is QUALIFIED** (above).
+- ⚠️ **TWO RATIFIED `DIVERGENCE-REGISTER.md` ROWS THE RECON DID NOT CONSULT — and they MOVED A VERDICT.**
+  **(i) "Guest Help — ✅ RESOLVED (`82506bb`)"**: the fact **survives** (`guest/account.blade.php:184` really does
+  link *"Help & support"* → the relay, so ⚠️ **a guest is NOT without a support destination** — the pass's own
+  first read said they were and was wrong). But its **stated reasoning is now STALE**: *"its content would have
+  to be invented"* is **falsified** by `HelpKnowledgeBase`. **(ii) "Guest Documents hub — ↺ RATIFIED (location
+  divergence)"**: **survives** — the rollup is live on `/guest/payments`, ⚠️ **which downgraded the Documents
+  verdict from BUILD to DEFER.** Precision added: the 5 PDFs are linked from **exactly one page**
+  (`guest/receipt.blade.php:57-62`, refund + credit-note conditional), reached via
+  `guest/payments.blade.php:112-121`; the arrival PDF from `guest/arrival.blade.php:10`.
+  > ⚠️ **The lesson (extends §N.13.6): "no route" is not "no function."** The recon's *"no live route"* was
+  > **true** — but the function had been **relocated and ratified** elsewhere. **Check `DIVERGENCE-REGISTER.md`
+  > before calling a routeless prototype a gap**, or a verdict pass re-litigates a settled decision blind.
+- ✅ **G10's referral finding HOLDS** — re-grepped at `e869d5d`; still six hits, still no writer.
+
+### ⚠️ §N.8f — the duplication trap a Documents build would walk into
+
+*"Does this booking have a refund?"* is currently derived **inside** `GuestDocumentController::ownedWithRefund()`
+(`abort_unless($hasRefund, 404)`) and **again** in `guest/receipt.blade.php`'s conditional. A hub would make it
+**three**. It must be extracted into ONE shared reader first — the drift that matters is a hub row that links to
+a 404.
+
+---
 ---
 
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
 
-**This is the reconciled index of every `DO-*` item raised by the guest realm's 12 gates and the cross-realm
-PDF sweep.** Each item's full reasoning stays in its own §G / §PDF section above — this groups them **by kind**
-so the backend phase can be planned against them, and marks what the walk itself already **CLOSED**.
+**This is the reconciled index of every `DO-*` item raised by the guest realm's 12 gates, the cross-realm
+PDF sweep, and **G13's three no-route verdicts**.** Each item's full reasoning stays in its own §G / §PDF section
+above — this groups them **by kind** so the backend phase can be planned against them, and marks what the walk
+itself already **CLOSED**.
 
-⚠️ **43 items were raised, not the ~18 an earlier summary listed.** Verified by enumeration, not memory.
+⚠️ **43 items were raised by the 12 gates + the PDF sweep, not the ~18 an earlier summary listed.** Verified by
+enumeration, not memory. **G13 then added 3 verdict items (`DO-G13-1/2/3`) and RETRACTED 1 (`DO-G7-2`) → 45
+live.**
 
 ## ✅ CLOSED DURING THE WALK (recorded so they are not re-opened)
 
@@ -7089,7 +7161,7 @@ so the backend phase can be planned against them, and marks what the walk itself
 | **`DO-G5-1`** | the prototype's cancellation **review step** (a refund breakdown + policy timeline before confirming). |
 | **`DO-G5-2`** | no request-history surface — a guest never sees a **declined** request. |
 | **`DO-G7-1`** | no delivery/read state on a guest message (honest absence, but the guest cannot tell if it was seen). |
-| **`DO-G7-2`** | a guest cannot start a thread from Messages — only reply. |
+| ~~**`DO-G7-2`**~~ ⚠️ | ~~a guest cannot start a thread from Messages — only reply.~~ **RETRACTED at G13 — the claim was false.** `guest.messages.start` exists (`routes/web.php:370`) and is rendered as an always-visible "New message" form (`guest/messages.blade.php:37`). §N.8b correction #6; see §G-7 and §G-13. |
 | **`DO-G6-2`**\* | a **pending** payment is invisible rather than shown as processing. *(\*id reused across sections in the source; see §G-6.)* |
 
 ## 🧱 STRUCTURAL / DUPLICATION (§N.8f)
@@ -7114,6 +7186,9 @@ so the backend phase can be planned against them, and marks what the walk itself
 | **`DO-G4-3` · `DO-G3-2` · `DO-G2-3` · `DO-G1-3`** | prototype affordances owed a verdict (map link, keypad hint, house-guide structure, search magnifier/clear, styled year popover, per-item sub-lines). |
 | **`DO-G11-3`** | ratified refusals to **preserve**: social sign-in, open self-signup, the join-time welcome credit. |
 | **`DO-G6-1`** | Stripe live is the founder's cutover (§H). |
+| **`DO-G13-1`** 🆕 ⚠️ | **Guest Help — verdict BUILD the FAQ centre, which REOPENS a ratified refusal.** The support *destination* already exists (Account → relay); what is absent is a searchable FAQ. The 2026-08-07 refusal's premise — *"its content would have to be invented"* — is **falsified** by `HelpKnowledgeBase`. **Founder's call:** (a) build the honest FAQ centre now (mirror `/owner/help`; no migration, no dependency) · (b) configure real per-property support contacts first, then build the full sidebar — **this also unblocks `DO-INV-3`** · (c) keep the refusal (defensible — the relay already reaches people who can answer). ⚠️ The SLA pill, Typical-reply tile, phone/WhatsApp and 24/7 line are **DON'T-BUILD (#39)** on every path. Separate smaller call: extend `AskVyrobelService` to a guest KB — **recommend deferring**. See §G-13 + `design/G13-VERDICTS.md` §2. |
+| **`DO-G13-2`** 🆕 | **Guest Documents — verdict DEFER the hub** (⚠️ downgraded from BUILD once the ratified location divergence was verified: the rollup is live on `/guest/payments`, three hops from a PDF). Three separable founder calls: **(i) the hub** — DEFER; a convenience, and building it reopens a ratified row. **(ii) "Download all (ZIP)"** — **DON'T-BUILD**; recommend **omitting** the control rather than disabling it (no ZIP writer exists anywhere; building one is real infrastructure for a convenience). **(iii) "Email me all documents"** — **DEFER**; buildable as a queued guest analogue of `OwnerReportMail`, to the guest's **own** address only (#28), rate-limited, and it must survive `DO-INV-4`. ⚠️ **"kept on file for 12 months" is DON'T-BUILD** — false (PDFs are generated on demand; nothing is stored), the §N.13.7 policy-claim shape; **do not soften it either**. 🟢 **Cheap win independent of all three:** label the document kinds on the Payments rows. See §G-13 + `G13-VERDICTS.md` §3. |
+| **`DO-G13-3`** 🆕 ⚠️ | **Guest Referral Landing — verdict DON'T-BUILD as drawn (#39).** The question is whether a **referral programme** is on the roadmap at all: **(a)** no programme — archive the prototype as a ratified refusal (**recommended** absent founder intent); **(b)** build the backend first (code entity · `referred_by` attribution · **a new guest-creation path, i.e. revisiting booking-tied-claim-only — a security-posture change** · a first-stay reward trigger · an expiry policy · abuse controls · all on the append-only ledger with idempotency, #17), *then* the page; **(c)** ⚠️ **never** a stripped landing over `promo_codes` — it keeps the dishonest 80% and loses the point. ⚠️ Do **not** "fix" `guest/wallet.blade.php`'s honest deferral — it is test-defended. See §G-13 + `G13-VERDICTS.md` §4. |
 
 ## 🧹 SCOPED CROSS-REALM CLEANUPS
 

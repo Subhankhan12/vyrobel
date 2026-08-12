@@ -7956,3 +7956,73 @@ the join-time welcome credit).
 
 **Next chapter: the BACKEND PHASE**, planned against the reconciled **43-item DO-register** at the end of
 `MISSING-BACKEND-BY-PAGE.md`. ⛔ The **billing/pricing go-live blocker (§G.1) remains open and untouched.**
+
+---
+
+## 2026-08-12 — **G13: the three no-route guest prototypes get VERDICTS** (docs only, HEAD at start `e869d5d`)
+
+**A verdict pass, not a gate.** `Guest Help`, `Guest Documents` and `Guest Referral Landing` have no live route,
+so there was nothing to render, diff, measure or mutate — the gate machinery did not apply and was not run. Each
+was **decoded fresh**, **verified against the engine** (does a model / table / route / service / **writer**
+exist?), given a verdict, and **surfaced as a founder decision**. **No product code was written.** The memo is
+`docs/design/G13-VERDICTS.md`; the register record is **§G-13** in `MISSING-BACKEND-BY-PAGE.md`; the items are
+`DO-G13-1/2/3` under **founder decisions**.
+
+**This closes the guest realm's prototype accounting: 32 prototypes = 12 gates + 3 verdicts.**
+
+**The verdicts (recommendations — the founder decides):**
+
+- **Guest Help → BUILD the FAQ centre · DON'T-BUILD the SLA/phone/24-7 half.** ⚠️ **The BUILD reopens a ratified
+  refusal**, and that is stated rather than smuggled: the 2026-08-07 audit gave the guest a real support
+  destination (Account → *"Help & support"* → the relay, `82506bb`) and explicitly refused a help **centre**
+  because *"its content would have to be invented."* **That premise has since been falsified by the product
+  itself** — `app/Support/Help/HelpKnowledgeBase.php` is a curated, real, screen-linked FAQ, read by both the
+  owner Help blade and the grounded assistant so they cannot drift. The pattern is proven; only a guest KB is
+  missing. **Refused on every path (#39):** the *"replies under an hour"* pill, the Typical-reply tile, the
+  phone/WhatsApp/hours and the **24/7 urgent line** — `properties` has no phone or support-email column, there is
+  no SLA store and no on-call roster, and the same refusals are already ratified on `guest/messages.blade.php`
+  and in `OwnerHelp.php`. ⚠️ The 24/7 line is not merely dishonest but **dangerous**: a guest locked out at 02:00
+  shown an emergency number nobody answers is worse off than one shown the real relay.
+
+- **Guest Documents → DEFER the hub · DON'T-BUILD the ZIP and the "12 months" · DEFER email-all.** ⚠️ **Downgraded
+  from an initial BUILD read** once a ratified `DIVERGENCE-REGISTER.md` row was verified: the rollup already
+  exists (Account *"Receipts & documents"* → `/guest/payments`'s *"Receipts & invoices"* → the receipt page → the
+  five PDFs). Three hops, but reachable, and the cross-booking money figures already render on Payments via the
+  shared `GuestPayments::overview()` (#17). The hub is a **convenience**, and building it reopens a ratified row.
+  **"Download all (ZIP)"** has no backend at all (`grep -rln "ZipArchive" app` → nothing) — recommend **omitting**
+  the control rather than disabling it. **"kept on file for 12 months" is FALSE and must never ship**: PDFs are
+  generated **on demand**; nothing is stored, there is no retention window and no purge job — the §N.13.7
+  policy-claim shape. 🟢 **One cheap win independent of all of it:** label the document kinds on the Payments
+  rows — a guest cannot currently tell that their **VAT invoice** lives behind a button labelled *Receipt*.
+
+- **Guest Referral Landing → DON'T-BUILD as drawn (#39).** G10's finding re-verified at `e869d5d`: `TYPE_REFERRAL`
+  is an enum slot and a display label; the only production credit writer is `GuestWalletService::redeemCode()`
+  (posting `TYPE_PROMO`). **Five subsystems are absent** — no referral-code entity (`promo_codes` is org-wide with
+  no referrer column), no `referred_by` attribution, **no open guest self-signup** (booking-tied claim only — a
+  ratified refusal, `DO-G11-3`), no first-stay reward trigger, no expiry rule. The page's core action would
+  require **inverting the realm's identity model and inventing a money writer**. The founder's question is
+  whether a referral **programme** is on the roadmap; ⚠️ a stripped landing over `promo_codes` is explicitly
+  recommended against — it keeps the dishonest 80% and loses the point.
+
+**⚠️ The `DO-INV-3` tie — RESOLVED: Guest Help DEPENDS ON it, does not RESOLVE it.** `DO-INV-3` is a **public**
+destination problem (an invite recipient has no account, so an authed `/owner/help` bounces to login); a
+`/guest/help` would be **authed**. They share ONE root cause — **no support contact is configured anywhere**
+(`DO-INV-3`'s claim **re-verified and it survives**: `.env.example:72` is still
+`MAIL_FROM_ADDRESS="hello@example.com"`, no `config/*.php` support address, no property phone column). **`DO-INV-3`
+stays OPEN regardless of the Guest Help decision** — and configuring a real support contact is the single change
+that serves both.
+
+**⚠️ Two record corrections, both §N.8b:**
+1. **`DO-G7-2` was FALSE and is RETRACTED in place** — one of the walk's own register entries. A guest **can**
+   start a message thread: `guest.messages.start` (`routes/web.php:370` → `InboxService::startThread()`) is
+   rendered as an **always-visible** "New message" form (`guest/messages.blade.php:37`). The claim was reached by
+   looking for the affordance where it was expected instead of against what the page renders. **A finding is not
+   safer for being ours.**
+2. **NEW METHOD LESSON — "no route" is not "no function."** `GUEST-RECON.md` §4 established *"no live route"* by
+   route-list and grep, and that was **true** — but for two of the three, the function had been **relocated and
+   RATIFIED in `DIVERGENCE-REGISTER.md`**, which neither the recon nor this pass's first read consulted. It
+   **changed a verdict** (Documents BUILD → DEFER) and reframed another (Help: a plain BUILD → *reopening a
+   ratified refusal*). **Before calling a routeless prototype a gap, check whether the function already lives
+   somewhere else and was ratified there** — otherwise a verdict pass re-litigates a settled decision blind.
+
+**Nothing was built, deferred or deleted unilaterally.** `git diff` is `docs/*` only.
