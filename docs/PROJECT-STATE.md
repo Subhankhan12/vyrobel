@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates + G13's 3 no-route VERDICTS, plus the cross-realm PDF SWEEP (§N, §N.13, §G-13)** · 🏁 **AND THE CLEANUP SEQUENCE IS CLOSED — the grey drift retired across PDFs + emails + operator/owner web, all 20 emails on-brand, the O26 star defect RETIRED (§N.14, SAVE v9); ⚠️ "closed" = everywhere the pass could REACH (§N.14.1); ⬅ NEXT = THE BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
+# ⚠️ CANONICAL STATE — Vyrobel finish-to-100 COMPLETE · **BLOCKERS + HARDENING + POLISH DONE · 🏁 THE WIREFRAME-PARITY SWEEP IS FULLY CLOSED — WAVES 1/2/3 + the auth/isolation pass (2026-08-09)** · 🏁 **THE DESIGN-PARITY WALK IS CLOSED FOR ALL THREE REALMS — OPERATOR 42/42 + OWNER 32/32 + GUEST 12 gates + G13's 3 no-route VERDICTS, plus the cross-realm PDF SWEEP (§N, §N.13, §G-13)** · 🏁 **AND THE CLEANUP SEQUENCE IS CLOSED — the grey drift retired across PDFs + emails + operator/owner web, all 20 emails on-brand, the O26 star defect RETIRED (§N.14, SAVE v9); ⚠️ "closed" = everywhere the pass could REACH (§N.14.1)** · 🏗 **AND THE FIRST BUILD SINCE THE WALK IS SHIPPED — the guest FAQ centre `/guest/help` over the certified `HelpKnowledgeBase` (§N.15, SAVE v10); the SUPPORT half is SCOPED, not refused; ⬅ NEXT = THE SUPPORT BACKEND, then the BACKEND PHASE** · ⚠️ **design-matched is NOT a11y-closed — 6 OPERATOR items are REOPENED (§N.9)** · **suite baseline is a 5–10 RANGE (§J.quater)** · deployment + scale-perf REMAIN · ⛔ ONE GO-LIVE BLOCKER OPEN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -31,72 +31,97 @@ conflicts with the repo, **trust the repo** and fix this file.
      ⚠️ DO-EMAIL-9 is a LIVE false claim on a security email — the runway's item ①.
      ⬅ THE NEXT CHAPTER IS THE BACKEND PHASE — start it in a FRESH chat. -->
 
-> ### ⬅ RESUME HERE — 🏁 **TWO CHAPTERS ARE CLOSED. The next one is the BACKEND PHASE — start it in a FRESH chat.**
+<!-- SAVE v10 (2026-08-12) — supersedes v9's RESUME; §N.13 and §N.14 stand unchanged. v10 folds in THE FIRST
+     BUILD since the walk: the guest FAQ centre (23bf335, GET /guest/help) over the certified
+     HelpKnowledgeBase. Its canon is §N.15 — verify-every-promise now covers AUTHORING (verify BEFORE writing;
+     when the true answer VARIES, ROUTE to the authoritative screen rather than pick a number); three new
+     guard traps (a vacuous assertion can hide in a SHARED NAV · N.14.2 extends to reused CSS classes, e.g. an
+     undefined .vy-sr-only hides nothing · an absence assertion must read VISIBLE TEXT because CSS comments
+     ship); the canon applied AT BIRTH held; and the Guest-Help verdict was SPLIT — the FAQ half BUILT, the
+     support half SCOPED (§N.15.6) and conditional, not permanently refused.
+     ⚠️ THIS RESUME IS THE SESSION-HANDOFF SURFACE — a fresh session should orient entirely from it. -->
+
+> ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.15, then the DO-register.
 >
-> **① THE DESIGN-PARITY WALK (SAVE v8)** — OPERATOR 42/42 · OWNER 32/32 · GUEST 12 gates + 3 verdicts / 32
-> prototypes · + the cross-realm PDF sweep (17 templates + `PdfService`). Every realm walked page by page;
-> every guest prototype has a gate record or a G13 verdict. **Canon: §N.13.**
+> *Written so a session with no other context can start work immediately. Everything below is verified state,
+> not summary.*
 >
-> **② THE CLEANUP SEQUENCE (SAVE v9)** — five passes, `e869d5d`→`ee6be74`: `DO-INV-4` · `DO-EMAIL-1` ·
-> `DO-EMAIL-2` · `DO-EMAIL-3` · `DO10-4`. **Canon: §N.14.** What is now true:
-> · the **grey-literal drift is CLOSED** across **PDFs** (17 templates), **emails** (20 templates) and the
->   **operator/owner web screens the pass could reach** (28 occurrences / 9 files, mapped to **tokens**)
-> · **all 20 emails are on-brand**; the email set measures **335 text runs / 0 FAIL**
-> · the **O26 star defect family is RETIRED** — every rating row **floors**, differs by **GLYPH**, carries **one
->   accessible name**, and clears **3:1 on the worst plate it renders on**; ⚠️ `<x-star-rating>`'s **own
->   defaults were failing (2.08 / 2.25) and are fixed** to `#8F5A06` / `#7A6E64`
-> · suite **1907 / 12,448** · **9 non-green = the documented baseline set** · PHPStan L5 (0) · Pint clean
+> ## WHERE THE PROJECT IS
 >
-> ⚠️ **THE ONE THING §N.14 SAYS THAT CHANGES HOW YOU PLAN:** *a contrast/render pass is bounded by the ROLE it
-> runs as* (§N.14.1). No probe can measure markup a permission check never emitted — 11 greys sat behind
-> `@can('users.manage')` and were **absent from the DOM** as the demo operator. **So "closed" above means
-> "closed everywhere this pass could reach", not "closed everywhere".** `DO-EMAIL-5` is the honest successor.
+> **THREE CHAPTERS ARE CLOSED, IN ORDER:**
+> **① THE DESIGN-PARITY WALK (v8)** — OPERATOR 42/42 · OWNER 32/32 · GUEST 12 gates + 3 verdicts / 32
+>   prototypes · + the cross-realm PDF sweep (17 templates + `PdfService`). **Canon: §N.13.**
+> **② THE CLEANUP SEQUENCE (v9)** — five passes (`e869d5d`→`ee6be74`). The grey-literal drift is closed across
+>   **PDFs**, **emails** (all 20 on-brand, **335 runs / 0 FAIL**) and the **operator/owner web screens the pass
+>   could reach**; the **O26 star defect family is RETIRED**. **Canon: §N.14.**
+> **③ THE FIRST BUILD (v10)** — **`GET /guest/help`, the guest FAQ centre** (`23bf335`), over the certified
+>   `HelpKnowledgeBase`. **Canon: §N.15.**
 >
-> ---
+> **Suite 1914 / 12,613 · 9 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
+> `OwnerUnitDetailViewTest` · `StubViewsTest` ×2 — date-coupled/in-suite-only; **isolate before calling anything
+> a regression**, and prove a new failure pre-existing by stashing from a CLEAN worktree — §N.14.5).
+> PHPStan L5 (0) · Pint clean.
 >
-> ### THE RUNWAY, IN PRIORITY ORDER
+> ⚠️ **THE ONE CAVEAT THAT QUALIFIES EVERY "CLOSED" ABOVE (§N.14.1):** *a contrast/render pass is bounded by the
+> ROLE it runs as.* No probe can measure markup a permission check never emitted. **So "closed" means "closed
+> everywhere a pass could reach"** — `DO-EMAIL-5` is the honest successor, and the first question to ask of any
+> realm is **"which roles has nothing ever run as?"**
 >
-> **⚠️ ① `DO-EMAIL-9` — a LIVE §N.8d, and arguably the first thing to touch.** `owner-email-change` tells an
-> owner changing their **login email**: *"You're receiving this because it relates to your booking with us."*
-> A **security notification asserting something untrue**, shipping today. It is the shared layout's default
-> footer, so ⚠️ **the real scope is unknown — every account/security template extending that layout inherits
-> it** (§N.14.8). **A founder-adjacent call surfaced, not taken:** the cheap fix is a per-template override
-> (what `DO-EMAIL-3` did); the structural fix is changing the layout's default and auditing which templates
-> then need their own line. **Decide reword-vs-restructure before touching it.**
+> ## WHAT TO DO NEXT — in priority order
 >
-> **② `DO-EMAIL-4` — reconcile the twice-defined token.** `--vy-amber-text` is guest `rgb(126,88,17)` **and**
-> owner `rgb(128,76,5)`. Until one wins, "map the literal to the token" (§N.14.9) is ambiguous.
+> **① THE SUPPORT BACKEND — fully scoped, ready to build (§N.15.6).** The other half of `DO-G13-1`: the founder
+>   ruled **build the backend first**, not don't-build and not ship-UI-over-nothing. **3 new per-property
+>   fields → one migration → operator-settings UI to set them → a guest-facing support block to display them.**
+>   Stored phone/WhatsApp · a **soft operator-set reply NORM** ("usually within…", ⚠️ never a guarantee — the
+>   `DO-EMAIL-9` class) · **real per-property hours** (⚠️ no "24/7" unless the stored hours say so).
+>   ⚠️ **Every field displays ONLY when populated — empty means the affordance is ABSENT.** The new guest UI
+>   inherits §N.15's canon. ⚠️ **Until then `/guest/help` stays pure — no slot, no placeholder, no seam.**
 >
-> **③ `DO-EMAIL-5` + `DO-EMAIL-6` — the coverage re-audit.** `DO-EMAIL-5`: a full operator/owner contrast
-> re-audit run **across every role that can reach each surface** — a fourth grey was found the moment one pass
-> looked past its scope. `DO-EMAIL-6`: the two standalone web pages that cannot reach the tokens.
+> **② `DO-EMAIL-9` — a LIVE §N.8d, and arguably first.** `owner-email-change` tells an owner changing their
+>   **login email**: *"You're receiving this because it relates to your booking with us."* A **security
+>   notification asserting something untrue, shipping today.** It is the shared layout's default footer, so
+>   ⚠️ **the scope is unknown** — every account/security template extending that layout inherits it (§N.14.8).
+>   **Surface the reword-vs-restructure call before touching it**: a per-template override is what `DO-EMAIL-3`
+>   did; the structural fix changes the layout default and audits who then needs their own line.
 >
-> **④ The small tail** — `DO-EMAIL-7` (the `--vy-hk-ooo` status fill) · `DO-EMAIL-8` (the footer slot misnamed
-> `unsubscribe`) · `DO-STAR-1` (the Messages *"Starred"* flag — ⚠️ **a bookmark, not a rating**; do not fold it
-> into `DO10-4`).
+> **③ `DO-EMAIL-4`** — reconcile the twice-defined `--vy-amber-text` (guest `rgb(126,88,17)` vs owner
+>   `rgb(128,76,5)`). Until one wins, "map the literal to the token" (§N.14.9) is ambiguous.
 >
-> **⑤ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
-> DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (now carrying two index blocks: ✅ *closed by the
-> cleanup sequence* and ⬅ *the cleanup's open successors, grouped by kind*), plus the **6 reopened operator
-> a11y gates** (§N.9), the **founder decisions** — including **G13's three verdicts** (Guest Help **BUILD**,
-> which ⚠️ *reopens a ratified refusal on new evidence* · Guest Documents **DEFER** · Guest Referral
-> **DON'T-BUILD**, #39) — and the **deferred-capability refusal sweep** (§N.8b).
+> **④ `DO-EMAIL-5` + `DO-EMAIL-6`** — the coverage re-audit (run **across every role that can reach each
+>   surface**; a fourth grey was found the moment one pass looked past its scope) and the two standalone web
+>   pages that cannot reach the tokens.
 >
-> ⛔ **Untouched by both chapters and still open: the billing/pricing go-live blocker (§G.1).**
+> **⑤ The G13 tail + the small items** — ⚠️ **`DO-G13-2` (Guest Documents → DEFER) and `DO-G13-3` (Guest
+>   Referral → DON'T-BUILD, #39) are recommendations AWAITING A FOUNDER RULING**, exactly as the Help verdict
+>   was before it was split. Plus `DO-EMAIL-7`, `DO-EMAIL-8`, `DO-STAR-1` (⚠️ a bookmark, not a rating).
 >
-> ---
+> **⑥ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Its backlog is the **consolidated
+>   DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (two index blocks: ✅ *closed by the cleanup
+>   sequence* · ⬅ *open successors, grouped by kind*), plus the **6 reopened operator a11y gates** (§N.9) and
+>   the **deferred-capability refusal sweep** (§N.8b).
 >
-> ⚠️ **WRITE THE BACKEND PHASE AGAINST THE VERIFIED STATE — do not re-derive it.**
-> **Read first: §N.14 (the cleanup canon — start at N.14.1, the role bound) · §N.13 (the guest/PDF canon) ·
-> §N.8 (the five principles) · §N.8b (stale claims) · §N.8c (standing traps) · §N.8d (dishonest display —
-> `DO-EMAIL-9` is a live one) · §N.4p + §N.13.2 + §N.14.4 (the mutation discipline: the edit landed on the
-> target · the verdict came from the guard, not the fixture, the file, or the compiled cache) · §N.9 (what is
-> reopened) · §N.10 (the owner running lessons).** Then the **DO-register**.
+> **⑦ ⛔ THE BILLING / GO-LIVE BLOCKER (§G.1) — still open, untouched by all three chapters.** Two contradictory
+>   pricing models run at once and only the tier price reaches Stripe; at the live-key flip a customer is billed
+>   ~2×. ⚠️ **It is the founder's business decision — surface it, never pick a side.** ⚠️ **If launch is near,
+>   this outranks everything above.**
 >
-> **Method (unchanged where it applies):** work the real code first → classify **DESIGN-GAP** /
-> **REFUSAL-TO-PRESERVE** / **EXTRA-WORK** / **MISSING-BACKEND** → **mutation-prove every guard** (`php -l`
-> *and* `view:clear` after a Blade mutation; a **non-vacuity assertion** in every guard) → browser-verify **as
-> every role that can reach the surface** → suite + PHPStan + Pint → commit + push → **report and STOP**.
+> ## HOW TO WORK
+>
+> **Read before starting: §N.15 (the build canon — newest) · §N.14 (the cleanup canon; start at N.14.1) ·
+> §N.13 (the walk canon) · §N.8 (the five principles) · §N.8b (stale claims — ⚠️ apply it to OUR OWN record;
+> the last two SAVEs each caught stale self-claims) · §N.8c (standing traps) · §N.8d (dishonest display —
+> `DO-EMAIL-9` is a live one) · §N.4p + §N.13.2 + §N.14.4 (the mutation discipline) · §N.9 (what is reopened).**
+>
+> **Method:** work the real code first, never the summary → classify **DESIGN-GAP** / **REFUSAL-TO-PRESERVE** /
+> **EXTRA-WORK** / **MISSING-BACKEND** → **mutation-prove every guard** (⚠️ the verdict must come from the
+> guard, not the fixture, the file, or the compiled cache: `php -l` **and** `php artisan view:clear` after a
+> Blade mutation; **a non-vacuity assertion in every guard**; ⚠️ a guard that restates the source, or that a
+> shared nav satisfies, proves nothing — §N.14.4, §N.15.3a) → browser-verify **as every role that can reach the
+> surface** → suite + PHPStan + Pint → commit + push → **report and STOP**.
+>
+> ⚠️ **Honesty rules that outrank tidiness:** never ship UI for a capability the engine lacks (#39); when a true
+> answer VARIES, **route to the authoritative screen rather than pick a number** (§N.15.2); a refusal is
+> reversible only when its **premise** is falsified, and then say which half you reversed (§N.15.5).
 > ## 🏁 THE PER-PAGE **DESIGN-PARITY PASS** IS COMPLETE FOR BOTH BUILT REALMS (2026-08-09 → 2026-08-11)
 >
 > **Read §N before quoting "what remains is only a decision + infrastructure" — that line is no longer the
@@ -336,6 +361,12 @@ reliable part.)*
   depends on the `schedule:run` cron** (`DO-G9-1`).
 - **`FolioService` / `FolioTotals`** — `#17`, integer minor units, ONE source; no Blade re-derivation.
 - **`GuestWalletService`** — the append-only credit ledger; the balance is **DERIVED, never stored**.
+- **`HelpKnowledgeBase`** — the ONE curated help content store, serving TWO audiences from one class:
+  `articles()` (owner — read by the owner Help blade AND the grounded `AskVyrobelService` via `HelpRetriever`)
+  and **`guestArticles()`** (guest — read by `/guest/help`, added 2026-08-12, **not forked**). Same contract
+  both sides (+ a `category` on the guest set); guest entries link only `guest.*`, owner only `owner.*`.
+  ⚠️ Every answer is verified against the code that implements it, and a value that VARIES (the per-property
+  cancellation window) is **routed to its authoritative screen, never averaged into a number** (§N.15.2).
 - **`<x-star-rating>`** — floor-don't-round, glyph-differentiated (greyscale-safe), one accessible name,
   **defaults `#8F5A06` / `#7A6E64`** (both ≥3:1 as a non-text graphic on every plate the product renders them
   on, incl. the peach `#FBD3BF`). ✅ **`DO10-4` CLOSED (`ee6be74`)** — every rating row in the product now
@@ -5996,8 +6027,143 @@ token" is ambiguous until that is reconciled.
 | **Emails** (20 templates) | grey drift **CLOSED**; **all 20 now on-brand**; **335 text runs / 0 FAIL** |
 | **Operator/owner web screens** | the three greys **CLOSED** across 28 occurrences / 9 files, mapped to **tokens** |
 | **Rating stars** | the **O26 defect family RETIRED** — every rating row floors, differs by GLYPH, carries one accessible name, and clears 3:1 on the **worst plate it renders on**; `<x-star-rating>`'s own defaults fixed to `#8F5A06` / `#7A6E64` |
-| **Suite** | 1907 / 12,448 · 9 non-green = the documented baseline set · PHPStan L5 (0) · Pint clean |
+| **Suite** *(at the close of the cleanup)* | 1907 / 12,448 · 9 non-green = the documented baseline set · PHPStan L5 (0) · Pint clean. **Now 1914 / 12,613** after the FAQ build (§N.15) — same 9 non-green. |
 
 ⚠️ **What it did NOT close, and should not be read as closing:** the role-coverage bound (N.14.1) means the
 operator/owner realms have been swept **only where this pass could reach**. `DO-EMAIL-5` (a full re-audit) is
 the honest successor, and a fourth grey was already found inside the one modal that was forced open.
+
+---
+
+# (N.15) 🏗 THE FIRST BUILD — **THE GUEST FAQ CENTRE**, and what building (rather than fixing) taught (SAVE v10, 2026-08-12)
+
+*`23bf335` — `GET /guest/help`. The full record is **§GUEST-FAQ** in `MISSING-BACKEND-BY-PAGE.md`; the dated
+entry is in `DECISIONS.md`. This section is the canon: what the first NEW UI since the walk proved, and the
+spec the next build works against.*
+
+## N.15.1 · WHAT SHIPPED
+
+| piece | detail |
+|---|---|
+| route / controller / view | `GET /guest/help` (guest-guarded) · `GuestHelpController` · `guest/help.blade.php` · a `Help` nav entry |
+| content | **`HelpKnowledgeBase::guestArticles()` — 10 entries / 5 categories**, added to the CERTIFIED engine, **not forked** (§N.8f). Same contract as the owner set plus a `category`. |
+| **no schema** | the knowledge set is curated code, not a table — confirmed |
+| the one contact | the **existing relay** (`guest.messages`), in a "Still need help?" card |
+
+**The view holds no help content.** It renders the engine, so the FAQ and its source cannot drift the way two
+copies of a claim always do — the mechanism the owner side already proved, now serving two audiences from one
+class. Guest entries link only `guest.*` routes, owner entries only `owner.*`; a test pins both.
+
+## N.15.2 ⚠️ VERIFY-EVERY-PROMISE NOW COVERS **AUTHORING** — and it is cheaper there
+
+The walk's verify-every-promise family (§N.13.7) was always **retrospective**: find the copy that drifted from
+the engine. Writing a FAQ inverts it — **every sentence is a fresh claim about the product, made before any
+test exists to catch it.**
+
+> **Verify BEFORE writing. It costs a grep; verifying after costs a gate.**
+
+Every answer was read out of the code first. Two shaped the content:
+
+- ⚠️ **The door-code answer INTERPOLATES `ArrivalPack::LEAD_DAYS`, it does not type a number.** `DO-G4-1` had
+  already caught a docblock claiming "48h" against a constant that says **2 days**. A stale docblock misleads a
+  maintainer; **a stale FAQ strands a guest at a door.** A test pins the interpolation *and* forbids "48h"
+  returning.
+- ⚠️ **THE SECOND RULE IS NEW: WHEN THE TRUE ANSWER VARIES, ROUTE — DO NOT PICK A NUMBER.** The cancellation
+  window is per-property (`DO-G12-1` records that even the storefront's single figure over-promises the moment
+  two properties differ). The entry therefore points at the booking's own Manage page, which shows *that*
+  booking's real terms. **A pointer to the authoritative surface is a true answer; an averaged or typical
+  number is a false one.** This is honest-absence applied to authoring rather than to a UI affordance.
+
+## N.15.3 ⚠️ THREE NEW TRAPS THE BUILD WALKED INTO — all caught, all now canon
+
+### (a) A VACUOUS ASSERTION CAN HIDE IN A SHARED NAV *(O32, a new flavour)*
+
+The relay guard was `assertSee(route('guest.messages'))`. It stayed **green** with the card's button repointed
+at another screen — because **the guest shell links Messages in its nav on every page**. The assertion was
+satisfied by furniture, not by the thing under test.
+
+> **Presence-somewhere ≠ presence-where-it-matters. Scope a link-presence assertion to the SPECIFIC element**
+> (here: the substring from "Still need help?" onward). ⚠️ Any page-level `assertSee` of a URL that also appears
+> in a shared shell is vacuous by construction.
+
+### (b) N.14.2 EXTENDS FROM COMPONENTS TO **REUSED CLASSES AND TOKENS**
+
+§N.14.2 said *measure the thing you migrate to*. The build generalised it within minutes: the page used
+`.vy-sr-only` for the search label — **and the guest shell does not define it.** An undefined visually-hidden
+class hides **nothing**; the label would have rendered as stray text next to the search box.
+
+> **Verify a reused class or token EXISTS before relying on it.** "It's in the design system" is a belief until
+> grepped. Every other reused class and token on the page was checked; only this one was missing.
+
+### (c) THE SHIPPING-CSS-COMMENT TRAP, IN ITS **NEGATIVE-ASSERTION** FORM
+
+The no-support guard scanned the raw response for forbidden words and fired on **"PHONE"** — inside a **CSS
+comment** in the shell (`/* ── PHONE (audit …) ── */`), a *breakpoint* heading, not a telephone. **CSS comments
+ship** (the trap `DO-EMAIL-2` and the PDF sweep already recorded, here in a new guise).
+
+> **An absence assertion must read what the user SEES.** Strip `<style>`/`<script>` and tags first: "the page
+> renders no phone number" is a claim about **visible text**, and a raw-substring scan tests something else.
+> The guard now reads visible text *and* separately forbids `tel:`/`callto:` anywhere in the markup.
+
+⚠️ **Note the shape of all three: none was a bug in the feature. All three were bugs in the GUARDS** — and two
+of the four mutations passed on the first attempt because of them. **New UI needs its guards mutated as hard as
+a security fix's.**
+
+## N.15.4 ⚠️ BUILDING TO THE MATURED CANON AT BIRTH — it held
+
+The page was built against §N.13/§N.14 from the first line rather than fixed afterwards, and the record is that
+this cost little and caught things early:
+
+- **Rendered and verified AS THE GUEST** (N.14.1) — not as whatever role happened to be logged in.
+- **Keyboard:** 28 focusable controls, **0 unnamed** under a strict accessible-name computation (no fallback to
+  `name`/placeholder — G10's lesson); a **real Tab** press confirmed `:focus-visible` actually fires (G12:
+  `el.focus()` does not set it), and each custom control has a matching outline rule.
+- **Contrast:** pixel-sampled with **two self-validating anchors** on every plate, across the populated state,
+  the **forced open-accordion** state (an answer's text does not exist until `<details>` is open — G10) and the
+  no-results state → **0 failing runs**. ⚠️ The chips sit on their own plates *above* the card and were measured
+  there separately (4.67 / 6.52) rather than assumed to share the card's.
+- **§N.4k:** search and category are **GET** — no write exists on the page, so Enter is a safe read by
+  construction, and the guest realm's no-Alpine convention is kept (a native `<details>` accordion).
+- **Tokens, not literals** (N.14.9).
+
+> **The canon is cheaper applied at birth than retrofitted.** Every item above was minutes during the build;
+> each has cost a whole gate somewhere earlier in this project.
+
+## N.15.5 ⚠️ THE GUEST-HELP VERDICT WAS **SPLIT** — and the refusal it reverses is only half-reversed
+
+`DO-G13-1` was decided by the founder in two parts:
+
+| half | ruling | state |
+|---|---|---|
+| **the FAQ centre** | ✅ **BUILD** — the 2026-08-07 refusal's premise (*"its content would have to be invented"*) is **falsified** by the `HelpKnowledgeBase` engine | **BUILT** (`23bf335`) |
+| **the support half** (phone / hours / reply time) | ⏳ **BUILD THE BACKEND FIRST** — ⚠️ *not* don't-build, and ⚠️ *not* ship-the-UI-over-nothing | **SCOPED** — see N.15.6 |
+
+⚠️ **So the 2026-08-07 refusal is REVERSED in one half and PRESERVED in the other — and the preserved half is
+now CONDITIONAL, not permanent.** It stands only until the backend exists. Recorded precisely because "the
+refusal was reversed" and "the refusal stands" are both true of different halves, and a future session reading
+either sentence alone would get it wrong.
+
+## N.15.6 ⚠️ THE SUPPORT BACKEND — **SCOPED** (the spec the next build works against)
+
+A founder decision, recorded here so the next session builds *against* it rather than re-deciding it.
+
+> ### THE PRINCIPLE, BAKED INTO THE DATA SHAPE
+> **Every field displays ONLY when populated. Empty means the affordance is ABSENT — not blank, not "—", not a
+> placeholder.** Honest absence stops being a discipline someone has to remember and becomes what the schema
+> does by default.
+
+| piece | spec | ⚠️ the honesty constraint |
+|---|---|---|
+| **Channel** | the existing relay (already real) **+ a stored phone / WhatsApp PER PROPERTY** (new field) | shown only where populated; no property-less global number |
+| **Reply time** | a **SOFT, operator-set NORM** (stored) | phrased *"usually within…"*. ⚠️ **NEVER a guarantee, never a fabricated figure, and never a measured-and-presented-as-promised one.** This is the `DO-EMAIL-9` class: a stored expectation is honest **as a norm**, dishonest as a commitment. |
+| **Hours** | **real per-property hours** (stored) | shown where set. ⚠️ **No "24/7" unless the stored hours actually say so.** |
+
+**Shape:** 3 new per-property fields → one migration → operator-settings UI to **set** them → a guest-facing
+support block to **display** them.
+
+⚠️ **The guest block is NEW GUEST UI, so it inherits this section's canon:** render and verify **as the guest**
+(N.14.1) · both a11y axes at birth · **verify every reused class/token exists** (N.15.3b) · **non-vacuous
+guards, scoped to the specific element** (N.15.3a) · **absence assertions read visible text** (N.15.3c).
+
+⚠️ **Until it is built, the FAQ page must stay pure** — no slot, no placeholder, no commented seam. The later
+build adds its own block then.

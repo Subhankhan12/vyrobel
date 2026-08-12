@@ -7972,7 +7972,7 @@ exist?), given a verdict, and **surfaced as a founder decision**. **No product c
 
 **The verdicts (recommendations — the founder decides):**
 
-- **Guest Help → BUILD the FAQ centre · DON'T-BUILD the SLA/phone/24-7 half.** ⚠️ **The BUILD reopens a ratified
+- **Guest Help → BUILD the FAQ centre · DON'T-BUILD the SLA/phone/24-7 half.** ⚠️ **RULED AND ACTED ON, 2026-08-12 (see the later entry):** the founder **split** it — the FAQ centre is **BUILT** (`23bf335`); the support half was **SCOPED, not refused** (§N.15.6), so the no-support refusal below stands only until that backend exists. ⚠️ **The BUILD reopens a ratified
   refusal**, and that is stated rather than smuggled: the 2026-08-07 audit gave the guest a real support
   destination (Account → *"Help & support"* → the relay, `82506bb`) and explicitly refused a help **centre**
   because *"its content would have to be invented."* **That premise has since been falsified by the product
@@ -8446,3 +8446,57 @@ now asserts on the visible text.
 
 **No schema** — the knowledge set is curated code, not a table. Suite **1914 / 12,613**, 9 non-green = the
 documented baseline set. PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-12 — **SAVE v10: the FAQ centre is BUILT, the support backend is SCOPED** (docs only · a session handoff)
+
+A full memory-consolidation pass. **No product code, template or test was touched.** Its purpose is a
+**session handoff**: after this, a fresh Claude Code session orients entirely from `PROJECT-STATE.md`'s RESUME,
+§N.13–§N.15 and the DO-register.
+
+**Folded in: the first BUILD since the walk.** `GET /guest/help` (`23bf335`) — a guest FAQ centre over the
+certified `HelpKnowledgeBase`, reused not forked, with the real relay as its only contact. **Canon: §N.15.**
+
+**Three things the build added to the canon:**
+1. ⚠️ **Verify-every-promise now covers AUTHORING.** Writing a FAQ makes fresh claims about the product before
+   any test exists to catch them, so **verify before writing — it costs a grep; verifying after costs a gate.**
+   And a new rule: **when the true answer VARIES, ROUTE to the authoritative screen rather than pick a number**
+   (the per-property cancellation window points at the booking's Manage page; the door-code answer interpolates
+   `ArrivalPack::LEAD_DAYS` rather than typing the "48h" that `DO-G4-1` caught as stale).
+2. ⚠️ **Three new guard traps, all caught, none of them bugs in the feature:** a **vacuous assertion can hide in
+   a shared nav** (`assertSee(route('guest.messages'))` stayed green with the button repointed, because the
+   shell links Messages on every page — scope link assertions to the specific element); **N.14.2 extends from
+   components to reused CSS classes** (`.vy-sr-only` was undefined in the guest shell, and an undefined
+   visually-hidden class hides nothing); and **an absence assertion must read VISIBLE TEXT** — the no-support
+   guard false-positived on "PHONE" in a CSS comment, because **CSS comments ship**.
+3. ⚠️ **Building to the matured canon at birth held, and cost little** — rendered as the guest, both a11y axes,
+   0 unnamed controls, two-anchor contrast across three states including a forced-open accordion.
+
+**The Guest-Help verdict was SPLIT by founder ruling, and the record says so precisely:** the FAQ half is
+**BUILT** (reversing the 2026-08-07 refusal, whose premise the engine falsified); the **support half is SCOPED,
+not refused** — so that refusal is now **conditional, not permanent**. ⚠️ Both "the refusal was reversed" and
+"the refusal stands" are true of different halves; §N.15.5 exists so a future session reading either sentence
+alone does not get it wrong.
+
+**The support backend is SCOPED as a spec** (§N.15.6) so the next session builds against it rather than
+re-deciding it: 3 new per-property fields → migration → operator-settings UI → a guest support block; a stored
+phone/WhatsApp, a **soft operator-set reply NORM** ("usually within…", never a guarantee — the `DO-EMAIL-9`
+class), and **real per-property hours** (no "24/7" unless the stored hours say so). ⚠️ **The honesty principle
+is baked into the data shape: every field displays only when populated — empty means the affordance is ABSENT.**
+
+**Register updated:** a 🏗 *BUILT since the cleanup* block (`DO-G13-1` split; the support backend as a ready
+spec) and an explicit ⚖️ *awaiting a founder ruling* row for `DO-G13-2` (Documents → DEFER) and `DO-G13-3`
+(Referral → DON'T-BUILD) — recommendations, not decisions, exactly as the Help verdict was before it was split.
+
+**RESUME rewritten as the session-handoff surface**, with the priority order stated plainly and the billing
+go-live blocker (§G.1) called out as outranking everything if launch is near.
+
+**Whole-record coherence checked, §N.8b applied INWARD — three stale self-claims found and closed:** §N.14.10's
+state table still carried the pre-build suite figure; `G13-VERDICTS.md` still asserted *"there is no guest help
+route"*; and the G13 entry in this log still read as a pending recommendation. Each annotated in place rather
+than rewritten, so the reasoning that was true when written stays legible.
+
+**Verified:** DO-numbers contiguous · the engines list now carries `HelpKnowledgeBase` incl. `guestArticles()` ·
+`DO-EMAIL-9` still flagged live · the support spec present in both the canon and the register · the suite figure
+consistent (1914 / 12,613, 9 non-green = the documented set) · the billing blocker still flagged.

@@ -74,9 +74,15 @@ and two ratified register rows that the recon did not consult moved two verdicts
 | 🚫 **Phone + WhatsApp + hours + the 24/7 urgent line** | ❌ **NO BACKEND.** `properties` has **no phone and no support-email column** — `name`, `brand`, `type`, `address`, `lat/lng`, `timezone`, `star_rating`, `currency`, check-in/out times, `status`, plus the later brand block (`brand_accent`, `brand_logo_path`, `brand_email_from_name`, **`brand_reply_to`**, `brand_powered_by`, `bookings_paused_at`). **`brand_reply_to` is an email reply-to setting, not a published support line**, and it is nullable/fails-open. No on-call roster; WhatsApp is account-gated. **Already ratified as refused, twice.** | `create_properties_table.php` · `add_property_settings_brand_pause_columns.php` · `guest/messages.blade.php:3-4` · `OwnerHelp.php:28-31` |
 | 🚫 **A support-ticket queue** | ❌ refused in the owner realm — *"messaging IS the tracked channel; no fake ticket."* | `OwnerHelp.php:29` |
 
-There is **no guest help route** (`grep -rn "guest.help\|guest/help" routes/ resources/views` → nothing) and the
+~~There is **no guest help route** (`grep -rn "guest.help\|guest/help" routes/ resources/views` → nothing) and the
 guest nav is exactly `Trips · Payments · Wallet · Messages · Saved · Account`
-(`components/guest/shell.blade.php:15-21`).
+(`components/guest/shell.blade.php:15-21`).~~
+
+⚠️ **SUPERSEDED 2026-08-12 — true when this memo was written, false now.** The founder ruled on `DO-G13-1` and
+**split it**: the FAQ centre was **BUILT** (`23bf335` — `GET /guest/help` over the certified
+`HelpKnowledgeBase`, with a `Help` nav entry), and the **support half was SCOPED rather than refused**
+(§N.15.6). ⚠️ **The rest of this memo's reasoning stands, and the build honoured every refusal it attached to
+the page** — no SLA pill, no Typical-reply tile, no phone/WhatsApp/hours, no 24/7 card.
 
 ### 2.3 ⚠️ WHAT ACTUALLY CHANGED SINCE THE 2026-08-07 REFUSAL
 
