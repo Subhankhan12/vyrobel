@@ -7451,6 +7451,125 @@ reverting `.vy-inv-help` to `#A69A92` turns it **red naming the file and the col
 grey), `DO-EMAIL-6` (standalone pages cannot reach the tokens), `DO-EMAIL-7` (the `--vy-hk-ooo` fill).
 
 ---
+
+## §ADMIN-EMAIL-BRAND — `DO-EMAIL-3` · the off-brand platform-admin email · **CLOSED** (2026-08-12)
+
+⚠️ **This one INVERTS the three contrast sweeps.** There: contrast only, content proven byte-identical. **Here
+the WRAPPER changes and the CONTENT is inviolable** — because `admin-email-change` is a **security email**. An
+email-address change is the classic account-takeover move, so every sentence the recipient acts on had to
+survive verbatim.
+
+### ⚠️ Premise correction — `@extends` is NOT the brand test
+
+`DO-INV-4` called this *"the only off-brand email"*. **The claim SURVIVES, but the reasoning behind it would
+have been wrong:** **five** templates are standalone (they do not `@extends('emails.layout')`) —
+`admin-email-change`, `login-approval`, `owner-invite`, `owner-report`, `password-reset`. **Four of the five
+are standalone but on-brand**, rendering the warm Vyrobel palette. Only `admin-email-change` was outside the
+brand *system*:
+
+| | `admin-email-change` (before) | the other 19 |
+|---|---|---|
+| palette | **dark slate/indigo** `#0C1322` · `#111B2E` · `#6366F1` · `#818CF8` · `#94A3B8` · `#E8EDF6` | warm `#F6EBE2` wash · `#FFFDFB` card · `#C2410C` accent |
+| brand lockup | ✗ an indigo "V" tile only | ✓ the mark + "Vyrobel" wordmark |
+| footer | ✗ none at all | ✓ powered-by + a service line |
+| CTA | an indigo **gradient** pill | the shared **bulletproof solid** button |
+
+**So: off-brand by PALETTE, not by being standalone.**
+
+### The sibling it was diffed against
+
+⚠️ **`owner-email-change` does the IDENTICAL job in the owner realm — and was already on-brand**, extending the
+shared layout. That is the whole argument for the fix: not "make it prettier", but *the same email for a
+different realm already renders in the brand system, and this one did not.* The template now follows it exactly.
+
+### ⚠️ THE CONTENT IS UNCHANGED — proven, not asserted
+
+The rendered text was extracted before and after and diffed. **Every security sentence survives verbatim:**
+
+| the sentence | before | after |
+|---|---|---|
+| `Vyrobel · Platform admin` (the realm signal) | ✓ | ✓ |
+| `Confirm your new email` | ✓ | ✓ |
+| `Hi {adminName},` | ✓ | ✓ |
+| the new address (`{newEmail}`) | ✓ | ✓ |
+| *"your email stays the same until you do"* | ✓ | ✓ |
+| *"The link expires in one hour."* | ✓ | ✓ |
+| *"If you didn't request this, you can ignore this email — nothing changes without opening the link."* | ✓ | ✓ |
+
+**Links: identical sets** — exactly one destination (the signed verify URL) before and after. **The text diff's
+only deltas are WRAPPER strings**: the `<title>`, the preheader, the "Vyrobel" lockup, the powered-by line and
+the footer service line. *(One `-/+` pair is a source line-wrap: `.` + `Confirm it by…` became `. Confirm it
+by…` — the same words in the same order, re-flowed onto one line.)*
+
+⚠️ **The warning was NOT demoted.** It still sits directly under the CTA, inside the card, above the footer —
+asserted by position, and that assertion is proven non-vacuous (a mutation moving the warning above the CTA
+turns it red).
+
+### ⚠️ The footer was overridden ON PURPOSE — inheriting it would have shipped a FALSE line
+
+The shared layout's default service line is *"You're receiving this because it relates to your booking with
+us."* **A platform admin has no booking.** Rather than ship a false statement on a security email, the
+template fills the layout's own footer-override slot with an accurate line. *(That slot is named
+`unsubscribe`; it is really "the footer service line" — a misleading name, logged as `DO-EMAIL-8`, not renamed
+here.)*
+
+### 🚩 §N.8d — a FALSE line found on the SIBLING, logged not fixed → `DO-EMAIL-9`
+
+⚠️ **`owner-email-change` — an owner's LOGIN-EMAIL change — renders *"You're receiving this because it relates
+to your booking with us."*** An owner changing their login email has no booking. Visible in the screenshot.
+It is the layout's default line applied to an account/security email, and the same trap this template just
+stepped around. **Out of scope here** (it is the sibling's footer, not this email's branding) — logged.
+⚠️ Worth checking the other account/security emails that extend the layout for the same line.
+
+### ✅ The security claims VERIFIED against the engine (§N.8d / verify-every-promise)
+
+| the claim | the engine | verdict |
+|---|---|---|
+| *"The link expires in one hour."* | `URL::temporarySignedRoute('admin.account.email.verify', now()->addHour(), …)` — `AccountController:119` | ✅ **REAL** |
+| *"your email stays the same until you do"* | the new address is parked in `pending_email` (`:116`); `email` is only written on verify (`:162`) | ✅ **REAL** |
+| *"nothing changes without opening the link"* | ⚠️ substantively true with a nuance: `pending_email` **is** written, so *something* is stored — but the **login email**, which is what the sentence is about, does not change. The G11 *"your email is confirmed"* shape. | ✅ accurate as written |
+
+**No false security claim.** Recorded as plainly as a failure would have been.
+
+### Contrast RE-VERIFIED after the branding — 0 new failures
+
+Re-measured with the email instrument (declared colour on the real plate, never `getComputedStyle`):
+**`admin-email-change` = 12 text runs, 0 FAIL**, inheriting the layout's already-AA greys. The whole set is
+**335 runs, 1 FAIL** — still only the ★ (`DO10-4`). Greyscale-safe: the palette is now the same warm system as
+every other email.
+
+⚠️ **This SUPERSEDES part of `DO-EMAIL-1`.** That pass darkened this email's indigo CTA gradient
+(`#818CF8`→`#5B5FE3`, white 3.08 → 5.19). The gradient is now **gone entirely** — the CTA is the layout's
+bulletproof solid `#C2410C` (white = 5.18, the ratified invite-email decision), which is also more email-safe
+than a gradient. The sweep test's gradient assertion is therefore now **structurally vacuous for this file**
+(O32: a passing assertion means vacuity *or* redundancy — resolve it). It is kept as a
+do-not-reintroduce guard, and the real invariant is asserted in the new test instead.
+
+### 🔒 Guard — `tests/Feature/AdminEmailChangeBrandingTest.php` (4 tests / 24 assertions)
+
+Renders the **real mailable**. Asserts: it extends the shared layout and carries the layout's furniture while
+shipping **none** of the dark palette · every security sentence verbatim · exactly one href · the warning
+positioned between the CTA and the footer · and that the false booking line is **not** inherited.
+**Mutation-proven three ways** — dropping the expiry sentence, demoting the warning into the footer, and moving
+the warning above the CTA each turn it red.
+
+### ⚠️ A NEW instrument trap — the Blade analogue of `php -l` (extends §N.13.2)
+
+After restoring from the third mutation the test stayed **RED**, with the source verifiably correct. The cause
+was a **stale compiled Blade view**: the mutated template had been compiled, and the restore did not trigger a
+recompile. `php artisan view:clear` turned it green. **A false RED from the toolchain, not the guard** — the
+same family as the PDF sweep's bash-corrupted file. **Run `php artisan view:clear` after every Blade mutation
+edit**, exactly as `php -l` is run after every PHP one.
+
+### DO-EMAIL-6 note
+
+This template was one of the standalone set; adopting the shared layout brings it **into the token-reachable,
+consistently-maintained group**. `DO-EMAIL-6` remains open for the others that genuinely cannot extend an email
+layout — `billing/feature-locked` and `auth/login-approval*` are **web pages**, not emails.
+
+**Status: `DO-EMAIL-3` CLOSED — all 20 emails now render in the warm brand system.**
+
+---
 ---
 
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
@@ -7542,7 +7661,9 @@ live.**
 | **`DO-EMAIL-5`** 🆕 | a **FOURTH grey**: `.vy-inv-lbl { color: #9C9089 }` — every form label in the invite modal — measured **2.84** on the same plate. One line, same CSS block; outside the named three so not fixed. ⚠️ **A full operator/owner contrast re-audit is a backend-phase item** — this pass found a fourth failure the moment it looked. |
 | **`DO-EMAIL-6`** 🆕 | **standalone pages cannot reach the design tokens.** `billing/feature-locked.blade.php` and `auth/login-approval*.blade.php` carry their own `<style>` with no `--vy-*` in scope, so both had to take mapped **literals**. They will not follow a future token retune. |
 | **`DO-EMAIL-7`** 🆕 | `--vy-hk-ooo: rgb(138, 128, 121)` (`layouts/operator.blade.php:60`) — a housekeeping *"Out of order"* **fill** token sharing the pre-AA grey value, used as a labelled dot. Non-text; recolouring a status indicator is a **design decision**, not a contrast fix. |
-| **`DO-EMAIL-3`** 🆕 | `admin-email-change` is the **only off-brand email** (dark slate/indigo vs the warm system). A design decision to confirm, not a defect to fix silently. |
+| ~~**`DO-EMAIL-3`**~~ ✅ | ~~`admin-email-change` is the only off-brand email.~~ **CLOSED 2026-08-12 — see §ADMIN-EMAIL-BRAND.** It now extends the shared layout like its sibling `owner-email-change` (the identical job, owner realm, already on-brand). ⚠️ **Premise correction: `@extends` is not the brand test — FIVE templates are standalone, four of them on-brand;** this was off-brand by **palette**. ⚠️ **A SECURITY email, so the CONTENT is inviolable** — every sentence proven verbatim, one href, the warning still under the CTA (mutation-proven three ways). The three security claims **verified REAL** against `AccountController`. Contrast re-verified: 12 runs, **0 FAIL**. |
+| **`DO-EMAIL-8`** 🆕 | the shared layout's footer-override slot is named **`unsubscribe`** but is really *"the footer service line"* — `admin-email-change` uses it to avoid inheriting a false booking line. A misleading name, not renamed here. |
+| **`DO-EMAIL-9`** 🆕 ⚠️ | **§N.8d — a FALSE line on a security email.** `owner-email-change` (an owner's LOGIN-EMAIL change) renders *"You're receiving this because it relates to your booking with us."* An owner changing their login email has no booking. It is the layout's default line applied to an account email. ⚠️ **Check every other account/security email that extends the layout for the same trap.** |
 | **`DO-INV-1/2/3`** | the invite email's missing text/plain part · no dark-mode handling · no public help destination. |
 | **`DO-PDF-3`** | `guest-credit-note` + `guest-refund-receipt` are **unreachable in demo data** (no refund exists) — fixed by literal, **not render-verified**, and not covered by a rendering test. A seeded refund lights up both. |
 | **`DO-G4-1`** | ⚠️ **still stale** (verified this SAVE): `SendPreArrivalEmails`'s docblock says `LEAD_DAYS = 48h`. The constant is the source of truth; the comment is a mock-value instance. |

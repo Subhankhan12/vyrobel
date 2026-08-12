@@ -8227,3 +8227,58 @@ logic, no component state was touched. The isolation/RBAC/plan-gating set for th
 `tests/Feature/OperatorOwnerGreyDriftTest.php` (3 tests / 27 assertions, incl. a non-vacuity check),
 **mutation-proven** — reverting `.vy-inv-help` turns it red naming the file and the colour; `php -l` clean both
 ways. Suite **1897 / 12,389**, 9 non-green = the documented set. PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-12 — **`DO-EMAIL-3`: the off-brand platform-admin email — CLOSED** (a branding fix on a SECURITY email)
+
+⚠️ **This one inverts the three contrast sweeps.** There: contrast only, content proven byte-identical. **Here
+the wrapper changes and the content is inviolable** — `admin-email-change` notifies of a login-email change,
+the classic account-takeover move, so every sentence the recipient acts on had to survive verbatim. Full
+record: **§ADMIN-EMAIL-BRAND** in `docs/design/MISSING-BACKEND-BY-PAGE.md`.
+
+⚠️ **Premise correction — `@extends` is not the brand test.** `DO-INV-4` called this the only off-brand email;
+**the claim survives, but the reasoning would have been wrong**: **five** templates are standalone
+(`admin-email-change`, `login-approval`, `owner-invite`, `owner-report`, `password-reset`) and **four of them
+are on-brand**. This one was off-brand by **palette** — a dark slate/indigo document with no brand lockup and
+no footer, against nineteen warm Vyrobel cards.
+
+**The argument for the fix was the sibling, not taste.** `owner-email-change` does the **identical job in the
+owner realm and was already on-brand**, extending the shared layout. This template now follows it exactly.
+
+**The content is unchanged — proven.** Rendered text extracted before and after: every security sentence
+verbatim (the platform-admin framing · the new address · *"your email stays the same until you do"* · *"The
+link expires in one hour."* · *"If you didn't request this…"*), **identical href sets** (exactly one — the
+signed verify URL), and the only text deltas are wrapper strings (title, preheader, the "Vyrobel" lockup, the
+powered-by line, the footer service line). The warning still sits **under the CTA, inside the card** — asserted
+by position and **mutation-proven non-vacuous**.
+
+**The footer was overridden deliberately.** The layout's default line is *"You're receiving this because it
+relates to your booking with us."* — a platform admin has no booking, so inheriting it would have shipped a
+**false statement on a security email**. The template fills the layout's own footer-override slot with an
+accurate line instead.
+
+**The security claims were verified against the engine, and they are REAL:** the one-hour expiry is
+`URL::temporarySignedRoute(..., now()->addHour())`; *"your email stays the same until you do"* holds because
+the new address is parked in `pending_email` and `email` is only written on verify. *"Nothing changes without
+opening the link"* is accurate as written (the `pending_email` row is stored, but the login email — what the
+sentence is about — does not change). **No false claim** — recorded as plainly as a failure would have been.
+
+⚠️ **But a false line WAS found next door → `DO-EMAIL-9` (§N.8d).** The sibling `owner-email-change` — an
+owner's **login-email** change — renders *"You're receiving this because it relates to your booking with us."*
+Out of scope here, logged, and worth checking across every account/security email that extends the layout.
+
+**Contrast re-verified after the branding:** 12 runs, **0 FAIL**, inheriting the layout's already-AA greys; the
+whole set is 335 runs / 1 FAIL (still only the ★, `DO10-4`). ⚠️ **This supersedes part of `DO-EMAIL-1`** — that
+pass darkened this email's indigo CTA gradient; the gradient is now gone in favour of the layout's bulletproof
+solid `#C2410C` (white = 5.18, the ratified invite-email decision, and more email-safe than a gradient). The
+sweep test's gradient assertion is therefore **structurally vacuous for that file** (O32 — resolve, don't leave
+it), kept only as a do-not-reintroduce guard while the real invariant moved into the new test.
+
+⚠️ **A NEW INSTRUMENT TRAP — the Blade analogue of `php -l` (extends §N.13.2).** After restoring the third
+mutation the guard stayed **RED while the source was verifiably correct**: a **stale compiled Blade view**.
+`php artisan view:clear` turned it green. A false RED from the toolchain, not from the guard — the same family
+as the PDF sweep's bash-corrupted file. **Run `php artisan view:clear` after every Blade mutation edit.**
+
+Guard `tests/Feature/AdminEmailChangeBrandingTest.php` (4 tests / 24 assertions), mutation-proven three ways.
+Suite **1901 / 12,413**, 9 non-green = the documented baseline set. PHPStan L5 (0); Pint clean.

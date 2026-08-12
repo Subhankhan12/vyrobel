@@ -53,6 +53,27 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   signal**, where darkening the hex changes the number without fixing the defect. **It is the ONE remaining
 >   failing run in the email set.** New: **`DO-EMAIL-4`** — `--vy-amber-text` is **defined twice with different
 >   values** (guest `rgb(126,88,17)` vs owner `rgb(128,76,5)`), the §N.8f shape.
+>   **`DO-EMAIL-3` ✅ CLOSED (§ADMIN-EMAIL-BRAND) — and it INVERTS the contrast sweeps:** there, contrast-only
+>   with the content proven byte-identical; here the **wrapper** changes and the **content is inviolable**,
+>   because `admin-email-change` is a **security email**. It now extends the shared layout like its sibling
+>   `owner-email-change` (the identical job in the owner realm, already on-brand — the whole argument for the
+>   fix). ⚠️ **Premise correction: `@extends` is NOT the brand test** — **five** templates are standalone and
+>   **four of them are on-brand**; this one was off-brand by **palette** (dark slate/indigo). Every security
+>   sentence proven **verbatim**, exactly one href, the warning still under the CTA — **mutation-proven three
+>   ways**. The three security claims **verified REAL** against `AccountController` (`now()->addHour()`;
+>   `pending_email` parked until verify). Contrast re-verified: **12 runs, 0 FAIL**; the set is 335 runs / 1
+>   FAIL (the ★).
+>   ⚠️ **It also superseded part of `DO-EMAIL-1`** — that pass darkened this email's indigo CTA gradient; the
+>   gradient is now gone in favour of the layout's bulletproof solid `#C2410C`, so the sweep test's gradient
+>   assertion is **structurally vacuous for that file** (O32) and the real invariant moved into the new guard.
+>   New: **`DO-EMAIL-8`** (the layout's footer slot is misnamed `unsubscribe`) · ⚠️ **`DO-EMAIL-9` — a §N.8d
+>   FALSE line on a security email:** the sibling `owner-email-change` tells an owner changing their LOGIN
+>   EMAIL *"You're receiving this because it relates to your booking with us."* **Check every account/security
+>   email that extends the layout for the same default-footer trap.**
+>   ⚠️ **A NEW INSTRUMENT TRAP, the Blade analogue of `php -l` (extends §N.13.2):** after restoring a mutation
+>   the guard stayed **RED with the source verifiably correct** — a **stale compiled Blade view**.
+>   `php artisan view:clear` turned it green. A false RED from the toolchain, not the guard.
+>   **Run `view:clear` after every Blade mutation edit.**
 >   **`DO-EMAIL-2` ✅ CLOSED the same day (§WEB-GREY-SWEEP)** — the third surface class, and the most
 >   instructive of the three sweeps. ⚠️ **28 occurrences across 9 files, not the 13 named**: the `rgb()` grep
 >   found two nobody had — `--vy-hk-ooo` and **the whole `billing/feature-locked` 403 page's body copy**.
