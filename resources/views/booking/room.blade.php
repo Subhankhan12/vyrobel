@@ -88,7 +88,7 @@
             <h2 class="vy-section-title">Guest reviews</h2>
             @forelse ($reviews as $review)
                 <div style="padding:12px 0;border-bottom:1px solid rgba(120,70,40,.10)">
-                    <div><span style="color:var(--vy-accent-3);letter-spacing:2px">{{ $review['stars'] }}</span><span style="font-size:12.5px;color:var(--vy-ink);font-weight:600;margin-left:7px">{{ $review['byline'] }}</span>@if ($review['at'] !== '')<span style="font-size:11px;color:var(--vy-faint)"> · {{ $review['at'] }}</span>@endif</div>
+                    <div><span role="img" aria-label="{{ $review['rating'] }} out of 5 stars" style="color:var(--vy-accent-3);letter-spacing:2px"><span aria-hidden="true">{{ $review['stars'] }}</span></span><span style="font-size:12.5px;color:var(--vy-ink);font-weight:600;margin-left:7px">{{ $review['byline'] }}</span>@if ($review['at'] !== '')<span style="font-size:11px;color:var(--vy-faint)"> · {{ $review['at'] }}</span>@endif</div>
                     @if ($review['body'] !== '')<div style="font-size:13px;color:#4A4038;margin-top:6px;line-height:1.5">{{ $review['body'] }}</div>@endif
                     @if ($review['response'] !== '')<div style="margin-top:8px;padding:8px 11px;border-radius:var(--vy-r-sm);background:var(--vy-wash);font-size:12.5px;color:#6b6b6b"><strong style="color:var(--vy-ink)">Response:</strong> {{ $review['response'] }}</div>@endif
                 </div>

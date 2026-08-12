@@ -129,7 +129,7 @@
                         </div>
                         @if ($review !== null)
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 18px; color: #E8A317; letter-spacing: 2px;">{{ $review['stars'] }}</span>
+                                <span role="img" aria-label="{{ number_format($review['rating'], 1) }} out of 5 stars" style="font-size: 18px; color: #8F5A06; letter-spacing: 2px;"><span aria-hidden="true">{{ $review['stars'] }}</span></span>
                                 <span style="font-weight: 700; color: var(--vy-ink);">{{ number_format($review['rating'], 1) }}</span>
                                 @if ($review['status'] !== 'published')
                                     <span class="vy-tag tone-tag" style="margin-left: auto;"><span class="vy-dot"></span>{{ ucfirst($review['status']) }}</span>

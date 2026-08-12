@@ -23,8 +23,22 @@
             <tr>
                 <td align="center" style="padding:0 16px 6px;">
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+                        {{-- DO10-4 capstone (2026-08-12). ⚠️ These are NOT a rating DISPLAY — they are five
+                             rating INPUTS, each deep-linking the review page with that rating pre-selected
+                             (`route('guest.review', [..., 'rating' => $n])`). So filled-★-vs-empty-☆ would be
+                             WRONG here: it would show a rating the guest has not given yet. Two real defects
+                             were fixed instead:
+                               • #E8A317 measured 2.14 on this card — a meaningful non-text CONTROL needs 3:1
+                                 (WCAG 1.4.11). Now #8F5A06 = 4.17, the same star gold the shared component
+                                 uses. ⚠️ DO-EMAIL-4: `--vy-amber-text` is defined twice with different values,
+                                 so an email cannot safely "use the token" even in spirit — this is the brand
+                                 amber as an email-safe literal, and the drift stays logged, not fixed here.
+                               • each link's accessible name was the bare glyph "★", so a screen reader heard
+                                 "star, link" five times with nothing to choose between them. Each now names
+                                 the rating it applies, mirroring the web review form's `aria-label` pattern
+                                 (guest/review.blade.php), with `title` alongside for clients that drop ARIA. --}}
                         @foreach ($starUrls as $n => $url)
-                            <td style="padding:0 4px;"><a href="{{ $url }}" target="_blank" style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:32px; color:#E8A317; text-decoration:none; line-height:1;">★</a></td>
+                            <td style="padding:0 4px;"><a href="{{ $url }}" target="_blank" aria-label="Rate {{ $n }} out of 5 stars" title="Rate {{ $n }} out of 5 stars" style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:32px; color:#8F5A06; text-decoration:none; line-height:1;">★</a></td>
                         @endforeach
                     </tr></table>
                 </td>

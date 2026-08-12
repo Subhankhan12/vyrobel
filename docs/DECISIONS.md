@@ -8282,3 +8282,60 @@ as the PDF sweep's bash-corrupted file. **Run `php artisan view:clear` after eve
 
 Guard `tests/Feature/AdminEmailChangeBrandingTest.php` (4 tests / 24 assertions), mutation-proven three ways.
 Suite **1901 / 12,413**, 9 non-green = the documented baseline set. PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-12 — **`DO10-4`: the star capstone — CLOSED** (a correctness fix; web + email + a coverage sweep)
+
+A star row can state the **wrong rating** two ways, and the product had shipped both. This retires the O26
+defect family. Full record: **§STAR-CAPSTONE** in `docs/design/MISSING-BACKEND-BY-PAGE.md`.
+
+**The web remnant.** `owner/unit-detail:338` used `str_repeat('★', round($average))`. Rendered live **as the
+owner** (DO-EMAIL-2's lesson: run as the role that can see the page) with a real unit **forced to a 4.67
+average** (G10), the old code prints **five filled stars**. It now renders through `<x-star-rating>`: **four
+filled + one empty**, named *"4.7 out of 5 stars"*. ⚠️ **That changes what the owner sees, and that is the
+point** — the unit stops advertising itself as perfect. An honest rating, not a regression. The forced data
+was restored immediately.
+⚠️ **Premise correction:** the register called that line colour-only *and* round. It was **not** colour-only —
+it already emitted `★` then `☆`. The defect was `round()` alone, plus a missing accessible name.
+
+⚠️ **The sweep found a third defect nobody had named: the shared component's OWN defaults failed 3:1.**
+`#E8A63A` measured **2.08** and `#B9A99A` **2.25** — *the component everything was being migrated TO drew a
+star you could barely see.* That answers **`DO-G8-2`**, which had sat as "never measured".
+
+⚠️ **And the measurement corrected me mid-pass.** The first retarget was chosen against the two card plates;
+the live render then showed the row sits on the **peach hero plate `#FBD3BF`**, where the empty star still
+failed at 2.76. Re-chosen against the **worst real plate**: filled `#8F5A06` (4.19 / 5.28 / 5.70), empty
+`#7A6E64` (3.59 / 4.52 / 4.88), filled always stronger than empty, hues preserved so greyscale is unaffected.
+
+⚠️ **The email star was not what the register said it was.** `DO-EMAIL-1` routed `#E8A317` here as "a
+colour-only rating signal". `review-request` does not display a rating — it renders **five tappable rating
+INPUTS**, each deep-linking the review page with that rating pre-selected. **★/☆ would have been wrong**: it
+would show a rating the guest has not given. The real defects were (a) contrast — 2.14, and a meaningful
+non-text **control** needs 3:1 → the same `#8F5A06` (4.17); and (b) **the accessible name** — each link was
+named by its bare glyph "★", so a screen reader heard *"star, link"* five times with nothing to choose
+between. Each now names its rating, verified on the real mailable. **The email set is 335 runs / 0 FAIL** —
+the ★ was the last failing run in it.
+
+⚠️ **The coverage sweep earned its place** (the DO-EMAIL-2 pattern — the adjacent thing nobody named): four
+further sites. `operator/guest-profile:132` at **1.98** and unnamed — an operator page no star pass had ever
+rendered. `owner/reviews:123` at **1.93 / 1.48**, unnamed. Two rows whose colours already passed (3.04, 6.49)
+— **not "fixed"**, only named, because the measurement decides. And `NewReviewNotification` built the filled
+half only, printing *"New review · ★★★"* — ambiguous between 3/5 and 3/3 — while its sibling
+`LowRatingNotification` already built both; matched to the sibling. One site, `operator/reviews:70`, was a
+**false flag by my own probe**: its stars are correctly `aria-hidden` beside a visible `4/5`.
+
+⚠️ **The guard was vacuous at first (O32).** Reverting the component's filled colour left the contrast test
+**green**, because it asserted hardcoded literals — arithmetic, not the component. Rewritten to read the inks
+the component **actually renders**; the mutation then went red naming the value and the plate.
+`StarRatingCorrectnessTest` (6 tests / 35 assertions) is **mutation-proven five ways**: `floor`→`round`,
+`☆`→`★`, drop the name, revert each colour. `php -l` **and `php artisan view:clear`** after every Blade
+mutation (DO-EMAIL-3's toolchain false-RED).
+
+**Left deliberately:** `DO-STAR-1` — the owner Messages *"Starred"* flag SVGs still use `#E8A63A`; that is a
+bookmark toggle, not a rating, and its state is also carried by a visible count. `DO-EMAIL-4` (the
+twice-defined `--vy-amber-text`) flagged again, not fixed.
+
+`OwnerUnitDetailViewTest` remains non-green for its documented reason — a seeding `UnitUnavailableException`
+(date-coupled), **unrelated to the star**; its other 12 tests pass. Suite **1907 / 12,448**, 9 non-green = the
+documented baseline set. PHPStan L5 (0); Pint clean.

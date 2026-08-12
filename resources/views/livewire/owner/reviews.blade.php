@@ -87,7 +87,7 @@
                         <div class="vy-rv-bar"><span style="width:{{ $v['pct'] }}%"></span></div>
                         <div style="display:flex;align-items:baseline;gap:6px;justify-content:flex-end">
                             <span style="font-family:var(--vy-display);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums">{{ number_format((float) $v['rating'], 1) }}</span>
-                            <span style="color:#E8A63A;font-size:13px">★</span>
+                            <span aria-hidden="true" style="color:#8F5A06;font-size:13px">★</span>
                         </div>
                         <div style="text-align:right">
                             <span class="vy-rv-chip" style="{{ $v['direction'] === 'up' ? 'background:rgba(79,122,70,.13);color:#3F6A38' : ($v['direction'] === 'down' ? 'background:rgba(224,146,30,.14);color:#93610C' : 'background:rgba(120,70,40,.08);color:var(--vy-muted)') }}">{{ $v['trend'] }}</span>
@@ -120,7 +120,7 @@
                                     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
                                         <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
                                             <span style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">{{ $r['byline'] }}</span>
-                                            <span style="color:#E8A63A;font-size:13px;letter-spacing:1.5px">{{ $r['stars_on'] }}</span><span style="color:#D9C8BC;font-size:13px;letter-spacing:1.5px;margin-left:-6px">{{ $r['stars_off'] }}</span>
+                                            <span role="img" aria-label="{{ $r['rating'] }} out of 5 stars"><span aria-hidden="true" style="color:#8F5A06;font-size:13px;letter-spacing:1.5px">{{ $r['stars_on'] }}</span><span aria-hidden="true" style="color:#7A6E64;font-size:13px;letter-spacing:1.5px;margin-left:-6px">{{ $r['stars_off'] }}</span></span>
                                         </div>
                                         <div style="display:flex;align-items:center;gap:8px">
                                             @php $sc = $srcColor($r['source_key']); @endphp

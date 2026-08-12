@@ -28,7 +28,11 @@ class NewReviewNotification extends FeedNotification
 
     public function data(object $notifiable): array
     {
-        $stars = str_repeat('★', (int) $this->review->rating);
+        // DO10-4 capstone: this printed the filled half ONLY, so a 3-star review read "New review · ★★★"
+        // with no denominator — ambiguous between 3/5 and 3/3. Its sibling LowRatingNotification already
+        // built both halves; matched to it, so the feed states the rating unambiguously and by GLYPH.
+        $rating = (int) $this->review->rating;
+        $stars = str_repeat('★', $rating).str_repeat('☆', max(0, 5 - $rating));
         $context = $this->review->visibility === Review::VISIBILITY_PRIVATE
             ? 'Private feedback to the manager'
             : 'Awaiting moderation';

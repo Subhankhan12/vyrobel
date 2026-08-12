@@ -139,8 +139,32 @@ conflicts with the repo, **trust the repo** and fix this file.
 >     → *reopening a ratified refusal*). **Before calling a routeless prototype a gap, check whether the
 >     function already lives somewhere else and was ratified there.**
 >   · **Prototype accounting is now COMPLETE for the guest realm: 32 prototypes = 12 gates + 3 verdicts.**
-> ③ **`DO-G8-1` — `owner/unit-detail:338`** (`round()` → floor, via `<x-star-rating>`). **This is the whole
->   remainder of `DO10-4`**, and §N.13.8 reframes it as **correctness (WCAG 1.4.1)**, not tone.
+> ③ ✅ **`DO10-4` — THE STAR CAPSTONE: DONE (2026-08-12).** See **§STAR-CAPSTONE**. `owner/unit-detail:338`
+>   migrated to `<x-star-rating>` and **verified live AS THE OWNER** with the state forced to a **4.67**
+>   average: the old code printed **five filled stars**, it now prints **4 + 1 empty**, named
+>   *"4.7 out of 5 stars"*. ⚠️ **An honest rating, not a regression** — the unit stops advertising itself as
+>   perfect. Premise correction: it was **not** colour-only (it already emitted ★ then ☆); the defect was
+>   `round()` alone.
+>   ⚠️ **The sweep found a third defect nobody had named: the SHARED COMPONENT'S OWN COLOURS failed 3:1**
+>   (`#E8A63A` 2.08 / `#B9A99A` 2.25) — *the thing everything was being migrated TO drew a star you could
+>   barely see.* That is **`DO-G8-2` answered by measuring**. Retargeted to `#8F5A06` / `#7A6E64`.
+>   ⚠️ **And the MEASUREMENT corrected me mid-pass:** the first retarget was chosen against the two CARD
+>   plates; the live render showed the row actually sits on the **peach hero plate `#FBD3BF`**, where the empty
+>   star still failed at 2.76. Re-chosen against the **worst real plate** — 4.19 / 3.59 there, hierarchy intact.
+>   ⚠️ **The email star was NOT what the register said** — `review-request`'s `#E8A317` is not a rating
+>   *display* but **five tappable rating INPUTS**, so ★/☆ would have been WRONG (it would show a rating the
+>   guest has not given). Fixed for what it really is: contrast (2.14 → 4.17 as a non-text **control**) and
+>   **per-link accessible names** (each was literally named *"★"*; now *"Rate N out of 5 stars"*, verified on
+>   the real mailable). **The email set is now 335 runs / 0 FAIL.**
+>   ⚠️ **The COVERAGE SWEEP found four more sites** (the DO-EMAIL-2 pattern): `operator/guest-profile:132`
+>   (1.98, unnamed — an operator page no star pass had rendered) · `owner/reviews:123` (1.93 / 1.48, unnamed) ·
+>   two rows whose colours passed and were **not** "fixed", only named · and `NewReviewNotification` printing
+>   *"★★★"* with no denominator while its sibling already built both halves. `operator/reviews:70` was a
+>   **false flag by my own probe** (correctly `aria-hidden` beside a visible `4/5`).
+>   ⚠️ **The guard was VACUOUS at first (O32)** — the contrast test asserted hardcoded literals, so reverting
+>   the component's colour left it green. Rewritten to read the inks the component **actually renders**;
+>   mutation-proven **five ways** thereafter. Left: **`DO-STAR-1`** (the owner Messages *"Starred"* flag — a
+>   bookmark, not a rating).
 > ④ **THE BACKEND PHASE — plan it as a PHASE, not a gate.** Its backlog is the reconciled **43-item
 >   DO-register** at the end of `MISSING-BACKEND-BY-PAGE.md` (grouped: correctness · isolation/backend ·
 >   UX-routing · structural/duplication · founder decisions · scoped cleanups), plus the **6 reopened operator

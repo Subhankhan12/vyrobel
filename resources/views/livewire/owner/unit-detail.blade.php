@@ -335,13 +335,17 @@
                     <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
                         <span class="vy-ud-reviews-score">{{ number_format((float) $reviews['average'], 1) }}</span>
                         <div>
-                            <div style="color:var(--vy-amber-text);font-size:15px">{{ str_repeat('★', (int) round((float) $reviews['average'])) }}{{ str_repeat('☆', 5 - (int) round((float) $reviews['average'])) }}</div>
+                            {{-- DO10-4 capstone: this row used `round()`, so a 4.6 average printed FIVE filled
+                                 stars — the owner's own unit read as perfect when it is not. The shared
+                                 component floors (4.6 → 4 filled + 1 empty), differs filled/empty by GLYPH,
+                                 and carries ONE accessible name instead of ten mute glyphs. --}}
+                            <x-star-rating :value="$reviews['average']" size="15px" />
                             <div class="vy-line-sub">{{ $reviews['count'] }} {{ \Illuminate\Support\Str::plural('review', $reviews['count']) }} · published</div>
                         </div>
                     </div>
                     @foreach ($reviews['list'] as $r)
                         <div class="vy-ud-review">
-                            <div style="display:flex;justify-content:space-between;gap:10px"><span style="font-size:13px;font-weight:600">{{ $r['byline'] }}</span><span style="color:var(--vy-amber-text);font-size:12px">{{ $r['stars'] }}</span></div>
+                            <div style="display:flex;justify-content:space-between;gap:10px"><span style="font-size:13px;font-weight:600">{{ $r['byline'] }}</span><span role="img" aria-label="{{ $r['rating'] }} out of 5 stars" style="color:var(--vy-amber-text);font-size:12px"><span aria-hidden="true">{{ $r['stars'] }}</span></span></div>
                             @if ($r['body'])<div class="vy-line-sub" style="font-size:12.5px;margin-top:4px;line-height:1.5">{{ $r['body'] }}</div>@endif
                             <div style="font-size:11px;color:var(--vy-faint);margin-top:3px">{{ $r['at'] }}</div>
                         </div>

@@ -42,13 +42,13 @@
                  ONE accessible name for the row ("5 out of 5 stars") instead of five announced glyphs, a
                  floor that can never round a rating up to flatter it, and filled-vs-empty distinguished by
                  GLYPH (★/☆) rather than colour alone (WCAG 1.4.1). --}}
-            {{-- ⚠️ color passed, not defaulted: the component ships #E8A63A, which measures 2.05 on this card and
-                 misses the 3:1 bar a star must meet — it is the VISUAL carrier of the rating (WCAG 1.4.11
-                 non-text contrast), not decoration, even though the glyphs are aria-hidden and the row
-                 carries the name. #B26A08 is --vy-amber's value (a star is a fill, so the fill token is the
-                 right one) and measures 4.11. Passed here rather than changed in the component, because the
-                 default is shared with the owner Reviews page on a different plate — logged, not guessed. --}}
-            <x-star-rating :value="$existing['rating']" size="26px" gap="3px" color="#B26A08" />
+            {{-- ⚠️ The colour override that used to live here is GONE, and deliberately: it existed because the
+                 component shipped #E8A63A, which measured 2.05 here and missed the 3:1 a star must meet as the
+                 VISUAL carrier of the rating (WCAG 1.4.11) — so this page passed its own value while the
+                 shared default stayed broken. The DO10-4 capstone fixed the DEFAULT instead, measured against
+                 the worst real plate in the product, so every rating row now inherits one gold and this
+                 override became redundant. Don't reintroduce a per-page star colour — fix the component. --}}
+            <x-star-rating :value="$existing['rating']" size="26px" gap="3px" />
             @if (count($existing['tags']) > 0)
                 <div style="margin-top:10px">@foreach ($existing['tags'] as $t)<span style="display:inline-block;padding:4px 10px;border-radius:16px;background:var(--vy-wash);font-size:11.5px;color:var(--vy-muted);margin:0 5px 5px 0">{{ $t }}</span>@endforeach</div>
             @endif

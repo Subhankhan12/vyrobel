@@ -7570,6 +7570,109 @@ layout — `billing/feature-locked` and `auth/login-approval*` are **web pages**
 **Status: `DO-EMAIL-3` CLOSED — all 20 emails now render in the warm brand system.**
 
 ---
+
+## §STAR-CAPSTONE — `DO10-4` · star correctness across web + email · **CLOSED** (2026-08-12)
+
+⚠️ **A CORRECTNESS pass, not tone.** A star row can state the **wrong rating** two ways, and the product had
+shipped both. This closes the O26 defect family for good.
+
+### The three defects — two named, one the sweep found
+
+| # | defect | where | proof |
+|---|---|---|---|
+| 1 | **ROUND-NOT-FLOOR** — overstates | `owner/unit-detail:338` `str_repeat('★', round($average))` | forced a real owner unit to **4.67** and rendered it live: the old code prints **five filled stars** on a 4.67 |
+| 2 | **COLOUR-ONLY** — greyscale reads the wrong count | already fixed at O26 + G12 | re-verified: no rating row separates filled from empty by colour alone |
+| 3 | ⚠️ **THE SHARED COMPONENT'S OWN COLOURS FAILED 3:1** | `<x-star-rating>` defaults `#E8A63A` / `#B9A99A` | measured **2.08 / 2.25** — *the component everything was being migrated TO drew a star you could barely see*. This is **`DO-G8-2` answered by measuring**. |
+
+⚠️ **Premise correction on defect 1:** the register called `unit-detail:338` colour-only *and* round. It was
+**not** colour-only — it already emitted `★` then `☆`. **The defect there was `round()` alone** (plus no
+accessible name). Corrected.
+
+### The web remnant — migrated, and verified live AS THE OWNER
+
+`unit-detail:338` → `<x-star-rating>`. Rendered at `/owner/units/{unit}` **as `demo-owner`** (the DO-EMAIL-2
+lesson: run as the role that can see the page) with the state **forced** to a 4.67 average (G10), then the
+demo data restored:
+
+```
+accessible name : "4.7 out of 5 stars"      (one name, not ten mute glyphs)
+glyphs          : ★ ★ ★ ★ ☆                 (4 filled + 1 empty — the OLD code printed 5 filled)
+transparent els : 0 before capture
+```
+
+⚠️ **This CHANGES what the owner sees, and that is the point:** a 4.67 unit stops advertising itself as
+perfect. **An honest rating, not a regression.**
+
+### ⚠️ The measurement corrected me once — the plate was not the card
+
+A first pass retargeted the component to `#B26A08` / `#8F8073`, measured against the two **card** plates. The
+**live render then showed the row sits on the PEACH hero plate `#FBD3BF`**, where the empty star measured
+**2.76 and still failed**. Re-chosen against the **worst real plate** and re-measured on all three:
+
+| | on `#FBD3BF` (peach) | `#F8F4EF` (owner card) | `#FFFDFB` (light card) |
+|---|---|---|---|
+| filled **`#8F5A06`** | **4.19** ✅ | 5.28 ✅ | 5.70 ✅ |
+| empty **`#7A6E64`** | **3.59** ✅ | 4.52 ✅ | 4.88 ✅ |
+| *(what shipped)* `#E8A63A` / `#B9A99A` | 1.53 / 1.65 ❌ | 1.93 / 2.08 ❌ | 2.08 / 2.25 ❌ |
+
+Filled stays **stronger than** empty on every plate, so the hierarchy survives. Hues preserved (amber h37 /
+warm stone h27) — **luminance-only, so greyscale is unaffected**. Anchors validated on the live render
+(`#2B2320` 11.15 pass · `#B7ADA4` 1.60 fail).
+
+### ⚠️ The email star was NOT what the register said it was
+
+`DO-EMAIL-1` routed `#E8A317` here as *"a colour-only rating signal"*. **It is not a rating display at all** —
+`review-request` renders **five tappable rating INPUTS**, each deep-linking
+`route('guest.review', [..., 'rating' => $n])` under the copy *"Tap a star — it opens your review"*. So
+**★/☆ would have been WRONG here**: it would show a rating the guest has not given. The real defects were
+different, and both are fixed:
+
+- **contrast** — `#E8A317` measured **2.14**; a meaningful non-text **control** needs 3:1 → **`#8F5A06`**
+  (**4.17** on the email card), the same gold the component now uses.
+- ⚠️ **the accessible name** — each link's name was the bare glyph **"★"**, so a screen reader heard *"star,
+  link"* five times with nothing to choose between. Each now names its rating, mirroring the web review
+  form's pattern. Verified on the **real mailable**: `Rate 1 out of 5 stars` … `Rate 5 out of 5 stars`.
+
+⚠️ **`DO-EMAIL-4` flagged, not fixed:** `--vy-amber-text` is defined twice with different values, so an email
+cannot safely "use the token" even in spirit. The gold is an email-safe literal; the drift stays logged.
+
+**The email set is now 335 text runs, 0 FAIL** — the ★ was the last one.
+
+### ⚠️ THE COVERAGE SWEEP — it found four sites nobody had named (the DO-EMAIL-2 pattern)
+
+Grepped every star/rating render across all realms, then classified each by *role* and *state*:
+
+| site | verdict |
+|---|---|
+| `owner/reviews:57`, `guest/review:51`, `owner/unit-detail:342` | **`<x-star-rating>`** — floor + glyph + named ✅ |
+| 🆕 **`operator/guest-profile:132`** | `#E8A317` = **1.98 FAIL**, and the row had **no accessible name** → `#8F5A06` + named. *An operator page — no star pass had ever rendered it.* |
+| 🆕 **`owner/reviews:123`** | filled `#E8A63A` **1.93** / empty `#D9C8BC` **1.48**, both FAIL, unnamed → the shared pair + named |
+| 🆕 **`booking/room:91`**, **`owner/unit-detail:348`** | colours already pass (3.04 / 6.49) — **not "fixed"**; the missing **accessible names** added |
+| 🆕 **`NewReviewNotification:31`** | built the filled half **only** — *"New review · ★★★"*, ambiguous between 3/5 and 3/3, while its sibling `LowRatingNotification` already built both. Matched to the sibling → `★★★☆☆`. |
+| `operator/reviews:70` | ⚠️ **my probe false-flagged this as unnamed.** It is correct: the stars are `aria-hidden` decoration and a visible **`4/5`** sits beside them. *Verify-don't-assume, applied to my own instrument.* |
+| `owner/messages:193,200,288` | **NOT a rating** — a *"Starred messages"* flag/toggle, a different concept, its state also carried by a visible count. **Out of scope → `DO-STAR-1`.** |
+
+### 🔒 Guard — `tests/Feature/StarRatingCorrectnessTest.php` (6 tests / 35 assertions)
+
+Behavioural (renders the component), not string-matching. **Mutation-proven five ways**, each red on its own
+assertion: `floor`→`round` · `☆`→`★` (colour-only) · drop the accessible name · revert the filled colour ·
+revert the empty colour. `php -l` + **`php artisan view:clear`** after every Blade mutation (the DO-EMAIL-3
+toolchain false-RED).
+
+⚠️ **And the guard itself was VACUOUS at first (O32).** Reverting the component's filled colour left it
+**green**, because the contrast test asserted hardcoded literals — arithmetic, not the component. Rewritten to
+read the inks the component **actually renders**; mutation 4 then went red naming the value and the plate.
+
+### Left deliberately
+
+- **`DO-STAR-1`** — the owner Messages *"Starred"* flag SVGs still use `#E8A63A`. A different feature (a
+  bookmark, not a rating), state also conveyed by a count. A design call.
+- **`DO-EMAIL-4`** — the twice-defined `--vy-amber-text`, flagged again here.
+
+**Status: `DO10-4` CLOSED. Every rating row in the product now floors, differs by GLYPH, carries one
+accessible name, and clears 3:1 on the worst plate it renders on. The O26 defect family is retired.**
+
+---
 ---
 
 # 🗂 THE CONSOLIDATED DO-REGISTER — the BACKEND PHASE's backlog (SAVE v8, 2026-08-12)
@@ -7597,8 +7700,9 @@ live.**
 
 | item | what |
 |---|---|
-| **`DO-G8-1`** ⚠️ | `owner/unit-detail:338` — `str_repeat('★', round($average))` **rounds up**: a 4.6 prints five stars. **This is the whole remainder of `DO10-4`**, and `DO-G12-3` reframes it: it is a **correctness/WCAG-1.4.1 failure, not a tone preference**. Owner page — outside the guest walk's scope, still live. |
-| **`DO-G8-2`** | `<x-star-rating>`'s default `emptyColor` has never been measured on the pages that use it. |
+| ~~**`DO-G8-1`**~~ ✅ | ~~`owner/unit-detail:338` rounds up.~~ **CLOSED 2026-08-12 — see §STAR-CAPSTONE.** Migrated to `<x-star-rating>`; verified live as the OWNER with the state forced to **4.67**: the old code printed **5 filled stars**, it now prints **4 + 1 empty**, named *"4.7 out of 5 stars"*. ⚠️ Premise correction: it was **not** colour-only (it already emitted ★ then ☆) — the defect was `round()` alone. |
+| ~~**`DO-G8-2`**~~ ✅ | ~~the default `emptyColor` has never been measured.~~ **MEASURED AND IT FAILED — both defaults did.** `#E8A63A` **2.08** / `#B9A99A` **2.25**: the component everything was being migrated TO drew a star below the 3:1 non-text bar. Retargeted to `#8F5A06` / `#7A6E64` against the **worst real plate** (the peach `#FBD3BF` the live render revealed, where a first choice still failed). See §STAR-CAPSTONE. |
+| **`DO-STAR-1`** 🆕 | the owner **Messages** *"Starred"* flag SVGs still use `#E8A63A`. **Not a rating** — a bookmark toggle whose state is also carried by a visible count, so out of `DO10-4`'s scope. A design call. |
 | **`DO-G8-3`** | a review has no visible moderation timeline; a rejected review says "Not published" with no reason. |
 | **`DO-G9-3`** | the language radio group fires a write on **every arrow-key step** (EN→FR = 3 writes). Low stakes, design's intent — logged, not silently redesigned. |
 | **`DO-G11-2`** | the POST login route is named `guest.` (an empty suffix) — a trap for the next `route()` call. |
