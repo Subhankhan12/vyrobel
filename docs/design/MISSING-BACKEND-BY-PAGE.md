@@ -8715,3 +8715,59 @@ scale-mismatch guard refuses.
 scope already mapped) and Part B (the 67 data-conditional files) can be measured with an instrument that has
 proven it reads the right plate.
 
+---
+
+## ⚠️ `DO-EMAIL-5-continued` (RE-RUN) — the probe now works, and it found something bigger than the sweep
+
+**Status: Part A MEASURED on 1 of 9 surfaces, NOT fixed · Part B UNTOUCHED.** The pass did not close, and what
+stopped it this time is not the instrument — it is a **finding that outranks the sweep**.
+
+### ⚠️ The tool needed a SECOND correction, and the reason is the durable lesson
+
+`tools/contrast-sampler.php` was validated in DO-PROBE-1 and was still wrong for this input class. Pointed at
+`/app/settings` it reported **74 failures** on plates like `rgb(136,129,127)` — a perfect ink/white midpoint,
+i.e. **anti-alias halo wearing the costume of a background**.
+
+⚠️ **The fixture was not representative of the input.** It had sparse text in generously padded blocks, where
+halo is a tiny share of the samples; a real page of dense 12px labels is mostly glyph. The fixed RGB tolerance
+plus a 10th-percentile worst could not separate them. **A validated instrument is validated for the cases it was
+validated on** — and my fixture chose the easy ones.
+
+Fixed with **adaptive halo rejection**: find the modal plate (background dominates by count even in dense text),
+then discard any pixel lying more than 45% of the way from that plate toward the ink. Anti-aliasing lies *on
+that segment*; a gradient's real variation does not. **Re-validated against the committed fixture — anchors
+5.18 / 15.4 exact, the gradient button still 3.37 on its own plate, known-bad still 1.5.** 74 → 45.
+
+### ⚠️ THE FINDING — the AA guarantee rests on an assumed worst-case plate that the real page beats
+
+`DesignTokenContrastTest` computes the hardest card background as a constant, **`rgb(249,223,207)`**, and calls
+it *"the hardest background for dark text anywhere on a card"*. Measured on the real composited page, plates are
+**darker than that**:
+
+| element | token | measured plate | ratio | need |
+|---|---|---|---|---|
+| "Display name" | `--vy-faint` `rgb(108,100,95)` | `rgb(252,211,190)` | **4.19** | 4.5 |
+| "Check-in from" | `--vy-faint` | `rgb(249,208,187)` | **4.07** | 4.5 |
+| "Country" / "Time zone" | `--vy-faint` | `rgb(251,209,187)` | **4.12** | 4.5 |
+| "Demo Seaside Property" | `--vy-muted` `rgb(95,88,83)` | `rgb(241,172,134)` | **3.65** | 4.5 |
+
+⚠️ **This is not a contradiction to resolve by editing 45 elements.** It is the **positional-plate rule**
+(DO-EMAIL-7) applied to the whole product: the test's constant is a *computed* worst case, the page has a
+*measured* one, and the measured one is worse. Either the token floor moves (a product-wide visual change), or
+the assumed plate is wrong and the test's constant needs re-deriving, or specific surfaces need `--vy-ink`
+(exactly the remedy DO-EMAIL-5 applied to the storefront filter keys).
+
+⚠️ **That is a design decision with product-wide reach, and a contrast sweep must not make it unilaterally by
+retinting 45 elements on one page.** Surfaced deliberately, unfixed.
+
+### ⬅ What this needs next
+
+1. **Settle the plate question first** — re-derive the true darkest composited card plate across the gradient's
+   range, and reconcile it with `DesignTokenContrastTest`'s constant (G8: that test encodes a real invariant;
+   read it before changing it).
+2. **Then** run Part A across all 9 files and Part B across the 67, with the token decision already made — the
+   sweep is mechanical once the floor is settled.
+
+**Measured so far:** `/app/settings` — **221 measured / 45 failed / 1 unmeasurable** (`plate-not-isolable`).
+No blind zeros; the unmeasurable one is recorded as unswept, not clean.
+

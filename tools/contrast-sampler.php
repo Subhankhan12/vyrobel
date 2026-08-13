@@ -29,6 +29,22 @@ const GLYPH_TOLERANCE = 60;    // RGB distance within which a pixel is treated a
 const MIN_PLATE_RATIO = 0.30;  // at least this share of sampled pixels must be plate, else UNMEASURABLE
 
 /**
+ * ⚠️ HALO REJECTION IS ADAPTIVE, NOT A FIXED TOLERANCE — and this was learned the hard way TWICE.
+ *
+ * Anti-aliased pixels lie ON THE SEGMENT between the ink colour and the plate colour. A fixed RGB tolerance
+ * cannot separate them, because how far a halo pixel sits from the ink depends entirely on the ink/plate
+ * distance for that particular element. The first version used a fixed tolerance plus a 10th-percentile worst
+ * and validated cleanly — on a fixture whose text was SPARSE inside generously padded blocks, where halo was a
+ * tiny share of the samples. Pointed at a real page of dense 12px labels it reported 74 "failures" on plates
+ * like rgb(136,129,127) — a perfect ink/white midpoint, i.e. halo, wearing the costume of a background.
+ *
+ * ⚠️ THE FIXTURE WAS NOT REPRESENTATIVE OF THE INPUT, which is its own lesson: a validated instrument is
+ * validated *for the cases it was validated on*. So the rejection is now RELATIVE — a pixel is halo if it lies
+ * more than a fraction of the way from the modal plate toward the ink — which adapts to every element.
+ */
+const HALO_FRACTION = 0.45;   // closer to the ink than this share of the ink→plate distance ⇒ halo, not plate
+
+/**
  * ⚠️ THE PERCENTILE, AND WHY IT IS NOT A FUDGE. "Take the worst pixel" is right for a GRADIENT (the plate is
  * positional) and catastrophic next to ANTI-ALIASING: the halo around every glyph is a blend of ink and plate,
  * so the single darkest pixel in a text element is almost always halo, not background. Validation caught
@@ -142,6 +158,24 @@ foreach ($meta['candidates'] as $c) {
             }
             $plate[] = $p;
         }
+    }
+
+    // ⚠️ THE MODAL PLATE. The true background dominates by pixel count even in dense text; halo is a thin
+    // fringe. Quantising to 16 levels finds it without being fooled by a gradient's smooth variation.
+    if ($plate !== []) {
+        $buckets = [];
+        foreach ($plate as $p) {
+            $k = (intdiv($p[0], 16) << 8) | (intdiv($p[1], 16) << 4) | intdiv($p[2], 16);
+            $buckets[$k][] = $p;
+        }
+        uasort($buckets, static fn ($a, $b) => count($b) <=> count($a));
+        $modal = reset($buckets)[0];
+
+        // Reject anything lying more than HALO_FRACTION of the way from that plate toward the ink. This keeps
+        // a gradient's genuine variation (all of it sits near the plate end) and drops the ink→plate blend.
+        $inkToPlate = sqrt(dist2($c['fg'], $modal));
+        $cut = ($inkToPlate * HALO_FRACTION) ** 2;
+        $plate = array_values(array_filter($plate, static fn ($p) => dist2($p, $c['fg']) >= $cut));
     }
 
     if ($total === 0 || count($plate) / $total < MIN_PLATE_RATIO) {
