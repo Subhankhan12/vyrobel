@@ -9657,3 +9657,37 @@ Full canon: **§N.21** in `docs/PROJECT-STATE.md`. Decisions locked here:
    downstream and proven firing — the fifth and sixth corrections to this instrument.
 7. **Axis 3 (DATA) is a first-class sweep axis**, alongside state (G10) and role (§N.14.1). Its throughput is
    iterative: **7 of 67 measured**; **"logged-unswept" means UNMEASURED, not fine.**
+
+---
+
+## 2026-08-13 — DO-A11Y-3/4/5 CLOSED · and the `--vy-faint` 0.005 ACCEPTED
+
+**FOUNDER RULING — the `--vy-faint` 0.005 is ACCEPTED.** On the true measured worst card plate it is
+**4.4953**, a 0.005 miss under 4.50. **No token darkened** (that was option B, declined): the miss is far below
+perceptual or measurement threshold. The **non-destructive handling stands** — the AA test keeps the derived
+plate at 4.55, the measured floor stays pinned separately as a fact, so the drift vector remains guarded.
+⚠️ This closes the call **without changing the measurement**, and leaves §N.21.2's coherence note intact: the
+0.005 **refines** the retraction's ~4.50, it does not overturn it.
+
+**DO-A11Y-3 — the white-on-accent CTA family, CLOSED.** A real AA failure (3.22–3.39 on every CTA), therefore a
+**required** fix rather than declined headroom. Measured first, and confirmed to be in a **validated input
+class** — "white label on a gradient button, read on the button's own plate" is the harness's VALIDATION 2.
+
+⚠️ **A recorded premise was too strong and checking it changed the fix.** The guest shell noted *"No warm
+orange lighter than #C2410C reaches 4.5 for white"*, which would have forced the gradient to collapse to a flat
+colour. White needs luminance ≤ 0.1833 and `#C2410C` sits at 0.1528, so a band of lighter oranges qualifies.
+The CTA gradient's light stop moved **`#E8703A` → `#D14102`** — lighter than `--vy-accent`, at the brand hue
+(18.3° vs 18.6°), white at **4.70**. ⚠️ Deliberately **not** the lightest qualifying orange (`#DD3910`, exactly
+**4.50**) — DO-PLATE-1 showed what a zero margin costs. **The gradient survives, narrowed.**
+
+Applied to **all 43 occurrences across 29 files** (the shared token, 10 shells that predate DO-TOKEN-1 and
+still declare their own `--vy-grad`, and the email/PDF CTA mirrors — §N.8f). ⚠️ The **~42 standalone `#E8703A`
+uses** (borders, dots, decorative fills carrying no white text) are deliberately **untouched**, and a guard
+asserts they survive — darkening them would change passing declarations.
+
+**DO-A11Y-4 — `.vy-fd-*` CLOSED.** `.vy-fd-rel` 3.57 (accent-text on the page GRADIENT, outside that token's
+card/tint scope) and `.vy-fd-seg-btn` 4.23/4.36 → `--vy-on-grad`.
+
+**DO-A11Y-5 — CLOSED, with a premise correction.** The register called it "one unclassed link". The `<a>` has
+no colour of its own — it **inherits `.vy-utable .vy-u-sub`** (4.48), so the fix belonged on that **shared
+rule at the source**. Treating it as a one-off inline fix would have left every other row sub-label failing.

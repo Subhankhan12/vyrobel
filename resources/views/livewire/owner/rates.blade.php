@@ -104,7 +104,7 @@
                             <div class="vy-rt-eyebrow" style="margin-bottom:6px">Note <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint)">· optional</span></div>
                             <div class="vy-rt-in"><input type="text" name="counter_note" placeholder="Why this rate" maxlength="500"></div>
                         </div>
-                        <button type="submit" class="vy-rt-btn vy-rt-approve" style="background:linear-gradient(140deg,#E8703A,#C2410C)">Send counter</button>
+                        <button type="submit" class="vy-rt-btn vy-rt-approve" style="background:linear-gradient(140deg,#D14102,#C2410C)">Send counter</button>
                     </form>
                 @endif
             </div>

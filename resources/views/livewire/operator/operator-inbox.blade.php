@@ -461,7 +461,7 @@
         .vy-msg.is-in { align-self: flex-start; }
         .vy-msg-bubble { padding: 9px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; }
         .vy-msg.is-in .vy-msg-bubble { background: var(--vy-hairline); color: var(--vy-ink); border-bottom-left-radius: 4px; }
-        .vy-msg.is-out .vy-msg-bubble { background: linear-gradient(140deg, #E8703A, #C2410C); color: #fff; border-bottom-right-radius: 4px; }
+        .vy-msg.is-out .vy-msg-bubble { background: linear-gradient(140deg, #D14102, #C2410C); color: #fff; border-bottom-right-radius: 4px; }
         .vy-msg-meta { font-size: 10.5px; color: var(--vy-faint); margin-top: 3px; display: flex; gap: 6px; }
         .vy-msg.is-out .vy-msg-meta { justify-content: flex-end; }
         .vy-msg-delivery.is-failed { color: #B4400F; font-weight: 600; }

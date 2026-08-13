@@ -356,7 +356,7 @@
                         <input type="hidden" name="notify" :value="notify ? '1' : '0'">
                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;">
                             <div style="display:flex;align-items:center;gap:11px;">
-                                <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,#E8703A,#C2410C);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
+                                <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,#D14102,#C2410C);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M21 6H9a4 4 0 0 0-4 4v1"/><path d="M7 22l-4-4 4-4"/><path d="M3 18h12a4 4 0 0 0 4-4v-1"/></svg>
                                 </div>
                                 <div>
@@ -382,7 +382,7 @@
                                         </span>
                                         <span style="display:block;font-size:11.5px;color:var(--vy-faint);margin-top:2px;">{{ $person['load'] }}</span>
                                     </span>
-                                    <span :style="sel === '{{ $person['id'] }}' ? 'background:linear-gradient(140deg,#E8703A,#C2410C);border:none' : 'background:rgba(255,255,255,.6);border:2px solid rgba(120,70,40,.22)'"
+                                    <span :style="sel === '{{ $person['id'] }}' ? 'background:linear-gradient(140deg,#D14102,#C2410C);border:none' : 'background:rgba(255,255,255,.6);border:2px solid rgba(120,70,40,.22)'"
                                           style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" x-show="sel === '{{ $person['id'] }}'"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
                                     </span>
@@ -407,7 +407,7 @@
                                 <div style="font-size:13px;font-weight:500;">Notify both technicians</div>
                                 <div style="font-size:11px;color:var(--vy-faint);margin-top:1px;">The new assignee gets the order; any prior assignee is told they’re off it</div>
                             </div>
-                            <button type="button" @click="notify = !notify" :style="notify ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
+                            <button type="button" @click="notify = !notify" :style="notify ? 'background:linear-gradient(140deg,#D14102,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
                                 <span :style="notify ? 'left:19px' : 'left:3px'" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
                             </button>
                         </div>
@@ -425,7 +425,7 @@
                         @csrf
                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;">
                             <div style="display:flex;align-items:center;gap:11px;">
-                                <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,#E8703A,#C2410C);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
+                                <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,#D14102,#C2410C);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
                                 </div>
                                 <div>
@@ -473,7 +473,7 @@
                                         <div style="font-size:11px;margin-top:2px;line-height:1.45;" :style="ret ? 'color:#B4400F' : 'color: var(--vy-faint)'" x-text="ret ? 'The unit goes back on sale immediately.' : 'Stays out of order — lift the block later from the rack.'"></div>
                                     </div>
                                 </div>
-                                <button type="button" @click="ret = !ret" :style="ret ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
+                                <button type="button" @click="ret = !ret" :style="ret ? 'background:linear-gradient(140deg,#D14102,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
                                     <span :style="ret ? 'left:19px' : 'left:3px'" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
                                 </button>
                             </div>
@@ -485,7 +485,7 @@
                                 <div style="font-size:13px;font-weight:500;">Notify the front desk</div>
                                 <div style="font-size:11px;color:var(--vy-faint);margin-top:1px;">Lets {{ $ticket['reporter'] ?? 'the reporter' }} know it’s fixed and back online</div>
                             </div>
-                            <button type="button" @click="notify = !notify" :style="notify ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
+                            <button type="button" @click="notify = !notify" :style="notify ? 'background:linear-gradient(140deg,#D14102,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
                                 <span :style="notify ? 'left:19px' : 'left:3px'" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
                             </button>
                         </div>

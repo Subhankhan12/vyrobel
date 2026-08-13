@@ -11,9 +11,13 @@
        real gradient band.
      • TWO deliberate a11y divergences from the prototype, both measured, both surfaced in
        docs/design/MISSING-BACKEND-BY-PAGE.md §O-Invite:
-       (1) the CTA stays SOLID #C2410C (white 15px on it = 5.21). The prototype's gradient CTA puts white
-           normal text over the #E8703A end at 3.09 — no warm orange lighter than #C2410C can reach 4.5,
-           so the gradient CTA is unreachable for AA, not merely unimplemented.
+       (1) the CTA's SOLID fallback is #C2410C (white 15px on it = 5.21), with the brand gradient layered
+           over it as background-image for clients that support one.
+           ⚠️ CORRECTED (DO-A11Y-3): this note used to claim "no warm orange lighter than #C2410C can reach
+           4.5, so the gradient CTA is unreachable for AA". That is FALSE. White needs relative luminance
+           <= 0.1833 and #C2410C sits at 0.1528, so a band of lighter oranges qualifies. The gradient's light
+           stop is now #D14102 — lighter than #C2410C, at the brand hue, and white on it measures 4.70. The
+           gradient CTA is reachable for AA; it just could not use #E8703A (3.08).
        (2) the prototype's muted greys (#8A8079 / #9C9089 / #A69A92 / #B7ADA4) are the pre-remediation
            palette and fail AA; they are rendered at the token values instead.
      • The prototype's per-feature line icons are inline SVG (unsupported in Outlook/Gmail), so the
@@ -53,7 +57,7 @@
                          sit under the 4.5 normal-text bar. The eyebrow IS normal-size text, which no point of
                          this gradient can carry at 4.5, so it sits on a solid #B03808 plate (6.15). --}}
                     <tr>
-                        <td align="center" bgcolor="#C2410C" style="background-color:#C2410C; background-image:linear-gradient(140deg, #E8703A, #C2410C); border-radius:20px 20px 0 0; padding:30px 32px;">
+                        <td align="center" bgcolor="#C2410C" style="background-color:#C2410C; background-image:linear-gradient(140deg, #D14102, #C2410C); border-radius:20px 20px 0 0; padding:30px 32px;">
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
                                 <tr>
                                     <td style="width:40px; height:40px; background-color:#D9662E; border-radius:12px; text-align:center; vertical-align:middle; font-family:'Sora',Arial,Helvetica,sans-serif; font-size:21px; font-weight:700; color:#FFFFFF;">V</td>
@@ -121,9 +125,9 @@
                                 </tr>
                             </table>
 
-                            {{-- Primary CTA — full-width bulletproof button. SOLID #C2410C, not the prototype's
-                                 gradient: white 15px normal text needs 4.5, and no warm orange lighter than
-                                 #C2410C reaches it (the #E8703A end measures 3.09). --}}
+                            {{-- Primary CTA — full-width bulletproof button. The bgcolor fallback is SOLID
+                                 #C2410C; the gradient rides over it as background-image. Its light stop is
+                                 #D14102 (white 4.70) — NOT #E8703A, which measured 3.08 (DO-A11Y-3). --}}
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 0;">
                                 <tr>
                                     <td align="center" bgcolor="#C2410C" style="background-color:#C2410C; border-radius:30px;">

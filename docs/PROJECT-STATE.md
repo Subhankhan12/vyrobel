@@ -7167,6 +7167,15 @@ documented `--vy-faint` as `rgb(123,114,108)`, two token generations old) correc
 > **The lesson is about PRECISION IN A DECISION RECORD.** A rounded figure is fine in prose and fatal in a
 > premise. When a number decides something, record the precision the decision actually needs.
 
+⚠️ **FOUNDER RULING (2026-08-13): ACCEPTED.** The 0.005 stands as measured and **no token was darkened** —
+4.4953 is far below any perceptual or measurement threshold, and darkening `--vy-faint` product-wide for it
+would be the option-B change posture A already declined. **The non-destructive handling STANDS unchanged**: the
+AA test keeps the derived plate `rgb(249,223,207)` where `--vy-faint` genuinely passes at 4.55, and the
+measured **4.4953 floor stays pinned separately as a FACT**, so the silent-drift vector remains guarded — any
+future gradient or glass change that darkens the card still REDS the test. ⚠️ **This closes the founder call;
+it does NOT change the measurement, and §N.21.2's coherence note is unaffected** (the 0.005 still refines the
+retraction's ~4.50 rather than overturning it).
+
 ## §N.21.2 ⚠️ THE COHERENCE NOTE — the 0.005 is NOT the retracted floor finding
 
 ⚠️ **A future session must not read §N.21.1 as overturning §N.20.2.** They are distinct and they AGREE:

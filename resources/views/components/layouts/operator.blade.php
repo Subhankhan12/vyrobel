@@ -299,7 +299,7 @@
         .vy-ins-chart-plot { width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px; height: 140px; }
         .vy-ins-bar { border-radius: 4px 4px 2px 2px; }
         .vy-ins-bar.is-ly { width: 10px; background: rgba(120, 70, 40, 0.18); }
-        .vy-ins-bar.is-ty { width: 12px; background: linear-gradient(180deg, #E8703A, #C2410C); }
+        .vy-ins-bar.is-ty { width: 12px; background: linear-gradient(180deg, #D14102, #C2410C); }
         .vy-ins-bar.is-otb { width: 12px; background: repeating-linear-gradient(135deg, rgba(232,112,58,.8) 0 3px, rgba(232,112,58,.3) 3px 6px); }
         .vy-ins-chart-lbl { font-size: 10.5px; color: var(--vy-muted); }
 
@@ -1389,7 +1389,7 @@
         .vy-utable tbody tr:hover { background: rgba(255, 255, 255, 0.5); }
         .vy-utable td { padding: 13px 14px; border-top: 1px solid var(--vy-hairline); font-size: 13px; vertical-align: middle; }
         .vy-utable .vy-u-code { font-family: var(--vy-display); font-weight: 600; }
-        .vy-utable .vy-u-sub { font-size: 11px; color: var(--vy-muted); margin-top: 2px; }
+        .vy-utable .vy-u-sub { font-size: 11px; color: var(--vy-on-grad); margin-top: 2px; }   /* muted measured 4.48 on the row tint */
         .vy-u-owner { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
         .vy-u-owner .vy-mini-avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 9px; font-weight: 600; display: grid; place-items: center; }
         .vy-u-operator { font-size: 11.5px; color: var(--vy-faint); }

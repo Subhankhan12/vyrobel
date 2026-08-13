@@ -13,7 +13,7 @@
     <style>
         :root {
             --vy-ink: #2b2320; --vy-muted: #5F5853; --vy-faint: #6C645F; --vy-accent: #c2410c;
-            --vy-hairline: rgba(120, 90, 60, .16); --vy-grad: linear-gradient(135deg, #e8703a, #c2410c);
+            --vy-hairline: rgba(120, 90, 60, .16); --vy-grad: linear-gradient(135deg, #D14102, #C2410C);
         }
         * { box-sizing: border-box; }
         body {

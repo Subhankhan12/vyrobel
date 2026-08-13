@@ -78,7 +78,11 @@ it('carries no CSS custom properties and none of the pre-remediation greys', fun
     // The brand literals must still equal the live token values, or the email drifts from the app.
     expect($html)
         ->toContain('#C2410C')                       // --vy-accent  = rgb(194, 65, 12)
-        ->toContain('#E8703A')                       // --vy-accent-3 = rgb(232, 112, 58)
+        // ⚠️ MOVED BY DO-A11Y-3. The email's only RENDERED use of the old light stop was the CTA gradient
+        // (Blade comments are stripped, so the prose mentions never counted). White on #E8703A measured 3.08,
+        // so the CTA gradient's light stop is now #D14102 — white 4.70 — matching the app's --vy-grad. The
+        // INVARIANT is unchanged: the email's brand literals must still equal the live app values.
+        ->toContain('#D14102')                       // --vy-grad's light stop, app-matched
         ->toContain('#B03808')                       // --vy-accent-text = rgb(176, 56, 8)
         ->toContain('#2B2320');                      // --vy-ink = rgb(43, 35, 32)
 });

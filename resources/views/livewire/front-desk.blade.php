@@ -521,7 +521,7 @@
         .vy-fd .vy-summary-chip.is-due .vy-sc-label { color: var(--vy-accent-text); }
         @media (max-width: 900px) { .vy-fd .vy-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         /* Relative-day pill beside the date. */
-        .vy-fd-rel { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--vy-r-pill); background: rgba(217, 102, 46, 0.13); border: 1px solid rgba(232, 112, 58, 0.30); color: var(--vy-accent-text); font-size: 11px; font-weight: 500; white-space: nowrap; }
+        .vy-fd-rel { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--vy-r-pill); background: rgba(217, 102, 46, 0.13); border: 1px solid rgba(232, 112, 58, 0.30); color: var(--vy-on-grad)   /* accent-text measured 3.57 here: this chip sits on the page GRADIENT, outside that token's card/tint scope */; font-size: 11px; font-weight: 500; white-space: nowrap; }
         /* Row initials avatar. */
         .vy-fd-av { width: 32px; height: 32px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, #F0A57A, #D9662E); color: #fff; font-size: 11px; font-weight: 500; }
         /* The design's illustrated empty board. */
@@ -537,7 +537,7 @@
         .vy-fd-kpi:hover { transform: translateY(-1px); }
         .vy-fd-kpi.is-active { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.06); box-shadow: 0 0 0 1px var(--vy-accent-border) inset; }
         .vy-fd-seg { display: inline-flex; gap: 4px; padding: 4px; margin: 4px 0 16px; border-radius: 13px; background: rgba(255, 252, 248, 0.62); backdrop-filter: blur(20px) saturate(1.1); -webkit-backdrop-filter: blur(20px) saturate(1.1); border: 1px solid var(--vy-glass-border); }
-        .vy-fd-seg-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border: none; border-radius: 10px; background: transparent; color: var(--vy-muted); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; cursor: pointer; transition: background 0.16s, color 0.16s, box-shadow 0.16s; }
+        .vy-fd-seg-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border: none; border-radius: 10px; background: transparent; color: var(--vy-on-grad)   /* muted measured 4.23/4.36 on the segmented control's tint */; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 600; cursor: pointer; transition: background 0.16s, color 0.16s, box-shadow 0.16s; }
         .vy-fd-seg-btn:hover { color: var(--vy-ink); }
         .vy-fd-seg-btn.is-on { background: var(--vy-grad); color: #fff; box-shadow: var(--vy-shadow-accent); }
         .vy-fd-seg-n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: rgba(60, 40, 24, 0.1); color: inherit; font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; }

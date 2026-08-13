@@ -77,7 +77,7 @@
     </style>
 
     @php
-        $avGrad = ['linear-gradient(140deg,#E8703A,#C2410C)', 'linear-gradient(140deg,#6FA764,#4F7A46)', 'linear-gradient(140deg,#E8A63A,var(--vy-amber-text))', 'linear-gradient(140deg,#8A6A55,#5E4636)'];
+        $avGrad = ['linear-gradient(140deg,#D14102,#C2410C)', 'linear-gradient(140deg,#6FA764,#4F7A46)', 'linear-gradient(140deg,#E8A63A,var(--vy-amber-text))', 'linear-gradient(140deg,#8A6A55,#5E4636)'];
         $activeId = $active['id'] ?? null;
     @endphp
 

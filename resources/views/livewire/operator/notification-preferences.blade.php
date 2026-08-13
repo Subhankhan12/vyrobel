@@ -173,9 +173,9 @@
         .vy-np-check { position: absolute; opacity: 0; width: 26px; height: 26px; margin: 0; cursor: pointer; }
         .vy-np-check:focus-visible + .vy-np-cell { outline: 2px solid var(--vy-accent-text); outline-offset: 2px; }
         .vy-np-cell { width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(120,70,40,.2); background: rgba(255,255,255,.7); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; }
-        .vy-np-check:checked + .vy-np-cell { background: linear-gradient(140deg, #E8703A, #C2410C); border-color: transparent; }
+        .vy-np-check:checked + .vy-np-cell { background: linear-gradient(140deg, #D14102, #C2410C); border-color: transparent; }
         .vy-np-check:checked + .vy-np-cell::after { content: '✓'; }
-        .vy-np-cell.is-on { background: linear-gradient(140deg, #E8703A, #C2410C); border-color: transparent; }
+        .vy-np-cell.is-on { background: linear-gradient(140deg, #D14102, #C2410C); border-color: transparent; }
         .vy-np-cell.is-locked { cursor: default; }
         .vy-np-cell.is-disabled { background: rgba(255,255,255,.4); border-color: rgba(120,70,40,.16); opacity: .5; cursor: not-allowed; }
         .vyms-switch { position: relative; display: inline-flex; cursor: pointer; }

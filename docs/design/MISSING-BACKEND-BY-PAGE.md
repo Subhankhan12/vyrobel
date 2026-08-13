@@ -9371,14 +9371,15 @@ booking (2), most owner (18) and operator (15), plus admin (2) and the notificat
 | **`DO-EMAIL-5-continued-4`** | the ~55 remaining data-conditional files | throughput, at the founder-chosen depth |
 | **`DO-PROBE-3`** | the fixable probe gaps | dense-text `no-clear-band` (the biggest coverage hole, 6–71/page) · the **correct computation** for ancestor-dimmed elements (detect-and-flag is already in) · **PDF reachability** (needs a non-browser tool) |
 | **`DO-A11Y-1-continued`** | further shell-copy misses | a **watch item**, not a task |
-| **`DO-A11Y-3`** | white-on-accent CTAs (~3.2–3.4) | the long-SURFACED realm item. Root now known: **the lightest gradient stop must be at least as dark as `--vy-accent`** (white = 5.18). Changes every CTA — deliberately not folded in |
-| **`DO-A11Y-4`** | the page-local `.vy-fd-*` front-desk classes | 3.57 / 4.23 / 4.36 |
-| **`DO-A11Y-5`** | one unclassed `<a>` in guests-list | 4.48 |
+| ~~`DO-A11Y-3`~~ | ✅ **CLOSED** — white-on-accent CTAs | light stop `#E8703A` → **`#D14102`** (white 4.70) across **all 43 occurrences in 29 files**. ⚠️ The recorded premise *"no warm orange lighter than #C2410C reaches 4.5"* was **false** — the gradient survives, narrowed. The ~42 **standalone** `#E8703A` uses are untouched (guarded) |
+| ~~`DO-A11Y-4`~~ | ✅ **CLOSED** — `.vy-fd-*` | 3.57 / 4.23 / 4.36 → `--vy-on-grad` |
+| ~~`DO-A11Y-5`~~ | ✅ **CLOSED** — the guests-list sub-label | ⚠️ **not "unclassed"**: the `<a>` inherits `.vy-utable .vy-u-sub` (4.48), so the fix went on that **shared rule**, not the anchor |
 
 ## ⚠️ OPEN FOUNDER CALLS (non-code)
 
-1. **The `--vy-faint` 0.005** — 4.4953 on the true measured plate. Handled non-destructively; accept or darken
-   the hair. ⚠️ **NOT the retracted floor finding** — see §N.21.2, they agree.
+1. ~~**The `--vy-faint` 0.005**~~ — ✅ **RULED: ACCEPTED** (2026-08-13). 4.4953 stands as measured; **no token
+   darkened**; the non-destructive handling stands (AA test on the derived plate at 4.55, the measured floor
+   pinned separately as a fact). ⚠️ Still **NOT the retracted floor finding** — §N.21.2, they agree.
 2. **The depth-vs-coverage posture** for the throughput tail — stay deep (default) or trade depth for
    coverage, **legitimate only if declared**.
 3. ⛔ **The billing flip** — Stripe dashboard steps + the VAT-validation decision. No code work remains.
