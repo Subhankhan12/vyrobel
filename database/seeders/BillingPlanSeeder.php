@@ -6,7 +6,9 @@ namespace Database\Seeders;
 
 use App\Models\Plan;
 use App\Models\PlanFeature;
+use App\Support\Billing\StripePriceWiring;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 /**
  * Materialises the placeholder tiers in config/billing.php into the real `plans` + `plan_features` tables —
@@ -28,7 +30,23 @@ class BillingPlanSeeder extends Seeder
                 // The Stripe Price id (Phase 8): the configured one (test-mode/live) or a fake placeholder so
                 // the Checkout flow works end-to-end on the FakeStripeClient until Subhan sets the real ids.
                 $stripePriceId = $tier['stripe_prices'][$interval] ?? null;
-                $stripePriceId = is_string($stripePriceId) && $stripePriceId !== '' ? $stripePriceId : 'price_fake_'.$tierCode.'_'.$interval;
+                $stripePriceId = is_string($stripePriceId) && $stripePriceId !== '' ? $stripePriceId : null;
+
+                // ⚠️ BILLING PASS 2 — the fallback is DEV-ONLY now. It exists so the checkout flow works
+                // end-to-end on the fake client; in production it would seed an id Stripe has never heard of,
+                // which is exactly the silent-wrong-charge shape this project treats as a defect. There, an
+                // unset STRIPE_PRICE_* is a loud failure at seed time instead.
+                if ($stripePriceId === null) {
+                    if (app()->environment('production') && ! (bool) config('services.stripe.fake', false)) {
+                        throw new RuntimeException(
+                            "No Stripe Price configured for [{$tierCode}_{$interval}]. Set ".
+                            'STRIPE_PRICE_'.strtoupper($tierCode).'_'.strtoupper($interval).' to the real Price '.
+                            'id from the Stripe dashboard — see docs/BILLING-STRIPE-PRICES.md.'
+                        );
+                    }
+
+                    $stripePriceId = StripePriceWiring::FAKE_PREFIX.$tierCode.'_'.$interval;
+                }
 
                 $plan = Plan::query()->updateOrCreate(
                     ['code' => $tierCode.'_'.$interval],

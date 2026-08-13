@@ -9060,3 +9060,50 @@ meant to be ex-VAT, the flat view needs a VAT line and the charge a VAT componen
 kept the seeder flat-only, because a per-unit tier in `config('billing.tiers')` would surface on the customer
 paywall. The per-unit org for this pass's render was created in the dev DB and **reverted afterwards**.
 
+
+---
+
+## 2026-08-13 — **BILLING PASS 2 (wiring half): real Price ids, loud failures — and the tax gap nobody had seen**
+
+**RULED: flat tiers are VAT-INCLUSIVE.** €49/€99 is the final price. Pass 3's open question is answered; the
+flat view's absence of a VAT split is correct, and a flat Stripe Price is created `tax_behavior: inclusive` at
+the same amount. No engine change follows from this.
+
+### What the pass did (autonomous)
+
+- **`STRIPE_PRICE_*` is the source of truth.** The seeder's `price_fake_*` fallback is now **dev-only**: in
+  production an unset key **throws at seed time**. `startCheckout` refuses a missing **or placeholder** id
+  before a session is created. Nothing silently falls back to an id Stripe has never heard of.
+- **`docs/BILLING-STRIPE-PRICES.md`** — the exact specs (currency, amount, interval, billing scheme, tax
+  behaviour, env key) for the founder to copy, create and paste.
+
+### ⚠️ THE FINDING — nothing sends tax to Stripe, and per-unit would under-charge by the VAT
+
+The checkout sends `price` + `quantity` and **no tax configuration at all** — no `tax_behavior`, no
+`automatic_tax`, no `tax_rates`. A per-unit plan's engine total is `units × rate + VAT`, so with a €9.00 Price
+and 8 units **Stripe takes €72.00 while the page says €88.56 — €16.56/month under-charged, silently.** That is
+§N.8d at the money boundary: passes 1 and 3 made engine and page agree, and the last hop disagreed with both.
+
+⚠️ **The two fixes are not equivalent, so the pass did not pick one.** A VAT-**inclusive** unit Price (€11.07 at
+23%) works with today's code and matches the flat convention; **Stripe Tax** (`exclusive`) is correct for
+cross-border and EU B2B reverse-charge but needs `automatic_tax` wired, which is a further build. Choosing has
+compliance consequences. **So the app refuses**: a per-unit plan will not bill in production until
+`STRIPE_TAX_BEHAVIOR` is declared. Refusing to charge beats charging the wrong amount.
+
+### ⚠️ The honest boundary — two different claims
+
+**PROVEN from dev, against the fake client:** the configured id reaches the call per shape · a placeholder or
+missing id **throws** on the production path · a per-unit plan with no declared tax convention **throws** ·
+the quantity reaching Stripe equals `Plan::chargeFor()`. Guarded by `BillingStripePriceWiringTest` (7 / 19),
+mutation-proven three ways (restore the silent fallback → red; drop the tax refusal → red; send a wrong id →
+red). ⚠️ Each loud-fail test **forces the production context**, because a guard that never enters the branch it
+guards is vacuous — and each asserts the same plan is *fine* outside production, so the check is not trivially
+always-throwing.
+
+**NOT proven, and not claimable:** that the real Prices exist in Stripe with the right amounts. `StripeSafetyGuard`
+refuses a live key outside production — by design, and untouched — so that is the founder's dashboard
+confirmation, spelled out in the spec doc.
+
+**SCOPE:** config, seeder and the pre-charge gate only. Pass 1's engine, pass 3's page and the (unbuilt) panel
+are untouched.
+

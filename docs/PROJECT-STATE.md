@@ -74,7 +74,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **④ THE BACKLOG SEQUENCE (v11)** — `DO-SEED-1` (`f9142c8`) → `DO-EMAIL-9`+`8` (`52321b8`) → `DO-EMAIL-4`
 >   (`a70c147`) → `DO-EMAIL-5`/`6` (`2e8cd0f`) → `DO-EMAIL-7` (`4440c7a`). **Canon: §N.16.**
 >
-> **Suite 1979 / 12,967 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
+> **Suite 1986 / 12,984 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
 > `OwnerUnitDetailViewTest` ×1). ⚠️ It was **9** and dropped to **7** when `DO-SEED-1` fixed the seeder — a fix,
 > not drift; **re-measure every gate** (§N.14.5). PHPStan L5 (0) · Pint clean.
 >
@@ -723,10 +723,25 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 > Plus the **super-admin plan-CRUD panel** (which is what would let a founder actually create a per-unit plan;
 > today one can only be made in a seeder/console).
 >
-> ⚠️ **A FOUNDER DECISION SURFACED BY PASS 3, NOT GUESSED:** is a FLAT tier price (€49/€99) **VAT-inclusive or
-> VAT-exclusive**? The config does not say. Pass 1 treated flat as "the price is the price" (no VAT line), and
-> pass 3 renders that faithfully — but if those figures are meant to be ex-VAT, the flat view needs a VAT line
-> and the charge needs a VAT component. **Flagged, not decided.**
+> ✅ **RULED (2026-08-13): FLAT TIERS ARE VAT-INCLUSIVE — €49/€99 is the final price.** Pass 3's question is
+> answered; the flat view correctly shows no VAT split, and a flat Stripe Price is created `tax_behavior:
+> inclusive` at the same amount. Nothing in the engine changes.
+>
+> ✅ **BILLING PASS 2 (2026-08-13) WIRED THE PRICES AND MADE THE FAILURES LOUD.** `STRIPE_PRICE_*` is the source;
+> the seeder's `price_fake_*` fallback is now **dev-only** and **throws in production**; `startCheckout` refuses
+> a missing or placeholder id before creating a session. Specs for the founder: `docs/BILLING-STRIPE-PRICES.md`.
+>
+> ⚠️ **AND PASS 2 FOUND THE REAL GAP — NOTHING SENDS TAX TO STRIPE.** The checkout sends `price` + `quantity`
+> and no tax at all, while a per-unit plan's engine total is `units × rate + VAT`. With a €9 Price and 8 units
+> Stripe would take **€72.00** where the page says **€88.56** — a silent **€16.56/month under-charge**, §N.8d at
+> the money boundary. ⚠️ **The app now REFUSES to bill a per-unit plan in production until the convention is
+> declared** (`STRIPE_TAX_BEHAVIOR`), rather than under-charge quietly. Flat tiers are unaffected (inclusive).
+>
+> ⛔ **REMAINING — the founder's step, which no code here can do** (`StripeSafetyGuard` refuses a live key
+> outside production): **(1)** decide how per-unit VAT reaches Stripe — a VAT-inclusive unit Price (€11.07 at
+> 23%, works today) **or** Stripe Tax with `automatic_tax` (correct for cross-border/EU B2B, ⚠️ needs a further
+> code change); **(2)** create the Price objects per the spec doc; **(3)** fill the production env. Plus the
+> **super-admin plan-CRUD panel** (today a per-unit plan can only be made in a seeder or console).
 >
 > ⚠️ **A CORRECTION TO THE FIGURES BELOW (measured 2026-08-12).** The historic "B ~€44 vs A €99, billed DOUBLE"
 > is stale and its **sign has reversed**: the demo org measured **B €88.56** (8 units) vs **A €49.00**

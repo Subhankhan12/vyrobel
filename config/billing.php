@@ -29,6 +29,24 @@ return [
     // active unit on the rack. ⚠️ PLACEHOLDER, like the tier prices: Subhan sets the real per-unit price +
     // VAT rate before go-live. The Billing page computes the real figure from the org's REAL active-unit
     // count × this price × (1 + VAT), reconciling (#17) — no real charge is taken until the live-Stripe flip.
+    /*
+     * ⚠️ HOW VAT REACHES STRIPE ON A PER-UNIT PLAN — UNSET ON PURPOSE (BILLING PASS 2).
+     *
+     * The checkout sends `price` + `quantity` and nothing about tax, while a per-unit plan's engine total is
+     * units × rate + VAT. So with a €9 Price and 8 units Stripe takes €72.00 where the page says €88.56 — a
+     * silent €16.56/month under-charge. There are two honest fixes and they are NOT equivalent:
+     *
+     *   'inclusive' — the Stripe Price is created VAT-INCLUSIVE (€11.07/unit at 23%), matching the flat tiers'
+     *                 convention. Simplest; the merchant accounts for the VAT inside the price.
+     *   'exclusive' — the Price stays €9 and Stripe Tax adds VAT per customer. Handles cross-border and EU
+     *                 B2B reverse-charge properly, but requires Stripe Tax to be configured and the checkout
+     *                 to enable automatic_tax (NOT yet wired — a further build).
+     *
+     * ⚠️ Left null deliberately: choosing has compliance consequences, so it is the founder's call. Until it is
+     * set, StripePriceWiring REFUSES to bill a per-unit plan in production rather than under-charge silently.
+     */
+    'stripe_tax_behavior' => env('STRIPE_TAX_BEHAVIOR'),
+
     'per_unit_minor' => 900,   // €9.00 / active unit / month — PLACEHOLDER
     'vat_pct' => 23,           // the operator's subscription VAT rate (23%) — PLACEHOLDER
 

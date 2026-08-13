@@ -11,6 +11,7 @@ use App\Models\Subscription;
 use App\Payments\Stripe\StripeCheckoutSession;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Payments\Stripe\StripeIdempotency;
+use App\Support\Billing\StripePriceWiring;
 use App\Support\Billing\SubscriptionStatus;
 use Database\Seeders\BillingPlanSeeder;
 use RuntimeException;
@@ -70,8 +71,14 @@ final class BillingService
         $plan = $this->planFor($tier, $interval)
             ?? throw new RuntimeException("No plan for tier [{$tier}] interval [{$interval}].");
 
-        $priceId = $plan->stripe_price_id;
-        if (! is_string($priceId) || $priceId === '') {
+        // ⚠️ BILLING PASS 2 — the last hop before real money. In production this refuses a missing or
+        // placeholder Price id, and refuses a per-unit plan whose VAT convention nobody has declared (the
+        // checkout sends no tax, so charging one would under-bill by the VAT). In dev/CI both are no-ops: the
+        // fake client stands in and nothing moves.
+        StripePriceWiring::assertTaxConventionResolved($plan);
+        $priceId = StripePriceWiring::priceIdFor($plan);
+
+        if ($priceId === '') {
             throw new RuntimeException("Plan [{$plan->code}] is not wired to a Stripe price.");
         }
 
