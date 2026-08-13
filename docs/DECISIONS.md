@@ -9004,3 +9004,59 @@ explicitly flat and unchanged.
 fails loudly, not silently) · ③ the Billing page must render FROM the plan — it currently tells a FLAT-tier org
 *"Adding a unit +€9.00/mo · prorated"*, a live §N.8d · the plan-CRUD panel.
 
+
+---
+
+## 2026-08-13 — **BILLING PASS 3: the customer Billing page renders FROM the plan — the live §N.8d is retired**
+
+The page rendered a per-unit view **unconditionally**, so an org on a FLAT tier was shown *"8 units × €9.00"*,
+*"incl. 23% VAT"* and *"Adding a unit +€9.00/mo · prorated"* — none of which is true of a flat plan, where
+adding a unit changes nothing at all. That was the live §N.8d the investigation found. It is gone.
+
+**RENDER FROM THE SHAPE (§N.16.3).** The summary is keyed on the org's plan `pricing_type`:
+· **FLAT** → the flat price, plan name, next charge. No per-unit breakdown, no VAT split, no proration promise.
+· **PER-UNIT** → rate × the real unit count + VAT, the breakdown, and the proration line — **true since pass 1**.
+
+⚠️ **THE FALSE CLAIM IS STRUCTURALLY UNREACHABLE, NOT HIDDEN.** The per-unit markup lives inside the per-unit
+branch, so a flat org cannot render it even by mistake. "We remembered to hide it" is a discipline; "the branch
+does not exist for you" is a property.
+
+⚠️ **DISPLAY = CHARGE.** Every figure comes from `Plan::chargeFor()` / `BillableUnits` — the same expression the
+CHARGE uses. The page performs no arithmetic of its own, because a second calculation is a second source, and
+two sources for one number is how a page ends up contradicting the invoice. Pass 1 made the charge read one
+source; pass 3 makes the display read the same one, and a test asserts the page's figure tracks a mid-cycle unit
+change. **The "€88.56" headline that was docblock-labelled a PLACEHOLDER is now a real derived figure.**
+
+**VERIFIED AS THE ROLE, BOTH SHAPES FORCED (§N.16.2 — the plan's shape is DATA).** Rendered at `/app/billing` as
+a Property Owner: the FLAT org shows **€49.00/mo**, "Units on the rack 8", "Adding a unit **included in your
+plan**", and no proration/VAT/× lines; the PER-UNIT org shows **€88.56/mo**, "Monthly · 8 units × €9.00",
+"incl. 23% VAT" and "+€9.00/mo · prorated". A pass that rendered only the default org would have seen one view.
+
+**GUARDED** by `BillingPageShapeTest` (4 / 16), **mutation-proven three ways**: render the per-unit rail for
+everyone → red (the §N.8d claim cannot return); make the page recompute instead of reading the engine → red
+(display drifts from charge); drop the per-unit branch for a per-unit org → red. All 47 billing/Stripe tests
+green.
+
+⚠️ **TWO BUGS I INTRODUCED AND CAUGHT, both worth recording:**
+1. **`$billing` shadowed the injected `BillingService`** in `render()`, so a later `tierCards($billing)` got an
+   array and the page 500'd. That is CLAUDE.md's Livewire trap #2 (a name colliding with something already in
+   scope) in a plain-PHP guise — renamed to `$billingSummary`.
+2. **A mutation that did not land was nearly recorded as proven.** M1's anchor did not match, the run passed,
+   and a passing run after a no-op edit says nothing. Re-done with the line numbers asserted first (§N.4p:
+   verify the edit landed ON THE TARGET).
+
+⚠️ **AN OLD TEST AMENDED, WITH G8 CONSIDERED FIRST.** `OperatorBillingLifecycleTest` asserted `incl. 23% VAT` on
+every org — pinning part of the very display this pass removes. The invariant it reached for ("the figure is
+real and its VAT treatment is never silently flipped") is preserved and strengthened in the new file, which
+asserts the VAT line for a per-unit plan **and its absence for a flat one**. Only the claim that *every* org
+sees a VAT split was dropped.
+
+⚠️ **A FOUNDER DECISION SURFACED, NOT GUESSED: is a flat tier price VAT-inclusive or exclusive?** The config
+does not say. Pass 1 treated flat as "the price is the price"; pass 3 renders that faithfully. If €49/€99 are
+meant to be ex-VAT, the flat view needs a VAT line and the charge a VAT component. **Flagged for the founder.**
+
+**SCOPE HELD:** display only — the engine, charge logic, live Prices (②) and the plan-CRUD panel are untouched.
+⚠️ **Premise correction:** the brief said pass 1's seed created both shapes. It did not — pass 1 deliberately
+kept the seeder flat-only, because a per-unit tier in `config('billing.tiers')` would surface on the customer
+paywall. The per-unit org for this pass's render was created in the dev DB and **reverted afterwards**.
+

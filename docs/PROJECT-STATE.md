@@ -74,7 +74,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **④ THE BACKLOG SEQUENCE (v11)** — `DO-SEED-1` (`f9142c8`) → `DO-EMAIL-9`+`8` (`52321b8`) → `DO-EMAIL-4`
 >   (`a70c147`) → `DO-EMAIL-5`/`6` (`2e8cd0f`) → `DO-EMAIL-7` (`4440c7a`). **Canon: §N.16.**
 >
-> **Suite 1975 / 12,950 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
+> **Suite 1979 / 12,967 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
 > `OwnerUnitDetailViewTest` ×1). ⚠️ It was **9** and dropped to **7** when `DO-SEED-1` fixed the seeder — a fix,
 > not drift; **re-measure every gate** (§N.14.5). PHPStan L5 (0) · Pint clean.
 >
@@ -709,13 +709,24 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 > ⚠️ **The quantity is DERIVED, never stored** (`BillableUnits`) — the number charged is the number the org has,
 > and the Billing page's figure now reads the same source, so the two cannot disagree (§N.8d with money attached).
 >
-> ⛔ **STILL OPEN, and they are what now blocks the flip:**
+> ✅ **BILLING PASS 3 (2026-08-13) RETIRED THE LIVE §N.8d.** The customer Billing page now renders FROM the
+> org's plan shape, reading pass 1's engine: a FLAT org sees its flat price with **no per-unit breakdown, no VAT
+> split and no proration promise**; a PER-UNIT org sees rate × real units + VAT and the proration line, which is
+> **true** since pass 1. ⚠️ The per-unit markup lives INSIDE the per-unit branch, so a flat org cannot render it
+> — unrepresentable rather than merely hidden (§N.16.3). ⚠️ **Display = charge**: every figure is
+> `Plan::chargeFor()`, the same expression Stripe is sent, so the page cannot quote one number while the invoice
+> says another. The "€88.56 placeholder" headline is now a real derived figure.
+>
+> ⛔ **STILL OPEN, and it is what now blocks the flip:**
 > **②** real Stripe **Price objects of each shape** + env wiring — the plan rows still carry `price_fake_*` ids
 > (it fails loudly: Stripe rejects an unknown price, and `startCheckout` throws on an empty one).
-> **③** the customer **Billing page** still renders its per-unit claim regardless of the org's actual plan shape
-> — ⚠️ **a LIVE §N.8d**: *"Adding a unit +€9.00/mo · prorated"* is shown to an org on a FLAT tier. Pass 1 made
-> that behaviour real for per-unit plans; ③ must make the PAGE render from the configured plan.
-> Plus the **super-admin plan-CRUD panel**.
+> Plus the **super-admin plan-CRUD panel** (which is what would let a founder actually create a per-unit plan;
+> today one can only be made in a seeder/console).
+>
+> ⚠️ **A FOUNDER DECISION SURFACED BY PASS 3, NOT GUESSED:** is a FLAT tier price (€49/€99) **VAT-inclusive or
+> VAT-exclusive**? The config does not say. Pass 1 treated flat as "the price is the price" (no VAT line), and
+> pass 3 renders that faithfully — but if those figures are meant to be ex-VAT, the flat view needs a VAT line
+> and the charge needs a VAT component. **Flagged, not decided.**
 >
 > ⚠️ **A CORRECTION TO THE FIGURES BELOW (measured 2026-08-12).** The historic "B ~€44 vs A €99, billed DOUBLE"
 > is stale and its **sign has reversed**: the demo org measured **B €88.56** (8 units) vs **A €49.00**

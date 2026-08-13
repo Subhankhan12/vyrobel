@@ -50,13 +50,27 @@
                                     <span class="vy-bill-plan">{{ $plan['name'] }}</span>
                                     <span class="vy-bill-badge vy-bill-{{ $status['active'] ? 'ok' : 'trial' }}"><span class="vy-status-dot"></span>{{ $status['label'] }}</span>
                                 </div>
+                                {{-- ⚠️ BILLING PASS 3 — keyed by the plan's SHAPE. The per-unit breakdown is inside
+                                     the per-unit branch, so an org on a FLAT tier cannot render it: the false
+                                     "N units × €rate" line is unreachable rather than merely hidden (§N.16.3). --}}
                                 <div class="vy-bill-line" style="margin-top:8px;color:var(--vy-muted);font-size:12.5px">
-                                    {{ ucfirst($plan['interval']) }} · {{ $pricing['units'] }} {{ \Illuminate\Support\Str::plural('unit', $pricing['units']) }} × {{ $pricing['per_unit'] }} · subscribed {{ $plan['subscribed_on'] }}
+                                    @if ($billing['is_per_unit'])
+                                        {{ ucfirst($plan['interval']) }} · {{ $billing['units'] }} {{ \Illuminate\Support\Str::plural('unit', $billing['units']) }} × {{ $billing['unit_rate'] }} · subscribed {{ $plan['subscribed_on'] }}
+                                    @else
+                                        {{ ucfirst($plan['interval']) }} · subscribed {{ $plan['subscribed_on'] }}
+                                    @endif
                                 </div>
                             </div>
                             <div class="vy-bill-price">
-                                <div><span class="vy-bill-amt">{{ $pricing['gross'] }}</span><span class="vy-bill-per">/mo</span></div>
-                                <div class="vy-bill-vat">incl. {{ $pricing['vat_pct'] }}% VAT</div>
+                                {{-- The figure comes from Plan::chargeFor() — the same expression the CHARGE uses,
+                                     so the page cannot quote one number while Stripe is sent another. --}}
+                                {{-- $billing is non-null exactly when $plan is (both derive from the same
+                                     subscription), so no fallback is needed — and a fallback to a key that does
+                                     not exist would be a latent error rather than a safety net. --}}
+                                <div><span class="vy-bill-amt">{{ $billing['gross'] }}</span><span class="vy-bill-per">/mo</span></div>
+                                @if ($billing['is_per_unit'])
+                                    <div class="vy-bill-vat">incl. {{ $billing['vat_pct'] }}% VAT</div>
+                                @endif
                             </div>
                         </div>
 
@@ -114,10 +128,23 @@
                     {{-- What you're paying for (REAL counts) --}}
                     <section class="vy-card">
                         <h2 class="vy-card-title" style="margin-bottom:10px">What you’re paying for</h2>
-                        <div class="vy-mini-row"><span class="vy-mini-k">Units on the rack</span><span class="vy-mini-v">{{ $counts['units'] }} × {{ $pricing['per_unit'] }}</span></div>
+                        {{-- ⚠️ The unit COUNT is shown on every shape (it is a real fact about the account), but
+                             what it COSTS and the proration promise belong to a per-unit plan only. On a flat
+                             tier "+€9/mo · prorated" was simply false — adding a unit changes nothing. --}}
+                        @if ($billing !== null && $billing['is_per_unit'])
+                            <div class="vy-mini-row"><span class="vy-mini-k">Units on the rack</span><span class="vy-mini-v">{{ $billing['units'] }} × {{ $billing['unit_rate'] }}</span></div>
+                        @else
+                            <div class="vy-mini-row"><span class="vy-mini-k">Units on the rack</span><span class="vy-mini-v">{{ $counts['units'] }}</span></div>
+                        @endif
                         <div class="vy-mini-row"><span class="vy-mini-k">Team members</span><span class="vy-mini-v">{{ $counts['team'] }}{{ $counts['team_limit'] !== null ? ' of '.$counts['team_limit'] : ' · unlimited' }}</span></div>
                         <div class="vy-mini-row"><span class="vy-mini-k">Channels</span><span class="vy-mini-v">{{ $counts['channels'] }} connected</span></div>
-                        <div class="vy-mini-row"><span class="vy-mini-k">Adding a unit</span><span class="vy-mini-v">+{{ $pricing['per_unit'] }}/mo · prorated</span></div>
+                        @if ($billing !== null && $billing['is_per_unit'])
+                            {{-- TRUE since BILLING PASS 1: a per-unit subscription re-quantifies with Stripe
+                                 proration, so the difference really is charged immediately. --}}
+                            <div class="vy-mini-row"><span class="vy-mini-k">Adding a unit</span><span class="vy-mini-v">+{{ $billing['unit_rate'] }}/mo · prorated</span></div>
+                        @else
+                            <div class="vy-mini-row"><span class="vy-mini-k">Adding a unit</span><span class="vy-mini-v">included in your plan</span></div>
+                        @endif
                     </section>
 
                     {{-- Payment method (HONEST-GATED — no card stored) --}}

@@ -8,6 +8,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Channel;
 use App\Models\Membership;
 use App\Models\Organization;
+use App\Models\Plan;
 use App\Models\PlanFeature;
 use App\Models\Subscription;
 use App\Models\Unit;
@@ -53,6 +54,19 @@ class OperatorBilling extends Component
         $pricing = SubscriptionPricing::current('monthly');
         $yearlySaving = SubscriptionPricing::yearlySavingMinor();
 
+        // ⚠️ BILLING PASS 3 — the billing summary is now DERIVED FROM THE ORG'S PLAN SHAPE, reading pass 1's
+        // engine ({@see Plan::chargeFor()}), never recomputed here. Before this, the page rendered a per-unit
+        // view unconditionally — so an org on a FLAT tier was told "8 units × €9" and "adding a unit +€9/mo ·
+        // prorated", none of which is true of a flat plan. That was the live §N.8d.
+        //
+        // ⚠️ DISPLAY MUST EQUAL CHARGE. Every figure below comes from the same expression the CHARGE uses, so
+        // the page cannot quote one number while Stripe is sent another (pass 1 made charge read one source;
+        // this makes display read the same one). A local rate × units here would reopen exactly that trap.
+        // ⚠️ NOT `$billing` — that name is already the injected BillingService in this method's signature, and
+        // shadowing it made a later tierCards($billing) receive an array (a 500). The repo's Livewire trap #2
+        // in a plain-PHP guise: a new local silently taking an existing name.
+        $billingSummary = $this->billingSummary($current?->plan);
+
         return view('livewire.operator.billing', [
             'viewer' => $this->viewer(),
             'status' => [
@@ -66,6 +80,9 @@ class OperatorBilling extends Component
                 'has_plan' => $current !== null && $current->plan !== null,
             ],
             // ── The active-subscription management view (exact-match) ───────────────────────────────
+            // The shape-keyed summary (§N.16.3): the view branches on `is_per_unit`, so the per-unit lines are
+            // not something a flat org "happens not to render" — they are unreachable for it.
+            'billing' => $billingSummary,
             'plan' => ($current === null || $current->plan === null) ? null : [
                 'name' => (string) $current->plan->name,
                 // ⚠️ The org's REAL TIER code (wireframe-parity WAVE 2 · S3). "Switch to yearly" used to link
@@ -190,5 +207,36 @@ class OperatorBilling extends Component
                 'features' => $features,
             ];
         }, $billing->catalog());
+    }
+
+    /**
+     * The billing summary for the org's CURRENT plan, keyed by the plan's SHAPE (BILLING PASS 3).
+     *
+     * ⚠️ It reads {@see Plan::chargeFor()} — the engine the CHARGE uses — so the figure on screen is the figure
+     * that would be billed. It deliberately performs no arithmetic of its own: a second calculation is a second
+     * source, and two sources for one number is how a page ends up contradicting the invoice (§N.8d).
+     *
+     * A null plan (no subscription yet) yields null — the page's trial/paywall states own that case.
+     *
+     * @return array{is_per_unit: bool, units: int, gross: string, net: string, vat: string, vat_pct: int, unit_rate: string}|null
+     */
+    private function billingSummary(?Plan $plan): ?array
+    {
+        if ($plan === null) {
+            return null;
+        }
+
+        $charge = $plan->chargeFor();
+        $currency = (string) $plan->currency;
+
+        return [
+            'is_per_unit' => $plan->isPerUnit(),
+            'units' => $charge['units'],
+            'gross' => $this->money($charge['gross_minor'], $currency),
+            'net' => $this->money($charge['net_minor'], $currency),
+            'vat' => $this->money($charge['vat_minor'], $currency),
+            'vat_pct' => (int) ($plan->vat_pct ?? 0),
+            'unit_rate' => $this->money((int) ($plan->unit_rate_minor ?? 0), $currency),
+        ];
     }
 }

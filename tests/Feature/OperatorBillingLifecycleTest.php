@@ -100,10 +100,17 @@ it('renders the management view with a real figure and honest (never fabricated)
     $this->actingAs($owner)->get('/app/billing')
         ->assertOk()
         ->assertSee('What you’re paying for', false)
-        // The real VAT-INCLUSIVE figure. ⚠️ "incl." gained its full stop in the design-parity pass, which
-        // matched the prototype's plan-card copy; the assertion tracks the shipped copy and keeps its
-        // strength — it still fails if the VAT disclosure is dropped, or flipped to an exclusive figure.
-        ->assertSee('incl. 23% VAT')
+        // ⚠️ AMENDED at BILLING PASS 3. This asserted 'incl. 23% VAT' on every org. That line belongs to the
+        // PER-UNIT view (net + VAT), and this fixture's org is on a FLAT tier — so the assertion was pinning
+        // part of the §N.8d display the pass exists to remove: a flat tier price is quoted AS the price, and
+        // there is no net/VAT split behind it to disclose.
+        //
+        // ⚠️ G8 was considered before changing it: does it encode a real invariant? The invariant it was
+        // reaching for — "the figure is real and its VAT treatment is disclosed, never silently flipped" — is
+        // preserved below and in BillingPageShapeTest, which asserts the VAT line appears for a per-unit plan
+        // and its absence for a flat one. What is dropped is only the claim that EVERY org sees a VAT split.
+        ->assertSee('/mo')                     // a real figure still renders
+        ->assertDontSee('incl. 23% VAT')       // …but not the per-unit VAT split, on a FLAT tier
         ->assertSee('No card on file')         // HONEST — card is account-gated
         ->assertSee('Free')                    // the real trial invoice (€0.00)
         // 🔒 #39 — never a fabricated card or paid invoice:
