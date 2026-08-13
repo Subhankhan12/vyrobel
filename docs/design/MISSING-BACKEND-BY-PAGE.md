@@ -8888,3 +8888,61 @@ mechanical.
 `--vy-muted`. The tokens were darkened again after that comment was written. **The assertions use the current
 values and are correct**; only the prose is out of date. Left untouched, per G8.
 
+---
+
+## ✅ `DO-SUP-1` — **CLOSED, VERIFIED-FINE** (2026-08-13) — the support number is a phone number, and nothing claims otherwise
+
+**Measured, not assumed — and the outcome is (a), the honest close. No defect, no fix invented (§N.16.7).**
+
+### ⚠️ The measurement, rendered as the GUEST with the number populated
+
+| | |
+|---|---|
+| links matching `tel:` / `wa.me` / `whatsapp` | exactly **one**: `tel:+351289000111` |
+| its accessible name | **"Call Demo Seaside Property on +351 289 000 111"** — the verb matches the channel |
+| `wa.me` \| `whatsapp` anywhere in the DOM | **false** |
+| the icon beside it | a **telephone handset**, not a WhatsApp mark — no visual assertion either |
+
+### ⚠️ WHAT MAKES IT HONEST IS STRUCTURAL, NOT CAREFUL
+
+`SettingsService::SUPPORT_FIELDS` is `['support_phone', 'support_reply_norm', 'support_hours']` — **there is no
+WhatsApp field.** An operator has nowhere to state that the number answers on WhatsApp, so a `wa.me` link could
+only ever be **derived from the bare phone**, which is the fabricated channel (#39). The claim is
+**unrepresentable**, not merely discouraged — keyed-not-typed in its strongest form.
+
+⚠️ **And it was decided deliberately at build time, not by luck.** `PropertySupport.php:30` already carries it:
+*"PHONE, NOT WHATSAPP. One number is stored. It renders as a telephone (`tel:`) because nothing in the product
+verifies that a given number answers on WhatsApp."* **The register entry was a note of that deferral, not a
+defect report** — a premise correction worth recording.
+
+### ⚠️ The neighbours check out too (N.13.1)
+
+The risk sits beside the flagged thing, so the adjacent claims were measured as well: **HOURS** renders the
+operator's own stored words and only when set; **MESSAGES** renders *"We usually reply the same day"* — keyed to
+a vetted phrase and **hedged**, never *"we reply within X"* and never *"guaranteed"*. Both honest.
+
+⚠️ Elsewhere in the product "WhatsApp" appears only as a **message-thread channel enum** (a record of how a
+message actually arrived) and as `WhatsAppChannel`, a deferred skeleton that **throws until configured**.
+Neither asserts anything about a support number.
+
+### 🔒 Pinned — `GuestSupportPhoneChannelTest` (5 tests / 17 assertions)
+
+Rendered **as the guest** with the phone populated (a wrong-realm guard would pass on a redirect). Mutation-proven
+three ways, each red on its own guard:
+
+| mutation | result |
+|---|---|
+| manufacture a `wa.me` link from the bare phone | **red** |
+| add a `support_whatsapp` field (make the claim structurally possible) | **red** |
+| harden the reply norm to *"guaranteed"* | **red** |
+
+⚠️ One assertion had to be **scoped to the element**: `.vy-sup-phone { … }` is a CSS rule in the shell's
+`<style>` and ships on every render regardless of data, so asserting the bare class name tested a stylesheet
+rather than a link — the shared-layout vacuity trap, inverted.
+
+### ⛔ If a WhatsApp affordance is ever WANTED — a founder call, not a build
+
+It would need an explicit operator-set **"this number is on WhatsApp"** flag first, defaulting **OFF**, so a
+forgetful operator cannot ship an unverified claim. That is a scoped build **plus** a product decision (does
+Vyrobel want a WhatsApp channel at all?). **Surfaced, not built.**
+
