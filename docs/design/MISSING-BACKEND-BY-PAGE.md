@@ -9279,3 +9279,57 @@ most literal form — one concept, two definitions, a fix reaching one. Both now
 
 ⚠️ **HONEST INCOMPLETION:** this pass fixed deep rather than shallow-touching all 67. Axis 3 is now **proven
 sweepable with a trusted instrument and a checked capture contract** — the remainder is throughput, not method.
+
+---
+
+## DO-EMAIL-5-continued-3 — the data-conditional THROUGHPUT pass (2026-08-13)
+
+Same proven axis-3 procedure as Part B, applied to more surfaces. **Method unchanged; this is throughput.**
+
+### Measured this pass (N / K-failed / M-unmeasurable / ancestor-dimmed)
+
+| surface | data condition forced | N | K | M | dimmed |
+|---|---|---|---|---|---|
+| owner **My Units** | attention items + per-unit performance present | 126 | **16 → 7** | 6 | 0 |
+| owner **Documents** | statement/booking/tax docs present | 128 | **0** | 10 | 0 |
+
+### FIXED — data-conditional markup (all at the class definition, N.14.9)
+
+| class | data condition | before | fix |
+|---|---|---|---|
+| `.vy-mu-ac-sub` | ≥1 attention item | 4.13 | → `--vy-muted` |
+| `.vy-mu-item-sub` | one per attention item | 4.34 / 4.44 | → `--vy-muted` |
+| `.vy-mu-uplabel` | per-unit performance block | 4.39 | → `--vy-on-grad` |
+| `.vy-mu-addcard` label | Add-a-unit card | 4.15 (`#B4400F` literal) | → `--vy-accent-text` |
+| units "occupancy" on the **DARK** card | per-unit performance | 4.30 (`--vy-accent-3`) | → `--vy-peach` |
+| 15 inline `color:var(--vy-faint)` overrides | stat labels | 3.99–4.24 | → `--vy-muted` |
+
+⚠️ **A PREMISE CORRECTION worth keeping:** `.vy-mu-stat-label` measured 4.24, but its *rule* was already
+`--vy-muted` — the failure came from an **inline `style="color:var(--vy-faint)"` overriding the class**.
+Darkening the rule would have changed a passing declaration (posture A) **and not fixed the defect**. The fix
+belonged in the page's inline overrides. *A class's measured colour is not necessarily its rule's colour.*
+
+⚠️ **AND ONE FIX GOES LIGHTER, NOT DARKER.** On the dark performance card the text must be *light*:
+`--vy-accent-3` read 4.30 there. Every other fix in this family darkens; this one inverts, which is why the
+rule is "clear the plate you are actually on", not "darken".
+
+### RUNNING TALLY — of the 67 (cumulative: Part B + this pass)
+
+| state | count | notes |
+|---|---|---|
+| **MEASURED** | **7** | reservations-list (~75%), owner-expenses, block-calendar, front-desk, guests-list, **My Units**, **Documents** |
+| **FIXED** | **9 defects** across 5 files, + 1 DO-A11Y-1 miss (`.vy-avatar` owner copy) |
+| **MEASURED-CLEAN** | **1** | owner Documents (0 failures, 128 measured) |
+| **SCOPE-GAP-PENDING** | **5 PDFs** + per-page `no-clear-band` (6–71/page) | dompdf needs a non-browser tool; dense text is DO-PROBE-3 |
+| **LOGGED-UNSWEPT** | **~55** | `DO-EMAIL-5-continued-4` |
+
+**Ancestor-dimmed count remains 0 across every surface measured in both passes** — these data-conditional
+states do not use ancestor opacity. That is a measured finding, not an unchecked assumption.
+
+### ⚠️ DISCIPLINE NOTE (honest)
+
+Throughput did **not** erode the method: the capture contract stayed checked (no refusal needed this pass —
+both surfaces fit the 3000px viewport), every gap was counted, and the fixes were mutation-proven rather than
+asserted. **What throughput DID cost is coverage breadth**: 2 surfaces measured deeply rather than 20 shallowly.
+That is the intended trade — a deep fix on few beats a shallow number on many — but it means the remaining ~55
+are genuinely untouched, not "probably fine". **Their unmeasured status is the honest headline, not the fixes.**

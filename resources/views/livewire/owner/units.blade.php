@@ -38,12 +38,12 @@
                 <span class="vy-mu-stat-val">{{ $occupancy['pct'] }}%</span>
                 @if (! empty($occDelta))<span class="vy-mu-stat-delta" @unless ($occDelta['positive']) style="color:var(--vy-muted)" @endunless>{{ $occDelta['label'] }}</span>@endif
             </div>
-            <div class="vy-mu-stat-label" style="margin:6px 0 0;text-transform:none;letter-spacing:0;font-weight:400;color:var(--vy-faint)">{{ $month['label'] }}</div>
+            <div class="vy-mu-stat-label" style="margin:6px 0 0;text-transform:none;letter-spacing:0;font-weight:400;color:var(--vy-muted)">{{ $month['label'] }}</div>
         </div>
         <div class="vy-mu-stat">
             <div class="vy-mu-stat-label">Earned this month</div>
             <div class="vy-mu-stat-val">{{ $earned['display'] }}</div>
-            <div class="vy-mu-stat-label" style="margin:6px 0 0;text-transform:none;letter-spacing:0;font-weight:400;color:var(--vy-faint)">Net · {{ $month['label'] }}</div>
+            <div class="vy-mu-stat-label" style="margin:6px 0 0;text-transform:none;letter-spacing:0;font-weight:400;color:var(--vy-muted)">Net · {{ $month['label'] }}</div>
         </div>
     </div>
 
@@ -142,7 +142,7 @@
                                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
                                             </button>
                                             <div x-show="open" x-cloak @click.outside="open = false" style="position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:#fff;border:1px solid var(--vy-glass-border);border-radius:var(--vy-r-md);box-shadow:0 14px 40px rgba(150,90,50,.2);padding:6px;min-width:170px">
-                                                <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);padding:6px 9px 4px">Snooze</div>
+                                                <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-muted);padding:6px 9px 4px">Snooze</div>
                                                 @foreach (['tomorrow' => 'Until tomorrow', 'week' => 'For a week'] as $dur => $lbl)
                                                     <form method="POST" action="{{ route('owner.attention.snooze') }}" style="margin:0">
                                                         @csrf
@@ -183,11 +183,11 @@
                      so an all-snoozed feed still shows what's snoozed. --}}
                 @if (count($snoozedAttention) > 0)
                     <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--vy-hairline)">
-                        <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:8px">Snoozed</div>
+                        <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-muted);margin-bottom:8px">Snoozed</div>
                         @foreach ($snoozedAttention as $sn)
                             <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                                <span style="flex:1;min-width:0;font-size:12.5px;color:var(--vy-muted)">{{ $sn['title'] }} <span style="color:var(--vy-faint)">· back {{ $sn['until'] }}</span></span>
+                                <span style="flex:1;min-width:0;font-size:12.5px;color:var(--vy-muted)">{{ $sn['title'] }} <span style="color:var(--vy-muted)">· back {{ $sn['until'] }}</span></span>
                                 @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_ACTIONS)
                                     <form method="POST" action="{{ route('owner.attention.restore') }}" style="margin:0">
                                         @csrf
@@ -238,7 +238,7 @@
                             <span style="font-size:13px;font-weight:500;font-variant-numeric:tabular-nums">{{ $u['occupancy_pct'] }}%</span>
                         </div>
                         <div class="vy-track"><span style="width:{{ $u['occupancy_pct'] }}%"></span></div>
-                        <div style="font-size:11px;color:var(--vy-faint);margin-top:5px">{{ $month['label'] }}</div>
+                        <div style="font-size:11px;color:var(--vy-muted);margin-top:5px">{{ $month['label'] }}</div>
                     </div>
 
                     <div class="vy-mu-stat2">
@@ -253,7 +253,7 @@
                             {{-- WAVE 2 · #12 — the ACHIEVED average, under its own name. It used to be printed
                                  as "Nightly rate", which is the configured price, not what the nights sold for. --}}
                             @if ($u['adr'] !== null)
-                                <span style="font-size:11px;color:var(--vy-faint)">· ADR {{ $u['adr'] }}</span>
+                                <span style="font-size:11px;color:var(--vy-muted)">· ADR {{ $u['adr'] }}</span>
                             @endif
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;margin-top:11px">
@@ -284,7 +284,7 @@
                                             <div class="vy-mu-rate-input">
                                                 <span style="font-family:var(--vy-display);font-weight:500;font-size:16px;color:var(--vy-muted)">{{ $currencySymbol }}</span>
                                                 <input type="text" inputmode="numeric" name="rate" x-model="rate" aria-label="Nightly rate per night for {{ $u['name'] }}">
-                                                <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap">/ night</span>
+                                                <span style="font-size:12px;color:var(--vy-muted);white-space:nowrap">/ night</span>
                                             </div>
                                             <button type="button" class="vy-mu-step" aria-label="Increase rate" @click="rate = rate + 5">+</button>
                                         </div>
@@ -296,14 +296,14 @@
                                                 <label style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-muted);display:block;margin-bottom:6px">Weekend uplift</label>
                                                 <div class="vy-mu-rate-input" style="padding:6px 10px">
                                                     <input type="text" inputmode="numeric" name="weekend_uplift" x-model="weekend" aria-label="Weekend uplift percent for {{ $u['name'] }}" style="width:100%;border:none;background:none;outline:none;font-family:var(--vy-display);font-weight:500;font-size:15px;color:var(--vy-ink)">
-                                                    <span style="font-size:12px;color:var(--vy-faint)">%</span>
+                                                    <span style="font-size:12px;color:var(--vy-muted)">%</span>
                                                 </div>
                                             </div>
                                             <div>
                                                 <label style="font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-muted);display:block;margin-bottom:6px">Min stay</label>
                                                 <div class="vy-mu-rate-input" style="padding:6px 10px">
                                                     <input type="text" inputmode="numeric" name="min_stay" x-model="minstay" aria-label="Minimum stay in nights for {{ $u['name'] }}" style="width:100%;border:none;background:none;outline:none;font-family:var(--vy-display);font-weight:500;font-size:15px;color:var(--vy-ink)">
-                                                    <span style="font-size:12px;color:var(--vy-faint);white-space:nowrap">nights</span>
+                                                    <span style="font-size:12px;color:var(--vy-muted);white-space:nowrap">nights</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -366,7 +366,7 @@
             <a class="vy-mu-addcard vy-fade" style="animation-delay:.42s" href="{{ route('owner.add-unit') }}">
                 <span style="width:44px;height:44px;border-radius:50%;background:rgba(217,102,46,.13);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
                 <span style="font-family:var(--vy-display);font-weight:500;font-size:15px">Add a unit</span>
-                <span style="font-size:12px;color:var(--vy-faint)">List a new property</span>
+                <span style="font-size:12px;color:var(--vy-muted)">List a new property</span>
             </a>
         @endownercan
     </div>
@@ -446,14 +446,14 @@
                 {{-- summary (no day selected) --}}
                 <div x-show="sel === null" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
                     <div style="display:inline-flex;align-items:center;gap:10px">
-                        <span style="font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--vy-faint)">Booked</span>
+                        <span style="font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--vy-muted)">Booked</span>
                         <div style="display:inline-flex;gap:4px">
                             @for ($n = 0; $n <= min($occupancy['unit_count'], 4); $n++)
                                 @php $sw = $heatBg($n, $occupancy['unit_count']); @endphp
-                                <span style="display:inline-flex;flex-direction:column;align-items:center;gap:4px"><span style="width:22px;height:11px;border-radius:3px;background:{{ $sw }};border:{{ $n === 0 ? '1px solid rgba(120,70,40,.12)' : 'none' }};box-sizing:border-box"></span><span style="font-size:9.5px;color:var(--vy-faint)">{{ $n }}</span></span>
+                                <span style="display:inline-flex;flex-direction:column;align-items:center;gap:4px"><span style="width:22px;height:11px;border-radius:3px;background:{{ $sw }};border:{{ $n === 0 ? '1px solid rgba(120,70,40,.12)' : 'none' }};box-sizing:border-box"></span><span style="font-size:9.5px;color:var(--vy-muted)">{{ $n }}</span></span>
                             @endfor
                         </div>
-                        <span style="font-size:10px;color:var(--vy-faint)">of {{ $occupancy['unit_count'] }} units</span>
+                        <span style="font-size:10px;color:var(--vy-muted)">of {{ $occupancy['unit_count'] }} units</span>
                     </div>
                     <div style="font-size:12.5px;color:#6B5F57;font-weight:500;font-variant-numeric:tabular-nums"><strong style="color:var(--vy-ink)">{{ $occupancy['nights'] }} nights</strong> · {{ $occupancy['pct'] }}% occupancy · {{ $month['label'] }}</div>
                 </div>
@@ -474,7 +474,7 @@
                                 <div style="padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.5);border:1px solid var(--vy-hairline)">
                                     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
                                         <span style="font-weight:600;font-size:13px" x-text="stay.guest"></span>
-                                        <span style="font-size:11px;color:var(--vy-faint)" x-text="stay.unit"></span>
+                                        <span style="font-size:11px;color:var(--vy-muted)" x-text="stay.unit"></span>
                                     </div>
                                     <div style="font-size:11.5px;color:var(--vy-muted);margin-top:3px"><span x-text="stay.stay"></span> · <span x-text="stay.nights + (stay.nights === 1 ? ' night' : ' nights')"></span></div>
                                     <template x-if="stay.net && stay.net.length">
@@ -497,7 +497,7 @@
                         <div class="vy-dark-figure" style="margin-top:10px;font-size:22px">{{ $best['name'] }}</div>
                         <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
                             <span style="font-family:var(--vy-display);font-weight:600;font-size:30px;letter-spacing:-.02em;color:#fff;font-variant-numeric:tabular-nums">{{ $best['occupancy_pct'] }}%</span>
-                            <span style="font-size:12.5px;color:var(--vy-accent-3);font-weight:500">occupancy</span>
+                            <span style="font-size:12.5px;color:var(--vy-peach);font-weight:500">occupancy</span>
                         </div>
                         <div style="font-size:13px;color:rgba(255,255,255,.72);margin-top:5px">{{ $best['nights'] }} {{ \Illuminate\Support\Str::plural('night', $best['nights']) }} · {{ $best['revenue'] }} this month</div>
                     @else

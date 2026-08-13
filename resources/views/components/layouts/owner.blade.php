@@ -600,7 +600,7 @@
         .vy-mu-ac-icon > .m { position: relative; z-index: 1; width: 34px; height: 34px; border-radius: 11px; background: var(--vy-grad); display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 14px rgba(194, 65, 12, .34); color: #fff; }
         .vy-mu-ac-title { margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 16.5px; letter-spacing: -.01em; }
         .vy-mu-ac-count { min-width: 21px; height: 21px; padding: 0 6px; box-sizing: border-box; border-radius: 20px; background: var(--vy-grad); color: #fff; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; box-shadow: 0 3px 9px rgba(194, 65, 12, .36); }
-        .vy-mu-ac-sub { font-size: 12.5px; color: var(--vy-faint); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-mu-ac-sub { font-size: 12.5px; color: var(--vy-muted)   /* 4.13 — renders only when attention items exist */; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .vy-mu-ac-toggle { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 8px 15px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, .55); border: 1px solid rgba(120, 70, 40, .16); color: #7A2E08; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background .16s ease, transform .14s ease; }
         .vy-mu-ac-toggle:hover { background: rgba(255, 255, 255, .92); transform: translateY(-1px); }
         .vy-mu-ac-toggle svg { transition: transform .34s cubic-bezier(.22, .61, .36, 1); }
@@ -624,7 +624,7 @@
         .vy-mu-item-unread { position: absolute; top: -3px; right: -3px; width: 11px; height: 11px; border-radius: 50%; background: linear-gradient(140deg, #F0824A, #D9662E); border: 2.5px solid #FCF4EC; box-sizing: border-box; box-shadow: 0 1px 3px rgba(194, 65, 12, .35); }
         .vy-mu-item-title { font-family: var(--vy-display); font-weight: 500; font-size: 14.5px; color: var(--vy-ink); }
         .vy-mu-item-tag { padding: 3px 10px; border-radius: var(--vy-r-pill); font-size: 10.5px; font-weight: 500; white-space: nowrap; }
-        .vy-mu-item-sub { font-size: 12.5px; color: var(--vy-faint); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-mu-item-sub { font-size: 12.5px; color: var(--vy-muted)   /* 4.34/4.44 — one per attention item */; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .vy-mu-item-link { display: inline-flex; align-items: center; padding: 7px 15px; border-radius: var(--vy-r-pill); font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; text-decoration: none; white-space: nowrap; background: var(--vy-grad); color: #fff; box-shadow: 0 5px 14px rgba(194, 65, 12, .30); transition: transform .14s ease; }
         .vy-mu-item-link:hover { transform: translateY(-1px); }
         .vy-mu-item-ghost { padding: 7px 14px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, .55); border: 1px solid rgba(120, 70, 40, .18); color: var(--vy-muted); font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .14s ease; }
@@ -649,7 +649,7 @@
         /* Accent text on its OWN tint -> the tint-safe token (4.13-4.26 -> 5.33-5.50). */
         .vy-mu-badge { display: inline-flex; padding: 4px 11px; border-radius: var(--vy-r-pill); background: rgba(217, 102, 46, .13); color: var(--vy-accent-tint-text); font-size: 11px; font-weight: 500; flex-shrink: 0; }
         .vy-mu-badge--best { background: var(--vy-grad); color: #fff; }
-        .vy-mu-uplabel { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-mu-uplabel { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-on-grad)   /* 4.39 on the unit-performance tint */; }
         .vy-mu-stat2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--vy-hairline); }
         .vy-mu-stat2 .k { font-size: 11px; color: var(--vy-faint); margin-bottom: 2px; }
         .vy-mu-stat2 .v { font-family: var(--vy-display); font-weight: 500; font-size: 15px; font-variant-numeric: tabular-nums; }
@@ -668,7 +668,7 @@
         .vy-mu-msg-input:focus { border-color: var(--vy-accent-border) !important; box-shadow: 0 0 0 3px rgba(232, 112, 58, .10); }
         .vy-mu-rate-input input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-family: var(--vy-display); font-weight: 500; font-size: 16px; color: var(--vy-ink); font-variant-numeric: tabular-nums; padding: 0; }
         .vy-mu-view { display: inline-flex; align-items: center; gap: 4px; margin-top: 13px; font-size: 13px; font-weight: 500; color: var(--vy-accent-text); text-decoration: none; }
-        .vy-mu-addcard { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; min-height: 180px; border-radius: var(--vy-r-lg); border: 1.5px dashed rgba(120, 70, 40, .28); background: rgba(255, 252, 248, .35); text-decoration: none; color: #B4400F; cursor: pointer; transition: transform .14s ease, background .14s ease; }
+        .vy-mu-addcard { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; min-height: 180px; border-radius: var(--vy-r-lg); border: 1.5px dashed rgba(120, 70, 40, .28); background: rgba(255, 252, 248, .35); text-decoration: none; color: var(--vy-accent-text)   /* #B4400F measured 4.15 on the card */; cursor: pointer; transition: transform .14s ease, background .14s ease; }
         .vy-mu-addcard:hover { transform: translateY(-2px); background: rgba(255, 252, 248, .55); }
 
         /* calendar */

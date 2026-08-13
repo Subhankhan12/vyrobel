@@ -126,3 +126,51 @@ it('⚠️ NOT VACUOUS — the populated markup really renders on the owner surf
     expect($calendar)->toContain('vy-cal-leg')
         ->and($calendar)->toContain('vy-cal-guest');
 });
+
+/*
+ * ⚠️ DO-EMAIL-5-continued-3 — THE THROUGHPUT PASS (2026-08-13). Same proven procedure, more surfaces.
+ *
+ * My Units is the densest data-conditional surface in the owner realm: its action centre, attention items and
+ * per-unit performance blocks only exist once there is something to act on. Measured populated: 16 failures.
+ */
+const PARTB_MU_CARD_PLATE = [228, 211, 202];      // behind the attention-item sublines
+const PARTB_MU_TINT_PLATE = [224, 201, 184];      // the unit-performance tint
+const PARTB_MU_DARK_PLATE = [64, 43, 32];         // the DARK performance card
+const PARTB_MU_ADDCARD_PLATE = [245, 214, 195];   // the Add-a-unit card
+
+it('⚠️ AXIS 3 — the My Units attention-item text clears AA (it exists only when items do)', function () {
+    $shell = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
+
+    // ⚠️ NON-VACUITY: the rules exist, so these are statements about their colour.
+    foreach (['.vy-mu-ac-sub {', '.vy-mu-item-sub {', '.vy-mu-uplabel {'] as $rule) {
+        expect($shell)->toContain($rule);
+    }
+
+    expect($shell)->toMatch('/\.vy-mu-ac-sub \{[^}]*color:\s*var\(--vy-muted\)/')
+        ->and($shell)->toMatch('/\.vy-mu-item-sub \{[^}]*color:\s*var\(--vy-muted\)/')
+        ->and($shell)->toMatch('/\.vy-mu-uplabel \{[^}]*color:\s*var\(--vy-on-grad\)/');
+
+    expect(partBRatio([95, 88, 83], PARTB_MU_CARD_PLATE))->toBeGreaterThanOrEqual(4.5)
+        ->and(partBRatio([108, 100, 95], PARTB_MU_CARD_PLATE))->toBeLessThan(4.5)     // --vy-faint failed
+        ->and(partBRatio([76, 66, 60], PARTB_MU_TINT_PLATE))->toBeGreaterThanOrEqual(4.5)
+        ->and(partBRatio([95, 88, 83], PARTB_MU_TINT_PLATE))->toBeLessThan(4.5);      // --vy-muted failed there
+});
+
+it('⚠️ the DARK performance card and the Add-a-unit label use values that clear their own plates', function () {
+    $shell = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
+    $units = (string) file_get_contents(resource_path('views/livewire/owner/units.blade.php'));
+
+    // A literal hard-coding "accent as text" where a corrected token exists (N.14.9).
+    expect($shell)->toMatch('/\.vy-mu-addcard \{[^}]*color:\s*var\(--vy-accent-text\)/')
+        ->and($shell)->not->toContain('.vy-mu-addcard { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #B4400F');
+
+    // ⚠️ THE INVERTED CASE, and worth pinning: on the DARK card the text must be LIGHT. --vy-accent-3 read
+    // 4.30 there, so this is the one fix in the family that goes lighter, not darker.
+    expect($units)->toContain('color:var(--vy-peach);font-weight:500">occupancy')
+        ->and($units)->not->toContain('color:var(--vy-accent-3);font-weight:500">occupancy');
+
+    expect(partBRatio([147, 42, 7], PARTB_MU_ADDCARD_PLATE))->toBeGreaterThanOrEqual(4.5)
+        ->and(partBRatio([180, 64, 15], PARTB_MU_ADDCARD_PLATE))->toBeLessThan(4.5)
+        ->and(partBRatio([240, 165, 122], PARTB_MU_DARK_PLATE))->toBeGreaterThanOrEqual(4.5)   // --vy-peach
+        ->and(partBRatio([232, 112, 58], PARTB_MU_DARK_PLATE))->toBeLessThan(4.5);             // --vy-accent-3
+});
