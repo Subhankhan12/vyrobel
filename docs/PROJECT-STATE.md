@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — **FIVE CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17, SAVE v12)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE IS COMPLETE AND HONEST — `display = charge = STRIPE`; the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is now gated on the FOUNDER's Stripe dashboard steps, NOT on code** · suite **1987 / 13,014**, 5 non-green = the BOTTOM of the documented 5–10 range (⚠️ **7 → 5 is the known non-determinism, VERIFIED — neither a fix nor drift**, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
+# ⚠️ CANONICAL STATE — **SIX CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17) · the DO-BILL PAIR (§N.18, SAVE v13)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE IS COMPLETE AND HONEST — `display = charge = STRIPE`; the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is now gated on the FOUNDER's Stripe dashboard steps + ONE open decision, NOT on code** · suite **1999 / 2006**, 7 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own** — neither a fix nor drift, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -59,11 +59,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 > ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.16, then the DO-register.
 >
 > *Written so a session with no other context can start work immediately. Everything below is verified state,
-> not summary. **SAVE v12 (2026-08-13).***
+> not summary. **SAVE v13 (2026-08-13).***
 >
 > ## WHERE THE PROJECT IS
 >
-> **FIVE CHAPTERS ARE CLOSED, IN ORDER:**
+> **SIX CHAPTERS ARE CLOSED, IN ORDER:**
 > **① THE DESIGN-PARITY WALK (v8)** — operator 42/42 · owner 32/32 · guest 12 gates + 3 verdicts · + the
 >   cross-realm PDF sweep. **Canon: §N.13.**
 > **② THE CLEANUP SEQUENCE (v9)** — the grey-literal drift closed across PDFs, emails and the reachable
@@ -75,12 +75,16 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   (`a70c147`) → `DO-EMAIL-5`/`6` (`2e8cd0f`) → `DO-EMAIL-7` (`4440c7a`). **Canon: §N.16.**
 > **⑤ THE BILLING WORKSTREAM (v12)** — the read-only investigation → pass 1 the shape-aware engine (`43862db`)
 >   → pass 3 render-from-plan (`615904c`) → pass 2 the Price wiring (`7de1f35`) → pass 2b Stripe Tax
->   (`9fed4a1`). ⚠️ **THE BILLING CODE IS COMPLETE AND HONEST; the flip is gated on the FOUNDER's Stripe
->   dashboard steps, not on code.** **Canon: §N.17 + §G.1.**
+>   (`9fed4a1`). **Canon: §N.17 + §G.1.**
+> **⑥ THE DO-BILL PAIR (v13)** — `DO-BILL-2` (`c6d398a`, the portfolio "billed per unit" §N.8d) → `DO-BILL-1`
+>   (`dcce44f`, the VAT-ID → Stripe-customer sync). ⚠️ **WITH THESE THE BILLING CODE IS COMPLETE AND HONEST
+>   END-TO-END. Everything remaining is NON-CODE — the founder's Stripe dashboard steps and one open decision —
+>   plus a single unbuilt panel.** **Canon: §N.18.**
 >
-> **Suite 1987 / 13,014 · 5 non-green — the BOTTOM of the documented 5–10 range** (this run: `BookingImportTest`
-> ×5). ⚠️ **7 → 5 IS NEITHER A FIX NOR DRIFT — it is the documented non-determinism, and it was VERIFIED, not
-> assumed** (§N.17.7). PHPStan L5 (0) · Pint clean.
+> **Suite 1999 / 2006 · 7 non-green = the documented set** (`BookingImportTest` ×6 · `OwnerUnitDetailViewTest`
+> ×1). ⚠️ **The count WALKS a 5–10 band on its own — neither a fix nor drift** (§N.17.7; it read 5 at v12 and 7
+> here with nothing relevant changed). ⚠️ **One run at `dcce44f` showed an 8th that did NOT reproduce and was
+> NOT identified — recorded as unexplained, not certified** (§N.18.6). PHPStan L5 (0) · Pint clean.
 >
 > ## WHAT IS NOW TRUE THAT WAS NOT
 >
@@ -96,6 +100,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   — a founder pricing choice. It **dissolved**: pricing is configurable DATA and a plan declares its own
 >   shape, so there was no model to pick, only an engine that must charge faithfully to whatever is declared
 >   (§N.17.1). What remains is not a choice but three **dashboard** actions.
+> - 🏁 ⚠️ **THE BILLING CODE IS COMPLETE.** Six things had to be true and now are: the engine charges the plan's
+>   declared shape · the page renders from that shape · the configured Price reaches Stripe or the app refuses
+>   to bill · Stripe Tax computes the customer's own tax · no surface claims a tax or a per-unit consequence
+>   that is false for some org · and the customer's VAT number actually reaches Stripe so reverse charge
+>   applies. ⚠️ **What is left is not code**: three dashboard steps, one compliance decision, one unbuilt panel.
 > - ⚠️ **`display = charge = STRIPE` now holds — the chain was two links long and the third was broken.** The
 >   checkout sent `price × quantity` with **no tax at all**, so a per-unit plan would have **silently
 >   under-charged** by the VAT (€88.56 quoted, €72.00 taken — €16.56/mo). Closed from the other end: the app
@@ -117,48 +126,41 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   ⚠️ **A session can only REMIND and VERIFY THE WIRING — never claim the live Prices exist** (§N.17.6). The
 >   old entry here ("two contradictory pricing models … billed ~2×") **is stale and is retired**: see §N.17.1.
 >
-> **② ✅ `DO-BILL-1` — CLOSED (2026-08-13).** The stored VAT number now reaches the Stripe customer as a typed
->   `tax_id`, from all three in-app writers and from the webhook (which is what covers RENEWALS). ⚠️ **Fail-safe
->   throughout: when in doubt, charge the tax.** ⛔ **It surfaced a NEW founder decision — VAT VALIDATION**
->   (send-as-is-and-let-Stripe-validate, which is implemented, **vs** require VIES validation first): a
->   compliance call recorded in §G.1, flagged rather than guessed.
+> **⛔ ② THE VAT-VALIDATION DECISION — ⚠️ ALSO NOT CODE (a compliance call), surfaced by `DO-BILL-1`.** The app
+>   performs a **STRUCTURAL** check ("is this plausibly a VAT number of a country we can name?"), never a
+>   **VALIDITY** check ("does this number exist and belong to this business?"). Two options:
+>   **(a)** send as-is and let Stripe validate against VIES — **implemented**; validation is **asynchronous**,
+>   so a sale can be zero-rated before it completes; **(b)** require VIES validation before honouring reverse
+>   charge — safer, but a build needing a "pending validation" state the product does not have.
+>   ⚠️ **The safe half of (a) is shipped either way** (never send what we cannot type; never treat a rejection
+>   as success). Recorded in §G.1. A fresh session must **not** pick (b) unilaterally — it changes tax outcomes.
 >
-> ⚠️ **WITH ② CLOSED THE BILLING CODE IS COMPLETE.** Everything left below ① is either a founder decision or
->   the unbuilt panel.
->
-> **③ ✅ `DO-BILL-2` — CLOSED (2026-08-13).** The Add-property modal's billing claim is now keyed by the plan's
->   shape (flat → "included in your plan"; per-unit → "billed per unit"), read from the same source the Billing
->   page uses. ⚠️ **The sibling sweep found the cluster is ONE** — every other hit is owner analytics, a code
->   comment, or the already-fixed Billing page; there is no `DO-BILL-2-continued`.
->   ⚠️ **It also corrected pass 2b's cleanup claim:** `Plan` uses `SoftDeletes`, so that pass's
->   `Plan::count() === 0` check was **vacuous** — the same scope hid the row from the check and from
->   `firstOrCreate`. **Verify a deletion with a RAW query, never through the scope that performed it.**
->
-> **④ THE SUPER-ADMIN PLAN-CRUD PANEL — unbuilt.** A plan of either shape can today be created only in a seeder
+> **③ THE SUPER-ADMIN PLAN-CRUD PANEL — the ONE remaining billing BUILD, and unbuilt.** A plan of either shape can today be created only in a seeder
 >   or the console. The engine handles both shapes; there is simply no in-app way to make one.
 >
-> **⑤ `DO-TOKEN-1` — the shared token source.** The structural root of the entire grey-drift family: each shell
+> **④ `DO-TOKEN-1` — the shared token source.** The structural root of the entire grey-drift family: each shell
 >   re-declares the whole palette, so any token can silently diverge (that is exactly how `DO-EMAIL-4` happened).
 >   ⚠️ **FOUR shells, not three** — the inventory is verified and recorded at `a5212aa`. It must **preserve the
 >   7 deliberate per-shell overrides** (guest radii, lighter shadow, `--vy-glass-border`, `--vy-on-grad`) rather
 >   than flatten them — see §N.16.5. A refactor with a no-visual-change proof, not a contrast item.
 >
-> **⑥ `DO-EMAIL-5-continued` — finish the role-coverage sweep, then open the DATA axis.** The method is recorded
+> **⑤ `DO-EMAIL-5-continued` — finish the role-coverage sweep, then open the DATA axis.** The method is recorded
 >   (§N.16.1); the remaining gated blocks are behind `settings.manage` ×3, `properties.manage` ×3,
 >   `payouts.manage`, `payments.refund` and `guests.erase` ×2 — each needs a render **as its role**. Then the
 >   third axis: **data-conditional surfaces, never swept anywhere** (§N.16.2).
 >
-> **⑦ The small tail** — `DO-STAR-1` (the Messages "Starred" flag is a **bookmark, not a rating** — do not fold
+> **⑥ The small tail** — `DO-STAR-1` (the Messages "Starred" flag is a **bookmark, not a rating** — do not fold
 >   it into `DO10-4`), `DO-SUP-1` (a WhatsApp affordance needs a real per-number flag; today the support number
 >   renders as `tel:` only), `DO-PDF-1`/`DO-PDF-2`, `DO-G4-1`.
 >
-> **⑧ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
+> **⑦ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
 >   end of `MISSING-BACKEND-BY-PAGE.md`, plus the **6 reopened operator a11y gates** (§N.9) and the
 >   deferred-capability refusal sweep (§N.8b).
 >
 > ## HOW TO WORK
 >
-> **Read before starting: §N.17 (newest — the billing canon: the blocker as framing artefact, display=charge=
+> **Read before starting: §N.18 (newest — the DO-BILL canon: independent checks, the money-path structural
+> check, one sync path per money field, fail-safe direction) · §N.17 (the billing canon: the blocker as framing artefact, display=charge=
 > STRIPE, give-up-the-claim, the divergent second total, refuse-to-charge) · §N.16 (the audit method, the three
 > ways a surface hides, keyed-not-typed) ·
 > §N.15 (the build canon) · §N.14 (start at N.14.1) · §N.13 (the walk canon) · §N.8/§N.8b/§N.8c/§N.8d ·
@@ -728,8 +730,21 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 >   Whether the tile should include unstatemented ledger items is a **product call**, not a bug — logged, not
 >   re-worded.
 
-### ✅ G.1 — THE BILLING / PRICING MODEL — **⚠️ CODE-COMPLETE (2026-08-13); THE FLIP IS GATED ON THE FOUNDER's STRIPE DASHBOARD STEPS, NOT ON CODE**
+### ✅ G.1 — THE BILLING / PRICING MODEL — **🏁 CODE COMPLETE (2026-08-13); THE FLIP IS GATED ON NON-CODE ONLY**
 
+> 🏁 **THE BILLING CODE IS COMPLETE AND HONEST END-TO-END** — four passes plus the DO-BILL pair:
+> **`DO-BILL-2`** (`c6d398a`) retired the last live §N.8d (the Add-property modal's unconditional "billed per
+> unit"; the sibling sweep measured the cluster at ONE), and **`DO-BILL-1`** (`dcce44f`) closed the last money
+> gap (the stored VAT number now reaches the Stripe customer as a typed `tax_id`, fail-safe, through ONE sync
+> path from three writers and the webhook). **Cross-pass canon: §N.17 + §N.18.**
+>
+> ⚠️ **WHAT "CODE COMPLETE" MEANS HERE, precisely:** the engine charges the plan's declared shape · the page
+> renders from that shape · the configured Price reaches Stripe or the app **refuses to bill** · Stripe Tax
+> computes the customer's own tax · **no surface claims a tax or a per-unit consequence that is false for some
+> org** · and the customer's VAT number reaches Stripe so reverse charge can apply. ⚠️ **It does NOT mean money
+> has moved:** no live key has ever been used, `StripeSafetyGuard` is untouched, and everything is proven
+> against the fake client.
+>
 > 🏁 **THE FOUR PASSES ARE CLOSED AND CONTIGUOUS:** the read-only investigation → **pass 1** the shape-aware
 > engine (`43862db`, the blocker dissolved) → **pass 3** the page renders from the plan (`615904c`, the live
 > §N.8d retired) → **pass 2** the real Price wiring + loud failures (`7de1f35`, the tax-hop under-charge found)
@@ -817,7 +832,9 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 > saying €49.00. Both now read `Plan::chargeFor()` (§N.8f), and `SubscriptionPricing` no longer computes VAT at
 > all — it had become a second, divergent total for one concept (5535 against 4500).
 >
-> ⚠️ **FLAGGED, NOT SILENTLY DEFAULTED — the VAT-ID sync gap (`DO-BILL-1`).** The app collects
+> ✅ ⚠️ **CLOSED at `dcce44f` — the paragraph below describes the gap as it stood, and the sync now exists**
+> (typed `tax_id`, three writers + the webhook, fail-safe; §N.18.2–.4). Kept for the reasoning that was true
+> when written. ⚠️ **FLAGGED, NOT SILENTLY DEFAULTED — the VAT-ID sync gap (`DO-BILL-1`).** The app collects
 > `organizations.billing_vat_id` in its own checkout form, but that value is used **only for PDF letterheads and
 > is never sent to Stripe**. Stripe's own `tax_id_collection` now asks for it again at the hosted page; a
 > customer who skips it there is charged VAT they could have reverse-charged. Syncing the stored id onto the
@@ -6722,3 +6739,110 @@ availability or owner units.
 fix.** A false "we fixed two" is the same species of error as a false finding: it retires attention from
 something still broken. *Re-measure every gate; when the count moves, prove which member moved and why before
 calling it anything.*
+
+---
+
+# (N.18) 🏁 THE DO-BILL PAIR — **THE BILLING CODE IS COMPLETE** (SAVE v13, 2026-08-13)
+
+*Two fixes after the billing workstream closed: **`DO-BILL-2`** (`c6d398a`) — the Add-property modal's
+unconditional "billed per unit", rendered from the plan's shape · **`DO-BILL-1`** (`dcce44f`) — the stored VAT
+number finally reaching the Stripe customer. ⚠️ **With these the billing CODE is complete and honest
+end-to-end. Everything remaining is NON-CODE — the founder's Stripe dashboard steps and one open decision —
+plus a single unbuilt panel.** Chapter canon: §N.17 (the workstream) + this.*
+
+⚠️ **Both were found by READING, not by a failing test** — `DO-BILL-2` by SAVE v12's own coherence sweep,
+`DO-BILL-1` by pass 2b's grep. That is now five chapters in which the record's own re-reading outperformed the
+suite (§N.13.1, and the five security holes before it).
+
+## §N.18.1 ⚠️ A CLEANUP CHECK MUST BE INDEPENDENT OF THE MECHANISM UNDER TEST (§N.4p, generalised)
+
+Billing pass 2b created a transient per-unit plan for a browser render and reported it *"reverted + verified"*.
+⚠️ **The verification was VACUOUS.** `Plan` uses `SoftDeletes`, so `Plan::where('code', …)->delete()`
+**soft-deleted** the row, and the check `Plan::where('code', …)->count() === 0` passed — **because the same
+global scope that hid the row from the check also hid it from everything else.** The row persisted for two
+commits and surfaced only when a later `firstOrCreate` hit a unique-key violation on a row Eloquent insisted
+did not exist.
+
+⚠️ **A VERIFICATION ROUTED THROUGH THE MECHANISM IT VERIFIES INHERITS THAT MECHANISM'S BLIND SPOTS.** The check
+could not have detected the failure it was written to detect; it could only ever confirm what the scope already
+guaranteed. Verify with something **independent** — a raw `DB::table(...)` query, or `withTrashed()`.
+
+⚠️ **THIS GENERALISES §N.4p.** The mutation discipline said *the verdict must come from the guard — not the
+fixture, the file, the compiled cache, or a role that cannot see the markup.* The general form is now: **the
+check must be INDEPENDENT of what it checks.** Every earlier trap is an instance of it.
+
+## §N.18.2 ⚠️ ON A MONEY/TAX PATH, AN OVER-PERMISSIVE STRUCTURAL CHECK *IS* THE FAILURE MODE
+
+`DO-BILL-1`'s first VAT validator accepted **`"not-a-vat-id"`**. Normalised it becomes `NOTAVATID`; the leading
+**`NO` is Norway**; the body passed a bare "alphanumeric, plausible length" test. ⚠️ **A sentence typed into the
+field was one step from reaching Stripe as a Norwegian VAT number** — which Stripe might well accept, and which
+would **zero-rate a sale that owed tax**.
+
+⚠️ **ON A TAX PATH THE STRUCTURAL CHECK IS NOT A CONVENIENCE — IT IS THE SAFETY MECHANISM.** "Permissive" does
+not mean "a weaker guard"; it means "the bug". The check is the only thing standing between a typo and a
+mis-typed tax identity.
+
+Fixed by requiring a **run of at least four digits** in the body: every real VAT number has one, prose has none.
+⚠️ **Tighten to what a real identifier HAS, not to what an invalid one lacks** — you cannot enumerate the ways a
+string can be wrong, but you can state what a right one looks like. *The guard caught this before it shipped,
+which is the argument for writing the unhappy-path test first.*
+
+## §N.18.3 ⚠️ ROUTE EVERY WRITER OF A MONEY-AFFECTING FIELD THROUGH ONE SYNC PATH (§N.8f, on WRITE paths)
+
+`billing_vat_id` had **three** in-app writers — Billing details, the subscribe action, and **Settings → invoice
+details**, the third found only by sweeping for writers rather than trusting the two that were obvious.
+
+⚠️ **WITHOUT A SINGLE SYNC, THE REVERSE-CHARGE OUTCOME WOULD HAVE DEPENDED ON WHICH SCREEN THE OPERATOR USED.**
+Same customer, same number, different tax — decided by an irrelevant UI choice. That is not a missing feature;
+it is a money outcome determined by navigation.
+
+`StripeTaxIdSync` is the ONE path, called from all three writers **and** the webhook. ⚠️ **§N.8f has always said
+one definition per concept for READ paths** (`MoneyFormatter`, `FolioTotals`, `Plan::chargeFor`); this is its
+**write-path** form: **many writers, ONE sync.** The outcome must not depend on the entry point.
+
+## §N.18.4 ⚠️ FAIL SAFE — AND THE DIRECTION IS DECIDED BY WHICH ERROR IS SILENT
+
+A VAT ID drives the tax outcome, and the two failure directions are **not symmetric**:
+
+| direction | what happens | how it is discovered |
+|---|---|---|
+| overcharge (VAT applied when reverse charge was due) | customer pays too much | **visible** — they complain; refundable |
+| wrong zero-rating (reverse charge applied wrongly) | customer pays €0 | **silent** — the operator carries it to an audit |
+
+⚠️ **SO THE FAIL-SAFE DIRECTION IS SET BY WHICH FAILURE IS SILENT: when in doubt, CHARGE THE TAX.** An
+untypeable number is never sent · a Stripe rejection **returns false rather than throwing** (a bad VAT number
+must not break a subscription) and is **never treated as success** · both are logged **without the value**,
+which is a customer business identifier · a corrected number **replaces** the stale one rather than joining it,
+because two numbers on one customer is ambiguous and the stale one could win.
+
+⚠️ **Generalise it:** when choosing which way a guard should fail, do not ask which error is *smaller* — ask
+which error is **silent**. Bias toward the one that announces itself.
+
+## §N.18.5 ⚠️ GUARD THE SPECIFIC VACUITY THAT LET THE BUG HIDE · AND THE WEBHOOK-IS-THE-ONLY-ATTACH-POINT REFINEMENT
+
+**`DO-BILL-2` survived the entire design walk because it was ROLE-GATED** (`@if ($canManage)`). Rendered as a
+role without `properties.manage`, the modal is simply absent — so *"no false claim"* is **vacuously true**
+(§N.14.1). ⚠️ **The guard therefore pins the trap itself**, not only the fix: one test asserts a Front Desk user
+is refused the page (403), and **every copy assertion is preceded by a presence assertion** on the modal. *Test
+the fix; then test the reason the bug was invisible.*
+
+⚠️ **AND `DO-BILL-1` PRODUCED A PREMISE REFINEMENT WORTH KEEPING: the app NEVER creates a Stripe customer.**
+Checkout does, and the id arrives by **webhook**. So the webhook sync is not an extra call site — it is the
+**only** attach point for a first-time customer. ⚠️ **It is also where the money is: Stripe re-computes tax on
+every RENEWAL invoice**, so a missing tax id would have overcharged a reverse-charge business **every month**,
+not once. *Reading how the object is actually created changed the fix from a nicety into the main path.*
+
+## §N.18.6 ⚠️ RECORD AN UNEXPLAINED, NON-REPRODUCING ANOMALY *AS* UNEXPLAINED (§N.17.7, reinforced)
+
+One full-suite run at `DO-BILL-1`'s commit showed an **8th** non-green — one beyond the documented set. It did
+**not reproduce** on two subsequent full runs (both exactly 7 = `BookingImportTest` ×6 + `OwnerUnitDetailViewTest`
+×1), and it could **not be identified**.
+
+⚠️ **It is recorded as an unexplained range-walk within the documented 5–10 band — NOT claimed as proven
+pre-existing, and NOT waved away.** There was a real temptation to write "within the documented range" and move
+on; that phrasing would have been true and also a small false certification, because *nobody checked*.
+
+⚠️ **§N.17.7 reinforced.** "Isolate it" is not a universal oracle (one member passes alone and fails in-suite;
+another fails alone and passes in-suite), the count walks its band on its own, and **an anomaly you cannot
+explain is written down as unexplained.** The register's value comes from the difference between "verified" and
+"assumed" staying visible — including when the assumption is the comfortable one.

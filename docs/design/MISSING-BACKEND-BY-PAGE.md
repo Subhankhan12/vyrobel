@@ -1929,6 +1929,7 @@ carry scope — stated as a fact, not assumed.
     surface pass 3 did not touch. ⚠️ **This is a live §N.8d and a real item**, not a blocker footnote: it needs
     the same shape-keying the Billing page got (`Plan::isPerUnit()`), and it belongs with `DO-BILL-1` in the
     billing tail rather than on a ledger that no longer exists.
+  - ✅ **DONE at `c6d398a`** — the modal now renders from the plan's shape. See the `DO-BILL-2` entry below.
 - ⚠️ **The operator shell's topbar H1 overlaps the search box at ≤1000px** (H1 right 383 vs search left 339).
   **Proven pre-existing** by stashing this gate's changes and re-measuring on clean HEAD. Realm-wide (the shell,
   not this page).

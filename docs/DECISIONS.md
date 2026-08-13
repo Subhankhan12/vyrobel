@@ -9297,3 +9297,54 @@ Guarded by `BillingVatIdSyncTest` (8/22), mutation-proven four ways, all against
 showed an 8th non-green that did NOT reproduce on two subsequent runs and could not be identified** — recorded
 as an unexplained range-walk (§N.17.7 / the (J) 5–10 range), **not** claimed as proven pre-existing. PHPStan L5
 (0); Pint clean.
+
+---
+
+## 2026-08-13 · SAVE v13 — 🏁 THE BILLING CODE IS COMPLETE (docs-only consolidation)
+
+**Chapter ⑥ closes.** `DO-BILL-2` (`c6d398a`) → `DO-BILL-1` (`dcce44f`). **Cross-pass canon: §N.18** (six
+sub-sections), sitting beside §N.17 (the workstream itself).
+
+⚠️ **THE BILLING CODE IS COMPLETE AND HONEST END-TO-END.** Six things had to be true and now are: the engine
+charges the plan's declared shape · the page renders from that shape · the configured Price reaches Stripe or
+the app **refuses to bill** · Stripe Tax computes the customer's own tax · **no surface claims a tax or a
+per-unit consequence that is false for some org** · the customer's VAT number reaches Stripe so reverse charge
+can apply. ⚠️ **It does not mean money has moved** — no live key has ever been used and `StripeSafetyGuard` is
+untouched; everything is proven against the fake client.
+
+**⛔ WHAT REMAINS IS NOT CODE**, except one build:
+1. **The founder's Stripe dashboard steps** — enable Stripe Tax + register jurisdictions (⚠️ `automatic_tax` is
+   **inert** until then), create the Prices, fill the production env.
+2. ⛔ **The VAT-VALIDATION decision** — send-as-is-and-let-Stripe-validate (**implemented**; VIES is async, so a
+   sale can be zero-rated before validation completes) **vs** require VIES validation first (safer; a build
+   needing a "pending validation" state). The safe half is shipped either way. **A session must not pick the
+   second unilaterally — it changes tax outcomes.**
+3. **The super-admin plan-CRUD panel** — the one remaining billing build.
+
+### The six lessons folded into §N.18
+
+1. ⚠️ **A cleanup check must be INDEPENDENT of the mechanism under test** — §N.4p generalised. Pass 2b's
+   `Plan::count() === 0` was vacuous because `SoftDeletes` hid the row from the check *and* from Eloquent.
+2. ⚠️ **On a money/tax path an over-permissive structural check IS the failure mode** — `"not-a-vat-id"` →
+   `NOTAVATID` → `NO` reads as Norway. Tighten to what a real identifier **has**, not what an invalid one lacks.
+3. ⚠️ **Route every writer of a money-affecting field through ONE sync path** — §N.8f on *write* paths. Three
+   VAT writers; without one sync the tax outcome would depend on which screen the operator used.
+4. ⚠️ **Fail-safe direction is decided by which error is SILENT** — overcharge announces itself, wrong
+   zero-rating does not. When in doubt, charge the tax.
+5. ⚠️ **Guard the specific vacuity that let the bug hide** (`DO-BILL-2`'s role gate → a 403 test + presence
+   assertions), and the refinement that **the webhook is the only attach point** for a first-time Stripe
+   customer — and the one that matters, since a miss overcharges **monthly**, not once.
+6. ⚠️ **Record an unexplained, non-reproducing anomaly AS unexplained** — §N.17.7 reinforced.
+
+### Stale claims closed (§N.8b inward — v9 caught 4, v11 1, v12 5, v13 3)
+
+§G.1's pass-2b paragraph still described the VAT-ID as "never sent to Stripe" · `BILLING-STRIPE-PRICES.md` still
+carried it as an open gap for the founder (now rewritten, and it is where the VAT-validation decision is put to
+them in plain terms) · `MISSING-BACKEND` still said the Add-property modal "needs the same shape-keying". Each
+**annotated, not erased**.
+
+**Baseline, stated per §N.17.7:** suite **1999/2006**, **7 non-green = the documented set** (`BookingImportTest`
+×6 · `OwnerUnitDetailViewTest` ×1). The count read **5** at v12 and **7** here with nothing relevant changed —
+it walks a 5–10 band. ⚠️ **One run at `dcce44f` showed an 8th that did not reproduce across two further full
+runs and was not identified; it is recorded as unexplained, NOT certified as pre-existing.** PHPStan L5 (0);
+Pint clean.

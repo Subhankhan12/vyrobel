@@ -36,13 +36,23 @@ That subtotal is exactly `Price × quantity`, so what is displayed is what Strip
 ⚠️ **Until both are done, a per-unit customer is charged €72.00 with no tax** — the app asks correctly and
 Stripe declines to add anything.
 
-### ⚠️ A gap worth knowing about (`DO-BILL-1`)
+### ✅ The VAT-ID gap is CLOSED (`DO-BILL-1`, 2026-08-13)
 
-Vyrobel collects a VAT number of its own (`organizations.billing_vat_id`) in the in-app checkout form, but that
-value is used **only on PDF letterheads and is never sent to Stripe**. Stripe's hosted page now asks for it
-again. A customer who enters it in Vyrobel and skips it at Stripe **will be charged VAT they could have
-reverse-charged.** Syncing the stored id onto the Stripe customer is a follow-up; it was flagged rather than
-guessed at.
+Vyrobel's own VAT number (`organizations.billing_vat_id`) used to be PDF-only, so a customer who entered it in
+Vyrobel and skipped Stripe's prompt was charged VAT they could have reverse-charged. It is **now attached to the
+Stripe customer as a typed `tax_id`**, from every in-app writer and from the webhook — the latter being what
+covers **renewals**, where Stripe re-computes tax on each invoice.
+
+⚠️ **Fail-safe by design: when in doubt, the customer is TAXABLE.** A number the app cannot confidently type is
+never sent, and a number Stripe rejects is never treated as success — because overcharging is visible and
+refundable, while wrongly zero-rating is silent and lands on you at an audit.
+
+⛔ ⚠️ **ONE DECISION IS YOURS — VAT VALIDATION.** The app checks that a number is *structurally* plausible for a
+country it can name; it does **not** check that the number *exists and belongs to that business* (only VIES
+can). Today it **sends as-is and lets Stripe validate against VIES asynchronously** — which means a sale can be
+zero-rated before validation completes. The alternative is to **require VIES validation before honouring reverse
+charge**: safer, but a build that needs a "pending validation" state. Tell the session which you want; the safe
+half is already in place either way.
 
 ---
 
