@@ -26,38 +26,20 @@
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
 
+    {{-- ⚠️ THE CANONICAL PALETTE FIRST — the 31 shared tokens, declared ONCE (DO-TOKEN-1, §N.8f).
+         This shell's own <style> follows, so its DELIBERATE overrides win by cascade order.
+         ⚠️ Moving this below the shell's styles would silently undo every override. --}}
+    <x-design.tokens />
     <style>
         :root {
-            --vy-ink: rgb(43, 35, 32);
-            --vy-muted: rgb(95, 88, 83);
-            --vy-faint: rgb(108, 100, 95);
-            --vy-accent: rgb(194, 65, 12);
-            --vy-accent-2: rgb(217, 102, 46);
-            --vy-accent-3: rgb(232, 112, 58);
-            --vy-peach: rgb(240, 165, 122);
-            --vy-amber: rgb(178, 106, 8);
-            --vy-amber-2: rgb(224, 146, 30);
-
-            --vy-glass: rgba(255, 252, 248, 0.58);
-            --vy-hairline: rgba(120, 70, 40, 0.10);
             --vy-glass-border: rgba(255, 255, 255, 0.75);
-            --vy-accent-border: rgba(232, 112, 58, 0.28);
-
-            --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
-            --vy-grad-peach: linear-gradient(90deg, #F0A57A, #C2410C);
-
             --vy-shadow: rgba(150, 90, 50, 0.16) 0 14px 40px, inset rgba(255, 255, 255, 0.65) 0 1px 0;
-            --vy-shadow-sm: rgba(150, 90, 50, 0.12) 0 8px 22px, inset rgba(255, 255, 255, 0.6) 0 1px 0;
             --vy-shadow-accent: rgba(194, 65, 12, 0.30) 0 4px 12px;
 
-            --vy-r-pill: 30px;
             --vy-r-lg: 20px;
-            --vy-r-md: 12px;
             --vy-r-sm: 10px;
 
-            --vy-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            --vy-display: 'Sora', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-        }
+            }
 
         *, *::before, *::after { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }

@@ -76,7 +76,13 @@ it('keeps the palette WARM and the emphasis hierarchy intact', function () {
 });
 
 it('declares the AA values in every shell', function (string $shell) {
-    $css = (string) file_get_contents(base_path($shell));
+    // ⚠️ G8 — AMENDED BY DO-TOKEN-1. A shell no longer carries the whole palette: the 31 SHARED tokens moved
+    // to one canonical base that every shell includes, leaving only its own deliberate overrides behind. So a
+    // shell's EFFECTIVE palette is base + shell, in that order — which is exactly the cascade the browser
+    // sees, and exactly what this file has always been measuring. Reading the shell alone would now measure a
+    // palette no user ever gets.
+    $css = (string) file_get_contents(base_path('resources/views/components/design/tokens.blade.php'))
+        ."\n".(string) file_get_contents(base_path($shell));
 
     expect($css)->toContain('--vy-muted: rgb(95, 88, 83)');
     expect($css)->toContain('--vy-faint: rgb(108, 100, 95)');

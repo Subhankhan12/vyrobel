@@ -21,6 +21,13 @@
 function amberShells(): array
 {
     return [
+        // ⚠️ G8 — AMENDED BY DO-TOKEN-1. This guard was born when `--vy-amber-text` had TWO values under one
+        // name, and it asserted the token was declared in ≥2 shells with ONE value. The refactor made that
+        // structurally impossible: the token is now declared ONCE, in the canonical base, and no shell holds a
+        // copy. The invariant is unchanged and STRONGER — one value everywhere — so the base is simply added
+        // to the sources this reads. (Its own non-vacuity message fired when the token vanished from the
+        // shells, which is the guard working, not failing.)
+        'base' => resource_path('views/components/design/tokens.blade.php'),
         'guest' => resource_path('views/components/guest/shell.blade.php'),
         'owner' => resource_path('views/components/layouts/owner.blade.php'),
         'operator' => resource_path('views/components/layouts/operator.blade.php'),
@@ -63,9 +70,12 @@ it('⚠️ declares --vy-amber-text with ONE value everywhere it is declared', f
         }
     }
 
-    // Not vacuous: it really is declared, in at least two shells.
+    // ⚠️ G8 — DO-TOKEN-1 STRENGTHENED THIS. It used to require the token in ≥2 shells with one value, because
+    // the only way to catch drift was to compare copies. There are no copies now: it is declared EXACTLY ONCE,
+    // in the canonical base, and a shell cannot hold a second. "One value everywhere" is no longer something
+    // to check — it is a property of the structure — so the assertion becomes the stronger "exactly one".
     $flat = array_merge(...array_values($values ?: [[]]));
-    expect(count($flat))->toBeGreaterThanOrEqual(2, 'the token is no longer declared — this guard would pass on nothing');
+    expect(count($flat))->toBe(1, 'the token is no longer declared — this guard would pass on nothing');
 
     // ⚠️ THE LANDMINE: one name, one value. A second, differing declaration must fail here.
     expect(array_unique($flat))->toHaveCount(1, 'the amber-text token is declared with more than one value: '.implode(' | ', array_unique($flat)));

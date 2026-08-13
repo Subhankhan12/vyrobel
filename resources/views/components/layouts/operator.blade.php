@@ -22,13 +22,13 @@
 
     @livewireStyles
 
+    {{-- ⚠️ THE CANONICAL PALETTE FIRST — the 31 shared tokens, declared ONCE (DO-TOKEN-1, §N.8f).
+         This shell's own <style> follows, so its DELIBERATE overrides win by cascade order.
+         ⚠️ Moving this below the shell's styles would silently undo every override. --}}
+    <x-design.tokens />
     <style>
         /* ---- Formalized design tokens (shared Vyrobel system; see owner-portal-spec.md) ---------- */
         :root {
-            --vy-ink: rgb(43, 35, 32);
-            --vy-muted: rgb(95, 88, 83);
-            --vy-faint: rgb(108, 100, 95);
-
             /* Text that sits DIRECTLY on the page gradient rather than on a glass card. The card tokens
                above are computed against the composited card background; the gradient is darker, so
                --vy-muted only reaches 4.03:1 there and fails AA. These two are computed against the
@@ -43,10 +43,8 @@
                was rgb(252,223,204). This darker terracotta clears it at 4.85:1 there. Same family, ~10%
                deeper. Only applied where accent is text WITHOUT its own background (a tinted chip carries
                its own surface and already measured 4.61). */
-            --vy-accent-text: rgb(176, 56, 8);
-            --vy-accent: rgb(194, 65, 12);       /* terracotta primary (#C2410C) */
-            --vy-accent-2: rgb(217, 102, 46);
-            --vy-accent-3: rgb(232, 112, 58);    /* (#E8703A) */
+            /* terracotta primary (#C2410C) */
+            /* (#E8703A) */
 
             /* ---- Housekeeping status palette -----------------------------------------------------
                The five room states, as tokens rather than hexes repeated in the view. `pending` is
@@ -58,42 +56,19 @@
             --vy-hk-clean: rgb(51, 160, 172);
             --vy-hk-inspected: rgb(67, 160, 107);
             --vy-hk-ooo: rgb(138, 128, 121);
-            --vy-peach: rgb(240, 165, 122);
-            --vy-amber: rgb(178, 106, 8);
-            --vy-amber-2: rgb(224, 146, 30);
-            --vy-dark: rgb(42, 33, 28);
-
-            --vy-glass: rgba(255, 252, 248, 0.58);
-            --vy-glass-2: rgba(255, 255, 255, 0.55);
-            --vy-hairline: rgba(120, 70, 40, 0.10);
             --vy-glass-border: rgba(255, 255, 255, 0.75);
-            --vy-accent-border: rgba(232, 112, 58, 0.28);
-            --vy-wash: #F6EBE2;                   /* Polish Batch 1 — the faint warm-cream tint (incoming bubbles / tag chips / washes). Shared value across realms. */
-
-            --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
-            --vy-grad-peach: linear-gradient(90deg, #F0A57A, #C2410C);
-            --vy-grad-dark: linear-gradient(160deg, #3A2E27, #251C17);
+            /* Polish Batch 1 — the faint warm-cream tint (incoming bubbles / tag chips / washes). Shared value across realms. */
 
             /* #104 fidelity — the decoded operator wireframe's warm peach→grey diagonal page background + the
                three ambient orbs behind the frosted glass (identical to the owner shell, which already ships it). */
-            --vy-bg: linear-gradient(135deg, #F6C89B 0%, #F1B896 32%, #EBD9CF 62%, #D9D6D2 100%);
-            --vy-orb-1: #E8703A;
-            --vy-orb-2: #F0A57A;
-            --vy-orb-3: #FBE3CE;
-
             --vy-shadow: rgba(150, 90, 50, 0.16) 0 14px 40px, inset rgba(255, 255, 255, 0.65) 0 1px 0;
-            --vy-shadow-sm: rgba(150, 90, 50, 0.12) 0 8px 22px, inset rgba(255, 255, 255, 0.6) 0 1px 0;
             --vy-shadow-accent: rgba(194, 65, 12, 0.30) 0 4px 12px;
-            --vy-shadow-dark: rgba(60, 30, 10, 0.28) 0 10px 30px;   /* Polish Batch 1 — brief-exact (design-system-brief §"Dark hero panel"); matches the owner layout. */
+            /* Polish Batch 1 — brief-exact (design-system-brief §"Dark hero panel"); matches the owner layout. */
 
-            --vy-r-pill: 30px;
             --vy-r-lg: 20px;
-            --vy-r-md: 12px;
             --vy-r-sm: 10px;
 
-            --vy-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            --vy-display: 'Sora', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-        }
+            }
 
         *, *::before, *::after { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }

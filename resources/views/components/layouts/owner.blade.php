@@ -20,13 +20,14 @@
 
     @livewireStyles
 
+    {{-- ⚠️ THE CANONICAL PALETTE FIRST — the 31 shared tokens, declared ONCE (DO-TOKEN-1, §N.8f).
+         This shell's own <style> follows, so its DELIBERATE overrides win by cascade order.
+         ⚠️ Moving this below the shell's styles would silently undo every override. --}}
+    <x-design.tokens />
     <style>
         /* ---- Formalized design tokens (the design inlined these literals; named here) --------- */
         :root {
-            --vy-ink: rgb(43, 35, 32);          /* espresso near-black */
-            --vy-muted: rgb(95, 88, 83);
-            --vy-faint: rgb(108, 100, 95);
-
+            /* espresso near-black */
             /* Text that sits DIRECTLY on the page gradient rather than on a glass card. --vy-bg here is
                byte-identical to the operator shell's, so these carry the same measured values: 4.97:1 and
                4.67:1 against the gradient's darkest sampled stop, rgb(241,185,150). Warm stone, not grey. */
@@ -46,8 +47,6 @@
 
             /* Accent used as TEXT on glass. --vy-accent stays the BRAND fill (gradients/buttons/chips/
                borders) and is unchanged; see the operator shell for the measurements. */
-            --vy-accent-text: rgb(176, 56, 8);
-
             /* Text that sits on its OWN low-alpha TINT (status pills, tag chips, the delta pill). The
                operator realm left its tinted chips alone because they measured 4.61 — but the OWNER glass
                is warmer and darker, so the SAME tint+text pairs measure 3.26–3.85 here (real-pixel
@@ -58,13 +57,12 @@
                it was fitted to the Statement/Dashboard rows and read 4.31–4.44 on the Payouts table's
                warmer rows. Now measured against the WORST background it meets — 5.86–6.04 there, and
                6.41–6.51 back on the cooler rows. Tune a token to the worst case, never the first. */
-            --vy-green-text: rgb(20, 84, 62);
             /* ⚠️ Re-tuned at the Statement gate. Owner-1 set this to rgb(141,84,6) from ONE sampled
                background; on the Statement's slightly warmer glass the same pill measured 4.45–4.50 —
                marginal, one side of AA. Tuned against the WORST of the sampled backgrounds instead of
                the first: now 5.13–5.22 everywhere it is used. A token tuned to a single sample is a
                token that will fail on the next page. */
-            --vy-amber-text: rgb(128, 76, 5);   /* DO-EMAIL-4: the ONE amber-text value, shared with the guest shell */
+            /* DO-EMAIL-4: the ONE amber-text value, shared with the guest shell */
             --vy-accent-tint-text: rgb(151, 54, 13);
 
             /* The SAME status pill also sits on the dark payout rail (.vy-card--dark), where every tone
@@ -77,43 +75,22 @@
             --vy-green-on-dark: rgb(90, 190, 150);
             --vy-muted-on-dark: rgb(201, 184, 172);
 
-            --vy-accent: rgb(194, 65, 12);      /* terracotta primary  (#C2410C) */
-            --vy-accent-2: rgb(217, 102, 46);
-            --vy-accent-3: rgb(232, 112, 58);   /* (#E8703A) */
-            --vy-peach: rgb(240, 165, 122);
-            --vy-amber: rgb(178, 106, 8);       /* pending / warning */
-            --vy-amber-2: rgb(224, 146, 30);
+            /* terracotta primary  (#C2410C) */
+            /* (#E8703A) */
+            /* pending / warning */
             --vy-green: rgb(31, 122, 90);        /* paid / positive */
-            --vy-dark: rgb(42, 33, 28);          /* dark feature card */
+            /* dark feature card */
 
-            --vy-glass: rgba(255, 252, 248, 0.58);
-            --vy-glass-2: rgba(255, 255, 255, 0.55);
-            --vy-hairline: rgba(120, 70, 40, 0.10);
             --vy-glass-border: rgba(255, 255, 255, 0.75);
-            --vy-accent-border: rgba(232, 112, 58, 0.28);
-            --vy-wash: #F6EBE2;                   /* Polish Batch 1 — the faint warm-cream tint (review/team tag chips, washes). Resolves the previously-fallback-only token. */
-            --vy-bg: linear-gradient(135deg, #F6C89B 0%, #F1B896 32%, #EBD9CF 62%, #D9D6D2 100%);  /* Owner-Overview exact-match — the decoded wireframe's warm peach→grey diagonal page background. */
-            --vy-orb-1: #E8703A;                 /* the three ambient color orbs behind the frosted glass (decoded from the wireframe) */
-            --vy-orb-2: #F0A57A;
-            --vy-orb-3: #FBE3CE;
-
-            --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
-            --vy-grad-peach: linear-gradient(90deg, #F0A57A, #C2410C);
-            --vy-grad-dark: linear-gradient(160deg, #3A2E27, #251C17);
-
+            /* Polish Batch 1 — the faint warm-cream tint (review/team tag chips, washes). Resolves the previously-fallback-only token. */
+            /* Owner-Overview exact-match — the decoded wireframe's warm peach→grey diagonal page background. */
+            /* the three ambient color orbs behind the frosted glass (decoded from the wireframe) */
             --vy-shadow: rgba(150, 90, 50, 0.16) 0 14px 40px, inset rgba(255, 255, 255, 0.65) 0 1px 0;
-            --vy-shadow-sm: rgba(150, 90, 50, 0.12) 0 8px 22px, inset rgba(255, 255, 255, 0.6) 0 1px 0;
             --vy-shadow-accent: rgba(194, 65, 12, 0.30) 0 4px 12px;
-            --vy-shadow-dark: rgba(60, 30, 10, 0.28) 0 10px 30px;
-
-            --vy-r-pill: 30px;
             --vy-r-lg: 20px;
-            --vy-r-md: 12px;
             --vy-r-sm: 10px;
 
-            --vy-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            --vy-display: 'Sora', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-        }
+            }
 
         *, *::before, *::after { box-sizing: border-box; }
         [x-cloak] { display: none !important; }   /* prevent a flash of the notification panel before Alpine boots */

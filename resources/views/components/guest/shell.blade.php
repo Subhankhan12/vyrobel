@@ -30,10 +30,12 @@
     <title>{{ $title !== '' ? $title.' · ' : '' }}Vyrobel</title>
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
+    {{-- ⚠️ THE CANONICAL PALETTE FIRST — the 31 shared tokens, declared ONCE (DO-TOKEN-1, §N.8f).
+         This shell's own <style> follows, so its DELIBERATE overrides win by cascade order.
+         ⚠️ Moving this below the shell's styles would silently undo every override. --}}
+    <x-design.tokens />
     <style>
         :root {
-            --vy-ink: rgb(43, 35, 32); --vy-muted: rgb(95, 88, 83); --vy-faint: rgb(108, 100, 95);
-            --vy-accent: rgb(194, 65, 12); --vy-accent-3: rgb(232, 112, 58); --vy-amber: rgb(178, 106, 8);
             /* TEXT-ONLY variants of the two warm hues. The plain tokens fail AA at badge/label size:
                --vy-accent at 13px on its own 8% wash = 4.20, --vy-amber at 11px on the pending badge = 3.79.
                Same shape as the operator realm's --vy-accent-text.
@@ -47,20 +49,16 @@
                page (Blade comments do not). An earlier draft used a word the check-in honesty guard
                forbids (#39 — an ID is captured, never 'v-e-r-i-f-i-e-d'), and shipped it site-wide.
                Use these for TEXT; keep --vy-accent / --vy-amber for fills, borders and rails. */
-            --vy-accent-text: rgb(176, 56, 8); --vy-amber-text: rgb(128, 76, 5);   /* DO-EMAIL-4: the ONE amber-text value (was rgb(126,88,17)) */
+            /* DO-EMAIL-4: the ONE amber-text value (was rgb(126,88,17)) */
             /* G2: the same green measured 4.75 on Trips and 4.26 HERE — a translucent badge on a
                translucent card over the page gradient has NO fixed contrast, it moves with whatever is
                behind it. rgb(70,120,60) is hand-written at ELEVEN guest call sites; this is the one
                definition, dark enough to clear AA on the worst backdrop measured (7.24). */
-            --vy-green-text: rgb(20, 84, 62);
             --vy-card: rgba(255, 253, 251, 0.86); --vy-glass-border: rgba(120, 70, 40, 0.12);
-            --vy-wash: #F6EBE2;                   /* Polish Batch 1 — the faint warm-cream tint (incoming chat bubbles, arrival/checkin/review chips). Was undefined → transparent. */
-            --vy-hairline: rgba(120, 70, 40, 0.10); --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
+            /* Polish Batch 1 — the faint warm-cream tint (incoming chat bubbles, arrival/checkin/review chips). Was undefined → transparent. */
             --vy-shadow: rgba(150, 90, 50, 0.10) 0 10px 30px; --vy-shadow-accent: rgba(194, 65, 12, 0.28) 0 4px 12px;
-            --vy-r-lg: 18px; --vy-r-md: 12px; --vy-r-sm: 9px;
-            --vy-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            --vy-display: 'Sora', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-        }
+            --vy-r-lg: 18px; --vy-r-sm: 9px;
+            }
         *, *::before, *::after { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
         body {

@@ -48,7 +48,11 @@ it('keeps --vy-muted and --vy-faint at the remediated values in both shells', fu
         'resources/views/components/layouts/operator.blade.php',
         'resources/views/components/layouts/owner.blade.php',
     ] as $shell) {
-        $css = (string) file_get_contents(base_path($shell));
+        // ⚠️ G8 — DO-TOKEN-1: these two greys are SHARED, so they now live in the canonical base rather than in
+        // each shell. A shell's effective palette is base + shell, and that is what must carry the remediated
+        // values — reading the shell alone would now measure a palette no user ever receives.
+        $css = (string) file_get_contents(base_path('resources/views/components/design/tokens.blade.php'))
+            ."\n".(string) file_get_contents(base_path($shell));
 
         expect($css)->toContain('--vy-muted: rgb(95, 88, 83)')
             ->and($css)->toContain('--vy-faint: rgb(108, 100, 95)');
@@ -62,6 +66,10 @@ it('declares no pre-AA grey as a colour on any operator or owner view', function
         ...(glob(resource_path('views/operator/*.blade.php')) ?: []),
         ...(glob(resource_path('views/owner/*.blade.php')) ?: []),
         ...(glob(resource_path('views/billing/*.blade.php')) ?: []),
+        // ⚠️ G8 — DO-TOKEN-1: the shared palette moved out of the shells into one canonical base, so the base
+        // is part of the palette surface this sweeps. The drift it guards against is now impossible by
+        // construction, but the sweep still proves the VALUES are the AA-correct ones.
+        resource_path('views/components/design/tokens.blade.php'),
         ...(glob(resource_path('views/components/layouts/*.blade.php')) ?: []),
     ])->unique();
 

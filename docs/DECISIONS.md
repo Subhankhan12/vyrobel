@@ -9465,3 +9465,69 @@ admin-side guarantee · v13's own capstone still listed the panel as "the one re
 own. PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. ⚠️ **The seed requires MAILPIT** (SMTP
 127.0.0.1:1025); an abort without it is **environmental, not a regression** — start `mailpit` and re-run before
 diagnosing anything.
+
+---
+
+## 2026-08-13 · `DO-TOKEN-1` — the canonical palette: 31 shared tokens, ONE definition
+
+**§N.8f applied to the palette.** Four shells — guest, owner, operator and the public storefront — each
+re-declared the whole palette, so every shared token had four independent definitions and any one could drift.
+That is not hypothetical: `--vy-amber-text` did exactly that (DO-EMAIL-4). The 31 shared tokens now live in
+`resources/views/components/design/tokens.blade.php`, included by every shell **before** its own `<style>`.
+
+**⚠️ Inventory re-verified, with a correction.** 31 shared and 7 divergent as recorded — but **11 single-shell,
+not 13** (49 tokens, not 51). The `a5212aa` inventory had drifted.
+
+**⚠️ All 7 divergences confirmed DELIBERATE, and preserved as declared overrides.** The 5 guest tokens
+(`--vy-r-lg` 18px, `--vy-r-sm` 9px, a lighter `--vy-shadow` and `--vy-shadow-accent`, a warm-brown
+`--vy-glass-border`) move **consistently in one direction** — smaller, softer, warmer. *Drift produces arbitrary
+differences; theming produces a direction.* The `--vy-on-grad` pair carries a **measured** justification in
+source: each is computed against its own shell's page gradient (§N.4i/§N.4j), so unifying them would break AA on
+one of the two. None was accidental, so none was flattened.
+
+**⚠️ A category the inventory did not have: a DYNAMIC override.** The guest shell conditionally re-declares
+`--vy-accent`/`--vy-shadow-accent` from a validated property brand accent (#98), emitted after the main style.
+Not drift, not static theming — a runtime override, and correctly left alone.
+
+### ⚠️ No visual change, proven — zero value changes across all four shells
+
+Every palette token's **resolved** value (`getComputedStyle`, §N.8e) was captured in a real browser on the clean
+worktree and again after: **guest 21, operator 41, owner 43, public 24 — parse and render agreeing exactly in
+every shell**, then **0 tokens changed value and 0 were lost**. All four shells landed together; the pass was
+never half-applied.
+
+⚠️ **THE PROBE FAILED FIRST, AND THAT IS WHY IT IS TRUSTWORTHY NOW.** The initial token list was hand-typed: it
+invented seven tokens that do not exist and omitted thirteen that do (`--vy-r-pill`, `--vy-peach`, `--vy-orb-*`,
+`--vy-hk-*`, `--vy-shadow-sm/dark`, `--vy-muted-on-dark`). It was caught because parsed and resolved counts
+disagreed. **Regenerated programmatically, and only then did the two agree.** §N.8e: when the probe is wrong,
+publish nothing.
+
+### ⚠️ One real rendering consequence, found by the proof and reported rather than buried
+
+The base now provides **30 tokens that some shells never declared**. Inert almost everywhere — no shell's own
+CSS references a token it did not declare — but page content is also inside these shells, so each was checked:
+- guest `var(--vy-r-pill, 30px)` — the fallback **is** the shared value. No change.
+- `guest/auth/layout.blade.php` — a **standalone** layout with its own `:root`. Unaffected.
+- ⚠️ **public `booking/room.blade.php` uses `background: var(--vy-wash)`, and the public shell never declared
+  `--vy-wash`** — so the declaration was invalid at computed-value time and the review-response box rendered
+  **transparent**. It now resolves to `#F6EBE2`. **A latent defect the refactor fixes**: the author plainly
+  intended the cream wash and it silently did nothing. Recorded as the single behavioural delta of this pass.
+
+### G8 — three existing guards legitimately changed
+
+`AmberTextTokenTest`, `DesignTokenContrastTest` and `OperatorOwnerGreyDriftTest` all read the **shell files** for
+token values that have moved. ⚠️ **`AmberTextTokenTest`'s own non-vacuity message fired** — *"the token is no
+longer declared — this guard would pass on nothing"* — which is the guard working, not failing. Amended:
+the contrast and grey sweeps now compose **base + shell** (the cascade a browser actually sees), and the amber
+guard's assertion went from *"≥2 declarations, all equal"* to **"exactly 1"** — *strictly stronger*, because
+one-value-everywhere stopped being something to check and became a property of the structure.
+
+**Guard:** `DesignTokenSourceTest` (4/46) — reads the **rendered response** and computes the cascade, never the
+source text (§N.18.1): one-definition · no-visual-change against browser-captured values · the overrides survive
+(including operator's `--vy-on-grad` staying operator's) · **the base is included BEFORE the shell's styles**,
+because that ordering is what makes an override win. Mutation-proven four ways — re-declare a shared token in a
+shell (the DO-EMAIL-4 drift, restored) · change a base value · drop an override · move the include after the
+styles — each red on its own guard.
+
+Suite **2012/2019 · 13,124 assertions**, **7 non-green = the documented set**. PHPStan L5 (0); Pint clean.
+Browser spot-check: the public storefront renders identically.
