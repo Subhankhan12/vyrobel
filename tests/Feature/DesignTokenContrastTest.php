@@ -13,8 +13,13 @@ use PHPUnit\Framework\Assert;
  *
  * Darkened along the SAME warm hue (R>G>B preserved, a warmer stone rather than a cold grey) and kept
  * DISTINCT from each other so the muted/faint emphasis hierarchy survives:
- *   --vy-muted rgb(108,100,95)  = 5.66  PASS
- *   --vy-faint rgb(123,114,108) = 4.60  PASS
+ *   --vy-muted rgb(95,88,83)    PASS
+ *   --vy-faint rgb(108,100,95)  PASS
+ *
+ * ⚠️ The two lines above were STALE and are corrected here (DO-PLATE-1): they documented `--vy-faint` as
+ * rgb(123,114,108), which is not the shipped value — the tokens were darkened again after this comment was
+ * written, and the value named as `--vy-muted` here is in fact today's `--vy-faint`. The ASSERTIONS below
+ * always used the current values and were correct; only the prose had drifted.
  * --vy-ink (15.05) and --vy-accent (5.06) already passed and are untouched.
  */
 
@@ -46,11 +51,10 @@ function wcagRatio(array $a, array $b): float
 }
 
 it('keeps every shared text token at WCAG AA', function () {
-    // ⚠️ THE TRUE WORST CASE, computed rather than guessed: the card is rgba(255,252,248,.58), so its real
-    // painted colour is that composited over each stop of the page gradient. Compositing all four stops and
-    // taking the DARKEST gives rgb(249,223,207) — the hardest background for dark text anywhere on a card.
-    // (A first pass used a flat near-white, which is more forgiving and would have let `faint` through at
-    // 4.45.) Passing here means passing on every card in the product.
+    // ⚠️ THE DERIVED worst case: the card is rgba(255,252,248,.58), so its real painted colour is that
+    // composited over each stop of the page gradient. Compositing all four stops and taking the DARKEST gives
+    // rgb(249,223,207). (A first pass used a flat near-white, which is more forgiving.) See the MEASURED plate
+    // below — it is very slightly darker still, and is guarded separately.
     $cardBg = [249, 223, 207];
 
     foreach (['--vy-muted' => [95, 88, 83], '--vy-faint' => [108, 100, 95]] as $name => $rgb) {
@@ -113,3 +117,38 @@ it('declares the AA values in every shell', function (string $shell) {
         );
     }
 })->with($shells);
+
+/*
+ * ⚠️ THE MEASURED FLOOR — AND A PREMISE CORRECTION TO DO-PLATE-1 (2026-08-13).
+ *
+ * The test above uses the ARITHMETICALLY composited card plate. DO-PLATE-1 pixel-sampled the real rendered
+ * page instead, and found the card plate runs 4.50–4.67 for `--vy-faint`, with the darkest at
+ * rgb(250,221,206) — slightly worse than the arithmetic, because compositing the stops by hand ignores the
+ * card's `backdrop-filter: blur(22px) saturate(1.15)`.
+ *
+ * ⚠️ THAT DARKEST FIGURE WAS REPORTED AS "4.50, AA met with no margin". It is 4.4953. The report gave the
+ * 2-dp rounding, and posture A — ACCEPT, on the grounds that AA is met and darkening the token is a
+ * product-wide visual change for a robustness preference — was decided on that rounded number. Unrounded,
+ * `--vy-faint` is 0.005 BELOW the 4.5 bar at the single darkest card pixel. The premise of the decision was
+ * wrong, so the decision is reopened; it is not this file's to settle, and nothing here darkens a token.
+ *
+ * What this DOES do is close the silent-drift vector, which holds whichever way the founder rules: the
+ * measured plate and its exact ratio are pinned, so any future gradient or glass tweak that darkens the card
+ * REDS this test instead of quietly eroding a floor that already has nothing left to give.
+ */
+it('⚠️ THE MEASURED WORST PLATE HAS NOT MOVED — the floor is guarded even though it is 0.005 short', function () {
+    $measuredWorstPlate = [250, 221, 206];
+
+    // ⚠️ NOT AN AA ASSERTION — deliberately. Asserting >= 4.5 here would be red, and asserting >= 4.49 would be
+    // me loosening a compliance bar the founder has not been asked about. It pins the FACT.
+    expect(round(wcagRatio([108, 100, 95], $measuredWorstPlate), 4))->toBe(4.4953);
+
+    // The derived plate the test above uses really is the more forgiving of the two, so that test is not
+    // silently standing in for this one.
+    expect(wcagRatio([108, 100, 95], [249, 223, 207]))->toBeGreaterThan(4.5);
+
+    // ⚠️ `--vy-muted` and `--vy-ink` clear AA even on the measured plate — the shortfall is `--vy-faint` alone,
+    // which is what makes this a narrow decision rather than a palette-wide one.
+    expect(wcagRatio([95, 88, 83], $measuredWorstPlate))->toBeGreaterThanOrEqual(4.5)
+        ->and(wcagRatio([43, 35, 32], $measuredWorstPlate))->toBeGreaterThanOrEqual(4.5);
+});
