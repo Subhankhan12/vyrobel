@@ -215,7 +215,7 @@
                     <h2 class="vy-card-title" style="margin-bottom: 12px;">Your plan</h2>
                     <div style="display:flex;align-items:center;gap:14px;">
                         <div style="flex:1;">
-                            <div style="font-size:14px;font-weight:600;color:var(--vy-ink);">{{ $plan['tier'] }} · {{ $plan['price'] }}</div>
+                            <div style="font-size:14px;font-weight:600;color:var(--vy-ink);">{{ $plan['tier'] }}@if ($plan['price'] !== null) · {{ $plan['price'] }}@endif</div>
                             <div style="font-size:12.5px;color:var(--vy-muted);">{{ $plan['status'] }}</div>
                         </div>
                         <a href="{{ $plan['manage_url'] }}" class="vy-btn vy-btn--ghost">Manage plan</a>

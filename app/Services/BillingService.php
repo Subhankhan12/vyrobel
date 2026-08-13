@@ -97,6 +97,10 @@ final class BillingService
             // something: a per-unit subscription bills a mid-cycle unit change immediately.
             quantity: $plan->quantityFor(),
             prorate: $plan->isPerUnit(),
+            // ⚠️ BILLING PASS 2b — Stripe Tax, on exactly where the tax is EXCLUSIVE. Under the founder's ruling
+            // that is the per-unit shape: its Price is pre-tax, so Stripe must add the customer's own tax on top
+            // (€0 for an EU business under reverse charge). A flat tier's price is already the final amount.
+            automaticTax: StripePriceWiring::usesStripeTax($plan),
         );
     }
 

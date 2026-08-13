@@ -8452,3 +8452,26 @@ the record has always carried. It is **not structurally pinned**: a drifting ana
 showcase month on some run days and be swept into it. Every figure remains REAL and reconciling (#17); the guard
 therefore asserts the statement **shape**, never a constant.
 
+
+---
+
+## `DO-BILL-1` — the collected VAT ID never reaches Stripe (found in BILLING PASS 2b, 2026-08-13)
+
+**Verified, not assumed:** `organizations.billing_vat_id` is written by `BillingActionController` /
+`SettingsActionController` and read by `OperatorBilling`, `OperatorBillingCheckout`, `OperatorSettings` and the
+PDF letterheads (`OperatorLetterhead`, `GuestInvoiceDocument`, the owner remittance/booking-summary documents).
+A grep of `app/Payments/` shows **no Stripe call carries it.**
+
+**Why it matters now.** Pass 2b turned on Stripe Tax for per-unit plans, where a business VAT ID is what drives
+**EU reverse charge (€0 VAT)**. The session enables `tax_id_collection`, so Stripe asks for the id on its own
+hosted page — but a customer who already typed it into Vyrobel has no reason to expect to enter it again, and
+**if they skip it they are charged VAT they were entitled to reverse-charge.**
+
+**What it would need.** Create/update the Stripe customer with the stored id (`customer.tax_ids`) before the
+session, or write it back from the completed session's `customer_details.tax_ids` so the two agree. Neither is
+guessed at here — it changes what is sent on a real money path.
+
+**Verdict — REAL GAP (small, money-adjacent).** Not a correctness bug in what the app sends today: everything
+sent is correct, and the tax is Stripe's to compute. It is a **data-sync gap that costs the customer money in
+one direction only** (over-charging a reverse-charge business), which is why it is flagged rather than deferred
+silently.

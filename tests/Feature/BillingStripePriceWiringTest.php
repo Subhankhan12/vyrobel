@@ -102,8 +102,12 @@ it('⚠️ refuses to bill a PER-UNIT plan whose VAT convention nobody declared 
     $org = Organization::query()->findOrFail($s['org']->getKey());
     wiringPlan(Plan::PRICING_PER_UNIT, 'price_1RealMeteredMonthly');
 
-    // Undeclared is the shipped default — choosing has compliance consequences, so it is the founder's call.
-    expect(config('billing.stripe_tax_behavior'))->toBeNull();
+    // ⚠️ G8 — AMENDED BY BILLING PASS 2b. When this was written, UNDECLARED was the shipped default and the
+    // assertion recorded that. The founder has since ruled (Stripe Tax, exclusive), so the shipped default is
+    // now declared and per-unit billing is enabled. The invariant this test protects is unchanged and is what
+    // actually matters: **an undeclared convention must refuse to bill**, because that is the state in which the
+    // app would under-charge. So the test now creates that state explicitly instead of relying on the default.
+    config()->set('billing.stripe_tax_behavior', null);
 
     asProductionMoneyPath(function () use ($org) {
         expect(fn () => app(BillingService::class)->startCheckout($org, 'metered', 'monthly'))

@@ -236,6 +236,24 @@ class OperatorBilling extends Component
             'net' => $this->money($charge['net_minor'], $currency),
             'vat' => $this->money($charge['vat_minor'], $currency),
             'vat_pct' => (int) ($plan->vat_pct ?? 0),
+            // ⚠️ BILLING PASS 2b — WHETHER THE APP KNOWS THE TAX AT ALL, keyed off the plan (§N.16.3), never
+            // typed into the view. On a flat tier it does: €49 is VAT-inclusive and final. On a per-unit tier it
+            // does NOT: Stripe Tax computes it from the customer's country and status at checkout, and an EU
+            // business under reverse charge pays €0 — so any fixed percentage the page printed would be false
+            // for them. The view therefore shows the subtotal it can stand behind and defers the rest.
+            'tax_known' => (bool) $charge['tax_known'],
+            // ⚠️ ONE keyed phrase, chosen by the shape, never typed into the view (§N.16.3). Three places on the
+            // page state the tax; if each wrote its own wording they would drift, and one of them would end up
+            // asserting something the shape does not support — which is precisely how the 23% survived pass 3.
+            //
+            // ⚠️ A FLAT TIER SAYS NOTHING, deliberately. €49 is VAT-inclusive and final, but the app does not
+            // know the RATE baked into it (`vat_pct` is null on a flat plan), so "incl. 0% VAT" would be a fresh
+            // falsehood. Silence is the honest rendering, and it is what pass 3 shipped.
+            'tax_note' => match (true) {
+                ! $charge['tax_known'] => 'tax calculated at checkout',
+                (int) ($plan->vat_pct ?? 0) > 0 => 'incl. '.(int) $plan->vat_pct.'% VAT',
+                default => '',
+            },
             'unit_rate' => $this->money((int) ($plan->unit_rate_minor ?? 0), $currency),
         ];
     }

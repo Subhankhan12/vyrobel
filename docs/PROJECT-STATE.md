@@ -737,10 +737,50 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 > the money boundary. ⚠️ **The app now REFUSES to bill a per-unit plan in production until the convention is
 > declared** (`STRIPE_TAX_BEHAVIOR`), rather than under-charge quietly. Flat tiers are unaffected (inclusive).
 >
+> ✅ **RULED (2026-08-13): PER-UNIT VAT REACHES STRIPE VIA STRIPE TAX — `tax_behavior: exclusive` +
+> `automatic_tax`, with reverse charge handled by Stripe.** Option B. The €9 unit Price is PRE-TAX and Stripe
+> adds the customer's own tax at checkout — including **€0 for an EU business under reverse charge**.
+>
+> ✅ **BILLING PASS 2b (2026-08-13) WIRED IT — AND THE REAL CHANGE IS THAT THE APP GAVE UP A CLAIM.** The ruling
+> makes tax **customer-dependent**, so the engine's hardcoded `+ 23%` stopped being merely unsent and started
+> being **false**: a reverse-charge business pays €0, not 23%. The fix was therefore NOT better arithmetic — it
+> was to stop asserting a post-tax total the app cannot know. **Three layers moved together:**
+> - **Checkout** — `automatic_tax: enabled` for the exclusive (per-unit) shape only, plus the inputs Stripe Tax
+>   actually needs: `billing_address_collection: required`, `tax_id_collection: enabled`, and
+>   `customer_update.address` (without which Stripe rejects the session for an existing customer). ⚠️ **Flat is
+>   untouched** — €49 is inclusive and final, so asking Stripe to add tax would inflate it.
+> - **Engine** — `Plan::chargeFor()` per-unit is now the **PRE-TAX SUBTOTAL** (`units × €9`), carrying a new
+>   `tax_known: false`. Flat keeps `tax_known: true`.
+> - **Page** — per-unit shows the subtotal + **"tax calculated at checkout"**; the fixed "incl. 23% VAT" is gone.
+>   One keyed `tax_note` (§N.16.3) drives all three sites, so they cannot drift apart again.
+>
+> ⚠️ **THE PASS-2 REFUSAL IS LIFTED BECAUSE THE CORRECT PATH EXISTS, NOT BECAUSE THE GUARD WAS REMOVED.**
+> `STRIPE_TAX_BEHAVIOR` now defaults to `exclusive` and `assertTaxConventionResolved()` still throws the moment
+> it is unset — proven by a test that unsets it and watches production refuse again.
+>
+> ✅ **DISPLAY = CHARGE = STRIPE, restored under variable tax.** The app asserts only the half it knows (the
+> pre-tax subtotal, which is exactly `Price × quantity`); Stripe owns the tax. Pass 2's €72.00-vs-€88.56 gap is
+> closed from the other end — not by sending the 23%, but by never having claimed it.
+>
+> ⚠️ **2b FOUND TWO MORE SURFACES ASSERTING THE SAME FIXED VAT — both beside the one pass 3 fixed** (§N.13.1
+> again: the defect sits next to the flagged item). **(1)** the Billing page's own **"Next invoice" strip** read
+> `SubscriptionPricing`, not the plan — so a FLAT org saw "€49.00/mo" in the headline and "€72.00 + €16.56 VAT"
+> in the strip below it. **(2)** operator **Settings → "Your plan"** priced *every* org with the per-unit
+> formula: the demo org on flat Essential displayed **"Vyrobel Essential · €88.56/mo"** beside a Billing page
+> saying €49.00. Both now read `Plan::chargeFor()` (§N.8f), and `SubscriptionPricing` no longer computes VAT at
+> all — it had become a second, divergent total for one concept (5535 against 4500).
+>
+> ⚠️ **FLAGGED, NOT SILENTLY DEFAULTED — the VAT-ID sync gap (`DO-BILL-1`).** The app collects
+> `organizations.billing_vat_id` in its own checkout form, but that value is used **only for PDF letterheads and
+> is never sent to Stripe**. Stripe's own `tax_id_collection` now asks for it again at the hosted page; a
+> customer who skips it there is charged VAT they could have reverse-charged. Syncing the stored id onto the
+> Stripe customer is a follow-up, deliberately not invented here.
+>
 > ⛔ **REMAINING — the founder's step, which no code here can do** (`StripeSafetyGuard` refuses a live key
-> outside production): **(1)** decide how per-unit VAT reaches Stripe — a VAT-inclusive unit Price (€11.07 at
-> 23%, works today) **or** Stripe Tax with `automatic_tax` (correct for cross-border/EU B2B, ⚠️ needs a further
-> code change); **(2)** create the Price objects per the spec doc; **(3)** fill the production env. Plus the
+> outside production): **(1)** ⚠️ **enable Stripe Tax in the dashboard and register the tax jurisdictions** —
+> `automatic_tax` in code is **INERT** until that is done, so this is not optional; **(2)** create the Price
+> objects per the spec doc (the per-unit one at **€9.00, `tax_behavior: exclusive`**); **(3)** fill the
+> production env. Plus the
 > **super-admin plan-CRUD panel** (today a per-unit plan can only be made in a seeder or console).
 >
 > ⚠️ **A CORRECTION TO THE FIGURES BELOW (measured 2026-08-12).** The historic "B ~€44 vs A €99, billed DOUBLE"

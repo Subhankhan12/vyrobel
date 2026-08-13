@@ -45,7 +45,10 @@ return [
      * ⚠️ Left null deliberately: choosing has compliance consequences, so it is the founder's call. Until it is
      * set, StripePriceWiring REFUSES to bill a per-unit plan in production rather than under-charge silently.
      */
-    'stripe_tax_behavior' => env('STRIPE_TAX_BEHAVIOR'),
+    // ⚠️ RULED (billing pass 2b): per-unit Prices are EXCLUSIVE of tax and Stripe Tax computes it per
+    // customer — the correct answer for cross-border and for EU B2B reverse charge (€0). Flat tiers are
+    // VAT-inclusive and unaffected. Overridable per environment, but this is the shipped decision, not a guess.
+    'stripe_tax_behavior' => env('STRIPE_TAX_BEHAVIOR', 'exclusive'),
 
     'per_unit_minor' => 900,   // €9.00 / active unit / month — PLACEHOLDER
     'vat_pct' => 23,           // the operator's subscription VAT rate (23%) — PLACEHOLDER

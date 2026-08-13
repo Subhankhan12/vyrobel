@@ -52,7 +52,7 @@ interface StripeClientInterface
      *
      * @param  array<string, string>  $metadata
      */
-    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false): StripeCheckoutSession;
+    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false, bool $automaticTax = false): StripeCheckoutSession;
 
     /**
      * Update a live subscription's QUANTITY (BILLING PASS 1) — the per-unit path: the org added or removed a

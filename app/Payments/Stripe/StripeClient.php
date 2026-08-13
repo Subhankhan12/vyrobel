@@ -100,7 +100,7 @@ class StripeClient implements StripeClientInterface
         return $idempotencyKey !== null && $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
     }
 
-    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false): StripeCheckoutSession
+    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false, bool $automaticTax = false): StripeCheckoutSession
     {
         $params = [
             'mode' => 'subscription',
@@ -119,6 +119,25 @@ class StripeClient implements StripeClientInterface
             $params['customer'] = $customerId;
         } elseif ($customerEmail !== null) {
             $params['customer_email'] = $customerEmail;
+        }
+
+        // ⚠️ BILLING PASS 2b — STRIPE TAX. Only an EXCLUSIVE (per-unit) Price needs it: the €9 is pre-tax and
+        // Stripe adds the right amount for this customer — including €0 for an EU business under reverse charge.
+        // A flat tier is VAT-inclusive, so its total is already final and nothing here applies to it.
+        if ($automaticTax) {
+            $params['automatic_tax'] = ['enabled' => true];
+
+            // ⚠️ THE INPUTS ARE NOT OPTIONAL. Stripe Tax computes from the customer's COUNTRY and TAX STATUS; with
+            // neither it falls back to taxable, which is exactly the wrong answer for a reverse-charge business.
+            // So the session must collect both:
+            $params['billing_address_collection'] = 'required';
+            $params['tax_id_collection'] = ['enabled' => true];
+
+            // ⚠️ And Stripe REJECTS the session outright if an existing customer is passed with automatic_tax on
+            // and no `customer_update.address` — the address collected here has to be allowed to land on them.
+            if ($customerId !== null) {
+                $params['customer_update'] = ['address' => 'auto', 'name' => 'auto'];
+            }
         }
 
         $session = $this->sdk->checkout->sessions->create($params, $this->options($idempotencyKey));

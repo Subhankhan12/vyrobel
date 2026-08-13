@@ -9107,3 +9107,58 @@ confirmation, spelled out in the spec doc.
 **SCOPE:** config, seeder and the pre-charge gate only. Pass 1's engine, pass 3's page and the (unbuilt) panel
 are untouched.
 
+
+---
+
+## 2026-08-13 · BILLING PASS 2b — STRIPE TAX FOR PER-UNIT, AND THE APP GIVING UP A CLAIM
+
+**RULED:** per-unit VAT reaches Stripe via **Stripe Tax — `tax_behavior: exclusive` + `automatic_tax`**, reverse
+charge handled by Stripe. Flat tiers stay **VAT-inclusive** (€49/€99 final), unchanged.
+
+**Why this was not a pricing tweak.** Under Stripe Tax the tax is **customer-dependent** — country, business
+status, EU reverse charge (€0). So the engine's hardcoded `+ 23%` stopped being merely *unsent* (pass 2's
+finding) and became **false for a whole class of customers**. The correct response was not different arithmetic
+but **to stop asserting a post-tax total the app cannot know** (§N.8d).
+
+**Three layers moved together** — a split would have left the page asserting a tax the checkout no longer fixes:
+- **checkout** `automatic_tax: enabled` for the exclusive shape only, plus the inputs Stripe Tax requires
+  (`billing_address_collection`, `tax_id_collection`, `customer_update.address` — Stripe rejects the session
+  without the last one when an existing customer is passed);
+- **engine** per-unit `chargeFor()` is the **pre-tax subtotal** (`units × €9`) with a new `tax_known: false`;
+- **page** per-unit shows the subtotal + **"tax calculated at checkout"**, driven by ONE keyed `tax_note`
+  (§N.16.3) read by all three sites on the card.
+
+**The pass-2 refusal LIFTED for the right reason.** `STRIPE_TAX_BEHAVIOR` defaults to `exclusive`;
+`assertTaxConventionResolved()` still throws when it is unset, and a test unsets it to prove production refuses
+again. The guard was not removed — the correct path was built.
+
+**⚠️ TWO MORE SURFACES WERE ASSERTING THE SAME FIXED VAT, both beside the one pass 3 fixed** (§N.13.1):
+1. the Billing card's own **"Next invoice" strip** read `SubscriptionPricing`, so a FLAT org saw €49.00 in the
+   headline and **"€72.00 + €16.56 VAT"** immediately below it;
+2. operator **Settings → "Your plan"** priced *every* org with the per-unit formula — the demo org on flat
+   Essential displayed **"Vyrobel Essential · €88.56/mo"** against a Billing page saying €49.00.
+
+Both now read `Plan::chargeFor()`, and `SubscriptionPricing` no longer computes VAT at all: it had become a
+second, divergent total for one concept (5535 vs 4500), which is exactly what §N.8f exists to prevent.
+
+**G8 — three prior tests amended, invariants preserved:** pass 1's per-unit charge test (kept "real unit count ×
+rate, derived not stored"; dropped "+ 23% VAT"; added a non-vacuity assertion that the plan still carries
+`vat_pct = 23`), pass 3's page test (kept "the right view per shape"; swapped the fixed-VAT claim for the
+deferral), and pass 2's refusal test (kept "an undeclared convention refuses"; it now unsets the convention
+explicitly rather than relying on a default that the ruling changed).
+
+**Flagged, not defaulted — `DO-BILL-1`:** `organizations.billing_vat_id` is collected in-app but used only for
+PDF letterheads and **never sent to Stripe**. Stripe now asks again via `tax_id_collection`; a customer who
+skips it there pays VAT they could have reverse-charged. Syncing it onto the Stripe customer is a follow-up.
+
+**⛔ Founder steps remaining:** enable **Stripe Tax** + register jurisdictions in the dashboard (⚠️ `automatic_tax`
+is **inert** until then — a per-unit customer would be charged the pre-tax subtotal with no tax added); create
+the Prices (per-unit at **€9.00, exclusive**); fill the production env. The **super-admin plan-CRUD panel**
+remains unbuilt.
+
+Guards: `BillingStripeTaxTest` (8) — checkout on/off per shape · the flag tracks the declaration · the refusal
+lifts yet still fires when unset · engine subtotal with no VAT · flat unchanged · subtotal == what reaches
+Stripe · page per-unit deferral with no fixed VAT · page flat unchanged. Five mutations each red on the right
+guard (drop `automatic_tax` · undeclare exclusive · re-add the hardcoded VAT · make the page print a fixed VAT ·
+break subtotal-vs-Stripe). All against the FAKE client; `StripeSafetyGuard` untouched; no live key, no charge.
+Suite **1987/1994** (5 non-green = the documented `BookingImportTest` set); PHPStan L5 (0); Pint clean.

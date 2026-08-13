@@ -18,6 +18,8 @@ final class SubscriptionPricing
 {
     /**
      * @param  string  $interval  'monthly'|'yearly' — yearly applies the config yearly discount ratio.
+     *
+     * ⚠️ Every figure returned is PRE-TAX. Stripe Tax computes the customer's own tax at checkout.
      * @return array{units: int, per_unit_minor: int, net_minor: int, vat_minor: int, gross_minor: int, vat_pct: int, interval: string}
      */
     public static function current(string $interval = 'monthly'): array
@@ -27,22 +29,25 @@ final class SubscriptionPricing
         $units = BillableUnits::count();
 
         $perUnit = (int) config('billing.per_unit_minor', 900);
-        $vatPct = (int) config('billing.vat_pct', 23);
 
         // Yearly = 12 months at the yearly-vs-monthly ratio of the Pro tier (2 months free ≈ 10/12), so the
         // "switch to yearly · save €X" figure is derived from the real config, not invented.
         $monthlyNet = $units * $perUnit;
         $net = $interval === 'yearly' ? self::yearlyNet($monthlyNet) : $monthlyNet;
 
-        $vat = (int) round($net * $vatPct / 100);
-
+        // ⚠️ BILLING PASS 2b — NO VAT HERE EITHER. This added a hardcoded 23%, and after the per-unit engine
+        // stopped doing so it became a SECOND, divergent total for one concept (§N.8f): 5535 here against 4500
+        // there. Under Stripe Tax the rate belongs to the customer — €0 for an EU business under reverse charge
+        // — so the honest figure is the pre-tax subtotal, and it now matches `Plan::chargeFor()` exactly.
+        //
+        // The keys stay (callers read them) but state plainly that no tax is known app-side.
         return [
             'units' => $units,
             'per_unit_minor' => $perUnit,
             'net_minor' => $net,
-            'vat_minor' => $vat,
-            'gross_minor' => $net + $vat,
-            'vat_pct' => $vatPct,
+            'vat_minor' => 0,
+            'gross_minor' => $net,
+            'vat_pct' => 0,
             'interval' => $interval === 'yearly' ? 'yearly' : 'monthly',
         ];
     }

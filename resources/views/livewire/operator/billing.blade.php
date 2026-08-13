@@ -68,8 +68,14 @@
                                      subscription), so no fallback is needed — and a fallback to a key that does
                                      not exist would be a latent error rather than a safety net. --}}
                                 <div><span class="vy-bill-amt">{{ $billing['gross'] }}</span><span class="vy-bill-per">/mo</span></div>
-                                @if ($billing['is_per_unit'])
-                                    <div class="vy-bill-vat">incl. {{ $billing['vat_pct'] }}% VAT</div>
+                                {{-- ⚠️ BILLING PASS 2b — THE PAGE STOPPED CLAIMING A TAX IT CANNOT KNOW. This printed
+                                     "incl. 23% VAT" on a per-unit plan. Under Stripe Tax the rate is the CUSTOMER's
+                                     (§N.16.2 — their country and VAT status are data Stripe resolves at checkout), and an
+                                     EU business under reverse charge pays €0 — so a fixed 23% was false for them: a new
+                                     §N.8d. The amount above is now the pre-tax SUBTOTAL, exactly what reaches Stripe, and
+                                     the tax is deferred rather than guessed. --}}
+                                @if ($billing['tax_note'] !== '')
+                                    <div class="vy-bill-vat">{{ $billing['tax_known'] ? '' : '+ ' }}{{ $billing['tax_note'] }}</div>
                                 @endif
                             </div>
                         </div>
@@ -83,10 +89,13 @@
                                 <span class="vy-bill-next-ico" aria-hidden="true">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
                                 </span>
-                                <span>Next invoice <strong>{{ $plan['period_end'] }}</strong> · {{ $pricing['net'] }} + {{ $pricing['vat'] }} VAT</span>
+                                {{-- ⚠️ 2b — this read SubscriptionPricing, a SECOND hardcoded 23% pass 3 left behind, and it
+                                     asserted a VAT split on EVERY shape. It now reads the same plan-derived summary as the
+                                     headline (§N.8f, one definition) and says only what that shape supports. --}}
+                                <span>Next invoice <strong>{{ $plan['period_end'] }}</strong> · {{ $billing['gross'] }}@if ($billing['tax_note'] !== '') · {{ $billing['tax_note'] }}@endif</span>
                             </div>
                         @else
-                            <div class="vy-bill-line" style="margin-top:12px;color:var(--vy-muted);font-size:12px">{{ $pricing['net'] }} + {{ $pricing['vat'] }} VAT</div>
+                            <div class="vy-bill-line" style="margin-top:12px;color:var(--vy-muted);font-size:12px">{{ $billing['gross'] }}@if ($billing['tax_note'] !== '') · {{ $billing['tax_note'] }}@endif</div>
                         @endif
 
                         <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">

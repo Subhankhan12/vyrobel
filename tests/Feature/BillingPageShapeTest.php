@@ -90,7 +90,11 @@ it('⚠️ a FLAT org sees NO per-unit claim and NO proration promise — the li
     // …and none of the per-unit machinery. These are the exact claims that were false on a flat tier.
     expect($text)->not->toContain('prorated')
         ->and($text)->not->toContain('× €9.00')
-        ->and($text)->not->toContain('incl. 23% VAT');
+        ->and($text)->not->toContain('incl. 23% VAT')
+        // ⚠️ 2b adds one: the tax deferral belongs to the exclusive shape. A flat price is already final, so
+        // telling a flat customer their tax is "calculated at checkout" would be the same lie in the other
+        // direction.
+        ->and($text)->not->toContain('tax calculated at checkout');
 });
 
 it('⚠️ a PER-UNIT org sees the real math AND the proration line (true since pass 1)', function () {
@@ -107,8 +111,14 @@ it('⚠️ a PER-UNIT org sees the real math AND the proration line (true since 
         html_entity_decode(strip_tags((string) preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', ' ', $html)))
     ));
 
+    // ⚠️ G8 — AMENDED BY BILLING PASS 2b, AND ONLY THE NOW-FALSE HALF. This asserted 'incl. 23% VAT'. The
+    // invariant it was protecting — a per-unit org sees its real per-unit math, correctly taxed for its shape —
+    // still holds and is still asserted. What changed is the truth of the fixed percentage: with Stripe Tax the
+    // rate is the customer's own, and an EU business under reverse charge pays €0, so the app now shows the
+    // pre-tax subtotal and defers the tax. The 23% claim is dropped; nothing else about this test is relaxed.
     expect($text)->toContain($units.' units × €9.00')
-        ->and($text)->toContain('incl. 23% VAT')
+        ->and($text)->toContain('tax calculated at checkout')
+        ->and($text)->not->toContain('incl. 23% VAT')
         // TRUE now: pass 1 re-quantifies a per-unit subscription with Stripe proration.
         ->and($text)->toContain('prorated');
 

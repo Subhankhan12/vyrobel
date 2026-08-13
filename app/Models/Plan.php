@@ -95,7 +95,7 @@ class Plan extends Model
      *            a flat tier price is quoted as the price).
      * PER_UNIT → rate × the real unit count, + the plan's own VAT percentage.
      *
-     * @return array{units: int, net_minor: int, vat_minor: int, gross_minor: int, pricing_type: string}
+     * @return array{units: int, net_minor: int, vat_minor: int, gross_minor: int, tax_known: bool, pricing_type: string}
      */
     public function chargeFor(): array
     {
@@ -105,19 +105,31 @@ class Plan extends Model
                 'net_minor' => (int) $this->price_minor,
                 'vat_minor' => 0,
                 'gross_minor' => (int) $this->price_minor,
+                // A flat tier is VAT-INCLUSIVE by founder ruling: €49 IS the final amount, so the app really
+                // does know the total — unlike per-unit, where Stripe computes it per customer.
+                'tax_known' => true,
                 'pricing_type' => self::PRICING_FLAT,
             ];
         }
 
+        // ⚠️ BILLING PASS 2b — NO app-side VAT on a per-unit plan. It used to add a hardcoded 23%, which is
+        // simply false for many customers: with Stripe Tax the rate depends on THEIR country and status, and an
+        // EU business under reverse-charge pays €0. The app cannot know the tax before checkout, so it no
+        // longer claims one. `gross_minor` is the PRE-TAX subtotal — the exact amount the exclusive Price ×
+        // quantity sends to Stripe — and Stripe adds the tax on top.
+        //
+        // ⚠️ Deliberately NOT "replace 23% with better arithmetic". There is no arithmetic that is right here;
+        // the honest move is to stop asserting a number we do not have (§N.8d).
         $units = $this->quantityFor();
-        $net = $units * (int) $this->unit_rate_minor;
-        $vat = (int) round($net * (int) $this->vat_pct / 100);
+        $subtotal = $units * (int) $this->unit_rate_minor;
 
         return [
             'units' => $units,
-            'net_minor' => $net,
-            'vat_minor' => $vat,
-            'gross_minor' => $net + $vat,
+            'net_minor' => $subtotal,
+            // Zero because it is UNKNOWN app-side, not because it is nil — `tax_known` says which.
+            'vat_minor' => 0,
+            'gross_minor' => $subtotal,
+            'tax_known' => false,
             'pricing_type' => self::PRICING_PER_UNIT,
         ];
     }

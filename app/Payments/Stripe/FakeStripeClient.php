@@ -131,7 +131,7 @@ class FakeStripeClient implements StripeClientInterface
     /** @var array<string, array<string, mixed>> — created Checkout sessions, inspectable in tests. */
     public array $checkoutSessions = [];
 
-    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false): StripeCheckoutSession
+    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false, bool $automaticTax = false): StripeCheckoutSession
     {
         // A repeated Idempotency-Key returns the ORIGINAL session — never a second subscription.
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
@@ -150,6 +150,9 @@ class FakeStripeClient implements StripeClientInterface
             // of the fake rail is that the engine is provable without a live charge.
             'quantity' => max(1, $quantity),
             'prorate' => $prorate,
+            // ⚠️ Recorded so a test can prove Stripe Tax is switched on for an exclusive per-unit Price without a
+            // live charge — the tax itself is Stripe's to compute, but WHETHER WE ASK is ours and is assertable.
+            'automatic_tax' => $automaticTax,
             'customer' => $customerId ?? 'cus_fake_'.Str::lower(Str::random(14)),
             'subscription' => 'sub_fake_'.Str::lower(Str::random(14)),
             'metadata' => $metadata,

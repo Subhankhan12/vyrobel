@@ -19,7 +19,6 @@ use App\Models\Tax;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\SettingsService;
-use App\Support\Billing\SubscriptionPricing;
 use App\Support\Branding\PropertyBrand;
 use App\Support\Folio\StayEstimator;
 use App\Support\Guest\PropertySupport;
@@ -121,16 +120,23 @@ class OperatorSettings extends Component
         }
 
         $status = $organization->billingStatus();
-        $pricing = SubscriptionPricing::current('monthly');
 
         // The REAL plan name off the org's current subscription (the SAME source /app/billing reads) — never a
         // hardcoded tier, so the two operator surfaces can't disagree (#39). "Vyrobel " is the branded prefix.
-        $planName = $organization->currentSubscription()?->plan?->name;
+        $plan = $organization->currentSubscription()?->plan;
+        $planName = $plan?->name;
 
         return [
             'tier' => $planName !== null ? 'Vyrobel '.$planName : 'No plan',
             'status' => (string) $status->label(),
-            'price' => $this->money((int) $pricing['gross_minor'], (string) config('billing.default_currency', 'EUR')).'/mo',
+            // ⚠️ BILLING PASS 2b — THE PRICE IS THE ORG'S OWN PLAN, not a per-unit formula applied to everyone.
+            // This read `SubscriptionPricing` (units × €9 + 23% VAT) whatever the org was actually on, so an org
+            // on flat Essential was shown €55.35 beside the correct plan NAME while /app/billing said €49.00 —
+            // two operator surfaces disagreeing about one subscription. It now reads `Plan::chargeFor()`, the
+            // same expression the Billing page and the charge itself use (§N.8f), so they cannot drift.
+            'price' => $plan !== null
+                ? $this->money((int) $plan->chargeFor()['gross_minor'], (string) $plan->currency).'/mo'
+                : null,
             'manage_url' => route('app.billing'),
         ];
     }

@@ -12,24 +12,37 @@ into the production environment.**
 
 ---
 
-## ⛔ FIRST — a decision only you can make
+## ✅ DECIDED — Stripe Tax (Option B), wired by billing pass 2b
 
-⚠️ **How should VAT reach Stripe on a PER-UNIT plan?**
+⚠️ **How VAT reaches Stripe on a PER-UNIT plan: `tax_behavior: exclusive` + `automatic_tax`.** The €9 unit Price
+is PRE-TAX; Stripe computes the customer's own tax at checkout, including **€0 for an EU business under reverse
+charge**. Flat tiers are unchanged — VAT-inclusive, €49/€99 final.
 
-The engine computes a per-unit total as `units × rate + VAT`, and the page shows that figure. But the checkout
-sends only `price` and `quantity` — **nothing about tax**. So with a €9.00 Price and 8 units, Stripe would take
-**€72.00** while the page says **€88.56**: a silent **€16.56/month under-charge**.
+Pass 2b wired it: `automatic_tax` is enabled for the exclusive shape, the session collects a billing address and
+a tax ID, and the pass-2 refusal is lifted because the correct path now exists (unset `STRIPE_TAX_BEHAVIOR` and
+production refuses to bill per-unit again).
 
-Until you choose, **the app refuses to bill a per-unit plan in production** (it throws rather than under-charge).
-Flat tiers are unaffected — they are VAT-inclusive by your ruling, so €49 is already the final amount.
+⚠️ **THE APP STOPPED QUOTING A POST-TAX TOTAL FOR PER-UNIT.** It cannot know the customer's rate before
+checkout, so the page shows the pre-tax subtotal — "€72.00/mo · 8 units × €9.00 · tax calculated at checkout".
+That subtotal is exactly `Price × quantity`, so what is displayed is what Stripe receives before tax.
 
-| option | set `STRIPE_TAX_BEHAVIOR=` | what you create | trade-off |
-|---|---|---|---|
-| **A · inclusive** | `inclusive` | a per-unit Price at the **VAT-inclusive** amount (€11.07 at 23%) | Simplest, and consistent with the flat tiers. You account for the VAT inside the price. One rate for everyone — no cross-border handling. |
-| **B · exclusive** | `exclusive` | a per-unit Price at **€9.00** + Stripe Tax enabled | Correct for cross-border and EU B2B reverse-charge; Stripe computes the right rate per customer. ⚠️ Requires Stripe Tax configured **and** a further code change — the checkout does not yet send `automatic_tax`. |
+### ⛔ What you must do in the dashboard — `automatic_tax` is INERT until you do
 
-⚠️ **Option B is not just a config value** — it needs `automatic_tax: ['enabled' => true]` added to the checkout,
-which is a separate build. Option A works with the code as it stands today.
+1. **Enable Stripe Tax** (Settings → Tax).
+2. **Register your tax jurisdictions** — Stripe only computes for jurisdictions you have registered. Without
+   any, it will not add tax, and the charge will silently be the pre-tax subtotal.
+3. Confirm your origin address is set.
+
+⚠️ **Until both are done, a per-unit customer is charged €72.00 with no tax** — the app asks correctly and
+Stripe declines to add anything.
+
+### ⚠️ A gap worth knowing about (`DO-BILL-1`)
+
+Vyrobel collects a VAT number of its own (`organizations.billing_vat_id`) in the in-app checkout form, but that
+value is used **only on PDF letterheads and is never sent to Stripe**. Stripe's hosted page now asks for it
+again. A customer who enters it in Vyrobel and skips it at Stripe **will be charged VAT they could have
+reverse-charged.** Syncing the stored id onto the Stripe customer is a follow-up; it was flagged rather than
+guessed at.
 
 ---
 
@@ -44,7 +57,7 @@ Create each in **Stripe → Product catalogue → Add product → recurring pric
 | Essential yearly | `STRIPE_PRICE_ESSENTIAL_YEARLY` | EUR | **€490.00** (`49000`) | yearly | licensed (fixed) | **inclusive** |
 | Pro monthly | `STRIPE_PRICE_PRO_MONTHLY` | EUR | **€99.00** (`9900`) | monthly | licensed (fixed) | **inclusive** |
 | Pro yearly | `STRIPE_PRICE_PRO_YEARLY` | EUR | **€990.00** (`99000`) | yearly | licensed (fixed) | **inclusive** |
-| *(per-unit, if you create one)* | *(its own key)* | EUR | **A:** €11.07 · **B:** €9.00 | monthly | **per-unit** | **A:** inclusive · **B:** exclusive |
+| *(per-unit, if you create one)* | *(its own key)* | EUR | **€9.00** (`900`) | monthly | **per-unit** | ⚠️ **exclusive** |
 
 ⚠️ **The amounts above are the CONFIGURED PLACEHOLDERS** from `config/billing.php`, which that file labels as
 placeholders you set. If the real commercial prices differ, change the config **and** the Stripe Prices together
@@ -58,8 +71,8 @@ wrong amount. The app sends `quantity = 1` for flat and the real unit count for 
 
 ## After you paste the ids
 
-1. Set the `STRIPE_PRICE_*` values (and `STRIPE_TAX_BEHAVIOR` if you have a per-unit plan) in the **production**
-   environment.
+1. Set the `STRIPE_PRICE_*` values in the **production** environment. `STRIPE_TAX_BEHAVIOR` already defaults to
+   `exclusive` (the ruling) — set it explicitly only to override.
 2. Re-run the plan seeder so the `plans.stripe_price_id` column mirrors the environment.
 3. ⚠️ **Confirm in the dashboard** that each Price's amount, interval and tax behaviour match the table above.
    This is the step the test suite cannot perform for you — the guards prove the app sends the *configured* id
@@ -76,4 +89,6 @@ the checkout throws before creating a session. **Nothing silently falls back to 
 - **no `price_fake_*` can reach a production money path** — it throws;
 - an **unset** `STRIPE_PRICE_*` in production throws rather than falling back;
 - a **per-unit plan with no declared tax convention** refuses to bill in production;
-- the **quantity and amount** that would reach Stripe equal `Plan::chargeFor()` — the same figure the page shows.
+- the **quantity and amount** that would reach Stripe equal `Plan::chargeFor()` — the same figure the page shows;
+- **Stripe Tax is requested for the per-unit shape and NOT for flat**, and only while the convention says
+  `exclusive` — flipping it back to `inclusive` stops the app asking Stripe to add tax on top.

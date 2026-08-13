@@ -83,9 +83,7 @@ class StripePriceWiring
             return;
         }
 
-        $behavior = (string) (config('billing.stripe_tax_behavior') ?? '');
-
-        if (! in_array($behavior, ['inclusive', 'exclusive'], true)) {
+        if (! in_array(self::taxBehavior(), ['inclusive', 'exclusive'], true)) {
             throw new RuntimeException(
                 "Plan [{$plan->code}] is per-unit, but no Stripe tax convention is declared: the engine adds ".
                 'VAT that the checkout does not send, so Stripe would charge the pre-VAT total. Set '.
@@ -93,6 +91,29 @@ class StripePriceWiring
                 'adds it) — see docs/BILLING-STRIPE-PRICES.md. This is a founder decision, not a default.'
             );
         }
+    }
+
+    /**
+     * Whether this plan's tax is Stripe's to compute — i.e. its Price is EXCLUSIVE of tax.
+     *
+     * ⚠️ BILLING PASS 2b — THIS IS THE LIFT OF PASS 2's REFUSAL, AND IT LIFTS FOR THE RIGHT REASON. Pass 2 made a
+     * per-unit plan throw in production because the engine added a VAT the checkout never sent. The founder has
+     * now ruled: **Stripe Tax, `tax_behavior: exclusive`.** So `assertTaxConventionResolved()` stops throwing —
+     * not because the guard was weakened, but because `automatic_tax` is now actually wired and the pre-tax
+     * subtotal the app computes really is the amount that reaches Stripe. The guard still fires if someone
+     * unsets the convention.
+     *
+     * A FLAT tier is never Stripe-Tax'd: €49 is VAT-inclusive and final by the same ruling.
+     */
+    public static function usesStripeTax(Plan $plan): bool
+    {
+        return $plan->isPerUnit() && self::taxBehavior() === 'exclusive';
+    }
+
+    /** The declared convention for how tax reaches Stripe on an exclusive Price. */
+    private static function taxBehavior(): string
+    {
+        return (string) (config('billing.stripe_tax_behavior') ?? '');
     }
 
     /**

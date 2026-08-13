@@ -85,19 +85,27 @@ it('a FLAT plan charges quantity 1 — never the unit count', function () {
     expect(BillableUnits::count())->toBeGreaterThan(1);
 });
 
-it('⚠️ a PER-UNIT plan charges the org’s REAL unit count × rate + VAT', function () {
+it('⚠️ a PER-UNIT plan charges the org’s REAL unit count × rate (pre-tax)', function () {
     $s = seedScenario(1);
     withActiveUnits($s, 5);          // + the scenario's own unit = 6 active
 
     $units = BillableUnits::count();
     $plan = perUnitPlan(900, 23);
 
+    // ⚠️ G8 — AMENDED BY BILLING PASS 2b, AND ONLY THE TAX HALF. The invariant this test exists for is that the
+    // charge is the org's REAL unit count × the plan's rate, derived and never stored — that is untouched and
+    // still asserted below. What is dropped is the "+ 23% VAT": under Stripe Tax the rate is the customer's own
+    // and an EU business under reverse charge pays €0, so the app no longer asserts a post-tax total it cannot
+    // know. The figure is now the PRE-TAX subtotal, which is exactly what reaches Stripe.
     $charge = $plan->chargeFor();
     expect($plan->quantityFor())->toBe($units)
         ->and($charge['units'])->toBe($units)
         ->and($charge['net_minor'])->toBe($units * 900)
-        ->and($charge['vat_minor'])->toBe((int) round($units * 900 * 23 / 100))
-        ->and($charge['gross_minor'])->toBe($units * 900 + (int) round($units * 900 * 23 / 100));
+        ->and($charge['gross_minor'])->toBe($units * 900)
+        // ⚠️ NON-VACUITY: the plan still carries vat_pct = 23, so a regression that re-added it would be caught
+        // here rather than silently passing.
+        ->and((int) $plan->vat_pct)->toBe(23)
+        ->and($charge['vat_minor'])->toBe(0);
 });
 
 it('⚠️ the quantity is DERIVED, not stored — add a unit and the charge follows (§N.8d)', function () {
