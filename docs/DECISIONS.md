@@ -9584,3 +9584,50 @@ messages and this suite has no such fixture — the **rendered** proof is the br
 the demo owner with both states forced.
 
 Suite **2017/2024 · 13,140 assertions**, **7 non-green = the documented set**. PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-13 · SAVE v15 — THE PRE-BILLING TAIL, THE PROBE SAGA, AND A RETRACTION (docs-only)
+
+⚠️ **Numbering note:** the prompt for this save was labelled "v12", but v12/v13/v14 are already committed and
+these passes came *after* v14. Recorded as **v15** — reusing a tag would have corrupted the record.
+
+**Chapter ⑧ closes.** `DO-TOKEN-1` (`92c7b9b`) · `DO-STAR-1` (`5864514`) · `DO-SUP-1` (`9eebdb5`) ·
+`DO-PROBE-1`/`DO-PROBE-2` (`600f1bc`, `5f96247`) · `DO-PLATE-1` (`568cdd3`) + `dd5ecb9`. **Canon: §N.20**, six
+sub-sections.
+
+⚠️ **THE HEADLINE IS A RETRACTION, NOT A FIX.** The "product-wide AA floor defect" reported at `8440b7e` was our
+own instrument's **anti-alias halo** read from inside a dense 12px box. The true card floor is **4.50–4.67** and
+`DesignTokenContrastTest`'s constant (4.55) sits inside it — **the constant is sound.** The tell was that the
+box-interior median read *darker* than the true plate immediately beside the same text, which is impossible for
+a real plate: only ink-blend darkens at the glyphs.
+
+⚠️ **A finding is not safer for being ours.** A self-authored, already-committed conclusion deserves *more*
+scrutiny, because sunk cost and face cost both push the other way. Both stale register entries are annotated
+rather than deleted, and the 45 flags are marked **artefacts, not a work list**.
+
+### The six syntheses folded into §N.20
+
+1. **The instrument saga** — four corrections to one tool, every one a *plausible* number caught by a
+   known-answer fixture. Durable: plausible beats crashing only in appearance · anchor-validation proves it sees
+   *something*, not the *right plate* · **"validated" is per-input-class — name the untested classes** · sample
+   the element's OWN box · worst pixel ≠ worst position under AA · commit the harness · fail loud with
+   N/K/M counts · **"publish nothing" governs a clean bill too**.
+2. **The retraction** (above).
+3. **The headroom posture — ruled A (accept)**, with the ⛔ **floor-guard rider**: the test asserts a *constant*,
+   so drift would not red it; re-point it at the true composited worst plate. Rides into the sweep.
+4. **Verified-fine structurally** — the strongest §N.8d safeguard is a **missing field** (`DO-SUP-1`); and a
+   comment documenting a deliberate *absence* is the good kind, because it stops a helpful "fix".
+5. **Close a drift vector structurally** (`DO-TOKEN-1`) — a shell cannot diverge a token it no longer declares;
+   **and the list your proof iterates over is itself an instrument** (the hand-typed set invented 7, omitted 13).
+6. **An accessible name can be correct-then-overridden**, and **reveal-on-hover is tabbable-but-invisible**
+   (`DO-STAR-1`) — both found *beside* a concern that was itself fine.
+
+### State
+
+The pre-billing tail is complete. Billing CODE + BUILD complete; the flip is gated only on the founder's Stripe
+dashboard steps and the open VAT-validation decision. The contrast probe is **validated, with two named scope
+gaps** (dense-small-text on a steep gradient; text over a photo). The AA floor is **sound**. The last design
+pass — `DO-EMAIL-5-continued` (Part A 8 of 9, Part B 67) — is **unblocked** and carries the floor-guard rider.
+
+Suite **2036/2043**, 7 non-green = the documented set. Docs-only; no code, template, test or tool touched.

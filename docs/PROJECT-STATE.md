@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — **SEVEN CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17) · the DO-BILL PAIR (§N.18) · the PLAN PANEL (§N.19, SAVE v14)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST — `display = charge = STRIPE`, now from the ADMIN side too (§N.19.6); the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is gated on the FOUNDER's Stripe dashboard steps + ONE open decision, NOT on code** · suite **2008 / 2015**, 7 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own** — neither a fix nor drift, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
+# ⚠️ CANONICAL STATE — **EIGHT CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17) · the DO-BILL PAIR (§N.18) · the PLAN PANEL (§N.19) · the PRE-BILLING TAIL + the PROBE SAGA + a RETRACTION (§N.20, SAVE v15)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST — `display = charge = STRIPE`, now from the ADMIN side too (§N.19.6); the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is gated on the FOUNDER's Stripe dashboard steps + ONE open decision, NOT on code** · suite **2008 / 2015**, 7 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own** — neither a fix nor drift, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -59,11 +59,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 > ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.16, then the DO-register.
 >
 > *Written so a session with no other context can start work immediately. Everything below is verified state,
-> not summary. **SAVE v14 (2026-08-13).***
+> not summary. **SAVE v15 (2026-08-13).***
 >
 > ## WHERE THE PROJECT IS
 >
-> **SEVEN CHAPTERS ARE CLOSED, IN ORDER:**
+> **EIGHT CHAPTERS ARE CLOSED, IN ORDER:**
 > **① THE DESIGN-PARITY WALK (v8)** — operator 42/42 · owner 32/32 · guest 12 gates + 3 verdicts · + the
 >   cross-realm PDF sweep. **Canon: §N.13.**
 > **② THE CLEANUP SEQUENCE (v9)** — the grey-literal drift closed across PDFs, emails and the reachable
@@ -82,7 +82,12 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   BUILD ARE COMPLETE AND HONEST END-TO-END, INCLUDING FROM THE ADMIN SIDE. Everything remaining is
 >   NON-CODE** — the founder's Stripe dashboard steps and one open decision. **Canon: §N.19.**
 >
-> **Suite 2008 / 2015 · 7 non-green = the documented set** (`BookingImportTest` ×6 · `OwnerUnitDetailViewTest`
+> **⑧ THE PRE-BILLING TAIL (v15)** — `DO-TOKEN-1` (`92c7b9b`) · `DO-STAR-1` (`5864514`) · `DO-SUP-1`
+>   (`9eebdb5`) · the probe saga `DO-PROBE-1`/`DO-PROBE-2` (`600f1bc`, `5f96247`) · `DO-PLATE-1` (`568cdd3`) +
+>   the on-gradient fix (`dd5ecb9`). ⚠️ **Its headline is a RETRACTION, not a fix** — the "product-wide AA floor
+>   defect" was our own instrument's anti-alias halo. **Canon: §N.20.**
+>
+> **Suite 2036 / 2043 · 7 non-green = the documented set** (`BookingImportTest` ×6 · `OwnerUnitDetailViewTest`
 > ×1). ⚠️ **The count WALKS a 5–10 band on its own — neither a fix nor drift** (§N.17.7; it read 5 at v12 and 7
 > at both v13 and v14 with nothing relevant changed). ⚠️ **One run at `dcce44f` showed an 8th that did NOT
 > reproduce and was NOT identified — recorded as unexplained, not certified** (§N.18.6). PHPStan L5 (0) · Pint
@@ -121,54 +126,30 @@ conflicts with the repo, **trust the repo** and fix this file.
 >
 > ## WHAT TO DO NEXT — in priority order
 >
-> **⛔ ① THE FOUNDER's STRIPE STEPS — ⚠️ NOT CODE, AND A FRESH SESSION CANNOT DO THEM.** The billing code is
->   complete; the live-key flip is gated on three **dashboard/account** actions that `StripeSafetyGuard`
->   deliberately makes impossible from dev (it refuses a live key outside `production`):
->   **(a)** ⚠️ **enable Stripe Tax and register the tax jurisdictions** — `automatic_tax` in code is **INERT**
->   until then, and a per-unit customer would be charged the bare pre-tax subtotal with no tax added;
->   **(b)** create the Price objects per `docs/BILLING-STRIPE-PRICES.md` (per-unit **€9.00 exclusive** + the
->   four flat tiers, VAT-inclusive); **(c)** fill the production env with the real ids.
->   ⚠️ **A session can only REMIND and VERIFY THE WIRING — never claim the live Prices exist** (§N.17.6). The
->   old entry here ("two contradictory pricing models … billed ~2×") **is stale and is retired**: see §N.17.1.
+> **① `DO-EMAIL-5-continued` — THE LAST DESIGN PASS, and it is now UNBLOCKED.** Part A: **8 of 9** gated files
+>   remain (`/app/settings` measured — 221 / 45 / 1 — but ⚠️ **those 45 are RETRACTED halo artefacts, not
+>   defects**, §N.20.2). Part B: the **67** data-conditional files — §N.16.2's third axis, still never swept.
+>   ⚠️ **Measure with `tools/contrast-sampler.php`** (validated, §N.20.1) — **do not re-derive a sampler**, that
+>   is what re-hit the trap. ⚠️ **Two input classes are NOT validated** — dense small text on a *steep* gradient,
+>   and text over a photo backdrop: flag those **UNMEASURABLE-pending**, never trust a number for them.
+>   ⛔ **It carries the FLOOR-GUARD RIDER** (§N.20.3): re-point `DesignTokenContrastTest` at the true composited
+>   worst plate so a future gradient tweak **reds the test** instead of silently eroding the 4.50 margin.
 >
-> **⛔ ② THE VAT-VALIDATION DECISION — ⚠️ ALSO NOT CODE (a compliance call), surfaced by `DO-BILL-1`.** The app
->   performs a **STRUCTURAL** check ("is this plausibly a VAT number of a country we can name?"), never a
->   **VALIDITY** check ("does this number exist and belong to this business?"). Two options:
->   **(a)** send as-is and let Stripe validate against VIES — **implemented**; validation is **asynchronous**,
->   so a sale can be zero-rated before it completes; **(b)** require VIES validation before honouring reverse
->   charge — safer, but a build needing a "pending validation" state the product does not have.
->   ⚠️ **The safe half of (a) is shipped either way** (never send what we cannot type; never treat a rejection
->   as success). Recorded in §G.1. A fresh session must **not** pick (b) unilaterally — it changes tax outcomes.
+> **⛔ ② THE BILLING FLIP — no code work remains.** The billing CODE *and* BUILD are complete (§N.17–§N.19).
+>   It is gated on the founder's **Stripe dashboard steps** (enable Stripe Tax + register jurisdictions —
+>   ⚠️ `automatic_tax` is INERT until then · create the Prices per `docs/BILLING-STRIPE-PRICES.md` · fill the
+>   prod env) and the open **VAT-VALIDATION decision** (send-as-is, implemented, vs VIES-first, a build).
+>   ⚠️ A session can only remind and verify wiring — never claim the live Prices exist.
 >
-> **③ ✅ THE SUPER-ADMIN PLAN PANEL — BUILT (`f389317`). ⚠️ NOTHING BILLING-RELATED REMAINS TO BUILD.**
->   Create + edit of both shapes, platform-admin gated. ⚠️ **It was not a CRUD form** — the premise check found
->   subscriptions billed from the LIVE plan row with nothing captured, so an admin edit would have made the app
->   DISPLAY a price Stripe was not charging: `display ≠ charge` from the side four passes never checked
->   (§N.19.6). Terms now **freeze** on the subscription while the quantity stays **live**, and existing rows
->   were backfilled. **Everything below is the pre-billing tail.**
 
-> **④ `DO-TOKEN-1` — the shared token source. ⚠️ THE FIRST REMAINING BUILD.** The structural root of the entire grey-drift family: each shell
->   re-declares the whole palette, so any token can silently diverge (that is exactly how `DO-EMAIL-4` happened).
->   ⚠️ **FOUR shells, not three** — the inventory is verified and recorded at `a5212aa`. It must **preserve the
->   7 deliberate per-shell overrides** (guest radii, lighter shadow, `--vy-glass-border`, `--vy-on-grad`) rather
->   than flatten them — see §N.16.5. A refactor with a no-visual-change proof, not a contrast item.
->
-> **⑤ `DO-EMAIL-5-continued` — finish the role-coverage sweep, then open the DATA axis.** The method is recorded
->   (§N.16.1); the remaining gated blocks are behind `settings.manage` ×3, `properties.manage` ×3,
->   `payouts.manage`, `payments.refund` and `guests.erase` ×2 — each needs a render **as its role**. Then the
->   third axis: **data-conditional surfaces, never swept anywhere** (§N.16.2).
->
-> **⑥ The small tail** — `DO-STAR-1` (the Messages "Starred" flag is a **bookmark, not a rating** — do not fold
->   it into `DO10-4`), `DO-SUP-1` (a WhatsApp affordance needs a real per-number flag; today the support number
->   renders as `tel:` only), `DO-PDF-1`/`DO-PDF-2`, `DO-G4-1`.
->
-> **⑦ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
+> **③ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
 >   end of `MISSING-BACKEND-BY-PAGE.md`, plus the **6 reopened operator a11y gates** (§N.9) and the
 >   deferred-capability refusal sweep (§N.8b).
 >
 > ## HOW TO WORK
 >
-> **Read before starting: §N.19 (newest — the plan-panel canon: the admin-side back door, terms-freeze-
+> **Read before starting: §N.20 (newest — the probe saga, the RETRACTION, the headroom posture) · §N.19 (the
+> plan-panel canon: the admin-side back door, terms-freeze-
 > quantity-live, model-hook invariants, well-formed-at-shelf-and-till) · §N.18 (the DO-BILL canon: independent checks, the money-path structural
 > check, one sync path per money field, fail-safe direction) · §N.17 (the billing canon: the blocker as framing artefact, display=charge=
 > STRIPE, give-up-the-claim, the divergent second total, refuse-to-charge) · §N.16 (the audit method, the three
@@ -6974,3 +6955,142 @@ reads. **When an invariant matters, enumerate who can write its inputs, not just
 This is the fourth distinct way a defect has hidden from a pass in this project, and it belongs beside the other
 three (§N.16.2): conditional **STATE** · **AUTHORIZATION** · **DATA** · and now **ACTOR** — the surface was
 neither hidden nor conditional, it simply belonged to somebody the pass was not thinking about.
+
+---
+
+# (N.20) 🏁 THE PRE-BILLING TAIL — **THE PROBE SAGA AND A RETRACTION** (SAVE v15, 2026-08-13)
+
+*Six passes after the billing chapter: `DO-TOKEN-1` (`92c7b9b`) · `DO-STAR-1` (`5864514`) ·
+`DO-EMAIL-5-continued` BLOCKED (`2bb4b54`) · `DO-PROBE-1` (`600f1bc`) · the re-run stopped (`8440b7e`) ·
+`DO-PLATE-1` + the on-gradient fix (`568cdd3`, `dd5ecb9`) · `DO-SUP-1` (`9eebdb5`) · `DO-PROBE-2` (`5f96247`).*
+
+⚠️ **THE HEADLINE IS NOT A FIX — IT IS A RETRACTION.** This stretch spent most of its effort building a
+measuring instrument, discovered the instrument had manufactured a product defect, and withdrew the finding.
+That sequence, not any individual pass, is what these sections are for.
+
+## §N.20.1 ⚠️ THE INSTRUMENT SAGA — FOUR corrections to ONE tool, every one caught by a KNOWN-ANSWER fixture
+
+`tools/contrast-sampler.php` exists because `getComputedStyle` cannot see a gradient, and this product paints
+gradients on the body, on cards and on buttons. Getting it right took **four** corrections, and **every single
+one produced a plausible number first**:
+
+| # | the wrong reading | the correction |
+|---|---|---|
+| 1 | the single darkest pixel was the AA halo | a 10th-percentile worst |
+| 2 | halo dominates dense text even after an ink filter | adaptive halo rejection (>45% toward the ink) |
+| 3 | in a dense small-text box the halo is the MAJORITY of the interior | read **clear columns beside the glyph run**, never the interior |
+| 4a | the true minimum read the element's own EDGE blend (accent anchor 2.08) | a 5% percentile — **columns remove the halo, the percentile removes the edge; they are complementary** |
+| 4b | "clear" meant *far from the ink*, so a 70%-toward-background fringe qualified (dense line 4.07 vs a known 4.50) | "clear" means **IS the plate** |
+
+⚠️ **THE LESSONS, and they are the durable output of the whole stretch:**
+
+- **An instrument that produces PLAUSIBLE NUMBERS is more dangerous than one that CRASHES.** Every correction
+  above was found by a fixture with a **known answer**, never by the numbers looking wrong.
+- ⚠️ **Anchor-validation proves a tool can measure SOMETHING — not that it measured the RIGHT PLATE.** One
+  early probe reproduced both anchors exactly *and* scored a white button label 1.2 on cream. Validate on the
+  HARD case: a white label on a gradient **button**, read on the **button's** plate.
+- ⚠️ **"VALIDATED" IS PER-INPUT-CLASS.** A fixture certifies the tool only for its own input distribution. The
+  first harness used sparse text in padded blocks and certified nothing about dense 12px labels — the class
+  that actually broke it. **Validate on the hardest representative case, and NAME the classes still untested**
+  (here: dense-small-text on a *steep* gradient, and text over a photo backdrop — both named unvalidated).
+- **Sample the element's OWN box** — a button's plate is the button's gradient, not an ancestor card's.
+- **The worst PIXEL and the worst PLATE POSITION diverge under anti-aliasing** — read a low percentile of
+  genuine plate, never the extremum.
+- **Fail loud:** UNMEASURABLE reports a *reason*, never a number; every result carries
+  N-measured / K-failed / M-unmeasurable, so a 0-failures/0-measured cannot pose as a clean bill.
+- ⚠️ **"Publish nothing when the probe breaks" governs a CLEAN BILL as much as a defect list.** One probe
+  version was honest and blind — 166 unmeasurable, "0 failures". That is the most dangerous output available.
+- **COMMIT the validation harness** (`ContrastSamplerValidationTest`, 11 tests) so the next session re-verifies
+  the instrument in seconds instead of re-deriving it and re-paying the whole saga.
+
+## §N.20.2 ⚠️ THE RETRACTION — a finding is not safer for being OURS
+
+The stopped re-run (`8440b7e`) reported a **product-wide AA floor defect**: `DesignTokenContrastTest` assumed a
+card plate lighter than the real page, with `--vy-faint` measuring 4.19 and 4.07. It was written into the
+register as a defect.
+
+⚠️ **`DO-PLATE-1` measured it properly and RETRACTED it.** Those readings were **anti-alias halo** from inside a
+dense 12px box. The true card plate, sampled away from glyphs, is **4.50 – 4.67**, and the test's constant
+(4.55) sits **inside** that range. **The constant is sound; there was never a product-wide card defect.**
+
+⚠️ **THE TELL that caught it:** the box-interior median (4.35) read **darker than the true plate immediately
+beside the same text** (4.50+). That is physically impossible for a real plate — only ink-blend darkens *at* the
+glyphs. An independent adjacent-plate sample is what exposed it.
+
+⚠️ **THE LESSON: a finding is NOT safer for being ours.** A self-authored, already-committed conclusion deserves
+*more* scrutiny than an inherited one, because sunk cost and face cost both push the other way. The floor
+finding was reasonable when made and wrong under measurement, and saying so plainly is cheaper than defending
+it. *This is the fourth chapter in which re-reading beat the suite — and the first where what it caught was our
+own claim.*
+
+✅ **What WAS real was isolated from the same data and fixed:** text sitting directly on the page gradient
+measured **3.51**; `.vy-topbar-sub` was routed to `--vy-on-grad` (`dd5ecb9`), 3.65 → 4.50.
+
+## §N.20.3 ⚠️ THE HEADROOM POSTURE — ruled **A (accept)**, with a floor-guard rider
+
+⚠️ **FOUNDER DECISION — A (accept).** `--vy-faint` and `--vy-on-grad` clear the true worst plate at **exactly
+4.50**: AA is **met**, with zero margin. **B** (darken the tokens) and **C** (lighten the gradient stop) were
+**declined** — both are product-wide visual changes, and this is a robustness preference, not a compliance
+requirement. The warm-glass palette is deliberate and AA-correct.
+
+⛔ **THE RIDER, carried into the sweep — GUARD THE FLOOR.** `DesignTokenContrastTest` asserts against a
+**constant**, so a future gradient tweak that erodes 4.50 would **not** red it. That is the silent-drift vector
+the zero margin creates. Re-point the test at the **true composited worst plate** (at minimum re-pin the
+constant to `rgb(250,221,206)` = 4.50; better, measure it with the validated sampler) so drift **reds the
+test**. *Make the drift structural rather than a hope* — the same principle as `DO-TOKEN-1` below.
+
+## §N.20.4 ⚠️ VERIFIED-FINE, STRUCTURALLY — the strongest §N.8d safeguard is a MISSING FIELD
+
+`DO-SUP-1` closed **verified-fine**: the support phone renders `tel:`-only, and it is honest **by
+construction** — `SettingsService::SUPPORT_FIELDS` has **no WhatsApp field**, so a fabricated `wa.me` channel is
+**unrepresentable**, not merely discouraged. Keyed-not-typed at its purest: **the absence of the slot IS the
+safeguard.**
+
+⚠️ **Premise corrected:** this was a deliberate build-time decision, already documented at
+`PropertySupport.php:30` — *"PHONE, NOT WHATSAPP … nothing verifies a number answers on WhatsApp."* The register
+entry was a **deferral note, not a defect report**.
+
+⚠️ **A comment documenting a deliberate ABSENCE is the good kind.** It is not load-bearing — the missing field
+is — but it records *why*, which stops a well-meaning future session from "completing" the omission. The
+constructive inverse of *a comment is not a defence*.
+
+N.13.1 neighbours were checked and are clean: hours render the operator's own words when set; the reply norm is
+keyed and hedged, never "guaranteed"; "WhatsApp" elsewhere is only a channel-record enum and a
+throws-until-configured skeleton.
+
+## §N.20.5 ⚠️ CLOSE A DRIFT VECTOR STRUCTURALLY · AND THE LIST YOUR PROOF ITERATES OVER IS ITSELF AN INSTRUMENT
+
+`DO-TOKEN-1` moved the **31 shared tokens** into one canonical `components/design/tokens.blade.php`, included
+before each shell's `<style>`, preserving the **7 deliberate** per-shell divergences.
+
+⚠️ **A shell can no longer diverge a token it no longer DECLARES.** The strongest fix does not guard a defect
+family — it makes it **unrepresentable**. (The same shape as §N.20.4's missing field, and the shape the
+floor-guard rider is asking for.)
+
+⚠️ **AND THE LIST ITSELF WAS AN INSTRUMENT.** The hand-typed token list **invented seven tokens that do not
+exist and omitted thirteen that do** — caught only because the *parsed* and *resolved* counts disagreed.
+**Regenerate the set your proof iterates over programmatically, and cross-check its size.** A proof is no
+stronger than the enumeration it runs over.
+
+**The deliberate-vs-accidental criterion, recorded:** *drift produces arbitrary differences; theming produces a
+direction.* The five guest divergences all move one way (smaller, softer, warmer) — theming. `--vy-amber-text`
+had two unrelated values — drift.
+
+No-visual-change was **proven by resolved-value diff** (0 changed across four shells), and one latent bug fell
+out: public's `--vy-wash` was undeclared, so a review-response background rendered transparent.
+
+## §N.20.6 ⚠️ AN ACCESSIBLE NAME CAN BE CORRECT-THEN-OVERRIDDEN · AND REVEAL-ON-HOVER IS TABBABLE-BUT-INVISIBLE
+
+`DO-STAR-1` was **verified-fine on the flagged concern** — the Messages star is a bookmark whose state is
+carried by glyph **shape** (filled vs outline), so DO10-4's colour-only failure is absent. ⚠️ **And the same
+measurement found two defects BESIDE it** (N.13.1 again):
+
+1. ⚠️ **A static `aria-label="Star"` OVERRODE the correctly-computed `title="Unstar"`** — a screen-reader user
+   heard the wrong action on a toggle. The right words were being derived and thrown away one attribute later.
+   **Put toggle STATE in `aria-pressed` and keep the NAME stable.** *An accessible name can be
+   correct-then-overridden, not merely missing* — a failure mode no "is it labelled?" check catches.
+2. ⚠️ **A `:hover`-only action bar left in the tab order** — focusable, invisible (WCAG 2.4.7). **Pair
+   reveal-on-hover with reveal-on-`:focus-within`.** Not applied to Reply/React, which are not toggles.
+
+⚠️ **Instrument note:** a `getComputedStyle` opacity read taken **mid-transition** returned a false `0` — the
+fix was correct, the measurement was early. §N.8e's freeze rule, in a new guise.

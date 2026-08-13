@@ -8602,7 +8602,11 @@ other than the mechanism under test.*
 
 ---
 
-## ⛔ `DO-EMAIL-5-continued` — **BLOCKED ON THE INSTRUMENT** (attempted 2026-08-13; scope mapped, nothing published)
+## ⛔ `DO-EMAIL-5-continued` — ~~BLOCKED ON THE INSTRUMENT~~ ✅ **UNBLOCKED at `5f96247`** (attempted 2026-08-13; scope mapped, nothing published)
+
+> ✅ **SUPERSEDED (SAVE v15):** the instrument that blocked this pass was built and validated — `DO-PROBE-1`
+> (`600f1bc`) and `DO-PROBE-2` (`5f96247`). **The sweep is runnable.** The entry below is kept for the
+> three-probe-failure diagnosis, which is still the reason the tool looks the way it does.
 
 ⚠️ **This pass did not close. It is recorded as blocked rather than shallow-closed, because the contrast probe
 could not be made trustworthy and §N.8e's rule is explicit: when the probe breaks, publish NOTHING** — and that
@@ -8717,7 +8721,13 @@ proven it reads the right plate.
 
 ---
 
-## ⚠️ `DO-EMAIL-5-continued` (RE-RUN) — the probe now works, and it found something bigger than the sweep
+## ⚠️ `DO-EMAIL-5-continued` (RE-RUN) — ~~it found something bigger than the sweep~~ — ⚠️ **THAT FINDING IS RETRACTED**
+
+> ⚠️ **RETRACTED at `568cdd3` (SAVE v15).** The "AA floor rests on an assumed plate" conclusion below was **our
+> own instrument's anti-alias halo**, not a product defect: the true card floor is **4.50–4.67** and the test's
+> constant (4.55) sits inside it. ⚠️ **Do not act on the 45 flags — they are artefacts, not a work list.** Kept
+> because the reasoning was sound when written, and because being wrong under measurement is worth recording
+> (§N.20.2).
 
 **Status: Part A MEASURED on 1 of 9 surfaces, NOT fixed · Part B UNTOUCHED.** The pass did not close, and what
 stopped it this time is not the instrument — it is a **finding that outranks the sweep**.
@@ -9018,3 +9028,55 @@ known-bad / gradient / coordinate-contract cases. Each red on its own guard.
 **⬅ UNBLOCKS:** `DO-EMAIL-5-continued` is now runnable on small-text surfaces (Part A's 8 remaining gated files,
 Part B's 67) with a probe validated for that class.
 
+
+---
+
+# 📋 THE DO-REGISTER AT SAVE v15 (2026-08-13) — the pre-billing tail, reconciled
+
+### ✅ Closed this stretch
+
+| item | commit | outcome |
+|---|---|---|
+| `DO-TOKEN-1` | `92c7b9b` | 31 shared tokens → one canonical source; 7 deliberate divergences preserved; no visual change proven |
+| `DO-STAR-1` | `5864514` | verified-fine on the flag; **two defects fixed beside it** — an overridden `aria-label`, a hover-only tab stop |
+| `DO-SUP-1` | `9eebdb5` | **verified-fine, structurally** — no WhatsApp field exists, so the claim is unrepresentable |
+| `DO-PROBE-1` | `600f1bc` | the validated pixel-sampler (tooling) |
+| `DO-PROBE-2` | `5f96247` | the third/fourth corrections — clear-column sampling (tooling) |
+| `DO-PLATE-1` | `568cdd3` | investigation — the floor finding **RETRACTED**; posture **A** ruled |
+| — | `dd5ecb9` | the real defect it isolated: on-gradient text → `--vy-on-grad` (3.65 → 4.50) |
+
+### ⚠️ RETRACTED — not a live defect
+
+**The `8440b7e` "product-wide AA floor defect" is WITHDRAWN.** `--vy-faint` at 4.19/4.07 were **anti-alias halo**
+read from inside a dense 12px box, not card plates. The true card floor is **4.50–4.67** and
+`DesignTokenContrastTest`'s constant (4.55) sits inside it — **the constant is sound.** Anyone reading the
+earlier entry should stop at this line: there is no card-plate defect to fix. (§N.20.2)
+
+⚠️ **The 45 flags on `/app/settings` recorded during the stopped re-run are the same artefact.** They are
+**not** a work list.
+
+### ✅ Resolved — founder decision
+
+**The headroom posture is A (accept).** AA is met at exactly 4.50 with zero margin; **B** (darken the tokens) and
+**C** (lighten the gradient stop) were declined as product-wide visual changes for a robustness preference, not
+a compliance need.
+
+⛔ **RIDER, carried into the sweep — GUARD THE FLOOR.** `DesignTokenContrastTest` asserts a *constant*, so a
+future gradient tweak that erodes 4.50 would not red it. Re-point it at the true composited worst plate
+(minimum: re-pin to `rgb(250,221,206)` = 4.50; better: measure with the validated sampler).
+
+### ⬅ Carried
+
+- **`DO-EMAIL-5-continued` — PARTIAL, now UNBLOCKED.** Part A: 8 of 9 gated files unswept. Part B: 67
+  data-conditional files, axis 3 never swept. Carries the **floor-guard rider**.
+- ⛔ **The billing flip** — CODE + BUILD complete; gated only on the founder's Stripe dashboard steps and the
+  open VAT-validation decision.
+
+### ⚠️ NOT VALIDATED — the probe's named scope gaps
+
+`tools/contrast-sampler.php` is validated for: dense small text on a flat plate · large/padded blocks · flat
+plates · text on a page gradient · a gradient button on its own plate.
+
+⚠️ **It is NOT validated for: dense small text over a STEEP gradient, or text over a PHOTO backdrop.** The sweep
+must record those **UNMEASURABLE-pending** rather than trust a reading. *Naming the untested classes is the
+discipline the whole probe saga paid for.*
