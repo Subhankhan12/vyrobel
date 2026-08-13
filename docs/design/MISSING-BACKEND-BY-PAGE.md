@@ -8946,3 +8946,75 @@ It would need an explicit operator-set **"this number is on WhatsApp"** flag fir
 forgetful operator cannot ship an unverified claim. That is a scoped build **plus** a product decision (does
 Vyrobel want a WhatsApp channel at all?). **Surfaced, not built.**
 
+---
+
+## ✅ `DO-PROBE-2` — **VALIDATED** (2026-08-13) — the plate is read BESIDE the glyphs, not among them
+
+**The third instrument correction. Tooling + fixtures + harness only; no product code.**
+
+### ⚠️ The fix — clear columns, and one thing the first attempt got wrong
+
+The plate is now read from **CLEAR COLUMNS**: columns crossing the glyph band whose **every** pixel is the
+plate — the leading/trailing space, the gaps between words, the element's own padding. Same vertical band as
+the text, so the gradient value matches what is actually behind it. No clear band ⇒ **UNMEASURABLE**, never a
+fallback to the interior.
+
+⚠️ **Two sub-corrections were needed inside this one, both caught by the fixtures:**
+1. **The clear-column scan and the percentile are complementary, not alternatives.** With halo excluded by
+   construction the true minimum looked safe — it was not: a padded block's outermost rows blend into whatever
+   is behind it, so the darkest "clear" pixel was the element's **edge**. The accent anchor read **2.08** on an
+   accent→cream boundary. Columns remove the **halo**; a 5% percentile removes the **edge**; a proportional
+   vertical inset keeps the scan off the boundary at all.
+2. ⚠️ **"Clear" must mean *is the plate*, not *far from the ink*.** Reusing the halo cut for the column test is
+   far too permissive — a fringe pixel 70% of the way to the background passes "not ink" easily, so a column of
+   light halo still counted as clear and the dense line read **4.07 against a known 4.50**. Defining clear
+   positively — every pixel near the modal plate, tolerance scaled to the ink→plate distance — is what actually
+   isolates background.
+
+### ⚠️ The validation — the class that broke it, with a KNOWN answer
+
+New committed fixture: dense **12px** text at `--vy-faint` over a **flat, known** plate `rgb(250,221,206)`,
+where the answer is exactly **4.50**.
+
+| | d1 (short) | d2 (short) | d3 (full-width, dense) |
+|---|---|---|---|
+| **new — adjacent band** | **4.50** | **4.50** | **4.50** ✅ |
+| old — box interior | 4.50 | 4.50 | **3.99** ❌ |
+
+⚠️ **The sparse labels never exposed the bug** — d1/d2 agree under both methods. Only the dense line separates
+them, which is precisely why the original fixture certified nothing about this class. The legacy path is kept
+behind `--legacy-interior` **solely** so the harness can prove what the old method would have missed.
+
+**Old fixture UNREGRESSED:** anchors **5.18 / 15.4** exact, known-bad **1.5**, body-gradient text **9.20**
+(was 9.03), gradient button **3.29** (was 3.37) — both drifts are the clear-column method choosing a genuinely
+better plate pixel, and both remain inside their assertion bands.
+
+⚠️ **G8 — one old assertion amended:** it pinned the button's plate as the exact string `rgb(225,104,50)`; the
+new method reads `rgb(227,106,52)` — the same gradient, a marginally different point. The **invariant** (the
+plate is the button's own accent, never an ancestor's cream) is now asserted directly by channel range, which
+still discriminates: cream is ~`(248,231,219)`.
+
+**Independent cross-check (§N.18.1):** a pixel beside the glyph run read straight from the PNG — with no
+involvement of the sampler's logic — is `rgb(250,221,206)`, the fixture's declared plate. The tool agrees.
+
+### ⚠️ SCOPE — what is validated, and what is NOT
+
+| input class | status |
+|---|---|
+| dense small text (12px) over a flat plate | ✅ **NEW** — the class that broke it |
+| large / padded blocks | ✅ old, unregressed |
+| flat plates, and text on a page gradient | ✅ old, unregressed |
+| a gradient **button** read on its own plate | ✅ old, unregressed |
+| **dense small text over a STEEP gradient** | ⚠️ **NOT VALIDATED** — the fixture's plate is flat. The plate tolerance is scaled, so it *should* hold, but no fixture proves it. |
+| text over a photo/image backdrop | ⚠️ **NOT VALIDATED** — no fixture. |
+
+⚠️ **Naming the untested classes is the point.** Claiming a fix covers classes it was never tested on is the
+exact error of the previous two corrections.
+
+**Harness:** `ContrastSamplerValidationTest` **11 tests / 40 assertions**, mutation-proven four ways — revert to
+the interior method · loosen the column test to "far from ink" · drop the no-clear-band refusal · plus the old
+known-bad / gradient / coordinate-contract cases. Each red on its own guard.
+
+**⬅ UNBLOCKS:** `DO-EMAIL-5-continued` is now runnable on small-text surfaces (Part A's 8 remaining gated files,
+Part B's 67) with a probe validated for that class.
+

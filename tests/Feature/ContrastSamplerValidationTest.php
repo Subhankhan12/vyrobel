@@ -14,10 +14,10 @@
  * `scale: css` so one image pixel is one CSS pixel — the coordinate contract the sampler enforces.
  */
 
-function sampler(string $png, string $candidates): array
+function sampler(string $png, string $candidates, string $extra = ''): array
 {
     $out = shell_exec(sprintf(
-        'php %s %s %s --report-all 2>&1',
+        'php %s %s %s --report-all '.$extra.' 2>&1',
         escapeshellarg(base_path('tools/contrast-sampler.php')),
         escapeshellarg(base_path('tests/Fixtures/probe/'.$png)),
         escapeshellarg(base_path('tests/Fixtures/probe/'.$candidates)),
@@ -42,7 +42,19 @@ it('⚠️ VALIDATION 2 — THE HARD CASE: a gradient BUTTON is read on the BUTT
 
     // ⚠️ THE CHECK ANCHOR-VALIDATION MISSES. Attempt 3 scored this label 1.2 on "cream" — an ancestor card's
     // plate. The plate here must be the accent GRADIENT painted by the button itself.
-    expect($btn['plate'])->toBe('rgb(225,104,50)');
+    //
+    // ⚠️ G8 — AMENDED BY DO-PROBE-2. This pinned the exact pixel `rgb(225,104,50)`; the clear-column method
+    // selects a marginally different point of the same gradient (`rgb(227,106,52)`), so an exact string would
+    // now fail for a better reading. The INVARIANT — the plate is the button's own ACCENT, never an ancestor's
+    // cream — is asserted directly instead, and it still discriminates: cream is roughly (248,231,219), whose
+    // green and blue are nowhere near this range.
+    preg_match('/rgb\((\d+),(\d+),(\d+)\)/', $btn['plate'], $m);
+    // (named plateR/G/B rather than r/g/b — `$r` already holds the sampler result in this test)
+    [$plateR, $plateG, $plateB] = [(int) $m[1], (int) $m[2], (int) $m[3]];
+
+    expect($plateR)->toBeGreaterThan(200)
+        ->and($plateG)->toBeGreaterThan(60)->toBeLessThan(140)     // cream would be ~231
+        ->and($plateB)->toBeGreaterThan(20)->toBeLessThan(90);     // cream would be ~219
 
     // …and the resulting ratio matches the value the design record independently documents for
     // white-on-accent-gradient (≈3.4), which is a THIRD anchor arrived at from a different direction.
@@ -113,4 +125,76 @@ it('⚠️ THE COORDINATE CONTRACT IS CHECKED, NOT ASSUMED — a scale mismatch 
     // ⚠️ A silent mismatch would sample the wrong pixels and return perfectly plausible numbers — the single
     // most dangerous outcome available to this tool. It refuses instead.
     expect($out)->toContain('mismatch')->toContain('refusing to sample')->toContain('EXIT:3');
+});
+
+/*
+ * ⚠️ DO-PROBE-2 — THE THIRD CORRECTION: dense small text (2026-08-13).
+ *
+ * The cases above certified the tool for LARGE, PADDED, FLAT and GRADIENT-BUTTON elements — and certified
+ * nothing about the class that actually broke it. In a dense 12px box the anti-alias halo is the MAJORITY of
+ * non-ink pixels, so the box-interior method read the halo: on a real page it gave median 4.35 where the true
+ * plate beside the same text was 4.50+, and a plate cannot be darker where the text is than where it is not.
+ * That reading had already been written up as a product defect before it was caught (DO-PLATE-1).
+ *
+ * The plate is now read from CLEAR COLUMNS — columns whose every pixel IS the plate — beside the glyph run.
+ * These fixtures pin the correction, and the legacy path is kept solely to prove the old method would have
+ * missed it.
+ */
+
+/** The known answer: --vy-faint rgb(108,100,95) on the flat plate rgb(250,221,206) is exactly 4.50. */
+const DENSE_KNOWN_RATIO = 4.5;
+
+it('⚠️ DENSE SMALL TEXT — the adjacent band reads the KNOWN plate, on every line', function () {
+    $r = sampler('dense.png', 'dense-candidates.json');
+
+    // ⚠️ NON-VACUITY: all three lines are measured, none skipped.
+    expect($r['measured'])->toBe(3)->and($r['unmeasurable'])->toBe(0);
+
+    // d3 is the genuinely dense line — text across the full width, plate visible only between words.
+    expect($r['ratios']['d1'])->toBe(DENSE_KNOWN_RATIO)
+        ->and($r['ratios']['d2'])->toBe(DENSE_KNOWN_RATIO)
+        ->and($r['ratios']['d3'])->toBe(DENSE_KNOWN_RATIO);
+});
+
+it('⚠️ THE REGRESSION WITNESS — the OLD interior method would have missed it', function () {
+    $new = sampler('dense.png', 'dense-candidates.json');
+    $old = sampler('dense.png', 'dense-candidates.json', '--legacy-interior');
+
+    // The interior method reads the halo on the dense line and under-reports the plate. Pinning BOTH numbers
+    // means this case fails if the fix is reverted AND documents what it was reverted from.
+    expect($old['ratios']['d3'])->toBeLessThan(DENSE_KNOWN_RATIO)
+        ->and($new['ratios']['d3'])->toBe(DENSE_KNOWN_RATIO);
+
+    // ⚠️ Sparse labels never exposed the bug — which is exactly why the original fixture certified nothing.
+    expect($old['ratios']['d1'])->toBe(DENSE_KNOWN_RATIO);
+});
+
+it('⚠️ THE INDEPENDENT CROSS-CHECK — the band is not darker than a hand-verified plate pixel', function () {
+    // The check that caught the retraction, made permanent: read one pixel beside the glyph run directly from
+    // the PNG, with no involvement of the sampler's logic, and confirm the tool did not report something
+    // darker. A tool still catching halo would.
+    $img = imagecreatefrompng(base_path('tests/Fixtures/probe/dense.png'));
+    $rgb = imagecolorat($img, 700, 62);
+    $hand = [($rgb >> 16) & 255, ($rgb >> 8) & 255, $rgb & 255];
+
+    expect($hand)->toBe([250, 221, 206]);   // the fixture's declared plate, read from the pixels
+
+    $r = sampler('dense.png', 'dense-candidates.json');
+    expect($r['ratios']['d1'])->toBe(DENSE_KNOWN_RATIO);
+});
+
+it('⚠️ NO CLEAR BAND ⇒ UNMEASURABLE — never a fallback to the untrustworthy interior', function () {
+    // A box sitting entirely within the glyph run: there is no column of pure plate to read, so the plate
+    // cannot be isolated. ⚠️ The old behaviour — fall back to averaging the interior — is exactly the halo
+    // reading this correction exists to eliminate, so refusing is the only honest answer.
+    $r = sampler('dense.png', 'dense-noband-candidates.json');
+
+    expect($r['unmeasurable'])->toBe(1)
+        ->and($r['unmeasurableReasons'])->toHaveKey('no-clear-band')
+        ->and($r['measured'])->toBe(0)
+        ->and($r['failed'])->toBe(0);
+
+    // ⚠️ AND IT IS NOT REPORTED AS A NUMBER — a 0-measured result carries its zero openly rather than posing
+    // as a clean bill.
+    expect($r['ratios'])->not->toHaveKey('inside-glyphs');
 });

@@ -45,6 +45,50 @@ const MIN_PLATE_RATIO = 0.30;  // at least this share of sampled pixels must be 
 const HALO_FRACTION = 0.45;   // closer to the ink than this share of the ink→plate distance ⇒ halo, not plate
 
 /**
+ * ⚠️ THE THIRD CORRECTION — SAMPLE BESIDE THE GLYPHS, NOT AMONG THEM (DO-PROBE-2).
+ *
+ * Rejecting ink and its halo pixel-by-pixel is not enough in a DENSE SMALL-TEXT box, because there the halo is
+ * the MAJORITY of what is left: at 12px the glyph fringe touches nearly every background pixel between the
+ * letterforms. Measured on a real page, the box interior gave median 4.35 while the true plate immediately
+ * BESIDE the same text was 4.50+ — and a plate cannot be darker where the text is than where it is not. Only
+ * ink-blend darkens at the glyphs, so the interior median being lower was proof the samples were still halo.
+ * That mismeasurement had already been written up as a product defect before it was caught (DO-PLATE-1).
+ *
+ * So the plate is read from CLEAR COLUMNS — columns crossing the glyph band containing no ink-adjacent pixel
+ * at all (leading/trailing space, the gaps between words, the element's own padding). Those are background at
+ * the SAME vertical position as the text, so the gradient value matches what is behind it.
+ */
+const MIN_CLEAR_COLUMNS = 6;   // fewer clear columns than this ⇒ the plate cannot be isolated ⇒ UNMEASURABLE
+const EDGE_INSET = 2;          // skip the element's own border/rounding
+
+/**
+ * ⚠️ THE CLEAR-COLUMN SCAN AND THE PERCENTILE ARE COMPLEMENTARY, NOT ALTERNATIVES — learned by removing one.
+ *
+ * With halo excluded by construction it looked safe to take the true minimum. It was not: a padded block's own
+ * top and bottom rows blend into whatever is outside it, so the darkest "clear" pixel was the element's EDGE.
+ * The accent anchor read 2.08 on rgb(226,166,141) — an accent→cream boundary blend, not a plate.
+ *
+ * Columns remove the HALO; the percentile removes the EDGE. Both are needed, and the vertical inset keeps the
+ * scan away from the block's own boundary in the first place.
+ */
+const EDGE_PERCENTILE = 0.05;   // ignore the darkest 5% of clear-column pixels — element edges, shadows, bleed
+const VERTICAL_INSET_RATIO = 0.15;
+
+/**
+ * ⚠️ A COLUMN IS CLEAR IF ITS PIXELS ARE THE PLATE — not merely if they are FAR FROM THE INK.
+ *
+ * The first attempt reused the halo cut for the column test, which is far too permissive: a halo pixel 70% of
+ * the way toward the background passes "not ink" easily, so a column full of light fringe still counted as
+ * clear and the reading came back 4.07 against a KNOWN 4.50. Defining clear positively — every pixel close to
+ * the modal plate — is what actually isolates background.
+ *
+ * The tolerance scales with the ink→plate distance so a gradient's genuine variation across a small element
+ * still qualifies, while the ink→plate blend never does.
+ */
+const PLATE_TOLERANCE_FLOOR = 28;
+const PLATE_TOLERANCE_RATIO = 0.20;
+
+/**
  * ⚠️ THE PERCENTILE, AND WHY IT IS NOT A FUDGE. "Take the worst pixel" is right for a GRADIENT (the plate is
  * positional) and catastrophic next to ANTI-ALIASING: the halo around every glyph is a blend of ink and plate,
  * so the single darkest pixel in a text element is almost always halo, not background. Validation caught
@@ -134,67 +178,97 @@ foreach ($meta['candidates'] as $c) {
         continue;
     }
 
-    // Sample a grid across the element's OWN box. The plate is whatever is painted behind this element's text,
-    // so the box is the correct sampling region: a button's box is the button (its own gradient), not the card
-    // beneath it. That is precisely what attempt 3 got wrong.
-    $plate = [];
-    $ink = 0;
-    $total = 0;
-    $stepX = max(1, intdiv($w, 24));
-    $stepY = max(1, intdiv($h, 8));
+    // ⚠️ CLEAR-COLUMN SCAN. Walk the element's own box column by column across the glyph band; a column counts
+    // as CLEAR only if EVERY pixel in it sits farther from the ink than the halo threshold. Those columns are
+    // plate — beside the letterforms, at the text's own gradient position.
+    $legacyInterior = in_array('--legacy-interior', $argv, true);
 
-    for ($y = $y0 + 1; $y < $y0 + $h - 1; $y += $stepY) {
-        for ($x = $x0 + 1; $x < $x0 + $w - 1; $x += $stepX) {
-            $rgb = imagecolorat($img, $x, $y);
-            $p = [($rgb >> 16) & 255, ($rgb >> 8) & 255, $rgb & 255];
-            $total++;
+    $x1 = $x0 + EDGE_INSET;
+    $x2 = $x0 + $w - EDGE_INSET;
+    // ⚠️ Inset vertically in PROPORTION to the box: a padded block's outermost rows are its boundary with
+    // whatever sits behind it, and sampling those reads a blend rather than the plate.
+    $vInset = max(EDGE_INSET, (int) round($h * VERTICAL_INSET_RATIO));
+    $y1 = $y0 + $vInset;
+    $y2 = $y0 + $h - $vInset;
 
-            // Glyph ink and its anti-aliased halo sit near the text colour; sampling those would report the
-            // text against itself (~1.0) and manufacture a failure on perfectly legible copy.
-            if (dist2($p, $c['fg']) < GLYPH_TOLERANCE ** 2) {
-                $ink++;
-
-                continue;
-            }
-            $plate[] = $p;
-        }
-    }
-
-    // ⚠️ THE MODAL PLATE. The true background dominates by pixel count even in dense text; halo is a thin
-    // fringe. Quantising to 16 levels finds it without being fooled by a gradient's smooth variation.
-    if ($plate !== []) {
-        $buckets = [];
-        foreach ($plate as $p) {
-            $k = (intdiv($p[0], 16) << 8) | (intdiv($p[1], 16) << 4) | intdiv($p[2], 16);
-            $buckets[$k][] = $p;
-        }
-        uasort($buckets, static fn ($a, $b) => count($b) <=> count($a));
-        $modal = reset($buckets)[0];
-
-        // Reject anything lying more than HALO_FRACTION of the way from that plate toward the ink. This keeps
-        // a gradient's genuine variation (all of it sits near the plate end) and drops the ink→plate blend.
-        $inkToPlate = sqrt(dist2($c['fg'], $modal));
-        $cut = ($inkToPlate * HALO_FRACTION) ** 2;
-        $plate = array_values(array_filter($plate, static fn ($p) => dist2($p, $c['fg']) >= $cut));
-    }
-
-    if ($total === 0 || count($plate) / $total < MIN_PLATE_RATIO) {
-        // Mostly ink, or an icon/graphic filling its box: the plate cannot be isolated with confidence.
-        $unmeasurable[] = [$label, 'plate-not-isolable'];
+    if ($x2 - $x1 < 4 || $y2 - $y1 < 3) {
+        $unmeasurable[] = [$label, 'zero-area'];
 
         continue;
     }
 
-    // ⚠️ THE WORST POSITION, taken at a percentile rather than the extreme (see WORST_PERCENTILE). A
-    // translucent element over a gradient has no single plate — its contrast varies across its own width —
-    // so the worst end is the honest summary (DO-EMAIL-7's positional rule); the percentile is what keeps
-    // that from degenerating into "the darkest anti-alias pixel".
+    // A first pass finds the modal background, which is what the halo cut is measured against.
+    $rough = [];
+    for ($y = $y1; $y < $y2; $y++) {
+        for ($x = $x1; $x < $x2; $x += 2) {
+            $rgb = imagecolorat($img, $x, $y);
+            $rough[] = [($rgb >> 16) & 255, ($rgb >> 8) & 255, $rgb & 255];
+        }
+    }
+    if ($rough === []) {
+        $unmeasurable[] = [$label, 'zero-area'];
+
+        continue;
+    }
+    $buckets = [];
+    foreach ($rough as $p) {
+        $k = (intdiv($p[0], 16) << 8) | (intdiv($p[1], 16) << 4) | intdiv($p[2], 16);
+        $buckets[$k][] = $p;
+    }
+    uasort($buckets, static fn ($a, $b) => count($b) <=> count($a));
+    $modal = reset($buckets)[0];
+    $inkToPlate = sqrt(dist2($c['fg'], $modal));
+    $cut = ($inkToPlate * HALO_FRACTION) ** 2;                                    // legacy path only
+    $plateTol2 = max(PLATE_TOLERANCE_FLOOR, $inkToPlate * PLATE_TOLERANCE_RATIO) ** 2;
+
+    $plate = [];
+    $clearColumns = 0;
+    for ($x = $x1; $x < $x2; $x++) {
+        $column = [];
+        $clean = true;
+        for ($y = $y1; $y < $y2; $y++) {
+            $rgb = imagecolorat($img, $x, $y);
+            $p = [($rgb >> 16) & 255, ($rgb >> 8) & 255, $rgb & 255];
+            if (dist2($p, $modal) > $plateTol2) {   // not plate ⇒ ink, halo or something else ⇒ not clear
+                $clean = false;
+                break;
+            }
+            $column[] = $p;
+        }
+        if ($clean && $column !== []) {
+            $clearColumns++;
+            foreach ($column as $p) {
+                $plate[] = $p;
+            }
+        }
+    }
+
+    if ($legacyInterior) {
+        // ⚠️ THE OLD, WRONG PATH — kept ONLY so the harness can prove it would have missed the true plate.
+        // Never used for a real measurement.
+        $plate = array_values(array_filter($rough, static fn ($p) => dist2($p, $c['fg']) >= $cut));
+        $clearColumns = MIN_CLEAR_COLUMNS;
+    }
+
+    if ($clearColumns < MIN_CLEAR_COLUMNS || $plate === []) {
+        // ⚠️ NO FALLBACK TO THE INTERIOR — that is precisely what cannot be trusted here. A box whose text runs
+        // edge to edge is reported unmeasurable rather than measured badly.
+        $unmeasurable[] = [$label, 'no-clear-band'];
+
+        continue;
+    }
+
+    // ⚠️ THE WORST CLEAR COLUMN. These pixels are genuine background, so the true minimum is the honest worst
+    // position (DO-EMAIL-7) — halo is now excluded by CONSTRUCTION rather than by statistics, so no percentile
+    // is needed. The percentile survives only for the legacy path.
     $scored = [];
     foreach ($plate as $p) {
         $scored[] = [contrast($c['fg'], $p), $p];
     }
     usort($scored, static fn ($a, $b) => $a[0] <=> $b[0]);
-    $worst = $scored[(int) floor(count($scored) * WORST_PERCENTILE)];
+    $worst = $legacyInterior
+        ? $scored[(int) floor(count($scored) * WORST_PERCENTILE)]
+        : $scored[(int) floor(count($scored) * EDGE_PERCENTILE)];
 
     $measured++;
     $ratios[$label] = $worst[0];
