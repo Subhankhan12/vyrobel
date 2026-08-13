@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  body { margin:0; padding:24px; font-family:system-ui; font-size:16px;
+         /* ⚠️ attempt 2's trap: a BODY gradient. A probe that excludes it measures nothing. */
+         background:linear-gradient(135deg,#F6C89B 0%,#F1B896 32%,#EBD9CF 62%,#D9D6D2 100%); }
+  .card { background:rgba(255,252,248,.58); padding:20px; border-radius:16px; margin-bottom:16px; }
+  /* ANCHOR 1 — white on the flat accent: the known 5.18 */
+  .anchor-accent { background:rgb(194,65,12); color:#fff; padding:12px; }
+  /* ANCHOR 2 — ink on flat white: the known 15.4 */
+  .anchor-ink { background:#fff; color:rgb(43,35,32); padding:12px; }
+  /* ⚠️ THE HARD CASE — attempt 3 scored this 1.2 by reading the CARD's plate instead of the BUTTON's own */
+  .grad-btn { background:linear-gradient(140deg,#E8703A,#C2410C); color:#fff; padding:12px 18px;
+              border:none; border-radius:11px; font-size:15px; }
+  /* KNOWN-BAD — pale grey on cream, must be FLAGGED */
+  .known-bad { color:#C9C2BC; background:#F6EBE2; padding:12px; }
+  /* KNOWN-GOOD on the body gradient — dark ink, must PASS */
+  .known-good-grad { color:rgb(43,35,32); padding:12px; }
+  /* UNMEASURABLE — positioned far off the page */
+  .offscreen { position:absolute; left:-9999px; top:-9999px; color:#888; }
+</style></head><body>
+  <div class="card">
+    <div class="anchor-accent" id="a1">ANCHOR ACCENT</div>
+    <div class="anchor-ink" id="a2">ANCHOR INK</div>
+    <button class="grad-btn" id="btn">Save basics</button>
+    <div class="known-bad" id="bad">Pale grey on cream</div>
+  </div>
+  <div class="known-good-grad" id="good">Dark ink directly on the body gradient</div>
+  <div class="offscreen" id="off">Off screen</div>
+</body></html>

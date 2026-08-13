@@ -8658,3 +8658,60 @@ deliberately not committed** — an unproven measuring tool is exactly what this
 
 **Verdict — Part A OPEN (scope mapped, unmeasured) · Part B OPEN (67 files inventoried, none forced).** No
 contrast finding, and no clean bill, is claimed for either.
+
+---
+
+## ✅ `DO-PROBE-1` — **THE VALIDATED PIXEL-SAMPLER** (2026-08-13) — `tools/contrast-sampler.php`
+
+⚠️ **This closes the blocker that stopped `DO-EMAIL-5-continued`.** It is an INSTRUMENT, not a design fix: it
+closes no design item and changes no product code.
+
+**How it works.** Render live at a known scale with transitions settled → dump each text element's rect (CSS px)
+and its OWN text colour from the DOM (`getComputedStyle` is valid for *that* — it is a declared value, not a
+composited plate) → screenshot full-page at `scale: css` so one image pixel is one CSS pixel → **PHP GD reads
+the actual painted pixels inside the element's own box**, discarding glyph ink and its anti-alias halo →
+contrast = the DOM text colour against the worst plate pixel.
+
+⚠️ **Sampling the element's OWN box is the whole fix.** A button's box is the button, so its plate is the
+button's gradient — which is exactly what attempt 3 got wrong when it walked up to a card.
+
+### ⚠️ Validated before trusted — the anchors AND the two cases that break probes
+
+| check | result |
+|---|---|
+| **anchor** white-on-flat-accent | **5.18** — exact |
+| **anchor** ink-on-flat-white | **15.4** — exact |
+| ⚠️ **hard case** white label on a gradient BUTTON | plate `rgb(225,104,50)` — the **button's own** accent gradient, **3.37**. *Attempt 3 read 1.2 on cream.* And 3.37 matches the record's independently-documented "white-on-grad ≈3.4" — a third anchor reached from another direction. |
+| ⚠️ **body-gradient page** | **measured**, not excluded: dark ink on the body gradient reads **9.01**. *Attempt 2 reported a blind "0 failures".* |
+
+### ⚠️ Fail loud, never plausible-blind
+
+- An element that cannot be isolated reports **UNMEASURABLE with a reason** (`outside-screenshot`,
+  `zero-area`, `plate-not-isolable`) — **never a number**. An out-of-bounds read would otherwise return BLACK
+  and score a dramatic, entirely fictional failure.
+- Every result carries **measured / failed / unmeasurable**, so "0 failures / 0 measured" cannot be reported as
+  a clean bill — attempt 2's blindness is structurally visible.
+- ⚠️ **The coordinate contract is CHECKED, not assumed**: a scale mismatch **refuses to sample** (exit 3). A
+  silent mismatch would sample the wrong pixels and return perfectly plausible numbers.
+
+### ⚠️ A defect the validation caught in the tool itself
+
+The first working version took the **single worst pixel** — correct for a gradient (the plate is positional),
+catastrophic next to **anti-aliasing**: the halo around every glyph is a blend of ink and plate, so the darkest
+pixel in a text element is almost always halo. It scored the gradient button **1.6 on "peach"** and dark ink on
+the body gradient **2.15 on "brown"** — both plausible, both wrong. Fixed by taking the worst at the **10th
+percentile**: still the worst END (a gradient's dark corner is thousands of pixels), immune to the thin fringe.
+
+⚠️ *That is the pass's own lesson turned on itself — plausible numbers, caught only because the fixture had
+KNOWN answers to check against.*
+
+**Guard:** `ContrastSamplerValidationTest` (7/24) against **committed** fixture screenshots, so a future session
+re-verifies the instrument in seconds instead of re-deriving it and re-hitting the trap. Mutation-proven: a
+pale-grey-on-cream element is flagged and **clears when darkened to the AA token** (1.5 → 5.95); legible text on
+a gradient passes and **flags when weakened** (9.01 → 1.83); the off-screen element stays UNMEASURABLE; the
+scale-mismatch guard refuses.
+
+**⬅ WHAT THIS UNBLOCKS:** `DO-EMAIL-5-continued` is now re-runnable — Part A (the 6 permissions' gated markup,
+scope already mapped) and Part B (the 67 data-conditional files) can be measured with an instrument that has
+proven it reads the right plate.
+
