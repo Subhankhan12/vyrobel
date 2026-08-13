@@ -9080,3 +9080,49 @@ plates · text on a page gradient · a gradient button on its own plate.
 ⚠️ **It is NOT validated for: dense small text over a STEEP gradient, or text over a PHOTO backdrop.** The sweep
 must record those **UNMEASURABLE-pending** rather than trust a reading. *Naming the untested classes is the
 discipline the whole probe saga paid for.*
+
+---
+
+## DO-EMAIL-5-continued · PART A — the eight ROLE-GATED operator surfaces (2026-08-13)
+
+Measured as **demo-admin (`Property Owner`, `['*']`)** — the role earlier gates never ran as, which is why this
+markup had never been in the DOM to measure (§N.14.1). All eight surfaces rendered, captured and sampled:
+`/app/security` · `/app/notification-preferences` · `/app/email-templates` · `/app/email-previews` ·
+`/app/payouts/run` · `/app/reservations/{id}` · `/app/guests` · `/app/guests/{id}`.
+The `guests.erase` block and the `payments.refund` block were both confirmed **present in the measured set** —
+the gated markup really was exercised, not merely reachable.
+
+### ⚠️ THE CAPTURE METHOD WAS WRONG TWICE, AND BOTH FAULTS INVENTED DEFECTS
+
+Neither fault crashed; both produced ordinary-looking ratios, which is the more dangerous direction.
+
+1. **`fullPage` + a `position: fixed` sidebar** — the sidebar is painted only to the fold, so every nav item
+   below it landed on blank canvas and read **white-on-white 1.00**. ⚠️ The recurring *"1.00 mis-sample, bg
+   pure white"* notes in earlier owner gates are almost certainly this, recorded as noise rather than
+   diagnosed. **FIX: size the VIEWPORT to the document and capture without `fullPage`.**
+2. **An element clipped by an `overflow:auto` ancestor still reports a page rect** — payout-run's "Mark paid"
+   lays out at x=870 while its scroll container ends at x=785, so the sampler measured the *card* painted
+   there and reported **1.17** for a button not drawn at that point at all. **FIX: HIT-TEST every candidate —
+   it must be the element actually painted at its own sample point** (`elementFromPoint`). This also subsumes
+   covered and off-screen elements.
+
+### What the sweep found — mostly NOT gated-file defects
+
+Nearly every surviving failure is a **SHARED class** (`.vy-tag.tone-*`, `th`, `.vy-fact-label`,
+`.vy-assign-link`, `.vy-u-code`, `.vy-balance`) or **shell chrome** — `.vy-plan-tag` **2.46**, `.vy-avatar`
+**2.27**, `.vy-acct-role` **3.83**, `.vy-search-pill` 4.19–4.48. These span all 42 operator pages; retuning
+them from a page gate is the O25/O27 mistake, so they are **LOGGED for their own realm-wide gate**, not
+absorbed here. White-on-accent-gradient (~3.25) remains the already-SURFACED realm item.
+
+**`DO-A11Y-1` (new, realm-wide):** the shared operator tag/table/label family and the shell chrome above.
+**`DO-A11Y-2` (new):** `--vy-on-grad` is tuned to a lighter gradient stop than parts of the page actually
+paint — it reads **4.17** under `.vy-np-crumb` and 4.33–4.48 under `.vy-topbar-sub`. The token is not wrong so
+much as **measured against one stop of a gradient that has several**.
+
+### Fixed here — the one surface whose failures were genuinely LOCAL
+
+`notification-preferences` (`vy-np-*`, used by no other page): PAGE failures **11 → 0**.
+`.vy-np-crumb` 3.38→ink · `.vy-np-chan-detail` 3.95–4.15→muted · `.vy-np-soon` 3.73→ink ·
+`.vy-np-group` 3.64–4.37→ink (raw accent FILL used as TEXT) · `.vy-np-status.is-on` 3.50→`#14532D`.
+Mappings only — **no token was darkened** (posture A). Guarded by `OperatorGatedSurfaceContrastTest`,
+mutation-proven, with the *pre-fix* ratios pinned so the fix cannot be quietly reverted.

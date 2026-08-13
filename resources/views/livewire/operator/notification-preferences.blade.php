@@ -143,7 +143,7 @@
     <style>
         /* The design's header row: breadcrumb left, Save right. */
         .vy-np-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-        .vy-np-crumb { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--vy-muted); }
+        .vy-np-crumb { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--vy-ink); }   /* muted 3.38 on the page gradient; --vy-on-grad reaches only 4.17 here */
         .vy-np-crumb a { color: var(--vy-accent-text); text-decoration: none; font-weight: 600; }
         .vy-np-crumb a:hover { text-decoration: underline; }
         .vy-np-save-top { padding: 9px 20px; font-size: 13px; }
@@ -156,13 +156,13 @@
         .vy-np-chan.is-off { opacity: .72; }
         .vy-np-chan-icon { width: 34px; height: 34px; border-radius: 10px; background: rgba(217,102,46,.12); display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .vy-np-chan-name { font-size: 13.5px; font-weight: 600; }
-        .vy-np-chan-detail { font-size: 11.5px; color: var(--vy-faint); }
+        .vy-np-chan-detail { font-size: 11.5px; color: var(--vy-muted); }   /* faint measured 3.95–4.15 on this card */
         .vy-np-status { font-size: 10.5px; font-weight: 700; padding: 2px 9px; border-radius: 20px; background: var(--vy-hairline); color: var(--vy-muted); }
-        .vy-np-status.is-on { background: rgba(31,110,75,.14); color: #1F6E4B; }
-        .vy-np-soon { font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-faint); border: 1px dashed var(--vy-hairline); border-radius: 6px; padding: 1px 5px; margin-left: 4px; }
+        .vy-np-status.is-on { background: rgba(31,110,75,.14); color: #14532D; }   /* #1F6E4B measured 3.50 on its own tint */
+        .vy-np-soon { font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-ink); border: 1px dashed var(--vy-hairline); border-radius: 6px; padding: 1px 5px; margin-left: 4px; }
         .vy-np-grid { display: grid; grid-template-columns: 1fr 64px 64px 64px; gap: 10px; align-items: center; }
         .vy-np-head { padding-bottom: 10px; border-bottom: 1px solid var(--vy-hairline); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--vy-muted); }
-        .vy-np-group { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--vy-accent); font-weight: 700; margin: 16px 0 2px; }
+        .vy-np-group { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--vy-ink); font-weight: 700; margin: 16px 0 2px; }
         .vy-np-row { padding: 11px 0; border-bottom: 1px solid var(--vy-hairline); }
         .vy-np-ev { font-size: 13px; font-weight: 600; color: var(--vy-ink); }
         .vy-np-ev-sub { font-size: 11.5px; color: var(--vy-muted); }

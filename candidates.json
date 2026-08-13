@@ -1,0 +1,1158 @@
+{
+  "docWidth": 1200,
+  "docHeight": 1603,
+  "candidates": [
+    {
+      "t": "e0",
+      "sel": "span.vy-brand-name",
+      "txt": "Vyrobel",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 68,
+      "y": 31,
+      "w": 67,
+      "h": 25,
+      "need": 4.5
+    },
+    {
+      "t": "e1",
+      "sel": "span.vy-nav-label",
+      "txt": "OVERVIEW",
+      "css": "rgb(88, 78, 72)",
+      "fg": [
+        88,
+        78,
+        72
+      ],
+      "x": 16,
+      "y": 138,
+      "w": 198,
+      "h": 21,
+      "need": 4.5
+    },
+    {
+      "t": "e2",
+      "sel": "a.vy-nav-item",
+      "txt": "Portfolio",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 162,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e3",
+      "sel": "a.vy-nav-item",
+      "txt": "Dashboard",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 202,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e4",
+      "sel": "a.vy-nav-item",
+      "txt": "Insights",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 243,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e5",
+      "sel": "a.vy-nav-item",
+      "txt": "Search",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 283,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e6",
+      "sel": "span.vy-nav-label",
+      "txt": "FRONT DESK",
+      "css": "rgb(88, 78, 72)",
+      "fg": [
+        88,
+        78,
+        72
+      ],
+      "x": 16,
+      "y": 339,
+      "w": 198,
+      "h": 21,
+      "need": 4.5
+    },
+    {
+      "t": "e7",
+      "sel": "a.vy-nav-item",
+      "txt": "Calendar",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 363,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e8",
+      "sel": "a.vy-nav-item",
+      "txt": "Front desk",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 404,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e9",
+      "sel": "a.vy-nav-item",
+      "txt": "Reservations",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 444,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e10",
+      "sel": "a.vy-nav-item",
+      "txt": "Guest requests",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 485,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e11",
+      "sel": "a.vy-nav-item",
+      "txt": "Guests",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 526,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e12",
+      "sel": "a.vy-nav-item",
+      "txt": "Reviews",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 566,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e13",
+      "sel": "a.vy-nav-item",
+      "txt": "Messages",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 607,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e14",
+      "sel": "span.vy-nav-label",
+      "txt": "OPERATIONS",
+      "css": "rgb(88, 78, 72)",
+      "fg": [
+        88,
+        78,
+        72
+      ],
+      "x": 16,
+      "y": 662,
+      "w": 198,
+      "h": 21,
+      "need": 4.5
+    },
+    {
+      "t": "e15",
+      "sel": "a.vy-nav-item",
+      "txt": "Housekeeping",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 686,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e16",
+      "sel": "a.vy-nav-item",
+      "txt": "Team schedule",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 727,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e17",
+      "sel": "a.vy-nav-item",
+      "txt": "Maintenance",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 768,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e18",
+      "sel": "a.vy-nav-item",
+      "txt": "Units",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 808,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e19",
+      "sel": "a.vy-nav-item",
+      "txt": "Rates & availability",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 849,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e20",
+      "sel": "span.vy-plan-tag",
+      "txt": "Pro",
+      "css": "rgb(255, 255, 255)",
+      "fg": [
+        255,
+        255,
+        255
+      ],
+      "x": 173,
+      "y": 901,
+      "w": 29,
+      "h": 14,
+      "need": 4.5
+    },
+    {
+      "t": "e21",
+      "sel": "span.vy-nav-label",
+      "txt": "FINANCE",
+      "css": "rgb(88, 78, 72)",
+      "fg": [
+        88,
+        78,
+        72
+      ],
+      "x": 16,
+      "y": 945,
+      "w": 198,
+      "h": 21,
+      "need": 4.5
+    },
+    {
+      "t": "e22",
+      "sel": "a.vy-nav-item",
+      "txt": "Owners",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 969,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e23",
+      "sel": "a.vy-nav-item",
+      "txt": "Payout run",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 1010,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e24",
+      "sel": "a.vy-nav-item",
+      "txt": "Reports",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 1050,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e25",
+      "sel": "a.vy-nav-item",
+      "txt": "Unit requests",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 1091,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e26",
+      "sel": "span.vy-nav-label",
+      "txt": "SYSTEM",
+      "css": "rgb(88, 78, 72)",
+      "fg": [
+        88,
+        78,
+        72
+      ],
+      "x": 16,
+      "y": 1146,
+      "w": 198,
+      "h": 21,
+      "need": 4.5
+    },
+    {
+      "t": "e27",
+      "sel": "a.vy-nav-item",
+      "txt": "Notifications",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 1171,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e28",
+      "sel": "a.vy-nav-item",
+      "txt": "Your profile",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 1211,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e29",
+      "sel": "a.vy-nav-item",
+      "txt": "Roles & access",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 1252,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e30",
+      "sel": "a.vy-nav-item",
+      "txt": "Settings",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 1292,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e31",
+      "sel": "span.vy-nav-item.is-active",
+      "txt": "Security",
+      "css": "rgb(194, 65, 12)",
+      "fg": [
+        194,
+        65,
+        12
+      ],
+      "x": 16,
+      "y": 1333,
+      "w": 198,
+      "h": 40,
+      "need": 4.5
+    },
+    {
+      "t": "e32",
+      "sel": "a.vy-nav-item",
+      "txt": "Billing",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 1375,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e33",
+      "sel": "a.vy-nav-item",
+      "txt": "Email templates",
+      "css": "rgb(84, 74, 68)",
+      "fg": [
+        84,
+        74,
+        68
+      ],
+      "x": 16,
+      "y": 1416,
+      "w": 198,
+      "h": 38,
+      "need": 4.5
+    },
+    {
+      "t": "e34",
+      "sel": "h1",
+      "txt": "Security",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 260,
+      "y": 23,
+      "w": 115,
+      "h": 41,
+      "need": 3
+    },
+    {
+      "t": "e35",
+      "sel": "a.vy-search-pill",
+      "txt": "Search reservations, guests…",
+      "css": "rgb(108, 100, 95)",
+      "fg": [
+        108,
+        100,
+        95
+      ],
+      "x": 514,
+      "y": 24,
+      "w": 239,
+      "h": 39,
+      "need": 4.5
+    },
+    {
+      "t": "e36",
+      "sel": "span.vy-date-chip",
+      "txt": "Today · Thu · 13 Aug",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 764,
+      "y": 24,
+      "w": 179,
+      "h": 39,
+      "need": 4.5
+    },
+    {
+      "t": "e37",
+      "sel": "span",
+      "txt": "9+",
+      "css": "rgb(255, 255, 255)",
+      "fg": [
+        255,
+        255,
+        255
+      ],
+      "x": 979,
+      "y": 21,
+      "w": 17,
+      "h": 15,
+      "need": 4.5
+    },
+    {
+      "t": "e38",
+      "sel": "span.vy-acct-name",
+      "txt": "Demo Admin",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 1020,
+      "y": 29,
+      "w": 79,
+      "h": 16,
+      "need": 4.5
+    },
+    {
+      "t": "e39",
+      "sel": "span.vy-acct-role",
+      "txt": "Property Owner",
+      "css": "rgb(108, 100, 95)",
+      "fg": [
+        108,
+        100,
+        95
+      ],
+      "x": 1020,
+      "y": 45,
+      "w": 79,
+      "h": 13,
+      "need": 4.5
+    },
+    {
+      "t": "e40",
+      "sel": "span.vy-avatar",
+      "txt": "DA",
+      "css": "rgb(255, 255, 255)",
+      "fg": [
+        255,
+        255,
+        255
+      ],
+      "x": 1108,
+      "y": 28,
+      "w": 30,
+      "h": 30,
+      "need": 4.5
+    },
+    {
+      "t": "e41",
+      "sel": "h2.vy-card-title",
+      "txt": "Account security",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 110,
+      "w": 131,
+      "h": 22,
+      "need": 4.5
+    },
+    {
+      "t": "e42",
+      "sel": "span",
+      "txt": "Two-factor off",
+      "css": "rgb(133, 76, 4)",
+      "fg": [
+        133,
+        76,
+        4
+      ],
+      "x": 424,
+      "y": 109,
+      "w": 125,
+      "h": 23,
+      "need": 4.5
+    },
+    {
+      "t": "e43",
+      "sel": "div.vy-dk-label",
+      "txt": "Active sessions",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 304,
+      "y": 165,
+      "w": 161,
+      "h": 16,
+      "need": 4.5
+    },
+    {
+      "t": "e44",
+      "sel": "div.vy-dk-label",
+      "txt": "Connected apps",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 525,
+      "y": 165,
+      "w": 161,
+      "h": 16,
+      "need": 4.5
+    },
+    {
+      "t": "e45",
+      "sel": "div.vy-dk-label",
+      "txt": "Trusted devices",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 745,
+      "y": 165,
+      "w": 161,
+      "h": 16,
+      "need": 4.5
+    },
+    {
+      "t": "e46",
+      "sel": "div.vy-dk-label",
+      "txt": "IP rules",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 966,
+      "y": 165,
+      "w": 161,
+      "h": 16,
+      "need": 4.5
+    },
+    {
+      "t": "e47",
+      "sel": "h2.vy-card-title",
+      "txt": "Change password",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 314,
+      "w": 514,
+      "h": 22,
+      "need": 4.5
+    },
+    {
+      "t": "e48",
+      "sel": "p.vy-line-sub",
+      "txt": "Use a long, unique passphrase. You’ll st",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 340,
+      "w": 514,
+      "h": 18,
+      "need": 4.5
+    },
+    {
+      "t": "e49",
+      "sel": "button.vy-btn.vy-btn--accent",
+      "txt": "Update password",
+      "css": "rgb(255, 255, 255)",
+      "fg": [
+        255,
+        255,
+        255
+      ],
+      "x": 283,
+      "y": 521,
+      "w": 144,
+      "h": 36,
+      "need": 4.5
+    },
+    {
+      "t": "e50",
+      "sel": "h2",
+      "txt": "Two-factor authentication",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 618,
+      "w": 514,
+      "h": 22,
+      "need": 4.5
+    },
+    {
+      "t": "e51",
+      "sel": "p",
+      "txt": "An authenticator app (Google Authenticat",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 283,
+      "y": 644,
+      "w": 514,
+      "h": 36,
+      "need": 4.5
+    },
+    {
+      "t": "e52",
+      "sel": "button.vy-btn.vy-btn--accent",
+      "txt": "Enable two-factor",
+      "css": "rgb(255, 255, 255)",
+      "fg": [
+        255,
+        255,
+        255
+      ],
+      "x": 283,
+      "y": 694,
+      "w": 151,
+      "h": 40,
+      "need": 4.5
+    },
+    {
+      "t": "e53",
+      "sel": "h2.vy-card-title",
+      "txt": "IP allowlist",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 798,
+      "w": 84,
+      "h": 22,
+      "need": 4.5
+    },
+    {
+      "t": "e54",
+      "sel": "button.vy-btn.vy-btn--ghost",
+      "txt": "Add IP",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 733,
+      "y": 796,
+      "w": 64,
+      "h": 27,
+      "need": 4.5
+    },
+    {
+      "t": "e55",
+      "sel": "p.vy-line-sub",
+      "txt": "When set, only these addresses can reach",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 826,
+      "w": 514,
+      "h": 35,
+      "need": 4.5
+    },
+    {
+      "t": "e56",
+      "sel": "div",
+      "txt": "No IP restrictions",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 283,
+      "y": 882,
+      "w": 514,
+      "h": 20,
+      "need": 4.5
+    },
+    {
+      "t": "e57",
+      "sel": "div",
+      "txt": "Anyone with a valid login can reach the ",
+      "css": "rgb(108, 100, 95)",
+      "fg": [
+        108,
+        100,
+        95
+      ],
+      "x": 283,
+      "y": 904,
+      "w": 514,
+      "h": 17,
+      "need": 4.5
+    },
+    {
+      "t": "e58",
+      "sel": "h2.vy-card-title",
+      "txt": "Active sessions & devices",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 992,
+      "w": 514,
+      "h": 22,
+      "need": 4.5
+    },
+    {
+      "t": "e59",
+      "sel": "strong",
+      "txt": "Chrome · Mac",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 1032,
+      "w": 87,
+      "h": 16,
+      "need": 4.5
+    },
+    {
+      "t": "e60",
+      "sel": "span.vy-tag.tone-confirmed",
+      "txt": "This device",
+      "css": "rgb(176, 56, 8)",
+      "fg": [
+        176,
+        56,
+        8
+      ],
+      "x": 374,
+      "y": 1031,
+      "w": 74,
+      "h": 21,
+      "need": 4.5
+    },
+    {
+      "t": "e61",
+      "sel": "span.vy-muted",
+      "txt": "127.0.0.1 · 37 seconds ago",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 283,
+      "y": 1054,
+      "w": 146,
+      "h": 15,
+      "need": 4.5
+    },
+    {
+      "t": "e62",
+      "sel": "h2.vy-card-title",
+      "txt": "Trusted devices",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 1141,
+      "w": 514,
+      "h": 22,
+      "need": 4.5
+    },
+    {
+      "t": "e63",
+      "sel": "p.vy-line-sub",
+      "txt": "Devices that skip the 2FA prompt for 30 ",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 1167,
+      "w": 514,
+      "h": 17,
+      "need": 4.5
+    },
+    {
+      "t": "e64",
+      "sel": "div",
+      "txt": "No trusted devices",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 283,
+      "y": 1205,
+      "w": 514,
+      "h": 20,
+      "need": 4.5
+    },
+    {
+      "t": "e65",
+      "sel": "div",
+      "txt": "Every sign-in will ask for your 2FA code",
+      "css": "rgb(108, 100, 95)",
+      "fg": [
+        108,
+        100,
+        95
+      ],
+      "x": 283,
+      "y": 1227,
+      "w": 514,
+      "h": 17,
+      "need": 4.5
+    },
+    {
+      "t": "e66",
+      "sel": "h2.vy-card-title",
+      "txt": "Connected apps",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 1315,
+      "w": 514,
+      "h": 22,
+      "need": 4.5
+    },
+    {
+      "t": "e67",
+      "sel": "div",
+      "txt": "No apps connected",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 283,
+      "y": 1352,
+      "w": 514,
+      "h": 20,
+      "need": 4.5
+    },
+    {
+      "t": "e68",
+      "sel": "div",
+      "txt": "Third-party app access isn’t available f",
+      "css": "rgb(108, 100, 95)",
+      "fg": [
+        108,
+        100,
+        95
+      ],
+      "x": 283,
+      "y": 1374,
+      "w": 514,
+      "h": 17,
+      "need": 4.5
+    },
+    {
+      "t": "e69",
+      "sel": "h2.vy-card-title",
+      "txt": "Data export",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 1462,
+      "w": 303,
+      "h": 22,
+      "need": 4.5
+    },
+    {
+      "t": "e70",
+      "sel": "p.vy-line-sub",
+      "txt": "Download your account details and your o",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 283,
+      "y": 1487,
+      "w": 303,
+      "h": 17,
+      "need": 4.5
+    },
+    {
+      "t": "e71",
+      "sel": "button.vy-btn.vy-btn--ghost",
+      "txt": "Request export",
+      "css": "rgb(43, 35, 32)",
+      "fg": [
+        43,
+        35,
+        32
+      ],
+      "x": 671,
+      "y": 1466,
+      "w": 126,
+      "h": 35,
+      "need": 4.5
+    }
+  ]
+}
