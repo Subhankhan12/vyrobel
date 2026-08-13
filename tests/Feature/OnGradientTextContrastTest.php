@@ -59,7 +59,12 @@ it('⚠️ the tokens behave as the measurement said — muted FAILS on the grad
     // to either token is checked against the plate that actually exists, not an assumed one.
     expect(gradRatio([95, 88, 83], WORST_GRADIENT_PLATE))->toBeLessThan(4.5)      // --vy-muted  = 3.65
         ->and(gradRatio([108, 100, 95], WORST_GRADIENT_PLATE))->toBeLessThan(4.5) // --vy-faint  = 3.03
-        ->and(gradRatio([84, 74, 68], WORST_GRADIENT_PLATE))->toBeGreaterThanOrEqual(4.5); // --vy-on-grad = 4.50
+        ->and(gradRatio([68, 59, 54], WORST_GRADIENT_PLATE))->toBeGreaterThanOrEqual(4.5); // --vy-on-grad now 5.66
+
+    // ⚠️ THE PREMISE THIS FILE RECORDED HAS BEEN CORRECTED (DO-A11Y-2). Its note said --vy-on-grad clears
+    // this plate at 4.50 "with no margin at all" — true here, but this plate was not the worst one. The
+    // shell paints text down to rgb(235,152,106), where the old value measured 4.33 and FAILED.
+    expect(gradRatio([84, 74, 68], [235, 152, 106]))->toBeLessThan(4.5);
 });
 
 it('⚠️ the on-gradient token still resolves to the value that measurement assumed', function () {
@@ -71,5 +76,5 @@ it('⚠️ the on-gradient token still resolves to the value that measurement as
     // `--vy-on-grad` is one of the seven DELIBERATE per-shell overrides (measured per shell, §N.4i), so the
     // operator shell is where its value lives — not the shared base.
     expect($base)->not->toContain('--vy-on-grad:')
-        ->and($shell)->toContain('--vy-on-grad: rgb(84, 74, 68)');
+        ->and($shell)->toContain('--vy-on-grad: rgb(68, 59, 54)');   // re-derived by sampling, DO-A11Y-2
 });

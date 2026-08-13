@@ -9126,3 +9126,86 @@ much as **measured against one stop of a gradient that has several**.
 `.vy-np-group` 3.64–4.37→ink (raw accent FILL used as TEXT) · `.vy-np-status.is-on` 3.50→`#14532D`.
 Mappings only — **no token was darkened** (posture A). Guarded by `OperatorGatedSurfaceContrastTest`,
 mutation-proven, with the *pre-fix* ratios pinned so the fix cannot be quietly reverted.
+
+---
+
+## DO-A11Y-1 + DO-A11Y-2 — the shared-class family, fixed AT ITS SOURCE (2026-08-13)
+
+### ⚠️ PREMISE CORRECTION — the two items were ONE defect wearing two labels
+
+Sorted by the plate they land on, the sweep's survivors split cleanly:
+
+| plate | what clears it | verdict |
+|---|---|---|
+| a CARD, or a tag's own tint | `--vy-on-grad` (5.45–6.04) / `--vy-muted` (4.89–4.90) | a MAPPING suffices |
+| the saturated PAGE GRADIENT | **nothing but `--vy-ink`** — because `--vy-on-grad`, the token that exists for exactly this plate, was itself sub-AA | needs the token fixed FIRST |
+
+So **DO-A11Y-2 was not one stray crumb — it was the reason half of DO-A11Y-1 had nowhere to map.**
+
+### ⚠️ THE ROOT CAUSE IS ONE THE OWNER SHELL ALREADY FIXED (O2/O7)
+
+`--vy-on-grad` and `--vy-accent-text` were both derived against a **PICKED** gradient stop rather than by
+sampling the plate behind the elements that use them. The owner shell had this exact defect, fixed it by
+sampling **7,502 pixels**, and left a note warning *"Re-measure by SAMPLING, not by picking a pixel."*
+**The operator shell never got that treatment.** Sampling across ten real pages:
+
+| token | derived against | actually sits on | old reading |
+|---|---|---|---|
+| `--vy-on-grad` rgb(84,74,68) | rgb(241,185,150) (picked) | down to **rgb(235,152,106)** | **4.33–4.48 FAIL** |
+| `--vy-accent-text` rgb(176,56,8) | rgb(252,223,204) (picked) | down to **rgb(249,194,166)** | **3.82–4.46 FAIL** |
+
+⚠️ The old comment's premise — *"a tinted chip carries its own surface and already measured 4.61"* — was
+**false**: a chip's tint composites over the CARD, which composites over the gradient, so the chip is
+**darker** than the card, not lighter.
+
+⚠️ **REQUIRED COMPLIANCE FIX, NOT THE DECLINED HEADROOM CHANGE (§N.20.3).** Posture A declined darkening
+tokens that MEET AA thinly. These MISSED AA (4.33 → 2.42). `--vy-on-grad-soft` is deliberately **UNCHANGED** —
+it never failed on any sampled page, and darkening a passing token IS the declined preference. Side effect,
+noted not conflated: the on-grad half of the zero-margin question is now resolved; the **`--vy-faint` 0.005
+question remains the founder's.**
+
+### FIXED at the source (`components/layouts/operator.blade.php` + the shared token file)
+
+`--vy-on-grad` → rgb(68,59,54) · `--vy-accent-text` → rgb(147,42,7) · gradient-sitting classes
+(`.vy-acct-role` 3.83, `.vy-convo-back` 3.33, `.vy-soon-tag` 3.26, `.vy-deferred-note` 3.68, `.vy-seg-opt`
+4.39, `.vy-search-pill` 4.19, `.vy-sc-label` 3.28) → `--vy-on-grad` · card-sitting classes (`.vy-table th`
+and `.vy-utable thead th` 4.07, `.vy-fact-label` 4.05) → `--vy-muted` · amber tags (3.01/2.96) → the
+purpose-built `--vy-amber-text` · `.vy-tag.tone-vip` 3.32 → `#6f4f0c` · `.vy-tag.tone-tag` 4.41 →
+`--vy-on-grad`.
+
+⚠️ **THE WORST TWO READINGS IN THE SHELL WERE A DIM, NOT A COLOUR.** `.vy-avatar` 2.27 / `.vy-plan-tag` 2.46:
+white text on a LIGHT accent tint. The text is white by design, so the SURFACE moved to `--vy-accent`
+(white = 5.18). And `.vy-plan-tag` was *still* failing at 3.07 after that, because an ancestor
+`.vy-nav-item[aria-disabled]` sat at **`opacity:.55`** — dimming a locked nav item's own label to **2.89** and
+its "PRO" tag to **2.42**. Modelling the PAINTED pair, even `.9` leaves the tag at 4.42. Removed: this is
+**§N.16.6 verbatim — de-emphasis belongs on a redundant mark, never on meaning-bearing text** — and the state
+loses nothing, since the explicit "PRO" text and `aria-disabled="true"` both still carry it.
+
+⚠️ **§N.8f, again:** the avatar concept had **THREE** copies of the same gradient (`.vy-avatar`,
+`.vy-thread-av`, `.vy-dash .vy-arr-av`) — which is exactly why one fix did not reach them all. All three moved.
+`.vy-chan-glyph` keeps the light gradient legitimately (it paints no white text on it), so the guard names the
+avatar classes rather than banning the string.
+
+**Re-measured: guests-list 24 → 2 · front-desk 13 → 5 · notification-preferences 11 → 0.**
+
+### LOGGED, not fixed (honest incompletion)
+
+- **`DO-A11Y-3` — white-on-accent-gradient BUTTONS** (`.vy-btn--accent` 3.29, `.vy-pill--accent` 3.32,
+  `.vy-act--accent` 3.33, `.vy-fd-seg-btn.is-on` 3.23). The pre-existing SURFACED realm item, same root cause
+  as the avatar. Now trivially fixable: **the lightest gradient stop must be at least as dark as
+  `--vy-accent`**, where white measures 5.18. Deliberately not folded in — it changes every CTA in the product.
+- **`DO-A11Y-4` — page-local front-desk classes**: `.vy-fd-rel` 3.57 (accent-text ON THE GRADIENT, outside
+  that token's stated scope — needs routing to `--vy-on-grad`), `.vy-fd-seg-btn` 4.23/4.36. Page-local, so
+  they belong to a front-desk gate, not this shared-primitive pass.
+- **`DO-A11Y-5`** — one unclassed `<a>` (a guest email) at 4.48 in guests-list.
+
+### ⚠️ PROBE-HARNESS GAP — logged and partly closed
+
+The sweep's two corrections live in **candidate generation**, not in `tools/contrast-sampler.php` (correctly
+unchanged) — and that collector **had never been committed at all**: it existed only in one session's tool
+calls. A correction that is not committed is a correction hoped. It is now `tools/contrast-collect.js`.
+⚠️ **STILL OPEN (`DO-PROBE-3`):** committed FIXTURES for the two corrections (a below-fold `position:fixed`
+element; an `overflow:auto`-clipped element), plus the two named unvalidated input classes —
+dense-small-text on a STEEP gradient, and text over a PHOTO. A **third** collector gap surfaced here and is
+now handled but unfixtured: an element under a **dimmed ancestor** passes the own-opacity check while painting
+far below its declared colour.

@@ -31,18 +31,37 @@
         :root {
             /* Text that sits DIRECTLY on the page gradient rather than on a glass card. The card tokens
                above are computed against the composited card background; the gradient is darker, so
-               --vy-muted only reaches 4.03:1 there and fails AA. These two are computed against the
-               gradient's darkest sampled stop, rgb(241,185,150): 4.97:1 and 4.67:1. Warm stone, not
-               cold grey, so the shell still reads warm. */
-            --vy-on-grad: rgb(84, 74, 68);
+               --vy-muted only reaches 4.03:1 there and fails AA. Warm stone, not cold grey, so the
+               shell still reads warm.
+
+               ⚠️ RE-DERIVED BY SAMPLING (DO-A11Y-2). The previous value rgb(84,74,68) was computed
+               against ONE PICKED stop, rgb(241,185,150) — and the shell does not paint its text there.
+               Sampling the plate behind every element that actually uses this token, across ten real
+               operator pages, found points down to rgb(235,152,106), where rgb(84,74,68) measured
+               4.33–4.48: a real AA FAILURE, not a headroom preference, on `.vy-topbar-sub`,
+               `.vy-acct-role`, `.vy-convo-back` and the breadcrumbs.
+
+               This is exactly the O2/O7 defect the OWNER shell already fixed by sampling 7,502 pixels,
+               and whose note warns "Re-measure by SAMPLING, not by picking a pixel." The operator shell
+               had never had that treatment. rgb(68,59,54) clears the darkest sampled point at 4.80.
+               --vy-on-grad-soft is UNCHANGED: it never failed on any sampled page (it is used only on
+               the sidebar labels, whose plates are lighter), and darkening a passing token is the
+               headroom change posture A declined. */
+            --vy-on-grad: rgb(68, 59, 54);
             --vy-on-grad-soft: rgb(88, 78, 72);
 
             /* Accent used as TEXT (links, accent labels) on a glass/card surface. --vy-accent itself is
                the BRAND fill — gradients, buttons, chips, borders, icons — and is deliberately unchanged.
-               As text it measured 4.09–4.46:1 across real sampled card backgrounds, under AA; the worst
-               was rgb(252,223,204). This darker terracotta clears it at 4.85:1 there. Same family, ~10%
-               deeper. Only applied where accent is text WITHOUT its own background (a tinted chip carries
-               its own surface and already measured 4.61). */
+
+               ⚠️ THE SAME PICKED-STOP ERROR, and the same correction (DO-A11Y-1). rgb(176,56,8) was set
+               against a worst card plate of rgb(252,223,204). Sampling found the tokens's real users
+               sitting on tints down to rgb(238,195,172) and rgb(249,194,166) — `.vy-tag.tone-confirmed`
+               3.89, `.vy-u-code.vy-arr-link` 3.82, `.vy-assign-link` 3.96, `.vy-balance.is-due` 4.46.
+               The premise that "a tinted chip carries its own surface and already measured 4.61" was
+               false: the chip's tint composites over the CARD, which composites over the gradient, so
+               the chip is DARKER than the card, not lighter. rgb(147,42,7) clears the darkest sampled
+               tint at 5.06. The value now lives in the shared token file (DO-TOKEN-1); darkening it can
+               only raise contrast in the other shells, never lower it. */
             /* terracotta primary (#C2410C) */
             /* (#E8703A) */
 
@@ -139,7 +158,13 @@
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 4px 14px rgba(150, 90, 50, 0.14); border: 1px solid rgba(255, 255, 255, 0.8);
         }
-        .vy-nav-item[aria-disabled="true"] { cursor: default; opacity: .55; }
+        /* ⚠️ N.16.6 — DE-EMPHASIS BELONGS ON A REDUNDANT MARK, NEVER ON MEANING-BEARING TEXT. This dimmed the
+           whole locked nav item to .55, which took its LABEL to 2.89 and its "PRO" tag to 2.42 — the worst
+           readings in the operator shell. Modelling the painted pair, even .9 leaves the tag at 4.42; only
+           full opacity clears it (5.18 / 9.40). The locked state loses nothing by it: the explicit "PRO"
+           tag and aria-disabled="true" both still carry it, which is exactly the redundant mark the rule
+           asks for. */
+        .vy-nav-item[aria-disabled="true"] { cursor: default; }
         .vy-nav-item[aria-disabled="true"]:hover { background: transparent; color: var(--vy-on-grad); }
 
         /* Main column */
@@ -169,7 +194,7 @@
 
         .vy-bell { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); color: var(--vy-muted); }
         .vy-chip { display: flex; align-items: center; gap: 9px; padding: 5px 12px 5px 6px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
-        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); color: #fff; font-size: 11px; font-weight: 500; display: grid; place-items: center; flex: none; }
+        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(140deg, #C2410C, #9A3412); color: #fff; font-size: 11px; font-weight: 500; display: grid; place-items: center; flex: none; }
         .vy-avatar--lg { width: 38px; height: 38px; font-size: 13px; font-weight: 600; }
         .vy-chip-name { font-size: 13px; font-weight: 500; }
 
@@ -178,7 +203,7 @@
         .vy-topbar-lead { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
         .vy-ro-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: var(--vy-r-pill); background: rgba(217, 154, 61, 0.18); color: #8F6414; font-size: 11.5px; font-weight: 500; white-space: nowrap; flex: none; }
         .vy-glass-pill { display: inline-flex; align-items: center; gap: 8px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); }
-        .vy-search-pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); color: var(--vy-faint); font-size: 13px; min-width: 210px; text-decoration: none; transition: color .15s; }
+        .vy-search-pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); color: var(--vy-on-grad); font-size: 13px; min-width: 210px; text-decoration: none; transition: color .15s; }
         .vy-search-pill:hover { color: var(--vy-muted); }
         .vy-date-chip { display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); font-size: 13px; font-weight: 500; white-space: nowrap; }
         .vy-acct { position: relative; }
@@ -186,7 +211,7 @@
         .vy-acct-btn:hover { background: rgba(255, 255, 255, 0.72); }
         .vy-acct-id { text-align: right; line-height: 1.2; }
         .vy-acct-name { display: block; font-size: 12.5px; font-weight: 500; color: var(--vy-ink); line-height: 1.25; }
-        .vy-acct-role { display: block; font-size: 10.5px; color: var(--vy-faint); line-height: 1.2; }
+        .vy-acct-role { display: block; font-size: 10.5px; color: var(--vy-on-grad); line-height: 1.2; }
         .vy-acct-chev { color: #B9ADA4; transition: transform .18s; flex: none; }
         .vy-acct-menu { position: absolute; top: calc(100% + 10px); right: 0; width: 252px; z-index: 70; background: rgba(255, 252, 248, 0.96); backdrop-filter: blur(30px) saturate(1.15); -webkit-backdrop-filter: blur(30px) saturate(1.15); border: 1px solid rgba(255, 255, 255, 0.85); border-radius: 18px; box-shadow: 0 24px 60px rgba(60, 30, 10, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.75); padding: 8px; }
         .vy-acct-head { display: flex; align-items: center; gap: 11px; padding: 10px 11px 12px; }
@@ -453,7 +478,7 @@
         .vy-report-muted { color: var(--vy-muted); }
         .vy-report-total { font-weight: 700; border-top: 1.5px solid var(--vy-glass-border); border-bottom: 0; margin-top: 2px; }
         .vy-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .vy-table th { text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-faint); padding: 6px 8px; border-bottom: 1px solid var(--vy-glass-border); }
+        .vy-table th { text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-muted); padding: 6px 8px; border-bottom: 1px solid var(--vy-glass-border); }
         .vy-table td { padding: 9px 8px; border-bottom: 1px solid var(--vy-glass-border); color: var(--vy-ink); }
         .vy-table tr:last-child td { border-bottom: 0; }
         .vy-table .vy-num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -509,7 +534,7 @@
         .vy-seg-btn.is-on { background: var(--vy-grad); color: #fff; }
         .vy-bill-gate { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; padding: 12px 14px; border-radius: var(--vy-r-md); background: rgba(224,146,30,.1); border: 1px solid rgba(224,146,30,.32); font-size: 12.5px; color: var(--vy-ink); }
         .vy-bill-gate svg { color: var(--vy-amber, #b26a08); flex: none; margin-top: 1px; }
-        .vy-plan-tag { margin-left: auto; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--vy-grad); border-radius: 5px; padding: 1px 5px; }
+        .vy-plan-tag { margin-left: auto; font-size: 8.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--vy-accent); border-radius: 5px; padding: 1px 5px; }
 
         /* ---- Reusable surfaces ----------------------------------------------------------------- */
         .vy-card {
@@ -543,7 +568,7 @@
 
         /* A control with no backend yet: visible, clearly non-functional, never a fake action. */
         .vy-btn.is-soon, .vy-icobtn.is-soon, .vy-pill.is-soon { opacity: .5; cursor: not-allowed; }
-        .vy-soon-tag { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); border: 1px dashed var(--vy-hairline); border-radius: 6px; padding: 2px 6px; }
+        .vy-soon-tag { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-on-grad); border: 1px dashed var(--vy-hairline); border-radius: 6px; padding: 2px 6px; }
 
         .vy-pill {
             display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--vy-r-pill);
@@ -557,7 +582,7 @@
         .vy-icobtn[aria-disabled="true"] { opacity: .4; cursor: default; }
 
         .vy-empty { text-align: center; color: var(--vy-muted); padding: 40px 20px; font-size: 13.5px; }
-        .vy-deferred-note { font-size: 11.5px; color: var(--vy-muted); display: inline-flex; align-items: center; gap: 6px; }
+        .vy-deferred-note { font-size: 11.5px; color: var(--vy-on-grad); display: inline-flex; align-items: center; gap: 6px; }
 
         /* ---- Reservation rack (timeline grid) -------------------------------------------------- */
         .vy-rack-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -814,7 +839,7 @@
             border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm);
         }
         .vy-summary-chip .vy-sc-num { font-family: var(--vy-display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-        .vy-summary-chip .vy-sc-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
+        .vy-summary-chip .vy-sc-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-on-grad); }
         .vy-summary-chip.is-due { border-color: var(--vy-accent-border); }
         .vy-summary-chip.is-due .vy-sc-num { color: var(--vy-accent-text); }
 
@@ -849,20 +874,20 @@
         .vy-tag.tone-in-house .vy-dot { background: #8f2f08; }
         .vy-tag.tone-departed { background: rgba(138, 128, 121, 0.16); color: var(--vy-muted); }
         .vy-tag.tone-departed .vy-dot { background: var(--vy-muted); }
-        .vy-tag.tone-pending { background: rgba(224, 146, 30, 0.15); color: var(--vy-amber); }
+        .vy-tag.tone-pending { background: rgba(224, 146, 30, 0.15); color: var(--vy-amber-text); }
         .vy-tag.tone-pending .vy-dot { background: var(--vy-amber-2); }
-        .vy-tag.tone-no-show { background: rgba(178, 106, 8, 0.15); color: var(--vy-amber); }
+        .vy-tag.tone-no-show { background: rgba(178, 106, 8, 0.15); color: var(--vy-amber-text); }
         .vy-tag.tone-no-show .vy-dot { background: var(--vy-amber); }
         .vy-tag.tone-cancelled { background: rgba(166, 154, 146, 0.18); color: var(--vy-faint); }
         .vy-tag.tone-cancelled .vy-dot { background: var(--vy-faint); }
         /* Guest CRM flags (Wave 2) — the real `guests.is_vip` / `risk_flag` columns + the tag catalog.
            Warm only, per the design rule: at-risk borrows the established amber WARNING tone (the same one
            `.vy-unassigned` uses) rather than introducing a red. */
-        .vy-tag.tone-vip { background: rgba(180, 130, 44, 0.16); color: #8a6410; }
+        .vy-tag.tone-vip { background: rgba(180, 130, 44, 0.16); color: #6f4f0c; }
         .vy-tag.tone-vip .vy-dot { background: #b4822c; }
-        .vy-tag.tone-risk { background: rgba(178, 106, 8, 0.15); color: var(--vy-amber); }
+        .vy-tag.tone-risk { background: rgba(178, 106, 8, 0.15); color: var(--vy-amber-text); }
         .vy-tag.tone-risk .vy-dot { background: var(--vy-amber); }
-        .vy-tag.tone-tag { background: rgba(120, 70, 40, 0.08); color: var(--vy-muted); }
+        .vy-tag.tone-tag { background: rgba(120, 70, 40, 0.08); color: var(--vy-on-grad); }
         .vy-tag.tone-tag .vy-dot { background: var(--vy-faint); }
 
         /* Unit assignment chip / unassigned + assign link */
@@ -988,7 +1013,7 @@
         .vy-thread-row:last-child { border-bottom: none; }
         .vy-thread-row:hover { background: rgba(255, 255, 255, 0.5); transform: translateX(2px); }
         .vy-thread-row.is-unread { background: rgba(232, 112, 58, 0.05); }
-        .vy-thread-av { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); color: #fff; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
+        .vy-thread-av { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(140deg, #C2410C, #9A3412); color: #fff; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
         .vy-thread-av .vy-unread-dot { position: absolute; top: -1px; right: -1px; width: 11px; height: 11px; border-radius: 50%; background: var(--vy-accent); border: 2px solid rgba(255, 252, 248, 0.95); }
         .vy-thread-main { flex: 1; min-width: 0; }
         .vy-thread-top { display: flex; align-items: center; gap: 8px; }
@@ -1008,7 +1033,7 @@
 
         /* Conversation (thread view) */
         .vy-convo-head { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; flex-wrap: wrap; }
-        .vy-convo-back { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--vy-muted); text-decoration: none; }
+        .vy-convo-back { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--vy-on-grad); text-decoration: none; }
         .vy-convo-back:hover { color: var(--vy-accent-text); }
         .vy-convo-who { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
         .vy-convo-name { font-family: var(--vy-display); font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
@@ -1048,7 +1073,7 @@
         .vy-stack { display: flex; flex-direction: column; gap: 22px; }
 
         .vy-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
-        .vy-fact-label { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-faint); }
+        .vy-fact-label { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-fact-val { font-size: 13.5px; font-weight: 500; margin-top: 3px; }
         /* #105 Work Order detail — the wireframe's 4-col fact grid + responsive 2-col stack */
         .vy-wo-flabel { font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 5px; }
@@ -1298,7 +1323,7 @@
 
         /* Arrivals — the prototype's initials avatar */
         .vy-dash .vy-arr-who { display: flex; align-items: center; gap: 11px; min-width: 0; }
-        .vy-dash .vy-arr-av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 500; flex: none; }
+        .vy-dash .vy-arr-av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(140deg, #C2410C, #9A3412); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 500; flex: none; }
 
         /* Occupancy — the prototype's 130px chart, wider gutters, today emphasised */
         .vy-dash .vy-occ7 { height: 130px; gap: 14px; }
@@ -1359,7 +1384,7 @@
         /* ---- Units table ----------------------------------------------------------------------- */
         .vy-utable-wrap { overflow-x: auto; }
         .vy-utable { width: 100%; border-collapse: collapse; min-width: 720px; }
-        .vy-utable thead th { text-align: left; font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--vy-faint); padding: 0 14px 12px; white-space: nowrap; }
+        .vy-utable thead th { text-align: left; font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--vy-muted); padding: 0 14px 12px; white-space: nowrap; }
         .vy-utable tbody tr { transition: background .15s ease; }
         .vy-utable tbody tr:hover { background: rgba(255, 255, 255, 0.5); }
         .vy-utable td { padding: 13px 14px; border-top: 1px solid var(--vy-hairline); font-size: 13px; vertical-align: middle; }
@@ -1430,7 +1455,7 @@
 
         /* Segmented control (role + commission) */
         .vy-seg { display: flex; gap: 4px; padding: 4px; background: rgba(255, 255, 255, 0.45); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md); }
-        .vy-seg-opt { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 8px; border-radius: var(--vy-r-sm); font-size: 12.5px; font-weight: 600; color: var(--vy-muted); cursor: pointer; text-align: center; transition: all .14s ease; white-space: nowrap; }
+        .vy-seg-opt { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 8px; border-radius: var(--vy-r-sm); font-size: 12.5px; font-weight: 600; color: var(--vy-on-grad); cursor: pointer; text-align: center; transition: all .14s ease; white-space: nowrap; }
         .vy-seg-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
         .vy-seg-opt:hover:not(.is-disabled) { color: var(--vy-ink); }
         .vy-seg-opt.is-checked { background: #fff; color: var(--vy-accent); box-shadow: var(--vy-shadow-sm); }

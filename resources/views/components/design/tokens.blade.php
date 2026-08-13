@@ -37,7 +37,7 @@
             --vy-accent: rgb(194, 65, 12);
             --vy-accent-2: rgb(217, 102, 46);
             --vy-accent-3: rgb(232, 112, 58);
-            --vy-accent-text: rgb(176, 56, 8);
+            --vy-accent-text: rgb(147, 42, 7);
             --vy-accent-border: rgba(232, 112, 58, 0.28);
             /* Amber */
             --vy-amber: rgb(178, 106, 8);

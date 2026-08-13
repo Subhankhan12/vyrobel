@@ -120,7 +120,10 @@ it('⚠️ THE DELIBERATE OVERRIDES SURVIVE — the operator shell keeps its own
     // ⚠️ AND THE OTHER TWO — `--vy-on-grad` is MEASURED PER SHELL against each shell's own gradient
     // (§N.4i/§N.4j). The operator value must be the operator's, not the owner's, or the refactor has
     // flattened a contrast decision into a wrong one.
-    expect($effective['--vy-on-grad'])->toBe('rgb(84, 74, 68)')            // owner is rgb(76, 66, 60)
+    // ⚠️ CHANGED DELIBERATELY (DO-A11Y-2): the old value was derived against a PICKED gradient stop and
+    // measured 4.33–4.48 on the plates its users actually sit on — a real AA failure. Re-derived by
+    // sampling. This is the one token whose movement is intended; the rest of the contract stands.
+    expect($effective['--vy-on-grad'])->toBe('rgb(68, 59, 54)')            // owner is rgb(76, 66, 60)
         ->and($effective['--vy-on-grad-soft'])->toBe('rgb(88, 78, 72)');   // owner is rgb(82, 73, 67)
 });
 
