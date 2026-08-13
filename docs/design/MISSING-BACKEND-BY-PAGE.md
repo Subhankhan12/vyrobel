@@ -8818,3 +8818,73 @@ NOT failures** — my sampler reads a slightly darker plate inside cards than th
 so those are **probe-vs-arithmetic disagreement, not defects**, and must be reconciled before any of them is
 touched. **That reconciliation is the next task**, and it gates the remaining 8 files.
 
+---
+
+## ✅ `DO-PLATE-1` — THE AA FLOOR IS SETTLED, AND THE FINDING WAS MINE, NOT THE PRODUCT'S (2026-08-13)
+
+**Investigation only — nothing changed. No token, no test, no retint, no product code.**
+
+### ⚠️ The true card plate, measured from painted pixels
+
+Sampling the real composited page **away from glyphs**, inside operator cards:
+
+| point | plate | `--vy-faint` |
+|---|---|---|
+| card interior, no text | `rgb(250,221,206)` | **4.50** |
+| card interior, deep | `rgb(245,226,214)` | **4.61** |
+| card top-left inner | `rgb(253,226,206)` | **4.67** |
+| label row, beside the glyphs | `rgb(253,225,206)` | **4.64** |
+
+**The real card range is 4.50 – 4.67.** `DesignTokenContrastTest`'s constant `rgb(249,223,207)` predicts **4.55**
+— **inside that range**. ⚠️ **The constant is SOUND. There is NO product-wide AA floor defect on cards.**
+
+*(Checked and dismissed along the way: the cards carry `backdrop-filter: blur(22px) saturate(1.15)`, which the
+test's arithmetic omits — but computing it through the filter makes the plate **lighter** (4.57), not darker, so
+it is not the explanation either.)*
+
+### ⚠️ The earlier "45 failures" were MY INSTRUMENT, not the product
+
+Inside the "Display name" label box (12px text), excluding ink within 90 RGB distance: **worst 2.10, p10 4.25,
+median 4.35** — while the true plate beside the same text is **4.50+**. **More than half the "non-ink" samples
+in a dense small-text box are still anti-alias halo.** The sampler systematically under-reads there.
+
+⚠️ **So the floor finding recorded at `8440b7e` is RETRACTED.** `--vy-faint` at 4.19 and 4.07 were halo
+readings, not card plates. **A finding is not safer for being ours** — this is the third instrument correction
+in this thread, and the first one where the tool's error had been written up as a product defect.
+
+### ✅ What WAS real, and is already fixed
+
+Text sitting **directly on the page gradient** (no card): page background measured `rgb(242,191,157)` →
+`--vy-faint` **3.51**. That was the genuine defect, fixed at `dd5ecb9` by routing `.vy-topbar-sub` to
+`--vy-on-grad` (3.65 → 4.50).
+
+### ⛔ THE ONE THING LEFT FOR THE FOUNDER — headroom, not compliance
+
+⚠️ **`--vy-faint` clears AA on the worst measured card plate by 0.00** (4.50 against a 4.5 requirement). It
+passes; it has **no margin**. The same is true of `--vy-on-grad` on the gradient (4.50). A future gradient tweak,
+a new card tint, or a slightly darker stop would push both under without anyone touching the tokens.
+
+| option | change | blast radius |
+|---|---|---|
+| **A — accept** | nothing | none. AA is met everywhere measured; the margin is simply thin. |
+| **B — headroom on the tokens** | darken `--vy-faint` (and optionally `--vy-on-grad`) a few points | **product-wide**: every muted/faint label in all four shells shifts darker. Buys margin against future drift. |
+| **C — headroom on the plate** | lighten the gradient's 32 % stop | **product-wide visual**: changes the warm-glass look itself, on every page. |
+
+⚠️ **No option is required for compliance.** This is a robustness call about how close to the line the design
+should sit — **Subhan's**, not a sweep's.
+
+### ⬅ Also outstanding — `DO-PROBE-2` (tooling)
+
+The sampler must not sample the plate from *inside* a dense text box. It needs to read the plate from a band
+**adjacent to** the glyph run (the element's padding, or the parent's background beside it). Until then its
+readings on **small text are not trustworthy** — large/padded elements and flat plates remain sound (the
+validation harness still passes 7/7). ⚠️ **This gates the DO-EMAIL-5-continued sweep**, which is otherwise
+mechanical.
+
+### ⚠️ Premise correction on the test itself (G8 — read, not changed)
+
+`DesignTokenContrastTest`'s **header comment is stale**: it documents the remediated `--vy-faint` as
+`rgb(123,114,108)` (4.60), but the shipped token is `rgb(108,100,95)` — the value the same comment calls
+`--vy-muted`. The tokens were darkened again after that comment was written. **The assertions use the current
+values and are correct**; only the prose is out of date. Left untouched, per G8.
+
