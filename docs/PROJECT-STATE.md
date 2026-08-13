@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — **SIX CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17) · the DO-BILL PAIR (§N.18, SAVE v13)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE IS COMPLETE AND HONEST — `display = charge = STRIPE`; the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is now gated on the FOUNDER's Stripe dashboard steps + ONE open decision, NOT on code** · suite **1999 / 2006**, 7 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own** — neither a fix nor drift, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
+# ⚠️ CANONICAL STATE — **SEVEN CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17) · the DO-BILL PAIR (§N.18) · the PLAN PANEL (§N.19, SAVE v14)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST — `display = charge = STRIPE`, now from the ADMIN side too (§N.19.6); the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is gated on the FOUNDER's Stripe dashboard steps + ONE open decision, NOT on code** · suite **2008 / 2015**, 7 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own** — neither a fix nor drift, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -59,11 +59,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 > ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.16, then the DO-register.
 >
 > *Written so a session with no other context can start work immediately. Everything below is verified state,
-> not summary. **SAVE v13 (2026-08-13).***
+> not summary. **SAVE v14 (2026-08-13).***
 >
 > ## WHERE THE PROJECT IS
 >
-> **SIX CHAPTERS ARE CLOSED, IN ORDER:**
+> **SEVEN CHAPTERS ARE CLOSED, IN ORDER:**
 > **① THE DESIGN-PARITY WALK (v8)** — operator 42/42 · owner 32/32 · guest 12 gates + 3 verdicts · + the
 >   cross-realm PDF sweep. **Canon: §N.13.**
 > **② THE CLEANUP SEQUENCE (v9)** — the grey-literal drift closed across PDFs, emails and the reachable
@@ -77,14 +77,17 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   → pass 3 render-from-plan (`615904c`) → pass 2 the Price wiring (`7de1f35`) → pass 2b Stripe Tax
 >   (`9fed4a1`). **Canon: §N.17 + §G.1.**
 > **⑥ THE DO-BILL PAIR (v13)** — `DO-BILL-2` (`c6d398a`, the portfolio "billed per unit" §N.8d) → `DO-BILL-1`
->   (`dcce44f`, the VAT-ID → Stripe-customer sync). ⚠️ **WITH THESE THE BILLING CODE IS COMPLETE AND HONEST
->   END-TO-END. Everything remaining is NON-CODE — the founder's Stripe dashboard steps and one open decision —
->   plus a single unbuilt panel.** **Canon: §N.18.**
+>   (`dcce44f`, the VAT-ID → Stripe-customer sync). **Canon: §N.18.**
+> **⑦ THE PLAN PANEL (v14)** — the super-admin plan CRUD (`f389317`). ⚠️ **WITH THIS THE BILLING CODE *AND*
+>   BUILD ARE COMPLETE AND HONEST END-TO-END, INCLUDING FROM THE ADMIN SIDE. Everything remaining is
+>   NON-CODE** — the founder's Stripe dashboard steps and one open decision. **Canon: §N.19.**
 >
-> **Suite 1999 / 2006 · 7 non-green = the documented set** (`BookingImportTest` ×6 · `OwnerUnitDetailViewTest`
+> **Suite 2008 / 2015 · 7 non-green = the documented set** (`BookingImportTest` ×6 · `OwnerUnitDetailViewTest`
 > ×1). ⚠️ **The count WALKS a 5–10 band on its own — neither a fix nor drift** (§N.17.7; it read 5 at v12 and 7
-> here with nothing relevant changed). ⚠️ **One run at `dcce44f` showed an 8th that did NOT reproduce and was
-> NOT identified — recorded as unexplained, not certified** (§N.18.6). PHPStan L5 (0) · Pint clean.
+> at both v13 and v14 with nothing relevant changed). ⚠️ **One run at `dcce44f` showed an 8th that did NOT
+> reproduce and was NOT identified — recorded as unexplained, not certified** (§N.18.6). PHPStan L5 (0) · Pint
+> clean · `migrate:fresh --seed` clean. ⚠️ **The seed needs MAILPIT running** (SMTP 127.0.0.1:1025) — an abort
+> without it is **ENVIRONMENTAL**, not a regression; start `mailpit` and re-run before diagnosing anything.
 >
 > ## WHAT IS NOW TRUE THAT WAS NOT
 >
@@ -100,11 +103,13 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   — a founder pricing choice. It **dissolved**: pricing is configurable DATA and a plan declares its own
 >   shape, so there was no model to pick, only an engine that must charge faithfully to whatever is declared
 >   (§N.17.1). What remains is not a choice but three **dashboard** actions.
-> - 🏁 ⚠️ **THE BILLING CODE IS COMPLETE.** Six things had to be true and now are: the engine charges the plan's
->   declared shape · the page renders from that shape · the configured Price reaches Stripe or the app refuses
->   to bill · Stripe Tax computes the customer's own tax · no surface claims a tax or a per-unit consequence
->   that is false for some org · and the customer's VAT number actually reaches Stripe so reverse charge
->   applies. ⚠️ **What is left is not code**: three dashboard steps, one compliance decision, one unbuilt panel.
+> - 🏁 ⚠️ **THE BILLING CODE *AND* BUILD ARE COMPLETE.** Seven things had to be true and now are: the engine
+>   charges the plan's declared shape · the page renders from that shape · the configured Price reaches Stripe
+>   or the app refuses to bill · Stripe Tax computes the customer's own tax · no surface claims a tax or a
+>   per-unit consequence that is false for some org · the customer's VAT number reaches Stripe so reverse
+>   charge applies · **and an admin editing the catalogue cannot make what the app DISPLAYS diverge from what
+>   Stripe CHARGES** (§N.19.6 — the invariant's admin-side back door, closed by capturing terms).
+>   ⚠️ **What is left is not code at all**: three dashboard steps and one compliance decision.
 > - ⚠️ **`display = charge = STRIPE` now holds — the chain was two links long and the third was broken.** The
 >   checkout sent `price × quantity` with **no tax at all**, so a per-unit plan would have **silently
 >   under-charged** by the VAT (€88.56 quoted, €72.00 taken — €16.56/mo). Closed from the other end: the app
@@ -135,15 +140,14 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   ⚠️ **The safe half of (a) is shipped either way** (never send what we cannot type; never treat a rejection
 >   as success). Recorded in §G.1. A fresh session must **not** pick (b) unilaterally — it changes tax outcomes.
 >
-> **③ ✅ THE SUPER-ADMIN PLAN PANEL — BUILT (2026-08-13). ⚠️ THE BILLING BUILD IS COMPLETE.** Create + edit of
->   BOTH shapes, platform-admin gated. ⚠️ **A premise correction: the panel was not missing** — index/edit/
->   toggle already existed. What was missing was **create**, **shape-awareness** (it validated only name +
->   price, so a per-unit plan could be saved with no rate) and any notion of **sellable**.
->   ⚠️ **And the founder's ruling was UNENFORCEABLE before this pass** — subscriptions stored only `plan_id`,
->   so every price came from the LIVE plan row. They now **capture their terms**: quantity stays live, terms
->   freeze (§N.19).
->
-> **④ `DO-TOKEN-1` — the shared token source.** The structural root of the entire grey-drift family: each shell
+> **③ ✅ THE SUPER-ADMIN PLAN PANEL — BUILT (`f389317`). ⚠️ NOTHING BILLING-RELATED REMAINS TO BUILD.**
+>   Create + edit of both shapes, platform-admin gated. ⚠️ **It was not a CRUD form** — the premise check found
+>   subscriptions billed from the LIVE plan row with nothing captured, so an admin edit would have made the app
+>   DISPLAY a price Stripe was not charging: `display ≠ charge` from the side four passes never checked
+>   (§N.19.6). Terms now **freeze** on the subscription while the quantity stays **live**, and existing rows
+>   were backfilled. **Everything below is the pre-billing tail.**
+
+> **④ `DO-TOKEN-1` — the shared token source. ⚠️ THE FIRST REMAINING BUILD.** The structural root of the entire grey-drift family: each shell
 >   re-declares the whole palette, so any token can silently diverge (that is exactly how `DO-EMAIL-4` happened).
 >   ⚠️ **FOUR shells, not three** — the inventory is verified and recorded at `a5212aa`. It must **preserve the
 >   7 deliberate per-shell overrides** (guest radii, lighter shadow, `--vy-glass-border`, `--vy-on-grad`) rather
@@ -164,7 +168,8 @@ conflicts with the repo, **trust the repo** and fix this file.
 >
 > ## HOW TO WORK
 >
-> **Read before starting: §N.18 (newest — the DO-BILL canon: independent checks, the money-path structural
+> **Read before starting: §N.19 (newest — the plan-panel canon: the admin-side back door, terms-freeze-
+> quantity-live, model-hook invariants, well-formed-at-shelf-and-till) · §N.18 (the DO-BILL canon: independent checks, the money-path structural
 > check, one sync path per money field, fail-safe direction) · §N.17 (the billing canon: the blocker as framing artefact, display=charge=
 > STRIPE, give-up-the-claim, the divergent second total, refuse-to-charge) · §N.16 (the audit method, the three
 > ways a surface hides, keyed-not-typed) ·
@@ -735,18 +740,30 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 >   Whether the tile should include unstatemented ledger items is a **product call**, not a bug — logged, not
 >   re-worded.
 
-### ✅ G.1 — THE BILLING / PRICING MODEL — **🏁 CODE COMPLETE (2026-08-13); THE FLIP IS GATED ON NON-CODE ONLY**
+### ✅ G.1 — THE BILLING / PRICING MODEL — **🏁 CODE *AND* BUILD COMPLETE (2026-08-13); THE FLIP IS GATED ON NON-CODE ONLY**
 
+> 🏁 **NOTHING BILLING-RELATED REMAINS TO BUILD.** Four passes, the DO-BILL pair, and the **super-admin plan
+> panel** (`f389317`) — the last item on the list. ⚠️ **v13 said "code complete"; that was accurate but
+> incomplete**, because one build was still outstanding. Both halves are now done.
+>
+> ⚠️ **THE PANEL WAS NOT A CRUD FORM — it closed the invariant's ADMIN-SIDE BACK DOOR.** Subscriptions stored
+> only `plan_id`, so every displayed price came from the LIVE plan row, and `update()` could already change it
+> under a live subscriber. Stripe would have kept charging the old Price while Vyrobel displayed the new one:
+> **`display ≠ charge`, re-opened from the side four passes never checked** (§N.19.1, §N.19.6). Subscriptions
+> now **capture their terms** — quantity stays live, terms freeze — and existing rows were **backfilled**, so
+> the ruling protects customers already on the books rather than only future ones.
+>
 > 🏁 **THE BILLING CODE IS COMPLETE AND HONEST END-TO-END** — four passes plus the DO-BILL pair:
 > **`DO-BILL-2`** (`c6d398a`) retired the last live §N.8d (the Add-property modal's unconditional "billed per
 > unit"; the sibling sweep measured the cluster at ONE), and **`DO-BILL-1`** (`dcce44f`) closed the last money
 > gap (the stored VAT number now reaches the Stripe customer as a typed `tax_id`, fail-safe, through ONE sync
 > path from three writers and the webhook). **Cross-pass canon: §N.17 + §N.18.**
 >
-> ⚠️ **WHAT "CODE COMPLETE" MEANS HERE, precisely:** the engine charges the plan's declared shape · the page
+> ⚠️ **WHAT "COMPLETE" MEANS HERE, precisely:** the engine charges the plan's declared shape · the page
 > renders from that shape · the configured Price reaches Stripe or the app **refuses to bill** · Stripe Tax
 > computes the customer's own tax · **no surface claims a tax or a per-unit consequence that is false for some
-> org** · and the customer's VAT number reaches Stripe so reverse charge can apply. ⚠️ **It does NOT mean money
+> org** · the customer's VAT number reaches Stripe so reverse charge can apply · **and no admin edit can make
+> the displayed price diverge from the charged one** (§N.19.6). ⚠️ **It does NOT mean money
 > has moved:** no live key has ever been used, `StripeSafetyGuard` is untouched, and everything is proven
 > against the fake client.
 >
@@ -6754,6 +6771,8 @@ unconditional "billed per unit", rendered from the plan's shape · **`DO-BILL-1`
 number finally reaching the Stripe customer. ⚠️ **With these the billing CODE is complete and honest
 end-to-end. Everything remaining is NON-CODE — the founder's Stripe dashboard steps and one open decision —
 plus a single unbuilt panel.** Chapter canon: §N.17 (the workstream) + this.*
+> ✅ **UPDATE (SAVE v14): that panel was then built (`f389317`, §N.19), so the BUILD is complete too and nothing
+> billing-related remains to write.**
 
 ⚠️ **Both were found by READING, not by a failing test** — `DO-BILL-2` by SAVE v12's own coherence sweep,
 `DO-BILL-1` by pass 2b's grep. That is now five chapters in which the record's own re-reading outperformed the
@@ -6936,3 +6955,22 @@ could not really be sold and a save that could not really be valid.
 ⚠️ **The invariants were preserved and the FIXTURES amended** — the plan now carries a shape and a Price (it
 represents a live plan, which is what those tests are about), and the payloads carry the shape. *Nothing about
 what those tests assert was relaxed; what changed is that the world they describe is now internally consistent.*
+
+## §N.19.6 ⚠️ THE CAPSTONE — AN INVARIANT PROVEN ON ONE SIDE OF THE APP CAN HAVE A BACK DOOR ON ANOTHER
+
+Four billing passes established `display = charge = Stripe` and proved it from the **customer's** side: the page
+reads the engine, the engine's figure is what reaches Stripe, and no surface claims a tax it cannot know.
+
+⚠️ **The plan panel could break all of it with one form submit, and it was already shipped.** Not by charging
+the wrong amount — by editing a catalogue row so the app *displayed* a different price than Stripe was billing.
+The invariant was never tested from the **admin's** side, because the admin is not who the invariant was written
+about.
+
+⚠️ **THE GENERALISATION, and it outlives billing: an invariant is only as strong as the set of ACTORS it was
+checked against.** The billing passes checked the customer, the webhook and Stripe. They did not check the
+platform admin — a different realm, a different guard, and a surface that writes the very rows the whole chain
+reads. **When an invariant matters, enumerate who can write its inputs, not just who reads its outputs.**
+
+This is the fourth distinct way a defect has hidden from a pass in this project, and it belongs beside the other
+three (§N.16.2): conditional **STATE** · **AUTHORIZATION** · **DATA** · and now **ACTOR** — the surface was
+neither hidden nor conditional, it simply belonged to somebody the pass was not thinking about.

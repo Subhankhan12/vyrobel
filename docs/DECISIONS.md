@@ -9319,7 +9319,9 @@ untouched; everything is proven against the fake client.
    sale can be zero-rated before validation completes) **vs** require VIES validation first (safer; a build
    needing a "pending validation" state). The safe half is shipped either way. **A session must not pick the
    second unilaterally — it changes tax outcomes.**
-3. **The super-admin plan-CRUD panel** — the one remaining billing build.
+3. ~~**The super-admin plan-CRUD panel** — the one remaining billing build.~~ ✅ **BUILT at `f389317`
+   (SAVE v14)** — and it turned out not to be a CRUD form but the closing of the invariant's admin-side back
+   door (§N.19). **Nothing billing-related remains to build.**
 
 ### The six lessons folded into §N.18
 
@@ -9407,3 +9409,59 @@ Browser-verified as the platform admin: both shapes, a per-unit plan created end
 Suite **2008/2015 · 13,079 assertions**, **7 non-green = the documented set**. PHPStan L5 (0); Pint clean;
 `migrate:fresh --seed` clean (⚠️ it needs Mailpit running — a seed abort without it is environmental, not a
 regression).
+
+---
+
+## 2026-08-13 · SAVE v14 — 🏁 THE BILLING BUILD IS COMPLETE (docs-only consolidation)
+
+**Chapter ⑦ closes** with the super-admin plan panel (`f389317`). **Canon: §N.19** (six sub-sections).
+⚠️ **v13 recorded the billing CODE complete; that was accurate but incomplete — one build was outstanding.
+Both halves are now done, and nothing billing-related remains to write.**
+
+### The four syntheses folded into §N.19
+
+1. ⚠️ **AN ADMIN EDIT CAN RE-OPEN `display ≠ charge` FROM THE OTHER SIDE.** The obvious risk — an edit
+   re-pricing existing subscribers — was **not** the real one: Stripe bills against the Price object the
+   subscription was created with and nothing pushes a rate change to it. What an edit *would* have changed is
+   only what **Vyrobel displays**, leaving the product quoting one figure while Stripe charged another. The fix
+   is not "don't re-price"; it is **"don't let display and charge diverge."**
+2. ⚠️ **TERMS FREEZE, QUANTITY STAYS LIVE** — billing pass 1's derived-not-stored rule inverted for the half
+   that must not move. `PlanTerms` is the ONE calculation both `Plan::chargeFor()` and captured terms delegate
+   to, so §N.8f survives the freeze: **one arithmetic, frozen-vs-live inputs, never two pricing logics.**
+   Existing subscriptions were **backfilled** — a capture that only worked going forward would have left every
+   current customer exposed.
+3. ⚠️ **PUT THE INVARIANT ON THE MODEL'S LIFECYCLE HOOKS, NOT AT EACH CALL SITE.** `DO-BILL-1`'s three-writers
+   lesson recurring *inside one pass*, and upgraded: `DemoSeeder` was the writer nobody listed, so capture moved
+   onto `creating`/`updating` and **no path can bypass it, including ones not written yet.** ⚠️ Caught by
+   **checking the database after the seed**, not by a test — a test over the known call sites would have been
+   green while the seeder wrote nulls.
+4. ⚠️ **WELL-FORMED OR REJECTED, AT THE SHELF *AND* THE TILL.** `PlanIntegrity` — one ruleset for create and
+   edit, `pricing_type` a closed set, a per-unit rate **> 0** (zero silently bills nothing), and no activation
+   without a real Stripe Price. Pass 2 catches a Price-less plan at the **till**; this catches it at the
+   **shelf**.
+
+⚠️ **AND THE CAPSTONE (§N.19.6): an invariant is only as strong as the set of ACTORS it was checked against.**
+The billing passes checked the customer, the webhook and Stripe — never the platform admin, a different realm
+writing the very rows the whole chain reads. **A fourth way a defect hides**, beside conditional STATE,
+AUTHORIZATION and DATA (§N.16.2): **ACTOR** — the surface was neither hidden nor conditional; it belonged to
+somebody the pass was not thinking about.
+
+### ⛔ What remains — none of it code, and none of it billing
+
+The founder's **Stripe dashboard steps** (enable Stripe Tax + register jurisdictions — ⚠️ `automatic_tax` is
+**inert** until then; create the Prices; fill prod env) and the open **VAT-VALIDATION decision** (send-as-is,
+implemented, vs VIES-first, a build needing a "pending validation" state — ⚠️ a session must not pick the second
+unilaterally). The pre-billing tail is now the only outstanding *build* work: `DO-TOKEN-1` ·
+`DO-EMAIL-5-continued` · `DO-STAR-1` · `DO-SUP-1`.
+
+### Stale claims closed (§N.8b inward — v9 caught 4, v11 1, v12 5, v13 3, v14 3)
+
+§N.18's intro still ended "plus a single unbuilt panel" · §G.1's "what CODE COMPLETE means" omitted the
+admin-side guarantee · v13's own capstone still listed the panel as "the one remaining billing build". Each
+**annotated, not erased**.
+
+**Baseline per §N.17.7:** suite **2008/2015 · 13,079 assertions**, **7 non-green = the documented set**
+(`BookingImportTest` ×6 · `OwnerUnitDetailViewTest` ×1) — 5 at v12, 7 at v13 and v14, the band walking on its
+own. PHPStan L5 (0); Pint clean; `migrate:fresh --seed` clean. ⚠️ **The seed requires MAILPIT** (SMTP
+127.0.0.1:1025); an abort without it is **environmental, not a regression** — start `mailpit` and re-run before
+diagnosing anything.
