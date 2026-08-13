@@ -1922,6 +1922,13 @@ carry scope — stated as a fact, not assumed.
 - ⛔ **The live Add-property modal says *"billed per unit"*.** That asserts one of the two contradictory pricing
   models while the tier price is what actually reaches Stripe. **Surfaced, not changed** — editing it either way
   is picking a side of the open billing decision. It belongs on the blocker's ledger.
+  - ⚠️ **UPDATE (SAVE v12, 2026-08-13) — the framing changed, and the finding SURVIVES in a sharper form.** There
+    is no longer an open decision to pick a side of (§N.17.1): a plan declares its shape, and the Billing page
+    now renders per shape. **But this modal still asserts "billed per unit" UNCONDITIONALLY**, so on a FLAT org
+    it is exactly the §N.8d that pass 3 retired one page over — the same false proration/per-unit claim, on a
+    surface pass 3 did not touch. ⚠️ **This is a live §N.8d and a real item**, not a blocker footnote: it needs
+    the same shape-keying the Billing page got (`Plan::isPerUnit()`), and it belongs with `DO-BILL-1` in the
+    billing tail rather than on a ledger that no longer exists.
 - ⚠️ **The operator shell's topbar H1 overlaps the search box at ≤1000px** (H1 right 383 vs search left 339).
   **Proven pre-existing** by stashing this gate's changes and re-measuring on clean HEAD. Realm-wide (the shell,
   not this page).
@@ -8475,3 +8482,37 @@ guessed at here — it changes what is sent on a real money path.
 sent is correct, and the tax is Stripe's to compute. It is a **data-sync gap that costs the customer money in
 one direction only** (over-charging a reverse-charge business), which is why it is flagged rather than deferred
 silently.
+
+---
+
+## `DO-BILL-2` — ⚠️ A **LIVE §N.8d**: the Add-property modal claims "billed per unit" on every plan (found by the SAVE v12 coherence sweep, 2026-08-13)
+
+⚠️ **Found by re-reading the record, not by a test** — the same way the five security holes were found. A stale
+entry ("it belongs on the blocker's ledger") was being annotated as resolved when the underlying claim turned
+out to have outlived the framing that excused it.
+
+**VERIFIED IN REAL CODE, not inferred:** `resources/views/livewire/operator/portfolio.blade.php:203` —
+
+> *"It joins your organization — **billed per unit**. You'll set up units, rates & channels next; all your team
+> roles carry over."*
+
+The only conditional in that region is `@if ($canManage)`. **The claim is unconditional with respect to the
+plan's shape.**
+
+⚠️ **WHY IT IS FALSE TODAY.** Billing pass 1 made a plan declare its own shape and pass 3 keyed the Billing page
+to it: a **FLAT** org (Essential €49 / Pro €99) is *not* billed per unit, and adding a property changes its bill
+by **nothing**. The demo org is on flat Essential, so the modal is false **on the default demo right now**. This
+is precisely the false per-unit/proration claim pass 3 retired — **one page over, on a surface pass 3 never
+touched.**
+
+⚠️ **Note how it hid:** the modal is behind `@if ($canManage)` — a **role-gated** surface (§N.14.1), and the
+Portfolio page is reached by a role the design walk did not always render as. *A conditional surface is invisible
+to a pass that cannot see it.*
+
+**What it needs.** The same shape-keying the Billing page received: read `Plan::isPerUnit()` off the org's
+current plan and say "billed per unit" only when that is true (a flat org should get the honest "included in
+your plan" framing already used on `/app/billing`). ⚠️ **Do not free-type the alternative copy** — key it
+(§N.16.3), as the Billing card's `tax_note` is keyed, so the two surfaces cannot drift.
+
+**Verdict — REAL GAP, live §N.8d, small.** Presentation-only; no money moves through this modal. It belongs in
+the billing tail beside `DO-BILL-1`.

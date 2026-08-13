@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — **FOUR CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16, SAVE v11)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · suite **1967 / 12,917**, 7 non-green = the documented set · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN · ⛔ **ONE GO-LIVE BLOCKER OPEN (billing)**
+# ⚠️ CANONICAL STATE — **FIVE CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17, SAVE v12)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE IS COMPLETE AND HONEST — `display = charge = STRIPE`; the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is now gated on the FOUNDER's Stripe dashboard steps, NOT on code** · suite **1987 / 13,014**, 5 non-green = the BOTTOM of the documented 5–10 range (⚠️ **7 → 5 is the known non-determinism, VERIFIED — neither a fix nor drift**, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -59,11 +59,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 > ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.16, then the DO-register.
 >
 > *Written so a session with no other context can start work immediately. Everything below is verified state,
-> not summary. **SAVE v11 (2026-08-12).***
+> not summary. **SAVE v12 (2026-08-13).***
 >
 > ## WHERE THE PROJECT IS
 >
-> **FOUR CHAPTERS ARE CLOSED, IN ORDER:**
+> **FIVE CHAPTERS ARE CLOSED, IN ORDER:**
 > **① THE DESIGN-PARITY WALK (v8)** — operator 42/42 · owner 32/32 · guest 12 gates + 3 verdicts · + the
 >   cross-realm PDF sweep. **Canon: §N.13.**
 > **② THE CLEANUP SEQUENCE (v9)** — the grey-literal drift closed across PDFs, emails and the reachable
@@ -73,10 +73,14 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   shows only what is populated. **`DO-G13-1` is closed in BOTH halves. Canon: §N.15.**
 > **④ THE BACKLOG SEQUENCE (v11)** — `DO-SEED-1` (`f9142c8`) → `DO-EMAIL-9`+`8` (`52321b8`) → `DO-EMAIL-4`
 >   (`a70c147`) → `DO-EMAIL-5`/`6` (`2e8cd0f`) → `DO-EMAIL-7` (`4440c7a`). **Canon: §N.16.**
+> **⑤ THE BILLING WORKSTREAM (v12)** — the read-only investigation → pass 1 the shape-aware engine (`43862db`)
+>   → pass 3 render-from-plan (`615904c`) → pass 2 the Price wiring (`7de1f35`) → pass 2b Stripe Tax
+>   (`9fed4a1`). ⚠️ **THE BILLING CODE IS COMPLETE AND HONEST; the flip is gated on the FOUNDER's Stripe
+>   dashboard steps, not on code.** **Canon: §N.17 + §G.1.**
 >
-> **Suite 1986 / 12,984 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
-> `OwnerUnitDetailViewTest` ×1). ⚠️ It was **9** and dropped to **7** when `DO-SEED-1` fixed the seeder — a fix,
-> not drift; **re-measure every gate** (§N.14.5). PHPStan L5 (0) · Pint clean.
+> **Suite 1987 / 13,014 · 5 non-green — the BOTTOM of the documented 5–10 range** (this run: `BookingImportTest`
+> ×5). ⚠️ **7 → 5 IS NEITHER A FIX NOR DRIFT — it is the documented non-determinism, and it was VERIFIED, not
+> assumed** (§N.17.7). PHPStan L5 (0) · Pint clean.
 >
 > ## WHAT IS NOW TRUE THAT WAS NOT
 >
@@ -88,6 +92,14 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   is **keyed by category** with a **generic-true default**, so the falsehood is unrepresentable (§N.16.3).
 > - **`--vy-amber-text` is one name with one value** (`#804C05`); **`DO-G13-2`/`DO-G13-3` are RATIFIED**, so the
 >   whole G13 set is closed; the role-coverage audit **method** is recorded and guarded (§N.16.1).
+> - ⚠️ **THE BILLING BLOCKER IS GONE, AND IT WAS NEVER A DECISION.** §G.1 framed it as "flat tier OR per-unit?"
+>   — a founder pricing choice. It **dissolved**: pricing is configurable DATA and a plan declares its own
+>   shape, so there was no model to pick, only an engine that must charge faithfully to whatever is declared
+>   (§N.17.1). What remains is not a choice but three **dashboard** actions.
+> - ⚠️ **`display = charge = STRIPE` now holds — the chain was two links long and the third was broken.** The
+>   checkout sent `price × quantity` with **no tax at all**, so a per-unit plan would have **silently
+>   under-charged** by the VAT (€88.56 quoted, €72.00 taken — €16.56/mo). Closed from the other end: the app
+>   stopped claiming a post-tax total it cannot know (§N.17.2–.3).
 >
 > ⚠️ **THE CAVEAT THAT QUALIFIES EVERY "CLOSED" ABOVE.** *Closed* means *closed everywhere a pass could reach.*
 > There are now **three** ways a surface hides — conditional state (G10), **authorization** (§N.14.1) and
@@ -95,33 +107,57 @@ conflicts with the repo, **trust the repo** and fix this file.
 >
 > ## WHAT TO DO NEXT — in priority order
 >
-> **⛔ ① THE BILLING / GO-LIVE BLOCKER (§G.1) — surface this FIRST, for a founder priority call.** Two
->   contradictory pricing models run at once and only the tier price reaches Stripe; at the live-key flip a
->   customer is billed ~2× what the app quoted. ⚠️ **It is the founder's business decision — surface it, never
->   pick a side.** ⚠️ **If launch is near it outranks everything below**, and nothing below unblocks it.
+> **⛔ ① THE FOUNDER's STRIPE STEPS — ⚠️ NOT CODE, AND A FRESH SESSION CANNOT DO THEM.** The billing code is
+>   complete; the live-key flip is gated on three **dashboard/account** actions that `StripeSafetyGuard`
+>   deliberately makes impossible from dev (it refuses a live key outside `production`):
+>   **(a)** ⚠️ **enable Stripe Tax and register the tax jurisdictions** — `automatic_tax` in code is **INERT**
+>   until then, and a per-unit customer would be charged the bare pre-tax subtotal with no tax added;
+>   **(b)** create the Price objects per `docs/BILLING-STRIPE-PRICES.md` (per-unit **€9.00 exclusive** + the
+>   four flat tiers, VAT-inclusive); **(c)** fill the production env with the real ids.
+>   ⚠️ **A session can only REMIND and VERIFY THE WIRING — never claim the live Prices exist** (§N.17.6). The
+>   old entry here ("two contradictory pricing models … billed ~2×") **is stale and is retired**: see §N.17.1.
 >
-> **② `DO-TOKEN-1` — the shared token source.** The structural root of the entire grey-drift family: each shell
+> **② `DO-BILL-1` — sync the app's VAT-ID to the Stripe customer.** A small money-path pass.
+>   `organizations.billing_vat_id` is collected in-app but used **only on PDF letterheads and never sent to
+>   Stripe**; Stripe's `tax_id_collection` now asks again on its own page, so a customer who skips it there
+>   **pays VAT they were entitled to reverse-charge**. Everything the app sends today is correct — this is a
+>   data-sync gap that costs the customer money in one direction. ⚠️ It changes a real money path, so it was
+>   flagged rather than guessed at.
+>
+> **③ `DO-BILL-2` — ⚠️ A LIVE §N.8d, found by this SAVE's own coherence sweep.** The **Add-property modal**
+>   (`portfolio.blade.php:203`) says *"It joins your organization — **billed per unit**"* **unconditionally**.
+>   On a FLAT org that is false — adding a property changes the bill by nothing — and **the demo org is flat**,
+>   so it is false on the default demo right now. Same false per-unit claim pass 3 retired, one page over.
+>   ⚠️ It hid behind `@if ($canManage)` — a **role-gated** surface (§N.14.1). Fix = key it to
+>   `Plan::isPerUnit()` (do not free-type the alternative, §N.16.3). Presentation-only; no money path.
+>
+> **④ THE SUPER-ADMIN PLAN-CRUD PANEL — unbuilt.** A plan of either shape can today be created only in a seeder
+>   or the console. The engine handles both shapes; there is simply no in-app way to make one.
+>
+> **⑤ `DO-TOKEN-1` — the shared token source.** The structural root of the entire grey-drift family: each shell
 >   re-declares the whole palette, so any token can silently diverge (that is exactly how `DO-EMAIL-4` happened).
->   ⚠️ It must **preserve the 7 deliberate per-shell overrides** (guest radii, lighter shadow,
->   `--vy-glass-border`, `--vy-on-grad`) rather than flatten them — see §N.16.5. A three-shell refactor, not a
->   contrast item.
+>   ⚠️ **FOUR shells, not three** — the inventory is verified and recorded at `a5212aa`. It must **preserve the
+>   7 deliberate per-shell overrides** (guest radii, lighter shadow, `--vy-glass-border`, `--vy-on-grad`) rather
+>   than flatten them — see §N.16.5. A refactor with a no-visual-change proof, not a contrast item.
 >
-> **③ `DO-EMAIL-5-continued` — finish the role-coverage sweep, then open the DATA axis.** The method is recorded
+> **⑥ `DO-EMAIL-5-continued` — finish the role-coverage sweep, then open the DATA axis.** The method is recorded
 >   (§N.16.1); the remaining gated blocks are behind `settings.manage` ×3, `properties.manage` ×3,
 >   `payouts.manage`, `payments.refund` and `guests.erase` ×2 — each needs a render **as its role**. Then the
 >   third axis: **data-conditional surfaces, never swept anywhere** (§N.16.2).
 >
-> **④ The small tail** — `DO-STAR-1` (the Messages "Starred" flag is a **bookmark, not a rating** — do not fold
+> **⑦ The small tail** — `DO-STAR-1` (the Messages "Starred" flag is a **bookmark, not a rating** — do not fold
 >   it into `DO10-4`), `DO-SUP-1` (a WhatsApp affordance needs a real per-number flag; today the support number
 >   renders as `tel:` only), `DO-PDF-1`/`DO-PDF-2`, `DO-G4-1`.
 >
-> **⑤ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
+> **⑧ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
 >   end of `MISSING-BACKEND-BY-PAGE.md`, plus the **6 reopened operator a11y gates** (§N.9) and the
 >   deferred-capability refusal sweep (§N.8b).
 >
 > ## HOW TO WORK
 >
-> **Read before starting: §N.16 (newest — the audit method, the three ways a surface hides, keyed-not-typed) ·
+> **Read before starting: §N.17 (newest — the billing canon: the blocker as framing artefact, display=charge=
+> STRIPE, give-up-the-claim, the divergent second total, refuse-to-charge) · §N.16 (the audit method, the three
+> ways a surface hides, keyed-not-typed) ·
 > §N.15 (the build canon) · §N.14 (start at N.14.1) · §N.13 (the walk canon) · §N.8/§N.8b/§N.8c/§N.8d ·
 > §N.4p + §N.13.2 + §N.14.4 + §N.16.6 (the mutation and instrument discipline) · §N.9 (what is reopened).**
 >
@@ -689,7 +725,13 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 >   Whether the tile should include unstatemented ledger items is a **product call**, not a bug — logged, not
 >   re-worded.
 
-### ✅ G.1 — THE BILLING / PRICING MODEL — **RULED by the founder (2026-08-13); the ENGINE is BUILT**
+### ✅ G.1 — THE BILLING / PRICING MODEL — **⚠️ CODE-COMPLETE (2026-08-13); THE FLIP IS GATED ON THE FOUNDER's STRIPE DASHBOARD STEPS, NOT ON CODE**
+
+> 🏁 **THE FOUR PASSES ARE CLOSED AND CONTIGUOUS:** the read-only investigation → **pass 1** the shape-aware
+> engine (`43862db`, the blocker dissolved) → **pass 3** the page renders from the plan (`615904c`, the live
+> §N.8d retired) → **pass 2** the real Price wiring + loud failures (`7de1f35`, the tax-hop under-charge found)
+> → **pass 2b** Stripe Tax (`9fed4a1`, the app honest under variable tax; two more surfaces fixed).
+> **Cross-pass canon: §N.17.** ⚠️ **This entry is no longer an OPEN DECISION — it is a founder TASK LIST.**
 
 > ⚠️ **THE QUESTION WAS DISSOLVED, NOT ANSWERED.** This entry framed it as *"which of two models does Vyrobel
 > sell — flat tier (A) or per-unit (B)?"* The founder's ruling is that **pricing is configurable DATA and the
@@ -698,7 +740,8 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 > was an artefact of two hardcoded models coexisting, not a real either/or.
 >
 > **RULING 1 — pricing is configurable data, both shapes.** A plan is `flat` (one price regardless of units) or
-> `per_unit` (rate × the org's real units + VAT).
+> `per_unit` (rate × the org's real units). ⚠️ **The "+ VAT" this line originally carried was RETIRED by pass
+> 2b** — a per-unit charge is now the **pre-tax subtotal** and Stripe computes the customer's own tax (§N.17.3).
 > **RULING 2 — per-unit prorates immediately.** A mid-cycle unit change charges the difference now, via Stripe
 > proration — not at the next renewal.
 >
@@ -711,7 +754,8 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 >
 > ✅ **BILLING PASS 3 (2026-08-13) RETIRED THE LIVE §N.8d.** The customer Billing page now renders FROM the
 > org's plan shape, reading pass 1's engine: a FLAT org sees its flat price with **no per-unit breakdown, no VAT
-> split and no proration promise**; a PER-UNIT org sees rate × real units + VAT and the proration line, which is
+> split and no proration promise**; a PER-UNIT org sees rate × real units (⚠️ **pre-tax since pass 2b — the
+> "+ VAT" here is superseded**, see §N.17.3) and the proration line, which is
 > **true** since pass 1. ⚠️ The per-unit markup lives INSIDE the per-unit branch, so a flat org cannot render it
 > — unrepresentable rather than merely hidden (§N.16.3). ⚠️ **Display = charge**: every figure is
 > `Plan::chargeFor()`, the same expression Stripe is sent, so the page cannot quote one number while the invoice
@@ -888,6 +932,13 @@ be removed in the name of parity.
 **The 7 non-green are two distinct things — ⚠️ the older "both are flakes" label was HALF WRONG and is
 corrected here. THE COUNT IS THE BASELINE: if a run shows 8, you broke something — go and find it (that is
 exactly how the incomplete `firstOrCreate` fix in WAVE 2 was caught).**
+
+⚠️ **RE-VERIFIED AT SAVE v12 (2026-08-13, HEAD `9fed4a1`) — AND THE COUPLING RUNS BOTH WAYS.** A full run showed
+**5** non-green, all `BookingImportTest`. Measured immediately after: `BookingImportTest` passes **11/11 in
+isolation** (in-suite only, as always), while `OwnerUnitDetailViewTest` **fails 1/13 in isolation, three runs
+running** (`Unit […] is blocked (inventory_block) over the requested dates` — date-coupled) **yet passed inside
+the full suite**. ⚠️ **So "isolate it" is not a universal oracle**, and **7 → 5 was NOT a fix** — nothing in the
+billing diff touches reservations, availability or owner units. Full reasoning: **§N.17.7**.
 
 ⚠️ **THE BASELINE IS A RANGE — 5 to 10 — NOT A NUMBER (J.quater; widened from 5–9 at SAVE v6).** **Measured
 at SAVE v6 (2026-08-10, HEAD `64272cf` + docs): `1837 tests · 1828 passed · 12,042 assertions` — **9
@@ -5587,8 +5638,12 @@ founder's call.
 
 ## ⚠️ OPEN FOUNDER DECISIONS — surfaced, NOT decided
 
-- **G.1 BILLING** — the one open go-live blocker: two contradictory pricing models (per-unit €72 vs tier €49,
-  break-even ≈5.4 units) and only the tier price reaches Stripe → **~2× billing at the live-key flip**. Plus
+- ~~**G.1 BILLING** — the one open go-live blocker: two contradictory pricing models (per-unit €72 vs tier €49,
+  break-even ≈5.4 units) and only the tier price reaches Stripe → **~2× billing at the live-key flip**.~~
+  ⚠️ **RESOLVED AT SAVE v12 (2026-08-13) — AND IT WAS NEVER A DECISION.** The "contradiction" was an artefact of
+  two hardcoded models coexisting; pricing is configurable data and a plan declares its own shape (§N.17.1).
+  The billing code is complete and honest; **what remains is the founder's Stripe DASHBOARD work** (enable
+  Stripe Tax + jurisdictions · create the Prices · fill prod env) — see §G.1. Still genuinely open here:
   **#6** the rate guardrail and **#10** the Essential team limit.
 - **G.4 / D16-7** — a `processing`/`held` payout invisible in KPIs on both realms (fix = copy
   `rowStateMeta()`).
@@ -6462,3 +6517,182 @@ tone. Measured, it was **sound**: every chip prints its word, the dot clears 3:1
 **beside** it (the tally chip dimming its own status word). *The risk is next to the thing everyone is looking
 at* — three chapters running.
 
+
+---
+
+# (N.17) 🏁 THE BILLING WORKSTREAM — **THE CROSS-PASS SYNTHESIS** (SAVE v12, 2026-08-13)
+
+*Four passes plus a read-only investigation, closing the last ⛔ go-live blocker on the code side: the
+investigation → **pass 1** the shape-aware engine (`43862db`) → **pass 3** render-from-plan (`615904c`) →
+**pass 2** the Price wiring (`7de1f35`) → **pass 2b** Stripe Tax (`9fed4a1`). ⚠️ **The billing CODE is complete
+and honest. What remains is the founder's Stripe dashboard work — see §G.1.** The numbering is out of order
+because pass 3 was deliberately taken before pass 2: a half-aware page is worse than a known-false one.*
+
+⚠️ **This chapter is where the honesty discipline met REAL MONEY, and it changed shape.** In the design walk a
+false claim cost credibility. Here a false claim is a wrong charge, and the failure modes are not symmetric: an
+over-charge produces a complaint, an **under-charge produces silence**. Most of what follows is about the
+direction that nobody reports.
+
+## §N.17.1 ⚠️ A GO-LIVE BLOCKER CAN BE A FRAMING ARTEFACT, NOT A DECISION
+
+§G.1 stood open for months as *"flat tier **or** per-unit?"* — filed as a **founder pricing choice**, with a
+standing instruction to surface it and never pick a side. That instruction was right about the etiquette and
+wrong about the question.
+
+⚠️ **There was no model to choose.** Pricing is **configurable data**, and a plan row can declare its own shape.
+The "A vs B contradiction" existed **only because two models were hardcoded and coexisting** — `config('billing.
+tiers')` charging Stripe while `SubscriptionPricing` displayed a per-unit figure nobody billed. Once a plan
+carries `pricing_type`, both shapes are simply supported and the contradiction evaporates. The blocker was an
+artefact of the implementation, wearing the costume of a business decision.
+
+⚠️ **THE LESSON — when a blocker frames itself as "choose between X and Y", ask first whether the real fix is
+"stop hardcoding the choice."** A question that cannot be answered without the founder may not be a question at
+all; it may be a missing abstraction. *Distinguish a genuine product decision (what to charge) from a fork the
+code invented (which mechanism exists).* The genuine decisions did remain, and were ruled — they were about
+**amounts and tax conventions**, never about which engine to keep.
+
+⚠️ **The original §G.1 framing is preserved in its own `<details>` block, annotated rather than erased** — the
+same discipline v11 used. It was accurate about what the code did at the time.
+
+## §N.17.2 ⚠️ §N.8d AT THE MONEY BOUNDARY — `display = charge = STRIPE`, not merely `= page`
+
+Passes 1 and 3 proved **engine = page**: the figure on the Billing page is `Plan::chargeFor()`, the same
+expression the charge uses, so the page cannot quote one number while the app intends another.
+
+⚠️ **That chain was one link short, and the missing link was broken.** Nobody had inspected what the checkout
+**actually sends**. It sent `price` + `quantity` and **no tax configuration whatsoever** — no `tax_behavior`, no
+`automatic_tax`, no `tax_rates`. A per-unit plan's engine total was `units × rate + VAT`, so:
+
+| | amount (8 units, €9.00) |
+|---|---|
+| page and engine said | **€88.56** |
+| Stripe would have taken | **€72.00** |
+| ⚠️ silent under-charge | **€16.56 / month** |
+
+⚠️ **A SILENT UNDER-CHARGE IS THE INSIDIOUS DIRECTION.** No customer complains about being billed too little.
+There is no error, no exception, no failed payment — just quiet revenue loss that stays invisible until someone
+reconciles Stripe against the product. An over-charge announces itself within a day; this would not have.
+
+⚠️ **THE LESSON — the display=charge chain must span all the way to the PAYMENT PROCESSOR.** The last hop can
+disagree with everything upstream while every internal test agrees with itself. It was found by one grep asking
+*what leaves the app* (`grep -rn "tax_behavior\|automatic_tax\|tax_rates" app/ config/` → nothing), not by any
+test — because every test compared the app to the app.
+
+## §N.17.3 ⚠️ GIVE UP THE CLAIM, NOT THE CALCULATION — the chapter's headline
+
+The founder ruled **Stripe Tax** for per-unit (`tax_behavior: exclusive` + `automatic_tax`). That ruling changed
+what kind of thing the tax **is**: it became **customer-dependent** — country, business status, and **EU reverse
+charge, which is €0**.
+
+⚠️ **So the hardcoded `+ 23%` went from UNSENT (pass 2's finding) to FALSE.** It was no longer a figure the app
+neglected to transmit; it was a figure that is simply **wrong for a whole class of customers**. A reverse-charge
+business pays nothing, not 23%.
+
+⚠️ **AND THE FIX WAS NOT BETTER ARITHMETIC.** There is no percentage that is right, because the right value
+depends on facts the app does not hold. The fix was to **stop asserting a post-tax total at all**:
+
+- the **engine** drops the VAT → `chargeFor()` returns the **pre-tax subtotal**, carrying `tax_known: false`;
+- the **page** shows *"€72.00/mo · 8 units × €9.00 · **tax calculated at checkout**"*;
+- the app asserts **only what it knows** and **defers the rest to Stripe** (§N.16.2 — the customer's tax status
+  is DATA, resolved elsewhere; the page truthfully declines to resolve it).
+
+⚠️ **Pass 2's €16.56 gap therefore closed FROM THE OTHER END — not by sending the 23%, but by never having
+claimed it.** The pre-tax subtotal the page shows is exactly `Price × quantity`, so display = charge = Stripe
+holds again, now under a tax the app does not own.
+
+⚠️ **THE LESSON, and it generalises well beyond money — WHEN THE TRUTH IS UNKNOWABLE AT THE POINT OF DISPLAY,
+GIVE UP THE CLAIM.** Do not fabricate a plausible-looking number: **any specific value is false for some case**,
+and the plausible ones are the most dangerous because nothing looks wrong. Deferring ("calculated at checkout")
+is not a weaker answer than a number — it is the only true one. *This is #39's no-fabrication rule arriving at
+the same place from the money side.*
+
+## §N.17.4 ⚠️ §N.8f ON MONEY SURFACES — a divergent SECOND TOTAL is HOW surfaces drift (the §N.13.1 recurrence)
+
+Pass 3 fixed the Billing page's headline. Pass 2b found **two more surfaces asserting the same fixed VAT, both
+beside it**:
+
+1. ⚠️ **The Billing card's own "Next invoice" strip** — which read `SubscriptionPricing`, not the plan. A **flat**
+   org saw **"€49.00/mo"** in the headline and **"€72.00 + €16.56 VAT"** in the strip **directly beneath it**.
+   *One card contradicting itself, inches apart.*
+2. ⚠️ **Operator Settings → "Your plan"** — which priced *every* org with the per-unit formula. The demo org on
+   flat Essential displayed **"Vyrobel Essential · €88.56/mo"** while its own Billing page said **€49.00**.
+
+⚠️ **ROOT CAUSE: `SubscriptionPricing` was a SECOND, DIVERGENT TOTAL FOR ONE CONCEPT** — 5535 where
+`Plan::chargeFor()` said 4500. That is §N.8f (one definition per concept) violated on a money surface, and it is
+**exactly the mechanism of the token family**: two computations of one thing will diverge, and the divergence
+shows up on whichever surface nobody re-read.
+
+Fixed by routing every surface through `Plan::chargeFor()` and **stripping VAT from `SubscriptionPricing`
+entirely** — it cannot be allowed to act as a competing tax authority. All three sites on the Billing card now
+read ONE keyed `tax_note` (§N.16.3), so a future edit cannot make them disagree again.
+
+⚠️ **§N.13.1's THESIS HELD ONTO THE MONEY SURFACES — four chapters running.** *The defect sat beside the thing
+that had just been fixed.* Pass 3 corrected the headline and left a contradiction six lines below it.
+
+## §N.17.5 ⚠️ REFUSE-TO-CHARGE BEATS CHARGING WRONG · LIFT A GUARD BY SATISFYING IT, NEVER BY REMOVING IT
+
+When pass 2 found the tax gap, the two honest resolutions (a VAT-inclusive unit Price, or Stripe Tax with
+reverse charge) had **different compliance consequences**. That is a founder decision, so the pass **refused to
+pick** — and made the **app** refuse too: a per-unit plan **throws in production** until `STRIPE_TAX_BEHAVIOR`
+is declared.
+
+⚠️ **REFUSING TO CHARGE BEATS CHARGING THE WRONG AMOUNT.** Contain the wrong outcome, surface the decision, do
+not guess on a money path. A loud failure at the boundary is recoverable in minutes; a silent under-charge is
+discovered in a quarterly reconciliation. ⚠️ Note the scope discipline: **flat tiers were never gated**, because
+their charge was already correct — a refusal that blocks a correct path is not caution, it is breakage.
+
+⚠️ **AND PASS 2b LIFTED IT THE RIGHT WAY.** The convention is now **declared** (`exclusive`) **and**
+`automatic_tax` is **actually wired** — so the refusal lifts because **its condition is satisfied**, not because
+the check was deleted. The guard still throws the instant the convention is unset, and **a test unsets it and
+watches production refuse again**. *Deleting a guard whose condition you have met looks identical in a green
+suite to deleting one you have not.*
+
+## §N.17.6 ⚠️ THE DERIVED-NOT-STORED QUANTITY · AND THE TWO-PART PASS
+
+⚠️ **The charged quantity DERIVES from the org's real units** (`BillableUnits::count()`), and there is
+**deliberately no `subscriptions.unit_count` column**. A stored count is correct until the next unit is added
+and then quietly wrong, with nothing to announce the drift — and **a charged quantity that disagrees with
+reality is §N.8d with money attached**: the customer is billed for a number that is not true of them. Display
+and charge read the **same expression**, which is why the page tracks a mid-cycle unit change for free.
+
+⚠️ **THE TWO-PART PASS — a shape worth reusing for every account-gated seam.** Pass 2 split cleanly:
+
+- **the PASS did, autonomously:** wire the real `STRIPE_PRICE_*` ids, make every failure **loud** (a placeholder
+  or missing id throws before a session exists; the seeder's fake fallback throws in production), and prove all
+  of it **against the fake client**;
+- **the FOUNDER does, and only the founder can:** create the Price objects and fill the production env —
+  because `StripeSafetyGuard` refuses a live key outside `production`, by design, untouched.
+
+⚠️ **THE HONEST BOUNDARY IS THE POINT: prove the WIRING; never claim the live Prices exist.** Those are two
+different claims and the report must separate them. "The app sends the configured id and refuses a placeholder"
+is proven from dev; "the Price behind that id exists with the right amount" is a dashboard confirmation no test
+in this repo can make.
+
+⚠️ **A guard for a production-only branch needs TWO-SIDED non-vacuity.** Each loud-fail test **forces the
+production context** (`app()->detectEnvironment` + non-fake) — a guard that never enters its branch proves
+nothing — **and** asserts the same plan is *fine* outside production, so the test cannot pass by throwing
+always.
+
+## §N.17.7 ⚠️ THE BASELINE, RECONCILED — 7 → 5 IS **NEITHER A FIX NOR DRIFT**
+
+⚠️ **A premise correction, measured rather than assumed.** The billing passes were read as taking the non-green
+count **7 → 5**, and the natural reading — *the `DO-SEED-1` precedent, where 9 → 7 really was a fix* — is that
+something got fixed. **It did not.** Measured at HEAD `9fed4a1`:
+
+- **`BookingImportTest`** — **11/11 in ISOLATION**, fails only in-suite. It contributed **5** on the run in
+  question and has historically contributed **6**. Order/state coupling, unchanged.
+- **`OwnerUnitDetailViewTest`** — ⚠️ **fails 1 of 13 in ISOLATION, three runs running**, with
+  `Unit […] is blocked (inventory_block) over the requested dates` — a genuine **date-coupled** fixture clash —
+  **yet it PASSED inside the full suite** on the run that showed 5.
+
+⚠️ **SO THE COUPLING RUNS IN BOTH DIRECTIONS, AND "ISOLATE IT" IS NOT A UNIVERSAL ORACLE.** One documented member
+passes alone and fails in-suite; another fails alone and passes in-suite. **The count moved because the roll of
+the dice differed, not because anything changed** — nothing in the billing diff touches reservations,
+availability or owner units.
+
+⚠️ **THE DOCUMENTED SET, RE-STATED ACCURATELY:** `BookingImportTest` (up to 6, in-suite only) ·
+`OwnerUnitDetailViewTest` (1, date-coupled) · `StubViewsTest` (up to 2, date-coupled). **The baseline is the
+5–10 RANGE recorded in (J), not a number** — and 5 sits at its bottom edge. ⚠️ **Do not record a range-walk as a
+fix.** A false "we fixed two" is the same species of error as a false finding: it retires attention from
+something still broken. *Re-measure every gate; when the count moves, prove which member moved and why before
+calling it anything.*

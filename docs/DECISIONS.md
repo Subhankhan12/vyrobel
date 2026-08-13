@@ -9162,3 +9162,47 @@ Stripe · page per-unit deferral with no fixed VAT · page flat unchanged. Five 
 guard (drop `automatic_tax` · undeclare exclusive · re-add the hardcoded VAT · make the page print a fixed VAT ·
 break subtotal-vs-Stripe). All against the FAKE client; `StripeSafetyGuard` untouched; no live key, no charge.
 Suite **1987/1994** (5 non-green = the documented `BookingImportTest` set); PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-13 · SAVE v12 — THE BILLING WORKSTREAM IS CLOSED (docs-only consolidation)
+
+**Chapter ⑤ closes.** The read-only investigation → pass 1 (`43862db`) → pass 3 (`615904c`) → pass 2
+(`7de1f35`) → pass 2b (`9fed4a1`). **Cross-pass canon: §N.17** (seven sub-sections). **⚠️ The billing CODE is
+complete and honest; the live-key flip is gated on the FOUNDER's Stripe dashboard steps, not on code.**
+
+**The four founder rulings, all recorded in §G.1:** pricing is configurable data (both shapes) · a per-unit
+subscription **prorates** immediately · **flat tiers are VAT-INCLUSIVE** (€49/€99 final) · **per-unit VAT
+reaches Stripe via Stripe Tax** (`exclusive` + `automatic_tax`, reverse charge Stripe's).
+
+**⛔ The founder's three remaining steps are DASHBOARD/ACCOUNT actions, not code:** enable Stripe Tax + register
+jurisdictions (⚠️ `automatic_tax` is **inert** until then) · create the Prices · fill the production env.
+
+**⚠️ THE HEADLINE LESSON — GIVE UP THE CLAIM, NOT THE CALCULATION.** When Stripe Tax made per-unit tax
+customer-dependent, the hardcoded 23% went from *unsent* to *false*. No arithmetic could fix that, because the
+right value depends on facts the app does not hold. The app stopped asserting a post-tax total and now shows the
+pre-tax subtotal + "tax calculated at checkout". **Pass 2's €16.56 under-charge closed from the other end — not
+by sending the 23%, but by never having claimed it.**
+
+**⚠️ AND THE BLOCKER WAS A FRAMING ARTEFACT.** §G.1 stood open for months as a founder pricing *choice*; there
+was no model to choose, only two hardcoded models coexisting. *When a blocker frames itself as "X or Y", ask
+whether the fix is "stop hardcoding the choice."*
+
+### ⚠️ Two premise corrections this SAVE made, both measured rather than assumed
+
+1. **The baseline 7 → 5 is NEITHER a fix NOR drift** — it is the documented non-determinism. Verified at HEAD
+   `9fed4a1`: `BookingImportTest` passes **11/11 isolated** (in-suite only), while `OwnerUnitDetailViewTest`
+   **fails 1/13 isolated across three runs** yet **passed inside the full suite**. ⚠️ **The coupling runs both
+   ways, so "isolate it" is not a universal oracle.** The baseline remains the **5–10 range** of (J); 5 is its
+   bottom edge. Recording a range-walk as a fix would have retired attention from nothing. (§N.17.7)
+2. ⚠️ **`DO-BILL-2` — a LIVE §N.8d found by the coherence sweep itself.** While annotating a stale entry as
+   resolved, the underlying claim turned out to have outlived its excuse: the **Add-property modal**
+   (`portfolio.blade.php:203`) says *"billed per unit"* **unconditionally**, which is false on a FLAT org — and
+   **the demo org is flat**. It hid behind `@if ($canManage)`, a role-gated surface (§N.14.1). Logged, verified
+   in code, not fixed (this SAVE writes docs only).
+
+**Stale claims closed (§N.8b inward):** §G.1's RULING 1 and its pass-3 paragraph still described a per-unit
+charge as "rate × units **+ VAT**" (retired by 2b) · the RESUME's ⛔ ① still described the dissolved "~2× at the
+live-key flip" blocker · the open-founder-decisions summary and `DIVERGENCE-REGISTER` row still carried it ·
+`MISSING-BACKEND` still filed the Add-property modal under "the open billing decision". Each **annotated, not
+erased**.
