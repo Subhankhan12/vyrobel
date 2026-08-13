@@ -8599,3 +8599,62 @@ already guarantees. This pass hard-deleted the leftover (`forceDelete`) and veri
 that no subscription points at a per-unit plan. *Same family as §N.4p: the verdict must come from something
 other than the mechanism under test.*
 
+
+---
+
+## ⛔ `DO-EMAIL-5-continued` — **BLOCKED ON THE INSTRUMENT** (attempted 2026-08-13; scope mapped, nothing published)
+
+⚠️ **This pass did not close. It is recorded as blocked rather than shallow-closed, because the contrast probe
+could not be made trustworthy and §N.8e's rule is explicit: when the probe breaks, publish NOTHING** — and that
+applies to a clean bill of health just as much as to a list of failures.
+
+### ✅ What IS established (verified, reusable)
+
+**Part A's target set is enumerated.** The gated markup behind the six permissions the covered Hotel Manager
+lacked lives in **9 files**:
+
+| permission | files |
+|---|---|
+| `settings.manage` | `operator-settings`, `operator-security` |
+| `properties.manage` | `notification-preferences`, `email-templates`, `email-previews` |
+| `payouts.manage` | `payout-run` |
+| `payments.refund` | `reservation-detail` |
+| `guests.erase` | `guest-profile`, `guests-list` |
+
+**The role premise holds:** `demo-admin@vyrobel-demo.test` is a Property Owner holding `*`, so **one role renders
+the entire delta** — no hand-provisioning (DO-SEED-1). Confirmed by rendering `/app/settings` as that user.
+
+**Part B's surface is measured in size:** `@forelse`/`@empty` appear in **67 view files** — guest 10 · booking 2 ·
+owner 21 · operator 18 · operator-views 2. The DATA axis is genuinely large, as §N.16.2 anticipated.
+
+### ⚠️ THE BLOCKER — three distinct failure modes of the contrast probe, in one pass
+
+The measurement requires the composited plate. A `getComputedStyle` ancestor-walk cannot see a **gradient**, and
+this product paints gradients on the body, on cards and on buttons. Each attempted instrument failed differently:
+
+1. **Naive ancestor-walk** → `backgroundColor` is transparent on gradient elements, so the walk fell through to
+   white and reported **13 false failures at 1.00** (white text "on white"). *The same shape as the `.vy-fade`
+   `animation:none` artefact: a probe that turns everything into the same wrong answer.*
+2. **Bail-out-on-gradient** → honest, and **blind**: the body gradient made **166 elements unmeasurable** and the
+   probe reported **0 failures**. ⚠️ **This reproduced verbatim the instrument bug already recorded in §N.8e** —
+   *"a gradient-exclusion rule matching `body` reported 0 failures for a whole page."* A clean bill from this
+   version would have been the most dangerous output of the three.
+3. **Analytic gradient evaluation** (parse the stops, interpolate at the element's position) → anchors validated
+   (white-on-accent **5.18**, ink-on-white **15.4**), but it still reported white button labels at **1.2 on a
+   cream plate**: it resolved an ancestor card's gradient instead of the button's own accent gradient. Plausible
+   numbers, wrong plate — the worst kind of wrong.
+
+⚠️ **The lesson, which is the durable output of this pass: an instrument that produces PLAUSIBLE numbers is more
+dangerous than one that crashes.** Version 2 was silent, version 3 was confident, and only the two
+self-validating anchors plus a sanity read of *which* text was being flagged exposed either.
+
+### ⬅ What this needs next (a bounded, specified follow-up)
+
+**Pixel-sample a real screenshot** — the method §N.8e actually prescribes — rather than any DOM-derived plate.
+`PIL` is unavailable but **PHP GD is present**, so the shape is: dump element rects + computed colours from the
+DOM → screenshot to disk at a known DPR → sample the plate pixels just outside the glyph box in PHP → take the
+**worst** sample (the plate is positional). A prototype exists but was **never validated end-to-end and is
+deliberately not committed** — an unproven measuring tool is exactly what this entry is warning about.
+
+**Verdict — Part A OPEN (scope mapped, unmeasured) · Part B OPEN (67 files inventoried, none forced).** No
+contrast finding, and no clean bill, is claimed for either.
