@@ -52,6 +52,21 @@ interface StripeClientInterface
      *
      * @param  array<string, string>  $metadata
      */
+    /**
+     * Attach a TYPED tax ID to an existing Stripe customer, replacing any different one already on them.
+     *
+     * ⚠️ DO-BILL-1 — this is what makes reverse charge reach the customer. Stripe Tax reads the customer's
+     * `tax_ids` to decide whether an EU B2B sale is zero-rated; without one, a business that already told
+     * Vyrobel its VAT number is charged VAT it was entitled to reverse-charge.
+     *
+     * @param  array{type: string, value: string}  $taxId  Never a bare string — the type decides how Stripe
+     *                                                     interprets the number.
+     * @return bool true when the id is attached (or already present); false when Stripe REJECTED it, in which
+     *              case the customer stays TAXABLE. ⚠️ Never throws for a rejection: a bad VAT number must not
+     *              break billing, it must simply fail to earn a zero rating.
+     */
+    public function syncCustomerTaxId(string $customerId, array $taxId): bool;
+
     public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false, bool $automaticTax = false): StripeCheckoutSession;
 
     /**

@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Services\BillingService;
 use App\Services\BillingWebhookService;
 use App\Services\SubscriptionLifecycleService;
+use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,6 +39,10 @@ class BillingActionController extends Controller
             'billing_email' => $data['billing_email'] ?? $org->billing_email,
         ]);
 
+        // DO-BILL-1 — a corrected or newly-entered VAT number must reach Stripe, or the org keeps being taxed
+        // on a number it has already given us. No-ops when there is no Stripe customer yet.
+        StripeTaxIdSync::push($org->fresh() ?? $org);
+
         return redirect()->back()->with('billing_notice', 'Billing details saved.');
     }
 
@@ -64,6 +69,11 @@ class BillingActionController extends Controller
             'billing_company' => $data['billing_company'] ?? $org->billing_company,
             'billing_vat_id' => $data['billing_vat_id'] ?? $org->billing_vat_id,
         ]);
+
+        // DO-BILL-1 — if this org already has a Stripe customer (a re-subscribe or a plan change), push the
+        // number now. On a FIRST subscription there is no customer yet, and Stripe's own `tax_id_collection`
+        // (pass 2b) covers that session; the webhook then attaches it for every renewal after.
+        StripeTaxIdSync::push($org->fresh() ?? $org);
 
         try {
             $session = $billing->startCheckout($org, (string) $data['plan'], (string) $data['interval']);

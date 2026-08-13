@@ -14,6 +14,7 @@ use App\Models\Tax;
 use App\Services\PropertyBookingPauseService;
 use App\Services\PropertyRemovalService;
 use App\Services\SettingsService;
+use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Guest\PropertySupport;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
@@ -347,6 +348,10 @@ class SettingsActionController extends Controller
         ]);
 
         $settings->updateInvoiceDetails($organization, $data);
+
+        // DO-BILL-1 — the VAT number is editable from HERE too, not only from Billing. Both writers must reach
+        // Stripe, or which screen the operator happened to use would decide whether they get reverse charge.
+        StripeTaxIdSync::push($organization->fresh() ?? $organization);
 
         return $this->back('Invoice details saved.');
     }

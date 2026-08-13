@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Payments\Stripe;
 
 use RuntimeException;
+use Stripe\Exception\InvalidRequestException;
 use Stripe\StripeClient as StripeSdk;
 use Stripe\Webhook;
 
@@ -98,6 +99,31 @@ class StripeClient implements StripeClientInterface
     private function options(?string $idempotencyKey): array
     {
         return $idempotencyKey !== null && $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
+    }
+
+    public function syncCustomerTaxId(string $customerId, array $taxId): bool
+    {
+        try {
+            // Already on the customer? Nothing to do — and DON'T re-create it: Stripe would happily hold two.
+            foreach ($this->sdk->customers->allTaxIds($customerId, ['limit' => 20])->data as $existing) {
+                if ((string) $existing->type === $taxId['type'] && (string) $existing->value === $taxId['value']) {
+                    return true;
+                }
+
+                // A DIFFERENT number is stale — the org corrected it in-app. Remove it, or Stripe may apply the
+                // old one and zero-rate against a number the customer no longer claims.
+                $this->sdk->customers->deleteTaxId($customerId, (string) $existing->id);
+            }
+
+            $this->sdk->customers->createTaxId($customerId, ['type' => $taxId['type'], 'value' => $taxId['value']]);
+
+            return true;
+        } catch (InvalidRequestException $e) {
+            // ⚠️ THE FAIL-SAFE. Stripe refused the number — so it earns NO zero rating and the customer stays
+            // taxable. Deliberately not rethrown: a bad VAT number must not break billing, and an overcharge is
+            // recoverable where a wrong zero-rating is a compliance liability. The caller surfaces it.
+            return false;
+        }
     }
 
     public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false, bool $automaticTax = false): StripeCheckoutSession

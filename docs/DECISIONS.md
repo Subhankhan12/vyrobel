@@ -9249,3 +9249,51 @@ the mechanism under test.*
 Suite **1991/1998 · 13,028 assertions**, **7 non-green = the documented set** (`BookingImportTest` ×6 ·
 `OwnerUnitDetailViewTest` ×1) — ⚠️ **back up from 5, which is further confirmation of §N.17.7**: the count walks
 its 5–10 range on its own. PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-13 · `DO-BILL-1` — the stored VAT number reaches the Stripe customer (a money-path fix)
+
+**The gap.** `organizations.billing_vat_id` was used for **PDF letterheads only** (pass 2b verified it by grep).
+Pass 2b then turned Stripe Tax on, and Stripe Tax decides reverse charge from the **customer's** `tax_ids` — so
+a business that had already given Vyrobel its number, and skipped Stripe's own prompt, was charged VAT it was
+entitled to reverse-charge. The app held the answer and never passed it on.
+
+**The fix.** `VatId` derives a **typed** Stripe tax id from a **closed** country map (`eu_vat`/`ch_vat`/`gb_vat`/
+`no_vat`), returning null for anything else. `StripeTaxIdSync` is the ONE path to the customer, called from the
+**three** in-app writers and **from the webhook** when a customer id first appears.
+
+⚠️ **A premise refinement the orientation produced: the app never creates a Stripe customer** — Checkout does,
+and the id arrives by webhook. So there was no pre-existing attach point, and the webhook hook is not an extra —
+it is the only place a first-time customer can be reached. It also matters most: **Stripe re-computes tax on
+every renewal invoice**, so a missing id would have overcharged monthly, not once.
+
+**⚠️ The posture is asymmetric on purpose — when in doubt, CHARGE THE TAX.** Overcharging is visible and
+refundable; wrongly **zero-rating** is silent and lands on the operator at an audit. So: an untypeable number is
+never sent · a Stripe rejection returns false rather than throwing (a bad number must not break a subscription)
+and is never treated as success · both are logged **without the value**, a customer business identifier · a
+corrected number **replaces** the stale one rather than joining it.
+
+**Reconciled with pass 2b's `tax_id_collection`, no double-set:** the stored id attaches to the customer;
+Stripe's own prompt is the **fallback** for the first session, before any customer exists.
+
+**⚠️ The guard caught the validator being too generous before it shipped.** `"not-a-vat-id"` normalises to
+`NOTAVATID` — leading `NO` is **Norway** — and the body passed a bare "alphanumeric" test. Prose was one step
+from reaching Stripe as a Norwegian VAT number, which is exactly the mis-typing that can be accepted and
+zero-rate a taxable sale. Fixed by requiring a run of ≥4 digits. *On a tax path, an over-permissive structural
+check is not a weaker guard — it is the failure mode.*
+
+**⛔ A NEW FOUNDER DECISION — VAT VALIDATION (recorded in §G.1).** Structural ≠ valid. Implemented: send as-is
+and let Stripe validate against VIES **asynchronously** (so a sale can be zero-rated before validation
+completes). The alternative — require VIES validation first — is safer but is a build with a new "pending
+validation" state. **Flagged, not guessed; the safe half is implemented either way.**
+
+**Scope held:** the PDF letterhead use is untouched (asserted) · engine, page and the unbuilt panel untouched ·
+display = charge = Stripe still holds — the app forwards a fact to Stripe and still asserts only the pre-tax
+subtotal; it computes no reverse-charge total of its own (asserted).
+
+Guarded by `BillingVatIdSyncTest` (8/22), mutation-proven four ways, all against the FAKE client. Billing family
+**129/129**. Suite **1999/2006**, 7 non-green = the documented set. ⚠️ **One earlier run of the same commit
+showed an 8th non-green that did NOT reproduce on two subsequent runs and could not be identified** — recorded
+as an unexplained range-walk (§N.17.7 / the (J) 5–10 range), **not** claimed as proven pre-existing. PHPStan L5
+(0); Pint clean.

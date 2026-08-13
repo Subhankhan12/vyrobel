@@ -117,12 +117,14 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   ⚠️ **A session can only REMIND and VERIFY THE WIRING — never claim the live Prices exist** (§N.17.6). The
 >   old entry here ("two contradictory pricing models … billed ~2×") **is stale and is retired**: see §N.17.1.
 >
-> **② `DO-BILL-1` — sync the app's VAT-ID to the Stripe customer.** A small money-path pass.
->   `organizations.billing_vat_id` is collected in-app but used **only on PDF letterheads and never sent to
->   Stripe**; Stripe's `tax_id_collection` now asks again on its own page, so a customer who skips it there
->   **pays VAT they were entitled to reverse-charge**. Everything the app sends today is correct — this is a
->   data-sync gap that costs the customer money in one direction. ⚠️ It changes a real money path, so it was
->   flagged rather than guessed at.
+> **② ✅ `DO-BILL-1` — CLOSED (2026-08-13).** The stored VAT number now reaches the Stripe customer as a typed
+>   `tax_id`, from all three in-app writers and from the webhook (which is what covers RENEWALS). ⚠️ **Fail-safe
+>   throughout: when in doubt, charge the tax.** ⛔ **It surfaced a NEW founder decision — VAT VALIDATION**
+>   (send-as-is-and-let-Stripe-validate, which is implemented, **vs** require VIES validation first): a
+>   compliance call recorded in §G.1, flagged rather than guessed.
+>
+> ⚠️ **WITH ② CLOSED THE BILLING CODE IS COMPLETE.** Everything left below ① is either a founder decision or
+>   the unbuilt panel.
 >
 > **③ ✅ `DO-BILL-2` — CLOSED (2026-08-13).** The Add-property modal's billing claim is now keyed by the plan's
 >   shape (flat → "included in your plan"; per-unit → "billed per unit"), read from the same source the Billing
@@ -820,6 +822,29 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 > is never sent to Stripe**. Stripe's own `tax_id_collection` now asks for it again at the hosted page; a
 > customer who skips it there is charged VAT they could have reverse-charged. Syncing the stored id onto the
 > Stripe customer is a follow-up, deliberately not invented here.
+>
+> ✅ **`DO-BILL-1` CLOSED (2026-08-13) — the stored VAT number now reaches the Stripe customer.**
+> `organizations.billing_vat_id` was PDF-only; Stripe Tax decides reverse charge from the CUSTOMER's `tax_ids`,
+> so a business that had already given Vyrobel its number and skipped Stripe's prompt paid VAT it could have
+> reverse-charged. It is now attached as a **typed** `tax_id` (`VatId` derives `eu_vat`/`ch_vat`/`gb_vat`/
+> `no_vat` from a **closed** country map), pushed from all **three** writers and from the **webhook** the moment
+> a customer id first exists — which matters most for RENEWALS, since Stripe re-computes tax per invoice.
+>
+> ⚠️ **THE POSTURE IS ASYMMETRIC AND DELIBERATE: when in doubt, CHARGE THE TAX.** An untypeable number is never
+> sent, a Stripe rejection is never treated as success, and both are logged (never the value — it is a customer
+> identifier). Overcharging is visible and refundable; wrongly **zero-rating** is silent and lands on the
+> operator at an audit.
+>
+> ⛔ ⚠️ **A NEW FOUNDER DECISION — VAT VALIDATION (compliance, deliberately NOT decided here).** The app performs
+> a **STRUCTURAL** check only ("is this plausibly a VAT number of a country we can name?"), never a **VALIDITY**
+> check ("does this number exist and belong to this business?"). Two options:
+> - **(a) send as-is, let Stripe validate** — what is implemented. Stripe validates EU numbers against VIES
+>   **asynchronously**, so a sale can be zero-rated *before* validation completes. Simple; a small window.
+> - **(b) require VIES validation before honouring reverse charge** — safer, but adds a dependency and a state
+>   ("pending validation") the product does not have today.
+>
+> ⚠️ The **safe half of (a) is implemented regardless** (never send what we cannot type; never treat a rejection
+> as success). Choosing (b) is a build, and it is the founder's call — flagged, not guessed.
 >
 > ⛔ **REMAINING — the founder's step, which no code here can do** (`StripeSafetyGuard` refuses a live key
 > outside production): **(1)** ⚠️ **enable Stripe Tax in the dashboard and register the tax jurisdictions** —

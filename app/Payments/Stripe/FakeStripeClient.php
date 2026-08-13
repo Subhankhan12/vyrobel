@@ -131,6 +131,35 @@ class FakeStripeClient implements StripeClientInterface
     /** @var array<string, array<string, mixed>> — created Checkout sessions, inspectable in tests. */
     public array $checkoutSessions = [];
 
+    /**
+     * Recorded tax IDs per customer — what WOULD reach Stripe, assertable without a network call.
+     *
+     * @var array<string, list<array{type: string, value: string}>>
+     */
+    public array $customerTaxIds = [];
+
+    /**
+     * Values the fake should reject, simulating Stripe refusing a malformed number.
+     *
+     * @var list<string>
+     */
+    public array $rejectTaxIdValues = [];
+
+    public function syncCustomerTaxId(string $customerId, array $taxId): bool
+    {
+        // Stripe rejects a number it cannot parse. Tests use this to prove the FAIL-SAFE path: a rejection
+        // must leave the customer taxable, not break the flow.
+        if (in_array($taxId['value'], $this->rejectTaxIdValues, true)) {
+            return false;
+        }
+
+        // Replace rather than append — a customer carrying two different VAT numbers is ambiguous, and the
+        // stale one could win. This mirrors what the real client does.
+        $this->customerTaxIds[$customerId] = [$taxId];
+
+        return true;
+    }
+
     public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false, bool $automaticTax = false): StripeCheckoutSession
     {
         // A repeated Idempotency-Key returns the ORIGINAL session — never a second subscription.

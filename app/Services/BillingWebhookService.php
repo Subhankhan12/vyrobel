@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Http\Controllers\StripeWebhookController;
+use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\WebhookEvent;
 use App\Payments\Stripe\StripeEvent;
+use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Billing\SubscriptionStatus;
 use Illuminate\Support\Carbon;
 
@@ -71,6 +73,31 @@ class BillingWebhookService
             'stripe_subscription_id' => $event->objectField('subscription') ?? $subscription->stripe_subscription_id,
             'stripe_customer_id' => $event->objectField('customer') ?? $subscription->stripe_customer_id,
         ]);
+
+        $this->pushVatId($subscription);
+    }
+
+    /**
+     * DO-BILL-1 — put the org's stored VAT number on the Stripe customer now that one exists.
+     *
+     * ⚠️ THIS IS THE EARLIEST POSSIBLE MOMENT. The app never creates the Stripe customer — Checkout does, and
+     * we only learn its id from this event. Attaching here means the number is on the customer before the
+     * FIRST RENEWAL invoice, which is where it matters most: Stripe re-computes tax per invoice, so a missing
+     * id would overcharge a reverse-charge business every month, not just once.
+     *
+     * ⚠️ Never allowed to break fulfilment. A webhook that throws is retried and can become a poison message,
+     * so a VAT failure is logged inside the sync and the subscription activates regardless.
+     */
+    private function pushVatId(Subscription $subscription): void
+    {
+        // ⚠️ Unscoped on purpose: a webhook arrives with NO tenant context (there is no logged-in user), so the
+        // org must be resolved by its own key. This mirrors how the rest of this service already resolves the
+        // subscription for an inbound event — it is not a tenancy bypass, it IS the tenant resolution.
+        $organization = Organization::query()->find($subscription->organization_id);
+
+        if ($organization !== null) {
+            StripeTaxIdSync::push($organization);
+        }
     }
 
     /** customer.subscription.created/updated → map Stripe's status onto ours + carry the period end. */
@@ -83,6 +110,7 @@ class BillingWebhookService
             $update['stripe_subscription_id'] = $subId;
         }
         $customer = $event->objectField('customer');
+        $customerIsNew = $customer !== null && $customer !== $subscription->stripe_customer_id;
         if ($customer !== null) {
             $update['stripe_customer_id'] = $customer;
         }
@@ -92,6 +120,11 @@ class BillingWebhookService
         }
 
         $subscription->update($update);
+
+        // A customer we had not seen before — same reasoning as activate().
+        if ($customerIsNew) {
+            $this->pushVatId($subscription);
+        }
     }
 
     /** invoice.paid → a successful renewal keeps the org active and extends the period. */

@@ -8462,7 +8462,7 @@ therefore asserts the statement **shape**, never a constant.
 
 ---
 
-## `DO-BILL-1` — the collected VAT ID never reaches Stripe (found in BILLING PASS 2b, 2026-08-13)
+## ✅ `DO-BILL-1` — **CLOSED (2026-08-13)** — the collected VAT ID never reached Stripe
 
 **Verified, not assumed:** `organizations.billing_vat_id` is written by `BillingActionController` /
 `SettingsActionController` and read by `OperatorBilling`, `OperatorBillingCheckout`, `OperatorSettings` and the
@@ -8478,7 +8478,44 @@ hosted page — but a customer who already typed it into Vyrobel has no reason t
 session, or write it back from the completed session's `customer_details.tax_ids` so the two agree. Neither is
 guessed at here — it changes what is sent on a real money path.
 
-**Verdict — REAL GAP (small, money-adjacent).** Not a correctness bug in what the app sends today: everything
+### ✅ FIXED — a typed `tax_id`, pushed from every writer, fail-safe throughout
+
+`VatId` derives the Stripe type from a **closed** country map (`eu_vat` · `ch_vat` · `gb_vat` · `no_vat`) and
+returns **null** for anything else — an unrecognised prefix is never defaulted to `eu_vat`. `StripeTaxIdSync` is
+the ONE path from the column to the customer, called from **three** in-app writers (Billing details, the
+subscribe action, and Settings → invoice details — all three, or which screen the operator used would decide
+whether they get reverse charge) **and from the webhook** when a customer id first appears. ⚠️ **The webhook is
+the important one:** the app never creates the Stripe customer — Checkout does — so before this there was no
+attach point at all, and Stripe re-computes tax on **every renewal invoice**, not just the first.
+
+⚠️ **When in doubt, charge the tax.** An untypeable number is not sent; a Stripe rejection returns false rather
+than throwing (a bad VAT number must not break a subscription) and is never treated as success; both are logged
+**without the value**, which is a customer business identifier.
+
+**Guard:** `tests/Feature/BillingVatIdSyncTest.php` (8 tests / 22 assertions) — valid → typed · jurisdiction
+typing incl. an unknown prefix refused · untypeable → not sent + surfaced · Stripe-rejected → taxable + surfaced
+· no customer → no-op · a corrected number **replaces** the stale one · display = charge = Stripe still holds ·
+the PDF letterhead unaffected. Mutation-proven four ways (send a raw untyped string · default an unknown prefix
+to `eu_vat` · drop the digit check so prose is sent · treat a rejection as success) — each red on its guard. All
+against the FAKE client; `StripeSafetyGuard` untouched.
+
+### ⚠️ The guard caught the validator being too generous — before it shipped
+
+The first version accepted **`"not-a-vat-id"`**: normalised it becomes `NOTAVATID`, whose leading `NO` is
+**Norway**, and the body was merely "alphanumeric". A sentence typed into the field was one step from being sent
+to Stripe as a Norwegian VAT number — precisely the mis-typing that can be ACCEPTED and zero-rate a taxable
+sale. Fixed by requiring a **run of at least four digits** in the body: every real VAT number has one, prose does
+not. *A structural check that is too permissive is not a weaker guard — on a tax path it is the failure mode.*
+
+### ⛔ A founder decision this surfaced — VAT VALIDATION (see §G.1)
+
+Structural ≠ valid. The app can say "this is plausibly a Portuguese VAT number"; only VIES can say "this number
+exists and belongs to this business". Implemented: **send as-is and let Stripe validate** (asynchronously, so a
+sale can be zero-rated before validation completes). The alternative — **require VIES validation before
+honouring reverse charge** — is safer but is a build with a new "pending validation" state. Flagged, not guessed;
+the safe half is implemented either way.
+
+**Original verdict — REAL GAP (small, money-adjacent).** Not a correctness bug in what the app sends today: everything
 sent is correct, and the tax is Stripe's to compute. It is a **data-sync gap that costs the customer money in
 one direction only** (over-charging a reverse-charge business), which is why it is flagged rather than deferred
 silently.
