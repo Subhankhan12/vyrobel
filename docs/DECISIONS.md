@@ -9206,3 +9206,46 @@ charge as "rate × units **+ VAT**" (retired by 2b) · the RESUME's ⛔ ① stil
 live-key flip" blocker · the open-founder-decisions summary and `DIVERGENCE-REGISTER` row still carried it ·
 `MISSING-BACKEND` still filed the Add-property modal under "the open billing decision". Each **annotated, not
 erased**.
+
+---
+
+## 2026-08-13 · `DO-BILL-2` — the Add-property modal's billing claim, keyed by the plan's shape
+
+**The live §N.8d.** `portfolio.blade.php:203` told every org *"It joins your organization — billed per unit."*
+False on a FLAT tier, where adding a property changes the bill by nothing — and **the demo org is flat**, so it
+was live-false on the default demo. The same claim billing pass 3 retired on `/app/billing`, one page over
+(§N.17.4: this claim recurs across surfaces).
+
+**The fix — pass 3's pattern, reused not reinvented.** `OperatorPortfolio` exposes `planIsPerUnit` resolved from
+the org's current subscription's plan (the same source the Billing page reads — no parallel shape check, §N.8f).
+The per-unit wording lives **inside** the per-unit branch, so a flat org **cannot** render it: a property of the
+markup, not a hide (§N.16.3). Flat gets "included in your plan"; an org with no plan makes no claim at all.
+**Copy only — engine, charge, and the unbuilt panel untouched.**
+
+**⚠️ The sibling sweep found a cluster of ONE.** The whole class was grepped across `resources/views` (all
+realms, emails, PDFs) and `app/`: `billed per unit`, `per unit`/`per-unit`, `adding a unit`,
+`prorated`/`proration`, `+€…/mo`, `€9/mo`, `added to your plan`, `counts toward your plan`, `affects your bill`.
+Every other hit is owner **analytics** copy (a different sense of "per unit"), a **code comment** describing the
+fixed state, or the Billing page **already keyed by pass 3**. No `DO-BILL-2-continued` — and that absence is
+measured, not assumed.
+
+**Guarded** (`PortfolioBillingClaimTest`, 4/14): flat sees no per-unit claim · per-unit sees it · no-plan claims
+nothing · **plus a test that pins the vacuity trap** — a Front Desk user is refused the page (403), so "no false
+claim" would otherwise be true for the wrong reason (§N.14.1, the exact reason this survived the design walk).
+Every copy assertion is preceded by a presence assertion. Mutation-proven three ways (restore the unconditional
+claim · drop the true claim · hardcode the shape) — each red on the right guard. Browser-verified as a manager
+on **both** shapes; the per-unit plan was created transiently and reverted.
+
+### ⚠️ A premise correction — pass 2b's cleanup verification was VACUOUS
+
+Pass 2b reported its transient per-unit plan "reverted + verified". `Plan` uses **`SoftDeletes`**, so
+`Plan::where('code', …)->delete()` soft-deleted it and `Plan::where('code', …)->count() === 0` passed **because
+the same global scope hid the row from the check**. It surfaced here as a unique-key violation on a row Eloquent
+insisted did not exist. ⚠️ **A cleanup check must not run through the same scope as the cleanup** — verify with a
+raw query or `withTrashed()`. The leftover is now `forceDelete`d and verified with raw SQL (including that no
+subscription points at a per-unit plan). *Same family as §N.4p: the verdict must come from something other than
+the mechanism under test.*
+
+Suite **1991/1998 · 13,028 assertions**, **7 non-green = the documented set** (`BookingImportTest` ×6 ·
+`OwnerUnitDetailViewTest` ×1) — ⚠️ **back up from 5, which is further confirmation of §N.17.7**: the count walks
+its 5–10 range on its own. PHPStan L5 (0); Pint clean.

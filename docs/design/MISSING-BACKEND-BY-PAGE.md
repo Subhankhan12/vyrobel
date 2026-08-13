@@ -8485,7 +8485,7 @@ silently.
 
 ---
 
-## `DO-BILL-2` — ⚠️ A **LIVE §N.8d**: the Add-property modal claims "billed per unit" on every plan (found by the SAVE v12 coherence sweep, 2026-08-13)
+## ✅ `DO-BILL-2` — **CLOSED (2026-08-13)** — the Add-property modal claimed "billed per unit" on every plan
 
 ⚠️ **Found by re-reading the record, not by a test** — the same way the five security holes were found. A stale
 entry ("it belongs on the blocker's ledger") was being annotated as resolved when the underlying claim turned
@@ -8516,3 +8516,48 @@ your plan" framing already used on `/app/billing`). ⚠️ **Do not free-type th
 
 **Verdict — REAL GAP, live §N.8d, small.** Presentation-only; no money moves through this modal. It belongs in
 the billing tail beside `DO-BILL-1`.
+
+### ✅ FIXED — the copy is keyed by the plan's shape
+
+`OperatorPortfolio` now exposes `planIsPerUnit`, resolved from the org's current subscription's plan — **the
+same source the Billing page reads**, so there is no parallel notion of the shape to drift (§N.8f). The modal
+renders **"billed per unit"** only inside the per-unit branch and **"included in your plan"** otherwise (the
+Billing page's own framing, reused for consistency). ⚠️ **A flat org cannot render the false claim — a property
+of the markup, not a hide** (§N.16.3). An org with **no plan** makes no billing claim at all.
+
+**Guard:** `tests/Feature/PortfolioBillingClaimTest.php` (4 tests / 14 assertions) — flat sees no per-unit claim ·
+per-unit sees it · no-plan claims nothing · **and one test that pins the vacuity trap itself**: a Front Desk user
+is refused the page outright (403), so "no false claim" would have been true for the wrong reason. Every copy
+assertion is preceded by a **presence** assertion on the modal. Mutation-proven three ways: restore the
+unconditional claim → **red** · drop the true claim for per-unit → **red** · hardcode `planIsPerUnit => true`
+→ **red**.
+
+**Verified in the browser as a manager (`properties.manage`), both shapes** — flat (the demo, "included in your
+plan") and per-unit (created transiently, "billed per unit"), then reverted.
+
+### ⚠️ The sibling sweep — the class was grepped, and it is a cluster of ONE
+
+Per §N.17.4 the per-unit claim has recurred across surfaces, so the whole class was swept: `billed per unit` ·
+`per unit` / `per-unit` · `adding a unit` · `prorated`/`proration` · `+€…/mo` · `€9/mo` · `added to your plan` ·
+`counts toward your plan` · `affects your bill` — across `resources/views` (all realms, emails and PDFs
+included) and `app/`.
+
+**Every other hit is one of:** owner **analytics** copy (per-unit occupancy / commission / revenue — a different
+sense of "per unit", no billing claim) · **code comments** describing the already-fixed state · the Billing page
+itself, **already shape-keyed by pass 3**. ⚠️ **No second unconditional billing-consequence claim exists** — so
+there is no `DO-BILL-2-continued`, and the absence is a measured result rather than an unexamined assumption.
+
+### ⚠️ A premise correction this fix produced — about the PREVIOUS pass's cleanup
+
+Pass 2b reported the transient per-unit plan "reverted + verified". ⚠️ **The verification was VACUOUS.** `Plan`
+uses `SoftDeletes`, so `Plan::where('code', …)->delete()` **soft-deleted** the row, and the check
+`Plan::where('code', …)->count() === 0` passed **because the same global scope that hid the row from the check
+also hid it from everything else** — including a later `firstOrCreate`, which is how it surfaced (a unique-key
+violation on a row Eloquent insisted did not exist).
+
+⚠️ **THE LESSON — a cleanup check must not run through the same scope as the cleanup.** Verify a deletion with a
+**raw** query (`DB::table(...)`) or `withTrashed()`; otherwise the check can only ever confirm what the scope
+already guarantees. This pass hard-deleted the leftover (`forceDelete`) and verified with raw SQL — including
+that no subscription points at a per-unit plan. *Same family as §N.4p: the verdict must come from something
+other than the mechanism under test.*
+

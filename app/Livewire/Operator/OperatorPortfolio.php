@@ -6,12 +6,14 @@ namespace App\Livewire\Operator;
 
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Channel;
+use App\Models\Organization;
 use App\Models\Property;
 use App\Services\FrontDeskService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Property\PropertyOccupancy;
+use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -129,6 +131,17 @@ class OperatorPortfolio extends Component
         return view('livewire.operator.portfolio', [
             'viewer' => $this->viewer(),
             'canManage' => (bool) auth()->user()?->can('properties.manage'),
+            // ⚠️ DO-BILL-2 — the Add-property modal's BILLING-CONSEQUENCE copy is keyed by the plan's SHAPE.
+            // It used to assert "billed per unit" unconditionally, which is false on a FLAT tier: adding a
+            // property (and its units) to Essential/Pro changes the bill by nothing. The demo org is flat, so
+            // the claim was live-false on the default demo — the same §N.8d billing pass 3 retired on
+            // /app/billing, one page over (§N.17.4: this claim RECURS across surfaces).
+            //
+            // Resolved from the SAME source pass 3 reads — the org's current subscription's plan — so there is
+            // no parallel notion of "what shape are we on" to drift (§N.8f). Null-safe on purpose: an org with
+            // no plan row makes no billing claim at all, which is the honest rendering.
+            'planIsPerUnit' => (bool) Organization::query()
+                ->find(app(TenantContext::class)->id())?->currentSubscription()?->plan?->isPerUnit(),
             'cards' => $cards,
             'summary' => [
                 'properties' => $properties->count(),

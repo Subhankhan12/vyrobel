@@ -200,7 +200,23 @@
                             </span>
                             <div style="flex: 1;">
                                 <h3 class="vy-modal-title" id="vy-add-title">Add a property</h3>
-                                <p class="vy-modal-sub">It joins your organization — billed per unit. You'll set up units, rates &amp; channels next; all your team roles carry over.</p>
+                                {{-- ⚠️ DO-BILL-2 — the billing consequence is KEYED BY THE PLAN'S SHAPE (§N.16.3).
+                                     This said "billed per unit" to EVERY org, which is false on a FLAT tier:
+                                     adding a property to Essential/Pro changes the bill by nothing. The demo
+                                     org is flat, so it was live-false on the default demo — the same §N.8d
+                                     billing pass 3 retired on /app/billing, one page over (§N.17.4).
+
+                                     ⚠️ The per-unit claim lives INSIDE the per-unit branch, so a flat org
+                                     CANNOT render it — a property of the markup, not a hide we remembered to
+                                     add. `$planIsPerUnit` is resolved from the org's current plan, the SAME
+                                     source the Billing page reads, so the two cannot disagree (§N.8f). --}}
+                                <p class="vy-modal-sub">It joins your organization —
+                                    @if ($planIsPerUnit)
+                                        billed per unit.
+                                    @else
+                                        included in your plan.
+                                    @endif
+                                    You'll set up units, rates &amp; channels next; all your team roles carry over.</p>
                             </div>
                             <button type="button" class="vy-modal-x" @click="addOpen = false" aria-label="Close">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>

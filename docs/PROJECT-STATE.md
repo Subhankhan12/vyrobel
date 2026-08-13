@@ -124,12 +124,13 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   data-sync gap that costs the customer money in one direction. ⚠️ It changes a real money path, so it was
 >   flagged rather than guessed at.
 >
-> **③ `DO-BILL-2` — ⚠️ A LIVE §N.8d, found by this SAVE's own coherence sweep.** The **Add-property modal**
->   (`portfolio.blade.php:203`) says *"It joins your organization — **billed per unit**"* **unconditionally**.
->   On a FLAT org that is false — adding a property changes the bill by nothing — and **the demo org is flat**,
->   so it is false on the default demo right now. Same false per-unit claim pass 3 retired, one page over.
->   ⚠️ It hid behind `@if ($canManage)` — a **role-gated** surface (§N.14.1). Fix = key it to
->   `Plan::isPerUnit()` (do not free-type the alternative, §N.16.3). Presentation-only; no money path.
+> **③ ✅ `DO-BILL-2` — CLOSED (2026-08-13).** The Add-property modal's billing claim is now keyed by the plan's
+>   shape (flat → "included in your plan"; per-unit → "billed per unit"), read from the same source the Billing
+>   page uses. ⚠️ **The sibling sweep found the cluster is ONE** — every other hit is owner analytics, a code
+>   comment, or the already-fixed Billing page; there is no `DO-BILL-2-continued`.
+>   ⚠️ **It also corrected pass 2b's cleanup claim:** `Plan` uses `SoftDeletes`, so that pass's
+>   `Plan::count() === 0` check was **vacuous** — the same scope hid the row from the check and from
+>   `firstOrCreate`. **Verify a deletion with a RAW query, never through the scope that performed it.**
 >
 > **④ THE SUPER-ADMIN PLAN-CRUD PANEL — unbuilt.** A plan of either shape can today be created only in a seeder
 >   or the console. The engine handles both shapes; there is simply no in-app way to make one.
