@@ -9631,3 +9631,29 @@ gaps** (dense-small-text on a steep gradient; text over a photo). The AA floor i
 pass — `DO-EMAIL-5-continued` (Part A 8 of 9, Part B 67) — is **unblocked** and carries the floor-guard rider.
 
 Suite **2036/2043**, 7 non-green = the documented set. Docs-only; no code, template, test or tool touched.
+
+---
+
+## 2026-08-13 — SAVE v16 · THE A11Y FAMILY, AXIS 3 PROVEN, AND THE CHECKED CAPTURE CONTRACT
+
+Capstone for the five passes after v15 (`921dae3`, `923435d`, `bcbc651`, `2b11af6`, `43e9f0d`).
+Full canon: **§N.21** in `docs/PROJECT-STATE.md`. Decisions locked here:
+
+1. **Posture A STANDS, and its premise is CORRECTED.** `--vy-faint` on the true measured worst plate is
+   **4.4953**, not the 4.50 the decision was taken on — a 0.005 AA miss invisible at 2 decimals. Resolved
+   **non-destructively**: the AA test keeps the derived plate (4.55) and the measured floor is pinned
+   **separately as a fact**, so the drift vector is closed without darkening a token (option B, declined) or
+   loosening the bar to 4.49. ⚠️ **The 0.005 is an OPEN FOUNDER CALL.**
+2. ⚠️ **The 0.005 does NOT overturn the retraction.** §N.20.2 said the true floor is ~4.50 and SOUND (the
+   4.19/4.07 was an instrument halo). The 0.005 **refines ~4.50 to 4.4953**. Both stand; see §N.21.2.
+3. **A token that MISSES AA is a required fix; one that PASSES is not.** `--vy-on-grad` (4.33–4.48) and
+   `--vy-accent-text` (3.82–4.46) were re-derived **by sampling** behind their real users;
+   `--vy-on-grad-soft` **passed everywhere and was left unchanged**, and a guard asserts that non-change.
+4. **Tokens are derived by SAMPLING, never by picking a stop** — the owner shell's O2/O7 rule now applies to
+   the operator shell too (§N.8f cross-shell).
+5. **A shared class is not fixed until every shell copy is** (`.vy-avatar`), and **a token with email/PDF
+   mirrors moves everywhere at once** (`--vy-amber-text`; email 6.39 → 7.64, PDF 6.24 → 7.47).
+6. **A broken capture must REFUSE, not fabricate.** The probe's contract (`viewportH`/`url`) is checked
+   downstream and proven firing — the fifth and sixth corrections to this instrument.
+7. **Axis 3 (DATA) is a first-class sweep axis**, alongside state (G10) and role (§N.14.1). Its throughput is
+   iterative: **7 of 67 measured**; **"logged-unswept" means UNMEASURED, not fine.**

@@ -9333,3 +9333,52 @@ both surfaces fit the 3000px viewport), every gap was counted, and the fixes wer
 asserted. **What throughput DID cost is coverage breadth**: 2 surfaces measured deeply rather than 20 shallowly.
 That is the intended trade — a deep fix on few beats a shallow number on many — but it means the remaining ~55
 are genuinely untouched, not "probably fine". **Their unmeasured status is the honest headline, not the fixes.**
+
+---
+
+# ⚠️ THE DO-REGISTER — consolidated at SAVE v16 (2026-08-13)
+
+## ✅ CLOSED this chapter
+
+- **`DO-A11Y-1`** — the shared-class family + shell chrome, fixed **at the source** (O25/O27), each class
+  clearing the **worst plate across its 42-page usage**. **`DO-A11Y-2` is folded in, not separate**: sorting
+  the failures by plate showed the gradient-sitting classes had nowhere to map because `--vy-on-grad` was
+  itself sub-AA (§N.21.3).
+- **The `.vy-avatar` owner-copy miss** — closed in Part B. ⚠️ It is the reason `DO-A11Y-1-continued` exists as
+  a **standing watch item**: if a shared class re-appears, look for another **shell copy** first (§N.21.5).
+- **`DO-PLATE-1`'s floor-guard rider** — landed; and it **falsified posture A's premise** in the process
+  (§N.21.1). The drift vector is closed structurally; the 0.005 itself is an open founder call.
+
+## 🔄 AXIS 3 — the METHOD is PROVEN; the THROUGHPUT is iterative
+
+**Of the 67 data-conditional files:**
+
+| state | count | detail |
+|---|---|---|
+| **MEASURED** | **7** | operator reservations-list (~75% swept) · owner expenses · owner block-calendar · operator front-desk · operator guests-list · owner My Units · owner Documents |
+| **FIXED** | **9 defects** across 5 files | + the 1 DO-A11Y-1 miss |
+| **MEASURED-CLEAN** | **1** | owner Documents (128 measured, 0 failed) |
+| **SCOPE-GAP-PENDING** | **5 PDFs** + the per-page `no-clear-band` | dompdf is unreachable by a browser probe; dense text is DO-PROBE-3 |
+| **LOGGED-UNSWEPT** | **~55** | **`DO-EMAIL-5-continued-4`** |
+
+⚠️ **"LOGGED-UNSWEPT" MEANS UNMEASURED — not "probably fine."** The remaining files span guest (10),
+booking (2), most owner (18) and operator (15), plus admin (2) and the notification bell component.
+
+## 📋 OPEN REGISTER ITEMS
+
+| id | what | note |
+|---|---|---|
+| **`DO-EMAIL-5-continued-4`** | the ~55 remaining data-conditional files | throughput, at the founder-chosen depth |
+| **`DO-PROBE-3`** | the fixable probe gaps | dense-text `no-clear-band` (the biggest coverage hole, 6–71/page) · the **correct computation** for ancestor-dimmed elements (detect-and-flag is already in) · **PDF reachability** (needs a non-browser tool) |
+| **`DO-A11Y-1-continued`** | further shell-copy misses | a **watch item**, not a task |
+| **`DO-A11Y-3`** | white-on-accent CTAs (~3.2–3.4) | the long-SURFACED realm item. Root now known: **the lightest gradient stop must be at least as dark as `--vy-accent`** (white = 5.18). Changes every CTA — deliberately not folded in |
+| **`DO-A11Y-4`** | the page-local `.vy-fd-*` front-desk classes | 3.57 / 4.23 / 4.36 |
+| **`DO-A11Y-5`** | one unclassed `<a>` in guests-list | 4.48 |
+
+## ⚠️ OPEN FOUNDER CALLS (non-code)
+
+1. **The `--vy-faint` 0.005** — 4.4953 on the true measured plate. Handled non-destructively; accept or darken
+   the hair. ⚠️ **NOT the retracted floor finding** — see §N.21.2, they agree.
+2. **The depth-vs-coverage posture** for the throughput tail — stay deep (default) or trade depth for
+   coverage, **legitimate only if declared**.
+3. ⛔ **The billing flip** — Stripe dashboard steps + the VAT-validation decision. No code work remains.

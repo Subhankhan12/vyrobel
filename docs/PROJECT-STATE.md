@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — **EIGHT CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17) · the DO-BILL PAIR (§N.18) · the PLAN PANEL (§N.19) · the PRE-BILLING TAIL + the PROBE SAGA + a RETRACTION (§N.20, SAVE v15)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST — `display = charge = STRIPE`, now from the ADMIN side too (§N.19.6); the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is gated on the FOUNDER's Stripe dashboard steps + ONE open decision, NOT on code** · suite **2008 / 2015**, 7 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own** — neither a fix nor drift, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
+# ⚠️ CANONICAL STATE — **NINE CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17) · the DO-BILL PAIR (§N.18) · the PLAN PANEL (§N.19) · the PRE-BILLING TAIL + the PROBE SAGA + a RETRACTION (§N.20, SAVE v15)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST — `display = charge = STRIPE`, now from the ADMIN side too (§N.19.6); the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is gated on the FOUNDER's Stripe dashboard steps + ONE open decision, NOT on code** · suite **2008 / 2015**, 7 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own** — neither a fix nor drift, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -56,14 +56,14 @@ conflicts with the repo, **trust the repo** and fix this file.
      ⚠️ The demo DB is now date-robust, so a fresh session needs no hand-provisioning.
      ⬅ NEXT: ⛔ the BILLING blocker (a founder priority call) · DO-TOKEN-1 · DO-EMAIL-5-continued + the DATA axis. -->
 
-> ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.16, then the DO-register.
+> ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.21, then the DO-register.
 >
 > *Written so a session with no other context can start work immediately. Everything below is verified state,
-> not summary. **SAVE v15 (2026-08-13).***
+> not summary. **SAVE v16 (2026-08-13).***
 >
 > ## WHERE THE PROJECT IS
 >
-> **EIGHT CHAPTERS ARE CLOSED, IN ORDER:**
+> **NINE CHAPTERS ARE CLOSED, IN ORDER:**
 > **① THE DESIGN-PARITY WALK (v8)** — operator 42/42 · owner 32/32 · guest 12 gates + 3 verdicts · + the
 >   cross-realm PDF sweep. **Canon: §N.13.**
 > **② THE CLEANUP SEQUENCE (v9)** — the grey-literal drift closed across PDFs, emails and the reachable
@@ -87,9 +87,16 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   the on-gradient fix (`dd5ecb9`). ⚠️ **Its headline is a RETRACTION, not a fix** — the "product-wide AA floor
 >   defect" was our own instrument's anti-alias halo. **Canon: §N.20.**
 >
-> **Suite 2036 / 2043 · 7 non-green = the documented set** (`BookingImportTest` ×6 · `OwnerUnitDetailViewTest`
+> **⑨ THE A11Y FAMILY + AXIS 3 (v16)** — Part A's gated surfaces (`921dae3`) + the floor-guard rider
+>   (`923435d`) · `DO-A11Y-1` with `DO-A11Y-2` folded in (`bcbc651`) · Part B, the data axis (`2b11af6`) · the
+>   throughput pass (`43e9f0d`). ⚠️ **Two headlines: the floor-guard FALSIFIED ITS OWN PREMISE** (posture A
+>   rested on a rounded 4.50; the true plate gives **4.4953**) **and the two A11Y items were ONE defect**,
+>   root-caused to the operator shell never receiving the owner shell's sample-don't-pick fix.
+>   **Canon: §N.21.**
+>
+> **Suite 2055 / 2063 · 6 non-green = the documented set** (`BookingImportTest` ×5 · `OwnerUnitDetailViewTest`
 > ×1). ⚠️ **The count WALKS a 5–10 band on its own — neither a fix nor drift** (§N.17.7; it read 5 at v12 and 7
-> at both v13 and v14 with nothing relevant changed). ⚠️ **One run at `dcce44f` showed an 8th that did NOT
+> at both v13 and v14, and **6 consistently across all five v16 passes**, with nothing relevant changed). ⚠️ **One run at `dcce44f` showed an 8th that did NOT
 > reproduce and was NOT identified — recorded as unexplained, not certified** (§N.18.6). PHPStan L5 (0) · Pint
 > clean · `migrate:fresh --seed` clean. ⚠️ **The seed needs MAILPIT running** (SMTP 127.0.0.1:1025) — an abort
 > without it is **ENVIRONMENTAL**, not a regression; start `mailpit` and re-run before diagnosing anything.
@@ -124,25 +131,53 @@ conflicts with the repo, **trust the repo** and fix this file.
 > There are now **three** ways a surface hides — conditional state (G10), **authorization** (§N.14.1) and
 > **DATA** (§N.16.2) — and the DATA axis has never been swept in any realm.
 >
+> ## ⚠️ OPEN FOUNDER CALLS — decide these before or alongside the work below (none are code)
+>
+> **(a) THE `--vy-faint` 0.005 (§N.21.1).** On the true measured card plate `rgb(250,221,206)` it is
+>   **4.4953** — it misses AA by **0.005**. Posture A was decided on the 2-dp rounded 4.50. Handled
+>   non-destructively (the AA test keeps the derived plate at 4.55; the measured floor is pinned separately as
+>   a FACT), so nothing is blocked — but the call stands: **accept** (the miss is far below any perceptual or
+>   measurement threshold) or **darken the hair**. ⚠️ This is NOT the retracted floor finding — see §N.21.2.
+>
+> **(b) THE DEPTH-vs-COVERAGE POSTURE for the axis-3 throughput.** Current default is **stay deep**: fix few
+>   surfaces properly and log the rest as honestly unmeasured. At the observed rate the remaining ~55 files
+>   need several passes. Trading depth for coverage is legitimate — **but only if DECLARED**, because a
+>   shallow sweep produces a wall of numbers that reads like a clean bill.
+>
+> **⛔ (c) THE BILLING FLIP — Stripe dashboard + VAT validation.** See ② below.
+>
 > ## WHAT TO DO NEXT — in priority order
 >
-> **① `DO-EMAIL-5-continued` — THE LAST DESIGN PASS, and it is now UNBLOCKED.** Part A: **8 of 9** gated files
->   remain (`/app/settings` measured — 221 / 45 / 1 — but ⚠️ **those 45 are RETRACTED halo artefacts, not
->   defects**, §N.20.2). Part B: the **67** data-conditional files — §N.16.2's third axis, still never swept.
->   ⚠️ **Measure with `tools/contrast-sampler.php`** (validated, §N.20.1) — **do not re-derive a sampler**, that
->   is what re-hit the trap. ⚠️ **Two input classes are NOT validated** — dense small text on a *steep* gradient,
->   and text over a photo backdrop: flag those **UNMEASURABLE-pending**, never trust a number for them.
->   ⛔ **It carries the FLOOR-GUARD RIDER** (§N.20.3): re-point `DesignTokenContrastTest` at the true composited
->   worst plate so a future gradient tweak **reds the test** instead of silently eroding the 4.50 margin.
+> **① `DO-EMAIL-5-continued-4` — THE AXIS-3 THROUGHPUT TAIL.** ⚠️ **The method is PROVEN; this is throughput.**
+>   Of the **67** data-conditional files: **7 MEASURED**, defects fixed at their class definitions, **~55
+>   LOGGED-UNSWEPT**, and **5 dompdf PDFs + the per-page `no-clear-band` unmeasurables SCOPE-GAP-PENDING**.
+>   ⚠️ **"Logged-unswept" means UNMEASURED, not "probably fine."**
+>   The procedure (§N.21.4): force the DATA condition → render populated **as the role** → measure under the
+>   **checked capture contract** with `tools/contrast-sampler.php` + `tools/contrast-collect.js` → flag every
+>   scope gap → fix NEW defects to the TOKEN. ⚠️ A reporter **refusal is the contract working** — fix the
+>   capture and re-run; never force a number. ⚠️ The shared family is FIXED, so a re-found shared class is
+>   either a **missed copy** (§N.21.5 — check every shell) or a **new plate in the populated state**.
+>   Run it at the depth the founder chooses in (b).
 >
-> **⛔ ② THE BILLING FLIP — no code work remains.** The billing CODE *and* BUILD are complete (§N.17–§N.19).
->   It is gated on the founder's **Stripe dashboard steps** (enable Stripe Tax + register jurisdictions —
->   ⚠️ `automatic_tax` is INERT until then · create the Prices per `docs/BILLING-STRIPE-PRICES.md` · fill the
->   prod env) and the open **VAT-VALIDATION decision** (send-as-is, implemented, vs VIES-first, a build).
+> **② `DO-PROBE-3` — the fixable probe gaps.** The dense-text `no-clear-band` unmeasurables (6–71 per page —
+>   the biggest coverage hole), the **correct computation** for ancestor-dimmed elements (detect-and-flag is
+>   already in), and the **PDF-reachability** question (dompdf needs a non-browser tool).
+>
+> **③ `DO-A11Y-3` / `-4` / `-5` — scoped a11y follow-ups.** **-3**: white-on-accent CTAs (~3.2–3.4 across
+>   `.vy-btn--accent`, `.vy-pill--accent`, `.vy-act--accent`) — the long-SURFACED realm-wide item, now trivially
+>   fixable since the root is known: **the lightest gradient stop must be at least as dark as `--vy-accent`**,
+>   where white measures 5.18. Deliberately not folded in — it changes every CTA in the product. **-4**: the
+>   page-local `.vy-fd-*` front-desk classes. **-5**: one unclassed link at 4.48 in guests-list.
+>   ⚠️ `DO-A11Y-1-continued` is a standing watch item, not a task: if a shared class re-appears, look for
+>   another **shell copy** before assuming a new plate.
+>
+> **⛔ ④ THE BILLING FLIP — no code work remains.** The billing CODE *and* BUILD are complete (§N.17–§N.19).
+>   Gated on the founder's **Stripe dashboard steps** (enable Stripe Tax + register jurisdictions — ⚠️
+>   `automatic_tax` is INERT until then · create the Prices per `docs/BILLING-STRIPE-PRICES.md` · fill the prod
+>   env) and the open **VAT-VALIDATION decision** (send-as-is, implemented, vs VIES-first, a build).
 >   ⚠️ A session can only remind and verify wiring — never claim the live Prices exist.
 >
-
-> **③ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
+> **⑤ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
 >   end of `MISSING-BACKEND-BY-PAGE.md`, plus the **6 reopened operator a11y gates** (§N.9) and the
 >   deferred-capability refusal sweep (§N.8b).
 >
@@ -7028,6 +7063,13 @@ measured **3.51**; `.vy-topbar-sub` was routed to `--vy-on-grad` (`dd5ecb9`), 3.
 
 ## §N.20.3 ⚠️ THE HEADROOM POSTURE — ruled **A (accept)**, with a floor-guard rider
 
+> ⚠️ **SUPERSEDED IN PART BY §N.21 — read this paragraph as the RECORD OF A DECISION, not as current fact.**
+> Both figures below were later falsified by measurement: **`--vy-faint` is 4.4953**, not 4.50 (§N.21.1 — the
+> 2-dp rounding), and **`--vy-on-grad` was 4.33–4.48** on the plates its users actually sit on (§N.21.3 — it
+> had been derived against a *picked* stop, and has since been re-derived by sampling to `rgb(68,59,54)`).
+> ⚠️ **The POSTURE still stands** — don't darken a token that MEETS AA for headroom. What changed is which
+> tokens were found to meet it.
+
 ⚠️ **FOUNDER DECISION — A (accept).** `--vy-faint` and `--vy-on-grad` clear the true worst plate at **exactly
 4.50**: AA is **met**, with zero margin. **B** (darken the tokens) and **C** (lighten the gradient stop) were
 **declined** — both are product-wide visual changes, and this is a robustness preference, not a compliance
@@ -7094,3 +7136,176 @@ measurement found two defects BESIDE it** (N.13.1 again):
 
 ⚠️ **Instrument note:** a `getComputedStyle` opacity read taken **mid-transition** returned a false `0` — the
 fix was correct, the measurement was early. §N.8e's freeze rule, in a new guise.
+
+---
+
+# (N.21) 🏁 THE A11Y FAMILY, AXIS 3 PROVEN, AND THE CHECKED CAPTURE CONTRACT (SAVE v16, 2026-08-13)
+
+Five passes since v15: Part A (`921dae3`) and its floor-guard rider (`923435d`), DO-A11Y-1 with DO-A11Y-2
+folded in (`bcbc651`), Part B (`2b11af6`), and the throughput pass (`43e9f0d`). The through-line is that the
+**instrument and the record kept being wrong in ways only verification caught** — and that the fixes were
+mostly at a level *above* the thing flagged.
+
+## §N.21.1 ⚠️ THE FLOOR-GUARD FALSIFIED ITS OWN PREMISE — the 0.005 miss
+
+§N.20.3 ruled posture **A (accept)** on the grounds that `--vy-faint` clears the true worst plate at **exactly
+4.50** — AA met, zero margin, so darkening is a robustness preference rather than a compliance need. The rider
+carried into the next pass was purely defensive: re-point `DesignTokenContrastTest` at the true composited
+plate so drift REDS the test.
+
+⚠️ **Pinning the measured plate turned the test red.** `--vy-faint` on `rgb(250,221,206)` is **4.4953**, not
+4.50 — the earlier report gave the **2-decimal rounding**, and the decision was taken on that rounded number.
+Unrounded, it **misses AA by 0.005**.
+
+⚠️ **RESOLVED NON-DESTRUCTIVELY, NOT SETTLED.** Both ways to green the test belong to the founder: darkening
+the token is option **B** (declined), and loosening the assertion to 4.49 is **quietly lowering a compliance
+bar nobody was asked to lower**. So the AA test keeps the *derived* plate `rgb(249,223,207)` where it genuinely
+passes at 4.55, and the **measured floor is pinned separately as a FACT, not as a compliance claim** — which
+closes the silent-drift vector whichever way the call goes. Mutation-proven; the file's stale header (which
+documented `--vy-faint` as `rgb(123,114,108)`, two token generations old) corrected in the same change.
+
+> **The lesson is about PRECISION IN A DECISION RECORD.** A rounded figure is fine in prose and fatal in a
+> premise. When a number decides something, record the precision the decision actually needs.
+
+## §N.21.2 ⚠️ THE COHERENCE NOTE — the 0.005 is NOT the retracted floor finding
+
+⚠️ **A future session must not read §N.21.1 as overturning §N.20.2.** They are distinct and they AGREE:
+
+| | the RETRACTED finding (§N.20.2, `8440b7e` → withdrawn `568cdd3`) | the 0.005 (§N.21.1, `923435d`) |
+|---|---|---|
+| claim | a **product-wide AA floor defect**: `--vy-faint` at 4.19 / 4.07 | `--vy-faint` = **4.4953** on the true worst plate |
+| source | the **halo** inside a dense text box — an instrument artefact | the **plate**, sampled away from any glyph |
+| status | **RETRACTED, stays retracted** | **standing**, an open founder call |
+
+The retraction's own conclusion was that the true card floor is **~4.50–4.67 and SOUND**. The 0.005 does not
+contradict that — it **refines the "~4.50" to a measured 4.4953**. *The retraction was right; this is a
+precision refinement of it.* Both must survive in the record together.
+
+## §N.21.3 ⚠️ THE A11Y FAMILY — two items were ONE defect, and the root was a shell that missed a fix
+
+DO-A11Y-1 (the shared classes) and DO-A11Y-2 (the `--vy-on-grad` token) were logged as separate items.
+**Sorting the failing classes BY THE PLATE THEY LAND ON collapsed them into one:**
+
+- on a **card**, or on a tag's own tint → `--vy-on-grad` / `--vy-muted` already clear them; a **mapping** suffices.
+- on the saturated **page gradient** → **nothing in the palette cleared them except `--vy-ink`**, because
+  `--vy-on-grad` — the token that exists precisely for that plate — was **itself sub-AA**.
+
+⚠️ **DO-A11Y-2 was the root cause of half of DO-A11Y-1, not a stray crumb.** Fixing the classes was impossible
+until the token was fixed, because there was nowhere honest to map them to.
+
+⚠️ **THE ROOT: the OPERATOR shell never received the OWNER shell's O2/O7 fix.** Both `--vy-on-grad` and
+`--vy-accent-text` were derived against a **PICKED** gradient stop rather than by **SAMPLING** the plate behind
+the elements that use them. The owner shell had exactly this defect, fixed it by sampling **7,502 pixels**, and
+left a note reading *"Re-measure by SAMPLING, not by picking a pixel."* The operator shell never got that
+treatment — **§N.8f cross-shell: the same concept, fixed in one realm and left broken in the other.**
+
+| token | derived against | actually sits on | old reading |
+|---|---|---|---|
+| `--vy-on-grad` rgb(84,74,68) | rgb(241,185,150) *picked* | down to **rgb(235,152,106)** | **4.33–4.48 FAIL** |
+| `--vy-accent-text` rgb(176,56,8) | rgb(252,223,204) *picked* | down to **rgb(249,194,166)** | **3.82–4.46 FAIL** |
+
+⚠️ **A FALSE COMPOSITING PREMISE, CORRECTED.** The old comment claimed *"a tinted chip carries its own surface
+and already measured 4.61."* False: a chip's tint composites **over the card, over the gradient**, so the chip
+is **darker** than the card, never lighter.
+
+⚠️ **THE WORST TWO READINGS WERE A DIM, NOT A COLOUR.** `.vy-avatar` **2.27** and `.vy-plan-tag` **2.46** are
+white text on a light accent tint, so the **surface** moved to `--vy-accent` (white = 5.18). `.vy-plan-tag` was
+*still* failing at **3.07** afterwards — an ancestor `.vy-nav-item[aria-disabled]` at **`opacity:.55`** dimming
+a locked item's label to **2.89** and its "PRO" tag to **2.42**. Modelling the *painted* pair, even `.9` leaves
+the tag failing. Removed — **§N.16.6 verbatim**, and nothing is lost because the explicit "PRO" text and
+`aria-disabled` already carry the state (the redundant mark the rule asks for).
+
+⚠️ **COMPLIANCE-VS-HEADROOM IS DECIDED PER TOKEN.** Darkening a token that **MISSES** AA is required;
+`--vy-on-grad-soft` **passed** on every sampled page and was deliberately **left unchanged** — darkening it
+would be the posture-B change the founder declined. *The guard asserts the non-change, so a future
+"consistency" tidy-up cannot quietly make it.*
+
+## §N.21.4 ⚠️ AXIS 3 PROVEN SWEEPABLE — and the CHECKED CAPTURE CONTRACT
+
+**§N.16.2's third axis was swept for real.** The taxonomy is now complete in PRACTICE:
+
+| axis | how a surface hides | the forcing move |
+|---|---|---|
+| 1 STYLE/STATE (G10) | a hover/open/error state | **force the state** |
+| 2 AUTHORIZATION (§N.14.1) | gated markup absent for the role | **render as the role** |
+| 3 **DATA** | markup that does not exist until a list is populated / a search performed / a record reaches a state | **force the DATA condition** |
+
+It found what an unswept axis predicts — defects on markup no empty-state pass could see: the owner Expenses
+row chips (**4.12** / **4.48**), the guest NAME on a **booked** calendar cell (**4.05**, which cannot exist
+without a booking), the calendar legend (**4.29**), and My Units' attention centre (**4.13–4.44**).
+
+⚠️ **TWO MORE CAPTURE FAULTS, AND THEY FABRICATED DEFECTS AGAIN** — the fifth and sixth corrections to this
+instrument (§N.20.1 counted four). The first populated page measured reported **nine avatars at 1.17–1.26**:
+the **viewport was shorter than the document** (a 2939px page in a 1650px viewport), and a **Livewire redirect
+re-rendered the DOM between collection and capture**, leaving every coordinate stale. Hand-reading the avatar's
+own pixels showed the card colour. **A fabricated defect, caught by verification — the third time in this
+family.**
+
+> ⚠️ **THE FIX IS THE PRINCIPLE: A BROKEN CAPTURE MUST REFUSE, NOT FABRICATE.** The collector now emits
+> `viewportH` / `viewportW` / `url`, and the reporter **REFUSES to print numbers** when the document exceeds
+> the viewport or the screenshot is short (proven firing). *An instrument that cannot detect its own broken
+> preconditions will report them as findings.*
+
+⚠️ **THE ANCESTOR-DIMMING SAFEGUARD RETURNED 0 ACROSS THREE PASSES — and that is a MEASURED FINDING.** These
+data-conditional states genuinely do not use ancestor opacity. A zero that was *checked* is not the same as a
+zero that was *assumed*, and the record says which this is.
+
+## §N.21.5 ⚠️ "THE CLASS IS FIXED" NEEDS EVERY COPY · AND MOVING A TOKEN MEANS MOVING ALL ITS MIRRORS
+
+⚠️ **§N.8f, twice in two passes, in its two different failure modes:**
+
+1. **EVERY COPY.** DO-A11Y-1 fixed `.vy-avatar`'s **operator** copy and reported the class fixed. Part B found
+   the **owner** copy still carrying `var(--vy-grad)`, whose light stop `#E8703A` gives white **3.08**. The
+   completion claim was true *for one of two definitions*. **A shared name with per-shell copies is not fixed
+   until every copy is enumerated.**
+2. **ALL MIRRORS.** Darkening `--vy-amber-text` in the token file while its **email and PDF literals** still
+   read `#804C05` is precisely two-values-one-name — the drift `AmberTextTokenTest` exists to catch, and it
+   **caught it red**. The canonical value moved everywhere at once instead, and only **improved** the surfaces
+   it already served (email 6.39 → 7.64, PDF pill 6.24 → 7.47). *Email and PDF cannot reach a CSS token, so a
+   token with mirrors is a distributed value, not a single one.*
+
+## §N.21.6 ⚠️ A CLASS'S MEASURED COLOUR IS NOT ITS RULE'S COLOUR · AND "CLEAR THE PLATE", NOT "DARKEN"
+
+⚠️ **TRACE THE CASCADE TO THE WINNING DECLARATION.** `.vy-mu-stat-label` painted **4.24**, but its *rule* was
+already `--vy-muted` — an **inline `style="color:var(--vy-faint)"` won the cascade**. Darkening the rule would
+have changed a **passing** declaration (a posture-A violation) **and not fixed the defect**. *The colour an
+element paints is not necessarily the colour its class declares.*
+
+⚠️ **THE FIX DIRECTION FALLS OUT OF THE PLATE.** One fix in the family went **lighter**: on the dark
+performance card `--vy-accent-3` read **4.30**, so the label moved to `--vy-peach`. Every other fix darkened.
+The rule is **"clear the plate you are actually on"** — "darken the text" is a heuristic that happens to be
+right on light grounds and wrong on dark ones.
+
+⚠️ **REPORTING DISCIPLINE: the measurement is the evidence, not the crop.** Part B shipped a before/after crop
+that clipped the very chips it illustrated; the throughput pass sized its crop from the **measured element
+boxes**. A bad illustration does not weaken a measurement, but it must not be offered as one.
+
+## §N.21.7 ⚠️ THE PROBE-HARNESS GAP · THE THIRD PROBE GAP · THE GLOBAL-CONST TRAP
+
+⚠️ **THE COLLECTOR HAD NEVER BEEN COMMITTED AT ALL.** The two Part-A capture corrections lived entirely in one
+session's tool calls — `tools/contrast-sampler.php` was (correctly) unchanged, because those corrections belong
+to **candidate generation**, not plate sampling. **A correction that is not committed is a correction hoped.**
+Now `tools/contrast-collect.js`.
+
+⚠️ **A THIRD SCOPE GAP (DO-PROBE-3):** an element under a **dimmed ancestor** passes the own-opacity check
+while painting far below its declared colour — a **false clean bill**, the worst output this tool can produce.
+**Detect-and-flag is IN** (the collector refuses such elements with a reason); **correct computation** — 
+compositing both glyph and plate at the effective alpha — remains the open work.
+
+⚠️ **THE GLOBAL-CONST TRAP.** A top-level `const` in a Pest file is a **GLOBAL**. `WORST_GRADIENT_PLATE`
+collided across two test files: the guard **passed alone and failed in-suite**, against the *other* file's
+plate. **PREFIX per-file test constants, and run a new guard IN-SUITE, not just isolated** — the mirror of
+§N.17.7's warning that "isolate it" is not a universal oracle.
+
+## §N.21.8 🧭 THE STATE AFTER v16
+
+- **The design programme is COMPLETE IN METHOD.** Part A (role axis), the shared-class family (source-level),
+  and axis 3 (data axis) are all proven; what remains of axis 3 is **throughput, not method**.
+- **The instrument is VALIDATED with a CHECKED CAPTURE CONTRACT** — **six** corrections total (§N.20.1's four,
+  plus viewport-vs-document and redirect-between-collect-and-capture) — and **named scope gaps**:
+  ancestor-dimming (flagged), dense-text `no-clear-band`, steep gradients, photo backdrops, and **dompdf PDFs,
+  which a browser probe cannot reach at all**.
+- **The AA floor is SOUND** (posture A stands) **with the 0.005 precision-miss open** as a founder call.
+- **Billing CODE + BUILD are complete**; the flip is gated only on the founder's Stripe/VAT steps.
+- ⚠️ **"Closed" means closed everywhere a pass could REACH** — bounded by role, by data condition, and now
+  explicitly by **probe scope**. An UNMEASURABLE is **UNSWEPT**, never clean.
