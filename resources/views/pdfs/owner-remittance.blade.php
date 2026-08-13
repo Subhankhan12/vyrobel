@@ -30,13 +30,13 @@
         .pill--paid { color: #1B6B48; background-color: #E4F2EA; }
         .pill--pending,
         .pill--processing,
-        .pill--held { color: #804C05; background-color: #FBEFD8; }
+        .pill--held { color: #704204; background-color: #FBEFD8; }
         .pill--failed { color: #A33227; background-color: #FBE6E2; }
         .pill--reversed { color: #6B6058; background-color: #F0E9E3; }
         .meta { width: 100%; border-collapse: collapse; margin: 18px 0 6px; }
         .meta td { padding: 4px 0; font-size: 12px; }
         .meta .k { color: #5F5853; width: 120px; }
-        .prov { display: inline-block; font-size: 8.5px; font-weight: bold; text-transform: uppercase; color: #804C05; background-color: #FBEFD8; border-radius: 8px; padding: 1px 7px; }
+        .prov { display: inline-block; font-size: 8.5px; font-weight: bold; text-transform: uppercase; color: #704204; background-color: #FBEFD8; border-radius: 8px; padding: 1px 7px; }
         table.lines { width: 100%; border-collapse: collapse; margin-top: 14px; }
         table.lines th { text-align: left; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: #5F5853; border-bottom: 1px solid #EFE3D9; padding: 8px 4px; }
         table.lines th.r, table.lines td.r { text-align: right; }

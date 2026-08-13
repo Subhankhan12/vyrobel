@@ -9209,3 +9209,73 @@ element; an `overflow:auto`-clipped element), plus the two named unvalidated inp
 dense-small-text on a STEEP gradient, and text over a PHOTO. A **third** collector gap surfaced here and is
 now handled but unfixtured: an element under a **dimmed ancestor** passes the own-opacity check while painting
 far below its declared colour.
+
+---
+
+## DO-EMAIL-5-continued · PART B — the DATA-conditional sweep (§N.16.2 axis 3, 2026-08-13)
+
+### ⚠️ THE METHOD — axis 3, actually swept
+
+The taxonomy is now complete in PRACTICE, not just on paper. A surface hides three ways, and each has its own
+forcing move:
+
+| axis | how it hides | the move |
+|---|---|---|
+| 1 STYLE/STATE (G10) | a hover/open/error state | **force the state** |
+| 2 AUTHORIZATION (§N.14.1) | gated markup absent for the role | **render as the role** |
+| 3 **DATA** | markup that does not exist until a list is populated, a search performed, a record reaches a state | **force the DATA condition** |
+
+Procedure: force the data condition → render populated **as the role** → capture with the viewport sized to the
+document → measure with `tools/contrast-sampler.php` + `tools/contrast-collect.js` → read **N/K/M** and flag
+every scope gap. **An unmeasurable is UNSWEPT, never clean.**
+
+### ⚠️ THE THIRD SCOPE GAP IS NOW DETECTED (DO-PROBE-3, flagged not fixed)
+
+The collector walks the **ancestor chain** and refuses any element under an `opacity < 1` ancestor: it paints
+below its declared colour, so a ratio computed from `getComputedStyle().color` is a **false clean bill**.
+DO-A11Y-1 hit exactly this (a nav item at `.55` painting 2.89 while declaring 9.40). Computing the true dimmed
+contrast is the real DO-PROBE-3 work; this is the honest interim. **Across every surface measured in this
+pass the count was 0** — the demo's data-conditional states do not use ancestor opacity, which is a finding
+in itself, not an absence of checking.
+
+### ⚠️ TWO MORE CAPTURE FAULTS, and they fabricated a defect again
+
+The first populated page measured reported **nine avatars at 1.17–1.26**. Both causes were capture-side:
+the viewport was **shorter than the document** (2939px page in a 1650px viewport), and a **Livewire redirect
+re-rendered the DOM between collection and capture** (`/app/reservations` → `?stage=upcoming`), leaving every
+coordinate stale. Hand-reading the avatar's own pixels showed the card colour, not the avatar — **a fabricated
+defect, caught by verification, for the third time in this family**. Both are now **checkable rather than
+assumed**: the collector returns `viewportH`/`viewportW`/`url`, and the reporter **REFUSES** to print numbers
+when the document exceeds the viewport or the screenshot is short. Re-measured cleanly: **209 measured / 1
+failed** (the known button).
+
+### FIXED — genuine axis-3 defects (markup no empty-state pass could see)
+
+| realm / surface | data condition | class | before | fix |
+|---|---|---|---|---|
+| owner Expenses | ≥1 expense row | `.vy-status--draft` "Not deductible" | **4.12** | → `--vy-on-grad` |
+| owner Expenses | an expense **pending review** | `--vy-amber-text` chip | **4.48** | token → `rgb(112,66,4)` |
+| owner Block Calendar | a **booking occupies** a cell | `.vy-cal-guest` (the guest name) | **4.05** | → `--vy-on-grad` |
+| owner Block Calendar | grid rendered | `.vy-cal-leg` | **4.29** | → `--vy-on-grad` |
+
+**owner Expenses 6 → 2** (both the known button family).
+
+### ⚠️ A DO-A11Y-1 MISS, FOUND AND CLOSED
+
+`.vy-avatar` is defined in **BOTH** shells. DO-A11Y-1 fixed the operator copy and reported the class fixed; the
+**owner** copy still carried `var(--vy-grad)`, whose light stop `#E8703A` gives white **3.08**. §N.8f in its
+most literal form — one concept, two definitions, a fix reaching one. Both now carry the dark gradient.
+
+### STATUS of the 67
+
+- **MEASURED (data forced): 5** — operator reservations-list (populated, 209 measured), owner expenses
+  (25 rows), owner block-calendar (booked cells), plus front-desk and guests-list re-measured post-DO-A11Y-1.
+- **FIXED: 4 defects** across 3 files + 1 DO-A11Y-1 miss.
+- **SCOPE-GAP-PENDING: 5** — the `pdfs/*` files are dompdf documents this browser probe cannot reach at all
+  (they belong to DO-PDF-1/2), plus `no-clear-band` unmeasurables running **6–71 per page** (the dense-text
+  limit; reservations-list was only ~75% swept).
+- **LOGGED-UNSWEPT: ~57 of the 67** — `DO-EMAIL-5-continued-3`. The remaining guest (10), booking (2), most
+  owner (18) and operator (15) files, plus admin (2) and the bell component.
+
+⚠️ **HONEST INCOMPLETION:** this pass fixed deep rather than shallow-touching all 67. Axis 3 is now **proven
+sweepable with a trusted instrument and a checked capture contract** — the remainder is throughput, not method.

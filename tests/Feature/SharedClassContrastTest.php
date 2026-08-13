@@ -152,7 +152,9 @@ it('⚠️ the amber + vip tags use their TEXT values, not their FILL values', f
         ->and($shell)->toMatch('/\.vy-tag\.tone-no-show \{[^}]*color: var\(--vy-amber-text\)/')
         ->and($shell)->toContain('.vy-tag.tone-vip { background: rgba(180, 130, 44, 0.16); color: #6f4f0c; }');
 
-    expect(sharedRatio([128, 76, 5], A11Y_WORST_TINT_PLATE))->toBeGreaterThanOrEqual(4.5)      // --vy-amber-text
+    // ⚠️ --vy-amber-text was darkened again in the Part-B data sweep: it measured 4.48 on the owner expense
+    // "Pending review" chip, a tint only visible once expenses are POPULATED. Same correction as accent-text.
+    expect(sharedRatio([112, 66, 4], A11Y_WORST_TINT_PLATE))->toBeGreaterThanOrEqual(4.5)      // --vy-amber-text
         ->and(sharedRatio([178, 106, 8], A11Y_WORST_TINT_PLATE))->toBeLessThan(4.5)            // --vy-amber (fill)
         ->and(sharedRatio([111, 79, 12], [241, 194, 161]))->toBeGreaterThanOrEqual(4.5)   // #6f4f0c vip
         ->and(sharedRatio([138, 100, 16], [241, 194, 161]))->toBeLessThan(4.5);           // #8a6410 vip

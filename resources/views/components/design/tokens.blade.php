@@ -62,7 +62,7 @@
             --vy-shadow-sm: rgba(150, 90, 50, 0.12) 0 8px 22px, inset rgba(255, 255, 255, 0.6) 0 1px 0;
             --vy-shadow-dark: rgba(60, 30, 10, 0.28) 0 10px 30px;
             /* Other */
-            --vy-amber-text: rgb(128, 76, 5);
+            --vy-amber-text: rgb(112, 66, 4);
             --vy-green-text: rgb(20, 84, 62);
     }
 </style>

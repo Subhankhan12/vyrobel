@@ -33,6 +33,7 @@ function vyCollectContrast() {
     let n = 0;
     let rejectedNotPainted = 0;
     let rejectedOffscreen = 0;
+    const ancestorDimmed = [];   // SCOPE GAP 3 — unmeasurable-pending, never counted as clean
 
     document.querySelectorAll('*').forEach((el) => {
         // Only elements painting their OWN text: a wrapper's rect spans its children, so it would be measured
@@ -43,6 +44,35 @@ function vyCollectContrast() {
         const cs = getComputedStyle(el);
         if (cs.visibility === 'hidden' || cs.display === 'none') return;
         if (parseFloat(cs.opacity) < 0.95) return;
+
+        // ⚠️ SCOPE GAP 3 (DO-PROBE-3), added in the Part-B data sweep. The check above reads the element's OWN
+        // opacity, which is 1 even when an ANCESTOR fades the whole row, card or empty-state block. Such an
+        // element paints BELOW its declared colour, so any ratio computed from `cs.color` is optimistic — a
+        // FALSE CLEAN BILL, the worst output this tool can produce. DO-A11Y-1 hit exactly this: a locked nav
+        // item at opacity .55 painted its label at 2.89 while declaring a colour that measures 9.40.
+        //
+        // ⚠️ This FLAGS, it does not fix. Computing the true dimmed contrast means compositing both the glyph
+        // and its plate at the effective alpha, which is the real DO-PROBE-3 work. Reporting the element as
+        // unmeasurable-with-a-reason is the honest interim: an unmeasurable is UNSWEPT, never clean.
+        //
+        // ⚠️ Data-conditional states lean on ancestor opacity heavily — dimmed "no results" blocks, disabled
+        // rows, loading skeletons — which is precisely why this gap had to close before the axis-3 sweep.
+        let dimmedBy = null;
+        for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+            const ao = parseFloat(getComputedStyle(a).opacity);
+            if (ao < 1) {
+                dimmedBy = { sel: a.tagName.toLowerCase() + (typeof a.className === 'string' && a.className.trim()
+                    ? '.' + a.className.trim().split(/\s+/).slice(0, 2).join('.') : ''), opacity: ao };
+                break;
+            }
+        }
+        if (dimmedBy) {
+            ancestorDimmed.push({ sel: el.tagName.toLowerCase() + (typeof el.className === 'string' && el.className.trim()
+                ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : ''),
+            txt: el.textContent.trim().slice(0, 40), css: cs.color,
+            dimmedBy: dimmedBy.sel, ancestorOpacity: dimmedBy.opacity });
+            return;
+        }
 
         const r = el.getBoundingClientRect();
         if (r.width < 4 || r.height < 4) return;
@@ -86,8 +116,19 @@ function vyCollectContrast() {
     return {
         docWidth: Math.round(document.documentElement.scrollWidth),
         docHeight: Math.round(document.documentElement.scrollHeight),
+        // ⚠️ THE CAPTURE CONTRACT, made checkable rather than assumed (Part B). Two violations produced
+        // fabricated defects on the first populated page measured: the viewport was SHORTER than the document
+        // (so the screenshot ended mid-page while rects kept pointing past it), and a Livewire redirect
+        // re-rendered the DOM BETWEEN collection and capture, leaving every coordinate stale — nine avatars
+        // "measured" 1.17–1.26 against a card they are not painted on. Both are now detectable downstream.
+        viewportH: window.innerHeight,
+        viewportW: window.innerWidth,
+        url: location.pathname + location.search,
         rejectedNotPainted,
         rejectedOffscreen,
+        // ⚠️ UNSWEPT, NOT CLEAN. Read this beside `failed`: a 0-failure page with a non-empty
+        // ancestorDimmed list has simply not been measured there.
+        ancestorDimmed,
         candidates: out,
     };
 }

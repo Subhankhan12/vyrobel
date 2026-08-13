@@ -203,7 +203,7 @@
         .vy-acct-btn .vy-avatar { width: 30px; height: 30px; }
         .vy-acct-chev { width: 15px; height: 15px; color: var(--vy-faint); transition: transform .18s ease; }
         .vy-acct-btn[aria-expanded="true"] .vy-acct-chev { transform: rotate(180deg); }
-        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
+        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(140deg, #C2410C, #9A3412); color: #fff;   /* --vy-grad's light stop #E8703A gives white 3.08 */ font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
         .vy-acct-menu {
             position: absolute; top: calc(100% + 10px); right: 0; z-index: 70; min-width: 210px; padding: 6px;
             background: rgba(255, 252, 248, 0.97); border: 1px solid rgba(255, 255, 255, 0.85); border-radius: var(--vy-r-md);
@@ -293,7 +293,7 @@
         .vy-status--pending .vy-dot { background: var(--vy-amber-2); }
         .vy-status--paid { background: rgba(31, 122, 90, 0.13); color: var(--vy-green-text); }
         .vy-status--paid .vy-dot { background: var(--vy-green); }
-        .vy-status--draft { background: rgba(138, 128, 121, 0.15); color: var(--vy-muted); }
+        .vy-status--draft { background: rgba(138, 128, 121, 0.15); color: var(--vy-on-grad); }   /* muted measured 4.12 on this chip's own tint */
         .vy-status--draft .vy-dot { background: var(--vy-muted); }
         /* ⚠️ ON THE DARK PAYOUT RAIL, DARKENING IS BACKWARDS — every tone of this pill also renders on
            .vy-card--dark, and every one of them failed AA there (paid 1.77, draft 1.65, pending 1.87).

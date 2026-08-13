@@ -151,7 +151,7 @@ it('keeps the DO-EMAIL-1 replacements above AA on the plates they actually land 
             // turned out to be defined twice with different values; it is now single-valued at #804C05, and this
             // email literal tracks it so "the amber-text value" means one thing everywhere. Strictly darker, so
             // every email plate improved (5.73 -> 6.39 on #FBF1E9).
-            ->and(emailSweepRatio('#804C05', $plate))->toBeGreaterThanOrEqual(4.5);
+            ->and(emailSweepRatio('#704204', $plate))->toBeGreaterThanOrEqual(4.5);
     }
 
     // ⚠️ Light-on-dark: the platform-admin email's card. Darkening would have made this WORSE.

@@ -57,7 +57,12 @@ function amberRatio(string $ink, string $plate): float
     return round((max($a, $b) + 0.05) / (min($a, $b) + 0.05), 2);
 }
 
-const VY_AMBER_TEXT = '#804C05';   // rgb(128, 76, 5) — the canonical value
+const VY_AMBER_TEXT = '#704204';   // rgb(112, 66, 4) — the canonical value
+// ⚠️ MOVED in the Part-B data sweep: the old value measured 4.48 on the owner Expenses "Pending review"
+// chip, a tint visible only once expenses are POPULATED. Darkening the token alone would have left the
+// email and PDF literals behind — recreating the exact two-values-one-name drift this file exists to
+// catch — so the canonical value moved everywhere at once. It only IMPROVES the surfaces it already
+// served (email 6.39 → 7.64, PDF pill 6.24 → 7.47).
 
 it('⚠️ declares --vy-amber-text with ONE value everywhere it is declared', function () {
     $values = [];
@@ -80,8 +85,9 @@ it('⚠️ declares --vy-amber-text with ONE value everywhere it is declared', f
     // ⚠️ THE LANDMINE: one name, one value. A second, differing declaration must fail here.
     expect(array_unique($flat))->toHaveCount(1, 'the amber-text token is declared with more than one value: '.implode(' | ', array_unique($flat)));
 
-    // …and it is the measured value, so a silent re-tune of one shell also fails.
-    expect($flat[0])->toBe('rgb(128,76,5)');
+    // …and it is the measured value, so a silent re-tune of one shell also fails. Moved to rgb(112,66,4) in
+    // the Part-B data sweep (the old value read 4.48 on a populated-only chip); see the VY_AMBER_TEXT note.
+    expect($flat[0])->toBe('rgb(112,66,4)');
 });
 
 it('clears AA on every plate it is rendered on, in BOTH realms — the measurement that chose it', function (string $plate, string $where) {

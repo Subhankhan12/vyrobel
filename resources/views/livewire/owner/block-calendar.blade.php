@@ -32,7 +32,7 @@
         .vy-cal-navbtn:hover { color:var(--vy-accent); border-color:var(--vy-accent-border); }
         .vy-cal-today { padding:7px 14px; border-radius:var(--vy-r-pill); border:1px solid rgba(120,70,40,.16); background:rgba(255,255,255,.6); color:var(--vy-ink); font-family:var(--vy-sans); font-size:12.5px; font-weight:500; text-decoration:none; }
         .vy-cal-legend { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
-        .vy-cal-leg { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:var(--vy-muted); }
+        .vy-cal-leg { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:var(--vy-on-grad); }   /* muted measured 4.29 on the legend strip */
         .vy-cal-swatch { width:12px; height:12px; border-radius:4px; }
         .vy-cal-grid { user-select:none; display:grid; grid-template-columns:repeat(7,1fr); gap:7px; }
         .vy-cal-dow { text-align:center; font-size:10px; font-weight:600; letter-spacing:.07em; color:var(--vy-muted); padding-bottom:3px; }
@@ -44,7 +44,7 @@
         .vy-cal-open.is-selecting { background:linear-gradient(140deg,#F3B98E,#E8875A); border-color:transparent; }
         .vy-cal-open.is-selecting .vy-cal-num { color:#fff; }
         .vy-cal-booked { background:rgba(232,112,58,.16); border-color:rgba(232,112,58,.28); overflow:hidden; }
-        .vy-cal-guest { margin-top:auto; font-size:10px; font-weight:600; color:var(--vy-accent-tint-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .vy-cal-guest { margin-top:auto; font-size:10px; font-weight:600; color:var(--vy-on-grad);   /* 4.05 on a BOOKED cell — visible only when a booking occupies it */ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .vy-cal-blocked { background:#3A2E27; cursor:pointer; border:none; }
         .vy-cal-blocked .vy-cal-num { color:#fff; }
         .vy-cal-blocked .dot { position:absolute; bottom:8px; left:8px; width:6px; height:6px; border-radius:50%; background:var(--vy-peach); }

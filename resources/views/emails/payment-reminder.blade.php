@@ -31,7 +31,7 @@
         @endif
         <tr>
             <td style="padding:15px 16px; background-color:#FBF1E9;">
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#804C05;">Balance due</span>
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#704204;">Balance due</span>
                 <span style="font-family:'Sora',Arial,Helvetica,sans-serif; font-size:19px; font-weight:700; color:#2B2320; float:right;">{{ $balance }}</span><br>
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; color:#5F5853;">Otherwise payable at check-in</span>
             </td>
