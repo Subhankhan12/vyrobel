@@ -9531,3 +9531,56 @@ styles — each red on its own guard.
 
 Suite **2012/2019 · 13,124 assertions**, **7 non-green = the documented set**. PHPStan L5 (0); Pint clean.
 Browser spot-check: the public storefront renders identically.
+
+---
+
+## 2026-08-13 · `DO-STAR-1` — the Messages star: a bookmark, and the name was the defect
+
+**Premise sharpened:** the star is in the **OWNER** realm (`/owner/messages`, `MessageStar`), not the guest relay.
+
+### ⚠️ The conflation check — NOT conflated, and the state was already greyscale-safe
+
+The register flagged this because DO10-4 had just fixed the RATING star. The bookmark **never touches**
+`<x-star-rating>` — it is its own inline SVG — and its state is carried by the **GLYPH**: `fill="#E8A63A"` when
+starred, `fill="none"` when not. **Filled vs outline is a shape difference, verified in a greyscale capture**,
+so the colour-only failure DO10-4 had to fix for ratings **does not exist here**. That half is verified-fine.
+
+### ⚠️ What was actually wrong — and it is an unusually instructive shape
+
+`aria-label="Star"` was **static on both states**, and `aria-label` **overrides** `title` — which was correctly
+computed as `"Unstar"` when starred. **A screen-reader user heard "Star" on a button that would unstar.** The
+right words were already being derived and were discarded one attribute later. *The information existed; the
+markup threw it away.* Fixed with `aria-pressed` plus a stable name (`"Star message"`), the standard toggle
+pattern, so the state is announced rather than smuggled into a name that then contradicts the action.
+
+### ⚠️ A second defect the measurement found — hover-only visibility (WCAG 2.4.7)
+
+`.vy-msg-acts { opacity: 0 }` with only a `:hover` rule and **no `:focus-within`**. Measured live: the star
+button takes focus (`document.activeElement`, outline `auto`) while its container is fully transparent — **a
+keyboard user tabs to a real button and sees neither it nor its focus ring.** Hover-only makes a control
+mouse-only in practice while leaving it in the tab order: the worst of both. Fixed by adding `:focus-within`.
+
+**The PIN toggle is the star's twin** — same computed-then-discarded `title`, same static label — and got the
+same fix; **Reply and React are not toggles** (no state) so their static labels are correct and were left alone.
+
+### ⚠️ Two measurement notes worth keeping
+
+- **A `getComputedStyle` opacity read taken immediately after `.focus()` returned `0`** — the element was
+  mid-`transition: opacity .12s`. The fix was correct; the *measurement* was early. Re-read after settling
+  showed `1`. §N.8e's freeze-before-you-measure rule, in a new guise.
+- ⚠️ **The first guard failed on its own documentation**: it asserted the view does not contain
+  `x-star-rating`, and the Blade comment I had just written *explains* that it does not use `<x-star-rating>`.
+  Blade comments are now stripped before any source assertion — the same trap `OperatorOwnerGreyDriftTest`
+  records.
+
+**Scope:** a11y only. The bookmark's meaning, the star/unstar logic and `message_stars` are untouched; the demo
+star created to force the second state was removed and verified with a **raw** query (§N.18.1).
+
+Guard `OwnerMessageStarToggleTest` (5/16) — not conflated · state announced via `aria-pressed` · state survives
+greyscale · focus reveals the row actions · the pin twin. Mutation-proven four ways (restore the static label ·
+make the glyph colour-only · drop `:focus-within` · conflate with the rating component), each red on its guard.
+⚠️ The per-message assertions read the MARKUP, not a render, and say so: the star only appears once a thread has
+messages and this suite has no such fixture — the **rendered** proof is the browser measurement above, taken as
+the demo owner with both states forced.
+
+Suite **2017/2024 · 13,140 assertions**, **7 non-green = the documented set**. PHPStan L5 (0); Pint clean.
