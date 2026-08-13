@@ -8771,3 +8771,50 @@ retinting 45 elements on one page.** Surfaced deliberately, unfixed.
 **Measured so far:** `/app/settings` — **221 measured / 45 failed / 1 unmeasurable** (`plate-not-isolable`).
 No blind zeros; the unmeasurable one is recorded as unswept, not clean.
 
+---
+
+## ⚠️ `DO-EMAIL-5-continued` — the plate question SETTLED, and it reframed the finding
+
+**The previous entry said the AA floor "rests on an assumed plate the page beats" and left it open. Settled now
+— and the conclusion is narrower and more useful than it first looked.**
+
+### ✅ The card constant was RIGHT; the gap is text with no card under it
+
+`DesignTokenContrastTest`'s constant `rgb(249,223,207)` is **correctly derived** — it is `rgba(255,252,248,.58)`
+composited over the gradient's darkest relevant stop, and `--vy-faint` really does clear AA there at **4.55**.
+Recomputed across every gradient stop, the card plate never goes below it. **No product-wide floor change is
+warranted, and retinting 45 elements would have been wrong.**
+
+⚠️ **What that test never modelled is text sitting DIRECTLY ON THE GRADIENT, with no card between.** Measured on
+the real page: `--vy-muted` **3.65**, `--vy-faint` **3.03** on plate `rgb(241,172,134)`. Genuine AA failures, on
+a surface no existing guard covered.
+
+### ✅ FIXED — and the product already had the right token
+
+`.vy-topbar-sub` (the page subtitle in the operator topbar, on every operator page) used `--vy-muted` while
+sitting on the gradient. `--vy-on-grad` exists for **exactly** this plate, so the fix is a **mapping** (N.14.9),
+not a palette change: **3.65 → 4.50**.
+
+⚠️ **A premise correction worth keeping:** `--vy-on-grad` was derived against gradient stop `rgb(241,185,150)`,
+where it reads **4.97**. The page actually paints down to `rgb(241,172,134)`, where the same token reads
+**4.50** — passing, with **no margin at all**. *The gradient is darker than the value its own on-gradient token
+was computed against.* Anything else moved onto that plate should be checked at the measured worst, not the
+derived one.
+
+**Guard:** `OnGradientTextContrastTest` (3/9) — the rule uses the on-gradient token · the measured ratios are
+pinned (muted/faint fail, on-grad clears) · the token still holds the value the measurement assumed, asserted
+against the operator shell because `--vy-on-grad` is one of DO-TOKEN-1's seven deliberate per-shell overrides.
+Mutation-proven: revert to `--vy-muted` → red.
+
+### ⚠️ Status — honest
+
+| | |
+|---|---|
+| **Part A** | **1 of 9 surfaces measured** (`/app/settings`: 221 measured / 1 unmeasurable). **1 real defect found and FIXED.** The other 8 gated files are **UNSWEPT**. |
+| **Part B** | **UNTOUCHED** — 67 files inventoried, no data condition forced. |
+
+⚠️ The 44 remaining flags on `/app/settings` are **card-plate readings that the settled card constant says are
+NOT failures** — my sampler reads a slightly darker plate inside cards than the composite arithmetic predicts,
+so those are **probe-vs-arithmetic disagreement, not defects**, and must be reconciled before any of them is
+touched. **That reconciliation is the next task**, and it gates the remaining 8 files.
+

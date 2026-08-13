@@ -157,7 +157,14 @@
            carried visually — an unread dot, a status colour — can still have real text for assistive tech. */
         .vy-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
         .vy-topbar h1 { font-family: var(--vy-display); font-weight: 600; font-size: 28px; letter-spacing: -0.02em; margin: 0; white-space: nowrap; }
-        .vy-topbar-sub { font-size: 12.5px; color: var(--vy-muted); margin-top: 3px; }
+        /* ⚠️ DO-EMAIL-5-continued — this line sits DIRECTLY ON THE PAGE GRADIENT, not on a glass card, so the
+           card tokens do not apply to it. Measured with tools/contrast-sampler.php against the real composited
+           plate at its worst position: `--vy-muted` reads 3.65 there and fails AA. `--vy-on-grad` exists for
+           exactly this case and reads 4.50.
+           ⚠️ Note the margin is nil, and that is a real finding rather than a rounding: --vy-on-grad was
+           derived against the gradient stop rgb(241,185,150) (4.97), but the page paints down to
+           rgb(241,172,134) — the gradient is DARKER than the value the token was computed against. */
+        .vy-topbar-sub { font-size: 12.5px; color: var(--vy-on-grad); margin-top: 3px; }
         .vy-topbar-actions { display: flex; align-items: center; gap: 12px; }
 
         .vy-bell { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); color: var(--vy-muted); }
