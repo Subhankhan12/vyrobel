@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\MoneyCast;
 use App\Support\Billing\BillableUnits;
+use App\Support\Billing\PlanTerms;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -99,38 +100,9 @@ class Plan extends Model
      */
     public function chargeFor(): array
     {
-        if (! $this->isPerUnit()) {
-            return [
-                'units' => 1,
-                'net_minor' => (int) $this->price_minor,
-                'vat_minor' => 0,
-                'gross_minor' => (int) $this->price_minor,
-                // A flat tier is VAT-INCLUSIVE by founder ruling: €49 IS the final amount, so the app really
-                // does know the total — unlike per-unit, where Stripe computes it per customer.
-                'tax_known' => true,
-                'pricing_type' => self::PRICING_FLAT,
-            ];
-        }
-
-        // ⚠️ BILLING PASS 2b — NO app-side VAT on a per-unit plan. It used to add a hardcoded 23%, which is
-        // simply false for many customers: with Stripe Tax the rate depends on THEIR country and status, and an
-        // EU business under reverse-charge pays €0. The app cannot know the tax before checkout, so it no
-        // longer claims one. `gross_minor` is the PRE-TAX subtotal — the exact amount the exclusive Price ×
-        // quantity sends to Stripe — and Stripe adds the tax on top.
-        //
-        // ⚠️ Deliberately NOT "replace 23% with better arithmetic". There is no arithmetic that is right here;
-        // the honest move is to stop asserting a number we do not have (§N.8d).
-        $units = $this->quantityFor();
-        $subtotal = $units * (int) $this->unit_rate_minor;
-
-        return [
-            'units' => $units,
-            'net_minor' => $subtotal,
-            // Zero because it is UNKNOWN app-side, not because it is nil — `tax_known` says which.
-            'vat_minor' => 0,
-            'gross_minor' => $subtotal,
-            'tax_known' => false,
-            'pricing_type' => self::PRICING_PER_UNIT,
-        ];
+        // ⚠️ Delegated to the ONE calculation (the plan-panel pass). A subscription can now bill from CAPTURED
+        // terms rather than this live row, and two sources with two arithmetics is exactly how
+        // `SubscriptionPricing` drifted from this method (§N.17.4). The sources differ; the maths does not.
+        return PlanTerms::fromPlan($this)->charge();
     }
 }

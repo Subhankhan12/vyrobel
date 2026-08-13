@@ -9,6 +9,11 @@
     @if (session('admin_notice'))
         <div class="ad-flash">{{ session('admin_notice') }}</div>
     @endif
+    @if (session('admin_error'))
+        <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ session('admin_error') }}</div>
+    @endif
+
+    <div style="margin: 0 0 16px;"><a class="ad-btn" href="{{ route('admin.plans.create') }}">New plan</a></div>
 
     <div class="ad-card" style="padding: 8px 10px;">
         <table class="ad-table">

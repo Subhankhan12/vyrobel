@@ -123,7 +123,8 @@ class OperatorSettings extends Component
 
         // The REAL plan name off the org's current subscription (the SAME source /app/billing reads) — never a
         // hardcoded tier, so the two operator surfaces can't disagree (#39). "Vyrobel " is the branded prefix.
-        $plan = $organization->currentSubscription()?->plan;
+        $subscription = $organization->currentSubscription();
+        $plan = $subscription?->plan;
         $planName = $plan?->name;
 
         return [
@@ -134,8 +135,10 @@ class OperatorSettings extends Component
             // on flat Essential was shown €55.35 beside the correct plan NAME while /app/billing said €49.00 —
             // two operator surfaces disagreeing about one subscription. It now reads `Plan::chargeFor()`, the
             // same expression the Billing page and the charge itself use (§N.8f), so they cannot drift.
-            'price' => $plan !== null
-                ? $this->money((int) $plan->chargeFor()['gross_minor'], (string) $plan->currency).'/mo'
+            // Same source as /app/billing — the SUBSCRIPTION's captured terms, so the two operator surfaces
+            // cannot disagree and neither moves when the catalogue is edited.
+            'price' => $subscription !== null && $plan !== null
+                ? $this->money((int) $subscription->chargeFor()['gross_minor'], $subscription->terms()->currency).'/mo'
                 : null,
             'manage_url' => route('app.billing'),
         ];

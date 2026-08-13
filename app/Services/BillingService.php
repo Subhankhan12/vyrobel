@@ -46,6 +46,8 @@ final class BillingService
         $trialDays = (int) config('billing.trial_days', 14);
         $from = $organization->created_at ?? now();
 
+        // ⚠️ Terms are captured by the model's `creating` hook — see Subscription::booted(). Doing it here
+        // as well would be a second mechanism for one concept, and the one nobody updated would drift.
         return Subscription::create([
             'organization_id' => $organization->id,
             'plan_id' => $plan->id,

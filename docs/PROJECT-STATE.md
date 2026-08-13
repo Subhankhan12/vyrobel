@@ -135,8 +135,13 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   ⚠️ **The safe half of (a) is shipped either way** (never send what we cannot type; never treat a rejection
 >   as success). Recorded in §G.1. A fresh session must **not** pick (b) unilaterally — it changes tax outcomes.
 >
-> **③ THE SUPER-ADMIN PLAN-CRUD PANEL — the ONE remaining billing BUILD, and unbuilt.** A plan of either shape can today be created only in a seeder
->   or the console. The engine handles both shapes; there is simply no in-app way to make one.
+> **③ ✅ THE SUPER-ADMIN PLAN PANEL — BUILT (2026-08-13). ⚠️ THE BILLING BUILD IS COMPLETE.** Create + edit of
+>   BOTH shapes, platform-admin gated. ⚠️ **A premise correction: the panel was not missing** — index/edit/
+>   toggle already existed. What was missing was **create**, **shape-awareness** (it validated only name +
+>   price, so a per-unit plan could be saved with no rate) and any notion of **sellable**.
+>   ⚠️ **And the founder's ruling was UNENFORCEABLE before this pass** — subscriptions stored only `plan_id`,
+>   so every price came from the LIVE plan row. They now **capture their terms**: quantity stays live, terms
+>   freeze (§N.19).
 >
 > **④ `DO-TOKEN-1` — the shared token source.** The structural root of the entire grey-drift family: each shell
 >   re-declares the whole palette, so any token can silently diverge (that is exactly how `DO-EMAIL-4` happened).
@@ -6846,3 +6851,88 @@ on; that phrasing would have been true and also a small false certification, bec
 another fails alone and passes in-suite), the count walks its band on its own, and **an anomaly you cannot
 explain is written down as unexplained.** The register's value comes from the difference between "verified" and
 "assumed" staying visible — including when the assumption is the comfortable one.
+
+---
+
+# (N.19) 🏁 THE PLAN PANEL — **TERMS FREEZE, QUANTITY STAYS LIVE** (2026-08-13)
+
+*The last billing build. Two founder rulings: **full CRUD of both shapes**, and **edits affect NEW subscriptions
+only — existing subscribers keep their terms**. The second turned out to be the whole pass.*
+
+## §N.19.1 ⚠️ THE PREMISE CHECK CHANGED THE PASS — AND FOUND A LIVE DEFECT
+
+The pass was specified as "build the panel". Checking first what actually existed found **the panel already
+did** — `index`, `edit`, `update`, `toggle`, platform-admin gated and audited. Missing were **create**,
+**shape-awareness**, and any concept of *sellable*.
+
+⚠️ **More importantly, `update()` already let an admin change `price_minor` on a plan with live subscribers** —
+and `subscriptions` stored only `plan_id`, so every price the app displayed was read from the LIVE plan row.
+**The founder's ruling was not merely unimplemented; it was unenforceable, and the surface that would violate it
+was already shipped.**
+
+⚠️ **AND THE FAILURE MODE WAS NOT THE OBVIOUS ONE.** The natural reading of "an edit re-prices existing
+customers" is wrong for this architecture: Stripe bills an existing subscription against the **Stripe Price
+object** it was created with, and nothing here pushes a rate change to it. So an edit would **not** have moved
+the money — it would have moved only the number Vyrobel *displays*, leaving the product quoting one figure while
+Stripe charged another. **The display ≠ charge divergence four billing passes closed, re-opened from the admin
+side.** *Reading the mechanism, rather than reasoning about the feature, is what turned a plausible risk into
+the actual one.*
+
+## §N.19.2 ⚠️ TERMS FREEZE, QUANTITY STAYS LIVE — §N.8f's derived-vs-stored tension, inverted
+
+Billing pass 1 established that the billable **QUANTITY** must be **DERIVED**, never stored: a stored count is
+right until the next unit is added, and a charged quantity that disagrees with reality is §N.8d with money
+attached (`BillableUnits`).
+
+⚠️ **The agreed TERMS are the exact opposite: they must be FROZEN.** A price that moves when someone edits a
+catalogue row is not "up to date", it is a different agreement than the customer entered into. So:
+
+| | | |
+|---|---|---|
+| **quantity** | DERIVED, live | it must track reality — the org really does owe for a new unit |
+| **terms** (rate, shape, Price, currency) | CAPTURED, frozen | they must NOT move when the catalogue is edited |
+
+Both live in one place, and **the arithmetic is shared** (`PlanTerms`): `Plan::chargeFor()` and
+`Subscription::chargeFor()` build the same object and call the same method. ⚠️ **Two sources of terms with two
+calculations is precisely how `SubscriptionPricing` drifted from `Plan::chargeFor()`** and put €88.56 on one
+screen against €49.00 on another (§N.17.4). The sources differ; the maths does not.
+
+## §N.19.3 ⚠️ ENUMERATING WRITERS IS A LOSING GAME — BIND THE BEHAVIOUR TO THE MODEL
+
+Capture was first wired at each **known** call site: the billing service, the admin customer screen. Verifying
+`migrate:fresh --seed` then showed the demo subscription with **null terms** — because `DemoSeeder` creates rows
+directly and was a call site nobody had listed.
+
+⚠️ **This is `DO-BILL-1`'s three-VAT-writers lesson (§N.18.3) recurring within one pass, and it upgrades the
+remedy.** There the fix was *route every writer through one sync path*; here even that was not enough, because
+the list of writers is not knowable — seeders, factories and future code are all writers. **The capture moved
+onto the model's `creating`/`updating` hooks**, so every path that persists a subscription captures, including
+ones that do not exist yet. *One sync path is good; a path nobody can bypass is better.*
+
+⚠️ Note how it was caught: not by a test, but by **checking the demo database after the seed** — the same
+verify-the-outcome habit that caught the SoftDeletes leftover (§N.18.1).
+
+## §N.19.4 ⚠️ ON A MONEY SURFACE, "SELLABLE" IS A PROPERTY TO ENFORCE, NOT A JUDGEMENT TO TRUST
+
+`PlanIntegrity` refuses to persist a plan the engine cannot charge — a per-unit plan with **no rate** (it would
+bill €0 × units), a **zero** rate (the same, quietly), an **unknown shape** (it falls through `isPerUnit()` to
+the flat branch and bills the wrong basis). ⚠️ `pricing_type` is a **closed set**, never a free string.
+
+⚠️ **And a plan whose Stripe Price does not exist is a DRAFT, not a product.** The panel can create a plan; only
+the founder can create the Price behind it (`StripeSafetyGuard` forbids a live key outside production).
+Activating one regardless would put a tier on the paywall whose checkout cannot complete — the broken checkout
+billing pass 2 made *throw*. **Making it unreachable is the better half of the same guard**: pass 2 catches it
+at the till, this catches it at the shelf.
+
+⚠️ **ONE RULESET FOR CREATE AND EDIT** (§N.8f). The old `update()` validated only `name` + `price`; two rulesets
+would drift, and the looser one becomes the way to save a malformed plan.
+
+## §N.19.5 ⚠️ G8 — TWO PRE-EXISTING TESTS LEGITIMATELY CHANGED, AND THE FIXTURE WAS THE UNDER-SPECIFIED PART
+
+`PlatformPlansTest`'s plan fixture carried no `pricing_type` and no `stripe_price_id`, and its update payloads
+sent only `name` + `price`. Under the stricter contract both fail — **correctly**: they described a plan that
+could not really be sold and a save that could not really be valid.
+
+⚠️ **The invariants were preserved and the FIXTURES amended** — the plan now carries a shape and a Price (it
+represents a live plan, which is what those tests are about), and the payloads carry the shape. *Nothing about
+what those tests assert was relaxed; what changed is that the world they describe is now internally consistent.*

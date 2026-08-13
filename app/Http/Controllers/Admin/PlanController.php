@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
+use App\Support\Billing\PlanIntegrity;
 use App\Support\Platform\PlatformAuditLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -39,6 +40,63 @@ class PlanController extends Controller
         return view('admin.plans.index', ['plans' => $plans]);
     }
 
+    /** The create form — both shapes (the panel's reason for existing: a per-unit plan had no in-app path). */
+    public function create(): View
+    {
+        return view('admin.plans.create');
+    }
+
+    /**
+     * Create a plan of EITHER shape.
+     *
+     * ⚠️ A new plan is always created INACTIVE. Its Stripe Price does not exist yet — only the founder can
+     * create that — so offering it immediately would put a tier on the paywall whose checkout cannot complete.
+     * It becomes sellable when someone pastes a real Price id and activates it, which
+     * {@see PlanIntegrity::blockedFromActivation()} enforces.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate(PlanIntegrity::rules());
+
+        $plan = Plan::create($this->columnsFrom($validated) + [
+            'code' => (string) $validated['code'],
+            'is_active' => false,
+        ]);
+
+        $this->audit->record('platform.plan.created', [
+            'plan' => $plan->code, 'pricing_type' => $plan->pricing_type,
+        ], 'plan', $plan->id);
+
+        return redirect()->route('admin.plans.edit', $plan->id)
+            ->with('admin_notice', $plan->name.' created as a draft — add its Stripe Price id, then activate it.');
+    }
+
+    /**
+     * The money columns for a validated payload — the ONE mapping, shared by create and update (§N.8f).
+     *
+     * ⚠️ Each shape writes only its OWN basis and NULLs the other. A per-unit plan left carrying a stale
+     * `price_minor` from a previous flat life would show one number in the catalogue and bill another.
+     *
+     * @param  array<string, mixed>  $v
+     * @return array<string, mixed>
+     */
+    private function columnsFrom(array $v): array
+    {
+        $perUnit = ($v['pricing_type'] ?? null) === Plan::PRICING_PER_UNIT;
+
+        return [
+            'name' => (string) $v['name'],
+            'pricing_type' => (string) $v['pricing_type'],
+            'interval' => (string) $v['interval'],
+            'currency' => strtoupper((string) $v['currency']),
+            // major → integer minor (#17), never a float in the column.
+            'price_minor' => $perUnit ? 0 : (int) round(((float) ($v['price'] ?? 0)) * 100),
+            'unit_rate_minor' => $perUnit ? (int) round(((float) ($v['unit_rate'] ?? 0)) * 100) : null,
+            'vat_pct' => ($v['vat_pct'] ?? null) === null ? null : (int) $v['vat_pct'],
+            'stripe_price_id' => ($v['stripe_price_id'] ?? '') !== '' ? (string) $v['stripe_price_id'] : null,
+        ];
+    }
+
     /** Edit one plan — name, price, active, and its feature toggles/limits. */
     public function edit(string $plan): View
     {
@@ -52,20 +110,31 @@ class PlanController extends Controller
     {
         $model = Plan::query()->findOrFail($plan);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:120'],
-            'price' => ['required', 'numeric', 'min:0'],
+        // ⚠️ THE SAME RULESET AS CREATE (§N.8f). This method previously validated only `name` + `price`, so a
+        // per-unit plan could be saved through it with no rate at all, and `pricing_type` was not checked to be
+        // one of the two shapes the engine understands.
+        $validated = $request->validate(PlanIntegrity::rules($model->id) + [
             'is_active' => ['nullable', 'boolean'],
             'features' => ['array'],
             'features.*.enabled' => ['nullable', 'boolean'],
             'features.*.limit' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $model->update([
-            'name' => (string) $validated['name'],
-            'price_minor' => (int) round(((float) $validated['price']) * 100),   // major → integer minor (#17)
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $model->update($this->columnsFrom($validated));
+
+        // ⚠️ ACTIVATION IS NOT A CHECKBOX, IT IS A GATE. A plan can only be offered once it is actually
+        // sellable — see PlanIntegrity. Editing a live plan is safe by construction: existing subscribers bill
+        // from the terms CAPTURED on their subscription, so nothing here reaches them.
+        if ($request->boolean('is_active')) {
+            $blocked = PlanIntegrity::blockedFromActivation($model->fresh() ?? $model);
+
+            if ($blocked !== null) {
+                return redirect()->route('admin.plans.edit', $model->id)
+                    ->with('admin_error', 'Saved, but it stays a draft: '.$blocked);
+            }
+        }
+
+        $model->update(['is_active' => $request->boolean('is_active')]);
 
         // Upsert every known gateable feature. Iterated unconditionally (not "only present keys") because an
         // UNCHECKED checkbox submits nothing — so an absent key means DISABLED, and must still be written.
@@ -89,6 +158,18 @@ class PlanController extends Controller
     public function toggle(Request $request, string $plan): RedirectResponse
     {
         $model = Plan::query()->findOrFail($plan);
+
+        // Turning a plan ON is gated; turning it OFF never is — retiring a plan must always be possible, and a
+        // retired plan keeps its existing subscribers on their captured terms.
+        if (! $model->is_active) {
+            $blocked = PlanIntegrity::blockedFromActivation($model);
+
+            if ($blocked !== null) {
+                return redirect()->route('admin.plans.index')
+                    ->with('admin_error', $model->name.' cannot be activated: '.$blocked);
+            }
+        }
+
         $model->update(['is_active' => ! $model->is_active]);
 
         $this->audit->record('platform.plan.toggled', ['plan' => $model->code, 'is_active' => $model->is_active], 'plan', $model->id);

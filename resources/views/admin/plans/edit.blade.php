@@ -11,6 +11,13 @@
     <h1 class="ad-h1">{{ $plan->name }}</h1>
     <p class="ad-lead">{{ $plan->code }} · {{ ucfirst($plan->interval) }}</p>
 
+    @if (session('admin_error'))
+        <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ session('admin_error') }}</div>
+    @endif
+    @if (session('admin_notice'))
+        <div class="ad-flash">{{ session('admin_notice') }}</div>
+    @endif
+
     @if ($errors->any())
         <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ $errors->first() }}</div>
     @endif
@@ -27,15 +34,23 @@
                     <input class="ad-input" type="text" id="name" name="name" value="{{ old('name', $plan->name) }}" required>
                 </div>
                 <div>
-                    <label class="ad-label" for="price">Price ({{ $plan->currency }}) · per {{ $plan->interval === 'yearly' ? 'year' : 'month' }}</label>
-                    <input class="ad-input" type="number" step="0.01" min="0" id="price" name="price" value="{{ old('price', number_format($plan->price_minor / 100, 2, '.', '')) }}" required>
+                    <label class="ad-label" for="code">Code</label>
+                    <input class="ad-input" type="text" id="code" name="code" value="{{ old('code', $plan->code) }}" required>
                 </div>
             </div>
             <label style="display: flex; align-items: center; gap: 9px; margin-top: 16px; font-size: 13.5px; color: var(--ad-muted); cursor: pointer;">
                 <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $plan->is_active))>
                 Plan is active (offered to customers)
             </label>
+            {{-- ⚠️ Editing a live plan is SAFE, and saying so on the form is the point: existing subscribers
+                 bill from the terms CAPTURED on their subscription, so nothing changed here reaches them. --}}
+            <p style="color: var(--ad-faint); font-size: 12px; margin: 12px 0 0;">
+                Changes apply to <strong>new subscriptions only</strong> — existing subscribers keep the terms
+                they agreed to.
+            </p>
         </div>
+
+        @include('admin.plans._shape-fields', ['plan' => $plan])
 
         <div class="ad-card" style="margin-top: 18px;">
             <h2 class="ad-panel-title">Features &amp; gating</h2>

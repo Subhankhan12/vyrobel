@@ -9348,3 +9348,62 @@ them in plain terms) · `MISSING-BACKEND` still said the Add-property modal "nee
 it walks a 5–10 band. ⚠️ **One run at `dcce44f` showed an 8th that did not reproduce across two further full
 runs and was not identified; it is recorded as unexplained, NOT certified as pre-existing.** PHPStan L5 (0);
 Pint clean.
+
+---
+
+## 2026-08-13 · THE SUPER-ADMIN PLAN PANEL — terms freeze, quantity stays live (the last billing build)
+
+**Two founder rulings, recorded and built to:** **full CRUD** of plans of BOTH shapes from the platform-admin
+console; **edits affect NEW subscriptions only — existing subscribers keep their terms.**
+
+**⚠️ THE PREMISE CHECK CHANGED THE PASS.** The panel was specified as missing. It was not: `index`/`edit`/
+`update`/`toggle` already existed, platform-admin gated and audited. Missing were **create**, **shape-awareness**
+(`update` validated only `name` + `price`, so a per-unit plan could be saved with **no rate**), and any notion of
+**sellable**.
+
+**⚠️ AND THE RULING WAS UNENFORCEABLE — WITH A LIVE SURFACE ALREADY ABLE TO VIOLATE IT.** `subscriptions` stored
+only `plan_id`, so every displayed price came from the LIVE plan row, and `update()` could already change it on
+a plan with subscribers.
+
+⚠️ **The failure mode was not the obvious one.** Stripe bills an existing subscription against the **Stripe
+Price object** it was created with, and nothing here pushes a rate change to it — so an edit would **not** have
+re-priced anyone. It would have changed only what Vyrobel *displays*, leaving the product quoting one figure
+while Stripe charged another: **the display ≠ charge divergence, re-opened from the admin side.**
+
+### What was built
+- **`PlanTerms`** — the ONE charge calculation. `Plan::chargeFor()` now delegates to it, and a subscription's
+  captured terms use the same method. Two sources, one arithmetic (§N.8f; §N.17.4 is what happens otherwise).
+- **Captured terms on `subscriptions`** (+ a **backfill** for every existing row, so the ruling protects the
+  customers already on the books rather than only future ones). ⚠️ **Quantity stays DERIVED, terms FREEZE** —
+  billing pass 1's derived-not-stored rule inverted for the half that must not move.
+- **`PlanIntegrity`** — one ruleset for create and edit; `pricing_type` a closed set; a per-unit plan needs a
+  rate **> 0** (a zero rate silently bills nothing); and **a plan without a real Stripe Price cannot be
+  activated**. Pass 2 catches a Price-less plan at the till; this catches it at the shelf.
+- **Create (both shapes)** + a shape-keyed form, a draft banner, and the "new subscriptions only" note stated on
+  the edit form itself.
+
+### ⚠️ Enumerating writers is a losing game — bind the behaviour to the model
+
+Capture was first wired at each **known** call site. Verifying `migrate:fresh --seed` then showed the demo
+subscription with **null terms**, because `DemoSeeder` creates rows directly and was a call site nobody listed.
+This is `DO-BILL-1`'s three-writers lesson (§N.18.3) recurring inside one pass — and it upgrades the remedy:
+capture moved onto the model's `creating`/`updating` hooks, so **every** path captures, including ones not
+written yet. ⚠️ Caught by checking the database after the seed, not by a test.
+
+**G8 — two pre-existing `PlatformPlansTest` cases legitimately changed.** Their fixture had no `pricing_type`
+and no `stripe_price_id`, and their payloads sent only `name` + `price`. The **invariants were preserved and the
+fixtures amended**: the fixture now describes a plan that can really be sold, and the payloads carry the shape.
+
+**Scope:** the engine's calculation, the customer pages and `StripeSafetyGuard` are untouched; the panel writes
+plans the engine reads. No live Stripe Price is created — that remains the founder's step.
+
+Guards: `AdminPlanPanelTest` (9/29) — super-admin only (**both** roles asserted) · well-formed-or-rejected ×3 ·
+per-unit create · not-billable-without-a-Price · **edits-affect-new-only** (a plan doubled under a live
+subscriber, who still bills €49.00 while a new subscription gets €98.00) · trial captures at creation · display
+= charge. Mutation-proven five ways, each red on its guard; teardown verified with a **raw** query (§N.18.1).
+Browser-verified as the platform admin: both shapes, a per-unit plan created end-to-end as a **draft** with the
+"no Stripe Price id yet" banner.
+
+Suite **2008/2015 · 13,079 assertions**, **7 non-green = the documented set**. PHPStan L5 (0); Pint clean;
+`migrate:fresh --seed` clean (⚠️ it needs Mailpit running — a seed abort without it is environmental, not a
+regression).

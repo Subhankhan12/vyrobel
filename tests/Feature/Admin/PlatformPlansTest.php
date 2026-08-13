@@ -18,7 +18,14 @@ uses(RefreshDatabase::class);
 /** A plan with the three real gateable features. */
 function planWithFeatures(string $code = 'pro_monthly', array $enabled = ['analytics' => true, 'channels' => true, 'team' => true], ?int $teamLimit = null): Plan
 {
-    $plan = Plan::create(['code' => $code, 'name' => 'Pro', 'price_minor' => 9900, 'currency' => 'EUR', 'interval' => 'monthly', 'is_active' => true]);
+    // ⚠️ G8 — AMENDED BY THE PLAN-PANEL PASS. `pricing_type` and `stripe_price_id` are now load-bearing: a plan
+    // may only be OFFERED once it is actually sellable (PlanIntegrity), because a tier on the paywall with no
+    // Stripe Price behind it is a checkout that cannot complete. This fixture represents a REAL, live plan, so
+    // it now carries both. Every test's invariant is unchanged — the fixture had simply been under-specified.
+    $plan = Plan::create([
+        'code' => $code, 'name' => 'Pro', 'price_minor' => 9900, 'currency' => 'EUR', 'interval' => 'monthly',
+        'pricing_type' => Plan::PRICING_FLAT, 'stripe_price_id' => 'price_fake_'.$code, 'is_active' => true,
+    ]);
     $plan->features()->create(['key' => 'analytics', 'enabled' => $enabled['analytics'], 'limit' => null]);
     $plan->features()->create(['key' => 'channels', 'enabled' => $enabled['channels'], 'limit' => null]);
     $plan->features()->create(['key' => 'team', 'enabled' => $enabled['team'], 'limit' => $teamLimit]);
@@ -56,6 +63,9 @@ it('updates a plan — integer money (#17) + feature toggles — and AUDITS it',
 
     $this->actingAs(platformAdmin(), 'admin')
         ->put(route('admin.plans.update', $plan->id), [
+            // ⚠️ G8: the shape now travels with the save (see the note in the other update test).
+            'code' => $plan->code, 'pricing_type' => Plan::PRICING_FLAT, 'interval' => 'monthly',
+            'currency' => 'EUR', 'stripe_price_id' => $plan->stripe_price_id,
             'name' => 'Pro Plus',
             'price' => '129.50',
             'is_active' => '1',
@@ -86,6 +96,11 @@ it('editing a plan feature flips what planAllows returns for orgs on that plan (
 
     // Admin enables channels on the plan → the SAME org is now granted it (no other change).
     $this->actingAs(platformAdmin(), 'admin')->put(route('admin.plans.update', $plan->id), [
+        // ⚠️ G8: the save now validates the plan's SHAPE too, so the payload carries it. A partial
+        // payload used to be accepted — which is precisely how a per-unit plan could be saved with
+        // no rate at all.
+        'code' => $plan->code, 'pricing_type' => Plan::PRICING_FLAT, 'interval' => 'monthly',
+        'currency' => 'EUR', 'stripe_price_id' => $plan->stripe_price_id,
         'name' => 'Pro', 'price' => '99.00', 'is_active' => '1',
         'features' => ['analytics' => ['enabled' => '1'], 'channels' => ['enabled' => '1'], 'team' => ['enabled' => '1']],
     ]);

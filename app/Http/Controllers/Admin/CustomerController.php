@@ -103,7 +103,8 @@ class CustomerController extends Controller
                     ->first();
 
                 if ($subscription !== null) {
-                    $subscription->update(['plan_id' => $planId]);   // plan only — Stripe untouched (deferred)
+                    // A plan CHANGE re-agrees the terms; the model's `updating` hook re-captures them.
+                    $subscription->update(['plan_id' => $planId]);
 
                     return;
                 }

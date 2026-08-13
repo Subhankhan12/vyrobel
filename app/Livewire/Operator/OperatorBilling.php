@@ -65,7 +65,9 @@ class OperatorBilling extends Component
         // ⚠️ NOT `$billing` — that name is already the injected BillingService in this method's signature, and
         // shadowing it made a later tierCards($billing) receive an array (a 500). The repo's Livewire trap #2
         // in a plain-PHP guise: a new local silently taking an existing name.
-        $billingSummary = $this->billingSummary($current?->plan);
+        // ⚠️ Priced from the SUBSCRIPTION's captured terms, not the live catalogue row — so a plan edited in
+        // the admin panel cannot change what an existing subscriber is shown (the founder's ruling).
+        $billingSummary = $this->billingSummary($current);
 
         return view('livewire.operator.billing', [
             'viewer' => $this->viewer(),
@@ -220,22 +222,27 @@ class OperatorBilling extends Component
      *
      * @return array{is_per_unit: bool, units: int, gross: string, net: string, vat: string, vat_pct: int, unit_rate: string}|null
      */
-    private function billingSummary(?Plan $plan): ?array
+    private function billingSummary(?Subscription $subscription): ?array
     {
-        if ($plan === null) {
+        $plan = $subscription?->plan;
+
+        if ($subscription === null || $plan === null) {
             return null;
         }
 
-        $charge = $plan->chargeFor();
-        $currency = (string) $plan->currency;
+        // The CAPTURED terms — what this customer agreed to. `vat_pct`/`unit_rate` below come from the same
+        // frozen set, so every figure on the card belongs to one agreement rather than a mix of old and new.
+        $terms = $subscription->terms();
+        $charge = $terms->charge();
+        $currency = $terms->currency;
 
         return [
-            'is_per_unit' => $plan->isPerUnit(),
+            'is_per_unit' => $terms->isPerUnit(),
             'units' => $charge['units'],
             'gross' => $this->money($charge['gross_minor'], $currency),
             'net' => $this->money($charge['net_minor'], $currency),
             'vat' => $this->money($charge['vat_minor'], $currency),
-            'vat_pct' => (int) ($plan->vat_pct ?? 0),
+            'vat_pct' => $terms->vatPct,
             // ⚠️ BILLING PASS 2b — WHETHER THE APP KNOWS THE TAX AT ALL, keyed off the plan (§N.16.3), never
             // typed into the view. On a flat tier it does: €49 is VAT-inclusive and final. On a per-unit tier it
             // does NOT: Stripe Tax computes it from the customer's country and status at checkout, and an EU
@@ -251,10 +258,10 @@ class OperatorBilling extends Component
             // falsehood. Silence is the honest rendering, and it is what pass 3 shipped.
             'tax_note' => match (true) {
                 ! $charge['tax_known'] => 'tax calculated at checkout',
-                (int) ($plan->vat_pct ?? 0) > 0 => 'incl. '.(int) $plan->vat_pct.'% VAT',
+                $terms->vatPct > 0 => 'incl. '.$terms->vatPct.'% VAT',
                 default => '',
             },
-            'unit_rate' => $this->money((int) ($plan->unit_rate_minor ?? 0), $currency),
+            'unit_rate' => $this->money($terms->unitRateMinor, $currency),
         ];
     }
 }
