@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Support\Billing;
 
-use App\Models\Unit;
-
 /**
  * The ONE derivation of an operator's subscription cost (Operator Billing exact-match #85) — REAL per-unit
  * pricing computed from the org's REAL active-unit count × the configured per-unit price × VAT.
@@ -24,7 +22,9 @@ final class SubscriptionPricing
      */
     public static function current(string $interval = 'monthly'): array
     {
-        $units = Unit::query()->where('is_active', true)->count();
+        // ⚠️ THE ONE source, shared with the charge path (Plan::quantityFor) — the figure DISPLAYED here and
+        // the quantity CHARGED to Stripe must be the same expression, or one of them lies (§N.8d, with money).
+        $units = BillableUnits::count();
 
         $perUnit = (int) config('billing.per_unit_minor', 900);
         $vatPct = (int) config('billing.vat_pct', 23);

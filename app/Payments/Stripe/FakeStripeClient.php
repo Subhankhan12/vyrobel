@@ -131,7 +131,7 @@ class FakeStripeClient implements StripeClientInterface
     /** @var array<string, array<string, mixed>> — created Checkout sessions, inspectable in tests. */
     public array $checkoutSessions = [];
 
-    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession
+    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false): StripeCheckoutSession
     {
         // A repeated Idempotency-Key returns the ORIGINAL session — never a second subscription.
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
@@ -146,6 +146,10 @@ class FakeStripeClient implements StripeClientInterface
             'id' => $id,
             'url' => $url,
             'price' => $priceId,
+            // Recorded so a test can assert the quantity + proration that WOULD reach Stripe — the whole point
+            // of the fake rail is that the engine is provable without a live charge.
+            'quantity' => max(1, $quantity),
+            'prorate' => $prorate,
             'customer' => $customerId ?? 'cus_fake_'.Str::lower(Str::random(14)),
             'subscription' => 'sub_fake_'.Str::lower(Str::random(14)),
             'metadata' => $metadata,
@@ -290,5 +294,17 @@ class FakeStripeClient implements StripeClientInterface
         $expected = hash_hmac('sha256', "{$timestamp}.{$payload}", $secret);
 
         return hash_equals($expected, $provided);
+    }
+
+    /** @var list<array{subscription: string, quantity: int, prorate: bool}> */
+    public array $quantityUpdates = [];
+
+    public function updateSubscriptionQuantity(string $subscriptionId, int $quantity, bool $prorate = true, ?string $idempotencyKey = null): void
+    {
+        $this->quantityUpdates[] = [
+            'subscription' => $subscriptionId,
+            'quantity' => max(1, $quantity),
+            'prorate' => $prorate,
+        ];
     }
 }

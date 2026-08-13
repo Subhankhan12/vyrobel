@@ -85,7 +85,47 @@ final class BillingService
             customerEmail: is_string($organization->billing_email) ? $organization->billing_email : null,
             metadata: ['organization_id' => (string) $organization->getKey(), 'plan' => $plan->code],
             idempotencyKey: StripeIdempotency::keyFor('subscription_checkout', $organization->getKey().'_'.$plan->getKey()),
+            // ⚠️ SHAPE-AWARE (BILLING PASS 1). Flat → 1; per-unit → the org's REAL active-unit count, derived
+            // at this moment from the ONE source, never a stored copy. Proration is on only where it means
+            // something: a per-unit subscription bills a mid-cycle unit change immediately.
+            quantity: $plan->quantityFor(),
+            prorate: $plan->isPerUnit(),
         );
+    }
+
+    /**
+     * Re-quantify a live PER-UNIT subscription after the org's unit count changed (BILLING PASS 1).
+     *
+     * ⚠️ The ruled behaviour: the difference is charged IMMEDIATELY (Stripe proration), not deferred to the next
+     * renewal. A FLAT plan is a no-op — its price does not move with the rack, so there is nothing to re-quantify
+     * and sending a quantity would multiply the bill.
+     *
+     * Returns the quantity now on the subscription, or null when the plan is flat / there is nothing to update.
+     */
+    public function syncSubscriptionQuantity(Organization $organization): ?int
+    {
+        $subscription = $organization->currentSubscription();
+        $plan = $subscription?->plan;
+
+        if ($subscription === null || $plan === null || ! $plan->isPerUnit()) {
+            return null;
+        }
+
+        $stripeId = $subscription->stripe_subscription_id;
+        if (! is_string($stripeId) || $stripeId === '') {
+            return null;   // not yet a live Stripe subscription (trialing, or pre-checkout) — nothing to sync.
+        }
+
+        $quantity = $plan->quantityFor();
+
+        app(StripeClientInterface::class)->updateSubscriptionQuantity(
+            subscriptionId: $stripeId,
+            quantity: $quantity,
+            prorate: true,
+            idempotencyKey: StripeIdempotency::keyFor('subscription_quantity', $stripeId.'_'.$quantity),
+        );
+
+        return $quantity;
     }
 
     /** Idempotently ensure the placeholder plan catalog exists (used by startTrial + the Paywall). */

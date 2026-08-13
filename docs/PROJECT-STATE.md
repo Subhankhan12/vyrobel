@@ -74,7 +74,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 > **④ THE BACKLOG SEQUENCE (v11)** — `DO-SEED-1` (`f9142c8`) → `DO-EMAIL-9`+`8` (`52321b8`) → `DO-EMAIL-4`
 >   (`a70c147`) → `DO-EMAIL-5`/`6` (`2e8cd0f`) → `DO-EMAIL-7` (`4440c7a`). **Canon: §N.16.**
 >
-> **Suite 1967 / 12,917 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
+> **Suite 1975 / 12,950 · 7 non-green = the documented baseline set** (`BookingImportTest` ×6 ·
 > `OwnerUnitDetailViewTest` ×1). ⚠️ It was **9** and dropped to **7** when `DO-SEED-1` fixed the seeder — a fix,
 > not drift; **re-measure every gate** (§N.14.5). PHPStan L5 (0) · Pint clean.
 >
@@ -689,7 +689,43 @@ sprint** · the **scale-performance workstream** · the founder's **go-live flip
 >   Whether the tile should include unstatemented ledger items is a **product call**, not a bug — logged, not
 >   re-worded.
 
-### ⛔ G.1 — THE BILLING / PRICING MODEL (a GO-LIVE BLOCKER; **UNRESOLVED**)
+### ✅ G.1 — THE BILLING / PRICING MODEL — **RULED by the founder (2026-08-13); the ENGINE is BUILT**
+
+> ⚠️ **THE QUESTION WAS DISSOLVED, NOT ANSWERED.** This entry framed it as *"which of two models does Vyrobel
+> sell — flat tier (A) or per-unit (B)?"* The founder's ruling is that **pricing is configurable DATA and the
+> product supports BOTH shapes**, managed from a later super-admin panel. There is no model to choose; there is
+> a plan **engine** that must charge faithfully to whatever shape a plan declares. The "A vs B contradiction"
+> was an artefact of two hardcoded models coexisting, not a real either/or.
+>
+> **RULING 1 — pricing is configurable data, both shapes.** A plan is `flat` (one price regardless of units) or
+> `per_unit` (rate × the org's real units + VAT).
+> **RULING 2 — per-unit prorates immediately.** A mid-cycle unit change charges the difference now, via Stripe
+> proration — not at the next renewal.
+>
+> ✅ **BILLING PASS 1 (2026-08-13) BUILT THE ENGINE TO BOTH RULINGS** — `plans.pricing_type` + the per-unit rate
+> and VAT as columns; `Plan::quantityFor()`/`chargeFor()`; a shape-aware `createSubscriptionCheckout` (the
+> `'quantity' => 1` hardcode is gone) and `BillingService::syncSubscriptionQuantity()` for the prorated
+> mid-cycle change. Proven against the FAKE Stripe client — **no live money, by construction**.
+> ⚠️ **The quantity is DERIVED, never stored** (`BillableUnits`) — the number charged is the number the org has,
+> and the Billing page's figure now reads the same source, so the two cannot disagree (§N.8d with money attached).
+>
+> ⛔ **STILL OPEN, and they are what now blocks the flip:**
+> **②** real Stripe **Price objects of each shape** + env wiring — the plan rows still carry `price_fake_*` ids
+> (it fails loudly: Stripe rejects an unknown price, and `startCheckout` throws on an empty one).
+> **③** the customer **Billing page** still renders its per-unit claim regardless of the org's actual plan shape
+> — ⚠️ **a LIVE §N.8d**: *"Adding a unit +€9.00/mo · prorated"* is shown to an org on a FLAT tier. Pass 1 made
+> that behaviour real for per-unit plans; ③ must make the PAGE render from the configured plan.
+> Plus the **super-admin plan-CRUD panel**.
+>
+> ⚠️ **A CORRECTION TO THE FIGURES BELOW (measured 2026-08-12).** The historic "B ~€44 vs A €99, billed DOUBLE"
+> is stale and its **sign has reversed**: the demo org measured **B €88.56** (8 units) vs **A €49.00**
+> (`essential_monthly`). The divergence is not a fixed 2× — it crosses at ~4.4 units (Essential) / ~8.9 (Pro)
+> and grows unbounded in **either** direction with portfolio size. The engine dissolves this for any plan whose
+> shape is declared; ③ closes the display half.
+
+<details><summary>The original entry, kept for the reasoning that was true when written</summary>
+
+### ⛔ G.1 — THE BILLING / PRICING MODEL (a GO-LIVE BLOCKER; **UNRESOLVED** — superseded above)
 **Two contradictory pricing models run simultaneously, and only ONE reaches Stripe:**
 
 | | Definition | Shown on | Reaches Stripe? |
@@ -721,6 +757,8 @@ Pricing page (**K**) must also match whichever model is chosen.
 which pricing model wins, and was fixed in WAVE 2 (`cb4dec0`) — ⚠️ note the trap: `plans.code` is
 `{tier}_{interval}`, so the "obvious" fix reproduced the bug because `resolveTier()` falls back to `'pro'`;
 the real fix is `Str::beforeLast($code, '_')`.
+
+</details>
 
 ### G.2 — OWNER RATE GUARDRAIL (#6) — honest in copy TODAY, **enforcement DEFERRED**
 `RateProposalService` genuinely enforces the guardrail (mode, ±% tolerance, floor and ceiling) — but only on a

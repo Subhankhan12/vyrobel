@@ -52,7 +52,17 @@ interface StripeClientInterface
      *
      * @param  array<string, string>  $metadata
      */
-    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession;
+    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false): StripeCheckoutSession;
+
+    /**
+     * Update a live subscription's QUANTITY (BILLING PASS 1) — the per-unit path: the org added or removed a
+     * unit mid-cycle, so the subscription must carry the new count.
+     *
+     * ⚠️ `$prorate` is the founder's ruling made concrete: a per-unit plan charges the difference IMMEDIATELY
+     * rather than at the next renewal, so the customer-facing "prorated" promise becomes true. Passing false
+     * would defer it silently, which is the shape of claim this project treats as a defect (§N.8d).
+     */
+    public function updateSubscriptionQuantity(string $subscriptionId, int $quantity, bool $prorate = true, ?string $idempotencyKey = null): void;
 
     /**
      * Create a PAYMENT-mode Checkout Session for a one-off amount (Phase 8 · SG2 — a guest folio charge). The

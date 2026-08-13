@@ -35,6 +35,10 @@ class BillingPlanSeeder extends Seeder
                     [
                         'name' => $tier['name'],
                         'price_minor' => (int) ($tier['prices_minor'][$interval] ?? 0),
+                        // ⚠️ The config tiers are FLAT and stay flat — this pass changes no existing charge.
+                        // An explicit type beats relying on the column default: the shape is now a stated fact
+                        // about each plan rather than something inferred from silence.
+                        'pricing_type' => Plan::PRICING_FLAT,
                         'currency' => $currency,
                         'stripe_price_id' => $stripePriceId,
                         'interval' => $interval,

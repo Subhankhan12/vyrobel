@@ -100,16 +100,20 @@ class StripeClient implements StripeClientInterface
         return $idempotencyKey !== null && $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
     }
 
-    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession
+    public function createSubscriptionCheckout(string $priceId, string $successUrl, string $cancelUrl, ?string $customerId, ?string $customerEmail, array $metadata = [], ?string $idempotencyKey = null, int $quantity = 1, bool $prorate = false): StripeCheckoutSession
     {
         $params = [
             'mode' => 'subscription',
-            'line_items' => [['price' => $priceId, 'quantity' => 1]],
+            // ⚠️ The quantity used to be hardcoded to 1, which silently charged a PER-UNIT plan as if the org
+            // ran a single unit. It is now whatever the plan's shape says (Plan::quantityFor()).
+            'line_items' => [['price' => $priceId, 'quantity' => max(1, $quantity)]],
             'success_url' => $successUrl,
             'cancel_url' => $cancelUrl,
             'metadata' => $metadata,
             // Propagate the org id onto the SUBSCRIPTION too, so subscription/invoice webhooks resolve the org.
-            'subscription_data' => ['metadata' => $metadata],
+            'subscription_data' => ['metadata' => $metadata]
+                // A per-unit subscription bills quantity changes immediately; a flat one has nothing to prorate.
+                + ($prorate ? ['proration_behavior' => 'create_prorations'] : []),
         ];
         if ($customerId !== null) {
             $params['customer'] = $customerId;
@@ -209,5 +213,20 @@ class StripeClient implements StripeClientInterface
         $event = Webhook::constructEvent($payload, $signatureHeader, $this->connectWebhookSecret);
 
         return new StripeEvent((string) $event->id, (string) $event->type, $event->toArray());
+    }
+
+    public function updateSubscriptionQuantity(string $subscriptionId, int $quantity, bool $prorate = true, ?string $idempotencyKey = null): void
+    {
+        $subscription = $this->sdk->subscriptions->retrieve($subscriptionId, []);
+        $itemId = (string) ($subscription->items->data[0]->id ?? '');
+        if ($itemId === '') {
+            throw new RuntimeException("Subscription [{$subscriptionId}] has no item to re-quantify.");
+        }
+
+        $this->sdk->subscriptions->update($subscriptionId, [
+            'items' => [['id' => $itemId, 'quantity' => max(1, $quantity)]],
+            // The ruled behaviour: charge the difference now, not at renewal.
+            'proration_behavior' => $prorate ? 'create_prorations' : 'none',
+        ], $this->options($idempotencyKey));
     }
 }

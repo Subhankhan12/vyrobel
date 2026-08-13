@@ -8953,3 +8953,54 @@ single-shell. No token was reclassified and **no value was touched**. ⚠️ Eac
 justification confirmed before the base is built: `--vy-amber-text` looked exactly like these until it was
 measured and turned out to be drift.
 
+
+---
+
+## 2026-08-13 — **BILLING: two founder rulings, and PASS 1 builds the shape-aware engine to them**
+
+⚠️ **THE §G.1 QUESTION WAS DISSOLVED, NOT ANSWERED.** It had been framed as *"which model does Vyrobel sell —
+flat tier or per-unit?"* The founder ruled that **pricing is configurable DATA and the product supports BOTH
+shapes**, managed from a later super-admin panel. There is no model to pick; there is a plan **engine** that
+charges faithfully to whatever shape a plan declares. The "contradiction" was two hardcoded models coexisting,
+not a real either/or — worth recording, because a whole go-live blocker turned out to be a framing artefact.
+
+- **RULING 1 — configurable, both shapes.** `flat` (one price regardless of units) or `per_unit`
+  (rate × the org's real units + VAT).
+- **RULING 2 — per-unit prorates immediately.** A mid-cycle unit change charges the difference now, not at
+  renewal. ⚠️ This makes the currently-false *"prorated"* claim on the Billing page **true for per-unit plans** —
+  but the page itself is pass ③ and was deliberately left alone.
+
+### What PASS 1 built (the engine only)
+
+- **`plans.pricing_type`** (`flat` default, so **every existing row stays valid and charges exactly as before**)
+  plus `unit_rate_minor` and `vat_pct`. ⚠️ The per-unit rate moved from global config onto the PLAN, because a
+  global constant cannot express "this plan charges €9 and that one €12" — which is what a catalogue needs.
+- **`Plan::quantityFor()` / `chargeFor()`** — the plan answers its own shape and what an org owes.
+- **`createSubscriptionCheckout` is shape-aware** — the `'quantity' => 1` hardcode (the core gap the
+  investigation found) is gone: flat → 1, per-unit → the org's real count, with `proration_behavior` set only
+  where it means something.
+- **`BillingService::syncSubscriptionQuantity()`** — the prorated mid-cycle re-quantify; a **no-op on flat**,
+  because a flat price does not move with the rack and sending a quantity would multiply the bill.
+
+⚠️ **THE QUANTITY IS DERIVED, NEVER STORED — the load-bearing decision.** New `BillableUnits` is the ONE source,
+read by both the CHARGE path (`Plan::quantityFor`) and the DISPLAY path (`SubscriptionPricing`). A stored count
+is correct only until the next unit is added, and nothing announces the drift; a charged quantity that disagrees
+with the org's units is the §N.8d false-claim shape **with money attached**. There is deliberately no
+`subscriptions.unit_count` column. A test asserts display and charge return the same figure.
+
+**Proven against the FAKE Stripe client** (`STRIPE_FAKE=true`; `StripeSafetyGuard` untouched) — the fake records
+the quantity, price and proration flag that *would* reach Stripe. That is not a weaker proof: the bug being
+guarded lives entirely in what we send.
+
+**GUARDED** by `BillingPricingShapeTest` (8 / 33), **mutation-proven four ways** — restore the `quantity => 1`
+bug → red; make the quantity a stored copy that drifts → red; drop proration on the mid-cycle change → red;
+make flat send the unit count → red. All 53 billing/Stripe tests green.
+
+**SCOPE HELD:** no super-admin panel, no customer Billing page (③ — a half-aware page is worse than the
+known-false one), no live Stripe Prices or env (②), no real org re-planned. The four seeded tier plans are
+explicitly flat and unchanged.
+
+⚠️ **STILL BLOCKING THE FLIP:** ② real Price objects of each shape + env (the rows carry `price_fake_*`; it
+fails loudly, not silently) · ③ the Billing page must render FROM the plan — it currently tells a FLAT-tier org
+*"Adding a unit +€9.00/mo · prorated"*, a live §N.8d · the plan-CRUD panel.
+
