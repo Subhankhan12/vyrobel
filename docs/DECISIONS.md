@@ -9691,3 +9691,32 @@ card/tint scope) and `.vy-fd-seg-btn` 4.23/4.36 → `--vy-on-grad`.
 **DO-A11Y-5 — CLOSED, with a premise correction.** The register called it "one unclassed link". The `<a>` has
 no colour of its own — it **inherits `.vy-utable .vy-u-sub`** (4.48), so the fix belonged on that **shared
 rule at the source**. Treating it as a one-off inline fix would have left every other row sub-label failing.
+
+---
+
+## 2026-08-14 — DO-RESTORE-1 · THE WIREFRAME-ORANGE AUDIT — reported, NOT applied
+
+**DIRECTIVE:** restore the original wireframe accent orange system-wide, on the reasoning that WCAG AA is 3:1
+for large/bold text, so buttons would already pass and the restore would cost nothing.
+
+⚠️ **THE AUDIT FALSIFIES THE PREMISE TWICE, so nothing was restored.** Full detail: **§N.22**.
+
+1. **The brand orange was never darkened.** `--vy-accent`, `--vy-accent-2`, `--vy-accent-3` and
+   `--vy-accent-border` are byte-identical to their pre-programme values. Only the **CTA gradient's light
+   stop** (`#E8703A` → `#D14102`) and **`--vy-accent-text`** (a text-only token) moved. **The layout accents
+   the directive asks for are already the wireframe orange** — ~42 standalone `#E8703A` uses were deliberately
+   preserved in DO-A11Y-3.
+2. **There is no large text on orange in this product.** Measured distribution: 17px/600 down to 8.5px/700 —
+   **zero** elements reach ≥24px regular or ≥18.66px bold. The 3:1 bar applies to nothing, so the zero-cost
+   restore does not exist here.
+
+**AUDIT RESULT: Group A (passes its bar) = 0 · Group B (below) = every white-on-orange surface**, measured at
+**3.23–3.35** against a 4.5 bar (`#E8703A` light stop = 3.08; current `#D14102` = 4.70).
+
+**NOTHING APPLIED.** The audit ran on a working state; the tree was reverted to committed colours. Options —
+(a) restore + accept sub-AA · (b) restore + dark labels (ink 4.99 ✓, but CTAs become dark-on-orange) ·
+(c) restore + labels ≥18.66px bold (3.08 ≥ 3.0 ✓) · (d) keep `#D14102` (4.70 ✓) — are recorded in §N.22.4 for
+a founder ruling. **`DO-RESTORE-2` applies whichever is chosen.**
+
+⚠️ Recorded as a fact, not a push: the European Accessibility Act covers consumer-facing booking services in
+the EU from June 2025, which the storefront and guest portal are.

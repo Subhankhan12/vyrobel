@@ -9436,3 +9436,16 @@ Throughput did not erode the method — but it did expose that **I applied a rul
 checking whether it applied here**: I fixed the class first and only traced the cascade after the re-measure
 came back unchanged. The re-measure caught it. **That is the argument for re-measuring after every fix rather
 than trusting the edit** — a fix that lands in the file is not the same as a fix that lands on the page.
+
+
+---
+
+## ⚠️ `DO-RESTORE-2` — the wireframe-orange ruling (OPEN, founder)
+
+`DO-RESTORE-1` audited the directive and **applied nothing**: the brand accent was never darkened (only the
+CTA gradient's light stop + a text-only token), and **no text-on-orange surface in the product is large text**,
+so Group A was empty. Every white-on-orange surface measures **3.23–3.35** against a **4.5** bar on the
+wireframe `#E8703A`.
+
+**Awaiting a ruling between:** (a) restore + accept sub-AA · (b) restore + dark labels (`--vy-ink` 4.99) ·
+(c) restore + labels ≥18.66px bold (3.08 ≥ 3:1) · (d) keep `#D14102` (4.70). Full table: **§N.22.4**.

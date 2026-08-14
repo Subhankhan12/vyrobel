@@ -7190,6 +7190,13 @@ The retraction's own conclusion was that the true card floor is **~4.50–4.67 a
 contradict that — it **refines the "~4.50" to a measured 4.4953**. *The retraction was right; this is a
 precision refinement of it.* Both must survive in the record together.
 
+> ⚠️ **FORWARD POINTER (§N.22, DO-RESTORE-1):** a founder directive asked for the wireframe accent orange to
+> be restored system-wide, which would supersede parts of this section. **The audit found the premise does not
+> hold on this product** — the brand accent was never darkened (only the CTA gradient's light stop and a
+> text-only token), and there is **no large text on orange anywhere**, so the 3:1 bar applies to nothing.
+> **Nothing was restored; the options are recorded in §N.22.4 awaiting a ruling.** This section stands as
+> executed until that ruling lands.
+
 ## §N.21.3 ⚠️ THE A11Y FAMILY — two items were ONE defect, and the root was a shell that missed a fix
 
 DO-A11Y-1 (the shared classes) and DO-A11Y-2 (the `--vy-on-grad` token) were logged as separate items.
@@ -7318,3 +7325,80 @@ plate. **PREFIX per-file test constants, and run a new guard IN-SUITE, not just 
 - **Billing CODE + BUILD are complete**; the flip is gated only on the founder's Stripe/VAT steps.
 - ⚠️ **"Closed" means closed everywhere a pass could REACH** — bounded by role, by data condition, and now
   explicitly by **probe scope**. An UNMEASURABLE is **UNSWEPT**, never clean.
+
+---
+
+# (N.22) ⚠️ DO-RESTORE-1 — THE WIREFRAME-ORANGE AUDIT (2026-08-14)
+
+**FOUNDER DIRECTIVE:** restore the original wireframe accent/brand orange system-wide (buttons + layout
+accents, all shells/roles/portal), on the reasoning that WCAG AA is **3:1 for large/bold text** — so button
+labels, being large/bold, would already pass on the wireframe orange and the restore would cost nothing.
+
+⚠️ **THE AUDIT RAN FIRST, AND IT FALSIFIES THE PREMISE. NOTHING WAS RESTORED.** Reported rather than acted on.
+
+## §N.22.1 ⚠️ PREMISE CORRECTION 1 — the brand orange was never darkened
+
+The directive assumes the contrast programme darkened "the brand orange". It did not. Diffing the current tree
+against SAVE v15 (`291a534`, pre-programme):
+
+| token | v15 (wireframe) | current | changed? |
+|---|---|---|---|
+| `--vy-accent` | `rgb(194,65,12)` | `rgb(194,65,12)` | **NO** |
+| `--vy-accent-2` | `rgb(217,102,46)` | `rgb(217,102,46)` | **NO** |
+| `--vy-accent-3` | `rgb(232,112,58)` | `rgb(232,112,58)` | **NO** |
+| `--vy-accent-border` | `rgba(232,112,58,.28)` | unchanged | **NO** |
+| `--vy-grad` **light stop** | `#E8703A` | `#D14102` | **YES** |
+| `--vy-accent-text` | `rgb(176,56,8)` | `rgb(147,42,7)` | **YES** (a TEXT token, never a fill) |
+
+**The layout accents — borders, dots, tints, decorative bars, chips — are already the wireframe orange and
+always were.** ~42 standalone `#E8703A` uses were deliberately preserved in DO-A11Y-3. **There is nothing to
+restore there.** What changed is (a) the CTA gradient's light stop, and (b) a text-only colour. Plus three
+element-level remaps (`.vy-avatar`, `.vy-plan-tag`) whose *backgrounds* moved.
+
+## §N.22.2 ⚠️ PREMISE CORRECTION 2 — this product has NO large text on orange
+
+WCAG AA large text = **≥24px regular, or ≥18.66px BOLD**. Measured across the operator shell and front desk,
+the full distribution of text-on-orange:
+
+`17px/600` · `13.5px/600` · `13px/600` · `12.5px/500` · `12px/600` · `11.5px/700` · `11px/500` · `9.5px/700`
+· `8.5px/700`
+
+⚠️ **LARGE surfaces found: ZERO.** Not one text-on-orange element in the product reaches the large-text
+threshold — the biggest is the 17px/600 brand mark, which needs 18.66px **at weight 700** to qualify. Vyrobel's
+design language uses small, medium-weight labels on orange throughout. **The 3:1 bar therefore applies to
+nothing**, and the "zero-cost restore" the directive anticipated does not exist on this product.
+
+## §N.22.3 THE AUDIT TABLE — measured on the RESTORED wireframe orange (validated probe, checked contract)
+
+| element | size/weight | applicable bar | ratio on `#E8703A` | verdict |
+|---|---|---|---|---|
+| `.vy-plan-tag` "Pro" | 8.5px/700 | SMALL 4.5:1 | **3.35** | ⚠️ BELOW |
+| `.vy-pill--accent` "Walk-in" | 12.5px/500 | SMALL 4.5:1 | **3.32** | ⚠️ BELOW |
+| `.vy-fd-seg-btn.is-on` | 13.5px/600 | SMALL 4.5:1 | **3.23** | ⚠️ BELOW |
+| `.vy-act--accent` "Check in" | 12px/600 | SMALL 4.5:1 | **3.31** | ⚠️ BELOW |
+
+**GROUP A (passes its bar) = 0 surfaces. GROUP B (below) = every one.**
+For reference: the current `#D14102` measures **4.70** — it clears the small-text bar; `#E8703A` measures
+**3.08** at the light stop.
+
+## §N.22.4 ⚠️ NOTHING WAS RESTORED — and the options are the founder's
+
+The directive's instruction was: restore Group A, surface Group B, apply nothing to Group B. **Group A is
+empty, so the correct execution is to restore nothing and surface everything.** The audit ran on a working
+state; the tree was reverted to the committed colours.
+
+**THE OPTIONS, quantified:**
+
+| option | what it means | measured result |
+|---|---|---|
+| **(a)** restore `#E8703A`, accept sub-AA | every CTA + tag at **3.08–3.35** vs a 4.5 bar | the brand colour returns; small text on orange is below AA product-wide |
+| **(b)** restore `#E8703A`, change the LABEL colour | white **3.08** ✗ · `--vy-ink` **4.99** ✓ · near-black **5.87** ✓ | works, but CTAs become **dark text on orange** — a large visual change |
+| **(c)** restore `#E8703A`, raise labels to LARGE | white on `#E8703A` = **3.08** ≥ 3.0 ✓ | works, but needs every CTA label at **≥18.66px bold** (today 8.5–17px) |
+| **(d)** keep `#D14102` | **4.70** ✓ | the status quo: AA holds, the orange is ~1 shade deeper than wireframe |
+
+⚠️ **CONTEXT, AS A FACT NOT A PUSH:** the European Accessibility Act applies to consumer-facing booking
+services in the EU from June 2025, and Vyrobel's storefront and guest portal are exactly that. Whether AA is a
+compliance requirement or a preference here is a founder/legal call, not a technical one.
+
+⚠️ **NOT DECIDED, NOT APPLIED.** Per the directive, Group B is the founder's ruling. `DO-RESTORE-2` will apply
+whichever option is chosen.
