@@ -23,7 +23,7 @@
         .vy-bd-msg { display:inline-flex; align-items:center; gap:7px; margin-top:16px; padding:9px 15px; border-radius:11px; background:rgba(194,65,12,.10); color:var(--vy-accent-tint-text); font-size:13px; font-weight:500; text-decoration:none; }
         .vy-bd-msg:hover { background:rgba(194,65,12,.17); }
         .vy-bd-act { display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:12px; font-size:13px; font-weight:500; text-decoration:none; margin-bottom:9px; }
-        .vy-bd-act--primary { background:linear-gradient(180deg,#D14102,#C2410C); color:#fff; box-shadow:0 6px 16px rgba(194,65,12,.28); }
+        .vy-bd-act--primary { background:linear-gradient(180deg,#E8703A,#C2410C); color:#fff; box-shadow:0 6px 16px rgba(194,65,12,.28); }
         .vy-bd-act--ghost { background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.8); color:#2B2320; }
         .vy-bd-act--ghost:hover { background:rgba(255,255,255,.85); }
         .vy-bd-act--muted { opacity:.55; cursor:not-allowed; }

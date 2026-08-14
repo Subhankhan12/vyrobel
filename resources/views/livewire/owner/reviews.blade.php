@@ -34,7 +34,7 @@
             'walk_in', 'agent', 'corporate', 'group' => ['bg' => 'rgba(120,70,40,.1)', 'co' => '#8A6A55'],
             default => ['bg' => 'rgba(217,102,46,.13)', 'co' => '#B4400F'],   // direct / manual
         };
-        $avGrad = ['linear-gradient(140deg,#D14102,#C2410C)', 'linear-gradient(140deg,#6FA764,#4F7A46)', 'linear-gradient(140deg,#E8A63A,#C08A1E)', 'linear-gradient(140deg,#8A6A55,#5E4636)'];
+        $avGrad = ['linear-gradient(140deg,#E8703A,#C2410C)', 'linear-gradient(140deg,#6FA764,#4F7A46)', 'linear-gradient(140deg,#E8A63A,#C08A1E)', 'linear-gradient(140deg,#8A6A55,#5E4636)'];
         $reviewsJson = collect($reviews)->map(fn ($r, $i) => $r + ['idx' => $i])->values();
     @endphp
 

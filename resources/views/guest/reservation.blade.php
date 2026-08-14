@@ -10,7 +10,7 @@
     {{-- ── Hero: status + welcome + CTA + 4 quick-stat tiles ─────────────────────────────────────────── --}}
     <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:24px 26px;margin:12px 0 18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
         <div style="display:flex;align-items:flex-start;gap:18px;flex:1;min-width:280px">
-            <div style="width:56px;height:56px;flex-shrink:0;border-radius:18px;background:linear-gradient(140deg,#D14102,#C2410C);display:grid;place-items:center;box-shadow:var(--vy-shadow-accent)">
+            <div style="width:56px;height:56px;flex-shrink:0;border-radius:18px;background:linear-gradient(140deg,#E8703A,#C2410C);display:grid;place-items:center;box-shadow:var(--vy-shadow-accent)">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
             </div>
             <div style="min-width:0">

@@ -51,7 +51,7 @@
                             <span style="display:block;font-size:12.5px;font-weight:500">Email</span>
                             <span style="display:block;font-size:11px;color:var(--vy-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $email }}</span>
                         </span>
-                        <button type="button" class="vy-nt-sw" @click="emailOn = ! emailOn; touch()" :style="emailOn ? 'background:linear-gradient(140deg,#D14102,#C2410C)' : 'background:rgba(120,70,40,.18)'" :aria-pressed="emailOn ? 'true' : 'false'" aria-label="Email channel">
+                        <button type="button" class="vy-nt-sw" @click="emailOn = ! emailOn; touch()" :style="emailOn ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" :aria-pressed="emailOn ? 'true' : 'false'" aria-label="Email channel">
                             <span class="vy-nt-sw-knob" :style="emailOn ? 'left:19px' : 'left:3px'"></span>
                         </button>
                     </div>
@@ -97,7 +97,7 @@
                             {{-- Locked ON (always_on) — save() forces it; render fixed-on, submit "1". --}}
                             <input type="hidden" name="prefs[{{ $e['key'] }}][email]" value="1">
                             <span style="display:flex;justify-content:center">
-                                <span class="vy-nt-cell" style="border:1px solid transparent;background:linear-gradient(140deg,#D14102,#C2410C);cursor:default" title="Always on">
+                                <span class="vy-nt-cell" style="border:1px solid transparent;background:linear-gradient(140deg,#E8703A,#C2410C);cursor:default" title="Always on">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
                                 </span>
                             </span>
@@ -107,7 +107,7 @@
                                 <button type="button" class="vy-nt-cell"
                                         @click="if (emailOn) { em['{{ $e['key'] }}'] = ! em['{{ $e['key'] }}']; touch(); }"
                                         :disabled="! emailOn"
-                                        :style="((emailOn && em['{{ $e['key'] }}']) ? 'border:1px solid transparent;background:linear-gradient(140deg,#D14102,#C2410C);' : 'border:1px solid rgba(120,70,40,.2);background:rgba(255,255,255,.7);') + (emailOn ? 'cursor:pointer' : 'cursor:not-allowed')"
+                                        :style="((emailOn && em['{{ $e['key'] }}']) ? 'border:1px solid transparent;background:linear-gradient(140deg,#E8703A,#C2410C);' : 'border:1px solid rgba(120,70,40,.2);background:rgba(255,255,255,.7);') + (emailOn ? 'cursor:pointer' : 'cursor:not-allowed')"
                                         aria-label="{{ $e['label'] }} · Email">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" :style="(emailOn && em['{{ $e['key'] }}']) ? 'opacity:1' : 'opacity:0'"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
                                 </button>
@@ -147,7 +147,7 @@
             {{-- ══ SAVE ══ --}}
             <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px">
                 <span style="font-size:12px;margin-right:auto" :style="dirty ? 'color:#B4400F' : 'color:var(--vy-muted)'" x-text="dirty ? 'Unsaved changes' : 'All preferences saved'">All preferences saved</span>
-                <button type="submit" style="padding:11px 22px;border-radius:30px;background:linear-gradient(140deg,#D14102,#C2410C);border:none;color:#fff;font-family:var(--vy-body,Inter),sans-serif;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 6px 18px rgba(194,65,12,.35)">Save changes</button>
+                <button type="submit" style="padding:11px 22px;border-radius:30px;background:linear-gradient(140deg,#E8703A,#C2410C);border:none;color:#fff;font-family:var(--vy-body,Inter),sans-serif;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 6px 18px rgba(194,65,12,.35)">Save changes</button>
             </div>
         </form>
 

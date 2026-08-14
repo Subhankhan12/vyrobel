@@ -7402,3 +7402,40 @@ compliance requirement or a preference here is a founder/legal call, not a techn
 
 ⚠️ **NOT DECIDED, NOT APPLIED.** Per the directive, Group B is the founder's ruling. `DO-RESTORE-2` will apply
 whichever option is chosen.
+
+
+## §N.22.5 ✅ DO-RESTORE-1(a) EXECUTED — the CTA wireframe orange is restored, the sub-AA is ACCEPTED
+
+⚠️ **FOUNDER RULING, taken with the measured numbers in hand:** restore the CTA gradient's light stop to the
+wireframe **`#E8703A`**, **ACCEPTING white-on-CTA at ~3.1–3.35** against the 4.5:1 small-text bar. Executed
+2026-08-14.
+
+**SCOPE — the CTA gradient's light stop ONLY.** `#D14102` → `#E8703A` across **43 occurrences in 29 files**
+(the central `--vy-grad`, the 10 shells that predate DO-TOKEN-1 and declare their own, and the invite-email CTA
+mirror — §N.8f). Deliberately **NOT** touched:
+
+| left alone | why |
+|---|---|
+| `--vy-accent` `rgb(194,65,12)` | never moved — it is already the wireframe value |
+| the ~42 standalone `#E8703A` accents | never moved — borders, dots, decorative fills |
+| `--vy-accent-text` `rgb(147,42,7)` | ⚠️ **a different surface** — link/label body text, not the CTA fill. The ruling was for the CTA orange; this value buys real readability on small text and was not in the ask. **Flagged as deliberately-left; reverting it is a separate ruling.** |
+| `.vy-avatar` / `.vy-plan-tag` backgrounds | ⚠️ **also moved by DO-A11Y-1** (from a light peach gradient / `--vy-grad`) and **NOT restored** by this ruling, whose scope is the CTA gradient stop. They now measure 5.05–5.55. **If the founder wants these back on the wireframe orange too, that is a further ruling.** |
+
+⚠️ **THIS IS AN ACCEPTED EXCEPTION, NOT A DEFECT AND NOT A REGRESSION.** A future contrast pass must not
+re-flag white-on-CTA as a bug: it is a decided state. Measured after the restore: `.vy-pill--accent` **3.32**,
+`.vy-act--accent` **3.31**, `.vy-fd-seg-btn.is-on` **3.23** — all against a 4.5 bar, all accepted.
+
+⚠️ **THE GUARDS WERE RE-POINTED, NOT LOOSENED.** `AccentCtaContrastTest` now asserts the sub-AA **openly** —
+the ratio, the band, and the authority (DO-RESTORE-1(a)) — so it passes because it states the **true decided
+state**, never because a bar was quietly lowered. It also **protects the decision**: re-darkening the CTA
+toward AA REDS it (mutation-proven, including the single-missed-mirror case). The original DO-A11Y-3 rationale
+is kept in the file, marked SUPERSEDED rather than deleted, so the next pass does not re-derive the same
+argument and "fix" the decision away.
+
+⚠️ **A GUARD TRAP CAUGHT IN PASSING:** the original "white clears AA" test asserted **arithmetic on a
+constant**, not the shipped value — so when the source changed it kept **PASSING while certifying a colour the
+product no longer used**. Every colour assertion in that file now reads the SOURCE. *A guard that pins a
+literal instead of reading the artefact will survive the very change it exists to catch.*
+
+**Recorded as a fact, not a push:** the European Accessibility Act covers consumer-facing EU booking services
+from June 2025; the storefront and guest portal are in scope. The decision was taken with that noted.

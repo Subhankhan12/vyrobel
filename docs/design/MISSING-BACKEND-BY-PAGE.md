@@ -9440,12 +9440,18 @@ than trusting the edit** — a fix that lands in the file is not the same as a f
 
 ---
 
-## ⚠️ `DO-RESTORE-2` — the wireframe-orange ruling (OPEN, founder)
+## ✅ `DO-RESTORE-2` — CLOSED (2026-08-14): founder ruled (a), the CTA wireframe orange is restored
 
 `DO-RESTORE-1` audited the directive and **applied nothing**: the brand accent was never darkened (only the
 CTA gradient's light stop + a text-only token), and **no text-on-orange surface in the product is large text**,
 so Group A was empty. Every white-on-orange surface measures **3.23–3.35** against a **4.5** bar on the
 wireframe `#E8703A`.
 
-**Awaiting a ruling between:** (a) restore + accept sub-AA · (b) restore + dark labels (`--vy-ink` 4.99) ·
-(c) restore + labels ≥18.66px bold (3.08 ≥ 3:1) · (d) keep `#D14102` (4.70). Full table: **§N.22.4**.
+**RULED: (a) — restore + accept sub-AA.** Executed: the CTA gradient light stop `#D14102` → `#E8703A` across
+43 occurrences in 29 files. White-on-CTA now measures **3.23–3.32** against a 4.5 bar — an **ACCEPTED
+EXCEPTION**, not a defect; a future pass must not re-flag it. The guards were re-pointed to assert the sub-AA
+**openly** and now protect the decision (re-darkening reds them). Canon: **§N.22.5**.
+
+⚠️ **STILL OPEN, and NOT covered by this ruling:** `.vy-avatar` and `.vy-plan-tag` backgrounds were also moved
+off the wireframe orange by DO-A11Y-1 (they now measure 5.05–5.55). This ruling's scope was the CTA gradient
+stop, so they were left. **A further ruling if the founder wants those on the wireframe orange too.**

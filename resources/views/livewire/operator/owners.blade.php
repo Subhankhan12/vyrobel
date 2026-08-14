@@ -183,7 +183,7 @@
             @keyframes vyModalIn { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
             .vy-inv-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(43,35,32,.38); backdrop-filter: blur(7px); display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
             .vy-inv-modal { width: 460px; max-width: 100%; max-height: 92vh; overflow-y: auto; background: rgba(255,252,248,.94); backdrop-filter: blur(30px) saturate(1.15); border: 1px solid rgba(255,255,255,.85); border-radius: 20px; box-shadow: 0 30px 80px rgba(60,30,10,.35), inset 0 1px 0 rgba(255,255,255,.75); padding: 24px; box-sizing: border-box; animation: vyModalIn .4s cubic-bezier(.22,.61,.36,1) both; }
-            .vy-inv-ico { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(140deg,#D14102,#C2410C); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 5px 14px rgba(194,65,12,.32); }
+            .vy-inv-ico { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(140deg,#E8703A,#C2410C); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 5px 14px rgba(194,65,12,.32); }
             .vy-inv-x { width: 32px; height: 32px; border-radius: 50%; background: rgba(120,70,40,.07); border: none; color: var(--vy-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; text-decoration: none; }
             .vy-inv-x:hover { background: rgba(120,70,40,.13); }
             .vy-inv-lbl { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 7px; }   /* DO-EMAIL-5: was #9C9089 = 2.80 on the modal plate, measured AS a users.manage role */
@@ -197,12 +197,12 @@
             .vy-inv-chip:hover { transform: translateY(-1px); }
             .vy-inv-chip.on { background: rgba(217,102,46,.12); border-color: rgba(232,112,58,.5); color: #B4400F; }
             .vy-inv-chipbox { width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid rgba(120,70,40,.28); background: transparent; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-            .vy-inv-chip.on .vy-inv-chipbox { border: none; background: linear-gradient(140deg,#D14102,#C2410C); }
+            .vy-inv-chip.on .vy-inv-chipbox { border: none; background: linear-gradient(140deg,#E8703A,#C2410C); }
             .vy-inv-access { display: flex; align-items: center; gap: 11px; padding: 12px 14px; border-radius: 14px; background: rgba(120,70,40,.06); border: 1px solid rgba(120,70,40,.10); }
             .vy-inv-access-ico { width: 32px; height: 32px; border-radius: 10px; background: rgba(217,102,46,.13); color: #B4400F; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
             .vy-inv-cancel { flex: 1; padding: 12px 0; border-radius: 30px; background: rgba(255,255,255,.65); border: 1px solid rgba(120,70,40,.16); color: var(--vy-muted); font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; text-align: center; }
             .vy-inv-cancel:hover { background: rgba(120,70,40,.06); }
-            .vy-inv-send { flex: 2; padding: 12px 0; border-radius: 30px; background: linear-gradient(140deg,#D14102,#C2410C); border: none; color: #fff; font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 22px rgba(194,65,12,.40); display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .14s, box-shadow .14s; }
+            .vy-inv-send { flex: 2; padding: 12px 0; border-radius: 30px; background: linear-gradient(140deg,#E8703A,#C2410C); border: none; color: #fff; font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; box-shadow: 0 8px 22px rgba(194,65,12,.40); display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .14s, box-shadow .14s; }
             .vy-inv-send:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(194,65,12,.48); }
         </style>
         <div class="vy-inv-scrim" x-cloak x-show="open" x-transition.opacity
@@ -354,7 +354,7 @@
                     <div style="display:flex;flex-direction:column;align-items:center;padding:0 0 18px">
                         <div style="position:relative;width:72px;height:72px;margin-bottom:14px">
                             <div style="position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,rgba(232,112,58,.28),transparent 70%);filter:blur(9px)"></div>
-                            <div style="position:relative;width:72px;height:72px;border-radius:50%;background:linear-gradient(140deg,#D14102,#C2410C);box-shadow:0 12px 30px rgba(194,65,12,.40);display:flex;align-items:center;justify-content:center">
+                            <div style="position:relative;width:72px;height:72px;border-radius:50%;background:linear-gradient(140deg,#E8703A,#C2410C);box-shadow:0 12px 30px rgba(194,65,12,.40);display:flex;align-items:center;justify-content:center">
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
                             </div>
                         </div>
@@ -371,7 +371,7 @@
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2.5"/><path d="M22 7 12 13 2 7"/></svg>
                         Preview the invite email
                     </a>
-                    <button type="button" @click="open = false; sent = false" style="display:block;width:100%;box-sizing:border-box;margin-top:10px;padding:12px 0;border-radius:30px;background:linear-gradient(140deg,#D14102,#C2410C);border:none;color:#fff;font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer;box-shadow:0 8px 22px rgba(194,65,12,.40);text-align:center">Back to owners</button>
+                    <button type="button" @click="open = false; sent = false" style="display:block;width:100%;box-sizing:border-box;margin-top:10px;padding:12px 0;border-radius:30px;background:linear-gradient(140deg,#E8703A,#C2410C);border:none;color:#fff;font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer;box-shadow:0 8px 22px rgba(194,65,12,.40);text-align:center">Back to owners</button>
                 </div>
             </div>
         </div>

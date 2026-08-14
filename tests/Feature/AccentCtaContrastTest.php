@@ -1,7 +1,30 @@
 <?php
 
 /*
- * DO-A11Y-3 / -4 / -5 — THE CONTRAST CLEANUP TAIL (2026-08-13).
+ * DO-A11Y-3 / -4 / -5 — THE CONTRAST CLEANUP TAIL (2026-08-13),
+ * ⚠️ RE-POINTED BY FOUNDER DECISION DO-RESTORE-1(a) (2026-08-14).
+ *
+ * ⚠️ READ THIS FIRST: THE CTA IS DELIBERATELY SUB-AA. DO-A11Y-3 darkened the CTA gradient's light stop to
+ * #D14102 so white would clear 4.5. The founder reviewed the measured audit (DO-RESTORE-1) and ruled to
+ * RESTORE the wireframe #E8703A, ACCEPTING white-on-CTA at ~3.1–3.35 — below the small-text bar — as a
+ * deliberate brand decision.
+ *
+ * ⚠️ THIS FILE NOW PROTECTS THAT DECISION, and the distinction matters: the tests below pass because they
+ * assert the TRUE, DECIDED state — NOT because the bar was quietly lowered. The sub-AA is asserted OPENLY,
+ * with its ratio and its authority, so a reader sees "sub-AA on purpose" rather than "this passes AA". A
+ * future contrast pass that helpfully re-darkens the CTA toward AA will RED these tests: reverting a founder
+ * decision must be a deliberate act, not a tidy-up. (Same discipline as the floor-guard and the 0.005 pin.)
+ *
+ * ⚠️ AND A TRAP THIS PASS WALKED INTO: the original "white clears AA" test asserted ARITHMETIC ON A CONSTANT,
+ * not the shipped value — so when the source changed it kept PASSING while certifying a colour the product no
+ * longer uses. Every colour assertion here now reads the SOURCE.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+ * ⚠️ EVERYTHING BELOW THIS LINE IS THE ORIGINAL DO-A11Y-3 RATIONALE, KEPT AS THE RECORD OF WHY THE DARKENING
+ * WAS DONE — and SUPERSEDED by DO-RESTORE-1(a) above. It is accurate about the measurements; it is no longer
+ * the product's target. Annotated rather than deleted (SAVE-v16 discipline: the trail must survive the
+ * reversal, or the next pass re-derives the same argument and "fixes" the decision again).
+ * ─────────────────────────────────────────────────────────────────────────────────────────────────────────
  *
  * ⚠️ DO-A11Y-3 IS THE ONE THAT WAS HELD BACK, and only for its blast radius: white on the accent CTA gradient
  * measured 3.22–3.39 on every button in the product. It is a REAL AA FAILURE, so it is a REQUIRED fix — not
@@ -45,8 +68,8 @@ function ctaRatio(array $fg, array $plate): float
 }
 
 /** Prefixed — a top-level Pest `const` is GLOBAL, and an unprefixed one collided in DO-A11Y-1. */
-const A11Y3_NEW_LIGHT_STOP = [209, 65, 2];      // #D14102 — the gradient's light end, where white is worst
-const A11Y3_OLD_LIGHT_STOP = [232, 112, 58];    // #E8703A
+const A11Y3_WIREFRAME_LIGHT_STOP = [232, 112, 58];   // #E8703A — RESTORED per DO-RESTORE-1(a); where white is worst
+const A11Y3_AA_CLEARING_STOP = [209, 65, 2];         // #D14102 — DO-A11Y-3's AA-clearing value, now superseded
 const A11Y3_DARK_STOP = [194, 65, 12];          // #C2410C = --vy-accent
 const A11Y4_FD_REL_PLATE = [236, 151, 106];     // the front-desk relative-date chip, on the page gradient
 const A11Y4_FD_SEG_PLATE = [231, 194, 175];     // the segmented control's tint
@@ -66,35 +89,40 @@ function allViewSources(): string
     return $out;
 }
 
-it('⚠️ DO-A11Y-3 — white clears AA on the CTA gradient’s LIGHTEST stop, which is where it is worst', function () {
-    // ⚠️ PINNED TO THE LIGHT STOP DELIBERATELY. A guard written against the dark stop (#C2410C, white 5.18)
-    // would pass without ever testing the end that failed — the vacuous-guard trap in its gradient form.
-    expect(ctaRatio([255, 255, 255], A11Y3_NEW_LIGHT_STOP))->toBeGreaterThanOrEqual(4.5)
-        // ⚠️ NON-VACUITY: the stop it replaced genuinely failed, so this is a fix and not a preference.
-        ->and(ctaRatio([255, 255, 255], A11Y3_OLD_LIGHT_STOP))->toBeLessThan(4.5)
-        // …and the dark end was never the problem.
-        ->and(ctaRatio([255, 255, 255], A11Y3_DARK_STOP))->toBeGreaterThanOrEqual(4.5);
+it('⚠️ DO-RESTORE-1(a) — white-on-CTA is SUB-AA, and that is the DECIDED state', function () {
+    // ⚠️ THE SOURCE, not a constant: the shipped light stop must BE the wireframe orange.
+    $tokens = (string) file_get_contents(resource_path('views/components/design/tokens.blade.php'));
+    expect($tokens)->toContain('--vy-grad:')                                  // non-vacuity
+        ->and($tokens)->toContain('linear-gradient(140deg, #E8703A, #C2410C)');
 
-    // ⚠️ NOT A ZERO-MARGIN CHOICE. The lightest orange that technically qualifies lands on exactly 4.50;
-    // DO-PLATE-1 showed what a zero margin costs, so this keeps real headroom.
-    expect(ctaRatio([255, 255, 255], A11Y3_NEW_LIGHT_STOP))->toBeGreaterThan(4.55);
+    // ⚠️ ASSERTED OPENLY AS SUB-AA. White on the wireframe light stop is ~3.08 against a 4.5 small-text bar.
+    // This is NOT a lowered bar — it is the measured truth of a decision the founder took with the numbers in
+    // front of them (DO-RESTORE-1's audit: zero large text on orange, so 4.5 applies to every CTA label).
+    $whiteOnWireframeStop = ctaRatio([255, 255, 255], A11Y3_WIREFRAME_LIGHT_STOP);
 
-    // ⚠️ AND THE NEW STOP IS GENUINELY LIGHTER THAN THE DARK ONE — the gradient still reads as a gradient,
-    // which is what makes this a fix rather than a flattening.
-    expect(ctaRatio([255, 255, 255], A11Y3_NEW_LIGHT_STOP))
-        ->toBeLessThan(ctaRatio([255, 255, 255], A11Y3_DARK_STOP));
+    expect($whiteOnWireframeStop)->toBeLessThan(4.5)            // ⚠️ BELOW AA — accepted, not fixed
+        ->and($whiteOnWireframeStop)->toBeGreaterThan(3.0)      // and within the accepted 3.0–3.4 band
+        ->and($whiteOnWireframeStop)->toBeLessThan(3.4);
+
+    // The dark end of the same gradient was never the issue, and still is not.
+    expect(ctaRatio([255, 255, 255], A11Y3_DARK_STOP))->toBeGreaterThanOrEqual(4.5);
+
+    // ⚠️ THE PROTECTION: #D14102 was the AA-clearing value DO-A11Y-3 shipped. If it reappears as a gradient
+    // stop, someone has reverted the founder's decision — deliberately or by "fixing" a contrast report.
+    expect($tokens)->not->toContain('#D14102');
 });
 
 it('⚠️ §N.8f — EVERY copy of the CTA gradient moved, across all 29 files', function () {
     $all = allViewSources();
 
-    // ⚠️ NON-VACUITY: the gradient really is declared, in quantity — 43 occurrences across 29 files, including
-    // 10 shells that predate DO-TOKEN-1 and still declare their own --vy-grad, plus email/PDF CTA mirrors.
-    expect(substr_count(strtoupper($all), '#D14102'))->toBeGreaterThan(20);
+    // ⚠️ NON-VACUITY: the gradient really is declared in quantity — 43 occurrences across 29 files, including
+    // 10 shells that predate DO-TOKEN-1 and still declare their own --vy-grad, plus the email CTA mirror.
+    expect(preg_match_all('/linear-gradient\(\s*1\d{2}deg,\s*#e8703a\s*,\s*#c2410c\s*\)/i', $all))->toBeGreaterThan(20);
 
-    // ⚠️ THE REGRESSION THIS CATCHES: one missed copy is exactly the .vy-avatar owner-shell miss (§N.21.5),
-    // and would leave CTAs failing on whichever shell was forgotten.
-    expect(preg_match('/linear-gradient\(\s*1\d{2}deg,\s*#e8703a\s*,\s*#c2410c\s*\)/i', $all))->toBe(0);
+    // ⚠️ RE-POINTED BY DO-RESTORE-1(a): the AA-clearing stop must be gone from every SHELL COPY AND MIRROR —
+    // a single surviving #D14102 gradient is a shell whose CTA did not get the founder's colour back (§N.8f,
+    // the .vy-avatar owner-copy miss in its mirror image).
+    expect(preg_match('/linear-gradient\(\s*1\d{2}deg,\s*#d14102\s*,\s*#c2410c\s*\)/i', $all))->toBe(0);
 });
 
 it('⚠️ the ~42 STANDALONE uses of the old orange are untouched — this darkened a gradient, not a brand colour', function () {

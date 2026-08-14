@@ -9669,6 +9669,10 @@ plate at 4.55, the measured floor stays pinned separately as a fact, so the drif
 ⚠️ This closes the call **without changing the measurement**, and leaves §N.21.2's coherence note intact: the
 0.005 **refines** the retraction's ~4.50, it does not overturn it.
 
+> ⚠️ **SUPERSEDED BY DO-RESTORE-1(a) (2026-08-14) — see below.** The founder reviewed the measured audit and
+> restored the wireframe `#E8703A`, ACCEPTING white-on-CTA at ~3.1–3.35. The entry below is kept as the record
+> of what was done and why; it is no longer the product's target.
+
 **DO-A11Y-3 — the white-on-accent CTA family, CLOSED.** A real AA failure (3.22–3.39 on every CTA), therefore a
 **required** fix rather than declined headroom. Measured first, and confirmed to be in a **validated input
 class** — "white label on a gradient button, read on the button's own plate" is the harness's VALIDATION 2.
@@ -9720,3 +9724,24 @@ a founder ruling. **`DO-RESTORE-2` applies whichever is chosen.**
 
 ⚠️ Recorded as a fact, not a push: the European Accessibility Act covers consumer-facing booking services in
 the EU from June 2025, which the storefront and guest portal are.
+
+
+---
+
+## 2026-08-14 — DO-RESTORE-1(a) EXECUTED · the CTA wireframe orange restored, sub-AA ACCEPTED
+
+**FOUNDER RULED (a)**, with DO-RESTORE-1's audit table in front of them: restore the CTA gradient's light stop
+to the wireframe **`#E8703A`**, **accepting white-on-CTA at ~3.1–3.35** against the 4.5:1 small-text bar. This
+supersedes DO-A11Y-3's darkening. Canon: **§N.22.5**.
+
+- **Scope: the CTA gradient light stop ONLY** — 43 occurrences across 29 files (§N.8f: central token, 10
+  pre-DO-TOKEN-1 shells, the invite-email mirror). `#D14102` grepped to zero as a colour.
+- **Deliberately left:** `--vy-accent` (never moved) · the ~42 standalone `#E8703A` accents (never moved) ·
+  **`--vy-accent-text`** (link/label body text — a different surface, not in the ask) · **`.vy-avatar` /
+  `.vy-plan-tag`** (also moved by DO-A11Y-1, outside this ruling's scope — a further ruling if wanted).
+- **ACCEPTED EXCEPTION, not a defect.** A future pass must not re-flag it. The guards were **re-pointed to
+  assert the sub-AA openly** (ratio + band + authority), never loosened, and now **protect the decision** —
+  re-darkening REDS them, mutation-proven.
+- ⚠️ **Guard trap found:** the old test asserted arithmetic on a **constant**, so it kept passing while
+  certifying a colour the product no longer shipped. All colour assertions now read the SOURCE.
+- EAA noted as a fact: it covers consumer-facing EU booking services from June 2025.

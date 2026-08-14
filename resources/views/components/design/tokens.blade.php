@@ -48,7 +48,7 @@
             --vy-wash: #F6EBE2;
             --vy-hairline: rgba(120, 70, 40, 0.10);
             /* Gradients */
-            --vy-grad: linear-gradient(140deg, #D14102, #C2410C);
+            --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
             --vy-grad-dark: linear-gradient(160deg, #3A2E27, #251C17);
             --vy-grad-peach: linear-gradient(90deg, #F0A57A, #C2410C);
             --vy-peach: rgb(240, 165, 122);

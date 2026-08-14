@@ -14,7 +14,7 @@
             --vy-ink: rgb(43, 35, 32); --vy-muted: rgb(95, 88, 83); --vy-faint: rgb(108, 100, 95);
             --vy-accent: rgb(194, 65, 12); --vy-accent-3: rgb(232, 112, 58); --vy-amber: rgb(178, 106, 8);
             --vy-glass: rgba(255, 252, 248, 0.62); --vy-hairline: rgba(120, 70, 40, 0.10);
-            --vy-glass-border: rgba(255, 255, 255, 0.75); --vy-grad: linear-gradient(140deg, #D14102, #C2410C);
+            --vy-glass-border: rgba(255, 255, 255, 0.75); --vy-grad: linear-gradient(140deg, #E8703A, #C2410C);
             --vy-shadow: rgba(150, 90, 50, 0.18) 0 22px 60px, inset rgba(255, 255, 255, 0.65) 0 1px 0;
             --vy-shadow-accent: rgba(194, 65, 12, 0.30) 0 4px 12px;
             --vy-r-lg: 22px; --vy-r-md: 12px; --vy-r-sm: 10px;
