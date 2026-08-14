@@ -154,7 +154,7 @@
         .vy-nav-item:hover { background: rgba(255, 255, 255, 0.35); }
         /* #104 fidelity — the active item reads terracotta on frosted glass (wireframe/owner exact), not espresso. */
         .vy-nav-item.is-active {
-            background: rgba(255, 255, 255, 0.72); color: var(--vy-accent); font-weight: 500;
+            background: rgba(255, 255, 255, 0.72); color: var(--vy-accent-text)   /* --vy-accent as TEXT measured 4.49 on the active pill */; font-weight: 500;
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 4px 14px rgba(150, 90, 50, 0.14); border: 1px solid rgba(255, 255, 255, 0.8);
         }

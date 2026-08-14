@@ -46,9 +46,9 @@
         <style>
             .vy-paystatus { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 8px; border-radius: 20px; margin-top: 3px; background: var(--vy-hairline); color: var(--vy-muted); }
             .vy-paystatus--paid { background: rgba(31,110,75,.14); color: #1F6E4B; }
-            .vy-paystatus--due { background: rgba(217,102,46,.14); color: #B4400F; }
-            .vy-paystatus--hold { background: rgba(180,64,15,.14); color: #B4400F; }
-            .vy-paystatus--draft { background: rgba(224,146,30,.16); color: #8A6410; }
+            .vy-paystatus--due { background: rgba(217,102,46,.14); color: var(--vy-accent-text); }   /* #B4400F 4.17 — LATENT (renders only when a payout is due) */
+            .vy-paystatus--hold { background: rgba(180,64,15,.14); color: var(--vy-accent-text); }   /* #B4400F 3.42 on its own tint */
+            .vy-paystatus--draft { background: rgba(224,146,30,.16); color: var(--vy-amber-text); }   /* #8A6410 4.47 — LATENT */
             .vyo-sched { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
             .vyo-sched:last-child { border-bottom: none; }
             /* Owner-portal adoption card (the design's dedicated rail card with a progress bar). */

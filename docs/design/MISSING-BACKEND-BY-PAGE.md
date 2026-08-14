@@ -9459,3 +9459,58 @@ ratio in the product**, below even the 3:1 large-text bar and materially worse t
 ⚠️ **`DO-RESTORE-4` (OPEN, founder):** option (b) — the same wireframe peach with **dark text** (`--vy-ink`
 = **7.60**, `#5C2E0B` = **5.60**) — keeps the background exactly and fixes readability, since the problem is
 the white text, not the peach. Surfaced with numbers, not applied.
+
+---
+
+## DO-EMAIL-5-continued-5 — the axis-3 throughput, OPERATOR tail (2026-08-14)
+
+| surface | data condition forced | N | K | M | dimmed |
+|---|---|---|---|---|---|
+| operator **Maintenance** | tickets past SLA | 85 | **2 → 0** | 6 | 36 (state-axis) |
+| operator **Owners** | owners + payout statuses | 92 | **3 → 0** | 5 | — |
+| operator **Channels** | — | — | — | — | **403 Pro-gated** (the feature gate working; not reachable on this plan) |
+
+### ⚠️ THE PATTERN THIS PASS KEPT HITTING — the unrendered SIBLING branch
+
+A status colour written as a **ternary** or a set of **sibling modifier classes** renders only ONE branch for
+the current data. The probe measures that branch; **its siblings are invisible to it and fail just as hard.**
+Two were found by *reading the branch beside the measured one* — §N.13.1 in its axis-3 form:
+
+| finding | measured? | before | fix |
+|---|---|---|---|
+| maintenance SLA **breached** | ✅ 4.12 | `#B4400F` | → `--vy-accent-text` (5.90) |
+| maintenance SLA **due_soon** | ⚠️ **LATENT** — no ticket in that state | `#8F6414` **3.79** | → `--vy-amber-text` (6.15) |
+| owners paystatus **hold** | ✅ 3.42 | `#B4400F` | → `--vy-accent-text` (4.88) |
+| owners paystatus **due** | ⚠️ **LATENT** | `#B4400F` **4.17** | → `--vy-accent-text` (5.96) |
+| owners paystatus **draft** | ⚠️ **LATENT** | `#8A6410` **4.47** | → `--vy-amber-text` |
+| owners paystatus **paid** | — | `#1F6E4B` **5.35** | ⚠️ **PASSES — left untouched** (posture A), and the non-change is GUARDED |
+| shell `.vy-nav-item.is-active` | ✅ 4.49 | `--vy-accent` (the brand FILL as text) | → `--vy-accent-text` (7.07), fixed at SOURCE |
+
+⚠️ **`.vy-owner-avatar` — a SIXTH copy of the avatar concept (§N.8f)**, measured 3.43. It rides `var(--vy-grad)`,
+the wireframe gradient DO-RESTORE-2 restored, so it is **already in the decided state** exactly like the owner
+shell's `.vy-avatar`. **Fixing it to AA would CONTRADICT DO-RESTORE-3** — classified as decided, not fixed.
+
+### RUNNING TALLY — of the 67 (cumulative)
+
+| state | count |
+|---|---|
+| **MEASURED** | **13** (+ maintenance, owners) |
+| **FIXED** | **17 defects** across 11 files, + 1 DO-A11Y-1 miss |
+| **MEASURED-CLEAN** | 4 |
+| **SCOPE-GAP-PENDING** | 5 PDFs + per-page `no-clear-band` + Channels (Pro-gated, unreachable on this plan) |
+| **STATE-AXIS-LOGGED** | **79 elements** (43 + 36 on maintenance — a closed work-order modal) |
+| **LOGGED-UNSWEPT** | **~49** → `DO-EMAIL-5-continued-6` |
+
+### ⚠️ DISCIPLINE NOTE (honest)
+
+Two slips, both caught by the discipline rather than by luck:
+
+1. **A guard assertion that banned a literal outright** (`#B4400F`) failed on **correct markup** — the literal
+   legitimately survives as a KPI **dot** colour (non-text: the 1.4.11 bar is 3:1, not 4.5) and inside a
+   state-hidden modal. Re-scoped to the ternary. *The `.vy-chan-glyph` lesson, re-learned.*
+2. ⚠️ **A mutation that did not apply produced a FALSE GREEN.** `perl -pi` works line-by-line and the
+   `.vy-nav-item.is-active` rule spans two lines, so the "revert" changed nothing and the guard "passed".
+   Re-done multi-line-aware, with the edit **verified to have landed** before trusting the verdict — §N.4p
+   exactly. **A mutation test proves nothing until you confirm the mutation happened.**
+
+No fix failed to move the page this pass (every one re-measured).

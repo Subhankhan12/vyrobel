@@ -233,3 +233,62 @@ it('⚠️ NO INLINE OVERRIDE PAINTS THE BRAND FILL AS TEXT anywhere in the gues
     expect(partBRatio([194, 65, 12], PARTB_GUEST_CARD_PLATE))->toBeLessThan(4.5)          // --vy-accent  4.45
         ->and(partBRatio([147, 42, 7], PARTB_GUEST_CARD_PLATE))->toBeGreaterThanOrEqual(4.5); // --vy-accent-text 7.00
 });
+
+/*
+ * ⚠️ DO-EMAIL-5-continued-5 — THE OPERATOR TAIL (2026-08-14).
+ *
+ * ⚠️ THE PATTERN THIS PASS KEPT HITTING: a status colour written as a TERNARY or a set of sibling modifier
+ * classes, where only ONE branch is currently rendered. The probe measures the branch the data produces; the
+ * siblings are invisible to it and fail just as hard. Both were found by READING the branch beside the
+ * measured one — §N.13.1, in its axis-3 form. They are marked LATENT below.
+ */
+const PARTB_SLA_PLATE = [252, 211, 188];        // the maintenance SLA line, on its row
+const PARTB_PAYSTATUS_HOLD = [236, 191, 167];   // the owners "On hold" chip, on its own tint
+const PARTB_NAV_ACTIVE_PLATE = [251, 236, 226]; // the active sidebar pill
+
+it('⚠️ AXIS 3 — the maintenance SLA line clears AA in BOTH failing states, not just the rendered one', function () {
+    $view = (string) file_get_contents(resource_path('views/livewire/maintenance-list.blade.php'));
+
+    // ⚠️ NON-VACUITY: the conditional really is there, so this is about its branches.
+    expect($view)->toContain("\$row['sla']['breached']");
+
+    // The BREACHED branch was measured at 4.12. The DUE_SOON branch was NOT rendered by the demo data at all —
+    // it is a LATENT defect found by reading the sibling, and it was worse (3.79).
+    // ⚠️ SCOPED TO THE TERNARY, not a blanket ban on the literal. #B4400F legitimately survives in this file
+    // as a KPI DOT colour (non-text — the 1.4.11 bar is 3:1, not 4.5) and inside a state-hidden modal.
+    // Banning the string outright would fail on correct markup — the `.vy-chan-glyph` lesson.
+    expect($view)->toMatch("/breached'\\] \\? 'var\\(--vy-accent-text\\)'/")
+        ->and($view)->toMatch("/due_soon'\\] \\? 'var\\(--vy-amber-text\\)'/")
+        ->and($view)->not->toMatch("/breached'\\] \\? '#B4400F'/");
+
+    expect(partBRatio([147, 42, 7], PARTB_SLA_PLATE))->toBeGreaterThanOrEqual(4.5)
+        ->and(partBRatio([180, 64, 15], PARTB_SLA_PLATE))->toBeLessThan(4.5)     // #B4400F failed
+        ->and(partBRatio([143, 100, 20], PARTB_SLA_PLATE))->toBeLessThan(4.5);   // #8F6414 failed harder
+});
+
+it('⚠️ AXIS 3 — the owner payout-status chips: three branches fixed, the PASSING one left alone', function () {
+    $view = (string) file_get_contents(resource_path('views/livewire/operator/owners.blade.php'));
+
+    expect($view)->toContain('.vy-paystatus--hold')                              // non-vacuity
+        ->and($view)->toMatch('/\.vy-paystatus--hold \{[^}]*color: var\(--vy-accent-text\)/')
+        ->and($view)->toMatch('/\.vy-paystatus--due \{[^}]*color: var\(--vy-accent-text\)/')
+        ->and($view)->toMatch('/\.vy-paystatus--draft \{[^}]*color: var\(--vy-amber-text\)/');
+
+    // ⚠️ POSTURE A, GUARDED AS A NON-CHANGE: --paid measures 5.35 and was deliberately NOT touched. Without
+    // this line a future "consistency" sweep would darken a passing declaration and call it a fix.
+    expect($view)->toMatch('/\.vy-paystatus--paid \{[^}]*color: #1F6E4B/');
+
+    expect(partBRatio([147, 42, 7], PARTB_PAYSTATUS_HOLD))->toBeGreaterThanOrEqual(4.5)
+        ->and(partBRatio([180, 64, 15], PARTB_PAYSTATUS_HOLD))->toBeLessThan(4.5);
+});
+
+it('⚠️ the ACTIVE sidebar item used the brand FILL as text — 4.49, a miss by 0.01', function () {
+    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+
+    expect($shell)->toContain('.vy-nav-item.is-active {')                        // non-vacuity
+        ->and($shell)->toMatch('/\.vy-nav-item\.is-active \{[^}]*color: var\(--vy-accent-text\)/');
+
+    // Fixed at the SOURCE (O25/O27), not from the page that revealed it.
+    expect(partBRatio([194, 65, 12], PARTB_NAV_ACTIVE_PLATE))->toBeLessThan(4.5)          // --vy-accent 4.49
+        ->and(partBRatio([147, 42, 7], PARTB_NAV_ACTIVE_PLATE))->toBeGreaterThanOrEqual(4.5);
+});

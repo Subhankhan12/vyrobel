@@ -125,7 +125,7 @@
                                 </div>
                                 <div class="vy-um-sub">{{ $row['unit'] }} · {{ $row['category'] }} · {{ $row['reported_ago'] }}</div>
                                 @if ($row['sla']['label'] !== '' && $row['status'] !== 'resolved')
-                                    <div style="font-size: 11px; margin-top: 3px; color: {{ $row['sla']['breached'] ? '#B4400F' : ($row['sla']['due_soon'] ? '#8F6414' : 'var(--vy-muted)') }};">
+                                    <div style="font-size: 11px; margin-top: 3px; color: {{ $row['sla']['breached'] ? 'var(--vy-accent-text)' : ($row['sla']['due_soon'] ? 'var(--vy-amber-text)' : 'var(--vy-muted)') }};">
                                         {{ $row['sla']['breached'] ? '⚠ ' : '' }}{{ $row['sla']['label'] }}
                                     </div>
                                 @endif
