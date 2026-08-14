@@ -12,7 +12,7 @@
     {{-- ── Travel-account hero — welcome + REAL stats (completed stays · nights away · countries) ────────── --}}
     <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:24px 26px;margin-bottom:20px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
         <div style="flex:1 1 220px;min-width:0">
-            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent)">Your travel account</div>
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent-text)">Your travel account</div>
             <div style="font-family:var(--vy-display);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--vy-ink);margin-top:4px">Welcome back, {{ $firstName }}</div>
             <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">Your stays with us — upcoming and past.</div>
         </div>
@@ -111,7 +111,7 @@
     @empty
         <div class="vy-card vy-empty" style="text-align:center;padding:36px 20px">
             @if ($query !== '' || $year !== '')
-                No {{ $tab }} trips match your search. <a href="?tab={{ $tab }}" style="color:var(--vy-accent)">Clear filters</a>.
+                No {{ $tab }} trips match your search. <a href="?tab={{ $tab }}" style="color:var(--vy-accent-text)">Clear filters</a>.
             @elseif ($tab === 'upcoming')
                 No upcoming stays. When you book, they’ll appear here.
             @elseif ($tab === 'cancelled')

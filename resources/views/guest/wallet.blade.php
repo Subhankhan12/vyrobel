@@ -19,7 +19,7 @@
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2.5"/><path d="M2 10h20"/><path d="M16 15h3"/></svg>
         </div>
         <div style="flex:1;min-width:200px">
-            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent)">Available credit</div>
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent-text)">Available credit</div>
             <div style="font-family:var(--vy-display);font-weight:700;font-size:32px;letter-spacing:-.02em;color:{{ $spendable_minor > 0 ? 'var(--vy-green-text)' : 'var(--vy-ink)' }};margin-top:2px">{{ $spendable }}</div>
             <div style="font-size:12.5px;color:var(--vy-muted);margin-top:2px">Across all your Vyrobel stays · applied at checkout. Expired credit isn’t included.</div>
         </div>

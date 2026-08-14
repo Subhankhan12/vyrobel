@@ -123,7 +123,7 @@
         .vy-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px rgba(232, 112, 58, .16); }
         .vy-input:disabled { opacity: .6; }
         .vy-error { display: flex; align-items: center; gap: 9px; margin-bottom: 16px; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(224, 146, 30, .12); border: 1px solid rgba(224, 146, 30, .4); border-left: 3px solid var(--vy-amber); font-size: 13px; font-weight: 500; }
-        .vy-link { color: var(--vy-accent); text-decoration: none; font-weight: 500; }
+        .vy-link { color: var(--vy-accent-text); text-decoration: none; font-weight: 500; }   /* --vy-accent is the FILL; as text it measured 4.45 on a guest card */
         .vy-link:hover { text-decoration: underline; }
         /* Polish P3 (M5) — a consistent KEYBOARD focus ring across the whole portal, matching the app's other
            realms (operator/owner/auth all ship the same `2px --vy-accent` outline; the prototype ships none, so

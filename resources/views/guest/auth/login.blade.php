@@ -29,7 +29,7 @@
                 <input class="vy-input" type="password" id="password" name="password" autocomplete="current-password" required style="margin-top:7px;padding-right:62px">
                 <button type="button" aria-label="Show password"
                         onclick="var p=document.getElementById('password');var s=p.type==='password';p.type=s?'text':'password';this.textContent=s?'Hide':'Show'"
-                        style="position:absolute;right:10px;top:15px;background:none;border:none;color:var(--vy-accent);font-size:12px;font-weight:600;cursor:pointer">Show</button>
+                        style="position:absolute;right:10px;top:15px;background:none;border:none;color:var(--vy-accent-text);font-size:12px;font-weight:600;cursor:pointer">Show</button>
             </div>
         </div>
         <button type="submit" class="vy-btn">Sign in</button>

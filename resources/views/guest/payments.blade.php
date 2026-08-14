@@ -11,7 +11,7 @@
         <div class="vy-card" style="margin-bottom:12px;border-left:3px solid var(--vy-accent)"><div style="font-size:13px;color:var(--vy-ink)">{{ session('pay_notice') }}</div></div>
     @endif
     @if (session('pay_error'))
-        <div class="vy-card" style="margin-bottom:12px;border-left:3px solid var(--vy-accent)"><div style="font-size:13px;color:var(--vy-accent)">{{ session('pay_error') }}</div></div>
+        <div class="vy-card" style="margin-bottom:12px;border-left:3px solid var(--vy-accent)"><div style="font-size:13px;color:var(--vy-accent-text)">{{ session('pay_error') }}</div></div>
     @endif
 
     {{-- ⚠️ THE RETURN FROM HOSTED CHECKOUT — the §N.8d UNDERSTATING direction, on the money surface.
@@ -114,7 +114,7 @@
                 @forelse ($overview['bookings'] as $booking)
                     <a href="{{ route('guest.receipt', $booking['id']) }}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--vy-hairline);text-decoration:none">
                         <span style="min-width:0"><span style="display:block;font-size:13px;font-weight:500;color:var(--vy-ink)">Receipt</span><span style="display:block;font-size:11px;color:var(--vy-faint);font-variant-numeric:tabular-nums">{{ $booking['reference'] }} · {{ $booking['balance_due'] ? 'balance due' : 'paid in full' }}</span></span>
-                        <span style="font-size:12px;color:var(--vy-accent);flex-shrink:0">View →</span>
+                        <span style="font-size:12px;color:var(--vy-accent-text);flex-shrink:0">View →</span>
                     </a>
                 @empty
                     <div style="font-size:13px;color:var(--vy-muted)">No receipts yet.</div>

@@ -9383,3 +9383,56 @@ booking (2), most owner (18) and operator (15), plus admin (2) and the notificat
 2. **The depth-vs-coverage posture** for the throughput tail — stay deep (default) or trade depth for
    coverage, **legitimate only if declared**.
 3. ⛔ **The billing flip** — Stripe dashboard steps + the VAT-validation decision. No code work remains.
+
+---
+
+## DO-EMAIL-5-continued-4 — the axis-3 throughput, GUEST realm (2026-08-13)
+
+Stay-deep posture. The guest realm had **never** been measured on axis 3 in any pass.
+
+| surface | data condition forced | N | K | M | ancestor-dimmed |
+|---|---|---|---|---|---|
+| guest **Trips** | 2 real bookings | 35 | **0** | 3 | 0 |
+| guest **Payments** | real folio + payments | 56 | **0** | 3 | 0 |
+| guest **Wallet** | wallet ledger entries | 31 | **0** | 1 | 0 |
+| guest **Reservation** | a confirmed booking | 49 | **2 → 0** | 4 | 0 |
+
+⚠️ Three of four came back **MEASURED-CLEAN**, which is consistent with the guest realm's earlier 12-gate
+remediation — but it is now *measured* rather than assumed.
+
+### ⚠️ THE LESSON RE-LEARNED IN THE PASS THAT RECORDED IT (§N.21.6)
+
+`.vy-link` measured **4.45**. The class rule was fixed → **the page did not move**. An **inline
+`style="color:var(--vy-accent)"` on the anchor won the cascade** — exactly the trap §N.21.6 records, walked
+into one pass after writing it down.
+
+**Both halves were needed and both are guarded:**
+1. the `.vy-link` **class**, defined **twice** (guest shell + guest auth layout — §N.8f every copy), and
+2. the **38 inline overrides across 15 guest files** — the declarations that actually won.
+
+`--vy-accent` is the brand **fill**; `--vy-accent-text` is the purpose-built text value (4.45 → **7.00** on a
+guest card). Fixing only the class would have left every overridden link failing; fixing only the inlines
+would have left every future `.vy-link` failing.
+
+⚠️ **LOGGED, NOT FIXED — the same inline pattern elsewhere** (counted, not measured, so not fixed blind):
+`livewire/` **58** · `components/` **38** · `booking/` **13** · `auth/` **8**. Whether each fails depends on
+its plate (`--vy-accent` as text passes on white at 5.18, fails on warm cards at 4.45), so these need
+measuring, not a blanket replace. → **`DO-EMAIL-5-continued-5`**.
+
+### RUNNING TALLY — of the 67 (cumulative)
+
+| state | count | notes |
+|---|---|---|
+| **MEASURED** | **11** | + guest Trips · Payments · Wallet · Reservation |
+| **FIXED** | **11 defects** across 8 files, + 1 DO-A11Y-1 miss |
+| **MEASURED-CLEAN** | **4** | owner Documents · guest Trips · Payments · Wallet |
+| **SCOPE-GAP-PENDING** | **5 PDFs** + per-page `no-clear-band` (1–71) | dompdf unreachable by a browser probe |
+| **STATE-AXIS-LOGGED** | **43 elements** | opacity:0 inactive tab panels + a closed modal (front-desk 10, guests-list 33) — a **G10** sweep, deliberately NOT forced here |
+| **LOGGED-UNSWEPT** | **~51** | `DO-EMAIL-5-continued-5` |
+
+### ⚠️ DISCIPLINE NOTE (honest)
+
+Throughput did not erode the method — but it did expose that **I applied a rule I had just written without
+checking whether it applied here**: I fixed the class first and only traced the cascade after the re-measure
+came back unchanged. The re-measure caught it. **That is the argument for re-measuring after every fix rather
+than trusting the edit** — a fix that lands in the file is not the same as a fix that lands on the page.

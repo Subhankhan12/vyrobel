@@ -174,3 +174,46 @@ it('⚠️ the DARK performance card and the Add-a-unit label use values that cl
         ->and(partBRatio([240, 165, 122], PARTB_MU_DARK_PLATE))->toBeGreaterThanOrEqual(4.5)   // --vy-peach
         ->and(partBRatio([232, 112, 58], PARTB_MU_DARK_PLATE))->toBeLessThan(4.5);             // --vy-accent-3
 });
+
+/*
+ * ⚠️ DO-EMAIL-5-continued-4 — THE GUEST REALM (2026-08-13). Axis 3 applied to the realm that had never been
+ * measured on it at all.
+ *
+ * ⚠️ AND A LESSON RE-LEARNED THE HARD WAY, IN THE SAME PASS THAT RECORDED IT. `.vy-link` measured 4.45 on a
+ * populated booking. The class rule was fixed — and the page did not move, because an INLINE
+ * `style="color:var(--vy-accent)"` on the anchor won the cascade (§N.21.6). The class fix was still correct
+ * and is kept: it covers every `.vy-link` WITHOUT an override. But the defect lived in the inline, and there
+ * were 38 of them across 15 guest files. BOTH halves are guarded below, because fixing either alone leaves
+ * real text failing.
+ */
+const PARTB_GUEST_CARD_PLATE = [249, 235, 228];   // a guest booking card, where the brand fill was used as text
+
+it('⚠️ the guest .vy-link CLASS uses the text token — both copies of it (§N.8f)', function () {
+    $shell = (string) file_get_contents(resource_path('views/components/guest/shell.blade.php'));
+    $auth = (string) file_get_contents(resource_path('views/guest/auth/layout.blade.php'));
+
+    // ⚠️ NON-VACUITY: the rule exists in both files — it is defined twice, which is why both must be checked.
+    foreach ([$shell, $auth] as $source) {
+        expect($source)->toContain('.vy-link {')
+            ->and($source)->toMatch('/\.vy-link \{[^}]*color: var\(--vy-accent-text\)/');
+    }
+});
+
+it('⚠️ NO INLINE OVERRIDE PAINTS THE BRAND FILL AS TEXT anywhere in the guest realm', function () {
+    // ⚠️ THE HALF THAT ACTUALLY FIXED THE PAGE. An inline style beats the class, so the class guard above is
+    // not sufficient on its own — this is the regression that would silently return.
+    $inline = 0;
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views/guest')));
+    foreach ($it as $f) {
+        if (! $f->isFile() || ! str_ends_with($f->getFilename(), '.blade.php')) {
+            continue;
+        }
+        $inline += preg_match_all('/color:\s*var\(--vy-accent\)/', (string) file_get_contents($f->getPathname()));
+    }
+
+    expect($inline)->toBe(0);
+
+    // The measured reason: the FILL misses on a guest card, the purpose-built TEXT value clears it comfortably.
+    expect(partBRatio([194, 65, 12], PARTB_GUEST_CARD_PLATE))->toBeLessThan(4.5)          // --vy-accent  4.45
+        ->and(partBRatio([147, 42, 7], PARTB_GUEST_CARD_PLATE))->toBeGreaterThanOrEqual(4.5); // --vy-accent-text 7.00
+});

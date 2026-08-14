@@ -2,9 +2,9 @@
      by the arrival window (ArrivalPack): shown only close to the stay, withheld otherwise — never a fabricated
      code. Directions/times are the property's real data. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-guest.shell active="trips" :title="'Arrival · '.$reference">
-    <a class="vy-link" href="{{ route('guest.reservation', $reservationId) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Back to booking</a>
+    <a class="vy-link" href="{{ route('guest.reservation', $reservationId) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← Back to booking</a>
 
-    <div class="vy-eyebrow" style="margin-top:12px;color:var(--vy-accent)">Arrival info</div>
+    <div class="vy-eyebrow" style="margin-top:12px;color:var(--vy-accent-text)">Arrival info</div>
     <h1 class="vy-h1" style="margin-top:4px">Welcome to {{ $property }}, {{ $firstName }}</h1>
     <p class="vy-lead" style="margin-bottom:12px">Everything you need for a smooth arrival on {{ $checkIn }}.</p>
     <a class="vy-btn vy-btn--ghost" href="{{ route('guest.arrival.pdf', $reservationId) }}" style="display:inline-flex;align-items:center;gap:7px;margin-bottom:16px">

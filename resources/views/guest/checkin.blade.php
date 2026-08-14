@@ -35,7 +35,7 @@
             .ci-rail .seg.end { justify-content: flex-end; }
             .ci-rail .circ { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 11.5px; font-weight: 600; flex-shrink: 0; border: 1.5px solid var(--vy-hairline); color: var(--vy-faint); background: rgba(255,255,255,.6); }
             .ci-rail .circ.active { background: var(--vy-accent); color: #fff; border-color: transparent; }   /* white step number: 3.48 on the gradient -> 5.18 solid */
-            .ci-rail .circ.on { background: rgba(217,102,46,.14); color: var(--vy-accent); border-color: transparent; }
+            .ci-rail .circ.on { background: rgba(217,102,46,.14); color:var(--vy-accent-text); border-color: transparent; }
             .ci-rail .lbl { font-size: 11.5px; font-weight: 500; color: var(--vy-muted); white-space: nowrap; }
             .ci-rail .bar { flex: 1; height: 2px; border-radius: 2px; background: var(--vy-hairline); }
 
@@ -50,10 +50,10 @@
 
             .ci-idtypes { display: flex; gap: 8px; margin-bottom: 14px; }
             .ci-idtype { flex: 1; padding: 9px 0; border-radius: 24px; border: 1px solid var(--vy-hairline); background: rgba(255,255,255,.6); color: var(--vy-muted); font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; cursor: pointer; text-align: center; }
-            .ci-idtype.on { background: rgba(217,102,46,.10); border-color: rgba(232,112,58,.45); color: var(--vy-accent); }
+            .ci-idtype.on { background: rgba(217,102,46,.10); border-color: rgba(232,112,58,.45); color:var(--vy-accent-text); }
             .ci-idzone { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 24px 20px; border-radius: 16px; border: 1.5px dashed rgba(120,70,40,.25); background: rgba(255,255,255,.5); cursor: pointer; text-align: center; margin-bottom: 12px; }
             .ci-idzone.has { border: 1px solid rgba(232,112,58,.45); background: rgba(217,102,46,.08); }
-            .ci-idzone .ic { width: 46px; height: 46px; border-radius: 50%; background: rgba(217,102,46,.13); color: var(--vy-accent); display: grid; place-items: center; }
+            .ci-idzone .ic { width: 46px; height: 46px; border-radius: 50%; background: rgba(217,102,46,.13); color:var(--vy-accent-text); display: grid; place-items: center; }
             .ci-idzone.has .ic { background: var(--vy-grad); color: #fff; }
             .ci-idzone .t { font-size: 13.5px; font-weight: 500; color: var(--vy-ink); }
             .ci-idzone .s { font-size: 11.5px; color: var(--vy-faint); }
@@ -68,11 +68,11 @@
 
             .ci-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
             .ci-slot { padding: 12px 0; border-radius: 14px; border: 1px solid var(--vy-hairline); background: rgba(255,255,255,.6); color: var(--vy-ink); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; }
-            .ci-slot.on { background: rgba(217,102,46,.10); border-color: rgba(232,112,58,.45); color: var(--vy-accent); }
+            .ci-slot.on { background: rgba(217,102,46,.10); border-color: rgba(232,112,58,.45); color:var(--vy-accent-text); }
 
             .ci-side-card { background: var(--vy-card); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); padding: 18px; }
             .ci-side-h { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
-            .ci-side-h .ic { width: 32px; height: 32px; border-radius: 10px; background: rgba(217,102,46,.12); color: var(--vy-accent); display: grid; place-items: center; flex-shrink: 0; }
+            .ci-side-h .ic { width: 32px; height: 32px; border-radius: 10px; background: rgba(217,102,46,.12); color:var(--vy-accent-text); display: grid; place-items: center; flex-shrink: 0; }
             .ci-side-h .t { font-family: var(--vy-display); font-weight: 500; font-size: 15px; }
             .ci-kv { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; font-size: 12.5px; }
             .ci-kv + .ci-kv { border-top: 1px solid var(--vy-hairline); }
@@ -80,7 +80,7 @@
             .ci-kv .v { font-weight: 500; text-align: right; }
             .ci-unlock { display: flex; align-items: flex-start; gap: 11px; padding: 9px 0; }
             .ci-unlock + .ci-unlock { border-top: 1px solid var(--vy-hairline); }
-            .ci-unlock .ic { width: 28px; height: 28px; border-radius: 9px; background: rgba(217,102,46,.12); color: var(--vy-accent); display: grid; place-items: center; flex-shrink: 0; }
+            .ci-unlock .ic { width: 28px; height: 28px; border-radius: 9px; background: rgba(217,102,46,.12); color:var(--vy-accent-text); display: grid; place-items: center; flex-shrink: 0; }
             .ci-unlock .t { display: block; font-size: 12.5px; font-weight: 500; }
             /* display:block, per the prototype. Without it these two spans render INLINE and the title runs
                straight into its subtitle — "Door code by emailSent before arrival". Invisible to php -l,
@@ -91,7 +91,7 @@
         </style>
     </x-slot:head>
 
-    <a class="vy-link" href="{{ route('guest.reservation', $reservation) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Back to my stay</a>
+    <a class="vy-link" href="{{ route('guest.reservation', $reservation) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← Back to my stay</a>
 
     @if (session('status'))
         <div class="vy-notice" style="margin:12px 0 16px">{{ session('status') }}</div>
@@ -133,12 +133,12 @@
                             <div style="font-size:12.5px;color:var(--vy-muted);margin-top:6px">Guest register {{ $idCaptured ? 'captured' : 'noted' }} · nothing to sign at the desk</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(217,102,46,.10);border:1px solid rgba(232,112,58,.35);margin-bottom:10px">
-                            <span style="width:32px;height:32px;border-radius:50%;background:rgba(217,102,46,.16);color:var(--vy-accent);display:grid;place-items:center;flex-shrink:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
-                            <span style="min-width:0;flex:1"><span style="display:block;font-size:12.5px;font-weight:500;color:var(--vy-accent)">Door code arrives by email</span><span style="display:block;font-size:11px;color:var(--vy-faint);margin-top:1px">Before your arrival — no key pickup</span></span>
+                            <span style="width:32px;height:32px;border-radius:50%;background:rgba(217,102,46,.16);color:var(--vy-accent-text);display:grid;place-items:center;flex-shrink:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+                            <span style="min-width:0;flex:1"><span style="display:block;font-size:12.5px;font-weight:500;color:var(--vy-accent-text)">Door code arrives by email</span><span style="display:block;font-size:11px;color:var(--vy-faint);margin-top:1px">Before your arrival — no key pickup</span></span>
                         </div>
                         @if ($windowLabel !== null)
                             <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(120,70,40,.06);border:1px solid rgba(120,70,40,.10);margin-bottom:18px">
-                                <span style="width:32px;height:32px;border-radius:50%;background:rgba(217,102,46,.13);color:var(--vy-accent);display:grid;place-items:center;flex-shrink:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg></span>
+                                <span style="width:32px;height:32px;border-radius:50%;background:rgba(217,102,46,.13);color:var(--vy-accent-text);display:grid;place-items:center;flex-shrink:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg></span>
                                 <span style="min-width:0;flex:1"><span style="display:block;font-size:12.5px;font-weight:500">Arrival window noted</span><span style="display:block;font-size:11px;color:var(--vy-faint);margin-top:1px">{{ $windowLabel }} · we’ll prep the room</span></span>
                             </div>
                         @endif
@@ -175,7 +175,7 @@
                             </div>
                             @if ($coGuests > 0)
                                 <div class="ci-note-box" style="margin-bottom:18px">
-                                    <span style="width:30px;height:30px;border-radius:50%;background:rgba(217,102,46,.13);color:var(--vy-accent);display:grid;place-items:center;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"></path></svg></span>
+                                    <span style="width:30px;height:30px;border-radius:50%;background:rgba(217,102,46,.13);color:var(--vy-accent-text);display:grid;place-items:center;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"></path></svg></span>
                                     <span>Travelling with {{ $coGuests }} more {{ \Illuminate\Support\Str::plural('guest', $coGuests) }} on the booking. Only the lead guest checks in online.</span>
                                 </div>
                             @endif

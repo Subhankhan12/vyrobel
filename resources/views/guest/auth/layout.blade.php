@@ -64,7 +64,7 @@
         .vy-btn { width: 100%; margin-top: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 30px; font-family: var(--vy-sans); font-size: 14px; font-weight: 600; color: #fff; background: var(--vy-accent); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); transition: transform .15s ease; }
         .vy-btn:hover { transform: translateY(-1px); }
         .vy-btn:focus-visible, .vy-input:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
-        .vy-link { font-size: 12.5px; color: var(--vy-accent); text-decoration: none; font-weight: 500; }
+        .vy-link { font-size: 12.5px; color: var(--vy-accent-text); text-decoration: none; font-weight: 500; }   /* the second copy — §N.8f */
         .vy-link:hover { text-decoration: underline; }
         .vy-foot { text-align: center; color: var(--vy-faint); font-size: 11.5px; margin-top: 20px; }
     </style>

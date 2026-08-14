@@ -14,6 +14,6 @@
 
     <form method="POST" action="{{ route('guest.logout') }}">
         @csrf
-        <button type="submit" class="vy-btn" style="background:none;color:var(--vy-accent);border:1px solid var(--vy-hairline);box-shadow:none">Sign out</button>
+        <button type="submit" class="vy-btn" style="background:none;color:var(--vy-accent-text);border:1px solid var(--vy-hairline);box-shadow:none">Sign out</button>
     </form>
 @endsection

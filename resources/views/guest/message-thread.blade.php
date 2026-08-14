@@ -4,7 +4,7 @@
      "Marco Silva" persona, NO "Online now"/typing presence, NO "replies in ~10 min" SLA, NO "urgent? Call +351…"
      phone). RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-guest.shell active="messages" :title="$subject">
-    <a class="vy-link" href="{{ route('guest.messages') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Messages</a>
+    <a class="vy-link" href="{{ route('guest.messages') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← Messages</a>
 
     {{-- Chat header (name-only, no presence/SLA/phone) --}}
     <div style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:18px;box-shadow:var(--vy-shadow);padding:16px 20px;margin:12px 0 16px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">

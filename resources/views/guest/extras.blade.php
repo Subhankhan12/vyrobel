@@ -10,7 +10,7 @@
         .ex-item.is-on { border-color: var(--vy-accent-3); box-shadow: var(--vy-shadow-accent); }
         .ex-name { font-family: var(--vy-display); font-weight: 500; font-size: 14.5px; }
         .ex-basis { font-size: 11.5px; color: var(--vy-faint); }
-        .ex-price { font-family: var(--vy-display); font-weight: 600; font-size: 15px; color: var(--vy-accent); margin-top: 6px; }
+        .ex-price { font-family: var(--vy-display); font-weight: 600; font-size: 15px; color:var(--vy-accent-text); margin-top: 6px; }
         .ex-add { margin-top: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 0; border-radius: var(--vy-r-pill, 30px); border: 1px solid var(--vy-accent-3); background: var(--vy-accent); color: #fff; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; cursor: pointer; }
         .ex-item.is-on .ex-add { background: rgba(217,102,46,.13); color: var(--vy-accent-text); }
         .ex-cbx { position: absolute; opacity: 0; pointer-events: none; }
@@ -21,10 +21,10 @@
         .ex-summary { margin-top: 16px; border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); background: var(--vy-card); padding: 16px 18px; }
         .ex-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 13px; border-top: 1px solid var(--vy-hairline); }
         .ex-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 8px; padding-top: 12px; border-top: 1.5px solid var(--vy-hairline); }
-        .ex-total b { font-family: var(--vy-display); font-size: 20px; color: var(--vy-accent); }
+        .ex-total b { font-family: var(--vy-display); font-size: 20px; color:var(--vy-accent-text); }
     </style>
 
-    <a class="vy-link" href="{{ route('guest.reservation', $reservationId) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Back to booking</a>
+    <a class="vy-link" href="{{ route('guest.reservation', $reservationId) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← Back to booking</a>
 
     <div class="vy-eyebrow" style="margin-top:12px;color:var(--vy-green-text)">Nothing to pay now</div>
     <h1 class="vy-h1" style="margin-top:4px">Enhance your stay</h1>

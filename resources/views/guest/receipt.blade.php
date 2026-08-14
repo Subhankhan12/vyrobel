@@ -4,13 +4,13 @@
      shows — ONE source, so the receipt can't drift from the folio, #17). A Refund Receipt / Credit Note is offered
      ONLY when a real refund exists — never fabricated. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-guest.shell active="payments" :title="'Receipt · '.$trip['reference']">
-    <a class="vy-link" href="{{ route('guest.payments') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Payments</a>
+    <a class="vy-link" href="{{ route('guest.payments') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← Payments</a>
 
     {{-- ── Receipt header (document style) ────────────────────────────────────────────────────────────── --}}
     <div style="background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:24px 26px;margin:12px 0 18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
             <div style="min-width:0">
-                <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent)">Receipt</div>
+                <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent-text)">Receipt</div>
                 <div style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink);margin-top:3px">{{ $trip['property'] }}</div>
                 <div style="font-size:12.5px;color:var(--vy-muted);margin-top:4px">{{ $trip['check_in'] }} → {{ $trip['check_out'] }}</div>
             </div>

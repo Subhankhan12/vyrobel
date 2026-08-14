@@ -67,7 +67,7 @@
                 </form>
                 <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--vy-hairline)">
                     <div class="vy-eyebrow" style="margin-bottom:8px">Password</div>
-                    <a class="vy-link" href="#change-password" style="font-size:12.5px;color:var(--vy-accent)" onclick="document.getElementById('change-password').style.display='block';this.style.display='none';return false">Change your password →</a>
+                    <a class="vy-link" href="#change-password" style="font-size:12.5px;color:var(--vy-accent-text)" onclick="document.getElementById('change-password').style.display='block';this.style.display='none';return false">Change your password →</a>
                     <form id="change-password" method="POST" action="{{ route('guest.account.password') }}" data-guard-submit novalidate style="display:none;margin-top:10px">
                         @csrf
                         <div class="vy-field"><label class="vy-label" for="current_password">Current password</label><input class="vy-input" type="password" id="current_password" name="current_password" autocomplete="current-password" required></div>
@@ -114,7 +114,7 @@
             <section class="vy-card">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
                     <div class="vy-eyebrow">Waitlists</div>
-                    <a class="vy-link" href="{{ route('guest.saved') }}" style="font-size:12px;color:var(--vy-accent)">Manage →</a>
+                    <a class="vy-link" href="{{ route('guest.saved') }}" style="font-size:12px;color:var(--vy-accent-text)">Manage →</a>
                 </div>
                 @forelse ($waitlist as $entry)
                     <div class="ac-row">

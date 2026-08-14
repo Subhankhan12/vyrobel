@@ -5,7 +5,7 @@
      "~10 min" reply SLA; the door code/wifi are ArrivalPack-gated to the release window (#33 — withheld early).
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <x-guest.shell active="trips" :title="'Booking '.$trip['reference']">
-    <a class="vy-link" href="{{ route('guest.trips') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← All trips</a>
+    <a class="vy-link" href="{{ route('guest.trips') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← All trips</a>
 
     {{-- ── Hero: status + welcome + CTA + 4 quick-stat tiles ─────────────────────────────────────────── --}}
     <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:24px 26px;margin:12px 0 18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
@@ -72,7 +72,7 @@
             @else
                 <p style="font-size:12.5px;color:var(--vy-muted);margin:12px 0 0">Your stay is fully settled — nothing more to pay.</p>
             @endif
-            <div style="margin-top:12px"><a class="vy-link" href="{{ route('guest.receipt', $trip['id']) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">View receipt &amp; documents →</a></div>
+            <div style="margin-top:12px"><a class="vy-link" href="{{ route('guest.receipt', $trip['id']) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">View receipt &amp; documents →</a></div>
         </section>
 
         {{-- Arrival info (ArrivalPack self-gates the code/wifi to the window — #33) --}}
@@ -114,7 +114,7 @@
                     @endif
                 </div>
             @endif
-            <div style="margin-top:12px"><a class="vy-link" href="{{ route('guest.arrival', $trip['id']) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">Full arrival info →</a></div>
+            <div style="margin-top:12px"><a class="vy-link" href="{{ route('guest.arrival', $trip['id']) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">Full arrival info →</a></div>
         </section>
 
         {{-- Enhance / manage --}}
@@ -138,7 +138,7 @@
                 <div style="font-size:13px;color:var(--vy-muted)">Cancellation terms apply to this booking.</div>
             @endif
             @if ($active)
-                <div style="margin-top:12px"><a class="vy-link" href="{{ route('guest.manage', $trip['id']) }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">Cancel or change this booking →</a></div>
+                <div style="margin-top:12px"><a class="vy-link" href="{{ route('guest.manage', $trip['id']) }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">Cancel or change this booking →</a></div>
             @endif
         </section>
 

@@ -25,12 +25,12 @@
 
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px">
         <span style="font-size:11px;color:var(--vy-faint)">Confirmation {{ $trip['reference'] }}</span>
-        <a href="{{ route('guest.reservation', $trip['id']) }}" style="font-size:12.5px;font-weight:600;color:var(--vy-accent);text-decoration:none">View booking →</a>
+        <a href="{{ route('guest.reservation', $trip['id']) }}" style="font-size:12.5px;font-weight:600;color:var(--vy-accent-text);text-decoration:none">View booking →</a>
     </div>
 
     @if ($trip['reviewable'] ?? false)
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--vy-hairline)">
-            <a href="{{ route('guest.review', $trip['id']) }}" style="font-size:12.5px;font-weight:600;color:var(--vy-accent);text-decoration:none">★ Review your stay →</a>
+            <a href="{{ route('guest.review', $trip['id']) }}" style="font-size:12.5px;font-weight:600;color:var(--vy-accent-text);text-decoration:none">★ Review your stay →</a>
         </div>
     @elseif ($trip['reviewed'] ?? false)
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--vy-hairline);font-size:12px;color:var(--vy-faint)">★ Reviewed — thank you</div>

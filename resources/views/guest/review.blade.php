@@ -13,10 +13,10 @@
         .vy-stars input:checked ~ label, .vy-stars label:hover, .vy-stars label:hover ~ label { color:var(--vy-accent-3); }
         .vy-chip-opt { display:inline-flex; align-items:center; gap:6px; padding:7px 13px; border-radius:20px; border:1px solid var(--vy-glass-border); font-size:12.5px; color:var(--vy-muted); cursor:pointer; margin:0 6px 6px 0; }
         .vy-chip-opt input { position:absolute; opacity:0; }
-        .vy-chip-opt:has(input:checked) { background:rgba(194,65,12,.08); border-color:var(--vy-accent); color:var(--vy-accent); }
+        .vy-chip-opt:has(input:checked) { background:rgba(194,65,12,.08); border-color:var(--vy-accent-text); color:var(--vy-accent-text); }
     </style>
 
-    <a class="vy-link" href="{{ route('guest.trips') }}" style="font-size:12.5px;color:var(--vy-accent);text-decoration:none">← Trips</a>
+    <a class="vy-link" href="{{ route('guest.trips') }}" style="font-size:12.5px;color:var(--vy-accent-text);text-decoration:none">← Trips</a>
 
     {{-- Hero (per-property brand accent) --}}
     <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:22px 26px;margin:12px 0 18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
