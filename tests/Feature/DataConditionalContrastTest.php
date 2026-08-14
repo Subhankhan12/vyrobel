@@ -348,3 +348,60 @@ it('⚠️ AXIS 1 — every modal card carries the class, so the fix is not one 
 
     expect($total)->toBeGreaterThanOrEqual(11);
 });
+
+/*
+ * ⚠️ DO-FRONTDESK-1 — the three axis-3 findings the ROLLED DEMO DATE surfaced (2026-08-14).
+ *
+ * They appeared because an arrival row began rendering (59 → 75 candidates). Confirmed real by recreating the
+ * condition — and the condition needed no seeding at all: the demo has a genuine arrival today, so there was
+ * no fixture to revert.
+ *
+ * ⚠️ CONFIRM-BEFORE-FIXING PAID OFF TWICE:
+ *   · "2 guests" (4.41 in the original run) did NOT fail on re-measure — a BOUNDARY case, not a defect. It is
+ *     fixed anyway, because it inherits from the same rule as "3 nights" which did fail.
+ *   · Two NEW timeline labels reported 1.00 and 1.35 — both PLATE ARTEFACTS. Hand-reading the pixels showed
+ *     the real plate under them is light cream, not the accent the sampler claimed: their small boxes contain
+ *     an adjacent accent marker that captured the plate scan. On their TRUE plates the dot label measures
+ *     5.63 (fine, no defect) — but the now-label measured 4.48, a REAL marginal miss. ⚠️ The finding was real
+ *     while the NUMBER was wrong; discarding the artefact wholesale would have discarded a genuine defect.
+ */
+const FD1_TL_FOOT_PLATE = [245, 220, 204];     // the timeline footnote's row
+const FD1_META_PLATE = [228, 202, 187];        // the arrival row's meta line
+const FD1_NOWLABEL_PLATE = [251, 236, 225];    // hand-read, NOT the sampler's mis-identified accent
+
+it('⚠️ AXIS 3 — the arrival-row text clears AA (it renders only when an arrival exists)', function () {
+    $fd = (string) file_get_contents(resource_path('views/livewire/front-desk.blade.php'));
+    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+
+    // ⚠️ NON-VACUITY: the rules exist, so these are statements about their colour.
+    expect($fd)->toContain('.vy-tl-foot {')->toContain('.vy-tl-nowlabel {')
+        ->and($shell)->toContain('.vy-fd-meta {');
+
+    expect($fd)->toMatch('/\.vy-tl-foot \{[^}]*color: var\(--vy-muted\)/')
+        ->and($fd)->toMatch('/\.vy-tl-nowlabel \{[^}]*color: var\(--vy-accent-text\)/')
+        ->and($shell)->toMatch('/\.vy-fd-meta \{[^}]*color: var\(--vy-on-grad\)/');
+
+    // ⚠️ BOTH HALVES OF THE CASCADE. The "3 nights"/"2 guests" spans carry no colour of their own — they
+    // INHERIT from .vy-fd-meta, whose shell rule AND a page inline both said --vy-muted. Fixing either alone
+    // leaves the other winning (§N.21.6 / the DO-A11Y-5 inheritance pattern).
+    expect($fd)->not->toContain('class="vy-fd-meta" style="margin-top: 4px; font-size: 12px; color: var(--vy-muted);"');
+
+    expect(partBRatio([95, 88, 83], FD1_TL_FOOT_PLATE))->toBeGreaterThanOrEqual(4.5)
+        ->and(partBRatio([108, 100, 95], FD1_TL_FOOT_PLATE))->toBeLessThan(4.5)        // --vy-faint 4.41
+        ->and(partBRatio([68, 59, 54], FD1_META_PLATE))->toBeGreaterThanOrEqual(4.5)
+        ->and(partBRatio([95, 88, 83], FD1_META_PLATE))->toBeLessThan(4.5)             // --vy-muted 4.48
+        ->and(partBRatio([147, 42, 7], FD1_NOWLABEL_PLATE))->toBeGreaterThanOrEqual(4.5)
+        ->and(partBRatio([194, 65, 12], FD1_NOWLABEL_PLATE))->toBeLessThan(4.5);       // --vy-accent 4.48
+});
+
+it('⚠️ NOT VACUOUS — the arrival row really renders, so the guard above is about live markup', function () {
+    // ⚠️ THE DATA-AXIS TRAP: with no arrival today these classes never reach the DOM and the assertions above
+    // would be protecting markup nobody sees. The demo seed carries a genuine arrival, which is WHY the
+    // findings surfaced at all.
+    $s = seedScenario(1);
+    $user = operatorUser($s, [], 'Property Owner');
+
+    $html = (string) $this->actingAs($user)->get('/app/front-desk')->assertOk()->getContent();
+
+    expect($html)->toContain('vy-fd-meta')->toContain('vy-tl-foot');
+});

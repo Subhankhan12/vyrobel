@@ -191,7 +191,7 @@
                                         </div>
                                     @endif
                                     @if ($row['expected_arrival'])
-                                        <div class="vy-fd-meta" style="margin-top: 4px; font-size: 12px; color: var(--vy-muted);">Arrival · {{ $row['expected_arrival'] }}</div>
+                                        <div class="vy-fd-meta" style="margin-top: 4px; font-size: 12px; color: var(--vy-on-grad);">Arrival · {{ $row['expected_arrival'] }}</div>
                                     @endif
                                     <div class="vy-fd-meta">
                                         <span class="vy-tag tone-{{ $row['tone'] }}"><span class="vy-dot"></span>{{ $row['status_label'] }}</span>
@@ -557,7 +557,7 @@
         .vy-tl-now { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--vy-accent, #e8703a); transform: translateX(-1px); z-index: 3; }
         .vy-tl-now::before { content: ''; position: absolute; top: -3px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--vy-accent, #e8703a); box-shadow: 0 0 0 0 rgba(232, 112, 58, 0.5); animation: vyTlPulse 2s ease-out infinite; }
         @keyframes vyTlPulse { to { box-shadow: 0 0 0 9px rgba(232, 112, 58, 0); } }
-        .vy-tl-nowlabel { position: absolute; top: -18px; left: 5px; white-space: nowrap; font-size: 10.5px; font-weight: 700; color: var(--vy-accent, #e8703a); }
+        .vy-tl-nowlabel { position: absolute; top: -18px; left: 5px; white-space: nowrap; font-size: 10.5px; font-weight: 700; color: var(--vy-accent-text); }
         .vy-tl-dot { position: absolute; width: 11px; height: 11px; border-radius: 50%; transform: translate(-50%, -50%); border: 2px solid var(--vy-card-bg, #fff); box-shadow: 0 1px 4px rgba(60, 40, 24, 0.22); z-index: 2; }
         .vy-tl-dot.is-arr { top: 30%; background: var(--vy-accent, #e8703a); }
         .vy-tl-dot.is-dep { top: 70%; background: #6b8caf; }
@@ -565,7 +565,7 @@
         .vy-tl-dotlabel { position: absolute; left: 50%; transform: translateX(-50%); font-size: 9.5px; font-weight: 600; color: var(--vy-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
         .vy-tl-dot.is-arr .vy-tl-dotlabel { bottom: 14px; }
         .vy-tl-dot.is-dep .vy-tl-dotlabel { top: 14px; }
-        .vy-tl-foot { font-size: 11px; color: var(--vy-faint); line-height: 1.45; margin-top: 8px; }
+        .vy-tl-foot { font-size: 11px; color: var(--vy-muted); line-height: 1.45; margin-top: 8px; }
         @media (prefers-reduced-motion: reduce) { .vy-tl-now::before { animation: none; } }
         /* front-desk modals */
         .vy-fdm-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: rgba(46, 30, 18, 0.32); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }

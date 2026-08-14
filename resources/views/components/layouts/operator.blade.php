@@ -866,7 +866,7 @@
         .vy-fd-row:hover { background: rgba(255, 255, 255, 0.45); }
         .vy-fd-main { flex: 1; min-width: 0; }
         .vy-fd-guest { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .vy-fd-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--vy-muted); margin-top: 4px; }
+        .vy-fd-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--vy-on-grad)   /* the "3 nights"/"2 guests" spans INHERIT this — measured 4.48 on the row plate */; margin-top: 4px; }
         .vy-fd-meta .vy-sep { opacity: .5; }
         .vy-fd-right { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; flex: none; }
         .vy-fd-actions { display: flex; align-items: center; gap: 7px; }

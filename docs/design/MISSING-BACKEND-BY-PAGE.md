@@ -9533,3 +9533,30 @@ across **11 modal cards in 4 files**; page cards untouched. The survivor is the 
 ⚠️ **`DO-STATE-2` (OPEN):** the other 10 scrim modals (carry the fix, not individually force-measured) ·
 inactive tab panels · 8 `aria-expanded` accordions · 9 `:focus-within` reveals · toasts · loading/skeleton ·
 disabled states. `x-show` spans **48 files** — two states forced deeply, not forty-eight shallowly.
+
+---
+
+## DO-FRONTDESK-1 — the three axis-3 findings the rolled date surfaced (2026-08-14) ✅ RESOLVED
+
+Recreating the condition needed **no seeding**: the demo carries a genuine arrival today, so there was no
+fixture to revert. Measured as the role, with the arrival row rendering.
+
+| finding | original | on re-measure | verdict |
+|---|---|---|---|
+| `.vy-tl-foot` "Scheduled times…" | 4.30 | **4.41** | ✅ REAL → `--vy-muted` (5.32) |
+| `"3 nights"` (inherits `.vy-fd-meta`) | 4.38 | **4.48** | ✅ REAL → `--vy-on-grad` (7.00) |
+| `"2 guests"` | 4.41 | **did not fail** | ⚠️ a BOUNDARY case, not a defect — fixed anyway, since it inherits the same rule |
+
+⚠️ **CONFIRM-BEFORE-FIXING PAID OFF IN BOTH DIRECTIONS.** Two *new* timeline labels reported **1.00** and
+**1.35** — both **plate artefacts**: hand-reading the pixels showed the real plate under them is light cream,
+not the accent the sampler claimed (their small boxes contain an adjacent accent marker that captured the
+plate scan). On their true plates: `.vy-tl-dotlabel` **5.63 — no defect**; but `.vy-tl-nowlabel` **4.48 — a
+REAL marginal miss** → `--vy-accent-text` (7.06). **The finding was real while the number was wrong;
+discarding the artefact wholesale would have discarded a genuine defect.**
+
+⚠️ **THE CASCADE, BOTH HALVES.** The `"3 nights"`/`"2 guests"` spans carry no colour — they **inherit** from
+`.vy-fd-meta`, whose **shell rule AND a page inline** both said `--vy-muted`. Fixing either alone leaves the
+other winning; both were changed and both are mutation-proven.
+
+⚠️ **NEW PROBE SCOPE NOTE (→ `DO-PROBE-4`):** a *small label whose bounding box contains an adjacent coloured
+marker* has its plate captured by that marker. Two instances here. Not fixed — logged with the reason.
