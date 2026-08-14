@@ -9452,6 +9452,10 @@ wireframe `#E8703A`.
 EXCEPTION**, not a defect; a future pass must not re-flag it. The guards were re-pointed to assert the sub-AA
 **openly** and now protect the decision (re-darkening reds them). Canon: **§N.22.5**.
 
-⚠️ **STILL OPEN, and NOT covered by this ruling:** `.vy-avatar` and `.vy-plan-tag` backgrounds were also moved
-off the wireframe orange by DO-A11Y-1 (they now measure 5.05–5.55). This ruling's scope was the CTA gradient
-stop, so they were left. **A further ruling if the founder wants those on the wireframe orange too.**
+✅ **RESOLVED by `DO-RESTORE-3` (2026-08-14):** `.vy-avatar` and `.vy-plan-tag` backgrounds restored to
+wireframe across 5 definitions in both shells. ⚠️ **White on the avatar peach `#F0A57A` = 2.03 — the lowest
+ratio in the product**, below even the 3:1 large-text bar and materially worse than the CTAs' 3.1–3.35.
+
+⚠️ **`DO-RESTORE-4` (OPEN, founder):** option (b) — the same wireframe peach with **dark text** (`--vy-ink`
+= **7.60**, `#5C2E0B` = **5.60**) — keeps the background exactly and fixes readability, since the problem is
+the white text, not the peach. Surfaced with numbers, not applied.

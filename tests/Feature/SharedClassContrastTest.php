@@ -160,27 +160,27 @@ it('⚠️ the amber + vip tags use their TEXT values, not their FILL values', f
         ->and(sharedRatio([138, 100, 16], [241, 194, 161]))->toBeLessThan(4.5);           // #8a6410 vip
 });
 
-it('⚠️ white-on-a-LIGHT-accent-tint is gone — the surface moved, because the text is white by design', function () {
+it('⚠️ SUPERSEDED BY DO-RESTORE-3 — white-on-a-light-accent-tint is RESTORED, and accepted', function () {
     $shell = operatorShellSource();
 
-    // .vy-avatar (2.27) and .vy-plan-tag (2.46) were the two worst readings in the operator shell. Their text
-    // must be white, so the BACKGROUND had to darken to where white clears.
-    // ⚠️ THREE copies of the avatar concept carried this gradient (§N.8f — the duplication is precisely why
-    // one fix did not reach them all): .vy-avatar, .vy-thread-av and .vy-dash .vy-arr-av. All three paint
-    // #fff on it, so all three read 2.03 and all three moved.
-    foreach (['.vy-avatar', '.vy-thread-av', '.vy-arr-av'] as $avatar) {
-        expect($shell)->toMatch('/'.preg_quote($avatar, '/').'[^}]*background: linear-gradient\(140deg, #C2410C, #9A3412\)/');
-    }
+    // ⚠️ THIS TEST INVERTED. DO-A11Y-1 moved .vy-avatar and .vy-plan-tag off the wireframe light tint because
+    // white on it measured 2.27/2.46 — the worst readings in the product. DO-RESTORE-3 restored them by
+    // founder decision, ACCEPTING that. The assertion is now the mirror of what it was, and it still reads the
+    // SOURCE rather than a pinned constant (DO-RESTORE-2's guard trap).
+    expect($shell)->toMatch('/\.vy-avatar \{[^}]*background:\s*linear-gradient\(140deg, #F0A57A, #D9662E\)/')
+        ->and($shell)->toMatch('/\.vy-plan-tag \{[^}]*background:\s*var\(--vy-grad\)/');
 
-    // ⚠️ NOT a blanket ban on the light gradient: `.vy-chan-glyph` keeps it legitimately, because it paints no
-    // white text on it (its label is #a8480f on a separate tint). Banning the string outright would have made
-    // this guard fail on correct markup.
-    expect($shell)->toContain('.vy-chan-glyph { background: linear-gradient(140deg, #F0A57A, #D9662E); }')
-        ->and($shell)->toMatch('/\.vy-plan-tag \{[^}]*background: var\(--vy-accent\)/');
+    // `.vy-chan-glyph` always carried this gradient legitimately (no white text on it) — unchanged throughout,
+    // so the guard is about the avatar concept, never a blanket ban on the colour.
+    expect($shell)->toContain('.vy-chan-glyph { background: linear-gradient(140deg, #F0A57A, #D9662E); }');
 
-    expect(sharedRatio([255, 255, 255], [194, 65, 12]))->toBeGreaterThanOrEqual(4.5)   // --vy-accent: 5.18
-        ->and(sharedRatio([255, 255, 255], [240, 165, 122]))->toBeLessThan(4.5)        // #F0A57A: 2.03
-        ->and(sharedRatio([255, 255, 255], [232, 112, 58]))->toBeLessThan(4.5);        // the --vy-grad light stop
+    // ⚠️ THE ACCEPTED COST, STATED PLAINLY: white on #F0A57A is 2.03 — below AA, below even the 3:1 large-text
+    // bar, and the lowest ratio anywhere in the product. Accepted per DO-RESTORE-3 with the number surfaced.
+    expect(sharedRatio([255, 255, 255], [240, 165, 122]))->toBeLessThan(3.0);
+
+    // ⚠️ AND THE ALTERNATIVE THE FOUNDER CAN STILL TAKE (option b): the same wireframe peach with DARK text
+    // clears AA comfortably. Pinned so the option stays visible in the record rather than needing re-derivation.
+    expect(sharedRatio([43, 35, 32], [240, 165, 122]))->toBeGreaterThanOrEqual(4.5);   // --vy-ink = 7.60
 });
 
 it('⚠️ N.16.6 — the locked nav item no longer DIMS its own meaning-bearing text', function () {

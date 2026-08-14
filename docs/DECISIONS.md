@@ -9673,6 +9673,11 @@ plate at 4.55, the measured floor stays pinned separately as a fact, so the drif
 > restored the wireframe `#E8703A`, ACCEPTING white-on-CTA at ~3.1–3.35. The entry below is kept as the record
 > of what was done and why; it is no longer the product's target.
 
+> ⚠️ **ALSO SUPERSEDED IN PART BY DO-RESTORE-3 (2026-08-14):** the `.vy-avatar` / `.vy-plan-tag` background
+> moves recorded in DO-A11Y-1 were reverted to their wireframe values by founder decision, accepting
+> white-on-peach at **2.03** — the lowest ratio in the product. See §N.22.6; option (b), dark text on the same
+> peach (`--vy-ink` = 7.60), remains open.
+
 **DO-A11Y-3 — the white-on-accent CTA family, CLOSED.** A real AA failure (3.22–3.39 on every CTA), therefore a
 **required** fix rather than declined headroom. Measured first, and confirmed to be in a **validated input
 class** — "white label on a gradient button, read on the button's own plate" is the harness's VALIDATION 2.
@@ -9745,3 +9750,24 @@ supersedes DO-A11Y-3's darkening. Canon: **§N.22.5**.
 - ⚠️ **Guard trap found:** the old test asserted arithmetic on a **constant**, so it kept passing while
   certifying a colour the product no longer shipped. All colour assertions now read the SOURCE.
 - EAA noted as a fact: it covers consumer-facing EU booking services from June 2025.
+
+
+---
+
+## 2026-08-14 — DO-RESTORE-3 · the avatar / plan-tag wireframe peach restored
+
+**FOUNDER RULED:** restore the `.vy-avatar` and `.vy-plan-tag` **backgrounds** to wireframe. Executed across
+**5 definitions in both shells** (§N.8f). Canon: **§N.22.6**.
+
+⚠️ **THE NUMBER: white on the avatar's light stop `#F0A57A` = 2.03** — the **lowest contrast in the product**.
+It is below the 4.5 small-text bar, below the 3.0 large-text bar, and materially worse than the CTA exception
+accepted in DO-RESTORE-1(a) (3.1–3.35). The initials are 11px/500, so 4.5 applies. **This is a general
+readability concern, not only an AA technicality.**
+
+⚠️ **OPTION (b) IS OPEN AND ARGUABLY BETTER:** the same wireframe peach with dark text — `--vy-ink` = **7.60**,
+`#5C2E0B` = **5.60**. It keeps the wireframe background exactly and fixes readability, because the problem is
+the white text rather than the peach. Surfaced with numbers; **not applied** — the pass did the pure restore
+asked for. `DO-RESTORE-4` if wanted.
+
+Guards re-pointed (not loosened): they read the SOURCE, state the sub-AA openly, pin option (b)'s numbers, and
+protect the decision — mutation-proven three ways including the owner-copy miss. Colour only.

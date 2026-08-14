@@ -203,7 +203,7 @@
         .vy-acct-btn .vy-avatar { width: 30px; height: 30px; }
         .vy-acct-chev { width: 15px; height: 15px; color: var(--vy-faint); transition: transform .18s ease; }
         .vy-acct-btn[aria-expanded="true"] .vy-acct-chev { transform: rotate(180deg); }
-        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(140deg, #C2410C, #9A3412); color: #fff;   /* --vy-grad's light stop #E8703A gives white 3.08 */ font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
+        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff;   /* --vy-grad's light stop #E8703A gives white 3.08 */ font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
         .vy-acct-menu {
             position: absolute; top: calc(100% + 10px); right: 0; z-index: 70; min-width: 210px; padding: 6px;
             background: rgba(255, 252, 248, 0.97); border: 1px solid rgba(255, 255, 255, 0.85); border-radius: var(--vy-r-md);

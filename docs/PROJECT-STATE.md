@@ -7439,3 +7439,48 @@ literal instead of reading the artefact will survive the very change it exists t
 
 **Recorded as a fact, not a push:** the European Accessibility Act covers consumer-facing EU booking services
 from June 2025; the storefront and guest portal are in scope. The decision was taken with that noted.
+
+
+## §N.22.6 ✅ DO-RESTORE-3 — the avatar / plan-tag wireframe peach restored · ⚠️ THE LOWEST RATIO IN THE PRODUCT
+
+**FOUNDER RULED:** restore `.vy-avatar` and `.vy-plan-tag` **backgrounds** to their wireframe values. Executed
+2026-08-14. **5 backgrounds across both shells** (§N.8f — the avatar concept has four definitions in the
+operator shell plus one in the owner shell; the owner-copy miss Part B closed is why every copy is checked):
+
+| surface | restored to | note |
+|---|---|---|
+| operator `.vy-avatar`, `.vy-thread-av`, `.vy-dash .vy-arr-av` | `linear-gradient(140deg, #F0A57A, #D9662E)` | the peach gradient |
+| operator `.vy-plan-tag` | `var(--vy-grad)` | rides the CTA gradient restored in DO-RESTORE-2 |
+| owner `.vy-avatar` | `var(--vy-grad)` | ⚠️ the two shells use **different** wireframe backgrounds — original, not drift |
+
+### ⚠️⚠️ THE NUMBER, STATED PLAINLY — this is materially worse than the CTA decision
+
+**White on the avatar's light stop `#F0A57A` = 2.03.** Measured `.vy-plan-tag` = **3.35**.
+
+⚠️ **2.03 is the lowest contrast anywhere in the product.** For scale: the AA small-text bar is 4.5, the
+large-text bar is 3.0, and the CTA exception the founder accepted in DO-RESTORE-1(a) sits at **3.1–3.35**.
+**2.03 does not reach even the large-text bar** — and the avatar initials are 11px/500, so 4.5 is what applies.
+This is a **general readability concern, not an AA technicality**: white initials on light peach are hard to
+read for everyone, not only for users with low vision.
+
+⚠️ **OPTION (b) REMAINS OPEN AND IS ARGUABLY BETTER — the wireframe peach with DARKER TEXT:**
+
+| text on `#F0A57A` | ratio |
+|---|---|
+| white (current, restored) | **2.03** ⚠️ |
+| `--vy-ink` `rgb(43,35,32)` | **7.60** ✓ |
+| `#5C2E0B` (a warm dark brown) | **5.60** ✓ |
+
+**Option (b) keeps the exact wireframe background and fixes the readability**, because the problem is the
+white text, not the peach. It was surfaced with these numbers; the founder may take it at any time
+(`DO-RESTORE-4`). **Nothing was applied for (b) — this pass did the pure restore that was asked for.**
+
+### The guards
+
+Re-pointed, **not loosened** (DO-RESTORE-2's pattern): they assert the restored backgrounds by **reading the
+source**, state the sub-AA **openly** with its authority, and **pin option (b)'s numbers** so the alternative
+stays in the record rather than needing re-derivation. Mutation-proven three ways — re-darkening the operator
+avatar, missing the owner copy, or re-darkening the plan-tag each RED the guard.
+
+⚠️ The §N.8f invariant that caught the original owner-copy miss is **unchanged in force, only in value**: the
+two shells must agree. It caught a miss in one direction; it now catches one in the other.

@@ -94,19 +94,35 @@ it('⚠️ AXIS 3 — the BOOKED-cell guest name clears AA (it cannot exist with
         ->and(partBRatio([95, 88, 83], PARTB_LEGEND_PLATE))->toBeLessThan(4.5);
 });
 
-it('⚠️ A DO-A11Y-1 MISS, CLOSED — .vy-avatar is defined in BOTH shells and only one was fixed', function () {
+it('⚠️ §N.8f — .vy-avatar is defined in BOTH shells, and BOTH carry the wireframe background', function () {
     $owner = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
     $operator = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
 
-    // ⚠️ §N.8f in its most literal form: one concept, two definitions, and a fix that reached only one of
-    // them. The owner copy kept `var(--vy-grad)`, whose light stop #E8703A gives white 3.08 — so the owner
-    // avatar was still failing after DO-A11Y-1 reported the class fixed.
+    // ⚠️ RE-POINTED BY DO-RESTORE-3 (2026-08-14). DO-A11Y-1 moved these backgrounds to a deep orange so white
+    // would clear AA; the founder ruled to restore the WIREFRAME backgrounds and ACCEPT the sub-AA. What this
+    // test protects is UNCHANGED and is the point: the two shells must agree. It caught an owner-copy miss in
+    // one direction (Part B); it now catches a missed copy in the other.
+    //
+    // ⚠️ THE TWO SHELLS USE DIFFERENT WIREFRAME BACKGROUNDS, and that is original, not drift: the operator
+    // avatar is the peach gradient, the owner avatar rides `--vy-grad`.
+    expect($operator)->toMatch('/\.vy-avatar \{[^}]*background:\s*linear-gradient\(140deg, #F0A57A, #D9662E\)/')
+        ->and($owner)->toMatch('/\.vy-avatar \{[^}]*background:\s*var\(--vy-grad\)/');
+
+    // ⚠️ THE PROTECTION: the AA-clearing background DO-A11Y-1 shipped must not reappear on either copy — its
+    // return means someone "fixed" a contrast report and reverted the founder's decision.
     foreach ([$owner, $operator] as $shell) {
-        expect($shell)->toMatch('/\.vy-avatar \{[^}]*background:\s*linear-gradient\(140deg, #C2410C, #9A3412\)/');
+        expect($shell)->not->toMatch('/\.vy-avatar \{[^}]*background:\s*linear-gradient\(140deg, #C2410C, #9A3412\)/');
     }
 
-    expect(partBRatio([255, 255, 255], [194, 65, 12]))->toBeGreaterThanOrEqual(4.5)     // --vy-accent: 5.18
-        ->and(partBRatio([255, 255, 255], [232, 112, 58]))->toBeLessThan(4.5);          // #E8703A: 3.08
+    // ⚠️ ASSERTED OPENLY AS SUB-AA — this is the WORST reading in the product, and it is deliberate.
+    // White on the operator avatar's light stop #F0A57A is 2.03 against a 4.5 bar; it does not even reach the
+    // 3:1 LARGE-text bar, and the initials are 11px/500 so 4.5 is what applies. ACCEPTED per DO-RESTORE-3,
+    // with the number surfaced to the founder — not discovered later as a defect.
+    expect(partBRatio([255, 255, 255], [240, 165, 122]))->toBeLessThan(3.0)
+        ->and(partBRatio([255, 255, 255], [240, 165, 122]))->toBeGreaterThan(1.9);
+
+    // For contrast with the decision that was NOT taken: the deep orange cleared it comfortably.
+    expect(partBRatio([255, 255, 255], [194, 65, 12]))->toBeGreaterThanOrEqual(4.5);
 });
 
 /*
