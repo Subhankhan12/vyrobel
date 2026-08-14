@@ -292,3 +292,59 @@ it('⚠️ the ACTIVE sidebar item used the brand FILL as text — 4.49, a miss 
     expect(partBRatio([194, 65, 12], PARTB_NAV_ACTIVE_PLATE))->toBeLessThan(4.5)          // --vy-accent 4.49
         ->and(partBRatio([147, 42, 7], PARTB_NAV_ACTIVE_PLATE))->toBeGreaterThanOrEqual(4.5);
 });
+
+/*
+ * ⚠️ DO-STATE-1 — AXIS 1 (STYLE/STATE), the last unswept axis (2026-08-14).
+ *
+ * A surface hides three ways, and each needs its own forcing move:
+ *   axis 1 STATE  → FORCE THE STATE VISIBLE (open the modal, activate the tab, expand the accordion)
+ *   axis 2 ROLE   → render as the role (§N.14.1)
+ *   axis 3 DATA   → force the data condition (§N.16.2)
+ *
+ * ⚠️ THE FINDING: A MODAL CARD IS NOT A PAGE CARD. `--vy-glass` (rgba(255,252,248,.58)) was tuned for a card
+ * on the LIGHT page. Inside a modal the identical card sits on a DARK scrim (rgba(43,35,32,.4)) which
+ * composites through it, dropping the plate from ~rgb(249,223,207) to ~rgb(215,199,189). Every muted/faint
+ * label in every modal is measured against THAT — and no earlier pass could see it, because a closed modal
+ * renders nothing.
+ */
+const STATE1_MODAL_PLATE = [215, 199, 189];   // the glass card composited over the scrim, at the old .58
+const STATE1_PAGE_PLATE = [249, 223, 207];    // the same card on a page, for contrast
+
+it('⚠️ AXIS 1 — the MODAL card is opaque enough that its labels clear AA', function () {
+    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+
+    // ⚠️ NON-VACUITY: the rule exists and the concept is named once (§N.8f) rather than patched per modal.
+    expect($shell)->toContain('.vy-modal-card {')
+        ->and($shell)->toMatch('/\.vy-modal-card \{[^}]*background: rgba\(255, 252, 248, 0\.94\)/');
+
+    // ⚠️ ORDER IS LOAD-BEARING, AND THIS IS THE ASSERTION THAT PROVES IT. `.vy-card` and `.vy-modal-card` are
+    // both single-class selectors, so specificity ties and the LATER rule wins. Defined before `.vy-card`,
+    // this rule silently loses and the page does not move — which is exactly what happened twice before the
+    // re-measure caught it (§N.21.6).
+    expect(strpos($shell, '.vy-modal-card {'))->toBeGreaterThan(strrpos($shell, "\n        .vy-card {"));
+
+    // The measured reason: the old glass over the scrim failed both greys; the page card never did.
+    expect(partBRatio([108, 100, 95], STATE1_MODAL_PLATE))->toBeLessThan(4.5)      // --vy-faint 2.79 measured
+        ->and(partBRatio([95, 88, 83], STATE1_MODAL_PLATE))->toBeLessThan(4.5)     // --vy-muted 3.38 measured
+        ->and(partBRatio([108, 100, 95], STATE1_PAGE_PLATE))->toBeGreaterThan(4.5); // the same grey on a page
+});
+
+it('⚠️ AXIS 1 — every modal card carries the class, so the fix is not one dialog deep (§N.8f)', function () {
+    // ⚠️ A GUARD ON THE CLOSED MODAL WOULD BE VACUOUS — it cannot see the surface at all. This asserts the
+    // MARKUP that the forced-open measurement proved, across every file that builds a scrim modal.
+    $files = ['livewire/operator/guests-list.blade.php', 'livewire/operator/guest-profile.blade.php',
+        'livewire/maintenance-list.blade.php', 'livewire/housekeeping-board.blade.php'];
+
+    $total = 0;
+    foreach ($files as $f) {
+        $src = (string) file_get_contents(resource_path('views/'.$f));
+
+        // ⚠️ non-vacuity per file: it really does build a scrim modal. (No second argument — Pest's
+        // toContain() takes MULTIPLE NEEDLES, so a "message" there is silently searched for as text and the
+        // guard fails for the wrong reason. It did, once.)
+        expect($src)->toContain('rgba(43,35,32,.4)');
+        $total += substr_count($src, 'vy-modal-card');
+    }
+
+    expect($total)->toBeGreaterThanOrEqual(11);
+});

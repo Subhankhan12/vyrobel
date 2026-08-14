@@ -215,7 +215,7 @@
         @if ($canManage)
             <div x-show="nwoOpen" x-cloak @keydown.escape.window="nwoOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="nwoOpen = false" class="vy-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;">
+                <div @click.outside="nwoOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;">
                     <h2 class="vy-card-title" style="margin-bottom: 12px;">New work order</h2>
                     <form method="POST" action="{{ route('app.maintenance.store') }}">
                         @csrf
@@ -264,7 +264,7 @@
             {{-- ── ASSIGN modal ───────────────────────────────────────────────────────────────────── --}}
             <div x-show="assign" x-cloak @keydown.escape.window="assign = null"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="assign = null" class="vy-card vy-fade" style="width: 100%; max-width: 420px;" x-show="assign">
+                <div @click.outside="assign = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px;" x-show="assign">
                     <h2 class="vy-card-title" style="margin-bottom: 2px;">Assign technician</h2>
                     <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;" x-text="assign ? (assign.bulk ? (sel.length + ' work order(s) selected') : assign.title) : ''"></p>
                     {{-- Shared modal: BULK posts the selected ids to bulk.assign; single posts to that ticket's route. --}}
@@ -304,7 +304,7 @@
         {{-- ── DETAIL drawer ──────────────────────────────────────────────────────────────────────── --}}
         <div x-show="detail" x-cloak @keydown.escape.window="detail = null"
              style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: stretch; justify-content: flex-end;">
-            <div @click.outside="detail = null" class="vy-card vy-fade" style="width: 100%; max-width: 440px; height: 100%; border-radius: 0; overflow: auto;" x-show="detail">
+            <div @click.outside="detail = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px; height: 100%; border-radius: 0; overflow: auto;" x-show="detail">
                 <template x-if="detail">
                     <div>
                         <div class="vy-detail-head" style="margin-bottom: 12px;">

@@ -226,7 +226,7 @@
             {{-- ── MESSAGE modal ──────────────────────────────────────────────────────────────────────── --}}
             <div x-show="msgOpen" x-cloak @keydown.escape.window="msgOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="msgOpen = false" class="vy-card vy-fade" style="width: 100%; max-width: 460px;">
+                <div @click.outside="msgOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 460px;">
                     <h2 class="vy-card-title" style="margin-bottom: 4px;">Message <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></h2>
                     <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">Sent by email · replies land in your inbox.</p>
                     <form method="POST" action="{{ route('app.guests.bulk.message') }}">
@@ -250,7 +250,7 @@
             {{-- ── ADD TAG modal — reuses the real per-guest tag write ────────────────────────────────── --}}
             <div x-show="tagOpen" x-cloak @keydown.escape.window="tagOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="tagOpen = false" class="vy-card vy-fade" style="width: 100%; max-width: 420px;">
+                <div @click.outside="tagOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px;">
                     <h2 class="vy-card-title" style="margin-bottom: 12px;">Tag <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></h2>
                     <form method="POST" action="{{ route('app.guests.bulk.tag') }}">
                         @csrf
@@ -268,7 +268,7 @@
             {{-- ── DELETE (GDPR erasure) confirm — HONEST copy: PII erased, reservations retained ───────── --}}
             <div x-show="delOpen" x-cloak @keydown.escape.window="delOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="delOpen = false" class="vy-card vy-fade" style="width: 100%; max-width: 440px;">
+                <div @click.outside="delOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px;">
                     <h2 class="vy-card-title" style="margin-bottom: 4px; color: #8F3110;">Erase <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span>?</h2>
                     <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 6px;">This can’t be undone.</p>
                     <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 14px;">
@@ -298,7 +298,7 @@
             {{-- ── ADD GUEST modal — a real create ────────────────────────────────────────────────────── --}}
             <div x-show="addOpen" x-cloak @keydown.escape.window="addOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="addOpen = false" class="vy-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;">
+                <div @click.outside="addOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;">
                     <h2 class="vy-card-title" style="margin-bottom: 12px;">Add guest</h2>
                     <form method="POST" action="{{ route('app.guests.store') }}">
                         @csrf

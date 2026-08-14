@@ -242,7 +242,7 @@
         {{-- ── ASSIGN modal ───────────────────────────────────────────────────────────────────────── --}}
         <div x-show="assign" x-cloak @keydown.escape.window="assign = null"
              style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-            <div @click.outside="assign = null" class="vy-card vy-fade" style="width: 100%; max-width: 440px;" x-show="assign">
+            <div @click.outside="assign = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px;" x-show="assign">
                 <h2 class="vy-card-title" style="margin-bottom: 2px;">Assign housekeeper</h2>
                 <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;" x-text="assign ? (assign.unit + ' · ' + assign.type) : ''"></p>
                 <form method="POST" :action="assign ? assignUrl(assign.id) : ''">
@@ -279,7 +279,7 @@
         {{-- ── ASSIGN-ALL confirm (the balance is computed + applied server-side) ──────────────────── --}}
         <div x-show="assignAllOpen" x-cloak @keydown.escape.window="assignAllOpen = false"
              style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-            <div @click.outside="assignAllOpen = false" class="vy-card vy-fade" style="width: 100%; max-width: 420px;">
+            <div @click.outside="assignAllOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px;">
                 <h2 class="vy-card-title" style="margin-bottom: 2px;">Assign all unassigned</h2>
                 <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">Balanced by load &amp; who has the fewest open rooms — waiting-guest rooms first.</p>
                 <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 16px;">{{ $unassignedCount }} unassigned {{ \Illuminate\Support\Str::plural('room', $unassignedCount) }} will be shared across {{ count($crew) }} {{ \Illuminate\Support\Str::plural('housekeeper', count($crew)) }}.</p>
@@ -297,7 +297,7 @@
         {{-- ── ROOM DETAIL modal (GATE 8.2 — was a right-side drawer; now a centered modal via the shared
              .vy-modal-backdrop, whose grid centering survives x-show's inline-display toggle). ── --}}
         <div x-show="detail" x-cloak @keydown.escape.window="detail = null" class="vy-modal-backdrop" style="z-index: 50;">
-            <div @click.outside="detail = null" class="vy-card vy-fade" style="width: 100%; max-width: 440px; max-height: 90vh; overflow: auto;" x-show="detail">
+            <div @click.outside="detail = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px; max-height: 90vh; overflow: auto;" x-show="detail">
                 <template x-if="detail">
                     <div>
                         <div class="vy-detail-head" style="margin-bottom: 12px;">

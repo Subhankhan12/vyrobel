@@ -7551,3 +7551,58 @@ model). Each reports a REASON, never a number.
 
 ⚠️ **Eight corrections now**: §N.20.1's four, Part B's two capture faults, and these two. **Every one was
 caught by a fixture with a known answer — none by the numbers looking wrong.**
+
+
+# (N.24) 🏁 DO-STATE-1 — AXIS 1 SWEPT · THE TAXONOMY IS COMPLETE (2026-08-14)
+
+**§N.16.2's three-axis taxonomy is now swept in PRACTICE, not just described.** Each axis hides a surface a
+different way, and each needed its own forcing move:
+
+| axis | how a surface hides | the forcing move | swept |
+|---|---|---|---|
+| 1 **STYLE/STATE** (G10) | closed modal · inactive tab · collapsed accordion · hover/focus reveal | **force the state VISIBLE** | ✅ **this pass** |
+| 2 **AUTHORIZATION** (§N.14.1) | gated markup absent for the role | render **as the role** | ✅ Part A |
+| 3 **DATA** (§N.16.2) | markup that needs a populated list / performed search / record state | force the **data condition** | ✅ Part B + throughput |
+
+## §N.24.1 ⚠️ THE FINDING — A MODAL CARD IS NOT A PAGE CARD
+
+`--vy-glass` is `rgba(255,252,248,.58)`, tuned for a card sitting on the **light page**. Inside a modal the
+identical `.vy-card` sits on a **dark scrim** (`rgba(43,35,32,.4)`) which composites straight through it:
+
+| | plate | `--vy-faint` | `--vy-muted` |
+|---|---|---|---|
+| card on a **page** | rgb(249,223,207) | 4.55 ✓ | 5.5 ✓ |
+| the same card in a **modal** | **rgb(215,199,189)** | **2.79** ⚠️ | **3.38** ⚠️ |
+
+**Every muted or faint label in every modal in the product was measured against that plate** — and no earlier
+pass could see it, because a closed modal renders nothing. Fixed by naming the surface once
+(`.vy-modal-card`, `rgba(255,252,248,.94)`) and marking all **11 modal cards across 4 files** (§N.8f). Page
+cards untouched — they already pass, and darkening them would violate posture A. The backdrop blur survives.
+**Re-measured: 3 → 1 failure, the survivor being the DECIDED CTA.**
+
+## §N.24.2 ⚠️ THREE METHOD TRAPS, ALL CAUGHT BY RE-MEASURING
+
+⚠️ **The fix failed to land TWICE before it worked**, and only the re-measure revealed it (§N.21.6):
+
+1. **FORCE-AND-COLLECT IN ONE SYNCHRONOUS BLOCK MEASURES THE PRE-STATE DOM.** Setting the Alpine flag and
+   walking the DOM in the same evaluate collected candidates *before* Alpine applied `x-show` — so the
+   hit-test saw an uncovered page while the screenshot captured the scrimmed one. **101 fabricated failures.**
+   The DOM-changed-between-collect-and-capture fault, arriving from the opposite direction.
+   → **FORCE the state, AWAIT two animation frames, settle, THEN collect** — in separate calls.
+2. ⚠️ **EQUAL SPECIFICITY MEANS ORDER DECIDES.** `.vy-card` and `.vy-modal-card` are both single-class
+   selectors. Defined *before* `.vy-card`, the new rule silently lost and the page did not move — twice, since
+   the first correction inserted it after an *earlier* `.vy-card` occurrence rather than the last.
+   *A cascade fix is not landed until the computed style says so.* The guard now asserts the ORDER.
+3. **A GUARD THAT FAILED FOR THE WRONG REASON.** Pest's `toContain()` takes **multiple needles**, so a
+   "failure message" passed as a second argument is silently searched for as text. The guard reddened on a
+   string that was never meant to be in the file.
+
+## §N.24.3 🧭 STATE COVERAGE — what was forced, what remains
+
+**FORCED + MEASURED:** the seed's closed modal (`msgOpen`) · the inline bulk-select bar (`selectMode`) — the
+43 parked ancestor-dimming fires were `opacity:0` panels of exactly this kind.
+
+**LOGGED-UNSWEPT → `DO-STATE-2`:** the other 10 scrim modals (now carrying the fix, but not individually
+force-measured) · inactive **tab panels** (front-desk Departures/In-house) · `aria-expanded` accordions (8
+files) · `:focus-within` hover reveals (9 files) · toast/flash states · loading/skeleton states · disabled
+states. ⚠️ `x-show` appears in **48 files** — this pass forced two states deeply, not forty-eight shallowly.

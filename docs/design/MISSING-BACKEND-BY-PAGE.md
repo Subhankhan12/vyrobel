@@ -9514,3 +9514,22 @@ Two slips, both caught by the discipline rather than by luck:
    exactly. **A mutation test proves nothing until you confirm the mutation happened.**
 
 No fix failed to move the page this pass (every one re-measured).
+
+---
+
+## DO-STATE-1 — the STATE axis (G10) swept · the taxonomy completed (2026-08-14)
+
+**Axis 1 was the last unswept.** Forced states are measured by opening them, settling them, and measuring —
+the analogue of "render as the role" (axis 2) and "force the data" (axis 3).
+
+| surface | state forced | N | K | dimmed |
+|---|---|---|---|---|
+| guests-list **Message modal** + bulk-select bar | `msgOpen`, `selectMode` | 5 | **3 → 1** | 0 |
+
+⚠️ **THE FINDING: a modal card is not a page card.** `--vy-glass` at `.58` over the dark scrim drops the plate
+to rgb(215,199,189) — `--vy-faint` **2.79**, `--vy-muted` **3.38**. Fixed once as `.vy-modal-card` (`.94`)
+across **11 modal cards in 4 files**; page cards untouched. The survivor is the DECIDED CTA.
+
+⚠️ **`DO-STATE-2` (OPEN):** the other 10 scrim modals (carry the fix, not individually force-measured) ·
+inactive tab panels · 8 `aria-expanded` accordions · 9 `:focus-within` reveals · toasts · loading/skeleton ·
+disabled states. `x-show` spans **48 files** — two states forced deeply, not forty-eight shallowly.

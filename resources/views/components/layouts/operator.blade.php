@@ -378,6 +378,7 @@
         .vy-sch-rail { width: 224px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
         /* The rail's cards are stacked by the flex gap, so their own stacking margin must go. */
         .vy-sch-rail > .vy-card { margin-top: 0 !important; }
+
         @media (max-width: 1100px) {
             .vy-sch-cols { display: block; }
             .vy-sch-rail { width: auto; margin-top: 18px; }
@@ -543,6 +544,18 @@
             border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg);
             box-shadow: var(--vy-shadow); padding: 22px;
         }
+
+        /* ⚠️ DO-STATE-1 — A MODAL CARD IS NOT A PAGE CARD (the axis-1 finding).
+           `--vy-glass` is rgba(255,252,248,.58), tuned for a card on the LIGHT page. Inside a modal the same
+           card sits on a DARK scrim (rgba(43,35,32,.4)) which composites through it: the plate falls from
+           ~rgb(249,223,207) to ~rgb(215,199,189), and every muted/faint label in every modal is measured
+           against THAT. Measured on the forced-open Message dialog: --vy-faint 2.79, --vy-muted 3.38.
+           Raising only the MODAL card's opacity fixes all of them at once; page cards are untouched (they
+           already pass, and darkening them would violate posture A). The backdrop blur survives.
+           ⚠️ PLACED AFTER `.vy-card` DELIBERATELY: both are single-class selectors, so specificity TIES and
+           ORDER decides. Defined before it, this rule silently loses — which is what happened on the first
+           two attempts, caught only by re-measuring the page (§N.21.6). */
+        .vy-modal-card { background: rgba(255, 252, 248, 0.94); }
         .vy-card--flush { padding: 0; overflow: hidden; }
         .vy-card--accent { border-color: var(--vy-accent-border); }   /* Polish Batch 1 — the accent card treatment (mirrors the owner layout's canonical definition). */
         /* Polish Batch 2 — the shared hover for an interactive TAP-TARGET card (opt-in; never on a static/placeholder card).
