@@ -198,3 +198,96 @@ it('⚠️ NO CLEAR BAND ⇒ UNMEASURABLE — never a fallback to the untrustwor
     // as a clean bill.
     expect($r['ratios'])->not->toHaveKey('inside-glyphs');
 });
+
+/*
+ * ⚠️ DO-PROBE-3 — GAP A (ancestor opacity) and GAP B(i) (solid plate), 2026-08-14.
+ *
+ * These two gaps were NAMED unmeasurable by earlier passes. They are now measured, and the fixture states its
+ * answers BY HAND so the tool cannot certify itself:
+ *
+ *   plate #FFFFFF, text #000000, ancestor opacity .55
+ *     → painted = .55*0 + .45*255 = rgb(115,115,115) → 4.74   (declared black would say 21.00)
+ *   nested .55 * .50 = .275 → rgb(185,185,185) → 1.96
+ *   opacity 0 → INVISIBLE: must report a reason, never ~1.0
+ *
+ * ⚠️ THE REAL-WORLD WITNESS is DO-A11Y-1's locked nav item, which DECLARED a colour measuring 9.40 while
+ * PAINTING at 2.89. Measuring the declared colour there was the worst false clean bill this tool has produced.
+ */
+const PROBE3_DIMMED_EXPECT = ['plain' => 21.0, 'dim' => 4.74, 'nested' => 1.96];
+
+it('⚠️ GAP A — an ancestor-dimmed element is MEASURED at what it PAINTS, not what it declares', function () {
+    $r = sampler('dimmed.png', 'dimmed-candidates.json');
+
+    // ⚠️ NON-VACUITY: three measured, one refused — not an empty result posing as a pass.
+    expect($r['measured'])->toBe(3)->and($r['unmeasurable'])->toBe(1);
+
+    foreach (PROBE3_DIMMED_EXPECT as $key => $expected) {
+        // (float) because JSON hands back 21 as an int while the hand-computed constant is 21.0 — a strict
+        // toBe() would fail on a value that is exactly right.
+        expect((float) $r['ratios'][$key])->toBe($expected, "{$key} did not hit its hand-computed value");
+    }
+
+    // ⚠️ THE POINT OF THE WHOLE GAP: declared-vs-painted differ by a factor of four here. A tool reporting
+    // 21.00 for `dim` would be describing a colour that is not on the screen.
+    expect($r['ratios']['plain'])->toBeGreaterThan(4 * $r['ratios']['dim']);
+});
+
+it('⚠️ GAP A — zero opacity is INVISIBLE, and refuses rather than scoring ~1.0', function () {
+    $r = sampler('dimmed.png', 'dimmed-candidates.json');
+
+    // Compositing at alpha 0 yields the plate itself, i.e. a ratio of 1.0 — which reads as a catastrophic
+    // contrast failure rather than "there is nothing painted here". Fail loud instead.
+    expect($r['unmeasurableReasons'])->toHaveKey('invisible-zero-opacity')
+        ->and($r['ratios'])->not->toHaveKey('invisible');
+});
+
+it('⚠️ §N.18.1 — the ancestor-opacity model is checked against RAW PIXELS, not the tool’s own arithmetic', function () {
+    // The strongest available check: read the painted glyph straight out of the PNG and confirm the browser
+    // paints exactly what the alpha model predicts. If this holds, the model describes reality; the sampler's
+    // ratio is then just arithmetic on top of it.
+    $img = imagecreatefrompng(base_path('tests/Fixtures/probe/dimmed.png'));
+    $cands = json_decode((string) file_get_contents(base_path('tests/Fixtures/probe/dimmed-candidates.json')), true);
+
+    $darkest = static function (array $e) use ($img): int {
+        $min = 255;
+        for ($y = $e['y']; $y < $e['y'] + $e['h']; $y++) {
+            for ($x = $e['x']; $x < $e['x'] + $e['w']; $x++) {
+                $min = min($min, (imagecolorat($img, $x, $y) >> 16) & 255);
+            }
+        }
+
+        return $min;
+    };
+
+    $by = [];
+    foreach ($cands['candidates'] as $c) {
+        $by[$c['t']] = $c;
+    }
+
+    // black over white at alpha a paints (1-a)*255: 0 at alpha 1, 115 at .55, 185 at .275.
+    expect($darkest($by['plain']))->toBe(0)
+        ->and($darkest($by['dim']))->toBe(115)
+        ->and($darkest($by['nested']))->toBe(185);
+});
+
+it('⚠️ GAP B(i) — a SOLID background IS the plate, so dense text no longer needs a clear column', function () {
+    $r = sampler('dense2.png', 'dense2-candidates.json');
+
+    // #767676 on #FFFFFF is 4.54 by hand. Recovering the plate from the computed background removes both the
+    // anti-alias fringe the column scan can pick up AND the need for any clear pixel to exist.
+    expect((float) $r['ratios']['solid'])->toBe(4.54);
+
+    // The gradient case with line-leading is recovered by the existing clear-column path.
+    expect($r['ratios']['leading'])->toBeGreaterThan(4.0);
+});
+
+it('⚠️ THE RESIDUE STILL REFUSES — no plate, no number (the honest bound)', function () {
+    // ⚠️ GAP B IS PARTIAL, DELIBERATELY. Where text genuinely fills a GRADIENT element edge to edge there is no
+    // background pixel to read, and no solid to fall back on — so any figure would be invented. This is the
+    // committed residue case, and it must keep reporting a REASON rather than a ratio.
+    $r = sampler('dense.png', 'dense-noband-candidates.json');
+
+    expect($r['unmeasurable'])->toBe(1)
+        ->and($r['unmeasurableReasons'])->toHaveKey('no-clear-band')
+        ->and($r['measured'])->toBe(0);
+});

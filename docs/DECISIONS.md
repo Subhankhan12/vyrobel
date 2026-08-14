@@ -9771,3 +9771,26 @@ asked for. `DO-RESTORE-4` if wanted.
 
 Guards re-pointed (not loosened): they read the SOURCE, state the sub-AA openly, pin option (b)'s numbers, and
 protect the decision — mutation-proven three ways including the owner-copy miss. Colour only.
+
+---
+
+## 2026-08-14 — DO-PROBE-3 · two probe gaps closed, one blocked on tooling
+
+Canon: **§N.23**. Tooling only — no product code.
+
+- ✅ **GAP A (ancestor opacity) CLOSED.** The effective alpha is the product down the ancestor chain; the
+  painted colour is `alpha*text + (1-alpha)*plate`. The probe now MEASURES dimmed text instead of refusing it.
+  Fixture hits the hand-computed 21.00 / **4.74** / **1.96** exactly, and ⚠️ **the model was validated against
+  RAW PIXELS** (0/115/185 — precisely predicted), independent of the tool's own arithmetic (§N.18.1).
+  `opacity:0` refuses rather than scoring ~1.0.
+- ✅ **GAP B PARTIALLY CLOSED, residue named.** A SOLID computed background IS the plate — dense text no longer
+  needs a clear column (hand-computed 4.54, hit exactly). Gradient + line-leading already worked. ⚠️ Dense text
+  filling a **gradient** edge-to-edge **stays unmeasurable**: no background pixel exists, so any number would be
+  invented. ⚠️ The new fixture meant to construct that residue **failed to** (its text did not fill the box) —
+  reported, and the pre-existing `dense-noband` fixture still carries the case.
+- ⛔ **GAP C BLOCKED ON TOOLING.** No rasterizer in the environment (`pdftoppm`, `gs`, `mutool`, `qpdf`,
+  `convert`, php-imagick all absent). **Not faked.** Needs `brew install poppler` or `ghostscript` — and its own
+  candidate model, since a PDF has no DOM to take element rects from.
+
+Eight instrument corrections now, **every one caught by a known-answer fixture**, never by a number looking
+wrong. All new cases mutation-proven; the 11 pre-existing harness cases still pass.

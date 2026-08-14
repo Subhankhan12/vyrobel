@@ -1,0 +1,69 @@
+{
+  "docWidth": 900,
+  "docHeight": 400,
+  "viewportH": 400,
+  "viewportW": 900,
+  "url": "/__probe/dense2.html",
+  "rejectedNotPainted": 0,
+  "rejectedOffscreen": 0,
+  "candidates": [
+    {
+      "t": "solid",
+      "sel": "div#solid",
+      "txt": "Dense text on a solid backgr",
+      "css": "rgb(118, 118, 118)",
+      "fg": [
+        118,
+        118,
+        118
+      ],
+      "x": 0,
+      "y": 0,
+      "w": 780,
+      "h": 35,
+      "need": 4.5,
+      "alpha": 1,
+      "solidBg": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "t": "leading",
+      "sel": "div#leading",
+      "txt": "Dense text on a gradient but",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 0,
+      "y": 35,
+      "w": 780,
+      "h": 67,
+      "need": 4.5,
+      "alpha": 1,
+      "solidBg": null
+    },
+    {
+      "t": "edge",
+      "sel": "div#edge",
+      "txt": "Densetextonagradientfillingt",
+      "css": "rgb(95, 88, 83)",
+      "fg": [
+        95,
+        88,
+        83
+      ],
+      "x": 0,
+      "y": 102,
+      "w": 760,
+      "h": 15,
+      "need": 4.5,
+      "alpha": 1,
+      "solidBg": null
+    }
+  ]
+}

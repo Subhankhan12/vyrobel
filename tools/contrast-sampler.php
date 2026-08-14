@@ -101,6 +101,28 @@ const PLATE_TOLERANCE_RATIO = 0.20;
  */
 const WORST_PERCENTILE = 0.10;
 
+/*
+ * ⚠️ GAP A (DO-PROBE-3) — WHAT AN ANCESTOR'S OPACITY ACTUALLY PAINTS.
+ *
+ * CSS opacity composites the whole subtree against what is behind it, so an element under `opacity: .55` paints
+ * its text at 55% over the plate — NOT at its declared colour. Measuring the declared colour there is
+ * optimistic, and it produced the worst false clean bill this instrument has had: DO-A11Y-1's locked nav item
+ * DECLARED a colour measuring 9.40 while PAINTING at 2.89.
+ *
+ * The effective alpha is the PRODUCT down the chain (the collector supplies it). The painted colour is then the
+ * ordinary source-over composite, per channel: out = alpha*text + (1-alpha)*plate.
+ *
+ * ⚠️ An alpha at or near zero is INVISIBLE, not low-contrast — it stays unmeasurable rather than returning 1.0.
+ */
+function compositeAt(array $text, array $plate, float $alpha): array
+{
+    return [
+        (int) round($alpha * $text[0] + (1 - $alpha) * $plate[0]),
+        (int) round($alpha * $text[1] + (1 - $alpha) * $plate[1]),
+        (int) round($alpha * $text[2] + (1 - $alpha) * $plate[2]),
+    ];
+}
+
 function luminance(array $c): float
 {
     $s = array_map(static function ($v) {
@@ -221,6 +243,39 @@ foreach ($meta['candidates'] as $c) {
     $cut = ($inkToPlate * HALO_FRACTION) ** 2;                                    // legacy path only
     $plateTol2 = max(PLATE_TOLERANCE_FLOOR, $inkToPlate * PLATE_TOLERANCE_RATIO) ** 2;
 
+    // ⚠️ GAP B RECOVERY (i) (DO-PROBE-3): a SOLID background IS the plate, exactly. No column hunting, no
+    // anti-alias fringe — and, critically, it works when text fills the element EDGE TO EDGE, which is the
+    // whole no-clear-band class. Short-circuits the scan below, so the `continue` that refuses dense text is
+    // never reached for these. Only trusted when the collector saw no gradient or image anywhere up the chain.
+    if (! empty($c['solidBg'])) {
+        $solid = array_map('intval', $c['solidBg']);
+        $alphaS = isset($c['alpha']) ? (float) $c['alpha'] : 1.0;
+
+        if ($alphaS < 0.05) {
+            $unmeasurable[] = [$label, 'invisible-zero-opacity'];
+
+            continue;
+        }
+
+        $paintedS = $alphaS >= 1.0 ? $c['fg'] : compositeAt($c['fg'], $solid, $alphaS);
+        $ratioS = contrast($paintedS, $solid);
+
+        $measured++;
+        $ratios[$label] = $ratioS;
+
+        if ($ratioS < $c['need']) {
+            $failures[] = [
+                'text' => $label,
+                'colour' => $c['css'],
+                'plate' => 'rgb('.implode(',', $solid).')',
+                'ratio' => $ratioS,
+                'need' => $c['need'],
+            ];
+        }
+
+        continue;
+    }
+
     $plate = [];
     $clearColumns = 0;
     for ($x = $x1; $x < $x2; $x++) {
@@ -258,12 +313,26 @@ foreach ($meta['candidates'] as $c) {
         continue;
     }
 
+    // ⚠️ GAP A's floor: a subtree at (near) zero opacity is INVISIBLE. Compositing would return ~1.0, which
+    // reads as a catastrophic contrast failure rather than "there is nothing on screen". Refuse instead.
+    if (isset($c['alpha']) && (float) $c['alpha'] < 0.05) {
+        $unmeasurable[] = [$label, 'invisible-zero-opacity'];
+
+        continue;
+    }
+
     // ⚠️ THE WORST CLEAR COLUMN. These pixels are genuine background, so the true minimum is the honest worst
     // position (DO-EMAIL-7) — halo is now excluded by CONSTRUCTION rather than by statistics, so no percentile
     // is needed. The percentile survives only for the legacy path.
+    // ⚠️ GAP A: measure what is PAINTED, not what is declared. `alpha` is the product of the element's own
+    // opacity and every ancestor's (supplied by the collector); 1.0 for the ordinary case, so this is a no-op
+    // everywhere except the dimmed subtrees the probe previously refused to measure at all.
+    $alpha = isset($c['alpha']) ? (float) $c['alpha'] : 1.0;
+
     $scored = [];
     foreach ($plate as $p) {
-        $scored[] = [contrast($c['fg'], $p), $p];
+        $painted = $alpha >= 1.0 ? $c['fg'] : compositeAt($c['fg'], $p, $alpha);
+        $scored[] = [contrast($painted, $p), $p];
     }
     usort($scored, static fn ($a, $b) => $a[0] <=> $b[0]);
     $worst = $legacyInterior

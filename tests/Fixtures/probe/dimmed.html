@@ -1,0 +1,44 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>DO-PROBE-3 GAP A — ancestor-opacity fixture</title>
+<!--
+  ⚠️ A KNOWN-ANSWER FIXTURE FOR THE EFFECTIVE-ALPHA COMPOSITE.
+
+  Every value here is chosen so the answer can be computed BY HAND and checked against a raw pixel, with no
+  reference to the tool's own arithmetic (§N.18.1).
+
+    (⚠️ These figures are the HAND-COMPUTED truth, corrected once during authoring — the first draft of this
+     comment carried 4.09/2.15, which were simply wrong. A fixture whose stated answer is wrong certifies
+     nothing, so the numbers below were recomputed and cross-checked against the rendered pixels.)
+
+    plate            = #FFFFFF  (a flat white card — no gradient, so the plate is unambiguous)
+    declared text    = #000000  (black; contrast on white = 21.00, the maximum)
+    ancestor opacity = 0.55     → painted text = .55*0 + .45*255 = 114.75 -> rgb(115,115,115)
+                                → contrast(rgb(115,115,115), white) = 4.74
+
+  So: the DECLARED colour says 21.00, the PAINTED colour says 4.74. A tool that reports 21 here is measuring
+  a colour that is not on the screen — which is exactly the false clean bill DO-A11Y-1 hit at 9.40-vs-2.89.
+
+  The NESTED case multiplies: .55 * .50 = 0.275 → .275*0 + .725*255 = 184.9 -> rgb(185,185,185) → 1.96.
+  The ZERO case is invisible and must stay UNMEASURABLE rather than returning ~1.0.
+-->
+<style>
+  body { margin: 0; background: #FFFFFF; font: 16px/1.6 Inter, Arial, sans-serif; }
+  .row { padding: 18px 24px; background: #FFFFFF; }
+  .dim55 { opacity: 0.55; }
+  .dim50 { opacity: 0.50; }
+  .zero  { opacity: 0; }
+  .t { color: #000000; font-size: 15px; font-weight: 500; }
+</style>
+
+<!-- undimmed control: declared == painted, contrast 21.00 -->
+<div class="row"><span class="t" id="plain">Plain black on white</span></div>
+
+<!-- the case that matters: one ancestor at .55 -->
+<div class="row dim55"><span class="t" id="dim">Dimmed by an ancestor</span></div>
+
+<!-- nested dimming: alphas multiply -->
+<div class="row dim55"><div class="dim50"><span class="t" id="nested">Nested dimming</span></div></div>
+
+<!-- invisible: must be refused, never scored -->
+<div class="row zero"><span class="t" id="invisible">Invisible text</span></div>

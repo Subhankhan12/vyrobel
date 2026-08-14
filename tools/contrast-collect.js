@@ -33,7 +33,6 @@ function vyCollectContrast() {
     let n = 0;
     let rejectedNotPainted = 0;
     let rejectedOffscreen = 0;
-    const ancestorDimmed = [];   // SCOPE GAP 3 — unmeasurable-pending, never counted as clean
 
     document.querySelectorAll('*').forEach((el) => {
         // Only elements painting their OWN text: a wrapper's rect spans its children, so it would be measured
@@ -43,35 +42,32 @@ function vyCollectContrast() {
 
         const cs = getComputedStyle(el);
         if (cs.visibility === 'hidden' || cs.display === 'none') return;
-        if (parseFloat(cs.opacity) < 0.95) return;
+        // (no own-opacity refusal: GAP A composites it instead — see the alpha walk below)
 
-        // ⚠️ SCOPE GAP 3 (DO-PROBE-3), added in the Part-B data sweep. The check above reads the element's OWN
-        // opacity, which is 1 even when an ANCESTOR fades the whole row, card or empty-state block. Such an
-        // element paints BELOW its declared colour, so any ratio computed from `cs.color` is optimistic — a
-        // FALSE CLEAN BILL, the worst output this tool can produce. DO-A11Y-1 hit exactly this: a locked nav
-        // item at opacity .55 painted its label at 2.89 while declaring a colour that measures 9.40.
+        // ⚠️ SCOPE GAP 3 — RAISED in the Part-B data sweep, CLOSED here by DO-PROBE-3.
         //
-        // ⚠️ This FLAGS, it does not fix. Computing the true dimmed contrast means compositing both the glyph
-        // and its plate at the effective alpha, which is the real DO-PROBE-3 work. Reporting the element as
-        // unmeasurable-with-a-reason is the honest interim: an unmeasurable is UNSWEPT, never clean.
+        // The `visibility`/`display` checks above say nothing about opacity, and an element's OWN opacity is 1
+        // even when an ANCESTOR fades the whole row, card or empty-state block. Such an element paints BELOW
+        // its declared colour, so a ratio computed from `cs.color` is optimistic — a FALSE CLEAN BILL, the
+        // worst output this tool can produce. DO-A11Y-1 hit exactly this: a locked nav item at opacity .55
+        // painted its label at 2.89 while DECLARING a colour that measures 9.40.
         //
-        // ⚠️ Data-conditional states lean on ancestor opacity heavily — dimmed "no results" blocks, disabled
-        // rows, loading skeletons — which is precisely why this gap had to close before the axis-3 sweep.
+        // The interim fix flagged such elements unmeasurable. They are now MEASURED properly:
+        // ⚠️ GAP A CLOSED (DO-PROBE-3). This block used to REFUSE such an element; it now measures it.
+        // CSS opacity composites the whole subtree, so the effective alpha is the PRODUCT of this element's own
+        // opacity and every ancestor's. The sampler composites the declared colour over the plate at that alpha
+        // and measures what is actually PAINTED. `alpha` is 1 for the ordinary case, so nothing else changes.
+        let alpha = parseFloat(cs.opacity);
         let dimmedBy = null;
         for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
             const ao = parseFloat(getComputedStyle(a).opacity);
             if (ao < 1) {
-                dimmedBy = { sel: a.tagName.toLowerCase() + (typeof a.className === 'string' && a.className.trim()
-                    ? '.' + a.className.trim().split(/\s+/).slice(0, 2).join('.') : ''), opacity: ao };
-                break;
+                alpha *= ao;
+                if (!dimmedBy) {
+                    dimmedBy = a.tagName.toLowerCase() + (typeof a.className === 'string' && a.className.trim()
+                        ? '.' + a.className.trim().split(/\s+/).slice(0, 2).join('.') : '');
+                }
             }
-        }
-        if (dimmedBy) {
-            ancestorDimmed.push({ sel: el.tagName.toLowerCase() + (typeof el.className === 'string' && el.className.trim()
-                ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : ''),
-            txt: el.textContent.trim().slice(0, 40), css: cs.color,
-            dimmedBy: dimmedBy.sel, ancestorOpacity: dimmedBy.opacity });
-            return;
         }
 
         const r = el.getBoundingClientRect();
@@ -94,6 +90,23 @@ function vyCollectContrast() {
         const hit = document.elementFromPoint(cx, cy);
         if (!hit || !(hit === el || el.contains(hit) || hit.contains(el))) { rejectedNotPainted++; return; }
 
+        // ⚠️ GAP B RECOVERY (i) (DO-PROBE-3). When the painted background is a SOLID colour, the plate is not
+        // something to go hunting for between glyphs — it IS that colour, exactly. Walking up to the nearest
+        // ancestor with a non-transparent background and no gradient gives it directly, which both removes the
+        // anti-alias fringe the clear-column scan can pick up AND rescues the dense-text case where no clear
+        // column exists at all. It is only claimed when there is genuinely no image/gradient in play.
+        let solidBg = null;
+        for (let a = el; a && a !== document.documentElement; a = a.parentElement) {
+            const acs = getComputedStyle(a);
+            if (acs.backgroundImage && acs.backgroundImage !== 'none') break;   // a gradient/photo — not solid
+            const m2 = (acs.backgroundColor || '').match(/[\d.]+/g);
+            if (!m2) continue;
+            const op = m2[3] === undefined ? 1 : parseFloat(m2[3]);
+            if (op < 1) continue;                                              // translucent — composite unknown
+            solidBg = [+m2[0], +m2[1], +m2[2]];
+            break;
+        }
+
         const size = parseFloat(cs.fontSize);
         const bold = parseInt(cs.fontWeight, 10) >= 700;
 
@@ -110,6 +123,10 @@ function vyCollectContrast() {
             h: Math.round(r.height),
             // WCAG large text: >=24px, or >=18.66px when bold.
             need: (size >= 24 || (size >= 18.66 && bold)) ? 3.0 : 4.5,
+            // GAP A: what the subtree actually paints at. 1 unless something above dims it.
+            alpha: Math.round(alpha * 1000) / 1000,
+            dimmedBy,
+            solidBg,
         });
     });
 
@@ -126,9 +143,6 @@ function vyCollectContrast() {
         url: location.pathname + location.search,
         rejectedNotPainted,
         rejectedOffscreen,
-        // ⚠️ UNSWEPT, NOT CLEAN. Read this beside `failed`: a 0-failure page with a non-empty
-        // ancestorDimmed list has simply not been measured there.
-        ancestorDimmed,
         candidates: out,
     };
 }

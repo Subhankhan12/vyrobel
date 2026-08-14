@@ -7484,3 +7484,70 @@ avatar, missing the owner copy, or re-darkening the plan-tag each RED the guard.
 
 ⚠️ The §N.8f invariant that caught the original owner-copy miss is **unchanged in force, only in value**: the
 two shells must agree. It caught a miss in one direction; it now catches one in the other.
+
+
+# (N.23) 🏁 DO-PROBE-3 — TWO PROBE GAPS CLOSED, ONE BLOCKED (2026-08-14)
+
+Three named scope gaps, each attacked independently and each trusted only where a **known-answer fixture**
+proves it. **The instrument's honest scope is now narrower in its unknowns and wider in what it measures.**
+
+## §N.23.1 ✅ GAP A — ancestor opacity, CLOSED (measured, not flagged)
+
+CSS `opacity` composites the whole subtree, so the effective alpha is the **product down the ancestor chain**
+and the painted colour is the ordinary source-over composite `alpha*text + (1-alpha)*plate`. The collector now
+computes that alpha; the sampler composites and measures **what is painted** rather than what is declared.
+
+| fixture case | declared says | painted (hand-computed) | sampler |
+|---|---|---|---|
+| black on white, no dimming | 21.00 | 21.00 | **21.00** ✓ |
+| ancestor `opacity:.55` | 21.00 | **4.74** | **4.74** ✓ |
+| nested `.55 × .50 = .275` | 21.00 | **1.96** | **1.96** ✓ |
+| `opacity:0` | — | invisible | **UNMEASURABLE** (`invisible-zero-opacity`) ✓ |
+
+⚠️ **§N.18.1 — VALIDATED AGAINST RAW PIXELS, NOT THE TOOL'S OWN ARITHMETIC.** The painted glyphs read straight
+out of the PNG are **exactly** `0`, `115`, `185` — precisely what the alpha model predicts. *The model
+describes what the browser actually paints; the ratio is then just arithmetic on top of it.*
+
+⚠️ **The real-world witness** is DO-A11Y-1's locked nav item: it DECLARED a colour measuring **9.40** while
+PAINTING at **2.89**. Measuring the declared value there was the worst false clean bill this tool has produced.
+
+⚠️ **Zero opacity refuses rather than scoring ~1.0** — compositing at alpha 0 returns the plate itself, which
+would read as a catastrophic contrast failure instead of "nothing is painted here".
+
+## §N.23.2 ✅ GAP B — dense text, PARTIALLY closed, residue named
+
+| sub-class | status | evidence |
+|---|---|---|
+| dense text on a **SOLID** background | ✅ **NOW MEASURABLE** | the computed background **IS** the plate — no column hunting, no anti-alias fringe, and it works when text fills the box edge-to-edge. Fixture hits the hand-computed **4.54** exactly |
+| dense text on a **gradient** with line-leading | ✅ measurable | the existing clear-column path recovers it (4.59) |
+| dense text on a **gradient, edge-to-edge** | ⚠️ **STAYS UNMEASURABLE** | there is genuinely no background pixel to read; any figure would be invented. Still reports `no-clear-band` |
+
+⚠️ **A FIXTURE THAT FAILED TO BUILD ITS OWN CASE, reported rather than papered over.** The new `#edge` fixture
+was *intended* to be the residue case and produced a number instead — its text did not truly fill the box, so
+clear columns existed. The residue is therefore still carried by the **pre-existing** committed
+`dense-noband` fixture, which was re-verified to refuse. *A fixture that does not construct the case it claims
+certifies nothing.*
+
+## §N.23.3 ⛔ GAP C — dompdf PDFs, BLOCKED ON TOOLING
+
+The 5 `pdfs/*` are server-rendered; a browser probe cannot reach them, and **no rasterizer exists in this
+environment**: `pdftoppm` ✗ · `ghostscript` (`gs`) ✗ · `mutool` ✗ · `qpdf` ✗ · ImageMagick `convert` ✗ ·
+php-`imagick` ✗. **Not faked.** Unblocking needs ONE of: `brew install poppler` (pdftoppm) or
+`brew install ghostscript`, then a small non-browser sampler that rasterizes a page and samples the same way.
+
+⚠️ Note a second obstacle beyond the rasterizer: a PDF has **no DOM**, so there are no element rects to sample
+against. The PDF path needs its own candidate model (declared template colours, or region annotations) — it is
+a different instrument for a different medium, not a reuse of this one.
+
+## §N.23.4 🧭 THE INSTRUMENT'S HONEST SCOPE, UPDATED
+
+**NOW MEASURES:** flat plates · page/card gradients · gradient BUTTONS on their own plate · dense small text
+via clear columns · **text under dimmed ancestors, at its true painted colour** · **dense text on any solid
+background, with no clear column required**.
+
+**STILL CANNOT MEASURE:** dense text filling a **gradient** element edge-to-edge (no plate pixel exists) ·
+text over a **photo** backdrop · **dompdf PDFs** (blocked on a rasterizer, and needing their own candidate
+model). Each reports a REASON, never a number.
+
+⚠️ **Eight corrections now**: §N.20.1's four, Part B's two capture faults, and these two. **Every one was
+caught by a fixture with a known answer — none by the numbers looking wrong.**

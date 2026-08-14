@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>DO-PROBE-3 GAP B — recovery vs residue</title>
+<!--
+  ⚠️ THE THREE NO-CLEAR-BAND SUB-CLASSES, so the honest scope can be stated per-class rather than in general.
+
+    #solid    dense text, SOLID background        → RECOVERABLE (the background IS the plate)
+    #leading  dense text, gradient, line-leading  → RECOVERABLE (clear pixels above/below the glyph run)
+    #edge     dense text, gradient, edge-to-edge  → ⚠️ STAYS UNMEASURABLE (no plate pixel exists to read)
+
+  The third is the honest residue: there is genuinely no background pixel inside that box, so any number the
+  tool produced would be invented. It must report a REASON, not a ratio.
+-->
+<style>
+  body { margin:0; font: 15px/1.0 Inter, Arial, sans-serif; }
+  .solid   { background:#FFFFFF; color:#767676; padding:10px; width:760px; }
+  .grad    { background:linear-gradient(90deg,#F6C89B,#D9D6D2); color:#5F5853; width:760px; }
+  .leading { padding:14px 10px; line-height:2.6; }
+  .edge    { padding:0; line-height:1.0; letter-spacing:-0.3px; font-size:15px; }
+</style>
+<div class="solid" id="solid">Dense text on a solid background repeated to fill the whole box width edge to edge here</div>
+<div class="grad leading" id="leading">Dense text on a gradient but with generous line leading above and below the run</div>
+<div class="grad edge" id="edge">Densetextonagradientfillingtheboxedgetoedgewithnoclearbackgroundpixelanywhereinside</div>

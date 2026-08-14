@@ -1,0 +1,103 @@
+{
+  "docWidth": 900,
+  "docHeight": 400,
+  "viewportH": 400,
+  "viewportW": 900,
+  "url": "/__probe/dimmed.html",
+  "rejectedNotPainted": 0,
+  "rejectedOffscreen": 0,
+  "candidates": [
+    {
+      "t": "plain",
+      "sel": "span#plain",
+      "txt": "Plain black on white",
+      "css": "rgb(0, 0, 0)",
+      "fg": [
+        0,
+        0,
+        0
+      ],
+      "x": 24,
+      "y": 23,
+      "w": 133,
+      "h": 17,
+      "need": 4.5,
+      "alpha": 1,
+      "dimmedBy": null,
+      "solidBg": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "t": "dim",
+      "sel": "span#dim",
+      "txt": "Dimmed by an ancestor",
+      "css": "rgb(0, 0, 0)",
+      "fg": [
+        0,
+        0,
+        0
+      ],
+      "x": 24,
+      "y": 84,
+      "w": 158,
+      "h": 17,
+      "need": 4.5,
+      "alpha": 0.55,
+      "dimmedBy": "row dim55",
+      "solidBg": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "t": "nested",
+      "sel": "span#nested",
+      "txt": "Nested dimming",
+      "css": "rgb(0, 0, 0)",
+      "fg": [
+        0,
+        0,
+        0
+      ],
+      "x": 24,
+      "y": 146,
+      "w": 108,
+      "h": 17,
+      "need": 4.5,
+      "alpha": 0.275,
+      "dimmedBy": "dim50",
+      "solidBg": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "t": "invisible",
+      "sel": "span#invisible",
+      "txt": "Invisible text",
+      "css": "rgb(0, 0, 0)",
+      "fg": [
+        0,
+        0,
+        0
+      ],
+      "x": 24,
+      "y": 207,
+      "w": 83,
+      "h": 17,
+      "need": 4.5,
+      "alpha": 0,
+      "dimmedBy": "row zero",
+      "solidBg": [
+        255,
+        255,
+        255
+      ]
+    }
+  ]
+}

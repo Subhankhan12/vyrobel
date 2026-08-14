@@ -9369,7 +9369,7 @@ booking (2), most owner (18) and operator (15), plus admin (2) and the notificat
 | id | what | note |
 |---|---|---|
 | **`DO-EMAIL-5-continued-4`** | the ~55 remaining data-conditional files | throughput, at the founder-chosen depth |
-| **`DO-PROBE-3`** | the fixable probe gaps | dense-text `no-clear-band` (the biggest coverage hole, 6–71/page) · the **correct computation** for ancestor-dimmed elements (detect-and-flag is already in) · **PDF reachability** (needs a non-browser tool) |
+| ~~`DO-PROBE-3`~~ | ✅ **A + B(partial) CLOSED · C BLOCKED** (2026-08-14) | **A**: ancestor-opacity now MEASURED at the painted colour (validated against raw pixels: 0/115/185 exactly). **B**: solid-background plates recovered (dense text no longer needs a clear column); the gradient edge-to-edge residue **stays unmeasurable** by design. **C**: ⛔ **BLOCKED ON TOOLING** — no rasterizer in the env (`pdftoppm`/`gs`/`mutool`/`qpdf`/`convert`/imagick all absent); needs `brew install poppler` or `ghostscript`, plus its own candidate model since a PDF has no DOM. Canon: **§N.23** |
 | **`DO-A11Y-1-continued`** | further shell-copy misses | a **watch item**, not a task |
 | ~~`DO-A11Y-3`~~ | ✅ **CLOSED** — white-on-accent CTAs | light stop `#E8703A` → **`#D14102`** (white 4.70) across **all 43 occurrences in 29 files**. ⚠️ The recorded premise *"no warm orange lighter than #C2410C reaches 4.5"* was **false** — the gradient survives, narrowed. The ~42 **standalone** `#E8703A` uses are untouched (guarded) |
 | ~~`DO-A11Y-4`~~ | ✅ **CLOSED** — `.vy-fd-*` | 3.57 / 4.23 / 4.36 → `--vy-on-grad` |
