@@ -9,6 +9,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Property;
 use App\Models\ReservationUnit;
 use App\Support\Analytics\BookingCadence;
+use App\Support\Analytics\CustomRange;
 use App\Support\Analytics\MetricSet;
 use App\Support\Analytics\PerformanceMetrics;
 use Carbon\CarbonImmutable;
@@ -66,6 +67,13 @@ class OperatorInsights extends Component
             'viewer' => $this->viewer(),
             'scopeLabel' => $this->viewingAllProperties ? 'All properties' : $this->currentPropertyName(),
             'ranges' => $this->rangeOptions($range['key']),
+            // D3-1 — echo the submitted values so the fields keep what was typed after a GET, and flag a
+            // rejected window so the page can say so rather than silently showing a preset.
+            'customFrom' => (string) (request()->query(CustomRange::FROM) ?? ''),
+            'customTo' => (string) (request()->query(CustomRange::TO) ?? ''),
+            'customRejected' => CustomRange::requested(request()->query(CustomRange::FROM), request()->query(CustomRange::TO))
+                && $range['key'] !== 'custom',
+            'customMaxMonths' => CustomRange::MAX_MONTHS,
             'activeRange' => $range,
             'cards' => $this->cards($metrics, $ly, $leadTime, $currency),
             'channelMix' => $this->channelMix($metrics),
@@ -388,6 +396,22 @@ class OperatorInsights extends Component
     {
         $today = CarbonImmutable::today();
         $key = (string) request()->query('range', 'this-year');
+
+        // D3-1 — a CUSTOM window takes precedence, and returns the SAME shape a preset does. Everything below
+        // this method already consumes only `start`/`end`, so the custom range flows through the identical
+        // metric calls, the identical span-shifted last-year comparison, and therefore D3-4's coverage guard
+        // on the MetricSet those calls return. ⚠️ A second, custom-only metric path would have re-opened the
+        // exact fake-full-month LY figure D3-4 just closed (§N.8f).
+        // ⚠️ An unusable range resolves to null and falls through to the presets — a half-typed URL shows the
+        // figures the user would have seen anyway, never an empty page.
+        $custom = CustomRange::resolve(
+            request()->query(CustomRange::FROM),
+            request()->query(CustomRange::TO),
+        );
+
+        if ($custom !== null) {
+            return $custom;
+        }
 
         $year = $today->year;
 

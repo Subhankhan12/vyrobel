@@ -10254,3 +10254,51 @@ which looks exactly like the feature failing. Confirmed against the real demo ro
 
 `/attention/dismiss` and mark-read are byte-identical to before; DO6-2 (grouping) and D30-3 (digest) remain
 separate.
+
+
+---
+
+## 2026-08-15 — D3-1 · a custom date range on operator Insights
+
+⚠️ **THE ITEM WAS SMALL BECAUSE THE PLUMBING WAS ALREADY RIGHT — confirmed before building, not assumed:**
+`resolveRange()` is ONE seam returning `['key','label','start','end']`, and everything below it consumes only
+the two dates; the last-year comparison was ALREADY a span shift (`->subYear()` on both ends), so it is
+correct for an arbitrary window with no change at all. The whole feature is a branch in that one method plus
+a picker.
+
+⚠️ **AND THE CONVERGENCE IS WHAT MAKES IT CORRECT, NOT MERELY TIDY.** D3-4's coverage guard lives on the
+`MetricSet` that `forProperties()` returns. A custom range with its own metric path would have rendered the
+exact fake-full-month prior-year figure D3-4 had just removed — **a regression introduced by a new feature
+rather than by editing the fixed code.** The inheritance is asserted both ways: a custom window over a thin
+prior year suppresses, and one over a fully-covered prior year still compares.
+
+⚠️ **THE MAX SPAN IS DICTATED BY THE COMPUTATION, NOT BY TASTE.** `PerformanceMetrics::monthlyTrend*()` walks
+months under a `$guard < 13`. Every PRESET is inside that cap, so it has never bitten — an arbitrary range is
+the first thing that could reach it, and a 14-month window would have returned 13 bars under a heading
+claiming more (§N.8d). The bound is enforced at the seam rather than by loosening a guard in the metric layer
+this item must not touch, and a test reads the guard so the two are re-reconciled deliberately if it changes.
+
+**Three smaller decisions worth recording:**
+- **End-EXCLUSIVE.** `?to=` is the last day the user means to include; the metric windows are half-open, and
+  every preset already adds a day. A custom window that stopped ON the typed date would have been the one
+  range in the product that silently drops a day.
+- **Backwards is REJECTED, not swapped.** Swapping would answer a different question while the fields still
+  read the other way round. An unusable window falls back to a preset AND says so, keeping the typed values
+  so they can be corrected — silence would show preset figures under fields claiming otherwise.
+- **A plain GET form**, like the preset links: the range rides the URL, so it is shareable and bookmarkable
+  and works without JavaScript.
+
+⚠️ **Logged, not done (`D3-1a`):** the OWNER Insights has its OWN `resolveRange()` (3 presets to the
+operator's 5) and no custom window. `CustomRange` is realm-agnostic so wiring it there is the same one
+branch — but the two preset SETS already differ, and a range-picker item should not silently unify an
+existing divergence.
+
+⚠️ **A guard-authoring trap hit for the THIRD time this session:** the "no metric call in the resolver" check
+grepped for `PerformanceMetrics::`, which the resolver's docblock legitimately NAMES to explain what it
+deliberately does not call. Tokenised — a source-scanning guard must read what RUNS, not what is written
+about it.
+
+Browser-verified (§N.21.6): a custom Jul–Aug 2026 window renders labelled `1 Jul 2026 – 31 Aug 2026` with
+**9 month-bars against the preset's 19** — the chart genuinely narrowed; a backwards window and a 14-month
+window each show the rejection notice with their values kept. No fixture was needed (the range rides the
+URL); the demo is unchanged.

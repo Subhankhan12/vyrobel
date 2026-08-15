@@ -12,9 +12,29 @@
                 @foreach ($ranges as $r)
                     <a class="vy-pill @if ($r['active']) is-on @endif" href="?range={{ $r['key'] }}">{{ $r['label'] }}</a>
                 @endforeach
+
+                {{-- D3-1 — a CUSTOM window beside the presets. A plain GET form, like every preset link, so the
+                     range rides the URL and is shareable/bookmarkable — and so it works without JavaScript,
+                     matching how the presets already behave.
+                     ⚠️ Everything downstream takes only start/end, so this feeds the SAME metric path, the
+                     SAME span-shifted last-year comparison and therefore D3-4's coverage guard. --}}
+                <form method="GET" style="display:flex;align-items:center;gap:6px;margin-left:4px">
+                    <label class="vy-sr-only" for="ins-from">Range start</label>
+                    <input type="date" id="ins-from" name="from" value="{{ $customFrom }}" class="vy-pill" style="padding:5px 9px;font-size:12px">
+                    <span class="vy-topbar-sub" style="font-size:12px" aria-hidden="true">-</span>
+                    <label class="vy-sr-only" for="ins-to">Range end</label>
+                    <input type="date" id="ins-to" name="to" value="{{ $customTo }}" class="vy-pill" style="padding:5px 9px;font-size:12px">
+                    <button type="submit" class="vy-pill @if ($activeRange['key'] === 'custom') is-on @endif">Apply</button>
+                </form>
             </div>
             <div class="vy-right"><span class="vy-topbar-sub" style="font-size: 12px;">Switch property in the top bar →</span></div>
         </div>
+
+        {{-- D3-1 — ⚠️ AN UNUSABLE WINDOW SAYS SO. Falling back to a preset silently would answer a different
+             question than the one the fields still show. The reasons are the real ones the resolver enforces. --}}
+        @if ($customRejected)
+            <div class="vy-flash vy-fade" role="status">That date range couldn't be used — check the start is on or before the end, and that the window covers no more than {{ $customMaxMonths }} months. Showing {{ $activeRange['label'] }} instead.</div>
+        @endif
 
         @if ($multiCurrency)
             <div class="vy-flash vy-fade" role="status">This scope spans more than one currency — money figures cover {{ $activeRange['label'] }} in the primary currency only.</div>
