@@ -10552,3 +10552,64 @@ identical to its pre-pass snapshot; zero withdrawn rows, zero audit residue.
 operator draft-exclusion · the submit flow. **Also logged, not built:** there is no "discard draft" — a draft
 is resumed or simply left, and deleting one is a different decision from retracting a filed request.
 Suite **2232 / 2223**, 14,338 assertions, 6 non-green = the documented set; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-15 — DO9-3b · the REVERSE race: approve()/decline() locked
+
+**DO9-3 closed owner→operator and logged the other direction as open. This closes it.**
+
+⚠️ **THE DEFECT, CONFIRMED BY READING AND THEN BY A RED TEST.** `approve()` checked `pending` on the CALLER'S
+COPY, outside its transaction; `decline()` did the same and had **no transaction at all**. So an operator
+approve already in flight could land on a request the owner had just withdrawn — and **create a real,
+bookable unit for a retracted request**: inventory the operator is billed for, assigned to an owner who had
+said no. That material side-effect is what made this worse than a stale status.
+
+⚠️ **THE TESTS WERE WRITTEN FIRST, AND RUN AGAINST THE UNHARDENED CODE.** Five failed — including an approve
+of a genuinely `withdrawn` request succeeding. Proving the defect *with the instrument that will later prove
+the fix* is worth more than fixing first and asserting after: it shows the test can actually detect it.
+
+**CONVERGED (§N.8f).** All three transitions now run through ONE private `transitionFromPending()`:
+a transaction, a `lockForUpdate` on the request, and a re-check of **the LOCKED row's** status inside that
+lock; `$apply` runs only on a row confirmed `pending` at that instant, and runs INSIDE the transaction.
+`withdraw()` folded in behaviour-identically. One race-safety mechanism, not three copies that drift.
+
+⚠️ **ATOMICITY IS THE POINT, NOT JUST THE GATE.** Approve's unit creation, the availability recompute, the
+status write, the audit and the notification all sit inside the locked transaction, after the re-check — so
+"refused" and "no unit" are the same fact rather than two things that have to agree. Mutation M3 (run the
+side-effect *before* the gate) reds 6 tests.
+
+⚠️ **THE REFUSAL MESSAGE STAYED WITH THE CALLER.** The mechanism is shared; the wording is not. The operator
+paths speak to staff ("Only a pending request can be approved."); `withdraw()` speaks to the owner and names
+which state beat them. Collapsing both into one sentence would have been de-duplication flattening a real
+distinction (§N.16.5, §N.27.4) — the payout-map lesson, applied before it could bite.
+
+**Also corrected inside the fix:** approve now builds the unit from the **locked** row (`requested_name`,
+`sleeps`, `owner_id`, `currency`) rather than the caller's copy, and resolves the property/room type AFTER the
+re-check — which keeps the failure ORDER unchanged (a non-pending request still refuses for being
+non-pending, not for a bad property id) and resolves nothing for a request about to be refused.
+
+**Proven:** 8 tests; **3 mutations, each verified to land.** ⚠️ **M1 is the one that matters**: replacing
+`$locked->status` with `$request->status` — the exact mutation that passed DO9-3's entire suite — now reds
+**five** tests, because every race test here forces a GENUINELY STALE in-memory model instead of going
+through HTTP (where the controller re-loads fresh and the two are indistinguishable). M2 (remove the
+re-check) reds six; M3 (side-effect before the gate) reds six.
+
+⚠️ **A GUARD THAT READ ITS OWN DOCBLOCK, for the fourth time in this programme (§N.27.5).** The
+"one lockForUpdate" assertion counted **three** — the code's one plus two mentions in the comments explaining
+it. Tokenised with `token_get_all`, skipping `T_COMMENT`/`T_DOC_COMMENT`. A source guard must read what RUNS.
+
+Browser-verified as the real operator: a pending request on screen → the owner withdrew behind the rendered
+page → Approve → **"Only a pending request can be approved."**, the row flipped to Withdrawn, and **8 units
+before, 8 after** with `created_unit_id` null and zero approve-audit rows. Fixture reverted; units and
+requests identical to the pre-pass snapshot.
+
+⚠️ **HONEST BOUND ON WHAT IS PROVEN.** These tests prove the **in-lock re-read** — that the decision uses the
+database's current truth, not the caller's snapshot. They do not prove the **lock's** mutual exclusion under
+genuine concurrency; that needs separate connections, which this repo already has a pattern for
+(`tests/Support/*_race_worker.php`, as used for double-booking). Adding a worker-based test for these
+transitions is **logged, not built**.
+
+**Untouched:** what approve/decline DO in the normal case (unit created, statuses/notes/reviewer stamped,
+owner notified — asserted unchanged) · withdraw's behaviour · isolation/RBAC/permissions. Suite **2240 /
+2231**, 14,381 assertions, 6 non-green = the documented set; PHPStan L5 (0); Pint clean.

@@ -199,53 +199,60 @@ class OwnerUnitRequestService
      */
     public function approve(UnitRequest $request, User $reviewer, string $propertyId, string $roomTypeId, ?string $note = null): Unit
     {
-        if ($request->status !== 'pending') {
-            throw new RuntimeException('Only a pending request can be approved.');
-        }
+        return $this->transitionFromPending(
+            $request,
+            function (UnitRequest $locked) use ($reviewer, $propertyId, $roomTypeId, $note): Unit {
+                // Tenant-scoped resolution — a foreign property/room-type id 404s via the global scope, and the
+                // room type must belong to the chosen property (no cross-property graft). ⚠️ Kept AFTER the
+                // pending re-check so the failure ORDER is unchanged (a non-pending request still refuses for
+                // being non-pending, not for a bad property id) and so nothing is resolved for a request that
+                // is about to be refused.
+                $property = Property::query()->findOrFail($propertyId);
+                $roomType = RoomType::query()->where('property_id', $property->id)->findOrFail($roomTypeId);
 
-        // Tenant-scoped resolution — a foreign property/room-type id 404s via the global scope, and the room type
-        // must belong to the chosen property (no cross-property graft).
-        $property = Property::query()->findOrFail($propertyId);
-        $roomType = RoomType::query()->where('property_id', $property->id)->findOrFail($roomTypeId);
+                $currency = (string) ($locked->currency ?? $property->currency ?? 'EUR');
 
-        $currency = (string) ($request->currency ?? $property->currency ?? 'EUR');
+                // ⚠️ EVERY VALUE COMES FROM THE LOCKED ROW, never the caller's copy — the unit is built from
+                // what the request actually says now.
+                $unit = Unit::create([
+                    'property_id' => $property->id,
+                    'room_type_id' => $roomType->id,
+                    'code' => $this->uniqueCode($property->id, (string) $locked->requested_name),
+                    'name' => (string) $locked->requested_name,
+                    'unit_kind' => (string) $locked->requested_kind,
+                    'max_occupancy' => $locked->sleeps > 0 ? $locked->sleeps : 2,
+                    'owner_id' => $locked->owner_id,
+                    'is_active' => true,
+                ]);
 
-        return DB::transaction(function () use ($request, $reviewer, $property, $roomType, $currency, $note): Unit {
-            $unit = Unit::create([
-                'property_id' => $property->id,
-                'room_type_id' => $roomType->id,
-                'code' => $this->uniqueCode($property->id, (string) $request->requested_name),
-                'name' => (string) $request->requested_name,
-                'unit_kind' => (string) $request->requested_kind,
-                'max_occupancy' => $request->sleeps > 0 ? $request->sleeps : 2,
-                'owner_id' => $request->owner_id,
-                'is_active' => true,
-            ]);
+                // The new unit adds to the room type's sellable inventory — recompute a forward year so it is
+                // bookable immediately (the certified availability spine, never a direct availability write).
+                $today = CarbonImmutable::today();
+                app(AvailabilityService::class)->recompute($roomType->id, $today->toDateString(), $today->addYear()->toDateString());
 
-            // The new unit adds to the room type's sellable inventory — recompute a forward year so it is bookable
-            // immediately (the certified availability spine, never a direct availability write).
-            $today = CarbonImmutable::today();
-            app(AvailabilityService::class)->recompute($roomType->id, $today->toDateString(), $today->addYear()->toDateString());
+                $locked->forceFill([
+                    'status' => 'approved',
+                    'created_unit_id' => $unit->id,
+                    'review_note' => $note,
+                    'reviewed_by' => $reviewer->getKey(),
+                    'reviewed_at' => now(),
+                ])->save();
 
-            $request->forceFill([
-                'status' => 'approved',
-                'created_unit_id' => $unit->id,
-                'review_note' => $note,
-                'reviewed_by' => $reviewer->getKey(),
-                'reviewed_at' => now(),
-            ])->save();
+                $this->audit->record('owner.unit_request_approved', $locked, null, [
+                    'unit_id' => $unit->id,
+                    'kind' => (string) $locked->requested_kind,
+                    'proposed_rate_minor' => $locked->requested_rate_minor,
+                    'currency' => $currency,
+                ]);
 
-            $this->audit->record('owner.unit_request_approved', $request, null, [
-                'unit_id' => $unit->id,
-                'kind' => (string) $request->requested_kind,
-                'proposed_rate_minor' => $request->requested_rate_minor,
-                'currency' => $currency,
-            ]);
+                $locked->owner?->user?->notify(new UnitRequestReviewedNotification($locked->refresh(), 'approved'));
 
-            $request->owner?->user?->notify(new UnitRequestReviewedNotification($request->refresh(), 'approved'));
-
-            return $unit;
-        });
+                return $unit;
+            },
+            // The OPERATOR's voice — deliberately not the owner-facing wording {@see withdrawRefusal()} uses.
+            // De-duplicating the MECHANISM must not flatten two different audiences into one message (§N.16.5).
+            fn (): string => 'Only a pending request can be approved.',
+        );
     }
 
     /**
@@ -257,22 +264,24 @@ class OwnerUnitRequestService
      */
     public function decline(UnitRequest $request, User $reviewer, ?string $note = null): UnitRequest
     {
-        if ($request->status !== 'pending') {
-            throw new RuntimeException('Only a pending request can be declined.');
-        }
+        return $this->transitionFromPending(
+            $request,
+            function (UnitRequest $locked) use ($reviewer, $note): UnitRequest {
+                $locked->forceFill([
+                    'status' => 'declined',
+                    'review_note' => $note,
+                    'reviewed_by' => $reviewer->getKey(),
+                    'reviewed_at' => now(),
+                ])->save();
 
-        $request->forceFill([
-            'status' => 'declined',
-            'review_note' => $note,
-            'reviewed_by' => $reviewer->getKey(),
-            'reviewed_at' => now(),
-        ])->save();
+                $this->audit->record('owner.unit_request_declined', $locked, null, ['kind' => (string) $locked->requested_kind]);
 
-        $this->audit->record('owner.unit_request_declined', $request, null, ['kind' => (string) $request->requested_kind]);
+                $locked->owner?->user?->notify(new UnitRequestReviewedNotification($locked->refresh(), 'declined'));
 
-        $request->owner?->user?->notify(new UnitRequestReviewedNotification($request->refresh(), 'declined'));
-
-        return $request;
+                return $locked;
+            },
+            fn (): string => 'Only a pending request can be declined.',
+        );
     }
 
     /**
@@ -300,22 +309,65 @@ class OwnerUnitRequestService
      */
     public function withdraw(UnitRequest $request): UnitRequest
     {
-        return DB::transaction(function () use ($request): UnitRequest {
+        return $this->transitionFromPending(
+            $request,
+            function (UnitRequest $locked): UnitRequest {
+                $locked->forceFill(['status' => 'withdrawn'])->save();
+
+                $this->audit->record('owner.unit_request_withdrawn', $locked, ['status' => 'pending'], [
+                    'status' => 'withdrawn',
+                    'kind' => (string) $locked->requested_kind,
+                ]);
+
+                return $locked->refresh();
+            },
+            // The OWNER's voice, and state-specific — they need to know WHICH outcome beat them.
+            fn (string $status): string => $this->withdrawRefusal($status),
+        );
+    }
+
+    /**
+     * DO9-3b — ⚠️ **THE ONE GUARDED TRANSITION** every `pending →` move runs through: approve, decline and
+     * withdraw (§N.8f — one race-safety mechanism, not three copies that drift).
+     *
+     * 🔒 A transaction, a `lockForUpdate` on the request, and a re-check of **the LOCKED row's** status inside
+     * that lock. `$apply` only ever runs on a row confirmed `pending` at that instant, and it runs INSIDE the
+     * transaction — so a side-effect is ATOMIC with the gate that allowed it.
+     *
+     * ⚠️ WHY THE LOCKED ROW AND NOT `$request`. The caller's model is a SNAPSHOT: a controller loaded it, a
+     * page rendered from it, an operator read it. Between that read and this call the row can move — and it
+     * demonstrably does, now that an owner can withdraw. Checking `$request->status` looks identical and is
+     * not: it passes every HTTP test (the controller re-loads fresh) while leaving the race wide open. That
+     * exact mutation survived DO9-3's whole suite; `UnitRequestTransitionRaceTest` forces genuinely stale
+     * models so it cannot survive again.
+     *
+     * ⚠️ WHAT THIS PREVENTED, concretely: an approve already in flight landing on a request the owner had
+     * just withdrawn, and **creating a real, bookable unit for a retracted request** — inventory the operator
+     * would be billed for, assigned to an owner who had said no.
+     *
+     * ⚠️ The REFUSAL MESSAGE stays with the caller. The mechanism is shared; the wording is not — the operator
+     * paths speak to staff, `withdraw()` speaks to the owner and names which state won. Collapsing those into
+     * one sentence would be de-duplication flattening a real distinction (§N.16.5, §N.27.4).
+     *
+     * @template TResult
+     *
+     * @param  callable(UnitRequest): TResult  $apply  runs only on a locked, confirmed-`pending` row
+     * @param  callable(string): string  $refusal  builds the message from the locked row's REAL status
+     * @return TResult
+     *
+     * @throws RuntimeException when the locked row is no longer pending
+     */
+    private function transitionFromPending(UnitRequest $request, callable $apply, callable $refusal): mixed
+    {
+        return DB::transaction(function () use ($request, $apply, $refusal) {
             // 🔒 Lock THIS row, then re-read its REAL status — never the one the caller was handed.
             $locked = UnitRequest::query()->lockForUpdate()->findOrFail($request->getKey());
 
             if ($locked->status !== 'pending') {
-                throw new RuntimeException($this->withdrawRefusal((string) $locked->status));
+                throw new RuntimeException($refusal((string) $locked->status));
             }
 
-            $locked->forceFill(['status' => 'withdrawn'])->save();
-
-            $this->audit->record('owner.unit_request_withdrawn', $locked, ['status' => 'pending'], [
-                'status' => 'withdrawn',
-                'kind' => (string) $locked->requested_kind,
-            ]);
-
-            return $locked->refresh();
+            return $apply($locked);
         });
     }
 
